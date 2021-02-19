@@ -6,19 +6,22 @@ order: 4
 
 The `x/incentive` module emits the following events:
 
-## MsgClaimReward
+## ClaimUSDXMintingReward
 
-| Type                 | Attribute Key       | Attribute Value      |
-|----------------------|---------------------|----------------------|
-| claim_reward         | claimed_by          | `{claiming address}' |
-| claim_reward         | claim_amount        | `{amount claimed}'   |
-| message              | module              | incentive            |
-| message              | sender              | `{sender address}'   |
+| Type                 | Attribute Key       | Attribute Value           |
+|----------------------|---------------------|---------------------------|
+| claim_reward         | claimed_by          | `{claiming address}'      |
+| claim_reward         | claim_amount        | `{amount claimed}'        |
+| claim_reward         | claim_type          | `{amount claimed}'        |
+| message              | module              | incentive                 |
+| message              | sender              | hard_liquidity_provider   |
 
-## BeginBlock
+## MsgClaimHardLiquidityProviderReward
 
-| Type                 | Attribute Key       | Attribute Value      |
-|----------------------|---------------------|----------------------|
-| new_claim_period     | claim_period        | `{claim period}'     |
-| new_reward_period    | reward_period       | `{reward period}'    |
-| claim_period_expiry  | claim_period        | `{claim period}'     |
+| Type                 | Attribute Key       | Attribute Value           |
+|----------------------|---------------------|---------------------------|
+| claim_reward         | claimed_by          | `{claiming address}'      |
+| claim_reward         | claim_amount        | `{amount claimed}'        |
+| claim_reward         | claim_type          | `{amount claimed}'        |
+| message              | module              | incentive                 |
+| message              | sender              | usdx_minting              |

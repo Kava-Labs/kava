@@ -6,24 +6,45 @@ order: 2
 
 ## Parameters and Genesis State
 
-`Parameters` define the collateral types which are eligible for rewards, the rate at which rewards are given to users, and the amount of time rewards must vest before users can transfer them.
+`Parameters` define the types of incentives that are available and the rewards that are available for each incentive.
 
 ```go
 // Params governance parameters for the incentive module
 type Params struct {
-  Active  bool    `json:"active" yaml:"active"` // top level governance switch to disable all rewards
-  Rewards Rewards `json:"rewards" yaml:"rewards"`
+  USDXMintingRewardPeriods   RewardPeriods      `json:"usdx_minting_reward_periods" yaml:"usdx_minting_reward_periods"` // rewards for minting USDX
+  HardSupplyRewardPeriods    MultiRewardPeriods `json:"hard_supply_reward_periods" yaml:"hard_supply_reward_periods"` // rewards for hard supply
+  HardBorrowRewardPeriods    MultiRewardPeriods `json:"hard_borrow_reward_periods" yaml:"hard_borrow_reward_periods"` // rewards for hard borrow
+  HardDelegatorRewardPeriods RewardPeriods      `json:"hard_delegator_reward_periods" yaml:"hard_delegator_reward_periods"` // rewards for kava delegators
+  ClaimMultipliers           Multipliers        `json:"claim_multipliers" yaml:"claim_multipliers"` // the available claim multipliers that determine who much rewards are paid out and how long rewards are locked for
+  ClaimEnd                   time.Time          `json:"claim_end" yaml:"claim_end"` // the time at which claims expire
 }
 
-// Reward stores the specified state for a single reward period.
-// Reward stores the specified state for a single reward period.
-type Reward struct {
-  Active           bool          `json:"active" yaml:"active"`                       // governance switch to disable a period
-  CollateralType   string        `json:"collateral_type" yaml:"collateral_type"`     // the collateral type rewards apply to, must be found in the cdp collaterals
-  AvailableRewards sdk.Coin      `json:"available_rewards" yaml:"available_rewards"` // the total amount of coins distributed per period
-  Duration         time.Duration `json:"duration" yaml:"duration"`                   // the duration of the period
-  ClaimMultipliers Multipliers   `json:"claim_multipliers" yaml:"claim_multipliers"` // the reward multiplier and timelock schedule - applied at the time users claim rewards
-  ClaimDuration    time.Duration `json:"claim_duration" yaml:"claim_duration"`       // how long users have after the period ends to claim their rewards
+```
+
+Each `RewardPeriod` defines a particular collateral for which rewards are eligible and the amount of rewards available.
+
+```go
+
+// RewardPeriod stores the state of an ongoing reward
+type RewardPeriod struct {
+  Active           bool      `json:"active" yaml:"active"` // if the reward is active
+  CollateralType   string    `json:"collateral_type" yaml:"collateral_type"` // the collateral type for which rewards apply
+  Start            time.Time `json:"start" yaml:"start"` // when the rewards start
+  End              time.Time `json:"end" yaml:"end"` // when the rewards end
+  RewardsPerSecond sdk.Coin  `json:"rewards_per_second" yaml:"rewards_per_second"` // per second reward payouts
+}
+```
+
+Each `MultiRewardPeriod` defines a particular collateral for which one or more reward tokens are eligible and the amount of rewards available
+
+```go
+// MultiRewardPeriod supports multiple reward types
+type MultiRewardPeriod struct {
+  Active           bool      `json:"active" yaml:"active"`
+  CollateralType   string    `json:"collateral_type" yaml:"collateral_type"`
+  Start            time.Time `json:"start" yaml:"start"`
+  End              time.Time `json:"end" yaml:"end"`
+  RewardsPerSecond sdk.Coins `json:"rewards_per_second" yaml:"rewards_per_second"` // per second reward payouts
 }
 ```
 
@@ -32,12 +53,13 @@ type Reward struct {
 ```go
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-  Params             Params                `json:"params" yaml:"params"`
-  PreviousBlockTime  time.Time             `json:"previous_block_time" yaml:"previous_block_time"`
-  RewardPeriods      RewardPeriods         `json:"reward_periods" yaml:"reward_periods"`
-  ClaimPeriods       ClaimPeriods          `json:"claim_periods" yaml:"claim_periods"`
-  Claims             Claims                `json:"claims" yaml:"claims"`
-  NextClaimPeriodIDs GenesisClaimPeriodIDs `json:"next_claim_period_ids" yaml:"next_claim_period_ids"`
+  Params                         Params                      `json:"params" yaml:"params"` // governance parameters
+  USDXAccumulationTimes          GenesisAccumulationTimes    `json:"usdx_accumulation_times" yaml:"usdx_accumulation_times"` // when USDX rewards were last accumulated
+  HardSupplyAccumulationTimes    GenesisAccumulationTimes    `json:"hard_supply_accumulation_times" yaml:"hard_supply_accumulation_times"`  // when hard supply rewards were last accumulated
+  HardBorrowAccumulationTimes    GenesisAccumulationTimes    `json:"hard_borrow_accumulation_times" yaml:"hard_borrow_accumulation_times"` // when hard borrow rewards were last accumulated
+  HardDelegatorAccumulationTimes GenesisAccumulationTimes    `json:"hard_delegator_accumulation_times"  yaml:"hard_delegator_accumulation_times"` // when hard delegator rewards were last accumulated
+  USDXMintingClaims              USDXMintingClaims           `json:"usdx_minting_claims" yaml:"usdx_minting_claims"` // USDX minting claims at genesis, if any
+  HardLiquidityProviderClaims    HardLiquidityProviderClaims `json:"hard_liquidity_provider_claims" yaml:"hard_liquidity_provider_claims"` // Hard liquidity provider claims at genesis, if any
 }
 ```
 
@@ -45,18 +67,35 @@ type GenesisState struct {
 
 For complete details for how items are stored, see [keys.go](../types/keys.go).
 
-### Reward Period Creation
+### Claim Creation
 
-At genesis, or when a collateral is added to rewards, a `RewardPeriod` is created in the store by adding to the existing array of `[]RewardPeriod`. If the previous period for that collateral expired, it is deleted. This implies that, for each collateral, there will only ever be one reward period.
+When users take incentivized actions, the `incentive` module will create or update a `Claim` object in the store, which represents the amount of rewards that the user is eligible to claim. The two defined claim objects are `USDXMintingClaims` and `HardLiquidityProviderClaims`:
 
-### Reward Period Deletion
+```go
 
-When a `RewardPeriod` expires, a new `ClaimPeriod` is created in the store with the next sequential ID for that collateral (ie, if the previous claim period was ID 1, the next one will be ID 2) and the current `RewardPeriod` is deleted from the array of `[]RewardPeriod`.
+// BaseClaim is a common type shared by all Claims
+type BaseClaim struct {
+  Owner  sdk.AccAddress `json:"owner" yaml:"owner"`
+  Reward sdk.Coin       `json:"reward" yaml:"reward"`
+}
 
-### Reward Claim Creation
+// BaseMultiClaim is a common type shared by all Claims with multiple reward denoms
+type BaseMultiClaim struct {
+  Owner  sdk.AccAddress `json:"owner" yaml:"owner"`
+  Reward sdk.Coins      `json:"reward" yaml:"reward"`
+}
 
-Every block, CDPs are iterated over and the collateral denom is checked for rewards eligibility. For eligible CDPs, a `Claim` is created in the store for all CDP owners, if one doesn't already exist. The claim object is associated with a `ClaimPeriod` via the ID. This implies that a `Claim` is created before `ClaimPeriod` are created. Therefore, a user who submits a `MsgClaimReward` will only be paid out IF 1) they have one or more active `Claim` objects, and 2) the `ClaimPeriod` with the associated ID for that object exists AND the current block time is between the start time and end time for that `ClaimPeriod`.
+// USDXMintingClaim is for USDX minting rewards
+type USDXMintingClaim struct {
+  BaseClaim     `json:"base_claim" yaml:"base_claim"` // Base claim object
+  RewardIndexes RewardIndexes `json:"reward_indexes" yaml:"reward_indexes"` // indexes which are used to calculate the amount of rewards a user can claim
+}
 
-### Reward Claim Deletion
-
-For claimed rewards, the `Claim` is deleted from the store by deleting the key associated with that denom, ID, and owner. Unclaimed rewards are handled as follows: Each block, the `ClaimPeriod` objects for each denom are iterated over and checked for expiry. If expired, all `Claim` objects for that ID are deleted, as well as the `ClaimPeriod` object. Since claim periods are monotonically increasing, once a non-expired claim period is reached, the iteration can be stopped.
+// HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
+type HardLiquidityProviderClaim struct {
+  BaseMultiClaim         `json:"base_claim" yaml:"base_claim"` // base claim object
+  SupplyRewardIndexes    MultiRewardIndexes `json:"supply_reward_indexes" yaml:"supply_reward_indexes"` // indexes which are used to calculate the amount of hard supply rewards a user can claim
+  BorrowRewardIndexes    MultiRewardIndexes `json:"borrow_reward_indexes" yaml:"borrow_reward_indexes"` // indexes which are used to calculate the amount of hard borrow rewards a user can claim
+  DelegatorRewardIndexes RewardIndexes      `json:"delegator_reward_indexes" yaml:"delegator_reward_indexes"` // indexes which are used to calculate the amount of hard delegator rewards a user can claim
+}
+```

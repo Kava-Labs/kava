@@ -63,4 +63,10 @@ var (
 	ErrInvalidRepaymentDenom = sdkerrors.Register(ModuleName, 28, "no coins of this type borrowed")
 	// ErrInvalidIndexFactorDenom error for when index factor denom cannot be found
 	ErrInvalidIndexFactorDenom = sdkerrors.Register(ModuleName, 29, "no index factor found for denom")
+	// ErrBelowMinimumBorrowValue error for when a proposed borrow position is less than the minimum USD value
+	ErrBelowMinimumBorrowValue = sdkerrors.Register(ModuleName, 30, "invalid proposed borrow value")
+	// ErrExceedsProtocolBorrowableBalance for when a requested borrow exceeds the module account's borrowable balance
+	ErrExceedsProtocolBorrowableBalance = sdkerrors.Register(ModuleName, 31, "exceeds borrowable module account balance")
+	// ErrReservesExceedCash for when the protocol is insolvent because available reserves exceeds available cash
+	ErrReservesExceedCash = sdkerrors.Register(ModuleName, 32, "insolvency - protocol reserves exceed available cash")
 )

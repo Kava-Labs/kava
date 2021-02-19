@@ -484,6 +484,26 @@ type AllowedCollateralParam struct {
 
 type AllowedCollateralParams []AllowedCollateralParam
 
+// NewAllowedCollateralParam return a new AllowedCollateralParam
+func NewAllowedCollateralParam(
+	ctype string, denom, liqRatio, debtLimit,
+	stabilityFee, auctionSize, liquidationPenalty,
+	prefix, spotMarket, liquidationMarket, conversionFactor bool) AllowedCollateralParam {
+	return AllowedCollateralParam{
+		Type:                ctype,
+		Denom:               denom,
+		LiquidationRatio:    liqRatio,
+		DebtLimit:           debtLimit,
+		StabilityFee:        stabilityFee,
+		AuctionSize:         auctionSize,
+		LiquidationPenalty:  liquidationPenalty,
+		Prefix:              prefix,
+		SpotMarketID:        spotMarket,
+		LiquidationMarketID: liquidationMarket,
+		ConversionFactor:    conversionFactor,
+	}
+}
+
 func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.CollateralParams) bool {
 	allAllowed := true
 
@@ -566,6 +586,7 @@ func (adp AllowedDebtParam) Allows(current, incoming cdptypes.DebtParam) bool {
 
 type AllowedAssetParams []AllowedAssetParam
 
+// Allows implement permission interface
 func (aaps AllowedAssetParams) Allows(current, incoming bep3types.AssetParams) bool {
 	allAllowed := true
 
@@ -614,19 +635,25 @@ func (aaps AllowedAssetParams) Allows(current, incoming bep3types.AssetParams) b
 	return allAllowed
 }
 
+// AllowedAssetParam bep3 asset parameters that can be changed by committee
 type AllowedAssetParam struct {
-	Denom  string `json:"denom" yaml:"denom"`
-	CoinID bool   `json:"coin_id" yaml:"coin_id"`
-	Limit  bool   `json:"limit" yaml:"limit"`
-	Active bool   `json:"active" yaml:"active"`
+	Denom         string `json:"denom" yaml:"denom"`
+	CoinID        bool   `json:"coin_id" yaml:"coin_id"`
+	Limit         bool   `json:"limit" yaml:"limit"`
+	Active        bool   `json:"active" yaml:"active"`
+	MaxSwapAmount bool   `json:"max_swap_amount" yaml:"max_swap_amount"`
+	MinBlockLock  bool   `json:"min_block_lock" yaml:"min_block_lock"`
 }
 
+// Allows bep3 AssetParam parameters than can be changed by committee
 func (aap AllowedAssetParam) Allows(current, incoming bep3types.AssetParam) bool {
 
 	allowed := ((aap.Denom == current.Denom) && (aap.Denom == incoming.Denom)) && // require denoms to be all equal
 		((current.CoinID == incoming.CoinID) || aap.CoinID) &&
 		(current.SupplyLimit.Equals(incoming.SupplyLimit) || aap.Limit) &&
-		((current.Active == incoming.Active) || aap.Active)
+		((current.Active == incoming.Active) || aap.Active) &&
+		((current.MaxSwapAmount.Equal(incoming.MaxSwapAmount)) || aap.MaxSwapAmount) &&
+		((current.MinBlockLock == incoming.MinBlockLock) || aap.MinBlockLock)
 	return allowed
 }
 
@@ -795,4 +822,18 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 	return nil
+}
+
+func RegisterCodec(cdc *codec.Codec) {
+
+	// Proposals
+	cdc.RegisterInterface((*PubProposal)(nil), nil)
+
+	// Permissions
+	cdc.RegisterInterface((*Permission)(nil), nil)
+	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
+	cdc.RegisterConcrete(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission", nil)
+	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
+	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
+	cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
 }

@@ -18,4 +18,4 @@ parent:
 
 ## Abstract
 
-`x/hard` is an implementation of a Cosmos SDK Module that will serve as the basis for a cross-chain money market platform. The current version of the module defines how HARD tokens are distributed, while future versions of this module will define lending, borrowing, distribution, incentives, and governance for the money market module.
+`x/hard` is an implementation of a Cosmos SDK Module that provides for functionality and governance of a two-sided, cross-chain, money market protocol.

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"sort"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -180,9 +182,15 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				if err != nil {
 					return liquidatedCoins, err
 				}
-				// Decrement supplied coins and increment borrowed coins optimistically
-				k.DecrementSuppliedCoins(ctx, sdk.Coins{lot})
-				k.IncrementBorrowedCoins(ctx, sdk.Coins{bid})
+				// Decrement supplied coins and decrement borrowed coins optimistically
+				err = k.DecrementSuppliedCoins(ctx, sdk.Coins{lot})
+				if err != nil {
+					return liquidatedCoins, err
+				}
+				err = k.DecrementBorrowedCoins(ctx, sdk.Coins{bid})
+				if err != nil {
+					return liquidatedCoins, err
+				}
 
 				// Add lot to liquidated coins
 				liquidatedCoins = liquidatedCoins.Add(lot)
@@ -225,9 +233,15 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				if err != nil {
 					return liquidatedCoins, err
 				}
-				// Decrement supplied coins and increment borrowed coins optimistically
-				k.DecrementSuppliedCoins(ctx, sdk.Coins{lot})
-				k.IncrementBorrowedCoins(ctx, sdk.Coins{bid})
+				// Decrement supplied coins and decrement borrowed coins optimistically
+				err = k.DecrementSuppliedCoins(ctx, sdk.Coins{lot})
+				if err != nil {
+					return liquidatedCoins, err
+				}
+				err = k.DecrementBorrowedCoins(ctx, sdk.Coins{bid})
+				if err != nil {
+					return liquidatedCoins, err
+				}
 
 				// Add lot to liquidated coins
 				liquidatedCoins = liquidatedCoins.Add(lot)
@@ -272,11 +286,9 @@ func (k Keeper) IsWithinValidLtvRange(ctx sdk.Context, deposit types.Deposit, bo
 	}
 
 	totalBorrowableUSDAmount := sdk.ZeroDec()
-	totalDepositedUSDAmount := sdk.ZeroDec()
 	for _, depCoin := range deposit.Amount {
 		lData := liqMap[depCoin.Denom]
 		usdValue := sdk.NewDecFromInt(depCoin.Amount).Quo(sdk.NewDecFromInt(lData.conversionFactor)).Mul(lData.price)
-		totalDepositedUSDAmount = totalDepositedUSDAmount.Add(usdValue)
 		borrowableUSDAmountForDeposit := usdValue.Mul(lData.ltv)
 		totalBorrowableUSDAmount = totalBorrowableUSDAmount.Add(borrowableUSDAmountForDeposit)
 	}
@@ -396,5 +408,6 @@ func removeDuplicates(one []string, two []string) []string {
 	for key := range check {
 		res = append(res, key)
 	}
+	sort.Strings(res)
 	return res
 }

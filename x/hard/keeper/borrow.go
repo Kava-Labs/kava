@@ -57,6 +57,9 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 			}
 		}
 	}
+	if err != nil {
+		return err
+	}
 
 	interestFactors := types.BorrowInterestFactors{}
 	currBorrow, foundBorrow := k.GetBorrow(ctx, borrower)
@@ -113,19 +116,26 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		return types.ErrBorrowEmptyCoins
 	}
 
+	// The reserve coins aren't available for users to borrow
+	hardMaccCoins := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins()
+	reserveCoins, foundReserveCoins := k.GetTotalReserves(ctx)
+	if !foundReserveCoins {
+		reserveCoins = sdk.NewCoins()
+	}
+	fundsAvailableToBorrow, isNegative := hardMaccCoins.SafeSub(reserveCoins)
+	if isNegative {
+		return sdkerrors.Wrapf(types.ErrReservesExceedCash, "reserves %s > cash %s", reserveCoins, hardMaccCoins)
+	}
+	if amount.IsAnyGT(fundsAvailableToBorrow) {
+		return sdkerrors.Wrapf(types.ErrExceedsProtocolBorrowableBalance, "requested borrow %s > available to borrow %s", amount, fundsAvailableToBorrow)
+	}
+
 	// Get the proposed borrow USD value
-	moneyMarketCache := map[string]types.MoneyMarket{}
 	proprosedBorrowUSDValue := sdk.ZeroDec()
 	for _, coin := range amount {
-		moneyMarket, ok := moneyMarketCache[coin.Denom]
-		// Fetch money market and store in local cache
-		if !ok {
-			newMoneyMarket, found := k.GetMoneyMarketParam(ctx, coin.Denom)
-			if !found {
-				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", coin.Denom)
-			}
-			moneyMarketCache[coin.Denom] = newMoneyMarket
-			moneyMarket = newMoneyMarket
+		moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
 		}
 
 		// Calculate this coin's USD value and add it borrow's total USD value
@@ -160,16 +170,10 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		return sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
 	}
 	totalBorrowableAmount := sdk.ZeroDec()
-	for _, depCoin := range deposit.Amount {
-		moneyMarket, ok := moneyMarketCache[depCoin.Denom]
-		// Fetch money market and store in local cache
-		if !ok {
-			newMoneyMarket, found := k.GetMoneyMarketParam(ctx, depCoin.Denom)
-			if !found {
-				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", depCoin.Denom)
-			}
-			moneyMarketCache[depCoin.Denom] = newMoneyMarket
-			moneyMarket = newMoneyMarket
+	for _, coin := range deposit.Amount {
+		moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
 		}
 
 		// Calculate the borrowable amount and add it to the user's total borrowable amount
@@ -177,7 +181,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		if err != nil {
 			return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 		}
-		depositUSDValue := sdk.NewDecFromInt(depCoin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
+		depositUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 		borrowableAmountForDeposit := depositUSDValue.Mul(moneyMarket.BorrowLimit.LoanToValue)
 		totalBorrowableAmount = totalBorrowableAmount.Add(borrowableAmountForDeposit)
 	}
@@ -186,16 +190,10 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	existingBorrowUSDValue := sdk.ZeroDec()
 	existingBorrow, found := k.GetBorrow(ctx, borrower)
 	if found {
-		for _, borrowedCoin := range existingBorrow.Amount {
-			moneyMarket, ok := moneyMarketCache[borrowedCoin.Denom]
-			// Fetch money market and store in local cache
-			if !ok {
-				newMoneyMarket, found := k.GetMoneyMarketParam(ctx, borrowedCoin.Denom)
-				if !found {
-					return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", borrowedCoin.Denom)
-				}
-				moneyMarketCache[borrowedCoin.Denom] = newMoneyMarket
-				moneyMarket = newMoneyMarket
+		for _, coin := range existingBorrow.Amount {
+			moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
+			if !found {
+				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
 			}
 
 			// Calculate this borrow coin's USD value and add it to the total previous borrowed USD value
@@ -203,9 +201,15 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 			if err != nil {
 				return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 			}
-			coinUSDValue := sdk.NewDecFromInt(borrowedCoin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
+			coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 			existingBorrowUSDValue = existingBorrowUSDValue.Add(coinUSDValue)
 		}
+	}
+
+	// Borrow's updated total USD value must be greater than the minimum global USD borrow limit
+	totalBorrowUSDValue := proprosedBorrowUSDValue.Add(existingBorrowUSDValue)
+	if totalBorrowUSDValue.LT(k.GetMinimumBorrowUSDValue(ctx)) {
+		return sdkerrors.Wrapf(types.ErrBelowMinimumBorrowValue, "the proposed borrow's USD value $%s is below the minimum borrow limit $%s", totalBorrowUSDValue, k.GetMinimumBorrowUSDValue(ctx))
 	}
 
 	// Validate that the proposed borrow's USD value is within user's borrowable limit
@@ -234,9 +238,15 @@ func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 		return sdkerrors.Wrapf(types.ErrBorrowedCoinsNotFound, "cannot repay coins if no coins are currently borrowed")
 	}
 
-	updatedBorrowedCoins, isAnyNegative := borrowedCoins.SafeSub(coins)
-	if isAnyNegative {
-		return types.ErrNegativeBorrowedCoins
+	updatedBorrowedCoins := sdk.NewCoins()
+	for _, coin := range coins {
+		// If amount is greater than total borrowed amount due to rounding, set total borrowed amount to 0
+		// by skipping the coin such that it's not included in the updatedBorrowedCoins object
+		if coin.Amount.GTE(borrowedCoins.AmountOf(coin.Denom)) {
+			continue
+		}
+		updatedBorrowCoin := sdk.NewCoin(coin.Denom, borrowedCoins.AmountOf(coin.Denom).Sub(coin.Amount))
+		updatedBorrowedCoins = updatedBorrowedCoins.Add(updatedBorrowCoin)
 	}
 
 	k.SetBorrowedCoins(ctx, updatedBorrowedCoins)

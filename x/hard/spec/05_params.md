@@ -6,41 +6,37 @@ order: 5
 
 The hard module has the following parameters:
 
-| Key                            | Type                                  | Example       | Description                                  |
-| ------------------------------ | ------------------------------------- | ------------- | -------------------------------------------- |
-| Active                         | bool                                  | "true"        | boolean for if token distribution is active  |
-| LiquidityProviderSchedules     | array (LiquidityProviderSchedule)     | [{see below}] | array of params for each supported asset     |
-| DelegatorDistributionSchedules | array (DelegatorDistributionSchedule) | [{see below}] | array of params for staking incentive assets |
+| Key                            | Type                                  | Example       | Description                                                                 |
+| ------------------------------ | ------------------------------------- | ------------- | ----------------------------------------------------------------------------|
+| MoneyMarkets                   | array (MoneyMarket)                   | [{see below}] | array of params for each supported market                                   |
+| CheckLtvIndexCount             | int                                   | 6             | Number of borrow positions to check for liquidation in each begin blocker   |
 
-Each `LiquidityProviderSchedules` has the following parameters
+Each `MoneyMarket` has the following parameters
 
-| Key              | Type               | Example                | Description                                                   |
-| ---------------- | ------------------ | ---------------------- | ------------------------------------------------------------- |
-| Active           | bool               | "true"                 | boolean for if token distribution is active for this schedule |
-| DepositDenom     | string             | "bnb"                  | coin denom of the asset which can be deposited                |
-| Start            | time.Time          | "2020-06-01T15:20:00Z" | the time when the period will end                             |
-| End              | time.Time          | "2020-06-01T15:20:00Z" | the time when the period will end                             |
-| RewardsPerSecond | Coin               | "500hard"              | HARD tokens per second that can be claimed by depositors      |
-| ClaimEnd         | time.Time          | "2022-06-01T15:20:00Z" | the time at which users can no longer claim HARD tokens       |
-| ClaimMultipliers | array (Multiplier) | [{see below}]          | reward multipliers for users claiming HARD tokens             |
+| Key                       | Type               | Example                | Description                                                           |
+| ------------------------- | ------------------ | ---------------------- | --------------------------------------------------------------------- |
+| Denom                     | string             | "bnb"                  | coin denom of the asset which can be deposited and borrowed           |
+| BorrowLimit               | BorrowLimit        | [{see below}]          | borrow limits applied to this money market                            |
+| SpotMarketID              | string             | "bnb:usd"              | the market id which determines the price of the asset                 |
+| ConversionFactor          | Int                | "6"                    | conversion factor for one unit (ie BNB) to the smallest internal unit |
+| InterestRateModel         | InterestRateModel  | [{see below}]          | Model which determines the prevailing interest rate per block         |
+| ReserveFactor             | Dec                | "0.01"                 | Percentage of interest that is kept as protocol reserves              |
+| AuctionSize               | Int                | "1000000000"           | The maximum size of an individual auction                             |
+| KeeperRewardPercentage    | Dec                | "0.02"                 | Percentage of deposit rewarded to keeper who liquidates a position    |
 
-Each `DelegatorDistributionSchedule` has the following parameters
+Each `BorrowLimit` has the following parameters
 
-| Key                   | Type               | Example                | Description                                                   |
-| --------------------- | ------------------ | ---------------------- | ------------------------------------------------------------- |
-| Active                | bool               | "true"                 | boolean for if token distribution is active for this schedule |
-| DepositDenom          | string             | "bnb"                  | coin denom of the asset which can be deposited                |
-| Start                 | time.Time          | "2020-06-01T15:20:00Z" | the time when the period will end                             |
-| End                   | time.Time          | "2020-06-01T15:20:00Z" | the time when the period will end                             |
-| RewardsPerSecond      | Coin               | "500hard"              | HARD tokens per second that can be claimed by depositors      |
-| ClaimEnd              | time.Time          | "2022-06-01T15:20:00Z" | the time at which users can no longer claim HARD tokens       |
-| ClaimMultipliers      | array (Multiplier) | [{see below}]          | reward multipliers for users claiming HARD tokens             |
-| DistributionFrequency | time.Duration      | "24hr"                 | frequency at which delegation rewards are accumulated         |
+| Key                   | Type               | Example                | Description                                                              |
+| --------------------- | ------------------ | ---------------------- | ------------------------------------------------------------------------ |
+| HasMaxLimit           | bool               | "true"                 | boolean for if a maximum limit is in effect                              |
+| MaximumLimit          | Dec                | "10000000.0"           | global maximum amount of coins that can be borrowed                      |
+| LoanToValue           | Dec                | "0.5"                  | the percentage amount of borrow power each unit of deposit accounts for  |
 
-Each `ClaimMultiplier` has the following parameters
+Each `InterestRateModel` has the following parameters
 
-| Key          | Type   | Example | Description                                                     |
-| ------------ | ------ | ------- | --------------------------------------------------------------- |
-| Name         | string | "large" | the unique name of the reward multiplier                        |
-| MonthsLockup | int    | "6"     | number of months HARD tokens with this multiplier are locked    |
-| Factor       | Dec    | "0.5"   | the scaling factor for HARD tokens claimed with this multiplier |
+| Key              | Type   | Example | Description                                                                                                      |
+| ---------------- | ------ | ------- | ---------------------------------------------------------------------------------------------------------------- |
+| BaseRateAPY      | Dec    | "0.0"   | the base rate of APY interest when borrows are zero.                                                             |
+| BaseMultiplier   | Dec    | "0.01"  | the percentage rate at which the interest rate APY increases for each percentage increase in borrow utilization. |
+| Kink             | Dec    | "0.5"   | the inflection point of utilization at which the BaseMultiplier no longer applies and the JumpMultiplier does.   |
+| JumpMultiplier   | Dec    | "0.5"   | same as BaseMultiplier, but only applied when utilization is above the Kink                                      |

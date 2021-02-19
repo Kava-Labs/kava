@@ -796,6 +796,7 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 						tc.args.reserveFactor,     // Reserve Factor
 						sdk.ZeroDec()),            // Keeper Reward Percentage
 				},
+				sdk.NewDec(10),
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
@@ -886,7 +887,7 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 				// -------------------------------------------------------------------------------------
 
 				// Set up snapshot chain context and run begin blocker
-				runAtTime := time.Unix(prevCtx.BlockTime().Unix()+(snapshot.elapsedTime), 0)
+				runAtTime := prevCtx.BlockTime().Add(time.Duration(int64(time.Second) * snapshot.elapsedTime))
 				snapshotCtx := prevCtx.WithBlockTime(runAtTime)
 				hard.BeginBlocker(snapshotCtx, suite.keeper)
 
@@ -1209,6 +1210,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 						tc.args.reserveFactor,     // Reserve Factor
 						sdk.ZeroDec()),            // Keeper Reward Percentage
 				},
+				sdk.NewDec(10),
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
@@ -1315,7 +1317,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					// -------------------------------------------------------------------------------------
 
 					// Set up snapshot chain context and run begin blocker
-					runAtTime := time.Unix(prevCtx.BlockTime().Unix()+(snapshot.elapsedTime), 0)
+					runAtTime := prevCtx.BlockTime().Add(time.Duration(int64(time.Second) * snapshot.elapsedTime))
 					snapshotCtx := prevCtx.WithBlockTime(runAtTime)
 					hard.BeginBlocker(snapshotCtx, suite.keeper)
 

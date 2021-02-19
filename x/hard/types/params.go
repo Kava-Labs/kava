@@ -11,20 +11,23 @@ import (
 
 // Parameter keys and default values
 var (
-	KeyMoneyMarkets          = []byte("MoneyMarkets")
-	DefaultMoneyMarkets      = MoneyMarkets{}
-	GovDenom                 = cdptypes.DefaultGovDenom
-	DefaultAccumulationTimes = GenesisAccumulationTimes{}
-	DefaultTotalSupplied     = sdk.Coins{}
-	DefaultTotalBorrowed     = sdk.Coins{}
-	DefaultTotalReserves     = sdk.Coins{}
-	DefaultDeposits          = Deposits{}
-	DefaultBorrows           = Borrows{}
+	KeyMoneyMarkets              = []byte("MoneyMarkets")
+	KeyMinimumBorrowUSDValue     = []byte("MinimumBorrowUSDValue")
+	DefaultMoneyMarkets          = MoneyMarkets{}
+	DefaultMinimumBorrowUSDValue = sdk.NewDec(10) // $10 USD minimum borrow value
+	GovDenom                     = cdptypes.DefaultGovDenom
+	DefaultAccumulationTimes     = GenesisAccumulationTimes{}
+	DefaultTotalSupplied         = sdk.Coins{}
+	DefaultTotalBorrowed         = sdk.Coins{}
+	DefaultTotalReserves         = sdk.Coins{}
+	DefaultDeposits              = Deposits{}
+	DefaultBorrows               = Borrows{}
 )
 
 // Params governance parameters for hard module
 type Params struct {
-	MoneyMarkets MoneyMarkets `json:"money_markets" yaml:"money_markets"`
+	MoneyMarkets          MoneyMarkets `json:"money_markets" yaml:"money_markets"`
+	MinimumBorrowUSDValue sdk.Dec      `json:"minimum_borrow_usd_value" yaml:"minimum_borrow_usd_value"`
 }
 
 // BorrowLimit enforces restrictions on a money market
@@ -48,8 +51,8 @@ func (bl BorrowLimit) Validate() error {
 	if bl.MaximumLimit.IsNegative() {
 		return fmt.Errorf("maximum limit USD cannot be negative: %s", bl.MaximumLimit)
 	}
-	if !bl.LoanToValue.IsPositive() {
-		return fmt.Errorf("loan-to-value must be a positive integer: %s", bl.LoanToValue)
+	if bl.LoanToValue.IsNegative() {
+		return fmt.Errorf("loan-to-value must be a non-negative decimal: %s", bl.LoanToValue)
 	}
 	if bl.LoanToValue.GT(sdk.OneDec()) {
 		return fmt.Errorf("loan-to-value cannot be greater than 1.0: %s", bl.LoanToValue)
@@ -220,22 +223,24 @@ func (irm InterestRateModel) Equal(irmCompareTo InterestRateModel) bool {
 type InterestRateModels []InterestRateModel
 
 // NewParams returns a new params object
-func NewParams(moneyMarkets MoneyMarkets) Params {
+func NewParams(moneyMarkets MoneyMarkets, minimumBorrowUSDValue sdk.Dec) Params {
 	return Params{
-		MoneyMarkets: moneyMarkets,
+		MoneyMarkets:          moneyMarkets,
+		MinimumBorrowUSDValue: minimumBorrowUSDValue,
 	}
 }
 
 // DefaultParams returns default params for hard module
 func DefaultParams() Params {
-	return NewParams(DefaultMoneyMarkets)
+	return NewParams(DefaultMoneyMarkets, DefaultMinimumBorrowUSDValue)
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
-	Money Markets %v`,
-		p.MoneyMarkets)
+	Minimum Borrow USD Value: %v
+	Money Markets: %v`,
+		p.MinimumBorrowUSDValue, p.MoneyMarkets)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -247,12 +252,30 @@ func ParamKeyTable() params.KeyTable {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyMoneyMarkets, &p.MoneyMarkets, validateMoneyMarketParams),
+		params.NewParamSetPair(KeyMinimumBorrowUSDValue, &p.MinimumBorrowUSDValue, validateMinimumBorrowUSDValue),
 	}
 }
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
+	if err := validateMinimumBorrowUSDValue(p.MinimumBorrowUSDValue); err != nil {
+		return err
+	}
+
 	return validateMoneyMarketParams(p.MoneyMarkets)
+}
+
+func validateMinimumBorrowUSDValue(i interface{}) error {
+	minBorrowVal, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if minBorrowVal.IsNegative() {
+		return fmt.Errorf("Minimum borrow USD value cannot be negative")
+	}
+
+	return nil
 }
 
 func validateMoneyMarketParams(i interface{}) error {

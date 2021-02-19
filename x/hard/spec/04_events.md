@@ -16,7 +16,6 @@ The hard module emits the following events:
 | message      | sender        | `{sender address}`    |
 | hard_deposit | amount        | `{amount}`            |
 | hard_deposit | depositor     | `{depositor address}` |
-| hard_deposit | deposit_denom | `{deposit denom}`     |
 
 ### MsgWithdraw
 
@@ -24,24 +23,26 @@ The hard module emits the following events:
 | ------------------- | ------------- | --------------------- |
 | message             | module        | hard                  |
 | message             | sender        | `{sender address}`    |
-| hard_deposit        | amount        | `{amount}`            |
-| hard_deposit        | depositor     | `{depositor address}` |
-| hard_deposit        | deposit_denom | `{deposit denom}`     |
-| hard_deposit        | deposit_type  | `{deposit type}`      |
-| delete_hard_deposit | depositor     | `{depositor address}` |
-| delete_hard_deposit | deposit_denom | `{deposit denom}`     |
+| hard_withdrawal     | amount        | `{amount}`            |
+| hard_withdrawal     | depositor     | `{depositor address}` |
 
-### MsgClaimReward
+### MsgBorrow
 
-| Type              | Attribute Key    | Attribute Value          |
-| ----------------- | ---------------- | ------------------------ |
-| message           | module           | hard                     |
-| message           | sender           | `{sender address}`       |
-| claim_hard_reward | amount           | `{amount}`               |
-| claim_hard_reward | claim_holder     | `{claim holder address}` |
-| claim_hard_reward | deposit_denom    | `{deposit denom}`        |
-| claim_hard_reward | claim_type       | `{claim type}`           |
-| claim_hard_reward | claim_multiplier | `{claim multiplier}`     |
+| Type           | Attribute Key | Attribute Value       |
+| -------------- | ------------- | --------------------- |
+| message        | module        | hard                  |
+| message        | sender        | `{sender address}`    |
+| hard_borrow    | borrow_coins  | `{amount}`            |
+| hard_withdrawal| borrower      | `{borrower address}` |
+
+### MsgRepay
+
+| Type           | Attribute Key | Attribute Value       |
+| -------------- | ------------- | --------------------- |
+| message        | module        | hard                  |
+| message        | sender        | `{sender address}`    |
+| hard_repay     | repay_coins   | `{amount}`            |
+| hard_repay     | sender        | `{borrower address}`  |
 
 ## BeginBlock
 

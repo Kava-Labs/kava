@@ -9,6 +9,7 @@ import (
 
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/pricefeed"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
@@ -38,8 +39,10 @@ type GodPermission struct{}
 
 var _ Permission = GodPermission{}
 
+// Allows implement permission interface
 func (GodPermission) Allows(sdk.Context, *codec.Codec, ParamKeeper, PubProposal) bool { return true }
 
+// MarshalYAML implement yaml marshalling
 func (GodPermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
 		Type string `yaml:"type"`
@@ -60,6 +63,7 @@ type SimpleParamChangePermission struct {
 
 var _ Permission = SimpleParamChangePermission{}
 
+// Allows implement permission interface
 func (perm SimpleParamChangePermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
 	proposal, ok := p.(paramstypes.ParameterChangeProposal)
 	if !ok {
@@ -73,6 +77,7 @@ func (perm SimpleParamChangePermission) Allows(_ sdk.Context, _ *codec.Codec, _ 
 	return true
 }
 
+// MarshalYAML implement yaml marshalling
 func (perm SimpleParamChangePermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
 		Type          string        `yaml:"type"`
@@ -84,12 +89,16 @@ func (perm SimpleParamChangePermission) MarshalYAML() (interface{}, error) {
 	return valueToMarshal, nil
 }
 
+// AllowedParam permission type for module parameter keys
 type AllowedParam struct {
 	Subspace string `json:"subspace" yaml:"subspace"`
 	Key      string `json:"key" yaml:"key"`
 }
+
+// AllowedParams slice of AllowedParam
 type AllowedParams []AllowedParam
 
+// Contains checks if a key is included in param permissions
 func (allowed AllowedParams) Contains(paramChange paramstypes.ParamChange) bool {
 	for _, p := range allowed {
 		if paramChange.Subspace == p.Subspace && paramChange.Key == p.Key {
@@ -108,11 +117,13 @@ type TextPermission struct{}
 
 var _ Permission = TextPermission{}
 
+// Allows implement permission interface
 func (TextPermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
 	_, ok := p.(govtypes.TextProposal)
 	return ok
 }
 
+// MarshalYAML implement yaml marshalling
 func (TextPermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
 		Type string `yaml:"type"`
@@ -126,15 +137,18 @@ func (TextPermission) MarshalYAML() (interface{}, error) {
 //				SoftwareUpgradePermission
 // ------------------------------------------
 
+// SoftwareUpgradePermission permission type for software upgrade proposals
 type SoftwareUpgradePermission struct{}
 
 var _ Permission = SoftwareUpgradePermission{}
 
+// Allows implement permission interface
 func (SoftwareUpgradePermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
 	_, ok := p.(upgrade.SoftwareUpgradeProposal)
 	return ok
 }
 
+// MarshalYAML implement yaml marshalling
 func (SoftwareUpgradePermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
 		Type string `yaml:"type"`
@@ -148,25 +162,28 @@ func (SoftwareUpgradePermission) MarshalYAML() (interface{}, error) {
 //				SubParamChangePermission
 // ------------------------------------------
 
-// ParamChangeProposal only allows changes to certain params
+// SubParamChangePermission permission type for allowing changes to specific sub-keys within module parameter keys
 type SubParamChangePermission struct {
 	AllowedParams           AllowedParams           `json:"allowed_params" yaml:"allowed_params"`
 	AllowedCollateralParams AllowedCollateralParams `json:"allowed_collateral_params" yaml:"allowed_collateral_params"`
 	AllowedDebtParam        AllowedDebtParam        `json:"allowed_debt_param" yaml:"allowed_debt_param"`
 	AllowedAssetParams      AllowedAssetParams      `json:"allowed_asset_params" yaml:"allowed_asset_params"`
 	AllowedMarkets          AllowedMarkets          `json:"allowed_markets" yaml:"allowed_markets"`
+	AllowedMoneyMarkets     AllowedMoneyMarkets     `json:"allowed_money_markets" yaml:"allowed_money_markets"`
 }
 
 var _ Permission = SubParamChangePermission{}
 
+// MarshalYAML implement yaml marshalling
 func (perm SubParamChangePermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
-		Type                    string                  `yaml:"type"`
-		AllowedParams           AllowedParams           `yaml:"allowed_params"`
-		AllowedCollateralParams AllowedCollateralParams `yaml:"allowed_collateral_params"`
-		AllowedDebtParam        AllowedDebtParam        `yaml:"allowed_debt_param"`
-		AllowedAssetParams      AllowedAssetParams      `yaml:"allowed_asset_params"`
-		AllowedMarkets          AllowedMarkets          `yaml:"allowed_markets"`
+		Type                    string                  `yaml:"type" json:"type"`
+		AllowedParams           AllowedParams           `yaml:"allowed_params" json:"allowed_params"`
+		AllowedCollateralParams AllowedCollateralParams `yaml:"allowed_collateral_params" json:"allowed_collateral_params"`
+		AllowedDebtParam        AllowedDebtParam        `yaml:"allowed_debt_param" json:"allowed_debt_param"`
+		AllowedAssetParams      AllowedAssetParams      `yaml:"allowed_asset_params" json:"allowed_asset_params"`
+		AllowedMarkets          AllowedMarkets          `yaml:"allowed_markets" json:"allowed_markets"`
+		AllowedMoneyMarkets     AllowedMoneyMarkets     `json:"allowed_money_markets" yaml:"allowed_money_markets"`
 	}{
 		Type:                    "param_change_permission",
 		AllowedParams:           perm.AllowedParams,
@@ -174,10 +191,12 @@ func (perm SubParamChangePermission) MarshalYAML() (interface{}, error) {
 		AllowedDebtParam:        perm.AllowedDebtParam,
 		AllowedAssetParams:      perm.AllowedAssetParams,
 		AllowedMarkets:          perm.AllowedMarkets,
+		AllowedMoneyMarkets:     perm.AllowedMoneyMarkets,
 	}
 	return valueToMarshal, nil
 }
 
+// Allows implement permission interface
 func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, p PubProposal) bool {
 	// Check pubproposal has correct type
 	proposal, ok := p.(paramstypes.ParameterChangeProposal)
@@ -318,11 +337,40 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 		}
 	}
 
+	// Check any MoneyMarket changes are allowed
+
+	var foundIncomingMMs bool
+	var incomingMMs hard.MoneyMarkets
+	for _, change := range proposal.Changes {
+		if !(change.Subspace == hard.ModuleName && change.Key == string(hard.KeyMoneyMarkets)) {
+			continue
+		}
+		foundIncomingMMs = true
+		if err := appCdc.UnmarshalJSON([]byte(change.Value), &incomingMMs); err != nil {
+			return false
+		}
+	}
+
+	if foundIncomingMMs {
+		subspace, found := pk.GetSubspace(hard.ModuleName)
+		if !found {
+			return false
+		}
+		var currentMMs hard.MoneyMarkets
+		subspace.Get(ctx, hard.KeyMoneyMarkets, &currentMMs)
+		mmChangesAllowed := perm.AllowedMoneyMarkets.Allows(currentMMs, incomingMMs)
+		if !mmChangesAllowed {
+			return false
+		}
+	}
+
 	return true
 }
 
+// AllowedCollateralParams slice of AllowedCollateralParam
 type AllowedCollateralParams []AllowedCollateralParam
 
+// Allows determine if collateral params changes are permitted
 func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.CollateralParams) bool {
 	allAllowed := true
 
@@ -371,40 +419,46 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 	return allAllowed
 }
 
+// AllowedCollateralParam permission struct for changes to collateral parameter keys (cdp module)
 type AllowedCollateralParam struct {
-	Type                string `json:"type" yaml:"type"`
-	Denom               bool   `json:"denom" yaml:"denom"`
-	LiquidationRatio    bool   `json:"liquidation_ratio" yaml:"liquidation_ratio"`
-	DebtLimit           bool   `json:"debt_limit" yaml:"debt_limit"`
-	StabilityFee        bool   `json:"stability_fee" yaml:"stability_fee"`
-	AuctionSize         bool   `json:"auction_size" yaml:"auction_size"`
-	LiquidationPenalty  bool   `json:"liquidation_penalty" yaml:"liquidation_penalty"`
-	Prefix              bool   `json:"prefix" yaml:"prefix"`
-	SpotMarketID        bool   `json:"spot_market_id" yaml:"spot_market_id"`
-	LiquidationMarketID bool   `json:"liquidation_market_id" yaml:"liquidation_market_id"`
-	ConversionFactor    bool   `json:"conversion_factor" yaml:"conversion_factor"`
+	Type                             string `json:"type" yaml:"type"`
+	Denom                            bool   `json:"denom" yaml:"denom"`
+	LiquidationRatio                 bool   `json:"liquidation_ratio" yaml:"liquidation_ratio"`
+	DebtLimit                        bool   `json:"debt_limit" yaml:"debt_limit"`
+	StabilityFee                     bool   `json:"stability_fee" yaml:"stability_fee"`
+	AuctionSize                      bool   `json:"auction_size" yaml:"auction_size"`
+	LiquidationPenalty               bool   `json:"liquidation_penalty" yaml:"liquidation_penalty"`
+	Prefix                           bool   `json:"prefix" yaml:"prefix"`
+	SpotMarketID                     bool   `json:"spot_market_id" yaml:"spot_market_id"`
+	LiquidationMarketID              bool   `json:"liquidation_market_id" yaml:"liquidation_market_id"`
+	ConversionFactor                 bool   `json:"conversion_factor" yaml:"conversion_factor"`
+	KeeperRewardPercentage           bool   `json:"keeper_reward_percentage" yaml:"keeper_reward_percentage"`
+	CheckCollateralizationIndexCount bool   `json:"check_collateralization_index_count" yaml:"check_collateralization_index_count"`
 }
 
 // NewAllowedCollateralParam return a new AllowedCollateralParam
 func NewAllowedCollateralParam(
 	ctype string, denom, liqRatio, debtLimit,
 	stabilityFee, auctionSize, liquidationPenalty,
-	prefix, spotMarket, liquidationMarket, conversionFactor bool) AllowedCollateralParam {
+	prefix, spotMarket, liquidationMarket, conversionFactor, keeperReward, ltvIndexCount bool) AllowedCollateralParam {
 	return AllowedCollateralParam{
-		Type:                ctype,
-		Denom:               denom,
-		LiquidationRatio:    liqRatio,
-		DebtLimit:           debtLimit,
-		StabilityFee:        stabilityFee,
-		AuctionSize:         auctionSize,
-		LiquidationPenalty:  liquidationPenalty,
-		Prefix:              prefix,
-		SpotMarketID:        spotMarket,
-		LiquidationMarketID: liquidationMarket,
-		ConversionFactor:    conversionFactor,
+		Type:                             ctype,
+		Denom:                            denom,
+		LiquidationRatio:                 liqRatio,
+		DebtLimit:                        debtLimit,
+		StabilityFee:                     stabilityFee,
+		AuctionSize:                      auctionSize,
+		LiquidationPenalty:               liquidationPenalty,
+		Prefix:                           prefix,
+		SpotMarketID:                     spotMarket,
+		LiquidationMarketID:              liquidationMarket,
+		ConversionFactor:                 conversionFactor,
+		KeeperRewardPercentage:           keeperReward,
+		CheckCollateralizationIndexCount: ltvIndexCount,
 	}
 }
 
+// Allows determine if collateral param changes are permitted
 func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralParam) bool {
 	allowed := ((acp.Type == current.Type) && (acp.Type == incoming.Type)) && // require collateral types to be all equal
 		(current.Denom == incoming.Denom || acp.Denom) &&
@@ -416,10 +470,13 @@ func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralPa
 		((current.Prefix == incoming.Prefix) || acp.Prefix) &&
 		((current.SpotMarketID == incoming.SpotMarketID) || acp.SpotMarketID) &&
 		((current.LiquidationMarketID == incoming.LiquidationMarketID) || acp.LiquidationMarketID) &&
+		((current.KeeperRewardPercentage.Equal(incoming.KeeperRewardPercentage)) || acp.KeeperRewardPercentage) &&
+		((current.CheckCollateralizationIndexCount.Equal(incoming.CheckCollateralizationIndexCount)) || acp.CheckCollateralizationIndexCount) &&
 		(current.ConversionFactor.Equal(incoming.ConversionFactor) || acp.ConversionFactor)
 	return allowed
 }
 
+// AllowedDebtParam permission struct for changes to debt parameter keys (cdp module)
 type AllowedDebtParam struct {
 	Denom            bool `json:"denom" yaml:"denom"`
 	ReferenceAsset   bool `json:"reference_asset" yaml:"reference_asset"`
@@ -427,6 +484,7 @@ type AllowedDebtParam struct {
 	DebtFloor        bool `json:"debt_floor" yaml:"debt_floor"`
 }
 
+// Allows determines if debt params changes are permitted
 func (adp AllowedDebtParam) Allows(current, incoming cdptypes.DebtParam) bool {
 	allowed := ((current.Denom == incoming.Denom) || adp.Denom) &&
 		((current.ReferenceAsset == incoming.ReferenceAsset) || adp.ReferenceAsset) &&
@@ -435,8 +493,10 @@ func (adp AllowedDebtParam) Allows(current, incoming cdptypes.DebtParam) bool {
 	return allowed
 }
 
+// AllowedAssetParams slice of AllowedAssetParam
 type AllowedAssetParams []AllowedAssetParam
 
+// Allows determines if asset params changes are permitted
 func (aaps AllowedAssetParams) Allows(current, incoming bep3types.AssetParams) bool {
 	allAllowed := true
 
@@ -507,8 +567,10 @@ func (aap AllowedAssetParam) Allows(current, incoming bep3types.AssetParam) bool
 	return allowed
 }
 
+// AllowedMarkets slice of AllowedMarket
 type AllowedMarkets []AllowedMarket
 
+// Allows determines if markets params changed are permitted
 func (ams AllowedMarkets) Allows(current, incoming pricefeedtypes.Markets) bool {
 	allAllowed := true
 
@@ -557,6 +619,7 @@ func (ams AllowedMarkets) Allows(current, incoming pricefeedtypes.Markets) bool 
 	return allAllowed
 }
 
+// AllowedMarket permission struct for market parameters (pricefeed module)
 type AllowedMarket struct {
 	MarketID   string `json:"market_id" yaml:"market_id"`
 	BaseAsset  bool   `json:"base_asset" yaml:"base_asset"`
@@ -565,6 +628,7 @@ type AllowedMarket struct {
 	Active     bool   `json:"active" yaml:"active"`
 }
 
+// Allows determines if market param changes are permitted
 func (am AllowedMarket) Allows(current, incoming pricefeedtypes.Market) bool {
 	allowed := ((am.MarketID == current.MarketID) && (am.MarketID == incoming.MarketID)) && // require denoms to be all equal
 		((current.BaseAsset == incoming.BaseAsset) || am.BaseAsset) &&
@@ -584,4 +648,86 @@ func addressesEqual(addrs1, addrs2 []sdk.AccAddress) bool {
 		areEqual = areEqual && addrs1[i].Equals(addrs2[i])
 	}
 	return areEqual
+}
+
+// AllowedMoneyMarket permission struct for money market parameters (hard module)
+type AllowedMoneyMarket struct {
+	Denom                  string `json:"denom" yaml:"denom"`
+	BorrowLimit            bool   `json:"borrow_limit" yaml:"borrow_limit"`
+	SpotMarketID           bool   `json:"spot_market_id" yaml:"spot_market_id"`
+	ConversionFactor       bool   `json:"conversion_factor" yaml:"conversion_factor"`
+	InterestRateModel      bool   `json:"interest_rate_model" yaml:"interest_rate_model"`
+	ReserveFactor          bool   `json:"reserve_factor" yaml:"reserve_factor"`
+	KeeperRewardPercentage bool   `json:"keeper_reward_percentage" yaml:"keeper_reward_percentage"`
+}
+
+// NewAllowedMoneyMarket returns a new AllowedMoneyMarket
+func NewAllowedMoneyMarket(denom string, bl, sm, cf, irm, rf, kr bool) AllowedMoneyMarket {
+	return AllowedMoneyMarket{
+		Denom:                  denom,
+		BorrowLimit:            bl,
+		SpotMarketID:           sm,
+		ConversionFactor:       cf,
+		InterestRateModel:      irm,
+		ReserveFactor:          rf,
+		KeeperRewardPercentage: kr,
+	}
+}
+
+// Allows determines if money market param changes are permitted
+func (amm AllowedMoneyMarket) Allows(current, incoming hard.MoneyMarket) bool {
+	allowed := ((amm.Denom == current.Denom) && (amm.Denom == incoming.Denom)) &&
+		((current.BorrowLimit.Equal(incoming.BorrowLimit)) || amm.BorrowLimit) &&
+		((current.SpotMarketID == incoming.SpotMarketID) || amm.SpotMarketID) &&
+		((current.ConversionFactor.Equal(incoming.ConversionFactor)) || amm.ConversionFactor) &&
+		((current.InterestRateModel.Equal(incoming.InterestRateModel)) || amm.InterestRateModel) &&
+		((current.ReserveFactor.Equal(incoming.ReserveFactor)) || amm.ReserveFactor) &&
+		((current.KeeperRewardPercentage.Equal(incoming.KeeperRewardPercentage)) || amm.KeeperRewardPercentage)
+	return allowed
+}
+
+// AllowedMoneyMarkets slice of AllowedMoneyMarket
+type AllowedMoneyMarkets []AllowedMoneyMarket
+
+// Allows determins if money market params changes are permitted
+func (amms AllowedMoneyMarkets) Allows(current, incoming hard.MoneyMarkets) bool {
+	allAllowed := true
+
+	if len(incoming) != len(current) {
+		return false
+	}
+
+	for _, incomingMM := range incoming {
+		var foundAllowedMM bool
+		var allowedMM AllowedMoneyMarket
+
+		for _, p := range amms {
+			if p.Denom != incomingMM.Denom {
+				continue
+			}
+			foundAllowedMM = true
+			allowedMM = p
+		}
+		if !foundAllowedMM {
+			return false
+		}
+
+		var foundCurrentMM bool
+		var currentMM hard.MoneyMarket
+
+		for _, p := range current {
+			if p.Denom != incomingMM.Denom {
+				continue
+			}
+			foundCurrentMM = true
+			currentMM = p
+		}
+		if !foundCurrentMM {
+			return false
+		}
+		allowed := allowedMM.Allows(currentMM, incomingMM)
+		allAllowed = allAllowed && allowed
+	}
+
+	return allAllowed
 }

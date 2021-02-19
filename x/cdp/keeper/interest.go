@@ -116,24 +116,23 @@ func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
 	}
 
 	accumulatedInterest := k.CalculateNewInterest(ctx, cdp)
+	prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cdp.Type)
+	if !found {
+		return cdp
+	}
 	if accumulatedInterest.IsZero() {
 		// accumulated interest is zero if apy is zero or are if the total fees for all cdps round to zero
-
-		prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cdp.Type)
-		if !found {
-			return cdp
-		}
 		if cdp.FeesUpdated.Equal(prevAccrualTime) {
 			// if all fees are rounding to zero, don't update FeesUpdated
 			return cdp
 		}
 		// if apy is zero, we need to update FeesUpdated
-		cdp.FeesUpdated = ctx.BlockTime()
+		cdp.FeesUpdated = prevAccrualTime
 		k.SetCDP(ctx, cdp)
 	}
 
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(accumulatedInterest)
-	cdp.FeesUpdated = ctx.BlockTime()
+	cdp.FeesUpdated = prevAccrualTime
 	cdp.InterestFactor = globalInterestFactor
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 	k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
