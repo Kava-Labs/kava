@@ -81,6 +81,10 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	if foundBorrowedCoinsPrior {
 		borrowedPrior = sdk.NewCoin(denom, borrowedCoinsPrior.AmountOf(denom))
 	}
+	if borrowedPrior.IsZero() {
+		k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
+		return nil
+	}
 
 	reservesPrior, foundReservesPrior := k.GetTotalReserves(ctx)
 	if !foundReservesPrior {
