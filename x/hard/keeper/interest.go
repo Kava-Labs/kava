@@ -193,9 +193,9 @@ func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed
 	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
 
 	// Convert per-second interest rate to a uint scaled by 1e18
-	interestMantissa := sdk.NewUint(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().Uint64())
+	interestMantissa := sdk.NewUintFromBigInt(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().BigInt())
 	// Convert seconds elapsed to uint (*not scaled*)
-	secondsElapsedUint := sdk.NewUint(secondsElapsed.Uint64())
+	secondsElapsedUint := sdk.NewUintFromBigInt(secondsElapsed.BigInt())
 	// Calculate the interest factor as a uint scaled by 1e18
 	interestFactorMantissa := sdk.RelativePow(interestMantissa, secondsElapsedUint, scalingFactorUint)
 

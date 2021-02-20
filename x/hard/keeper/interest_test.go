@@ -306,6 +306,22 @@ func (suite *InterestTestSuite) TestCalculateBorrowInterestFactor() {
 				expectedValue:         sdk.MustNewDecFromStr("94702138679846565921082258202543002089.215969366091911769"),
 			},
 		},
+		{
+			"supports calculated values greater than 1.84x10^19",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("18.5"), // Old uint64 conversion would panic at ~18.45 (1845%/second interest rate)
+				timeElapsed:           sdk.NewInt(30),                // Assume a 30 second period, longer than any expected individual block
+				expectedValue:         sdk.MustNewDecFromStr("103550416986452240450480615551792302106.072205164469778538"),
+			},
+		},
+		{
+			"largest per second interest rate before sdk.Uint overflows 256 bytes",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("23.3"), // 23.4 overflows bit length 256 by 1 byte
+				timeElapsed:           sdk.NewInt(30),                // Assume a 30 second period, longer than any expected individual block
+				expectedValue:         sdk.MustNewDecFromStr("104876366068119517411103023062013348034546.437155815200037999"),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
