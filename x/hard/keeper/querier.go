@@ -30,6 +30,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetTotalBorrowed(ctx, req, k)
 		case types.QueryGetInterestRate:
 			return queryGetInterestRate(ctx, req, k)
+		case types.QueryGetReserves:
+			return queryGetReserves(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -322,6 +324,31 @@ func queryGetInterestRate(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]b
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, moneyMarketInterestRates)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func queryGetReserves(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryReservesParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	reserveCoins, found := k.GetTotalReserves(ctx)
+	if !found {
+		reserveCoins = sdk.Coins{}
+	}
+
+	// If user specified a denom only return coins of that denom type
+	if len(params.Denom) > 0 {
+		reserveCoins = sdk.NewCoins(sdk.NewCoin(params.Denom, reserveCoins.AmountOf(params.Denom)))
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, reserveCoins)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
