@@ -5,11 +5,17 @@ import (
 	"sort"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
+	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3"
 	v0_13cdp "github.com/kava-labs/kava/x/cdp"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
@@ -30,6 +36,61 @@ var (
 	RewardEndTime = time.Date(2022, 2, 25, 14, 0, 0, 0, time.UTC)
 	ClaimEndTime  = time.Date(2026, 2, 25, 14, 0, 0, 0, time.UTC)
 )
+
+// Migrate translates a genesis file from kava v0.11 (or v0.12) format to kava v0.13.x format.
+func Migrate(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
+	// migrate app state
+	var appStateMap genutil.AppMap
+	cdc := codec.New()
+	cryptoAmino.RegisterAmino(cdc)
+	tmtypes.RegisterEvidences(cdc)
+
+	if err := cdc.UnmarshalJSON(genDoc.AppState, &appStateMap); err != nil {
+		panic(err)
+	}
+	newAppState := MigrateAppState(appStateMap)
+	v0_13Codec := app.MakeCodec()
+	marshaledNewAppState, err := v0_13Codec.MarshalJSON(newAppState)
+	if err != nil {
+		panic(err)
+	}
+	genDoc.AppState = marshaledNewAppState
+	genDoc.GenesisTime = time.Date(2021, 3, 4, 15, 0, 0, 0, time.UTC)
+	genDoc.ChainID = "kava-5"
+	genDoc.ConsensusParams.Block.MaxGas = 20000000
+	return genDoc
+}
+
+// MigrateAppState migrates application state from v0.11 (or v0.12) format to a kava v0.13.x format
+func MigrateAppState(v0_11AppState genutil.AppMap) genutil.AppMap {
+	v0_13AppState := v0_11AppState
+	cdc := app.MakeCodec()
+	var hardGenState v0_11hard.GenesisState
+	if v0_13AppState[v0_13hard.ModuleName] == nil {
+		cdc.MustUnmarshalJSON(v0_11AppState[v0_11hard.ModuleName], &hardGenState)
+		v0_13AppState[v0_13hard.ModuleName] = cdc.MustMarshalJSON(
+			Hard(hardGenState))
+	}
+	v0_13AppState[v0_11hard.ModuleName] = nil
+	if v0_13AppState[v0_13cdp.ModuleName] != nil {
+		var cdpGenState v0_11cdp.GenesisState
+		cdc.MustUnmarshalJSON(v0_11AppState[v0_13cdp.ModuleName], &cdpGenState)
+		v0_13AppState[v0_13cdp.ModuleName] = cdc.MustMarshalJSON(
+			CDP(cdpGenState))
+	}
+	if v0_13AppState[v0_13incentive.ModuleName] != nil {
+		var incentiveGenState v0_11incentive.GenesisState
+		cdc.MustUnmarshalJSON(v0_11AppState[v0_13incentive.ModuleName], &incentiveGenState)
+		v0_13AppState[v0_13incentive.ModuleName] = cdc.MustMarshalJSON(Incentive(hardGenState, incentiveGenState))
+	}
+	if v0_13AppState[v0_13pricefeed.ModuleName] != nil {
+		var pricefeedGS v0_11pricefeed.GenesisState
+		cdc.MustUnmarshalJSON(v0_11AppState[v0_13pricefeed.ModuleName], &pricefeedGS)
+		v0_13AppState[v0_13pricefeed.ModuleName] = cdc.MustMarshalJSON(Pricefeed(pricefeedGS))
+	}
+	return v0_13AppState
+
+}
 
 // CDP migrates from a v0.11 cdp genesis state to a v0.13 cdp genesis state
 func CDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
