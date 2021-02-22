@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/x/hard/types"
@@ -64,7 +66,9 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		return nil
 	}
 
-	timeElapsed := ctx.BlockTime().Unix() - previousAccrualTime.Unix()
+	timeElapsed := int64(math.RoundToEven(
+		ctx.BlockTime().Sub(previousAccrualTime).Seconds(),
+	))
 	if timeElapsed == 0 {
 		return nil
 	}
@@ -76,6 +80,10 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	borrowedCoinsPrior, foundBorrowedCoinsPrior := k.GetBorrowedCoins(ctx)
 	if foundBorrowedCoinsPrior {
 		borrowedPrior = sdk.NewCoin(denom, borrowedCoinsPrior.AmountOf(denom))
+	}
+	if borrowedPrior.IsZero() {
+		k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
+		return nil
 	}
 
 	reservesPrior, foundReservesPrior := k.GetTotalReserves(ctx)
@@ -185,9 +193,9 @@ func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed
 	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
 
 	// Convert per-second interest rate to a uint scaled by 1e18
-	interestMantissa := sdk.NewUint(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().Uint64())
+	interestMantissa := sdk.NewUintFromBigInt(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().BigInt())
 	// Convert seconds elapsed to uint (*not scaled*)
-	secondsElapsedUint := sdk.NewUint(secondsElapsed.Uint64())
+	secondsElapsedUint := sdk.NewUintFromBigInt(secondsElapsed.BigInt())
 	// Calculate the interest factor as a uint scaled by 1e18
 	interestFactorMantissa := sdk.RelativePow(interestMantissa, secondsElapsedUint, scalingFactorUint)
 

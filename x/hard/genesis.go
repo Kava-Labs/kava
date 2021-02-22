@@ -54,6 +54,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	borrows := types.Borrows{}
 
 	k.IterateDeposits(ctx, func(d types.Deposit) bool {
+		k.BeforeDepositModified(ctx, d)
 		syncedDeposit, found := k.GetSyncedDeposit(ctx, d.Depositor)
 		if !found {
 			panic(fmt.Sprintf("syncable deposit not found for %s", d.Depositor))
@@ -63,6 +64,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	})
 
 	k.IterateBorrows(ctx, func(b types.Borrow) bool {
+		k.BeforeBorrowModified(ctx, b)
 		syncedBorrow, found := k.GetSyncedBorrow(ctx, b.Borrower)
 		if !found {
 			panic(fmt.Sprintf("syncable borrow not found for %s", b.Borrower))

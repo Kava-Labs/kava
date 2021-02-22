@@ -93,9 +93,11 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.I
 	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
 
 	// Convert per-second interest rate to a uint scaled by 1e18
-	interestMantissa := sdk.NewUint(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().Uint64())
+	interestMantissa := sdk.NewUintFromBigInt(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().BigInt())
+
 	// Convert seconds elapsed to uint (*not scaled*)
-	secondsElapsedUint := sdk.NewUint(secondsElapsed.Uint64())
+	secondsElapsedUint := sdk.NewUintFromBigInt(secondsElapsed.BigInt())
+
 	// Calculate the interest factor as a uint scaled by 1e18
 	interestFactorMantissa := sdk.RelativePow(interestMantissa, secondsElapsedUint, scalingFactorUint)
 
@@ -116,24 +118,23 @@ func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
 	}
 
 	accumulatedInterest := k.CalculateNewInterest(ctx, cdp)
+	prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cdp.Type)
+	if !found {
+		return cdp
+	}
 	if accumulatedInterest.IsZero() {
 		// accumulated interest is zero if apy is zero or are if the total fees for all cdps round to zero
-
-		prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cdp.Type)
-		if !found {
-			return cdp
-		}
 		if cdp.FeesUpdated.Equal(prevAccrualTime) {
 			// if all fees are rounding to zero, don't update FeesUpdated
 			return cdp
 		}
 		// if apy is zero, we need to update FeesUpdated
-		cdp.FeesUpdated = ctx.BlockTime()
+		cdp.FeesUpdated = prevAccrualTime
 		k.SetCDP(ctx, cdp)
 	}
 
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(accumulatedInterest)
-	cdp.FeesUpdated = ctx.BlockTime()
+	cdp.FeesUpdated = prevAccrualTime
 	cdp.InterestFactor = globalInterestFactor
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 	k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)

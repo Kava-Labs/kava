@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/x/hard/types"
@@ -15,7 +16,8 @@ type ParamTestSuite struct {
 
 func (suite *ParamTestSuite) TestParamValidation() {
 	type args struct {
-		mms types.MoneyMarkets
+		minBorrowVal sdk.Dec
+		mms          types.MoneyMarkets
 	}
 	testCases := []struct {
 		name        string
@@ -26,7 +28,8 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		{
 			name: "default",
 			args: args{
-				mms: types.DefaultMoneyMarkets,
+				minBorrowVal: types.DefaultMinimumBorrowUSDValue,
+				mms:          types.DefaultMoneyMarkets,
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -34,7 +37,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			params := types.NewParams(tc.args.mms)
+			params := types.NewParams(tc.args.mms, tc.args.minBorrowVal)
 			err := params.Validate()
 			if tc.expectPass {
 				suite.NoError(err)

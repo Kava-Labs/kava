@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "exceeds module account balance:",
+				contains:   "exceeds borrowable module account balance",
 			},
 		},
 		{
@@ -243,6 +243,50 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			errArgs{
 				expectPass: false,
 				contains:   "fails global asset borrow limit validation",
+			},
+		},
+		{
+			"invalid: borrowing an individual coin type results in a borrow that's under the minimum USD borrow limit",
+			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("20000000"),
+				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
+				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
+				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
+				loanToValueBTCB:           sdk.MustNewDecFromStr("0.01"),
+				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
+				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
+				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				depositCoins:              sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),
+				previousBorrowCoins:       sdk.NewCoins(),
+				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(5*USDX_CF))),
+				expectedAccountBalance:    sdk.NewCoins(),
+				expectedModAccountBalance: sdk.NewCoins(),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "below the minimum borrow limit",
+			},
+		},
+		{
+			"invalid: borrowing multiple coins results in a borrow that's under the minimum USD borrow limit",
+			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("20000000"),
+				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
+				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
+				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
+				loanToValueBTCB:           sdk.MustNewDecFromStr("0.01"),
+				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
+				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
+				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				depositCoins:              sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),
+				previousBorrowCoins:       sdk.NewCoins(),
+				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(5*USDX_CF)), sdk.NewCoin("ukava", sdk.NewInt(2*USDX_CF))),
+				expectedAccountBalance:    sdk.NewCoins(),
+				expectedModAccountBalance: sdk.NewCoins(),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "below the minimum borrow limit",
 			},
 		},
 	}
@@ -269,6 +313,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(100000000*BNB_CF), tc.args.loanToValueBNB), "bnb:usd", sdk.NewInt(BNB_CF), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 					types.NewMoneyMarket("xyz", types.NewBorrowLimit(false, sdk.NewDec(1), tc.args.loanToValueBNB), "xyz:usd", sdk.NewInt(1), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 				},
+				sdk.NewDec(10),
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)

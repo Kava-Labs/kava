@@ -54,6 +54,7 @@ var (
 	GetKeyFromID                = types.GetKeyFromID
 	GetVoteKey                  = types.GetVoteKey
 	NewAllowedCollateralParam   = types.NewAllowedCollateralParam
+	NewAllowedMoneyMarket       = types.NewAllowedMoneyMarket
 	NewCommittee                = types.NewCommittee
 	NewCommitteeChangeProposal  = types.NewCommitteeChangeProposal
 	NewCommitteeDeleteProposal  = types.NewCommitteeDeleteProposal
@@ -98,6 +99,8 @@ type (
 	AllowedDebtParam            = types.AllowedDebtParam
 	AllowedMarket               = types.AllowedMarket
 	AllowedMarkets              = types.AllowedMarkets
+	AllowedMoneyMarket          = types.AllowedMoneyMarket
+	AllowedMoneyMarkets         = types.AllowedMoneyMarkets
 	AllowedParam                = types.AllowedParam
 	AllowedParams               = types.AllowedParams
 	Committee                   = types.Committee
