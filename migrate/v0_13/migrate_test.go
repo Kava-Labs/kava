@@ -22,6 +22,7 @@ import (
 	v0_11hard "github.com/kava-labs/kava/x/hard/legacy/v0_11"
 	v0_13incentive "github.com/kava-labs/kava/x/incentive"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
+	v0_11pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 
 	"github.com/stretchr/testify/require"
@@ -175,4 +176,18 @@ func TestCommittee(t *testing.T) {
 	require.Equal(t, len(oldSPCP.AllowedAssetParams), len(newSPCP.AllowedAssetParams))
 	require.Equal(t, len(oldSPCP.AllowedCollateralParams), len(newSPCP.AllowedCollateralParams))
 	require.Equal(t, len(oldSPCP.AllowedMarkets), len(newSPCP.AllowedMarkets))
+}
+
+func TestPricefeed(t *testing.T) {
+	cdc := app.MakeCodec()
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-pricefeed-state.json"))
+	require.NoError(t, err)
+	var oldPricefeedGenState v0_11pricefeed.GenesisState
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldPricefeedGenState)
+	})
+	newGenState := Pricefeed(oldPricefeedGenState)
+	err = newGenState.Validate()
+	require.NoError(t, err)
+	require.Equal(t, len(oldPricefeedGenState.Params.Markets)+1, len(newGenState.Params.Markets))
 }
