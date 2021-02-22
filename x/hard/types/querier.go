@@ -13,6 +13,7 @@ const (
 	QueryGetBorrows        = "borrows"
 	QueryGetTotalBorrowed  = "total-borrowed"
 	QueryGetInterestRate   = "interest-rate"
+	QueryGetReserves       = "reserves"
 )
 
 // QueryDepositsParams is the params for a filtered deposit query
@@ -121,3 +122,15 @@ func NewMoneyMarketInterestRate(denom string, supplyInterestRate, borrowInterest
 
 // MoneyMarketInterestRates is a slice of MoneyMarketInterestRate
 type MoneyMarketInterestRates []MoneyMarketInterestRate
+
+// QueryReservesParams is the params for a filtered reserves query
+type QueryReservesParams struct {
+	Denom string `json:"denom" yaml:"denom"`
+}
+
+// NewQueryReservesParams creates a new QueryReservesParams
+func NewQueryReservesParams(denom string) QueryReservesParams {
+	return QueryReservesParams{
+		Denom: denom,
+	}
+}

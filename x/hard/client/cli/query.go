@@ -42,6 +42,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryBorrowsCmd(queryRoute, cdc),
 		queryTotalBorrowedCmd(queryRoute, cdc),
 		queryInterestRateCmd(queryRoute, cdc),
+		queryReserves(queryRoute, cdc),
 	)...)
 
 	return hardQueryCmd
@@ -358,5 +359,48 @@ func queryInterestRateCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		},
 	}
 	cmd.Flags().String(flagDenom, "", "(optional) filter interest rates by denom")
+	return cmd
+}
+
+func queryReserves(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reserves",
+		Short: "get total current Hard module reserves",
+		Long: strings.TrimSpace(`get the total amount of coins currently held as reserve by the Hard module:
+
+		Example:
+		$ kvcli q hard reserves
+		$ kvcli q hard reserves --denom bnb`,
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			denom := viper.GetString(flagDenom)
+
+			// Construct query with params
+			params := types.NewQueryReservesParams(denom)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// Execute query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetReserves)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var reserves sdk.Coins
+			if err := cdc.UnmarshalJSON(res, &reserves); err != nil {
+				return fmt.Errorf("failed to unmarshal reserve coins: %w", err)
+			}
+			return cliCtx.PrintOutput(reserves)
+		},
+	}
+	cmd.Flags().String(flagDenom, "", "(optional) filter reserve coins by denom")
 	return cmd
 }
