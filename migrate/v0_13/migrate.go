@@ -66,27 +66,53 @@ func MigrateAppState(v0_11AppState genutil.AppMap) genutil.AppMap {
 	v0_13AppState := v0_11AppState
 	cdc := app.MakeCodec()
 	var hardGenState v0_11hard.GenesisState
-	if v0_13AppState[v0_13hard.ModuleName] == nil {
+	if v0_11AppState[v0_13hard.ModuleName] == nil {
 		cdc.MustUnmarshalJSON(v0_11AppState[v0_11hard.ModuleName], &hardGenState)
+		delete(v0_11AppState, v0_11hard.ModuleName)
 		v0_13AppState[v0_13hard.ModuleName] = cdc.MustMarshalJSON(
 			Hard(hardGenState))
 	}
-	v0_13AppState[v0_11hard.ModuleName] = nil
-	if v0_13AppState[v0_13cdp.ModuleName] != nil {
+	delete(v0_13AppState, v0_11hard.ModuleName)
+	if v0_11AppState[v0_11cdp.ModuleName] != nil {
 		var cdpGenState v0_11cdp.GenesisState
-		cdc.MustUnmarshalJSON(v0_11AppState[v0_13cdp.ModuleName], &cdpGenState)
+		cdc.MustUnmarshalJSON(v0_11AppState[v0_11cdp.ModuleName], &cdpGenState)
+		delete(v0_11AppState, v0_11cdp.ModuleName)
 		v0_13AppState[v0_13cdp.ModuleName] = cdc.MustMarshalJSON(
 			CDP(cdpGenState))
 	}
-	if v0_13AppState[v0_13incentive.ModuleName] != nil {
+	if v0_11AppState[v0_11incentive.ModuleName] != nil {
 		var incentiveGenState v0_11incentive.GenesisState
 		cdc.MustUnmarshalJSON(v0_11AppState[v0_13incentive.ModuleName], &incentiveGenState)
+		delete(v0_11AppState, v0_11incentive.ModuleName)
 		v0_13AppState[v0_13incentive.ModuleName] = cdc.MustMarshalJSON(Incentive(hardGenState, incentiveGenState))
 	}
-	if v0_13AppState[v0_13pricefeed.ModuleName] != nil {
+	if v0_11AppState[v0_11pricefeed.ModuleName] != nil {
 		var pricefeedGS v0_11pricefeed.GenesisState
 		cdc.MustUnmarshalJSON(v0_11AppState[v0_13pricefeed.ModuleName], &pricefeedGS)
+		delete(v0_11AppState, v0_11pricefeed.ModuleName)
 		v0_13AppState[v0_13pricefeed.ModuleName] = cdc.MustMarshalJSON(Pricefeed(pricefeedGS))
+	}
+	if v0_11AppState[bep3.ModuleName] != nil {
+		var bep3GS bep3.GenesisState
+		cdc.MustUnmarshalJSON(v0_11AppState[bep3.ModuleName], &bep3GS)
+		delete(v0_11AppState, bep3.ModuleName)
+		v0_13AppState[bep3.ModuleName] = cdc.MustMarshalJSON(Bep3(bep3GS))
+	}
+	if v0_11AppState[v0_11committee.ModuleName] != nil {
+		var committeeGS v0_11committee.GenesisState
+		cdc := codec.New()
+		sdk.RegisterCodec(cdc)
+		v0_11committee.RegisterCodec(cdc)
+		cdc.MustUnmarshalJSON(v0_11AppState[v0_11committee.ModuleName], &committeeGS)
+		delete(v0_11AppState, v0_11committee.ModuleName)
+		cdc = app.MakeCodec()
+		v0_13AppState[v0_13committee.ModuleName] = cdc.MustMarshalJSON(Committee(committeeGS))
+	}
+	if v0_11AppState[auth.ModuleName] != nil {
+		var authGS auth.GenesisState
+		cdc.MustUnmarshalJSON(v0_11AppState[auth.ModuleName], &authGS)
+		delete(v0_11AppState, auth.ModuleName)
+		v0_13AppState[auth.ModuleName] = cdc.MustMarshalJSON(Auth(authGS))
 	}
 	return v0_13AppState
 
