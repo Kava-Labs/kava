@@ -20,6 +20,8 @@ import (
 	v0_13incentive "github.com/kava-labs/kava/x/incentive"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
 	"github.com/kava-labs/kava/x/kavadist"
+	v0_11pricefeed "github.com/kava-labs/kava/x/pricefeed"
+	v0_13pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
@@ -441,7 +443,7 @@ func Bep3(genesisState bep3.GenesisState) bep3.GenesisState {
 	return bep3.NewGenesisState(newParams, newSwaps, newSupplies, genesisState.PreviousBlockTime)
 }
 
-// Committee migrates from a v0.11 (or v0.12) committee genesis state to a v0.13 committee genesis stat
+// Committee migrates from a v0.11 (or v0.12) committee genesis state to a v0.13 committee genesis state
 func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisState {
 	committees := []v0_13committee.Committee{}
 	votes := []v0_13committee.Vote{}
@@ -554,6 +556,28 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 	}
 	return v0_13committee.NewGenesisState(
 		genesisState.NextProposalID, committees, proposals, votes)
+}
+
+// Pricefeed migrates from a v0.11 (or v0.12) pricefeed genesis state to a v0.13 pricefeed genesis state
+func Pricefeed(genesisState v0_11pricefeed.GenesisState) v0_13pricefeed.GenesisState {
+	newMarkets := v0_13pricefeed.Markets{}
+	oracles := genesisState.Params.Markets[0].Oracles
+
+	for _, m := range genesisState.Params.Markets {
+		newMarkets = append(newMarkets, m)
+	}
+	usdx := v0_11pricefeed.NewMarket("usdx:usd", "usdx", "usd", oracles, true)
+	newMarkets = append(newMarkets, usdx)
+
+	newPrices := v0_13pricefeed.PostedPrices{}
+
+	for _, p := range genesisState.PostedPrices {
+		if p.Expiry.After(GenesisTime) {
+			newPrices = append(newPrices, p)
+		}
+	}
+
+	return v0_13pricefeed.NewGenesisState(v0_13pricefeed.NewParams(newMarkets), newPrices)
 }
 
 func removeIndex(accs authexported.GenesisAccounts, index int) authexported.GenesisAccounts {
