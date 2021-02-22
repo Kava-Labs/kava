@@ -8,38 +8,33 @@ import (
 )
 
 const (
-	AttributeKeyBlockHeight            = types.AttributeKeyBlockHeight
-	AttributeKeyBorrow                 = types.AttributeKeyBorrow
-	AttributeKeyBorrowCoins            = types.AttributeKeyBorrowCoins
-	AttributeKeyBorrower               = types.AttributeKeyBorrower
-	AttributeKeyDeposit                = types.AttributeKeyDeposit
-	AttributeKeyDepositCoins           = types.AttributeKeyDepositCoins
-	AttributeKeyDepositDenom           = types.AttributeKeyDepositDenom
-	AttributeKeyDepositor              = types.AttributeKeyDepositor
-	AttributeKeyRepayCoins             = types.AttributeKeyRepayCoins
-	AttributeKeyRewardsDistribution    = types.AttributeKeyRewardsDistribution
-	AttributeKeySender                 = types.AttributeKeySender
-	AttributeValueCategory             = types.AttributeValueCategory
-	DefaultParamspace                  = types.DefaultParamspace
-	EventTypeDeleteHardDeposit         = types.EventTypeDeleteHardDeposit
-	EventTypeHardLiquidation           = types.EventTypeHardLiquidation
-	EventTypeHardBorrow                = types.EventTypeHardBorrow
-	EventTypeHardDelegatorDistribution = types.EventTypeHardDelegatorDistribution
-	EventTypeHardDeposit               = types.EventTypeHardDeposit
-	EventTypeHardLPDistribution        = types.EventTypeHardLPDistribution
-	EventTypeHardRepay                 = types.EventTypeHardRepay
-	EventTypeHardWithdrawal            = types.EventTypeHardWithdrawal
-	ModuleAccountName                  = types.ModuleAccountName
-	ModuleName                         = types.ModuleName
-	QuerierRoute                       = types.QuerierRoute
-	QueryGetBorrows                    = types.QueryGetBorrows
-	QueryGetDeposits                   = types.QueryGetDeposits
-	QueryGetModuleAccounts             = types.QueryGetModuleAccounts
-	QueryGetParams                     = types.QueryGetParams
-	QueryGetTotalBorrowed              = types.QueryGetTotalBorrowed
-	QueryGetTotalDeposited             = types.QueryGetTotalDeposited
-	RouterKey                          = types.RouterKey
-	StoreKey                           = types.StoreKey
+	AttributeKeyBorrow       = types.AttributeKeyBorrow
+	AttributeKeyBorrowCoins  = types.AttributeKeyBorrowCoins
+	AttributeKeyBorrower     = types.AttributeKeyBorrower
+	AttributeKeyDeposit      = types.AttributeKeyDeposit
+	AttributeKeyDepositCoins = types.AttributeKeyDepositCoins
+	AttributeKeyDepositDenom = types.AttributeKeyDepositDenom
+	AttributeKeyDepositor    = types.AttributeKeyDepositor
+	AttributeKeyRepayCoins   = types.AttributeKeyRepayCoins
+	AttributeKeySender       = types.AttributeKeySender
+	AttributeValueCategory   = types.AttributeValueCategory
+	DefaultParamspace        = types.DefaultParamspace
+	EventTypeHardLiquidation = types.EventTypeHardLiquidation
+	EventTypeHardBorrow      = types.EventTypeHardBorrow
+	EventTypeHardDeposit     = types.EventTypeHardDeposit
+	EventTypeHardRepay       = types.EventTypeHardRepay
+	EventTypeHardWithdrawal  = types.EventTypeHardWithdrawal
+	ModuleAccountName        = types.ModuleAccountName
+	ModuleName               = types.ModuleName
+	QuerierRoute             = types.QuerierRoute
+	QueryGetBorrows          = types.QueryGetBorrows
+	QueryGetDeposits         = types.QueryGetDeposits
+	QueryGetModuleAccounts   = types.QueryGetModuleAccounts
+	QueryGetParams           = types.QueryGetParams
+	QueryGetTotalBorrowed    = types.QueryGetTotalBorrowed
+	QueryGetTotalDeposited   = types.QueryGetTotalDeposited
+	RouterKey                = types.RouterKey
+	StoreKey                 = types.StoreKey
 )
 
 var (

@@ -6,13 +6,19 @@ order: 2
 
 ## Parameters and Genesis State
 
-`Parameters` define the governance parameters and default behavior of each money market.
+`Parameters` define the governance parameters and default behavior of each money market. **Money markets should not be removed from params without careful procedures** as it will disable withdraws and liquidations. To deprecate a money market, the following steps should be observed:
+
+1. Borrowing: prevent new borrows by setting param MoneyMarket.BorrowLimit.MaximumLimit to 0.
+2. Interest: turn off interest accumulation by setting params MoneyMarket.InterestRateModel.BaseRateAPY and MoneyMarket.InterestRateModel.Kink to 0.
+3. Rewards: turn off supply side and/or borrow side rewards by removing any coins in the relevant RewardsPerSecond param in the Incentive module.
+
+Without financial incentives, borrowers and suppliers will withdraw their funds from the money market over time. Once the balances have reached an acceptable level the money market can be deprecated and removed from params, with any additional lingering user funds reimbursed/reallocated as appropriate via a chain upgrade.
 
 ```go
 // Params governance parameters for hard module
 type Params struct {
-  MoneyMarkets       MoneyMarkets `json:"money_markets" yaml:"money_markets"` // defines the parameters for each money market
-  CheckLtvIndexCount int          `json:"check_ltv_index_count" yaml:"check_ltv_index_count"` // defines the number of positions that are checked for liquidation at the beginning of each block
+	MoneyMarkets          MoneyMarkets `json:"money_markets" yaml:"money_markets"`
+	MinimumBorrowUSDValue sdk.Dec      `json:"minimum_borrow_usd_value" yaml:"minimum_borrow_usd_value"`
 }
 
 // MoneyMarket is a money market for an individual asset
@@ -23,7 +29,6 @@ type MoneyMarket struct {
   ConversionFactor       sdk.Int           `json:"conversion_factor" yaml:"conversion_factor"` //the internal conversion factor for going from the smallest unit of a token to a whole unit (ie. 8 for BTC, 6 for KAVA, 18 for ETH)
   InterestRateModel      InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"` // the model that determines the prevailing interest rate at each block
   ReserveFactor          sdk.Dec           `json:"reserve_factor" yaml:"reserve_factor"` // the percentage of interest that is accumulated by the protocol as reserves
-  AuctionSize            sdk.Int           `json:"auction_size" yaml:"auction_size"` // the maximum size of auction for this money market. Liquidations larger than this will be broken down into multiple auctions
   KeeperRewardPercentage sdk.Dec           `json:"keeper_reward_percentage" yaml:"keeper_reward_percentages"` // the percentage of a liquidation that is given to the keeper that liquidated the position
 }
 

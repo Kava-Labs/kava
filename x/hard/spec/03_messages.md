@@ -39,12 +39,13 @@ This message creates a `Borrow` object is one does not exist, or updates an exis
 ```go
 // MsgRepay repays funds to the hard module.
 type MsgRepay struct {
-  Sender sdk.AccAddress `json:"sender" yaml:"sender"`
-  Amount sdk.Coins      `json:"amount" yaml:"amount"`
+	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
+	Owner  sdk.AccAddress `json:"owner" yaml:"owner"`
+	Amount sdk.Coins      `json:"amount" yaml:"amount"`
 }
 ```
 
-This message decrements a `Borrow` object, or deletes one if the `Amount` specified is greater than or equal to the total borrowed amount, as well as creating/updating the necessary indexes and synchronizing any outstanding interest. For example, a message which requests to repay 100xyz tokens, if `Sender` has only deposited 50xyz tokens, will repay the full 50xyz tokens. The `Amount` of coins, or the current borrow amount, is transferred from `Sender`. The global variable for `TotalBorrowed` is updated.
+This message decrements a `Borrow` object, or deletes one if the `Amount` specified is greater than or equal to the total borrowed amount, as well as creating/updating the necessary indexes and synchronizing any outstanding interest. For example, a message which requests to repay 100xyz tokens, if `Owner` has only deposited 50xyz tokens, the `Sender` will repay the full 50xyz tokens. The `Amount` of coins, or the current borrow amount, is transferred from `Sender`. The global variable for `TotalBorrowed` is updated.
 
 ```go
 // MsgLiquidate attempts to liquidate a borrower's borrow

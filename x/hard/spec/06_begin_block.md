@@ -4,12 +4,11 @@ order: 6
 
 # Begin Block
 
-At the start of each block, interest is accumulated, and automated liquidations are attempted
+At the start of each block interest is accumulated
 
 ```go
-// BeginBlocker updates interest rates and attempts liquidations
+// BeginBlocker updates interest rates
 func BeginBlocker(ctx sdk.Context, k Keeper) {
   k.ApplyInterestRateUpdates(ctx)
-  k.AttemptIndexLiquidations(ctx)
 }
 ```
