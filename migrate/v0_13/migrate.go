@@ -10,6 +10,7 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
+	"github.com/kava-labs/kava/x/bep3"
 	v0_13cdp "github.com/kava-labs/kava/x/cdp"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
 	v0_13committee "github.com/kava-labs/kava/x/committee"
@@ -408,6 +409,36 @@ func Auth(genesisState auth.GenesisState) auth.GenesisState {
 	}
 
 	return genesisState
+}
+
+// Bep3 migrates a v0.11 bep3 genesis state to a v0.13 genesis state
+func Bep3(genesisState bep3.GenesisState) bep3.GenesisState {
+	var newSupplies bep3.AssetSupplies
+	for _, supply := range genesisState.Supplies {
+		if supply.GetDenom() == "bnb" {
+			supply.CurrentSupply = supply.CurrentSupply.Sub(sdk.NewCoin("bnb", sdk.NewInt(1000000000000)))
+		}
+		newSupplies = append(newSupplies, supply)
+	}
+	var newSwaps bep3.AtomicSwaps
+	for _, swap := range genesisState.AtomicSwaps {
+		if swap.Status == bep3.Completed {
+			swap.ClosedBlock = 1 // reset closed block to one so completed swaps are removed from long term storage properly
+		}
+		if swap.Status == bep3.Open || swap.Status == bep3.Expired {
+			swap.Status = bep3.Expired // set open swaps to expired so they can be refunded after chain start
+			swap.ExpireHeight = 1      // set expire on first block as well to be safe
+		}
+		newSwaps = append(newSwaps, swap)
+	}
+	var newAssetParams bep3.AssetParams
+	for _, ap := range genesisState.Params.AssetParams {
+		ap.MinBlockLock = uint64(24686)
+		ap.MaxBlockLock = uint64(86400)
+		newAssetParams = append(newAssetParams, ap)
+	}
+	newParams := bep3.NewParams(newAssetParams)
+	return bep3.NewGenesisState(newParams, newSwaps, newSupplies, genesisState.PreviousBlockTime)
 }
 
 // Committee migrates from a v0.11 (or v0.12) committee genesis state to a v0.13 committee genesis stat

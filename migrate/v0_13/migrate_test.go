@@ -15,6 +15,7 @@ import (
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/bep3"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
 	v0_13committee "github.com/kava-labs/kava/x/committee"
 	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
@@ -175,4 +176,36 @@ func TestCommittee(t *testing.T) {
 	require.Equal(t, len(oldSPCP.AllowedAssetParams), len(newSPCP.AllowedAssetParams))
 	require.Equal(t, len(oldSPCP.AllowedCollateralParams), len(newSPCP.AllowedCollateralParams))
 	require.Equal(t, len(oldSPCP.AllowedMarkets), len(newSPCP.AllowedMarkets))
+}
+
+func TestBep3(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-bep3-state.json"))
+	require.NoError(t, err)
+	var oldGenState bep3.GenesisState
+	cdc := app.MakeCodec()
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldGenState)
+	})
+	newGenState := Bep3(oldGenState)
+	err = newGenState.Validate()
+	require.NoError(t, err)
+
+	var oldBNBSupply bep3.AssetSupply
+	var newBNBSupply bep3.AssetSupply
+
+	for _, supply := range oldGenState.Supplies {
+		if supply.GetDenom() == "bnb" {
+			oldBNBSupply = supply
+		}
+	}
+
+	for _, supply := range newGenState.Supplies {
+		if supply.GetDenom() == "bnb" {
+			newBNBSupply = supply
+		}
+	}
+
+	require.Equal(t, oldBNBSupply.CurrentSupply.Sub(sdk.NewCoin("bnb", sdk.NewInt(1000000000000))), newBNBSupply.CurrentSupply)
+	require.Equal(t, uint64(24686), newGenState.Params.AssetParams[0].MinBlockLock)
+	require.Equal(t, uint64(86400), newGenState.Params.AssetParams[0].MaxBlockLock)
 }
