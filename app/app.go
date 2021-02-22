@@ -102,7 +102,7 @@ var (
 		bep3.ModuleName:             {supply.Minter, supply.Burner},
 		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
-		hard.ModuleAccountName:      {supply.Minter, supply.Burner},
+		hard.ModuleAccountName:      {supply.Minter},
 	}
 
 	// module accounts that are allowed to receive tokens

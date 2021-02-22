@@ -1,6 +1,7 @@
 package v0_13
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -13,6 +14,17 @@ import (
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
 	v0_13committee "github.com/kava-labs/kava/x/committee"
 	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
+	v0_13hard "github.com/kava-labs/kava/x/hard"
+	v0_11hard "github.com/kava-labs/kava/x/hard/legacy/v0_11"
+	v0_13incentive "github.com/kava-labs/kava/x/incentive"
+	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
+	"github.com/kava-labs/kava/x/kavadist"
+)
+
+var (
+	GenesisTime   = time.Date(2021, 3, 4, 14, 0, 0, 0, time.UTC)
+	RewardEndTime = time.Date(2022, 2, 25, 14, 0, 0, 0, time.UTC)
+	ClaimEndTime  = time.Date(2026, 2, 25, 14, 0, 0, 0, time.UTC)
 )
 
 // CDP migrates from a v0.11 cdp genesis state to a v0.13 cdp genesis state
@@ -80,12 +92,242 @@ func CDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 	)
 }
 
+// Hard migrates from a v0.11 hard (harvest) genesis state to a v0.13 hard genesis state
+func Hard(genesisState v0_11hard.GenesisState) v0_13hard.GenesisState {
+	v13Deposits := v0_13hard.Deposits{}
+	v13DepositorMap := make(map[string]v0_13hard.Deposit)
+	v13GenesisAccumulationTimes := v0_13hard.GenesisAccumulationTimes{}
+	v13TotalSupplied := sdk.NewCoins()
+
+	for _, dep := range genesisState.Deposits {
+		v13Deposit, ok := v13DepositorMap[dep.Depositor.String()]
+		if !ok {
+			v13Deposit := v0_13hard.NewDeposit(dep.Depositor, sdk.NewCoins(dep.Amount), v0_13hard.SupplyInterestFactors{v0_13hard.NewSupplyInterestFactor(dep.Amount.Denom, sdk.OneDec())})
+			v13DepositorMap[dep.Depositor.String()] = v13Deposit
+		} else {
+			v13Deposit.Amount = v13Deposit.Amount.Add(dep.Amount)
+			v13Deposit.Index = append(v13Deposit.Index, v0_13hard.NewSupplyInterestFactor(dep.Amount.Denom, sdk.OneDec()))
+			v13DepositorMap[dep.Depositor.String()] = v13Deposit
+		}
+	}
+
+	defaultInterestModel := v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("1.0"))
+	newParams := v0_13hard.NewParams(
+		v0_13hard.MoneyMarkets{
+
+			v0_13hard.NewMoneyMarket("btcb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "btc:usd", sdk.NewInt(100000000),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
+			),
+			// bnb
+			v0_13hard.NewMoneyMarket("bnb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "bnb:usd", sdk.NewInt(100000000),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
+			),
+			// xrpb
+			v0_13hard.NewMoneyMarket("xrpb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "xrp:usd", sdk.NewInt(100000000),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
+			),
+			// busd
+			v0_13hard.NewMoneyMarket("busd", v0_13hard.NewBorrowLimit(true, sdk.MustNewDecFromStr("100000000000000"), sdk.MustNewDecFromStr("0.5")), "busd:usd", sdk.NewInt(100000000),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
+			),
+			// usdx
+			v0_13hard.NewMoneyMarket("usdx", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.ZeroDec()), "usdx:usd", sdk.NewInt(1000000),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
+			),
+			// ukava
+			v0_13hard.NewMoneyMarket("ukava", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "kava:usd", sdk.NewInt(1000000),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
+			),
+			// hard
+			v0_13hard.NewMoneyMarket("hard", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "hard:usd", sdk.NewInt(1000000),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
+			),
+		},
+		sdk.MustNewDecFromStr("10.0"),
+	)
+
+	for _, newDep := range v13DepositorMap {
+		v13Deposits = append(v13Deposits, newDep)
+		v13TotalSupplied = v13TotalSupplied.Add(newDep.Amount...)
+	}
+	sort.Slice(v13Deposits, func(i, j int) bool {
+		return v13Deposits[i].Depositor.String() > v13Deposits[j].Depositor.String()
+	})
+
+	for _, mm := range newParams.MoneyMarkets {
+		genAccumulationTime := v0_13hard.NewGenesisAccumulationTime(mm.Denom, GenesisTime, sdk.OneDec(), sdk.OneDec())
+		v13GenesisAccumulationTimes = append(v13GenesisAccumulationTimes, genAccumulationTime)
+	}
+
+	return v0_13hard.NewGenesisState(newParams, v13GenesisAccumulationTimes, v13Deposits, v0_13hard.DefaultBorrows, v13TotalSupplied, v0_13hard.DefaultTotalBorrowed, v0_13hard.DefaultTotalReserves)
+}
+
+// Incentive migrates from a v0.11 incentive genesis state to a v0.13 incentive genesis state
+func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.GenesisState) v0_13incentive.GenesisState {
+	usdxMintingRewardPeriods := v0_13incentive.RewardPeriods{}
+	usdxRewardsPerSecondMap := make(map[string]sdk.Coin)
+	usdxRewardsPerSecondMap["bnb-a"] = sdk.NewCoin("ukava", sdk.NewInt(122354))
+	usdxRewardsPerSecondMap["btcb-a"] = sdk.NewCoin("ukava", sdk.NewInt(158730))
+	usdxRewardsPerSecondMap["busd-a"] = sdk.NewCoin("ukava", sdk.NewInt(30588))
+	usdxRewardsPerSecondMap["hard-a"] = sdk.NewCoin("ukava", sdk.NewInt(23809))
+	usdxRewardsPerSecondMap["ukava-a"] = sdk.NewCoin("ukava", sdk.NewInt(31746))
+	usdxRewardsPerSecondMap["xrpb-a"] = sdk.NewCoin("ukava", sdk.NewInt(31746))
+
+	for _, rp := range incentiveGS.RewardPeriods {
+		rewardsPerSecond, ok := usdxRewardsPerSecondMap[rp.CollateralType]
+		if !ok {
+			panic(fmt.Sprintf("No rewards per second for collateral type: %s\n", rp.CollateralType))
+		}
+		newRP := v0_13incentive.NewRewardPeriod(true, rp.CollateralType, GenesisTime, RewardEndTime, rewardsPerSecond)
+		usdxMintingRewardPeriods = append(usdxMintingRewardPeriods, newRP)
+	}
+
+	hardSupplyRewardPeriods := v0_13incentive.MultiRewardPeriods{}
+	for _, rp := range hardGS.Params.LiquidityProviderSchedules {
+		newRP := v0_13incentive.NewMultiRewardPeriod(true, rp.DepositDenom, rp.Start, rp.End, sdk.NewCoins(rp.RewardsPerSecond))
+		hardSupplyRewardPeriods = append(hardSupplyRewardPeriods, newRP)
+	}
+	hardBorrowRewardPeriods := v0_13incentive.MultiRewardPeriods{}
+	hardDelegatorRewardPeriods := v0_13incentive.RewardPeriods{}
+	for _, rp := range hardGS.Params.DelegatorDistributionSchedules {
+		newRP := v0_13incentive.NewRewardPeriod(rp.DistributionSchedule.Active, rp.DistributionSchedule.DepositDenom, rp.DistributionSchedule.Start, rp.DistributionSchedule.End, rp.DistributionSchedule.RewardsPerSecond)
+		hardDelegatorRewardPeriods = append(hardDelegatorRewardPeriods, newRP)
+	}
+	params := v0_13incentive.NewParams(usdxMintingRewardPeriods, hardSupplyRewardPeriods, hardBorrowRewardPeriods, hardDelegatorRewardPeriods, v0_13incentive.Multipliers{v0_13incentive.NewMultiplier(v0_13incentive.Small, 1, sdk.MustNewDecFromStr("0.2")), v0_13incentive.NewMultiplier(v0_13incentive.Large, 12, sdk.MustNewDecFromStr("1.0"))}, ClaimEndTime)
+
+	usdxGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
+
+	for _, rp := range params.USDXMintingRewardPeriods {
+		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime, sdk.ZeroDec())
+		usdxGenAccumulationTimes = append(usdxGenAccumulationTimes, gat)
+	}
+	hardSupplyGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
+	for _, rp := range params.HardSupplyRewardPeriods {
+		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime, sdk.ZeroDec())
+		hardSupplyGenAccumulationTimes = append(hardSupplyGenAccumulationTimes, gat)
+	}
+	hardBorrowGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
+	for _, rp := range params.HardBorrowRewardPeriods {
+		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime, sdk.ZeroDec())
+		hardBorrowGenAccumulationTimes = append(hardBorrowGenAccumulationTimes, gat)
+	}
+
+	hardDelegatorGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
+
+	for _, rp := range params.HardDelegatorRewardPeriods {
+		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime, sdk.ZeroDec())
+		hardDelegatorGenAccumulationTimes = append(hardDelegatorGenAccumulationTimes, gat)
+	}
+
+	usdxClaims := v0_13incentive.USDXMintingClaims{}
+	usdxClaimMap := make(map[string]v0_13incentive.USDXMintingClaim)
+	claimEndMap := make(map[uint64]time.Time)
+
+	for _, cp := range incentiveGS.ClaimPeriods {
+		claimEndMap[cp.ID] = cp.End
+	}
+
+	for _, claim := range incentiveGS.Claims {
+		if claimEndMap[claim.ClaimPeriodID].Before(GenesisTime) {
+			continue
+		}
+		newClaim, ok := usdxClaimMap[claim.Owner.String()]
+		if !ok {
+			newClaim = v0_13incentive.NewUSDXMintingClaim(claim.Owner, claim.Reward, v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.CollateralType, sdk.ZeroDec())})
+		} else {
+			newClaim.Reward = newClaim.Reward.Add(claim.Reward)
+			_, found := newClaim.RewardIndexes.GetRewardIndex(claim.CollateralType)
+			if !found {
+				newClaim.RewardIndexes = append(newClaim.RewardIndexes, v0_13incentive.NewRewardIndex(claim.CollateralType, sdk.ZeroDec()))
+			}
+		}
+		usdxClaimMap[newClaim.Owner.String()] = newClaim
+	}
+
+	for _, claim := range usdxClaimMap {
+		usdxClaims = append(usdxClaims, claim)
+	}
+
+	hardClaims := v0_13incentive.HardLiquidityProviderClaims{}
+	hardClaimMap := make(map[string]v0_13incentive.HardLiquidityProviderClaim)
+
+	for _, claim := range hardGS.Claims {
+		newClaim, ok := hardClaimMap[claim.Owner.String()]
+		if !ok {
+			// if claim.Type == "lp" -- hard supply
+			// if claim.Type == "stake" -- hard delegator
+			// hard barrow always empty
+			delegatorIndexes := v0_13incentive.RewardIndexes{}
+			supplyIndexes := v0_13incentive.MultiRewardIndexes{}
+			borrowIndexes := v0_13incentive.MultiRewardIndexes{}
+			if claim.Type == v0_11hard.Stake {
+				delegatorIndexes = v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec())}
+			}
+			if claim.Type == v0_11hard.LP {
+				supplyIndexes = v0_13incentive.MultiRewardIndexes{v0_13incentive.NewMultiRewardIndex(claim.DepositDenom, v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex("hard", sdk.ZeroDec())})}
+			}
+			newClaim = v0_13incentive.NewHardLiquidityProviderClaim(claim.Owner, sdk.NewCoins(claim.Amount), supplyIndexes, borrowIndexes, delegatorIndexes)
+		} else {
+			newClaim.Reward = newClaim.Reward.Add(claim.Amount)
+			if claim.Type == v0_11hard.Stake {
+				newClaim.DelegatorRewardIndexes = v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec())}
+			}
+			if claim.Type == v0_11hard.LP {
+				_, found := newClaim.SupplyRewardIndexes.GetRewardIndex(claim.DepositDenom)
+				if !found {
+					newClaim.SupplyRewardIndexes = append(newClaim.SupplyRewardIndexes, v0_13incentive.NewMultiRewardIndex(claim.DepositDenom, v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex("hard", sdk.ZeroDec())}))
+				}
+			}
+		}
+		hardClaimMap[claim.Owner.String()] = newClaim
+	}
+
+	for _, claim := range hardClaimMap {
+		hardClaims = append(hardClaims, claim)
+	}
+
+	sort.Slice(hardClaims, func(i, j int) bool { return hardClaims[i].Owner.String() < hardClaims[j].Owner.String() })
+	sort.Slice(usdxClaims, func(i, j int) bool { return usdxClaims[i].Owner.String() < usdxClaims[j].Owner.String() })
+
+	return v0_13incentive.NewGenesisState(
+		params,
+		usdxGenAccumulationTimes,
+		hardSupplyGenAccumulationTimes,
+		hardBorrowGenAccumulationTimes,
+		hardDelegatorGenAccumulationTimes,
+		usdxClaims,
+		hardClaims,
+	)
+}
+
 // Auth migrates from a v0.11 auth genesis state to a v0.13
 func Auth(genesisState auth.GenesisState) auth.GenesisState {
 	savingsRateMaccCoins := sdk.NewCoins()
 	savingsMaccAddr := supply.NewModuleAddress(v0_11cdp.SavingsRateMacc)
 	savingsRateMaccIndex := 0
 	liquidatorMaccIndex := 0
+
+	// moves hard distributions from hard module account to kavadist module account
+	hardDelegatorAddr := supply.NewModuleAddress(v0_11hard.DelegatorAccount)
+	hardDelegatorIdx := 0
+	hardDelegatorCoins := sdk.NewCoins()
+	hardLPAddr := supply.NewModuleAddress(v0_11hard.LPAccount)
+	hardLPIdx := 0
+	hardLPCoins := sdk.NewCoins()
+
+	harvestAddr := supply.NewModuleAddress(v0_11hard.ModuleAccountName)
+	harvestIdx := 0
+
+	kavaDistAddr := supply.NewModuleAddress(kavadist.KavaDistMacc)
+	kavaDistIdx := 0
+
 	for idx, acc := range genesisState.Accounts {
 		if acc.GetAddress().Equals(savingsMaccAddr) {
 			savingsRateMaccCoins = acc.GetCoins()
@@ -98,7 +340,23 @@ func Auth(genesisState auth.GenesisState) auth.GenesisState {
 		if acc.GetAddress().Equals(supply.NewModuleAddress(v0_13cdp.LiquidatorMacc)) {
 			liquidatorMaccIndex = idx
 		}
+		if acc.GetAddress().Equals(hardDelegatorAddr) {
+			hardDelegatorIdx = idx
+			hardDelegatorCoins = acc.GetCoins()
+		}
+		if acc.GetAddress().Equals(hardLPAddr) {
+			hardLPIdx = idx
+			hardLPCoins = acc.GetCoins()
+		}
+		if acc.GetAddress().Equals(kavaDistAddr) {
+			kavaDistIdx = idx
+		}
+		if acc.GetAddress().Equals(harvestAddr) {
+			harvestIdx = idx
+
+		}
 	}
+	// move remaining cdp savings to liquidator account
 	liquidatorAcc := genesisState.Accounts[liquidatorMaccIndex]
 	err := liquidatorAcc.SetCoins(liquidatorAcc.GetCoins().Add(savingsRateMaccCoins...))
 	if err != nil {
@@ -106,7 +364,30 @@ func Auth(genesisState auth.GenesisState) auth.GenesisState {
 	}
 	genesisState.Accounts[liquidatorMaccIndex] = liquidatorAcc
 
-	genesisState.Accounts = removeIndex(genesisState.Accounts, savingsRateMaccIndex)
+	// migrate harvest account to new hard name
+	harvestAcc := genesisState.Accounts[harvestIdx].(*supply.ModuleAccount)
+	harvestAcc.Address = supply.NewModuleAddress(v0_13hard.ModuleAccountName)
+	harvestAcc.Name = v0_13hard.ModuleAccountName
+	harvestAcc.Permissions = []string{supply.Minter}
+	genesisState.Accounts[harvestIdx] = harvestAcc
+
+	// add hard module accounts to kavadist
+	kavaDistAcc := genesisState.Accounts[kavaDistIdx]
+	err = kavaDistAcc.SetCoins(kavaDistAcc.GetCoins().Add(hardDelegatorCoins...).Add(hardLPCoins...))
+	if err != nil {
+		panic(err)
+	}
+	genesisState.Accounts[kavaDistIdx] = kavaDistAcc
+
+	// reverse sort indexes of accounts to remove so that re-numbering is irrelevant
+	indexesToRemove := []int{savingsRateMaccIndex, hardDelegatorIdx, hardLPIdx}
+	sort.Slice(indexesToRemove, func(i, j int) bool { return indexesToRemove[i] > indexesToRemove[j] })
+
+	// delete hard delegator, hard lp, and savings rate module accounts
+	for _, idx := range indexesToRemove {
+		genesisState.Accounts = removeIndex(genesisState.Accounts, idx)
+	}
+
 	return genesisState
 }
 
@@ -228,5 +509,6 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 func removeIndex(accs authexported.GenesisAccounts, index int) authexported.GenesisAccounts {
 	ret := make(authexported.GenesisAccounts, 0)
 	ret = append(ret, accs[:index]...)
-	return append(ret, accs[index+1:]...)
+	newAccounts := append(ret, accs[index+1:]...)
+	return newAccounts
 }

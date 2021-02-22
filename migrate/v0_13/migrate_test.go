@@ -1,6 +1,7 @@
 package v0_13
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,11 +10,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	"github.com/kava-labs/kava/app"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
 	v0_13committee "github.com/kava-labs/kava/x/committee"
 	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
+	v0_13hard "github.com/kava-labs/kava/x/hard"
+	v0_11hard "github.com/kava-labs/kava/x/hard/legacy/v0_11"
+	v0_13incentive "github.com/kava-labs/kava/x/incentive"
+	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
 
 	"github.com/stretchr/testify/require"
 )
@@ -54,11 +62,74 @@ func TestAuth(t *testing.T) {
 	require.NotPanics(t, func() {
 		cdc.MustUnmarshalJSON(bz, &oldGenState)
 	})
+	harvestCoins := getModuleAccount(oldGenState.Accounts, "harvest").GetCoins()
+
 	newGenState := Auth(oldGenState)
+
 	err = auth.ValidateGenesis(newGenState)
 	require.NoError(t, err)
-	require.Equal(t, len(oldGenState.Accounts), len(newGenState.Accounts)+1)
+	require.Equal(t, len(oldGenState.Accounts), len(newGenState.Accounts)+3)
+	require.Nil(t, getModuleAccount(newGenState.Accounts, "harvest"))
+	require.Equal(t, getModuleAccount(newGenState.Accounts, "hard").GetCoins(), harvestCoins)
+}
 
+func getModuleAccount(accounts authexported.GenesisAccounts, name string) supplyexported.ModuleAccountI {
+	modAcc, ok := getAccount(accounts, supply.NewModuleAddress(name)).(supplyexported.ModuleAccountI)
+	if !ok {
+		return nil
+	}
+	return modAcc
+}
+func getAccount(accounts authexported.GenesisAccounts, address sdk.AccAddress) authexported.GenesisAccount {
+	for _, acc := range accounts {
+		if acc.GetAddress().Equals(address) {
+			return acc
+		}
+	}
+	return nil
+}
+
+func TestIncentive(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-incentive-state.json"))
+	require.NoError(t, err)
+	var oldIncentiveGenState v0_11incentive.GenesisState
+	cdc := app.MakeCodec()
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldIncentiveGenState)
+	})
+
+	bz, err = ioutil.ReadFile(filepath.Join("testdata", "kava-4-harvest-state.json"))
+	require.NoError(t, err)
+	var oldHarvestGenState v0_11hard.GenesisState
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldHarvestGenState)
+	})
+	newGenState := v0_13incentive.GenesisState{}
+	require.NotPanics(t, func() {
+		newGenState = Incentive(oldHarvestGenState, oldIncentiveGenState)
+	})
+	err = newGenState.Validate()
+	require.NoError(t, err)
+	fmt.Printf("Number of incentive claims in kava-4: %d\nNumber of incentive Claims in kava-5: %d\n",
+		len(oldIncentiveGenState.Claims), len(newGenState.USDXMintingClaims),
+	)
+	fmt.Printf("Number of harvest claims in kava-4: %d\nNumber of hard claims in kava-5: %d\n", len(oldHarvestGenState.Claims), len(newGenState.HardLiquidityProviderClaims))
+}
+
+func TestHard(t *testing.T) {
+	cdc := app.MakeCodec()
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-harvest-state.json"))
+	require.NoError(t, err)
+	var oldHarvestGenState v0_11hard.GenesisState
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldHarvestGenState)
+	})
+	newGenState := v0_13hard.GenesisState{}
+	require.NotPanics(t, func() {
+		newGenState = Hard(oldHarvestGenState)
+	})
+	err = newGenState.Validate()
+	require.NoError(t, err)
 }
 
 func TestCommittee(t *testing.T) {
