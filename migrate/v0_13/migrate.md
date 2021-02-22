@@ -84,4 +84,4 @@ __Note:__ This can take a while!
 
 ### Coordination
 
-If the kava-5 chain does not launch by March 14, 2020 at 17:00 UTC, the launch should be considered a failure. Validators should restore the state from kava-4 and coordinate a relaunch. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
+If the kava-5 chain does not launch by March 4, 2021 at 17:00 UTC, the launch should be considered a failure. Validators should restore the state from kava-4 and coordinate a relaunch. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
