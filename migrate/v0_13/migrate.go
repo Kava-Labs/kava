@@ -368,6 +368,7 @@ func Auth(genesisState auth.GenesisState) auth.GenesisState {
 	harvestAcc := genesisState.Accounts[harvestIdx].(*supply.ModuleAccount)
 	harvestAcc.Address = supply.NewModuleAddress(v0_13hard.ModuleAccountName)
 	harvestAcc.Name = v0_13hard.ModuleAccountName
+	harvestAcc.Permissions = nil
 	genesisState.Accounts[harvestIdx] = harvestAcc
 
 	// add hard module accounts to kavadist
