@@ -322,6 +322,9 @@ func Auth(genesisState auth.GenesisState) auth.GenesisState {
 	hardLPIdx := 0
 	hardLPCoins := sdk.NewCoins()
 
+	harvestAddr := supply.NewModuleAddress(v0_11hard.ModuleAccountName)
+	harvestIdx := 0
+
 	kavaDistAddr := supply.NewModuleAddress(kavadist.KavaDistMacc)
 	kavaDistIdx := 0
 
@@ -348,13 +351,25 @@ func Auth(genesisState auth.GenesisState) auth.GenesisState {
 		if acc.GetAddress().Equals(kavaDistAddr) {
 			kavaDistIdx = idx
 		}
+		if acc.GetAddress().Equals(harvestAddr) {
+			harvestIdx = idx
+
+		}
 	}
+	// move remaining cdp savings to liquidator account
 	liquidatorAcc := genesisState.Accounts[liquidatorMaccIndex]
 	err := liquidatorAcc.SetCoins(liquidatorAcc.GetCoins().Add(savingsRateMaccCoins...))
 	if err != nil {
 		panic(err)
 	}
 	genesisState.Accounts[liquidatorMaccIndex] = liquidatorAcc
+
+	// migrate harvest account to new hard name
+	harvestAcc := genesisState.Accounts[harvestIdx].(*supply.ModuleAccount)
+	harvestAcc.Address = supply.NewModuleAddress(v0_13hard.ModuleAccountName)
+	harvestAcc.Name = v0_13hard.ModuleAccountName
+	harvestAcc.Permissions = []string{supply.Minter}
+	genesisState.Accounts[harvestIdx] = harvestAcc
 
 	// add hard module accounts to kavadist
 	kavaDistAcc := genesisState.Accounts[kavaDistIdx]

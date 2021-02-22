@@ -10,6 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	"github.com/kava-labs/kava/app"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
@@ -59,11 +62,31 @@ func TestAuth(t *testing.T) {
 	require.NotPanics(t, func() {
 		cdc.MustUnmarshalJSON(bz, &oldGenState)
 	})
+	harvestCoins := getModuleAccount(oldGenState.Accounts, "harvest").GetCoins()
+
 	newGenState := Auth(oldGenState)
+
 	err = auth.ValidateGenesis(newGenState)
 	require.NoError(t, err)
 	require.Equal(t, len(oldGenState.Accounts), len(newGenState.Accounts)+3)
+	require.Nil(t, getModuleAccount(newGenState.Accounts, "harvest"))
+	require.Equal(t, getModuleAccount(newGenState.Accounts, "hard").GetCoins(), harvestCoins)
+}
 
+func getModuleAccount(accounts authexported.GenesisAccounts, name string) supplyexported.ModuleAccountI {
+	modAcc, ok := getAccount(accounts, supply.NewModuleAddress(name)).(supplyexported.ModuleAccountI)
+	if !ok {
+		return nil
+	}
+	return modAcc
+}
+func getAccount(accounts authexported.GenesisAccounts, address sdk.AccAddress) authexported.GenesisAccount {
+	for _, acc := range accounts {
+		if acc.GetAddress().Equals(address) {
+			return acc
+		}
+	}
+	return nil
 }
 
 func TestIncentive(t *testing.T) {
