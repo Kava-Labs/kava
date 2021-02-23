@@ -11,8 +11,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3"
@@ -222,4 +225,26 @@ func TestBep3(t *testing.T) {
 	require.Equal(t, oldBNBSupply.CurrentSupply.Sub(sdk.NewCoin("bnb", sdk.NewInt(1000000000000))), newBNBSupply.CurrentSupply)
 	require.Equal(t, uint64(24686), newGenState.Params.AssetParams[0].MinBlockLock)
 	require.Equal(t, uint64(86400), newGenState.Params.AssetParams[0].MaxBlockLock)
+}
+
+func TestMigrateFull(t *testing.T) {
+	oldGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "kava-4-export.json"))
+	require.NoError(t, err)
+
+	// 2) migrate
+	newGenDoc := Migrate(*oldGenDoc)
+	tApp := app.NewTestApp()
+	cdc := app.MakeCodec()
+	var newAppState genutil.AppMap
+	require.NoError(t,
+		cdc.UnmarshalJSON(newGenDoc.AppState, &newAppState),
+	)
+	err = app.ModuleBasics.ValidateGenesis(newAppState)
+	if err != nil {
+		require.NoError(t, err)
+	}
+	require.NotPanics(t, func() {
+		// this runs both InitGenesis for all modules (which panic on errors) and runs all invariants
+		tApp.InitializeFromGenesisStatesWithTime(newGenDoc.GenesisTime, app.GenesisState(newAppState))
+	})
 }
