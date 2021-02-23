@@ -87,7 +87,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 }
 
 // LiquidateCdps seizes collateral from all CDPs below the input liquidation ratio
-func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType string, liquidationRatio sdk.Dec, slice sdk.Int) error {
+func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType string, liquidationRatio sdk.Dec, count sdk.Int) error {
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType s
 	// liquidation ratio = 1.5
 	// normalizedRatio = (1/(0.5/1.5)) = 3
 	normalizedRatio := sdk.OneDec().Quo(priceDivLiqRatio)
-	cdpsToLiquidate := k.GetSliceOfCDPsByRatioAndType(ctx, slice, normalizedRatio, collateralType)
+	cdpsToLiquidate := k.GetSliceOfCDPsByRatioAndType(ctx, count, normalizedRatio, collateralType)
 	for _, c := range cdpsToLiquidate {
 		k.hooks.BeforeCDPModified(ctx, c)
 		err := k.SeizeCollateral(ctx, c)
