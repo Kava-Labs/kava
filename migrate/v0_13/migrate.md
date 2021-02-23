@@ -2,9 +2,9 @@
 
 ## Software Version and Key Dates
 
-* The version of Kava for kava-4 is v0.13
+* The version of Kava for kava-5 is v0.13
 * Kava-4 validators should prepare to shutdown their nodes March 4th, 2021 at 13:00 UTC
-* Kava-4 genesis time is set to March 4th, 2021 at 15:00 UTC
+* Kava-5 genesis time is set to March 4th, 2021 at 15:00 UTC
 * The version of cosmos-sdk for kava-5 is v0.39.2
 * The version of tendermint for kava-5 v0.33.9
 * The minimum version of golang for kava-5 is 1.13+, 1.15+ has been tested and is recommended.
