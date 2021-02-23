@@ -613,6 +613,50 @@ paths:
           description: Invalid request
         500:
           description: Server internal error
+  /cdp/{owner}/{collateral-type}/liquidate:
+    post:
+      summary: Attempt to liquidate a CDP that is collateralization ratio is under its liquidaiton ratio
+      tags:
+        - CDP
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: owner
+          description: Owner address in bech32 format
+          required: true
+          type: string
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+        - in: path
+          name: collateral_type
+          description: Collateral type
+          required: true
+          type: string
+          x-example: xrpb-a
+        - description: liquidate cdp post parameters
+          name: post_liquidate_req
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              owner:
+                $ref: "#/definitions/Address"
+              collateral_type:
+                $ref: "#/definitions/CollateralType"
+      responses:
+        200:
+          description: Tx was successfully generated
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Server internal error
   /cdp/accounts:
     get:
       summary: Get the cdp module accounts
@@ -5009,12 +5053,33 @@ definitions:
       phase:
         type: string
         example: forward
+
+type CollateralParam struct {
+	Denom                            string   `json:"denom" yaml:"denom"` // Coin name of collateral type
+	Type                             string   `json:"type" yaml:"type"`
+	LiquidationRatio                 sdk.Dec  `json:"liquidation_ratio" yaml:"liquidation_ratio"`     // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
+	DebtLimit                        sdk.Coin `json:"debt_limit" yaml:"debt_limit"`                   // Maximum amount of debt allowed to be drawn from this collateral type
+	StabilityFee                     sdk.Dec  `json:"stability_fee" yaml:"stability_fee"`             // per second stability fee for loans opened using this collateral
+	AuctionSize                      sdk.Int  `json:"auction_size" yaml:"auction_size"`               // Max amount of collateral to sell off in any one auction.
+	LiquidationPenalty               sdk.Dec  `json:"liquidation_penalty" yaml:"liquidation_penalty"` // percentage penalty (between [0, 1]) applied to a cdp if it is liquidated
+	Prefix                           byte     `json:"prefix" yaml:"prefix"`
+	SpotMarketID                     string   `json:"spot_market_id" yaml:"spot_market_id"`                                           // marketID of the spot price of the asset from the pricefeed - used for opening CDPs, depositing, withdrawing
+	LiquidationMarketID              string   `json:"liquidation_market_id" yaml:"liquidation_market_id"`                             // marketID of the pricefeed used for liquidation
+	KeeperRewardPercentage           sdk.Dec  `json:"keeper_reward_percentage" yaml:"keeper_reward_percentage"`                       // the percentage of a CDPs collateral that gets rewarded to a keeper that liquidates the position
+	CheckCollateralizationIndexCount sdk.Int  `json:"check_collateralization_index_count" yaml:"check_collateralization_index_count"` // the number of cdps that will be checked for liquidation in the begin blocker
+	ConversionFactor                 sdk.Int  `json:"conversion_factor" yaml:"conversion_factor"`                                     // factor for converting internal units to one base unit of collateral
+}
+
+
   CollateralParam:
     type: object
     properties:
       denom:
         type: string
         example: xrp
+      type:
+        type: string
+        example: xrp-a
       liquidation_ratio:
         type: string
         example: "2.000000000000000000"
@@ -5032,9 +5097,18 @@ definitions:
       prefix:
         type: integer
         example: 0
-      market_id:
+      spot_market_id:
         type: string
         example: "xrp:usd"
+      liquidation_market_id:
+        type: string
+        example: "xrp:usd:30"
+      keeper_reward_percentage:
+        type: string
+        example: "0.05"
+      check_collateralization_index_count:
+        type: string
+        example: "10"
       conversion_factor:
         type: string
         example: "6"
