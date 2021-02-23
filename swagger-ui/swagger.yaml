@@ -1361,9 +1361,9 @@ paths:
             $ref: "#/definitions/Price"
         500:
           description: Internal Server Error
-  /incentive/claim:
+  /incentive/claim-cdp:
     post:
-      summary: Claim USDX incentive rewards
+      summary: Claim USDX incentive rewards from earned from CDPs
       tags:
         - Incentive
       consumes:
@@ -1372,16 +1372,16 @@ paths:
         - application/json
       parameters:
         - in: body
-          name: Incentive claim body
+          name: Incentive claim CDP body
           schema:
             properties:
               base_req:
                 $ref: "#/definitions/BaseReq"
-              owner:
+              sender:
                 $ref: "#/definitions/Address"
-              type:
+              multiplier_name:
                 type: string
-                example: bnb
+                example: "small"
       responses:
         200:
           description: OK
@@ -1391,28 +1391,46 @@ paths:
           description: Invalid request
         500:
           description: Internal server error
-  /incentive/claims/{owner}/{collateral-type}:
+  /incentive/claim-hard:
+    post:
+      summary: Claim Hard supply/borrow and Kava staking rewards
+      tags:
+        - Incentive
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: Incentive claim Hard body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              sender:
+                $ref: "#/definitions/Address"
+              multiplier_name:
+                type: string
+                example: "small"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /incentive/rewards:
     get:
-      summary: Get outstanding claims for the input owner and collateral type
+      summary: Get earned Incentive rewards
       tags:
         - Incentive
       produces:
         - application/json
-      parameters:
-        - in: path
-          name: owner
-          required: true
-          type: string
-          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
-        - in: path
-          name: type
-          description: Collateral type
-          required: true
-          type: string
-          x-example: bnb-a
       responses:
         200:
-          description: USDX Incentive Claims
+          description: Incentive rewards
           schema:
             type: object
             properties:
@@ -1423,7 +1441,7 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/ClaimResponse"
+                  $ref: "#/definitions/RewardResult"
         500:
           description: Server internal error
   /incentive/parameters:
@@ -4544,20 +4562,78 @@ definitions:
       active:
         type: boolean
         example: true
-  ClaimResponse:
+  RewardResult:
     type: object
     properties:
+      hard_claims:
+        type: array
+          items:
+            $ref: "#/definitions/HardLiquidityProviderClaim"
+      usdx_minting_claims:
+        type: array
+          items:
+            $ref: "#/definitions/USDXMintingClaims"
+  HardLiquidityProviderClaim:
+   type: object
+    properties:
+      base_claim:
+        $ref: "#/definitions/BaseMultiClaim"
+      supply_reward_indexes:
+        type: array
+          items:
+            $ref: "#/definitions/MultiRewardIndex"
+      borrow_reward_indexes:
+        type: array
+          items:
+            $ref: "#/definitions/MultiRewardIndex"
+      delegator_reward_indexes:
+        type: array
+          items:
+            $ref: "#/definitions/RewardIndex"
+  USDXMintingClaims:
+   type: object
+    properties:
+      base_claim:
+        $ref: "#/definitions/BaseClaim"
+      reward_indexes:
+        type: array
+          items:
+            $ref: "#/definitions/RewardIndex"
+ BaseClaim:
+   type: object
+    properties:
       owner:
-        type: string
-        example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+        $ref: "#/definitions/AccAddress"
       reward:
         $ref: "#/definitions/Coin"
-      denom:
+  BaseMultiClaim:
+   type: object
+    properties:
+      owner:
+        $ref: "#/definitions/AccAddress"
+      reward:
+        type: array
+          items:
+            $ref: "#/definitions/Coin"
+  MultiRewardIndex:
+   type: object
+    properties:
+      collateral_type:
         type: string
-        example: bnb
-      claim_period_id:
+        example: 'bnb'
+      reward_indexes:
+        type: array
+          items:
+            $ref: "#/definitions/RewardIndex"
+  RewardIndex:
+   type: object
+    properties:
+      collateral_type:
         type: string
-        example: 1
+        example: 'bnb'
+      reward_factor:
+        type: string
+        example: '1.2581'
   IncentiveParams:
     type: object
     properties:
