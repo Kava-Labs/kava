@@ -71,33 +71,33 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
 
-	for _, claim := range gs.USDXMintingClaims {
-		for _, ri := range claim.RewardIndexes {
+	for i, claim := range gs.USDXMintingClaims {
+		for j, ri := range claim.RewardIndexes {
 			if ri.RewardFactor != sdk.ZeroDec() {
-				ri.RewardFactor = sdk.ZeroDec()
+				gs.USDXMintingClaims[i].RewardIndexes[j].RewardFactor = sdk.ZeroDec()
 			}
 		}
 		k.SetUSDXMintingClaim(ctx, claim)
 	}
 
-	for _, claim := range gs.HardLiquidityProviderClaims {
-		for _, mri := range claim.SupplyRewardIndexes {
-			for _, ri := range mri.RewardIndexes {
+	for i, claim := range gs.HardLiquidityProviderClaims {
+		for j, mri := range claim.SupplyRewardIndexes {
+			for k, ri := range mri.RewardIndexes {
 				if ri.RewardFactor != sdk.ZeroDec() {
-					ri.RewardFactor = sdk.ZeroDec()
+					gs.HardLiquidityProviderClaims[i].SupplyRewardIndexes[j].RewardIndexes[k].RewardFactor = sdk.ZeroDec()
 				}
 			}
 		}
-		for _, mri := range claim.BorrowRewardIndexes {
-			for _, ri := range mri.RewardIndexes {
+		for j, mri := range claim.BorrowRewardIndexes {
+			for k, ri := range mri.RewardIndexes {
 				if ri.RewardFactor != sdk.ZeroDec() {
-					ri.RewardFactor = sdk.ZeroDec()
+					gs.HardLiquidityProviderClaims[i].BorrowRewardIndexes[j].RewardIndexes[k].RewardFactor = sdk.ZeroDec()
 				}
 			}
 		}
-		for _, ri := range claim.DelegatorRewardIndexes {
+		for j, ri := range claim.DelegatorRewardIndexes {
 			if ri.RewardFactor != sdk.ZeroDec() {
-				ri.RewardFactor = sdk.ZeroDec()
+				gs.HardLiquidityProviderClaims[i].DelegatorRewardIndexes[j].RewardFactor = sdk.ZeroDec()
 			}
 		}
 		k.SetHardLiquidityProviderClaim(ctx, claim)
@@ -119,8 +119,8 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		if err != nil {
 			panic(err)
 		}
-		for _, ri := range claim.RewardIndexes {
-			ri.RewardFactor = sdk.ZeroDec()
+		for i := range claim.RewardIndexes {
+			claim.RewardIndexes[i].RewardFactor = sdk.ZeroDec()
 		}
 		synchronizedUsdxClaims = append(synchronizedUsdxClaims, claim)
 	}
@@ -131,18 +131,18 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		if !found {
 			panic("hard liquidity provider claim should always be found after synchronization")
 		}
-		for _, bri := range claim.BorrowRewardIndexes {
-			for _, ri := range bri.RewardIndexes {
-				ri.RewardFactor = sdk.ZeroDec()
+		for i, bri := range claim.BorrowRewardIndexes {
+			for j := range bri.RewardIndexes {
+				claim.BorrowRewardIndexes[i].RewardIndexes[j].RewardFactor = sdk.ZeroDec()
 			}
 		}
-		for _, sri := range claim.SupplyRewardIndexes {
-			for _, ri := range sri.RewardIndexes {
-				ri.RewardFactor = sdk.ZeroDec()
+		for i, sri := range claim.SupplyRewardIndexes {
+			for j := range sri.RewardIndexes {
+				claim.SupplyRewardIndexes[i].RewardIndexes[j].RewardFactor = sdk.ZeroDec()
 			}
 		}
-		for _, dri := range claim.DelegatorRewardIndexes {
-			dri.RewardFactor = sdk.ZeroDec()
+		for i := range claim.DelegatorRewardIndexes {
+			claim.DelegatorRewardIndexes[i].RewardFactor = sdk.ZeroDec()
 		}
 		synchronizedHardClaims = append(synchronizedHardClaims, claim)
 	}
