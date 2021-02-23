@@ -55,7 +55,7 @@ func Migrate(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 		panic(err)
 	}
 	genDoc.AppState = marshaledNewAppState
-	genDoc.GenesisTime = time.Date(2021, 3, 4, 15, 0, 0, 0, time.UTC)
+	genDoc.GenesisTime = GenesisTime
 	genDoc.ChainID = "kava-5"
 	genDoc.ConsensusParams.Block.MaxGas = 20000000
 	return genDoc
