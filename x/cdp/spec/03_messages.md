@@ -98,6 +98,28 @@ State Changes:
 - if fees and principal are zero, return collateral to depositors and delete the CDP struct:
   - For each deposit, send coins from the cdp module account to the depositor, and delete the deposit struct from store.
 
+## Liquidate
+
+Liquidate enables Keepers to liquidate a Borrower's CDP. If the CDP is below its Loan-to-Value obligations, the CDP's deposits are seized: a small percentage of the seized funds are sent to the Keeper with the rest auctioned off to recover the CDP's outstanding borrowed amount. Any deposited funds leftover that weren't needed to cover the Borrower's debts are returned to the Borrower.
+
+```go
+// MsgLiquidate attempts to liquidate a borrower's cdp
+type MsgLiquidate struct {
+	Keeper         sdk.AccAddress `json:"keeper" yaml:"keeper"`
+	Borrower       sdk.AccAddress `json:"borrower" yaml:"borrower"`
+	CollateralType string         `json:"collateral_type" yaml:"collateral_type"`
+}
+```
+
+State Changes:
+
+- the CDP's outstanding interest is synchronized so that the deposit and borrow amount are accurate
+- the liquidation attempt is validated by comparing the CDP's current collateralization ratio to its liquidation ratio
+- the `Keeper` is paid out a percentage of the liquidated position; the exact percentage is specified in the module's params
+- the CDP's deposits are seized and used to start an `Auction` to recover the CDP's outstanding borrowed funds
+- the module's `TotalPrincipal` for the CDP's collateral type is decremented by the CDP's `Principal`
+- the CDP is deleted from the store and removed from the liquidation index
+
 ## Fees
 
 At the beginning of each block, fees accumulated since the last update are calculated and added on.
