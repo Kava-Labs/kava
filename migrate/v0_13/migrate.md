@@ -44,7 +44,7 @@ Kava developers will update this PR with the final block number when it is reach
 1. Export State (this __MUST__ be done using __v0.12.2__, previous v0.12.x versions will not produce the same genesis hash!)
 
 ```sh
-kvd export --for-zero-height > export-genesis.json
+kvd export --for-zero-height --height [PLACEHOLDER] > export-genesis.json
 ```
 
 __Note:__ This can take a while!
