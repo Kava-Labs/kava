@@ -4561,33 +4561,65 @@ definitions:
   IncentiveParams:
     type: object
     properties:
-      active:
-        type: boolean
-        example: true
-      rewards:
+      usdx_minting_reward_periods:
         type: array
         items:
-          $ref: "#/definitions/Reward"
-  Reward:
+          $ref: "#/definitions/RewardPeriod"
+      hard_supply_reward_periods:
+        type: array
+        items:
+          $ref: "#/definitions/MultiRewardPeriod"
+      hard_borrow_reward_periods:
+        type: array
+        items:
+          $ref: "#/definitions/MultiRewardPeriod"
+      hard_delegator_reward_periods:
+        type: array
+        items:
+          $ref: "#/definitions/RewardPeriod"
+      claim_multipliers:
+        type: array
+        items:
+          $ref: "#/definitions/Multiplier"
+      claim_end:
+        type: string
+        example: "2022-02-05T23:45:55.761435272Z"
+  RewardPeriod:
     type: object
     properties:
       active:
         type: boolean
         example: true
-      denom:
+      collateral_type:
         type: string
         example: bnb
-      available_rewards:
+      start:
+        type: string
+        example: "2020-02-05T23:45:55.761435272Z"
+      end:
+        type: string
+        example: "2024-02-05T23:45:55.761435272Z"
+      rewards_per_second:
         $ref: "#/definitions/Coin"
-      duration:
+  MultiRewardPeriod:
+    type: object
+    properties:
+      active:
+        type: boolean
+        example: true
+      collateral_type:
         type: string
-        example: 36800000000000
-      time_lock:
+        example: bnb
+      start:
         type: string
-        example: 36800000000000
-      claim_duration:
+        example: "2020-02-05T23:45:55.761435272Z"
+      end:
         type: string
-        example: 36800000000000
+        example: "2024-02-05T23:45:55.761435272Z"
+      rewards_per_second:
+        type: array
+        items:
+          $ref: "#/definitions/Coin"
   PubProposal:
     type: object
     properties:
@@ -4803,6 +4835,17 @@ definitions:
   MultiplierName:
     type: string
     example: "small"
+  Multiplier:
+    type: object
+    properties:
+      name:
+        $ref: "#/definitions/MultiplierName"
+      months_lockup:
+        type: string
+        example: "12"
+      factor:
+        type: string
+        example: "0.33"
   IssuanceParams:
     type: object
     properties:
