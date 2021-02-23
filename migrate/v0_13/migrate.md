@@ -37,7 +37,7 @@ You can safely set the halt-time flag at any time.
 
 ### On the day of the upgrade
 
-__The kava chain is expected to halt at 13:00 UTC, and restart with new software at 15:00 UTC March 15th. Do not stop your node and begin the upgrade before 13:00UTC on March 4th, or you may go offline and be unable to recover until after the upgrade!__
+__The kava chain is expected to halt at 13:00 UTC, and restart with new software at 15:00 UTC March 4th. Do not stop your node and begin the upgrade before 13:00UTC on March 4th, or you may go offline and be unable to recover until after the upgrade!__
 
 Kava developers will update this PR with the final block number when it is reached. __Make sure the kvd process is stopped before proceeding and that you have backed up your validator__. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
