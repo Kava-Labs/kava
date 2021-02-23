@@ -19,8 +19,8 @@
       description: Incentive module APIs
     - name: Pricefeed
       description: Auction module APIs
-    - name: Harvest
-      description: Harvest module APIs
+    - name: Hard
+      description: Hard module APIs
     - name: Committee
       description: Committee module APIs
     - name: Auth
@@ -1720,18 +1720,18 @@
             description: Invalid query parameters
           500:
             description: Internal Server Error
-    /harvest/deposit:
+    /hard/deposit:
       post:
-        summary: Deposit funds to harvest liquidity pool
+        summary: Deposit funds to hard liquidity pool
         tags:
-          - Harvest
+          - Hard
         consumes:
           - application/json
         produces:
           - application/json
         parameters:
           - in: body
-            name: harvest deposit body
+            name: hard deposit body
             schema:
               properties:
                 base_req:
@@ -1739,10 +1739,7 @@
                 depositor:
                   $ref: '#/definitions/Address'
                 amount:
-                  $ref: '#/definitions/Coin'
-                deposit_type:
-                  type: string
-                  example: lp
+                  $ref: '#/definitions/Coins'
         responses:
           200:
             description: OK
@@ -1752,18 +1749,18 @@
             description: Invalid request
           500:
             description: Internal server error
-    /harvest/withdraw:
+    /hard/withdraw:
       post:
-        summary: Withdraw funds from harvest liquidity pool
+        summary: Withdraw funds from hard liquidity pool
         tags:
-          - Harvest
+          - Hard
         consumes:
           - application/json
         produces:
           - application/json
         parameters:
           - in: body
-            name: harvest withdraw body
+            name: hard withdraw body
             schema:
               properties:
                 base_req:
@@ -1771,10 +1768,7 @@
                 depositor:
                   $ref: '#/definitions/Address'
                 amount:
-                  $ref: '#/definitions/Coin'
-                deposit_type:
-                  type: string
-                  example: lp
+                  $ref: '#/definitions/Coins'
         responses:
           200:
             description: OK
@@ -1784,35 +1778,28 @@
             description: Invalid request
           500:
             description: Internal server error
-    /harvest/claim:
+
+            TODO: add claim to incentive
+    /hard/borrow:
       post:
-        summary: Claim rewards from harvest liquidity pool
+        summary: Borrow funds from hard liquidity pool
         tags:
-          - Harvest
+          - Hard
         consumes:
           - application/json
         produces:
           - application/json
         parameters:
           - in: body
-            name: harvest claim body
+            name: hard borrow body
             schema:
               properties:
                 base_req:
                   $ref: '#/definitions/BaseReq'
-                sender:
+                depositor:
                   $ref: '#/definitions/Address'
-                receiver:
-                  $ref: '#/definitions/Address'
-                deposit_denom:
-                  type: string
-                  example: bnb
-                multiplier_name:
-                  type: string
-                  example: small
-                deposit_type:
-                  type: string
-                  example: lp
+                amount:
+                  $ref: '#/definitions/Coins'
         responses:
           200:
             description: OK
@@ -1822,16 +1809,72 @@
             description: Invalid request
           500:
             description: Internal server error
-    /harvest/parameters:
+  /hard/repay:
+      post:
+        summary: Repay funds borrowed from hard liquidity pool
+        tags:
+          - Hard
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: hard repay body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                owner:
+                  $ref: '#/definitions/Address'
+                amount:
+                  $ref: '#/definitions/Coins'
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+  /hard/liquidate:
+      post:
+        summary: Attempt to liquidate a borrower that is over their loan-to-value
+        tags:
+          - Hard
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: hard liquidate body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                borrower:
+                  $ref: '#/definitions/Address'
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /hard/parameters:
       get:
-        summary: Get the current parameters of the harvest module
+        summary: Get the current parameters of the hard module
         tags:
-          - Harvest
+          - Hard
         produces:
           - application/json
         responses:
           200:
-            description: Harvest module parameters
+            description: Hard module parameters
             schema:
               type: object
               properties:
@@ -1842,19 +1885,139 @@
                   type: array
                   x-nullable: true
                   items:
-                    $ref: '#/definitions/HarvestParams'
+                    $ref: '#/definitions/HardParams'
           500:
             description: Server internal error
-    /harvest/accounts:
+    /hard/total-deposited:
       get:
-        summary: Get the harvest module accounts
+        summary: Get total coins deposited to hard liquidity pools
         tags:
-          - Harvest
+          - Hard
+        produces:
+          - application/json
+        parameters:
+          - in: query
+            name: denom
+            description: Coin denom
+            required: false
+            type: string
+            x-example: btc
+        responses:
+          200:
+            description: total coins deposited
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/Coin'
+          500:
+            description: Server internal error
+    /hard/total-borrowed:
+      get:
+        summary: Get total coins borrowed from hard liquidity pools
+        tags:
+          - Hard
+        produces:
+          - application/json
+        parameters:
+          - in: query
+            name: denom
+            description: Coin denom
+            required: false
+            type: string
+            x-example: btc
+        responses:
+          200:
+            description: total coins borrowed
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/Coin'
+          500:
+            description: Server internal error
+    /hard/reserves:
+      get:
+        summary: Get total hard reserve coins
+        tags:
+          - Hard
+        produces:
+          - application/json
+        parameters:
+          - in: query
+            name: denom
+            description: Coin denom
+            required: false
+            type: string
+            x-example: btc
+        responses:
+          200:
+            description: reserve coins
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/Coin'
+          500:
+            description: Server internal error
+    /hard/interest-rate:
+      get:
+        summary: Get total hard reserve coins
+        tags:
+          - Hard
+        produces:
+          - application/json
+        parameters:
+          - in: query
+            name: denom
+            description: Money market denom
+            required: false
+            type: string
+            x-example: bnb
+        responses:
+          200:
+            description: money market interest rates
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/MoneyMarketInterestRate'
+          500:
+            description: Server internal error
+    /hard/accounts:
+      get:
+        summary: Get the hard module accounts
+        tags:
+          - Hard
         produces:
           - application/json
         responses:
           200:
-            description: The harvest module accounts
+            description: The hard module accounts
             schema:
               type: object
               properties:
@@ -1886,26 +2049,20 @@
                         type: number
           500:
             description: Server internal error
-    /harvest/deposits:
+    /hard/deposits:
       get:
-        summary: Get harvest deposits
+        summary: Get hard deposits
         tags:
-          - Harvest
+          - Hard
         produces:
           - application/json
         parameters:
           - in: query
-            name: deposit_denom
+            name: denom
             description: Deposit coin denom
             required: false
             type: string
             x-example: btc
-          - in: query
-            name: deposit_type
-            description: Deposit type
-            required: false
-            type: string
-            x-example: lp
           - in: query
             name: owner
             description: Owner address in bech32 format
@@ -1924,7 +2081,7 @@
             x-example: 100
         responses:
           200:
-            description: harvest deposits
+            description: hard deposits
             schema:
               type: object
               properties:
@@ -1935,29 +2092,23 @@
                   type: array
                   x-nullable: true
                   items:
-                    $ref: '#/definitions/HarvestDepositResponse'
+                    $ref: '#/definitions/HardDepositResponse'
           500:
             description: Server internal error
-    /harvest/claims:
+    /hard/borrows:
       get:
-        summary: Get outstanding harvest claims
+        summary: Get hard borrows
         tags:
-          - Harvest
+          - Hard
         produces:
           - application/json
         parameters:
           - in: query
-            name: deposit_denom
-            description: Deposit coin denom
+            name: denom
+            description: Borrow coin denom
             required: false
             type: string
             x-example: btc
-          - in: query
-            name: deposit_type
-            description: Deposit type
-            required: false
-            type: string
-            x-example: lp
           - in: query
             name: owner
             description: Owner address in bech32 format
@@ -1976,7 +2127,7 @@
             x-example: 100
         responses:
           200:
-            description: harvest claims
+            description: hard borrows
             schema:
               type: object
               properties:
@@ -1987,7 +2138,7 @@
                   type: array
                   x-nullable: true
                   items:
-                    $ref: '#/definitions/HarvestClaimResponse'
+                    $ref: '#/definitions/HardBorrowResponse'
           500:
             description: Server internal error
     /issuance/issue:
@@ -4536,87 +4687,121 @@
         active:
           type: boolean
           example: true
-    HarvestParams:
+    HardParams:
       type: object
       properties:
-        active:
+        money_markets:
+          type: array
+          items:
+            $ref: '#/definitions/MoneyMarket'
+        minimum_borrow_usd_value:
+          type: string
+          example: "10"
+    MoneyMarket:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: "bnb"
+        borrow_limit:
+          $ref: '#/definitions/BorrowLimit'
+        spot_market_id:
+          type: string
+          example: 'bnb:usd'
+        conversion_factor:
+          type: string
+          example: "100000000"
+        interest_rate_model:
+          $ref: '#/definitions/InterestRateModel'
+        reserve_factor:
+          type: string
+          example: "0.05"
+        keeper_reward_percentage:
+          type: string
+          example: "0.05"
+    BorrowLimit:
+      type: object
+      properties:
+        has_max_limit:
           type: boolean
           example: true
-        liquidity_provider_schedules:
-          type: array
-          items:
-            $ref: '#/definitions/DistributionSchedule'
-        delegator_distribution_schedules:
-          type: array
-          items:
-            $ref: '#/definitions/DelegatorDistributionSchedule'
-    DistributionSchedule:
+        maximum_limit:
+          type: string
+          example: "100000000000000"
+        loan_to_value:
+          type: string
+          example: "0.8"
+    InterestRateModel:
       type: object
       properties:
-        active:
-          type: boolean
-          example: true
-        deposit_denom:
+        base_rate_apy:
           type: string
-          example: 'xrp'
-        start:
+          example: "0"
+        base_multiplier:
           type: string
-          example: 1601220026
-        end:
+          example: "0.1"
+        kink:
           type: string
-          example: 1601930050
-        rewards_per_second:
-          $ref: '#/definitions/Coin'
-        claim_end:
+          example: "0.8"
+        jump_multiplier:
           type: string
-          example: 1602227044
-        claim_multipliers:
-          type: array
-          items:
-            $ref: '#/definitions/ClaimMultipliers'
-    ClaimMultipliers:
-      type: object
-      properties:
-        name:
-          $ref: '#/definitions/MultiplierName'
-        months_lockup:
-          type: string
-          example: 6
-        factor:
-          type: string
-          example: '0.5'
-    DelegatorDistributionSchedule:
-      type: object
-      properties:
-        distribution_schedule:
-          $ref: '#/definitions/DistributionSchedule'
-        distribution_frequency:
-          type: string
-          example: 2958000000000000
-    HarvestDepositResponse:
+          example: "0.5"
+    HardDepositResponse:
       type: object
       properties:
         depositor:
           $ref: '#/definitions/Address'
         amount:
-          $ref: '#/definitions/Coin'
-        type:
-          $ref: '#/definitions/Address'
-    HarvestClaimResponse:
+          type: array
+          items:
+            $ref: '#/definitions/Coin'
+        index:
+          type: array
+          items:
+            $ref: '#/definitions/SupplyInterestFactor'
+    HardBorrowResponse:
       type: object
       properties:
-        owner:
+        borrower:
           $ref: '#/definitions/Address'
-        deposit_denom:
-          type: string
-          example: 'xrp'
         amount:
-          $ref: '#/definitions/Coin'
-        type:
-          $ref: '#/definitions/DepositType'
-    DepositType:
-      type: string
-      example: "lp"
+          type: array
+          items:
+            $ref: '#/definitions/Coin'
+        index:
+          type: array
+          items:
+            $ref: '#/definitions/BorrowInterestFactor'
+    SupplyInterestFactor:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: "bnb"
+        value:
+          type: string
+          example: "0.1258"
+    BorrowInterestFactor:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: "bnb"
+        value:
+          type: string
+          example: "0.1258"
+    MoneyMarketInterestRate:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: "bnb"
+        supply_interest_rate:
+          type: string
+          example: "5.25"
+        borrow_interest_rate:
+          type: string
+          example: "5.25"
     MultiplierName:
       type: string
       example: "small"
