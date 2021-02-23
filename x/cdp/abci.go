@@ -35,7 +35,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			panic(err)
 		}
 
-		err = k.LiquidateCdps(ctx, cp.LiquidationMarketID, cp.Type, cp.LiquidationRatio)
+		err = k.LiquidateCdps(ctx, cp.LiquidationMarketID, cp.Type, cp.LiquidationRatio, cp.CheckCollateralizationIndexCount)
 		if err != nil && !errors.Is(err, pricefeedtypes.ErrNoValidPrice) {
 			panic(err)
 		}

@@ -188,12 +188,12 @@ func (suite *SeizeTestSuite) TestLiquidateCdps() {
 	suite.setPrice(d("0.2"), "xrp:usd")
 	p, found := suite.keeper.GetCollateral(suite.ctx, "xrp-a")
 	suite.True(found)
-	suite.keeper.LiquidateCdps(suite.ctx, "xrp:usd", "xrp-a", p.LiquidationRatio)
+	suite.keeper.LiquidateCdps(suite.ctx, "xrp:usd", "xrp-a", p.LiquidationRatio, p.CheckCollateralizationIndexCount)
 	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
 	finalXrpCollateral := acc.GetCoins().AmountOf("xrp")
 	seizedXrpCollateral := originalXrpCollateral.Sub(finalXrpCollateral)
 	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000000000)).Int64())
-	suite.Equal(len(suite.liquidations.xrp), xrpLiquidations)
+	suite.Equal(10, xrpLiquidations)
 }
 
 func (suite *SeizeTestSuite) TestApplyLiquidationPenalty() {

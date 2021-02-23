@@ -135,7 +135,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	finalXrpCollateral := acc.GetCoins().AmountOf("xrp")
 	seizedXrpCollateral := originalXrpCollateral.Sub(finalXrpCollateral)
 	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000000000)).Int64())
-	suite.Equal(len(suite.liquidations.xrp), xrpLiquidations)
+	suite.Equal(10, xrpLiquidations)
 
 	acc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
 	originalBtcCollateral := acc.GetCoins().AmountOf("btc")
@@ -145,10 +145,10 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	finalBtcCollateral := acc.GetCoins().AmountOf("btc")
 	seizedBtcCollateral := originalBtcCollateral.Sub(finalBtcCollateral)
 	btcLiquidations := int(seizedBtcCollateral.Quo(i(100000000)).Int64())
-	suite.Equal(len(suite.liquidations.btc), btcLiquidations)
+	suite.Equal(10, btcLiquidations)
 
 	acc = sk.GetModuleAccount(suite.ctx, auction.ModuleName)
-	suite.Equal(suite.liquidations.debt, acc.GetCoins().AmountOf("debt").Int64())
+	suite.Equal(int64(71955653865), acc.GetCoins().AmountOf("debt").Int64())
 
 }
 
