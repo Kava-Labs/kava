@@ -4567,73 +4567,73 @@ definitions:
     properties:
       hard_claims:
         type: array
-          items:
-            $ref: "#/definitions/HardLiquidityProviderClaim"
+        items:
+          $ref: "#/definitions/HardLiquidityProviderClaim"
       usdx_minting_claims:
         type: array
-          items:
-            $ref: "#/definitions/USDXMintingClaims"
+        items:
+          $ref: "#/definitions/USDXMintingClaims"
   HardLiquidityProviderClaim:
-   type: object
+    type: object
     properties:
       base_claim:
         $ref: "#/definitions/BaseMultiClaim"
       supply_reward_indexes:
         type: array
-          items:
-            $ref: "#/definitions/MultiRewardIndex"
+        items:
+          $ref: "#/definitions/MultiRewardIndex"
       borrow_reward_indexes:
         type: array
-          items:
-            $ref: "#/definitions/MultiRewardIndex"
+        items:
+          $ref: "#/definitions/MultiRewardIndex"
       delegator_reward_indexes:
         type: array
-          items:
-            $ref: "#/definitions/RewardIndex"
+        items:
+          $ref: "#/definitions/RewardIndex"
   USDXMintingClaims:
-   type: object
+    type: object
     properties:
       base_claim:
         $ref: "#/definitions/BaseClaim"
       reward_indexes:
         type: array
-          items:
-            $ref: "#/definitions/RewardIndex"
- BaseClaim:
-   type: object
+        items:
+          $ref: "#/definitions/RewardIndex"
+  BaseClaim:
+    type: object
     properties:
       owner:
         $ref: "#/definitions/AccAddress"
       reward:
         $ref: "#/definitions/Coin"
   BaseMultiClaim:
-   type: object
+    type: object
     properties:
       owner:
         $ref: "#/definitions/AccAddress"
       reward:
         type: array
-          items:
-            $ref: "#/definitions/Coin"
+        items:
+          $ref: "#/definitions/Coin"
   MultiRewardIndex:
-   type: object
+    type: object
     properties:
       collateral_type:
         type: string
-        example: 'bnb'
+        example: "bnb"
       reward_indexes:
         type: array
-          items:
-            $ref: "#/definitions/RewardIndex"
+        items:
+          $ref: "#/definitions/RewardIndex"
   RewardIndex:
-   type: object
+    type: object
     properties:
       collateral_type:
         type: string
-        example: 'bnb'
+        example: "bnb"
       reward_factor:
         type: string
-        example: '1.2581'
+        example: "1.2581"
   IncentiveParams:
     type: object
     properties:
