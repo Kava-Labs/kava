@@ -11,9 +11,10 @@ import (
 
 // Valid reward multipliers
 const (
-	Small  MultiplierName = "small"
-	Medium MultiplierName = "medium"
-	Large  MultiplierName = "large"
+	Small      MultiplierName = "small"
+	Medium     MultiplierName = "medium"
+	Large      MultiplierName = "large"
+	ModuleName                = "incentive"
 )
 
 // GenesisClaimPeriodID stores the next claim id and its corresponding collateral type
