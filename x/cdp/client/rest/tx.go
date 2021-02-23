@@ -20,7 +20,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp/{owner}/{collateralType}/withdraw", postWithdrawHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/cdp/{owner}/{collateralType}/draw", postDrawHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/cdp/{owner}/{collateralType}/repay", postRepayHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/cdp/{owner}/collateralType}/liquidate", postLiquidateHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/cdp/{owner}/{collateralType}/liquidate", postLiquidateHandlerFn(cliCtx)).Methods("POST")
 }
 
 func postCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
