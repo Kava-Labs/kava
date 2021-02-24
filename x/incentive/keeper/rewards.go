@@ -662,7 +662,7 @@ func (k Keeper) ZeroHardLiquidityProviderClaim(ctx sdk.Context, claim types.Hard
 func CalculateTimeElapsed(start, end, blockTime time.Time, previousAccrualTime time.Time) sdk.Int {
 	if (end.Before(blockTime) &&
 		(end.Before(previousAccrualTime) || end.Equal(previousAccrualTime))) ||
-		(start.After(previousAccrualTime)) ||
+		(start.After(blockTime)) ||
 		(start.Equal(blockTime)) {
 		return sdk.ZeroInt()
 	}
