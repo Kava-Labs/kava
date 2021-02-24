@@ -660,12 +660,23 @@ func (k Keeper) ZeroHardLiquidityProviderClaim(ctx sdk.Context, claim types.Hard
 // CalculateTimeElapsed calculates the number of reward-eligible seconds that have passed since the previous
 // time rewards were accrued, taking into account the end time of the reward period
 func CalculateTimeElapsed(start, end, blockTime time.Time, previousAccrualTime time.Time) sdk.Int {
-	if (end.Before(blockTime) &&
-		(end.Before(previousAccrualTime) || end.Equal(previousAccrualTime))) ||
-		(start.After(previousAccrualTime)) ||
-		(start.Equal(blockTime)) {
-		return sdk.ZeroInt()
+	flagTime := time.Date(2021, 2, 25, 6, 30, 0, 0, time.UTC)
+	if blockTime.Before(flagTime) {
+		if (end.Before(blockTime) &&
+			(end.Before(previousAccrualTime) || end.Equal(previousAccrualTime))) ||
+			(start.After(previousAccrualTime)) ||
+			(start.Equal(blockTime)) {
+			return sdk.ZeroInt()
+		}
+	} else {
+		if (end.Before(blockTime) &&
+			(end.Before(previousAccrualTime) || end.Equal(previousAccrualTime))) ||
+			(start.After(blockTime)) ||
+			(start.Equal(blockTime)) {
+			return sdk.ZeroInt()
+		}
 	}
+
 	if start.After(previousAccrualTime) && start.Before(blockTime) {
 		previousAccrualTime = start
 	}
