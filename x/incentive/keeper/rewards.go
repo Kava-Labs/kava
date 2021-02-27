@@ -671,13 +671,13 @@ func CalculateTimeElapsed(start, end, blockTime time.Time, previousAccrualTime t
 	}
 
 	if end.Before(blockTime) {
-		return sdk.NewInt(int64(math.RoundToEven(
+		return sdk.MaxInt(sdk.ZeroInt(), sdk.NewInt(int64(math.RoundToEven(
 			end.Sub(previousAccrualTime).Seconds(),
-		)))
+		))))
 	}
-	return sdk.NewInt(int64(math.RoundToEven(
+	return sdk.MaxInt(sdk.ZeroInt(), sdk.NewInt(int64(math.RoundToEven(
 		blockTime.Sub(previousAccrualTime).Seconds(),
-	)))
+	))))
 }
 
 // SimulateHardSynchronization calculates a user's outstanding hard rewards by simulating reward synchronization
