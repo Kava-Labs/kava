@@ -555,6 +555,9 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 					// update AllowedParams
 					var newAllowedParams v0_13committee.AllowedParams
 					for _, ap := range subPerm.AllowedParams {
+						if ap.Subspace == "harvest" {
+							continue
+						}
 						newAP := v0_13committee.AllowedParam(ap)
 						newAllowedParams = append(newAllowedParams, newAP)
 					}
