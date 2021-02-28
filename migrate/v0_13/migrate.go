@@ -555,13 +555,22 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 					// update AllowedParams
 					var newAllowedParams v0_13committee.AllowedParams
 					for _, ap := range subPerm.AllowedParams {
+						if ap.Subspace == "harvest" {
+							continue
+						}
 						newAP := v0_13committee.AllowedParam(ap)
 						newAllowedParams = append(newAllowedParams, newAP)
 					}
+					hrdaMMAp := v0_13committee.AllowedParam{Subspace: "hard", Key: "MoneyMarkets"}
+					hardLimitAp := v0_13committee.AllowedParam{Subspace: "hard", Key: "MinimumBorrowUSDValue"}
+					newAllowedParams = append(newAllowedParams, hrdaMMAp)
+					newAllowedParams = append(newAllowedParams, hardLimitAp)
+
 					newStabilitySubParamPermissions.AllowedParams = newAllowedParams
 
 					// update AllowedCollateralParams
 					var newCollateralParams v0_13committee.AllowedCollateralParams
+					collateralTypes := []string{"bnb-a", "busd-a", "busd-b", "btcb-a", "xrpb-a", "ukava-a", "hard-a", "hbtc-a"}
 					for _, cp := range subPerm.AllowedCollateralParams {
 						newCP := v0_13committee.NewAllowedCollateralParam(
 							cp.Type,
@@ -579,6 +588,18 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 							true,
 						)
 						newCollateralParams = append(newCollateralParams, newCP)
+					}
+					for _, cType := range collateralTypes {
+						var foundCtype bool
+						for _, cp := range newCollateralParams {
+							if cType == cp.Type {
+								foundCtype = true
+							}
+						}
+						if !foundCtype {
+							newCP := v0_13committee.NewAllowedCollateralParam(cType, false, false, true, true, true, false, false, false, false, false, true, true)
+							newCollateralParams = append(newCollateralParams, newCP)
+						}
 					}
 					newStabilitySubParamPermissions.AllowedCollateralParams = newCollateralParams
 
@@ -609,7 +630,7 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 
 					// Add hard money market committee permissions
 					var newMoneyMarketParams v0_13committee.AllowedMoneyMarkets
-					hardMMDenoms := []string{"bnb", "busd", "btcb", "xrpb", "usdx", "kava", "hard"}
+					hardMMDenoms := []string{"bnb", "busd", "btcb", "xrpb", "usdx", "ukava", "hard"}
 					for _, mmDenom := range hardMMDenoms {
 						newMoneyMarketParam := v0_13committee.NewAllowedMoneyMarket(mmDenom, true, false, false, true, true, true)
 						newMoneyMarketParams = append(newMoneyMarketParams, newMoneyMarketParam)
