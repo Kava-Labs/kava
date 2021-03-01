@@ -34,7 +34,24 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v0.13.0]
+
+* Hard Protocol - Introduces borrowing functionality to HARD protocol. See full [spec](https://github.com/Kava-Labs/kava/tree/master/x/hard/spec)
+
+### Breaking changes
+
+[\#750](https://github.com/Kava-Labs/kava/pull/750) Update CDP liquidations to allow for liquidation by external keeper.
+
+[\#751](https://github.com/Kava-Labs/kava/pull/751) Use accumulators for CDP interest accumulation.
+
+[\#780](https://github.com/Kava-Labs/kava/pull/780) Moves HARD token distribution from `harvest` module to `incentive` module. All HARD supply, borrow, and delegator reward objects and claims are moved to the `incentive` module.
+
+
+
+## [v0.12.0]
+
+[\#701](https://github.com/Kava-Labs/kava/pull/701) Patch issue that prevented atomic swaps from completing successfully
+## [v0.11.0]
 
 [\#591](https://github.com/Kava-Labs/kava/pull/591) Add a `raw-params` cli method to query raw parameter values for use in manual verification of gov proposals.
 
@@ -47,6 +64,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 [\#578](https://github.com/Kava-Labs/kava/pulls/578) Add v0.3 compatible REST client that supports
 
 [\#629](https://github.com/Kava-Labs/kava/pulls/629) Add CDP collateral type as a field for CDPs and collateral parameters.
+
+[\#658](https://github.com/Kava-Labs/kava/pulls/658) Add harvest v1 and HARD token distribution schedule
 
 ### Breaking changes
 
