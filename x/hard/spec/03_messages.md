@@ -45,7 +45,7 @@ type MsgRepay struct {
 }
 ```
 
-This message decrements a `Borrow` object, or deletes one if the `Amount` specified is greater than or equal to the total borrowed amount, as well as creating/updating the necessary indexes and synchronizing any outstanding interest. For example, a message which requests to repay 100xyz tokens, if `Owner` has only deposited 50xyz tokens, the `Sender` will repay the full 50xyz tokens. The `Amount` of coins, or the current borrow amount, is transferred from `Sender`. The global variable for `TotalBorrowed` is updated.
+This message decrements a `Borrow` object, or deletes one if the `Amount` specified is greater than or equal to the total borrowed amount, as well as creating/updating the necessary indexes and synchronizing any outstanding interest. For example, a message which requests to repay 100xyz tokens, if `Owner` has only borrowed 50xyz tokens, the `Sender` will repay the full 50xyz tokens. The `Amount` of coins, or the current borrow amount, is transferred from `Sender`. The global variable for `TotalBorrowed` is updated.
 
 ```go
 // MsgLiquidate attempts to liquidate a borrower's borrow
