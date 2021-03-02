@@ -594,6 +594,9 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 	if !found {
 		// Instantiate claim object
 		claim = types.NewHardLiquidityProviderClaim(delegator, sdk.Coins{}, nil, nil, nil)
+	} else {
+		k.SynchronizeHardDelegatorRewards(ctx, delegator)
+		claim, _ = k.GetHardLiquidityProviderClaim(ctx, delegator)
 	}
 
 	claim.DelegatorRewardIndexes = types.RewardIndexes{delegatorRewardIndexes}
