@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"math"
 	"time"
 
@@ -305,7 +304,6 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 
 		userRewardIndexIndex, foundUserRewardIndexIndex := claim.SupplyRewardIndexes.GetRewardIndexIndex(coin.Denom)
 		if !foundUserRewardIndexIndex {
-			fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 			continue
 		}
 
@@ -333,7 +331,6 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 
 			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex {
-				fmt.Printf("[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue
 			}
 			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
@@ -389,7 +386,6 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 
 		userRewardIndexIndex, foundUserRewardIndexIndex := claim.BorrowRewardIndexes.GetRewardIndexIndex(coin.Denom)
 		if !foundUserRewardIndexIndex {
-			fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 			continue
 		}
 
@@ -417,7 +413,6 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 
 			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex {
-				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue
 			}
 			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
@@ -510,9 +505,7 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 
 	totalDelegated := sdk.ZeroDec()
 
-	// TODO: set reasonable max limit on delegation iteration
-	maxUInt := ^uint16(0)
-	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, delegator, maxUInt)
+	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, delegator, 200)
 	for _, delegation := range delegations {
 		validator, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
 		if !found {
@@ -594,6 +587,9 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 	if !found {
 		// Instantiate claim object
 		claim = types.NewHardLiquidityProviderClaim(delegator, sdk.Coins{}, nil, nil, nil)
+	} else {
+		k.SynchronizeHardDelegatorRewards(ctx, delegator)
+		claim, _ = k.GetHardLiquidityProviderClaim(ctx, delegator)
 	}
 
 	claim.DelegatorRewardIndexes = types.RewardIndexes{delegatorRewardIndexes}
@@ -696,7 +692,6 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 
 		userRewardIndexIndex, foundUserRewardIndexIndex := claim.SupplyRewardIndexes.GetRewardIndexIndex(ri.CollateralType)
 		if !foundUserRewardIndexIndex {
-			fmt.Printf("\n[LOG]: claim.SupplyRewardIndexes.GetRewardIndexIndex for %s should always be found", ri.CollateralType) // TODO: remove before production
 			continue
 		}
 
@@ -725,7 +720,6 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 
 			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex {
-				fmt.Printf("[LOG]: userRewardIndexes.RewardIndexes.GetFactorIndex for %s should always be found", globalRewardIndex.CollateralType) // TODO: remove before production
 				continue
 			}
 			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
@@ -748,7 +742,6 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 
 		userRewardIndexIndex, foundUserRewardIndexIndex := claim.BorrowRewardIndexes.GetRewardIndexIndex(ri.CollateralType)
 		if !foundUserRewardIndexIndex {
-			fmt.Printf("\n[LOG]: claim.BorrowRewardIndexes.GetRewardIndexIndex for %s should always be found", ri.CollateralType) // TODO: remove before production
 			continue
 		}
 
@@ -777,7 +770,6 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 
 			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex {
-				fmt.Printf("[LOG]: userRewardIndexes.RewardIndexes.GetFactorIndex for %s should always be found", globalRewardIndex.CollateralType) // TODO: remove before production
 				continue
 			}
 			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
@@ -806,9 +798,7 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 
 	totalDelegated := sdk.ZeroDec()
 
-	// TODO: set reasonable max limit on delegation iteration
-	maxUInt := ^uint16(0)
-	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, claim.GetOwner(), maxUInt)
+	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, claim.GetOwner(), 200)
 	for _, delegation := range delegations {
 		validator, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
 		if !found {
