@@ -54,7 +54,7 @@ __Note:__ This can take a while!
 ```sh
   # in the `kava` folder
     git pull
-    git checkout v0.13.0
+    git checkout v0.13.1
     make install
 
   # verify versions
@@ -62,7 +62,7 @@ __Note:__ This can take a while!
   # name: kava
   # server_name: kvd
   # client_name: kvcli
-  # version: 0.13.0
+  # version: 0.13.1
   # commit: PLACEHOLDER
   # build_tags: netgo,ledger
   # go: go version go1.15.8 linux/amd64
