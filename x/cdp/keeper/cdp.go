@@ -497,7 +497,6 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 	// sync the latest interest of the cdp
 	interestAccumulated := k.CalculateNewInterest(ctx, cdp)
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(interestAccumulated)
-
 	// update cdp fields to match synced accumulated fees
 	prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cdp.Type)
 	if found {
