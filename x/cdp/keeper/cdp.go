@@ -497,6 +497,16 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 	// sync the latest interest of the cdp
 	interestAccumulated := k.CalculateNewInterest(ctx, cdp)
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(interestAccumulated)
+
+	// update cdp fields to match synced accumulated fees
+	prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cdp.Type)
+	if found {
+		cdp.FeesUpdated = prevAccrualTime
+	}
+	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
+	if found {
+		cdp.InterestFactor = globalInterestFactor
+	}
 	// calculate collateralization ratio
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Type, cdp.Principal, cdp.AccumulatedFees, liquidation)
 	if err != nil {
