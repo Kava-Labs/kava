@@ -79,6 +79,9 @@ __Note:__ This can take a while!
   # Restart node with migrated genesis state
   cp genesis.json ~/.kvd/config/genesis.json
   kvd unsafe-reset-all
+
+  # Restart node -
+  # ! Be sure to remove --halt-time flag if it is set in systemd/docker 
   kvd start
 ```
 
