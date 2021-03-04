@@ -63,7 +63,7 @@ __Note:__ This can take a while!
   # server_name: kvd
   # client_name: kvcli
   # version: 0.13.1
-  # commit: PLACEHOLDER
+  # commit: 203d7e0063555166808fd560092e6cf64ac19117
   # build_tags: netgo,ledger
   # go: go version go1.15.8 linux/amd64
 
@@ -74,7 +74,7 @@ __Note:__ This can take a while!
   # Verify output of genesis migration
   kvd validate-genesis genesis.json # should say it's valid
   jq -S -c -M '' genesis.json | shasum -a 256
-  # [PLACEHOLDER]
+  # 5200ab3b16fe6100a67c707688f10e3ee9affeda93a4b472b9bf40faafdd5dc0
 
   # Restart node with migrated genesis state
   cp genesis.json ~/.kvd/config/genesis.json
