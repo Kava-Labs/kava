@@ -433,7 +433,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
 		validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, cdp.ModuleName,
-		bep3.ModuleName, hard.ModuleName, committee.ModuleName, issuance.ModuleName, incentive.ModuleName,
+		bep3.ModuleName, committee.ModuleName, hard.ModuleName, issuance.ModuleName, incentive.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
