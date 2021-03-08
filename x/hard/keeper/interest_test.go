@@ -192,6 +192,21 @@ func (suite *InterestTestSuite) TestCalculateBorrowRate() {
 				expectedValue: sdk.MustNewDecFromStr("0.797457627118644068"),
 			},
 		},
+		{
+			"zero model returns zero",
+			args{
+				cash:     sdk.MustNewDecFromStr("1000"),
+				borrows:  sdk.MustNewDecFromStr("5000"),
+				reserves: sdk.MustNewDecFromStr("100"),
+				model: types.NewInterestRateModel(
+					sdk.MustNewDecFromStr("0.0"),
+					sdk.MustNewDecFromStr("0.0"),
+					sdk.MustNewDecFromStr("0.8"),
+					sdk.MustNewDecFromStr("0.0"),
+				),
+				expectedValue: sdk.MustNewDecFromStr("0.0"),
+			},
+		},
 	}
 
 	for _, tc := range testCases {

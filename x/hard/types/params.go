@@ -184,19 +184,19 @@ func NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier sdk.
 // Validate InterestRateModel param
 func (irm InterestRateModel) Validate() error {
 	if irm.BaseRateAPY.IsNegative() || irm.BaseRateAPY.GT(sdk.OneDec()) {
-		return fmt.Errorf("Base rate APY must be between 0.0-1.0")
+		return fmt.Errorf("Base rate APY must be in the inclusive range 0.0-1.0")
 	}
 
 	if irm.BaseMultiplier.IsNegative() {
-		return fmt.Errorf("Base multiplier must be positive")
+		return fmt.Errorf("Base multiplier must not be negative")
 	}
 
 	if irm.Kink.IsNegative() || irm.Kink.GT(sdk.OneDec()) {
-		return fmt.Errorf("Kink must be between 0.0-1.0")
+		return fmt.Errorf("Kink must be in the inclusive range 0.0-1.0")
 	}
 
 	if irm.JumpMultiplier.IsNegative() {
-		return fmt.Errorf("Jump multiplier must be positive")
+		return fmt.Errorf("Jump multiplier must not be negative")
 	}
 
 	return nil
