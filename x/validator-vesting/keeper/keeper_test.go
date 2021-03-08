@@ -67,19 +67,22 @@ func TestGetSetPreviousBlock(t *testing.T) {
 	now := tmtime.Now()
 
 	// require panic if the previous blocktime was never set
-	require.Panics(t, func() { keeper.GetPreviousBlockTime(ctx) })
+	_, found := keeper.GetPreviousBlockTime(ctx)
+	require.False(t, found)
 
 	// require that passing a valid time to SetPreviousBlockTime does not panic
 	require.NotPanics(t, func() { keeper.SetPreviousBlockTime(ctx, now) })
 
 	// require that the value from GetPreviousBlockTime equals what was set
-	bpt := keeper.GetPreviousBlockTime(ctx)
+	bpt, found := keeper.GetPreviousBlockTime(ctx)
+	require.True(t, found)
 	require.Equal(t, now, bpt)
 
 	// require that the zero value is safe
 	require.NotPanics(t, func() { keeper.SetPreviousBlockTime(ctx, tmtime.Canonical(time.Unix(0, 0))) })
 
-	bpt = keeper.GetPreviousBlockTime(ctx)
+	bpt, found = keeper.GetPreviousBlockTime(ctx)
+	require.True(t, found)
 	require.Equal(t, tmtime.Canonical(time.Unix(0, 0)), bpt)
 
 }
