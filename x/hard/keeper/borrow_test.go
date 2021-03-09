@@ -420,3 +420,138 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestValidateBorrow() {
+
+	blockDuration := time.Second * 3600 * 24 // long blocks to accumulate larger interest
+
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+	borrower := addrs[0]
+	initialBorrowerBalance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)),
+		sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)),
+	)
+
+	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("1.0"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
+
+	// Initialize test app and set context
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+
+	// Auth module genesis state
+	authGS := app.NewAuthGenState(
+		[]sdk.AccAddress{borrower},
+		[]sdk.Coins{initialBorrowerBalance})
+
+	// Hard module genesis state
+	hardGS := types.NewGenesisState(
+		types.NewParams(
+			types.MoneyMarkets{
+				types.NewMoneyMarket("usdx",
+					types.NewBorrowLimit(false, sdk.NewDec(100000000*USDX_CF), sdk.MustNewDecFromStr("1")), // Borrow Limit
+					"usdx:usd",                     // Market ID
+					sdk.NewInt(USDX_CF),            // Conversion Factor
+					model,                          // Interest Rate Model
+					sdk.MustNewDecFromStr("1.0"),   // Reserve Factor (high)
+					sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+				types.NewMoneyMarket("ukava",
+					types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+					"kava:usd",                     // Market ID
+					sdk.NewInt(KAVA_CF),            // Conversion Factor
+					model,                          // Interest Rate Model
+					sdk.MustNewDecFromStr("1.0"),   // Reserve Factor (high)
+					sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+			},
+			sdk.NewDec(10),
+		),
+		types.DefaultAccumulationTimes,
+		types.DefaultDeposits,
+		types.DefaultBorrows,
+		types.DefaultTotalSupplied,
+		types.DefaultTotalBorrowed,
+		types.DefaultTotalReserves,
+	)
+
+	// Pricefeed module genesis state
+	pricefeedGS := pricefeed.GenesisState{
+		Params: pricefeed.Params{
+			Markets: []pricefeed.Market{
+				{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+			},
+		},
+		PostedPrices: []pricefeed.PostedPrice{
+			{
+				MarketID:      "usdx:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("1.00"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
+			{
+				MarketID:      "kava:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("2.00"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
+		},
+	}
+
+	// Initialize test application
+	tApp.InitializeFromGenesisStates(
+		authGS,
+		app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
+		app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)},
+	)
+
+	keeper := tApp.GetHardKeeper()
+	suite.app = tApp
+	suite.ctx = ctx
+	suite.keeper = keeper
+
+	var err error
+
+	// Run BeginBlocker once to transition MoneyMarkets
+	hard.BeginBlocker(suite.ctx, suite.keeper)
+
+	// Setup borrower with some collateral to borrow against, and some reserve in the protocol.
+	depositCoins := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)),
+		sdk.NewCoin("usdx", sdk.NewInt(100*USDX_CF)),
+	)
+	err = suite.keeper.Deposit(suite.ctx, borrower, depositCoins)
+	suite.Require().NoError(err)
+
+	initialBorrowCoins := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(70*KAVA_CF)))
+	err = suite.keeper.Borrow(suite.ctx, borrower, initialBorrowCoins)
+	suite.Require().NoError(err)
+
+	runAtTime := suite.ctx.BlockTime().Add(blockDuration)
+	suite.ctx = suite.ctx.WithBlockTime(runAtTime)
+	hard.BeginBlocker(suite.ctx, suite.keeper)
+
+	repayCoins := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))) // repay everything including accumulated interest
+	err = suite.keeper.Repay(suite.ctx, borrower, borrower, repayCoins)
+	suite.Require().NoError(err)
+
+	// Get the total borrowable amount from the protocol, taking into account the reserves.
+	modAccBalance := suite.getModuleAccountAtCtx(types.ModuleAccountName, suite.ctx).GetCoins()
+	reserves, found := suite.keeper.GetTotalReserves(suite.ctx)
+	suite.Require().True(found)
+	availableToBorrow := modAccBalance.Sub(reserves)
+
+	// Test borrowing one over the available amount (try to borrow from the reserves)
+	err = suite.keeper.Borrow(
+		suite.ctx,
+		borrower,
+		sdk.NewCoins(sdk.NewCoin("ukava", availableToBorrow.AmountOf("ukava").Add(sdk.OneInt()))),
+	)
+	suite.Require().Error(err)
+
+	// Test borrowing exactly the limit
+	err = suite.keeper.Borrow(
+		suite.ctx,
+		borrower,
+		sdk.NewCoins(sdk.NewCoin("ukava", availableToBorrow.AmountOf("ukava"))),
+	)
+	suite.Require().NoError(err)
+}
