@@ -69,7 +69,7 @@ func TestBeginBlockerZeroHeight(t *testing.T) {
 			}},
 		},
 	}
-
+	vvk.SetPreviousBlockTime(ctx, now)
 	BeginBlocker(ctx, req, vvk)
 
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
@@ -147,6 +147,7 @@ func TestBeginBlockerSignedBlock(t *testing.T) {
 		},
 	}
 
+	vvk.SetPreviousBlockTime(ctx, now)
 	BeginBlocker(ctx, req, vvk)
 	height++
 	blockTime = addHour(blockTime)
