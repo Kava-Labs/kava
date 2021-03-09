@@ -246,28 +246,6 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			},
 		},
 		{
-			"invalid: over global asset borrow limit",
-			args{
-				usdxBorrowLimit:           sdk.MustNewDecFromStr("20000000"),
-				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
-				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
-				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
-				loanToValueBTCB:           sdk.MustNewDecFromStr("0.01"),
-				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
-				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
-				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:              sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),
-				previousBorrowCoins:       sdk.NewCoins(),
-				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(25*USDX_CF))),
-				expectedAccountBalance:    sdk.NewCoins(),
-				expectedModAccountBalance: sdk.NewCoins(),
-			},
-			errArgs{
-				expectPass: false,
-				contains:   "fails global asset borrow limit validation",
-			},
-		},
-		{
 			"invalid: borrowing an individual coin type results in a borrow that's under the minimum USD borrow limit",
 			args{
 				usdxBorrowLimit:           sdk.MustNewDecFromStr("20000000"),
