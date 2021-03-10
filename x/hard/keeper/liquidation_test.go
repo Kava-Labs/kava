@@ -72,7 +72,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				depositCoins:               sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
 				borrowCoins:                sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
 				liquidateAfter:             oneMonthInSeconds,
-				expectedTotalSuppliedCoins: sdk.NewCoins(sdk.NewInt64Coin("ukava", 504138)),
+				expectedTotalSuppliedCoins: sdk.NewCoins(sdk.NewInt64Coin("ukava", 100004118)),
 				expectedTotalBorrowedCoins: nil,
 				expectedKeeperCoins:        sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100500020))),
 				expectedBorrowerCoins:      sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98000001))), // initial - deposit + borrow + liquidation leftovers
@@ -112,10 +112,10 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				borrowCoins:          sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(20*KAVA_CF)), sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(2*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.2*BTCB_CF))), // $20+$20+$20 = $80 borrowed
 				liquidateAfter:       oneMonthInSeconds,
 				expectedTotalSuppliedCoins: sdk.NewCoins(
-					sdk.NewInt64Coin("ukava", 2500711),
-					sdk.NewInt64Coin("bnb", 3123),
-					sdk.NewInt64Coin("btc", 31),
-					sdk.NewInt64Coin("usdc", 3120),
+					sdk.NewInt64Coin("ukava", 1000000710),
+					sdk.NewInt64Coin("usdc", 1000003120),
+					sdk.NewInt64Coin("bnb", 100000003123),
+					sdk.NewInt64Coin("btc", 100000000031),
 				),
 				expectedTotalBorrowedCoins: nil,
 				expectedKeeperCoins:        sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102500001))),
@@ -201,9 +201,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(120*KAVA_CF))),                                                                                      // $240 borrowed
 				liquidateAfter:       oneMonthInSeconds,
 				expectedTotalSuppliedCoins: sdk.NewCoins(
-					sdk.NewInt64Coin("btc", 5000000),
-					sdk.NewInt64Coin("bnb", 50000000),
-					sdk.NewInt64Coin("ukava", 2601709),
+					sdk.NewInt64Coin("ukava", 1000101456),
 				),
 				expectedTotalBorrowedCoins: nil,
 				expectedKeeperCoins:        sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102500253)), sdk.NewCoin("bnb", sdk.NewInt(0.5*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.05*BTCB_CF))), // 5% of each seized coin + initial balances
@@ -262,7 +260,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			},
 		},
 		{
-			"valid: mutliple stablecoin deposits, multiple variable coin borrows",
+			"valid: multiple stablecoin deposits, multiple variable coin borrows",
 			// Auctions: total lot value = $285 ($300 of deposits - $15 keeper reward), total max bid value = $270
 			args{
 				borrower:             borrower,
@@ -275,12 +273,10 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(35*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1*BTCB_CF))),       // $270 borrowed
 				liquidateAfter:       oneMonthInSeconds,
 				expectedTotalSuppliedCoins: sdk.NewCoins(
-					sdk.NewInt64Coin("bnb", 78047),
-					sdk.NewInt64Coin("btc", 780),
-					sdk.NewInt64Coin("ukava", 9550),
-					sdk.NewInt64Coin("usdc", 5000000),
-					sdk.NewInt64Coin("usdt", 5000000),
-					sdk.NewInt64Coin("usdx", 5000001),
+					sdk.NewInt64Coin("bnb", 100000078047),
+					sdk.NewInt64Coin("btc", 100000000780),
+					sdk.NewInt64Coin("ukava", 1000009550),
+					sdk.NewInt64Coin("usdx", 1),
 				),
 				expectedTotalBorrowedCoins: nil,
 				expectedKeeperCoins:        sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(5*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(5*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(5*KAVA_CF))), // 5% of each seized coin + initial balances
@@ -381,10 +377,10 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				borrowCoins:          sdk.NewCoins(sdk.NewCoin("usdt", sdk.NewInt(250*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(245*KAVA_CF))),
 				liquidateAfter:       oneMonthInSeconds,
 				expectedTotalSuppliedCoins: sdk.NewCoins(
-					sdk.NewInt64Coin("dai", 17500000),
-					sdk.NewInt64Coin("usdc", 10000001),
-					sdk.NewInt64Coin("usdt", 482503),
-					sdk.NewInt64Coin("usdx", 463500),
+					sdk.NewInt64Coin("dai", 1000000000),
+					sdk.NewInt64Coin("usdc", 1000000001),
+					sdk.NewInt64Coin("usdt", 1000482503),
+					sdk.NewInt64Coin("usdx", 1000463500),
 				),
 				expectedTotalBorrowedCoins: nil,
 				expectedKeeperCoins:        sdk.NewCoins(sdk.NewCoin("dai", sdk.NewInt(1017.50*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1010*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF))),
@@ -454,7 +450,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				depositCoins:               sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))), // Deposit 20 KAVA
 				borrowCoins:                sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(5*KAVA_CF))),  // Borrow 5 KAVA
 				liquidateAfter:             oneMonthInSeconds,
-				expectedTotalSuppliedCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20001624))),
+				expectedTotalSuppliedCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(120001624))),
 				expectedTotalBorrowedCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(5001709))),
 				expectedKeeperCoins:        sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100.5*KAVA_CF))),
 				expectedBorrowerCoins:      sdk.NewCoins(),
@@ -473,10 +469,13 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
+			// account which will deposit "initial module account coins"
+			depositor := sdk.AccAddress(crypto.AddressHash([]byte("testdepositor")))
+
 			// Auth module genesis state
 			authGS := app.NewAuthGenState(
-				[]sdk.AccAddress{tc.args.borrower, tc.args.keeper},
-				[]sdk.Coins{tc.args.initialBorrowerCoins, tc.args.initialKeeperCoins},
+				[]sdk.AccAddress{tc.args.borrower, tc.args.keeper, depositor},
+				[]sdk.Coins{tc.args.initialBorrowerCoins, tc.args.initialKeeperCoins, tc.args.initialModuleCoins},
 			)
 
 			// Hard module genesis state
@@ -601,10 +600,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
 				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
 
-			// Mint coins to Hard module account
-			supplyKeeper := tApp.GetSupplyKeeper()
-			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
-
 			auctionKeeper := tApp.GetAuctionKeeper()
 
 			keeper := tApp.GetHardKeeper()
@@ -617,6 +612,10 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 
 			// Run begin blocker to set up state
 			hard.BeginBlocker(suite.ctx, suite.keeper)
+
+			// Deposit initial module account coins
+			err = suite.keeper.Deposit(suite.ctx, depositor, tc.args.initialModuleCoins)
+			suite.Require().NoError(err)
 
 			// Deposit coins
 			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
