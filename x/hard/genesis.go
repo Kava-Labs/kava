@@ -89,11 +89,11 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	for _, mm := range params.MoneyMarkets {
 		supplyFactor, f := k.GetSupplyInterestFactor(ctx, mm.Denom)
 		if !f {
-			supplyFactor = sdk.ZeroDec()
+			supplyFactor = sdk.OneDec()
 		}
 		borrowFactor, f := k.GetBorrowInterestFactor(ctx, mm.Denom)
 		if !f {
-			borrowFactor = sdk.ZeroDec()
+			borrowFactor = sdk.OneDec()
 		}
 		previousAccrualTime, f := k.GetPreviousAccrualTime(ctx, mm.Denom)
 		if !f {
