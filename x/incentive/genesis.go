@@ -147,20 +147,55 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		synchronizedHardClaims = append(synchronizedHardClaims, claim)
 	}
 
-	var gats GenesisAccumulationTimes
-
+	var usdxMintingGats GenesisAccumulationTimes
 	for _, rp := range params.USDXMintingRewardPeriods {
 		pat, found := k.GetPreviousUSDXMintingAccrualTime(ctx, rp.CollateralType)
 		if !found {
-			panic(fmt.Sprintf("expected previous accrual time to be set in state for %s", rp.CollateralType))
+			panic(fmt.Sprintf("expected previous usdx minting reward accrual time to be set in state for %s", rp.CollateralType))
 		}
 		factor, found := k.GetUSDXMintingRewardFactor(ctx, rp.CollateralType)
 		if !found {
 			factor = sdk.ZeroDec()
 		}
 		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat, factor)
-		gats = append(gats, gat)
+		usdxMintingGats = append(usdxMintingGats, gat)
 	}
 
-	return types.NewGenesisState(params, gats, DefaultGenesisAccumulationTimes, DefaultGenesisAccumulationTimes, DefaultGenesisAccumulationTimes, synchronizedUsdxClaims, synchronizedHardClaims)
+	var hardSupplyGats GenesisAccumulationTimes
+	for _, rp := range params.HardSupplyRewardPeriods {
+		pat, found := k.GetPreviousHardSupplyRewardAccrualTime(ctx, rp.CollateralType)
+		if !found {
+			panic(fmt.Sprintf("expected previous hard supply reward accrual time to be set in state for %s", rp.CollateralType))
+		}
+		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat, sdk.ZeroDec())
+		hardSupplyGats = append(hardSupplyGats, gat)
+	}
+
+	var hardBorrowGats GenesisAccumulationTimes
+	for _, rp := range params.HardBorrowRewardPeriods {
+		pat, found := k.GetPreviousHardBorrowRewardAccrualTime(ctx, rp.CollateralType)
+		if !found {
+			panic(fmt.Sprintf("expected previous hard borrow reward accrual time to be set in state for %s", rp.CollateralType))
+		}
+		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat, sdk.ZeroDec())
+		hardBorrowGats = append(hardBorrowGats, gat)
+	}
+
+	var hardDelegatorGats GenesisAccumulationTimes
+	for _, rp := range params.HardDelegatorRewardPeriods {
+		pat, found := k.GetPreviousHardDelegatorRewardAccrualTime(ctx, rp.CollateralType)
+		if !found {
+			panic(fmt.Sprintf("expected previous hard delegator reward accrual time to be set in state for %s", rp.CollateralType))
+		}
+		factor, found := k.GetHardDelegatorRewardFactor(ctx, rp.CollateralType)
+		if !found {
+			factor = sdk.ZeroDec()
+		}
+		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat, factor)
+		hardDelegatorGats = append(hardDelegatorGats, gat)
+	}
+
+	return types.NewGenesisState(
+		params, usdxMintingGats, hardSupplyGats, hardBorrowGats,
+		hardDelegatorGats, synchronizedUsdxClaims, synchronizedHardClaims)
 }
