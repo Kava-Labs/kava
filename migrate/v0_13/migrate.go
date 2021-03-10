@@ -296,24 +296,24 @@ func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.Genesis
 	usdxGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
 
 	for _, rp := range params.USDXMintingRewardPeriods {
-		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime, sdk.ZeroDec())
+		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		usdxGenAccumulationTimes = append(usdxGenAccumulationTimes, gat)
 	}
 	hardSupplyGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
 	for _, rp := range params.HardSupplyRewardPeriods {
-		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime, sdk.ZeroDec())
+		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		hardSupplyGenAccumulationTimes = append(hardSupplyGenAccumulationTimes, gat)
 	}
 	hardBorrowGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
 	for _, rp := range params.HardBorrowRewardPeriods {
-		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime, sdk.ZeroDec())
+		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		hardBorrowGenAccumulationTimes = append(hardBorrowGenAccumulationTimes, gat)
 	}
 
 	hardDelegatorGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
 
 	for _, rp := range params.HardDelegatorRewardPeriods {
-		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime, sdk.ZeroDec())
+		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		hardDelegatorGenAccumulationTimes = append(hardDelegatorGenAccumulationTimes, gat)
 	}
 
