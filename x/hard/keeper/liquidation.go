@@ -86,6 +86,7 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 		}
 	}
 	if !keeperRewardCoins.Empty() {
+		k.DecrementSuppliedCoins(ctx, keeperRewardCoins)
 		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, keeperRewardCoins)
 		if err != nil {
 			return err

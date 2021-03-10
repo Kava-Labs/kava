@@ -189,3 +189,139 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestDecrementSuppliedCoins() {
+	type args struct {
+		suppliedInitial       sdk.Coins
+		decrementCoins        sdk.Coins
+		expectedSuppliedFinal sdk.Coins
+	}
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+	type decrementTest struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+	testCases := []decrementTest{
+		{
+			"valid",
+			args{
+				suppliedInitial:       cs(c("bnb", 10000000000000), c("busd", 3000000000000), c("xrpb", 2500000000000)),
+				decrementCoins:        cs(c("bnb", 5000000000000)),
+				expectedSuppliedFinal: cs(c("bnb", 5000000000000), c("busd", 3000000000000), c("xrpb", 2500000000000)),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"valid-negative",
+			args{
+				suppliedInitial:       cs(c("bnb", 10000000000000), c("busd", 3000000000000), c("xrpb", 2500000000000)),
+				decrementCoins:        cs(c("bnb", 10000000000001)),
+				expectedSuppliedFinal: cs(c("busd", 3000000000000), c("xrpb", 2500000000000)),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"valid-multiple negative",
+			args{
+				suppliedInitial:       cs(c("bnb", 10000000000000), c("busd", 3000000000000), c("xrpb", 2500000000000)),
+				decrementCoins:        cs(c("bnb", 10000000000001), c("busd", 5000000000000)),
+				expectedSuppliedFinal: cs(c("xrpb", 2500000000000)),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"valid-absent coin denom",
+			args{
+				suppliedInitial:       cs(c("bnb", 10000000000000), c("xrpb", 2500000000000)),
+				decrementCoins:        cs(c("busd", 5)),
+				expectedSuppliedFinal: cs(c("bnb", 10000000000000), c("xrpb", 2500000000000)),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			// Initialize test app and set context
+			tApp := app.NewTestApp()
+			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			loanToValue, _ := sdk.NewDecFromStr("0.6")
+			depositor := sdk.AccAddress(crypto.AddressHash([]byte("test")))
+			authGS := app.NewAuthGenState([]sdk.AccAddress{depositor}, []sdk.Coins{tc.args.suppliedInitial})
+			hardGS := types.NewGenesisState(types.NewParams(
+				types.MoneyMarkets{
+					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdk.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("busd", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "busd:usd", sdk.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("xrpb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "xrpb:usd", sdk.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+				},
+				sdk.MustNewDecFromStr("10"),
+			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
+				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
+			)
+			// Pricefeed module genesis state
+			pricefeedGS := pricefeed.GenesisState{
+				Params: pricefeed.Params{
+					Markets: []pricefeed.Market{
+						{MarketID: "xrpb:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "busd:usd", BaseAsset: "btcb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+					},
+				},
+				PostedPrices: []pricefeed.PostedPrice{
+					{
+						MarketID:      "busd:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(1 * time.Hour),
+					},
+					{
+						MarketID:      "xrpb:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("2.00"),
+						Expiry:        time.Now().Add(1 * time.Hour),
+					},
+					{
+						MarketID:      "bnb:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("200.00"),
+						Expiry:        time.Now().Add(1 * time.Hour),
+					},
+				},
+			}
+			tApp.InitializeFromGenesisStates(authGS,
+				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)},
+			)
+			keeper := tApp.GetHardKeeper()
+			suite.app = tApp
+			suite.ctx = ctx
+			suite.keeper = keeper
+
+			// Run BeginBlocker once to transition MoneyMarkets
+			hard.BeginBlocker(suite.ctx, suite.keeper)
+
+			err := suite.keeper.Deposit(suite.ctx, depositor, tc.args.suppliedInitial)
+			suite.Require().NoError(err)
+			err = suite.keeper.DecrementSuppliedCoins(ctx, tc.args.decrementCoins)
+			suite.Require().NoError(err)
+			totalSuppliedActual, found := suite.keeper.GetSuppliedCoins(suite.ctx)
+			suite.Require().True(found)
+			suite.Require().Equal(totalSuppliedActual, tc.args.expectedSuppliedFinal)
+		})
+	}
+}
