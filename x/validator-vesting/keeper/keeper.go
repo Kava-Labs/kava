@@ -43,14 +43,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // GetPreviousBlockTime get the blocktime for the previous block
-func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time) {
+func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.BlocktimeKey)
 	if b == nil {
-		panic("Previous block time not set")
+		return time.Time{}, false
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &blockTime)
-	return blockTime
+	return blockTime, true
 }
 
 // SetPreviousBlockTime set the time of the previous block
