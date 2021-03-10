@@ -152,7 +152,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	for _, rp := range params.USDXMintingRewardPeriods {
 		pat, found := k.GetPreviousUSDXMintingAccrualTime(ctx, rp.CollateralType)
 		if !found {
-			pat = ctx.BlockTime()
+			panic(fmt.Sprintf("expected previous accrual time to be set in state for %s", rp.CollateralType))
 		}
 		factor, found := k.GetUSDXMintingRewardFactor(ctx, rp.CollateralType)
 		if !found {
