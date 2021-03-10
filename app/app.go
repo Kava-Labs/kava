@@ -109,9 +109,7 @@ var (
 	}
 
 	// module accounts that are allowed to receive tokens
-	allowedReceivingModAcc = map[string]bool{
-		distr.ModuleName: true,
-	}
+	allowedReceivingModAcc = map[string]bool{}
 )
 
 // Verify app interface at compile time
