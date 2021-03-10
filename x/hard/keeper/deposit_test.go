@@ -242,6 +242,18 @@ func (suite *KeeperTestSuite) TestDecrementSuppliedCoins() {
 				contains:   "",
 			},
 		},
+		{
+			"valid-absent coin denom",
+			args{
+				suppliedInitial:       cs(c("bnb", 10000000000000), c("xrpb", 2500000000000)),
+				decrementCoins:        cs(c("busd", 5)),
+				expectedSuppliedFinal: cs(c("bnb", 10000000000000), c("xrpb", 2500000000000)),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
