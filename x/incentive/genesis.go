@@ -56,7 +56,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 
 	for _, gat := range gs.USDXAccumulationTimes {
 		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
-		k.SetUSDXMintingRewardFactor(ctx, gat.CollateralType, gat.RewardFactor)
 	}
 
 	for _, gat := range gs.HardSupplyAccumulationTimes {
@@ -153,11 +152,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		if !found {
 			panic(fmt.Sprintf("expected previous usdx minting reward accrual time to be set in state for %s", rp.CollateralType))
 		}
-		factor, found := k.GetUSDXMintingRewardFactor(ctx, rp.CollateralType)
-		if !found {
-			factor = sdk.ZeroDec()
-		}
-		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat, factor)
+		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat)
 		usdxMintingGats = append(usdxMintingGats, gat)
 	}
 
@@ -167,7 +162,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		if !found {
 			panic(fmt.Sprintf("expected previous hard supply reward accrual time to be set in state for %s", rp.CollateralType))
 		}
-		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat, sdk.ZeroDec())
+		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat)
 		hardSupplyGats = append(hardSupplyGats, gat)
 	}
 
@@ -177,7 +172,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		if !found {
 			panic(fmt.Sprintf("expected previous hard borrow reward accrual time to be set in state for %s", rp.CollateralType))
 		}
-		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat, sdk.ZeroDec())
+		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat)
 		hardBorrowGats = append(hardBorrowGats, gat)
 	}
 
@@ -187,15 +182,10 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		if !found {
 			panic(fmt.Sprintf("expected previous hard delegator reward accrual time to be set in state for %s", rp.CollateralType))
 		}
-		factor, found := k.GetHardDelegatorRewardFactor(ctx, rp.CollateralType)
-		if !found {
-			factor = sdk.ZeroDec()
-		}
-		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat, factor)
+		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat)
 		hardDelegatorGats = append(hardDelegatorGats, gat)
 	}
 
-	return types.NewGenesisState(
-		params, usdxMintingGats, hardSupplyGats, hardBorrowGats,
-		hardDelegatorGats, synchronizedUsdxClaims, synchronizedHardClaims)
+	return types.NewGenesisState(params, usdxMintingGats, hardSupplyGats,
+		hardBorrowGats, hardDelegatorGats, synchronizedUsdxClaims, synchronizedHardClaims)
 }
