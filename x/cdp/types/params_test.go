@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -716,6 +715,39 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			},
 		},
 		{
+			name: "invalid collateral params zero liquidation ratio",
+			args: args{
+				globalDebtLimit: sdk.NewInt64Coin("usdx", 2000000000000),
+				collateralParams: types.CollateralParams{
+					{
+						Denom:                            "bnb",
+						Type:                             "bnb-a",
+						LiquidationRatio:                 sdk.MustNewDecFromStr("0.0"),
+						DebtLimit:                        sdk.NewInt64Coin("usdx", 1_000_000_000_000),
+						StabilityFee:                     sdk.MustNewDecFromStr("1.1"),
+						LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
+						AuctionSize:                      sdk.NewInt(50_000_000_000),
+						Prefix:                           0x20,
+						SpotMarketID:                     "bnb:usd",
+						LiquidationMarketID:              "bnb:usd",
+						KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
+						ConversionFactor:                 sdk.NewInt(8),
+						CheckCollateralizationIndexCount: sdk.NewInt(10),
+					},
+				},
+				debtParam:        types.DefaultDebtParam,
+				surplusThreshold: types.DefaultSurplusThreshold,
+				surplusLot:       types.DefaultSurplusLot,
+				debtThreshold:    types.DefaultDebtThreshold,
+				debtLot:          types.DefaultDebtLot,
+				breaker:          types.DefaultCircuitBreaker,
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "liquidation ratio must be > 0",
+			},
+		},
+		{
 			name: "invalid debt param empty denom",
 			args: args{
 				globalDebtLimit: sdk.NewInt64Coin("usdx", 2000000000000),
@@ -847,7 +879,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+				suite.Require().Contains(err.Error(), tc.errArgs.contains)
 			}
 		})
 	}
