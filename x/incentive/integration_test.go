@@ -149,7 +149,6 @@ func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ..
 			incentive.NewGenesisAccumulationTime(
 				rp.CollateralType,
 				previousAccumTime,
-				sdk.ZeroDec(),
 			),
 		)
 	}

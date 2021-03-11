@@ -89,15 +89,20 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	for _, mm := range params.MoneyMarkets {
 		supplyFactor, f := k.GetSupplyInterestFactor(ctx, mm.Denom)
 		if !f {
-			supplyFactor = sdk.ZeroDec()
+			supplyFactor = sdk.OneDec()
 		}
 		borrowFactor, f := k.GetBorrowInterestFactor(ctx, mm.Denom)
 		if !f {
-			borrowFactor = sdk.ZeroDec()
+			borrowFactor = sdk.OneDec()
 		}
 		previousAccrualTime, f := k.GetPreviousAccrualTime(ctx, mm.Denom)
 		if !f {
-			previousAccrualTime = ctx.BlockTime()
+			// Goverance adds new params at end of block, but mm's previous accrual time is set in begin blocker.
+			// If a new money market is added and chain is exported before begin blocker runs, then the previous
+			// accrual time will not be found. We can't set it here because our ctx doesn't contain current block
+			// time; if we set it to ctx.BlockTime() then on the next block it could accrue interest from Jan 1st
+			// 0001 to now. To avoid setting up a bad state, we panic.
+			panic(fmt.Sprintf("expected previous accrual time to be set in state for %s", mm.Denom))
 		}
 		gat := types.NewGenesisAccumulationTime(mm.Denom, previousAccrualTime, supplyFactor, borrowFactor)
 		gats = append(gats, gat)

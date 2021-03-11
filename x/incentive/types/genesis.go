@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GenesisState is the state that must be provided at genesis.
@@ -86,15 +84,13 @@ func (gs GenesisState) IsEmpty() bool {
 type GenesisAccumulationTime struct {
 	CollateralType           string    `json:"collateral_type" yaml:"collateral_type"`
 	PreviousAccumulationTime time.Time `json:"previous_accumulation_time" yaml:"previous_accumulation_time"`
-	RewardFactor             sdk.Dec   `json:"reward_factor" yaml:"reward_factor"`
 }
 
 // NewGenesisAccumulationTime returns a new GenesisAccumulationTime
-func NewGenesisAccumulationTime(ctype string, prevTime time.Time, factor sdk.Dec) GenesisAccumulationTime {
+func NewGenesisAccumulationTime(ctype string, prevTime time.Time) GenesisAccumulationTime {
 	return GenesisAccumulationTime{
 		CollateralType:           ctype,
 		PreviousAccumulationTime: prevTime,
-		RewardFactor:             factor,
 	}
 }
 
@@ -113,8 +109,8 @@ func (gats GenesisAccumulationTimes) Validate() error {
 
 // Validate performs validation of GenesisAccumulationTime
 func (gat GenesisAccumulationTime) Validate() error {
-	if gat.RewardFactor.LT(sdk.ZeroDec()) {
-		return fmt.Errorf("reward factor should be ≥ 0.0, is %s for %s", gat.RewardFactor, gat.CollateralType)
+	if len(gat.CollateralType) == 0 {
+		return fmt.Errorf("genesis accumulation time's collateral type must be defined")
 	}
 	return nil
 }

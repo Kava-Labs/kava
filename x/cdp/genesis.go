@@ -115,7 +115,14 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 		if !found {
 			interestFactor = sdk.OneDec()
 		}
-		previousAccumTime, _ := k.GetPreviousAccrualTime(ctx, cp.Type)
+		// Governance param changes happen in the end blocker. If a new collateral type is added and then the chain
+		// is exported before the BeginBlocker can run, previous accrual time won't be found. We can't set it to
+		// current block time because it is not available in the export ctx. We should panic instead of exporting
+		// bad state.
+		previousAccumTime, f := k.GetPreviousAccrualTime(ctx, cp.Type)
+		if !f {
+			panic(fmt.Sprintf("expected previous accrual time to be set in state for %s", cp.Type))
+		}
 		previousAccumTimes = append(previousAccumTimes, types.NewGenesisAccumulationTime(cp.Type, previousAccumTime, interestFactor))
 
 		tp := k.GetTotalPrincipal(ctx, cp.Type, types.DefaultStableDenom)

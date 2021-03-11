@@ -63,7 +63,6 @@ func TestGenesisStateValidate(t *testing.T) {
 				genAccTimes: GenesisAccumulationTimes{GenesisAccumulationTime{
 					CollateralType:           "bnb-a",
 					PreviousAccumulationTime: time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
-					RewardFactor:             sdk.ZeroDec(),
 				}},
 				claims: USDXMintingClaims{
 					{
@@ -91,15 +90,15 @@ func TestGenesisStateValidate(t *testing.T) {
 				params: DefaultParams(),
 				genAccTimes: GenesisAccumulationTimes{
 					{
-						CollateralType: "btcb-a",
-						RewardFactor:   sdk.MustNewDecFromStr("-0.1"),
+						CollateralType:           "",
+						PreviousAccumulationTime: time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 					},
 				},
 				claims: DefaultUSDXClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "reward factor should be ≥ 0.0",
+				contains:   "collateral type must be defined",
 			},
 		},
 		{
