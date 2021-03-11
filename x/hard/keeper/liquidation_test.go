@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	auctypes "github.com/kava-labs/kava/x/auction/types"
@@ -26,7 +25,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 		initialKeeperCoins         sdk.Coins
 		depositCoins               []sdk.Coin
 		borrowCoins                sdk.Coins
-		liquidateAfter             int64
+		liquidateAfter             time.Duration
 		expectedTotalSuppliedCoins sdk.Coins
 		expectedTotalBorrowedCoins sdk.Coins
 		expectedKeeperCoins        sdk.Coins         // coins keeper address should have after successfully liquidating position
@@ -48,7 +47,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 	// Set up test constants
 	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0"), sdk.MustNewDecFromStr("0.1"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.5"))
 	reserveFactor := sdk.MustNewDecFromStr("0.05")
-	oneMonthInSeconds := int64(2592000)
+	oneMonthInSeconds := time.Second * 30 * 24 * 3600
 	borrower := sdk.AccAddress(crypto.AddressHash([]byte("testborrower")))
 	keeper := sdk.AccAddress(crypto.AddressHash([]byte("testkeeper")))
 
@@ -93,6 +92,68 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						LotReturns:        lotReturns,
 					},
 				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"valid: 0% keeper rewards",
+			args{
+				borrower:                   borrower,
+				keeper:                     keeper,
+				keeperRewardPercent:        sdk.MustNewDecFromStr("0.0"),
+				initialModuleCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialKeeperCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:               sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
+				borrowCoins:                sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+				liquidateAfter:             oneMonthInSeconds,
+				expectedTotalSuppliedCoins: sdk.NewCoins(sdk.NewInt64Coin("ukava", 100_004_117)),
+				expectedTotalBorrowedCoins: sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)),
+				expectedKeeperCoins:        sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				expectedBorrowerCoins:      sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "hard",
+							Lot:             sdk.NewInt64Coin("ukava", 10000411),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8004765),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"valid: 100% keeper reward",
+			args{
+				borrower:                   borrower,
+				keeper:                     keeper,
+				keeperRewardPercent:        sdk.MustNewDecFromStr("1.0"),
+				initialModuleCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialKeeperCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:               sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
+				borrowCoins:                sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+				liquidateAfter:             oneMonthInSeconds,
+				expectedTotalSuppliedCoins: sdk.NewCoins(sdk.NewInt64Coin("ukava", 100_004_117)),
+				expectedTotalBorrowedCoins: sdk.NewCoins(sdk.NewInt64Coin("ukava", 8_004_766)),
+				expectedKeeperCoins:        sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(110_000_411))),
+				expectedBorrowerCoins:      sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions:           nil,
 			},
 			errArgs{
 				expectPass: true,
@@ -467,7 +528,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)})
 
 			// account which will deposit "initial module account coins"
 			depositor := sdk.AccAddress(crypto.AddressHash([]byte("testdepositor")))
@@ -626,7 +687,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			suite.Require().NoError(err)
 
 			// Set up liquidation chain context and run begin blocker
-			runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+(tc.args.liquidateAfter), 0)
+			runAtTime := suite.ctx.BlockTime().Add(tc.args.liquidateAfter)
 			liqCtx := suite.ctx.WithBlockTime(runAtTime)
 			hard.BeginBlocker(liqCtx, suite.keeper)
 
@@ -665,7 +726,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 
 				// Check that the expected auctions have been created
 				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)
-				suite.Require().True(len(auctions) > 0)
 				suite.Require().Equal(tc.args.expectedAuctions, auctions)
 
 				// Check that supplied and borrowed coins have been updated post-liquidation

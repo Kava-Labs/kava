@@ -113,7 +113,13 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 	}
 
 	// Loan-to-Value ratio after sending keeper their reward
-	ltv := borrowCoinValues.Sum().Quo(depositCoinValues.Sum())
+	depositUsdValue := depositCoinValues.Sum()
+	if depositUsdValue.IsZero() {
+		// Deposit value can be zero if params.KeeperRewardPercent is 1.0, or all deposit asset prices are zero.
+		// In this case the full deposit will be sent to the keeper and no auctions started.
+		return nil
+	}
+	ltv := borrowCoinValues.Sum().Quo(depositUsdValue)
 
 	liquidatedCoins, err := k.StartAuctions(ctx, deposit.Depositor, borrow.Amount, aucDeposits, depositCoinValues, borrowCoinValues, ltv, liqMap)
 	// If some coins were liquidated and sent to auction prior to error, still need to emit liquidation event
