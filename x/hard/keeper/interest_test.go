@@ -1389,20 +1389,12 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 						userPercentOfTotalSupplied := userSupplyCoinAmount.ToDec().Quo(supplyCoinPriorAmount.ToDec())
 						userExpectedSupplyInterestCoin := sdk.NewCoin(coinDenom, userPercentOfTotalSupplied.MulInt(expectedSupplyInterest).TruncateInt())
 
-						// Calculate percentage of borrow interest profits owed to user
-						userBorrowBefore, _ := suite.keeper.GetBorrow(snapshotCtx, tc.args.user)
-						userBorrowCoinAmount := userBorrowBefore.Amount.AmountOf(coinDenom)
-						userPercentOfTotalBorrowed := userBorrowCoinAmount.ToDec().Quo(borrowCoinPriorAmount.ToDec())
-						userExpectedBorrowInterestCoin := sdk.NewCoin(coinDenom, userPercentOfTotalBorrowed.MulInt(expectedBorrowInterest).TruncateInt())
-						expectedBorrowCoinsAfter := userBorrowBefore.Amount.Add(userExpectedBorrowInterestCoin)
-
 						// Supplying syncs user's owed supply and borrow interest
 						err = suite.keeper.Deposit(snapshotCtx, tc.args.user, sdk.NewCoins(snapshot.supplyCoin))
 						suite.Require().NoError(err)
 
 						// Fetch user's new borrow and supply balance post-interaction
 						userSupplyAfter, _ := suite.keeper.GetDeposit(snapshotCtx, tc.args.user)
-						userBorrowAfter, _ := suite.keeper.GetBorrow(snapshotCtx, tc.args.user)
 
 						// Confirm that user's supply index for the denom has increased as expected
 						var userSupplyAfterIndexFactor sdk.Dec
@@ -1416,18 +1408,6 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 						// Check user's supplied amount increased by supply interest owed + the newly supplied coins
 						expectedSupplyCoinsAfter := userSupplyBefore.Amount.Add(snapshot.supplyCoin).Add(userExpectedSupplyInterestCoin)
 						suite.Require().Equal(expectedSupplyCoinsAfter, userSupplyAfter.Amount)
-
-						// Confirm that user's borrow index for the denom has increased as expected
-						var userBorrowAfterIndexFactor sdk.Dec
-						for _, indexFactor := range userBorrowAfter.Index {
-							if indexFactor.Denom == coinDenom {
-								userBorrowAfterIndexFactor = indexFactor.Value
-							}
-						}
-						suite.Require().Equal(userBorrowAfterIndexFactor, currBorrowIndexPrior)
-
-						// Check user's borrowed amount increased by borrow interest owed
-						suite.Require().Equal(expectedBorrowCoinsAfter, userBorrowAfter.Amount)
 					}
 					prevCtx = snapshotCtx
 				}
