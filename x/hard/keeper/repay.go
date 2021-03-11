@@ -23,13 +23,13 @@ func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.C
 	// Refresh borrow after syncing interest
 	borrow, _ = k.GetBorrow(ctx, owner)
 
-	// Validate that sender holds coins for repayment
-	err := k.ValidateRepay(ctx, sender, owner, coins)
+	// cap the repayment by what's available to repay (the borrow amount)
+	payment, err := k.CalculatePaymentAmount(borrow.Amount, coins)
 	if err != nil {
 		return err
 	}
-
-	payment, err := k.CalculatePaymentAmount(borrow.Amount, coins)
+	// Validate that sender holds coins for repayment
+	err = k.ValidateRepay(ctx, sender, owner, payment)
 	if err != nil {
 		return err
 	}
@@ -144,8 +144,10 @@ func (k Keeper) ValidateRepay(ctx sdk.Context, sender, owner sdk.AccAddress, coi
 	// If the proposed repayment would results in a borrowed USD value below the minimum borrow USD value, reject it.
 	// User can overpay their loan to close it out, but underpaying by such a margin that the USD value is in an
 	// invalid range is not allowed
+	// Unless the user is fully repaying their loan
 	proposedBorrowNewUSDValue := existingBorrowUSDValue.Sub(repayTotalUSDValue)
-	if proposedBorrowNewUSDValue.IsPositive() && proposedBorrowNewUSDValue.LT(k.GetMinimumBorrowUSDValue(ctx)) {
+	isFullRepayment := coins.IsEqual(existingBorrow.Amount)
+	if proposedBorrowNewUSDValue.LT(k.GetMinimumBorrowUSDValue(ctx)) && !isFullRepayment {
 		return sdkerrors.Wrapf(types.ErrBelowMinimumBorrowValue, "the proposed borrow's USD value $%s is below the minimum borrow limit $%s", proposedBorrowNewUSDValue, k.GetMinimumBorrowUSDValue(ctx))
 	}
 
