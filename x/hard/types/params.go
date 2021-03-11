@@ -109,6 +109,10 @@ func (mm MoneyMarket) Validate() error {
 		return err
 	}
 
+	if mm.ConversionFactor.IsNil() || mm.ConversionFactor.LT(sdk.OneInt()) {
+		return fmt.Errorf("conversion '%s' factor must be ≥ one", mm.ConversionFactor)
+	}
+
 	if err := mm.InterestRateModel.Validate(); err != nil {
 		return err
 	}
