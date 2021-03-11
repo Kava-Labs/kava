@@ -6,11 +6,11 @@ order: 2
 
 ## Parameters and Genesis State
 
-`Parameters` define the governance parameters and default behavior of each money market. **Money markets should not be removed from params without careful procedures** as it will disable withdraws and liquidations. To deprecate a money market, the following steps should be observed:
+`Parameters` define the governance parameters and default behavior of each money market. **Money markets should not be removed from params without careful procedures** as it will disable withdraws and liquidations. Deposits can not be explicitly turned off, but these steps remove the economic incentives to do so. In advance of deprecating a money market, the following steps should be observed:
 
-1. Borrowing: prevent new borrows by setting param MoneyMarket.BorrowLimit.MaximumLimit to 0.
-2. Interest: turn off interest accumulation by setting params MoneyMarket.InterestRateModel.BaseRateAPY and MoneyMarket.InterestRateModel.Kink to 0.
-3. Rewards: turn off supply side and/or borrow side rewards by removing any coins in the relevant RewardsPerSecond param in the Incentive module.
+1. Borrowing: prevent new borrows by setting param `MoneyMarket.BorrowLimit.MaximumLimit` to 0. `HasMaxLimit` must also be set to true to enable limit checks.
+2. Interest: turn off interest accumulation by setting params `MoneyMarket.InterestRateModel.BaseRateAPY`, `MoneyMarket.InterestRateModel.BaseMultiplier`, and `MoneyMarket.InterestRateModel.JumpMultiplier` to 0.
+3. Rewards: turn off supply side and/or borrow side rewards by removing any coins in the relevant `RewardsPerSecond` param in the Incentive module.
 
 Without financial incentives, borrowers and suppliers will withdraw their funds from the money market over time. Once the balances have reached an acceptable level the money market can be deprecated and removed from params, with any additional lingering user funds reimbursed/reallocated as appropriate via a chain upgrade.
 

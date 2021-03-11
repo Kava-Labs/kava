@@ -432,8 +432,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, cdp.ModuleName,
-		bep3.ModuleName, hard.ModuleName, committee.ModuleName, issuance.ModuleName, incentive.ModuleName,
+		validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, committee.ModuleName, cdp.ModuleName,
+		bep3.ModuleName, hard.ModuleName, issuance.ModuleName, incentive.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
