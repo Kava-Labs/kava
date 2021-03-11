@@ -15,6 +15,7 @@ The Kava community has developed some amazing tools and services. If you've buil
 - [Mintscan](https://kava.mintscan.io/) by Cosmostation
 - [Big Dipper](https://kava.bigdipper.live/) by Forbole
 - [PING.pub](https://kava.ping.pub/#/parameter)
+- [KAVAScan](https://kavascan.com)
 
 ## For Validators
 - [QuickSync](https://kava.quicksync.io/) chain snapshots
