@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"strings"
+	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -44,7 +44,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, coins)
 	if err != nil {
-		if strings.Contains(err.Error(), "insufficient account funds") {
+		if errors.Is(err, sdkerrors.ErrInsufficientFunds) {
 			accCoins := k.accountKeeper.GetAccount(ctx, depositor).SpendableCoins(ctx.BlockTime())
 			for _, coin := range coins {
 				_, isNegative := accCoins.SafeSub(sdk.NewCoins(coin))

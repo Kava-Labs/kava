@@ -91,7 +91,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "insufficient funds",
+				contains:   "insufficient funds: the requested deposit amount",
 			},
 		},
 	}
