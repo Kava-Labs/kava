@@ -75,9 +75,9 @@ func (suite *HandlerTestSuite) TestMsgUSDXMintingClaimReward() {
 	suite.Require().NotNil(res)
 }
 
-func (suite *HandlerTestSuite) TestMsgHardLiquidityProviderClaimReward() {
+func (suite *HandlerTestSuite) TestMsgHardClaimReward() {
 	suite.addHardLiquidityProviderClaim()
-	msg := incentive.NewMsgClaimHardLiquidityProviderReward(suite.addrs[0], "small")
+	msg := incentive.NewMsgClaimHardReward(suite.addrs[0], "small")
 	res, err := suite.handler(suite.ctx, msg)
 	suite.NoError(err)
 	suite.Require().NotNil(res)

@@ -76,7 +76,7 @@ func postClaimHardHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgClaimHardLiquidityProviderReward(requestBody.Sender, requestBody.MultiplierName)
+		msg := types.NewMsgClaimHardReward(requestBody.Sender, requestBody.MultiplierName)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
