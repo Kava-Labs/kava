@@ -615,7 +615,7 @@ type pricefeedType string
 
 const (
 	spot        pricefeedType = "spot"
-	liquidation               = "liquidation"
+	liquidation pricefeedType = "liquidation"
 )
 
 func (pft pricefeedType) IsValid() error {

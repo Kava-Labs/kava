@@ -362,6 +362,10 @@ func validateCollateralParams(i interface{}) error {
 			return fmt.Errorf("debt limit for all collaterals should be positive, is %s for %s", cp.DebtLimit, cp.Denom)
 		}
 
+		if cp.LiquidationRatio.IsNil() || !cp.LiquidationRatio.IsPositive() {
+			return fmt.Errorf("liquidation ratio must be > 0")
+		}
+
 		if cp.LiquidationPenalty.LT(sdk.ZeroDec()) || cp.LiquidationPenalty.GT(sdk.OneDec()) {
 			return fmt.Errorf("liquidation penalty should be between 0 and 1, is %s for %s", cp.LiquidationPenalty, cp.Denom)
 		}
