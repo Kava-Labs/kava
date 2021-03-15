@@ -83,7 +83,7 @@ func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 			sender := cliCtx.GetFromAddress()
 			multiplier := args[0]
 
-			msg := types.NewMsgClaimHardLiquidityProviderReward(sender, multiplier)
+			msg := types.NewMsgClaimHardReward(sender, multiplier)
 			err := msg.ValidateBasic()
 			if err != nil {
 				return err

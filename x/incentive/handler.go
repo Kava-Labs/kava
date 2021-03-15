@@ -15,8 +15,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgClaimUSDXMintingReward:
 			return handleMsgClaimUSDXMintingReward(ctx, k, msg)
-		case types.MsgClaimHardLiquidityProviderReward:
-			return handleMsgClaimHardLiquidityProviderReward(ctx, k, msg)
+		case types.MsgClaimHardReward:
+			return handleMsgClaimHardReward(ctx, k, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -34,7 +34,7 @@ func handleMsgClaimUSDXMintingReward(ctx sdk.Context, k keeper.Keeper, msg types
 	}, nil
 }
 
-func handleMsgClaimHardLiquidityProviderReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimHardLiquidityProviderReward) (*sdk.Result, error) {
+func handleMsgClaimHardReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimHardReward) (*sdk.Result, error) {
 
 	err := k.ClaimHardReward(ctx, msg.Sender, types.MultiplierName(msg.MultiplierName))
 	if err != nil {
