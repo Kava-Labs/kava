@@ -23,19 +23,14 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		}
 	}
 
-	// Call incentive hooks
+	// Call incentive hook
 	existingDeposit, hasExistingDeposit := k.GetDeposit(ctx, depositor)
 	if hasExistingDeposit {
 		k.BeforeDepositModified(ctx, existingDeposit)
 	}
-	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, depositor)
-	if hasExistingBorrow {
-		k.BeforeBorrowModified(ctx, existingBorrow)
-	}
 
 	// Sync any outstanding interest
 	k.SyncSupplyInterest(ctx, depositor)
-	k.SyncBorrowInterest(ctx, depositor)
 
 	err := k.ValidateDeposit(ctx, coins)
 	if err != nil {
