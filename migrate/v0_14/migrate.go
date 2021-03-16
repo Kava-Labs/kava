@@ -32,9 +32,9 @@ import (
 )
 
 var (
-	GenesisTime   = time.Date(2021, 3, 4, 15, 0, 0, 0, time.UTC)
-	RewardEndTime = time.Date(2022, 2, 25, 14, 0, 0, 0, time.UTC)
-	ClaimEndTime  = time.Date(2026, 2, 25, 14, 0, 0, 0, time.UTC)
+	GenesisTime   = time.Date(2021, 3, 24, 15, 0, 0, 0, time.UTC)
+	RewardEndTime = time.Date(2022, 3, 24, 14, 0, 0, 0, time.UTC)
+	ClaimEndTime  = time.Date(2026, 3, 24, 14, 0, 0, 0, time.UTC)
 )
 
 // Migrate translates a genesis file from kava v0.11 (or v0.12) format to kava v0.13.x format.
