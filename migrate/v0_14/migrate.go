@@ -32,9 +32,9 @@ import (
 )
 
 var (
-	GenesisTime   = time.Date(2021, 3, 4, 15, 0, 0, 0, time.UTC)
-	RewardEndTime = time.Date(2022, 2, 25, 14, 0, 0, 0, time.UTC)
-	ClaimEndTime  = time.Date(2026, 2, 25, 14, 0, 0, 0, time.UTC)
+	GenesisTime   = time.Date(2021, 3, 24, 15, 0, 0, 0, time.UTC)
+	RewardEndTime = time.Date(2022, 3, 24, 14, 0, 0, 0, time.UTC)
+	ClaimEndTime  = time.Date(2026, 3, 24, 14, 0, 0, 0, time.UTC)
 )
 
 // Migrate translates a genesis file from kava v0.11 (or v0.12) format to kava v0.13.x format.
@@ -265,11 +265,12 @@ func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.Genesis
 	usdxMintingRewardPeriods := v0_14incentive.RewardPeriods{}
 	usdxRewardsPerSecondMap := make(map[string]sdk.Coin)
 	usdxRewardsPerSecondMap["bnb-a"] = sdk.NewCoin("ukava", sdk.NewInt(122354))
-	usdxRewardsPerSecondMap["btcb-a"] = sdk.NewCoin("ukava", sdk.NewInt(158730))
+	usdxRewardsPerSecondMap["btcb-a"] = sdk.NewCoin("ukava", sdk.NewInt(110780))
 	usdxRewardsPerSecondMap["busd-a"] = sdk.NewCoin("ukava", sdk.NewInt(30588))
 	usdxRewardsPerSecondMap["hard-a"] = sdk.NewCoin("ukava", sdk.NewInt(23809))
 	usdxRewardsPerSecondMap["ukava-a"] = sdk.NewCoin("ukava", sdk.NewInt(31746))
 	usdxRewardsPerSecondMap["xrpb-a"] = sdk.NewCoin("ukava", sdk.NewInt(31746))
+	usdxRewardsPerSecondMap["hbtc-a"] = sdk.NewCoin("ukava", sdk.NewInt(79365))
 
 	for _, rp := range incentiveGS.RewardPeriods {
 		rewardsPerSecond, ok := usdxRewardsPerSecondMap[rp.CollateralType]
