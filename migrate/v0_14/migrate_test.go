@@ -41,7 +41,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestCDP(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-cdp-state-block-500000.json"))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-6-cdp-state.json"))
 	require.NoError(t, err)
 	var oldGenState v0_11cdp.GenesisState
 	cdc := app.MakeCodec()
@@ -69,7 +69,7 @@ func TestAuth(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-auth-state-block-500000.json"))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-6-auth-state.json"))
 	require.NoError(t, err)
 	var oldGenState auth.GenesisState
 	cdc := app.MakeCodec()
@@ -111,7 +111,7 @@ func getAccount(accounts authexported.GenesisAccounts, address sdk.AccAddress) a
 }
 
 func TestIncentive(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-incentive-state.json"))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-6-incentive-state.json"))
 	require.NoError(t, err)
 	var oldIncentiveGenState v0_11incentive.GenesisState
 	cdc := app.MakeCodec()
@@ -119,7 +119,7 @@ func TestIncentive(t *testing.T) {
 		cdc.MustUnmarshalJSON(bz, &oldIncentiveGenState)
 	})
 
-	bz, err = ioutil.ReadFile(filepath.Join("testdata", "kava-4-harvest-state.json"))
+	bz, err = ioutil.ReadFile(filepath.Join("testdata", "kava-6-harvest-state.json"))
 	require.NoError(t, err)
 	var oldHarvestGenState v0_11hard.GenesisState
 	require.NotPanics(t, func() {
@@ -131,15 +131,15 @@ func TestIncentive(t *testing.T) {
 	})
 	err = newGenState.Validate()
 	require.NoError(t, err)
-	fmt.Printf("Number of incentive claims in kava-4: %d\nNumber of incentive Claims in kava-5: %d\n",
+	fmt.Printf("Number of incentive claims in kava-6: %d\nNumber of incentive Claims in kava-5.1: %d\n",
 		len(oldIncentiveGenState.Claims), len(newGenState.USDXMintingClaims),
 	)
-	fmt.Printf("Number of harvest claims in kava-4: %d\nNumber of hard claims in kava-5: %d\n", len(oldHarvestGenState.Claims), len(newGenState.HardLiquidityProviderClaims))
+	fmt.Printf("Number of harvest claims in kava-6: %d\nNumber of hard claims in kava-5.1: %d\n", len(oldHarvestGenState.Claims), len(newGenState.HardLiquidityProviderClaims))
 }
 
 func TestHard(t *testing.T) {
 	cdc := app.MakeCodec()
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-harvest-state.json"))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-6-harvest-state.json"))
 	require.NoError(t, err)
 	var oldHarvestGenState v0_11hard.GenesisState
 	require.NotPanics(t, func() {
@@ -154,7 +154,7 @@ func TestHard(t *testing.T) {
 }
 
 func TestCommittee(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-committee-state.json"))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-6-committee-state.json"))
 	require.NoError(t, err)
 	var oldGenState v0_11committee.GenesisState
 	cdc := codec.New()
@@ -184,7 +184,7 @@ func TestCommittee(t *testing.T) {
 
 func TestPricefeed(t *testing.T) {
 	cdc := app.MakeCodec()
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-pricefeed-state.json"))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-6-pricefeed-state.json"))
 	require.NoError(t, err)
 	var oldPricefeedGenState v0_11pricefeed.GenesisState
 	require.NotPanics(t, func() {
@@ -196,7 +196,7 @@ func TestPricefeed(t *testing.T) {
 	require.Equal(t, len(oldPricefeedGenState.Params.Markets)+1, len(newGenState.Params.Markets))
 }
 func TestBep3(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-bep3-state.json"))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-6-bep3-state.json"))
 	require.NoError(t, err)
 	var oldGenState bep3.GenesisState
 	cdc := app.MakeCodec()
@@ -228,7 +228,7 @@ func TestBep3(t *testing.T) {
 }
 
 func TestMigrateFull(t *testing.T) {
-	oldGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "kava-4-export.json"))
+	oldGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "kava-6-block-127500.json"))
 	require.NoError(t, err)
 
 	// 2) migrate
