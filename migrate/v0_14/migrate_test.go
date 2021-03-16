@@ -1,4 +1,4 @@
-package v0_13
+package v0_14
 
 import (
 	"fmt"
@@ -20,11 +20,11 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
-	v0_13committee "github.com/kava-labs/kava/x/committee"
+	v0_14committee "github.com/kava-labs/kava/x/committee"
 	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
-	v0_13hard "github.com/kava-labs/kava/x/hard"
+	v0_14hard "github.com/kava-labs/kava/x/hard"
 	v0_11hard "github.com/kava-labs/kava/x/hard/legacy/v0_11"
-	v0_13incentive "github.com/kava-labs/kava/x/incentive"
+	v0_14incentive "github.com/kava-labs/kava/x/incentive"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
 	v0_11pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
@@ -125,7 +125,7 @@ func TestIncentive(t *testing.T) {
 	require.NotPanics(t, func() {
 		cdc.MustUnmarshalJSON(bz, &oldHarvestGenState)
 	})
-	newGenState := v0_13incentive.GenesisState{}
+	newGenState := v0_14incentive.GenesisState{}
 	require.NotPanics(t, func() {
 		newGenState = Incentive(oldHarvestGenState, oldIncentiveGenState)
 	})
@@ -145,7 +145,7 @@ func TestHard(t *testing.T) {
 	require.NotPanics(t, func() {
 		cdc.MustUnmarshalJSON(bz, &oldHarvestGenState)
 	})
-	newGenState := v0_13hard.GenesisState{}
+	newGenState := v0_14hard.GenesisState{}
 	require.NotPanics(t, func() {
 		newGenState = Hard(oldHarvestGenState)
 	})
@@ -175,10 +175,10 @@ func TestCommittee(t *testing.T) {
 	}
 
 	oldSPCP := oldGenState.Committees[0].Permissions[0].(v0_11committee.SubParamChangePermission)
-	newSPCP := newGenState.Committees[0].Permissions[0].(v0_13committee.SubParamChangePermission)
-	require.Equal(t, len(oldSPCP.AllowedParams), len(newSPCP.AllowedParams))
+	newSPCP := newGenState.Committees[0].Permissions[0].(v0_14committee.SubParamChangePermission)
+	require.Equal(t, len(oldSPCP.AllowedParams)-14, len(newSPCP.AllowedParams)) // accounts for removed/redundant keys
 	require.Equal(t, len(oldSPCP.AllowedAssetParams), len(newSPCP.AllowedAssetParams))
-	require.Equal(t, len(oldSPCP.AllowedCollateralParams), len(newSPCP.AllowedCollateralParams))
+	require.Equal(t, len(oldSPCP.AllowedCollateralParams)+3, len(newSPCP.AllowedCollateralParams)) // accounts for new cdp collateral types
 	require.Equal(t, len(oldSPCP.AllowedMarkets), len(newSPCP.AllowedMarkets))
 }
 
