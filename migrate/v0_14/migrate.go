@@ -1,4 +1,4 @@
-package v0_13
+package v0_14
 
 import (
 	"fmt"
@@ -17,17 +17,17 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3"
-	v0_13cdp "github.com/kava-labs/kava/x/cdp"
+	v0_14cdp "github.com/kava-labs/kava/x/cdp"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
-	v0_13committee "github.com/kava-labs/kava/x/committee"
+	v0_14committee "github.com/kava-labs/kava/x/committee"
 	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
-	v0_13hard "github.com/kava-labs/kava/x/hard"
+	v0_14hard "github.com/kava-labs/kava/x/hard"
 	v0_11hard "github.com/kava-labs/kava/x/hard/legacy/v0_11"
-	v0_13incentive "github.com/kava-labs/kava/x/incentive"
+	v0_14incentive "github.com/kava-labs/kava/x/incentive"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
 	"github.com/kava-labs/kava/x/kavadist"
 	v0_11pricefeed "github.com/kava-labs/kava/x/pricefeed"
-	v0_13pricefeed "github.com/kava-labs/kava/x/pricefeed"
+	v0_14pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
@@ -49,8 +49,8 @@ func Migrate(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 		panic(err)
 	}
 	newAppState := MigrateAppState(appStateMap)
-	v0_13Codec := app.MakeCodec()
-	marshaledNewAppState, err := v0_13Codec.MarshalJSON(newAppState)
+	v0_14Codec := app.MakeCodec()
+	marshaledNewAppState, err := v0_14Codec.MarshalJSON(newAppState)
 	if err != nil {
 		panic(err)
 	}
@@ -63,40 +63,40 @@ func Migrate(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 
 // MigrateAppState migrates application state from v0.11 (or v0.12) format to a kava v0.13.x format
 func MigrateAppState(v0_11AppState genutil.AppMap) genutil.AppMap {
-	v0_13AppState := v0_11AppState
+	v0_14AppState := v0_11AppState
 	cdc := app.MakeCodec()
 	var hardGenState v0_11hard.GenesisState
-	if v0_11AppState[v0_13hard.ModuleName] == nil {
+	if v0_11AppState[v0_14hard.ModuleName] == nil {
 		cdc.MustUnmarshalJSON(v0_11AppState[v0_11hard.ModuleName], &hardGenState)
 		delete(v0_11AppState, v0_11hard.ModuleName)
-		v0_13AppState[v0_13hard.ModuleName] = cdc.MustMarshalJSON(
+		v0_14AppState[v0_14hard.ModuleName] = cdc.MustMarshalJSON(
 			Hard(hardGenState))
 	}
-	delete(v0_13AppState, v0_11hard.ModuleName)
+	delete(v0_14AppState, v0_11hard.ModuleName)
 	if v0_11AppState[v0_11cdp.ModuleName] != nil {
 		var cdpGenState v0_11cdp.GenesisState
 		cdc.MustUnmarshalJSON(v0_11AppState[v0_11cdp.ModuleName], &cdpGenState)
 		delete(v0_11AppState, v0_11cdp.ModuleName)
-		v0_13AppState[v0_13cdp.ModuleName] = cdc.MustMarshalJSON(
+		v0_14AppState[v0_14cdp.ModuleName] = cdc.MustMarshalJSON(
 			CDP(cdpGenState))
 	}
 	if v0_11AppState[v0_11incentive.ModuleName] != nil {
 		var incentiveGenState v0_11incentive.GenesisState
-		cdc.MustUnmarshalJSON(v0_11AppState[v0_13incentive.ModuleName], &incentiveGenState)
+		cdc.MustUnmarshalJSON(v0_11AppState[v0_14incentive.ModuleName], &incentiveGenState)
 		delete(v0_11AppState, v0_11incentive.ModuleName)
-		v0_13AppState[v0_13incentive.ModuleName] = cdc.MustMarshalJSON(Incentive(hardGenState, incentiveGenState))
+		v0_14AppState[v0_14incentive.ModuleName] = cdc.MustMarshalJSON(Incentive(hardGenState, incentiveGenState))
 	}
 	if v0_11AppState[v0_11pricefeed.ModuleName] != nil {
 		var pricefeedGS v0_11pricefeed.GenesisState
-		cdc.MustUnmarshalJSON(v0_11AppState[v0_13pricefeed.ModuleName], &pricefeedGS)
+		cdc.MustUnmarshalJSON(v0_11AppState[v0_14pricefeed.ModuleName], &pricefeedGS)
 		delete(v0_11AppState, v0_11pricefeed.ModuleName)
-		v0_13AppState[v0_13pricefeed.ModuleName] = cdc.MustMarshalJSON(Pricefeed(pricefeedGS))
+		v0_14AppState[v0_14pricefeed.ModuleName] = cdc.MustMarshalJSON(Pricefeed(pricefeedGS))
 	}
 	if v0_11AppState[bep3.ModuleName] != nil {
 		var bep3GS bep3.GenesisState
 		cdc.MustUnmarshalJSON(v0_11AppState[bep3.ModuleName], &bep3GS)
 		delete(v0_11AppState, bep3.ModuleName)
-		v0_13AppState[bep3.ModuleName] = cdc.MustMarshalJSON(Bep3(bep3GS))
+		v0_14AppState[bep3.ModuleName] = cdc.MustMarshalJSON(Bep3(bep3GS))
 	}
 	if v0_11AppState[v0_11committee.ModuleName] != nil {
 		var committeeGS v0_11committee.GenesisState
@@ -106,32 +106,32 @@ func MigrateAppState(v0_11AppState genutil.AppMap) genutil.AppMap {
 		cdc.MustUnmarshalJSON(v0_11AppState[v0_11committee.ModuleName], &committeeGS)
 		delete(v0_11AppState, v0_11committee.ModuleName)
 		cdc = app.MakeCodec()
-		v0_13AppState[v0_13committee.ModuleName] = cdc.MustMarshalJSON(Committee(committeeGS))
+		v0_14AppState[v0_14committee.ModuleName] = cdc.MustMarshalJSON(Committee(committeeGS))
 	}
 	if v0_11AppState[auth.ModuleName] != nil {
 		var authGS auth.GenesisState
 		cdc.MustUnmarshalJSON(v0_11AppState[auth.ModuleName], &authGS)
 		delete(v0_11AppState, auth.ModuleName)
-		v0_13AppState[auth.ModuleName] = cdc.MustMarshalJSON(Auth(authGS))
+		v0_14AppState[auth.ModuleName] = cdc.MustMarshalJSON(Auth(authGS))
 	}
-	return v0_13AppState
+	return v0_14AppState
 
 }
 
 // CDP migrates from a v0.11 cdp genesis state to a v0.13 cdp genesis state
-func CDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
-	var newCDPs v0_13cdp.CDPs
-	var newDeposits v0_13cdp.Deposits
-	var newCollateralParams v0_13cdp.CollateralParams
-	var newGenesisAccumulationTimes v0_13cdp.GenesisAccumulationTimes
+func CDP(oldGenState v0_11cdp.GenesisState) v0_14cdp.GenesisState {
+	var newCDPs v0_14cdp.CDPs
+	var newDeposits v0_14cdp.Deposits
+	var newCollateralParams v0_14cdp.CollateralParams
+	var newGenesisAccumulationTimes v0_14cdp.GenesisAccumulationTimes
 	var previousAccumulationTime time.Time
-	var totalPrincipals v0_13cdp.GenesisTotalPrincipals
+	var totalPrincipals v0_14cdp.GenesisTotalPrincipals
 	newStartingID := oldGenState.StartingCdpID
 
 	totalPrincipalMap := make(map[string]sdk.Int)
 
 	for _, cdp := range oldGenState.CDPs {
-		newCDP := v0_13cdp.NewCDPWithFees(cdp.ID, cdp.Owner, cdp.Collateral, cdp.Type, cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated, sdk.OneDec())
+		newCDP := v0_14cdp.NewCDPWithFees(cdp.ID, cdp.Owner, cdp.Collateral, cdp.Type, cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated, sdk.OneDec())
 		if previousAccumulationTime.Before(cdp.FeesUpdated) {
 			previousAccumulationTime = cdp.FeesUpdated
 		}
@@ -145,19 +145,19 @@ func CDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 	}
 
 	for _, cp := range oldGenState.Params.CollateralParams {
-		newCollateralParam := v0_13cdp.NewCollateralParam(cp.Denom, cp.Type, cp.LiquidationRatio, cp.DebtLimit, cp.StabilityFee, cp.AuctionSize, cp.LiquidationPenalty, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID, sdk.MustNewDecFromStr("0.01"), sdk.NewInt(10), cp.ConversionFactor)
+		newCollateralParam := v0_14cdp.NewCollateralParam(cp.Denom, cp.Type, cp.LiquidationRatio, cp.DebtLimit, cp.StabilityFee, cp.AuctionSize, cp.LiquidationPenalty, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID, sdk.MustNewDecFromStr("0.01"), sdk.NewInt(10), cp.ConversionFactor)
 		newCollateralParams = append(newCollateralParams, newCollateralParam)
-		newGenesisAccumulationTime := v0_13cdp.NewGenesisAccumulationTime(cp.Type, previousAccumulationTime, sdk.OneDec())
+		newGenesisAccumulationTime := v0_14cdp.NewGenesisAccumulationTime(cp.Type, previousAccumulationTime, sdk.OneDec())
 		newGenesisAccumulationTimes = append(newGenesisAccumulationTimes, newGenesisAccumulationTime)
 	}
 
 	for _, dep := range oldGenState.Deposits {
-		newDep := v0_13cdp.NewDeposit(dep.CdpID, dep.Depositor, dep.Amount)
+		newDep := v0_14cdp.NewDeposit(dep.CdpID, dep.Depositor, dep.Amount)
 		newDeposits = append(newDeposits, newDep)
 	}
 
 	for ctype, tp := range totalPrincipalMap {
-		totalPrincipal := v0_13cdp.NewGenesisTotalPrincipal(ctype, tp)
+		totalPrincipal := v0_14cdp.NewGenesisTotalPrincipal(ctype, tp)
 		totalPrincipals = append(totalPrincipals, totalPrincipal)
 	}
 
@@ -165,13 +165,13 @@ func CDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 
 	oldDebtParam := oldGenState.Params.DebtParam
 
-	newDebtParam := v0_13cdp.NewDebtParam(oldDebtParam.Denom, oldDebtParam.ReferenceAsset, oldDebtParam.ConversionFactor, oldDebtParam.DebtFloor)
+	newDebtParam := v0_14cdp.NewDebtParam(oldDebtParam.Denom, oldDebtParam.ReferenceAsset, oldDebtParam.ConversionFactor, oldDebtParam.DebtFloor)
 
 	newGlobalDebtLimit := oldGenState.Params.GlobalDebtLimit
 
-	newParams := v0_13cdp.NewParams(newGlobalDebtLimit, newCollateralParams, newDebtParam, oldGenState.Params.SurplusAuctionThreshold, oldGenState.Params.SurplusAuctionLot, oldGenState.Params.DebtAuctionThreshold, oldGenState.Params.DebtAuctionLot, false)
+	newParams := v0_14cdp.NewParams(newGlobalDebtLimit, newCollateralParams, newDebtParam, oldGenState.Params.SurplusAuctionThreshold, oldGenState.Params.SurplusAuctionLot, oldGenState.Params.DebtAuctionThreshold, oldGenState.Params.DebtAuctionLot, false)
 
-	return v0_13cdp.NewGenesisState(
+	return v0_14cdp.NewGenesisState(
 		newParams,
 		newCDPs,
 		newDeposits,
@@ -184,59 +184,59 @@ func CDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 }
 
 // Hard migrates from a v0.11 hard (harvest) genesis state to a v0.13 hard genesis state
-func Hard(genesisState v0_11hard.GenesisState) v0_13hard.GenesisState {
-	v13Deposits := v0_13hard.Deposits{}
-	v13DepositorMap := make(map[string]v0_13hard.Deposit)
-	v13GenesisAccumulationTimes := v0_13hard.GenesisAccumulationTimes{}
+func Hard(genesisState v0_11hard.GenesisState) v0_14hard.GenesisState {
+	v13Deposits := v0_14hard.Deposits{}
+	v13DepositorMap := make(map[string]v0_14hard.Deposit)
+	v13GenesisAccumulationTimes := v0_14hard.GenesisAccumulationTimes{}
 	v13TotalSupplied := sdk.NewCoins()
 
 	for _, dep := range genesisState.Deposits {
 		v13Deposit, ok := v13DepositorMap[dep.Depositor.String()]
 		if !ok {
-			v13Deposit := v0_13hard.NewDeposit(dep.Depositor, sdk.NewCoins(dep.Amount), v0_13hard.SupplyInterestFactors{v0_13hard.NewSupplyInterestFactor(dep.Amount.Denom, sdk.OneDec())})
+			v13Deposit := v0_14hard.NewDeposit(dep.Depositor, sdk.NewCoins(dep.Amount), v0_14hard.SupplyInterestFactors{v0_14hard.NewSupplyInterestFactor(dep.Amount.Denom, sdk.OneDec())})
 			v13DepositorMap[dep.Depositor.String()] = v13Deposit
 		} else {
 			v13Deposit.Amount = v13Deposit.Amount.Add(dep.Amount)
-			v13Deposit.Index = append(v13Deposit.Index, v0_13hard.NewSupplyInterestFactor(dep.Amount.Denom, sdk.OneDec()))
+			v13Deposit.Index = append(v13Deposit.Index, v0_14hard.NewSupplyInterestFactor(dep.Amount.Denom, sdk.OneDec()))
 			v13DepositorMap[dep.Depositor.String()] = v13Deposit
 		}
 	}
 
-	defaultInterestModel := v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("1.0"))
-	newParams := v0_13hard.NewParams(
-		v0_13hard.MoneyMarkets{
+	defaultInterestModel := v0_14hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("1.0"))
+	newParams := v0_14hard.NewParams(
+		v0_14hard.MoneyMarkets{
 
-			v0_13hard.NewMoneyMarket("btcb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "btc:usd", sdk.NewInt(100000000),
+			v0_14hard.NewMoneyMarket("btcb", v0_14hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "btc:usd", sdk.NewInt(100000000),
 				defaultInterestModel,
 				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// bnb
-			v0_13hard.NewMoneyMarket("bnb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "bnb:usd", sdk.NewInt(100000000),
+			v0_14hard.NewMoneyMarket("bnb", v0_14hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "bnb:usd", sdk.NewInt(100000000),
 				defaultInterestModel,
 				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// xrpb
-			v0_13hard.NewMoneyMarket("xrpb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "xrp:usd", sdk.NewInt(100000000),
+			v0_14hard.NewMoneyMarket("xrpb", v0_14hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "xrp:usd", sdk.NewInt(100000000),
 				defaultInterestModel,
 				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// busd
-			v0_13hard.NewMoneyMarket("busd", v0_13hard.NewBorrowLimit(true, sdk.MustNewDecFromStr("100000000000000"), sdk.MustNewDecFromStr("0.5")), "busd:usd", sdk.NewInt(100000000),
+			v0_14hard.NewMoneyMarket("busd", v0_14hard.NewBorrowLimit(true, sdk.MustNewDecFromStr("100000000000000"), sdk.MustNewDecFromStr("0.5")), "busd:usd", sdk.NewInt(100000000),
 				defaultInterestModel,
 				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// usdx
-			v0_13hard.NewMoneyMarket("usdx", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.ZeroDec()), "usdx:usd", sdk.NewInt(1000000),
+			v0_14hard.NewMoneyMarket("usdx", v0_14hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.ZeroDec()), "usdx:usd", sdk.NewInt(1000000),
 				defaultInterestModel,
 				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// ukava
-			v0_13hard.NewMoneyMarket("ukava", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "kava:usd", sdk.NewInt(1000000),
+			v0_14hard.NewMoneyMarket("ukava", v0_14hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "kava:usd", sdk.NewInt(1000000),
 				defaultInterestModel,
 				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// hard
-			v0_13hard.NewMoneyMarket("hard", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "hard:usd", sdk.NewInt(1000000),
+			v0_14hard.NewMoneyMarket("hard", v0_14hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "hard:usd", sdk.NewInt(1000000),
 				defaultInterestModel,
 				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
@@ -253,16 +253,16 @@ func Hard(genesisState v0_11hard.GenesisState) v0_13hard.GenesisState {
 	})
 
 	for _, mm := range newParams.MoneyMarkets {
-		genAccumulationTime := v0_13hard.NewGenesisAccumulationTime(mm.Denom, GenesisTime, sdk.OneDec(), sdk.OneDec())
+		genAccumulationTime := v0_14hard.NewGenesisAccumulationTime(mm.Denom, GenesisTime, sdk.OneDec(), sdk.OneDec())
 		v13GenesisAccumulationTimes = append(v13GenesisAccumulationTimes, genAccumulationTime)
 	}
 
-	return v0_13hard.NewGenesisState(newParams, v13GenesisAccumulationTimes, v13Deposits, v0_13hard.DefaultBorrows, v13TotalSupplied, v0_13hard.DefaultTotalBorrowed, v0_13hard.DefaultTotalReserves)
+	return v0_14hard.NewGenesisState(newParams, v13GenesisAccumulationTimes, v13Deposits, v0_14hard.DefaultBorrows, v13TotalSupplied, v0_14hard.DefaultTotalBorrowed, v0_14hard.DefaultTotalReserves)
 }
 
 // Incentive migrates from a v0.11 incentive genesis state to a v0.13 incentive genesis state
-func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.GenesisState) v0_13incentive.GenesisState {
-	usdxMintingRewardPeriods := v0_13incentive.RewardPeriods{}
+func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.GenesisState) v0_14incentive.GenesisState {
+	usdxMintingRewardPeriods := v0_14incentive.RewardPeriods{}
 	usdxRewardsPerSecondMap := make(map[string]sdk.Coin)
 	usdxRewardsPerSecondMap["bnb-a"] = sdk.NewCoin("ukava", sdk.NewInt(122354))
 	usdxRewardsPerSecondMap["btcb-a"] = sdk.NewCoin("ukava", sdk.NewInt(158730))
@@ -276,49 +276,49 @@ func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.Genesis
 		if !ok {
 			panic(fmt.Sprintf("No rewards per second for collateral type: %s\n", rp.CollateralType))
 		}
-		newRP := v0_13incentive.NewRewardPeriod(true, rp.CollateralType, GenesisTime, RewardEndTime, rewardsPerSecond)
+		newRP := v0_14incentive.NewRewardPeriod(true, rp.CollateralType, GenesisTime, RewardEndTime, rewardsPerSecond)
 		usdxMintingRewardPeriods = append(usdxMintingRewardPeriods, newRP)
 	}
 
-	hardSupplyRewardPeriods := v0_13incentive.MultiRewardPeriods{}
+	hardSupplyRewardPeriods := v0_14incentive.MultiRewardPeriods{}
 	for _, rp := range hardGS.Params.LiquidityProviderSchedules {
-		newRP := v0_13incentive.NewMultiRewardPeriod(true, rp.DepositDenom, rp.Start, rp.End, sdk.NewCoins(rp.RewardsPerSecond))
+		newRP := v0_14incentive.NewMultiRewardPeriod(true, rp.DepositDenom, rp.Start, rp.End, sdk.NewCoins(rp.RewardsPerSecond))
 		hardSupplyRewardPeriods = append(hardSupplyRewardPeriods, newRP)
 	}
-	hardBorrowRewardPeriods := v0_13incentive.MultiRewardPeriods{}
-	hardDelegatorRewardPeriods := v0_13incentive.RewardPeriods{}
+	hardBorrowRewardPeriods := v0_14incentive.MultiRewardPeriods{}
+	hardDelegatorRewardPeriods := v0_14incentive.RewardPeriods{}
 	for _, rp := range hardGS.Params.DelegatorDistributionSchedules {
-		newRP := v0_13incentive.NewRewardPeriod(rp.DistributionSchedule.Active, rp.DistributionSchedule.DepositDenom, rp.DistributionSchedule.Start, rp.DistributionSchedule.End, rp.DistributionSchedule.RewardsPerSecond)
+		newRP := v0_14incentive.NewRewardPeriod(rp.DistributionSchedule.Active, rp.DistributionSchedule.DepositDenom, rp.DistributionSchedule.Start, rp.DistributionSchedule.End, rp.DistributionSchedule.RewardsPerSecond)
 		hardDelegatorRewardPeriods = append(hardDelegatorRewardPeriods, newRP)
 	}
-	params := v0_13incentive.NewParams(usdxMintingRewardPeriods, hardSupplyRewardPeriods, hardBorrowRewardPeriods, hardDelegatorRewardPeriods, v0_13incentive.Multipliers{v0_13incentive.NewMultiplier(v0_13incentive.Small, 1, sdk.MustNewDecFromStr("0.2")), v0_13incentive.NewMultiplier(v0_13incentive.Large, 12, sdk.MustNewDecFromStr("1.0"))}, ClaimEndTime)
+	params := v0_14incentive.NewParams(usdxMintingRewardPeriods, hardSupplyRewardPeriods, hardBorrowRewardPeriods, hardDelegatorRewardPeriods, v0_14incentive.Multipliers{v0_14incentive.NewMultiplier(v0_14incentive.Small, 1, sdk.MustNewDecFromStr("0.2")), v0_14incentive.NewMultiplier(v0_14incentive.Large, 12, sdk.MustNewDecFromStr("1.0"))}, ClaimEndTime)
 
-	usdxGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
+	usdxGenAccumulationTimes := v0_14incentive.GenesisAccumulationTimes{}
 
 	for _, rp := range params.USDXMintingRewardPeriods {
-		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
+		gat := v0_14incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		usdxGenAccumulationTimes = append(usdxGenAccumulationTimes, gat)
 	}
-	hardSupplyGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
+	hardSupplyGenAccumulationTimes := v0_14incentive.GenesisAccumulationTimes{}
 	for _, rp := range params.HardSupplyRewardPeriods {
-		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
+		gat := v0_14incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		hardSupplyGenAccumulationTimes = append(hardSupplyGenAccumulationTimes, gat)
 	}
-	hardBorrowGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
+	hardBorrowGenAccumulationTimes := v0_14incentive.GenesisAccumulationTimes{}
 	for _, rp := range params.HardBorrowRewardPeriods {
-		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
+		gat := v0_14incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		hardBorrowGenAccumulationTimes = append(hardBorrowGenAccumulationTimes, gat)
 	}
 
-	hardDelegatorGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
+	hardDelegatorGenAccumulationTimes := v0_14incentive.GenesisAccumulationTimes{}
 
 	for _, rp := range params.HardDelegatorRewardPeriods {
-		gat := v0_13incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
+		gat := v0_14incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		hardDelegatorGenAccumulationTimes = append(hardDelegatorGenAccumulationTimes, gat)
 	}
 
-	usdxClaims := v0_13incentive.USDXMintingClaims{}
-	usdxClaimMap := make(map[string]v0_13incentive.USDXMintingClaim)
+	usdxClaims := v0_14incentive.USDXMintingClaims{}
+	usdxClaimMap := make(map[string]v0_14incentive.USDXMintingClaim)
 	claimEndMap := make(map[uint64]time.Time)
 
 	for _, cp := range incentiveGS.ClaimPeriods {
@@ -331,12 +331,12 @@ func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.Genesis
 		}
 		newClaim, ok := usdxClaimMap[claim.Owner.String()]
 		if !ok {
-			newClaim = v0_13incentive.NewUSDXMintingClaim(claim.Owner, claim.Reward, v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.CollateralType, sdk.ZeroDec())})
+			newClaim = v0_14incentive.NewUSDXMintingClaim(claim.Owner, claim.Reward, v0_14incentive.RewardIndexes{v0_14incentive.NewRewardIndex(claim.CollateralType, sdk.ZeroDec())})
 		} else {
 			newClaim.Reward = newClaim.Reward.Add(claim.Reward)
 			_, found := newClaim.RewardIndexes.GetRewardIndex(claim.CollateralType)
 			if !found {
-				newClaim.RewardIndexes = append(newClaim.RewardIndexes, v0_13incentive.NewRewardIndex(claim.CollateralType, sdk.ZeroDec()))
+				newClaim.RewardIndexes = append(newClaim.RewardIndexes, v0_14incentive.NewRewardIndex(claim.CollateralType, sdk.ZeroDec()))
 			}
 		}
 		usdxClaimMap[newClaim.Owner.String()] = newClaim
@@ -346,8 +346,8 @@ func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.Genesis
 		usdxClaims = append(usdxClaims, claim)
 	}
 
-	hardClaims := v0_13incentive.HardLiquidityProviderClaims{}
-	hardClaimMap := make(map[string]v0_13incentive.HardLiquidityProviderClaim)
+	hardClaims := v0_14incentive.HardLiquidityProviderClaims{}
+	hardClaimMap := make(map[string]v0_14incentive.HardLiquidityProviderClaim)
 
 	for _, claim := range hardGS.Claims {
 		newClaim, ok := hardClaimMap[claim.Owner.String()]
@@ -355,25 +355,25 @@ func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.Genesis
 			// if claim.Type == "lp" -- hard supply
 			// if claim.Type == "stake" -- hard delegator
 			// hard barrow always empty
-			delegatorIndexes := v0_13incentive.RewardIndexes{}
-			supplyIndexes := v0_13incentive.MultiRewardIndexes{}
-			borrowIndexes := v0_13incentive.MultiRewardIndexes{}
+			delegatorIndexes := v0_14incentive.RewardIndexes{}
+			supplyIndexes := v0_14incentive.MultiRewardIndexes{}
+			borrowIndexes := v0_14incentive.MultiRewardIndexes{}
 			if claim.Type == v0_11hard.Stake {
-				delegatorIndexes = v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec())}
+				delegatorIndexes = v0_14incentive.RewardIndexes{v0_14incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec())}
 			}
 			if claim.Type == v0_11hard.LP {
-				supplyIndexes = v0_13incentive.MultiRewardIndexes{v0_13incentive.NewMultiRewardIndex(claim.DepositDenom, v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex("hard", sdk.ZeroDec())})}
+				supplyIndexes = v0_14incentive.MultiRewardIndexes{v0_14incentive.NewMultiRewardIndex(claim.DepositDenom, v0_14incentive.RewardIndexes{v0_14incentive.NewRewardIndex("hard", sdk.ZeroDec())})}
 			}
-			newClaim = v0_13incentive.NewHardLiquidityProviderClaim(claim.Owner, sdk.NewCoins(claim.Amount), supplyIndexes, borrowIndexes, delegatorIndexes)
+			newClaim = v0_14incentive.NewHardLiquidityProviderClaim(claim.Owner, sdk.NewCoins(claim.Amount), supplyIndexes, borrowIndexes, delegatorIndexes)
 		} else {
 			newClaim.Reward = newClaim.Reward.Add(claim.Amount)
 			if claim.Type == v0_11hard.Stake {
-				newClaim.DelegatorRewardIndexes = v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec())}
+				newClaim.DelegatorRewardIndexes = v0_14incentive.RewardIndexes{v0_14incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec())}
 			}
 			if claim.Type == v0_11hard.LP {
 				_, found := newClaim.SupplyRewardIndexes.GetRewardIndex(claim.DepositDenom)
 				if !found {
-					newClaim.SupplyRewardIndexes = append(newClaim.SupplyRewardIndexes, v0_13incentive.NewMultiRewardIndex(claim.DepositDenom, v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex("hard", sdk.ZeroDec())}))
+					newClaim.SupplyRewardIndexes = append(newClaim.SupplyRewardIndexes, v0_14incentive.NewMultiRewardIndex(claim.DepositDenom, v0_14incentive.RewardIndexes{v0_14incentive.NewRewardIndex("hard", sdk.ZeroDec())}))
 				}
 			}
 		}
@@ -387,7 +387,7 @@ func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.Genesis
 	sort.Slice(hardClaims, func(i, j int) bool { return hardClaims[i].Owner.String() < hardClaims[j].Owner.String() })
 	sort.Slice(usdxClaims, func(i, j int) bool { return usdxClaims[i].Owner.String() < usdxClaims[j].Owner.String() })
 
-	return v0_13incentive.NewGenesisState(
+	return v0_14incentive.NewGenesisState(
 		params,
 		usdxGenAccumulationTimes,
 		hardSupplyGenAccumulationTimes,
@@ -446,7 +446,7 @@ func Auth(genesisState auth.GenesisState) auth.GenesisState {
 				panic(err)
 			}
 		}
-		if acc.GetAddress().Equals(supply.NewModuleAddress(v0_13cdp.LiquidatorMacc)) {
+		if acc.GetAddress().Equals(supply.NewModuleAddress(v0_14cdp.LiquidatorMacc)) {
 			liquidatorMaccIndex = idx
 		}
 		if acc.GetAddress().Equals(hardDelegatorAddr) {
@@ -475,8 +475,8 @@ func Auth(genesisState auth.GenesisState) auth.GenesisState {
 
 	// migrate harvest account to new hard name
 	harvestAcc := genesisState.Accounts[harvestIdx].(*supply.ModuleAccount)
-	harvestAcc.Address = supply.NewModuleAddress(v0_13hard.ModuleAccountName)
-	harvestAcc.Name = v0_13hard.ModuleAccountName
+	harvestAcc.Address = supply.NewModuleAddress(v0_14hard.ModuleAccountName)
+	harvestAcc.Name = v0_14hard.ModuleAccountName
 	harvestAcc.Permissions = []string{supply.Minter}
 	genesisState.Accounts[harvestIdx] = harvestAcc
 
@@ -531,13 +531,13 @@ func Bep3(genesisState bep3.GenesisState) bep3.GenesisState {
 }
 
 // Committee migrates from a v0.11 (or v0.12) committee genesis state to a v0.13 committee genesis state
-func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisState {
-	committees := []v0_13committee.Committee{}
-	votes := []v0_13committee.Vote{}
-	proposals := []v0_13committee.Proposal{}
+func Committee(genesisState v0_11committee.GenesisState) v0_14committee.GenesisState {
+	committees := []v0_14committee.Committee{}
+	votes := []v0_14committee.Vote{}
+	proposals := []v0_14committee.Proposal{}
 
-	var newStabilityCommittee v0_13committee.Committee
-	var newSafetyCommittee v0_13committee.Committee
+	var newStabilityCommittee v0_14committee.Committee
+	var newSafetyCommittee v0_14committee.Committee
 
 	for _, com := range genesisState.Committees {
 		if com.ID == 1 {
@@ -546,33 +546,33 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 			newStabilityCommittee.Members = com.Members
 			newStabilityCommittee.VoteThreshold = com.VoteThreshold
 			newStabilityCommittee.ProposalDuration = com.ProposalDuration
-			var newStabilityCommitteePermissions []v0_13committee.Permission
-			var newStabilitySubParamPermissions v0_13committee.SubParamChangePermission
+			var newStabilityCommitteePermissions []v0_14committee.Permission
+			var newStabilitySubParamPermissions v0_14committee.SubParamChangePermission
 
 			for _, perm := range com.Permissions {
 				subPerm, ok := perm.(v0_11committee.SubParamChangePermission)
 				if ok {
 					// update AllowedParams
-					var newAllowedParams v0_13committee.AllowedParams
+					var newAllowedParams v0_14committee.AllowedParams
 					for _, ap := range subPerm.AllowedParams {
 						if ap.Subspace == "harvest" {
 							continue
 						}
-						newAP := v0_13committee.AllowedParam(ap)
+						newAP := v0_14committee.AllowedParam(ap)
 						newAllowedParams = append(newAllowedParams, newAP)
 					}
-					hrdaMMAp := v0_13committee.AllowedParam{Subspace: "hard", Key: "MoneyMarkets"}
-					hardLimitAp := v0_13committee.AllowedParam{Subspace: "hard", Key: "MinimumBorrowUSDValue"}
+					hrdaMMAp := v0_14committee.AllowedParam{Subspace: "hard", Key: "MoneyMarkets"}
+					hardLimitAp := v0_14committee.AllowedParam{Subspace: "hard", Key: "MinimumBorrowUSDValue"}
 					newAllowedParams = append(newAllowedParams, hrdaMMAp)
 					newAllowedParams = append(newAllowedParams, hardLimitAp)
 
 					newStabilitySubParamPermissions.AllowedParams = newAllowedParams
 
 					// update AllowedCollateralParams
-					var newCollateralParams v0_13committee.AllowedCollateralParams
+					var newCollateralParams v0_14committee.AllowedCollateralParams
 					collateralTypes := []string{"bnb-a", "busd-a", "busd-b", "btcb-a", "xrpb-a", "ukava-a", "hard-a", "hbtc-a"}
 					for _, cp := range subPerm.AllowedCollateralParams {
-						newCP := v0_13committee.NewAllowedCollateralParam(
+						newCP := v0_14committee.NewAllowedCollateralParam(
 							cp.Type,
 							cp.Denom,
 							cp.LiquidationRatio,
@@ -597,14 +597,14 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 							}
 						}
 						if !foundCtype {
-							newCP := v0_13committee.NewAllowedCollateralParam(cType, false, false, true, true, true, false, false, false, false, false, true, true)
+							newCP := v0_14committee.NewAllowedCollateralParam(cType, false, false, true, true, true, false, false, false, false, false, true, true)
 							newCollateralParams = append(newCollateralParams, newCP)
 						}
 					}
 					newStabilitySubParamPermissions.AllowedCollateralParams = newCollateralParams
 
 					// update AllowedDebtParam
-					newDP := v0_13committee.AllowedDebtParam{
+					newDP := v0_14committee.AllowedDebtParam{
 						Denom:            subPerm.AllowedDebtParam.Denom,
 						ReferenceAsset:   subPerm.AllowedDebtParam.ReferenceAsset,
 						ConversionFactor: subPerm.AllowedDebtParam.ConversionFactor,
@@ -613,40 +613,40 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 					newStabilitySubParamPermissions.AllowedDebtParam = newDP
 
 					// update AllowedAssetParams
-					var newAssetParams v0_13committee.AllowedAssetParams
+					var newAssetParams v0_14committee.AllowedAssetParams
 					for _, ap := range subPerm.AllowedAssetParams {
-						newAP := v0_13committee.AllowedAssetParam(ap)
+						newAP := v0_14committee.AllowedAssetParam(ap)
 						newAssetParams = append(newAssetParams, newAP)
 					}
 					newStabilitySubParamPermissions.AllowedAssetParams = newAssetParams
 
 					// Update Allowed Markets
-					var newMarketParams v0_13committee.AllowedMarkets
+					var newMarketParams v0_14committee.AllowedMarkets
 					for _, mp := range subPerm.AllowedMarkets {
-						newMP := v0_13committee.AllowedMarket(mp)
+						newMP := v0_14committee.AllowedMarket(mp)
 						newMarketParams = append(newMarketParams, newMP)
 					}
 					newStabilitySubParamPermissions.AllowedMarkets = newMarketParams
 
 					// Add hard money market committee permissions
-					var newMoneyMarketParams v0_13committee.AllowedMoneyMarkets
+					var newMoneyMarketParams v0_14committee.AllowedMoneyMarkets
 					hardMMDenoms := []string{"bnb", "busd", "btcb", "xrpb", "usdx", "ukava", "hard"}
 					for _, mmDenom := range hardMMDenoms {
-						newMoneyMarketParam := v0_13committee.NewAllowedMoneyMarket(mmDenom, true, false, false, true, true, true)
+						newMoneyMarketParam := v0_14committee.NewAllowedMoneyMarket(mmDenom, true, false, false, true, true, true)
 						newMoneyMarketParams = append(newMoneyMarketParams, newMoneyMarketParam)
 					}
 					newStabilitySubParamPermissions.AllowedMoneyMarkets = newMoneyMarketParams
 					newStabilityCommitteePermissions = append(newStabilityCommitteePermissions, newStabilitySubParamPermissions)
 				}
 			}
-			newStabilityCommitteePermissions = append(newStabilityCommitteePermissions, v0_13committee.TextPermission{})
+			newStabilityCommitteePermissions = append(newStabilityCommitteePermissions, v0_14committee.TextPermission{})
 			newStabilityCommittee.Permissions = newStabilityCommitteePermissions
 			committees = append(committees, newStabilityCommittee)
 		} else {
 			newSafetyCommittee.ID = com.ID
 			newSafetyCommittee.Description = com.Description
 			newSafetyCommittee.Members = com.Members
-			newSafetyCommittee.Permissions = []v0_13committee.Permission{v0_13committee.SoftwareUpgradePermission{}}
+			newSafetyCommittee.Permissions = []v0_14committee.Permission{v0_14committee.SoftwareUpgradePermission{}}
 			newSafetyCommittee.VoteThreshold = com.VoteThreshold
 			newSafetyCommittee.ProposalDuration = com.ProposalDuration
 			committees = append(committees, newSafetyCommittee)
@@ -654,21 +654,21 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 	}
 
 	for _, v := range genesisState.Votes {
-		votes = append(votes, v0_13committee.Vote(v))
+		votes = append(votes, v0_14committee.Vote(v))
 	}
 
 	for _, p := range genesisState.Proposals {
-		newPubProp := v0_13committee.PubProposal(p.PubProposal)
-		newProp := v0_13committee.NewProposal(newPubProp, p.ID, p.CommitteeID, p.Deadline)
+		newPubProp := v0_14committee.PubProposal(p.PubProposal)
+		newProp := v0_14committee.NewProposal(newPubProp, p.ID, p.CommitteeID, p.Deadline)
 		proposals = append(proposals, newProp)
 	}
-	return v0_13committee.NewGenesisState(
+	return v0_14committee.NewGenesisState(
 		genesisState.NextProposalID, committees, proposals, votes)
 }
 
 // Pricefeed migrates from a v0.11 (or v0.12) pricefeed genesis state to a v0.13 pricefeed genesis state
-func Pricefeed(genesisState v0_11pricefeed.GenesisState) v0_13pricefeed.GenesisState {
-	newMarkets := v0_13pricefeed.Markets{}
+func Pricefeed(genesisState v0_11pricefeed.GenesisState) v0_14pricefeed.GenesisState {
+	newMarkets := v0_14pricefeed.Markets{}
 	oracles := genesisState.Params.Markets[0].Oracles
 
 	for _, m := range genesisState.Params.Markets {
@@ -677,7 +677,7 @@ func Pricefeed(genesisState v0_11pricefeed.GenesisState) v0_13pricefeed.GenesisS
 	usdx := v0_11pricefeed.NewMarket("usdx:usd", "usdx", "usd", oracles, true)
 	newMarkets = append(newMarkets, usdx)
 
-	newPrices := v0_13pricefeed.PostedPrices{}
+	newPrices := v0_14pricefeed.PostedPrices{}
 
 	for _, p := range genesisState.PostedPrices {
 		if p.Expiry.After(GenesisTime) {
@@ -685,7 +685,7 @@ func Pricefeed(genesisState v0_11pricefeed.GenesisState) v0_13pricefeed.GenesisS
 		}
 	}
 
-	return v0_13pricefeed.NewGenesisState(v0_13pricefeed.NewParams(newMarkets), newPrices)
+	return v0_14pricefeed.NewGenesisState(v0_14pricefeed.NewParams(newMarkets), newPrices)
 }
 
 func removeIndex(accs authexported.GenesisAccounts, index int) authexported.GenesisAccounts {

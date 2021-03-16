@@ -3,6 +3,7 @@ package migrate
 import (
 	"fmt"
 
+	"github.com/kava-labs/kava/migrate/v0_14"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -11,8 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 
 	tmtypes "github.com/tendermint/tendermint/types"
-
-	"github.com/kava-labs/kava/migrate/v0_13"
 )
 
 // MigrateGenesisCmd returns a command to execute genesis state migration.
@@ -31,7 +30,7 @@ func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("failed to read genesis document from file %s: %w", importGenesis, err)
 			}
 
-			newGenDoc := v0_13.Migrate(*genDoc)
+			newGenDoc := v0_14.Migrate(*genDoc)
 
 			bz, err := cdc.MarshalJSONIndent(newGenDoc, "", "  ")
 			if err != nil {
