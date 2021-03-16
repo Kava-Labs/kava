@@ -7,8 +7,8 @@ In order to restore the previous chain, the following data must be recovered by 
 * The database that contains the state of the previous chain (in ~/.kvd/data by default)
 * The priv_validator_state.json file of the validator (in ~/.kvd/data by default)
 
-If you don't have the database data, the Kava developer team or another validator will share a copy of the database via Amazon s3 or similar service. You will be able to download a copy of the data and verify it before starting your node.
-If you don't have priv_validator_state.json file, you will not have double sign protection on the first block. If this is the case, it's best to consult in the validator discord before starting your node.
+If you don't have the database data, the Kava developer team or another validator will share a copy of the database via Amazon s3 a similar service. You will be able to download a copy of the data and verify it before starting your node.
+If you don't have the backup priv_validator_state.json file, you will not have double sign protection on the first block. If this is the case, it's best to consult in the validator discord before starting your node.
 
 ## Restoring state procedure
 

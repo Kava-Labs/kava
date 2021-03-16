@@ -2,6 +2,7 @@
 
 ## Software Version and Key Dates
 
+* We will be upgrading from chain-id "kava-6" to chain-id "kava-5.1". This is to keep the features in our roadmap aligned with the features on mainnet going forward.
 * The version of Kava for kava-5.1 is v0.14.0
 * Kava-6 validators should prepare to shutdown their nodes March 24th, 2021 at 13:00 UTC by setting `--halt-time` to `1616590800`
 * Kava-5.1 genesis time is set to March 24th, 2021 at 15:00 UTC
