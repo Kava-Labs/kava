@@ -265,11 +265,12 @@ func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.Genesis
 	usdxMintingRewardPeriods := v0_14incentive.RewardPeriods{}
 	usdxRewardsPerSecondMap := make(map[string]sdk.Coin)
 	usdxRewardsPerSecondMap["bnb-a"] = sdk.NewCoin("ukava", sdk.NewInt(122354))
-	usdxRewardsPerSecondMap["btcb-a"] = sdk.NewCoin("ukava", sdk.NewInt(158730))
+	usdxRewardsPerSecondMap["btcb-a"] = sdk.NewCoin("ukava", sdk.NewInt(110780))
 	usdxRewardsPerSecondMap["busd-a"] = sdk.NewCoin("ukava", sdk.NewInt(30588))
 	usdxRewardsPerSecondMap["hard-a"] = sdk.NewCoin("ukava", sdk.NewInt(23809))
 	usdxRewardsPerSecondMap["ukava-a"] = sdk.NewCoin("ukava", sdk.NewInt(31746))
 	usdxRewardsPerSecondMap["xrpb-a"] = sdk.NewCoin("ukava", sdk.NewInt(31746))
+	usdxRewardsPerSecondMap["hbtc-a"] = sdk.NewCoin("ukava", sdk.NewInt(79365))
 
 	for _, rp := range incentiveGS.RewardPeriods {
 		rewardsPerSecond, ok := usdxRewardsPerSecondMap[rp.CollateralType]
