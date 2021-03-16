@@ -18,7 +18,7 @@ import (
 func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "migrate [genesis-file]",
-		Short:   "Migrate genesis file from kava v0.11 (or v0.12) to v0.13",
+		Short:   "Migrate genesis file from kava v0.11 (or v0.12) to v0.14",
 		Long:    "Migrate the source genesis into the current version, sorts it, and print to STDOUT.",
 		Example: fmt.Sprintf(`%s migrate /path/to/genesis.json`, version.ServerName),
 		Args:    cobra.ExactArgs(1),
