@@ -36,6 +36,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetInterestRate(ctx, req, k)
 		case types.QueryGetReserves:
 			return queryGetReserves(ctx, req, k)
+		case types.QueryGetInterestFactors:
+			return queryGetInterestFactors(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -465,6 +467,61 @@ func queryGetReserves(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, reserveCoins)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func queryGetInterestFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryInterestFactorsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	var interestFactors types.InterestFactors
+	if len(params.Denom) > 0 {
+		// Fetch supply/borrow interest factors a single denom
+		interestFactor := types.InterestFactor{}
+		interestFactor.Denom = params.Denom
+		supplyInterestFactor, found := k.GetSupplyInterestFactor(ctx, params.Denom)
+		if found {
+			interestFactor.SupplyInterestFactor = supplyInterestFactor
+		}
+		borrowInterestFactor, found := k.GetBorrowInterestFactor(ctx, params.Denom)
+		if found {
+			interestFactor.BorrowInterestFactor = borrowInterestFactor
+		}
+		interestFactors = append(interestFactors, interestFactor)
+	} else {
+		interestFactorMap := make(map[string]types.InterestFactor)
+		// Populate mapping with supply interest factors
+		k.IterateSupplyInterestFactors(ctx, func(denom string, factor sdk.Dec) (stop bool) {
+			interestFactor := types.InterestFactor{Denom: denom, SupplyInterestFactor: factor}
+			interestFactorMap[denom] = interestFactor
+			return false
+		})
+		// Populate mapping with borrow interest factors
+		k.IterateBorrowInterestFactors(ctx, func(denom string, factor sdk.Dec) (stop bool) {
+			interestFactor, ok := interestFactorMap[denom]
+			if !ok {
+				newInterestFactor := types.InterestFactor{Denom: denom, BorrowInterestFactor: factor}
+				interestFactorMap[denom] = newInterestFactor
+			} else {
+				interestFactor.BorrowInterestFactor = factor
+				interestFactorMap[denom] = interestFactor
+			}
+			return false
+		})
+		// Translate mapping to slice
+		for _, val := range interestFactorMap {
+			interestFactors = append(interestFactors, val)
+		}
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, interestFactors)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

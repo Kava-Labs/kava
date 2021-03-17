@@ -16,6 +16,7 @@ const (
 	QueryGetTotalBorrowed    = "total-borrowed"
 	QueryGetInterestRate     = "interest-rate"
 	QueryGetReserves         = "reserves"
+	QueryGetInterestFactors  = "interest-factors"
 )
 
 // QueryDepositsParams is the params for a filtered deposit query
@@ -172,3 +173,34 @@ func NewQueryReservesParams(denom string) QueryReservesParams {
 		Denom: denom,
 	}
 }
+
+// QueryInterestFactorsParams is the params for a filtered interest factors query
+type QueryInterestFactorsParams struct {
+	Denom string `json:"denom" yaml:"denom"`
+}
+
+// NewQueryInterestFactorsParams creates a new QueryInterestFactorsParams
+func NewQueryInterestFactorsParams(denom string) QueryInterestFactorsParams {
+	return QueryInterestFactorsParams{
+		Denom: denom,
+	}
+}
+
+// InterestFactor is a unique type returned by interest factor queries
+type InterestFactor struct {
+	Denom                string  `json:"denom" yaml:"denom"`
+	BorrowInterestFactor sdk.Dec `json:"borrow_interest_factor" yaml:"borrow_interest_factor"`
+	SupplyInterestFactor sdk.Dec `json:"supply_interest_factor" yaml:"supply_interest_factor"`
+}
+
+// NewInterestFactor returns a new instance of InterestFactor
+func NewInterestFactor(denom string, supplyInterestFactor, borrowInterestFactor sdk.Dec) InterestFactor {
+	return InterestFactor{
+		Denom:                denom,
+		SupplyInterestFactor: supplyInterestFactor,
+		BorrowInterestFactor: borrowInterestFactor,
+	}
+}
+
+// InterestFactors is a slice of InterestFactor
+type InterestFactors = []InterestFactor
