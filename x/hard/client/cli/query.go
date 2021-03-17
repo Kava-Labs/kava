@@ -38,8 +38,10 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryParamsCmd(queryRoute, cdc),
 		queryModAccountsCmd(queryRoute, cdc),
 		queryDepositsCmd(queryRoute, cdc),
+		queryUnsyncedDepositsCmd(queryRoute, cdc),
 		queryTotalDepositedCmd(queryRoute, cdc),
 		queryBorrowsCmd(queryRoute, cdc),
+		queryUnsyncedBorrowsCmd(queryRoute, cdc),
 		queryTotalBorrowedCmd(queryRoute, cdc),
 		queryInterestRateCmd(queryRoute, cdc),
 		queryReserves(queryRoute, cdc),
@@ -115,6 +117,66 @@ func queryModAccountsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+func queryUnsyncedDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unsynced-deposits",
+		Short: "query hard module unsynced deposits with optional filters",
+		Long: strings.TrimSpace(`query for all hard module unsynced deposits or a specific unsynced deposit using flags:
+
+		Example:
+		$ kvcli q hard unsynced-deposits
+		$ kvcli q hard unsynced-deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --denom bnb
+		$ kvcli q hard unsynced-deposits --denom ukava
+		$ kvcli q hard unsynced-deposits --denom btcb`,
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			var owner sdk.AccAddress
+
+			ownerBech := viper.GetString(flagOwner)
+			denom := viper.GetString(flagDenom)
+
+			if len(ownerBech) != 0 {
+				depositOwner, err := sdk.AccAddressFromBech32(ownerBech)
+				if err != nil {
+					return err
+				}
+				owner = depositOwner
+			}
+
+			page := viper.GetInt(flags.FlagPage)
+			limit := viper.GetInt(flags.FlagLimit)
+
+			params := types.NewQueryUnsyncedDepositsParams(page, limit, denom, owner)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetUnsyncedDeposits)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			var deposits types.Deposits
+			if err := cdc.UnmarshalJSON(res, &deposits); err != nil {
+				return fmt.Errorf("failed to unmarshal deposits: %w", err)
+			}
+			return cliCtx.PrintOutput(deposits)
+		},
+	}
+
+	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
+	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
+	cmd.Flags().String(flagOwner, "", "(optional) filter for unsynced deposits by owner address")
+	cmd.Flags().String(flagDenom, "", "(optional) filter for unsynced deposits by denom")
+	return cmd
+}
+
 func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deposits",
@@ -172,6 +234,64 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
 	cmd.Flags().String(flagOwner, "", "(optional) filter for deposits by owner address")
 	cmd.Flags().String(flagDenom, "", "(optional) filter for deposits by denom")
+	return cmd
+}
+
+func queryUnsyncedBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unsynced-borrows",
+		Short: "query hard module unsynced borrows with optional filters",
+		Long: strings.TrimSpace(`query for all hard module unsynced borrows or a specific unsynced borrow using flags:
+
+		Example:
+		$ kvcli q hard unsynced-borrows
+		$ kvcli q hard unsynced-borrows --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
+		$ kvcli q hard unsynced-borrows --denom bnb`,
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			var owner sdk.AccAddress
+
+			ownerBech := viper.GetString(flagOwner)
+			denom := viper.GetString(flagDenom)
+
+			if len(ownerBech) != 0 {
+				borrowOwner, err := sdk.AccAddressFromBech32(ownerBech)
+				if err != nil {
+					return err
+				}
+				owner = borrowOwner
+			}
+
+			page := viper.GetInt(flags.FlagPage)
+			limit := viper.GetInt(flags.FlagLimit)
+
+			params := types.NewQueryUnsyncedBorrowsParams(page, limit, owner, denom)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetUnsyncedBorrows)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			var borrows types.Borrows
+			if err := cdc.UnmarshalJSON(res, &borrows); err != nil {
+				return fmt.Errorf("failed to unmarshal borrows: %w", err)
+			}
+			return cliCtx.PrintOutput(borrows)
+		},
+	}
+	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
+	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
+	cmd.Flags().String(flagOwner, "", "(optional) filter for unsynced borrows by owner address")
+	cmd.Flags().String(flagDenom, "", "(optional) filter for unsynced borrows by denom")
 	return cmd
 }
 
