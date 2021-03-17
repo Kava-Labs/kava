@@ -6,14 +6,16 @@ import (
 
 // Querier routes for the hard module
 const (
-	QueryGetParams         = "params"
-	QueryGetModuleAccounts = "accounts"
-	QueryGetDeposits       = "deposits"
-	QueryGetTotalDeposited = "total-deposited"
-	QueryGetBorrows        = "borrows"
-	QueryGetTotalBorrowed  = "total-borrowed"
-	QueryGetInterestRate   = "interest-rate"
-	QueryGetReserves       = "reserves"
+	QueryGetParams           = "params"
+	QueryGetModuleAccounts   = "accounts"
+	QueryGetDeposits         = "deposits"
+	QueryGetUnsyncedDeposits = "unsynced-deposits"
+	QueryGetTotalDeposited   = "total-deposited"
+	QueryGetBorrows          = "borrows"
+	QueryGetUnsyncedBorrows  = "unsynced-borrows"
+	QueryGetTotalBorrowed    = "total-borrowed"
+	QueryGetInterestRate     = "interest-rate"
+	QueryGetReserves         = "reserves"
 )
 
 // QueryDepositsParams is the params for a filtered deposit query
@@ -27,6 +29,24 @@ type QueryDepositsParams struct {
 // NewQueryDepositsParams creates a new QueryDepositsParams
 func NewQueryDepositsParams(page, limit int, denom string, owner sdk.AccAddress) QueryDepositsParams {
 	return QueryDepositsParams{
+		Page:  page,
+		Limit: limit,
+		Denom: denom,
+		Owner: owner,
+	}
+}
+
+// QueryUnsyncedDepositsParams is the params for a filtered unsynced deposit query.
+type QueryUnsyncedDepositsParams struct {
+	Page  int            `json:"page" yaml:"page"`
+	Limit int            `json:"limit" yaml:"limit"`
+	Denom string         `json:"denom" yaml:"denom"`
+	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
+}
+
+// NewQueryUnsyncedDepositsParams creates a new QueryUnsyncedDepositsParams
+func NewQueryUnsyncedDepositsParams(page, limit int, denom string, owner sdk.AccAddress) QueryUnsyncedDepositsParams {
+	return QueryUnsyncedDepositsParams{
 		Page:  page,
 		Limit: limit,
 		Denom: denom,
@@ -61,6 +81,24 @@ type QueryBorrowsParams struct {
 // NewQueryBorrowsParams creates a new QueryBorrowsParams
 func NewQueryBorrowsParams(page, limit int, owner sdk.AccAddress, denom string) QueryBorrowsParams {
 	return QueryBorrowsParams{
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
+		Denom: denom,
+	}
+}
+
+// QueryUnsyncedBorrowsParams is the params for a filtered unsynced borrows query
+type QueryUnsyncedBorrowsParams struct {
+	Page  int            `json:"page" yaml:"page"`
+	Limit int            `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
+	Denom string         `json:"denom" yaml:"denom"`
+}
+
+// NewQueryUnsyncedBorrowsParams creates a new QueryUnsyncedBorrowsParams
+func NewQueryUnsyncedBorrowsParams(page, limit int, owner sdk.AccAddress, denom string) QueryUnsyncedBorrowsParams {
+	return QueryUnsyncedBorrowsParams{
 		Page:  page,
 		Limit: limit,
 		Owner: owner,
