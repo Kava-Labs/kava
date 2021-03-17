@@ -45,6 +45,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryTotalBorrowedCmd(queryRoute, cdc),
 		queryInterestRateCmd(queryRoute, cdc),
 		queryReserves(queryRoute, cdc),
+		queryInterestFactorsCmd(queryRoute, cdc),
 	)...)
 
 	return hardQueryCmd
@@ -522,5 +523,48 @@ func queryReserves(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		},
 	}
 	cmd.Flags().String(flagDenom, "", "(optional) filter reserve coins by denom")
+	return cmd
+}
+
+func queryInterestFactorsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "interest-factors",
+		Short: "get current global interest factors",
+		Long: strings.TrimSpace(`get current global interest factors:
+
+		Example:
+		$ kvcli q hard interest-factors
+		$ kvcli q hard interest-factors --denom bnb`,
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			denom := viper.GetString(flagDenom)
+
+			// Construct query with params
+			params := types.NewQueryInterestFactorsParams(denom)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// Execute query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetInterestFactors)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var interestFactors types.InterestFactors
+			if err := cdc.UnmarshalJSON(res, &interestFactors); err != nil {
+				return fmt.Errorf("failed to unmarshal interest factors: %w", err)
+			}
+			return cliCtx.PrintOutput(interestFactors)
+		},
+	}
+	cmd.Flags().String(flagDenom, "", "(optional) filter interest factors by denom")
 	return cmd
 }
