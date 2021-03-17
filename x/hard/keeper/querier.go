@@ -483,7 +483,7 @@ func queryGetInterestFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) (
 
 	var interestFactors types.InterestFactors
 	if len(params.Denom) > 0 {
-		// Fetch supply/borrow interest factors a single denom
+		// Fetch supply/borrow interest factors for a single denom
 		interestFactor := types.InterestFactor{}
 		interestFactor.Denom = params.Denom
 		supplyInterestFactor, found := k.GetSupplyInterestFactor(ctx, params.Denom)
