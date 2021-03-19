@@ -67,9 +67,7 @@ func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.C
 	}
 
 	// Call incentive hook
-	if !borrow.Amount.Empty() {
-		k.AfterBorrowModified(ctx, borrow)
-	}
+	k.AfterBorrowModified(ctx, borrow)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
