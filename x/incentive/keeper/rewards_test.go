@@ -1825,7 +1825,7 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			}
 			suite.Require().True(len(claimAfterFirstDeposit.SupplyRewardIndexes) == len(tc.args.firstDeposit))
 
-			// User modifies their Deposit by repaying or depositing more
+			// User modifies their Deposit by withdrawing or depositing more
 			if tc.args.modification.withdraw {
 				err = hardKeeper.Withdraw(suite.ctx, userAddr, tc.args.modification.coins)
 			} else {
@@ -2217,7 +2217,7 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			}
 			suite.Require().True(len(claimAfterFirstBorrow.BorrowRewardIndexes) == len(tc.args.firstBorrow))
 
-			// User modifies their Borrow by either borrowing or repaying
+			// User modifies their Borrow by either repaying or borrowing more
 			if tc.args.modification.repay {
 				err = hardKeeper.Repay(suite.ctx, userAddr, userAddr, tc.args.modification.coins)
 			} else {
