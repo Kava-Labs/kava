@@ -1834,13 +1834,13 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			suite.Require().NoError(err)
 
 			// Confirm that the claim contains all expected supply indexes
-			claimAfterSecondDeposit, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimAfterModification, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
 			for _, denom := range tc.args.expectedSupplyIndexDenoms {
-				_, hasIndex := claimAfterSecondDeposit.HasSupplyRewardIndex(denom)
+				_, hasIndex := claimAfterModification.HasSupplyRewardIndex(denom)
 				suite.Require().True(hasIndex)
 			}
-			suite.Require().True(len(claimAfterSecondDeposit.SupplyRewardIndexes) == len(tc.args.expectedSupplyIndexDenoms))
+			suite.Require().True(len(claimAfterModification.SupplyRewardIndexes) == len(tc.args.expectedSupplyIndexDenoms))
 		})
 	}
 }
