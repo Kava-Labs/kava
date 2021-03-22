@@ -423,7 +423,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				rewardsPerSecond:           cs(c("hard", 122354)),
 				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:                 []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-				expectedRewardIndexes:      types.RewardIndexes{types.NewRewardIndex("hard", d("0.122353998776460000"))},
+				expectedRewardIndexes:      types.RewardIndexes{types.NewRewardIndex("hard", d("0.122354003908172328"))},
 				expectedRewards:            cs(),
 				updateRewardsViaCommmittee: false,
 			},
