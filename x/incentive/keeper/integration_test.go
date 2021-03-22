@@ -222,7 +222,7 @@ func (suite *KeeperTestSuite) SetupWithGenState() {
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
 	tApp.InitializeFromGenesisStates(
-		NewAuthGenState(allAddrs, cs(c("ukava", 5_000_000))),
+		NewAuthGenState(allAddrs, cs(c("ukava", 1_000_000_000))),
 		NewStakingGenesisState(),
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
