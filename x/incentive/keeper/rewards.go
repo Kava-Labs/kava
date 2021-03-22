@@ -402,16 +402,14 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 			globalRewardFactor := globalRewardIndex.RewardFactor
 			userRewardFactor := userRewardIndex.RewardFactor
 			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
-			if rewardsAccumulatedFactor.IsZero() {
-				continue
-			}
-			newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
-			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
-				continue
+			if rewardsAccumulatedFactor.IsNegative() {
+				panic(fmt.Sprintf("reward accumulation factor cannot be negative: %s", rewardsAccumulatedFactor))
 			}
 
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
+
 			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
-			if !foundFactorIndex {
+			if !foundFactorIndex { // should never trigger
 				continue
 			}
 			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
