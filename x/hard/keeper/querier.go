@@ -22,16 +22,22 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetModAccounts(ctx, req, k)
 		case types.QueryGetDeposits:
 			return queryGetDeposits(ctx, req, k)
+		case types.QueryGetUnsyncedDeposits:
+			return queryGetUnsyncedDeposits(ctx, req, k)
 		case types.QueryGetTotalDeposited:
 			return queryGetTotalDeposited(ctx, req, k)
 		case types.QueryGetBorrows:
 			return queryGetBorrows(ctx, req, k)
+		case types.QueryGetUnsyncedBorrows:
+			return queryGetUnsyncedBorrows(ctx, req, k)
 		case types.QueryGetTotalBorrowed:
 			return queryGetTotalBorrowed(ctx, req, k)
 		case types.QueryGetInterestRate:
 			return queryGetInterestRate(ctx, req, k)
 		case types.QueryGetReserves:
 			return queryGetReserves(ctx, req, k)
+		case types.QueryGetInterestFactors:
+			return queryGetInterestFactors(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -147,6 +153,62 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	return bz, nil
 }
 
+func queryGetUnsyncedDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+
+	var params types.QueryUnsyncedDepositsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	denom := len(params.Denom) > 0
+	owner := len(params.Owner) > 0
+
+	var deposits types.Deposits
+	switch {
+	case owner && denom:
+		deposit, found := k.GetDeposit(ctx, params.Owner)
+		if found {
+			for _, coin := range deposit.Amount {
+				if coin.Denom == params.Denom {
+					deposits = append(deposits, deposit)
+				}
+			}
+		}
+	case owner:
+		deposit, found := k.GetDeposit(ctx, params.Owner)
+		if found {
+			deposits = append(deposits, deposit)
+		}
+	case denom:
+		k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {
+			if deposit.Amount.AmountOf(params.Denom).IsPositive() {
+				deposits = append(deposits, deposit)
+			}
+			return false
+		})
+	default:
+		k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {
+			deposits = append(deposits, deposit)
+			return false
+		})
+	}
+
+	var bz []byte
+
+	start, end := client.Paginate(len(deposits), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		deposits = types.Deposits{}
+	} else {
+		deposits = deposits[start:end]
+	}
+
+	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, deposits)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
 func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 
 	var params types.QueryBorrowsParams
@@ -213,6 +275,62 @@ func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 	}
 
 	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, syncedBorrows)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryGetUnsyncedBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+
+	var params types.QueryUnsyncedBorrowsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	denom := len(params.Denom) > 0
+	owner := len(params.Owner) > 0
+
+	var borrows types.Borrows
+	switch {
+	case owner && denom:
+		borrow, found := k.GetBorrow(ctx, params.Owner)
+		if found {
+			for _, coin := range borrow.Amount {
+				if coin.Denom == params.Denom {
+					borrows = append(borrows, borrow)
+				}
+			}
+		}
+	case owner:
+		borrow, found := k.GetBorrow(ctx, params.Owner)
+		if found {
+			borrows = append(borrows, borrow)
+		}
+	case denom:
+		k.IterateBorrows(ctx, func(borrow types.Borrow) (stop bool) {
+			if borrow.Amount.AmountOf(params.Denom).IsPositive() {
+				borrows = append(borrows, borrow)
+			}
+			return false
+		})
+	default:
+		k.IterateBorrows(ctx, func(borrow types.Borrow) (stop bool) {
+			borrows = append(borrows, borrow)
+			return false
+		})
+	}
+
+	var bz []byte
+
+	start, end := client.Paginate(len(borrows), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		borrows = types.Borrows{}
+	} else {
+		borrows = borrows[start:end]
+	}
+
+	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, borrows)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -349,6 +467,61 @@ func queryGetReserves(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, reserveCoins)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func queryGetInterestFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryInterestFactorsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	var interestFactors types.InterestFactors
+	if len(params.Denom) > 0 {
+		// Fetch supply/borrow interest factors for a single denom
+		interestFactor := types.InterestFactor{}
+		interestFactor.Denom = params.Denom
+		supplyInterestFactor, found := k.GetSupplyInterestFactor(ctx, params.Denom)
+		if found {
+			interestFactor.SupplyInterestFactor = supplyInterestFactor
+		}
+		borrowInterestFactor, found := k.GetBorrowInterestFactor(ctx, params.Denom)
+		if found {
+			interestFactor.BorrowInterestFactor = borrowInterestFactor
+		}
+		interestFactors = append(interestFactors, interestFactor)
+	} else {
+		interestFactorMap := make(map[string]types.InterestFactor)
+		// Populate mapping with supply interest factors
+		k.IterateSupplyInterestFactors(ctx, func(denom string, factor sdk.Dec) (stop bool) {
+			interestFactor := types.InterestFactor{Denom: denom, SupplyInterestFactor: factor}
+			interestFactorMap[denom] = interestFactor
+			return false
+		})
+		// Populate mapping with borrow interest factors
+		k.IterateBorrowInterestFactors(ctx, func(denom string, factor sdk.Dec) (stop bool) {
+			interestFactor, ok := interestFactorMap[denom]
+			if !ok {
+				newInterestFactor := types.InterestFactor{Denom: denom, BorrowInterestFactor: factor}
+				interestFactorMap[denom] = newInterestFactor
+			} else {
+				interestFactor.BorrowInterestFactor = factor
+				interestFactorMap[denom] = interestFactor
+			}
+			return false
+		})
+		// Translate mapping to slice
+		for _, val := range interestFactorMap {
+			interestFactors = append(interestFactors, val)
+		}
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, interestFactors)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

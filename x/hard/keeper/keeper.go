@@ -306,6 +306,21 @@ func (k Keeper) SetBorrowInterestFactor(ctx sdk.Context, denom string, borrowInt
 	store.Set([]byte(denom), bz)
 }
 
+// IterateBorrowInterestFactors iterates over all borrow interest factors in the store and returns
+// both the borrow interest factor and the key (denom) it's stored under
+func (k Keeper) IterateBorrowInterestFactors(ctx sdk.Context, cb func(denom string, factor sdk.Dec) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowInterestFactorPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var factor sdk.Dec
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &factor)
+		if cb(string(iterator.Key()), factor) {
+			break
+		}
+	}
+}
+
 // GetSupplyInterestFactor returns the current supply interest factor for an individual market
 func (k Keeper) GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
@@ -323,4 +338,19 @@ func (k Keeper) SetSupplyInterestFactor(ctx sdk.Context, denom string, supplyInt
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
 	bz := k.cdc.MustMarshalBinaryBare(supplyInterestFactor)
 	store.Set([]byte(denom), bz)
+}
+
+// IterateSupplyInterestFactors iterates over all supply interest factors in the store and returns
+// both the supply interest factor and the key (denom) it's stored under
+func (k Keeper) IterateSupplyInterestFactors(ctx sdk.Context, cb func(denom string, factor sdk.Dec) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var factor sdk.Dec
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &factor)
+		if cb(string(iterator.Key()), factor) {
+			break
+		}
+	}
 }
