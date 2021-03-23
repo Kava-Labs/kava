@@ -477,7 +477,8 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 }
 
 // SynchronizeHardDelegatorRewards updates the claim object by adding any accumulated rewards
-func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.AccAddress) {
+// TODO explanaition of valAddr and flag
+func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
 	if !found {
 		return
@@ -509,9 +510,15 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 			continue
 		}
 
-		// Delegators don't accumulate rewards if their validator is unbonded/slashed
-		if validator.GetStatus() != sdk.Bonded {
-			continue
+		// Delegators don't accumulate rewards if their validator is unbonded
+		if valAddr == nil {
+			if validator.GetStatus() != sdk.Bonded {
+				continue
+			}
+		} else {
+			if !shouldIncludeValidator && validator.OperatorAddress.Equals(valAddr) { // ignore tokens delegated to validator
+				continue
+			}
 		}
 
 		if validator.GetTokens().IsZero() {
@@ -526,7 +533,7 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 	}
 
 	rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
-	if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
+	if rewardsEarned.IsZero() || rewardsEarned.IsNegative() { // FIXME zero check
 		return
 	}
 

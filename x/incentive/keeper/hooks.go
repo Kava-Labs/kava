@@ -75,21 +75,50 @@ func (h Hooks) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, 
 
 // BeforeDelegationSharesModified runs before an existing delegation is modified
 func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
-	h.k.SynchronizeHardDelegatorRewards(ctx, delAddr)
+	// TODO comments
+	// sync rewards based on total delegated
+	// total delegated is sum of total tokens delegated across all validators (from this delegator)
+	// ignore unbonded/ing validators
+	h.k.SynchronizeHardDelegatorRewards(ctx, delAddr, nil, false)
 }
 
-// NOTE: following hooks are just implemented to ensure StakingHooks interface compliance
-
 // BeforeValidatorSlashed is called before a validator is slashed
-func (h Hooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) {}
+// Validator status is not updated when Slash or Jail is called
+func (h Hooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) {
+	// TODO comments
+	// get delgators
+	// sync claim for delegator
+	// sum bonded delegations
+	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
+		h.k.SynchronizeHardDelegatorRewards(ctx, delegation.DelegatorAddress, nil, false)
+	}
+}
 
 // AfterValidatorBeginUnbonding is called after a validator begins unbonding
+// Validator status is set to UnBonding prior to hook running
 func (h Hooks) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+	// TODO comments
+	// get delgators
+	// sync claim for delegator
+	// sum bonded delegations, include valAddr even though it's unbonding
+	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
+		h.k.SynchronizeHardDelegatorRewards(ctx, delegation.DelegatorAddress, valAddr, true)
+	}
 }
 
 // AfterValidatorBonded is called after a validator is bonded
+// Validator status is set to Bonded prior to hook running
 func (h Hooks) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+	// TODO comments
+	// get delegators
+	// sync claim for delegator
+	// sum up users bonded delegations, except for valAddr even though it's bonded
+	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
+		h.k.SynchronizeHardDelegatorRewards(ctx, delegation.DelegatorAddress, valAddr, false)
+	}
 }
+
+// NOTE: following hooks are just implemented to ensure StakingHooks interface compliance
 
 // AfterDelegationModified runs after a delegation is modified
 func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
