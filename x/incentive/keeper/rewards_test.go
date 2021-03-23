@@ -2299,7 +2299,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 
 			// After we've accumulated, run synchronize
 			suite.Require().NotPanics(func() {
-				suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0])
+				suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
 			})
 
 			// Check that reward factor and claim have been updated as expected

@@ -592,7 +592,7 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 		// Instantiate claim object
 		claim = types.NewHardLiquidityProviderClaim(delegator, sdk.Coins{}, nil, nil, nil)
 	} else {
-		k.SynchronizeHardDelegatorRewards(ctx, delegator)
+		k.SynchronizeHardDelegatorRewards(ctx, delegator, nil, false) // TODO should we ignore the validator here?
 		claim, _ = k.GetHardLiquidityProviderClaim(ctx, delegator)
 	}
 
@@ -643,7 +643,7 @@ func (k Keeper) SynchronizeHardLiquidityProviderClaim(ctx sdk.Context, owner sdk
 	}
 
 	// Synchronize any hard delegator rewards
-	k.SynchronizeHardDelegatorRewards(ctx, owner)
+	k.SynchronizeHardDelegatorRewards(ctx, owner, nil, false) // TODO check we should ignore validator
 }
 
 // ZeroHardLiquidityProviderClaim zeroes out the claim object's rewards and returns the updated claim object
