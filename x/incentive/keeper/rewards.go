@@ -495,8 +495,8 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 
 	userRewardFactor := claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor
 	rewardsAccumulatedFactor := delagatorFactor.Sub(userRewardFactor)
-	if rewardsAccumulatedFactor.IsZero() {
-		return
+	if rewardsAccumulatedFactor.IsNegative() {
+		panic(fmt.Sprintf("reward accumulation factor cannot be negative: %s", rewardsAccumulatedFactor))
 	}
 	claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor = delagatorFactor
 
@@ -519,16 +519,12 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 		}
 
 		delegatedTokens := validator.TokensFromShares(delegation.GetShares())
-		if delegatedTokens.IsZero() || delegatedTokens.IsNegative() {
+		if delegatedTokens.IsNegative() {
 			continue
 		}
 		totalDelegated = totalDelegated.Add(delegatedTokens)
 	}
-
 	rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
-	if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
-		return
-	}
 
 	// Add rewards to delegator's hard claim
 	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
