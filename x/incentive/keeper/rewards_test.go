@@ -2836,3 +2836,106 @@ func (suite *KeeperTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.
 	_, err := handleStakingMsg(ctx, msg)
 	return err
 }
+
+/*
+rewards are calculated based on total delegated tokens to bonded validators (not shares)
+
+we need to sync the claim before the user's delegated tokens are changed
+
+when delegated tokens (to bonded validators) are changed:
+- user creates new delegation
+  - total bonded delegation increases
+- user delegates or beginUnbonding or beginRedelegate an existing delegation
+  - total bonded delegation increases or decreases
+- validator is slashed and Jailed/Tombstoned (tokens reduce, and validator is unbonded)
+  - slash: total bonded delegation decreases (less tokens)
+  - jail: total bonded delegation decreases (tokens no longer bonded)
+- validator becomes unbonded (ie when they drop out of the top 100)
+  - total bonded delegation decreases (tokens no longer bonded)
+
+
+Tests:
+- test new validator initializes claim
+- test delegating updates claim
+- test unbonding updates claim
+- test redelegating does update claim
+- test slashing updates claim
+- test dropping out of top validators updates claim
+- test returning to top validators updates claim
+*/
+
+func (suite *KeeperTestSuite) TestUnbondingValidatorUpdatesClaim() {
+	// suite.SetupWithGenState()
+	// initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+	// suite.ctx = suite.ctx.WithBlockTime(initialTime)
+
+	// // Mint coins to hard module account
+	// supplyKeeper := suite.app.GetSupplyKeeper()
+	// hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
+	// supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+
+	// // setup incentive state
+	// params := types.NewParams(
+	// 	types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
+	// 	types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+	// 	types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+	// 	types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
+	// 	types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+	// 	tc.args.initialTime.Add(time.Hour*24*365*5),
+	// )
+	// suite.keeper.SetParams(suite.ctx, params)
+	// suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
+	// suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
+
+	// // Set up hard state (interest factor for the relevant denom)
+	// suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
+
+	// // Delegator delegates
+	// err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
+	// suite.Require().NoError(err)
+	// suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
+	// suite.Require().NoError(err)
+
+	// staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+
+	// // Check that Staking hooks initialized a HardLiquidityProviderClaim
+	// claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	// suite.Require().True(found)
+	// suite.Require().Equal(sdk.ZeroDec(), claim.DelegatorRewardIndexes[0].RewardFactor)
+
+	// // Run accumulator at several intervals
+	// var timeElapsed int
+	// previousBlockTime := suite.ctx.BlockTime()
+	// for _, t := range tc.args.blockTimes {
+	// 	timeElapsed += t
+	// 	updatedBlockTime := previousBlockTime.Add(time.Duration(int(time.Second) * t))
+	// 	previousBlockTime = updatedBlockTime
+	// 	blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
+
+	// 	// Run Hard begin blocker for each block ctx to update denom's interest factor
+	// 	hard.BeginBlocker(blockCtx, suite.hardKeeper)
+
+	// 	// Accumulate hard delegator rewards
+	// 	rewardPeriod, found := suite.keeper.GetHardDelegatorRewardPeriod(blockCtx, tc.args.delegation.Denom)
+	// 	suite.Require().True(found)
+	// 	err := suite.keeper.AccumulateHardDelegatorRewards(blockCtx, rewardPeriod)
+	// 	suite.Require().NoError(err)
+	// }
+	// updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
+	// suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
+
+	// // Check that the synced claim held in memory has properly simulated syncing
+	// syncedClaim := suite.keeper.SimulateHardSynchronization(suite.ctx, claim)
+	// for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
+	// 	// Check that the user's claim's reward index matches the expected reward index
+	// 	rewardIndex, found := syncedClaim.DelegatorRewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
+	// 	suite.Require().True(found)
+	// 	suite.Require().Equal(expectedRewardIndex, rewardIndex)
+
+	// 	// Check that the user's claim holds the expected amount of reward coins
+	// 	suite.Require().Equal(
+	// 		tc.args.expectedRewards.AmountOf(expectedRewardIndex.CollateralType),
+	// 		syncedClaim.Reward.AmountOf(expectedRewardIndex.CollateralType),
+	// 	)
+	// }
+}
