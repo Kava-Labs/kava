@@ -486,6 +486,25 @@ func (mris MultiRewardIndexes) GetRewardIndexIndex(denom string) (int, bool) {
 	return -1, false
 }
 
+// GetCollateralTypes returns a slice of containing all collateral types
+func (mris MultiRewardIndexes) GetCollateralTypes() []string {
+	var collateralTypes []string
+	for _, ri := range mris {
+		collateralTypes = append(collateralTypes, ri.CollateralType)
+	}
+	return collateralTypes
+}
+
+// RemoveRewardIndex removes a denom's reward interest factor value
+func (mris MultiRewardIndexes) RemoveRewardIndex(denom string) MultiRewardIndexes {
+	for i, ri := range mris {
+		if ri.CollateralType == denom {
+			return append(mris[:i], mris[i+1:]...)
+		}
+	}
+	return mris
+}
+
 // Validate validation for reward indexes
 func (mris MultiRewardIndexes) Validate() error {
 	for _, mri := range mris {
