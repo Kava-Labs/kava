@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -252,7 +253,6 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 	newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
 	claim.Reward = claim.Reward.Add(newRewardsCoin)
 	k.SetUSDXMintingClaim(ctx, claim)
-	return
 }
 
 // InitializeHardSupplyReward initializes the supply-side of a hard liquidity provider claim
@@ -321,19 +321,18 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 			globalRewardFactor := globalRewardIndex.RewardFactor
 			userRewardFactor := userRewardIndex.RewardFactor
 			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
-			if rewardsAccumulatedFactor.IsZero() {
-				continue
-			}
-			newRewardsAmount := rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
-			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
-				continue
+			if rewardsAccumulatedFactor.IsNegative() {
+				panic(fmt.Sprintf("reward accumulation factor cannot be negative: %s", rewardsAccumulatedFactor))
 			}
 
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
+
 			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
-			if !foundFactorIndex {
+			if !foundFactorIndex { // should never trigger, as we basically do this check at the start of this loop
 				continue
 			}
 			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
+
 			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
 			claim.Reward = claim.Reward.Add(newRewardsCoin)
 		}
@@ -403,16 +402,14 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 			globalRewardFactor := globalRewardIndex.RewardFactor
 			userRewardFactor := userRewardIndex.RewardFactor
 			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
-			if rewardsAccumulatedFactor.IsZero() {
-				continue
-			}
-			newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
-			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
-				continue
+			if rewardsAccumulatedFactor.IsNegative() {
+				panic(fmt.Sprintf("reward accumulation factor cannot be negative: %s", rewardsAccumulatedFactor))
 			}
 
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
+
 			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
-			if !foundFactorIndex {
+			if !foundFactorIndex { // should never trigger
 				continue
 			}
 			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor

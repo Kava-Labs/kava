@@ -391,7 +391,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 
 	testCases := []test{
 		{
-			"10 blocks",
+			"single reward denom: 10 blocks",
 			args{
 				incentiveBorrowRewardDenom: "bnb",
 				borrow:                     c("bnb", 10000000000),
@@ -404,7 +404,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			},
 		},
 		{
-			"10 blocks - long block time",
+			"single reward denom: 10 blocks - long block time",
 			args{
 				incentiveBorrowRewardDenom: "bnb",
 				borrow:                     c("bnb", 10000000000),
@@ -413,6 +413,19 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				blockTimes:                 []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
 				expectedRewardIndexes:      types.RewardIndexes{types.NewRewardIndex("hard", d("10.571385603126235340"))},
 				expectedRewards:            cs(c("hard", 105713856031)),
+			},
+		},
+		{
+			"single reward denom: user reward index updated when reward is zero",
+			args{
+				incentiveBorrowRewardDenom: "ukava",
+				borrow:                     c("ukava", 1), // borrow a tiny amount so that rewards round to zero
+				rewardsPerSecond:           cs(c("hard", 122354)),
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+				expectedRewardIndexes:      types.RewardIndexes{types.NewRewardIndex("hard", d("0.122354003908172328"))},
+				expectedRewards:            cs(),
+				updateRewardsViaCommmittee: false,
 			},
 		},
 		{
@@ -602,6 +615,18 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetBorrowInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
+			// Set the minimum borrow to 0 to allow testing small borrows
+			hardParams := suite.hardKeeper.GetParams(suite.ctx)
+			hardParams.MinimumBorrowUSDValue = sdk.ZeroDec()
+			suite.hardKeeper.SetParams(suite.ctx, hardParams)
+
+			// Borrow a fixed amount from another user to dilute primary user's rewards per second.
+			suite.Require().NoError(
+				suite.hardKeeper.Deposit(suite.ctx, suite.addrs[2], cs(c("ukava", 200_000_000))),
+			)
+			suite.Require().NoError(
+				suite.hardKeeper.Borrow(suite.ctx, suite.addrs[2], cs(c("ukava", 100_000_000))),
+			)
 
 			// User deposits and borrows to increase total borrowed amount
 			hardKeeper := suite.app.GetHardKeeper()
@@ -1285,6 +1310,19 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			},
 		},
 		{
+			"single reward denom: user reward index updated when reward is zero",
+			args{
+				incentiveSupplyRewardDenom: "ukava",
+				deposit:                    c("ukava", 1),
+				rewardsPerSecond:           cs(c("hard", 122354)),
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+				expectedRewardIndexes:      types.RewardIndexes{types.NewRewardIndex("hard", d("0.122353998776460010"))},
+				expectedRewards:            cs(),
+				updateRewardsViaCommmittee: false,
+			},
+		},
+		{
 			"multiple reward denoms: 10 blocks",
 			args{
 				incentiveSupplyRewardDenom: "bnb",
@@ -1474,6 +1512,11 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.incentiveSupplyRewardDenom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetBorrowInterestFactor(suite.ctx, tc.args.incentiveSupplyRewardDenom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.incentiveSupplyRewardDenom, tc.args.initialTime)
+
+			// Deposit a fixed amount from another user to dilute primary user's rewards per second.
+			suite.Require().NoError(
+				suite.hardKeeper.Deposit(suite.ctx, suite.addrs[2], cs(c("ukava", 100_000_000))),
+			)
 
 			// User deposits and borrows to increase total borrowed amount
 			hardKeeper := suite.app.GetHardKeeper()
