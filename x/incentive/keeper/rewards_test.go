@@ -2324,6 +2324,17 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 				expectedRewards:      cs(c("hard", 52856928000)),
 			},
 		},
+		{
+			"delegator reward index updated when reward is zero",
+			args{
+				delegation:           c("ukava", 1),
+				rewardsPerSecond:     c("hard", 1),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+				expectedRewardFactor: d("0.000099999900000100"),
+				expectedRewards:      nil,
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -2351,13 +2362,22 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			// Set up hard state (interest factor for the relevant denom)
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 
-			// Delegator delegates
-			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
+			// Create validator account
+			staking.BeginBlocker(suite.ctx, suite.stakingKeeper)
+			selfDelegationCoins := c("ukava", 1_000_000)
+			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], selfDelegationCoins)
 			suite.Require().NoError(err)
-			suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
+			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+
+			// Delegator delegates
+			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 
-			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+			// Check that validator account has been created and delegation was successful
+			valAcc, found := suite.stakingKeeper.GetValidator(suite.ctx, suite.validatorAddrs[0])
+			suite.True(found)
+			suite.Require().Equal(valAcc.Status, sdk.Bonded)
+			suite.Require().Equal(valAcc.Tokens, tc.args.delegation.Amount.Add(selfDelegationCoins.Amount))
 
 			// Check that Staking hooks initialized a HardLiquidityProviderClaim
 			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
