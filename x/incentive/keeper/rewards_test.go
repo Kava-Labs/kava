@@ -889,7 +889,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
-			suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
+			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 
 			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
@@ -2270,7 +2270,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			// Delegator delegates
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
-			suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
+			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 
 			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
@@ -2841,6 +2841,18 @@ func (suite *KeeperTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.
 	return err
 }
 
+func (suite *KeeperTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sdk.AccAddress, sourceValidator, destinationValidator sdk.ValAddress, amount sdk.Coin) error {
+	msg := staking.NewMsgBeginRedelegate(
+		delegator,
+		sourceValidator,
+		destinationValidator,
+		amount,
+	)
+	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
+	_, err := handleStakingMsg(ctx, msg)
+	return err
+}
+
 /*
 rewards are calculated based on total delegated tokens to bonded validators (not shares)
 
@@ -2895,7 +2907,7 @@ func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 		initialTime.Add(5*oneYear),
 	)
 	suite.keeper.SetParams(suite.ctx, params)
-	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime.Add(-1*blockDuration))
+	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime.Add(-1*blockDuration)) // TODO
 	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
 
 	// Reduce the size of the validator set
@@ -2973,7 +2985,7 @@ func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
 		initialTime.Add(5*oneYear),
 	)
 	suite.keeper.SetParams(suite.ctx, params)
-	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime.Add(-1*blockDuration))
+	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime.Add(-1*blockDuration)) // TODO
 	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
 
 	// Reduce the size of the validator set
@@ -3115,4 +3127,86 @@ func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
 
 	// Check that reward factor increased from initial value
 	suite.True(claimIndex.RewardFactor.GT(initialClaimIndex.RewardFactor))
+}
+
+func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
+	suite.SetupWithGenState()
+	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+	suite.ctx = suite.ctx.WithBlockTime(initialTime)
+	blockDuration := 10 * time.Second
+
+	// Setup incentive state
+	rewardsPerSecond := c("hard", 122354)
+	bondDenom := "ukava"
+	params := types.NewParams(
+		nil,
+		nil,
+		nil,
+		types.RewardPeriods{
+			types.NewRewardPeriod(true, bondDenom, initialTime.Add(-1*oneYear), initialTime.Add(4*oneYear), rewardsPerSecond),
+		},
+		types.DefaultMultipliers,
+		initialTime.Add(5*oneYear),
+	)
+	printGlob(suite) // TODO
+	suite.keeper.SetParams(suite.ctx, params)
+	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime)
+	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
+
+	// Create 2 validators
+	err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
+	suite.Require().NoError(err)
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[1], c(bondDenom, 5_000_000))
+	suite.Require().NoError(err)
+
+	// Delegatefrom the test user. This will initialize their incentive claim.
+	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], c(bondDenom, 1_000_000))
+	suite.Require().NoError(err)
+	printClaim(suite) // TODO
+
+	// Start a new block to accumulate some delegation rewards globally.
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	printGlob(suite) // TODO
+	printClaim(suite)
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+	printGlob(suite)                                                // TODO
+	printClaim(suite)
+
+	// Redelegate the user's delegation between the two validators. This should trigger hooks that sync the user's claim.
+	err = suite.deliverMsgRedelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], suite.validatorAddrs[1], c(bondDenom, 1_000_000))
+	suite.Require().NoError(err)
+
+	// Check that the user's claim has been synced. ie rewards added, index updated
+	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+	printGlob(suite) // TODO
+	printClaim(suite)
+
+	globalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.Require().True(found)
+	claimIndex, found := claim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(globalIndex, claimIndex.RewardFactor)
+	suite.Require().Equal(
+		cs(c(rewardsPerSecond.Denom, 76471)),
+		claim.Reward,
+	)
+}
+func printClaim(suite *KeeperTestSuite) {
+	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	if found {
+		suite.T().Logf("claim: %+v", claim)
+	} else {
+		suite.T().Logf("no claim")
+	}
+}
+
+func printGlob(suite *KeeperTestSuite) {
+	globalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, "ukava")
+	if found {
+		suite.T().Logf("global index: %+v", globalIndex)
+	} else {
+		suite.T().Logf("nogloble index")
+	}
 }
