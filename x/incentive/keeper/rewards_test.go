@@ -3029,3 +3029,90 @@ func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
 
 	// TODO run another block and check the user is accumulating rewards
 }
+
+// If a validator is slashed delegators should have their claims synced
+func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
+	suite.SetupWithGenState()
+	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+	suite.ctx = suite.ctx.WithBlockTime(initialTime)
+	blockDuration := 10 * time.Second
+
+	// Setup incentive state
+	rewardsPerSecond := c("hard", 122354)
+	bondDenom := "ukava"
+	params := types.NewParams(
+		nil,
+		nil,
+		nil,
+		types.RewardPeriods{
+			types.NewRewardPeriod(true, bondDenom, initialTime.Add(-1*oneYear), initialTime.Add(4*oneYear), rewardsPerSecond),
+		},
+		types.DefaultMultipliers,
+		initialTime.Add(5*oneYear),
+	)
+	suite.keeper.SetParams(suite.ctx, params)
+	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime.Add(-1*blockDuration))
+	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
+
+	// Reduce the size of the validator set
+	stakingParams := suite.app.GetStakingKeeper().GetParams(suite.ctx)
+	stakingParams.MaxValidators = 2
+	suite.app.GetStakingKeeper().SetParams(suite.ctx, stakingParams)
+
+	// Create 2 validators
+	err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
+	suite.Require().NoError(err)
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[1], c(bondDenom, 10_000_000))
+	suite.Require().NoError(err)
+
+	// End the block so validators become bonded
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+
+	// Delegate to a bonded validator from the test user. This will initialize their incentive claim.
+	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[1], c(bondDenom, 1_000_000))
+	suite.Require().NoError(err)
+
+	// Check that claim has been created with synced reward index but no reward coins
+	initialClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.True(found)
+	initialGlobalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.True(found)
+	initialClaimIndex, found := initialClaim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.True(found)
+	suite.Require().Equal(initialGlobalIndex, initialClaimIndex.RewardFactor)
+	suite.True(initialClaim.Reward.Empty()) // Initial claim should not have any rewards
+
+	// Start a new block to accumulate some delegation rewards for the user.
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(2 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+
+	// Fetch validator and slash them
+	stakingKeeper := suite.app.GetStakingKeeper()
+	validator, found := stakingKeeper.GetValidator(suite.ctx, suite.validatorAddrs[1])
+	suite.Require().True(found)
+	suite.Require().True(validator.GetTokens().IsPositive())
+	fraction := sdk.NewDecWithPrec(5, 1)
+	stakingKeeper.Slash(suite.ctx, validator.ConsAddress(), suite.ctx.BlockHeight(), 10, fraction)
+
+	// Check that the user's claim has been synced. ie rewards added, index updated
+	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+	globalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.Require().True(found)
+	claimIndex, found := claim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(globalIndex, claimIndex.RewardFactor)
+
+	// Check that rewards were added
+	suite.Require().Equal(
+		cs(c(rewardsPerSecond.Denom, 58264)),
+		claim.Reward,
+	)
+
+	// Check that reward factor increased from initial value
+	suite.Require().Greater(claimIndex.RewardFactor, initialClaimIndex.RewardFactor)
+}
