@@ -510,13 +510,14 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 			continue
 		}
 
-		// Delegators don't accumulate rewards if their validator is unbonded
 		if valAddr == nil {
+			// Delegators don't accumulate rewards if their validator is unbonded
 			if validator.GetStatus() != sdk.Bonded {
 				continue
 			}
 		} else {
-			if !shouldIncludeValidator && validator.OperatorAddress.Equals(valAddr) { // ignore tokens delegated to validator
+			if !shouldIncludeValidator && validator.OperatorAddress.Equals(valAddr) {
+				// ignore tokens delegated to the validator
 				continue
 			}
 		}
