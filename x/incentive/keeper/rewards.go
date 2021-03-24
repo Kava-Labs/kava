@@ -271,11 +271,7 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.De
 	}
 
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
-	if found {
-		// TODO remove?
-		// Reset borrow reward indexes
-		claim.BorrowRewardIndexes = types.MultiRewardIndexes{}
-	} else {
+	if !found {
 		// Instantiate claim object
 		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
 	}
