@@ -428,51 +428,71 @@ func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.D
 		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
 	}
 
+	depositDenoms := getDenoms(deposit.Amount)
+	supplyRewardIndexDenoms := claim.SupplyRewardIndexes.GetCollateralTypes()
+
+	uniqueDepositDenoms := setDifference(depositDenoms, supplyRewardIndexDenoms)
+	uniqueSupplyRewardDenoms := setDifference(supplyRewardIndexDenoms, depositDenoms)
+
 	supplyRewardIndexes := claim.SupplyRewardIndexes
-	for _, coin := range deposit.Amount {
-		_, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
+	// Create a new multi-reward index in the claim for every new deposit denom
+	for _, denom := range uniqueDepositDenoms {
+		_, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(denom)
 		if !foundUserRewardIndexes {
-			globalSupplyRewardIndexes, foundGlobalSupplyRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
+			globalSupplyRewardIndexes, foundGlobalSupplyRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, denom)
 			var multiRewardIndex types.MultiRewardIndex
 			if foundGlobalSupplyRewardIndexes {
-				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalSupplyRewardIndexes)
+				multiRewardIndex = types.NewMultiRewardIndex(denom, globalSupplyRewardIndexes)
 			} else {
-				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
+				multiRewardIndex = types.NewMultiRewardIndex(denom, types.RewardIndexes{})
 			}
 			supplyRewardIndexes = append(supplyRewardIndexes, multiRewardIndex)
 		}
 	}
-	if len(supplyRewardIndexes) == 0 {
-		return
+
+	// Delete multi-reward index from claim if the collateral type is no longer deposited
+	for _, denom := range uniqueSupplyRewardDenoms {
+		supplyRewardIndexes = supplyRewardIndexes.RemoveRewardIndex(denom)
 	}
+
 	claim.SupplyRewardIndexes = supplyRewardIndexes
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
-// UpdateHardBorrowIndexDenoms adds any new borrow denoms to the claim's supply reward index
+// UpdateHardBorrowIndexDenoms adds any new borrow denoms to the claim's borrow reward index
 func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {
 		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower, sdk.Coins{}, nil, nil, nil)
 	}
 
+	borrowDenoms := getDenoms(borrow.Amount)
+	borrowRewardIndexDenoms := claim.BorrowRewardIndexes.GetCollateralTypes()
+
+	uniqueBorrowDenoms := setDifference(borrowDenoms, borrowRewardIndexDenoms)
+	uniqueBorrowRewardDenoms := setDifference(borrowRewardIndexDenoms, borrowDenoms)
+
 	borrowRewardIndexes := claim.BorrowRewardIndexes
-	for _, coin := range borrow.Amount {
-		_, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
+	// Create a new multi-reward index in the claim for every new borrow denom
+	for _, denom := range uniqueBorrowDenoms {
+		_, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(denom)
 		if !foundUserRewardIndexes {
-			globalBorrowRewardIndexes, foundGlobalBorrowRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+			globalBorrowRewardIndexes, foundGlobalBorrowRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, denom)
 			var multiRewardIndex types.MultiRewardIndex
 			if foundGlobalBorrowRewardIndexes {
-				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalBorrowRewardIndexes)
+				multiRewardIndex = types.NewMultiRewardIndex(denom, globalBorrowRewardIndexes)
 			} else {
-				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
+				multiRewardIndex = types.NewMultiRewardIndex(denom, types.RewardIndexes{})
 			}
 			borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
 		}
 	}
-	if len(borrowRewardIndexes) == 0 {
-		return
+
+	// Delete multi-reward index from claim if the collateral type is no longer borrowed
+	for _, denom := range uniqueBorrowRewardDenoms {
+		borrowRewardIndexes = borrowRewardIndexes.RemoveRewardIndex(denom)
 	}
+
 	claim.BorrowRewardIndexes = borrowRewardIndexes
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
@@ -497,8 +517,8 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 
 	userRewardFactor := claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor
 	rewardsAccumulatedFactor := delagatorFactor.Sub(userRewardFactor)
-	if rewardsAccumulatedFactor.IsZero() {
-		return
+	if rewardsAccumulatedFactor.IsNegative() {
+		panic(fmt.Sprintf("reward accumulation factor cannot be negative: %s", rewardsAccumulatedFactor))
 	}
 	claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor = delagatorFactor
 
@@ -528,16 +548,12 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 		}
 
 		delegatedTokens := validator.TokensFromShares(delegation.GetShares())
-		if delegatedTokens.IsZero() || delegatedTokens.IsNegative() {
+		if delegatedTokens.IsNegative() {
 			continue
 		}
 		totalDelegated = totalDelegated.Add(delegatedTokens)
 	}
-
 	rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
-	if rewardsEarned.IsZero() || rewardsEarned.IsNegative() { // FIXME zero check
-		return
-	}
 
 	// Add rewards to delegator's hard claim
 	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
@@ -878,4 +894,28 @@ func (k Keeper) SimulateUSDXMintingSynchronization(ctx sdk.Context, claim types.
 	}
 
 	return claim
+}
+
+// Set setDifference: A - B
+func setDifference(a, b []string) (diff []string) {
+	m := make(map[string]bool)
+
+	for _, item := range b {
+		m[item] = true
+	}
+
+	for _, item := range a {
+		if _, ok := m[item]; !ok {
+			diff = append(diff, item)
+		}
+	}
+	return
+}
+
+func getDenoms(coins sdk.Coins) []string {
+	denoms := []string{}
+	for _, coin := range coins {
+		denoms = append(denoms, coin.Denom)
+	}
+	return denoms
 }

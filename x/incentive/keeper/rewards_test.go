@@ -1706,9 +1706,14 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 }
 
 func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
+	type depositModification struct {
+		coins    sdk.Coins
+		withdraw bool
+	}
+
 	type args struct {
 		firstDeposit              sdk.Coins
-		secondDeposit             sdk.Coins
+		modification              depositModification
 		rewardsPerSecond          sdk.Coins
 		initialTime               time.Time
 		expectedSupplyIndexDenoms []string
@@ -1723,7 +1728,7 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			"single reward denom: update adds one supply reward index",
 			args{
 				firstDeposit:              cs(c("bnb", 10000000000)),
-				secondDeposit:             cs(c("ukava", 10000000000)),
+				modification:              depositModification{coins: cs(c("ukava", 10000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedSupplyIndexDenoms: []string{"bnb", "ukava"},
@@ -1733,7 +1738,7 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			"single reward denom: update adds multiple supply reward indexes",
 			args{
 				firstDeposit:              cs(c("bnb", 10000000000)),
-				secondDeposit:             cs(c("ukava", 10000000000), c("btcb", 10000000000), c("xrp", 10000000000)),
+				modification:              depositModification{coins: cs(c("ukava", 10000000000), c("btcb", 10000000000), c("xrp", 10000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedSupplyIndexDenoms: []string{"bnb", "ukava", "btcb", "xrp"},
@@ -1743,7 +1748,7 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			"single reward denom: update doesn't add duplicate supply reward index for same denom",
 			args{
 				firstDeposit:              cs(c("bnb", 10000000000)),
-				secondDeposit:             cs(c("bnb", 5000000000)),
+				modification:              depositModification{coins: cs(c("bnb", 5000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedSupplyIndexDenoms: []string{"bnb"},
@@ -1753,7 +1758,7 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			"multiple reward denoms: update adds one supply reward index",
 			args{
 				firstDeposit:              cs(c("bnb", 10000000000)),
-				secondDeposit:             cs(c("ukava", 10000000000)),
+				modification:              depositModification{coins: cs(c("ukava", 10000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedSupplyIndexDenoms: []string{"bnb", "ukava"},
@@ -1763,7 +1768,7 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			"multiple reward denoms: update adds multiple supply reward indexes",
 			args{
 				firstDeposit:              cs(c("bnb", 10000000000)),
-				secondDeposit:             cs(c("ukava", 10000000000), c("btcb", 10000000000), c("xrp", 10000000000)),
+				modification:              depositModification{coins: cs(c("ukava", 10000000000), c("btcb", 10000000000), c("xrp", 10000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedSupplyIndexDenoms: []string{"bnb", "ukava", "btcb", "xrp"},
@@ -1773,10 +1778,40 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			"multiple reward denoms: update doesn't add duplicate supply reward index for same denom",
 			args{
 				firstDeposit:              cs(c("bnb", 10000000000)),
-				secondDeposit:             cs(c("bnb", 5000000000)),
+				modification:              depositModification{coins: cs(c("bnb", 5000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedSupplyIndexDenoms: []string{"bnb"},
+			},
+		},
+		{
+			"single reward denom: fully withdrawing a denom deletes the denom's supply reward index",
+			args{
+				firstDeposit:              cs(c("bnb", 1000000000)),
+				modification:              depositModification{coins: cs(c("bnb", 1100000000)), withdraw: true},
+				rewardsPerSecond:          cs(c("hard", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedSupplyIndexDenoms: []string{},
+			},
+		},
+		{
+			"single reward denom: fully withdrawing a denom deletes only the denom's supply reward index",
+			args{
+				firstDeposit:              cs(c("bnb", 1000000000), c("ukava", 100000000)),
+				modification:              depositModification{coins: cs(c("bnb", 1100000000)), withdraw: true},
+				rewardsPerSecond:          cs(c("hard", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedSupplyIndexDenoms: []string{"ukava"},
+			},
+		},
+		{
+			"multiple reward denoms: fully repaying a denom deletes the denom's supply reward index",
+			args{
+				firstDeposit:              cs(c("bnb", 1000000000)),
+				modification:              depositModification{coins: cs(c("bnb", 1100000000)), withdraw: true},
+				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedSupplyIndexDenoms: []string{},
 			},
 		},
 	}
@@ -1837,18 +1872,22 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			}
 			suite.Require().True(len(claimAfterFirstDeposit.SupplyRewardIndexes) == len(tc.args.firstDeposit))
 
-			// User deposits (second time)
-			err = hardKeeper.Deposit(suite.ctx, userAddr, tc.args.secondDeposit)
+			// User modifies their Deposit by withdrawing or depositing more
+			if tc.args.modification.withdraw {
+				err = hardKeeper.Withdraw(suite.ctx, userAddr, tc.args.modification.coins)
+			} else {
+				err = hardKeeper.Deposit(suite.ctx, userAddr, tc.args.modification.coins)
+			}
 			suite.Require().NoError(err)
 
 			// Confirm that the claim contains all expected supply indexes
-			claimAfterSecondDeposit, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimAfterModification, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
 			for _, denom := range tc.args.expectedSupplyIndexDenoms {
-				_, hasIndex := claimAfterSecondDeposit.HasSupplyRewardIndex(denom)
+				_, hasIndex := claimAfterModification.HasSupplyRewardIndex(denom)
 				suite.Require().True(hasIndex)
 			}
-			suite.Require().True(len(claimAfterSecondDeposit.SupplyRewardIndexes) == len(tc.args.expectedSupplyIndexDenoms))
+			suite.Require().True(len(claimAfterModification.SupplyRewardIndexes) == len(tc.args.expectedSupplyIndexDenoms))
 		})
 	}
 }
@@ -2040,10 +2079,15 @@ func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
 }
 
 func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
+	type withdrawModification struct {
+		coins sdk.Coins
+		repay bool
+	}
+
 	type args struct {
 		initialDeposit            sdk.Coins
 		firstBorrow               sdk.Coins
-		secondBorrow              sdk.Coins
+		modification              withdrawModification
 		rewardsPerSecond          sdk.Coins
 		initialTime               time.Time
 		expectedBorrowIndexDenoms []string
@@ -2059,7 +2103,7 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			args{
 				initialDeposit:            cs(c("bnb", 10000000000)),
 				firstBorrow:               cs(c("bnb", 50000000)),
-				secondBorrow:              cs(c("ukava", 500000000)),
+				modification:              withdrawModification{coins: cs(c("ukava", 500000000))},
 				rewardsPerSecond:          cs(c("hard", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"bnb", "ukava"},
@@ -2070,7 +2114,7 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			args{
 				initialDeposit:            cs(c("btcb", 10000000000)),
 				firstBorrow:               cs(c("btcb", 50000000)),
-				secondBorrow:              cs(c("ukava", 500000000), c("bnb", 50000000000), c("xrp", 50000000000)),
+				modification:              withdrawModification{coins: cs(c("ukava", 500000000), c("bnb", 50000000000), c("xrp", 50000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"btcb", "ukava", "bnb", "xrp"},
@@ -2081,7 +2125,7 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			args{
 				initialDeposit:            cs(c("bnb", 100000000000)),
 				firstBorrow:               cs(c("bnb", 50000000)),
-				secondBorrow:              cs(c("bnb", 50000000000)),
+				modification:              withdrawModification{coins: cs(c("bnb", 50000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"bnb"},
@@ -2092,7 +2136,7 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			args{
 				initialDeposit:            cs(c("bnb", 10000000000)),
 				firstBorrow:               cs(c("bnb", 50000000)),
-				secondBorrow:              cs(c("ukava", 500000000)),
+				modification:              withdrawModification{coins: cs(c("ukava", 500000000))},
 				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"bnb", "ukava"},
@@ -2103,7 +2147,7 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			args{
 				initialDeposit:            cs(c("btcb", 10000000000)),
 				firstBorrow:               cs(c("btcb", 50000000)),
-				secondBorrow:              cs(c("ukava", 500000000), c("bnb", 50000000000), c("xrp", 50000000000)),
+				modification:              withdrawModification{coins: cs(c("ukava", 500000000), c("bnb", 50000000000), c("xrp", 50000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"btcb", "ukava", "bnb", "xrp"},
@@ -2114,10 +2158,43 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			args{
 				initialDeposit:            cs(c("bnb", 100000000000)),
 				firstBorrow:               cs(c("bnb", 50000000)),
-				secondBorrow:              cs(c("bnb", 50000000000)),
+				modification:              withdrawModification{coins: cs(c("bnb", 50000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"bnb"},
+			},
+		},
+		{
+			"single reward denom: fully repaying a denom deletes the denom's supply reward index",
+			args{
+				initialDeposit:            cs(c("bnb", 1000000000)),
+				firstBorrow:               cs(c("bnb", 100000000)),
+				modification:              withdrawModification{coins: cs(c("bnb", 1100000000)), repay: true},
+				rewardsPerSecond:          cs(c("hard", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedBorrowIndexDenoms: []string{},
+			},
+		},
+		{
+			"single reward denom: fully repaying a denom deletes only the denom's supply reward index",
+			args{
+				initialDeposit:            cs(c("bnb", 1000000000)),
+				firstBorrow:               cs(c("bnb", 100000000), c("ukava", 10000000)),
+				modification:              withdrawModification{coins: cs(c("bnb", 1100000000)), repay: true},
+				rewardsPerSecond:          cs(c("hard", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedBorrowIndexDenoms: []string{"ukava"},
+			},
+		},
+		{
+			"multiple reward denoms: fully repaying a denom deletes the denom's supply reward index",
+			args{
+				initialDeposit:            cs(c("bnb", 1000000000)),
+				firstBorrow:               cs(c("bnb", 100000000), c("ukava", 10000000)),
+				modification:              withdrawModification{coins: cs(c("bnb", 1100000000)), repay: true},
+				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedBorrowIndexDenoms: []string{"ukava"},
 			},
 		},
 	}
@@ -2128,7 +2205,7 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 
 			// Mint coins to hard module account so it can service borrow requests
 			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := tc.args.firstBorrow.Add(tc.args.secondBorrow...)
+			hardMaccCoins := tc.args.firstBorrow.Add(tc.args.modification.coins...)
 			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
 
 			// Set up generic reward periods
@@ -2187,18 +2264,29 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			}
 			suite.Require().True(len(claimAfterFirstBorrow.BorrowRewardIndexes) == len(tc.args.firstBorrow))
 
-			// User borrows (second time)
-			err = hardKeeper.Borrow(suite.ctx, userAddr, tc.args.secondBorrow)
+			// User modifies their Borrow by either repaying or borrowing more
+			if tc.args.modification.repay {
+				err = hardKeeper.Repay(suite.ctx, userAddr, userAddr, tc.args.modification.coins)
+			} else {
+				err = hardKeeper.Borrow(suite.ctx, userAddr, tc.args.modification.coins)
+			}
 			suite.Require().NoError(err)
 
 			// Confirm that claim's borrow reward indexes contain expected values
-			claimAfterSecondBorrow, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimAfterModification, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
-			for _, coin := range tc.args.secondBorrow {
-				_, hasIndex := claimAfterSecondBorrow.HasBorrowRewardIndex(coin.Denom)
-				suite.Require().True(hasIndex)
+			for _, coin := range tc.args.modification.coins {
+				_, hasIndex := claimAfterModification.HasBorrowRewardIndex(coin.Denom)
+				if tc.args.modification.repay {
+					// Only false if denom is repaid in full
+					if tc.args.modification.coins.AmountOf(coin.Denom).GTE(tc.args.firstBorrow.AmountOf(coin.Denom)) {
+						suite.Require().False(hasIndex)
+					}
+				} else {
+					suite.Require().True(hasIndex)
+				}
 			}
-			suite.Require().True(len(claimAfterSecondBorrow.BorrowRewardIndexes) == len(tc.args.expectedBorrowIndexDenoms))
+			suite.Require().True(len(claimAfterModification.BorrowRewardIndexes) == len(tc.args.expectedBorrowIndexDenoms))
 		})
 	}
 }
@@ -2240,6 +2328,17 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 				expectedRewards:      cs(c("hard", 52856928000)),
 			},
 		},
+		{
+			"delegator reward index updated when reward is zero",
+			args{
+				delegation:           c("ukava", 1),
+				rewardsPerSecond:     c("hard", 1),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+				expectedRewardFactor: d("0.000099999900000100"),
+				expectedRewards:      nil,
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -2267,13 +2366,22 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			// Set up hard state (interest factor for the relevant denom)
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 
-			// Delegator delegates
-			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
+			// Create validator account
+			staking.BeginBlocker(suite.ctx, suite.stakingKeeper)
+			selfDelegationCoins := c("ukava", 1_000_000)
+			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], selfDelegationCoins)
 			suite.Require().NoError(err)
+			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+
+			// Delegator delegates
 			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 
-			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+			// Check that validator account has been created and delegation was successful
+			valAcc, found := suite.stakingKeeper.GetValidator(suite.ctx, suite.validatorAddrs[0])
+			suite.True(found)
+			suite.Require().Equal(valAcc.Status, sdk.Bonded)
+			suite.Require().Equal(valAcc.Tokens, tc.args.delegation.Amount.Add(selfDelegationCoins.Amount))
 
 			// Check that Staking hooks initialized a HardLiquidityProviderClaim
 			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
