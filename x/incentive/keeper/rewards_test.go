@@ -3114,5 +3114,5 @@ func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
 	)
 
 	// Check that reward factor increased from initial value
-	suite.Require().Greater(claimIndex.RewardFactor, initialClaimIndex.RewardFactor)
+	suite.True(claimIndex.RewardFactor.GT(initialClaimIndex.RewardFactor))
 }
