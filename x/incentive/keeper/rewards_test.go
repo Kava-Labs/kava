@@ -2961,39 +2961,6 @@ func (suite *KeeperTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sd
 	return err
 }
 
-/*
-rewards are calculated based on total delegated tokens to bonded validators (not shares)
-
-we need to sync the claim before the user's delegated tokens are changed
-
-when delegated tokens (to bonded validators) are changed:
-- user creates new delegation
-  - total bonded delegation increases
-- user delegates or beginUnbonding or beginRedelegate an existing delegation
-  - total bonded delegation increases or decreases
-- validator is slashed and Jailed/Tombstoned (tokens reduce, and validator is unbonded)
-  - slash: total bonded delegation decreases (less tokens)
-  - jail: total bonded delegation decreases (tokens no longer bonded (after end blocker runs))
-- validator becomes unbonded (ie when they drop out of the top 100)
-  - total bonded delegation decreases (tokens no longer bonded)
-
-edge cases
-- undelegate that also unbonds the validator?
-  - both hooks will run
-- multiple validators unbond in the same end block
-  - sync could be called several times for the same delegation, but once ignoring the validator state, other times not
-  - probably ok as any subsequent syncs will not do anything as the global index is the same
-
-Tests:
-- test new validator initializes claim
-- test delegating updates claim
-- test unbonding updates claim
-- test redelegating does update claim
-- test slashing updates claim
-- test dropping out of top validators updates claim
-- test returning to top validators updates claim
-*/
-
 // given a user has a delegation to a bonded validator, when the validator starts unbonding, the user does not accumulate rewards
 func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 	suite.SetupWithGenState()
@@ -3015,7 +2982,7 @@ func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 		initialTime.Add(5*oneYear),
 	)
 	suite.keeper.SetParams(suite.ctx, params)
-	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime.Add(-1*blockDuration)) // TODO
+	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime)
 	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
 
 	// Reduce the size of the validator set
@@ -3031,7 +2998,7 @@ func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[2], c(bondDenom, 1_000_000))
 	suite.Require().NoError(err)
 
-	// end the block so top validators become bonded
+	// End the block so top validators become bonded
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
 
 	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
@@ -3069,7 +3036,16 @@ func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 		claim.Reward,
 	)
 
-	// TODO run another block and check the claim is not accumulating more rewards
+	// Run another block and check the claim is not accumulating more rewards
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(3 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
+
+	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
+
+	// rewards are the same as before
+	laterClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+	suite.Require().Equal(claim.Reward, laterClaim.Reward)
 }
 
 // given a user has a delegation to an unbonded validator, when the validator becomes bonded, the user starts accumulating rewards
@@ -3093,7 +3069,7 @@ func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
 		initialTime.Add(5*oneYear),
 	)
 	suite.keeper.SetParams(suite.ctx, params)
-	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime.Add(-1*blockDuration)) // TODO
+	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime)
 	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
 
 	// Reduce the size of the validator set
@@ -3147,7 +3123,16 @@ func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
 		claim.Reward,
 	)
 
-	// TODO run another block and check the user is accumulating rewards
+	// Run another block and check the claim is accumulating more rewards
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(3 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
+
+	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
+
+	// rewards are greater than before
+	laterClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+	suite.Require().True(laterClaim.Reward.IsAllGT(claim.Reward))
 }
 
 // If a validator is slashed delegators should have their claims synced
@@ -3237,6 +3222,7 @@ func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
 	suite.True(claimIndex.RewardFactor.GT(initialClaimIndex.RewardFactor))
 }
 
+// Given a delegation to a bonded validator, when a user redelegates everything to another (bonded) validator, the user's claim is synced
 func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
 	suite.SetupWithGenState()
 	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
@@ -3256,7 +3242,6 @@ func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
 		types.DefaultMultipliers,
 		initialTime.Add(5*oneYear),
 	)
-	printGlob(suite) // TODO
 	suite.keeper.SetParams(suite.ctx, params)
 	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime)
 	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
@@ -3270,16 +3255,11 @@ func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
 	// Delegatefrom the test user. This will initialize their incentive claim.
 	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], c(bondDenom, 1_000_000))
 	suite.Require().NoError(err)
-	printClaim(suite) // TODO
 
 	// Start a new block to accumulate some delegation rewards globally.
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	printGlob(suite) // TODO
-	printClaim(suite)
 	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
-	printGlob(suite)                                                // TODO
-	printClaim(suite)
 
 	// Redelegate the user's delegation between the two validators. This should trigger hooks that sync the user's claim.
 	err = suite.deliverMsgRedelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], suite.validatorAddrs[1], c(bondDenom, 1_000_000))
@@ -3288,8 +3268,6 @@ func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
 	// Check that the user's claim has been synced. ie rewards added, index updated
 	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
-	printGlob(suite) // TODO
-	printClaim(suite)
 
 	globalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
 	suite.Require().True(found)
@@ -3300,21 +3278,4 @@ func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
 		cs(c(rewardsPerSecond.Denom, 76471)),
 		claim.Reward,
 	)
-}
-func printClaim(suite *KeeperTestSuite) {
-	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
-	if found {
-		suite.T().Logf("claim: %+v", claim)
-	} else {
-		suite.T().Logf("no claim")
-	}
-}
-
-func printGlob(suite *KeeperTestSuite) {
-	globalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, "ukava")
-	if found {
-		suite.T().Logf("global index: %+v", globalIndex)
-	} else {
-		suite.T().Logf("nogloble index")
-	}
 }
