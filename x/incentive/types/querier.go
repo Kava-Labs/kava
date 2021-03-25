@@ -7,15 +7,18 @@ import (
 
 // Querier routes for the incentive module
 const (
-	QueryGetRewards            = "rewards"
-	QueryGetHardRewards        = "hard-rewards"
-	QueryGetUSDXMintingRewards = "usdx-minting-rewards"
-	QueryGetParams             = "parameters"
-	QueryGetRewardPeriods      = "reward-periods"
-	QueryGetClaimPeriods       = "claim-periods"
-	RestClaimCollateralType    = "collateral_type"
-	RestClaimOwner             = "owner"
-	RestClaimType              = "type"
+	QueryGetRewards                    = "rewards"
+	QueryGetHardRewards                = "hard-rewards"
+	QueryGetHardRewardsUnsynced        = "hard-rewards-unsynced"
+	QueryGetUSDXMintingRewards         = "usdx-minting-rewards"
+	QueryGetUSDXMintingRewardsUnsynced = "usdx-minting-rewards-unsynced"
+	QueryGetParams                     = "parameters"
+	QueryGetRewardPeriods              = "reward-periods"
+	QueryGetClaimPeriods               = "claim-periods"
+	RestClaimCollateralType            = "collateral_type"
+	RestClaimOwner                     = "owner"
+	RestClaimType                      = "type"
+	RestUnsynced                       = "unsynced"
 )
 
 // QueryRewardsParams params for query /incentive/rewards
@@ -52,6 +55,22 @@ func NewQueryUSDXMintingRewardsParams(page, limit int, owner sdk.AccAddress) Que
 	}
 }
 
+// QueryUSDXMintingRewardsUnsyncedParams params for query unsynced /incentive/rewards type usdx-minting
+type QueryUSDXMintingRewardsUnsyncedParams struct {
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress
+}
+
+// NewQueryUSDXMintingRewardsUnsyncedParams returns QueryUSDXMintingRewardsUnsyncedParams
+func NewQueryUSDXMintingRewardsUnsyncedParams(page, limit int, owner sdk.AccAddress) QueryUSDXMintingRewardsUnsyncedParams {
+	return QueryUSDXMintingRewardsUnsyncedParams{
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
+	}
+}
+
 // QueryHardRewardsParams params for query /incentive/rewards type hard
 type QueryHardRewardsParams struct {
 	Page  int `json:"page" yaml:"page"`
@@ -62,6 +81,22 @@ type QueryHardRewardsParams struct {
 // NewQueryHardRewardsParams returns QueryHardRewardsParams
 func NewQueryHardRewardsParams(page, limit int, owner sdk.AccAddress) QueryHardRewardsParams {
 	return QueryHardRewardsParams{
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
+	}
+}
+
+// QueryHardRewardsUnsyncedParams params for query unsynced /incentive/rewards type hard
+type QueryHardRewardsUnsyncedParams struct {
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress
+}
+
+// NewQueryHardRewardsUnsyncedParams returns QueryHardRewardsUnsyncedParams
+func NewQueryHardRewardsUnsyncedParams(page, limit int, owner sdk.AccAddress) QueryHardRewardsUnsyncedParams {
+	return QueryHardRewardsUnsyncedParams{
 		Page:  page,
 		Limit: limit,
 		Owner: owner,
