@@ -657,11 +657,7 @@ func (k Keeper) SynchronizeHardLiquidityProviderClaim(ctx sdk.Context, owner sdk
 
 // ZeroHardLiquidityProviderClaim zeroes out the claim object's rewards and returns the updated claim object
 func (k Keeper) ZeroHardLiquidityProviderClaim(ctx sdk.Context, claim types.HardLiquidityProviderClaim) types.HardLiquidityProviderClaim {
-	var zeroRewards sdk.Coins
-	for _, coin := range claim.Reward {
-		zeroRewards = append(zeroRewards, sdk.NewCoin(coin.Denom, sdk.ZeroInt()))
-	}
-	claim.Reward = zeroRewards
+	claim.Reward = sdk.NewCoins()
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 	return claim
 }
