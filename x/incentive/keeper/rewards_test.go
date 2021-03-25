@@ -16,6 +16,10 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+const (
+	oneYear time.Duration = time.Hour * 24 * 365
+)
+
 func (suite *KeeperTestSuite) TestAccumulateUSDXMintingRewards() {
 	type args struct {
 		ctype                 string
@@ -885,7 +889,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
-			suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
+			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 
 			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
@@ -2407,7 +2411,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 
 			// After we've accumulated, run synchronize
 			suite.Require().NotPanics(func() {
-				suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0])
+				suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
 			})
 
 			// Check that reward factor and claim have been updated as expected
@@ -2767,7 +2771,7 @@ func (suite *KeeperTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
 			// Delegator delegates
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
-			suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
+			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 
 			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
@@ -2943,4 +2947,349 @@ func (suite *KeeperTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.
 	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
 	_, err := handleStakingMsg(ctx, msg)
 	return err
+}
+
+func (suite *KeeperTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sdk.AccAddress, sourceValidator, destinationValidator sdk.ValAddress, amount sdk.Coin) error {
+	msg := staking.NewMsgBeginRedelegate(
+		delegator,
+		sourceValidator,
+		destinationValidator,
+		amount,
+	)
+	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
+	_, err := handleStakingMsg(ctx, msg)
+	return err
+}
+
+// given a user has a delegation to a bonded validator, when the validator starts unbonding, the user does not accumulate rewards
+func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
+	suite.SetupWithGenState()
+	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+	suite.ctx = suite.ctx.WithBlockTime(initialTime)
+	blockDuration := 10 * time.Second
+
+	// Setup incentive state
+	rewardsPerSecond := c("hard", 122354)
+	bondDenom := "ukava"
+	params := types.NewParams(
+		nil,
+		nil,
+		nil,
+		types.RewardPeriods{
+			types.NewRewardPeriod(true, bondDenom, initialTime.Add(-1*oneYear), initialTime.Add(4*oneYear), rewardsPerSecond),
+		},
+		types.DefaultMultipliers,
+		initialTime.Add(5*oneYear),
+	)
+	suite.keeper.SetParams(suite.ctx, params)
+	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime)
+	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
+
+	// Reduce the size of the validator set
+	stakingParams := suite.app.GetStakingKeeper().GetParams(suite.ctx)
+	stakingParams.MaxValidators = 2
+	suite.app.GetStakingKeeper().SetParams(suite.ctx, stakingParams)
+
+	// Create 3 validators
+	err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
+	suite.Require().NoError(err)
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[1], c(bondDenom, 5_000_000))
+	suite.Require().NoError(err)
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[2], c(bondDenom, 1_000_000))
+	suite.Require().NoError(err)
+
+	// End the block so top validators become bonded
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+
+	// Delegate to a bonded validator from the test user. This will initialize their incentive claim.
+	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[1], c(bondDenom, 1_000_000))
+	suite.Require().NoError(err)
+
+	// Start a new block to accumulate some delegation rewards for the user.
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(2 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+
+	// Delegate to the unbonded validator to push it into the bonded validator set, pushing out the user's delegated validator
+	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[2], suite.validatorAddrs[2], c(bondDenom, 8_000_000))
+	suite.Require().NoError(err)
+
+	// End the block to start unbonding the user's validator
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	// but don't start the next block as it will accumulate delegator rewards and we won't be able to tell if the user's reward was synced.
+
+	// Check that the user's claim has been synced. ie rewards added, index updated
+	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+
+	globalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.Require().True(found)
+	claimIndex, found := claim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(globalIndex, claimIndex.RewardFactor)
+
+	suite.Require().Equal(
+		cs(c(rewardsPerSecond.Denom, 76471)),
+		claim.Reward,
+	)
+
+	// Run another block and check the claim is not accumulating more rewards
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(3 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
+
+	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
+
+	// rewards are the same as before
+	laterClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+	suite.Require().Equal(claim.Reward, laterClaim.Reward)
+
+	// claim index has been updated to latest global value
+	laterClaimIndex, found := laterClaim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.Require().True(found)
+	globalIndex, found = suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(globalIndex, laterClaimIndex.RewardFactor)
+}
+
+// given a user has a delegation to an unbonded validator, when the validator becomes bonded, the user starts accumulating rewards
+func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
+	suite.SetupWithGenState()
+	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+	suite.ctx = suite.ctx.WithBlockTime(initialTime)
+	blockDuration := 10 * time.Second
+
+	// Setup incentive state
+	rewardsPerSecond := c("hard", 122354)
+	bondDenom := "ukava"
+	params := types.NewParams(
+		nil,
+		nil,
+		nil,
+		types.RewardPeriods{
+			types.NewRewardPeriod(true, bondDenom, initialTime.Add(-1*oneYear), initialTime.Add(4*oneYear), rewardsPerSecond),
+		},
+		types.DefaultMultipliers,
+		initialTime.Add(5*oneYear),
+	)
+	suite.keeper.SetParams(suite.ctx, params)
+	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime)
+	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
+
+	// Reduce the size of the validator set
+	stakingParams := suite.app.GetStakingKeeper().GetParams(suite.ctx)
+	stakingParams.MaxValidators = 2
+	suite.app.GetStakingKeeper().SetParams(suite.ctx, stakingParams)
+
+	// Create 3 validators
+	err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
+	suite.Require().NoError(err)
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[1], c(bondDenom, 5_000_000))
+	suite.Require().NoError(err)
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[2], c(bondDenom, 1_000_000))
+	suite.Require().NoError(err)
+
+	// End the block so top validators become bonded
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+
+	// Delegate to an unbonded validator from the test user. This will initialize their incentive claim.
+	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[2], c(bondDenom, 1_000_000))
+	suite.Require().NoError(err)
+
+	// Start a new block to accumulate some delegation rewards globally.
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(2 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
+
+	// Delegate to the user's unbonded validator to push it into the bonded validator set
+	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[2], suite.validatorAddrs[2], c(bondDenom, 4_000_000))
+	suite.Require().NoError(err)
+
+	// End the block to bond the user's validator
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	// but don't start the next block as it will accumulate delegator rewards and we won't be able to tell if the user's reward was synced.
+
+	// Check that the user's claim has been synced. ie rewards added, index updated
+	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+
+	globalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.Require().True(found)
+	claimIndex, found := claim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(globalIndex, claimIndex.RewardFactor)
+
+	suite.Require().Equal(
+		sdk.Coins(nil),
+		claim.Reward,
+	)
+
+	// Run another block and check the claim is accumulating more rewards
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(3 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
+
+	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
+
+	// rewards are greater than before
+	laterClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+	suite.Require().True(laterClaim.Reward.IsAllGT(claim.Reward))
+
+	// claim index has been updated to latest global value
+	laterClaimIndex, found := laterClaim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.Require().True(found)
+	globalIndex, found = suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(globalIndex, laterClaimIndex.RewardFactor)
+}
+
+// If a validator is slashed delegators should have their claims synced
+func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
+	suite.SetupWithGenState()
+	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+	suite.ctx = suite.ctx.WithBlockTime(initialTime)
+	blockDuration := 10 * time.Second
+
+	// Setup incentive state
+	rewardsPerSecond := c("hard", 122354)
+	bondDenom := "ukava"
+	params := types.NewParams(
+		nil,
+		nil,
+		nil,
+		types.RewardPeriods{
+			types.NewRewardPeriod(true, bondDenom, initialTime.Add(-1*oneYear), initialTime.Add(4*oneYear), rewardsPerSecond),
+		},
+		types.DefaultMultipliers,
+		initialTime.Add(5*oneYear),
+	)
+	suite.keeper.SetParams(suite.ctx, params)
+	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime.Add(-1*blockDuration))
+	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
+
+	// Reduce the size of the validator set
+	stakingParams := suite.app.GetStakingKeeper().GetParams(suite.ctx)
+	stakingParams.MaxValidators = 2
+	suite.app.GetStakingKeeper().SetParams(suite.ctx, stakingParams)
+
+	// Create 2 validators
+	err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
+	suite.Require().NoError(err)
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[1], c(bondDenom, 10_000_000))
+	suite.Require().NoError(err)
+
+	// End the block so validators become bonded
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+
+	// Delegate to a bonded validator from the test user. This will initialize their incentive claim.
+	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[1], c(bondDenom, 1_000_000))
+	suite.Require().NoError(err)
+
+	// Check that claim has been created with synced reward index but no reward coins
+	initialClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.True(found)
+	initialGlobalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.True(found)
+	initialClaimIndex, found := initialClaim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.True(found)
+	suite.Require().Equal(initialGlobalIndex, initialClaimIndex.RewardFactor)
+	suite.True(initialClaim.Reward.Empty()) // Initial claim should not have any rewards
+
+	// Start a new block to accumulate some delegation rewards for the user.
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(2 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+
+	// Fetch validator and slash them
+	stakingKeeper := suite.app.GetStakingKeeper()
+	validator, found := stakingKeeper.GetValidator(suite.ctx, suite.validatorAddrs[1])
+	suite.Require().True(found)
+	suite.Require().True(validator.GetTokens().IsPositive())
+	fraction := sdk.NewDecWithPrec(5, 1)
+	stakingKeeper.Slash(suite.ctx, validator.ConsAddress(), suite.ctx.BlockHeight(), 10, fraction)
+
+	// Check that the user's claim has been synced. ie rewards added, index updated
+	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+	globalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.Require().True(found)
+	claimIndex, found := claim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(globalIndex, claimIndex.RewardFactor)
+
+	// Check that rewards were added
+	suite.Require().Equal(
+		cs(c(rewardsPerSecond.Denom, 58264)),
+		claim.Reward,
+	)
+
+	// Check that reward factor increased from initial value
+	suite.True(claimIndex.RewardFactor.GT(initialClaimIndex.RewardFactor))
+}
+
+// Given a delegation to a bonded validator, when a user redelegates everything to another (bonded) validator, the user's claim is synced
+func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
+	suite.SetupWithGenState()
+	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+	suite.ctx = suite.ctx.WithBlockTime(initialTime)
+	blockDuration := 10 * time.Second
+
+	// Setup incentive state
+	rewardsPerSecond := c("hard", 122354)
+	bondDenom := "ukava"
+	params := types.NewParams(
+		nil,
+		nil,
+		nil,
+		types.RewardPeriods{
+			types.NewRewardPeriod(true, bondDenom, initialTime.Add(-1*oneYear), initialTime.Add(4*oneYear), rewardsPerSecond),
+		},
+		types.DefaultMultipliers,
+		initialTime.Add(5*oneYear),
+	)
+	suite.keeper.SetParams(suite.ctx, params)
+	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime)
+	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
+
+	// Create 2 validators
+	err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
+	suite.Require().NoError(err)
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[1], c(bondDenom, 5_000_000))
+	suite.Require().NoError(err)
+
+	// Delegatefrom the test user. This will initialize their incentive claim.
+	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], c(bondDenom, 1_000_000))
+	suite.Require().NoError(err)
+
+	// Start a new block to accumulate some delegation rewards globally.
+	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+
+	// Redelegate the user's delegation between the two validators. This should trigger hooks that sync the user's claim.
+	err = suite.deliverMsgRedelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], suite.validatorAddrs[1], c(bondDenom, 1_000_000))
+	suite.Require().NoError(err)
+
+	// Check that the user's claim has been synced. ie rewards added, index updated
+	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+
+	globalIndex, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.Require().True(found)
+	claimIndex, found := claim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(globalIndex, claimIndex.RewardFactor)
+	suite.Require().Equal(
+		cs(c(rewardsPerSecond.Denom, 76471)),
+		claim.Reward,
+	)
 }

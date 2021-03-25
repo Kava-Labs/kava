@@ -271,10 +271,7 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.De
 	}
 
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
-	if found {
-		// Reset borrow reward indexes
-		claim.BorrowRewardIndexes = types.MultiRewardIndexes{}
-	} else {
+	if !found {
 		// Instantiate claim object
 		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
 	}
@@ -496,8 +493,10 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
-// SynchronizeHardDelegatorRewards updates the claim object by adding any accumulated rewards
-func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.AccAddress) {
+// SynchronizeHardDelegatorRewards updates the claim object by adding any accumulated rewards, and setting the reward indexes to the global values.
+// valAddr and shouldIncludeValidator are used to ignore or include delegations to a particular validator when summing up the total delegation.
+// Normally only delegations to Bonded validators are included in the total. This is needed as staking hooks are sometimes called on the wrong side of a validator's state update (from this module's perspective).
+func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
 	if !found {
 		return
@@ -529,9 +528,16 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 			continue
 		}
 
-		// Delegators don't accumulate rewards if their validator is unbonded/slashed
-		if validator.GetStatus() != sdk.Bonded {
-			continue
+		if valAddr == nil {
+			// Delegators don't accumulate rewards if their validator is unbonded
+			if validator.GetStatus() != sdk.Bonded {
+				continue
+			}
+		} else {
+			if !shouldIncludeValidator && validator.OperatorAddress.Equals(valAddr) {
+				// ignore tokens delegated to the validator
+				continue
+			}
 		}
 
 		if validator.GetTokens().IsZero() {
@@ -601,7 +607,7 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 		// Instantiate claim object
 		claim = types.NewHardLiquidityProviderClaim(delegator, sdk.Coins{}, nil, nil, nil)
 	} else {
-		k.SynchronizeHardDelegatorRewards(ctx, delegator)
+		k.SynchronizeHardDelegatorRewards(ctx, delegator, nil, false)
 		claim, _ = k.GetHardLiquidityProviderClaim(ctx, delegator)
 	}
 
@@ -652,7 +658,7 @@ func (k Keeper) SynchronizeHardLiquidityProviderClaim(ctx sdk.Context, owner sdk
 	}
 
 	// Synchronize any hard delegator rewards
-	k.SynchronizeHardDelegatorRewards(ctx, owner)
+	k.SynchronizeHardDelegatorRewards(ctx, owner, nil, false)
 }
 
 // ZeroHardLiquidityProviderClaim zeroes out the claim object's rewards and returns the updated claim object

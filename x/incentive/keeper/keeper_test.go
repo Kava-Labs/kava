@@ -38,17 +38,33 @@ type KeeperTestSuite struct {
 
 // The default state used by each test
 func (suite *KeeperTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
+	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
+	suite.addrs = allAddrs[:5]
+	for _, a := range allAddrs[5:] {
+		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
+	}
+
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
 	tApp.InitializeFromGenesisStates()
 
-	_, addrs := app.GeneratePrivKeyAddressPairs(5)
-	keeper := tApp.GetIncentiveKeeper()
+	suite.keeper = tApp.GetIncentiveKeeper()
 	suite.app = tApp
 	suite.ctx = ctx
-	suite.keeper = keeper
-	suite.addrs = addrs
+}
+
+// getAllAddrs returns all user and validator addresses in the suite
+func (suite *KeeperTestSuite) getAllAddrs() []sdk.AccAddress {
+	accAddrs := []sdk.AccAddress{} // initialize new slice to avoid accidental modifications to underlying
+	accAddrs = append(accAddrs, suite.addrs...)
+	for _, a := range suite.validatorAddrs {
+		accAddrs = append(accAddrs, sdk.AccAddress(a))
+	}
+	return accAddrs
 }
 
 func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {

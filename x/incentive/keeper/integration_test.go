@@ -209,20 +209,11 @@ func NewStakingGenesisState() app.GenesisState {
 }
 
 func (suite *KeeperTestSuite) SetupWithGenState() {
-	config := sdk.GetConfig()
-	app.SetBech32AddressPrefixes(config)
-
-	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
-	suite.addrs = allAddrs[:5]
-	for _, a := range allAddrs[5:] {
-		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
-	}
-
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
 	tApp.InitializeFromGenesisStates(
-		NewAuthGenState(allAddrs, cs(c("ukava", 1_000_000_000))),
+		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
 		NewStakingGenesisState(),
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
