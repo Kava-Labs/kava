@@ -3046,6 +3046,13 @@ func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 	laterClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 	suite.Require().Equal(claim.Reward, laterClaim.Reward)
+
+	// claim index has been updated to latest global value
+	laterClaimIndex, found := laterClaim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.Require().True(found)
+	globalIndex, found = suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(globalIndex, laterClaimIndex.RewardFactor)
 }
 
 // given a user has a delegation to an unbonded validator, when the validator becomes bonded, the user starts accumulating rewards
@@ -3133,6 +3140,13 @@ func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
 	laterClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 	suite.Require().True(laterClaim.Reward.IsAllGT(claim.Reward))
+
+	// claim index has been updated to latest global value
+	laterClaimIndex, found := laterClaim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	suite.Require().True(found)
+	globalIndex, found = suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, bondDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(globalIndex, laterClaimIndex.RewardFactor)
 }
 
 // If a validator is slashed delegators should have their claims synced
