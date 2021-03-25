@@ -12,6 +12,7 @@ const (
 	QueryGetHardRewardsUnsynced        = "hard-rewards-unsynced"
 	QueryGetUSDXMintingRewards         = "usdx-minting-rewards"
 	QueryGetUSDXMintingRewardsUnsynced = "usdx-minting-rewards-unsynced"
+	QueryGetRewardFactors              = "reward-factors"
 	QueryGetParams                     = "parameters"
 	QueryGetRewardPeriods              = "reward-periods"
 	QueryGetClaimPeriods               = "claim-periods"
@@ -102,6 +103,42 @@ func NewQueryHardRewardsUnsyncedParams(page, limit int, owner sdk.AccAddress) Qu
 		Owner: owner,
 	}
 }
+
+// QueryRewardFactorsParams is the params for a filtered reward factors query
+type QueryRewardFactorsParams struct {
+	Denom string `json:"denom" yaml:"denom"`
+}
+
+// NewQueryRewardFactorsParams creates a new QueryRewardFactorsParams
+func NewQueryRewardFactorsParams(denom string) QueryRewardFactorsParams {
+	return QueryRewardFactorsParams{
+		Denom: denom,
+	}
+}
+
+// RewardFactor is a unique type returned by reward factor queries
+type RewardFactor struct {
+	Denom                     string        `json:"denom" yaml:"denom"`
+	USDXMintingRewardFactor   sdk.Dec       `json:"usdx_minting_reward_factor" yaml:"usdx_minting_reward_factor"`
+	HardSupplyRewardFactors   RewardIndexes `json:"hard_supply_reward_factors" yaml:"hard_supply_reward_factors"`
+	HardBorrowRewardFactors   RewardIndexes `json:"hard_borrow_reward_factors" yaml:"hard_borrow_reward_factors"`
+	HardDelegatorRewardFactor sdk.Dec       `json:"hard_delegator_reward_factor" yaml:"hard_delegator_reward_factor"`
+}
+
+// NewRewardFactor returns a new instance of RewardFactor
+func NewRewardFactor(denom string, usdxMintingRewardFactor sdk.Dec, hardSupplyRewardFactors,
+	hardBorrowRewardFactors RewardIndexes, hardDelegatorRewardFactor sdk.Dec) RewardFactor {
+	return RewardFactor{
+		Denom:                     denom,
+		USDXMintingRewardFactor:   usdxMintingRewardFactor,
+		HardSupplyRewardFactors:   hardSupplyRewardFactors,
+		HardBorrowRewardFactors:   hardBorrowRewardFactors,
+		HardDelegatorRewardFactor: hardDelegatorRewardFactor,
+	}
+}
+
+// RewardFactors is a slice of RewardFactor
+type RewardFactors = []RewardFactor
 
 // PostClaimReq defines the properties of claim transaction's request body.
 type PostClaimReq struct {
