@@ -25,6 +25,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetUSDXMintingRewards(ctx, req, k)
 		case types.QueryGetUSDXMintingRewardsUnsynced:
 			return queryGetUSDXMintingRewardsUnsynced(ctx, req, k)
+		case types.QueryGetRewardFactors:
+			return queryGetRewardFactors(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -193,5 +195,95 @@ func queryGetUSDXMintingRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, 
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
+	return bz, nil
+}
+
+func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryRewardFactorsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	var rewardFactors types.RewardFactors
+	if len(params.Denom) > 0 {
+		// Fetch reward factors for a single denom
+		rewardFactor := types.RewardFactor{}
+		rewardFactor.Denom = params.Denom
+
+		usdxMintingRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, params.Denom)
+		if found {
+			rewardFactor.USDXMintingRewardFactor = usdxMintingRewardFactor
+		}
+		hardSupplyRewardIndexes, found := k.GetHardSupplyRewardIndexes(ctx, params.Denom)
+		if found {
+			rewardFactor.HardSupplyRewardFactors = hardSupplyRewardIndexes
+		}
+		hardBorrowRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, params.Denom)
+		if found {
+			rewardFactor.HardBorrowRewardFactors = hardBorrowRewardIndexes
+		}
+		hardDelegatorRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, params.Denom)
+		if found {
+			rewardFactor.HardDelegatorRewardFactor = hardDelegatorRewardFactor
+		}
+		rewardFactors = append(rewardFactors, rewardFactor)
+	} else {
+		rewardFactorMap := make(map[string]types.RewardFactor)
+
+		// Populate mapping with usdx minting reward factors
+		k.IterateUSDXMintingRewardFactors(ctx, func(denom string, factor sdk.Dec) (stop bool) {
+			rewardFactor := types.RewardFactor{Denom: denom, USDXMintingRewardFactor: factor}
+			rewardFactorMap[denom] = rewardFactor
+			return false
+		})
+
+		// Populate mapping with Hard supply reward factors
+		k.IterateHardSupplyRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
+			rewardFactor, ok := rewardFactorMap[denom]
+			if !ok {
+				rewardFactor = types.RewardFactor{Denom: denom, HardSupplyRewardFactors: indexes}
+			} else {
+				rewardFactor.HardSupplyRewardFactors = indexes
+			}
+			rewardFactorMap[denom] = rewardFactor
+			return false
+		})
+
+		// Populate mapping with Hard borrow reward factors
+		k.IterateHardBorrowRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
+			rewardFactor, ok := rewardFactorMap[denom]
+			if !ok {
+				rewardFactor = types.RewardFactor{Denom: denom, HardBorrowRewardFactors: indexes}
+			} else {
+				rewardFactor.HardBorrowRewardFactors = indexes
+			}
+			rewardFactorMap[denom] = rewardFactor
+			return false
+		})
+
+		// Populate mapping with Hard delegator reward factors
+		k.IterateHardDelegatorRewardFactors(ctx, func(denom string, factor sdk.Dec) (stop bool) {
+			rewardFactor, ok := rewardFactorMap[denom]
+			if !ok {
+				rewardFactor = types.RewardFactor{Denom: denom, HardDelegatorRewardFactor: factor}
+			} else {
+				rewardFactor.HardDelegatorRewardFactor = factor
+			}
+			rewardFactorMap[denom] = rewardFactor
+			return false
+		})
+
+		// Translate mapping to slice
+		for _, val := range rewardFactorMap {
+			rewardFactors = append(rewardFactors, val)
+		}
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, rewardFactors)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
 	return bz, nil
 }

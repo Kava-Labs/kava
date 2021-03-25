@@ -141,6 +141,20 @@ func (k Keeper) SetUSDXMintingRewardFactor(ctx sdk.Context, ctype string, factor
 	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(factor))
 }
 
+// IterateUSDXMintingRewardFactors iterates over all USDX Minting reward factor objects in the store and preforms a callback function
+func (k Keeper) IterateUSDXMintingRewardFactors(ctx sdk.Context, cb func(denom string, factor sdk.Dec) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.USDXMintingRewardFactorKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var factor sdk.Dec
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &factor)
+		if cb(string(iterator.Key()), factor) {
+			break
+		}
+	}
+}
+
 // GetHardLiquidityProviderClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
 func (k Keeper) GetHardLiquidityProviderClaim(ctx sdk.Context, addr sdk.AccAddress) (types.HardLiquidityProviderClaim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardLiquidityClaimKeyPrefix)
@@ -209,6 +223,20 @@ func (k Keeper) GetHardSupplyRewardIndexes(ctx sdk.Context, denom string) (types
 	return rewardIndexes, true
 }
 
+// IterateHardSupplyRewardIndexes iterates over all Hard supply reward index objects in the store and preforms a callback function
+func (k Keeper) IterateHardSupplyRewardIndexes(ctx sdk.Context, cb func(denom string, indexes types.RewardIndexes) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var indexes types.RewardIndexes
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &indexes)
+		if cb(string(iterator.Key()), indexes) {
+			break
+		}
+	}
+}
+
 // SetHardBorrowRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetHardBorrowRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardIndexesKeyPrefix)
@@ -228,6 +256,20 @@ func (k Keeper) GetHardBorrowRewardIndexes(ctx sdk.Context, denom string) (types
 	return rewardIndexes, true
 }
 
+// IterateHardBorrowRewardIndexes iterates over all Hard borrow reward index objects in the store and preforms a callback function
+func (k Keeper) IterateHardBorrowRewardIndexes(ctx sdk.Context, cb func(denom string, indexes types.RewardIndexes) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardIndexesKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var indexes types.RewardIndexes
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &indexes)
+		if cb(string(iterator.Key()), indexes) {
+			break
+		}
+	}
+}
+
 // GetHardDelegatorRewardFactor returns the current reward factor for an individual collateral type
 func (k Keeper) GetHardDelegatorRewardFactor(ctx sdk.Context, ctype string) (factor sdk.Dec, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
@@ -243,6 +285,20 @@ func (k Keeper) GetHardDelegatorRewardFactor(ctx sdk.Context, ctype string) (fac
 func (k Keeper) SetHardDelegatorRewardFactor(ctx sdk.Context, ctype string, factor sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
 	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(factor))
+}
+
+// IterateHardDelegatorRewardFactors iterates over all Hard delegator reward factor objects in the store and preforms a callback function
+func (k Keeper) IterateHardDelegatorRewardFactors(ctx sdk.Context, cb func(denom string, factor sdk.Dec) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var factor sdk.Dec
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &factor)
+		if cb(string(iterator.Key()), factor) {
+			break
+		}
+	}
 }
 
 // GetPreviousHardSupplyRewardAccrualTime returns the last time a denom accrued Hard protocol supply-side rewards
