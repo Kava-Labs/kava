@@ -20,6 +20,7 @@ const (
 	flagOwner    = "owner"
 	flagType     = "type"
 	flagUnsynced = "unsynced"
+	flagDenom    = "denom"
 )
 
 // GetQueryCmd returns the cli query commands for the incentive module
@@ -32,6 +33,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	incentiveQueryCmd.AddCommand(flags.GetCommands(
 		queryParamsCmd(queryRoute, cdc),
 		queryRewardsCmd(queryRoute, cdc),
+		queryRewardFactorsCmd(queryRoute, cdc),
 	)...)
 
 	return incentiveQueryCmd
@@ -173,6 +175,49 @@ func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(params)
 		},
 	}
+}
+
+func queryRewardFactorsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reward-factors",
+		Short: "get current global reward factors",
+		Long: strings.TrimSpace(`get current global reward factors:
+
+		Example:
+		$ kvcli q hard reward-factors
+		$ kvcli q hard reward-factors --denom bnb`,
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			denom := viper.GetString(flagDenom)
+
+			// Construct query with params
+			params := types.NewQueryRewardFactorsParams(denom)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// Execute query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetRewardFactors)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var rewardFactors types.RewardFactors
+			if err := cdc.UnmarshalJSON(res, &rewardFactors); err != nil {
+				return fmt.Errorf("failed to unmarshal reward factors: %w", err)
+			}
+			return cliCtx.PrintOutput(rewardFactors)
+		},
+	}
+	cmd.Flags().String(flagDenom, "", "(optional) filter reward factors by denom")
+	return cmd
 }
 
 func executeHardRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext,
