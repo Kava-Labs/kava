@@ -22,7 +22,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 func postClaimCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var requestBody types.PostClaimReq
+		var requestBody PostClaimReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
 			return
 		}
@@ -55,7 +55,7 @@ func postClaimCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func postClaimHardHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var requestBody types.PostClaimReq
+		var requestBody PostClaimReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
 			return
 		}

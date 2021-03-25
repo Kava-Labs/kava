@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/rest"
 )
 
 // Querier routes for the incentive module
@@ -139,10 +138,3 @@ func NewRewardFactor(denom string, usdxMintingRewardFactor sdk.Dec, hardSupplyRe
 
 // RewardFactors is a slice of RewardFactor
 type RewardFactors = []RewardFactor
-
-// PostClaimReq defines the properties of claim transaction's request body.
-type PostClaimReq struct {
-	BaseReq        rest.BaseReq   `json:"base_req" yaml:"base_req"`
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
-}
