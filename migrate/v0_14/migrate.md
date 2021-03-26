@@ -88,4 +88,4 @@ __Note:__ This can take a while!
 
 ### Coordination
 
-If the kava-5.1 chain does not launch by March 31, 2021 at 17:00 UTC, the launch should be considered a failure and validators should refer to the [rollback]("./rollback.md") instructions to restart the previous kava-6 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
+If the kava-5.1 chain does not launch by March 31, 2021 at 17:00 UTC, the launch should be considered a failure and validators should refer to the [rollback](./rollback.md) instructions to restart the previous kava-6 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
