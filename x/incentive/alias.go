@@ -140,7 +140,6 @@ type (
 	MultiplierName                = types.MultiplierName
 	Multipliers                   = types.Multipliers
 	Params                        = types.Params
-	PostClaimReq                  = types.PostClaimReq
 	QueryHardRewardsParams        = types.QueryHardRewardsParams
 	QueryRewardsParams            = types.QueryRewardsParams
 	QueryUSDXMintingRewardsParams = types.QueryUSDXMintingRewardsParams
