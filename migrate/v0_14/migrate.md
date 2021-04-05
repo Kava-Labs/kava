@@ -1,14 +1,14 @@
-# Kava-5.1 Upgrade Instructions
+# kava-7 Upgrade Instructions
 
 ## Software Version and Key Dates
 
-* We will be upgrading from chain-id "kava-6" to chain-id "kava-5.1". This is to keep the features in our roadmap aligned with the features on mainnet going forward.
-* The version of Kava for kava-5.1 is v0.14.0
-* Kava-6 validators should prepare to shutdown their nodes March 31st, 2021 at 13:00 UTC by setting `--halt-time` to `1617195600`
-* Kava-5.1 genesis time is set to March 31st, 2021 at 15:00 UTC
-* The version of cosmos-sdk for kava-5.1 is v0.39.2
-* The version of tendermint for kava-5.1 v0.33.9
-* The minimum version of golang for kava-5.1 is 1.13+, 1.15+ has been tested and is recommended.
+* We will be upgrading from chain-id "kava-6" to chain-id "kava-7". This is to keep the features in our roadmap aligned with the features on mainnet going forward.
+* The version of Kava for kava-7 is v0.14.1
+* Kava-6 validators should prepare to shutdown their nodes April 8th, 2021 at 13:00 UTC by setting `--halt-time` to `1617886800`
+* kava-7 genesis time is set to April 8th, 2021 at 15:00 UTC
+* The version of cosmos-sdk for kava-7 is v0.39.2
+* The version of tendermint for kava-7 v0.33.9
+* The minimum version of golang for kava-7 is 1.13+, 1.15+ has been tested and is recommended.
 
 ### Risks
 
@@ -28,17 +28,17 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ### Before the upgrade
 
-Set your node to produce the final block of kava-6 at __13:00__ UTC March 31st, 2021. To restart your node with that stop time,
+Set your node to produce the final block of kava-6 at __13:00__ UTC April 8th, 2021. To restart your node with that stop time,
 
 ```sh
-kvd start --halt-time 1617195600
+kvd start --halt-time 1617886800
 ```
 
 You can safely set the halt-time flag at any time.
 
 ### On the day of the upgrade
 
-__The kava chain is expected to halt at 13:00 UTC, and restart with new software at 15:00 UTC March 31st. Do not stop your node and begin the upgrade before 13:00UTC on March 31st, or you may go offline and be unable to recover until after the upgrade!__
+__The kava chain is expected to halt at 13:00 UTC, and restart with new software at 15:00 UTC April 8th. Do not stop your node and begin the upgrade before 13:00UTC on April 8th, or you may go offline and be unable to recover until after the upgrade!__
 
 Kava developers will update this PR with the final block number when it is reached. __Make sure the kvd process is stopped before proceeding and that you have backed up your validator__. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
@@ -50,12 +50,12 @@ kvd export --for-zero-height --height PLACEHOLDER > export-genesis.json
 
 __Note:__ This can take a while!
 
-2. Update to kava-5.1
+2. Update to kava-7
 
 ```sh
   # in the `kava` folder
     git pull
-    git checkout v0.14.0
+    git checkout v0.14.1
     make install
 
   # verify versions
@@ -63,7 +63,7 @@ __Note:__ This can take a while!
   # name: kava
   # server_name: kvd
   # client_name: kvcli
-  # version: 0.14.0
+  # version: 0.14.1
   # commit: PLACEHOLDER
   # build_tags: netgo,ledger
   # go: go version go1.15.8 linux/amd64
@@ -88,4 +88,4 @@ __Note:__ This can take a while!
 
 ### Coordination
 
-If the kava-5.1 chain does not launch by March 31, 2021 at 17:00 UTC, the launch should be considered a failure and validators should refer to the [rollback](./rollback.md) instructions to restart the previous kava-6 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
+If the kava-7 chain does not launch by April 8, 2021 at 17:00 UTC, the launch should be considered a failure and validators should refer to the [rollback](./rollback.md) instructions to restart the previous kava-6 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
