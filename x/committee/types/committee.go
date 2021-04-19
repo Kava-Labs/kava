@@ -17,17 +17,36 @@ const MaxCommitteeDescriptionLength int = 512
 //				Committees
 // ------------------------------------------
 
+type VotingOption int
+
+const (
+	MembersOnly VotingOption = iota // 0
+	CoinVoting  VotingOption = iota // 1
+)
+
+type TallyOption int
+
+const (
+	FirstPastThePost VotingOption = iota // 0
+	Deadline         VotingOption = iota // 1
+)
+
 // A Committee is a collection of addresses that are allowed to vote and enact any governance proposal that passes their permissions.
 type Committee struct {
 	ID               uint64           `json:"id" yaml:"id"`
 	Description      string           `json:"description" yaml:"description"`
-	Members          []sdk.AccAddress `json:"members" yaml:"members"`
+	Members          []sdk.AccAddress `json:"members" yaml:"members"` // Only used in MembersOnly committees
 	Permissions      []Permission     `json:"permissions" yaml:"permissions"`
-	VoteThreshold    sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`       // Smallest percentage of members that must vote for a proposal to pass.
+	VoteThreshold    sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`       // Smallest percentage of members that must vote for a proposal to pass. Only used in MembersOnly committees.
 	ProposalDuration time.Duration    `json:"proposal_duration" yaml:"proposal_duration"` // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
+	VotingOption     VotingOption     `json:"voting_option" yaml:"voting_option"`
+	Quorum           sdk.Dec          `json:"quorum" yaml:"quorum"`           // Only used in CoinVoting committees
+	TallyDenom       string           `json:"tally_denom" yaml:"tally_denom"` // Only used in CoinVoting committees
+	TallyOption      TallyOption      `json:"tally_option" yaml:"tally_option"`
 }
 
-func NewCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission, threshold sdk.Dec, duration time.Duration) Committee {
+func NewCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
+	threshold sdk.Dec, duration time.Duration, votingOption VotingOption, quorum sdk.Dec, tallyOption TallyOption) Committee {
 	return Committee{
 		ID:               id,
 		Description:      description,
@@ -35,10 +54,16 @@ func NewCommittee(id uint64, description string, members []sdk.AccAddress, permi
 		Permissions:      permissions,
 		VoteThreshold:    threshold,
 		ProposalDuration: duration,
+		VotingOption:     votingOption,
+		Quorum:           quorum,
+		TallyOption:      tallyOption,
 	}
 }
 
 func (c Committee) HasMember(addr sdk.AccAddress) bool {
+	if c.VotingOption == CoinVoting {
+		return false
+	}
 	for _, m := range c.Members {
 		if m.Equals(addr) {
 			return true
@@ -73,10 +98,6 @@ func (c Committee) Validate() error {
 		addressMap[m.String()] = true
 	}
 
-	if len(c.Members) == 0 {
-		return fmt.Errorf("committee cannot have zero members")
-	}
-
 	if len(c.Description) > MaxCommitteeDescriptionLength {
 		return fmt.Errorf("description length %d longer than max allowed %d", len(c.Description), MaxCommitteeDescriptionLength)
 	}
@@ -87,13 +108,33 @@ func (c Committee) Validate() error {
 		}
 	}
 
-	// threshold must be in the range (0,1]
-	if c.VoteThreshold.IsNil() || c.VoteThreshold.LTE(sdk.ZeroDec()) || c.VoteThreshold.GT(sdk.NewDec(1)) {
-		return fmt.Errorf("invalid threshold: %s", c.VoteThreshold)
-	}
-
 	if c.ProposalDuration < 0 {
 		return fmt.Errorf("invalid proposal duration: %s", c.ProposalDuration)
+	}
+
+	switch c.VotingOption {
+	case MembersOnly:
+		if len(c.Members) == 0 {
+			return fmt.Errorf("committee cannot have zero members")
+		}
+
+		// threshold must be in the range (0,1]
+		if c.VoteThreshold.IsNil() || c.VoteThreshold.LTE(sdk.ZeroDec()) || c.VoteThreshold.GT(sdk.NewDec(1)) {
+			return fmt.Errorf("invalid threshold: %s", c.VoteThreshold)
+		}
+	case CoinVoting:
+		err := sdk.ValidateDenom(c.TallyDenom)
+		if err != nil {
+			return err
+		}
+
+		if len(c.Members) > 0 {
+			return fmt.Errorf("invalid members")
+		}
+
+		if c.Quorum.IsNegative() {
+			return fmt.Errorf("invalid quroum percentage: %s", c.Quorum)
+		}
 	}
 
 	return nil
