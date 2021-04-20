@@ -225,6 +225,22 @@ func (c TokenCommittee) Validate() error {
 	return nil
 }
 
+func (c TokenCommittee) String() string {
+	return fmt.Sprintf(`Committee %d:
+  Type:               %s
+  Description:              %s
+  Permissions:               			%s
+  VoteThreshold:            		  %s
+  ProposalDuration:        						%s
+  TallyOption:   						%d
+  Quorum:               %s
+  TallyDenom:               %s`,
+		c.ID, c.GetType(), c.Description, c.Permissions,
+		c.VoteThreshold.String(), c.ProposalDuration.String(),
+		c.TallyOption, c.Quorum, c.TallyDenom,
+	)
+}
+
 // ------------------------------------------
 //				Proposals
 // ------------------------------------------
