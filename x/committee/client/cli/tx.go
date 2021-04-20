@@ -105,7 +105,7 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 		Args:    cobra.ExactArgs(2),
 		Short:   "Vote for an active proposal",
 		Long:    "Submit a vote for the proposal with id [proposal-id].",
-		Example: fmt.Sprintf("%s tx %s vote 2", version.ClientName, types.ModuleName),
+		Example: fmt.Sprintf("%s tx %s vote 2 yes", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
