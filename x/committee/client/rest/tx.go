@@ -93,7 +93,6 @@ func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		// validate that the proposal id is a uint
 		rawVote := strings.ToLower(strings.TrimSpace(vars[RestVote]))
 		if len(rawVote) == 0 {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid %s: %s", RestVote, rawVote))

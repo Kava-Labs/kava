@@ -120,7 +120,6 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("proposal-id %s not a valid int, please input a valid proposal-id", args[0])
 			}
 
-			// validate that the proposal id is a uint
 			rawVote := strings.ToLower(strings.TrimSpace(args[1]))
 			if len(rawVote) == 0 {
 				return fmt.Errorf("must specify a vote (yes/no/abstain)")
