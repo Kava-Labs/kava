@@ -57,15 +57,24 @@ func (msg MsgSubmitProposal) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Proposer}
 }
 
+type VoteType int
+
+const (
+	Yes     VoteType = iota // 0
+	No      VoteType = iota // 1
+	Abstain VoteType = iota // 2
+)
+
 // MsgVote is submitted by committee members to vote on proposals.
 type MsgVote struct {
 	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`
 	Voter      sdk.AccAddress `json:"voter" yaml:"voter"`
+	VoteType   VoteType       `json:"vote_type" yaml:"vote_type"`
 }
 
 // NewMsgVote creates a message to cast a vote on an active proposal
-func NewMsgVote(voter sdk.AccAddress, proposalID uint64) MsgVote {
-	return MsgVote{proposalID, voter}
+func NewMsgVote(voter sdk.AccAddress, proposalID uint64, voteType VoteType) MsgVote {
+	return MsgVote{proposalID, voter, voteType}
 }
 
 // Route return the message type used for routing the message.
