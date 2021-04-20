@@ -28,10 +28,15 @@ const (
 // Committee is an interface for handling common actions on committees
 type Committee interface {
 	GetID() uint64
-	GetDescription() string
 	GetType() string
+	GetDescription() string
+
+	GetMembers() []sdk.AccAddress
+	HasMember(addr sdk.AccAddress) bool
+
 	GetPermissions() []Permission
 	HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, proposal PubProposal) bool
+
 	GetVoteThreshold() sdk.Dec
 	GetTallyOption() TallyOption
 	Validate() error
@@ -42,21 +47,35 @@ type Committees []Committee
 
 // BaseCommittee is a common type shared by all Committees
 type BaseCommittee struct {
-	ID               uint64        `json:"id" yaml:"id"`
-	Description      string        `json:"description" yaml:"description"`
-	Permissions      []Permission  `json:"permissions" yaml:"permissions"`
-	VoteThreshold    sdk.Dec       `json:"vote_threshold" yaml:"vote_threshold"`       // Smallest percentage that must vote for a proposal to pass
-	ProposalDuration time.Duration `json:"proposal_duration" yaml:"proposal_duration"` // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
-	TallyOption      TallyOption   `json:"tally_option" yaml:"tally_option"`
+	ID               uint64           `json:"id" yaml:"id"`
+	Description      string           `json:"description" yaml:"description"`
+	Members          []sdk.AccAddress `json:"members" yaml:"members"`
+	Permissions      []Permission     `json:"permissions" yaml:"permissions"`
+	VoteThreshold    sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`       // Smallest percentage that must vote for a proposal to pass
+	ProposalDuration time.Duration    `json:"proposal_duration" yaml:"proposal_duration"` // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
+	TallyOption      TallyOption      `json:"tally_option" yaml:"tally_option"`
 }
 
 // GetID is a getter for committee ID
 func (c BaseCommittee) GetID() uint64 { return c.ID }
 
-// GetDescription is a getter for committee Description
+// GetDescription is a getter for committee description
 func (c BaseCommittee) GetDescription() string { return c.Description }
 
-// GetPermissions is a getter for committee Permissions
+// GetMembers is a getter for committee members
+func (c BaseCommittee) GetMembers() []sdk.AccAddress { return c.Members }
+
+// HasMember returns if a committee contains a given member address
+func (c BaseCommittee) HasMember(addr sdk.AccAddress) bool {
+	for _, m := range c.Members {
+		if m.Equals(addr) {
+			return true
+		}
+	}
+	return false
+}
+
+// GetPermissions is a getter for committee permissions
 func (c BaseCommittee) GetPermissions() []Permission { return c.Permissions }
 
 // HasPermissionsFor returns whether the committee is authorized to enact a proposal.
@@ -85,6 +104,23 @@ func (c BaseCommittee) Validate() error {
 		return fmt.Errorf("description length %d longer than max allowed %d", len(c.Description), MaxCommitteeDescriptionLength)
 	}
 
+	if len(c.Members) <= 0 {
+		return fmt.Errorf("committee must have members")
+	}
+
+	addressMap := make(map[string]bool, len(c.Members))
+	for _, m := range c.Members {
+		// check there are no duplicate members
+		if _, ok := addressMap[m.String()]; ok {
+			return fmt.Errorf("committe cannot have duplicate members, %s", m)
+		}
+		// check for valid addresses
+		if m.Empty() {
+			return fmt.Errorf("committee cannot have empty member address")
+		}
+		addressMap[m.String()] = true
+	}
+
 	for _, p := range c.Permissions {
 		if p == nil {
 			return fmt.Errorf("committee cannot have a nil permission")
@@ -103,97 +139,53 @@ func (c BaseCommittee) Validate() error {
 	return nil
 }
 
+// String implements fmt.Stringer
 func (c BaseCommittee) String() string {
 	return fmt.Sprintf(`Committee %d:
-  Description:              %s
-  Permissions:               			%s
-  VoteThreshold:            		  %s
-  ProposalDuration:        						%s
-  TallyOption:   						%d`,
-		c.ID, c.Description, c.Permissions,
-		c.VoteThreshold.String(), c.ProposalDuration.String(),
-		c.TallyOption,
-	)
-}
-
-//
-type MemberCommittee struct {
-	BaseCommittee `json:"base_committee" yaml:"base_committee"`
-	Members       []sdk.AccAddress `json:"members" yaml:"members"`
-}
-
-func NewMemberCommittee(id uint64, description string, permissions []Permission, threshold sdk.Dec,
-	duration time.Duration, tallyOption TallyOption, members []sdk.AccAddress) MemberCommittee {
-	return MemberCommittee{
-		BaseCommittee: BaseCommittee{
-			ID:               id,
-			Description:      description,
-			Permissions:      permissions,
-			VoteThreshold:    threshold,
-			ProposalDuration: duration,
-			TallyOption:      tallyOption,
-		},
-		Members: members,
-	}
-}
-
-func (c MemberCommittee) GetType() string { return MemberCommitteeType }
-
-func (c MemberCommittee) GetMembers() []sdk.AccAddress { return c.Members }
-
-func (c MemberCommittee) HasMember(addr sdk.AccAddress) bool {
-	for _, m := range c.Members {
-		if m.Equals(addr) {
-			return true
-		}
-	}
-	return false
-}
-
-// Validate validates the MemberCommittee fields values
-func (c MemberCommittee) Validate() error {
-	if len(c.Members) <= 0 {
-		return fmt.Errorf("committee must have members")
-	}
-
-	addressMap := make(map[string]bool, len(c.Members))
-	for _, m := range c.Members {
-		// check there are no duplicate members
-		if _, ok := addressMap[m.String()]; ok {
-			return fmt.Errorf("committe cannot have duplicate members, %s", m)
-		}
-		// check for valid addresses
-		if m.Empty() {
-			return fmt.Errorf("committee cannot have empty member address")
-		}
-		addressMap[m.String()] = true
-	}
-
-	return c.BaseCommittee.Validate()
-}
-
-func (c MemberCommittee) String() string {
-	return fmt.Sprintf(`Committee %d:
-  Type:               %s
   Description:              %s
   Members:               %s
   Permissions:               			%s
   VoteThreshold:            		  %s
   ProposalDuration:        						%s
   TallyOption:   						%d`,
-		c.ID, c.GetType(), c.Description, c.GetMembers(), c.Permissions,
+		c.ID, c.Description, c.GetMembers(), c.Permissions,
 		c.VoteThreshold.String(), c.ProposalDuration.String(),
 		c.TallyOption,
 	)
 }
 
-//
+// MemberCommittee is an alias of BaseCommittee
+type MemberCommittee struct {
+	BaseCommittee `json:"base_committee" yaml:"base_committee"`
+}
+
+// NewMemberCommittee instantiates a new instance of MemberCommittee
+func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) MemberCommittee {
+	return MemberCommittee{
+		BaseCommittee: BaseCommittee{
+			ID:               id,
+			Description:      description,
+			Members:          members,
+			Permissions:      permissions,
+			VoteThreshold:    threshold,
+			ProposalDuration: duration,
+			TallyOption:      tallyOption,
+		},
+	}
+}
+
+// GetType returns the type of the committee
+func (c MemberCommittee) GetType() string { return MemberCommitteeType }
+
+// TokenCommittee supports voting on proposals by token holders
 type TokenCommittee struct {
 	BaseCommittee `json:"base_committee" yaml:"base_committee"`
 	Quorum        sdk.Dec `json:"quorum" yaml:"quorum"`
 	TallyDenom    string  `json:"tally_denom" yaml:"tally_denom"`
 }
 
+// NewTokenCommittee instantiates a new instance of TokenCommittee
 func NewTokenCommittee(id uint64, description string, permissions []Permission, threshold sdk.Dec,
 	duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) TokenCommittee {
 	return TokenCommittee{
@@ -210,8 +202,10 @@ func NewTokenCommittee(id uint64, description string, permissions []Permission, 
 	}
 }
 
+// GetType returns the type of the committee
 func (c TokenCommittee) GetType() string { return TokenCommitteeType }
 
+// Validate validates the committee's fields
 func (c TokenCommittee) Validate() error {
 	err := sdk.ValidateDenom(c.TallyDenom)
 	if err != nil {
@@ -225,6 +219,7 @@ func (c TokenCommittee) Validate() error {
 	return nil
 }
 
+// String implements fmt.Stringer
 func (c TokenCommittee) String() string {
 	return fmt.Sprintf(`Committee %d:
   Type:               %s

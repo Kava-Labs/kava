@@ -29,26 +29,27 @@ func TestGenesisState_Validate(t *testing.T) {
 				BaseCommittee: BaseCommittee{
 					ID:               1,
 					Description:      "This members committee is for testing.",
+					Members:          addresses[:3],
 					Permissions:      []Permission{GodPermission{}},
 					VoteThreshold:    d("0.667"),
 					ProposalDuration: time.Hour * 24 * 7,
 				},
-				Members: addresses[:3],
 			},
 			MemberCommittee{
 				BaseCommittee: BaseCommittee{
 					ID:               2,
 					Description:      "This members committee is also for testing.",
+					Members:          addresses[:3],
 					Permissions:      nil,
 					VoteThreshold:    d("0.8"),
 					ProposalDuration: time.Hour * 24 * 21,
 				},
-				Members: addresses[:3],
 			},
 			TokenCommittee{
 				BaseCommittee: BaseCommittee{
 					ID:               2,
 					Description:      "This token committee is for testing.",
+					Members:          addresses[:3],
 					Permissions:      nil,
 					VoteThreshold:    d("0.8"),
 					ProposalDuration: time.Hour * 24 * 21,
