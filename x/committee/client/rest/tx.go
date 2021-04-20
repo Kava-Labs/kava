@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -70,6 +71,7 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 type PostVoteReq struct {
 	BaseReq rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	Voter   sdk.AccAddress `json:"voter" yaml:"voter"`
+	Vote    types.VoteType `json:"vote" yaml:"vote"`
 }
 
 func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -86,6 +88,28 @@ func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
+		if len(vars[RestVote]) == 0 {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("%s required but not specified", RestVote))
+			return
+		}
+
+		// validate that the proposal id is a uint
+		rawVote := strings.ToLower(strings.TrimSpace(vars[RestVote]))
+		if len(rawVote) == 0 {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid %s: %s", RestVote, rawVote))
+			return
+		}
+
+		var vote types.VoteType
+		switch rawVote {
+		case "yes", "y":
+			vote = types.Yes
+		case "no", "n":
+			vote = types.No
+		case "abstain", "a":
+			vote = types.Abstain
+		}
+
 		// Parse and validate http request body
 		var req PostVoteReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -97,7 +121,7 @@ func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Create and return a StdTx
-		msg := types.NewMsgVote(req.Voter, proposalID)
+		msg := types.NewMsgVote(req.Voter, proposalID, vote)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
