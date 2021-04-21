@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -88,6 +90,11 @@ func (msg MsgVote) ValidateBasic() error {
 	if msg.Voter.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "voter address cannot be empty")
 	}
+
+	if msg.VoteType >= 3 { // 0 = Yes, 1 = No, 2 = Abstain
+		return fmt.Errorf("invalid vote type: %d", msg.VoteType)
+	}
+
 	return nil
 }
 
