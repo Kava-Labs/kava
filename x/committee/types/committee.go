@@ -37,6 +37,8 @@ type Committee interface {
 	GetPermissions() []Permission
 	HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, proposal PubProposal) bool
 
+	GetProposalDuration() time.Duration
+
 	GetVoteThreshold() sdk.Dec
 	GetTallyOption() TallyOption
 	Validate() error

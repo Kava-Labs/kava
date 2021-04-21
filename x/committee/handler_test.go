@@ -49,13 +49,15 @@ func (suite *HandlerTestSuite) SetupTest() {
 	testGenesis := types.NewGenesisState(
 		3,
 		[]types.Committee{
-			{
-				ID:               1,
-				Description:      "This committee is for testing.",
-				Members:          suite.addresses[:3],
-				Permissions:      []types.Permission{types.GodPermission{}},
-				VoteThreshold:    d("0.5"),
-				ProposalDuration: time.Hour * 24 * 7,
+			types.MemberCommittee{
+				BaseCommittee: types.BaseCommittee{
+					ID:               1,
+					Description:      "This committee is for testing.",
+					Members:          suite.addresses[:3],
+					Permissions:      []types.Permission{types.GodPermission{}},
+					VoteThreshold:    d("0.5"),
+					ProposalDuration: time.Hour * 24 * 7,
+				},
 			},
 		},
 		[]types.Proposal{},
