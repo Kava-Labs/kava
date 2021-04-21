@@ -16,13 +16,13 @@ const MaxCommitteeDescriptionLength int = 512
 type TallyOption int
 
 const (
-	FirstPastThePost TallyOption = iota // 0
-	Deadline         TallyOption = iota // 1
+	FirstPastThePost TallyOption = iota // Votes are tallied each block and the proposal passes as soon as the vote threshold is reached
+	Deadline         TallyOption = iota // Votes are tallied exactly once, when the deadline time is reached
 )
 
 const (
-	MemberCommitteeType = "member"
-	TokenCommitteeType  = "token"
+	MemberCommitteeType = "member" // Committee is composed of member addresses that vote to enact proposals within their permissions
+	TokenCommitteeType  = "token"  // Committee is composed of token holders with voting power determined by total token balance
 )
 
 // Committee is an interface for handling common actions on committees
@@ -178,6 +178,11 @@ func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress,
 // GetType returns the type of the committee
 func (c MemberCommittee) GetType() string { return MemberCommitteeType }
 
+// Validate validates the committee's fields
+func (c MemberCommittee) Validate() error {
+	return c.BaseCommittee.Validate()
+}
+
 // TokenCommittee supports voting on proposals by token holders
 type TokenCommittee struct {
 	BaseCommittee `json:"base_committee" yaml:"base_committee"`
@@ -216,7 +221,7 @@ func (c TokenCommittee) Validate() error {
 		return fmt.Errorf("invalid quroum: %s", c.Quorum)
 	}
 
-	return nil
+	return c.BaseCommittee.Validate()
 }
 
 // String implements fmt.Stringer
