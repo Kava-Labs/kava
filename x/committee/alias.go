@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	Abstain                         = types.Abstain
 	AttributeKeyCommitteeID         = types.AttributeKeyCommitteeID
 	AttributeKeyProposalCloseStatus = types.AttributeKeyProposalCloseStatus
 	AttributeKeyProposalID          = types.AttributeKeyProposalID
@@ -24,6 +25,7 @@ const (
 	EventTypeProposalVote           = types.EventTypeProposalVote
 	MaxCommitteeDescriptionLength   = types.MaxCommitteeDescriptionLength
 	ModuleName                      = types.ModuleName
+	No                              = types.No
 	ProposalTypeCommitteeChange     = types.ProposalTypeCommitteeChange
 	ProposalTypeCommitteeDelete     = types.ProposalTypeCommitteeDelete
 	QuerierRoute                    = types.QuerierRoute
@@ -40,6 +42,7 @@ const (
 	StoreKey                        = types.StoreKey
 	TypeMsgSubmitProposal           = types.TypeMsgSubmitProposal
 	TypeMsgVote                     = types.TypeMsgVote
+	Yes                             = types.Yes
 )
 
 var (

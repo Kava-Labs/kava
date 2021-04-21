@@ -56,12 +56,22 @@ func TestMsgVote_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:       "normal",
-			msg:        MsgVote{5, addr},
+			msg:        MsgVote{5, addr, Yes},
+			expectPass: true,
+		},
+		{
+			name:       "abstain",
+			msg:        MsgVote{5, addr, Abstain},
 			expectPass: true,
 		},
 		{
 			name:       "empty address",
-			msg:        MsgVote{5, nil},
+			msg:        MsgVote{5, nil, Yes},
+			expectPass: false,
+		},
+		{
+			name:       "invalid vote",
+			msg:        MsgVote{5, addr, 3},
 			expectPass: false,
 		},
 	}

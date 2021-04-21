@@ -253,6 +253,7 @@ func (suite *KeeperTestSuite) TestAddVote() {
 		name       string
 		proposalID uint64
 		voter      sdk.AccAddress
+		voteType   types.VoteType
 		voteTime   time.Time
 		expectErr  bool
 	}{
@@ -260,18 +261,21 @@ func (suite *KeeperTestSuite) TestAddVote() {
 			name:       "normal",
 			proposalID: types.DefaultNextProposalID,
 			voter:      normalCom.Members[0],
+			voteType:   types.Yes,
 			expectErr:  false,
 		},
 		{
 			name:       "nonexistent proposal",
 			proposalID: 9999999,
 			voter:      normalCom.Members[0],
+			voteType:   types.Yes,
 			expectErr:  true,
 		},
 		{
 			name:       "voter not committee member",
 			proposalID: types.DefaultNextProposalID,
 			voter:      suite.addresses[4],
+			voteType:   types.Yes,
 			expectErr:  true,
 		},
 		{
@@ -279,6 +283,7 @@ func (suite *KeeperTestSuite) TestAddVote() {
 			proposalID: types.DefaultNextProposalID,
 			voter:      normalCom.Members[0],
 			voteTime:   firstBlockTime.Add(normalCom.ProposalDuration),
+			voteType:   types.Yes,
 			expectErr:  true,
 		},
 	}
@@ -297,7 +302,7 @@ func (suite *KeeperTestSuite) TestAddVote() {
 			suite.NoError(err)
 
 			ctx = ctx.WithBlockTime(tc.voteTime)
-			err = keeper.AddVote(ctx, tc.proposalID, tc.voter)
+			err = keeper.AddVote(ctx, tc.proposalID, tc.voter, tc.voteType)
 
 			if tc.expectErr {
 				suite.NotNil(err)

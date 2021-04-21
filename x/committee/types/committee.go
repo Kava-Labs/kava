@@ -288,18 +288,24 @@ func (p Proposal) String() string {
 type Vote struct {
 	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`
 	Voter      sdk.AccAddress `json:"voter" yaml:"voter"`
+	VoteType   VoteType       `json:"vote_type" yaml:"vote_type"`
 }
 
-func NewVote(proposalID uint64, voter sdk.AccAddress) Vote {
+func NewVote(proposalID uint64, voter sdk.AccAddress, voteType VoteType) Vote {
 	return Vote{
 		ProposalID: proposalID,
 		Voter:      voter,
+		VoteType:   voteType,
 	}
 }
 
 func (v Vote) Validate() error {
 	if v.Voter.Empty() {
 		return fmt.Errorf("voter address cannot be empty")
+	}
+
+	if v.VoteType >= 3 { // 0 = Yes, 1 = No, 2 = Abstain
+		return fmt.Errorf("invalid vote type: %d", v.VoteType)
 	}
 	return nil
 }

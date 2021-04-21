@@ -48,7 +48,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 }
 
 // AddVote submits a vote on a proposal.
-func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) error {
+func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress, voteType types.VoteType) error {
 	// Validate
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
@@ -67,7 +67,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	}
 
 	// Store vote, overwriting any prior vote
-	k.SetVote(ctx, types.NewVote(proposalID, voter))
+	k.SetVote(ctx, types.NewVote(proposalID, voter, voteType))
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -75,6 +75,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", com.ID)),
 			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", pr.ID)),
 			sdk.NewAttribute(types.AttributeKeyVoter, voter.String()),
+			sdk.NewAttribute(types.AttributeKeyVote, fmt.Sprintf("%d", voteType)),
 		),
 	)
 	return nil

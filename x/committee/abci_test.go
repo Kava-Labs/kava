@@ -114,9 +114,9 @@ func (suite *ModuleTestSuite) TestBeginBlock_EnactsPassed() {
 	suite.NoError(err)
 
 	// add enough votes to make the first proposal pass, but not the second
-	suite.NoError(suite.keeper.AddVote(suite.ctx, id1, suite.addresses[0]))
-	suite.NoError(suite.keeper.AddVote(suite.ctx, id1, suite.addresses[1]))
-	suite.NoError(suite.keeper.AddVote(suite.ctx, id2, suite.addresses[0]))
+	suite.NoError(suite.keeper.AddVote(suite.ctx, id1, suite.addresses[0], types.Yes))
+	suite.NoError(suite.keeper.AddVote(suite.ctx, id1, suite.addresses[1], types.Yes))
+	suite.NoError(suite.keeper.AddVote(suite.ctx, id2, suite.addresses[0], types.Yes))
 
 	// Run BeginBlocker
 	suite.NotPanics(func() {
@@ -161,7 +161,7 @@ func (suite *ModuleTestSuite) TestBeginBlock_DoesntEnactFailed() {
 	suite.NoError(err)
 
 	// add enough votes to make the proposal pass
-	suite.NoError(suite.keeper.AddVote(ctx, id1, suite.addresses[0]))
+	suite.NoError(suite.keeper.AddVote(ctx, id1, suite.addresses[0], types.Yes))
 
 	// Run BeginBlocker 10 seconds later (5 seconds after upgrade expires)
 	tenSecLaterCtx := ctx.WithBlockTime(ctx.BlockTime().Add(time.Second * 10))
@@ -214,7 +214,7 @@ func (suite *ModuleTestSuite) TestBeginBlock_EnactsPassedUpgrade() {
 	suite.NoError(err)
 
 	// add enough votes to make the proposal pass
-	suite.NoError(suite.keeper.AddVote(ctx, id1, suite.addresses[0]))
+	suite.NoError(suite.keeper.AddVote(ctx, id1, suite.addresses[0], types.Yes))
 
 	// Run BeginBlocker
 	fiveSecLaterCtx := ctx.WithBlockTime(ctx.BlockTime().Add(time.Second * 5))

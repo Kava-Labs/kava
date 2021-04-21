@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -100,11 +101,11 @@ For example:
 // GetCmdVote returns the command to vote on a proposal.
 func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:     "vote [proposal-id]",
-		Args:    cobra.ExactArgs(1),
+		Use:     "vote [proposal-id] [vote]",
+		Args:    cobra.ExactArgs(2),
 		Short:   "Vote for an active proposal",
-		Long:    "Submit a yes vote for the proposal with id [proposal-id].",
-		Example: fmt.Sprintf("%s tx %s vote 2", version.ClientName, types.ModuleName),
+		Long:    "Submit a vote for the proposal with id [proposal-id].",
+		Example: fmt.Sprintf("%s tx %s vote 2 yes", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -119,8 +120,23 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("proposal-id %s not a valid int, please input a valid proposal-id", args[0])
 			}
 
+			rawVote := strings.ToLower(strings.TrimSpace(args[1]))
+			if len(rawVote) == 0 {
+				return fmt.Errorf("must specify a vote (yes/no/abstain)")
+			}
+
+			var vote types.VoteType
+			switch rawVote {
+			case "yes", "y":
+				vote = types.Yes
+			case "no", "n":
+				vote = types.No
+			case "abstain", "a":
+				vote = types.Abstain
+			}
+
 			// Build vote message and run basic validation
-			msg := types.NewMsgVote(from, proposalID)
+			msg := types.NewMsgVote(from, proposalID, vote)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
