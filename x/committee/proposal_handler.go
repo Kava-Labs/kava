@@ -26,7 +26,7 @@ func handleCommitteeChangeProposal(ctx sdk.Context, k Keeper, committeeProposal 
 	}
 
 	// Remove all committee's ongoing proposals
-	proposals := k.GetProposalsByCommittee(ctx, committeeProposal.NewCommittee.ID)
+	proposals := k.GetProposalsByCommittee(ctx, committeeProposal.NewCommittee.GetID())
 	for _, p := range proposals {
 		k.DeleteProposalAndVotes(ctx, p.ID)
 	}

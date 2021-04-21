@@ -74,7 +74,7 @@ func GetCmdQueryCommittee(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Decode and print result
-			committee := types.Committee{}
+			var committee types.Committee
 			if err = cdc.UnmarshalJSON(res, &committee); err != nil {
 				return err
 			}

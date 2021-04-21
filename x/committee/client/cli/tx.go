@@ -192,7 +192,7 @@ func MustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
 	exampleChangeProposal := types.NewCommitteeChangeProposal(
 		"A Title",
 		"A description of this proposal.",
-		types.NewCommittee(
+		types.NewMemberCommittee(
 			1,
 			"The description of this committee.",
 			[]sdk.AccAddress{sdk.AccAddress(crypto.AddressHash([]byte("exampleAddress")))},
@@ -203,6 +203,7 @@ func MustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
 			},
 			sdk.MustNewDecFromStr("0.8"),
 			time.Hour*24*7,
+			types.FirstPastThePost,
 		),
 	)
 	exampleChangeProposalBz, err := cdc.MarshalJSONIndent(exampleChangeProposal, "", "  ")

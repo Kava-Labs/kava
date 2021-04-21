@@ -39,20 +39,26 @@ func (suite *ProposalHandlerTestSuite) SetupTest() {
 	suite.testGenesis = committee.NewGenesisState(
 		2,
 		[]committee.Committee{
-			{
-				ID:               1,
-				Description:      "This committee is for testing.",
-				Members:          suite.addresses[:3],
-				Permissions:      []types.Permission{types.GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
+			committee.MemberCommittee{
+				BaseCommittee: committee.BaseCommittee{
+					ID:               1,
+					Description:      "This committee is for testing.",
+					Members:          suite.addresses[:3],
+					Permissions:      []types.Permission{types.GodPermission{}},
+					VoteThreshold:    d("0.667"),
+					ProposalDuration: time.Hour * 24 * 7,
+					TallyOption:      types.FirstPastThePost,
+				},
 			},
-			{
-				ID:               2,
-				Members:          suite.addresses[2:],
-				Permissions:      nil,
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
+			committee.MemberCommittee{
+				BaseCommittee: committee.BaseCommittee{
+					ID:               2,
+					Members:          suite.addresses[2:],
+					Permissions:      nil,
+					VoteThreshold:    d("0.667"),
+					ProposalDuration: time.Hour * 24 * 7,
+					TallyOption:      types.FirstPastThePost,
+				},
 			},
 		},
 		[]committee.Proposal{
@@ -75,11 +81,14 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 			proposal: committee.NewCommitteeChangeProposal(
 				"A Title",
 				"A proposal description.",
-				committee.Committee{
-					ID:               34,
-					Members:          suite.addresses[:1],
-					VoteThreshold:    d("1"),
-					ProposalDuration: time.Hour * 24,
+				committee.MemberCommittee{
+					BaseCommittee: committee.BaseCommittee{
+						ID:               34,
+						Members:          suite.addresses[:1],
+						VoteThreshold:    d("1"),
+						ProposalDuration: time.Hour * 24,
+						TallyOption:      types.FirstPastThePost,
+					},
 				},
 			),
 			expectPass: true,
@@ -89,12 +98,14 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 			proposal: committee.NewCommitteeChangeProposal(
 				"A Title",
 				"A proposal description.",
-				committee.Committee{
-					ID:               suite.testGenesis.Committees[0].ID,
-					Members:          suite.addresses, // add new members
-					Permissions:      suite.testGenesis.Committees[0].Permissions,
-					VoteThreshold:    suite.testGenesis.Committees[0].VoteThreshold,
-					ProposalDuration: suite.testGenesis.Committees[0].ProposalDuration,
+				committee.MemberCommittee{
+					BaseCommittee: committee.BaseCommittee{
+						ID:               suite.testGenesis.Committees[0].GetID(),
+						Members:          suite.addresses, // add new members
+						Permissions:      suite.testGenesis.Committees[0].GetPermissions(),
+						VoteThreshold:    suite.testGenesis.Committees[0].GetVoteThreshold(),
+						ProposalDuration: suite.testGenesis.Committees[0].GetProposalDuration(),
+					},
 				},
 			),
 			expectPass: true,
@@ -113,12 +124,14 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 			proposal: committee.NewCommitteeChangeProposal(
 				"A Title",
 				"A proposal description.",
-				committee.Committee{
-					ID:               suite.testGenesis.Committees[0].ID,
-					Members:          append(suite.addresses, suite.addresses[0]), // duplicate address
-					Permissions:      suite.testGenesis.Committees[0].Permissions,
-					VoteThreshold:    suite.testGenesis.Committees[0].VoteThreshold,
-					ProposalDuration: suite.testGenesis.Committees[0].ProposalDuration,
+				committee.MemberCommittee{
+					BaseCommittee: committee.BaseCommittee{
+						ID:               suite.testGenesis.Committees[0].GetID(),
+						Members:          append(suite.addresses, suite.addresses[0]), // duplicate address
+						Permissions:      suite.testGenesis.Committees[0].GetPermissions(),
+						VoteThreshold:    suite.testGenesis.Committees[0].GetVoteThreshold(),
+						ProposalDuration: suite.testGenesis.Committees[0].GetProposalDuration(),
+					},
 				},
 			),
 			expectPass: false,
@@ -135,7 +148,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 			suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: testTime})
 			handler := committee.NewProposalHandler(suite.keeper)
 
-			oldProposals := suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.NewCommittee.ID)
+			oldProposals := suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.NewCommittee.GetID())
 
 			// Run
 			err := handler(suite.ctx, tc.proposal)
@@ -144,12 +157,12 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 			if tc.expectPass {
 				suite.NoError(err)
 				// check committee is accurate
-				actualCom, found := suite.keeper.GetCommittee(suite.ctx, tc.proposal.NewCommittee.ID)
+				actualCom, found := suite.keeper.GetCommittee(suite.ctx, tc.proposal.NewCommittee.GetID())
 				suite.True(found)
 				suite.Equal(tc.proposal.NewCommittee, actualCom)
 
 				// check proposals and votes for this committee have been removed
-				suite.Empty(suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.NewCommittee.ID))
+				suite.Empty(suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.NewCommittee.GetID()))
 				for _, p := range oldProposals {
 					suite.Empty(suite.keeper.GetVotesByProposal(suite.ctx, p.ID))
 				}
@@ -172,7 +185,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_DeleteCommittee() {
 			proposal: committee.NewCommitteeDeleteProposal(
 				"A Title",
 				"A proposal description.",
-				suite.testGenesis.Committees[0].ID,
+				suite.testGenesis.Committees[0].GetID(),
 			),
 			expectPass: true,
 		},
@@ -181,7 +194,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_DeleteCommittee() {
 			proposal: committee.NewCommitteeDeleteProposal(
 				"A Title That Is Much Too Long And Really Quite Unreasonable Given That It Is Trying To Fulfill The Roll Of An Acceptable Governance Proposal Title That Should Succinctly Communicate The Goal And Contents Of The Proposed Proposal To All Parties Involved",
 				"A proposal description.",
-				suite.testGenesis.Committees[1].ID,
+				suite.testGenesis.Committees[1].GetID(),
 			),
 			expectPass: false,
 		},
