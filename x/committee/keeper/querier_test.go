@@ -277,9 +277,12 @@ func (suite *QuerierTestSuite) TestQueryRawParams() {
 	subspace = subspace.WithKeyTable(params.NewKeyTable().RegisterParamSet(&TestParams{}))
 
 	paramValue := TestSubParam{
-		Some:   "test",
-		Test:   d("1000000000000.000000000000000001"),
-		Params: []types.Vote{{1, suite.addresses[0]}, {12, suite.addresses[1]}},
+		Some: "test",
+		Test: d("1000000000000.000000000000000001"),
+		Params: []types.Vote{
+			types.NewVote(1, suite.addresses[0], types.Yes),
+			types.NewVote(12, suite.addresses[1], types.Yes),
+		},
 	}
 	subspace.Set(ctx, []byte(paramKey), paramValue)
 
