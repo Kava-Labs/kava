@@ -31,15 +31,20 @@ type Committee interface {
 	GetType() string
 	GetDescription() string
 
+	SetMembers([]sdk.AccAddress)
 	GetMembers() []sdk.AccAddress
 	HasMember(addr sdk.AccAddress) bool
 
+	SetPermissions([]Permission)
 	GetPermissions() []Permission
 	HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, proposal PubProposal) bool
 
+	SetProposalDuration(time.Duration)
 	GetProposalDuration() time.Duration
 
+	SetVoteThreshold(sdk.Dec)
 	GetVoteThreshold() sdk.Dec
+
 	GetTallyOption() TallyOption
 	Validate() error
 }
@@ -64,6 +69,9 @@ func (c BaseCommittee) GetID() uint64 { return c.ID }
 // GetDescription is a getter for committee description
 func (c BaseCommittee) GetDescription() string { return c.Description }
 
+// SetMembers is a setter for committee members
+func (c BaseCommittee) SetMembers(members []sdk.AccAddress) { c.Members = members }
+
 // GetMembers is a getter for committee members
 func (c BaseCommittee) GetMembers() []sdk.AccAddress { return c.Members }
 
@@ -76,6 +84,9 @@ func (c BaseCommittee) HasMember(addr sdk.AccAddress) bool {
 	}
 	return false
 }
+
+// SetPermissions is a setter for committee permissions
+func (c BaseCommittee) SetPermissions(permissions []Permission) { c.Permissions = permissions }
 
 // GetPermissions is a getter for committee permissions
 func (c BaseCommittee) GetPermissions() []Permission { return c.Permissions }
@@ -91,8 +102,14 @@ func (c BaseCommittee) HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, p
 	return false
 }
 
+// SetVoteThreshold is a setter for committee VoteThreshold
+func (c BaseCommittee) SetVoteThreshold(threshold sdk.Dec) { c.VoteThreshold = threshold }
+
 // GetVoteThreshold is a getter for committee VoteThreshold
 func (c BaseCommittee) GetVoteThreshold() sdk.Dec { return c.VoteThreshold }
+
+// SetProposalDuration is a setter for committee ProposalDuration
+func (c BaseCommittee) SetProposalDuration(duration time.Duration) { c.ProposalDuration = duration }
 
 // GetProposalDuration is a getter for committee ProposalDuration
 func (c BaseCommittee) GetProposalDuration() time.Duration { return c.ProposalDuration }
