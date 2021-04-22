@@ -26,13 +26,14 @@ func makeTestCodec() (cdc *codec.Codec) {
 func TestDecodeStore(t *testing.T) {
 	cdc := makeTestCodec()
 
-	committee := types.NewCommittee(
+	committee := types.NewMemberCommittee(
 		12,
 		"This committee is for testing.",
 		nil,
 		[]types.Permission{types.TextPermission{}},
 		sdk.MustNewDecFromStr("0.667"),
 		time.Hour*24*7,
+		types.FirstPastThePost,
 	)
 	proposal := types.Proposal{
 		ID:          34,
