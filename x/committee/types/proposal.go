@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	yaml "gopkg.in/yaml.v2"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -11,6 +13,27 @@ const (
 	ProposalTypeCommitteeChange = "CommitteeChange"
 	ProposalTypeCommitteeDelete = "CommitteeDelete"
 )
+
+type ProposalOutcome int
+
+const (
+	Passed  ProposalOutcome = iota // 0
+	Failed  ProposalOutcome = iota // 1
+	Invalid ProposalOutcome = iota // 2
+)
+
+func (po ProposalOutcome) String() string {
+	switch po {
+	case Passed:
+		return "Passed"
+	case Failed:
+		return "Failed"
+	case Invalid:
+		return "Invalid"
+	default:
+		return fmt.Sprintf("%d", int(po))
+	}
+}
 
 // ensure proposal types fulfill the PubProposal interface and the gov Content interface.
 var _, _ govtypes.Content = CommitteeChangeProposal{}, CommitteeDeleteProposal{}

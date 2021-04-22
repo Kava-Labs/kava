@@ -229,6 +229,12 @@ func NewTokenCommittee(id uint64, description string, permissions []Permission, 
 // GetType returns the type of the committee
 func (c TokenCommittee) GetType() string { return TokenCommitteeType }
 
+// GetQuorum returns the quorum of the committee
+func (c TokenCommittee) GetQuorum() sdk.Dec { return c.Quorum }
+
+// GetTallyDenom returns the tally denom of the committee
+func (c TokenCommittee) GetTallyDenom() string { return c.TallyDenom }
+
 // Validate validates the committee's fields
 func (c TokenCommittee) Validate() error {
 	err := sdk.ValidateDenom(c.TallyDenom)
