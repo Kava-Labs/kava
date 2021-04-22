@@ -31,7 +31,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	}
 
 	// Get a new ID and store the proposal
-	deadline := ctx.BlockTime().Add(com.ProposalDuration)
+	deadline := ctx.BlockTime().Add(com.GetProposalDuration())
 	proposalID, err := k.StoreNewProposal(ctx, pubProposal, committeeID, deadline)
 	if err != nil {
 		return 0, err
@@ -40,7 +40,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeProposalSubmit,
-			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", com.ID)),
+			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", com.GetID())),
 			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
 		),
 	)
@@ -72,7 +72,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeProposalVote,
-			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", com.ID)),
+			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", com.GetID())),
 			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", pr.ID)),
 			sdk.NewAttribute(types.AttributeKeyVoter, voter.String()),
 			sdk.NewAttribute(types.AttributeKeyVote, fmt.Sprintf("%d", voteType)),
@@ -94,7 +94,7 @@ func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64) (bool, err
 
 	numVotes := k.TallyVotes(ctx, proposalID)
 
-	proposalResult := sdk.NewDec(numVotes).GTE(com.VoteThreshold.MulInt64(int64(len(com.Members))))
+	proposalResult := sdk.NewDec(numVotes).GTE(com.GetVoteThreshold().MulInt64(int64(len(com.GetMembers()))))
 
 	return proposalResult, nil
 }
