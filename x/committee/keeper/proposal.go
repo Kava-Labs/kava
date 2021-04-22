@@ -62,8 +62,14 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	if !found {
 		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
 	}
-	if !com.HasMember(voter) {
-		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "voter must be a member of committee")
+
+	if com.GetType() == types.MemberCommitteeType {
+		if !com.HasMember(voter) {
+			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "voter must be a member of committee")
+		}
+		if voteType != types.Yes {
+			return sdkerrors.Wrap(types.ErrInvalidVoteType, "member committees only accept yes votes")
+		}
 	}
 
 	// Store vote, overwriting any prior vote
@@ -79,111 +85,6 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 		),
 	)
 	return nil
-}
-
-// GetProposalResult calculates if a proposal currently has enough votes to pass.
-func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64) (bool, error) {
-	pr, found := k.GetProposal(ctx, proposalID)
-	if !found {
-		return false, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
-	}
-	com, found := k.GetCommittee(ctx, pr.CommitteeID)
-	if !found {
-		return false, sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
-	}
-
-	numVotes := k.TallyVotes(ctx, proposalID)
-
-	proposalResult := sdk.NewDec(numVotes).GTE(com.GetVoteThreshold().MulInt64(int64(len(com.GetMembers()))))
-
-	return proposalResult, nil
-}
-
-// TallyVotes counts all the votes on a proposal
-func (k Keeper) TallyVotes(ctx sdk.Context, proposalID uint64) int64 {
-
-	votes := k.GetVotesByProposal(ctx, proposalID)
-
-	return int64(len(votes))
-}
-
-// EnactProposal makes the changes proposed in a proposal.
-func (k Keeper) EnactProposal(ctx sdk.Context, proposal types.Proposal) error {
-	// Check committee still has permissions for the proposal
-	// Since the proposal was submitted params could have changed, invalidating the permission of the committee.
-	com, found := k.GetCommittee(ctx, proposal.CommitteeID)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", proposal.CommitteeID)
-	}
-	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, proposal.PubProposal) {
-		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
-	}
-
-	if err := k.ValidatePubProposal(ctx, proposal.PubProposal); err != nil {
-		return err
-	}
-
-	// enact the proposal
-	handler := k.router.GetRoute(proposal.ProposalRoute())
-	if err := handler(ctx, proposal.PubProposal); err != nil {
-		// the handler should not error as it was checked in ValidatePubProposal
-		panic(fmt.Sprintf("unexpected handler error: %s", err))
-	}
-	return nil
-}
-
-// EnactPassedProposals puts in place the changes proposed in any proposal that has enough votes
-func (k Keeper) EnactPassedProposals(ctx sdk.Context) {
-	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
-		passes, err := k.GetProposalResult(ctx, proposal.ID)
-		if err != nil {
-			panic(err)
-		}
-
-		if !passes {
-			// continue to next proposal
-			return false
-		}
-
-		err = k.EnactProposal(ctx, proposal)
-		outcome := types.AttributeValueProposalPassed
-		if err != nil {
-			outcome = types.AttributeValueProposalFailed
-		}
-
-		k.DeleteProposalAndVotes(ctx, proposal.ID)
-
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeProposalClose,
-				sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
-				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
-				sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, outcome),
-			),
-		)
-		return false
-	})
-}
-
-// CloseExpiredProposals removes proposals (and associated votes) that have past their deadline.
-func (k Keeper) CloseExpiredProposals(ctx sdk.Context) {
-	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
-		if !proposal.HasExpiredBy(ctx.BlockTime()) {
-			return false
-		}
-
-		k.DeleteProposalAndVotes(ctx, proposal.ID)
-
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeProposalClose,
-				sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
-				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
-				sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, types.AttributeValueProposalTimeout),
-			),
-		)
-		return false
-	})
 }
 
 // ValidatePubProposal checks if a pubproposal is valid.
@@ -217,4 +118,141 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 		return err
 	}
 	return nil
+}
+
+func (k Keeper) ProcessProposals(ctx sdk.Context) {
+
+	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
+
+		committee, found := k.GetCommittee(ctx, proposal.CommitteeID)
+		if !found {
+			panic("expected committee to be found") // TODO: can committees be removed while having active proposals? If so, don't panic.
+		}
+
+		if proposal.HasExpiredBy(ctx.BlockTime()) {
+			passed := k.GetProposalResult(ctx, proposal.ID, committee)
+			outcome := types.Failed
+			if passed {
+				outcome = types.Passed
+				err := k.EnactProposal(ctx, proposal)
+				if err != nil {
+					outcome = types.Invalid
+				}
+			}
+			k.CloseProposal(ctx, proposal, outcome)
+		} else {
+			if committee.GetTallyOption() == types.FirstPastThePost {
+				passed := k.GetProposalResult(ctx, proposal.ID, committee)
+				if passed {
+					outcome := types.Passed
+					err := k.EnactProposal(ctx, proposal)
+					if err != nil {
+						outcome = types.Invalid
+					}
+					k.CloseProposal(ctx, proposal, outcome)
+				}
+			}
+		}
+		return false
+	})
+
+}
+
+func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64, committee types.Committee) bool {
+	votes := k.GetVotesByProposal(ctx, proposalID)
+
+	switch committee.GetType() {
+	case types.MemberCommitteeType:
+		numVotes := int64(len(votes))
+		numMembers := int64(len(committee.GetMembers()))
+		return sdk.NewDec(numVotes).GTE(committee.GetVoteThreshold().MulInt64(numMembers))
+	case types.TokenCommitteeType:
+		tokenCommittee := committee.(types.TokenCommittee) // will panic if type assertion isn't met
+
+		totalVotes := sdk.ZeroDec()
+		yesVotes := sdk.ZeroDec()
+		for _, vote := range votes {
+			// 1 token = 1 vote
+			acc := k.accountKeeper.GetAccount(ctx, vote.Voter)
+			accNumCoins := acc.GetCoins().AmountOf(tokenCommittee.GetTallyDenom())
+
+			// Add votes to counters
+			totalVotes = totalVotes.Add(accNumCoins.ToDec())
+			if vote.VoteType == types.Yes {
+				yesVotes = yesVotes.Add(accNumCoins.ToDec())
+			}
+		}
+
+		// Must meet both quorum and vote threshold requirements
+		totalSupply := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(tokenCommittee.GetTallyDenom())
+		if totalVotes.Quo(totalSupply.ToDec()).GTE(tokenCommittee.GetQuorum()) {
+			if yesVotes.Quo(totalVotes).GTE(tokenCommittee.GetVoteThreshold()) {
+				return true
+			} else {
+				return false
+			}
+		}
+	default: // Should never be hit...
+		return false
+	}
+
+	return false
+}
+
+// TODO: use TallyMemberCommitteeVotes into GetProposalResult
+// TallyMemberCommitteeVotes returns the polling status of a member committee vote
+func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64,
+	committee types.Committee) (sdk.Dec, sdk.Dec, sdk.Dec) {
+	votes := k.GetVotesByProposal(ctx, proposalID)
+	currVotes := sdk.NewDec(int64(len(votes)))
+	requiredVotes := committee.GetVoteThreshold()
+	possibleVotes := sdk.NewDec(int64(len(committee.GetMembers())))
+	return currVotes, requiredVotes, possibleVotes
+}
+
+// TODO: use TallyTokenCommitteeVotes into GetProposalResult
+func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
+	committee types.TokenCommittee) (sdk.Dec, sdk.Dec, sdk.Dec) {
+	// TODO: define
+	return sdk.OneDec(), sdk.OneDec(), sdk.OneDec()
+}
+
+// EnactProposal makes the changes proposed in a proposal.
+func (k Keeper) EnactProposal(ctx sdk.Context, proposal types.Proposal) error {
+	// Check committee still has permissions for the proposal
+	// Since the proposal was submitted params could have changed, invalidating the permission of the committee.
+	com, found := k.GetCommittee(ctx, proposal.CommitteeID)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", proposal.CommitteeID)
+	}
+	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, proposal.PubProposal) {
+		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
+	}
+
+	if err := k.ValidatePubProposal(ctx, proposal.PubProposal); err != nil {
+		return err
+	}
+
+	// enact the proposal
+	handler := k.router.GetRoute(proposal.ProposalRoute())
+	if err := handler(ctx, proposal.PubProposal); err != nil {
+		// the handler should not error as it was checked in ValidatePubProposal
+		panic(fmt.Sprintf("unexpected handler error: %s", err))
+	}
+	return nil
+}
+
+// CloseProposal deletes proposals and their votes, emitting an event denoting the final status of the proposal
+func (k Keeper) CloseProposal(ctx sdk.Context, proposal types.Proposal, outcome types.ProposalOutcome) {
+
+	k.DeleteProposalAndVotes(ctx, proposal.ID)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeProposalClose,
+			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
+			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
+			sdk.NewAttribute(types.AttributeKeyProposalOutcome, outcome.String()),
+		),
+	)
 }

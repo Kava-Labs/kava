@@ -16,22 +16,27 @@ type Keeper struct {
 	cdc      *codec.Codec
 	storeKey sdk.StoreKey
 
-	ParamKeeper types.ParamKeeper // TODO ideally don't export, only sims need it exported
+	ParamKeeper   types.ParamKeeper // TODO ideally don't export, only sims need it exported
+	accountKeeper types.AccountKeeper
+	supplyKeeper  types.SupplyKeeper
 
 	// Proposal router
 	router govtypes.Router
 }
 
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router, paramKeeper types.ParamKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router,
+	paramKeeper types.ParamKeeper, ak types.AccountKeeper, sk types.SupplyKeeper) Keeper {
 	// Logic in the keeper methods assume the set of gov handlers is fixed.
 	// So the gov router must be sealed so no handlers can be added or removed after the keeper is created.
 	router.Seal()
 
 	return Keeper{
-		cdc:         cdc,
-		storeKey:    storeKey,
-		ParamKeeper: paramKeeper,
-		router:      router,
+		cdc:           cdc,
+		storeKey:      storeKey,
+		ParamKeeper:   paramKeeper,
+		accountKeeper: ak,
+		supplyKeeper:  sk,
+		router:        router,
 	}
 }
 

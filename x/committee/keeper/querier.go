@@ -177,6 +177,7 @@ func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", params.ProposalID)
 	}
+	// TODO: define TallyMemberCommitteeVotes, TallyTokenCommitteeVotes so we can query polling status
 	numVotes := keeper.TallyVotes(ctx, params.ProposalID)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, numVotes)
