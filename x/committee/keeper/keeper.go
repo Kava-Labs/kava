@@ -41,12 +41,12 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router, 
 
 // GetCommittee gets a committee from the store.
 func (k Keeper) GetCommittee(ctx sdk.Context, committeeID uint64) (types.Committee, bool) {
+	var committee types.Committee
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
 	bz := store.Get(types.GetKeyFromID(committeeID))
 	if bz == nil {
-		return types.Committee{}, false
+		return committee, false
 	}
-	var committee types.Committee
 	k.cdc.MustUnmarshalBinaryBare(bz, &committee)
 	return committee, true
 }
@@ -55,7 +55,7 @@ func (k Keeper) GetCommittee(ctx sdk.Context, committeeID uint64) (types.Committ
 func (k Keeper) SetCommittee(ctx sdk.Context, committee types.Committee) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryBare(committee)
-	store.Set(types.GetKeyFromID(committee.ID), bz)
+	store.Set(types.GetKeyFromID(committee.GetID()), bz)
 }
 
 // DeleteCommittee removes a committee from the store.

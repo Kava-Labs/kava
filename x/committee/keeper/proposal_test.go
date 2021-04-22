@@ -56,13 +56,16 @@ func newPricefeedGenState(assets []string, prices []sdk.Dec) app.GenesisState {
 }
 
 func (suite *KeeperTestSuite) TestSubmitProposal() {
-	normalCom := types.Committee{
-		ID:               12,
-		Description:      "This committee is for testing.",
-		Members:          suite.addresses[:2],
-		Permissions:      []types.Permission{types.GodPermission{}},
-		VoteThreshold:    d("0.667"),
-		ProposalDuration: time.Hour * 24 * 7,
+	normalCom := types.MemberCommittee{
+		BaseCommittee: types.BaseCommittee{
+			ID:               12,
+			Description:      "This committee is for testing.",
+			Members:          suite.addresses[:2],
+			Permissions:      []types.Permission{types.GodPermission{}},
+			VoteThreshold:    d("0.667"),
+			ProposalDuration: time.Hour * 24 * 7,
+			TallyOption:      types.FirstPastThePost,
+		},
 	}
 
 	noPermissionsCom := normalCom
@@ -222,7 +225,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 				newCDPGenesisState(testCDPParams),
 			)
 			// setup committee (if required)
-			if !(reflect.DeepEqual(tc.committee, types.Committee{})) {
+			if !(reflect.DeepEqual(tc.committee, types.MemberCommittee{})) {
 				keeper.SetCommittee(ctx, tc.committee)
 			}
 
@@ -235,17 +238,19 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 				pr, found := keeper.GetProposal(ctx, id)
 				suite.True(found)
 				suite.Equal(tc.committeeID, pr.CommitteeID)
-				suite.Equal(ctx.BlockTime().Add(tc.committee.ProposalDuration), pr.Deadline)
+				suite.Equal(ctx.BlockTime().Add(tc.committee.GetProposalDuration()), pr.Deadline)
 			}
 		})
 	}
 }
 
 func (suite *KeeperTestSuite) TestAddVote() {
-	normalCom := types.Committee{
-		ID:          12,
-		Members:     suite.addresses[:2],
-		Permissions: []types.Permission{types.GodPermission{}},
+	normalCom := types.MemberCommittee{
+		BaseCommittee: types.BaseCommittee{
+			ID:          12,
+			Members:     suite.addresses[:2],
+			Permissions: []types.Permission{types.GodPermission{}},
+		},
 	}
 	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
 
@@ -316,13 +321,15 @@ func (suite *KeeperTestSuite) TestAddVote() {
 }
 
 func (suite *KeeperTestSuite) TestGetProposalResult() {
-	normalCom := types.Committee{
-		ID:               12,
-		Description:      "This committee is for testing.",
-		Members:          suite.addresses[:5],
-		Permissions:      []types.Permission{types.GodPermission{}},
-		VoteThreshold:    d("0.667"),
-		ProposalDuration: time.Hour * 24 * 7,
+	normalCom := types.MemberCommittee{
+		BaseCommittee: types.BaseCommittee{
+			ID:               12,
+			Description:      "This committee is for testing.",
+			Members:          suite.addresses[:5],
+			Permissions:      []types.Permission{types.GodPermission{}},
+			VoteThreshold:    d("0.667"),
+			ProposalDuration: time.Hour * 24 * 7,
+		},
 	}
 	var defaultID uint64 = 1
 	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
@@ -371,7 +378,7 @@ func (suite *KeeperTestSuite) TestGetProposalResult() {
 					[]types.Proposal{{
 						PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
 						ID:          defaultID,
-						CommitteeID: tc.committee.ID,
+						CommitteeID: tc.committee.GetID(),
 						Deadline:    firstBlockTime.Add(time.Hour * 24 * 7),
 					}},
 					tc.votes,
@@ -509,20 +516,27 @@ func (suite *KeeperTestSuite) TestCloseExpiredProposals() {
 	testGenesis := types.NewGenesisState(
 		3,
 		[]types.Committee{
-			{
-				ID:               1,
-				Description:      "This committee is for testing.",
-				Members:          suite.addresses[:3],
-				Permissions:      []types.Permission{types.GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
+			types.MemberCommittee{
+				BaseCommittee: types.BaseCommittee{
+					ID:               1,
+					Description:      "This committee is for testing.",
+					Members:          suite.addresses[:3],
+					Permissions:      []types.Permission{types.GodPermission{}},
+					VoteThreshold:    d("0.667"),
+					ProposalDuration: time.Hour * 24 * 7,
+					TallyOption:      types.FirstPastThePost,
+				},
 			},
-			{
-				ID:               2,
-				Members:          suite.addresses[2:],
-				Permissions:      nil,
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
+			types.MemberCommittee{
+				BaseCommittee: types.BaseCommittee{
+					ID:               2,
+					Description:      "This committee is for testing.",
+					Members:          suite.addresses[2:],
+					Permissions:      nil,
+					VoteThreshold:    d("0.667"),
+					ProposalDuration: time.Hour * 24 * 7,
+					TallyOption:      types.FirstPastThePost,
+				},
 			},
 		},
 		[]types.Proposal{
