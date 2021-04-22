@@ -222,13 +222,16 @@ func (suite *KeeperTestSuite) SetupWithGenState() {
 
 	// Set up a god committee
 	committeeModKeeper := tApp.GetCommitteeKeeper()
-	godCommittee := committeetypes.Committee{
-		ID:               1,
-		Description:      "This committee is for testing.",
-		Members:          suite.addrs[:2],
-		Permissions:      []committeetypes.Permission{committeetypes.GodPermission{}},
-		VoteThreshold:    d("0.667"),
-		ProposalDuration: time.Hour * 24 * 7,
+	godCommittee := committeetypes.MemberCommittee{
+		BaseCommittee: committeetypes.BaseCommittee{
+			ID:               1,
+			Description:      "This committee is for testing.",
+			Members:          suite.addrs[:2],
+			Permissions:      []committeetypes.Permission{committeetypes.GodPermission{}},
+			VoteThreshold:    d("0.667"),
+			ProposalDuration: time.Hour * 24 * 7,
+			TallyOption:      committeetypes.FirstPastThePost,
+		},
 	}
 	committeeModKeeper.SetCommittee(ctx, godCommittee)
 
