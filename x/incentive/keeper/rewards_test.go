@@ -757,8 +757,9 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo, committeetypes.Yes)
 
 			// 6. Check proposal passed
-			proposalPasses, err := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID)
-			suite.Require().NoError(err)
+			com, found := suite.committeeKeeper.GetCommittee(suite.ctx, 1)
+			suite.Require().True(found)
+			proposalPasses := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID, com)
 			suite.Require().True(proposalPasses)
 
 			// 7. Run committee module's begin blocker to enact proposal
@@ -1645,8 +1646,9 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo, committeetypes.Yes)
 
 			// 6. Check proposal passed
-			proposalPasses, err := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID)
-			suite.Require().NoError(err)
+			com, found := suite.committeeKeeper.GetCommittee(suite.ctx, 1)
+			suite.Require().True(found)
+			proposalPasses := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID, com)
 			suite.Require().True(proposalPasses)
 
 			// 7. Run committee module's begin blocker to enact proposal
