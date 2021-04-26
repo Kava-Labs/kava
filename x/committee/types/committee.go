@@ -23,6 +23,7 @@ const (
 const (
 	MemberCommitteeType = "member" // Committee is composed of member addresses that vote to enact proposals within their permissions
 	TokenCommitteeType  = "token"  // Committee is composed of token holders with voting power determined by total token balance
+	BondDenom           = "ukava"
 )
 
 // Committee is an interface for handling common actions on committees
@@ -237,6 +238,10 @@ func (c TokenCommittee) GetTallyDenom() string { return c.TallyDenom }
 
 // Validate validates the committee's fields
 func (c TokenCommittee) Validate() error {
+	if c.TallyDenom == BondDenom {
+		return fmt.Errorf("invalid tally denom: %s", c.TallyDenom)
+	}
+
 	err := sdk.ValidateDenom(c.TallyDenom)
 	if err != nil {
 		return err
