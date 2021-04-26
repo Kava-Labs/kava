@@ -173,14 +173,30 @@ func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	_, found := keeper.GetProposal(ctx, params.ProposalID)
+	proposal, found := keeper.GetProposal(ctx, params.ProposalID)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", params.ProposalID)
 	}
-	// TODO: define TallyMemberCommitteeVotes, TallyTokenCommitteeVotes so we can query polling status
-	numVotes := keeper.TallyVotes(ctx, params.ProposalID)
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, numVotes)
+	committee, found := keeper.GetCommittee(ctx, proposal.CommitteeID)
+	if !found {
+		return nil, sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", proposal.CommitteeID)
+	}
+
+	var pollingStatus types.ProposalPollingStatus
+	switch committee.GetType() {
+	case types.MemberCommitteeType:
+		currVotes, possibleVotes, voteThreshold := keeper.TallyMemberCommitteeVotes(ctx, params.ProposalID, committee)
+		memberPollingStatus := types.NewProposalPollingStatus(params.ProposalID, currVotes, currVotes, possibleVotes, voteThreshold, sdk.Dec{Int: nil})
+		pollingStatus = memberPollingStatus
+	case types.TokenCommitteeType:
+		tokenCommittee := committee.(types.TokenCommittee)
+		yesVotes, currVotes, possibleVotes, voteThreshold, quroum := keeper.TallyTokenCommitteeVotes(ctx, params.ProposalID, tokenCommittee)
+		tokenPollingStatus := types.NewProposalPollingStatus(params.ProposalID, yesVotes, currVotes, possibleVotes, voteThreshold, quroum)
+		pollingStatus = tokenPollingStatus
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, pollingStatus)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

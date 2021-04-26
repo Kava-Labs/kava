@@ -126,7 +126,7 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) {
 
 		committee, found := k.GetCommittee(ctx, proposal.CommitteeID)
 		if !found {
-			panic("expected committee to be found") // TODO: can committees be removed while having active proposals? If so, don't panic.
+			return false // TODO: If committees can't be removed while having active proposals, should panic here
 		}
 
 		if proposal.HasExpiredBy(ctx.BlockTime()) {
