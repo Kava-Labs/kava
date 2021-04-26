@@ -155,38 +155,18 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) {
 		}
 		return false
 	})
-
 }
 
 func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64, committee types.Committee) bool {
-	votes := k.GetVotesByProposal(ctx, proposalID)
-
 	switch committee.GetType() {
 	case types.MemberCommitteeType:
-		numVotes := int64(len(votes))
-		numMembers := int64(len(committee.GetMembers()))
-		return sdk.NewDec(numVotes).GTE(committee.GetVoteThreshold().MulInt64(numMembers))
+		currVotes, possibleVotes, voteThreshold := k.TallyMemberCommitteeVotes(ctx, proposalID, committee)
+		return currVotes.GTE(voteThreshold.Mul(possibleVotes)) // vote threshold requirements
 	case types.TokenCommitteeType:
 		tokenCommittee := committee.(types.TokenCommittee) // will panic if type assertion isn't met
-
-		totalVotes := sdk.ZeroDec()
-		yesVotes := sdk.ZeroDec()
-		for _, vote := range votes {
-			// 1 token = 1 vote
-			acc := k.accountKeeper.GetAccount(ctx, vote.Voter)
-			accNumCoins := acc.GetCoins().AmountOf(tokenCommittee.GetTallyDenom())
-
-			// Add votes to counters
-			totalVotes = totalVotes.Add(accNumCoins.ToDec())
-			if vote.VoteType == types.Yes {
-				yesVotes = yesVotes.Add(accNumCoins.ToDec())
-			}
-		}
-
-		// Must meet both quorum and vote threshold requirements
-		totalSupply := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(tokenCommittee.GetTallyDenom())
-		if totalVotes.Quo(totalSupply.ToDec()).GTE(tokenCommittee.GetQuorum()) {
-			if yesVotes.Quo(totalVotes).GTE(tokenCommittee.GetVoteThreshold()) {
+		yesVotes, currVotes, possibleVotes, voteThreshold, quroum := k.TallyTokenCommitteeVotes(ctx, proposalID, tokenCommittee)
+		if currVotes.Quo(possibleVotes).GTE(quroum) { // quorum requirement
+			if yesVotes.Quo(currVotes).GTE(voteThreshold) { // vote threshold requirements
 				return true
 			} else {
 				return false
@@ -199,22 +179,41 @@ func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64, committee 
 	return false
 }
 
-// TODO: use TallyMemberCommitteeVotes into GetProposalResult
-// TallyMemberCommitteeVotes returns the polling status of a member committee vote
+// TallyMemberCommitteeVotes returns the polling status of a member committee vote. Returns current votes,
+// committee members (possible votes), vote threshold (proposal passes at this percentage)
 func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64,
 	committee types.Committee) (sdk.Dec, sdk.Dec, sdk.Dec) {
 	votes := k.GetVotesByProposal(ctx, proposalID)
 	currVotes := sdk.NewDec(int64(len(votes)))
-	requiredVotes := committee.GetVoteThreshold()
 	possibleVotes := sdk.NewDec(int64(len(committee.GetMembers())))
-	return currVotes, requiredVotes, possibleVotes
+	voteThreshold := committee.GetVoteThreshold()
+	return currVotes, possibleVotes, voteThreshold
 }
 
-// TODO: use TallyTokenCommitteeVotes into GetProposalResult
+// TallyMemberCommitteeVotes returns the polling status of a token committee vote. Returns yes votes,
+// total current votes, total possible votes (equal to token supply), vote threshold (yes vote ratio
+// required for proposal to pass), and quroum (votes tallied at this percentage).
 func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
-	committee types.TokenCommittee) (sdk.Dec, sdk.Dec, sdk.Dec) {
-	// TODO: define
-	return sdk.OneDec(), sdk.OneDec(), sdk.OneDec()
+	committee types.TokenCommittee) (sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec) {
+	tallyDenom := committee.GetTallyDenom()
+	votes := k.GetVotesByProposal(ctx, proposalID)
+
+	currVotes := sdk.ZeroDec()
+	yesVotes := sdk.ZeroDec()
+	for _, vote := range votes {
+		// 1 token = 1 vote
+		acc := k.accountKeeper.GetAccount(ctx, vote.Voter)
+		accNumCoins := acc.GetCoins().AmountOf(tallyDenom)
+
+		// Add votes to counters
+		currVotes = currVotes.Add(accNumCoins.ToDec())
+		if vote.VoteType == types.Yes {
+			yesVotes = yesVotes.Add(accNumCoins.ToDec())
+		}
+	}
+
+	possibleVotes := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(tallyDenom)
+	return yesVotes, currVotes, possibleVotes.ToDec(), committee.GetVoteThreshold(), committee.GetQuorum()
 }
 
 // EnactProposal makes the changes proposed in a proposal.
