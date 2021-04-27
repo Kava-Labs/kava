@@ -210,10 +210,6 @@ func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
 	for _, vote := range votes {
 		// 1 token = 1 vote
 		acc := k.accountKeeper.GetAccount(ctx, vote.Voter)
-		// TODO: what if account is nil?
-		// if reflect.DeepEqual(acc, authexported.Account{}) {
-		// 	continue
-		// }
 		accNumCoins := acc.GetCoins().AmountOf(tallyDenom)
 
 		// Add votes to counters

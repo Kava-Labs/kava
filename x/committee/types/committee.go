@@ -237,7 +237,6 @@ func (c TokenCommittee) GetQuorum() sdk.Dec { return c.Quorum }
 // GetTallyDenom returns the tally denom of the committee
 func (c TokenCommittee) GetTallyDenom() string { return c.TallyDenom }
 
-// TODO: don't allow nil TallyOption
 // Validate validates the committee's fields
 func (c TokenCommittee) Validate() error {
 	if c.TallyDenom == BondDenom {
