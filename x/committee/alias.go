@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	Abstain                         = types.Abstain
 	AttributeKeyCommitteeID         = types.AttributeKeyCommitteeID
 	AttributeKeyProposalCloseStatus = types.AttributeKeyProposalCloseStatus
 	AttributeKeyProposalID          = types.AttributeKeyProposalID

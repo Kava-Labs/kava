@@ -60,8 +60,8 @@ func TestMsgVote_ValidateBasic(t *testing.T) {
 			expectPass: true,
 		},
 		{
-			name:       "abstain",
-			msg:        MsgVote{5, addr, Abstain},
+			name:       "No",
+			msg:        MsgVote{5, addr, No},
 			expectPass: true,
 		},
 		{

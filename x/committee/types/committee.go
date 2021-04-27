@@ -334,7 +334,7 @@ func (v Vote) Validate() error {
 		return fmt.Errorf("voter address cannot be empty")
 	}
 
-	if v.VoteType >= 3 { // 0 = Yes, 1 = No, 2 = Abstain
+	if v.VoteType >= 2 { // 0 = Null, 1 = Yes, 2 = No
 		return fmt.Errorf("invalid vote type: %d", v.VoteType)
 	}
 	return nil

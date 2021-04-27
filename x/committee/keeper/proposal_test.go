@@ -329,14 +329,6 @@ func (suite *KeeperTestSuite) TestAddVote() {
 			voteType:   types.No,
 			expectErr:  true,
 		},
-		{
-			name:       "MemberCommittee: voter votes abstain",
-			committee:  memberCom,
-			proposalID: types.DefaultNextProposalID,
-			voter:      memberCom.Members[0],
-			voteType:   types.Abstain,
-			expectErr:  true,
-		},
 	}
 
 	for _, tc := range testcases {
