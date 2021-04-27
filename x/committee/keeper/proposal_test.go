@@ -1,13 +1,13 @@
 package keeper_test
 
 import (
-	"reflect"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -56,16 +56,15 @@ func newPricefeedGenState(assets []string, prices []sdk.Dec) app.GenesisState {
 }
 
 func (suite *KeeperTestSuite) TestSubmitProposal() {
-	normalCom := types.MemberCommittee{
-		BaseCommittee: types.BaseCommittee{
-			ID:               12,
-			Description:      "This committee is for testing.",
-			Members:          suite.addresses[:2],
-			Permissions:      []types.Permission{types.GodPermission{}},
-			VoteThreshold:    d("0.667"),
-			ProposalDuration: time.Hour * 24 * 7,
-			TallyOption:      types.FirstPastThePost,
-		},
+	defaultCommitteeID := uint64(12)
+	normalCom := types.BaseCommittee{
+		ID:               defaultCommitteeID,
+		Description:      "This committee is for testing.",
+		Members:          suite.addresses[:2],
+		Permissions:      []types.Permission{types.GodPermission{}},
+		VoteThreshold:    d("0.667"),
+		ProposalDuration: time.Hour * 24 * 7,
+		TallyOption:      types.FirstPastThePost,
 	}
 
 	noPermissionsCom := normalCom
@@ -115,7 +114,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 
 	testcases := []struct {
 		name        string
-		committee   types.Committee
+		committee   types.BaseCommittee
 		pubProposal types.PubProposal
 		proposer    sdk.AccAddress
 		committeeID uint64
@@ -183,10 +182,14 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 				"A Title", "A description of this proposal.",
 				[]params.ParamChange{
 					{
-						"cdp", string(cdptypes.KeyDebtThreshold), string(suite.app.Codec().MustMarshalJSON(i(1000000000))),
+						Subspace: "cdp",
+						Key:      string(cdptypes.KeyDebtThreshold),
+						Value:    string(suite.app.Codec().MustMarshalJSON(i(1000000000))),
 					},
 					{
-						"cdp", string(cdptypes.KeyCollateralParams), string(suite.app.Codec().MustMarshalJSON(newValidCP)),
+						Subspace: "cdp",
+						Key:      string(cdptypes.KeyCollateralParams),
+						Value:    string(suite.app.Codec().MustMarshalJSON(newValidCP)),
 					},
 				},
 			),
@@ -201,10 +204,14 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 				"A Title", "A description of this proposal.",
 				[]params.ParamChange{
 					{
-						"cdp", string(cdptypes.KeyDebtThreshold), string(suite.app.Codec().MustMarshalJSON(i(1000000000))),
+						Subspace: "cdp",
+						Key:      string(cdptypes.KeyDebtThreshold),
+						Value:    string(suite.app.Codec().MustMarshalJSON(i(1000000000))),
 					},
 					{
-						"cdp", string(cdptypes.KeyCollateralParams), string(suite.app.Codec().MustMarshalJSON(newInvalidCP)),
+						Subspace: "cdp",
+						Key:      string(cdptypes.KeyCollateralParams),
+						Value:    string(suite.app.Codec().MustMarshalJSON(newInvalidCP)),
 					},
 				},
 			),
@@ -224,9 +231,9 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 				newPricefeedGenState([]string{"bnb"}, []sdk.Dec{d("15.01")}),
 				newCDPGenesisState(testCDPParams),
 			)
-			// setup committee (if required)
-			if !(reflect.DeepEqual(tc.committee, types.MemberCommittee{})) {
-				keeper.SetCommittee(ctx, tc.committee)
+			// Cast BaseCommittee to MemberCommittee (if required) to meet Committee interface requirement
+			if tc.committee.ID == defaultCommitteeID {
+				keeper.SetCommittee(ctx, types.MemberCommittee{BaseCommittee: tc.committee})
 			}
 
 			id, err := keeper.SubmitProposal(ctx, tc.proposer, tc.committeeID, tc.pubProposal)
@@ -245,50 +252,89 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 }
 
 func (suite *KeeperTestSuite) TestAddVote() {
-	normalCom := types.MemberCommittee{
+	memberCom := types.MemberCommittee{
 		BaseCommittee: types.BaseCommittee{
 			ID:          12,
 			Members:     suite.addresses[:2],
 			Permissions: []types.Permission{types.GodPermission{}},
 		},
 	}
+	tokenCom := types.TokenCommittee{
+		BaseCommittee: types.BaseCommittee{
+			ID:          12,
+			Members:     suite.addresses[:2],
+			Permissions: []types.Permission{types.GodPermission{}},
+		},
+		Quorum:     d("0.4"),
+		TallyDenom: "hard",
+	}
+	nonMemberAddr := suite.addresses[4]
 	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
 
 	testcases := []struct {
 		name       string
 		proposalID uint64
+		committee  types.Committee
 		voter      sdk.AccAddress
 		voteType   types.VoteType
 		voteTime   time.Time
 		expectErr  bool
 	}{
 		{
-			name:       "normal",
+			name:       "normal MemberCommittee",
+			committee:  memberCom,
 			proposalID: types.DefaultNextProposalID,
-			voter:      normalCom.Members[0],
+			voter:      memberCom.Members[0],
+			voteType:   types.Yes,
+			expectErr:  false,
+		},
+		{
+			name:       "normal TokenCommittee",
+			committee:  tokenCom,
+			proposalID: types.DefaultNextProposalID,
+			voter:      nonMemberAddr,
 			voteType:   types.Yes,
 			expectErr:  false,
 		},
 		{
 			name:       "nonexistent proposal",
+			committee:  memberCom,
 			proposalID: 9999999,
-			voter:      normalCom.Members[0],
-			voteType:   types.Yes,
-			expectErr:  true,
-		},
-		{
-			name:       "voter not committee member",
-			proposalID: types.DefaultNextProposalID,
-			voter:      suite.addresses[4],
+			voter:      memberCom.Members[0],
 			voteType:   types.Yes,
 			expectErr:  true,
 		},
 		{
 			name:       "proposal expired",
+			committee:  memberCom,
 			proposalID: types.DefaultNextProposalID,
-			voter:      normalCom.Members[0],
-			voteTime:   firstBlockTime.Add(normalCom.ProposalDuration),
+			voter:      memberCom.Members[0],
+			voteTime:   firstBlockTime.Add(memberCom.ProposalDuration),
 			voteType:   types.Yes,
+			expectErr:  true,
+		},
+		{
+			name:       "MemberCommittee: voter not committee member",
+			committee:  memberCom,
+			proposalID: types.DefaultNextProposalID,
+			voter:      nonMemberAddr,
+			voteType:   types.Yes,
+			expectErr:  true,
+		},
+		{
+			name:       "MemberCommittee: voter votes no",
+			committee:  memberCom,
+			proposalID: types.DefaultNextProposalID,
+			voter:      memberCom.Members[0],
+			voteType:   types.No,
+			expectErr:  true,
+		},
+		{
+			name:       "MemberCommittee: voter votes abstain",
+			committee:  memberCom,
+			proposalID: types.DefaultNextProposalID,
+			voter:      memberCom.Members[0],
+			voteType:   types.Abstain,
 			expectErr:  true,
 		},
 	}
@@ -302,8 +348,8 @@ func (suite *KeeperTestSuite) TestAddVote() {
 			tApp.InitializeFromGenesisStates()
 
 			// setup the committee and proposal
-			keeper.SetCommittee(ctx, normalCom)
-			_, err := keeper.SubmitProposal(ctx, normalCom.Members[0], normalCom.ID, gov.NewTextProposal("A Title", "A description of this proposal."))
+			keeper.SetCommittee(ctx, tc.committee)
+			_, err := keeper.SubmitProposal(ctx, tc.committee.GetMembers()[0], tc.committee.GetID(), gov.NewTextProposal("A Title", "A description of this proposal."))
 			suite.NoError(err)
 
 			ctx = ctx.WithBlockTime(tc.voteTime)
@@ -320,8 +366,8 @@ func (suite *KeeperTestSuite) TestAddVote() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetProposalResult() {
-	normalCom := types.MemberCommittee{
+func (suite *KeeperTestSuite) TestTallyMemberCommitteeVotes() {
+	memberCom := types.MemberCommittee{
 		BaseCommittee: types.BaseCommittee{
 			ID:               12,
 			Description:      "This committee is for testing.",
@@ -329,6 +375,218 @@ func (suite *KeeperTestSuite) TestGetProposalResult() {
 			Permissions:      []types.Permission{types.GodPermission{}},
 			VoteThreshold:    d("0.667"),
 			ProposalDuration: time.Hour * 24 * 7,
+			TallyOption:      types.Deadline,
+		},
+	}
+	var defaultProposalID uint64 = 1
+	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
+
+	testcases := []struct {
+		name              string
+		votes             []types.Vote
+		expectedVoteCount sdk.Dec
+	}{
+		{
+			name:              "has 0 votes",
+			votes:             []types.Vote{},
+			expectedVoteCount: d("0"),
+		},
+		{
+			name: "has 1 vote",
+			votes: []types.Vote{
+				{ProposalID: defaultProposalID, Voter: suite.addresses[0], VoteType: types.Yes},
+			},
+			expectedVoteCount: d("1"),
+		},
+		{
+			name: "has multiple votes",
+			votes: []types.Vote{
+				{ProposalID: defaultProposalID, Voter: suite.addresses[0], VoteType: types.Yes},
+				{ProposalID: defaultProposalID, Voter: suite.addresses[1], VoteType: types.Yes},
+				{ProposalID: defaultProposalID, Voter: suite.addresses[2], VoteType: types.Yes},
+				{ProposalID: defaultProposalID, Voter: suite.addresses[3], VoteType: types.Yes},
+			},
+			expectedVoteCount: d("4"),
+		},
+	}
+
+	for _, tc := range testcases {
+		// Set up test app
+		tApp := app.NewTestApp()
+		keeper := tApp.GetCommitteeKeeper()
+		ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
+
+		// Initialize test app with genesis state
+		tApp.InitializeFromGenesisStates(
+			committeeGenState(
+				tApp.Codec(),
+				[]types.Committee{memberCom},
+				[]types.Proposal{{
+					PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+					ID:          defaultProposalID,
+					CommitteeID: memberCom.GetID(),
+					Deadline:    firstBlockTime.Add(time.Hour * 24 * 7),
+				}},
+				tc.votes,
+			),
+		)
+
+		currentVotes, totalPossibleVotes, requiredPassPercentage := keeper.TallyMemberCommitteeVotes(ctx, defaultProposalID, memberCom)
+
+		// Check that all votes are counted
+		suite.Equal(tc.expectedVoteCount, currentVotes)
+		// Check that possible votes equals the number of members on the committee
+		suite.Equal(sdk.NewDec(int64(len(memberCom.GetMembers()))), totalPossibleVotes)
+		// Check that the vote threshold is correct
+		suite.Equal(memberCom.GetVoteThreshold(), requiredPassPercentage)
+	}
+}
+
+func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
+	tokenCom := types.TokenCommittee{
+		BaseCommittee: types.BaseCommittee{
+			ID:               12,
+			Description:      "This committee is for testing.",
+			Members:          suite.addresses[:5],
+			Permissions:      []types.Permission{types.GodPermission{}},
+			VoteThreshold:    d("0.667"),
+			ProposalDuration: time.Hour * 24 * 7,
+			TallyOption:      types.Deadline,
+		},
+		TallyDenom: "hard",
+		Quorum:     d("0.4"),
+	}
+	var defaultProposalID uint64 = 1
+	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
+
+	genAddrs := suite.addresses[:8]                       // Genesis accounts
+	genCoinCounts := []int64{0, 0, 0, 10, 20, 30, 40, 50} // Genesis token balances
+
+	testcases := []struct {
+		name                   string
+		votes                  []types.Vote
+		expectedYesVoteCount   sdk.Dec
+		expectedTotalVoteCount sdk.Dec
+	}{
+		{
+			name:                   "has 0 votes",
+			votes:                  []types.Vote{},
+			expectedYesVoteCount:   d("0"),
+			expectedTotalVoteCount: d("0"),
+		},
+		{
+			name: "counts token holder 'Yes' votes",
+			votes: []types.Vote{
+				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.Yes}, // Token holder
+			},
+			expectedYesVoteCount:   sdk.NewDec(genCoinCounts[4]),
+			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
+		},
+		{
+			name: "does not count non-token holder 'Yes' votes",
+			votes: []types.Vote{
+				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.Yes}, // Token holder
+				{ProposalID: defaultProposalID, Voter: genAddrs[0], VoteType: types.Yes}, // Non-token holder
+			},
+			expectedYesVoteCount:   sdk.NewDec(genCoinCounts[4]),
+			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
+		},
+		{
+			name: "counts multiple 'Yes' votes from token holders",
+			votes: []types.Vote{
+				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.Yes}, // Token holder
+				{ProposalID: defaultProposalID, Voter: genAddrs[5], VoteType: types.Yes}, // Token holder
+				{ProposalID: defaultProposalID, Voter: genAddrs[6], VoteType: types.Yes}, // Token holder
+			},
+			expectedYesVoteCount:   sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
+			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
+		},
+		{
+			name: "counts token holder 'No' votes",
+			votes: []types.Vote{
+				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.No}, // Token holder
+			},
+			expectedYesVoteCount:   d("0"),
+			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
+		},
+		{
+			name: "does not count non-token holder 'No' votes",
+			votes: []types.Vote{
+				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.No}, // Token holder
+				{ProposalID: defaultProposalID, Voter: genAddrs[0], VoteType: types.No}, // Non-token holder
+			},
+			expectedYesVoteCount:   d("0"),
+			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
+		},
+		{
+			name: "counts multiple 'No' votes from token holders",
+			votes: []types.Vote{
+				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.No}, // Token holder
+				{ProposalID: defaultProposalID, Voter: genAddrs[5], VoteType: types.No}, // Token holder
+				{ProposalID: defaultProposalID, Voter: genAddrs[6], VoteType: types.No}, // Token holder
+			},
+			expectedYesVoteCount:   d("0"),
+			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
+		},
+	}
+
+	// Convert accounts/token balances into format expected by genesis generation
+	var genCoins []sdk.Coins
+	var totalSupply sdk.Coins
+	for _, amount := range genCoinCounts {
+		userCoin := c("hard", amount)
+		genCoins = append(genCoins, cs(userCoin))
+		totalSupply = totalSupply.Add(userCoin)
+	}
+
+	for _, tc := range testcases {
+		// Set up test app
+		tApp := app.NewTestApp()
+		keeper := tApp.GetCommitteeKeeper()
+		ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
+
+		// Initialize test app with genesis state
+		tApp.InitializeFromGenesisStates(
+			committeeGenState(
+				tApp.Codec(),
+				[]types.Committee{tokenCom},
+				[]types.Proposal{{
+					PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+					ID:          defaultProposalID,
+					CommitteeID: tokenCom.GetID(),
+					Deadline:    firstBlockTime.Add(time.Hour * 24 * 7),
+				}},
+				tc.votes,
+			),
+			supplyGenState(tApp.Codec(), totalSupply),
+			app.NewAuthGenState(genAddrs, genCoins),
+		)
+
+		yesVotes, currVotes, possibleVotes, requiredPassPercentage, quroum := keeper.TallyTokenCommitteeVotes(ctx, defaultProposalID, tokenCom)
+
+		// Check that all Yes votes are counted according to their weight
+		suite.Equal(tc.expectedYesVoteCount, yesVotes)
+		// Check that all non-Yes votes are counted according to their weight
+		suite.Equal(tc.expectedTotalVoteCount, currVotes)
+		// Check that possible votes equals the number of members on the committee
+		suite.Equal(totalSupply.AmountOf(tokenCom.GetTallyDenom()).ToDec(), possibleVotes)
+		// Check that the vote threshold is correct
+		suite.Equal(tokenCom.GetVoteThreshold(), requiredPassPercentage)
+		// Check that the quroum is correct
+		suite.Equal(tokenCom.GetQuorum(), quroum)
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetMemberCommitteeProposalResult() {
+	memberCom := types.MemberCommittee{
+		BaseCommittee: types.BaseCommittee{
+			ID:               12,
+			Description:      "This committee is for testing.",
+			Members:          suite.addresses[:5],
+			Permissions:      []types.Permission{types.GodPermission{}},
+			VoteThreshold:    d("0.667"),
+			ProposalDuration: time.Hour * 24 * 7,
+			TallyOption:      types.Deadline,
 		},
 	}
 	var defaultID uint64 = 1
@@ -342,20 +600,20 @@ func (suite *KeeperTestSuite) TestGetProposalResult() {
 	}{
 		{
 			name:      "enough votes",
-			committee: normalCom,
+			committee: memberCom,
 			votes: []types.Vote{
-				{ProposalID: defaultID, Voter: suite.addresses[0]},
-				{ProposalID: defaultID, Voter: suite.addresses[1]},
-				{ProposalID: defaultID, Voter: suite.addresses[2]},
-				{ProposalID: defaultID, Voter: suite.addresses[3]},
+				{ProposalID: defaultID, Voter: suite.addresses[0], VoteType: types.Yes},
+				{ProposalID: defaultID, Voter: suite.addresses[1], VoteType: types.Yes},
+				{ProposalID: defaultID, Voter: suite.addresses[2], VoteType: types.Yes},
+				{ProposalID: defaultID, Voter: suite.addresses[3], VoteType: types.Yes},
 			},
 			proposalPasses: true,
 		},
 		{
 			name:      "not enough votes",
-			committee: normalCom,
+			committee: memberCom,
 			votes: []types.Vote{
-				{ProposalID: defaultID, Voter: suite.addresses[0]},
+				{ProposalID: defaultID, Voter: suite.addresses[0], VoteType: types.Yes},
 			},
 			proposalPasses: false,
 		},
@@ -382,7 +640,129 @@ func (suite *KeeperTestSuite) TestGetProposalResult() {
 				),
 			)
 
-			proposalPasses := keeper.GetProposalResult(ctx, defaultID, tc.committee)
+			proposalPasses := keeper.GetMemberCommitteeProposalResult(ctx, defaultID, tc.committee)
+			suite.Equal(tc.proposalPasses, proposalPasses)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetTokenCommitteeProposalResult() {
+	tokenCom := types.TokenCommittee{
+		BaseCommittee: types.BaseCommittee{
+			ID:               12,
+			Description:      "This committee is for testing.",
+			Members:          suite.addresses[:5],
+			Permissions:      []types.Permission{types.GodPermission{}},
+			VoteThreshold:    d("0.667"),
+			ProposalDuration: time.Hour * 24 * 7,
+			TallyOption:      types.Deadline,
+		},
+		TallyDenom: "hard",
+		Quorum:     d("0.4"),
+	}
+	var defaultID uint64 = 1
+	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
+
+	genAddrs := suite.addresses[:8]                       // Genesis accounts
+	genCoinCounts := []int64{0, 0, 0, 10, 20, 30, 40, 50} // Genesis token balances
+
+	// ---------------------- Polling information ----------------------
+	//	150hard total token supply: 150 possible votes
+	//  40% quroum: 60 votes required to meet quroum
+	//  66.67% voting threshold: 2/3rds of votes must be Yes votes
+	// -----------------------------------------------------------------
+
+	testcases := []struct {
+		name           string
+		committee      types.TokenCommittee
+		votes          []types.Vote
+		proposalPasses bool
+	}{
+		{
+			name:      "not enough votes to meet quroum",
+			committee: tokenCom,
+			votes: []types.Vote{
+				{ProposalID: defaultID, Voter: genAddrs[7], VoteType: types.Yes}, // Holds 50 tokens
+			},
+			proposalPasses: false, // 60 vote quroum; 50 total votes; 50 yes votes. Doesn't pass 40% quroum.
+		},
+		{
+			name:      "enough votes to meet quroum and enough Yes votes to pass voting threshold",
+			committee: tokenCom,
+			votes: []types.Vote{
+				{ProposalID: defaultID, Voter: genAddrs[3], VoteType: types.No},  // Holds 10 tokens
+				{ProposalID: defaultID, Voter: genAddrs[7], VoteType: types.Yes}, // Holds 50 tokens
+			},
+			proposalPasses: true, // 60 vote quroum; 60 total votes; 50 Yes votes. Passes the 66.67% voting threshold.
+		},
+		{
+			name:      "enough votes to meet quroum but not enough Yes votes to pass voting threshold",
+			committee: tokenCom,
+			votes: []types.Vote{
+				{ProposalID: defaultID, Voter: genAddrs[4], VoteType: types.Yes}, // Holds 20 tokens
+				{ProposalID: defaultID, Voter: genAddrs[6], VoteType: types.No},  // Holds 40 tokens
+			},
+			proposalPasses: false, // 60 vote quroum; 60 total votes; 20 Yes votes. Doesn't pass 66.67% voting threshold.
+		},
+		{
+			name:      "enough votes to pass voting threshold (multiple Yes votes, multiple No votes)",
+			committee: tokenCom,
+			votes: []types.Vote{
+				{ProposalID: defaultID, Voter: genAddrs[3], VoteType: types.Yes}, // Holds 10 tokens
+				{ProposalID: defaultID, Voter: genAddrs[4], VoteType: types.Yes}, // Holds 20 tokens
+				{ProposalID: defaultID, Voter: genAddrs[5], VoteType: types.Yes}, // Holds 30 tokens
+				{ProposalID: defaultID, Voter: genAddrs[6], VoteType: types.No},  // Holds 40 tokens
+				{ProposalID: defaultID, Voter: genAddrs[7], VoteType: types.Yes}, // Holds 50 tokens
+			},
+			proposalPasses: true, // 60 vote quroum; 150 total votes; 110 Yes votes. Passes the 66.67% voting threshold.
+		},
+		{
+			name:      "not enough votes to pass voting threshold (multiple Yes votes, multiple No votes)",
+			committee: tokenCom,
+			votes: []types.Vote{
+				{ProposalID: defaultID, Voter: genAddrs[3], VoteType: types.Yes}, // Holds 10 tokens
+				{ProposalID: defaultID, Voter: genAddrs[4], VoteType: types.Yes}, // Holds 20 tokens
+				{ProposalID: defaultID, Voter: genAddrs[5], VoteType: types.Yes}, // Holds 30 tokens
+				{ProposalID: defaultID, Voter: genAddrs[6], VoteType: types.Yes}, // Holds 40 tokens
+				{ProposalID: defaultID, Voter: genAddrs[7], VoteType: types.No},  // Holds 50 tokens
+			},
+			proposalPasses: false, // 60 vote quroum; 150 total votes; 100 Yes votes. Doesn't pass 66.67% voting threshold.
+		},
+	}
+
+	// Convert accounts/token balances into format expected by genesis generation
+	var genCoins []sdk.Coins
+	var totalSupply sdk.Coins
+	for _, amount := range genCoinCounts {
+		userCoin := c("hard", amount)
+		genCoins = append(genCoins, cs(userCoin))
+		totalSupply = totalSupply.Add(userCoin)
+	}
+
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			// Create local testApp because suite doesn't run the SetupTest function for subtests
+			tApp := app.NewTestApp()
+			keeper := tApp.GetCommitteeKeeper()
+			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
+
+			tApp.InitializeFromGenesisStates(
+				committeeGenState(
+					tApp.Codec(),
+					[]types.Committee{tc.committee},
+					[]types.Proposal{{
+						PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+						ID:          defaultID,
+						CommitteeID: tc.committee.GetID(),
+						Deadline:    firstBlockTime.Add(time.Hour * 24 * 7),
+					}},
+					tc.votes,
+				),
+				supplyGenState(tApp.Codec(), totalSupply),
+				app.NewAuthGenState(genAddrs, genCoins),
+			)
+
+			proposalPasses := keeper.GetTokenCommitteeProposalResult(ctx, defaultID, tc.committee)
 			suite.Equal(tc.proposalPasses, proposalPasses)
 		})
 	}
@@ -396,6 +776,11 @@ func committeeGenState(cdc *codec.Codec, committees []types.Committee, proposals
 		votes,
 	)
 	return app.GenesisState{committee.ModuleName: cdc.MustMarshalJSON(gs)}
+}
+
+func supplyGenState(cdc *codec.Codec, coins sdk.Coins) app.GenesisState {
+	gs := supply.NewGenesisState(coins)
+	return app.GenesisState{supply.ModuleName: cdc.MustMarshalJSON(gs)}
 }
 
 type UnregisteredPubProposal struct {
