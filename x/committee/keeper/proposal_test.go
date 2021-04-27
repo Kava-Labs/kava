@@ -760,6 +760,50 @@ func (suite *KeeperTestSuite) TestGetTokenCommitteeProposalResult() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestCloseProposal() {
+	memberCom := types.MemberCommittee{
+		BaseCommittee: types.BaseCommittee{
+			ID:               12,
+			Description:      "This committee is for testing.",
+			Members:          suite.addresses[:5],
+			Permissions:      []types.Permission{types.GodPermission{}},
+			VoteThreshold:    d("0.667"),
+			ProposalDuration: time.Hour * 24 * 7,
+			TallyOption:      types.Deadline,
+		},
+	}
+
+	var proposalID uint64 = 1
+	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
+
+	tApp := app.NewTestApp()
+	keeper := tApp.GetCommitteeKeeper()
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
+
+	tApp.InitializeFromGenesisStates(
+		committeeGenState(
+			tApp.Codec(),
+			[]types.Committee{memberCom},
+			[]types.Proposal{{
+				PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+				ID:          proposalID,
+				CommitteeID: memberCom.GetID(),
+				Deadline:    firstBlockTime.Add(time.Hour * 24 * 7),
+			}},
+			[]types.Vote{},
+		),
+	)
+
+	// Confirm proposal exists
+	proposal, found := keeper.GetProposal(ctx, proposalID)
+	suite.True(found)
+	// Close proposal
+	keeper.CloseProposal(ctx, proposal, types.Passed)
+	// Confirm proposal doesn't exist
+	_, found = keeper.GetProposal(ctx, proposalID)
+	suite.False(found)
+}
+
 func committeeGenState(cdc *codec.Codec, committees []types.Committee, proposals []types.Proposal, votes []types.Vote) app.GenesisState {
 	gs := types.NewGenesisState(
 		uint64(len(proposals)+1),
