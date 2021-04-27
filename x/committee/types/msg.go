@@ -62,9 +62,10 @@ func (msg MsgSubmitProposal) GetSigners() []sdk.AccAddress {
 type VoteType int
 
 const (
-	Yes     VoteType = iota // 0
-	No      VoteType = iota // 1
-	Abstain VoteType = iota // 2
+	NullVoteType VoteType = iota // 0
+	Yes          VoteType = iota // 1
+	No           VoteType = iota // 2
+	Abstain      VoteType = iota // 3
 )
 
 // MsgVote is submitted by committee members to vote on proposals.

@@ -16,6 +16,7 @@ const MaxCommitteeDescriptionLength int = 512
 type TallyOption int
 
 const (
+	NullTallyOption  TallyOption = iota
 	FirstPastThePost TallyOption = iota // Votes are tallied each block and the proposal passes as soon as the vote threshold is reached
 	Deadline         TallyOption = iota // Votes are tallied exactly once, when the deadline time is reached
 )
@@ -236,6 +237,7 @@ func (c TokenCommittee) GetQuorum() sdk.Dec { return c.Quorum }
 // GetTallyDenom returns the tally denom of the committee
 func (c TokenCommittee) GetTallyDenom() string { return c.TallyDenom }
 
+// TODO: don't allow nil TallyOption
 // Validate validates the committee's fields
 func (c TokenCommittee) Validate() error {
 	if c.TallyDenom == BondDenom {
