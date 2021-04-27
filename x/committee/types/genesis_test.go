@@ -47,7 +47,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			},
 			TokenCommittee{
 				BaseCommittee: BaseCommittee{
-					ID:               2,
+					ID:               3,
 					Description:      "This token committee is for testing.",
 					Members:          addresses[:3],
 					Permissions:      nil,
@@ -55,7 +55,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					ProposalDuration: time.Hour * 24 * 21,
 				},
 				Quorum:     sdk.MustNewDecFromStr("0.4"),
-				TallyDenom: "ukava",
+				TallyDenom: "hard",
 			},
 		},
 		Proposals: []Proposal{
