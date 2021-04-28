@@ -92,7 +92,7 @@ func (msg MsgVote) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "voter address cannot be empty")
 	}
 
-	if msg.VoteType > 3 { // 0 = Null, 1 = Yes, 2 = No, 3 = Abstain
+	if msg.VoteType < 0 || msg.VoteType > 3 { // 0 = Null, 1 = Yes, 2 = No, 3 = Abstain
 		return fmt.Errorf("invalid vote type: %d", msg.VoteType)
 	}
 
