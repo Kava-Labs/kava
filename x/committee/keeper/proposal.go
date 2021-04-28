@@ -150,12 +150,11 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) {
 }
 
 func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64, committee types.Committee) bool {
-	switch committee.GetType() {
-	case types.MemberCommitteeType:
-		return k.GetMemberCommitteeProposalResult(ctx, proposalID, committee)
-	case types.TokenCommitteeType:
-		tokenCommittee := committee.(types.TokenCommittee) // will panic if type assertion isn't met
-		return k.GetTokenCommitteeProposalResult(ctx, proposalID, tokenCommittee)
+	switch com := committee.(type) {
+	case types.MemberCommittee:
+		return k.GetMemberCommitteeProposalResult(ctx, proposalID, com)
+	case types.TokenCommittee:
+		return k.GetTokenCommitteeProposalResult(ctx, proposalID, com)
 	default: // Should never hit default case
 		return false
 	}
