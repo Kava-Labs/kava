@@ -32,12 +32,21 @@ type Committee interface {
 	GetID() uint64
 	GetType() string
 	GetDescription() string
+
 	GetMembers() []sdk.AccAddress
+	SetMembers([]sdk.AccAddress) BaseCommittee
 	HasMember(addr sdk.AccAddress) bool
+
 	GetPermissions() []Permission
+	SetPermissions([]Permission) BaseCommittee
 	HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, proposal PubProposal) bool
+
 	GetProposalDuration() time.Duration
+	SetProposalDuration(time.Duration) BaseCommittee
+
 	GetVoteThreshold() sdk.Dec
+	SetVoteThreshold(sdk.Dec) BaseCommittee
+
 	GetTallyOption() TallyOption
 	Validate() error
 }
@@ -65,6 +74,12 @@ func (c BaseCommittee) GetDescription() string { return c.Description }
 // GetMembers is a getter for committee members
 func (c BaseCommittee) GetMembers() []sdk.AccAddress { return c.Members }
 
+// SetMembers is a setter for committee members
+func (c BaseCommittee) SetMembers(members []sdk.AccAddress) BaseCommittee {
+	c.Members = members
+	return c
+}
+
 // HasMember returns if a committee contains a given member address
 func (c BaseCommittee) HasMember(addr sdk.AccAddress) bool {
 	for _, m := range c.Members {
@@ -77,6 +92,12 @@ func (c BaseCommittee) HasMember(addr sdk.AccAddress) bool {
 
 // GetPermissions is a getter for committee permissions
 func (c BaseCommittee) GetPermissions() []Permission { return c.Permissions }
+
+// SetPermissions is a setter for committee permissions
+func (c BaseCommittee) SetPermissions(permissions []Permission) BaseCommittee {
+	c.Permissions = permissions
+	return c
+}
 
 // HasPermissionsFor returns whether the committee is authorized to enact a proposal.
 // As long as one permission allows the proposal then it goes through. Its the OR of all permissions.
@@ -92,8 +113,20 @@ func (c BaseCommittee) HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, p
 // GetVoteThreshold is a getter for committee VoteThreshold
 func (c BaseCommittee) GetVoteThreshold() sdk.Dec { return c.VoteThreshold }
 
+// SetVoteThreshold is a setter for committee VoteThreshold
+func (c BaseCommittee) SetVoteThreshold(voteThreshold sdk.Dec) BaseCommittee {
+	c.VoteThreshold = voteThreshold
+	return c
+}
+
 // GetProposalDuration is a getter for committee ProposalDuration
 func (c BaseCommittee) GetProposalDuration() time.Duration { return c.ProposalDuration }
+
+// SetProposalDuration is a setter for committee ProposalDuration
+func (c BaseCommittee) SetProposalDuration(proposalDuration time.Duration) BaseCommittee {
+	c.ProposalDuration = proposalDuration
+	return c
+}
 
 // GetTallyOption is a getter for committee TallyOption
 func (c BaseCommittee) GetTallyOption() TallyOption { return c.TallyOption }
