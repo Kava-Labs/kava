@@ -180,9 +180,9 @@ func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64,
 // GetTokenCommitteeProposalResult gets the result of a token committee proposal
 func (k Keeper) GetTokenCommitteeProposalResult(ctx sdk.Context, proposalID uint64, committee types.TokenCommittee) bool {
 	yesVotes, noVotes, currVotes, possibleVotes, voteThreshold, quroum := k.TallyTokenCommitteeVotes(ctx, proposalID, committee)
-	if currVotes.Quo(possibleVotes).GTE(quroum) { // quorum requirement
+	if currVotes.GTE(quroum.Mul(possibleVotes)) { // quorum requirement
 		nonAbstainVotes := yesVotes.Add(noVotes)
-		if yesVotes.Quo(nonAbstainVotes).GTE(voteThreshold) { // vote threshold requirements
+		if yesVotes.GTE(nonAbstainVotes.Mul(voteThreshold)) { // vote threshold requirements
 			return true
 		}
 	}
