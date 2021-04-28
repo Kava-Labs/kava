@@ -129,29 +129,21 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) {
 			return false // TODO: If committees can't be removed while having active proposals, should panic here
 		}
 
-		if proposal.HasExpiredBy(ctx.BlockTime()) {
-			passed := k.GetProposalResult(ctx, proposal.ID, committee)
-			outcome := types.Failed
-			if passed {
-				outcome = types.Passed
-				err := k.EnactProposal(ctx, proposal)
-				if err != nil {
-					outcome = types.Invalid
-				}
-			}
-			k.CloseProposal(ctx, proposal, outcome)
-		} else {
+		if !proposal.HasExpiredBy(ctx.BlockTime()) {
 			if committee.GetTallyOption() == types.FirstPastThePost {
 				passed := k.GetProposalResult(ctx, proposal.ID, committee)
 				if passed {
-					outcome := types.Passed
-					err := k.EnactProposal(ctx, proposal)
-					if err != nil {
-						outcome = types.Invalid
-					}
+					outcome := k.attemptEnactProposal(ctx, proposal)
 					k.CloseProposal(ctx, proposal, outcome)
 				}
 			}
+		} else {
+			passed := k.GetProposalResult(ctx, proposal.ID, committee)
+			outcome := types.Failed
+			if passed {
+				outcome = k.attemptEnactProposal(ctx, proposal)
+			}
+			k.CloseProposal(ctx, proposal, outcome)
 		}
 		return false
 	})
@@ -223,8 +215,16 @@ func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
 	return yesVotes, currVotes, possibleVotes.ToDec(), committee.GetVoteThreshold(), committee.GetQuorum()
 }
 
-// EnactProposal makes the changes proposed in a proposal.
-func (k Keeper) EnactProposal(ctx sdk.Context, proposal types.Proposal) error {
+func (k Keeper) attemptEnactProposal(ctx sdk.Context, proposal types.Proposal) types.ProposalOutcome {
+	err := k.enactProposal(ctx, proposal)
+	if err != nil {
+		return types.Invalid
+	}
+	return types.Passed
+}
+
+// enactProposal makes the changes proposed in a proposal.
+func (k Keeper) enactProposal(ctx sdk.Context, proposal types.Proposal) error {
 	// Check committee still has permissions for the proposal
 	// Since the proposal was submitted params could have changed, invalidating the permission of the committee.
 	com, found := k.GetCommittee(ctx, proposal.CommitteeID)
