@@ -191,7 +191,7 @@ func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 		pollingStatus = memberPollingStatus
 	case types.TokenCommitteeType:
 		tokenCommittee := committee.(types.TokenCommittee)
-		yesVotes, currVotes, possibleVotes, voteThreshold, quroum := keeper.TallyTokenCommitteeVotes(ctx, params.ProposalID, tokenCommittee)
+		yesVotes, _, currVotes, possibleVotes, voteThreshold, quroum := keeper.TallyTokenCommitteeVotes(ctx, params.ProposalID, tokenCommittee)
 		tokenPollingStatus := types.NewProposalPollingStatus(params.ProposalID, yesVotes, currVotes, possibleVotes, voteThreshold, quroum)
 		pollingStatus = tokenPollingStatus
 	}

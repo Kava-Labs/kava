@@ -65,6 +65,7 @@ const (
 	NullVoteType VoteType = iota // 0
 	Yes          VoteType = iota // 1
 	No           VoteType = iota // 2
+	Abstain      VoteType = iota // 3
 )
 
 // MsgVote is submitted by committee members to vote on proposals.
@@ -91,7 +92,7 @@ func (msg MsgVote) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "voter address cannot be empty")
 	}
 
-	if msg.VoteType >= 2 { // 0 = Null, 1 = Yes, 2 = No
+	if msg.VoteType > 3 { // 0 = Null, 1 = Yes, 2 = No, 3 = Abstain
 		return fmt.Errorf("invalid vote type: %d", msg.VoteType)
 	}
 

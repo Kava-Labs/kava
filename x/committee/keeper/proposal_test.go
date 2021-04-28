@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -458,12 +459,14 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 		name                   string
 		votes                  []types.Vote
 		expectedYesVoteCount   sdk.Dec
+		expectedNoVoteCount    sdk.Dec
 		expectedTotalVoteCount sdk.Dec
 	}{
 		{
 			name:                   "has 0 votes",
 			votes:                  []types.Vote{},
 			expectedYesVoteCount:   d("0"),
+			expectedNoVoteCount:    d("0"),
 			expectedTotalVoteCount: d("0"),
 		},
 		{
@@ -472,6 +475,7 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.Yes}, // Token holder
 			},
 			expectedYesVoteCount:   sdk.NewDec(genCoinCounts[4]),
+			expectedNoVoteCount:    d("0"),
 			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
 		},
 		{
@@ -481,6 +485,7 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[0], VoteType: types.Yes}, // Non-token holder
 			},
 			expectedYesVoteCount:   sdk.NewDec(genCoinCounts[4]),
+			expectedNoVoteCount:    d("0"),
 			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
 		},
 		{
@@ -491,6 +496,7 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[6], VoteType: types.Yes}, // Token holder
 			},
 			expectedYesVoteCount:   sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
+			expectedNoVoteCount:    d("0"),
 			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
 		},
 		{
@@ -499,6 +505,7 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.No}, // Token holder
 			},
 			expectedYesVoteCount:   d("0"),
+			expectedNoVoteCount:    sdk.NewDec(genCoinCounts[4]),
 			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
 		},
 		{
@@ -508,6 +515,7 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[0], VoteType: types.No}, // Non-token holder
 			},
 			expectedYesVoteCount:   d("0"),
+			expectedNoVoteCount:    sdk.NewDec(genCoinCounts[4]),
 			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
 		},
 		{
@@ -518,7 +526,17 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[6], VoteType: types.No}, // Token holder
 			},
 			expectedYesVoteCount:   d("0"),
+			expectedNoVoteCount:    sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
 			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
+		},
+		{
+			name: "includes token holder 'Abstain' votes in total vote count",
+			votes: []types.Vote{
+				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.Abstain}, // Token holder
+			},
+			expectedYesVoteCount:   d("0"),
+			expectedNoVoteCount:    d("0"),
+			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
 		},
 	}
 
@@ -554,10 +572,13 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 			app.NewAuthGenState(genAddrs, genCoins),
 		)
 
-		yesVotes, currVotes, possibleVotes, requiredPassPercentage, quroum := keeper.TallyTokenCommitteeVotes(ctx, defaultProposalID, tokenCom)
+		yesVotes, noVotes, currVotes, possibleVotes, requiredPassPercentage, quroum := keeper.TallyTokenCommitteeVotes(ctx, defaultProposalID, tokenCom)
 
 		// Check that all Yes votes are counted according to their weight
+		fmt.Println("Test name:", tc.name)
 		suite.Equal(tc.expectedYesVoteCount, yesVotes)
+		// Check that all No votes are counted according to their weight
+		suite.Equal(tc.expectedNoVoteCount, noVotes)
 		// Check that all non-Yes votes are counted according to their weight
 		suite.Equal(tc.expectedTotalVoteCount, currVotes)
 		// Check that possible votes equals the number of members on the committee
@@ -684,6 +705,15 @@ func (suite *KeeperTestSuite) TestGetTokenCommitteeProposalResult() {
 			votes: []types.Vote{
 				{ProposalID: defaultID, Voter: genAddrs[3], VoteType: types.No},  // Holds 10 tokens
 				{ProposalID: defaultID, Voter: genAddrs[7], VoteType: types.Yes}, // Holds 50 tokens
+			},
+			proposalPasses: true, // 60 vote quroum; 60 total votes; 50 Yes votes. Passes the 66.67% voting threshold.
+		},
+		{
+			name:      "enough votes to meet quroum via Abstain votes and enough Yes votes to pass voting threshold",
+			committee: tokenCom,
+			votes: []types.Vote{
+				{ProposalID: defaultID, Voter: genAddrs[3], VoteType: types.Abstain}, // Holds 10 tokens
+				{ProposalID: defaultID, Voter: genAddrs[7], VoteType: types.Yes},     // Holds 50 tokens
 			},
 			proposalPasses: true, // 60 vote quroum; 60 total votes; 50 Yes votes. Passes the 66.67% voting threshold.
 		},
