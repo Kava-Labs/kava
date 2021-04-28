@@ -184,15 +184,17 @@ func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 	}
 
 	var pollingStatus types.ProposalPollingStatus
-	switch committee.GetType() {
-	case types.MemberCommitteeType:
-		currVotes, possibleVotes, voteThreshold := keeper.TallyMemberCommitteeVotes(ctx, params.ProposalID, committee)
-		memberPollingStatus := types.NewProposalPollingStatus(params.ProposalID, currVotes, currVotes, possibleVotes, voteThreshold, sdk.Dec{Int: nil})
+	switch com := committee.(type) {
+	case types.MemberCommittee:
+		currVotes := keeper.TallyMemberCommitteeVotes(ctx, params.ProposalID)
+		possibleVotes := sdk.NewDec(int64(len(com.Members)))
+		memberPollingStatus := types.NewProposalPollingStatus(params.ProposalID, currVotes,
+			currVotes, possibleVotes, com.VoteThreshold, sdk.Dec{Int: nil})
 		pollingStatus = memberPollingStatus
-	case types.TokenCommitteeType:
-		tokenCommittee := committee.(types.TokenCommittee)
-		yesVotes, _, currVotes, possibleVotes, voteThreshold, quroum := keeper.TallyTokenCommitteeVotes(ctx, params.ProposalID, tokenCommittee)
-		tokenPollingStatus := types.NewProposalPollingStatus(params.ProposalID, yesVotes, currVotes, possibleVotes, voteThreshold, quroum)
+	case types.TokenCommittee:
+		yesVotes, _, currVotes, possibleVotes := keeper.TallyTokenCommitteeVotes(ctx, params.ProposalID, com.TallyDenom)
+		tokenPollingStatus := types.NewProposalPollingStatus(params.ProposalID, yesVotes,
+			currVotes, possibleVotes, com.VoteThreshold, com.Quorum)
 		pollingStatus = tokenPollingStatus
 	}
 

@@ -424,14 +424,9 @@ func (suite *KeeperTestSuite) TestTallyMemberCommitteeVotes() {
 			),
 		)
 
-		currentVotes, totalPossibleVotes, requiredPassPercentage := keeper.TallyMemberCommitteeVotes(ctx, defaultProposalID, memberCom)
-
 		// Check that all votes are counted
+		currentVotes := keeper.TallyMemberCommitteeVotes(ctx, defaultProposalID)
 		suite.Equal(tc.expectedVoteCount, currentVotes)
-		// Check that possible votes equals the number of members on the committee
-		suite.Equal(sdk.NewDec(int64(len(memberCom.GetMembers()))), totalPossibleVotes)
-		// Check that the vote threshold is correct
-		suite.Equal(memberCom.GetVoteThreshold(), requiredPassPercentage)
 	}
 }
 
@@ -572,7 +567,7 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 			app.NewAuthGenState(genAddrs, genCoins),
 		)
 
-		yesVotes, noVotes, currVotes, possibleVotes, requiredPassPercentage, quroum := keeper.TallyTokenCommitteeVotes(ctx, defaultProposalID, tokenCom)
+		yesVotes, noVotes, currVotes, possibleVotes := keeper.TallyTokenCommitteeVotes(ctx, defaultProposalID, tokenCom.TallyDenom)
 
 		// Check that all Yes votes are counted according to their weight
 		fmt.Println("Test name:", tc.name)
@@ -583,10 +578,6 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 		suite.Equal(tc.expectedTotalVoteCount, currVotes)
 		// Check that possible votes equals the number of members on the committee
 		suite.Equal(totalSupply.AmountOf(tokenCom.GetTallyDenom()).ToDec(), possibleVotes)
-		// Check that the vote threshold is correct
-		suite.Equal(tokenCom.GetVoteThreshold(), requiredPassPercentage)
-		// Check that the quroum is correct
-		suite.Equal(tokenCom.GetQuorum(), quroum)
 	}
 }
 

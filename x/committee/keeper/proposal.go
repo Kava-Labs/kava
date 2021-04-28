@@ -162,27 +162,24 @@ func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64, committee 
 
 // GetMemberCommitteeProposalResult gets the result of a member committee proposal
 func (k Keeper) GetMemberCommitteeProposalResult(ctx sdk.Context, proposalID uint64, committee types.Committee) bool {
-	currVotes, possibleVotes, voteThreshold := k.TallyMemberCommitteeVotes(ctx, proposalID, committee)
-	return currVotes.GTE(voteThreshold.Mul(possibleVotes)) // vote threshold requirements
+	currVotes := k.TallyMemberCommitteeVotes(ctx, proposalID)
+	possibleVotes := sdk.NewDec(int64(len(committee.GetMembers())))
+	return currVotes.GTE(committee.GetVoteThreshold().Mul(possibleVotes)) // vote threshold requirements
 }
 
-// TallyMemberCommitteeVotes returns the polling status of a member committee vote. Returns current votes,
-// committee members (possible votes), vote threshold (proposal passes at this percentage)
-func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64,
-	committee types.Committee) (sdk.Dec, sdk.Dec, sdk.Dec) {
+// TallyMemberCommitteeVotes returns the polling status of a member committee vote
+func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64) sdk.Dec {
 	votes := k.GetVotesByProposal(ctx, proposalID)
 	currVotes := sdk.NewDec(int64(len(votes)))
-	possibleVotes := sdk.NewDec(int64(len(committee.GetMembers())))
-	voteThreshold := committee.GetVoteThreshold()
-	return currVotes, possibleVotes, voteThreshold
+	return currVotes
 }
 
 // GetTokenCommitteeProposalResult gets the result of a token committee proposal
 func (k Keeper) GetTokenCommitteeProposalResult(ctx sdk.Context, proposalID uint64, committee types.TokenCommittee) bool {
-	yesVotes, noVotes, currVotes, possibleVotes, voteThreshold, quroum := k.TallyTokenCommitteeVotes(ctx, proposalID, committee)
-	if currVotes.GTE(quroum.Mul(possibleVotes)) { // quorum requirement
+	yesVotes, noVotes, currVotes, possibleVotes := k.TallyTokenCommitteeVotes(ctx, proposalID, committee.TallyDenom)
+	if currVotes.GTE(committee.Quorum.Mul(possibleVotes)) { // quorum requirement
 		nonAbstainVotes := yesVotes.Add(noVotes)
-		if yesVotes.GTE(nonAbstainVotes.Mul(voteThreshold)) { // vote threshold requirements
+		if yesVotes.GTE(nonAbstainVotes.Mul(committee.VoteThreshold)) { // vote threshold requirements
 			return true
 		}
 	}
@@ -193,8 +190,7 @@ func (k Keeper) GetTokenCommitteeProposalResult(ctx sdk.Context, proposalID uint
 // total current votes, total possible votes (equal to token supply), vote threshold (yes vote ratio
 // required for proposal to pass), and quroum (votes tallied at this percentage).
 func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
-	committee types.TokenCommittee) (sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec) {
-	tallyDenom := committee.GetTallyDenom()
+	tallyDenom string) (sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec) {
 	votes := k.GetVotesByProposal(ctx, proposalID)
 
 	currVotes := sdk.ZeroDec()
@@ -215,7 +211,7 @@ func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
 	}
 
 	possibleVotes := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(tallyDenom)
-	return yesVotes, noVotes, currVotes, possibleVotes.ToDec(), committee.GetVoteThreshold(), committee.GetQuorum()
+	return yesVotes, noVotes, currVotes, possibleVotes.ToDec()
 }
 
 func (k Keeper) attemptEnactProposal(ctx sdk.Context, proposal types.Proposal) types.ProposalOutcome {
