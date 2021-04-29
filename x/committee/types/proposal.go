@@ -14,12 +14,13 @@ const (
 	ProposalTypeCommitteeDelete = "CommitteeDelete"
 )
 
+// ProposalOutcome indicates the status of a proposal when it's closed and deleted from the store
 type ProposalOutcome int
 
 const (
-	Passed  ProposalOutcome = iota // 0
-	Failed  ProposalOutcome = iota // 1
-	Invalid ProposalOutcome = iota // 2
+	Passed  ProposalOutcome = iota // 0: proposal passed and was succesfully enacted
+	Failed  ProposalOutcome = iota // 1: proposal failed and was not enacted
+	Invalid ProposalOutcome = iota // 2: proposal passed but an error occured when attempting to enact it
 )
 
 func (po ProposalOutcome) String() string {

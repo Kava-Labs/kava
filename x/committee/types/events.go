@@ -9,6 +9,7 @@ const (
 	AttributeValueCategory          = "committee"
 	AttributeKeyCommitteeID         = "committee_id"
 	AttributeKeyProposalID          = "proposal_id"
+	AttributeKeyDeadline            = "deadline"
 	AttributeKeyProposalCloseStatus = "status"
 	AttributeKeyVoter               = "voter"
 	AttributeKeyVote                = "vote"

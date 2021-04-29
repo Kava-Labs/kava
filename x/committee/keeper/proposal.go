@@ -42,6 +42,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 			types.EventTypeProposalSubmit,
 			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", com.GetID())),
 			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
+			sdk.NewAttribute(types.AttributeKeyDeadline, deadline.String()),
 		),
 	)
 	return proposalID, nil
@@ -126,7 +127,8 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) {
 
 		committee, found := k.GetCommittee(ctx, proposal.CommitteeID)
 		if !found {
-			return false // TODO: If committees can't be removed while having active proposals, should panic here
+			k.CloseProposal(ctx, proposal, types.Failed)
+			return false
 		}
 
 		if !proposal.HasExpiredBy(ctx.BlockTime()) {
@@ -168,16 +170,15 @@ func (k Keeper) GetMemberCommitteeProposalResult(ctx sdk.Context, proposalID uin
 }
 
 // TallyMemberCommitteeVotes returns the polling status of a member committee vote
-func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64) sdk.Dec {
+func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64) (totalVotes sdk.Dec) {
 	votes := k.GetVotesByProposal(ctx, proposalID)
-	currVotes := sdk.NewDec(int64(len(votes)))
-	return currVotes
+	return sdk.NewDec(int64(len(votes)))
 }
 
 // GetTokenCommitteeProposalResult gets the result of a token committee proposal
 func (k Keeper) GetTokenCommitteeProposalResult(ctx sdk.Context, proposalID uint64, committee types.TokenCommittee) bool {
-	yesVotes, noVotes, currVotes, possibleVotes := k.TallyTokenCommitteeVotes(ctx, proposalID, committee.TallyDenom)
-	if currVotes.GTE(committee.Quorum.Mul(possibleVotes)) { // quorum requirement
+	yesVotes, noVotes, totalVotes, possibleVotes := k.TallyTokenCommitteeVotes(ctx, proposalID, committee.TallyDenom)
+	if totalVotes.GTE(committee.Quorum.Mul(possibleVotes)) { // quorum requirement
 		nonAbstainVotes := yesVotes.Add(noVotes)
 		if yesVotes.GTE(nonAbstainVotes.Mul(committee.VoteThreshold)) { // vote threshold requirements
 			return true
@@ -190,19 +191,19 @@ func (k Keeper) GetTokenCommitteeProposalResult(ctx sdk.Context, proposalID uint
 // total current votes, total possible votes (equal to token supply), vote threshold (yes vote ratio
 // required for proposal to pass), and quroum (votes tallied at this percentage).
 func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
-	tallyDenom string) (sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec) {
+	tallyDenom string) (yesVotes, noVotes, totalVotes, possibleVotes sdk.Dec) {
 	votes := k.GetVotesByProposal(ctx, proposalID)
 
-	currVotes := sdk.ZeroDec()
-	yesVotes := sdk.ZeroDec()
-	noVotes := sdk.ZeroDec()
+	yesVotes = sdk.ZeroDec()
+	noVotes = sdk.ZeroDec()
+	totalVotes = sdk.ZeroDec()
 	for _, vote := range votes {
 		// 1 token = 1 vote
 		acc := k.accountKeeper.GetAccount(ctx, vote.Voter)
 		accNumCoins := acc.GetCoins().AmountOf(tallyDenom)
 
 		// Add votes to counters
-		currVotes = currVotes.Add(accNumCoins.ToDec())
+		totalVotes = totalVotes.Add(accNumCoins.ToDec())
 		if vote.VoteType == types.Yes {
 			yesVotes = yesVotes.Add(accNumCoins.ToDec())
 		} else if vote.VoteType == types.No {
@@ -210,8 +211,8 @@ func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
 		}
 	}
 
-	possibleVotes := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(tallyDenom)
-	return yesVotes, noVotes, currVotes, possibleVotes.ToDec()
+	possibleVotesInt := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(tallyDenom)
+	return yesVotes, noVotes, totalVotes, possibleVotesInt.ToDec()
 }
 
 func (k Keeper) attemptEnactProposal(ctx sdk.Context, proposal types.Proposal) types.ProposalOutcome {

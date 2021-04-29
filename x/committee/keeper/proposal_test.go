@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -570,7 +569,6 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 		yesVotes, noVotes, currVotes, possibleVotes := keeper.TallyTokenCommitteeVotes(ctx, defaultProposalID, tokenCom.TallyDenom)
 
 		// Check that all Yes votes are counted according to their weight
-		fmt.Println("Test name:", tc.name)
 		suite.Equal(tc.expectedYesVoteCount, yesVotes)
 		// Check that all No votes are counted according to their weight
 		suite.Equal(tc.expectedNoVoteCount, noVotes)
