@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"bytes"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -9,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
+	amino "github.com/tendermint/go-amino"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
@@ -938,4 +940,314 @@ func (suite *KeeperTestSuite) TestValidatePubProposal() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestProcessProposals() {
+
+	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
+
+	genAddrs := suite.addresses[:4]      // Genesis accounts
+	genCoinCounts := []int64{1, 1, 1, 1} // Genesis token balances
+	// Convert accounts/token balances into format expected by genesis generation
+	var genCoins []sdk.Coins
+	var totalSupply sdk.Coins
+	for _, amount := range genCoinCounts {
+		userCoin := c("hard", amount)
+		genCoins = append(genCoins, cs(userCoin))
+		totalSupply = totalSupply.Add(userCoin)
+	}
+
+	// Set up committees
+	committees := []types.Committee{
+		// 	1. FPTP MemberCommmittee
+		types.MemberCommittee{
+			BaseCommittee: types.BaseCommittee{
+				ID:               1,
+				Description:      "FTPT MemberCommittee",
+				Members:          genAddrs,
+				Permissions:      []types.Permission{types.GodPermission{}},
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
+				TallyOption:      types.FirstPastThePost,
+			},
+		},
+		// 	2. FPTP TokenCommittee
+		types.TokenCommittee{
+			BaseCommittee: types.BaseCommittee{
+				ID:               2,
+				Description:      "FTPT TokenCommittee",
+				Members:          genAddrs,
+				Permissions:      []types.Permission{types.GodPermission{}},
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
+				TallyOption:      types.FirstPastThePost,
+			},
+			TallyDenom: "hard",
+			Quorum:     d("0.30"),
+		},
+		// 	3. Deadline MemberCommmittee
+		types.MemberCommittee{
+			BaseCommittee: types.BaseCommittee{
+				ID:               3,
+				Description:      "Deadline MemberCommittee",
+				Members:          genAddrs,
+				Permissions:      []types.Permission{types.GodPermission{}},
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
+				TallyOption:      types.Deadline,
+			},
+		},
+		// 	4. Deadline TokenCommittee
+		types.TokenCommittee{
+			BaseCommittee: types.BaseCommittee{
+				ID:               4,
+				Description:      "Deadline TokenCommittee",
+				Members:          genAddrs,
+				Permissions:      []types.Permission{types.GodPermission{}},
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
+				TallyOption:      types.Deadline,
+			},
+			TallyDenom: "hard",
+			Quorum:     d("0.30"),
+		},
+		// 	5. PTP MemberCommmittee without permissions
+		types.MemberCommittee{
+			BaseCommittee: types.BaseCommittee{
+				ID:               5,
+				Description:      "FTPT MemberCommittee without permissions",
+				Members:          genAddrs,
+				Permissions:      nil,
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
+				TallyOption:      types.FirstPastThePost,
+			},
+		},
+	}
+
+	// Set up proposals that correspond 1:1 with each committee
+	proposals := []types.Proposal{
+		{
+			ID:          1,
+			CommitteeID: 1,
+			PubProposal: gov.NewTextProposal("Proposal 1", "This proposal is for the FPTP MemberCommmittee."),
+			Deadline:    firstBlockTime.Add(7 * 24 * time.Hour),
+		},
+		{
+			ID:          2,
+			CommitteeID: 2,
+			PubProposal: gov.NewTextProposal("Proposal 2", "This proposal is for the FPTP TokenCommittee."),
+			Deadline:    firstBlockTime.Add(7 * 24 * time.Hour),
+		},
+		{
+			ID:          3,
+			CommitteeID: 3,
+			PubProposal: gov.NewTextProposal("Proposal 3", "This proposal is for the Deadline MemberCommmittee."),
+			Deadline:    firstBlockTime.Add(7 * 24 * time.Hour),
+		},
+		{
+			ID:          4,
+			CommitteeID: 4,
+			PubProposal: gov.NewTextProposal("Proposal 4", "This proposal is for the Deadline TokenCommittee."),
+			Deadline:    firstBlockTime.Add(7 * 24 * time.Hour),
+		},
+		{
+			ID:          5,
+			CommitteeID: 5,
+			PubProposal: gov.NewTextProposal("Proposal 5", "This proposal is for the FPTP MemberCommmittee without permissions."),
+			Deadline:    firstBlockTime.Add(7 * 24 * time.Hour),
+		},
+	}
+
+	// Each test case targets 1 committee/proposal via targeted votes
+	testcases := []struct {
+		name                             string
+		ID                               uint64
+		votes                            []types.Vote
+		expectedToCompleteBeforeDeadline bool
+		expectedOutcome                  types.ProposalOutcome
+	}{
+		{
+			name: "FPTP MemberCommittee proposal does not have enough votes to pass",
+			ID:   1,
+			votes: []types.Vote{
+				{ProposalID: 1, Voter: genAddrs[0], VoteType: types.Yes},
+			},
+			expectedToCompleteBeforeDeadline: false,
+			expectedOutcome:                  types.Failed,
+		},
+		{
+			name: "FPTP MemberCommittee proposal has enough votes to pass before deadline",
+			ID:   1,
+			votes: []types.Vote{
+				{ProposalID: 1, Voter: genAddrs[0], VoteType: types.Yes},
+				{ProposalID: 1, Voter: genAddrs[1], VoteType: types.Yes},
+				{ProposalID: 1, Voter: genAddrs[2], VoteType: types.Yes},
+			},
+			expectedToCompleteBeforeDeadline: true,
+			expectedOutcome:                  types.Passed,
+		},
+		{
+			name: "FPTP TokenCommittee proposal does not have enough votes to pass",
+			ID:   2,
+			votes: []types.Vote{
+				{ProposalID: 2, Voter: genAddrs[0], VoteType: types.Yes},
+			},
+			expectedToCompleteBeforeDeadline: false,
+			expectedOutcome:                  types.Failed,
+		},
+		{
+			name: "FPTP TokenCommittee proposal has enough votes to pass before deadline",
+			ID:   2,
+			votes: []types.Vote{
+				{ProposalID: 2, Voter: genAddrs[0], VoteType: types.Yes},
+				{ProposalID: 2, Voter: genAddrs[1], VoteType: types.Yes},
+				{ProposalID: 2, Voter: genAddrs[2], VoteType: types.Yes},
+			},
+			expectedToCompleteBeforeDeadline: true,
+			expectedOutcome:                  types.Passed,
+		},
+		{
+			name: "Deadline MemberCommittee proposal with enough votes to pass only passes after deadline",
+			ID:   3,
+			votes: []types.Vote{
+				{ProposalID: 3, Voter: genAddrs[0], VoteType: types.Yes},
+				{ProposalID: 3, Voter: genAddrs[1], VoteType: types.Yes},
+				{ProposalID: 3, Voter: genAddrs[2], VoteType: types.Yes},
+			},
+			expectedOutcome: types.Passed,
+		},
+		{
+			name: "Deadline MemberCommittee proposal doesn't have enough votes to pass",
+			ID:   3,
+			votes: []types.Vote{
+				{ProposalID: 3, Voter: genAddrs[0], VoteType: types.Yes},
+			},
+			expectedOutcome: types.Failed,
+		},
+		{
+			name: "Deadline TokenCommittee proposal with enough votes to pass only passes after deadline",
+			ID:   4,
+			votes: []types.Vote{
+				{ProposalID: 4, Voter: genAddrs[0], VoteType: types.Yes},
+				{ProposalID: 4, Voter: genAddrs[1], VoteType: types.Yes},
+				{ProposalID: 4, Voter: genAddrs[2], VoteType: types.Yes},
+			},
+			expectedOutcome: types.Passed,
+		},
+		{
+			name: "Deadline TokenCommittee proposal doesn't have enough votes to pass",
+			ID:   4,
+			votes: []types.Vote{
+				{ProposalID: 4, Voter: genAddrs[0], VoteType: types.Yes},
+			},
+			expectedOutcome: types.Failed,
+		},
+		{
+			name: "FPTP MemberCommittee doesn't have permissions to enact passed proposal",
+			ID:   5,
+			votes: []types.Vote{
+				{ProposalID: 5, Voter: genAddrs[0], VoteType: types.Yes},
+				{ProposalID: 5, Voter: genAddrs[1], VoteType: types.Yes},
+				{ProposalID: 5, Voter: genAddrs[2], VoteType: types.Yes},
+			},
+			expectedToCompleteBeforeDeadline: true,
+			expectedOutcome:                  types.Invalid,
+		},
+	}
+
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			// Create local testApp because suite doesn't run the SetupTest function for subtests
+			tApp := app.NewTestApp()
+			keeper := tApp.GetCommitteeKeeper()
+			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
+
+			// Initialize all committees, proposals, and votes via Genesis
+			tApp.InitializeFromGenesisStates(
+				committeeGenState(tApp.Codec(), committees, proposals, tc.votes),
+				supplyGenState(tApp.Codec(), totalSupply),
+				app.NewAuthGenState(genAddrs, genCoins),
+			)
+
+			// Load committee from the store
+			committee, found := keeper.GetCommittee(ctx, tc.ID)
+			suite.True(found)
+
+			// Process proposals
+			ctx = ctx.WithBlockTime(firstBlockTime)
+			keeper.ProcessProposals(ctx)
+
+			// Fetch proposal and votes from the store
+			votes := getProposalVoteMap(keeper, ctx)
+			proposal, found := keeper.GetProposal(ctx, tc.ID)
+
+			if committee.GetTallyOption() == types.FirstPastThePost {
+				if tc.expectedToCompleteBeforeDeadline {
+					suite.False(found)
+					suite.Empty(votes[tc.ID])
+
+					// Check proposal outcome
+					outcome, err := getProposalOutcome(tc.ID, ctx.EventManager().Events(), tApp.Codec())
+					suite.NoError(err)
+					suite.Equal(tc.expectedOutcome, outcome)
+					return
+				} else {
+					suite.True(found)
+					suite.NotEmpty(votes[tc.ID])
+				}
+			}
+
+			// Move block time to deadline
+			ctx = ctx.WithBlockTime(proposal.Deadline)
+			keeper.ProcessProposals(ctx)
+
+			// Fetch proposal and votes from the store
+			votes = getProposalVoteMap(keeper, ctx)
+			proposal, found = keeper.GetProposal(ctx, tc.ID)
+			suite.False(found)
+			suite.Empty(votes[proposal.ID])
+
+			// Check proposal outcome
+			outcome, err := getProposalOutcome(tc.ID, ctx.EventManager().Events(), tApp.Codec())
+			suite.NoError(err)
+			suite.Equal(tc.expectedOutcome, outcome)
+		})
+	}
+}
+
+// getProposalOutcome checks the outcome of a proposal via a `proposal_close` event whose `proposal_id`
+// matches argument proposalID
+func getProposalOutcome(proposalID uint64, events sdk.Events, cdc *amino.Codec) (types.ProposalOutcome, error) {
+	// Marshal proposal ID to match against event attribute
+	x, _ := cdc.MarshalJSON(proposalID)
+	marshaledID := x[1 : len(x)-1]
+
+	for _, event := range events {
+		if event.Type == types.EventTypeProposalClose {
+			var proposalOutcome types.ProposalOutcome
+			correctProposal := false
+			for _, attribute := range event.Attributes {
+				// Only get outcome of specific proposal
+				if bytes.Compare(attribute.GetKey(), []byte("proposal_id")) == 0 {
+					if bytes.Compare(attribute.GetValue(), marshaledID) == 0 {
+						correctProposal = true
+					}
+				}
+				// Match event attribute bytes to marshaled outcome
+				if bytes.Compare(attribute.GetKey(), []byte(types.AttributeKeyProposalOutcome)) == 0 {
+					outcome, err := types.MatchMarshaledOutcome(attribute.GetValue(), cdc)
+					if err != nil {
+						return -1, err
+					}
+					proposalOutcome = outcome
+				}
+			}
+			// If this is the desired proposal, return the outcome
+			if correctProposal {
+				return proposalOutcome, nil
+			}
+		}
+	}
+	return -1, nil
 }

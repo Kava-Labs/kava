@@ -1,12 +1,14 @@
 package types
 
 import (
-	"fmt"
+	"bytes"
 
 	yaml "gopkg.in/yaml.v2"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	amino "github.com/tendermint/go-amino"
 )
 
 const (
@@ -18,22 +20,55 @@ const (
 type ProposalOutcome int
 
 const (
-	Passed  ProposalOutcome = iota // 0: proposal passed and was succesfully enacted
-	Failed  ProposalOutcome = iota // 1: proposal failed and was not enacted
-	Invalid ProposalOutcome = iota // 2: proposal passed but an error occured when attempting to enact it
+	// Passed indicates that the proposal passed and was succesfully enacted
+	Passed ProposalOutcome = iota
+	// Failed indicates that the proposal failed and was not enacted
+	Failed
+	// Invalid indicates that proposal passed but an error occured when attempting to enact it
+	Invalid
 )
 
-func (po ProposalOutcome) String() string {
-	switch po {
-	case Passed:
-		return "Passed"
-	case Failed:
-		return "Failed"
-	case Invalid:
-		return "Invalid"
-	default:
-		return fmt.Sprintf("%d", int(po))
+var toString = map[ProposalOutcome]string{
+	Passed:  "Passed",
+	Failed:  "Failed",
+	Invalid: "Invalid",
+}
+
+func (p ProposalOutcome) String() string {
+	return toString[p]
+}
+
+func (p ProposalOutcome) Marshal(cdc *amino.Codec) ([]byte, error) {
+	x, err := cdc.MarshalJSON(p.String())
+	if err != nil {
+		return []byte{}, err
 	}
+	return x[1 : len(x)-1], nil
+}
+
+func MatchMarshaledOutcome(value []byte, cdc *amino.Codec) (ProposalOutcome, error) {
+	passed, err := Passed.Marshal(cdc)
+	if err != nil {
+		return -1, err
+	}
+	if bytes.Compare(passed, value) == 0 {
+		return Passed, nil
+	}
+	failed, err := Failed.Marshal(cdc)
+	if err != nil {
+		return -1, err
+	}
+	if bytes.Compare(failed, value) == 0 {
+		return Failed, nil
+	}
+	invalid, err := Invalid.Marshal(cdc)
+	if err != nil {
+		return -1, err
+	}
+	if bytes.Compare(invalid, value) == 0 {
+		return Invalid, nil
+	}
+	return -1, nil
 }
 
 // ensure proposal types fulfill the PubProposal interface and the gov Content interface.
