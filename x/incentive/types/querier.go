@@ -76,6 +76,7 @@ type QueryHardRewardsParams struct {
 	Page  int `json:"page" yaml:"page"`
 	Limit int `json:"limit" yaml:"limit"`
 	Owner sdk.AccAddress
+	Denom string
 }
 
 // NewQueryHardRewardsParams returns QueryHardRewardsParams

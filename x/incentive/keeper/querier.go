@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -54,11 +56,21 @@ func queryGetHardRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 	}
 	owner := len(params.Owner) > 0
 
+	denom := len(params.Denom) > 0
+
+	if denom && !owner {
+		return nil, fmt.Errorf("must specify owner when querying denom")
+	}
+
 	var hardClaims types.HardLiquidityProviderClaims
 	switch {
 	case owner:
 		hardClaim, foundHardClaim := k.GetHardLiquidityProviderClaim(ctx, params.Owner)
 		if foundHardClaim {
+			if denom {
+				hardClaim = k.filterHardLiquidityProviderClaimByDenom(hardClaim, params.Denom)
+			}
+
 			hardClaims = append(hardClaims, hardClaim)
 		}
 	default:
@@ -286,4 +298,24 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]
 	}
 
 	return bz, nil
+}
+
+func (k Keeper) filterHardLiquidityProviderClaimByDenom(hardClaim types.HardLiquidityProviderClaim, denom string) (filteredClaim types.HardLiquidityProviderClaim) {
+	filteredClaim.BaseMultiClaim.Owner = hardClaim.Owner
+	for _, supplyRewardIndex := range hardClaim.SupplyRewardIndexes {
+		if supplyRewardIndex.CollateralType == denom {
+			filteredClaim.SupplyRewardIndexes = append(filteredClaim.SupplyRewardIndexes, supplyRewardIndex)
+		}
+	}
+	for _, borrowRewardIndex := range hardClaim.BorrowRewardIndexes {
+		if borrowRewardIndex.CollateralType == denom {
+			filteredClaim.BorrowRewardIndexes = append(filteredClaim.BorrowRewardIndexes, borrowRewardIndex)
+		}
+	}
+	for _, delegatorRewardIndexes := range hardClaim.DelegatorRewardIndexes {
+		if delegatorRewardIndexes.CollateralType == denom {
+			filteredClaim.DelegatorRewardIndexes = append(filteredClaim.DelegatorRewardIndexes, delegatorRewardIndexes)
+		}
+	}
+	return
 }
