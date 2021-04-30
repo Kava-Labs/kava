@@ -59,7 +59,7 @@ func (msg MsgSubmitProposal) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Proposer}
 }
 
-type VoteType int
+type VoteType uint64
 
 const (
 	NullVoteType VoteType = iota // 0
@@ -67,6 +67,13 @@ const (
 	No           VoteType = iota // 2
 	Abstain      VoteType = iota // 3
 )
+
+func (vt VoteType) Validate() error {
+	if vt > 3 {
+		return fmt.Errorf("invalid vote type: %d", vt)
+	}
+	return nil
+}
 
 // MsgVote is submitted by committee members to vote on proposals.
 type MsgVote struct {
@@ -92,11 +99,7 @@ func (msg MsgVote) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "voter address cannot be empty")
 	}
 
-	if msg.VoteType < 0 || msg.VoteType > 3 { // 0 = Null, 1 = Yes, 2 = No, 3 = Abstain
-		return fmt.Errorf("invalid vote type: %d", msg.VoteType)
-	}
-
-	return nil
+	return msg.VoteType.Validate()
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg.

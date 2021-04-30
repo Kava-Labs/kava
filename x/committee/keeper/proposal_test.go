@@ -1238,7 +1238,7 @@ func getProposalOutcome(proposalID uint64, events sdk.Events, cdc *amino.Codec) 
 				if bytes.Compare(attribute.GetKey(), []byte(types.AttributeKeyProposalOutcome)) == 0 {
 					outcome, err := types.MatchMarshaledOutcome(attribute.GetValue(), cdc)
 					if err != nil {
-						return -1, err
+						return 0, err
 					}
 					proposalOutcome = outcome
 				}
@@ -1249,5 +1249,5 @@ func getProposalOutcome(proposalID uint64, events sdk.Events, cdc *amino.Codec) 
 			}
 		}
 	}
-	return -1, nil
+	return 0, nil
 }

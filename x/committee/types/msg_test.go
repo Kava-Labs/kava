@@ -79,11 +79,6 @@ func TestMsgVote_ValidateBasic(t *testing.T) {
 			msg:        MsgVote{5, addr, 4},
 			expectPass: false,
 		},
-		{
-			name:       "invalid vote (smaller)",
-			msg:        MsgVote{5, addr, -1},
-			expectPass: false,
-		},
 	}
 
 	for _, tc := range tests {

@@ -17,7 +17,7 @@ const (
 )
 
 // ProposalOutcome indicates the status of a proposal when it's closed and deleted from the store
-type ProposalOutcome int
+type ProposalOutcome uint64
 
 const (
 	// Passed indicates that the proposal passed and was succesfully enacted
@@ -49,26 +49,26 @@ func (p ProposalOutcome) Marshal(cdc *amino.Codec) ([]byte, error) {
 func MatchMarshaledOutcome(value []byte, cdc *amino.Codec) (ProposalOutcome, error) {
 	passed, err := Passed.Marshal(cdc)
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 	if bytes.Compare(passed, value) == 0 {
 		return Passed, nil
 	}
 	failed, err := Failed.Marshal(cdc)
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 	if bytes.Compare(failed, value) == 0 {
 		return Failed, nil
 	}
 	invalid, err := Invalid.Marshal(cdc)
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 	if bytes.Compare(invalid, value) == 0 {
 		return Invalid, nil
 	}
-	return -1, nil
+	return 0, nil
 }
 
 // ensure proposal types fulfill the PubProposal interface and the gov Content interface.

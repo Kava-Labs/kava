@@ -64,7 +64,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
 	}
 
-	if com.GetType() == types.MemberCommitteeType {
+	if _, ok := com.(types.MemberCommittee); ok {
 		if !com.HasMember(voter) {
 			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "voter must be a member of committee")
 		}
