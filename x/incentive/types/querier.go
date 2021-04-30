@@ -17,25 +17,28 @@ const (
 	QueryGetClaimPeriods               = "claim-periods"
 	RestClaimCollateralType            = "collateral_type"
 	RestClaimOwner                     = "owner"
+	RestClaimDenom                     = "denom"
 	RestClaimType                      = "type"
 	RestUnsynced                       = "unsynced"
 )
 
 // QueryRewardsParams params for query /incentive/rewards
 type QueryRewardsParams struct {
-	Page  int `json:"page" yaml:"page"`
-	Limit int `json:"limit" yaml:"limit"`
-	Owner sdk.AccAddress
-	Type  string
+	Page  int            `json:"page" yaml:"page"`
+	Limit int            `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
+	Denom string         `json:"denon" yaml:"denon"`
+	Type  string         `json:"type" yaml:"type"`
 }
 
 // NewQueryRewardsParams returns QueryRewardsParams
-func NewQueryRewardsParams(page, limit int, owner sdk.AccAddress, rewardType string) QueryRewardsParams {
+func NewQueryRewardsParams(page, limit int, owner sdk.AccAddress, rewardType, denom string) QueryRewardsParams {
 	return QueryRewardsParams{
 		Page:  page,
 		Limit: limit,
 		Owner: owner,
 		Type:  rewardType,
+		Denom: denom,
 	}
 }
 
@@ -80,11 +83,12 @@ type QueryHardRewardsParams struct {
 }
 
 // NewQueryHardRewardsParams returns QueryHardRewardsParams
-func NewQueryHardRewardsParams(page, limit int, owner sdk.AccAddress) QueryHardRewardsParams {
+func NewQueryHardRewardsParams(page, limit int, owner sdk.AccAddress, denom string) QueryHardRewardsParams {
 	return QueryHardRewardsParams{
 		Page:  page,
 		Limit: limit,
 		Owner: owner,
+		Denom: denom,
 	}
 }
 

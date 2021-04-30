@@ -65,6 +65,7 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			limit := viper.GetInt(flags.FlagLimit)
 			strOwner := viper.GetString(flagOwner)
 			strType := viper.GetString(flagType)
+			denom := viper.GetString(flagDenom)
 			boolUnsynced := viper.GetBool(flagUnsynced)
 
 			// Prepare params for querier
@@ -83,7 +84,7 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 						return err
 					}
 				} else {
-					params := types.NewQueryHardRewardsParams(page, limit, owner)
+					params := types.NewQueryHardRewardsParams(page, limit, owner, denom)
 					claims, err = executeHardRewardsQuery(queryRoute, cdc, cliCtx, params)
 					if err != nil {
 						return err
@@ -121,7 +122,7 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 						return err
 					}
 				} else {
-					paramsHard := types.NewQueryHardRewardsParams(page, limit, owner)
+					paramsHard := types.NewQueryHardRewardsParams(page, limit, owner, denom)
 					hardClaims, err = executeHardRewardsQuery(queryRoute, cdc, cliCtx, paramsHard)
 					if err != nil {
 						return err
@@ -143,6 +144,7 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		},
 	}
 	cmd.Flags().String(flagOwner, "", "(optional) filter by owner address")
+	cmd.Flags().String(flagDenom, "", "(optional) filter by denom for hard queries (query must also specify owner flag)")
 	cmd.Flags().String(flagType, "", "(optional) filter by reward type")
 	cmd.Flags().String(flagUnsynced, "", "(optional) get unsynced claims")
 	cmd.Flags().Int(flags.FlagPage, 1, "pagination page rewards of to to query for")

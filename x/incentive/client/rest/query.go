@@ -43,6 +43,11 @@ func queryRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
+		var denom string
+		if x := r.URL.Query().Get(types.RestClaimDenom); len(x) != 0 {
+			denom = strings.ToLower(strings.TrimSpace(x))
+		}
+
 		var rewardType string
 		if x := r.URL.Query().Get(types.RestClaimType); len(x) != 0 {
 			rewardType = strings.ToLower(strings.TrimSpace(x))
@@ -74,13 +79,13 @@ func queryRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		} else {
 			switch strings.ToLower(rewardType) {
 			case "hard":
-				params := types.NewQueryHardRewardsParams(page, limit, owner)
+				params := types.NewQueryHardRewardsParams(page, limit, owner, denom)
 				executeHardRewardsQuery(w, cliCtx, params)
 			case "usdx_minting":
 				params := types.NewQueryUSDXMintingRewardsParams(page, limit, owner)
 				executeUSDXMintingRewardsQuery(w, cliCtx, params)
 			default:
-				hardParams := types.NewQueryHardRewardsParams(page, limit, owner)
+				hardParams := types.NewQueryHardRewardsParams(page, limit, owner, denom)
 				usdxMintingParams := types.NewQueryUSDXMintingRewardsParams(page, limit, owner)
 				executeBothRewardQueries(w, cliCtx, hardParams, usdxMintingParams)
 			}
