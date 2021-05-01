@@ -13,6 +13,182 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
+	type args struct {
+		deposit               sdk.Coin
+		rewardsPerSecond      sdk.Coins
+		initialTime           time.Time
+		timeElapsed           int
+		expectedRewardIndexes types.RewardIndexes
+	}
+	type test struct {
+		name string
+		args args
+	}
+	testCases := []test{
+		{
+			"single reward denom: 7 seconds",
+			args{
+				deposit:               c("bnb", 1000000000000),
+				rewardsPerSecond:      cs(c("hard", 122354)),
+				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:           7,
+				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.000000856478000000"))},
+			},
+		},
+		{
+			"single reward denom: 1 day",
+			args{
+				deposit:               c("bnb", 1000000000000),
+				rewardsPerSecond:      cs(c("hard", 122354)),
+				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:           86400,
+				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.010571385600000000"))},
+			},
+		},
+		{
+			"single reward denom: 0 seconds",
+			args{
+				deposit:               c("bnb", 1000000000000),
+				rewardsPerSecond:      cs(c("hard", 122354)),
+				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:           0,
+				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.0"))},
+			},
+		},
+		{
+			"multiple reward denoms: 7 seconds",
+			args{
+				deposit:          c("bnb", 1000000000000),
+				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:      7,
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.000000856478000000")),
+					types.NewRewardIndex("ukava", d("0.000000856478000000")),
+				},
+			},
+		},
+		{
+			"multiple reward denoms: 1 day",
+			args{
+				deposit:          c("bnb", 1000000000000),
+				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:      86400,
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.010571385600000000")),
+					types.NewRewardIndex("ukava", d("0.010571385600000000")),
+				},
+			},
+		},
+		{
+			"multiple reward denoms: 0 seconds",
+			args{
+				deposit:          c("bnb", 1000000000000),
+				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:      0,
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.0")),
+					types.NewRewardIndex("ukava", d("0.0")),
+				},
+			},
+		},
+		{
+			"multiple reward denoms with different rewards per second: 1 day",
+			args{
+				deposit:          c("bnb", 1000000000000),
+				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 555555)),
+				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:      86400,
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.010571385600000000")),
+					types.NewRewardIndex("ukava", d("0.047999952000000000")),
+				},
+			},
+		},
+		{
+			"single reward denom, no rewards",
+			args{
+				deposit:               c("bnb", 1000000000000),
+				rewardsPerSecond:      sdk.Coins{},
+				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:           7,
+				expectedRewardIndexes: types.RewardIndexes{},
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWithGenState()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+
+			// Mint coins to hard module account
+			supplyKeeper := suite.app.GetSupplyKeeper()
+			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
+			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+
+			// Set up incentive state
+			params := types.NewParams(
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), c("hard", 1))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), c("hard", 1))},
+				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				tc.args.initialTime.Add(time.Hour*24*365*5),
+			)
+			suite.keeper.SetParams(suite.ctx, params)
+			suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
+			var rewardIndexes types.RewardIndexes
+			for _, rewardCoin := range tc.args.rewardsPerSecond {
+				rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+				rewardIndexes = append(rewardIndexes, rewardIndex)
+			}
+			if len(rewardIndexes) > 0 {
+				suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, tc.args.deposit.Denom, rewardIndexes)
+			}
+
+			// Set up hard state (interest factor for the relevant denom)
+			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
+
+			// User deposits to increase total supplied amount
+			hardKeeper := suite.app.GetHardKeeper()
+			userAddr := suite.addrs[3]
+			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
+			suite.Require().NoError(err)
+
+			// Set up chain context at future time
+			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
+			runCtx := suite.ctx.WithBlockTime(runAtTime)
+
+			// Run Hard begin blocker in order to update the denom's index factor
+			hard.BeginBlocker(runCtx, suite.hardKeeper)
+
+			// Accumulate hard supply rewards for the deposit denom
+			multiRewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(runCtx, tc.args.deposit.Denom)
+			suite.Require().True(found)
+			err = suite.keeper.AccumulateHardSupplyRewards(runCtx, multiRewardPeriod)
+			suite.Require().NoError(err)
+
+			// Check that each expected reward index matches the current stored reward index for the denom
+			globalRewardIndexes, found := suite.keeper.GetHardSupplyRewardIndexes(runCtx, tc.args.deposit.Denom)
+			if len(tc.args.rewardsPerSecond) > 0 {
+				suite.Require().True(found)
+				for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
+					globalRewardIndex, found := globalRewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
+					suite.Require().True(found)
+					suite.Require().Equal(expectedRewardIndex, globalRewardIndex)
+				}
+			} else {
+				suite.Require().False(found)
+			}
+
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestInitializeHardSupplyRewards() {
 
 	type args struct {
@@ -186,182 +362,6 @@ func (suite *KeeperTestSuite) TestInitializeHardSupplyRewards() {
 			claim, foundClaim := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(foundClaim)
 			suite.Require().Equal(tc.args.expectedClaimSupplyRewardIndexes, claim.SupplyRewardIndexes)
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
-	type args struct {
-		deposit               sdk.Coin
-		rewardsPerSecond      sdk.Coins
-		initialTime           time.Time
-		timeElapsed           int
-		expectedRewardIndexes types.RewardIndexes
-	}
-	type test struct {
-		name string
-		args args
-	}
-	testCases := []test{
-		{
-			"single reward denom: 7 seconds",
-			args{
-				deposit:               c("bnb", 1000000000000),
-				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				timeElapsed:           7,
-				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.000000856478000000"))},
-			},
-		},
-		{
-			"single reward denom: 1 day",
-			args{
-				deposit:               c("bnb", 1000000000000),
-				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				timeElapsed:           86400,
-				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.010571385600000000"))},
-			},
-		},
-		{
-			"single reward denom: 0 seconds",
-			args{
-				deposit:               c("bnb", 1000000000000),
-				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				timeElapsed:           0,
-				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.0"))},
-			},
-		},
-		{
-			"multiple reward denoms: 7 seconds",
-			args{
-				deposit:          c("bnb", 1000000000000),
-				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				timeElapsed:      7,
-				expectedRewardIndexes: types.RewardIndexes{
-					types.NewRewardIndex("hard", d("0.000000856478000000")),
-					types.NewRewardIndex("ukava", d("0.000000856478000000")),
-				},
-			},
-		},
-		{
-			"multiple reward denoms: 1 day",
-			args{
-				deposit:          c("bnb", 1000000000000),
-				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				timeElapsed:      86400,
-				expectedRewardIndexes: types.RewardIndexes{
-					types.NewRewardIndex("hard", d("0.010571385600000000")),
-					types.NewRewardIndex("ukava", d("0.010571385600000000")),
-				},
-			},
-		},
-		{
-			"multiple reward denoms: 0 seconds",
-			args{
-				deposit:          c("bnb", 1000000000000),
-				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				timeElapsed:      0,
-				expectedRewardIndexes: types.RewardIndexes{
-					types.NewRewardIndex("hard", d("0.0")),
-					types.NewRewardIndex("ukava", d("0.0")),
-				},
-			},
-		},
-		{
-			"multiple reward denoms with different rewards per second: 1 day",
-			args{
-				deposit:          c("bnb", 1000000000000),
-				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 555555)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				timeElapsed:      86400,
-				expectedRewardIndexes: types.RewardIndexes{
-					types.NewRewardIndex("hard", d("0.010571385600000000")),
-					types.NewRewardIndex("ukava", d("0.047999952000000000")),
-				},
-			},
-		},
-		{
-			"single reward denom, no rewards",
-			args{
-				deposit:               c("bnb", 1000000000000),
-				rewardsPerSecond:      sdk.Coins{},
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				timeElapsed:           7,
-				expectedRewardIndexes: types.RewardIndexes{},
-			},
-		},
-	}
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
-
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
-			// Set up incentive state
-			params := types.NewParams(
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), c("hard", 1))},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), c("hard", 1))},
-				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				tc.args.initialTime.Add(time.Hour*24*365*5),
-			)
-			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
-			var rewardIndexes types.RewardIndexes
-			for _, rewardCoin := range tc.args.rewardsPerSecond {
-				rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
-				rewardIndexes = append(rewardIndexes, rewardIndex)
-			}
-			if len(rewardIndexes) > 0 {
-				suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, tc.args.deposit.Denom, rewardIndexes)
-			}
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
-
-			// User deposits to increase total supplied amount
-			hardKeeper := suite.app.GetHardKeeper()
-			userAddr := suite.addrs[3]
-			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
-			suite.Require().NoError(err)
-
-			// Set up chain context at future time
-			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
-			runCtx := suite.ctx.WithBlockTime(runAtTime)
-
-			// Run Hard begin blocker in order to update the denom's index factor
-			hard.BeginBlocker(runCtx, suite.hardKeeper)
-
-			// Accumulate hard supply rewards for the deposit denom
-			multiRewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(runCtx, tc.args.deposit.Denom)
-			suite.Require().True(found)
-			err = suite.keeper.AccumulateHardSupplyRewards(runCtx, multiRewardPeriod)
-			suite.Require().NoError(err)
-
-			// Check that each expected reward index matches the current stored reward index for the denom
-			globalRewardIndexes, found := suite.keeper.GetHardSupplyRewardIndexes(runCtx, tc.args.deposit.Denom)
-			if len(tc.args.rewardsPerSecond) > 0 {
-				suite.Require().True(found)
-				for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
-					globalRewardIndex, found := globalRewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
-					suite.Require().True(found)
-					suite.Require().Equal(expectedRewardIndex, globalRewardIndex)
-				}
-			} else {
-				suite.Require().False(found)
-			}
-
 		})
 	}
 }
