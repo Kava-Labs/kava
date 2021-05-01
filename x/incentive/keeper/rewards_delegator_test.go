@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 			err = suite.keeper.AccumulateHardDelegatorRewards(runCtx, rewardPeriod)
 			suite.Require().NoError(err)
 
-			rewardFactor, found := suite.keeper.GetHardDelegatorRewardFactor(runCtx, tc.args.delegation.Denom)
+			rewardFactor, _ := suite.keeper.GetHardDelegatorRewardFactor(runCtx, tc.args.delegation.Denom)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 		})
 	}
@@ -232,7 +232,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			})
 
 			// Check that reward factor and claim have been updated as expected
-			rewardFactor, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom)
+			rewardFactor, _ := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 
 			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
