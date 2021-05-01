@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/cosmos/cosmos-sdk/x/auth"
 
@@ -671,6 +672,8 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 	}
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
+			suite.SetupApp()
+			suite.app.InitializeFromGenesisStates()
 			// create the periodic vesting account
 			pva, err := createPeriodicVestingAccount(tc.args.accArgs.origVestingCoins, tc.args.accArgs.periods, tc.args.accArgs.startTime, tc.args.accArgs.endTime)
 			suite.Require().NoError(err)
@@ -908,6 +911,7 @@ func (suite *KeeperTestSuite) TestGetPeriodLength() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			suite.SetupApp()
 			ctx := suite.ctx.WithBlockTime(tc.args.blockTime)
 			length, err := suite.keeper.GetPeriodLength(ctx, tc.args.multiplier)
 			if tc.errArgs.expectPass {
@@ -918,4 +922,10 @@ func (suite *KeeperTestSuite) TestGetPeriodLength() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) SetupApp() {
+	suite.app = app.NewTestApp()
+	suite.keeper = suite.app.GetIncentiveKeeper()
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 }
