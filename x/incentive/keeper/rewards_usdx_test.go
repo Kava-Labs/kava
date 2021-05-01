@@ -90,7 +90,7 @@ func (suite *KeeperTestSuite) TestAccumulateUSDXMintingRewards() {
 			err := suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
 			suite.Require().NoError(err)
 
-			rewardFactor, found := suite.keeper.GetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype)
+			rewardFactor, _ := suite.keeper.GetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 		})
 	}
@@ -192,7 +192,7 @@ func (suite *KeeperTestSuite) TestSynchronizeUSDXMintingReward() {
 				suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 			})
 
-			rewardFactor, found := suite.keeper.GetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype)
+			rewardFactor, _ := suite.keeper.GetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 
 			claim, found = suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])

@@ -742,7 +742,9 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 
 			// 5. Committee votes and passes proposal
 			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne)
+			suite.Require().NoError(err)
 			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo)
+			suite.Require().NoError(err)
 
 			// 6. Check proposal passed
 			proposalPasses, err := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID)
