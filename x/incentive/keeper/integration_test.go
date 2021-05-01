@@ -208,6 +208,23 @@ func NewStakingGenesisState() app.GenesisState {
 	}
 }
 
+func NewCommitteeGenesisState(members []sdk.AccAddress) app.GenesisState {
+	genState := committeetypes.DefaultGenesisState()
+	genState.Committees = []committeetypes.Committee{
+		committeetypes.NewCommittee(
+			genState.NextProposalID,
+			"This committee is for testing.",
+			members,
+			[]committeetypes.Permission{committeetypes.GodPermission{}},
+			d("0.667"),
+			time.Hour*24*7,
+		)}
+	genState.NextProposalID += 1
+	return app.GenesisState{
+		committeetypes.ModuleName: committeetypes.ModuleCdc.MustMarshalJSON(genState),
+	}
+}
+
 func (suite *KeeperTestSuite) SetupWithGenState() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
@@ -218,24 +235,13 @@ func (suite *KeeperTestSuite) SetupWithGenState() {
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
 		NewHardGenStateMulti(),
+		NewCommitteeGenesisState(suite.addrs[:2]),
 	)
-
-	// Set up a god committee
-	committeeModKeeper := tApp.GetCommitteeKeeper()
-	godCommittee := committeetypes.Committee{
-		ID:               1,
-		Description:      "This committee is for testing.",
-		Members:          suite.addrs[:2],
-		Permissions:      []committeetypes.Permission{committeetypes.GodPermission{}},
-		VoteThreshold:    d("0.667"),
-		ProposalDuration: time.Hour * 24 * 7,
-	}
-	committeeModKeeper.SetCommittee(ctx, godCommittee)
 
 	suite.app = tApp
 	suite.ctx = ctx
 	suite.keeper = tApp.GetIncentiveKeeper()
 	suite.hardKeeper = tApp.GetHardKeeper()
 	suite.stakingKeeper = tApp.GetStakingKeeper()
-	suite.committeeKeeper = committeeModKeeper
+	suite.committeeKeeper = tApp.GetCommitteeKeeper()
 }
