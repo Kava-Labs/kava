@@ -12,9 +12,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
-
 	"github.com/kava-labs/kava/app"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
@@ -36,7 +33,7 @@ type KeeperTestSuite struct {
 	validatorAddrs  []sdk.ValAddress
 }
 
-// The default state used by each test
+// SetupTest is run automatically before each suite test
 func (suite *KeeperTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
@@ -46,15 +43,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	for _, a := range allAddrs[5:] {
 		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
 	}
-
-	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-
-	tApp.InitializeFromGenesisStates()
-
-	suite.keeper = tApp.GetIncentiveKeeper()
-	suite.app = tApp
-	suite.ctx = ctx
 }
 
 // getAllAddrs returns all user and validator addresses in the suite
