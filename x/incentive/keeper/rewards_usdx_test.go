@@ -5,35 +5,27 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
+	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
-	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
-)
-
-const (
-	oneYear time.Duration = time.Hour * 24 * 365
 )
 
 // Test suite used for all keeper tests
 type USDXRewardsTestSuite struct {
 	suite.Suite
 
-	keeper          keeper.Keeper
-	hardKeeper      hardkeeper.Keeper
-	stakingKeeper   stakingkeeper.Keeper
-	committeeKeeper committeekeeper.Keeper
-	app             app.TestApp
-	ctx             sdk.Context
-	addrs           []sdk.AccAddress
-	validatorAddrs  []sdk.ValAddress
+	keeper    keeper.Keeper
+	cdpKeeper cdpkeeper.Keeper
+
+	app   app.TestApp
+	ctx   sdk.Context
+	addrs []sdk.AccAddress
 }
 
 // SetupTest is run automatically before each suite test
@@ -41,44 +33,25 @@ func (suite *USDXRewardsTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 
-	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
-	suite.addrs = allAddrs[:5]
-	for _, a := range allAddrs[5:] {
-		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
-	}
+	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
 }
 
 func (suite *USDXRewardsTestSuite) SetupApp() {
 	suite.app = app.NewTestApp()
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
-	suite.hardKeeper = suite.app.GetHardKeeper()
-	suite.stakingKeeper = suite.app.GetStakingKeeper()
-	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
+	suite.cdpKeeper = suite.app.GetCDPKeeper()
 
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-}
-
-// getAllAddrs returns all user and validator addresses in the suite
-func (suite *USDXRewardsTestSuite) getAllAddrs() []sdk.AccAddress {
-	accAddrs := []sdk.AccAddress{} // initialize new slice to avoid accidental modifications to underlying
-	accAddrs = append(accAddrs, suite.addrs...)
-	for _, a := range suite.validatorAddrs {
-		accAddrs = append(accAddrs, sdk.AccAddress(a))
-	}
-	return accAddrs
 }
 
 func (suite *USDXRewardsTestSuite) SetupWithGenState() {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStates(
-		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
-		NewStakingGenesisState(),
+		NewAuthGenState(suite.addrs, cs(c("ukava", 1_000_000_000))),
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
-		NewHardGenStateMulti(),
-		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
 	)
 }
 
@@ -136,8 +109,7 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup cdp state
-			cdpKeeper := suite.app.GetCDPKeeper()
-			cdpKeeper.SetTotalPrincipal(suite.ctx, tc.args.ctype, cdptypes.DefaultStableDenom, tc.args.initialTotalPrincipal.Amount)
+			suite.cdpKeeper.SetTotalPrincipal(suite.ctx, tc.args.ctype, cdptypes.DefaultStableDenom, tc.args.initialTotalPrincipal.Amount)
 
 			// setup incentive state
 			params := types.NewParams(
@@ -233,8 +205,7 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 			sk.SendCoinsFromModuleToAccount(suite.ctx, cdptypes.ModuleName, suite.addrs[0], sdk.NewCoins(tc.args.initialCollateral))
 
 			// setup cdp state
-			cdpKeeper := suite.app.GetCDPKeeper()
-			err := cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
+			err := suite.cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
 			suite.Require().NoError(err)
 
 			claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
@@ -255,7 +226,7 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
-			cdp, found := cdpKeeper.GetCdpByOwnerAndCollateralType(suite.ctx, suite.addrs[0], tc.args.ctype)
+			cdp, found := suite.cdpKeeper.GetCdpByOwnerAndCollateralType(suite.ctx, suite.addrs[0], tc.args.ctype)
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
 				suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
@@ -341,8 +312,7 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 			sk.SendCoinsFromModuleToAccount(suite.ctx, cdptypes.ModuleName, suite.addrs[0], sdk.NewCoins(tc.args.initialCollateral))
 
 			// setup cdp state
-			cdpKeeper := suite.app.GetCDPKeeper()
-			err := cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
+			err := suite.cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
 			suite.Require().NoError(err)
 
 			claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])

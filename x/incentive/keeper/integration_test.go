@@ -13,6 +13,10 @@ import (
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
+const (
+	oneYear time.Duration = time.Hour * 24 * 365
+)
+
 // Avoid cluttering test cases with long function names
 func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
 func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) }
