@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -26,12 +25,10 @@ type SupplyRewardsTestSuite struct {
 
 	keeper          keeper.Keeper
 	hardKeeper      hardkeeper.Keeper
-	stakingKeeper   stakingkeeper.Keeper
 	committeeKeeper committeekeeper.Keeper
 	app             app.TestApp
 	ctx             sdk.Context
 	addrs           []sdk.AccAddress
-	validatorAddrs  []sdk.ValAddress
 }
 
 // SetupTest is run automatically before each suite test
@@ -39,11 +36,7 @@ func (suite *SupplyRewardsTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 
-	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
-	suite.addrs = allAddrs[:5]
-	for _, a := range allAddrs[5:] {
-		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
-	}
+	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
 }
 
 func (suite *SupplyRewardsTestSuite) SetupApp() {
@@ -51,30 +44,17 @@ func (suite *SupplyRewardsTestSuite) SetupApp() {
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.hardKeeper = suite.app.GetHardKeeper()
-	suite.stakingKeeper = suite.app.GetStakingKeeper()
 	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
 
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-}
-
-// getAllAddrs returns all user and validator addresses in the suite
-func (suite *SupplyRewardsTestSuite) getAllAddrs() []sdk.AccAddress {
-	accAddrs := []sdk.AccAddress{} // initialize new slice to avoid accidental modifications to underlying
-	accAddrs = append(accAddrs, suite.addrs...)
-	for _, a := range suite.validatorAddrs {
-		accAddrs = append(accAddrs, sdk.AccAddress(a))
-	}
-	return accAddrs
 }
 
 func (suite *SupplyRewardsTestSuite) SetupWithGenState() {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStates(
-		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
-		NewStakingGenesisState(),
+		NewAuthGenState(suite.addrs, cs(c("ukava", 1_000_000_000))),
 		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
 		NewHardGenStateMulti(),
 		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
 	)
@@ -191,11 +171,6 @@ func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
 			// Set up incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), c("hard", 1))},
@@ -221,9 +196,8 @@ func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
 
 			// User deposits to increase total supplied amount
-			hardKeeper := suite.app.GetHardKeeper()
 			userAddr := suite.addrs[3]
-			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
+			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
 			suite.Require().NoError(err)
 
 			// Set up chain context at future time
@@ -372,11 +346,6 @@ func (suite *SupplyRewardsTestSuite) TestInitializeHardSupplyRewards() {
 			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
 			userAddr := suite.addrs[3]
 
 			// Prepare money market + reward params
@@ -422,8 +391,7 @@ func (suite *SupplyRewardsTestSuite) TestInitializeHardSupplyRewards() {
 			}
 
 			// User deposits
-			hardKeeper := suite.app.GetHardKeeper()
-			err := hardKeeper.Deposit(suite.ctx, userAddr, tc.args.deposit)
+			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, tc.args.deposit)
 			suite.Require().NoError(err)
 
 			claim, foundClaim := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
@@ -655,11 +623,6 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
 			// Set up incentive state
 			incentiveParams := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.incentiveSupplyRewardDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), c("hard", 1))},
@@ -691,9 +654,8 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 			)
 
 			// User deposits and borrows to increase total borrowed amount
-			hardKeeper := suite.app.GetHardKeeper()
 			userAddr := suite.addrs[3]
-			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
+			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
 			suite.Require().NoError(err)
 
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim with 0 reward indexes
@@ -729,7 +691,7 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
 
 			// After we've accumulated, run synchronize
-			deposit, found := hardKeeper.GetDeposit(suite.ctx, userAddr)
+			deposit, found := suite.hardKeeper.GetDeposit(suite.ctx, userAddr)
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
 				suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
@@ -841,7 +803,7 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 			suite.Require().NoError(err)
 
 			// After we've accumulated, run synchronize
-			deposit, found = hardKeeper.GetDeposit(suite.ctx, userAddr)
+			deposit, found = suite.hardKeeper.GetDeposit(suite.ctx, userAddr)
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
 				suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
@@ -990,11 +952,6 @@ func (suite *SupplyRewardsTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
 			// Set up generic reward periods
 			var multiRewardPeriods types.MultiRewardPeriods
 			var rewardPeriods types.RewardPeriods
@@ -1028,9 +985,8 @@ func (suite *SupplyRewardsTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			}
 
 			// User deposits (first time)
-			hardKeeper := suite.app.GetHardKeeper()
 			userAddr := suite.addrs[3]
-			err := hardKeeper.Deposit(suite.ctx, userAddr, tc.args.firstDeposit)
+			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, tc.args.firstDeposit)
 			suite.Require().NoError(err)
 
 			// Confirm that a claim was created and populated with the correct supply indexes
@@ -1044,9 +1000,9 @@ func (suite *SupplyRewardsTestSuite) TestUpdateHardSupplyIndexDenoms() {
 
 			// User modifies their Deposit by withdrawing or depositing more
 			if tc.args.modification.withdraw {
-				err = hardKeeper.Withdraw(suite.ctx, userAddr, tc.args.modification.coins)
+				err = suite.hardKeeper.Withdraw(suite.ctx, userAddr, tc.args.modification.coins)
 			} else {
-				err = hardKeeper.Deposit(suite.ctx, userAddr, tc.args.modification.coins)
+				err = suite.hardKeeper.Deposit(suite.ctx, userAddr, tc.args.modification.coins)
 			}
 			suite.Require().NoError(err)
 
@@ -1105,11 +1061,6 @@ func (suite *SupplyRewardsTestSuite) TestSimulateHardSupplyRewardSynchronization
 			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
 			// Set up incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
@@ -1133,9 +1084,8 @@ func (suite *SupplyRewardsTestSuite) TestSimulateHardSupplyRewardSynchronization
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
 
 			// User deposits and borrows to increase total borrowed amount
-			hardKeeper := suite.app.GetHardKeeper()
 			userAddr := suite.addrs[3]
-			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
+			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
 			suite.Require().NoError(err)
 
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim
