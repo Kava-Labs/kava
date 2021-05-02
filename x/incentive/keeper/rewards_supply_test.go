@@ -1,19 +1,86 @@
 package keeper_test
 
 import (
+	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee"
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/hard"
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
+// Test suite used for all keeper tests
+type SupplyRewardsTestSuite struct {
+	suite.Suite
+
+	keeper          keeper.Keeper
+	hardKeeper      hardkeeper.Keeper
+	stakingKeeper   stakingkeeper.Keeper
+	committeeKeeper committeekeeper.Keeper
+	app             app.TestApp
+	ctx             sdk.Context
+	addrs           []sdk.AccAddress
+	validatorAddrs  []sdk.ValAddress
+}
+
+// SetupTest is run automatically before each suite test
+func (suite *SupplyRewardsTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
+	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
+	suite.addrs = allAddrs[:5]
+	for _, a := range allAddrs[5:] {
+		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
+	}
+}
+
+func (suite *SupplyRewardsTestSuite) SetupApp() {
+	suite.app = app.NewTestApp()
+
+	suite.keeper = suite.app.GetIncentiveKeeper()
+	suite.hardKeeper = suite.app.GetHardKeeper()
+	suite.stakingKeeper = suite.app.GetStakingKeeper()
+	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
+
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+}
+
+// getAllAddrs returns all user and validator addresses in the suite
+func (suite *SupplyRewardsTestSuite) getAllAddrs() []sdk.AccAddress {
+	accAddrs := []sdk.AccAddress{} // initialize new slice to avoid accidental modifications to underlying
+	accAddrs = append(accAddrs, suite.addrs...)
+	for _, a := range suite.validatorAddrs {
+		accAddrs = append(accAddrs, sdk.AccAddress(a))
+	}
+	return accAddrs
+}
+
+func (suite *SupplyRewardsTestSuite) SetupWithGenState() {
+	suite.SetupApp()
+
+	suite.app.InitializeFromGenesisStates(
+		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
+		NewStakingGenesisState(),
+		NewPricefeedGenStateMulti(),
+		NewCDPGenStateMulti(),
+		NewHardGenStateMulti(),
+		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
+	)
+}
+
+func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 	type args struct {
 		deposit               sdk.Coin
 		rewardsPerSecond      sdk.Coins
@@ -189,7 +256,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestInitializeHardSupplyRewards() {
+func (suite *SupplyRewardsTestSuite) TestInitializeHardSupplyRewards() {
 
 	type args struct {
 		moneyMarketRewardDenoms          map[string][]string
@@ -366,7 +433,7 @@ func (suite *KeeperTestSuite) TestInitializeHardSupplyRewards() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
+func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 	type args struct {
 		incentiveSupplyRewardDenom   string
 		deposit                      sdk.Coin
@@ -808,7 +875,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
+func (suite *SupplyRewardsTestSuite) TestUpdateHardSupplyIndexDenoms() {
 	type depositModification struct {
 		coins    sdk.Coins
 		withdraw bool
@@ -995,7 +1062,7 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSimulateHardSupplyRewardSynchronization() {
+func (suite *SupplyRewardsTestSuite) TestSimulateHardSupplyRewardSynchronization() {
 	type args struct {
 		deposit               sdk.Coin
 		rewardsPerSecond      sdk.Coins
@@ -1130,4 +1197,8 @@ func (suite *KeeperTestSuite) TestSimulateHardSupplyRewardSynchronization() {
 			}
 		})
 	}
+}
+
+func TestSupplyRewardsTestSuite(t *testing.T) {
+	suite.Run(t, new(SupplyRewardsTestSuite))
 }

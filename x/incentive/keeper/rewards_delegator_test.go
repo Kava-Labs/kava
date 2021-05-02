@@ -1,19 +1,86 @@
 package keeper_test
 
 import (
+	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
+	"github.com/kava-labs/kava/app"
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/hard"
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
+// Test suite used for all keeper tests
+type DelegatorRewardsTestSuite struct {
+	suite.Suite
+
+	keeper          keeper.Keeper
+	hardKeeper      hardkeeper.Keeper
+	stakingKeeper   stakingkeeper.Keeper
+	committeeKeeper committeekeeper.Keeper
+	app             app.TestApp
+	ctx             sdk.Context
+	addrs           []sdk.AccAddress
+	validatorAddrs  []sdk.ValAddress
+}
+
+// SetupTest is run automatically before each suite test
+func (suite *DelegatorRewardsTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
+	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
+	suite.addrs = allAddrs[:5]
+	for _, a := range allAddrs[5:] {
+		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
+	}
+}
+
+func (suite *DelegatorRewardsTestSuite) SetupApp() {
+	suite.app = app.NewTestApp()
+
+	suite.keeper = suite.app.GetIncentiveKeeper()
+	suite.hardKeeper = suite.app.GetHardKeeper()
+	suite.stakingKeeper = suite.app.GetStakingKeeper()
+	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
+
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+}
+
+// getAllAddrs returns all user and validator addresses in the suite
+func (suite *DelegatorRewardsTestSuite) getAllAddrs() []sdk.AccAddress {
+	accAddrs := []sdk.AccAddress{} // initialize new slice to avoid accidental modifications to underlying
+	accAddrs = append(accAddrs, suite.addrs...)
+	for _, a := range suite.validatorAddrs {
+		accAddrs = append(accAddrs, sdk.AccAddress(a))
+	}
+	return accAddrs
+}
+
+func (suite *DelegatorRewardsTestSuite) SetupWithGenState() {
+	suite.SetupApp()
+
+	suite.app.InitializeFromGenesisStates(
+		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
+		NewStakingGenesisState(),
+		NewPricefeedGenStateMulti(),
+		NewCDPGenStateMulti(),
+		NewHardGenStateMulti(),
+		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
+	)
+}
+
+func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 	type args struct {
 		delegation           sdk.Coin
 		rewardsPerSecond     sdk.Coin
@@ -108,7 +175,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
+func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 	type args struct {
 		delegation           sdk.Coin
 		rewardsPerSecond     sdk.Coin
@@ -243,7 +310,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
+func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
 	type args struct {
 		delegation            sdk.Coin
 		rewardsPerSecond      sdk.Coins
@@ -360,7 +427,7 @@ func (suite *KeeperTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
 	}
 }
 
-func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
+func (suite *DelegatorRewardsTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
 	msg := staking.NewMsgCreateValidator(
 		address,
 		ed25519.GenPrivKey().PubKey(),
@@ -374,7 +441,7 @@ func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address
 	return err
 }
 
-func (suite *KeeperTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
+func (suite *DelegatorRewardsTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
 	msg := staking.NewMsgDelegate(
 		delegator,
 		validator,
@@ -385,7 +452,7 @@ func (suite *KeeperTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.
 	return err
 }
 
-func (suite *KeeperTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sdk.AccAddress, sourceValidator, destinationValidator sdk.ValAddress, amount sdk.Coin) error {
+func (suite *DelegatorRewardsTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sdk.AccAddress, sourceValidator, destinationValidator sdk.ValAddress, amount sdk.Coin) error {
 	msg := staking.NewMsgBeginRedelegate(
 		delegator,
 		sourceValidator,
@@ -398,7 +465,7 @@ func (suite *KeeperTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sd
 }
 
 // given a user has a delegation to a bonded validator, when the validator starts unbonding, the user does not accumulate rewards
-func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
+func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 	suite.SetupWithGenState()
 	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(initialTime)
@@ -492,7 +559,7 @@ func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 }
 
 // given a user has a delegation to an unbonded validator, when the validator becomes bonded, the user starts accumulating rewards
-func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
+func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 	suite.SetupWithGenState()
 	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(initialTime)
@@ -586,7 +653,7 @@ func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
 }
 
 // If a validator is slashed delegators should have their claims synced
-func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
+func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 	suite.SetupWithGenState()
 	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(initialTime)
@@ -673,7 +740,7 @@ func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
 }
 
 // Given a delegation to a bonded validator, when a user redelegates everything to another (bonded) validator, the user's claim is synced
-func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
+func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
 	suite.SetupWithGenState()
 	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(initialTime)
@@ -728,4 +795,8 @@ func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
 		cs(c(rewardsPerSecond.Denom, 76471)),
 		claim.Reward,
 	)
+}
+
+func TestDelegatorRewardsTestSuite(t *testing.T) {
+	suite.Run(t, new(DelegatorRewardsTestSuite))
 }
