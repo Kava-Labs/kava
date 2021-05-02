@@ -13,9 +13,6 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
-	"github.com/kava-labs/kava/x/hard"
-	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -24,14 +21,12 @@ import (
 type DelegatorRewardsTestSuite struct {
 	suite.Suite
 
-	keeper          keeper.Keeper
-	hardKeeper      hardkeeper.Keeper
-	stakingKeeper   stakingkeeper.Keeper
-	committeeKeeper committeekeeper.Keeper
-	app             app.TestApp
-	ctx             sdk.Context
-	addrs           []sdk.AccAddress
-	validatorAddrs  []sdk.ValAddress
+	keeper         keeper.Keeper
+	stakingKeeper  stakingkeeper.Keeper
+	app            app.TestApp
+	ctx            sdk.Context
+	addrs          []sdk.AccAddress
+	validatorAddrs []sdk.ValAddress
 }
 
 // SetupTest is run automatically before each suite test
@@ -50,9 +45,7 @@ func (suite *DelegatorRewardsTestSuite) SetupApp() {
 	suite.app = app.NewTestApp()
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
-	suite.hardKeeper = suite.app.GetHardKeeper()
 	suite.stakingKeeper = suite.app.GetStakingKeeper()
-	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
 
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 }
@@ -73,10 +66,6 @@ func (suite *DelegatorRewardsTestSuite) SetupWithGenState() {
 	suite.app.InitializeFromGenesisStates(
 		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
 		NewStakingGenesisState(),
-		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
-		NewHardGenStateMulti(),
-		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
 	)
 }
 
@@ -129,11 +118,6 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
 			// Set up incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
@@ -147,9 +131,6 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 			suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 			suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
 
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
-
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
@@ -160,9 +141,6 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 			// Set up chain context at future time
 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			runCtx := suite.ctx.WithBlockTime(runAtTime)
-
-			// Run Hard begin blocker in order to update the denom's index factor
-			hard.BeginBlocker(runCtx, suite.hardKeeper)
 
 			rewardPeriod, found := suite.keeper.GetHardDelegatorRewardPeriod(runCtx, tc.args.delegation.Denom)
 			suite.Require().True(found)
@@ -229,11 +207,6 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
 			// setup incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
@@ -246,9 +219,6 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 			suite.keeper.SetParams(suite.ctx, params)
 			suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 			suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 
 			// Create validator account
 			staking.BeginBlocker(suite.ctx, suite.stakingKeeper)
@@ -280,9 +250,6 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 				updatedBlockTime := previousBlockTime.Add(time.Duration(int(time.Second) * t))
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
-
-				// Run Hard begin blocker for each block ctx to update denom's interest factor
-				hard.BeginBlocker(blockCtx, suite.hardKeeper)
 
 				rewardPeriod, found := suite.keeper.GetHardDelegatorRewardPeriod(blockCtx, tc.args.delegation.Denom)
 				suite.Require().True(found)
@@ -354,11 +321,6 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
 			// setup incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
@@ -371,9 +333,6 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 			suite.keeper.SetParams(suite.ctx, params)
 			suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 			suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 
 			// Delegator delegates
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
@@ -396,9 +355,6 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 				updatedBlockTime := previousBlockTime.Add(time.Duration(int(time.Second) * t))
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
-
-				// Run Hard begin blocker for each block ctx to update denom's interest factor
-				hard.BeginBlocker(blockCtx, suite.hardKeeper)
 
 				// Accumulate hard delegator rewards
 				rewardPeriod, found := suite.keeper.GetHardDelegatorRewardPeriod(blockCtx, tc.args.delegation.Denom)
