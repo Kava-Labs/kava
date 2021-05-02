@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/stretchr/testify/suite"
 
@@ -20,7 +19,6 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/hard"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/incentive/keeper"
@@ -33,14 +31,12 @@ import (
 type PayoutTestSuite struct {
 	suite.Suite
 
-	keeper          keeper.Keeper
-	hardKeeper      hardkeeper.Keeper
-	stakingKeeper   stakingkeeper.Keeper
-	committeeKeeper committeekeeper.Keeper
-	app             app.TestApp
-	ctx             sdk.Context
-	addrs           []sdk.AccAddress
-	validatorAddrs  []sdk.ValAddress
+	keeper     keeper.Keeper
+	hardKeeper hardkeeper.Keeper
+
+	app   app.TestApp
+	ctx   sdk.Context
+	addrs []sdk.AccAddress
 }
 
 // SetupTest is run automatically before each suite test
@@ -48,11 +44,7 @@ func (suite *PayoutTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 
-	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
-	suite.addrs = allAddrs[:5]
-	for _, a := range allAddrs[5:] {
-		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
-	}
+	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
 }
 
 func (suite *PayoutTestSuite) SetupApp() {
@@ -60,32 +52,18 @@ func (suite *PayoutTestSuite) SetupApp() {
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.hardKeeper = suite.app.GetHardKeeper()
-	suite.stakingKeeper = suite.app.GetStakingKeeper()
-	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
 
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-}
-
-// getAllAddrs returns all user and validator addresses in the suite
-func (suite *PayoutTestSuite) getAllAddrs() []sdk.AccAddress {
-	accAddrs := []sdk.AccAddress{} // initialize new slice to avoid accidental modifications to underlying
-	accAddrs = append(accAddrs, suite.addrs...)
-	for _, a := range suite.validatorAddrs {
-		accAddrs = append(accAddrs, sdk.AccAddress(a))
-	}
-	return accAddrs
 }
 
 func (suite *PayoutTestSuite) SetupWithGenState() {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStates(
-		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
-		NewStakingGenesisState(),
+		NewAuthGenState(suite.addrs, cs(c("ukava", 1_000_000_000))),
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
 		NewHardGenStateMulti(),
-		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
 	)
 }
 
