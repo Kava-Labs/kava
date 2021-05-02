@@ -785,6 +785,22 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 	}
 }
 
+func createPeriodicVestingAccount(origVesting sdk.Coins, periods vesting.Periods, startTime, endTime int64) (*vesting.PeriodicVestingAccount, error) {
+	_, addr := app.GeneratePrivKeyAddressPairs(1)
+	bacc := auth.NewBaseAccountWithAddress(addr[0])
+	bacc.Coins = origVesting
+	bva, err := vesting.NewBaseVestingAccount(&bacc, origVesting, endTime)
+	if err != nil {
+		return &vesting.PeriodicVestingAccount{}, err
+	}
+	pva := vesting.NewPeriodicVestingAccountRaw(bva, startTime, periods)
+	err = pva.Validate()
+	if err != nil {
+		return &vesting.PeriodicVestingAccount{}, err
+	}
+	return pva, nil
+}
+
 func (suite *PayoutTestSuite) TestSendCoinsToBaseAccount() {
 	suite.SetupWithAccountState()
 	// send coins to base account
