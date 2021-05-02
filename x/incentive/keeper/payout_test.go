@@ -3,10 +3,15 @@ package keeper_test
 import (
 	"errors"
 	"strings"
+	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	"github.com/stretchr/testify/suite"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -15,13 +20,86 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/hard"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/kavadist"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
-func (suite *KeeperTestSuite) TestPayoutUSDXMintingClaim() {
+// Test suite used for all keeper tests
+type PayoutTestSuite struct {
+	suite.Suite
+
+	keeper          keeper.Keeper
+	hardKeeper      hardkeeper.Keeper
+	stakingKeeper   stakingkeeper.Keeper
+	committeeKeeper committeekeeper.Keeper
+	app             app.TestApp
+	ctx             sdk.Context
+	addrs           []sdk.AccAddress
+	validatorAddrs  []sdk.ValAddress
+}
+
+// SetupTest is run automatically before each suite test
+func (suite *PayoutTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
+	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
+	suite.addrs = allAddrs[:5]
+	for _, a := range allAddrs[5:] {
+		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
+	}
+}
+
+func (suite *PayoutTestSuite) SetupApp() {
+	suite.app = app.NewTestApp()
+
+	suite.keeper = suite.app.GetIncentiveKeeper()
+	suite.hardKeeper = suite.app.GetHardKeeper()
+	suite.stakingKeeper = suite.app.GetStakingKeeper()
+	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
+
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+}
+
+// getAllAddrs returns all user and validator addresses in the suite
+func (suite *PayoutTestSuite) getAllAddrs() []sdk.AccAddress {
+	accAddrs := []sdk.AccAddress{} // initialize new slice to avoid accidental modifications to underlying
+	accAddrs = append(accAddrs, suite.addrs...)
+	for _, a := range suite.validatorAddrs {
+		accAddrs = append(accAddrs, sdk.AccAddress(a))
+	}
+	return accAddrs
+}
+
+func (suite *PayoutTestSuite) SetupWithGenState() {
+	suite.SetupApp()
+
+	suite.app.InitializeFromGenesisStates(
+		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
+		NewStakingGenesisState(),
+		NewPricefeedGenStateMulti(),
+		NewCDPGenStateMulti(),
+		NewHardGenStateMulti(),
+		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
+	)
+}
+
+func (suite *PayoutTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
+	ak := suite.app.GetAccountKeeper()
+	return ak.GetAccount(suite.ctx, addr)
+}
+
+func (suite *PayoutTestSuite) getModuleAccount(name string) supplyexported.ModuleAccountI {
+	sk := suite.app.GetSupplyKeeper()
+	return sk.GetModuleAccount(suite.ctx, name)
+}
+
+func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
 	type args struct {
 		ctype                    string
 		rewardsPerSecond         sdk.Coin
@@ -156,7 +234,7 @@ func (suite *KeeperTestSuite) TestPayoutUSDXMintingClaim() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaim() {
+func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 	type args struct {
 		deposit                  sdk.Coins
 		borrow                   sdk.Coins
@@ -432,7 +510,7 @@ func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaim() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
+func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 	type accountArgs struct {
 		periods          vesting.Periods
 		origVestingCoins sdk.Coins
@@ -707,7 +785,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSendCoinsToBaseAccount() {
+func (suite *PayoutTestSuite) TestSendCoinsToBaseAccount() {
 	suite.SetupWithAccountState()
 	// send coins to base account
 	err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadist.ModuleName, suite.addrs[1], cs(c("ukava", 100)), 5)
@@ -726,7 +804,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToBaseAccount() {
 
 }
 
-func (suite *KeeperTestSuite) TestSendCoinsToInvalidAccount() {
+func (suite *PayoutTestSuite) TestSendCoinsToInvalidAccount() {
 	suite.SetupWithAccountState()
 	err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadist.ModuleName, suite.addrs[2], cs(c("ukava", 100)), 5)
 	suite.Require().True(errors.Is(err, types.ErrInvalidAccountType))
@@ -735,7 +813,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToInvalidAccount() {
 	suite.Require().True(errors.Is(err, types.ErrInvalidAccountType))
 }
 
-func (suite *KeeperTestSuite) SetupWithAccountState() {
+func (suite *PayoutTestSuite) SetupWithAccountState() {
 	// creates a new app state with 4 funded addresses and 1 module account
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: time.Unix(100, 0)})
@@ -784,7 +862,7 @@ func (suite *KeeperTestSuite) SetupWithAccountState() {
 	suite.addrs = addrs
 }
 
-func (suite *KeeperTestSuite) TestGetPeriodLength() {
+func (suite *PayoutTestSuite) TestGetPeriodLength() {
 	type args struct {
 		blockTime      time.Time
 		multiplier     types.Multiplier
@@ -924,8 +1002,6 @@ func (suite *KeeperTestSuite) TestGetPeriodLength() {
 	}
 }
 
-func (suite *KeeperTestSuite) SetupApp() {
-	suite.app = app.NewTestApp()
-	suite.keeper = suite.app.GetIncentiveKeeper()
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+func TestPayoutTestSuite(t *testing.T) {
+	suite.Run(t, new(PayoutTestSuite))
 }

@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	"github.com/kava-labs/kava/app"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
@@ -45,6 +45,17 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 }
 
+func (suite *KeeperTestSuite) SetupApp() {
+	suite.app = app.NewTestApp()
+
+	suite.keeper = suite.app.GetIncentiveKeeper()
+	suite.hardKeeper = suite.app.GetHardKeeper()
+	suite.stakingKeeper = suite.app.GetStakingKeeper()
+	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
+
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+}
+
 // getAllAddrs returns all user and validator addresses in the suite
 func (suite *KeeperTestSuite) getAllAddrs() []sdk.AccAddress {
 	accAddrs := []sdk.AccAddress{} // initialize new slice to avoid accidental modifications to underlying
@@ -55,17 +66,21 @@ func (suite *KeeperTestSuite) getAllAddrs() []sdk.AccAddress {
 	return accAddrs
 }
 
-func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
-	ak := suite.app.GetAccountKeeper()
-	return ak.GetAccount(suite.ctx, addr)
-}
+func (suite *KeeperTestSuite) SetupWithGenState() {
+	suite.SetupApp()
 
-func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.ModuleAccountI {
-	sk := suite.app.GetSupplyKeeper()
-	return sk.GetModuleAccount(suite.ctx, name)
-}
+	suite.app.InitializeFromGenesisStates(
+		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
+		NewStakingGenesisState(),
+		NewPricefeedGenStateMulti(),
+		NewCDPGenStateMulti(),
+		NewHardGenStateMulti(),
+		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
+	)
 
+}
 func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
+	suite.SetupApp()
 	c := types.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
 	_, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	suite.Require().False(found)
@@ -83,6 +98,7 @@ func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
 }
 
 func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
+	suite.SetupApp()
 	for i := 0; i < len(suite.addrs); i++ {
 		c := types.NewUSDXMintingClaim(suite.addrs[i], c("ukava", 100000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
 		suite.Require().NotPanics(func() {

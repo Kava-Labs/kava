@@ -6,9 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
-
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
@@ -223,29 +220,4 @@ func NewCommitteeGenesisState(members []sdk.AccAddress) app.GenesisState {
 	return app.GenesisState{
 		committeetypes.ModuleName: committeetypes.ModuleCdc.MustMarshalJSON(genState),
 	}
-}
-
-func (suite *KeeperTestSuite) SetupApp() {
-	suite.app = app.NewTestApp()
-
-	suite.keeper = suite.app.GetIncentiveKeeper()
-	suite.hardKeeper = suite.app.GetHardKeeper()
-	suite.stakingKeeper = suite.app.GetStakingKeeper()
-	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
-
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-}
-
-func (suite *KeeperTestSuite) SetupWithGenState() {
-	suite.SetupApp()
-
-	suite.app.InitializeFromGenesisStates(
-		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
-		NewStakingGenesisState(),
-		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
-		NewHardGenStateMulti(),
-		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
-	)
-
 }
