@@ -225,23 +225,27 @@ func NewCommitteeGenesisState(members []sdk.AccAddress) app.GenesisState {
 	}
 }
 
-func (suite *KeeperTestSuite) SetupWithGenState() {
-	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+func (suite *KeeperTestSuite) SetupApp() {
+	suite.app = app.NewTestApp()
 
-	tApp.InitializeFromGenesisStates(
+	suite.keeper = suite.app.GetIncentiveKeeper()
+	suite.hardKeeper = suite.app.GetHardKeeper()
+	suite.stakingKeeper = suite.app.GetStakingKeeper()
+	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
+
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+}
+
+func (suite *KeeperTestSuite) SetupWithGenState() {
+	suite.SetupApp()
+
+	suite.app.InitializeFromGenesisStates(
 		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
 		NewStakingGenesisState(),
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
 		NewHardGenStateMulti(),
-		NewCommitteeGenesisState(suite.addrs[:2]),
+		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
 	)
 
-	suite.app = tApp
-	suite.ctx = ctx
-	suite.keeper = tApp.GetIncentiveKeeper()
-	suite.hardKeeper = tApp.GetHardKeeper()
-	suite.stakingKeeper = tApp.GetStakingKeeper()
-	suite.committeeKeeper = tApp.GetCommitteeKeeper()
 }
