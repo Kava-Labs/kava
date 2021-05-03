@@ -17,7 +17,7 @@ build
 
 # IDE files
 *.vscode
-
+*.idea
 node_modules
 docs/node_modules
 docs/.vuepress/dist

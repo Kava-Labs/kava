@@ -27,16 +27,16 @@ module.exports = {
               path: "/tools/oracle.html"
             },
             {
-              title: "Auction Bot",
-              path: "/tools/auction.html",
+              title: "Community Tools",
+              path: "/tools/community.html",
             },
             {
               title: "Sentinel",
               path: "/tools/sentinel.html",
             },
             {
-              title: "Community Tools",
-              path: "/tools/community.html",
+              title: "Auction Bot",
+              path: "/tools/auction.html",
             }
           ]
         },
