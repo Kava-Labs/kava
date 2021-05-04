@@ -50,11 +50,11 @@ func (suite *BorrowRewardsTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 }
 
-func (suite *BorrowRewardsTestSuite) SetupWithGenState() {
+func (suite *BorrowRewardsTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStates(
-		NewAuthGenState(suite.addrs, cs(c("ukava", 1_000_000_000))),
+		authBuilder.BuildMarshalled(),
 		NewPricefeedGenStateMulti(),
 		NewHardGenStateMulti(),
 		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
@@ -159,7 +159,12 @@ func (suite *BorrowRewardsTestSuite) TestAccumulateHardBorrowRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
+			userAddr := suite.addrs[3]
+			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(
+				userAddr,
+				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
+			)
+			suite.SetupWithGenState(authBuilder)
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup incentive state
@@ -186,7 +191,6 @@ func (suite *BorrowRewardsTestSuite) TestAccumulateHardBorrowRewards() {
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
 
 			// User deposits and borrows to increase total borrowed amount
-			userAddr := suite.addrs[3]
 			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin(tc.args.borrow.Denom, tc.args.borrow.Amount.Mul(sdk.NewInt(2)))))
 			suite.Require().NoError(err)
 			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, sdk.NewCoins(tc.args.borrow))
@@ -336,10 +340,13 @@ func (suite *BorrowRewardsTestSuite) TestInitializeHardBorrowRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
-
 			userAddr := suite.addrs[3]
+			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(
+				userAddr,
+				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
+			)
+			suite.SetupWithGenState(authBuilder)
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// Prepare money market + reward params
 			i := 0
@@ -612,7 +619,11 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
+			userAddr := suite.addrs[3]
+			authBuilder := NewAuthGenesisBuilder().
+				WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
+				WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)))
+			suite.SetupWithGenState(authBuilder)
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// Set up incentive state
@@ -653,7 +664,6 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 			)
 
 			// User deposits and borrows to increase total borrowed amount
-			userAddr := suite.addrs[3]
 			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin(tc.args.borrow.Denom, tc.args.borrow.Amount.Mul(sdk.NewInt(2)))))
 			suite.Require().NoError(err)
 			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, sdk.NewCoins(tc.args.borrow))
@@ -960,7 +970,12 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
+			userAddr := suite.addrs[3]
+			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(
+				userAddr,
+				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
+			)
+			suite.SetupWithGenState(authBuilder)
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// Mint coins to hard module account so it can service borrow requests
@@ -1001,12 +1016,11 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			}
 
 			// User deposits initial funds (so that user can borrow)
-			userAddr := suite.addrs[3]
 			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, tc.args.initialDeposit)
 			suite.Require().NoError(err)
 
 			// Confirm that claim exists but no borrow reward indexes have been added
-			claimAfterDeposit, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimAfterDeposit, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(found)
 			suite.Require().Equal(0, len(claimAfterDeposit.BorrowRewardIndexes))
 
@@ -1015,7 +1029,7 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			suite.Require().NoError(err)
 
 			// Confirm that claim's borrow reward indexes have been updated
-			claimAfterFirstBorrow, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimAfterFirstBorrow, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(found)
 			for _, coin := range tc.args.firstBorrow {
 				_, hasIndex := claimAfterFirstBorrow.HasBorrowRewardIndex(coin.Denom)
@@ -1032,7 +1046,7 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			suite.Require().NoError(err)
 
 			// Confirm that claim's borrow reward indexes contain expected values
-			claimAfterModification, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimAfterModification, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(found)
 			for _, coin := range tc.args.modification.coins {
 				_, hasIndex := claimAfterModification.HasBorrowRewardIndex(coin.Denom)
@@ -1090,7 +1104,9 @@ func (suite *BorrowRewardsTestSuite) TestSimulateHardBorrowRewardSynchronization
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
+			userAddr := suite.addrs[3]
+			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)))
+			suite.SetupWithGenState(authBuilder)
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup incentive state
@@ -1117,14 +1133,13 @@ func (suite *BorrowRewardsTestSuite) TestSimulateHardBorrowRewardSynchronization
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
 
 			// User deposits and borrows to increase total borrowed amount
-			userAddr := suite.addrs[3]
 			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin(tc.args.borrow.Denom, tc.args.borrow.Amount.Mul(sdk.NewInt(2)))))
 			suite.Require().NoError(err)
 			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, sdk.NewCoins(tc.args.borrow))
 			suite.Require().NoError(err)
 
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(found)
 			multiRewardIndex, _ := claim.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
@@ -1155,7 +1170,7 @@ func (suite *BorrowRewardsTestSuite) TestSimulateHardBorrowRewardSynchronization
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
 
 			// Confirm that the user's claim hasn't been synced
-			claimPre, foundPre := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimPre, foundPre := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(foundPre)
 			multiRewardIndexPre, _ := claimPre.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {

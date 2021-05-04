@@ -4,6 +4,8 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/kava-labs/kava/app"
@@ -187,24 +189,38 @@ func NewHardGenStateMulti() app.GenesisState {
 	return app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGS)}
 }
 
-func NewAuthGenState(addresses []sdk.AccAddress, coins sdk.Coins) app.GenesisState {
-	coinsList := []sdk.Coins{}
-	for range addresses {
-		coinsList = append(coinsList, coins)
-	}
+type AuthGenesisBuilder struct {
+	genesis auth.GenesisState
+}
 
-	// Load up our primary user address
-	if len(addresses) >= 4 {
-		coinsList[3] = sdk.NewCoins(
-			sdk.NewCoin("bnb", sdk.NewInt(1000000000000000)),
-			sdk.NewCoin("ukava", sdk.NewInt(1000000000000000)),
-			sdk.NewCoin("btcb", sdk.NewInt(1000000000000000)),
-			sdk.NewCoin("xrp", sdk.NewInt(1000000000000000)),
-			sdk.NewCoin("zzz", sdk.NewInt(1000000000000000)),
-		)
+func NewAuthGenesisBuilder() AuthGenesisBuilder {
+	return AuthGenesisBuilder{
+		genesis: auth.DefaultGenesisState(),
 	}
+}
 
-	return app.NewAuthGenState(addresses, coinsList)
+func (builder AuthGenesisBuilder) Build() auth.GenesisState {
+	return builder.genesis
+}
+
+func (builder AuthGenesisBuilder) BuildMarshalled() app.GenesisState {
+	return app.GenesisState{
+		auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(builder.Build()),
+	}
+}
+
+func (builder AuthGenesisBuilder) WithParams(params auth.Params) AuthGenesisBuilder {
+	builder.genesis.Params = params
+	return builder
+}
+
+func (builder AuthGenesisBuilder) WithAccounts(account ...authexported.GenesisAccount) AuthGenesisBuilder {
+	builder.genesis.Accounts = append(builder.genesis.Accounts, account...)
+	return builder
+}
+
+func (builder AuthGenesisBuilder) WithSimpleAccount(address sdk.AccAddress, balance sdk.Coins) AuthGenesisBuilder {
+	return builder.WithAccounts(auth.NewBaseAccount(address, balance, nil, 0, 0))
 }
 
 func NewStakingGenesisState() app.GenesisState {

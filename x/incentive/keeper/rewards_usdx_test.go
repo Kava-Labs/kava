@@ -45,11 +45,11 @@ func (suite *USDXRewardsTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 }
 
-func (suite *USDXRewardsTestSuite) SetupWithGenState() {
+func (suite *USDXRewardsTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStates(
-		NewAuthGenState(suite.addrs, cs(c("ukava", 1_000_000_000))),
+		authBuilder.BuildMarshalled(),
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
 	)
@@ -105,7 +105,7 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
+			suite.SetupWithGenState(NewAuthGenesisBuilder())
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup cdp state
@@ -183,7 +183,8 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
+			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
+			suite.SetupWithGenState(authBuilder)
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup incentive state
@@ -198,11 +199,6 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 			suite.keeper.SetParams(suite.ctx, params)
 			suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, tc.args.ctype, tc.args.initialTime)
 			suite.keeper.SetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype, sdk.ZeroDec())
-
-			// setup account state
-			sk := suite.app.GetSupplyKeeper()
-			sk.MintCoins(suite.ctx, cdptypes.ModuleName, sdk.NewCoins(tc.args.initialCollateral))
-			sk.SendCoinsFromModuleToAccount(suite.ctx, cdptypes.ModuleName, suite.addrs[0], sdk.NewCoins(tc.args.initialCollateral))
 
 			// setup cdp state
 			err := suite.cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
@@ -289,7 +285,8 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
+			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
+			suite.SetupWithGenState(authBuilder)
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup incentive state
@@ -302,14 +299,8 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetParams(suite.ctx, params)
 			suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, tc.args.ctype, tc.args.initialTime)
 			suite.keeper.SetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype, sdk.ZeroDec())
-
-			// setup account state
-			sk := suite.app.GetSupplyKeeper()
-			sk.MintCoins(suite.ctx, cdptypes.ModuleName, sdk.NewCoins(tc.args.initialCollateral))
-			sk.SendCoinsFromModuleToAccount(suite.ctx, cdptypes.ModuleName, suite.addrs[0], sdk.NewCoins(tc.args.initialCollateral))
 
 			// setup cdp state
 			err := suite.cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
