@@ -6,13 +6,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/hard"
+	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/pricefeed"
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 const (
@@ -189,6 +193,15 @@ func NewHardGenStateMulti() app.GenesisState {
 	return app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGS)}
 }
 
+// AuthGenesisBuilder creates an auth genesis state by building it up a default value.
+// Helper methods to create basic accounts types and add them to the genesis state.
+// All methods are immutable and return updated copies of the builder.
+//
+// Example:
+//     // create a single account genesis state
+//     builder := NewAuthGenesisBuilder().WithSimpleAccount(testUserAddress, testCoins)
+//     genesisState := builder.Build()
+//
 type AuthGenesisBuilder struct {
 	genesis auth.GenesisState
 }
@@ -199,10 +212,12 @@ func NewAuthGenesisBuilder() AuthGenesisBuilder {
 	}
 }
 
+// Build assembles and returns the final GenesisState
 func (builder AuthGenesisBuilder) Build() auth.GenesisState {
 	return builder.genesis
 }
 
+// BuildMarshalled assembles the final GenesisState and json encodes it into a universal genesis type.
 func (builder AuthGenesisBuilder) BuildMarshalled() app.GenesisState {
 	return app.GenesisState{
 		auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(builder.Build()),
@@ -214,13 +229,55 @@ func (builder AuthGenesisBuilder) WithParams(params auth.Params) AuthGenesisBuil
 	return builder
 }
 
+// WithAccounts adds accounts of any type to the genesis state.
 func (builder AuthGenesisBuilder) WithAccounts(account ...authexported.GenesisAccount) AuthGenesisBuilder {
 	builder.genesis.Accounts = append(builder.genesis.Accounts, account...)
 	return builder
 }
 
+// WithSimpleAccount adds a standard account to the genesis state.
 func (builder AuthGenesisBuilder) WithSimpleAccount(address sdk.AccAddress, balance sdk.Coins) AuthGenesisBuilder {
 	return builder.WithAccounts(auth.NewBaseAccount(address, balance, nil, 0, 0))
+}
+
+func (builder AuthGenesisBuilder) WithSimpleModuleAccount(moduleName string, balance sdk.Coins, permissions ...string) AuthGenesisBuilder {
+	account := supply.NewEmptyModuleAccount(moduleName, permissions...)
+	account.SetCoins(balance)
+	return builder.WithAccounts(account)
+}
+
+func (builder AuthGenesisBuilder) WithSimplePeriodicVestingAccount(address sdk.AccAddress, balance sdk.Coins, periods vesting.Periods, firstPeriodStartTimestamp int64) AuthGenesisBuilder {
+	baseAccount := auth.NewBaseAccount(address, balance, nil, 0, 0)
+
+	originalVesting := sdk.NewCoins()
+	for _, p := range periods {
+		originalVesting = originalVesting.Add(p.Amount...)
+	}
+
+	var totalPeriods int64
+	for _, p := range periods {
+		totalPeriods += p.Length
+	}
+	endTime := firstPeriodStartTimestamp + totalPeriods
+
+	baseVestingAccount, err := vesting.NewBaseVestingAccount(baseAccount, originalVesting, endTime)
+	if err != nil {
+		panic(err.Error())
+	}
+	periodicVestingAccount := vesting.NewPeriodicVestingAccountRaw(baseVestingAccount, firstPeriodStartTimestamp, periods)
+
+	return builder.WithAccounts(periodicVestingAccount)
+}
+
+func (builder AuthGenesisBuilder) WithEmptyValidatorVestingAccount(address sdk.AccAddress) AuthGenesisBuilder {
+	// TODO create a validator vesting account builder and remove this method
+	bacc := auth.NewBaseAccount(address, nil, nil, 0, 0)
+	bva, err := vesting.NewBaseVestingAccount(bacc, nil, 1)
+	if err != nil {
+		panic(err.Error())
+	}
+	account := validatorvesting.NewValidatorVestingAccountRaw(bva, 0, nil, sdk.ConsAddress{}, nil, 90)
+	return builder.WithAccounts(account)
 }
 
 func NewStakingGenesisState() app.GenesisState {
