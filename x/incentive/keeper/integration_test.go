@@ -304,3 +304,70 @@ func NewCommitteeGenesisState(members []sdk.AccAddress) app.GenesisState {
 		committeetypes.ModuleName: committeetypes.ModuleCdc.MustMarshalJSON(genState),
 	}
 }
+
+type incentiveGenesisBuilder struct {
+	genesis     types.GenesisState
+	genesisTime time.Time
+}
+
+func newIncentiveGenesisBuilder() incentiveGenesisBuilder {
+	return incentiveGenesisBuilder{
+		genesis:     types.DefaultGenesisState(),
+		genesisTime: time.Time{},
+	}
+}
+
+func (builder incentiveGenesisBuilder) build() types.GenesisState {
+	return builder.genesis
+}
+
+func (builder incentiveGenesisBuilder) buildMarshalled() app.GenesisState {
+	return app.GenesisState{
+		types.ModuleName: types.ModuleCdc.MustMarshalJSON(builder.build()),
+	}
+}
+
+func (builder incentiveGenesisBuilder) withGenesisTime(time time.Time) incentiveGenesisBuilder {
+	builder.genesisTime = time
+	builder.genesis.Params.ClaimEnd = time.Add(5 * oneYear)
+	return builder
+}
+
+func (builder incentiveGenesisBuilder) withInitializedBorrowRewardPeriod(period types.MultiRewardPeriod) incentiveGenesisBuilder {
+	builder.genesis.Params.HardBorrowRewardPeriods = append(builder.genesis.Params.HardBorrowRewardPeriods, period)
+
+	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
+	builder.genesis.HardBorrowAccumulationTimes = append(builder.genesis.HardBorrowAccumulationTimes, accumulationTimeForPeriod)
+	return builder
+}
+
+func (builder incentiveGenesisBuilder) withSimpleBorrowRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) incentiveGenesisBuilder {
+	return builder.withInitializedBorrowRewardPeriod(types.NewMultiRewardPeriod(
+		true,
+		ctype,
+		builder.genesisTime,
+		builder.genesisTime.Add(4*oneYear),
+		rewardsPerSecond,
+	))
+}
+func (builder incentiveGenesisBuilder) withInitializedSupplyRewardPeriod(period types.MultiRewardPeriod) incentiveGenesisBuilder {
+	// TODO this could set the start/end times on the period according to builder.genesisTime
+	// Then they could be created by a different builder
+
+	builder.genesis.Params.HardSupplyRewardPeriods = append(builder.genesis.Params.HardSupplyRewardPeriods, period)
+
+	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
+	builder.genesis.HardSupplyAccumulationTimes = append(builder.genesis.HardSupplyAccumulationTimes, accumulationTimeForPeriod)
+	return builder
+}
+
+func (builder incentiveGenesisBuilder) withSimpleSupplyRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) incentiveGenesisBuilder {
+	return builder.withInitializedSupplyRewardPeriod(types.NewMultiRewardPeriod(
+		true,
+		ctype,
+		builder.genesisTime,
+		builder.genesisTime.Add(4*oneYear),
+		rewardsPerSecond,
+	))
+}
+
