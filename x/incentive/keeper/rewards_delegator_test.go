@@ -60,11 +60,11 @@ func (suite *DelegatorRewardsTestSuite) getAllAddrs() []sdk.AccAddress {
 	return accAddrs
 }
 
-func (suite *DelegatorRewardsTestSuite) SetupWithGenState() {
+func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStates(
-		NewAuthGenState(suite.getAllAddrs(), cs(c("ukava", 1_000_000_000))),
+		authBuilder.BuildMarshalled(),
 		NewStakingGenesisState(),
 	)
 }
@@ -115,7 +115,10 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
+			authBuilder := NewAuthGenesisBuilder().
+				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
+			suite.SetupWithGenState(authBuilder)
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// Set up incentive state
@@ -204,7 +207,10 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
+			authBuilder := NewAuthGenesisBuilder().
+				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
+			suite.SetupWithGenState(authBuilder)
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup incentive state
@@ -318,7 +324,10 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
+			authBuilder := NewAuthGenesisBuilder().
+				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
+			suite.SetupWithGenState(authBuilder)
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup incentive state
@@ -422,7 +431,13 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgRedelegate(ctx sdk.Context, de
 
 // given a user has a delegation to a bonded validator, when the validator starts unbonding, the user does not accumulate rewards
 func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
-	suite.SetupWithGenState()
+	authBuilder := NewAuthGenesisBuilder().
+		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+		WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[2]), cs(c("ukava", 1e9)))
+	suite.SetupWithGenState(authBuilder)
 	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(initialTime)
 	blockDuration := 10 * time.Second
@@ -516,7 +531,13 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 
 // given a user has a delegation to an unbonded validator, when the validator becomes bonded, the user starts accumulating rewards
 func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
-	suite.SetupWithGenState()
+	authBuilder := NewAuthGenesisBuilder().
+		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+		WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[2]), cs(c("ukava", 1e9)))
+	suite.SetupWithGenState(authBuilder)
 	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(initialTime)
 	blockDuration := 10 * time.Second
@@ -610,7 +631,11 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 
 // If a validator is slashed delegators should have their claims synced
 func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
-	suite.SetupWithGenState()
+	authBuilder := NewAuthGenesisBuilder().
+		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9)))
+	suite.SetupWithGenState(authBuilder)
 	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(initialTime)
 	blockDuration := 10 * time.Second
@@ -697,7 +722,11 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 
 // Given a delegation to a bonded validator, when a user redelegates everything to another (bonded) validator, the user's claim is synced
 func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
-	suite.SetupWithGenState()
+	authBuilder := NewAuthGenesisBuilder().
+		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9)))
+	suite.SetupWithGenState(authBuilder)
 	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(initialTime)
 	blockDuration := 10 * time.Second
