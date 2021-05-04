@@ -9,15 +9,11 @@ import (
 )
 
 const (
-	Abstain                         = types.Abstain
 	AttributeKeyCommitteeID         = types.AttributeKeyCommitteeID
 	AttributeKeyProposalCloseStatus = types.AttributeKeyProposalCloseStatus
 	AttributeKeyProposalID          = types.AttributeKeyProposalID
 	AttributeKeyVoter               = types.AttributeKeyVoter
 	AttributeValueCategory          = types.AttributeValueCategory
-	AttributeValueProposalFailed    = types.AttributeValueProposalFailed
-	AttributeValueProposalPassed    = types.AttributeValueProposalPassed
-	AttributeValueProposalTimeout   = types.AttributeValueProposalTimeout
 	DefaultNextProposalID           = types.DefaultNextProposalID
 	DefaultParamspace               = types.DefaultParamspace
 	EventTypeProposalClose          = types.EventTypeProposalClose

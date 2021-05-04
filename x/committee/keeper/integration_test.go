@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee"
@@ -26,6 +27,11 @@ func getProposalVoteMap(k keeper.Keeper, ctx sdk.Context) map[uint64]([]types.Vo
 		return false
 	})
 	return proposalVoteMap
+}
+
+func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
+	ak := suite.app.GetAccountKeeper()
+	return ak.GetAccount(suite.ctx, addr)
 }
 
 // NewCommitteeGenesisState marshals a committee genesis state into json for use in initializing test apps.

@@ -51,20 +51,26 @@ func (suite *QuerierTestSuite) SetupTest() {
 	suite.testGenesis = types.NewGenesisState(
 		3,
 		[]types.Committee{
-			{
-				ID:               1,
-				Description:      "This committee is for testing.",
-				Members:          suite.addresses[:3],
-				Permissions:      []types.Permission{types.GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
+			types.MemberCommittee{
+				BaseCommittee: types.BaseCommittee{
+					ID:               1,
+					Description:      "This committee is for testing.",
+					Members:          suite.addresses[:3],
+					Permissions:      []types.Permission{types.GodPermission{}},
+					VoteThreshold:    d("0.667"),
+					ProposalDuration: time.Hour * 24 * 7,
+					TallyOption:      types.FirstPastThePost,
+				},
 			},
-			{
-				ID:               2,
-				Members:          suite.addresses[2:],
-				Permissions:      nil,
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
+			types.MemberCommittee{
+				BaseCommittee: types.BaseCommittee{
+					ID:               2,
+					Members:          suite.addresses[2:],
+					Permissions:      nil,
+					VoteThreshold:    d("0.667"),
+					ProposalDuration: time.Hour * 24 * 7,
+					TallyOption:      types.FirstPastThePost,
+				},
 			},
 		},
 		[]types.Proposal{
@@ -109,7 +115,7 @@ func (suite *QuerierTestSuite) TestQueryCommittee() {
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryCommittee}, "/"),
-		Data: suite.cdc.MustMarshalJSON(types.NewQueryCommitteeParams(suite.testGenesis.Committees[0].ID)),
+		Data: suite.cdc.MustMarshalJSON(types.NewQueryCommitteeParams(suite.testGenesis.Committees[0].GetID())),
 	}
 
 	// Execute query and check the []byte result

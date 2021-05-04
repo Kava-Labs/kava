@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -19,9 +20,10 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	keeper keeper.Keeper
-	app    app.TestApp
-	ctx    sdk.Context
+	keeper       keeper.Keeper
+	supplyKeeper supply.Keeper
+	app          app.TestApp
+	ctx          sdk.Context
 
 	addresses []sdk.AccAddress
 }
@@ -29,19 +31,23 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = app.NewTestApp()
 	suite.keeper = suite.app.GetCommitteeKeeper()
+	suite.supplyKeeper = suite.app.GetSupplyKeeper()
 	suite.ctx = suite.app.NewContext(true, abci.Header{})
-	_, suite.addresses = app.GeneratePrivKeyAddressPairs(5)
+	_, suite.addresses = app.GeneratePrivKeyAddressPairs(10)
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteCommittee() {
 	// setup test
-	com := types.Committee{
-		ID:               12,
-		Description:      "This committee is for testing.",
-		Members:          suite.addresses,
-		Permissions:      []types.Permission{types.GodPermission{}},
-		VoteThreshold:    d("0.667"),
-		ProposalDuration: time.Hour * 24 * 7,
+	com := types.MemberCommittee{
+		BaseCommittee: types.BaseCommittee{
+			ID:               12,
+			Description:      "This committee is for testing.",
+			Members:          suite.addresses,
+			Permissions:      []types.Permission{types.GodPermission{}},
+			VoteThreshold:    d("0.667"),
+			ProposalDuration: time.Hour * 24 * 7,
+			TallyOption:      types.FirstPastThePost,
+		},
 	}
 
 	// write and read from store

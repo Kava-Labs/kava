@@ -167,13 +167,14 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{})
 			tApp.InitializeFromGenesisStates()
-			com := types.NewCommittee(
+			com := types.NewMemberCommittee(
 				12,
 				"a description of this committee",
 				nil,
 				tc.permissions,
 				d("0.5"),
 				24*time.Hour,
+				types.FirstPastThePost,
 			)
 			suite.Equal(
 				tc.expectHasPermissions,

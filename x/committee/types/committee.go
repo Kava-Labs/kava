@@ -13,9 +13,10 @@ import (
 
 const MaxCommitteeDescriptionLength int = 512
 
-type TallyOption int
+type TallyOption uint64
 
 const (
+	NullTallyOption  TallyOption = iota
 	FirstPastThePost TallyOption = iota // Votes are tallied each block and the proposal passes as soon as the vote threshold is reached
 	Deadline         TallyOption = iota // Votes are tallied exactly once, when the deadline time is reached
 )
@@ -23,6 +24,7 @@ const (
 const (
 	MemberCommitteeType = "member" // Committee is composed of member addresses that vote to enact proposals within their permissions
 	TokenCommitteeType  = "token"  // Committee is composed of token holders with voting power determined by total token balance
+	BondDenom           = "ukava"
 )
 
 // Committee is an interface for handling common actions on committees
@@ -32,14 +34,19 @@ type Committee interface {
 	GetDescription() string
 
 	GetMembers() []sdk.AccAddress
+	SetMembers([]sdk.AccAddress) BaseCommittee
 	HasMember(addr sdk.AccAddress) bool
 
 	GetPermissions() []Permission
+	SetPermissions([]Permission) BaseCommittee
 	HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, proposal PubProposal) bool
 
 	GetProposalDuration() time.Duration
+	SetProposalDuration(time.Duration) BaseCommittee
 
 	GetVoteThreshold() sdk.Dec
+	SetVoteThreshold(sdk.Dec) BaseCommittee
+
 	GetTallyOption() TallyOption
 	Validate() error
 }
@@ -67,6 +74,12 @@ func (c BaseCommittee) GetDescription() string { return c.Description }
 // GetMembers is a getter for committee members
 func (c BaseCommittee) GetMembers() []sdk.AccAddress { return c.Members }
 
+// SetMembers is a setter for committee members
+func (c BaseCommittee) SetMembers(members []sdk.AccAddress) BaseCommittee {
+	c.Members = members
+	return c
+}
+
 // HasMember returns if a committee contains a given member address
 func (c BaseCommittee) HasMember(addr sdk.AccAddress) bool {
 	for _, m := range c.Members {
@@ -79,6 +92,12 @@ func (c BaseCommittee) HasMember(addr sdk.AccAddress) bool {
 
 // GetPermissions is a getter for committee permissions
 func (c BaseCommittee) GetPermissions() []Permission { return c.Permissions }
+
+// SetPermissions is a setter for committee permissions
+func (c BaseCommittee) SetPermissions(permissions []Permission) BaseCommittee {
+	c.Permissions = permissions
+	return c
+}
 
 // HasPermissionsFor returns whether the committee is authorized to enact a proposal.
 // As long as one permission allows the proposal then it goes through. Its the OR of all permissions.
@@ -94,8 +113,20 @@ func (c BaseCommittee) HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, p
 // GetVoteThreshold is a getter for committee VoteThreshold
 func (c BaseCommittee) GetVoteThreshold() sdk.Dec { return c.VoteThreshold }
 
+// SetVoteThreshold is a setter for committee VoteThreshold
+func (c BaseCommittee) SetVoteThreshold(voteThreshold sdk.Dec) BaseCommittee {
+	c.VoteThreshold = voteThreshold
+	return c
+}
+
 // GetProposalDuration is a getter for committee ProposalDuration
 func (c BaseCommittee) GetProposalDuration() time.Duration { return c.ProposalDuration }
+
+// SetProposalDuration is a setter for committee ProposalDuration
+func (c BaseCommittee) SetProposalDuration(proposalDuration time.Duration) BaseCommittee {
+	c.ProposalDuration = proposalDuration
+	return c
+}
 
 // GetTallyOption is a getter for committee TallyOption
 func (c BaseCommittee) GetTallyOption() TallyOption { return c.TallyOption }
@@ -133,7 +164,7 @@ func (c BaseCommittee) Validate() error {
 		return fmt.Errorf("invalid proposal duration: %s", c.ProposalDuration)
 	}
 
-	// threshold must be in the range (0,1]
+	// threshold must be in the range [0,1]
 	if c.VoteThreshold.IsNil() || c.VoteThreshold.LTE(sdk.ZeroDec()) || c.VoteThreshold.GT(sdk.NewDec(1)) {
 		return fmt.Errorf("invalid threshold: %s", c.VoteThreshold)
 	}
@@ -212,14 +243,24 @@ func NewTokenCommittee(id uint64, description string, permissions []Permission, 
 // GetType returns the type of the committee
 func (c TokenCommittee) GetType() string { return TokenCommitteeType }
 
+// GetQuorum returns the quorum of the committee
+func (c TokenCommittee) GetQuorum() sdk.Dec { return c.Quorum }
+
+// GetTallyDenom returns the tally denom of the committee
+func (c TokenCommittee) GetTallyDenom() string { return c.TallyDenom }
+
 // Validate validates the committee's fields
 func (c TokenCommittee) Validate() error {
+	if c.TallyDenom == BondDenom {
+		return fmt.Errorf("invalid tally denom: %s", c.TallyDenom)
+	}
+
 	err := sdk.ValidateDenom(c.TallyDenom)
 	if err != nil {
 		return err
 	}
 
-	if c.Quorum.IsNegative() {
+	if c.Quorum.IsNil() || c.Quorum.IsNegative() || c.Quorum.GT(sdk.NewDec(1)) {
 		return fmt.Errorf("invalid quroum: %s", c.Quorum)
 	}
 
@@ -304,8 +345,5 @@ func (v Vote) Validate() error {
 		return fmt.Errorf("voter address cannot be empty")
 	}
 
-	if v.VoteType >= 3 { // 0 = Yes, 1 = No, 2 = Abstain
-		return fmt.Errorf("invalid vote type: %d", v.VoteType)
-	}
-	return nil
+	return v.VoteType.Validate()
 }

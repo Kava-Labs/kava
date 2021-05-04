@@ -105,8 +105,9 @@ func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			vote = types.Yes
 		case "no", "n":
 			vote = types.No
-		case "abstain", "a":
-			vote = types.Abstain
+		default:
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "must specify a valid vote type (\"yes\", \"y\"/\"no\" \"n\")")
+			return
 		}
 
 		// Parse and validate http request body

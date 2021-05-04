@@ -11,6 +11,7 @@ import (
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/hard"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -752,12 +753,13 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			suite.Require().NoError(err)
 
 			// 5. Committee votes and passes proposal
-			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne)
-			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne, committeetypes.Yes)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo, committeetypes.Yes)
 
 			// 6. Check proposal passed
-			proposalPasses, err := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID)
-			suite.Require().NoError(err)
+			com, found := suite.committeeKeeper.GetCommittee(suite.ctx, 1)
+			suite.Require().True(found)
+			proposalPasses := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID, com)
 			suite.Require().True(proposalPasses)
 
 			// 7. Run committee module's begin blocker to enact proposal
@@ -1640,12 +1642,13 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			suite.Require().NoError(err)
 
 			// 5. Committee votes and passes proposal
-			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne)
-			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne, committeetypes.Yes)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo, committeetypes.Yes)
 
 			// 6. Check proposal passed
-			proposalPasses, err := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID)
-			suite.Require().NoError(err)
+			com, found := suite.committeeKeeper.GetCommittee(suite.ctx, 1)
+			suite.Require().True(found)
+			proposalPasses := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID, com)
 			suite.Require().True(proposalPasses)
 
 			// 7. Run committee module's begin blocker to enact proposal

@@ -118,9 +118,11 @@ func ValidVotesInvariant(k Keeper) sdk.Invariant {
 				validationErr = fmt.Errorf("vote's proposal has no committee %d", proposal.CommitteeID)
 				return true
 			}
-			if !com.HasMember(vote.Voter) {
-				validationErr = fmt.Errorf("voter is not a member of committee %+v", com)
-				return true
+			if com.GetType() == types.MemberCommitteeType {
+				if !com.HasMember(vote.Voter) {
+					validationErr = fmt.Errorf("voter is not a member of committee %+v", com)
+					return true
+				}
 			}
 
 			return false
