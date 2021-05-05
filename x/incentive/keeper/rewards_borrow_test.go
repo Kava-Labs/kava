@@ -15,7 +15,6 @@ import (
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/hard"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -896,10 +895,15 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(
-				userAddr,
-				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
-			)
+			authBuilder := NewAuthGenesisBuilder().
+				WithSimpleAccount(
+					userAddr,
+					cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
+				).
+				WithSimpleAccount(
+					suite.addrs[0],
+					cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
+				)
 
 			incentBuilder := newIncentiveGenesisBuilder().
 				withGenesisTime(tc.args.initialTime).
@@ -911,13 +915,12 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(tc.args.initialTime))
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
-			// Mint coins to hard module account so it can service borrow requests
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := tc.args.firstBorrow.Add(tc.args.modification.coins...)
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+			// Fill the hard supply to allow user to borrow
+			err := suite.hardKeeper.Deposit(suite.ctx, suite.addrs[0], tc.args.firstBorrow.Add(tc.args.modification.coins...))
+			suite.Require().NoError(err)
 
 			// User deposits initial funds (so that user can borrow)
-			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, tc.args.initialDeposit)
+			err = suite.hardKeeper.Deposit(suite.ctx, userAddr, tc.args.initialDeposit)
 			suite.Require().NoError(err)
 
 			// Confirm that claim exists but no borrow reward indexes have been added
