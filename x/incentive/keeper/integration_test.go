@@ -199,19 +199,19 @@ func NewHardGenStateMulti(genTime time.Time) HardGenesisBuilder {
 //     genesisState := builder.Build()
 //
 type AuthGenesisBuilder struct {
-	genesis auth.GenesisState
+	auth.GenesisState
 }
 
 // NewAuthGenesisBuilder creates a AuthGenesisBuilder containing a default genesis state.
 func NewAuthGenesisBuilder() AuthGenesisBuilder {
 	return AuthGenesisBuilder{
-		genesis: auth.DefaultGenesisState(),
+		GenesisState: auth.DefaultGenesisState(),
 	}
 }
 
 // Build assembles and returns the final GenesisState
 func (builder AuthGenesisBuilder) Build() auth.GenesisState {
-	return builder.genesis
+	return builder.GenesisState
 }
 
 // BuildMarshalled assembles the final GenesisState and json encodes it into a universal genesis type.
@@ -221,14 +221,9 @@ func (builder AuthGenesisBuilder) BuildMarshalled() app.GenesisState {
 	}
 }
 
-func (builder AuthGenesisBuilder) WithParams(params auth.Params) AuthGenesisBuilder {
-	builder.genesis.Params = params
-	return builder
-}
-
 // WithAccounts adds accounts of any type to the genesis state.
 func (builder AuthGenesisBuilder) WithAccounts(account ...authexported.GenesisAccount) AuthGenesisBuilder {
-	builder.genesis.Accounts = append(builder.genesis.Accounts, account...)
+	builder.Accounts = append(builder.Accounts, account...)
 	return builder
 }
 
@@ -237,12 +232,14 @@ func (builder AuthGenesisBuilder) WithSimpleAccount(address sdk.AccAddress, bala
 	return builder.WithAccounts(auth.NewBaseAccount(address, balance, nil, 0, 0))
 }
 
+// WithSimpleAccount adds a module account to the genesis state.
 func (builder AuthGenesisBuilder) WithSimpleModuleAccount(moduleName string, balance sdk.Coins, permissions ...string) AuthGenesisBuilder {
 	account := supply.NewEmptyModuleAccount(moduleName, permissions...)
 	account.SetCoins(balance)
 	return builder.WithAccounts(account)
 }
 
+// WithSimpleAccount adds a periodic veesting account to the genesis state.
 func (builder AuthGenesisBuilder) WithSimplePeriodicVestingAccount(address sdk.AccAddress, balance sdk.Coins, periods vesting.Periods, firstPeriodStartTimestamp int64) AuthGenesisBuilder {
 	baseAccount := auth.NewBaseAccount(address, balance, nil, 0, 0)
 
@@ -266,6 +263,7 @@ func (builder AuthGenesisBuilder) WithSimplePeriodicVestingAccount(address sdk.A
 	return builder.WithAccounts(periodicVestingAccount)
 }
 
+// WithSimpleAccount adds a stub validator vesting account to the genesis state.
 func (builder AuthGenesisBuilder) WithEmptyValidatorVestingAccount(address sdk.AccAddress) AuthGenesisBuilder {
 	// TODO create a validator vesting account builder and remove this method
 	bacc := auth.NewBaseAccount(address, nil, nil, 0, 0)
@@ -306,19 +304,19 @@ func NewCommitteeGenesisState(members []sdk.AccAddress) app.GenesisState {
 // Helper methods add values onto a default genesis state.
 // All methods are immutable and return updated copies of the builder.
 type incentiveGenesisBuilder struct {
-	genesis     types.GenesisState
+	types.GenesisState
 	genesisTime time.Time
 }
 
 func newIncentiveGenesisBuilder() incentiveGenesisBuilder {
 	return incentiveGenesisBuilder{
-		genesis:     types.DefaultGenesisState(),
-		genesisTime: time.Time{},
+		GenesisState: types.DefaultGenesisState(),
+		genesisTime:  time.Time{},
 	}
 }
 
 func (builder incentiveGenesisBuilder) build() types.GenesisState {
-	return builder.genesis
+	return builder.GenesisState
 }
 
 func (builder incentiveGenesisBuilder) buildMarshalled() app.GenesisState {
@@ -329,15 +327,15 @@ func (builder incentiveGenesisBuilder) buildMarshalled() app.GenesisState {
 
 func (builder incentiveGenesisBuilder) withGenesisTime(time time.Time) incentiveGenesisBuilder {
 	builder.genesisTime = time
-	builder.genesis.Params.ClaimEnd = time.Add(5 * oneYear)
+	builder.Params.ClaimEnd = time.Add(5 * oneYear)
 	return builder
 }
 
 func (builder incentiveGenesisBuilder) withInitializedBorrowRewardPeriod(period types.MultiRewardPeriod) incentiveGenesisBuilder {
-	builder.genesis.Params.HardBorrowRewardPeriods = append(builder.genesis.Params.HardBorrowRewardPeriods, period)
+	builder.Params.HardBorrowRewardPeriods = append(builder.Params.HardBorrowRewardPeriods, period)
 
 	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
-	builder.genesis.HardBorrowAccumulationTimes = append(builder.genesis.HardBorrowAccumulationTimes, accumulationTimeForPeriod)
+	builder.HardBorrowAccumulationTimes = append(builder.HardBorrowAccumulationTimes, accumulationTimeForPeriod)
 	return builder
 }
 
@@ -354,10 +352,10 @@ func (builder incentiveGenesisBuilder) withInitializedSupplyRewardPeriod(period 
 	// TODO this could set the start/end times on the period according to builder.genesisTime
 	// Then they could be created by a different builder
 
-	builder.genesis.Params.HardSupplyRewardPeriods = append(builder.genesis.Params.HardSupplyRewardPeriods, period)
+	builder.Params.HardSupplyRewardPeriods = append(builder.Params.HardSupplyRewardPeriods, period)
 
 	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
-	builder.genesis.HardSupplyAccumulationTimes = append(builder.genesis.HardSupplyAccumulationTimes, accumulationTimeForPeriod)
+	builder.HardSupplyAccumulationTimes = append(builder.HardSupplyAccumulationTimes, accumulationTimeForPeriod)
 	return builder
 }
 
@@ -371,10 +369,10 @@ func (builder incentiveGenesisBuilder) withSimpleSupplyRewardPeriod(ctype string
 	))
 }
 func (builder incentiveGenesisBuilder) withInitializedDelegatorRewardPeriod(period types.RewardPeriod) incentiveGenesisBuilder {
-	builder.genesis.Params.HardDelegatorRewardPeriods = append(builder.genesis.Params.HardDelegatorRewardPeriods, period)
+	builder.Params.HardDelegatorRewardPeriods = append(builder.Params.HardDelegatorRewardPeriods, period)
 
 	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
-	builder.genesis.HardDelegatorAccumulationTimes = append(builder.genesis.HardDelegatorAccumulationTimes, accumulationTimeForPeriod)
+	builder.HardDelegatorAccumulationTimes = append(builder.HardDelegatorAccumulationTimes, accumulationTimeForPeriod)
 	return builder
 }
 
@@ -388,10 +386,10 @@ func (builder incentiveGenesisBuilder) withSimpleDelegatorRewardPeriod(ctype str
 	))
 }
 func (builder incentiveGenesisBuilder) withInitializedUSDXRewardPeriod(period types.RewardPeriod) incentiveGenesisBuilder {
-	builder.genesis.Params.USDXMintingRewardPeriods = append(builder.genesis.Params.USDXMintingRewardPeriods, period)
+	builder.Params.USDXMintingRewardPeriods = append(builder.Params.USDXMintingRewardPeriods, period)
 
 	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
-	builder.genesis.USDXAccumulationTimes = append(builder.genesis.USDXAccumulationTimes, accumulationTimeForPeriod)
+	builder.USDXAccumulationTimes = append(builder.USDXAccumulationTimes, accumulationTimeForPeriod)
 	return builder
 }
 
@@ -406,7 +404,7 @@ func (builder incentiveGenesisBuilder) withSimpleUSDXRewardPeriod(ctype string, 
 }
 
 func (builder incentiveGenesisBuilder) withMultipliers(multipliers types.Multipliers) incentiveGenesisBuilder {
-	builder.genesis.Params.ClaimMultipliers = multipliers
+	builder.Params.ClaimMultipliers = multipliers
 	return builder
 }
 
