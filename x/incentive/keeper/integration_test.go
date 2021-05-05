@@ -14,6 +14,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/hard"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
@@ -172,29 +173,24 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
 }
 
-func NewHardGenStateMulti() app.GenesisState {
-	loanToValue, _ := sdk.NewDecFromStr("0.6")
-	borrowLimit := sdk.NewDec(1000000000000000)
+func NewHardGenStateMulti(genTime time.Time) HardGenesisBuilder {
+	kavaMM := NewStandardMoneyMarket("ukava")
+	kavaMM.SpotMarketID = "kava:usd"
+	btcMM := NewStandardMoneyMarket("btcb")
+	btcMM.SpotMarketID = "btc:usd"
 
-	hardGS := hard.NewGenesisState(hard.NewParams(
-		hard.MoneyMarkets{
-			hard.NewMoneyMarket("usdx", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "usdx:usd", sdk.NewInt(1000000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-			hard.NewMoneyMarket("ukava", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "kava:usd", sdk.NewInt(1000000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-			hard.NewMoneyMarket("bnb", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "bnb:usd", sdk.NewInt(1000000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-			hard.NewMoneyMarket("btcb", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "btc:usd", sdk.NewInt(1000000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-			hard.NewMoneyMarket("xrp", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "xrp:usd", sdk.NewInt(1000000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-			hard.NewMoneyMarket("zzz", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "zzz:usd", sdk.NewInt(1000000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-		},
-		sdk.NewDec(10),
-	), hard.DefaultAccumulationTimes, hard.DefaultDeposits, hard.DefaultBorrows,
-		hard.DefaultTotalSupplied, hard.DefaultTotalBorrowed, hard.DefaultTotalReserves,
-	)
-
-	return app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGS)}
+	builder := NewHardGenesisBuilder().WithGenesisTime(genTime).
+		WithInitializedMoneyMarket(NewStandardMoneyMarket("usdx")).
+		WithInitializedMoneyMarket(kavaMM).
+		WithInitializedMoneyMarket(NewStandardMoneyMarket("bnb")).
+		WithInitializedMoneyMarket(btcMM).
+		WithInitializedMoneyMarket(NewStandardMoneyMarket("xrp")).
+		WithInitializedMoneyMarket(NewStandardMoneyMarket("zzz"))
+	return builder
 }
 
-// AuthGenesisBuilder creates an auth genesis state by building it up a default value.
-// Helper methods to create basic accounts types and add them to the genesis state.
+// AuthGenesisBuilder is a tool for creating an auth genesis state.
+// Helper methods create basic accounts types and add them to a default genesis state.
 // All methods are immutable and return updated copies of the builder.
 //
 // Example:
@@ -206,6 +202,7 @@ type AuthGenesisBuilder struct {
 	genesis auth.GenesisState
 }
 
+// NewAuthGenesisBuilder creates a AuthGenesisBuilder containing a default genesis state.
 func NewAuthGenesisBuilder() AuthGenesisBuilder {
 	return AuthGenesisBuilder{
 		genesis: auth.DefaultGenesisState(),
@@ -305,6 +302,9 @@ func NewCommitteeGenesisState(members []sdk.AccAddress) app.GenesisState {
 	}
 }
 
+// incentiveGenesisBuilder is a tool for creating an incentive genesis state.
+// Helper methods add values onto a default genesis state.
+// All methods are immutable and return updated copies of the builder.
 type incentiveGenesisBuilder struct {
 	genesis     types.GenesisState
 	genesisTime time.Time
@@ -410,4 +410,57 @@ func (builder incentiveGenesisBuilder) withMultipliers(multipliers types.Multipl
 	return builder
 }
 
+// HardGenesisBuilder is a tool for creating a hard genesis state.
+// Helper methods add values onto a default genesis state.
+// All methods are immutable and return updated copies of the builder.
+type HardGenesisBuilder struct {
+	hardtypes.GenesisState
+	genesisTime time.Time
+}
+
+func NewHardGenesisBuilder() HardGenesisBuilder {
+	return HardGenesisBuilder{
+		GenesisState: hardtypes.DefaultGenesisState(),
+	}
+}
+func (builder HardGenesisBuilder) Build() hardtypes.GenesisState {
+	return builder.GenesisState
+}
+func (builder HardGenesisBuilder) BuildMarshalled() app.GenesisState {
+	return app.GenesisState{
+		hardtypes.ModuleName: hardtypes.ModuleCdc.MustMarshalJSON(builder.Build()),
+	}
+}
+func (builder HardGenesisBuilder) WithGenesisTime(genTime time.Time) HardGenesisBuilder {
+	builder.genesisTime = genTime
+	return builder
+}
+func (builder HardGenesisBuilder) WithInitializedMoneyMarket(market hard.MoneyMarket) HardGenesisBuilder {
+	builder.Params.MoneyMarkets = append(builder.Params.MoneyMarkets, market)
+
+	builder.PreviousAccumulationTimes = append(
+		builder.PreviousAccumulationTimes,
+		hardtypes.NewGenesisAccumulationTime(market.Denom, builder.genesisTime, sdk.OneDec(), sdk.OneDec()),
+	)
+	return builder
+}
+func (builder HardGenesisBuilder) WithMinBorrow(minUSDValue sdk.Dec) HardGenesisBuilder {
+	builder.Params.MinimumBorrowUSDValue = minUSDValue
+	return builder
+}
+func NewStandardMoneyMarket(denom string) hardtypes.MoneyMarket {
+	return hardtypes.NewMoneyMarket(
+		denom,
+		hard.NewBorrowLimit(
+			false,
+			sdk.NewDec(1e15),
+			d("0.6"),
+		),
+		denom+":usd",
+		i(1e6),
+		hard.NewInterestRateModel(d("0.05"), d("2"), d("0.8"), d("10")),
+		d("0.05"),
+		sdk.ZeroDec(),
+	)
+}
 

@@ -49,13 +49,13 @@ func (suite *SupplyRewardsTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 }
 
-func (suite *SupplyRewardsTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder) {
+func (suite *SupplyRewardsTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStates(
 		authBuilder.BuildMarshalled(),
 		NewPricefeedGenStateMulti(),
-		NewHardGenStateMulti(),
+		hardBuilder.BuildMarshalled(),
 		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
 		incentBuilder.buildMarshalled(),
 	)
@@ -181,12 +181,8 @@ func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 				incentBuilder = incentBuilder.withSimpleSupplyRewardPeriod(tc.args.deposit.Denom, tc.args.rewardsPerSecond)
 			}
 
-			suite.SetupWithGenState(authBuilder, incentBuilder)
+			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(tc.args.initialTime))
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
 
 			// User deposits to increase total supplied amount
 			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
@@ -344,7 +340,7 @@ func (suite *SupplyRewardsTestSuite) TestInitializeHardSupplyRewards() {
 			for moneyMarketDenom, rewardsPerSecond := range tc.args.moneyMarketRewardDenoms {
 				incentBuilder = incentBuilder.withSimpleSupplyRewardPeriod(moneyMarketDenom, rewardsPerSecond)
 			}
-			suite.SetupWithGenState(authBuilder, incentBuilder)
+			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(tc.args.initialTime))
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// User deposits
@@ -587,13 +583,8 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 			if tc.args.rewardsPerSecond != nil {
 				incentBuilder = incentBuilder.withSimpleSupplyRewardPeriod(tc.args.incentiveSupplyRewardDenom, tc.args.rewardsPerSecond)
 			}
-			suite.SetupWithGenState(authBuilder, incentBuilder)
+			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(tc.args.initialTime))
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.incentiveSupplyRewardDenom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetBorrowInterestFactor(suite.ctx, tc.args.incentiveSupplyRewardDenom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.incentiveSupplyRewardDenom, tc.args.initialTime)
 
 			// Deposit a fixed amount from another user to dilute primary user's rewards per second.
 			suite.Require().NoError(
@@ -907,7 +898,7 @@ func (suite *SupplyRewardsTestSuite) TestUpdateHardSupplyIndexDenoms() {
 				withSimpleSupplyRewardPeriod("btcb", tc.args.rewardsPerSecond).
 				withSimpleSupplyRewardPeriod("xrp", tc.args.rewardsPerSecond)
 
-			suite.SetupWithGenState(authBuilder, incentBuilder)
+			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(tc.args.initialTime))
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// User deposits (first time)
@@ -992,26 +983,12 @@ func (suite *SupplyRewardsTestSuite) TestSimulateHardSupplyRewardSynchronization
 				withGenesisTime(tc.args.initialTime).
 				withSimpleSupplyRewardPeriod(tc.args.deposit.Denom, tc.args.rewardsPerSecond)
 
-			suite.SetupWithGenState(authBuilder, incentBuilder)
+			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(tc.args.initialTime))
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
 
 			// User deposits and borrows to increase total borrowed amount
 			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
 			suite.Require().NoError(err)
-
-			// Check that Hard hooks initialized a HardLiquidityProviderClaim
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
-			suite.Require().True(found)
-			multiRewardIndex, _ := claim.SupplyRewardIndexes.GetRewardIndex(tc.args.deposit.Denom)
-			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
-				currRewardIndex, found := multiRewardIndex.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
-				suite.Require().True(found)
-				suite.Require().Equal(sdk.ZeroDec(), currRewardIndex.RewardFactor)
-			}
 
 			// Run accumulator at several intervals
 			var timeElapsed int
