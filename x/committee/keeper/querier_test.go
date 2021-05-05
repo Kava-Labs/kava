@@ -103,7 +103,7 @@ func (suite *QuerierTestSuite) TestQueryCommittees() {
 	suite.NotNil(bz)
 
 	// Unmarshal the bytes
-	var committees []types.Committee
+	var committees types.Committees
 	suite.NoError(suite.cdc.UnmarshalJSON(bz, &committees))
 
 	// Check
@@ -111,7 +111,7 @@ func (suite *QuerierTestSuite) TestQueryCommittees() {
 }
 
 func (suite *QuerierTestSuite) TestQueryCommittee() {
-	ctx := suite.ctx.WithIsCheckTx(false) // ?
+	ctx := suite.ctx.WithIsCheckTx(false)
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryCommittee}, "/"),
@@ -160,7 +160,7 @@ func (suite *QuerierTestSuite) TestQueryProposals() {
 }
 
 func (suite *QuerierTestSuite) TestQueryProposal() {
-	ctx := suite.ctx.WithIsCheckTx(false) // ?
+	ctx := suite.ctx.WithIsCheckTx(false)
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryProposal}, "/"),
@@ -215,7 +215,7 @@ func (suite *QuerierTestSuite) TestQueryVotes() {
 }
 
 func (suite *QuerierTestSuite) TestQueryVote() {
-	ctx := suite.ctx.WithIsCheckTx(false) // ?
+	ctx := suite.ctx.WithIsCheckTx(false)
 	// Set up request query
 	propID := suite.testGenesis.Proposals[0].ID
 	query := abci.RequestQuery{
@@ -237,9 +237,21 @@ func (suite *QuerierTestSuite) TestQueryVote() {
 }
 
 func (suite *QuerierTestSuite) TestQueryTally() {
-	ctx := suite.ctx.WithIsCheckTx(false) // ?
-	// Set up request query
+
+	ctx := suite.ctx.WithIsCheckTx(false)
+
+	// Expected result
 	propID := suite.testGenesis.Proposals[0].ID
+	expectedPollingStatus := types.ProposalPollingStatus{
+		ProposalID:    1,
+		YesVotes:      sdk.NewDec(int64(len(suite.votes[propID]))),
+		CurrentVotes:  sdk.NewDec(int64(len(suite.votes[propID]))),
+		PossibleVotes: d("3.0"),
+		VoteThreshold: d("0.667"),
+		Quroum:        d("0"),
+	}
+
+	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryTally}, "/"),
 		Data: suite.cdc.MustMarshalJSON(types.NewQueryProposalParams(propID)),
@@ -251,11 +263,9 @@ func (suite *QuerierTestSuite) TestQueryTally() {
 	suite.NotNil(bz)
 
 	// Unmarshal the bytes
-	var tally int64
-	suite.NoError(suite.cdc.UnmarshalJSON(bz, &tally))
-
-	// Check
-	suite.Equal(int64(len(suite.votes[propID])), tally)
+	var propPollingStatus types.ProposalPollingStatus
+	suite.NoError(suite.cdc.UnmarshalJSON(bz, &propPollingStatus))
+	suite.Equal(expectedPollingStatus, propPollingStatus)
 }
 
 type TestSubParam struct {
@@ -275,7 +285,7 @@ func (p *TestParams) ParamSetPairs() params.ParamSetPairs {
 	}
 }
 func (suite *QuerierTestSuite) TestQueryRawParams() {
-	ctx := suite.ctx.WithIsCheckTx(false) // ?
+	ctx := suite.ctx.WithIsCheckTx(false)
 
 	// Create a new param subspace to avoid adding dependency to another module. Set a test param value.
 	subspaceName := "test"
