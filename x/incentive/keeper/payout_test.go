@@ -18,7 +18,6 @@ import (
 	"github.com/kava-labs/kava/app"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	"github.com/kava-labs/kava/x/hard"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -56,14 +55,14 @@ func (suite *PayoutTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 }
 
-func (suite *PayoutTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder) {
+func (suite *PayoutTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStates(
 		authBuilder.BuildMarshalled(),
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
-		NewHardGenStateMulti(),
+		hardBuilder.BuildMarshalled(),
 		incentBuilder.buildMarshalled(),
 	)
 }
@@ -155,7 +154,7 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
 				withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond).
 				withMultipliers(tc.args.multipliers)
 
-			suite.SetupWithGenState(authBulder, incentBuilder)
+			suite.SetupWithGenState(authBulder, incentBuilder, NewHardGenStateMulti(tc.args.initialTime))
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup cdp state
@@ -177,8 +176,8 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
-				ak := suite.app.GetAccountKeeper()
-				acc := ak.GetAccount(suite.ctx, userAddr)
+
+				acc := suite.getAccount(userAddr)
 				suite.Require().Equal(tc.args.expectedBalance, acc.GetCoins())
 
 				if tc.args.isPeriodicVestingAccount {
@@ -354,7 +353,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 				incentBuilder = incentBuilder.withSimpleBorrowRewardPeriod(c.Denom, tc.args.rewardsPerSecond)
 			}
 
-			suite.SetupWithGenState(authBulder, incentBuilder)
+			suite.SetupWithGenState(authBulder, incentBuilder, NewHardGenStateMulti(tc.args.initialTime))
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// User deposits and borrows
@@ -373,9 +372,6 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 			// Set up future runtime context
 			runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+(tc.args.timeElapsed), 0)
 			runCtx := suite.ctx.WithBlockTime(runAtTime)
-
-			// Run Hard begin blocker
-			hard.BeginBlocker(runCtx, suite.hardKeeper)
 
 			// Accumulate supply rewards for each deposit denom
 			for _, coin := range tc.args.deposit {
