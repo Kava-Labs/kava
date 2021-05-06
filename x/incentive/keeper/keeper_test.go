@@ -2,10 +2,10 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -19,9 +19,12 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	keeper keeper.Keeper
-	app    app.TestApp
-	ctx    sdk.Context
-	addrs  []sdk.AccAddress
+
+	app app.TestApp
+	ctx sdk.Context
+
+	genesisTime time.Time
+	addrs       []sdk.AccAddress
 }
 
 // SetupTest is run automatically before each suite test
@@ -30,6 +33,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 
 	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
+
+	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 }
 
 func (suite *KeeperTestSuite) SetupApp() {
@@ -37,7 +42,7 @@ func (suite *KeeperTestSuite) SetupApp() {
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
 
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
