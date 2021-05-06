@@ -982,3 +982,18 @@ func (gs GenesisState) Validate() error {
 	}
 	return nil
 }
+
+// RegisterCodec registers the necessary types for the module
+func RegisterCodec(cdc *codec.Codec) {
+
+	// Proposals
+	cdc.RegisterInterface((*PubProposal)(nil), nil)
+
+	// Permissions
+	cdc.RegisterInterface((*Permission)(nil), nil)
+	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
+	cdc.RegisterConcrete(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission", nil)
+	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
+	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
+	cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
+}
