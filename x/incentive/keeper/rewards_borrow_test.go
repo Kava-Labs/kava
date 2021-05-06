@@ -25,10 +25,12 @@ type BorrowRewardsTestSuite struct {
 	keeper          keeper.Keeper
 	hardKeeper      hardkeeper.Keeper
 	committeeKeeper committeekeeper.Keeper
-	app             app.TestApp
-	ctx             sdk.Context
-	addrs           []sdk.AccAddress
-	genesisTime     time.Time
+
+	app app.TestApp
+	ctx sdk.Context
+
+	genesisTime time.Time
+	addrs       []sdk.AccAddress
 }
 
 // SetupTest is run automatically before each suite test

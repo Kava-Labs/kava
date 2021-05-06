@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
@@ -22,9 +21,11 @@ type USDXRewardsTestSuite struct {
 	keeper    keeper.Keeper
 	cdpKeeper cdpkeeper.Keeper
 
-	app   app.TestApp
-	ctx   sdk.Context
-	addrs []sdk.AccAddress
+	app app.TestApp
+	ctx sdk.Context
+
+	genesisTime time.Time
+	addrs       []sdk.AccAddress
 }
 
 // SetupTest is run automatically before each suite test
@@ -33,6 +34,8 @@ func (suite *USDXRewardsTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 
 	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
+
+	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 }
 
 func (suite *USDXRewardsTestSuite) SetupApp() {
@@ -41,15 +44,16 @@ func (suite *USDXRewardsTestSuite) SetupApp() {
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.cdpKeeper = suite.app.GetCDPKeeper()
 
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
 func (suite *USDXRewardsTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder) {
 	suite.SetupApp()
 
-	suite.app.InitializeFromGenesisStates(
+	suite.app.InitializeFromGenesisStatesWithTime(
+		suite.genesisTime,
 		authBuilder.BuildMarshalled(),
-		NewPricefeedGenStateMulti(),
+		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		NewCDPGenStateMulti(),
 		incentBuilder.buildMarshalled(),
 	)
@@ -59,7 +63,6 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 	type args struct {
 		ctype                 string
 		rewardsPerSecond      sdk.Coin
-		initialTime           time.Time
 		initialTotalPrincipal sdk.Coin
 		timeElapsed           int
 		expectedRewardFactor  sdk.Dec
@@ -74,7 +77,6 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 			args{
 				ctype:                 "bnb-a",
 				rewardsPerSecond:      c("ukava", 122354),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				initialTotalPrincipal: c("usdx", 1000000000000),
 				timeElapsed:           7,
 				expectedRewardFactor:  d("0.000000856478000000"),
@@ -85,7 +87,6 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 			args{
 				ctype:                 "bnb-a",
 				rewardsPerSecond:      c("ukava", 122354),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				initialTotalPrincipal: c("usdx", 1000000000000),
 				timeElapsed:           86400,
 				expectedRewardFactor:  d("0.0105713856"),
@@ -96,7 +97,6 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 			args{
 				ctype:                 "bnb-a",
 				rewardsPerSecond:      c("ukava", 122354),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				initialTotalPrincipal: c("usdx", 1000000000000),
 				timeElapsed:           0,
 				expectedRewardFactor:  d("0.0"),
@@ -105,10 +105,9 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			incentBuilder := newIncentiveGenesisBuilder().withGenesisTime(tc.args.initialTime).withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
+			incentBuilder := newIncentiveGenesisBuilder().withGenesisTime(suite.genesisTime).withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(NewAuthGenesisBuilder(), incentBuilder)
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup cdp state
 			suite.cdpKeeper.SetTotalPrincipal(suite.ctx, tc.args.ctype, cdptypes.DefaultStableDenom, tc.args.initialTotalPrincipal.Amount)
@@ -130,7 +129,6 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 	type args struct {
 		ctype                string
 		rewardsPerSecond     sdk.Coin
-		initialTime          time.Time
 		initialCollateral    sdk.Coin
 		initialPrincipal     sdk.Coin
 		blockTimes           []int
@@ -148,7 +146,6 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 			args{
 				ctype:                "bnb-a",
 				rewardsPerSecond:     c("ukava", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				initialCollateral:    c("bnb", 1000000000000),
 				initialPrincipal:     c("usdx", 10000000000),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
@@ -161,7 +158,6 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 			args{
 				ctype:                "bnb-a",
 				rewardsPerSecond:     c("ukava", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				initialCollateral:    c("bnb", 1000000000000),
 				initialPrincipal:     c("usdx", 10000000000),
 				blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
@@ -173,10 +169,9 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
-			incentBuilder := newIncentiveGenesisBuilder().withGenesisTime(tc.args.initialTime).withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
+			incentBuilder := newIncentiveGenesisBuilder().withGenesisTime(suite.genesisTime).withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup cdp state
 			err := suite.cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
@@ -221,7 +216,6 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 	type args struct {
 		ctype                string
 		rewardsPerSecond     sdk.Coin
-		initialTime          time.Time
 		initialCollateral    sdk.Coin
 		initialPrincipal     sdk.Coin
 		blockTimes           []int
@@ -239,7 +233,6 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 			args{
 				ctype:                "bnb-a",
 				rewardsPerSecond:     c("ukava", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				initialCollateral:    c("bnb", 1000000000000),
 				initialPrincipal:     c("usdx", 10000000000),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
@@ -252,7 +245,6 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 			args{
 				ctype:                "bnb-a",
 				rewardsPerSecond:     c("ukava", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				initialCollateral:    c("bnb", 1000000000000),
 				initialPrincipal:     c("usdx", 10000000000),
 				blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
@@ -264,10 +256,9 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
-			incentBuilder := newIncentiveGenesisBuilder().withGenesisTime(tc.args.initialTime).withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
+			incentBuilder := newIncentiveGenesisBuilder().withGenesisTime(suite.genesisTime).withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup cdp state
 			err := suite.cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
