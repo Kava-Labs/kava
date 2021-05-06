@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/incentive/keeper"
@@ -21,10 +20,13 @@ import (
 type DelegatorRewardsTestSuite struct {
 	suite.Suite
 
-	keeper         keeper.Keeper
-	stakingKeeper  stakingkeeper.Keeper
-	app            app.TestApp
-	ctx            sdk.Context
+	keeper        keeper.Keeper
+	stakingKeeper stakingkeeper.Keeper
+
+	app app.TestApp
+	ctx sdk.Context
+
+	genesisTime    time.Time
 	addrs          []sdk.AccAddress
 	validatorAddrs []sdk.ValAddress
 }
@@ -39,6 +41,7 @@ func (suite *DelegatorRewardsTestSuite) SetupTest() {
 	for _, a := range allAddrs[5:] {
 		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
 	}
+	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 }
 
 func (suite *DelegatorRewardsTestSuite) SetupApp() {
@@ -47,13 +50,14 @@ func (suite *DelegatorRewardsTestSuite) SetupApp() {
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.stakingKeeper = suite.app.GetStakingKeeper()
 
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
 func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder) {
 	suite.SetupApp()
 
-	suite.app.InitializeFromGenesisStates(
+	suite.app.InitializeFromGenesisStatesWithTime(
+		suite.genesisTime,
 		authBuilder.BuildMarshalled(),
 		NewStakingGenesisState(),
 		incentBuilder.buildMarshalled(),
@@ -64,7 +68,6 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 	type args struct {
 		delegation           sdk.Coin
 		rewardsPerSecond     sdk.Coin
-		initialTime          time.Time
 		timeElapsed          int
 		expectedRewardFactor sdk.Dec
 	}
@@ -78,7 +81,6 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 			args{
 				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          7,
 				expectedRewardFactor: d("0.428239000000000000"),
 			},
@@ -88,7 +90,6 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 			args{
 				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          86400,
 				expectedRewardFactor: d("5285.692800000000000000"),
 			},
@@ -98,7 +99,6 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 			args{
 				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          0,
 				expectedRewardFactor: d("0.0"),
 			},
@@ -111,11 +111,10 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
 			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(tc.args.initialTime).
+				withGenesisTime(suite.genesisTime).
 				withSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
@@ -143,7 +142,6 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 	type args struct {
 		delegation           sdk.Coin
 		rewardsPerSecond     sdk.Coin
-		initialTime          time.Time
 		blockTimes           []int
 		expectedRewardFactor sdk.Dec
 		expectedRewards      sdk.Coins
@@ -159,7 +157,6 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 			args{
 				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardFactor: d("6.117700000000000000"),
 				expectedRewards:      cs(c("hard", 6117700)),
@@ -170,7 +167,6 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 			args{
 				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
 				expectedRewardFactor: d("52856.928000000000000000"),
 				expectedRewards:      cs(c("hard", 52856928000)),
@@ -181,7 +177,6 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 			args{
 				delegation:           c("ukava", 1),
 				rewardsPerSecond:     c("hard", 1),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardFactor: d("0.000099999900000100"),
 				expectedRewards:      nil,
@@ -195,11 +190,10 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
 			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(tc.args.initialTime).
+				withGenesisTime(suite.genesisTime).
 				withSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// Create validator account
 			staking.BeginBlocker(suite.ctx, suite.stakingKeeper)
@@ -262,7 +256,6 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 	type args struct {
 		delegation            sdk.Coin
 		rewardsPerSecond      sdk.Coin
-		initialTime           time.Time
 		blockTimes            []int
 		expectedRewardIndexes types.RewardIndexes
 		expectedRewards       sdk.Coins
@@ -278,7 +271,6 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 			args{
 				delegation:            c("ukava", 1_000_000),
 				rewardsPerSecond:      c("hard", 122354),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:            []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("ukava", d("6.117700000000000000"))}, // Here the reward index stores data differently than inside a MultiRewardIndex
 				expectedRewards:       cs(c("hard", 6117700)),
@@ -289,7 +281,6 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 			args{
 				delegation:            c("ukava", 1_000_000),
 				rewardsPerSecond:      c("hard", 122354),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:            []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
 				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("ukava", d("52856.928000000000000000"))},
 				expectedRewards:       cs(c("hard", 52856928000)),
@@ -304,11 +295,10 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
 			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(tc.args.initialTime).
+				withGenesisTime(suite.genesisTime).
 				withSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// Delegator delegates
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
@@ -405,17 +395,15 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[2]), cs(c("ukava", 1e9)))
 
-	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
 
 	incentBuilder := newIncentiveGenesisBuilder().
-		withGenesisTime(initialTime).
+		withGenesisTime(suite.genesisTime).
 		withSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
 
 	suite.SetupWithGenState(authBuilder, incentBuilder)
 
-	suite.ctx = suite.ctx.WithBlockTime(initialTime)
 	blockDuration := 10 * time.Second
 
 	// Reduce the size of the validator set
@@ -434,7 +422,7 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 	// End the block so top validators become bonded
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
 
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Delegate to a bonded validator from the test user. This will initialize their incentive claim.
@@ -443,7 +431,7 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 
 	// Start a new block to accumulate some delegation rewards for the user.
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(2 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(2 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Delegate to the unbonded validator to push it into the bonded validator set, pushing out the user's delegated validator
@@ -470,7 +458,7 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 	)
 
 	// Run another block and check the claim is not accumulating more rewards
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(3 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(3 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
 
 	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
@@ -497,17 +485,15 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[2]), cs(c("ukava", 1e9)))
 
-	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
 
 	incentBuilder := newIncentiveGenesisBuilder().
-		withGenesisTime(initialTime).
+		withGenesisTime(suite.genesisTime).
 		withSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
 
 	suite.SetupWithGenState(authBuilder, incentBuilder)
 
-	suite.ctx = suite.ctx.WithBlockTime(initialTime)
 	blockDuration := 10 * time.Second
 
 	// Reduce the size of the validator set
@@ -526,7 +512,7 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 	// End the block so top validators become bonded
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
 
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Delegate to an unbonded validator from the test user. This will initialize their incentive claim.
@@ -535,7 +521,7 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 
 	// Start a new block to accumulate some delegation rewards globally.
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(2 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(2 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
 
 	// Delegate to the user's unbonded validator to push it into the bonded validator set
@@ -562,7 +548,7 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 	)
 
 	// Run another block and check the claim is accumulating more rewards
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(3 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(3 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
 
 	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
@@ -587,17 +573,15 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9)))
 
-	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
 
 	incentBuilder := newIncentiveGenesisBuilder().
-		withGenesisTime(initialTime).
+		withGenesisTime(suite.genesisTime).
 		withSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
 
 	suite.SetupWithGenState(authBuilder, incentBuilder)
 
-	suite.ctx = suite.ctx.WithBlockTime(initialTime)
 	blockDuration := 10 * time.Second
 
 	// Reduce the size of the validator set
@@ -614,7 +598,7 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 	// End the block so validators become bonded
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
 
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Delegate to a bonded validator from the test user. This will initialize their incentive claim.
@@ -633,7 +617,7 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 
 	// Start a new block to accumulate some delegation rewards for the user.
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(2 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(2 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Fetch validator and slash them
@@ -670,17 +654,16 @@ func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9)))
 
-	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
 
 	incentBuilder := newIncentiveGenesisBuilder().
-		withGenesisTime(initialTime).
+		withGenesisTime(suite.genesisTime).
 		withSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
 
 	suite.SetupWithGenState(authBuilder, incentBuilder)
 
-	suite.ctx = suite.ctx.WithBlockTime(initialTime)
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime)
 	blockDuration := 10 * time.Second
 
 	// Create 2 validators
@@ -695,7 +678,7 @@ func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
 
 	// Start a new block to accumulate some delegation rewards globally.
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Redelegate the user's delegation between the two validators. This should trigger hooks that sync the user's claim.
