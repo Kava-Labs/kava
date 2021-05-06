@@ -88,9 +88,6 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 					// update AllowedParams
 					var newAllowedParams v0_15committee.AllowedParams
 					for _, ap := range subPerm.AllowedParams {
-						if ap.Subspace == "harvest" {
-							continue
-						}
 						newAP := v0_15committee.AllowedParam(ap)
 						newAllowedParams = append(newAllowedParams, newAP)
 					}
@@ -173,9 +170,11 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 				}
 			}
 			newStabilityCommitteePermissions = append(newStabilityCommitteePermissions, v0_15committee.TextPermission{})
+
 			// Set stability committee permissions
-			stabilityCom.SetPermissions(newStabilityCommitteePermissions)
-			committees = append(committees, stabilityCom)
+			baseStabilityCom := stabilityCom.SetPermissions(newStabilityCommitteePermissions)
+			newStabilityCom := v0_15committee.MemberCommittee{BaseCommittee: baseStabilityCom}
+			committees = append(committees, newStabilityCom)
 		} else {
 			safetyCom := types.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{v0_15committee.SoftwareUpgradePermission{}},
