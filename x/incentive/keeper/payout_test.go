@@ -58,7 +58,7 @@ func (suite *PayoutTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
+func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder IncentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
@@ -67,7 +67,7 @@ func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuild
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		NewCDPGenStateMulti(),
 		hardBuilder.BuildMarshalled(),
-		incentBuilder.buildMarshalled(),
+		incentBuilder.BuildMarshalled(),
 	)
 }
 
@@ -150,10 +150,10 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
 				WithSimpleAccount(userAddr, cs(tc.args.initialCollateral)).
 				WithSimpleModuleAccount(kavadist.ModuleName, cs(c("ukava", 1000000000000)))
 
-			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(suite.genesisTime).
-				withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond).
-				withMultipliers(tc.args.multipliers)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond).
+				WithMultipliers(tc.args.multipliers)
 
 			suite.SetupWithGenState(authBulder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
@@ -336,14 +336,14 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 				WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15))).
 				WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1000000000000000000), c("ukava", 1000000000000000000)))
 
-			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(suite.genesisTime).
-				withMultipliers(tc.args.multipliers)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithMultipliers(tc.args.multipliers)
 			for _, c := range tc.args.deposit {
-				incentBuilder = incentBuilder.withSimpleSupplyRewardPeriod(c.Denom, tc.args.rewardsPerSecond)
+				incentBuilder = incentBuilder.WithSimpleSupplyRewardPeriod(c.Denom, tc.args.rewardsPerSecond)
 			}
 			for _, c := range tc.args.borrow {
-				incentBuilder = incentBuilder.withSimpleBorrowRewardPeriod(c.Denom, tc.args.rewardsPerSecond)
+				incentBuilder = incentBuilder.WithSimpleBorrowRewardPeriod(c.Denom, tc.args.rewardsPerSecond)
 			}
 
 			suite.SetupWithGenState(authBulder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))

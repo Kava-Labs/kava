@@ -53,14 +53,14 @@ func (suite *DelegatorRewardsTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder) {
+func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder IncentiveGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
 		authBuilder.BuildMarshalled(),
 		NewStakingGenesisState(),
-		incentBuilder.buildMarshalled(),
+		incentBuilder.BuildMarshalled(),
 	)
 }
 
@@ -110,9 +110,9 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
-			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(suite.genesisTime).
-				withSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
 
@@ -189,9 +189,9 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
-			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(suite.genesisTime).
-				withSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
 
@@ -294,9 +294,9 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
-			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(suite.genesisTime).
-				withSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
 
@@ -398,9 +398,9 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
 
-	incentBuilder := newIncentiveGenesisBuilder().
-		withGenesisTime(suite.genesisTime).
-		withSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
+	incentBuilder := NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
 
 	suite.SetupWithGenState(authBuilder, incentBuilder)
 
@@ -488,9 +488,9 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
 
-	incentBuilder := newIncentiveGenesisBuilder().
-		withGenesisTime(suite.genesisTime).
-		withSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
+	incentBuilder := NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
 
 	suite.SetupWithGenState(authBuilder, incentBuilder)
 
@@ -576,9 +576,9 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
 
-	incentBuilder := newIncentiveGenesisBuilder().
-		withGenesisTime(suite.genesisTime).
-		withSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
+	incentBuilder := NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
 
 	suite.SetupWithGenState(authBuilder, incentBuilder)
 
@@ -657,9 +657,9 @@ func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
 
-	incentBuilder := newIncentiveGenesisBuilder().
-		withGenesisTime(suite.genesisTime).
-		withSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
+	incentBuilder := NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
 
 	suite.SetupWithGenState(authBuilder, incentBuilder)
 

@@ -53,7 +53,7 @@ func (suite *SupplyRewardsTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *SupplyRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
+func (suite *SupplyRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder IncentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
@@ -62,7 +62,7 @@ func (suite *SupplyRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenes
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		hardBuilder.BuildMarshalled(),
 		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
-		incentBuilder.buildMarshalled(),
+		incentBuilder.BuildMarshalled(),
 	)
 }
 
@@ -171,10 +171,10 @@ func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
 			// suite.SetupWithGenState(authBuilder)
-			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(suite.genesisTime)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime)
 			if tc.args.rewardsPerSecond != nil {
-				incentBuilder = incentBuilder.withSimpleSupplyRewardPeriod(tc.args.deposit.Denom, tc.args.rewardsPerSecond)
+				incentBuilder = incentBuilder.WithSimpleSupplyRewardPeriod(tc.args.deposit.Denom, tc.args.rewardsPerSecond)
 			}
 
 			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
@@ -325,9 +325,9 @@ func (suite *SupplyRewardsTestSuite) TestInitializeHardSupplyRewards() {
 				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
 
-			incentBuilder := newIncentiveGenesisBuilder().withGenesisTime(suite.genesisTime)
+			incentBuilder := NewIncentiveGenesisBuilder().WithGenesisTime(suite.genesisTime)
 			for moneyMarketDenom, rewardsPerSecond := range tc.args.moneyMarketRewardDenoms {
-				incentBuilder = incentBuilder.withSimpleSupplyRewardPeriod(moneyMarketDenom, rewardsPerSecond)
+				incentBuilder = incentBuilder.WithSimpleSupplyRewardPeriod(moneyMarketDenom, rewardsPerSecond)
 			}
 			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
@@ -554,10 +554,10 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 				WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
 				WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)))
 
-			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(suite.genesisTime)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime)
 			if tc.args.rewardsPerSecond != nil {
-				incentBuilder = incentBuilder.withSimpleSupplyRewardPeriod(tc.args.incentiveSupplyRewardDenom, tc.args.rewardsPerSecond)
+				incentBuilder = incentBuilder.WithSimpleSupplyRewardPeriod(tc.args.incentiveSupplyRewardDenom, tc.args.rewardsPerSecond)
 			}
 			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
@@ -856,12 +856,12 @@ func (suite *SupplyRewardsTestSuite) TestUpdateHardSupplyIndexDenoms() {
 				userAddr,
 				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
-			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(suite.genesisTime).
-				withSimpleSupplyRewardPeriod("bnb", tc.args.rewardsPerSecond).
-				withSimpleSupplyRewardPeriod("ukava", tc.args.rewardsPerSecond).
-				withSimpleSupplyRewardPeriod("btcb", tc.args.rewardsPerSecond).
-				withSimpleSupplyRewardPeriod("xrp", tc.args.rewardsPerSecond)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleSupplyRewardPeriod("bnb", tc.args.rewardsPerSecond).
+				WithSimpleSupplyRewardPeriod("ukava", tc.args.rewardsPerSecond).
+				WithSimpleSupplyRewardPeriod("btcb", tc.args.rewardsPerSecond).
+				WithSimpleSupplyRewardPeriod("xrp", tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
@@ -940,9 +940,9 @@ func (suite *SupplyRewardsTestSuite) TestSimulateHardSupplyRewardSynchronization
 				userAddr,
 				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
-			incentBuilder := newIncentiveGenesisBuilder().
-				withGenesisTime(suite.genesisTime).
-				withSimpleSupplyRewardPeriod(tc.args.deposit.Denom, tc.args.rewardsPerSecond)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleSupplyRewardPeriod(tc.args.deposit.Denom, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
