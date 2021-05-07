@@ -114,10 +114,6 @@ func NewCDPGenStateMulti() app.GenesisState {
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
 
-func NewPricefeedGenStateMulti() app.GenesisState {
-	return NewPricefeedGenStateMultiFromTime(time.Now())
-}
-
 func NewPricefeedGenStateMultiFromTime(t time.Time) app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
