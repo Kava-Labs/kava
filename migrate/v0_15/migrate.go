@@ -91,11 +91,6 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 						newAP := v0_15committee.AllowedParam(ap)
 						newAllowedParams = append(newAllowedParams, newAP)
 					}
-					hrdaMMAp := v0_15committee.AllowedParam{Subspace: "hard", Key: "MoneyMarkets"}
-					hardLimitAp := v0_15committee.AllowedParam{Subspace: "hard", Key: "MinimumBorrowUSDValue"}
-					newAllowedParams = append(newAllowedParams, hrdaMMAp)
-					newAllowedParams = append(newAllowedParams, hardLimitAp)
-
 					newStabilitySubParamPermissions.AllowedParams = newAllowedParams
 
 					// update AllowedCollateralParams
