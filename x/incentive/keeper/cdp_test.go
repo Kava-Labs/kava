@@ -45,8 +45,9 @@ func (suite *KeeperTestSuite) TestRiskyCDPsAccumulateRewards() {
 
 	// Skip ahead two blocks to accumulate both interest and usdx reward for the cdp
 	// Two blocks are required because the cdp begin blocker runs before incentive begin blocker.
-	// So in the first begin block, the cdp is synced, which syncs rewards, but no rewards have accumulated yet. Rewards accumulate immediately after when the incentive begin block runs.
-	// Rewards are added to the cdp in the next cdp begin blocker (where it is synced).
+	// In the first begin block the cdp is synced, which triggers its claim to sync. But no global rewards have accumulated yet so the sync does nothing.
+	// Global rewards accumulate immediately after during the incentive begin blocker.
+	// Rewards are added to the cdp's claim in the next block when the cdp is synced.
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(10 * time.Minute))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
@@ -58,6 +59,8 @@ func (suite *KeeperTestSuite) TestRiskyCDPsAccumulateRewards() {
 	// check cdp rewards
 	cdp, found := cdpKeeper.GetCdpByOwnerAndCollateralType(suite.ctx, suite.addrs[0], collateralType)
 	suite.Require().True(found)
+	// This additional sync adds the rewards accumulated at the end of the last begin block.
+	// They weren't added during the begin blocker as the incentive BB runs after the CDP BB.
 	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 	claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
