@@ -53,7 +53,7 @@ func (suite *SupplyRewardsTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *SupplyRewardsTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
+func (suite *SupplyRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
@@ -166,7 +166,7 @@ func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(
+			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(
 				userAddr,
 				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
@@ -320,7 +320,7 @@ func (suite *SupplyRewardsTestSuite) TestInitializeHardSupplyRewards() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(
+			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(
 				userAddr,
 				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
@@ -550,7 +550,7 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := NewAuthGenesisBuilder().
+			authBuilder := app.NewAuthGenesisBuilder().
 				WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
 				WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)))
 
@@ -852,7 +852,7 @@ func (suite *SupplyRewardsTestSuite) TestUpdateHardSupplyIndexDenoms() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(
+			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(
 				userAddr,
 				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
@@ -936,7 +936,7 @@ func (suite *SupplyRewardsTestSuite) TestSimulateHardSupplyRewardSynchronization
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(
+			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(
 				userAddr,
 				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)

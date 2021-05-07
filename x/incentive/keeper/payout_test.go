@@ -58,7 +58,7 @@ func (suite *PayoutTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *PayoutTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
+func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
@@ -146,7 +146,7 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[0]
-			authBulder := NewAuthGenesisBuilder().
+			authBulder := app.NewAuthGenesisBuilder().
 				WithSimpleAccount(userAddr, cs(tc.args.initialCollateral)).
 				WithSimpleModuleAccount(kavadist.ModuleName, cs(c("ukava", 1000000000000)))
 
@@ -332,7 +332,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBulder := NewAuthGenesisBuilder().
+			authBulder := app.NewAuthGenesisBuilder().
 				WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15))).
 				WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1000000000000000000), c("ukava", 1000000000000000000)))
 
@@ -663,7 +663,7 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 	}
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			authBuilder := NewAuthGenesisBuilder().WithSimplePeriodicVestingAccount(
+			authBuilder := app.NewAuthGenesisBuilder().WithSimplePeriodicVestingAccount(
 				suite.addrs[0],
 				tc.args.accArgs.origVestingCoins,
 				tc.args.accArgs.periods,
@@ -699,7 +699,7 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 }
 
 func (suite *PayoutTestSuite) TestSendCoinsToBaseAccount() {
-	authBuilder := NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthGenesisBuilder().
 		WithSimpleAccount(suite.addrs[1], cs(c("ukava", 400))).
 		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("ukava", 600)))
 
@@ -727,7 +727,7 @@ func (suite *PayoutTestSuite) TestSendCoinsToBaseAccount() {
 }
 
 func (suite *PayoutTestSuite) TestSendCoinsToInvalidAccount() {
-	authBuilder := NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthGenesisBuilder().
 		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("ukava", 600))).
 		WithEmptyValidatorVestingAccount(suite.addrs[2])
 

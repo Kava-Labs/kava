@@ -53,7 +53,7 @@ func (suite *DelegatorRewardsTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder) {
+func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
@@ -106,7 +106,7 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			authBuilder := NewAuthGenesisBuilder().
+			authBuilder := app.NewAuthGenesisBuilder().
 				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
@@ -185,7 +185,7 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			authBuilder := NewAuthGenesisBuilder().
+			authBuilder := app.NewAuthGenesisBuilder().
 				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
@@ -290,7 +290,7 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			authBuilder := NewAuthGenesisBuilder().
+			authBuilder := app.NewAuthGenesisBuilder().
 				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
@@ -388,7 +388,7 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgRedelegate(ctx sdk.Context, de
 
 // given a user has a delegation to a bonded validator, when the validator starts unbonding, the user does not accumulate rewards
 func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
-	authBuilder := NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthGenesisBuilder().
 		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 		WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
@@ -478,7 +478,7 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 
 // given a user has a delegation to an unbonded validator, when the validator becomes bonded, the user starts accumulating rewards
 func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
-	authBuilder := NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthGenesisBuilder().
 		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 		WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
@@ -568,7 +568,7 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 
 // If a validator is slashed delegators should have their claims synced
 func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
-	authBuilder := NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthGenesisBuilder().
 		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9)))
@@ -649,7 +649,7 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 
 // Given a delegation to a bonded validator, when a user redelegates everything to another (bonded) validator, the user's claim is synced
 func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
-	authBuilder := NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthGenesisBuilder().
 		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9)))

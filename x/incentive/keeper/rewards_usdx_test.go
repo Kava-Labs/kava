@@ -47,7 +47,7 @@ func (suite *USDXRewardsTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *USDXRewardsTestSuite) SetupWithGenState(authBuilder AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder) {
+func (suite *USDXRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder incentiveGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
@@ -107,7 +107,7 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 		suite.Run(tc.name, func() {
 			incentBuilder := newIncentiveGenesisBuilder().withGenesisTime(suite.genesisTime).withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
 
-			suite.SetupWithGenState(NewAuthGenesisBuilder(), incentBuilder)
+			suite.SetupWithGenState(app.NewAuthGenesisBuilder(), incentBuilder)
 
 			// setup cdp state
 			suite.cdpKeeper.SetTotalPrincipal(suite.ctx, tc.args.ctype, cdptypes.DefaultStableDenom, tc.args.initialTotalPrincipal.Amount)
@@ -168,7 +168,7 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
+			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
 			incentBuilder := newIncentiveGenesisBuilder().withGenesisTime(suite.genesisTime).withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
@@ -255,7 +255,7 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			authBuilder := NewAuthGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
+			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
 			incentBuilder := newIncentiveGenesisBuilder().withGenesisTime(suite.genesisTime).withSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
