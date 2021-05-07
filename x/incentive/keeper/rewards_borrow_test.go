@@ -436,25 +436,6 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 				expectedRewards: cs(c("hard", 12235400), c("ukava", 55555500)),
 			},
 		},
-		// {
-		// 	"denom is in incentive's hard borrow reward params but it has no rewards; add reward",
-		// 	args{
-		// 		incentiveBorrowRewardDenom: "bnb",
-		// 		borrow:                     c("bnb", 10000000000),
-		// 		rewardsPerSecond:           sdk.Coins{},
-		// 		blockTimes:                 []int{100},
-		// 		expectedRewardIndexes:      types.RewardIndexes{},
-		// 		expectedRewards:            sdk.Coins{},
-		// 		updateRewardsViaCommmittee: true,
-		// 		updatedBaseDenom:           "bnb",
-		// 		updatedRewardsPerSecond:    cs(c("hard", 100000)),
-		// 		updatedExpectedRewards:     cs(c("hard", 8640000000)),
-		// 		updatedExpectedRewardIndexes: types.RewardIndexes{
-		// 			types.NewRewardIndex("hard", d("0.864000000049803065")),
-		// 		},
-		// 		updatedTimeDuration: 86400,
-		// 	},
-		// },
 		{
 			"denom is in incentive's hard borrow reward params and has rewards; add new reward type",
 			args{
@@ -496,27 +477,6 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 				updatedTimeDuration: 86400,
 			},
 		},
-		// {
-		// 	"denom incentive's hard borrow reward params but it has no rewards; add multiple reward types",
-		// 	args{
-		// 		incentiveBorrowRewardDenom: "bnb",
-		// 		borrow:                     c("bnb", 10000000000),
-		// 		rewardsPerSecond:           sdk.Coins{},
-		// 		blockTimes:                 []int{100},
-		// 		expectedRewardIndexes:      types.RewardIndexes{},
-		// 		expectedRewards:            sdk.Coins{},
-		// 		updateRewardsViaCommmittee: true,
-		// 		updatedBaseDenom:           "bnb",
-		// 		updatedRewardsPerSecond:    cs(c("hard", 100000), c("ukava", 100500), c("swap", 500)),
-		// 		updatedExpectedRewards:     cs(c("hard", 8640000000), c("ukava", 8683200001), c("swap", 43200000)),
-		// 		updatedExpectedRewardIndexes: types.RewardIndexes{
-		// 			types.NewRewardIndex("hard", d("0.864000000049803065")),
-		// 			types.NewRewardIndex("ukava", d("0.868320000050052081")),
-		// 			types.NewRewardIndex("swap", d("0.004320000000249015")),
-		// 		},
-		// 		updatedTimeDuration: 86400,
-		// 	},
-		// },
 		{
 			"denom is in hard's money market params but not in incentive's hard supply reward params; add multiple reward types",
 			args{
@@ -538,6 +498,7 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 				updatedTimeDuration: 86400,
 			},
 		},
+		// TODO test synchronize when there is a reward period with 0 rewardsPerSecond
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {

@@ -153,15 +153,7 @@ func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 				},
 			},
 		},
-		// {
-		// 	"single reward denom, no rewards",
-		// 	args{
-		// 		deposit:               c("bnb", 1000000000000),
-		// 		rewardsPerSecond:      nil,
-		// 		timeElapsed:           7,
-		// 		expectedRewardIndexes: types.RewardIndexes{},
-		// 	},
-		// },
+		// TODO test accumulate when there is a reward period with 0 rewardsPerSecond
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -444,25 +436,6 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 				updateRewardsViaCommmittee: false,
 			},
 		},
-		// {
-		// 	"denom is in incentive's hard supply reward params but it has no rewards; add reward",
-		// 	args{
-		// 		incentiveSupplyRewardDenom: "bnb",
-		// 		deposit:                    c("bnb", 10000000000),
-		// 		rewardsPerSecond:           sdk.Coins{},
-		// 		blockTimes:                 []int{100},
-		// 		expectedRewardIndexes:      types.RewardIndexes{},
-		// 		expectedRewards:            sdk.Coins{},
-		// 		updateRewardsViaCommmittee: true,
-		// 		updatedBaseDenom:           "bnb",
-		// 		updatedRewardsPerSecond:    cs(c("hard", 100000)),
-		// 		updatedExpectedRewards:     cs(c("hard", 8640000000)),
-		// 		updatedExpectedRewardIndexes: types.RewardIndexes{
-		// 			types.NewRewardIndex("hard", d("0.864")),
-		// 		},
-		// 		updatedTimeDuration: 86400,
-		// 	},
-		// },
 		{
 			"denom is in incentive's hard supply reward params and has rewards; add new reward type",
 			args{
@@ -504,27 +477,6 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 				updatedTimeDuration: 86400,
 			},
 		},
-		// {
-		// 	"denom incentive's hard supply reward params but it has no rewards; add multiple reward types",
-		// 	args{
-		// 		incentiveSupplyRewardDenom: "bnb",
-		// 		deposit:                    c("bnb", 10000000000),
-		// 		rewardsPerSecond:           sdk.Coins{},
-		// 		blockTimes:                 []int{100},
-		// 		expectedRewardIndexes:      types.RewardIndexes{},
-		// 		expectedRewards:            sdk.Coins{},
-		// 		updateRewardsViaCommmittee: true,
-		// 		updatedBaseDenom:           "bnb",
-		// 		updatedRewardsPerSecond:    cs(c("hard", 100000), c("ukava", 100500), c("swap", 500)),
-		// 		updatedExpectedRewards:     cs(c("hard", 8640000000), c("ukava", 8683200000), c("swap", 43200000)),
-		// 		updatedExpectedRewardIndexes: types.RewardIndexes{
-		// 			types.NewRewardIndex("hard", d("0.864")),
-		// 			types.NewRewardIndex("ukava", d("0.86832")),
-		// 			types.NewRewardIndex("swap", d("0.00432")),
-		// 		},
-		// 		updatedTimeDuration: 86400,
-		// 	},
-		// },
 		{
 			"denom is in hard's money market params but not in incentive's hard supply reward params; add multiple reward types",
 			args{
@@ -546,6 +498,7 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 				updatedTimeDuration: 86400,
 			},
 		},
+		// TODO test synchronize when there is a reward period with 0 rewardsPerSecond
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
