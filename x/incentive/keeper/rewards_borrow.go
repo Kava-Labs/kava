@@ -134,14 +134,11 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 				claim.BorrowRewardIndexes[userRewardIndexIndex] = userMultiRewardIndex
 			}
 
-			globalRewardFactor := globalRewardIndex.RewardFactor
-			userRewardFactor := userRewardIndex.RewardFactor
-			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
-			if rewardsAccumulatedFactor.IsNegative() {
-				panic(fmt.Sprintf("reward accumulation factor cannot be negative: %s", rewardsAccumulatedFactor))
-			}
-
-			newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
+			newRewardsAmount := k.calculateReward(
+				userRewardIndex.RewardFactor,
+				globalRewardIndex.RewardFactor,
+				borrow.Amount.AmountOf(coin.Denom),
+			)
 
 			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex { // should never trigger
@@ -191,4 +188,13 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 
 	claim.BorrowRewardIndexes = borrowRewardIndexes
 	k.SetHardLiquidityProviderClaim(ctx, claim)
+}
+
+func (k Keeper) calculateReward(oldIndex, newIndex sdk.Dec, rewardSource sdk.Int) sdk.Int {
+	increase := newIndex.Sub(oldIndex)
+	if increase.IsNegative() {
+		panic(fmt.Sprintf("new reward index cannot be less than previous: new %s, old %s", newIndex, oldIndex))
+	}
+
+	return increase.Mul(rewardSource.ToDec()).RoundInt()
 }
