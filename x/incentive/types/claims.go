@@ -402,6 +402,20 @@ func (ris RewardIndexes) GetRewardIndex(denom string) (RewardIndex, bool) {
 	return RewardIndex{}, false
 }
 
+// With returns a copy of the indexes with a new reward index added
+func (ris RewardIndexes) With(denom string, factor sdk.Dec) RewardIndexes {
+	newIndexes := make(RewardIndexes, len(ris))
+	copy(newIndexes, ris)
+
+	for i, ri := range newIndexes {
+		if ri.CollateralType == denom {
+			newIndexes[i].RewardFactor = factor
+			return newIndexes
+		}
+	}
+	return append(newIndexes, NewRewardIndex(denom, factor))
+}
+
 // GetFactorIndex gets the index of a specific reward index inside the array by its index
 func (ris RewardIndexes) GetFactorIndex(denom string) (int, bool) {
 	for i, ri := range ris {
@@ -496,7 +510,7 @@ func (mris MultiRewardIndexes) GetCollateralTypes() []string {
 }
 
 // RemoveRewardIndex removes a denom's reward interest factor value
-func (mris MultiRewardIndexes) RemoveRewardIndex(denom string) MultiRewardIndexes {
+func (mris MultiRewardIndexes) RemoveRewardIndex(denom string) MultiRewardIndexes { // TODO modifies original dangerously
 	for i, ri := range mris {
 		if ri.CollateralType == denom {
 			return append(mris[:i], mris[i+1:]...)
