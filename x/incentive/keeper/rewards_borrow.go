@@ -86,13 +86,10 @@ func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bor
 	var borrowRewardIndexes types.MultiRewardIndexes
 	for _, coin := range borrow.Amount {
 		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-		var multiRewardIndex types.MultiRewardIndex
-		if foundGlobalRewardIndexes {
-			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
-		} else {
-			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
+		if !foundGlobalRewardIndexes {
+			globalRewardIndexes = types.RewardIndexes{}
 		}
-		borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
+		borrowRewardIndexes = borrowRewardIndexes.With(coin.Denom, globalRewardIndexes)
 	}
 
 	claim.BorrowRewardIndexes = borrowRewardIndexes
@@ -113,39 +110,30 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 			continue
 		}
 
-		userMultiRewardIndex, foundUserMultiRewardIndex := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
-		if !foundUserMultiRewardIndex {
-			continue
-		}
-
-		userRewardIndexIndex, foundUserRewardIndexIndex := claim.BorrowRewardIndexes.GetRewardIndexIndex(coin.Denom)
-		if !foundUserRewardIndexIndex {
+		userRewardIndexes, found := claim.BorrowRewardIndexes.Get(coin.Denom)
+		if !found {
 			continue
 		}
 
 		for _, globalRewardIndex := range globalRewardIndexes {
-			userRewardIndex, found := userMultiRewardIndex.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			factor, found := userRewardIndexes.Get(globalRewardIndex.CollateralType)
 			if !found {
-				// User borrowed this coin type before it had rewards. When new rewards are added, legacy borrowers
-				// should immediately begin earning rewards. Enable users to do so by assuming the reward index was found
-				// with the factor at the starting value: 0.0.
-				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				factor = sdk.ZeroDec()
 			}
 
 			claim.Reward = claim.Reward.Add(
-				k.calculateReward(
-					userRewardIndex,
-					globalRewardIndex,
-					coin.Amount,
+				sdk.NewCoin(
+					globalRewardIndex.CollateralType,
+					k.calculateRewardAmount(
+						factor,
+						globalRewardIndex.RewardFactor,
+						coin.Amount,
+					),
 				),
 			)
-
-			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes =
-				claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes.With(
-					userRewardIndex.CollateralType,
-					globalRewardIndex.RewardFactor,
-				)
+			userRewardIndexes = userRewardIndexes.With(globalRewardIndex.CollateralType, globalRewardIndex.RewardFactor)
 		}
+		claim.BorrowRewardIndexes = claim.BorrowRewardIndexes.With(coin.Denom, userRewardIndexes)
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }

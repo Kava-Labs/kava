@@ -402,6 +402,16 @@ func (ris RewardIndexes) GetRewardIndex(denom string) (RewardIndex, bool) {
 	return RewardIndex{}, false
 }
 
+// Get fetches a RewardFactor from the indexes by it's denom
+func (ris RewardIndexes) Get(denom string) (sdk.Dec, bool) {
+	for _, ri := range ris {
+		if ri.CollateralType == denom {
+			return ri.RewardFactor, true
+		}
+	}
+	return sdk.Dec{}, false
+}
+
 // With returns a copy of the indexes with a new reward index added
 func (ris RewardIndexes) With(denom string, factor sdk.Dec) RewardIndexes {
 	newIndexes := make(RewardIndexes, len(ris))
@@ -490,6 +500,16 @@ func (mris MultiRewardIndexes) GetRewardIndex(denom string) (MultiRewardIndex, b
 	return MultiRewardIndex{}, false
 }
 
+// Get fetches a RewardFactor from the indexes by it's denom
+func (mris MultiRewardIndexes) Get(denom string) (RewardIndexes, bool) {
+	for _, mri := range mris {
+		if mri.CollateralType == denom {
+			return mri.RewardIndexes, true
+		}
+	}
+	return nil, false
+}
+
 // GetRewardIndexIndex fetches a specific reward index inside the array by its denom
 func (mris MultiRewardIndexes) GetRewardIndexIndex(denom string) (int, bool) {
 	for i, ri := range mris {
@@ -498,6 +518,20 @@ func (mris MultiRewardIndexes) GetRewardIndexIndex(denom string) (int, bool) {
 		}
 	}
 	return -1, false
+}
+
+// With returns a copy of the indexes with a new RewardIndexes added
+func (mris MultiRewardIndexes) With(denom string, indexes RewardIndexes) MultiRewardIndexes {
+	newIndexes := make(MultiRewardIndexes, len(mris))
+	copy(newIndexes, mris)
+
+	for i, mri := range newIndexes {
+		if mri.CollateralType == denom {
+			newIndexes[i].RewardIndexes = indexes
+			return newIndexes
+		}
+	}
+	return append(newIndexes, NewMultiRewardIndex(denom, indexes))
 }
 
 // GetCollateralTypes returns a slice of containing all collateral types
