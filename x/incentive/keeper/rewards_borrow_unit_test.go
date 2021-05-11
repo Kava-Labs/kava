@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/store"
@@ -64,10 +65,11 @@ func (suite *SynchronizeHardBorrowRewardTests) TearDownTest() {
 
 func (suite *SynchronizeHardBorrowRewardTests) setupKeeper(incentiveStoreKey sdk.StoreKey) keeper.Keeper {
 	cdc := app.MakeCodec()
+	// SynchronizeHardBorrowReward does not use param subspace. The store key needs to be initialized in the multistore for the subspace to function.
 	paramSubspace := params.NewKeeper(
 		cdc,
 		sdk.NewKVStoreKey(params.StoreKey),
-		sdk.NewTransientStoreKey(params.StoreKey), // TODO param subspace isn't used in the tests, replace with interface and use nil instead
+		sdk.NewTransientStoreKey(params.StoreKey),
 	).Subspace(incentive.DefaultParamspace)
 
 	return keeper.NewKeeper(cdc, incentiveStoreKey, paramSubspace, nil, nil, nil, nil, nil)
@@ -83,7 +85,8 @@ func (suite *SynchronizeHardBorrowRewardTests) storeClaim(claim types.HardLiquid
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
 }
 
-func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenGlobalIndexesAmountsIncreased() {
+func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenGlobalIndexesHaveIncreased() {
+	// This is the normal case
 
 	claim := types.HardLiquidityProviderClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -93,10 +96,8 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenGlo
 	}
 	suite.storeClaim(claim)
 
-	suite.storeGlobalIndexes(
-		increaseAllRewardFactors(nonEmptyMultiRewardIndexes),
-	)
-
+	globalIndexes := increaseAllRewardFactors(nonEmptyMultiRewardIndexes)
+	suite.storeGlobalIndexes(globalIndexes)
 	borrow := hardtypes.Borrow{
 		Borrower: claim.Owner,
 		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(claim.BorrowRewardIndexes)...),
@@ -105,9 +106,91 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenGlo
 	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
 
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
-	suite.Equal(claim.BorrowRewardIndexes, syncedClaim.BorrowRewardIndexes)
+	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
 }
+func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUnchangedWhenGlobalIndexesUnchanged() {
+	// It should be safe to call SynchronizeHardBorrowReward multiple times
+
+	unchangingIndexes := nonEmptyMultiRewardIndexes
+
+	claim := types.HardLiquidityProviderClaim{
+		BaseMultiClaim: types.BaseMultiClaim{
+			Owner: arbitraryAddress(),
+		},
+		BorrowRewardIndexes: unchangingIndexes,
+	}
+	suite.storeClaim(claim)
+
+	suite.storeGlobalIndexes(unchangingIndexes)
+
+	borrow := hardtypes.Borrow{
+		Borrower: claim.Owner,
+		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(unchangingIndexes)...),
+	}
+
+	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
+
+	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	suite.Equal(unchangingIndexes, syncedClaim.BorrowRewardIndexes)
+}
+func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardAdded() {
+	// When a new reward is added (via gov) for a hard borrow denom the user has already borrowed, and the claim is synced;
+	// Then the new reward's index should be added to the claim.
+	suite.T().Skip("TODO fix this bug")
+
+	claim := types.HardLiquidityProviderClaim{
+		BaseMultiClaim: types.BaseMultiClaim{
+			Owner: arbitraryAddress(),
+		},
+		BorrowRewardIndexes: nonEmptyMultiRewardIndexes,
+	}
+	suite.storeClaim(claim)
+
+	globalIndexes := appendUniqueMultiRewardIndex(nonEmptyMultiRewardIndexes)
+	suite.storeGlobalIndexes(globalIndexes)
+
+	borrow := hardtypes.Borrow{
+		Borrower: claim.Owner,
+		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
+	}
+
+	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
+
+	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
+}
+func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardDenomAdded() {
+	// When a new reward coin is added (via gov) to an already rewarded borrow denom (that the user has already borrowed), and the claim is synced;
+	// Then the new reward coin's index should be added to the claim.
+
+	claim := types.HardLiquidityProviderClaim{
+		BaseMultiClaim: types.BaseMultiClaim{
+			Owner: arbitraryAddress(),
+		},
+		BorrowRewardIndexes: nonEmptyMultiRewardIndexes,
+	}
+	suite.storeClaim(claim)
+
+	globalIndexes := appendUniqueRewardIndexToFirstItem(nonEmptyMultiRewardIndexes)
+	suite.storeGlobalIndexes(globalIndexes)
+
+	borrow := hardtypes.Borrow{
+		Borrower: claim.Owner,
+		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
+	}
+
+	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
+
+	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
+}
+
 func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenGlobalIndexesHaveIncreased() {
+	// This is the normal case
+	// Given some time has passed (meaning the global indexes have increased)
+	// When the claim is synced
+	// The user earns rewards for the time passed
+
 	originalReward := arbitraryCoins()
 
 	claim := types.HardLiquidityProviderClaim{
@@ -156,6 +239,129 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenGlobal
 	)
 }
 
+func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenWhenNewRewardAdded() {
+	// When a new reward is added (via gov) for a hard borrow denom the user has already borrowed, and the claim is synced
+	// Then the user earns rewards for the time since the reward was added
+	suite.T().Skip("TODO fix this bug")
+
+	originalReward := arbitraryCoins()
+	claim := types.HardLiquidityProviderClaim{
+		BaseMultiClaim: types.BaseMultiClaim{
+			Owner:  arbitraryAddress(),
+			Reward: originalReward,
+		},
+		BorrowRewardIndexes: types.MultiRewardIndexes{
+			{
+				CollateralType: "rewarded",
+				RewardIndexes: types.RewardIndexes{
+					{
+						CollateralType: "reward",
+						RewardFactor:   d("1000.001"),
+					},
+				},
+			},
+		},
+	}
+	suite.storeClaim(claim)
+
+	globalIndexes := types.MultiRewardIndexes{
+		{
+			CollateralType: "rewarded",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "reward",
+					RewardFactor:   d("2000.002"),
+				},
+			},
+		},
+		{
+			CollateralType: "newlyrewarded",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "otherreward",
+					// Indexes start at 0 when the reward is added by gov,
+					// so this represents the syncing happening some time later.
+					RewardFactor: d("1000.001"),
+				},
+			},
+		},
+	}
+	suite.storeGlobalIndexes(globalIndexes)
+
+	borrow := hardtypes.Borrow{
+		Borrower: claim.Owner,
+		Amount:   cs(c("rewarded", 1e9), c("newlyrewarded", 1e9)),
+	}
+
+	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
+
+	// new reward is (new index - old index) * borrow amount for each borrowed denom
+	// The old index for `newlyrewarded` isn't in the claim, so it's added starting at 0 for calculating the reward.
+	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	suite.Equal(
+		cs(c("otherreward", 1_000_001_000_000), c("reward", 1_000_001_000_000)).Add(originalReward...),
+		syncedClaim.Reward,
+	)
+}
+func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenWhenNewRewardDenomAdded() {
+	// When a new reward coin is added (via gov) to an already rewarded borrow denom (that the user has already borrowed), and the claim is synced;
+	// Then the user earns rewards for the time since the reward was added
+
+	originalReward := arbitraryCoins()
+	claim := types.HardLiquidityProviderClaim{
+		BaseMultiClaim: types.BaseMultiClaim{
+			Owner:  arbitraryAddress(),
+			Reward: originalReward,
+		},
+		BorrowRewardIndexes: types.MultiRewardIndexes{
+			{
+				CollateralType: "borrowed",
+				RewardIndexes: types.RewardIndexes{
+					{
+						CollateralType: "reward",
+						RewardFactor:   d("1000.001"),
+					},
+				},
+			},
+		},
+	}
+	suite.storeClaim(claim)
+
+	globalIndexes := types.MultiRewardIndexes{
+		{
+			CollateralType: "borrowed",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "reward",
+					RewardFactor:   d("2000.002"),
+				},
+				{
+					CollateralType: "otherreward",
+					// Indexes start at 0 when the reward is added by gov,
+					// so this represents the syncing happening some time later.
+					RewardFactor: d("1000.001"),
+				},
+			},
+		},
+	}
+	suite.storeGlobalIndexes(globalIndexes)
+
+	borrow := hardtypes.Borrow{
+		Borrower: claim.Owner,
+		Amount:   cs(c("borrowed", 1e9)),
+	}
+
+	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
+
+	// new reward is (new index - old index) * borrow amount for each borrowed denom
+	// The old index for `otherreward` isn't in the claim, so it's added starting at 0 for calculating the reward.
+	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	suite.Equal(
+		cs(c("reward", 1_000_001_000_000), c("otherreward", 1_000_001_000_000)).Add(originalReward...),
+		syncedClaim.Reward,
+	)
+}
+
 func arbitraryCoins() sdk.Coins {
 	return cs(c("btcb", 1))
 }
@@ -164,7 +370,7 @@ func arbitraryCoinsWithDenoms(denom ...string) sdk.Coins {
 	const arbitraryAmount = 1 // must be > 0 as sdk.Coins type only stores positive amounts
 	coins := sdk.NewCoins()
 	for _, d := range denom {
-		coins.Add(sdk.NewInt64Coin(d, arbitraryAmount))
+		coins = coins.Add(sdk.NewInt64Coin(d, arbitraryAmount))
 	}
 	return coins
 }
@@ -229,4 +435,52 @@ func increaseRewardFactors(indexes types.RewardIndexes) types.RewardIndexes {
 		increasedIndexes[i].RewardFactor = increasedIndexes[i].RewardFactor.MulInt64(2)
 	}
 	return increasedIndexes
+}
+
+func appendUniqueMultiRewardIndex(indexes types.MultiRewardIndexes) types.MultiRewardIndexes {
+	const uniqueDenom = "uniquedenom"
+
+	for _, mri := range indexes {
+		if mri.CollateralType == uniqueDenom {
+			panic(fmt.Sprintf("tried to add unique multi reward index with denom '%s', but denom already existed", uniqueDenom))
+		}
+	}
+
+	return append(indexes, types.NewMultiRewardIndex(
+		uniqueDenom,
+		types.RewardIndexes{
+			{
+				CollateralType: "hard",
+				RewardFactor:   d("0.02"),
+			},
+			{
+				CollateralType: "ukava",
+				RewardFactor:   d("0.04"),
+			},
+		},
+	),
+	)
+}
+
+func appendUniqueRewardIndexToFirstItem(indexes types.MultiRewardIndexes) types.MultiRewardIndexes {
+	newIndexes := make(types.MultiRewardIndexes, len(indexes))
+	copy(newIndexes, indexes)
+
+	newIndexes[0].RewardIndexes = appendUniqueRewardIndex(newIndexes[0].RewardIndexes)
+	return newIndexes
+}
+
+func appendUniqueRewardIndex(indexes types.RewardIndexes) types.RewardIndexes {
+	const uniqueDenom = "uniquereward"
+
+	for _, mri := range indexes {
+		if mri.CollateralType == uniqueDenom {
+			panic(fmt.Sprintf("tried to add unique reward index with denom '%s', but denom already existed", uniqueDenom))
+		}
+	}
+
+	return append(
+		indexes,
+		types.NewRewardIndex(uniqueDenom, d("0.02")),
+	)
 }
