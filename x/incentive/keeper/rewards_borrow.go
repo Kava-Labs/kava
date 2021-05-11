@@ -124,29 +124,27 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 		}
 
 		for _, globalRewardIndex := range globalRewardIndexes {
-			userRewardIndex, foundUserRewardIndex := userMultiRewardIndex.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
-			if !foundUserRewardIndex {
+			userRewardIndex, found := userMultiRewardIndex.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			if !found {
 				// User borrowed this coin type before it had rewards. When new rewards are added, legacy borrowers
-				// should immediately begin earning rewards. Enable users to do so by updating their claim with the global
-				// reward index denom and start their reward factor at 0.0
+				// should immediately begin earning rewards. Enable users to do so by assuming the reward index was found
+				// with the factor at the starting value: 0.0.
 				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
-				userMultiRewardIndex.RewardIndexes = append(userMultiRewardIndex.RewardIndexes, userRewardIndex)
-				claim.BorrowRewardIndexes[userRewardIndexIndex] = userMultiRewardIndex
 			}
 
-			newRewardsAmount := k.calculateReward(
-				userRewardIndex.RewardFactor,
-				globalRewardIndex.RewardFactor,
-				borrow.Amount.AmountOf(coin.Denom),
+			claim.Reward = claim.Reward.Add(
+				k.calculateReward(
+					userRewardIndex,
+					globalRewardIndex,
+					coin.Amount,
+				),
 			)
 
-			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
-			if !foundFactorIndex { // should never trigger
-				continue
-			}
-			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
-			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
-			claim.Reward = claim.Reward.Add(newRewardsCoin)
+			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes =
+				claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes.With(
+					userRewardIndex.CollateralType,
+					globalRewardIndex.RewardFactor,
+				)
 		}
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
@@ -190,11 +188,34 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
-func (k Keeper) calculateReward(oldIndex, newIndex sdk.Dec, rewardSource sdk.Int) sdk.Int {
+// calculateRewardAmount computes the rewards that should accumulate between two index values.
+
+// oldIndex is normally the index stored on a claim, newIndex is the current global value, and rewardSource is hard borrow/supply amount.
+// newIndex MUST be greater than oldIndex otherwise it will panic
+func (k Keeper) calculateRewardAmount(oldIndex, newIndex sdk.Dec, rewardSource sdk.Int) sdk.Int {
 	increase := newIndex.Sub(oldIndex)
 	if increase.IsNegative() {
 		panic(fmt.Sprintf("new reward index cannot be less than previous: new %s, old %s", newIndex, oldIndex))
 	}
 
 	return increase.Mul(rewardSource.ToDec()).RoundInt()
+}
+
+// calculateReward computes the reward that should accumulate between two index values.
+//
+// oldIndex is normally the index stored on a claim, newIndex is the current global value, and rewardSource is hard borrow/supply amount.
+// newIndex RewardFactor MUST be greater than oldIndex RewardFactor otherwise it will panic.
+// Index CollateralTypes MUST match or it will panic.
+func (k Keeper) calculateReward(oldIndex, newIndex types.RewardIndex, rewardSource sdk.Int) sdk.Coin {
+	if oldIndex.CollateralType != newIndex.CollateralType {
+		panic(fmt.Sprintf(
+			"cannot calculate reward for reward indexes with different denoms: old %s new %s",
+			oldIndex.CollateralType,
+			newIndex.CollateralType,
+		)) // TODO should this error instead?
+	}
+	return sdk.NewCoin(
+		oldIndex.CollateralType,
+		k.calculateRewardAmount(oldIndex.RewardFactor, newIndex.RewardFactor, rewardSource),
+	)
 }
