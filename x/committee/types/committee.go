@@ -22,8 +22,8 @@ const (
 )
 
 const (
-	MemberCommitteeType = "member" // Committee is composed of member addresses that vote to enact proposals within their permissions
-	TokenCommitteeType  = "token"  // Committee is composed of token holders with voting power determined by total token balance
+	MemberCommitteeType = "kava/MemberCommittee" // Committee is composed of member addresses that vote to enact proposals within their permissions
+	TokenCommitteeType  = "kava/TokenCommittee"  // Committee is composed of token holders with voting power determined by total token balance
 	BondDenom           = "ukava"
 )
 
@@ -56,6 +56,7 @@ type Committees []Committee
 
 // BaseCommittee is a common type shared by all Committees
 type BaseCommittee struct {
+	Type             string           `json:"type" yaml:"type"`
 	ID               uint64           `json:"id" yaml:"id"`
 	Description      string           `json:"description" yaml:"description"`
 	Members          []sdk.AccAddress `json:"members" yaml:"members"`
@@ -64,6 +65,9 @@ type BaseCommittee struct {
 	ProposalDuration time.Duration    `json:"proposal_duration" yaml:"proposal_duration"` // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
 	TallyOption      TallyOption      `json:"tally_option" yaml:"tally_option"`
 }
+
+// GetType is a getter for committee type
+func (c BaseCommittee) GetType() string { return c.Type }
 
 // GetID is a getter for committee ID
 func (c BaseCommittee) GetID() uint64 { return c.ID }
@@ -175,13 +179,14 @@ func (c BaseCommittee) Validate() error {
 // String implements fmt.Stringer
 func (c BaseCommittee) String() string {
 	return fmt.Sprintf(`Committee %d:
-  Description:              %s
-  Members:               %s
-  Permissions:               			%s
-  VoteThreshold:            		  %s
-  ProposalDuration:        						%s
-  TallyOption:   						%d`,
-		c.ID, c.Description, c.GetMembers(), c.Permissions,
+	Type:              %s
+	Description:              %s
+	Members:               %s
+  	Permissions:               			%s
+  	VoteThreshold:            		  %s
+	ProposalDuration:        						%s
+	TallyOption:   						%d`,
+		c.ID, c.Type, c.Description, c.GetMembers(), c.Permissions,
 		c.VoteThreshold.String(), c.ProposalDuration.String(),
 		c.TallyOption,
 	)
@@ -197,6 +202,7 @@ func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress,
 	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) MemberCommittee {
 	return MemberCommittee{
 		BaseCommittee: BaseCommittee{
+			Type:             MemberCommitteeType,
 			ID:               id,
 			Description:      description,
 			Members:          members,
@@ -207,9 +213,6 @@ func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress,
 		},
 	}
 }
-
-// GetType returns the type of the committee
-func (c MemberCommittee) GetType() string { return MemberCommitteeType }
 
 // Validate validates the committee's fields
 func (c MemberCommittee) Validate() error {
@@ -228,6 +231,7 @@ func NewTokenCommittee(id uint64, description string, permissions []Permission, 
 	duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) TokenCommittee {
 	return TokenCommittee{
 		BaseCommittee: BaseCommittee{
+			Type:             TokenCommitteeType,
 			ID:               id,
 			Description:      description,
 			Permissions:      permissions,
@@ -239,9 +243,6 @@ func NewTokenCommittee(id uint64, description string, permissions []Permission, 
 		TallyDenom: tallyDenom,
 	}
 }
-
-// GetType returns the type of the committee
-func (c TokenCommittee) GetType() string { return TokenCommitteeType }
 
 // GetQuorum returns the quorum of the committee
 func (c TokenCommittee) GetQuorum() sdk.Dec { return c.Quorum }
