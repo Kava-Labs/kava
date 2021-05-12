@@ -17,6 +17,7 @@ import (
 )
 
 var (
+	// TODO: update GenesisTime for kava-8 launch
 	GenesisTime = time.Date(2021, 4, 8, 15, 0, 0, 0, time.UTC)
 )
 
@@ -40,7 +41,6 @@ func Migrate(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 	genDoc.AppState = marshaledNewAppState
 	genDoc.GenesisTime = GenesisTime
 	genDoc.ChainID = "kava-8"
-	genDoc.ConsensusParams.Block.MaxGas = 20000000
 	return genDoc
 }
 
