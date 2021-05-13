@@ -172,13 +172,14 @@ func TestRewardIndexes(t *testing.T) {
 }
 
 func TestMultiRewardIndexes(t *testing.T) {
+	arbitraryRewardIndexes := RewardIndexes{
+		{
+			CollateralType: "reward",
+			RewardFactor:   sdk.MustNewDecFromStr("0.1"),
+		},
+	}
+
 	t.Run("Get", func(t *testing.T) {
-		arbitraryRewardIndexes := RewardIndexes{
-			{
-				CollateralType: "reward",
-				RewardFactor:   sdk.MustNewDecFromStr("0.1"),
-			},
-		}
 		type expected struct {
 			rewardIndexes RewardIndexes
 			found         bool
@@ -227,12 +228,6 @@ func TestMultiRewardIndexes(t *testing.T) {
 		}
 	})
 	t.Run("With", func(t *testing.T) {
-		arbitraryRewardIndexes := RewardIndexes{
-			{
-				CollateralType: "reward",
-				RewardFactor:   sdk.MustNewDecFromStr("0.1"),
-			},
-		}
 		type args struct {
 			denom         string
 			rewardIndexes RewardIndexes
@@ -288,10 +283,67 @@ func TestMultiRewardIndexes(t *testing.T) {
 		}
 		for _, tc := range testcases {
 			t.Run(tc.name, func(t *testing.T) {
+				oldIndexes := tc.multiRewardIndexes.copy()
+
 				newIndexes := tc.multiRewardIndexes.With(tc.args.denom, tc.args.rewardIndexes)
 
 				require.Equal(t, tc.expected, newIndexes)
-				require.NotEqual(t, tc.multiRewardIndexes, newIndexes)
+				require.Equal(t, oldIndexes, tc.multiRewardIndexes)
+			})
+		}
+	})
+	t.Run("RemoveRewardIndex", func(t *testing.T) {
+		testcases := []struct {
+			name               string
+			multiRewardIndexes MultiRewardIndexes
+			arg_denom          string
+			expected           MultiRewardIndexes
+		}{
+			{
+				name: "when indexes are not present, do nothing",
+				multiRewardIndexes: MultiRewardIndexes{
+					{
+						CollateralType: "denom",
+						RewardIndexes:  arbitraryRewardIndexes,
+					},
+				},
+				arg_denom: "notpresent",
+				expected: MultiRewardIndexes{
+					{
+						CollateralType: "denom",
+						RewardIndexes:  arbitraryRewardIndexes,
+					},
+				},
+			},
+			{
+				name: "when indexes are present, remove them and do not update original",
+				multiRewardIndexes: MultiRewardIndexes{
+					{
+						CollateralType: "denom",
+						RewardIndexes:  arbitraryRewardIndexes,
+					},
+					{
+						CollateralType: "otherdenom",
+						RewardIndexes:  arbitraryRewardIndexes,
+					},
+				},
+				arg_denom: "denom",
+				expected: MultiRewardIndexes{
+					{
+						CollateralType: "otherdenom",
+						RewardIndexes:  arbitraryRewardIndexes,
+					},
+				},
+			},
+		}
+		for _, tc := range testcases {
+			t.Run(tc.name, func(t *testing.T) {
+				oldIndexes := tc.multiRewardIndexes.copy()
+
+				newIndexes := tc.multiRewardIndexes.RemoveRewardIndex(tc.arg_denom)
+
+				require.Equal(t, tc.expected, newIndexes)
+				require.Equal(t, oldIndexes, tc.multiRewardIndexes)
 			})
 		}
 	})
