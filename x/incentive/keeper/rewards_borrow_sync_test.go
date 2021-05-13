@@ -2,14 +2,12 @@ package keeper_test
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/kava-labs/kava/app"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -436,139 +434,4 @@ func TestCalculateRewards(t *testing.T) {
 			}
 		})
 	}
-}
-
-func arbitraryCoins() sdk.Coins {
-	return cs(c("btcb", 1))
-}
-
-func arbitraryCoinsWithDenoms(denom ...string) sdk.Coins {
-	const arbitraryAmount = 1 // must be > 0 as sdk.Coins type only stores positive amounts
-	coins := sdk.NewCoins()
-	for _, d := range denom {
-		coins = coins.Add(sdk.NewInt64Coin(d, arbitraryAmount))
-	}
-	return coins
-}
-
-func arbitraryAddress() sdk.AccAddress {
-	_, addresses := app.GeneratePrivKeyAddressPairs(1)
-	return addresses[0]
-}
-
-var nonEmptyMultiRewardIndexes = types.MultiRewardIndexes{
-	{
-		CollateralType: "bnb",
-		RewardIndexes: types.RewardIndexes{
-			{
-				CollateralType: "hard",
-				RewardFactor:   d("0.02"),
-			},
-			{
-				CollateralType: "ukava",
-				RewardFactor:   d("0.04"),
-			},
-		},
-	},
-	{
-		CollateralType: "btcb",
-		RewardIndexes: types.RewardIndexes{
-			{
-				CollateralType: "hard",
-				RewardFactor:   d("0.2"),
-			},
-			{
-				CollateralType: "ukava",
-				RewardFactor:   d("0.4"),
-			},
-		},
-	},
-}
-
-func extractCollateralTypes(indexes types.MultiRewardIndexes) []string {
-	var denoms []string
-	for _, ri := range indexes {
-		denoms = append(denoms, ri.CollateralType)
-	}
-	return denoms
-}
-
-func increaseAllRewardFactors(indexes types.MultiRewardIndexes) types.MultiRewardIndexes {
-	increasedIndexes := make(types.MultiRewardIndexes, len(indexes))
-	copy(increasedIndexes, indexes)
-
-	for i := range increasedIndexes {
-		increasedIndexes[i].RewardIndexes = increaseRewardFactors(increasedIndexes[i].RewardIndexes)
-	}
-	return increasedIndexes
-}
-
-func increaseRewardFactors(indexes types.RewardIndexes) types.RewardIndexes {
-	increasedIndexes := make(types.RewardIndexes, len(indexes))
-	copy(increasedIndexes, indexes)
-
-	for i := range increasedIndexes {
-		increasedIndexes[i].RewardFactor = increasedIndexes[i].RewardFactor.MulInt64(2)
-	}
-	return increasedIndexes
-}
-
-func appendUniqueMultiRewardIndex(indexes types.MultiRewardIndexes) types.MultiRewardIndexes {
-	const uniqueDenom = "uniquedenom"
-
-	for _, mri := range indexes {
-		if mri.CollateralType == uniqueDenom {
-			panic(fmt.Sprintf("tried to add unique multi reward index with denom '%s', but denom already existed", uniqueDenom))
-		}
-	}
-
-	return append(indexes, types.NewMultiRewardIndex(
-		uniqueDenom,
-		types.RewardIndexes{
-			{
-				CollateralType: "hard",
-				RewardFactor:   d("0.02"),
-			},
-			{
-				CollateralType: "ukava",
-				RewardFactor:   d("0.04"),
-			},
-		},
-	),
-	)
-}
-
-func appendUniqueEmptyMultiRewardIndex(indexes types.MultiRewardIndexes) types.MultiRewardIndexes {
-	const uniqueDenom = "uniquedenom"
-
-	for _, mri := range indexes {
-		if mri.CollateralType == uniqueDenom {
-			panic(fmt.Sprintf("tried to add unique multi reward index with denom '%s', but denom already existed", uniqueDenom))
-		}
-	}
-
-	return append(indexes, types.NewMultiRewardIndex(uniqueDenom, nil))
-}
-
-func appendUniqueRewardIndexToFirstItem(indexes types.MultiRewardIndexes) types.MultiRewardIndexes {
-	newIndexes := make(types.MultiRewardIndexes, len(indexes))
-	copy(newIndexes, indexes)
-
-	newIndexes[0].RewardIndexes = appendUniqueRewardIndex(newIndexes[0].RewardIndexes)
-	return newIndexes
-}
-
-func appendUniqueRewardIndex(indexes types.RewardIndexes) types.RewardIndexes {
-	const uniqueDenom = "uniquereward"
-
-	for _, mri := range indexes {
-		if mri.CollateralType == uniqueDenom {
-			panic(fmt.Sprintf("tried to add unique reward index with denom '%s', but denom already existed", uniqueDenom))
-		}
-	}
-
-	return append(
-		indexes,
-		types.NewRewardIndex(uniqueDenom, d("0.02")),
-	)
 }
