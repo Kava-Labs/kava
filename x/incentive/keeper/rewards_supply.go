@@ -80,22 +80,18 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 // InitializeHardSupplyReward initializes the supply-side of a hard liquidity provider claim
 // by creating the claim and setting the supply reward factor index
 func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.Deposit) {
+	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
+	if !found {
+		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
+	}
+
 	var supplyRewardIndexes types.MultiRewardIndexes
 	for _, coin := range deposit.Amount {
 		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
-		var multiRewardIndex types.MultiRewardIndex
-		if foundGlobalRewardIndexes {
-			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
-		} else {
-			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
+		if !foundGlobalRewardIndexes {
+			globalRewardIndexes = types.RewardIndexes{}
 		}
-		supplyRewardIndexes = append(supplyRewardIndexes, multiRewardIndex)
-	}
-
-	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
-	if !found {
-		// Instantiate claim object
-		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
+		supplyRewardIndexes = supplyRewardIndexes.With(coin.Denom, globalRewardIndexes)
 	}
 
 	claim.SupplyRewardIndexes = supplyRewardIndexes
@@ -116,45 +112,20 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 			continue
 		}
 
-		userMultiRewardIndex, foundUserMultiRewardIndex := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
+		userMultiRewardIndexes, foundUserMultiRewardIndex := claim.SupplyRewardIndexes.Get(coin.Denom)
 		if !foundUserMultiRewardIndex {
 			continue
 		}
 
-		userRewardIndexIndex, foundUserRewardIndexIndex := claim.SupplyRewardIndexes.GetRewardIndexIndex(coin.Denom)
-		if !foundUserRewardIndexIndex {
-			continue
+		newRewards, err := k.CalculateRewards(userMultiRewardIndexes, globalRewardIndexes, coin.Amount)
+		if err != nil {
+			// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
+			// This panics if a global reward factor decreases or disappears between the old and new indexes.
+			panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
 		}
 
-		for _, globalRewardIndex := range globalRewardIndexes {
-			userRewardIndex, foundUserRewardIndex := userMultiRewardIndex.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
-			if !foundUserRewardIndex {
-				// User deposited this coin type before it had rewards. When new rewards are added, legacy depositors
-				// should immediately begin earning rewards. Enable users to do so by updating their claim with the global
-				// reward index denom and start their reward factor at 0.0
-				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
-				userMultiRewardIndex.RewardIndexes = append(userMultiRewardIndex.RewardIndexes, userRewardIndex)
-				claim.SupplyRewardIndexes[userRewardIndexIndex] = userMultiRewardIndex
-			}
-
-			globalRewardFactor := globalRewardIndex.RewardFactor
-			userRewardFactor := userRewardIndex.RewardFactor
-			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
-			if rewardsAccumulatedFactor.IsNegative() {
-				panic(fmt.Sprintf("reward accumulation factor cannot be negative: %s", rewardsAccumulatedFactor))
-			}
-
-			newRewardsAmount := rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
-
-			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
-			if !foundFactorIndex { // should never trigger, as we basically do this check at the start of this loop
-				continue
-			}
-			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
-
-			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
-			claim.Reward = claim.Reward.Add(newRewardsCoin)
-		}
+		claim.Reward = claim.Reward.Add(newRewards...)
+		claim.SupplyRewardIndexes = claim.SupplyRewardIndexes.With(coin.Denom, globalRewardIndexes)
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
@@ -169,26 +140,22 @@ func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.D
 	depositDenoms := getDenoms(deposit.Amount)
 	supplyRewardIndexDenoms := claim.SupplyRewardIndexes.GetCollateralTypes()
 
-	uniqueDepositDenoms := setDifference(depositDenoms, supplyRewardIndexDenoms)
-	uniqueSupplyRewardDenoms := setDifference(supplyRewardIndexDenoms, depositDenoms)
-
 	supplyRewardIndexes := claim.SupplyRewardIndexes
+
 	// Create a new multi-reward index in the claim for every new deposit denom
+	uniqueDepositDenoms := setDifference(depositDenoms, supplyRewardIndexDenoms)
+
 	for _, denom := range uniqueDepositDenoms {
-		_, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(denom)
-		if !foundUserRewardIndexes {
-			globalSupplyRewardIndexes, foundGlobalSupplyRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, denom)
-			var multiRewardIndex types.MultiRewardIndex
-			if foundGlobalSupplyRewardIndexes {
-				multiRewardIndex = types.NewMultiRewardIndex(denom, globalSupplyRewardIndexes)
-			} else {
-				multiRewardIndex = types.NewMultiRewardIndex(denom, types.RewardIndexes{})
-			}
-			supplyRewardIndexes = append(supplyRewardIndexes, multiRewardIndex)
+		globalSupplyRewardIndexes, found := k.GetHardSupplyRewardIndexes(ctx, denom)
+		if !found {
+			globalSupplyRewardIndexes = types.RewardIndexes{}
 		}
+		supplyRewardIndexes = supplyRewardIndexes.With(denom, globalSupplyRewardIndexes)
 	}
 
 	// Delete multi-reward index from claim if the collateral type is no longer deposited
+	uniqueSupplyRewardDenoms := setDifference(supplyRewardIndexDenoms, depositDenoms)
+
 	for _, denom := range uniqueSupplyRewardDenoms {
 		supplyRewardIndexes = supplyRewardIndexes.RemoveRewardIndex(denom)
 	}
