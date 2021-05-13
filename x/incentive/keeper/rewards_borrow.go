@@ -118,10 +118,11 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 
 		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount)
 		if err != nil {
-			// Global reward indexes should never decrease or be deleted.
-			// So old values stored in a claim should always be ≤ the current global values.
+			// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
+			// This panics if a global reward factor decreases or disappears between the old and new indexes.
 			panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
 		}
+
 		claim.Reward = claim.Reward.Add(newRewards...)
 		claim.BorrowRewardIndexes = claim.BorrowRewardIndexes.With(coin.Denom, globalRewardIndexes)
 	}
