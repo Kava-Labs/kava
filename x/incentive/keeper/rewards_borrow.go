@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -115,25 +116,14 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 			continue
 		}
 
-		for _, globalRewardIndex := range globalRewardIndexes {
-			factor, found := userRewardIndexes.Get(globalRewardIndex.CollateralType)
-			if !found {
-				factor = sdk.ZeroDec()
-			}
-
-			claim.Reward = claim.Reward.Add(
-				sdk.NewCoin(
-					globalRewardIndex.CollateralType,
-					k.calculateRewardAmount(
-						factor,
-						globalRewardIndex.RewardFactor,
-						coin.Amount,
-					),
-				),
-			)
-			userRewardIndexes = userRewardIndexes.With(globalRewardIndex.CollateralType, globalRewardIndex.RewardFactor)
+		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount)
+		if err != nil {
+			// Global reward indexes should never decrease or be deleted.
+			// So old values stored in a claim should always be ≤ the current global values.
+			panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
 		}
-		claim.BorrowRewardIndexes = claim.BorrowRewardIndexes.With(coin.Denom, userRewardIndexes)
+		claim.Reward = claim.Reward.Add(newRewards...)
+		claim.BorrowRewardIndexes = claim.BorrowRewardIndexes.With(coin.Denom, globalRewardIndexes)
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
@@ -172,34 +162,50 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
-// calculateRewardAmount computes the rewards that should accumulate between two index values.
+// CalculateRewards computes how much rewards should have accrued to a source (eg user's hard borrowed btc amount)
+// between two index values.
+//
+// oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
+func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rewardSource sdk.Int) (sdk.Coins, error) {
+	for _, oldIndex := range oldIndexes {
+		if newIndex, f := newIndexes.Get(oldIndex.CollateralType); !f {
+			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
+		}
+	}
+	reward := sdk.NewCoins()
+	for _, newIndex := range newIndexes {
+		factor, found := oldIndexes.Get(newIndex.CollateralType)
+		if !found {
+			factor = sdk.ZeroDec()
+		}
 
-// oldIndex is normally the index stored on a claim, newIndex is the current global value, and rewardSource is hard borrow/supply amount.
+		if newIndex.RewardFactor.Sub(factor).IsNegative() {
+			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", factor, newIndex)
+		}
+
+		reward = reward.Add(
+			sdk.NewCoin(
+				newIndex.CollateralType,
+				k.calculateSingleReward(
+					factor,
+					newIndex.RewardFactor,
+					rewardSource,
+				),
+			),
+		)
+	}
+	return reward, nil
+}
+
+// calculateSingleReward computes the rewards that should accumulate between two index values.
+
+// oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
 // newIndex MUST be greater than oldIndex otherwise it will panic
-func (k Keeper) calculateRewardAmount(oldIndex, newIndex sdk.Dec, rewardSource sdk.Int) sdk.Int {
+func (k Keeper) calculateSingleReward(oldIndex, newIndex sdk.Dec, rewardSource sdk.Int) sdk.Int {
 	increase := newIndex.Sub(oldIndex)
 	if increase.IsNegative() {
 		panic(fmt.Sprintf("new reward index cannot be less than previous: new %s, old %s", newIndex, oldIndex))
 	}
 
 	return increase.Mul(rewardSource.ToDec()).RoundInt()
-}
-
-// calculateReward computes the reward that should accumulate between two index values.
-//
-// oldIndex is normally the index stored on a claim, newIndex is the current global value, and rewardSource is hard borrow/supply amount.
-// newIndex RewardFactor MUST be greater than oldIndex RewardFactor otherwise it will panic.
-// Index CollateralTypes MUST match or it will panic.
-func (k Keeper) calculateReward(oldIndex, newIndex types.RewardIndex, rewardSource sdk.Int) sdk.Coin {
-	if oldIndex.CollateralType != newIndex.CollateralType {
-		panic(fmt.Sprintf(
-			"cannot calculate reward for reward indexes with different denoms: old %s new %s",
-			oldIndex.CollateralType,
-			newIndex.CollateralType,
-		)) // TODO should this error instead?
-	}
-	return sdk.NewCoin(
-		oldIndex.CollateralType,
-		k.calculateRewardAmount(oldIndex.RewardFactor, newIndex.RewardFactor, rewardSource),
-	)
 }

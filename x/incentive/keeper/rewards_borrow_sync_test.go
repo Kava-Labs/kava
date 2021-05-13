@@ -1,14 +1,17 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/app"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -304,6 +307,135 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenWhenNe
 		cs(c("reward", 1_000_001_000_000), c("otherreward", 1_000_001_000_000)).Add(originalReward...),
 		syncedClaim.Reward,
 	)
+}
+
+func TestCalculateRewards(t *testing.T) {
+	type expected struct {
+		err   error
+		coins sdk.Coins
+	}
+	type args struct {
+		oldIndexes, newIndexes types.RewardIndexes
+		sourceAmount           sdk.Int
+	}
+	testcases := []struct {
+		name     string
+		args     args
+		expected expected
+	}{
+		{
+			name: "when old and new indexes have same denoms, rewards are calculated correctly",
+			args: args{
+				oldIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.000000001"),
+					},
+					{
+						CollateralType: "ukava",
+						RewardFactor:   d("0.1"),
+					},
+				},
+				newIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("1000.0"),
+					},
+					{
+						CollateralType: "ukava",
+						RewardFactor:   d("0.100000001"),
+					},
+				},
+				sourceAmount: i(1e9),
+			},
+			expected: expected{
+				// for each denom: (new - old) * sourceAmount
+				coins: cs(c("hard", 999999999999), c("ukava", 1)),
+			},
+		},
+		{
+			name: "when new indexes have an extra denom, rewards are calculated as if it was 0 in old indexes",
+			args: args{
+				oldIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.000000001"),
+					},
+				},
+				newIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("1000.0"),
+					},
+					{
+						CollateralType: "ukava",
+						RewardFactor:   d("0.100000001"),
+					},
+				},
+				sourceAmount: i(1e9),
+			},
+			expected: expected{
+				// for each denom: (new - old) * sourceAmount
+				coins: cs(c("hard", 999999999999), c("ukava", 100000001)),
+			},
+		},
+		{
+			name: "when new indexes are smaller than old, an error is returned",
+			args: args{
+				oldIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.2"),
+					},
+				},
+				newIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.1"),
+					},
+				},
+				sourceAmount: i(1e9),
+			},
+			expected: expected{
+				err: types.ErrDecreasingRewardFactor,
+			},
+		},
+		{
+			name: "when old indexes have an extra denom, an error is returned",
+			args: args{
+				oldIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.1"),
+					},
+					{
+						CollateralType: "ukava",
+						RewardFactor:   d("0.1"),
+					},
+				},
+				newIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.2"),
+					},
+				},
+				sourceAmount: i(1e9),
+			},
+			expected: expected{
+				err: types.ErrDecreasingRewardFactor,
+			},
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			coins, err := keeper.Keeper{}.CalculateRewards(tc.args.oldIndexes, tc.args.newIndexes, tc.args.sourceAmount)
+			if tc.expected.err != nil {
+				require.True(t, errors.Is(err, tc.expected.err))
+			} else {
+				require.Equal(t, tc.expected.coins, coins)
+			}
+		})
+	}
 }
 
 func arbitraryCoins() sdk.Coins {
