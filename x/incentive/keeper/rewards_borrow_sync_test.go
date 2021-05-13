@@ -4,34 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	db "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
-	"github.com/kava-labs/kava/x/incentive"
-	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
-
-// NewTestContext sets up a basic context with an in-memory db
-func NewTestContext(requiredStoreKeys ...sdk.StoreKey) sdk.Context {
-	memDB := db.NewMemDB()
-	cms := store.NewCommitMultiStore(memDB)
-
-	for _, key := range requiredStoreKeys {
-		cms.MountStoreWithDB(key, sdk.StoreTypeIAVL, nil)
-	}
-
-	cms.LoadLatestVersion()
-
-	return sdk.NewContext(cms, abci.Header{}, false, log.NewNopLogger())
-}
 
 // SynchronizeHardBorrowRewardTests runs unit tests for the keeper.SynchronizeHardBorrowReward method
 //
@@ -43,46 +22,11 @@ func NewTestContext(requiredStoreKeys ...sdk.StoreKey) sdk.Context {
 // outputs
 // - sets a claim
 type SynchronizeHardBorrowRewardTests struct {
-	suite.Suite
-	keeper keeper.Keeper
-	ctx    sdk.Context
+	unitTester
 }
 
 func TestSynchronizeHardBorrowReward(t *testing.T) {
 	suite.Run(t, new(SynchronizeHardBorrowRewardTests))
-}
-
-func (suite *SynchronizeHardBorrowRewardTests) SetupTest() {
-	incentveStoreKey := sdk.NewKVStoreKey(types.StoreKey)
-	suite.keeper = suite.setupKeeper(incentveStoreKey)
-	suite.ctx = NewTestContext(incentveStoreKey)
-}
-
-func (suite *SynchronizeHardBorrowRewardTests) TearDownTest() {
-	suite.keeper = keeper.Keeper{}
-	suite.ctx = sdk.Context{}
-}
-
-func (suite *SynchronizeHardBorrowRewardTests) setupKeeper(incentiveStoreKey sdk.StoreKey) keeper.Keeper {
-	cdc := app.MakeCodec()
-	// SynchronizeHardBorrowReward does not use param subspace. The store key needs to be initialized in the multistore for the subspace to function.
-	paramSubspace := params.NewKeeper(
-		cdc,
-		sdk.NewKVStoreKey(params.StoreKey),
-		sdk.NewTransientStoreKey(params.StoreKey),
-	).Subspace(incentive.DefaultParamspace)
-
-	return keeper.NewKeeper(cdc, incentiveStoreKey, paramSubspace, nil, nil, nil, nil, nil)
-}
-
-func (suite *SynchronizeHardBorrowRewardTests) storeGlobalIndexes(indexes types.MultiRewardIndexes) {
-	for _, i := range indexes {
-		suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
-	}
-}
-
-func (suite *SynchronizeHardBorrowRewardTests) storeClaim(claim types.HardLiquidityProviderClaim) {
-	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
 }
 
 func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenGlobalIndexesHaveIncreased() {
@@ -382,19 +326,6 @@ func arbitraryAddress() sdk.AccAddress {
 
 var nonEmptyMultiRewardIndexes = types.MultiRewardIndexes{
 	{
-		CollateralType: "btcb",
-		RewardIndexes: types.RewardIndexes{
-			{
-				CollateralType: "hard",
-				RewardFactor:   d("0.2"),
-			},
-			{
-				CollateralType: "ukava",
-				RewardFactor:   d("0.4"),
-			},
-		},
-	},
-	{
 		CollateralType: "bnb",
 		RewardIndexes: types.RewardIndexes{
 			{
@@ -404,6 +335,19 @@ var nonEmptyMultiRewardIndexes = types.MultiRewardIndexes{
 			{
 				CollateralType: "ukava",
 				RewardFactor:   d("0.04"),
+			},
+		},
+	},
+	{
+		CollateralType: "btcb",
+		RewardIndexes: types.RewardIndexes{
+			{
+				CollateralType: "hard",
+				RewardFactor:   d("0.2"),
+			},
+			{
+				CollateralType: "ukava",
+				RewardFactor:   d("0.4"),
 			},
 		},
 	},
@@ -460,6 +404,18 @@ func appendUniqueMultiRewardIndex(indexes types.MultiRewardIndexes) types.MultiR
 		},
 	),
 	)
+}
+
+func appendUniqueEmptyMultiRewardIndex(indexes types.MultiRewardIndexes) types.MultiRewardIndexes {
+	const uniqueDenom = "uniquedenom"
+
+	for _, mri := range indexes {
+		if mri.CollateralType == uniqueDenom {
+			panic(fmt.Sprintf("tried to add unique multi reward index with denom '%s', but denom already existed", uniqueDenom))
+		}
+	}
+
+	return append(indexes, types.NewMultiRewardIndex(uniqueDenom, nil))
 }
 
 func appendUniqueRewardIndexToFirstItem(indexes types.MultiRewardIndexes) types.MultiRewardIndexes {
