@@ -148,26 +148,22 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	borrowDenoms := getDenoms(borrow.Amount)
 	borrowRewardIndexDenoms := claim.BorrowRewardIndexes.GetCollateralTypes()
 
-	uniqueBorrowDenoms := setDifference(borrowDenoms, borrowRewardIndexDenoms)
-	uniqueBorrowRewardDenoms := setDifference(borrowRewardIndexDenoms, borrowDenoms)
-
 	borrowRewardIndexes := claim.BorrowRewardIndexes
+
 	// Create a new multi-reward index in the claim for every new borrow denom
+	uniqueBorrowDenoms := setDifference(borrowDenoms, borrowRewardIndexDenoms)
+
 	for _, denom := range uniqueBorrowDenoms {
-		_, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(denom)
-		if !foundUserRewardIndexes {
-			globalBorrowRewardIndexes, foundGlobalBorrowRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, denom)
-			var multiRewardIndex types.MultiRewardIndex
-			if foundGlobalBorrowRewardIndexes {
-				multiRewardIndex = types.NewMultiRewardIndex(denom, globalBorrowRewardIndexes)
-			} else {
-				multiRewardIndex = types.NewMultiRewardIndex(denom, types.RewardIndexes{})
-			}
-			borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
+		globalBorrowRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, denom)
+		if !found {
+			globalBorrowRewardIndexes = types.RewardIndexes{}
 		}
+		borrowRewardIndexes = borrowRewardIndexes.With(denom, globalBorrowRewardIndexes)
 	}
 
 	// Delete multi-reward index from claim if the collateral type is no longer borrowed
+	uniqueBorrowRewardDenoms := setDifference(borrowRewardIndexDenoms, borrowDenoms)
+
 	for _, denom := range uniqueBorrowRewardDenoms {
 		borrowRewardIndexes = borrowRewardIndexes.RemoveRewardIndex(denom)
 	}

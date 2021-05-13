@@ -522,8 +522,7 @@ func (mris MultiRewardIndexes) GetRewardIndexIndex(denom string) (int, bool) {
 
 // With returns a copy of the indexes with a new RewardIndexes added
 func (mris MultiRewardIndexes) With(denom string, indexes RewardIndexes) MultiRewardIndexes {
-	newIndexes := make(MultiRewardIndexes, len(mris))
-	copy(newIndexes, mris)
+	newIndexes := mris.copy()
 
 	for i, mri := range newIndexes {
 		if mri.CollateralType == denom {
@@ -544,10 +543,12 @@ func (mris MultiRewardIndexes) GetCollateralTypes() []string {
 }
 
 // RemoveRewardIndex removes a denom's reward interest factor value
-func (mris MultiRewardIndexes) RemoveRewardIndex(denom string) MultiRewardIndexes { // TODO modifies original dangerously
+func (mris MultiRewardIndexes) RemoveRewardIndex(denom string) MultiRewardIndexes {
 	for i, ri := range mris {
 		if ri.CollateralType == denom {
-			return append(mris[:i], mris[i+1:]...)
+			// copy the slice and underlying array to avoid altering the original
+			copy := mris.copy()
+			return append(copy[:i], copy[i+1:]...)
 		}
 	}
 	return mris
@@ -561,4 +562,11 @@ func (mris MultiRewardIndexes) Validate() error {
 		}
 	}
 	return nil
+}
+
+// copy returns a copy the slice and underlying array
+func (mris MultiRewardIndexes) copy() MultiRewardIndexes {
+	newIndexes := make(MultiRewardIndexes, len(mris))
+	copy(newIndexes, mris)
+	return newIndexes
 }
