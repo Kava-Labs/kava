@@ -42,7 +42,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenGlo
 	suite.storeClaim(claim)
 
 	globalIndexes := increaseAllRewardFactors(nonEmptyMultiRewardIndexes)
-	suite.storeGlobalIndexes(globalIndexes)
+	suite.storeGlobalBorrowIndexes(globalIndexes)
 	borrow := hardtypes.Borrow{
 		Borrower: claim.Owner,
 		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(claim.BorrowRewardIndexes)...),
@@ -66,7 +66,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUnchangedWhenG
 	}
 	suite.storeClaim(claim)
 
-	suite.storeGlobalIndexes(unchangingIndexes)
+	suite.storeGlobalBorrowIndexes(unchangingIndexes)
 
 	borrow := hardtypes.Borrow{
 		Borrower: claim.Owner,
@@ -92,7 +92,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	suite.storeClaim(claim)
 
 	globalIndexes := appendUniqueMultiRewardIndex(nonEmptyMultiRewardIndexes)
-	suite.storeGlobalIndexes(globalIndexes)
+	suite.storeGlobalBorrowIndexes(globalIndexes)
 
 	borrow := hardtypes.Borrow{
 		Borrower: claim.Owner,
@@ -117,7 +117,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	suite.storeClaim(claim)
 
 	globalIndexes := appendUniqueRewardIndexToFirstItem(nonEmptyMultiRewardIndexes)
-	suite.storeGlobalIndexes(globalIndexes)
+	suite.storeGlobalBorrowIndexes(globalIndexes)
 
 	borrow := hardtypes.Borrow{
 		Borrower: claim.Owner,
@@ -157,7 +157,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenGlobal
 	}
 	suite.storeClaim(claim)
 
-	suite.storeGlobalIndexes(types.MultiRewardIndexes{
+	suite.storeGlobalBorrowIndexes(types.MultiRewardIndexes{
 		{
 			CollateralType: "borrowdenom",
 			RewardIndexes: types.RewardIndexes{
@@ -231,7 +231,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenWhenNe
 			},
 		},
 	}
-	suite.storeGlobalIndexes(globalIndexes)
+	suite.storeGlobalBorrowIndexes(globalIndexes)
 
 	borrow := hardtypes.Borrow{
 		Borrower: claim.Owner,
@@ -289,7 +289,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenWhenNe
 			},
 		},
 	}
-	suite.storeGlobalIndexes(globalIndexes)
+	suite.storeGlobalBorrowIndexes(globalIndexes)
 
 	borrow := hardtypes.Borrow{
 		Borrower: claim.Owner,

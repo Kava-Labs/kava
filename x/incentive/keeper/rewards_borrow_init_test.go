@@ -39,7 +39,7 @@ func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetWhenClaimExi
 	suite.storeClaim(claim)
 
 	globalIndexes := nonEmptyMultiRewardIndexes
-	suite.storeGlobalIndexes(globalIndexes)
+	suite.storeGlobalBorrowIndexes(globalIndexes)
 
 	borrow := hardtypes.Borrow{
 		Borrower: claim.Owner,
@@ -53,7 +53,7 @@ func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetWhenClaimExi
 }
 func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetWhenClaimDoesNotExist() {
 	globalIndexes := nonEmptyMultiRewardIndexes
-	suite.storeGlobalIndexes(globalIndexes)
+	suite.storeGlobalBorrowIndexes(globalIndexes)
 
 	owner := arbitraryAddress()
 	borrow := hardtypes.Borrow{
@@ -70,7 +70,7 @@ func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetWhenClaimDoe
 func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetEmptyForMissingIndexes() {
 
 	globalIndexes := nonEmptyMultiRewardIndexes
-	suite.storeGlobalIndexes(globalIndexes)
+	suite.storeGlobalBorrowIndexes(globalIndexes)
 
 	owner := arbitraryAddress()
 	// Borrow a denom that is not in the global indexes.
