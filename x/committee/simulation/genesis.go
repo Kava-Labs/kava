@@ -3,6 +3,7 @@ package simulation
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -83,15 +84,34 @@ func RandomCommittee(r *rand.Rand, availableAccs []simulation.Account, allowedPa
 	// pick committee vote threshold, must be in interval (0,1]
 	threshold := simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1").Sub(sdk.SmallestDec())).Add(sdk.SmallestDec())
 
-	return types.NewMemberCommittee(
-		r.Uint64(), // could collide with other committees, but unlikely
-		simulation.RandStringOfLength(r, r.Intn(types.MaxCommitteeDescriptionLength+1)),
-		members,
-		RandomPermissions(r, allowedParams),
-		threshold,
-		dur,
-		types.FirstPastThePost,
-	), nil
+	var committee types.Committee
+	if r.Uint64()%2 == 0 {
+		committee = types.NewMemberCommittee(
+			r.Uint64(), // could collide with other committees, but unlikely
+			simulation.RandStringOfLength(r, r.Intn(types.MaxCommitteeDescriptionLength+1)),
+			members,
+			RandomPermissions(r, allowedParams),
+			threshold,
+			dur,
+			types.FirstPastThePost,
+		)
+	} else {
+		tallyDenom := strings.ToLower(simulation.RandStringOfLength(r, (r.Intn(3) + 3)))
+
+		committee = types.NewTokenCommittee(
+			r.Uint64(), // could collide with other committees, but unlikely
+			simulation.RandStringOfLength(r, r.Intn(types.MaxCommitteeDescriptionLength+1)),
+			members,
+			RandomPermissions(r, allowedParams),
+			threshold,
+			dur,
+			types.FirstPastThePost,
+			sdk.MustNewDecFromStr("0.25"),
+			tallyDenom,
+		)
+	}
+
+	return committee, nil
 }
 
 func RandomPermissions(r *rand.Rand, allowedParams []types.AllowedParam) []types.Permission {

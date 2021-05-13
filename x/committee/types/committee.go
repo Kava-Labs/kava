@@ -149,7 +149,7 @@ func (c BaseCommittee) Validate() error {
 	for _, m := range c.Members {
 		// check there are no duplicate members
 		if _, ok := addressMap[m.String()]; ok {
-			return fmt.Errorf("committe cannot have duplicate members, %s", m)
+			return fmt.Errorf("committee cannot have duplicate members, %s", m)
 		}
 		// check for valid addresses
 		if m.Empty() {
@@ -168,7 +168,7 @@ func (c BaseCommittee) Validate() error {
 		return fmt.Errorf("invalid proposal duration: %s", c.ProposalDuration)
 	}
 
-	// threshold must be in the range [0,1]
+	// threshold must be in the range [0, 1]
 	if c.VoteThreshold.IsNil() || c.VoteThreshold.LTE(sdk.ZeroDec()) || c.VoteThreshold.GT(sdk.NewDec(1)) {
 		return fmt.Errorf("invalid threshold: %s", c.VoteThreshold)
 	}
@@ -227,13 +227,14 @@ type TokenCommittee struct {
 }
 
 // NewTokenCommittee instantiates a new instance of TokenCommittee
-func NewTokenCommittee(id uint64, description string, permissions []Permission, threshold sdk.Dec,
-	duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) TokenCommittee {
+func NewTokenCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) TokenCommittee {
 	return TokenCommittee{
 		BaseCommittee: BaseCommittee{
 			Type:             TokenCommitteeType,
 			ID:               id,
 			Description:      description,
+			Members:          members,
 			Permissions:      permissions,
 			VoteThreshold:    threshold,
 			ProposalDuration: duration,

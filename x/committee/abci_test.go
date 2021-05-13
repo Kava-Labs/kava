@@ -77,15 +77,9 @@ func (suite *ModuleTestSuite) TestBeginBlock_EnactsPassed() {
 	suite.app.InitializeFromGenesisStates()
 
 	// setup committee
-	normalCom := committee.MemberCommittee{
-		BaseCommittee: committee.BaseCommittee{
-			ID:               12,
-			Members:          suite.addresses[:2],
-			Permissions:      []committee.Permission{committee.GodPermission{}},
-			VoteThreshold:    d("0.8"),
-			ProposalDuration: time.Hour * 24 * 7,
-		},
-	}
+	normalCom := committee.NewMemberCommittee(12, "committee description", suite.addresses[:2],
+		[]committee.Permission{committee.GodPermission{}}, d("0.8"), time.Hour*24*7, types.FirstPastThePost)
+
 	suite.keeper.SetCommittee(suite.ctx, normalCom)
 
 	// setup 2 proposals
@@ -136,15 +130,9 @@ func (suite *ModuleTestSuite) TestBeginBlock_DoesntEnactFailed() {
 	suite.app.InitializeFromGenesisStates()
 
 	// setup committee
-	memberCom := committee.MemberCommittee{
-		BaseCommittee: committee.BaseCommittee{
-			ID:               12,
-			Members:          suite.addresses[:1],
-			Permissions:      []committee.Permission{committee.SoftwareUpgradePermission{}},
-			VoteThreshold:    d("1.0"),
-			ProposalDuration: time.Hour * 24 * 7,
-		},
-	}
+	memberCom := committee.NewMemberCommittee(12, "committee description", suite.addresses[:1],
+		[]committee.Permission{committee.SoftwareUpgradePermission{}}, d("1.0"), time.Hour*24*7, types.FirstPastThePost)
+
 	firstBlockTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	ctx := suite.ctx.WithBlockTime(firstBlockTime)
 	suite.keeper.SetCommittee(ctx, memberCom)

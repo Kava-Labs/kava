@@ -155,9 +155,17 @@ func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keep
 			if err != nil {
 				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("random time generation failed: %w", err)
 			}
+
+			// Valid vote types: 0, 1, 2
+			randInt, err := RandIntInclusive(r, sdk.ZeroInt(), sdk.NewInt(2))
+			if err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("random vote type generation failed: %w", err)
+			}
+			voteType := types.VoteType(randInt.Int64())
+
 			fop := simulation.FutureOperation{
 				BlockTime: voteTime,
-				Op:        SimulateMsgVote(k, ak, v, proposal.ID, types.Yes),
+				Op:        SimulateMsgVote(k, ak, v, proposal.ID, voteType),
 			}
 			futureOps = append(futureOps, fop)
 		}
