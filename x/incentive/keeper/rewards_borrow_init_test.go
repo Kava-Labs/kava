@@ -151,7 +151,7 @@ func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetEmptyForMiss
 	suite.Equal(expectedIndexes, syncedClaim.BorrowRewardIndexes)
 }
 
-func addUniqueDenom(denoms []string) []string {
+func appendUniqueDenom(denoms []string) []string {
 	uniqueDenom := "uniquedenom"
 	for _, d := range denoms {
 		if d == uniqueDenom {
