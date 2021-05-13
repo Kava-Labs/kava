@@ -62,9 +62,14 @@ func (suite *unitTester) setupKeeper(incentiveStoreKey sdk.StoreKey) keeper.Keep
 	return keeper.NewKeeper(cdc, incentiveStoreKey, paramSubspace, nil, nil, nil, nil, nil)
 }
 
-func (suite *unitTester) storeGlobalIndexes(indexes types.MultiRewardIndexes) {
+func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
 		suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
+	}
+}
+func (suite *unitTester) storeGlobalSupplyIndexes(indexes types.MultiRewardIndexes) {
+	for _, i := range indexes {
+		suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
 
