@@ -180,7 +180,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenGlobal
 	)
 }
 
-func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenWhenNewRewardAdded() {
+func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenNewRewardAdded() {
 	// When a new reward is added (via gov) for a hard deposit denom the user has already deposited, and the claim is synced
 	// Then the user earns rewards for the time since the reward was added
 	suite.T().Skip("TODO fix this bug")
@@ -244,7 +244,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenWhenNe
 		syncedClaim.Reward,
 	)
 }
-func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenWhenNewRewardDenomAdded() {
+func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenNewRewardDenomAdded() {
 	// When a new reward coin is added (via gov) to an already rewarded deposit denom (that the user has already deposited), and the claim is synced;
 	// Then the user earns rewards for the time since the reward was added
 

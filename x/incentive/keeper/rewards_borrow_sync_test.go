@@ -184,7 +184,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenGlobal
 	)
 }
 
-func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenWhenNewRewardAdded() {
+func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRewardAdded() {
 	// When a new reward is added (via gov) for a hard borrow denom the user has already borrowed, and the claim is synced
 	// Then the user earns rewards for the time since the reward was added
 	suite.T().Skip("TODO fix this bug")
@@ -248,7 +248,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenWhenNe
 		syncedClaim.Reward,
 	)
 }
-func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenWhenNewRewardDenomAdded() {
+func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRewardDenomAdded() {
 	// When a new reward coin is added (via gov) to an already rewarded borrow denom (that the user has already borrowed), and the claim is synced;
 	// Then the user earns rewards for the time since the reward was added
 
