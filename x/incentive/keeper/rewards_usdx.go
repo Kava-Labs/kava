@@ -55,23 +55,16 @@ func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
 		// this collateral type is not incentivized, do nothing
 		return
 	}
+	claim, found := k.GetUSDXMintingClaim(ctx, cdp.Owner)
+	if !found { // this is the owner's first usdx minting reward claim
+		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{})
+	}
 	rewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
 	if !found {
 		rewardFactor = sdk.ZeroDec()
 	}
-	claim, found := k.GetUSDXMintingClaim(ctx, cdp.Owner)
-	if !found { // this is the owner's first usdx minting reward claim
-		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{types.NewRewardIndex(cdp.Type, rewardFactor)})
-		k.SetUSDXMintingClaim(ctx, claim)
-		return
-	}
-	// the owner has an existing usdx minting reward claim
-	index, hasRewardIndex := claim.HasRewardIndex(cdp.Type)
-	if !hasRewardIndex { // this is the owner's first usdx minting reward for this collateral type
-		claim.RewardIndexes = append(claim.RewardIndexes, types.NewRewardIndex(cdp.Type, rewardFactor))
-	} else { // the owner has a previous usdx minting reward for this collateral type
-		claim.RewardIndexes[index] = types.NewRewardIndex(cdp.Type, rewardFactor)
-	}
+	claim.RewardIndexes = claim.RewardIndexes.With(cdp.Type, rewardFactor)
+
 	k.SetUSDXMintingClaim(ctx, claim)
 }
 
