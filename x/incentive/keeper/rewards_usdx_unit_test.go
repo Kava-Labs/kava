@@ -117,7 +117,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardUnchangedWhenGlobalInd
 	suite.Equal(claim.Reward, syncedClaim.Reward)
 }
 
-func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGlobalIndexesHaveIncreased() {
+func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGlobalIndexIncreased() {
 	collateralType := "bnb-a"
 
 	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
@@ -154,6 +154,32 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGloba
 	suite.Equal(c(types.USDXMintingRewardDenom, 1e11), syncedClaim.Reward)
 }
 
+func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenNewRewardAddedAndClaimDoesNotExit() {
+	suite.T().Skip("TODO fix this bug")
+	collateralType := "bnb-a"
+
+	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
+	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil)
+
+	globalIndexes := types.RewardIndexes{
+		{
+			CollateralType: collateralType,
+			RewardFactor:   d("0.2"),
+		},
+	}
+	suite.storeGlobalUSDXIndexes(globalIndexes)
+
+	cdp := NewCDPBuilder(arbitraryAddress(), collateralType).WithPrincipal(i(1e12)).Build()
+
+	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
+
+	syncedClaim, _ := suite.keeper.GetUSDXMintingClaim(suite.ctx, cdp.Owner)
+	// The global index was not around when this cdp was created as it was not stored in a claim.
+	// Therefor it must have been added via params after.
+	// To include rewards since the params were updated, the old index should be assumed to be 0.
+	// reward is ( new index - old index ) * cdp.TotalPrincipal
+	suite.Equal(c(types.USDXMintingRewardDenom, 2e11), syncedClaim.Reward)
+}
 func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIndexIsUpdatedWhenGlobalIndexIncreased() {
 	claimsRewardIndexes := nonEmptyRewardIndexes
 	collateralType := extractFirstCollateralType(claimsRewardIndexes)
