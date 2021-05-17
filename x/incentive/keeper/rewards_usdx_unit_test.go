@@ -101,7 +101,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardUnchangedWhenGlobalInd
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
 			Owner:  arbitraryAddress(),
-			Reward: arbitraryCoin(),
+			Reward: c(types.USDXMintingRewardDenom, 0),
 		},
 		RewardIndexes: unchangingRewardIndexes,
 	}
@@ -163,7 +163,8 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIndexIsUpdatedWhenGloba
 
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
-			Owner: arbitraryAddress(),
+			Owner:  arbitraryAddress(),
+			Reward: c(types.USDXMintingRewardDenom, 0),
 		},
 		RewardIndexes: claimsRewardIndexes,
 	}
@@ -202,7 +203,8 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIndexIsUpdatedWhenNewRe
 
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
-			Owner: arbitraryAddress(),
+			Owner:  arbitraryAddress(),
+			Reward: c(types.USDXMintingRewardDenom, 0),
 		},
 		RewardIndexes: claimsRewardIndexes,
 	}
