@@ -86,13 +86,13 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 		claim = types.NewUSDXMintingClaim(
 			cdp.Owner,
 			sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()),
-			types.RewardIndexes{types.NewRewardIndex(cdp.Type, globalRewardFactor)}, // FIXME factor should be 0.0
+			types.RewardIndexes{},
 		)
 	}
 
 	userRewardFactor, hasRewardIndex := claim.RewardIndexes.Get(cdp.Type)
 	if !hasRewardIndex { // this is the owner's first usdx minting reward for this collateral type
-		userRewardFactor = globalRewardFactor // FIXME should be 0.0
+		userRewardFactor = globalRewardFactor
 	}
 
 	newRewardsAmount := k.calculateSingleReward(userRewardFactor, globalRewardFactor, cdp.GetTotalPrincipal().Amount)
