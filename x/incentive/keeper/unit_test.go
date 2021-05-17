@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -12,7 +13,6 @@ import (
 	db "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -37,12 +37,21 @@ type unitTester struct {
 	suite.Suite
 	keeper keeper.Keeper
 	ctx    sdk.Context
+
+	cdc               *codec.Codec
+	incentiveStoreKey sdk.StoreKey
+}
+
+func (suite *unitTester) SetupSuite() {
+	suite.cdc = app.MakeCodec()
+
+	suite.incentiveStoreKey = sdk.NewKVStoreKey(types.StoreKey)
+
 }
 
 func (suite *unitTester) SetupTest() {
-	incentiveStoreKey := sdk.NewKVStoreKey(types.StoreKey)
-	suite.keeper = suite.setupKeeper(incentiveStoreKey)
-	suite.ctx = NewTestContext(incentiveStoreKey)
+	suite.ctx = NewTestContext(suite.incentiveStoreKey)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil)
 }
 
 func (suite *unitTester) TearDownTest() {
@@ -50,16 +59,8 @@ func (suite *unitTester) TearDownTest() {
 	suite.ctx = sdk.Context{}
 }
 
-func (suite *unitTester) setupKeeper(incentiveStoreKey sdk.StoreKey) keeper.Keeper {
-	cdc := app.MakeCodec()
-	// TODO The param store key needs to be initialized in the multistore if params are to be Get/Set.
-	paramSubspace := params.NewKeeper(
-		cdc,
-		sdk.NewKVStoreKey(params.StoreKey),
-		sdk.NewTransientStoreKey(params.StoreKey),
-	).Subspace(incentive.DefaultParamspace)
-
-	return keeper.NewKeeper(cdc, incentiveStoreKey, paramSubspace, nil, nil, nil, nil, nil)
+func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, sk types.SupplyKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper) keeper.Keeper {
+	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, sk, cdpk, hk, ak, stk)
 }
 
 func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {
@@ -75,6 +76,29 @@ func (suite *unitTester) storeGlobalSupplyIndexes(indexes types.MultiRewardIndex
 
 func (suite *unitTester) storeClaim(claim types.HardLiquidityProviderClaim) {
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
+}
+
+type fakeParamSubspace struct {
+	params types.Params
+}
+
+func (subspace *fakeParamSubspace) GetParamSet(_ sdk.Context, ps params.ParamSet) {
+	*(ps.(*types.Params)) = subspace.params
+}
+func (subspace *fakeParamSubspace) SetParamSet(_ sdk.Context, ps params.ParamSet) {
+	subspace.params = *(ps.(*types.Params))
+}
+func (subspace *fakeParamSubspace) HasKeyTable() bool {
+	// return true so the keeper does no try to set the key table, which does nothing
+	return true
+}
+func (subspace *fakeParamSubspace) WithKeyTable(params.KeyTable) params.Subspace {
+	// return an non-functional subspace to satisfy the interface
+	return params.Subspace{}
+}
+
+func arbitraryCoin() sdk.Coin {
+	return c("hard", 1e9)
 }
 
 func arbitraryCoins() sdk.Coins {
