@@ -27,6 +27,14 @@ const (
 	BondDenom           = "ukava"
 )
 
+func init() {
+	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
+	// But since these proposals contain Committees, these types also need registering:
+	govtypes.ModuleCdc.RegisterInterface((*Committee)(nil), nil)
+	govtypes.RegisterProposalTypeCodec(MemberCommittee{}, "kava/MemberCommittee")
+	govtypes.RegisterProposalTypeCodec(TokenCommittee{}, "kava/TokenCommittee")
+}
+
 // Committee is an interface for handling common actions on committees
 type Committee interface {
 	GetID() uint64
