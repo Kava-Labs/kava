@@ -26,7 +26,7 @@ func NewCommunityPoolMultiSpendProposalHandler(k Keeper) govtypes.Handler {
 			return keeper.HandleCommunityPoolMultiSpendProposal(ctx, k, c)
 
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized distr proposal content type: %T", c)
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized kavadist proposal content type: %T", c)
 		}
 	}
 }

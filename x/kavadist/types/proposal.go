@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	// ProposalTypeCommunityPoolMultiSpend defines the type for a CommunityPoolSpendProposal
+	// ProposalTypeCommunityPoolMultiSpend defines the type for a CommunityPoolMultiSpendProposal
 	ProposalTypeCommunityPoolMultiSpend = "CommunityPoolMultiSpend"
 )
 
@@ -21,14 +21,14 @@ func init() {
 	govtypes.RegisterProposalTypeCodec(CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal")
 }
 
-// CommunityPoolMultiSpendProposal spends from the community pool
+// CommunityPoolMultiSpendProposal spends from the community pool by sending to one or more addresses
 type CommunityPoolMultiSpendProposal struct {
 	Title         string               `json:"title" yaml:"title"`
 	Description   string               `json:"description" yaml:"description"`
 	RecipientList MultiSpendRecipients `json:"recipient_list" yaml:"recipient_list"`
 }
 
-// NewCommunityPoolMultiSpendProposal creates a new community pool spned proposal.
+// NewCommunityPoolMultiSpendProposal creates a new community pool multi-spend proposal.
 func NewCommunityPoolMultiSpendProposal(title, description string, recipientList MultiSpendRecipients) CommunityPoolMultiSpendProposal {
 	return CommunityPoolMultiSpendProposal{
 		Title:         title,
@@ -36,20 +36,21 @@ func NewCommunityPoolMultiSpendProposal(title, description string, recipientList
 		RecipientList: recipientList}
 }
 
-// GetTitle returns the title of a community pool spend proposal.
+// GetTitle returns the title of a community pool multi-spend proposal.
 func (csp CommunityPoolMultiSpendProposal) GetTitle() string { return csp.Title }
 
-// GetDescription returns the description of a community pool spend proposal.
+// GetDescription returns the description of a community pool multi-spend proposal.
 func (csp CommunityPoolMultiSpendProposal) GetDescription() string { return csp.Description }
 
-// GetDescription returns the routing key of a community pool spend proposal.
+// GetDescription returns the routing key of a community pool multi-spend proposal.
 func (csp CommunityPoolMultiSpendProposal) ProposalRoute() string { return RouterKey }
 
-// ProposalType returns the type of a community pool spend proposal.
+// ProposalType returns the type of a community pool multi-spend proposal.
 func (csp CommunityPoolMultiSpendProposal) ProposalType() string {
 	return ProposalTypeCommunityPoolMultiSpend
 }
 
+// ValidateBasic stateless validation of a community pool multi-spend proposal.
 func (csp CommunityPoolMultiSpendProposal) ValidateBasic() error {
 	err := govtypes.ValidateAbstract(csp)
 	if err != nil {
@@ -61,6 +62,7 @@ func (csp CommunityPoolMultiSpendProposal) ValidateBasic() error {
 	return nil
 }
 
+// String implements fmt.Stringer
 func (csp CommunityPoolMultiSpendProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Community Pool Multi Spend Proposal:
@@ -71,11 +73,13 @@ func (csp CommunityPoolMultiSpendProposal) String() string {
 	return b.String()
 }
 
+// MultiSpendRecipient defines a recipient and the amount of coins they are receiving
 type MultiSpendRecipient struct {
 	Address sdk.AccAddress `json:"address" yaml:"address"`
 	Amount  sdk.Coins      `json:"amount" yaml:"amount"`
 }
 
+// Validate stateless validation of MultiSpendRecipient
 func (msr MultiSpendRecipient) Validate() error {
 	if !msr.Amount.IsValid() {
 		return ErrInvalidProposalAmount
@@ -86,14 +90,17 @@ func (msr MultiSpendRecipient) Validate() error {
 	return nil
 }
 
+// String implements fmt.Stringer
 func (msr MultiSpendRecipient) String() string {
 	return fmt.Sprintf(`Receiver: %s
 	Amount: %s
 	`, msr.Address, msr.Amount)
 }
 
+// MultiSpendRecipients slice of MultiSpendRecipient
 type MultiSpendRecipients []MultiSpendRecipient
 
+// Validate stateless validation of MultiSpendRecipients
 func (msrs MultiSpendRecipients) Validate() error {
 	for _, msr := range msrs {
 		if err := msr.Validate(); err != nil {
@@ -103,6 +110,7 @@ func (msrs MultiSpendRecipients) Validate() error {
 	return nil
 }
 
+// String implements fmt.Stringer
 func (msrs MultiSpendRecipients) String() string {
 	out := ""
 	for _, msr := range msrs {

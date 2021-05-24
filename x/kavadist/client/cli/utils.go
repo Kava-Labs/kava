@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	// CommunityPoolMultiSpendProposalJSON defines a CommunityPoolSpendProposal with a deposit
+	// CommunityPoolMultiSpendProposalJSON defines a CommunityPoolMultiSpendProposal with a deposit
 	CommunityPoolMultiSpendProposalJSON struct {
 		Title         string                     `json:"title" yaml:"title"`
 		Description   string                     `json:"description" yaml:"description"`

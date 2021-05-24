@@ -7,7 +7,7 @@ import (
 	"github.com/kava-labs/kava/x/kavadist/client/rest"
 )
 
-// param change proposal handler
+// community-pool multi-spend proposal handler
 var (
 	ProposalHandler = govclient.NewProposalHandler(cli.GetCmdSubmitProposal, rest.ProposalRESTHandler)
 )
