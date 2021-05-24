@@ -6,6 +6,6 @@ import (
 
 // x/kavadist errors
 var (
-	ErrInvalidProposalAmount  = sdkerrors.Register(ModuleName, 1, "invalid community pool multi-spend proposal amount")
-	ErrEmptyProposalRecipient = sdkerrors.Register(ModuleName, 10, "invalid community pool multi-spend proposal recipient")
+	ErrInvalidProposalAmount  = sdkerrors.Register(ModuleName, 2, "invalid community pool multi-spend proposal amount")
+	ErrEmptyProposalRecipient = sdkerrors.Register(ModuleName, 3, "invalid community pool multi-spend proposal recipient")
 )
