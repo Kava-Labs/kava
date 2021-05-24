@@ -39,19 +39,19 @@ Where proposal.json contains:
   "recipient_list": [
 		{
 			"address": "kava1mz2003lathm95n5vnlthmtfvrzrjkrr53j4464",
-			"amount" [
+			"amount": [
 				{
 					"denom": "ukava",
-					"amount: "1000000",
+					"amount": "1000000"
 				}
 			]
 		},
 		{
 			"address": "kava1zqezafa0luyetvtj8j67g336vaqtuudnsjq7vm",
-			"amount" [
+			"amount": [
 				{
 					"denom": "ukava",
-					"amount: "1000000",
+					"amount": "1000000"
 				}
 			]
 		}
