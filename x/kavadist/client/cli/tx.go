@@ -18,7 +18,7 @@ import (
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
-// GetCmdSubmitProposal implements the command to submit a community-pool-spend proposal
+// GetCmdSubmitProposal implements the command to submit a community-pool multi-spend proposal
 func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "community-pool-multi-spend [proposal-file]",
