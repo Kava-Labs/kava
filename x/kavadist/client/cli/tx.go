@@ -55,6 +55,12 @@ Where proposal.json contains:
 				}
 			]
 		}
+	],
+	"deposit": [
+		{
+			"denom": "ukava",
+			"amount": "1000000000"
+		}
 	]
 }
 `,
