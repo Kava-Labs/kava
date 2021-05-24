@@ -68,7 +68,7 @@ var (
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler, distr.ProposalHandler, committee.ProposalHandler,
-			upgradeclient.ProposalHandler,
+			upgradeclient.ProposalHandler, kavadist.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
