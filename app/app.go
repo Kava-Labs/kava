@@ -300,6 +300,14 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		committeeGovRouter,
 		app.paramsKeeper,
 	)
+	app.kavadistKeeper = kavadist.NewKeeper(
+		app.cdc,
+		keys[kavadist.StoreKey],
+		kavadistSubspace,
+		app.supplyKeeper,
+		app.distrKeeper,
+		app.ModuleAccountAddrs(),
+	)
 
 	// create gov keeper with router
 	govRouter := gov.NewRouter()
@@ -365,14 +373,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		&stakingKeeper,
 		app.pricefeedKeeper,
 		app.auctionKeeper,
-	)
-	app.kavadistKeeper = kavadist.NewKeeper(
-		app.cdc,
-		keys[kavadist.StoreKey],
-		kavadistSubspace,
-		app.supplyKeeper,
-		app.distrKeeper,
-		app.ModuleAccountAddrs(),
 	)
 	app.incentiveKeeper = incentive.NewKeeper(
 		app.cdc,
