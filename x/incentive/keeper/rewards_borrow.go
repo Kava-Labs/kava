@@ -116,7 +116,7 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 			continue
 		}
 
-		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount)
+		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount.ToDec())
 		if err != nil {
 			// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
 			// This panics if a global reward factor decreases or disappears between the old and new indexes.
@@ -167,7 +167,7 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 // between two index values.
 //
 // oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
-func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rewardSource sdk.Int) (sdk.Coins, error) {
+func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rewardSource sdk.Dec) (sdk.Coins, error) {
 	for _, oldIndex := range oldIndexes {
 		if newIndex, f := newIndexes.Get(oldIndex.CollateralType); !f {
 			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
@@ -199,14 +199,14 @@ func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rew
 }
 
 // calculateSingleReward computes the rewards that should accumulate between two index values.
-
+//
 // oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
 // newIndex MUST be greater than oldIndex otherwise it will panic
-func (k Keeper) calculateSingleReward(oldIndex, newIndex sdk.Dec, rewardSource sdk.Int) sdk.Int {
+func (k Keeper) calculateSingleReward(oldIndex, newIndex, rewardSource sdk.Dec) sdk.Int {
 	increase := newIndex.Sub(oldIndex)
 	if increase.IsNegative() {
 		panic(fmt.Sprintf("new reward index cannot be less than previous: new %s, old %s", newIndex, oldIndex))
 	}
 
-	return increase.Mul(rewardSource.ToDec()).RoundInt()
+	return increase.Mul(rewardSource).RoundInt()
 }

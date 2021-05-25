@@ -314,7 +314,7 @@ func TestCalculateRewards(t *testing.T) {
 	}
 	type args struct {
 		oldIndexes, newIndexes types.RewardIndexes
-		sourceAmount           sdk.Int
+		sourceAmount           sdk.Dec
 	}
 	testcases := []struct {
 		name     string
@@ -344,7 +344,7 @@ func TestCalculateRewards(t *testing.T) {
 						RewardFactor:   d("0.100000001"),
 					},
 				},
-				sourceAmount: i(1e9),
+				sourceAmount: d("1000000000"),
 			},
 			expected: expected{
 				// for each denom: (new - old) * sourceAmount
@@ -370,7 +370,7 @@ func TestCalculateRewards(t *testing.T) {
 						RewardFactor:   d("0.100000001"),
 					},
 				},
-				sourceAmount: i(1e9),
+				sourceAmount: d("1000000000"),
 			},
 			expected: expected{
 				// for each denom: (new - old) * sourceAmount
@@ -392,7 +392,7 @@ func TestCalculateRewards(t *testing.T) {
 						RewardFactor:   d("0.1"),
 					},
 				},
-				sourceAmount: i(1e9),
+				sourceAmount: d("1000000000"),
 			},
 			expected: expected{
 				err: types.ErrDecreasingRewardFactor,
@@ -417,7 +417,7 @@ func TestCalculateRewards(t *testing.T) {
 						RewardFactor:   d("0.2"),
 					},
 				},
-				sourceAmount: i(1e9),
+				sourceAmount: d("1000000000"),
 			},
 			expected: expected{
 				err: types.ErrDecreasingRewardFactor,
