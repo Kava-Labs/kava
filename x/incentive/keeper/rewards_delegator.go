@@ -65,6 +65,8 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
+var TestHelper_TotalDelegated sdk.Dec
+
 // SynchronizeHardDelegatorRewards updates the claim object by adding any accumulated rewards, and setting the reward indexes to the global values.
 // valAddr and shouldIncludeValidator are used to ignore or include delegations to a particular validator when summing up the total delegation.
 // Normally only delegations to Bonded validators are included in the total. This is needed as staking hooks are sometimes called on the wrong side of a validator's state update (from this module's perspective).
@@ -122,6 +124,7 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 		}
 		totalDelegated = totalDelegated.Add(delegatedTokens)
 	}
+	TestHelper_TotalDelegated = totalDelegated
 	rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
 
 	// Add rewards to delegator's hard claim
