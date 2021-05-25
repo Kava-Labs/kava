@@ -7,7 +7,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -224,22 +223,9 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenValAddrIsN
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
 
-	claim := types.HardLiquidityProviderClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
-			Owner:  delegator,
-			Reward: arbitraryCoins(),
-		},
-		DelegatorRewardIndexes: arbitraryDelegatorRewardIndexes,
-	}
-	suite.storeClaim(claim)
-
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
-
-	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
-
 	suite.Equal(
 		d("11"), // delegation to bonded validators
-		keeper.TestHelper_TotalDelegated,
+		suite.keeper.GetTotalDelegated(suite.ctx, delegator, nil, false),
 	)
 }
 func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenExcludingAValidator() {
@@ -280,22 +266,9 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenExcludingA
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
 
-	claim := types.HardLiquidityProviderClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
-			Owner:  delegator,
-			Reward: arbitraryCoins(),
-		},
-		DelegatorRewardIndexes: arbitraryDelegatorRewardIndexes,
-	}
-	suite.storeClaim(claim)
-
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
-
-	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, validatorAddresses[0], false)
-
 	suite.Equal(
 		d("1110"), // FIXME should be d("10"): total delegation to bonded validators, excluding one
-		keeper.TestHelper_TotalDelegated,
+		suite.keeper.GetTotalDelegated(suite.ctx, delegator, validatorAddresses[0], false),
 	)
 }
 func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenIncludingAValidator() {
@@ -336,21 +309,8 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenIncludingA
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
 
-	claim := types.HardLiquidityProviderClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
-			Owner:  delegator,
-			Reward: arbitraryCoins(),
-		},
-		DelegatorRewardIndexes: arbitraryDelegatorRewardIndexes,
-	}
-	suite.storeClaim(claim)
-
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
-
-	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, validatorAddresses[2], true)
-
 	suite.Equal(
 		d("1111"), // FIXME should be d("111"): total delegation to bonded validators, including an unbonding one
-		keeper.TestHelper_TotalDelegated,
+		suite.keeper.GetTotalDelegated(suite.ctx, delegator, validatorAddresses[2], true),
 	)
 }
