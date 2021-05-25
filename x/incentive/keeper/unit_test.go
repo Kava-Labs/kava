@@ -118,6 +118,17 @@ func arbitraryAddress() sdk.AccAddress {
 	_, addresses := app.GeneratePrivKeyAddressPairs(1)
 	return addresses[0]
 }
+func arbitraryValidatorAddress() sdk.ValAddress {
+	return generateValidatorAddresses(1)[0]
+}
+func generateValidatorAddresses(n int) []sdk.ValAddress {
+	_, addresses := app.GeneratePrivKeyAddressPairs(n)
+	var valAddresses []sdk.ValAddress
+	for _, a := range addresses {
+		valAddresses = append(valAddresses, sdk.ValAddress(a))
+	}
+	return valAddresses
+}
 
 var nonEmptyMultiRewardIndexes = types.MultiRewardIndexes{
 	{
