@@ -45,23 +45,20 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod typ
 
 // InitializeHardDelegatorReward initializes the delegator reward index of a hard claim
 func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress) {
-	delegatorFactor, foundDelegatorFactor := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
-	if !foundDelegatorFactor { // Should always be found...
-		delegatorFactor = sdk.ZeroDec()
-	}
-
-	delegatorRewardIndexes := types.NewRewardIndex(types.BondDenom, delegatorFactor)
-
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
 	if !found {
-		// Instantiate claim object
 		claim = types.NewHardLiquidityProviderClaim(delegator, sdk.Coins{}, nil, nil, nil)
 	} else {
 		k.SynchronizeHardDelegatorRewards(ctx, delegator, nil, false)
 		claim, _ = k.GetHardLiquidityProviderClaim(ctx, delegator)
 	}
 
-	claim.DelegatorRewardIndexes = types.RewardIndexes{delegatorRewardIndexes}
+	delegatorFactor, foundDelegatorFactor := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
+	if !foundDelegatorFactor { // Should always be found...
+		delegatorFactor = sdk.ZeroDec()
+	}
+
+	claim.DelegatorRewardIndexes = types.RewardIndexes{types.NewRewardIndex(types.BondDenom, delegatorFactor)}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
