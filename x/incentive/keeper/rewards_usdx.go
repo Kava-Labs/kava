@@ -95,7 +95,7 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 		userRewardFactor = globalRewardFactor
 	}
 
-	newRewardsAmount := k.calculateSingleReward(userRewardFactor, globalRewardFactor, cdp.GetTotalPrincipal().Amount)
+	newRewardsAmount := k.calculateSingleReward(userRewardFactor, globalRewardFactor, cdp.GetTotalPrincipal().Amount.ToDec())
 	newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
 
 	claim.Reward = claim.Reward.Add(newRewardsCoin)

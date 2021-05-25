@@ -81,7 +81,7 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 
 	totalDelegated := k.GetTotalDelegated(ctx, delegator, valAddr, shouldIncludeValidator)
 
-	rewardsEarned := k.calculateSingleReward(userRewardFactor, delegatorFactor, totalDelegated.RoundInt()) // TODO fix rounding
+	rewardsEarned := k.calculateSingleReward(userRewardFactor, delegatorFactor, totalDelegated)
 	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
 
 	claim.Reward = claim.Reward.Add(newRewardsCoin)

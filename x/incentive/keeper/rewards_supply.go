@@ -117,7 +117,7 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 			continue
 		}
 
-		newRewards, err := k.CalculateRewards(userMultiRewardIndexes, globalRewardIndexes, coin.Amount)
+		newRewards, err := k.CalculateRewards(userMultiRewardIndexes, globalRewardIndexes, coin.Amount.ToDec())
 		if err != nil {
 			// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
 			// This panics if a global reward factor decreases or disappears between the old and new indexes.
