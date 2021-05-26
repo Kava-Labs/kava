@@ -19,7 +19,7 @@ const (
 type ProposalOutcome uint64
 
 const (
-	// Passed indicates that the proposal passed and was succesfully enacted
+	// Passed indicates that the proposal passed and was successfully enacted
 	Passed ProposalOutcome = iota
 	// Failed indicates that the proposal failed and was not enacted
 	Failed

@@ -267,7 +267,7 @@ func (c TokenCommittee) Validate() error {
 	}
 
 	if c.Quorum.IsNil() || c.Quorum.IsNegative() || c.Quorum.GT(sdk.NewDec(1)) {
-		return fmt.Errorf("invalid quroum: %s", c.Quorum)
+		return fmt.Errorf("invalid quorum: %s", c.Quorum)
 	}
 
 	return c.BaseCommittee.Validate()
