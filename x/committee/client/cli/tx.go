@@ -245,10 +245,11 @@ func MustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
 
 // MustGetExampleParameterChangeProposal is a helper function to return an example json proposal
 func MustGetExampleParameterChangeProposal(cdc *codec.Codec) string {
+	value := fmt.Sprintf("\"%d\"", 1000000000)
 	exampleParameterChangeProposal := params.NewParameterChangeProposal(
 		"A Title",
 		"A description of this proposal.",
-		[]params.ParamChange{params.NewParamChange("cdp", "SurplusAuctionThreshold", "1000000000")},
+		[]params.ParamChange{params.NewParamChange("cdp", "SurplusAuctionThreshold", value)},
 	)
 	exampleParameterChangeProposalBz, err := cdc.MarshalJSONIndent(exampleParameterChangeProposal, "", "  ")
 	if err != nil {
