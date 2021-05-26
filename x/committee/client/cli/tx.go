@@ -131,8 +131,10 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 				vote = types.Yes
 			case "no", "n":
 				vote = types.No
+			case "abstain", "a":
+				vote = types.Abstain
 			default:
-				return fmt.Errorf("must specify a valid vote type (\"yes\", \"y\"/\"no\" \"n\")")
+				return fmt.Errorf("must specify a valid vote type: (yes/y, no/n, abstain/a)")
 			}
 
 			// Build vote message and run basic validation
