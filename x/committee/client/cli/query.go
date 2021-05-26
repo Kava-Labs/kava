@@ -251,11 +251,11 @@ func GetCmdQueryTally(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Decode and print results
-			var tally bool
-			if err = cdc.UnmarshalJSON(res, &tally); err != nil {
+			var pollingStatus types.ProposalPollingStatus
+			if err = cdc.UnmarshalJSON(res, &pollingStatus); err != nil {
 				return err
 			}
-			return cliCtx.PrintOutput(tally)
+			return cliCtx.PrintOutput(pollingStatus)
 		},
 	}
 }
