@@ -173,6 +173,10 @@ func (c BaseCommittee) Validate() error {
 		return fmt.Errorf("invalid threshold: %s", c.VoteThreshold)
 	}
 
+	if c.TallyOption <= 0 || c.TallyOption > 2 {
+		return fmt.Errorf("invalid tally option: %d", c.TallyOption)
+	}
+
 	return nil
 }
 

@@ -146,6 +146,19 @@ func TestBaseCommittee(t *testing.T) {
 			},
 			expectPass: false,
 		},
+		{
+			name: "invalid tally option",
+			committee: BaseCommittee{
+				ID:               1,
+				Description:      "This base committee is for testing.",
+				Members:          addresses[:3],
+				Permissions:      []Permission{GodPermission{}},
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
+				TallyOption:      NullTallyOption,
+			},
+			expectPass: false,
+		},
 	}
 
 	for _, tc := range testCases {
