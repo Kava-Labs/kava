@@ -1,7 +1,9 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	yaml "gopkg.in/yaml.v2"
@@ -26,6 +28,88 @@ const (
 	TokenCommitteeType  = "kava/TokenCommittee"  // Committee is composed of token holders with voting power determined by total token balance
 	BondDenom           = "ukava"
 )
+
+// TallyOptionFromString returns a TallyOption from a string. It returns an error
+// if the string is invalid.
+func TallyOptionFromString(str string) (TallyOption, error) {
+	switch strings.ToLower(str) {
+	case "firstpastthepost", "fptp":
+		return FirstPastThePost, nil
+
+	case "deadline", "d":
+		return Deadline, nil
+
+	default:
+		return TallyOption(0xff), fmt.Errorf("'%s' is not a valid tally option", str)
+	}
+}
+
+// Marshal needed for protobuf compatibility.
+func (t TallyOption) Marshal() ([]byte, error) {
+	return []byte{byte(t)}, nil
+}
+
+// Unmarshal needed for protobuf compatibility.
+func (t *TallyOption) Unmarshal(data []byte) error {
+	*t = TallyOption(data[0])
+	return nil
+}
+
+// Marshals to JSON using string.
+func (t TallyOption) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.String())
+}
+
+// UnmarshalJSON decodes from JSON assuming Bech32 encoding.
+func (t *TallyOption) UnmarshalJSON(data []byte) error {
+	var s string
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+
+	bz2, err := TallyOptionFromString(s)
+	if err != nil {
+		return err
+	}
+
+	*t = bz2
+	return nil
+}
+
+// Marshals to YAML using string.
+func (t TallyOption) MarshalYAML() ([]byte, error) {
+	return yaml.Marshal(t.String())
+}
+
+// UnmarshalJSON decodes from YAML assuming Bech32 encoding.
+func (t *TallyOption) UnmarshalYAML(data []byte) error {
+	var s string
+	err := yaml.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+
+	bz2, err := TallyOptionFromString(s)
+	if err != nil {
+		return err
+	}
+
+	*t = bz2
+	return nil
+}
+
+// String implements the Stringer interface.
+func (t TallyOption) String() string {
+	switch t {
+	case FirstPastThePost:
+		return "FirstPastThePost"
+	case Deadline:
+		return "Deadline"
+	default:
+		return ""
+	}
+}
 
 // Committee is an interface for handling common actions on committees
 type Committee interface {
@@ -189,10 +273,10 @@ func (c BaseCommittee) String() string {
   	Permissions:               			%s
   	VoteThreshold:            		  %s
 	ProposalDuration:        						%s
-	TallyOption:   						%d`,
+	TallyOption:   						%s`,
 		c.ID, c.Type, c.Description, c.GetMembers(), c.Permissions,
 		c.VoteThreshold.String(), c.ProposalDuration.String(),
-		c.TallyOption,
+		c.TallyOption.String(),
 	)
 }
 
