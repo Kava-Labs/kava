@@ -5,10 +5,9 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	amino "github.com/tendermint/go-amino"
 )
 
 const (
@@ -38,7 +37,7 @@ func (p ProposalOutcome) String() string {
 	return toString[p]
 }
 
-func (p ProposalOutcome) Marshal(cdc *amino.Codec) ([]byte, error) {
+func (p ProposalOutcome) Marshal(cdc *codec.Codec) ([]byte, error) {
 	x, err := cdc.MarshalJSON(p.String())
 	if err != nil {
 		return []byte{}, err
@@ -46,7 +45,7 @@ func (p ProposalOutcome) Marshal(cdc *amino.Codec) ([]byte, error) {
 	return x[1 : len(x)-1], nil
 }
 
-func MatchMarshaledOutcome(value []byte, cdc *amino.Codec) (ProposalOutcome, error) {
+func MatchMarshaledOutcome(value []byte, cdc *codec.Codec) (ProposalOutcome, error) {
 	passed, err := Passed.Marshal(cdc)
 	if err != nil {
 		return 0, err
