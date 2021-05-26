@@ -69,7 +69,7 @@ const (
 )
 
 func (vt VoteType) Validate() error {
-	if vt > 3 {
+	if vt <= 0 || vt > 3 {
 		return fmt.Errorf("invalid vote type: %d", vt)
 	}
 	return nil
