@@ -61,7 +61,7 @@ func (suite *SupplyRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenes
 		authBuilder.BuildMarshalled(),
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		hardBuilder.BuildMarshalled(),
-		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite
+		NewCommitteeGenesisState(suite.addrs[:2]),
 		incentBuilder.BuildMarshalled(),
 	)
 }
@@ -498,7 +498,6 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 				updatedTimeDuration: 86400,
 			},
 		},
-		// TODO test synchronize when there is a reward period with 0 rewardsPerSecond
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
