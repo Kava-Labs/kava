@@ -173,7 +173,7 @@ func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rew
 			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
 		}
 	}
-	reward := sdk.NewCoins()
+	var reward sdk.Coins
 	for _, newIndex := range newIndexes {
 		factor, found := oldIndexes.Get(newIndex.CollateralType)
 		if !found {
