@@ -104,6 +104,32 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
 }
+func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardAddedWithZeroRewardsPerSecond() {
+	// When a new reward (with zero rewards per second) is added (via gov) for a hard borrow denom the user has already borrowed, and the claim is synced;
+	// Then the new reward's index should be added to the claim.
+	suite.T().Skip("TODO fix this bug")
+
+	claim := types.HardLiquidityProviderClaim{
+		BaseMultiClaim: types.BaseMultiClaim{
+			Owner: arbitraryAddress(),
+		},
+		BorrowRewardIndexes: nonEmptyMultiRewardIndexes,
+	}
+	suite.storeClaim(claim)
+
+	globalIndexes := nonEmptyMultiRewardIndexes.With("uniquezerorps", nil)
+	suite.storeGlobalBorrowIndexes(globalIndexes)
+
+	borrow := hardtypes.Borrow{
+		Borrower: claim.Owner,
+		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
+	}
+
+	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
+
+	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
+}
 func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardDenomAdded() {
 	// When a new reward coin is added (via gov) to an already rewarded borrow denom (that the user has already borrowed), and the claim is synced;
 	// Then the new reward coin's index should be added to the claim.
@@ -421,6 +447,38 @@ func TestCalculateRewards(t *testing.T) {
 			},
 			expected: expected{
 				err: types.ErrDecreasingRewardFactor,
+			},
+		},
+		{
+			name: "when old and new indexes are 0, rewards are 0",
+			args: args{
+				oldIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.0"),
+					},
+				},
+				newIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.0"),
+					},
+				},
+				sourceAmount: d("1000000000"),
+			},
+			expected: expected{
+				coins: nil,
+			},
+		},
+		{
+			name: "when old and new indexes are empty, rewards are 0",
+			args: args{
+				oldIndexes:   types.RewardIndexes{},
+				newIndexes:   nil,
+				sourceAmount: d("1000000000"),
+			},
+			expected: expected{
+				coins: nil,
 			},
 		},
 	}

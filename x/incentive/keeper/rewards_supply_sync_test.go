@@ -100,6 +100,32 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 	suite.Equal(globalIndexes, syncedClaim.SupplyRewardIndexes)
 }
+func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardAddedWithZeroRewardsPerSecond() {
+	// When a new reward (with zero rewards per second) is added (via gov) for a hard deposited denom the user has already deposited, and the claim is synced;
+	// Then the new reward's index should be added to the claim.
+	suite.T().Skip("TODO fix this bug")
+
+	claim := types.HardLiquidityProviderClaim{
+		BaseMultiClaim: types.BaseMultiClaim{
+			Owner: arbitraryAddress(),
+		},
+		SupplyRewardIndexes: nonEmptyMultiRewardIndexes,
+	}
+	suite.storeClaim(claim)
+
+	globalIndexes := nonEmptyMultiRewardIndexes.With("uniquezerorps", nil)
+	suite.storeGlobalBorrowIndexes(globalIndexes)
+
+	deposit := hardtypes.Deposit{
+		Depositor: claim.Owner,
+		Amount:    arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
+	}
+
+	suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
+
+	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	suite.Equal(globalIndexes, syncedClaim.SupplyRewardIndexes)
+}
 func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardDenomAdded() {
 	// When a new reward coin is added (via gov) to an already rewarded deposit denom (that the user has already deposited), and the claim is synced;
 	// Then the new reward coin's index should be added to the claim.
