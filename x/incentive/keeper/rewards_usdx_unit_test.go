@@ -175,7 +175,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenNewRe
 
 	syncedClaim, _ := suite.keeper.GetUSDXMintingClaim(suite.ctx, cdp.Owner)
 	// The global index was not around when this cdp was created as it was not stored in a claim.
-	// Therefor it must have been added via params after.
+	// Therefore it must have been added via params after.
 	// To include rewards since the params were updated, the old index should be assumed to be 0.
 	// reward is ( new index - old index ) * cdp.TotalPrincipal
 	suite.Equal(c(types.USDXMintingRewardDenom, 2e11), syncedClaim.Reward)
