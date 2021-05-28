@@ -67,17 +67,17 @@ type ProposalPollingStatus struct {
 	CurrentVotes  sdk.Dec `json:"current_votes" yaml:"current_votes"`
 	PossibleVotes sdk.Dec `json:"possible_votes" yaml:"possible_votes"`
 	VoteThreshold sdk.Dec `json:"vote_threshold" yaml:"vote_threshold"`
-	Quroum        sdk.Dec `json:"quroum" yaml:"quroum"`
+	Quorum        sdk.Dec `json:"quorum" yaml:"quorum"`
 }
 
 func NewProposalPollingStatus(proposalID uint64, yesVotes, currentVotes, possibleVotes,
-	voteThreshold, quroum sdk.Dec) ProposalPollingStatus {
+	voteThreshold, quorum sdk.Dec) ProposalPollingStatus {
 	return ProposalPollingStatus{
 		ProposalID:    proposalID,
 		YesVotes:      yesVotes,
 		CurrentVotes:  currentVotes,
 		PossibleVotes: possibleVotes,
 		VoteThreshold: voteThreshold,
-		Quroum:        quroum,
+		Quorum:        quorum,
 	}
 }

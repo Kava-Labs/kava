@@ -70,6 +70,11 @@ func TestMsgVote_ValidateBasic(t *testing.T) {
 			expectPass: true,
 		},
 		{
+			name:       "Null vote",
+			msg:        MsgVote{5, addr, NullVoteType},
+			expectPass: false,
+		},
+		{
 			name:       "empty address",
 			msg:        MsgVote{5, nil, Yes},
 			expectPass: false,

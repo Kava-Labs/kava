@@ -248,7 +248,7 @@ func (suite *QuerierTestSuite) TestQueryTally() {
 		CurrentVotes:  sdk.NewDec(int64(len(suite.votes[propID]))),
 		PossibleVotes: d("3.0"),
 		VoteThreshold: d("0.667"),
-		Quroum:        d("0"),
+		Quorum:        d("0"),
 	}
 
 	// Set up request query

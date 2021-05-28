@@ -104,7 +104,7 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 		Use:     "vote [proposal-id] [vote]",
 		Args:    cobra.ExactArgs(2),
 		Short:   "Vote for an active proposal",
-		Long:    "Submit a vote for the proposal with id [proposal-id].",
+		Long:    "Submit a [yes/no/abstain] vote for the proposal with id [proposal-id].",
 		Example: fmt.Sprintf("%s tx %s vote 2 yes", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -131,8 +131,10 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 				vote = types.Yes
 			case "no", "n":
 				vote = types.No
+			case "abstain", "a":
+				vote = types.Abstain
 			default:
-				return fmt.Errorf("must specify a valid vote type (\"yes\", \"y\"/\"no\" \"n\")")
+				return fmt.Errorf("must specify a valid vote type: (yes/y, no/n, abstain/a)")
 			}
 
 			// Build vote message and run basic validation
@@ -245,10 +247,11 @@ func MustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
 
 // MustGetExampleParameterChangeProposal is a helper function to return an example json proposal
 func MustGetExampleParameterChangeProposal(cdc *codec.Codec) string {
+	value := fmt.Sprintf("\"%d\"", 1000000000)
 	exampleParameterChangeProposal := params.NewParameterChangeProposal(
 		"A Title",
 		"A description of this proposal.",
-		[]params.ParamChange{params.NewParamChange("cdp", "SurplusAuctionThreshold", "1000000000")},
+		[]params.ParamChange{params.NewParamChange("cdp", "SurplusAuctionThreshold", value)},
 	)
 	exampleParameterChangeProposalBz, err := cdc.MarshalJSONIndent(exampleParameterChangeProposal, "", "  ")
 	if err != nil {

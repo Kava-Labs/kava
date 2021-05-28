@@ -189,7 +189,7 @@ func (k Keeper) GetTokenCommitteeProposalResult(ctx sdk.Context, proposalID uint
 
 // TallyMemberCommitteeVotes returns the polling status of a token committee vote. Returns yes votes,
 // total current votes, total possible votes (equal to token supply), vote threshold (yes vote ratio
-// required for proposal to pass), and quroum (votes tallied at this percentage).
+// required for proposal to pass), and quorum (votes tallied at this percentage).
 func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
 	tallyDenom string) (yesVotes, noVotes, totalVotes, possibleVotes sdk.Dec) {
 	votes := k.GetVotesByProposal(ctx, proposalID)
