@@ -251,6 +251,24 @@ func (k Keeper) enactProposal(ctx sdk.Context, proposal types.Proposal) error {
 // CloseProposal deletes proposals and their votes, emitting an event denoting the final status of the proposal
 func (k Keeper) CloseProposal(ctx sdk.Context, proposal types.Proposal, outcome types.ProposalOutcome) {
 
+	proposalTally := types.ProposalPollingStatus{}
+	committee, found := k.GetCommittee(ctx, proposal.CommitteeID)
+	if found {
+		switch com := committee.(type) {
+		case types.MemberCommittee:
+			currVotes := k.TallyMemberCommitteeVotes(ctx, proposal.ID)
+			possibleVotes := sdk.NewDec(int64(len(com.Members)))
+			memberPollingStatus := types.NewProposalPollingStatus(proposal.ID, currVotes,
+				currVotes, possibleVotes, com.VoteThreshold, sdk.Dec{Int: nil})
+			proposalTally = memberPollingStatus
+		case types.TokenCommittee:
+			yesVotes, _, currVotes, possibleVotes := k.TallyTokenCommitteeVotes(ctx, proposal.ID, com.TallyDenom)
+			tokenPollingStatus := types.NewProposalPollingStatus(proposal.ID, yesVotes,
+				currVotes, possibleVotes, com.VoteThreshold, com.Quorum)
+			proposalTally = tokenPollingStatus
+		}
+	}
+
 	k.DeleteProposalAndVotes(ctx, proposal.ID)
 
 	ctx.EventManager().EmitEvent(
@@ -258,6 +276,7 @@ func (k Keeper) CloseProposal(ctx sdk.Context, proposal types.Proposal, outcome 
 			types.EventTypeProposalClose,
 			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
 			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
+			sdk.NewAttribute(types.AttributeKeyProposalTally, proposalTally.String()),
 			sdk.NewAttribute(types.AttributeKeyProposalOutcome, outcome.String()),
 		),
 	)
