@@ -155,6 +155,156 @@ func (suite *KeeperTestSuite) TestPayoutUSDXMintingClaim() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestPayoutUSDXMintingClaimVVesting() {
+	type args struct {
+		ctype                    string
+		rewardsPerSecond         sdk.Coin
+		initialTime              time.Time
+		initialCollateral        sdk.Coin
+		initialPrincipal         sdk.Coin
+		multipliers              types.Multipliers
+		multiplier               types.MultiplierName
+		timeElapsed              int
+		expectedBalance          sdk.Coins
+		expectedPeriods          vesting.Periods
+		isPeriodicVestingAccount bool
+	}
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+	type test struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+	testCases := []test{
+		{
+			"valid 1 day",
+			args{
+				ctype:                    "bnb-a",
+				rewardsPerSecond:         c("ukava", 122354),
+				initialTime:              time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialCollateral:        c("bnb", 1000000000000),
+				initialPrincipal:         c("usdx", 10000000000),
+				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				multiplier:               types.MultiplierName("large"),
+				timeElapsed:              86400,
+				expectedBalance:          cs(c("ukava", 11571385600)),
+				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("ukava", 10571385600))}},
+				isPeriodicVestingAccount: true,
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"invalid zero rewards",
+			args{
+				ctype:                    "bnb-a",
+				rewardsPerSecond:         c("ukava", 0),
+				initialTime:              time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialCollateral:        c("bnb", 1000000000000),
+				initialPrincipal:         c("usdx", 10000000000),
+				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				multiplier:               types.MultiplierName("large"),
+				timeElapsed:              86400,
+				expectedBalance:          cs(),
+				expectedPeriods:          vesting.Periods{},
+				isPeriodicVestingAccount: false,
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "claim amount rounds to zero",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWithGenState()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+
+			// setup incentive state
+			params := types.NewParams(
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				tc.args.multipliers,
+				tc.args.initialTime.Add(time.Hour*24*365*5),
+			)
+			suite.keeper.SetParams(suite.ctx, params)
+			suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, tc.args.ctype, tc.args.initialTime)
+			suite.keeper.SetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype, sdk.ZeroDec())
+
+			// sets addrs[2] to be a validator vesting account
+			ak := suite.app.GetAccountKeeper()
+			acc := ak.GetAccount(suite.ctx, suite.addrs[2])
+			bacc := auth.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+			bva, err2 := vesting.NewBaseVestingAccount(bacc, cs(c("ukava", 400)), suite.ctx.BlockTime().Unix()+16)
+			suite.Require().NoError(err2)
+			periods := vesting.Periods{
+				vesting.Period{Length: int64(1), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(2), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(8), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
+			}
+			vva := validatorvesting.NewValidatorVestingAccountRaw(bva, suite.ctx.BlockTime().Unix(), periods, sdk.ConsAddress{}, nil, 90)
+			ak.SetAccount(suite.ctx, vva)
+
+			// setup account state
+			sk := suite.app.GetSupplyKeeper()
+			err := sk.MintCoins(suite.ctx, cdptypes.ModuleName, sdk.NewCoins(tc.args.initialCollateral))
+			suite.Require().NoError(err)
+			err = sk.SendCoinsFromModuleToAccount(suite.ctx, cdptypes.ModuleName, suite.addrs[2], sdk.NewCoins(tc.args.initialCollateral))
+			suite.Require().NoError(err)
+
+			// setup kavadist state
+			err = sk.MintCoins(suite.ctx, kavadist.ModuleName, cs(c("ukava", 1000000000000)))
+			suite.Require().NoError(err)
+
+			// setup cdp state
+			cdpKeeper := suite.app.GetCDPKeeper()
+			err = cdpKeeper.AddCdp(suite.ctx, suite.addrs[2], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
+			suite.Require().NoError(err)
+
+			claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[2])
+			suite.Require().True(found)
+			suite.Require().Equal(sdk.ZeroDec(), claim.RewardIndexes[0].RewardFactor)
+
+			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
+			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
+			rewardPeriod, found := suite.keeper.GetUSDXMintingRewardPeriod(suite.ctx, tc.args.ctype)
+			suite.Require().True(found)
+			err = suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
+			suite.Require().NoError(err)
+
+			err = suite.keeper.ClaimUSDXMintingRewardVVesting(suite.ctx, suite.addrs[2], suite.addrs[0], tc.args.multiplier)
+
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err)
+				ak := suite.app.GetAccountKeeper()
+				acc := ak.GetAccount(suite.ctx, suite.addrs[0])
+				suite.Require().Equal(tc.args.expectedBalance, acc.GetCoins()) // TODO check balance change to decouple from initialized account balance.
+
+				if tc.args.isPeriodicVestingAccount {
+					vacc, ok := acc.(*vesting.PeriodicVestingAccount)
+					suite.Require().True(ok)
+					suite.Require().Equal(tc.args.expectedPeriods, vacc.VestingPeriods)
+				}
+
+				claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[2])
+				suite.Require().True(found)
+				suite.Require().Equal(c("ukava", 0), claim.Reward)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaim() {
 	type args struct {
 		deposit                  sdk.Coins
@@ -409,6 +559,296 @@ func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaim() {
 
 				// Check that user's balance has increased by expected reward amount
 				postClaimAcc := ak.GetAccount(suite.ctx, suite.addrs[3])
+				suite.Require().Equal(preClaimAcc.GetCoins().Add(tc.args.expectedRewards...), postClaimAcc.GetCoins())
+
+				if tc.args.isPeriodicVestingAccount {
+					vacc, ok := postClaimAcc.(*vesting.PeriodicVestingAccount)
+					suite.Require().True(ok)
+					suite.Require().Equal(tc.args.expectedPeriods, vacc.VestingPeriods)
+				}
+
+				// Check that each claim reward coin's amount has been reset to 0
+				claim, found := suite.keeper.GetHardLiquidityProviderClaim(runCtx, suite.addrs[3])
+				suite.Require().True(found)
+				for _, claimRewardCoin := range claim.Reward {
+					suite.Require().Equal(c(claimRewardCoin.Denom, 0), claimRewardCoin)
+				}
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
+	type args struct {
+		deposit                  sdk.Coins
+		borrow                   sdk.Coins
+		rewardsPerSecond         sdk.Coins
+		initialTime              time.Time
+		multipliers              types.Multipliers
+		multiplier               types.MultiplierName
+		timeElapsed              int64
+		expectedRewards          sdk.Coins
+		expectedPeriods          vesting.Periods
+		isPeriodicVestingAccount bool
+	}
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+	type test struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+	testCases := []test{
+		{
+			"single reward denom: valid 1 day",
+			args{
+				deposit:                  cs(c("bnb", 10000000000)),
+				borrow:                   cs(c("bnb", 5000000000)),
+				rewardsPerSecond:         cs(c("hard", 122354)),
+				initialTime:              time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				multiplier:               types.MultiplierName("large"),
+				timeElapsed:              86400,
+				expectedRewards:          cs(c("hard", 21142771200)), // 10571385600 (deposit reward) + 10571385600 (borrow reward)
+				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("hard", 21142771200))}},
+				isPeriodicVestingAccount: true,
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"single reward denom: valid 10 days",
+			args{
+				deposit:                  cs(c("bnb", 10000000000)),
+				borrow:                   cs(c("bnb", 5000000000)),
+				rewardsPerSecond:         cs(c("hard", 122354)),
+				initialTime:              time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				multiplier:               types.MultiplierName("large"),
+				timeElapsed:              864000,
+				expectedRewards:          cs(c("hard", 211427712000)), // 105713856000 (deposit reward) + 105713856000 (borrow reward)
+				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32140800, Amount: cs(c("hard", 211427712000))}},
+				isPeriodicVestingAccount: true,
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"invalid zero rewards",
+			args{
+				deposit:                  cs(c("bnb", 10000000000)),
+				borrow:                   cs(c("bnb", 5000000000)),
+				rewardsPerSecond:         cs(c("hard", 0)),
+				initialTime:              time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				multiplier:               types.MultiplierName("large"),
+				timeElapsed:              86400,
+				expectedRewards:          cs(c("hard", 0)),
+				expectedPeriods:          vesting.Periods{},
+				isPeriodicVestingAccount: false,
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "claim amount rounds to zero",
+			},
+		},
+		{
+			"multiple reward denoms: valid 1 day",
+			args{
+				deposit:                  cs(c("bnb", 10000000000)),
+				borrow:                   cs(c("bnb", 5000000000)),
+				rewardsPerSecond:         cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:              time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				multiplier:               types.MultiplierName("large"),
+				timeElapsed:              86400,
+				expectedRewards:          cs(c("hard", 21142771200), c("ukava", 21142771200)), // 10571385600 (deposit reward) + 10571385600 (borrow reward)
+				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("hard", 21142771200), c("ukava", 21142771200))}},
+				isPeriodicVestingAccount: true,
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"multiple reward denoms: valid 10 days",
+			args{
+				deposit:                  cs(c("bnb", 10000000000)),
+				borrow:                   cs(c("bnb", 5000000000)),
+				rewardsPerSecond:         cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:              time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				multiplier:               types.MultiplierName("large"),
+				timeElapsed:              864000,
+				expectedRewards:          cs(c("hard", 211427712000), c("ukava", 211427712000)), // 105713856000 (deposit reward) + 105713856000 (borrow reward)
+				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32140800, Amount: cs(c("hard", 211427712000), c("ukava", 211427712000))}},
+				isPeriodicVestingAccount: true,
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"multiple reward denoms with different rewards per second: valid 1 day",
+			args{
+				deposit:                  cs(c("bnb", 10000000000)),
+				borrow:                   cs(c("bnb", 5000000000)),
+				rewardsPerSecond:         cs(c("hard", 122354), c("ukava", 222222)),
+				initialTime:              time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				multiplier:               types.MultiplierName("large"),
+				timeElapsed:              86400,
+				expectedRewards:          cs(c("hard", 21142771200), c("ukava", 38399961600)),
+				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("hard", 21142771200), c("ukava", 38399961600))}},
+				isPeriodicVestingAccount: true,
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWithGenState()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+
+			// setup kavadist state
+			sk := suite.app.GetSupplyKeeper()
+			err := sk.MintCoins(suite.ctx, kavadist.ModuleName, cs(c("hard", 1000000000000000000), c("ukava", 1000000000000000000)))
+			suite.Require().NoError(err)
+
+			// Set up generic reward periods
+			var multiRewardPeriods types.MultiRewardPeriods
+			var rewardPeriods types.RewardPeriods
+			for _, coin := range tc.args.deposit {
+				if len(tc.args.rewardsPerSecond) > 0 {
+					rewardPeriod := types.NewRewardPeriod(true, coin.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])
+					rewardPeriods = append(rewardPeriods, rewardPeriod)
+				}
+				multiRewardPeriod := types.NewMultiRewardPeriod(true, coin.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)
+				multiRewardPeriods = append(multiRewardPeriods, multiRewardPeriod)
+			}
+
+			// Set up generic reward periods
+			params := types.NewParams(
+				rewardPeriods, multiRewardPeriods, multiRewardPeriods, rewardPeriods,
+				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				tc.args.initialTime.Add(time.Hour*24*365*5),
+			)
+			suite.keeper.SetParams(suite.ctx, params)
+
+			// Set each denom's previous accrual time and supply reward factor
+			if len(tc.args.rewardsPerSecond) > 0 {
+				for _, coin := range tc.args.deposit {
+					suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, coin.Denom, tc.args.initialTime)
+					var rewardIndexes types.RewardIndexes
+					for _, rewardCoin := range tc.args.rewardsPerSecond {
+						rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+						rewardIndexes = append(rewardIndexes, rewardIndex)
+					}
+					suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, coin.Denom, rewardIndexes)
+				}
+			}
+
+			// Set each denom's previous accrual time and borrow reward factor
+			if len(tc.args.rewardsPerSecond) > 0 {
+				for _, coin := range tc.args.borrow {
+					suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, coin.Denom, tc.args.initialTime)
+					var rewardIndexes types.RewardIndexes
+					for _, rewardCoin := range tc.args.rewardsPerSecond {
+						rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+						rewardIndexes = append(rewardIndexes, rewardIndex)
+					}
+					suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, coin.Denom, rewardIndexes)
+				}
+			}
+
+			// sets addrs[3] to be a validator vesting account
+			ak := suite.app.GetAccountKeeper()
+			acc := ak.GetAccount(suite.ctx, suite.addrs[3])
+			bacc := auth.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+			bva, err2 := vesting.NewBaseVestingAccount(bacc, cs(c("ukava", 400)), suite.ctx.BlockTime().Unix()+16)
+			suite.Require().NoError(err2)
+			periods := vesting.Periods{
+				vesting.Period{Length: int64(1), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(2), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(8), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
+			}
+			vva := validatorvesting.NewValidatorVestingAccountRaw(bva, suite.ctx.BlockTime().Unix(), periods, sdk.ConsAddress{}, nil, 90)
+			ak.SetAccount(suite.ctx, vva)
+
+			hardKeeper := suite.app.GetHardKeeper()
+			userAddr := suite.addrs[3]
+
+			// User deposits and borrows
+			err = hardKeeper.Deposit(suite.ctx, userAddr, tc.args.deposit)
+			suite.Require().NoError(err)
+			err = hardKeeper.Borrow(suite.ctx, userAddr, tc.args.borrow)
+			suite.Require().NoError(err)
+
+			// Check that Hard hooks initialized a HardLiquidityProviderClaim that has 0 rewards
+			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			suite.Require().True(found)
+			for _, coin := range tc.args.deposit {
+				suite.Require().Equal(sdk.ZeroInt(), claim.Reward.AmountOf(coin.Denom))
+			}
+
+			// Set up future runtime context
+			runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+(tc.args.timeElapsed), 0)
+			runCtx := suite.ctx.WithBlockTime(runAtTime)
+
+			// Run Hard begin blocker
+			hard.BeginBlocker(runCtx, suite.hardKeeper)
+
+			// Accumulate supply rewards for each deposit denom
+			for _, coin := range tc.args.deposit {
+				rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(runCtx, coin.Denom)
+				suite.Require().True(found)
+				err = suite.keeper.AccumulateHardSupplyRewards(runCtx, rewardPeriod)
+				suite.Require().NoError(err)
+			}
+
+			// Accumulate borrow rewards for each deposit denom
+			for _, coin := range tc.args.borrow {
+				rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriods(runCtx, coin.Denom)
+				suite.Require().True(found)
+				err = suite.keeper.AccumulateHardBorrowRewards(runCtx, rewardPeriod)
+				suite.Require().NoError(err)
+			}
+
+			// Sync hard supply rewards
+			deposit, found := suite.hardKeeper.GetDeposit(suite.ctx, suite.addrs[3])
+			suite.Require().True(found)
+			suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
+
+			// Sync hard borrow rewards
+			borrow, found := suite.hardKeeper.GetBorrow(suite.ctx, suite.addrs[3])
+			suite.Require().True(found)
+			suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
+
+			// Fetch pre-claim balances
+			preClaimAcc := ak.GetAccount(runCtx, suite.addrs[2])
+
+			err = suite.keeper.ClaimHardRewardVVesting(runCtx, suite.addrs[3], suite.addrs[2], tc.args.multiplier)
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err)
+
+				// Check that user's balance has increased by expected reward amount
+				postClaimAcc := ak.GetAccount(suite.ctx, suite.addrs[2])
 				suite.Require().Equal(preClaimAcc.GetCoins().Add(tc.args.expectedRewards...), postClaimAcc.GetCoins())
 
 				if tc.args.isPeriodicVestingAccount {
