@@ -43,6 +43,7 @@ import (
 	"github.com/kava-labs/kava/x/issuance"
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
+	"github.com/kava-labs/kava/x/swap"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
@@ -85,6 +86,7 @@ var (
 		incentive.AppModuleBasic{},
 		issuance.AppModuleBasic{},
 		hard.AppModuleBasic{},
+		swap.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -158,6 +160,7 @@ type App struct {
 	incentiveKeeper incentive.Keeper
 	issuanceKeeper  issuance.Keeper
 	hardKeeper      hard.Keeper
+	swapKeeper      swap.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -181,7 +184,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
 		validatorvesting.StoreKey, auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
 		bep3.StoreKey, kavadist.StoreKey, incentive.StoreKey, issuance.StoreKey, committee.StoreKey,
-		hard.StoreKey,
+		hard.StoreKey, swap.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -212,6 +215,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	incentiveSubspace := app.paramsKeeper.Subspace(incentive.DefaultParamspace)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuance.DefaultParamspace)
 	hardSubspace := app.paramsKeeper.Subspace(hard.DefaultParamspace)
+	swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -388,6 +392,11 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.accountKeeper,
 		app.supplyKeeper,
 	)
+	app.swapKeeper = swap.NewKeeper(
+		app.cdc,
+		keys[swap.StoreKey],
+		swapSubspace,
+	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -423,6 +432,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),
+		swap.NewAppModule(app.swapKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
