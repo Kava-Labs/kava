@@ -2,8 +2,6 @@ package types
 
 import (
 	"fmt"
-	"sort"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -24,6 +22,7 @@ func NewPair(tokenA, tokenB string, rewardAPY sdk.Dec) Pair {
 	}
 }
 
+// Validate validates pair attributes and returns an error if invalid
 func (p Pair) Validate() error {
 	err := sdk.ValidateDenom(p.TokenA)
 	if err != nil {
@@ -35,49 +34,61 @@ func (p Pair) Validate() error {
 		return err
 	}
 
-	if strings.Compare(strings.ToLower(p.TokenA), strings.ToLower(p.TokenB)) == 0 {
+	if p.TokenA == p.TokenB {
 		return fmt.Errorf(
 			"pair cannot have two tokens of the same type, received '%s' and '%s'",
-			strings.ToLower(p.TokenA), strings.ToLower(p.TokenB),
+			p.TokenA, p.TokenB,
 		)
 	}
 
 	if p.RewardAPY.IsNil() || p.RewardAPY.IsNegative() {
-		return fmt.Errorf(fmt.Sprintf("invalid reward apy: %s:", p.RewardAPY))
+		return fmt.Errorf(fmt.Sprintf("invalid reward apy: %s", p.RewardAPY))
 	}
 
 	return nil
 }
 
+// Name returns a unique name for a pair in alphabetical order
+func (p Pair) Name() string {
+	if p.TokenA < p.TokenB {
+		return fmt.Sprintf("%s/%s", p.TokenA, p.TokenB)
+	}
+
+	return fmt.Sprintf("%s/%s", p.TokenB, p.TokenA)
+}
+
+// String pretty prints the pair
 func (p Pair) String() string {
 	return fmt.Sprintf(`Pair:
+  Name: %s
 	Token A: %s
 	Token B: %s
 	Reward APY: %s
-	`, p.TokenA, p.TokenB, p.RewardAPY)
+`, p.Name(), p.TokenA, p.TokenB, p.RewardAPY)
 }
 
 // Pairs is a slice of Pair
 type Pairs []Pair
 
+// NewPairs returns Pairs from the provided values
+func NewPairs(pairs ...Pair) Pairs {
+	return Pairs(pairs)
+}
+
+// Validate validates each pair and returns an error if there are any duplicates
 func (p Pairs) Validate() error {
-	pairMap := make(map[string]bool)
-
+	seenPairs := make(map[string]bool)
 	for _, pair := range p {
-		// Generate token pair as alphabetically sorted lowercase token names
-		tokens := []string{strings.ToLower(pair.TokenA), strings.ToLower(pair.TokenB)}
-		sort.Strings(tokens)
-		tokenPair := strings.Join(tokens, "/")
-
-		if pairMap[tokenPair] {
-			return fmt.Errorf("duplicate pair %s", tokenPair)
-		}
-		pairMap[tokenPair] = true
-
-		err := p.Validate()
+		err := pair.Validate()
 		if err != nil {
 			return err
 		}
+
+		if seen := seenPairs[pair.Name()]; seen {
+			return fmt.Errorf("duplicate pair: %s", pair.Name())
+		}
+		seenPairs[pair.Name()] = true
 	}
+
 	return nil
 }
