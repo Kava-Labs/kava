@@ -74,15 +74,15 @@ func TestPair_Validation(t *testing.T) {
 // ensure no regression in case insentive token matching if
 // sdk.ValidateDenom ever allows upper case letters
 func TestPair_TokenMatch(t *testing.T) {
-	pair := NewPair("UKAVA", "UKAVA", sdk.ZeroDec())
+	pair := NewPair("UKAVA", "ukava", sdk.ZeroDec())
 	err := pair.Validate()
 	assert.Error(t, err)
 
-	pair = NewPair("haRd", "haRd", sdk.ZeroDec())
+	pair = NewPair("hard", "haRd", sdk.ZeroDec())
 	err = pair.Validate()
 	assert.Error(t, err)
 
-	pair = NewPair("Usdx", "Usdx", sdk.ZeroDec())
+	pair = NewPair("Usdx", "uSdX", sdk.ZeroDec())
 	err = pair.Validate()
 	assert.Error(t, err)
 }
