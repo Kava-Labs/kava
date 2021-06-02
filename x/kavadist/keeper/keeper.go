@@ -17,19 +17,27 @@ type Keeper struct {
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
 	supplyKeeper  types.SupplyKeeper
+	distKeeper    types.DistKeeper
+
+	blacklistedAddrs map[string]bool
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, sk types.SupplyKeeper) Keeper {
+func NewKeeper(
+	cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, sk types.SupplyKeeper,
+	dk types.DistKeeper, blacklistedAddrs map[string]bool,
+) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		key:           key,
-		cdc:           cdc,
-		paramSubspace: paramstore,
-		supplyKeeper:  sk,
+		key:              key,
+		cdc:              cdc,
+		paramSubspace:    paramstore,
+		supplyKeeper:     sk,
+		distKeeper:       dk,
+		blacklistedAddrs: blacklistedAddrs,
 	}
 }
 
