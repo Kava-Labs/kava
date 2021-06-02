@@ -22,8 +22,9 @@ func NewSwapGenStateMulti() app.GenesisState {
 	swapGenesis := types.GenesisState{
 		Params: types.Params{
 			Pairs: types.Pairs{
-				types.NewPair("usdx", "ukava", sdk.MustNewDecFromStr("0.33"), sdk.MustNewDecFromStr("0.03")),
+				types.NewPair("usdx", "ukava", sdk.MustNewDecFromStr("0.33")),
 			},
+			SwapFee: sdk.MustNewDecFromStr("0.03"),
 		},
 	}
 

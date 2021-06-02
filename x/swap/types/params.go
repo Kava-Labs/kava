@@ -3,37 +3,46 @@ package types
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
 // Parameter keys and default values
 var (
-	KeyPairs     = []byte("Pairs")
-	DefaultPairs = Pairs{}
+	KeyPairs       = []byte("Pairs")
+	KeySwapFee     = []byte("SwapFee")
+	DefaultPairs   = Pairs{}
+	DefaultSwapFee = sdk.ZeroDec()
 )
 
 // Params governance parameters for hard module
 type Params struct {
-	Pairs Pairs `json:"pairs" yaml:"pairs"`
+	Pairs   Pairs   `json:"pairs" yaml:"pairs"`
+	SwapFee sdk.Dec `json:"swap_fee" yaml:"swap_fee"`
 }
 
 // NewParams returns a new params object
-func NewParams(pairs Pairs) Params {
+func NewParams(pairs Pairs, swapFee sdk.Dec) Params {
 	return Params{
-		Pairs: pairs,
+		Pairs:   pairs,
+		SwapFee: swapFee,
 	}
 }
 
-// DefaultParams returns default params for hard module
+// DefaultParams returns default params for swap module
 func DefaultParams() Params {
-	return NewParams(DefaultPairs)
+	return NewParams(
+		DefaultPairs,
+		DefaultSwapFee,
+	)
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
-	Pairs: %s`,
-		p.Pairs)
+	Pairs: %s
+	SwapFee: %s`,
+		p.Pairs, p.SwapFee)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -45,12 +54,18 @@ func ParamKeyTable() params.KeyTable {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyPairs, &p.Pairs, validatePairsParams),
+		params.NewParamSetPair(KeySwapFee, &p.SwapFee, validateSwapFee),
 	}
 }
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-	return validatePairsParams(p.Pairs)
+	err := validatePairsParams(p.Pairs)
+	if err != nil {
+		return err
+	}
+
+	return validateSwapFee(p.Pairs)
 }
 
 func validatePairsParams(i interface{}) error {
@@ -60,4 +75,17 @@ func validatePairsParams(i interface{}) error {
 	}
 
 	return p.Validate()
+}
+
+func validateSwapFee(i interface{}) error {
+	swapFee, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if swapFee.IsNil() || swapFee.IsNegative() || swapFee.GT(sdk.OneDec()) {
+		return fmt.Errorf(fmt.Sprintf("invalid swap fee: %s:", swapFee))
+	}
+
+	return nil
 }
