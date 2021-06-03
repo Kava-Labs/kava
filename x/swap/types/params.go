@@ -13,6 +13,7 @@ var (
 	KeySwapFee     = []byte("SwapFee")
 	DefaultPairs   = Pairs{}
 	DefaultSwapFee = sdk.ZeroDec()
+	MaxSwapFee     = sdk.OneDec()
 )
 
 // Params governance parameters for hard module
@@ -60,12 +61,11 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-	err := validatePairsParams(p.Pairs)
-	if err != nil {
+	if err := validatePairsParams(p.Pairs); err != nil {
 		return err
 	}
 
-	return validateSwapFee(p.Pairs)
+	return validateSwapFee(p.SwapFee)
 }
 
 func validatePairsParams(i interface{}) error {
@@ -83,8 +83,8 @@ func validateSwapFee(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if swapFee.IsNil() || swapFee.IsNegative() || swapFee.GT(sdk.OneDec()) {
-		return fmt.Errorf(fmt.Sprintf("invalid swap fee: %s:", swapFee))
+	if swapFee.IsNil() || swapFee.IsNegative() || swapFee.GT(MaxSwapFee) {
+		return fmt.Errorf(fmt.Sprintf("invalid swap fee: %s", swapFee))
 	}
 
 	return nil
