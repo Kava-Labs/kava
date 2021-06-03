@@ -15,8 +15,8 @@ import (
 
 func TestParams_UnmarshalJSON(t *testing.T) {
 	pairs := types.NewPairs(
-		types.NewPair("ukava", "hard", sdk.ZeroDec()),
-		types.NewPair("usdx", "hard", sdk.ZeroDec()),
+		types.NewPair("ukava", "hard"),
+		types.NewPair("usdx", "hard"),
 	)
 	pairData, err := json.Marshal(pairs)
 	require.NoError(t, err)
@@ -41,8 +41,8 @@ func TestParams_UnmarshalJSON(t *testing.T) {
 
 func TestParams_MarshalYAML(t *testing.T) {
 	pairs := types.NewPairs(
-		types.NewPair("ukava", "hard", sdk.ZeroDec()),
-		types.NewPair("usdx", "hard", sdk.ZeroDec()),
+		types.NewPair("ukava", "hard"),
+		types.NewPair("usdx", "hard"),
 	)
 	fee, err := sdk.NewDecFromStr("0.5")
 	require.NoError(t, err)

@@ -8,17 +8,15 @@ import (
 
 // Pair defines a tradable token pair
 type Pair struct {
-	TokenA    string  `json:"token_a" yaml:"token_a"`
-	TokenB    string  `json:"token_b" yaml:"token_b"`
-	RewardAPY sdk.Dec `json:"reward_apy" yaml:"reward_apy"`
+	TokenA string `json:"token_a" yaml:"token_a"`
+	TokenB string `json:"token_b" yaml:"token_b"`
 }
 
 // NewPair returns a new Pair object
-func NewPair(tokenA, tokenB string, rewardAPY sdk.Dec) Pair {
+func NewPair(tokenA, tokenB string) Pair {
 	return Pair{
-		TokenA:    tokenA,
-		TokenB:    tokenB,
-		RewardAPY: rewardAPY,
+		TokenA: tokenA,
+		TokenB: tokenB,
 	}
 }
 
@@ -41,10 +39,6 @@ func (p Pair) Validate() error {
 		)
 	}
 
-	if p.RewardAPY.IsNil() || p.RewardAPY.IsNegative() {
-		return fmt.Errorf(fmt.Sprintf("invalid reward apy: %s", p.RewardAPY))
-	}
-
 	return nil
 }
 
@@ -63,8 +57,7 @@ func (p Pair) String() string {
   Name: %s
 	Token A: %s
 	Token B: %s
-	Reward APY: %s
-`, p.Name(), p.TokenA, p.TokenB, p.RewardAPY)
+`, p.Name(), p.TokenA, p.TokenB)
 }
 
 // Pairs is a slice of Pair

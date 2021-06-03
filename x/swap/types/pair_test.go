@@ -1,13 +1,11 @@
 package types_test
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
 	types "github.com/kava-labs/kava/x/swap/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,48 +18,38 @@ func TestPair_Validation(t *testing.T) {
 	}{
 		{
 			name:        "blank token a",
-			pair:        types.NewPair("", "ukava", sdk.ZeroDec()),
+			pair:        types.NewPair("", "ukava"),
 			expectedErr: "invalid denom: ",
 		},
 		{
 			name:        "blank token b",
-			pair:        types.NewPair("ukava", "", sdk.ZeroDec()),
+			pair:        types.NewPair("ukava", ""),
 			expectedErr: "invalid denom: ",
 		},
 		{
 			name:        "invalid token a",
-			pair:        types.NewPair("1ukava", "ukava", sdk.ZeroDec()),
+			pair:        types.NewPair("1ukava", "ukava"),
 			expectedErr: "invalid denom: 1ukava",
 		},
 		{
 			name:        "invalid token b",
-			pair:        types.NewPair("ukava", "1ukava", sdk.ZeroDec()),
+			pair:        types.NewPair("ukava", "1ukava"),
 			expectedErr: "invalid denom: 1ukava",
 		},
 		{
 			name:        "no uppercase letters token a",
-			pair:        types.NewPair("uKava", "ukava", sdk.ZeroDec()),
+			pair:        types.NewPair("uKava", "ukava"),
 			expectedErr: "invalid denom: uKava",
 		},
 		{
 			name:        "no uppercase letters token b",
-			pair:        types.NewPair("ukava", "UKAVA", sdk.ZeroDec()),
+			pair:        types.NewPair("ukava", "UKAVA"),
 			expectedErr: "invalid denom: UKAVA",
 		},
 		{
 			name:        "matching tokens",
-			pair:        types.NewPair("ukava", "ukava", sdk.ZeroDec()),
+			pair:        types.NewPair("ukava", "ukava"),
 			expectedErr: "pair cannot have two tokens of the same type, received 'ukava' and 'ukava'",
-		},
-		{
-			name:        "nil reward apy",
-			pair:        types.NewPair("ukava", "hard", sdk.Dec{}),
-			expectedErr: fmt.Sprintf("invalid reward apy: %s", sdk.Dec{}),
-		},
-		{
-			name:        "nil reward apy",
-			pair:        types.NewPair("ukava", "hard", sdk.NewDec(-1)),
-			expectedErr: fmt.Sprintf("invalid reward apy: %s", sdk.NewDec(-1)),
 		},
 	}
 
@@ -76,30 +64,27 @@ func TestPair_Validation(t *testing.T) {
 // ensure no regression in case insentive token matching if
 // sdk.ValidateDenom ever allows upper case letters
 func TestPair_TokenMatch(t *testing.T) {
-	pair := types.NewPair("UKAVA", "ukava", sdk.ZeroDec())
+	pair := types.NewPair("UKAVA", "ukava")
 	err := pair.Validate()
 	assert.Error(t, err)
 
-	pair = types.NewPair("hard", "haRd", sdk.ZeroDec())
+	pair = types.NewPair("hard", "haRd")
 	err = pair.Validate()
 	assert.Error(t, err)
 
-	pair = types.NewPair("Usdx", "uSdX", sdk.ZeroDec())
+	pair = types.NewPair("Usdx", "uSdX")
 	err = pair.Validate()
 	assert.Error(t, err)
 }
 
 func TestPair_String(t *testing.T) {
-	apy, err := sdk.NewDecFromStr("0.5")
-	require.NoError(t, err)
-	pair := types.NewPair("ukava", "hard", apy)
+	pair := types.NewPair("ukava", "hard")
 	require.NoError(t, pair.Validate())
 
 	output := `Pair:
   Name: hard/ukava
 	Token A: ukava
 	Token B: hard
-	Reward APY: 0.500000000000000000
 `
 	assert.Equal(t, output, pair.String())
 }
@@ -144,10 +129,10 @@ func TestPair_Name(t *testing.T) {
 			tokens := strings.Split(tc.tokens, " ")
 			require.Equal(t, 2, len(tokens))
 
-			pair := types.NewPair(tokens[0], tokens[1], sdk.ZeroDec())
+			pair := types.NewPair(tokens[0], tokens[1])
 			require.NoError(t, pair.Validate())
 
-			pairReverse := types.NewPair(tokens[1], tokens[0], sdk.ZeroDec())
+			pairReverse := types.NewPair(tokens[1], tokens[0])
 			require.NoError(t, pairReverse.Validate())
 
 			assert.Equal(t, tc.name, pair.Name())
@@ -165,37 +150,28 @@ func TestPairs_Validate(t *testing.T) {
 		{
 			name: "invalid pair",
 			pairs: types.NewPairs(
-				types.NewPair("ukava", "hard", sdk.ZeroDec()),
-				types.NewPair("HARD", "UKAVA", sdk.ZeroDec()),
+				types.NewPair("ukava", "hard"),
+				types.NewPair("HARD", "UKAVA"),
 			),
 			expectedErr: "invalid denom: HARD",
 		},
 		{
 			name: "duplicate pair",
 			pairs: types.NewPairs(
-				types.NewPair("ukava", "hard", sdk.ZeroDec()),
-				types.NewPair("hard", "ukava", sdk.ZeroDec()),
+				types.NewPair("ukava", "hard"),
+				types.NewPair("hard", "ukava"),
 			),
 			expectedErr: "duplicate pair: hard/ukava",
 		},
 		{
 			name: "duplicate pairs",
 			pairs: types.NewPairs(
-				types.NewPair("hard", "ukava", sdk.ZeroDec()),
-				types.NewPair("usdx", "bnb", sdk.ZeroDec()),
-				types.NewPair("btcb", "xrpb", sdk.ZeroDec()),
-				types.NewPair("bnb", "usdx", sdk.ZeroDec()),
+				types.NewPair("hard", "ukava"),
+				types.NewPair("usdx", "bnb"),
+				types.NewPair("btcb", "xrpb"),
+				types.NewPair("bnb", "usdx"),
 			),
 			expectedErr: "duplicate pair: bnb/usdx",
-		},
-		{
-			name: "invalid apy",
-			pairs: types.NewPairs(
-				types.NewPair("hard", "ukava", sdk.ZeroDec()),
-				types.NewPair("usdx", "bnb", sdk.NewDec(-1)),
-				types.NewPair("bnb", "usdx", sdk.ZeroDec()),
-			),
-			expectedErr: fmt.Sprintf("invalid reward apy: %s", sdk.NewDec(-1)),
 		},
 	}
 
