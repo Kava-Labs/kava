@@ -73,7 +73,7 @@ func TestParams_MarshalYAML(t *testing.T) {
 func TestParams_Default(t *testing.T) {
 	defaultParams := types.DefaultParams()
 
-	require.Nil(t, defaultParams.Validate())
+	require.NoError(t, defaultParams.Validate())
 
 	assert.Equal(t, types.DefaultPairs, defaultParams.Pairs)
 	assert.Equal(t, types.DefaultSwapFee, defaultParams.SwapFee)
@@ -213,7 +213,7 @@ func TestParams_String(t *testing.T) {
 		),
 		sdk.MustNewDecFromStr("0.5"),
 	)
-	require.Nil(t, params.Validate())
+	require.NoError(t, params.Validate())
 
 	output := params.String()
 	assert.Contains(t, output, "hard/ukava")
