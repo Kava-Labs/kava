@@ -57,6 +57,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 					Permissions:      []types.Permission{types.GodPermission{}},
 					VoteThreshold:    d("0.5"),
 					ProposalDuration: time.Hour * 24 * 7,
+					TallyOption:      types.FirstPastThePost,
 				},
 			},
 		},

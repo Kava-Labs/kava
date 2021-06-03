@@ -23,7 +23,7 @@ const (
 	Passed ProposalOutcome = iota
 	// Failed indicates that the proposal failed and was not enacted
 	Failed
-	// Invalid indicates that proposal passed but an error occured when attempting to enact it
+	// Invalid indicates that proposal passed but an error occurred when attempting to enact it
 	Invalid
 )
 

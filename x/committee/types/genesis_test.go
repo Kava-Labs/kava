@@ -33,6 +33,8 @@ func TestGenesisState_Validate(t *testing.T) {
 					Permissions:      []Permission{GodPermission{}},
 					VoteThreshold:    d("0.667"),
 					ProposalDuration: time.Hour * 24 * 7,
+					Type:             MemberCommitteeType,
+					TallyOption:      FirstPastThePost,
 				},
 			},
 			MemberCommittee{
@@ -43,6 +45,8 @@ func TestGenesisState_Validate(t *testing.T) {
 					Permissions:      nil,
 					VoteThreshold:    d("0.8"),
 					ProposalDuration: time.Hour * 24 * 21,
+					Type:             MemberCommitteeType,
+					TallyOption:      FirstPastThePost,
 				},
 			},
 			TokenCommittee{
@@ -53,6 +57,8 @@ func TestGenesisState_Validate(t *testing.T) {
 					Permissions:      nil,
 					VoteThreshold:    d("0.8"),
 					ProposalDuration: time.Hour * 24 * 21,
+					Type:             TokenCommitteeType,
+					TallyOption:      Deadline,
 				},
 				Quorum:     sdk.MustNewDecFromStr("0.4"),
 				TallyDenom: "hard",
@@ -62,8 +68,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			{ID: 1, CommitteeID: 1, PubProposal: govtypes.NewTextProposal("A Title", "A description of this proposal."), Deadline: testTime.Add(7 * 24 * time.Hour)},
 		},
 		Votes: []Vote{
-			{ProposalID: 1, Voter: addresses[0]},
-			{ProposalID: 1, Voter: addresses[1]},
+			{ProposalID: 1, Voter: addresses[0], VoteType: Yes},
+			{ProposalID: 1, Voter: addresses[1], VoteType: Yes},
 		},
 	}
 
