@@ -453,7 +453,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, hard.ModuleName, auction.ModuleName,
+		pricefeed.ModuleName, cdp.ModuleName, hard.ModuleName, auction.ModuleName, swap.ModuleName,
 		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, committee.ModuleName, issuance.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
