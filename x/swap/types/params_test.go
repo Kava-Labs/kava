@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	//"reflect"
+	"reflect"
 	"testing"
 
 	"github.com/kava-labs/kava/x/swap/types"
@@ -201,6 +201,19 @@ func TestParams_Validation(t *testing.T) {
 			} else {
 				assert.EqualError(t, err, tc.expectedErr)
 			}
+
+			var paramSetPair *paramstypes.ParamSetPair
+			for _, pair := range params.ParamSetPairs() {
+				if bytes.Compare(pair.Key, tc.key) == 0 {
+					paramSetPair = &pair
+					break
+				}
+			}
+			require.NotNil(t, paramSetPair)
+			value := reflect.ValueOf(paramSetPair.Value).Elem().Interface()
+
+			// assert validation error is same as param set validation
+			assert.Equal(t, err, paramSetPair.ValidatorFn(value))
 		})
 	}
 }
