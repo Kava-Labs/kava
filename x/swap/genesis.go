@@ -14,8 +14,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, gs types.GenesisState) {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
 	}
 
-	fmt.Println("gs params:", gs.Params)
-
 	k.SetParams(ctx, gs.Params)
 }
 
