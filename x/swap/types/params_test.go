@@ -17,11 +17,11 @@ import (
 )
 
 func TestParams_UnmarshalJSON(t *testing.T) {
-	pairs := types.NewPairs(
-		types.NewPair("ukava", "hard"),
-		types.NewPair("usdx", "hard"),
+	pools := types.NewAllowedPools(
+		types.NewAllowedPool("ukava", "hard"),
+		types.NewAllowedPool("usdx", "hard"),
 	)
-	pairData, err := json.Marshal(pairs)
+	poolData, err := json.Marshal(pools)
 	require.NoError(t, err)
 
 	fee, err := sdk.NewDecFromStr("0.5")
@@ -30,41 +30,39 @@ func TestParams_UnmarshalJSON(t *testing.T) {
 	require.NoError(t, err)
 
 	data := fmt.Sprintf(`{
-	"pairs": %s,
+	"allowedPools": %s,
 	"swap_fee": %s
-}`, string(pairData), string(feeData))
+}`, string(poolData), string(feeData))
 
 	var params types.Params
 	err = json.Unmarshal([]byte(data), &params)
 	require.NoError(t, err)
 
-	assert.Equal(t, pairs, params.Pairs)
+	assert.Equal(t, pools, params.AllowedPools)
 	assert.Equal(t, fee, params.SwapFee)
 }
 
 func TestParams_MarshalYAML(t *testing.T) {
-	pairs := types.NewPairs(
-		types.NewPair("ukava", "hard"),
-		types.NewPair("usdx", "hard"),
+	pools := types.NewAllowedPools(
+		types.NewAllowedPool("ukava", "hard"),
+		types.NewAllowedPool("usdx", "hard"),
 	)
 	fee, err := sdk.NewDecFromStr("0.5")
 	require.NoError(t, err)
 
 	p := types.Params{
-		Pairs:   pairs,
-		SwapFee: fee,
+		AllowedPools: pools,
+		SwapFee:      fee,
 	}
 
 	data, err := yaml.Marshal(p)
 	require.NoError(t, err)
 
-	fmt.Println(string(data))
-
 	var params map[string]interface{}
 	err = yaml.Unmarshal(data, &params)
 	require.NoError(t, err)
 
-	_, ok := params["pairs"]
+	_, ok := params["allowedPools"]
 	require.True(t, ok)
 	_, ok = params["swap_fee"]
 	require.True(t, ok)
@@ -75,29 +73,29 @@ func TestParams_Default(t *testing.T) {
 
 	require.NoError(t, defaultParams.Validate())
 
-	assert.Equal(t, types.DefaultPairs, defaultParams.Pairs)
+	assert.Equal(t, types.DefaultAllowedPools, defaultParams.AllowedPools)
 	assert.Equal(t, types.DefaultSwapFee, defaultParams.SwapFee)
 
-	assert.Equal(t, 0, len(defaultParams.Pairs))
+	assert.Equal(t, 0, len(defaultParams.AllowedPools))
 	assert.Equal(t, sdk.ZeroDec(), defaultParams.SwapFee)
 }
 
-func TestParams_ParamSetPairs_Pairs(t *testing.T) {
-	assert.Equal(t, []byte("Pairs"), types.KeyPairs)
+func TestParams_ParamSetPairs_AllowedPools(t *testing.T) {
+	assert.Equal(t, []byte("AllowedPools"), types.KeyAllowedPools)
 	defaultParams := types.DefaultParams()
 
 	var paramSetPair *paramstypes.ParamSetPair
 	for _, pair := range defaultParams.ParamSetPairs() {
-		if bytes.Compare(pair.Key, types.KeyPairs) == 0 {
+		if bytes.Compare(pair.Key, types.KeyAllowedPools) == 0 {
 			paramSetPair = &pair
 			break
 		}
 	}
 	require.NotNil(t, paramSetPair)
 
-	pairs, ok := paramSetPair.Value.(*types.Pairs)
+	pairs, ok := paramSetPair.Value.(*types.AllowedPools)
 	require.True(t, ok)
-	assert.Equal(t, pairs, &defaultParams.Pairs)
+	assert.Equal(t, pairs, &defaultParams.AllowedPools)
 
 	assert.Nil(t, paramSetPair.ValidatorFn(*pairs))
 	assert.EqualError(t, paramSetPair.ValidatorFn(struct{}{}), "invalid parameter type: struct {}")
@@ -133,19 +131,19 @@ func TestParams_Validation(t *testing.T) {
 	}{
 		{
 			name: "invalid denom",
-			key:  types.KeyPairs,
+			key:  types.KeyAllowedPools,
 			testFn: func(params *types.Params) {
-				params.Pairs = types.NewPairs(types.NewPair("UKAVA", "ukava"))
+				params.AllowedPools = types.NewAllowedPools(types.NewAllowedPool("UKAVA", "ukava"))
 			},
 			expectedErr: "invalid denom: UKAVA",
 		},
 		{
-			name: "duplicate pairs",
-			key:  types.KeyPairs,
+			name: "duplicate pools",
+			key:  types.KeyAllowedPools,
 			testFn: func(params *types.Params) {
-				params.Pairs = types.NewPairs(types.NewPair("ukava", "ukava"))
+				params.AllowedPools = types.NewAllowedPools(types.NewAllowedPool("ukava", "ukava"))
 			},
-			expectedErr: "pair cannot have two tokens of the same type, received 'ukava' and 'ukava'",
+			expectedErr: "pool cannot have two tokens of the same type, received 'ukava' and 'ukava'",
 		},
 		{
 			name: "nil swap fee",
@@ -220,9 +218,9 @@ func TestParams_Validation(t *testing.T) {
 
 func TestParams_String(t *testing.T) {
 	params := types.NewParams(
-		types.NewPairs(
-			types.NewPair("ukava", "hard"),
-			types.NewPair("ukava", "usdx"),
+		types.NewAllowedPools(
+			types.NewAllowedPool("ukava", "hard"),
+			types.NewAllowedPool("ukava", "usdx"),
 		),
 		sdk.MustNewDecFromStr("0.5"),
 	)

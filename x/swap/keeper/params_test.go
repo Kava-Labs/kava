@@ -18,8 +18,8 @@ func TestParams_SetterAndGetter(t *testing.T) {
 
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	params := types.Params{
-		Pairs: types.Pairs{
-			types.NewPair("usdx", "ukava"),
+		AllowedPools: types.AllowedPools{
+			types.NewAllowedPool("usdx", "ukava"),
 		},
 		SwapFee: sdk.MustNewDecFromStr("0.03"),
 	}
@@ -28,8 +28,8 @@ func TestParams_SetterAndGetter(t *testing.T) {
 
 	oldParams := params
 	params = types.Params{
-		Pairs: types.Pairs{
-			types.NewPair("hard", "ukava"),
+		AllowedPools: types.AllowedPools{
+			types.NewAllowedPool("hard", "ukava"),
 		},
 		SwapFee: sdk.MustNewDecFromStr("0.01"),
 	}

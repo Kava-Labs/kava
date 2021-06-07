@@ -9,31 +9,31 @@ import (
 
 // Parameter keys and default values
 var (
-	KeyPairs       = []byte("Pairs")
-	KeySwapFee     = []byte("SwapFee")
-	DefaultPairs   = Pairs{}
-	DefaultSwapFee = sdk.ZeroDec()
-	MaxSwapFee     = sdk.OneDec()
+	KeyAllowedPools     = []byte("AllowedPools")
+	KeySwapFee          = []byte("SwapFee")
+	DefaultAllowedPools = AllowedPools{}
+	DefaultSwapFee      = sdk.ZeroDec()
+	MaxSwapFee          = sdk.OneDec()
 )
 
 // Params are governance parameters for the swap module
 type Params struct {
-	Pairs   Pairs   `json:"pairs" yaml:"pairs"`
-	SwapFee sdk.Dec `json:"swap_fee" yaml:"swap_fee"`
+	AllowedPools AllowedPools `json:"allowedPools" yaml:"allowedPools"`
+	SwapFee      sdk.Dec      `json:"swap_fee" yaml:"swap_fee"`
 }
 
 // NewParams returns a new params object
-func NewParams(pairs Pairs, swapFee sdk.Dec) Params {
+func NewParams(pairs AllowedPools, swapFee sdk.Dec) Params {
 	return Params{
-		Pairs:   pairs,
-		SwapFee: swapFee,
+		AllowedPools: pairs,
+		SwapFee:      swapFee,
 	}
 }
 
 // DefaultParams returns default params for swap module
 func DefaultParams() Params {
 	return NewParams(
-		DefaultPairs,
+		DefaultAllowedPools,
 		DefaultSwapFee,
 	)
 }
@@ -41,9 +41,9 @@ func DefaultParams() Params {
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
-	Pairs: %s
+	AllowedPools: %s
 	SwapFee: %s`,
-		p.Pairs, p.SwapFee)
+		p.AllowedPools, p.SwapFee)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -51,25 +51,25 @@ func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
+// ParamSetAllowedPools implements the ParamSet interface and returns all the key/value pairs
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyPairs, &p.Pairs, validatePairsParams),
+		params.NewParamSetPair(KeyAllowedPools, &p.AllowedPools, validateAllowedPoolsParams),
 		params.NewParamSetPair(KeySwapFee, &p.SwapFee, validateSwapFee),
 	}
 }
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-	if err := validatePairsParams(p.Pairs); err != nil {
+	if err := validateAllowedPoolsParams(p.AllowedPools); err != nil {
 		return err
 	}
 
 	return validateSwapFee(p.SwapFee)
 }
 
-func validatePairsParams(i interface{}) error {
-	p, ok := i.(Pairs)
+func validateAllowedPoolsParams(i interface{}) error {
+	p, ok := i.(AllowedPools)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

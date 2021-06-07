@@ -21,8 +21,8 @@ func NewAuthGenStateFromAccs(accounts ...authexported.GenesisAccount) app.Genesi
 func NewSwapGenStateMulti() app.GenesisState {
 	swapGenesis := types.GenesisState{
 		Params: types.Params{
-			Pairs: types.Pairs{
-				types.NewPair("usdx", "ukava"),
+			AllowedPools: types.AllowedPools{
+				types.NewAllowedPool("usdx", "ukava"),
 			},
 			SwapFee: sdk.MustNewDecFromStr("0.03"),
 		},

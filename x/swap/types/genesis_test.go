@@ -32,8 +32,8 @@ func TestGenesis_Empty(t *testing.T) {
 func TestGenesis_NotEmpty(t *testing.T) {
 	nonEmptyGenesis := types.GenesisState{
 		Params: types.Params{
-			Pairs:   types.NewPairs(types.NewPair("ukava", "hard")),
-			SwapFee: sdk.ZeroDec(),
+			AllowedPools: types.NewAllowedPools(types.NewAllowedPool("ukava", "hard")),
+			SwapFee:      sdk.ZeroDec(),
 		},
 	}
 	assert.False(t, nonEmptyGenesis.IsEmpty())
@@ -68,8 +68,8 @@ func TestGenesis_Validate_SwapFee(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			genesisState := types.GenesisState{
 				Params: types.Params{
-					Pairs:   types.DefaultPairs,
-					SwapFee: tc.swapFee,
+					AllowedPools: types.DefaultAllowedPools,
+					SwapFee:      tc.swapFee,
 				},
 			}
 
@@ -83,22 +83,22 @@ func TestGenesis_Validate_SwapFee(t *testing.T) {
 	}
 }
 
-func TestGenesis_Validate_Pairs(t *testing.T) {
+func TestGenesis_Validate_AllowedPools(t *testing.T) {
 	type args struct {
 		name      string
-		pairs     types.Pairs
+		pairs     types.AllowedPools
 		expectErr bool
 	}
 	// More comprehensive pair validation tests are in pair_test.go, params_test.go
 	testCases := []args{
 		{
 			"normal",
-			types.DefaultPairs,
+			types.DefaultAllowedPools,
 			false,
 		},
 		{
 			"invalid",
-			types.Pairs{
+			types.AllowedPools{
 				{
 					TokenA: "same",
 					TokenB: "same",
@@ -112,8 +112,8 @@ func TestGenesis_Validate_Pairs(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			genesisState := types.GenesisState{
 				Params: types.Params{
-					Pairs:   tc.pairs,
-					SwapFee: types.DefaultSwapFee,
+					AllowedPools: tc.pairs,
+					SwapFee:      types.DefaultSwapFee,
 				},
 			}
 
@@ -129,7 +129,7 @@ func TestGenesis_Validate_Pairs(t *testing.T) {
 
 func TestGenesis_Equal(t *testing.T) {
 	params := types.Params{
-		types.NewPairs(types.NewPair("ukava", "usdx")),
+		types.NewAllowedPools(types.NewAllowedPool("ukava", "usdx")),
 		sdk.MustNewDecFromStr("0.85"),
 	}
 
@@ -141,7 +141,7 @@ func TestGenesis_Equal(t *testing.T) {
 
 func TestGenesis_NotEqual(t *testing.T) {
 	baseParams := types.Params{
-		types.NewPairs(types.NewPair("ukava", "usdx")),
+		types.NewAllowedPools(types.NewAllowedPool("ukava", "usdx")),
 		sdk.MustNewDecFromStr("0.85"),
 	}
 
@@ -156,7 +156,7 @@ func TestGenesis_NotEqual(t *testing.T) {
 
 	// Different pairs
 	genesisCParams := baseParams
-	genesisCParams.Pairs = types.NewPairs(types.NewPair("ukava", "hard"))
+	genesisCParams.AllowedPools = types.NewAllowedPools(types.NewAllowedPool("ukava", "hard"))
 	genesisC := types.GenesisState{genesisCParams}
 
 	// A and B have different swap fees

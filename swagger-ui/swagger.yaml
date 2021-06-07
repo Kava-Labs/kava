@@ -4865,11 +4865,11 @@ definitions:
       pairs:
         type: array
         items:
-          $ref: "#/definitions/Pair"
+          $ref: "#/definitions/AllowedPool"
       swap_fee:
         type: string
         example: "0.03"
-  Pair:
+  AllowedPool:
     type: object
     properties:
       token_a:
