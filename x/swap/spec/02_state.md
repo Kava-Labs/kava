@@ -11,18 +11,18 @@ order: 2
 ```go
 // Params are governance parameters for the swap module
 type Params struct {
-	Pairs   Pairs   `json:"pairs" yaml:"pairs"`
+	AllowedPools   AllowedPools   `json:"allowedPools" yaml:"allowedPools"`
 	SwapFee sdk.Dec `json:"swap_fee" yaml:"swap_fee"`
 }
 
-// Pair defines a tradable token pair
-type Pair struct {
+// AllowedPool defines a tradable pool
+type AllowedPool struct {
 	TokenA string `json:"token_a" yaml:"token_a"`
 	TokenB string `json:"token_b" yaml:"token_b"`
 }
 
-// Pairs is a slice of Pair
-type Pairs []Pair
+// AllowedPools is a slice of AllowedPool
+type AllowedPools []AllowedPool
 ```
 
 `GenesisState` defines the state that must be persisted when the blockchain stops/restarts in order for the normal function of the swap module to resume.
