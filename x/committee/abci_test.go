@@ -17,6 +17,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee"
+	"github.com/kava-labs/kava/x/committee/types"
 )
 
 type ModuleTestSuite struct {
@@ -39,26 +40,28 @@ func (suite *ModuleTestSuite) SetupTest() {
 func (suite *ModuleTestSuite) TestBeginBlock_ClosesExpired() {
 	suite.app.InitializeFromGenesisStates()
 
-	normalCom := committee.Committee{
-		ID:               12,
-		Members:          suite.addresses[:2],
-		Permissions:      []committee.Permission{committee.GodPermission{}},
-		VoteThreshold:    d("0.8"),
-		ProposalDuration: time.Hour * 24 * 7,
+	memberCom := committee.MemberCommittee{
+		BaseCommittee: committee.BaseCommittee{
+			ID:               12,
+			Members:          suite.addresses[:2],
+			Permissions:      []committee.Permission{committee.GodPermission{}},
+			VoteThreshold:    d("0.8"),
+			ProposalDuration: time.Hour * 24 * 7,
+		},
 	}
-	suite.keeper.SetCommittee(suite.ctx, normalCom)
+	suite.keeper.SetCommittee(suite.ctx, memberCom)
 
 	pprop1 := gov.NewTextProposal("Title 1", "A description of this proposal.")
-	id1, err := suite.keeper.SubmitProposal(suite.ctx, normalCom.Members[0], normalCom.ID, pprop1)
+	id1, err := suite.keeper.SubmitProposal(suite.ctx, memberCom.Members[0], memberCom.ID, pprop1)
 	suite.NoError(err)
 
 	oneHrLaterCtx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour))
 	pprop2 := gov.NewTextProposal("Title 2", "A description of this proposal.")
-	id2, err := suite.keeper.SubmitProposal(oneHrLaterCtx, normalCom.Members[0], normalCom.ID, pprop2)
+	id2, err := suite.keeper.SubmitProposal(oneHrLaterCtx, memberCom.Members[0], memberCom.ID, pprop2)
 	suite.NoError(err)
 
 	// Run BeginBlocker
-	proposalDurationLaterCtx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(normalCom.ProposalDuration))
+	proposalDurationLaterCtx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(memberCom.ProposalDuration))
 	suite.NotPanics(func() {
 		committee.BeginBlocker(proposalDurationLaterCtx, abci.RequestBeginBlock{}, suite.keeper)
 	})
@@ -74,13 +77,9 @@ func (suite *ModuleTestSuite) TestBeginBlock_EnactsPassed() {
 	suite.app.InitializeFromGenesisStates()
 
 	// setup committee
-	normalCom := committee.Committee{
-		ID:               12,
-		Members:          suite.addresses[:2],
-		Permissions:      []committee.Permission{committee.GodPermission{}},
-		VoteThreshold:    d("0.8"),
-		ProposalDuration: time.Hour * 24 * 7,
-	}
+	normalCom := committee.NewMemberCommittee(12, "committee description", suite.addresses[:2],
+		[]committee.Permission{committee.GodPermission{}}, d("0.8"), time.Hour*24*7, types.FirstPastThePost)
+
 	suite.keeper.SetCommittee(suite.ctx, normalCom)
 
 	// setup 2 proposals
@@ -109,9 +108,9 @@ func (suite *ModuleTestSuite) TestBeginBlock_EnactsPassed() {
 	suite.NoError(err)
 
 	// add enough votes to make the first proposal pass, but not the second
-	suite.NoError(suite.keeper.AddVote(suite.ctx, id1, suite.addresses[0]))
-	suite.NoError(suite.keeper.AddVote(suite.ctx, id1, suite.addresses[1]))
-	suite.NoError(suite.keeper.AddVote(suite.ctx, id2, suite.addresses[0]))
+	suite.NoError(suite.keeper.AddVote(suite.ctx, id1, suite.addresses[0], types.Yes))
+	suite.NoError(suite.keeper.AddVote(suite.ctx, id1, suite.addresses[1], types.Yes))
+	suite.NoError(suite.keeper.AddVote(suite.ctx, id2, suite.addresses[0], types.Yes))
 
 	// Run BeginBlocker
 	suite.NotPanics(func() {
@@ -131,16 +130,12 @@ func (suite *ModuleTestSuite) TestBeginBlock_DoesntEnactFailed() {
 	suite.app.InitializeFromGenesisStates()
 
 	// setup committee
-	normalCom := committee.Committee{
-		ID:               12,
-		Members:          suite.addresses[:1],
-		Permissions:      []committee.Permission{committee.SoftwareUpgradePermission{}},
-		VoteThreshold:    d("1.0"),
-		ProposalDuration: time.Hour * 24 * 7,
-	}
+	memberCom := committee.NewMemberCommittee(12, "committee description", suite.addresses[:1],
+		[]committee.Permission{committee.SoftwareUpgradePermission{}}, d("1.0"), time.Hour*24*7, types.FirstPastThePost)
+
 	firstBlockTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	ctx := suite.ctx.WithBlockTime(firstBlockTime)
-	suite.keeper.SetCommittee(ctx, normalCom)
+	suite.keeper.SetCommittee(ctx, memberCom)
 
 	// setup an upgrade proposal
 	pprop1 := upgrade.NewSoftwareUpgradeProposal("Title 1", "A description of this proposal.",
@@ -150,11 +145,11 @@ func (suite *ModuleTestSuite) TestBeginBlock_DoesntEnactFailed() {
 			Info: "some information about the upgrade",
 		},
 	)
-	id1, err := suite.keeper.SubmitProposal(ctx, normalCom.Members[0], normalCom.ID, pprop1)
+	id1, err := suite.keeper.SubmitProposal(ctx, memberCom.Members[0], memberCom.ID, pprop1)
 	suite.NoError(err)
 
 	// add enough votes to make the proposal pass
-	suite.NoError(suite.keeper.AddVote(ctx, id1, suite.addresses[0]))
+	suite.NoError(suite.keeper.AddVote(ctx, id1, suite.addresses[0], types.Yes))
 
 	// Run BeginBlocker 10 seconds later (5 seconds after upgrade expires)
 	tenSecLaterCtx := ctx.WithBlockTime(ctx.BlockTime().Add(time.Second * 10))
@@ -180,16 +175,20 @@ func (suite *ModuleTestSuite) TestBeginBlock_EnactsPassedUpgrade() {
 	suite.app.InitializeFromGenesisStates()
 
 	// setup committee
-	normalCom := committee.Committee{
-		ID:               12,
-		Members:          suite.addresses[:1],
-		Permissions:      []committee.Permission{committee.SoftwareUpgradePermission{}},
-		VoteThreshold:    d("1.0"),
-		ProposalDuration: time.Hour * 24 * 7,
+	memberCom := committee.MemberCommittee{
+		BaseCommittee: committee.BaseCommittee{
+			ID:               12,
+			Members:          suite.addresses[:1],
+			Permissions:      []committee.Permission{committee.SoftwareUpgradePermission{}},
+			VoteThreshold:    d("1.0"),
+			ProposalDuration: time.Hour * 24 * 7,
+			TallyOption:      types.FirstPastThePost,
+		},
 	}
+
 	firstBlockTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	ctx := suite.ctx.WithBlockTime(firstBlockTime)
-	suite.keeper.SetCommittee(ctx, normalCom)
+	suite.keeper.SetCommittee(ctx, memberCom)
 
 	// setup an upgrade proposal
 	pprop1 := upgrade.NewSoftwareUpgradeProposal("Title 1", "A description of this proposal.",
@@ -199,11 +198,11 @@ func (suite *ModuleTestSuite) TestBeginBlock_EnactsPassedUpgrade() {
 			Info: "some information about the upgrade",
 		},
 	)
-	id1, err := suite.keeper.SubmitProposal(ctx, normalCom.Members[0], normalCom.ID, pprop1)
+	id1, err := suite.keeper.SubmitProposal(ctx, memberCom.Members[0], memberCom.ID, pprop1)
 	suite.NoError(err)
 
 	// add enough votes to make the proposal pass
-	suite.NoError(suite.keeper.AddVote(ctx, id1, suite.addresses[0]))
+	suite.NoError(suite.keeper.AddVote(ctx, id1, suite.addresses[0], types.Yes))
 
 	// Run BeginBlocker
 	fiveSecLaterCtx := ctx.WithBlockTime(ctx.BlockTime().Add(time.Second * 5))

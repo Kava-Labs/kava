@@ -45,7 +45,7 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg types.MsgSubm
 }
 
 func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) (*sdk.Result, error) {
-	err := k.AddVote(ctx, msg.ProposalID, msg.Voter)
+	err := k.AddVote(ctx, msg.ProposalID, msg.Voter, msg.VoteType)
 	if err != nil {
 		return nil, err
 	}

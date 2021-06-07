@@ -10,6 +10,7 @@ import (
 const (
 	RestProposalID  = "proposal-id"
 	RestCommitteeID = "committee-id"
+	RestVote        = "vote"
 )
 
 // RegisterRoutes - Central function to define routes that get registered by the main application

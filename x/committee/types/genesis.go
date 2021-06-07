@@ -10,14 +10,14 @@ const DefaultNextProposalID uint64 = 1
 
 // GenesisState is state that must be provided at chain genesis.
 type GenesisState struct {
-	NextProposalID uint64      `json:"next_proposal_id" yaml:"next_proposal_id"`
-	Committees     []Committee `json:"committees" yaml:"committees"`
-	Proposals      []Proposal  `json:"proposals" yaml:"proposals"`
-	Votes          []Vote      `json:"votes" yaml:"votes"`
+	NextProposalID uint64     `json:"next_proposal_id" yaml:"next_proposal_id"`
+	Committees     Committees `json:"committees" yaml:"committees"`
+	Proposals      []Proposal `json:"proposals" yaml:"proposals"`
+	Votes          []Vote     `json:"votes" yaml:"votes"`
 }
 
 // NewGenesisState returns a new genesis state object for the module.
-func NewGenesisState(nextProposalID uint64, committees []Committee, proposals []Proposal, votes []Vote) GenesisState {
+func NewGenesisState(nextProposalID uint64, committees Committees, proposals []Proposal, votes []Vote) GenesisState {
 	return GenesisState{
 		NextProposalID: nextProposalID,
 		Committees:     committees,
@@ -30,7 +30,7 @@ func NewGenesisState(nextProposalID uint64, committees []Committee, proposals []
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
 		DefaultNextProposalID,
-		[]Committee{},
+		Committees{},
 		[]Proposal{},
 		[]Vote{},
 	)
@@ -54,10 +54,10 @@ func (gs GenesisState) Validate() error {
 	committeeMap := make(map[uint64]bool, len(gs.Committees))
 	for _, com := range gs.Committees {
 		// check there are no duplicate IDs
-		if _, ok := committeeMap[com.ID]; ok {
-			return fmt.Errorf("duplicate committee ID found in genesis state; id: %d", com.ID)
+		if _, ok := committeeMap[com.GetID()]; ok {
+			return fmt.Errorf("duplicate committee ID found in genesis state; id: %d", com.GetID())
 		}
-		committeeMap[com.ID] = true
+		committeeMap[com.GetID()] = true
 
 		// validate committee
 		if err := com.Validate(); err != nil {

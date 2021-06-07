@@ -299,6 +299,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		keys[committee.StoreKey],
 		committeeGovRouter,
 		app.paramsKeeper,
+		app.accountKeeper,
+		app.supplyKeeper,
 	)
 	app.kavadistKeeper = kavadist.NewKeeper(
 		app.cdc,

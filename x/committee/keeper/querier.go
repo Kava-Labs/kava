@@ -173,13 +173,32 @@ func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	_, found := keeper.GetProposal(ctx, params.ProposalID)
+	proposal, found := keeper.GetProposal(ctx, params.ProposalID)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", params.ProposalID)
 	}
-	numVotes := keeper.TallyVotes(ctx, params.ProposalID)
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, numVotes)
+	committee, found := keeper.GetCommittee(ctx, proposal.CommitteeID)
+	if !found {
+		return nil, sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", proposal.CommitteeID)
+	}
+
+	var pollingStatus types.ProposalPollingStatus
+	switch com := committee.(type) {
+	case types.MemberCommittee:
+		currVotes := keeper.TallyMemberCommitteeVotes(ctx, params.ProposalID)
+		possibleVotes := sdk.NewDec(int64(len(com.Members)))
+		memberPollingStatus := types.NewProposalPollingStatus(params.ProposalID, currVotes,
+			currVotes, possibleVotes, com.VoteThreshold, sdk.Dec{Int: nil})
+		pollingStatus = memberPollingStatus
+	case types.TokenCommittee:
+		yesVotes, _, currVotes, possibleVotes := keeper.TallyTokenCommitteeVotes(ctx, params.ProposalID, com.TallyDenom)
+		tokenPollingStatus := types.NewProposalPollingStatus(params.ProposalID, yesVotes,
+			currVotes, possibleVotes, com.VoteThreshold, com.Quorum)
+		pollingStatus = tokenPollingStatus
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, pollingStatus)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

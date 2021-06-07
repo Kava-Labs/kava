@@ -14,4 +14,5 @@ var (
 	ErrInvalidGenesis          = sdkerrors.Register(ModuleName, 8, "invalid genesis")
 	ErrNoProposalHandlerExists = sdkerrors.Register(ModuleName, 9, "pubproposal has no corresponding handler")
 	ErrUnknownSubspace         = sdkerrors.Register(ModuleName, 10, "subspace not found")
+	ErrInvalidVoteType         = sdkerrors.Register(ModuleName, 11, "invalid vote type")
 )

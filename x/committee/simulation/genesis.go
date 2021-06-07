@@ -3,6 +3,7 @@ package simulation
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -32,13 +33,14 @@ func RandomizedGenState(simState *module.SimulationState) {
 	// Without this, proposals can often not be submitted as there aren't any committees with the right set of permissions available.
 	// It provides more control over how often different proposal types happen during simulation.
 	// It also makes the code simpler--proposals can just be randomly generated and submitted without having to comply to permissions that happen to be available at the time.
-	fallbackCommittee := types.NewCommittee(
+	fallbackCommittee := types.NewMemberCommittee(
 		FallbackCommitteeID,
 		"A committee with god permissions that will always be in state and not deleted. It ensures any generated proposal can always be submitted and passed.",
 		RandomAddresses(r, simState.Accounts),
 		[]types.Permission{types.GodPermission{}},
 		sdk.MustNewDecFromStr("0.5"),
 		AverageBlockTime*10,
+		types.FirstPastThePost,
 	)
 
 	// Create other committees
@@ -66,7 +68,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 func RandomCommittee(r *rand.Rand, availableAccs []simulation.Account, allowedParams []types.AllowedParam) (types.Committee, error) {
 	// pick committee members
 	if len(availableAccs) < 1 {
-		return types.Committee{}, fmt.Errorf("must be ≥ 1 addresses")
+		return types.MemberCommittee{}, fmt.Errorf("must be ≥ 1 addresses")
 	}
 	var members []sdk.AccAddress
 	for len(members) < 1 {
@@ -76,20 +78,40 @@ func RandomCommittee(r *rand.Rand, availableAccs []simulation.Account, allowedPa
 	// pick proposal duration
 	dur, err := RandomPositiveDuration(r, 0, AverageBlockTime*10)
 	if err != nil {
-		return types.Committee{}, err
+		return types.MemberCommittee{}, err
 	}
 
 	// pick committee vote threshold, must be in interval (0,1]
 	threshold := simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1").Sub(sdk.SmallestDec())).Add(sdk.SmallestDec())
 
-	return types.NewCommittee(
-		r.Uint64(), // could collide with other committees, but unlikely
-		simulation.RandStringOfLength(r, r.Intn(types.MaxCommitteeDescriptionLength+1)),
-		members,
-		RandomPermissions(r, allowedParams),
-		threshold,
-		dur,
-	), nil
+	var committee types.Committee
+	if r.Uint64()%2 == 0 {
+		committee = types.NewMemberCommittee(
+			r.Uint64(), // could collide with other committees, but unlikely
+			simulation.RandStringOfLength(r, r.Intn(types.MaxCommitteeDescriptionLength+1)),
+			members,
+			RandomPermissions(r, allowedParams),
+			threshold,
+			dur,
+			types.FirstPastThePost,
+		)
+	} else {
+		tallyDenom := strings.ToLower(simulation.RandStringOfLength(r, (r.Intn(3) + 3)))
+
+		committee = types.NewTokenCommittee(
+			r.Uint64(), // could collide with other committees, but unlikely
+			simulation.RandStringOfLength(r, r.Intn(types.MaxCommitteeDescriptionLength+1)),
+			members,
+			RandomPermissions(r, allowedParams),
+			threshold,
+			dur,
+			types.FirstPastThePost,
+			sdk.MustNewDecFromStr("0.25"),
+			tallyDenom,
+		)
+	}
+
+	return committee, nil
 }
 
 func RandomPermissions(r *rand.Rand, allowedParams []types.AllowedParam) []types.Permission {

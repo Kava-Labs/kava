@@ -34,6 +34,11 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(CommitteeChangeProposal{}, "kava/CommitteeChangeProposal", nil)
 	cdc.RegisterConcrete(CommitteeDeleteProposal{}, "kava/CommitteeDeleteProposal", nil)
 
+	// Committees
+	cdc.RegisterInterface((*Committee)(nil), nil)
+	cdc.RegisterConcrete(MemberCommittee{}, "kava/MemberCommittee", nil)
+	cdc.RegisterConcrete(TokenCommittee{}, "kava/TokenCommittee", nil)
+
 	// Permissions
 	cdc.RegisterInterface((*Permission)(nil), nil)
 	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)

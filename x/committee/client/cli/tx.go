@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -100,11 +101,11 @@ For example:
 // GetCmdVote returns the command to vote on a proposal.
 func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:     "vote [proposal-id]",
-		Args:    cobra.ExactArgs(1),
+		Use:     "vote [proposal-id] [vote]",
+		Args:    cobra.ExactArgs(2),
 		Short:   "Vote for an active proposal",
-		Long:    "Submit a yes vote for the proposal with id [proposal-id].",
-		Example: fmt.Sprintf("%s tx %s vote 2", version.ClientName, types.ModuleName),
+		Long:    "Submit a [yes/no/abstain] vote for the proposal with id [proposal-id].",
+		Example: fmt.Sprintf("%s tx %s vote 2 yes", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -119,8 +120,25 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("proposal-id %s not a valid int, please input a valid proposal-id", args[0])
 			}
 
+			rawVote := strings.ToLower(strings.TrimSpace(args[1]))
+			if len(rawVote) == 0 {
+				return fmt.Errorf("must specify a vote")
+			}
+
+			var vote types.VoteType
+			switch rawVote {
+			case "yes", "y":
+				vote = types.Yes
+			case "no", "n":
+				vote = types.No
+			case "abstain", "a":
+				vote = types.Abstain
+			default:
+				return fmt.Errorf("must specify a valid vote type: (yes/y, no/n, abstain/a)")
+			}
+
 			// Build vote message and run basic validation
-			msg := types.NewMsgVote(from, proposalID)
+			msg := types.NewMsgVote(from, proposalID, vote)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -192,7 +210,7 @@ func MustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
 	exampleChangeProposal := types.NewCommitteeChangeProposal(
 		"A Title",
 		"A description of this proposal.",
-		types.NewCommittee(
+		types.NewMemberCommittee(
 			1,
 			"The description of this committee.",
 			[]sdk.AccAddress{sdk.AccAddress(crypto.AddressHash([]byte("exampleAddress")))},
@@ -203,6 +221,7 @@ func MustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
 			},
 			sdk.MustNewDecFromStr("0.8"),
 			time.Hour*24*7,
+			types.FirstPastThePost,
 		),
 	)
 	exampleChangeProposalBz, err := cdc.MarshalJSONIndent(exampleChangeProposal, "", "  ")
@@ -228,10 +247,11 @@ func MustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
 
 // MustGetExampleParameterChangeProposal is a helper function to return an example json proposal
 func MustGetExampleParameterChangeProposal(cdc *codec.Codec) string {
+	value := fmt.Sprintf("\"%d\"", 1000000000)
 	exampleParameterChangeProposal := params.NewParameterChangeProposal(
 		"A Title",
 		"A description of this proposal.",
-		[]params.ParamChange{params.NewParamChange("cdp", "SurplusAuctionThreshold", "1000000000")},
+		[]params.ParamChange{params.NewParamChange("cdp", "SurplusAuctionThreshold", value)},
 	)
 	exampleParameterChangeProposalBz, err := cdc.MarshalJSONIndent(exampleParameterChangeProposal, "", "  ")
 	if err != nil {
