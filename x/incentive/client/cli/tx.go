@@ -100,15 +100,15 @@ func getCmdClaimCdpVVesting(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
+func getCmdClaimHardVVesting(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "claim-hard-vesting [multiplier] [receiver]",
+		Use:   "claim-hard [multiplier] [receiver]",
 		Short: "claim Hard module rewards on behalf of a validator vesting account using a given multiplier",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Claim sender's outstanding Hard rewards on behalf of a validator vesting account for deposit/borrow/delegate using given multiplier
 
 			Example:
-			$ %s tx %s claim-hard-vesting largek ava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+			$ %s tx %s claim-hard large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
 		`, version.ClientName, types.ModuleName),
 		),
 		Args: cobra.ExactArgs(2),
@@ -135,7 +135,7 @@ func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-func getCmdClaimHardVVesting(cdc *codec.Codec) *cobra.Command {
+func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "claim-hard-vesting [multiplier]",
 		Short: "claim sender's Hard module rewards using a given multiplier",
