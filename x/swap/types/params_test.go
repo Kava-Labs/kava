@@ -18,8 +18,8 @@ import (
 
 func TestParams_UnmarshalJSON(t *testing.T) {
 	pools := types.NewAllowedPools(
-		types.NewAllowedPool("ukava", "hard"),
-		types.NewAllowedPool("usdx", "hard"),
+		types.NewAllowedPool("hard", "ukava"),
+		types.NewAllowedPool("hard", "usdx"),
 	)
 	poolData, err := json.Marshal(pools)
 	require.NoError(t, err)
@@ -44,8 +44,8 @@ func TestParams_UnmarshalJSON(t *testing.T) {
 
 func TestParams_MarshalYAML(t *testing.T) {
 	pools := types.NewAllowedPools(
-		types.NewAllowedPool("ukava", "hard"),
-		types.NewAllowedPool("usdx", "hard"),
+		types.NewAllowedPool("hard", "ukava"),
+		types.NewAllowedPool("hard", "usdx"),
 	)
 	fee, err := sdk.NewDecFromStr("0.5")
 	require.NoError(t, err)
@@ -219,7 +219,7 @@ func TestParams_Validation(t *testing.T) {
 func TestParams_String(t *testing.T) {
 	params := types.NewParams(
 		types.NewAllowedPools(
-			types.NewAllowedPool("ukava", "hard"),
+			types.NewAllowedPool("hard", "ukava"),
 			types.NewAllowedPool("ukava", "usdx"),
 		),
 		sdk.MustNewDecFromStr("0.5"),

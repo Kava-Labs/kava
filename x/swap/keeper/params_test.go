@@ -19,7 +19,7 @@ func TestParams_SetterAndGetter(t *testing.T) {
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	params := types.Params{
 		AllowedPools: types.AllowedPools{
-			types.NewAllowedPool("usdx", "ukava"),
+			types.NewAllowedPool("ukava", "usdx"),
 		},
 		SwapFee: sdk.MustNewDecFromStr("0.03"),
 	}

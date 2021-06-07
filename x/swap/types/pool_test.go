@@ -51,6 +51,11 @@ func TestAllowedPool_Validation(t *testing.T) {
 			allowedPool: types.NewAllowedPool("ukava", "ukava"),
 			expectedErr: "pool cannot have two tokens of the same type, received 'ukava' and 'ukava'",
 		},
+		{
+			name:        "invalid token order",
+			allowedPool: types.NewAllowedPool("usdx", "ukava"),
+			expectedErr: "invalid token order: 'ukava' must come before 'usdx'",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -78,13 +83,13 @@ func TestAllowedPool_TokenMatch(t *testing.T) {
 }
 
 func TestAllowedPool_String(t *testing.T) {
-	allowedPool := types.NewAllowedPool("ukava", "hard")
+	allowedPool := types.NewAllowedPool("hard", "ukava")
 	require.NoError(t, allowedPool.Validate())
 
 	output := `AllowedPool:
   Name: hard/ukava
-	Token A: ukava
-	Token B: hard
+	Token A: hard
+	Token B: ukava
 `
 	assert.Equal(t, output, allowedPool.String())
 }
@@ -111,15 +116,15 @@ func TestAllowedPool_Name(t *testing.T) {
 			name:   "a001/a002",
 		},
 		{
-			tokens: "ukava hard",
+			tokens: "hard ukava",
 			name:   "hard/ukava",
 		},
 		{
-			tokens: "hard bnb",
+			tokens: "bnb hard",
 			name:   "bnb/hard",
 		},
 		{
-			tokens: "xrpb bnb",
+			tokens: "bnb xrpb",
 			name:   "bnb/xrpb",
 		},
 	}
@@ -132,11 +137,7 @@ func TestAllowedPool_Name(t *testing.T) {
 			allowedPool := types.NewAllowedPool(tokens[0], tokens[1])
 			require.NoError(t, allowedPool.Validate())
 
-			allowedPoolReverse := types.NewAllowedPool(tokens[1], tokens[0])
-			require.NoError(t, allowedPoolReverse.Validate())
-
 			assert.Equal(t, tc.name, allowedPool.Name())
-			assert.Equal(t, tc.name, allowedPoolReverse.Name())
 		})
 	}
 }
@@ -148,9 +149,9 @@ func TestAllowedPools_Validate(t *testing.T) {
 		expectedErr  string
 	}{
 		{
-			name: "invalid allowedPool",
+			name: "invalid pool",
 			allowedPools: types.NewAllowedPools(
-				types.NewAllowedPool("ukava", "hard"),
+				types.NewAllowedPool("hard", "ukava"),
 				types.NewAllowedPool("HARD", "UKAVA"),
 			),
 			expectedErr: "invalid denom: HARD",
@@ -158,7 +159,7 @@ func TestAllowedPools_Validate(t *testing.T) {
 		{
 			name: "duplicate pool",
 			allowedPools: types.NewAllowedPools(
-				types.NewAllowedPool("ukava", "hard"),
+				types.NewAllowedPool("hard", "ukava"),
 				types.NewAllowedPool("hard", "ukava"),
 			),
 			expectedErr: "duplicate pool: hard/ukava",
@@ -167,7 +168,7 @@ func TestAllowedPools_Validate(t *testing.T) {
 			name: "duplicate pools",
 			allowedPools: types.NewAllowedPools(
 				types.NewAllowedPool("hard", "ukava"),
-				types.NewAllowedPool("usdx", "bnb"),
+				types.NewAllowedPool("bnb", "usdx"),
 				types.NewAllowedPool("btcb", "xrpb"),
 				types.NewAllowedPool("bnb", "usdx"),
 			),

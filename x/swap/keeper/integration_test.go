@@ -22,7 +22,7 @@ func NewSwapGenStateMulti() app.GenesisState {
 	swapGenesis := types.GenesisState{
 		Params: types.Params{
 			AllowedPools: types.AllowedPools{
-				types.NewAllowedPool("usdx", "ukava"),
+				types.NewAllowedPool("ukava", "usdx"),
 			},
 			SwapFee: sdk.MustNewDecFromStr("0.03"),
 		},

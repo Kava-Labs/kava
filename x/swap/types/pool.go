@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// AllowedPool defines a tradable token allowedPool
+// AllowedPool defines a tradable pool
 type AllowedPool struct {
 	TokenA string `json:"token_a" yaml:"token_a"`
 	TokenB string `json:"token_b" yaml:"token_b"`
@@ -39,16 +39,19 @@ func (p AllowedPool) Validate() error {
 		)
 	}
 
+	if p.TokenA > p.TokenB {
+		return fmt.Errorf(
+			"invalid token order: '%s' must come before '%s'",
+			p.TokenB, p.TokenA,
+		)
+	}
+
 	return nil
 }
 
 // Name returns a unique name for a allowedPool in alphabetical order
 func (p AllowedPool) Name() string {
-	if p.TokenA < p.TokenB {
-		return fmt.Sprintf("%s/%s", p.TokenA, p.TokenB)
-	}
-
-	return fmt.Sprintf("%s/%s", p.TokenB, p.TokenA)
+	return fmt.Sprintf("%s/%s", p.TokenA, p.TokenB)
 }
 
 // String pretty prints the allowedPool
