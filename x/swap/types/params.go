@@ -16,7 +16,7 @@ var (
 	MaxSwapFee     = sdk.OneDec()
 )
 
-// Params governance parameters for swap module
+// Params are governance parameters for the swap module
 type Params struct {
 	Pairs   Pairs   `json:"pairs" yaml:"pairs"`
 	SwapFee sdk.Dec `json:"swap_fee" yaml:"swap_fee"`

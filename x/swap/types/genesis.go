@@ -2,7 +2,7 @@ package types
 
 import "bytes"
 
-// GenesisState defines genesis data for the module
+// GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
 	Params Params `json:"params" yaml:"params"`
 }
