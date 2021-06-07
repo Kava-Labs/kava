@@ -54,17 +54,17 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	return gs.Validate()
 }
 
-// RegisterRESTRoutes registers  REST routes for the hard module.
+// RegisterRESTRoutes registers REST routes for the swap module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
 	rest.RegisterRoutes(ctx, rtr)
 }
 
-// GetTxCmd returns the root tx command for the hard module.
+// GetTxCmd returns the root tx command for the swap module.
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetTxCmd(cdc)
 }
 
-// GetQueryCmd returns no root query command for the hard module.
+// GetQueryCmd returns no root query command for the swap module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(types.StoreKey, cdc)
 }
@@ -140,7 +140,7 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 
 //____________________________________________________________________________
 
-// // GenerateGenesisState creates a randomized GenState of the hard module
+// // GenerateGenesisState creates a randomized GenState of the swap module
 // func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 // 	simulation.RandomizedGenState(simState)
 // }
@@ -150,17 +150,17 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 // 	return nil
 // }
 
-// // RandomizedParams returns nil because hard has no params.
+// // RandomizedParams returns nil because swap has no params.
 // func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 // 	return simulation.ParamChanges(r)
 // }
 
-// // RegisterStoreDecoder registers a decoder for hard module's types
+// // RegisterStoreDecoder registers a decoder for swap module's types
 // func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 // 	sdr[StoreKey] = simulation.DecodeStore
 // }
 
-// // WeightedOperations returns the all the hard module operations with their respective weights.
+// // WeightedOperations returns the all the swap module operations with their respective weights.
 // func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
 // 	return nil
 // }

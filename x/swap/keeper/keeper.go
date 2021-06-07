@@ -8,7 +8,7 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
-// Keeper keeper for the hard module
+// Keeper keeper for the swap module
 type Keeper struct {
 	key           sdk.StoreKey
 	cdc           *codec.Codec

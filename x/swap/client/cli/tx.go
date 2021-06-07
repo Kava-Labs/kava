@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/x/swap/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
