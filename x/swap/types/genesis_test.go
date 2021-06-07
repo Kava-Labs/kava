@@ -65,20 +65,21 @@ func TestGenesis_Validate_SwapFee(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			genesisState := types.GenesisState{
+				Params: types.Params{
+					Pairs:   types.DefaultPairs,
+					SwapFee: tc.swapFee,
+				},
+			}
 
-		genesisState := types.GenesisState{
-			Params: types.Params{
-				Pairs:   types.DefaultPairs,
-				SwapFee: tc.swapFee,
-			},
-		}
-
-		err := genesisState.Validate()
-		if tc.expectErr {
-			assert.NotNil(t, err)
-		} else {
-			assert.Nil(t, err)
-		}
+			err := genesisState.Validate()
+			if tc.expectErr {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
 	}
 }
 
@@ -108,20 +109,21 @@ func TestGenesis_Validate_Pairs(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			genesisState := types.GenesisState{
+				Params: types.Params{
+					Pairs:   tc.pairs,
+					SwapFee: types.DefaultSwapFee,
+				},
+			}
 
-		genesisState := types.GenesisState{
-			Params: types.Params{
-				Pairs:   tc.pairs,
-				SwapFee: types.DefaultSwapFee,
-			},
-		}
-
-		err := genesisState.Validate()
-		if tc.expectErr {
-			assert.NotNil(t, err)
-		} else {
-			assert.Nil(t, err)
-		}
+			err := genesisState.Validate()
+			if tc.expectErr {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
 	}
 }
 

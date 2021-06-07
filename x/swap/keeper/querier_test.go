@@ -37,6 +37,13 @@ func (suite *QuerierTestSuite) SetupTest() {
 	suite.querier = keeper.NewQuerier(suite.keeper)
 }
 
+func (suite *QuerierTestSuite) TestUnkownRequest() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	bz, err := suite.querier(ctx, []string{"invalid-path"}, abci.RequestQuery{})
+	suite.Nil(bz)
+	suite.EqualError(err, "unknown request: unknown swap query endpoint")
+}
+
 func (suite *QuerierTestSuite) TestQueryParams() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	bz, err := suite.querier(ctx, []string{types.QueryGetParams}, abci.RequestQuery{})
