@@ -17,6 +17,7 @@ func NewAnteHandler(ak keeper.AccountKeeper, supplyKeeper types.SupplyKeeper, si
 		decorators = append(decorators, NewAuthenticatedMempoolDecorator(addressFetchers...))
 	}
 	decorators = append(decorators,
+		NewUpdateV142MempoolDecorator(),
 		ante.NewMempoolFeeDecorator(),
 		ante.NewValidateBasicDecorator(),
 		ante.NewValidateMemoDecorator(ak),
