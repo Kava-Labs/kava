@@ -69,7 +69,7 @@ func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keep
 		})
 		// move fallback committee to the end of slice
 		for i, c := range committees {
-			if c.ID == FallbackCommitteeID {
+			if c.GetID() == FallbackCommitteeID {
 				// switch places with last element
 				committees[i], committees[len(committees)-1] = committees[len(committees)-1], committees[i]
 			}
@@ -94,11 +94,11 @@ func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keep
 		}
 
 		// create the msg and tx
-		proposer := selectedCommittee.Members[r.Intn(len(selectedCommittee.Members))] // won't panic as committees must have ≥ 1 members
+		proposer := selectedCommittee.GetMembers()[r.Intn(len(selectedCommittee.GetMembers()))] // won't panic as committees must have ≥ 1 members
 		msg := types.NewMsgSubmitProposal(
 			pp,
 			proposer,
-			selectedCommittee.ID,
+			selectedCommittee.GetID(),
 		)
 		account := ak.GetAccount(ctx, proposer)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
@@ -138,15 +138,15 @@ func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keep
 
 		// pick the voters
 		// num voters determined by whether the proposal should pass or not
-		numMembers := int64(len(selectedCommittee.Members))
-		majority := selectedCommittee.VoteThreshold.Mul(sdk.NewInt(numMembers).ToDec()).Ceil().TruncateInt64()
+		numMembers := int64(len(selectedCommittee.GetMembers()))
+		majority := selectedCommittee.GetVoteThreshold().Mul(sdk.NewInt(numMembers).ToDec()).Ceil().TruncateInt64()
 
 		numVoters := r.Int63n(majority) // in interval [0, majority)
 		shouldPass := r.Float64() < proposalPassPercentage
 		if shouldPass {
 			numVoters = majority + r.Int63n(numMembers-majority+1) // in interval [majority, numMembers]
 		}
-		voters := selectedCommittee.Members[:numVoters]
+		voters := selectedCommittee.GetMembers()[:numVoters]
 
 		// schedule vote operations
 		var futureOps []simulation.FutureOperation
@@ -155,9 +155,17 @@ func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keep
 			if err != nil {
 				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("random time generation failed: %w", err)
 			}
+
+			// Valid vote types: 0, 1, 2
+			randInt, err := RandIntInclusive(r, sdk.ZeroInt(), sdk.NewInt(2))
+			if err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("random vote type generation failed: %w", err)
+			}
+			voteType := types.VoteType(randInt.Int64())
+
 			fop := simulation.FutureOperation{
 				BlockTime: voteTime,
-				Op:        SimulateMsgVote(k, ak, v, proposal.ID),
+				Op:        SimulateMsgVote(k, ak, v, proposal.ID, voteType),
 			}
 			futureOps = append(futureOps, fop)
 		}
@@ -166,11 +174,11 @@ func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keep
 	}
 }
 
-func SimulateMsgVote(k keeper.Keeper, ak AccountKeeper, voter sdk.AccAddress, proposalID uint64) simulation.Operation {
+func SimulateMsgVote(k keeper.Keeper, ak AccountKeeper, voter sdk.AccAddress, proposalID uint64, voteType types.VoteType) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		opMsg simulation.OperationMsg, fOps []simulation.FutureOperation, err error) {
 
-		msg := types.NewMsgVote(voter, proposalID)
+		msg := types.NewMsgVote(voter, proposalID, voteType)
 
 		account := ak.GetAccount(ctx, voter)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))

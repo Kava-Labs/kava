@@ -2409,7 +2409,29 @@ paths:
                   $ref: "#/definitions/Coin"
         500:
           description: Server internal error
-
+  /swap/parameters:
+    get:
+      summary: Get the current parameters of the swap module
+      tags:
+        - Swap
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Swap module parameters
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                type: array
+                x-nullable: true
+                items:
+                  $ref: "#/definitions/SwapParams"
+        500:
+          description: Server internal error
   /bank/accounts/{address}/transfers:
     post:
       summary: Send coins from one account to another
@@ -4837,6 +4859,25 @@ definitions:
       active:
         type: boolean
         example: true
+  SwapParams:
+    type: object
+    properties:
+      allowed_pools:
+        type: array
+        items:
+          $ref: "#/definitions/AllowedPool"
+      swap_fee:
+        type: string
+        example: "0.03"
+  AllowedPool:
+    type: object
+    properties:
+      token_a:
+        type: string
+        example: "ukava"
+      token_b:
+        type: string
+        example: "usdx"
   HardParams:
     type: object
     properties:

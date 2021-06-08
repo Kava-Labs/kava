@@ -38,7 +38,7 @@ func SimulateCommitteeChangeProposalContent(k keeper.Keeper, paramChanges []simu
 		// get current committees, ignoring the fallback committee
 		var committees []types.Committee
 		k.IterateCommittees(ctx, func(com types.Committee) bool {
-			if com.ID != FallbackCommitteeID {
+			if com.GetID() != FallbackCommitteeID {
 				committees = append(committees, com)
 			}
 			return false
@@ -85,11 +85,11 @@ func SimulateCommitteeChangeProposalContent(k keeper.Keeper, paramChanges []simu
 				for len(members) < 1 {
 					members = RandomAddresses(r, firstNAccounts(25, accs)) // limit num members to avoid overflowing hardcoded gov ops gas limit
 				}
-				com.Members = members
+				com.SetMembers(members)
 			}
 			// update permissions
 			if r.Intn(100) < 50 {
-				com.Permissions = RandomPermissions(r, allowedParams)
+				com.SetPermissions(RandomPermissions(r, allowedParams))
 			}
 			// update proposal duration
 			if r.Intn(100) < 50 {
@@ -97,12 +97,12 @@ func SimulateCommitteeChangeProposalContent(k keeper.Keeper, paramChanges []simu
 				if err != nil {
 					panic(err)
 				}
-				com.ProposalDuration = dur
+				com.SetProposalDuration(dur)
 			}
 			// update vote threshold
 			if r.Intn(100) < 50 {
 				// VoteThreshold must be in interval (0,1]
-				com.VoteThreshold = simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1").Sub(sdk.SmallestDec())).Add(sdk.SmallestDec())
+				com.SetVoteThreshold(simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1").Sub(sdk.SmallestDec())).Add(sdk.SmallestDec()))
 			}
 
 			content = types.NewCommitteeChangeProposal(
@@ -117,7 +117,7 @@ func SimulateCommitteeChangeProposalContent(k keeper.Keeper, paramChanges []simu
 			content = types.NewCommitteeDeleteProposal(
 				simulation.RandStringOfLength(r, 10),
 				simulation.RandStringOfLength(r, 100),
-				com.ID,
+				com.GetID(),
 			)
 		}
 

@@ -635,14 +635,15 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 			suite.Require().NoError(err)
 
 			// 5. Committee votes and passes proposal
-			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne, committee.Yes)
 			suite.Require().NoError(err)
-			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo, committee.Yes)
 			suite.Require().NoError(err)
 
 			// 6. Check proposal passed
-			proposalPasses, err := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID)
-			suite.Require().NoError(err)
+			com, found := suite.committeeKeeper.GetCommittee(suite.ctx, 1)
+			suite.Require().True(found)
+			proposalPasses := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID, com)
 			suite.Require().True(proposalPasses)
 
 			// 7. Run committee module's begin blocker to enact proposal

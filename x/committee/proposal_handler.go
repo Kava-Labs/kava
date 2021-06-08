@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/kava-labs/kava/x/committee/types"
 )
 
 func NewProposalHandler(k Keeper) govtypes.Handler {
@@ -26,9 +27,9 @@ func handleCommitteeChangeProposal(ctx sdk.Context, k Keeper, committeeProposal 
 	}
 
 	// Remove all committee's ongoing proposals
-	proposals := k.GetProposalsByCommittee(ctx, committeeProposal.NewCommittee.ID)
+	proposals := k.GetProposalsByCommittee(ctx, committeeProposal.NewCommittee.GetID())
 	for _, p := range proposals {
-		k.DeleteProposalAndVotes(ctx, p.ID)
+		k.CloseProposal(ctx, p, types.Failed)
 	}
 
 	// update/create the committee
@@ -44,7 +45,7 @@ func handleCommitteeDeleteProposal(ctx sdk.Context, k Keeper, committeeProposal 
 	// Remove all committee's ongoing proposals
 	proposals := k.GetProposalsByCommittee(ctx, committeeProposal.CommitteeID)
 	for _, p := range proposals {
-		k.DeleteProposalAndVotes(ctx, p.ID)
+		k.CloseProposal(ctx, p, types.Failed)
 	}
 
 	k.DeleteCommittee(ctx, committeeProposal.CommitteeID)

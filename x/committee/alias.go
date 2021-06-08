@@ -14,9 +14,6 @@ const (
 	AttributeKeyProposalID          = types.AttributeKeyProposalID
 	AttributeKeyVoter               = types.AttributeKeyVoter
 	AttributeValueCategory          = types.AttributeValueCategory
-	AttributeValueProposalFailed    = types.AttributeValueProposalFailed
-	AttributeValueProposalPassed    = types.AttributeValueProposalPassed
-	AttributeValueProposalTimeout   = types.AttributeValueProposalTimeout
 	DefaultNextProposalID           = types.DefaultNextProposalID
 	DefaultParamspace               = types.DefaultParamspace
 	EventTypeProposalClose          = types.EventTypeProposalClose
@@ -24,6 +21,7 @@ const (
 	EventTypeProposalVote           = types.EventTypeProposalVote
 	MaxCommitteeDescriptionLength   = types.MaxCommitteeDescriptionLength
 	ModuleName                      = types.ModuleName
+	No                              = types.No
 	ProposalTypeCommitteeChange     = types.ProposalTypeCommitteeChange
 	ProposalTypeCommitteeDelete     = types.ProposalTypeCommitteeDelete
 	QuerierRoute                    = types.QuerierRoute
@@ -40,25 +38,23 @@ const (
 	StoreKey                        = types.StoreKey
 	TypeMsgSubmitProposal           = types.TypeMsgSubmitProposal
 	TypeMsgVote                     = types.TypeMsgVote
+	Yes                             = types.Yes
 )
 
 var (
 	// function aliases
 	NewKeeper                   = keeper.NewKeeper
 	NewQuerier                  = keeper.NewQuerier
-	RegisterInvariants          = keeper.RegisterInvariants
-	ValidCommitteesInvariant    = keeper.ValidCommitteesInvariant
-	ValidProposalsInvariant     = keeper.ValidProposalsInvariant
-	ValidVotesInvariant         = keeper.ValidVotesInvariant
 	DefaultGenesisState         = types.DefaultGenesisState
 	GetKeyFromID                = types.GetKeyFromID
 	GetVoteKey                  = types.GetVoteKey
 	NewAllowedCollateralParam   = types.NewAllowedCollateralParam
 	NewAllowedMoneyMarket       = types.NewAllowedMoneyMarket
-	NewCommittee                = types.NewCommittee
 	NewCommitteeChangeProposal  = types.NewCommitteeChangeProposal
 	NewCommitteeDeleteProposal  = types.NewCommitteeDeleteProposal
 	NewGenesisState             = types.NewGenesisState
+	NewMemberCommittee          = types.NewMemberCommittee
+	NewTokenCommittee           = types.NewTokenCommittee
 	NewMsgSubmitProposal        = types.NewMsgSubmitProposal
 	NewMsgVote                  = types.NewMsgVote
 	NewProposal                 = types.NewProposal
@@ -104,12 +100,15 @@ type (
 	AllowedParam                = types.AllowedParam
 	AllowedParams               = types.AllowedParams
 	Committee                   = types.Committee
+	BaseCommittee               = types.BaseCommittee
 	CommitteeChangeProposal     = types.CommitteeChangeProposal
 	CommitteeDeleteProposal     = types.CommitteeDeleteProposal
 	GenesisState                = types.GenesisState
 	GodPermission               = types.GodPermission
 	MsgSubmitProposal           = types.MsgSubmitProposal
+	MemberCommittee             = types.MemberCommittee
 	MsgVote                     = types.MsgVote
+	TokenCommittee              = types.TokenCommittee
 	ParamKeeper                 = types.ParamKeeper
 	Permission                  = types.Permission
 	Proposal                    = types.Proposal
