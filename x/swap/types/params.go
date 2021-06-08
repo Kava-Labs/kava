@@ -18,7 +18,7 @@ var (
 
 // Params are governance parameters for the swap module
 type Params struct {
-	AllowedPools AllowedPools `json:"allowedPools" yaml:"allowedPools"`
+	AllowedPools AllowedPools `json:"allowed_pools" yaml:"allowed_pools"`
 	SwapFee      sdk.Dec      `json:"swap_fee" yaml:"swap_fee"`
 }
 

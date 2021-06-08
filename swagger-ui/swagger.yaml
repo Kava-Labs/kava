@@ -4862,7 +4862,7 @@ definitions:
   SwapParams:
     type: object
     properties:
-      allowedPools:
+      allowed_pools:
         type: array
         items:
           $ref: "#/definitions/AllowedPool"

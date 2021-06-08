@@ -30,7 +30,7 @@ func TestParams_UnmarshalJSON(t *testing.T) {
 	require.NoError(t, err)
 
 	data := fmt.Sprintf(`{
-	"allowedPools": %s,
+	"allowed_pools": %s,
 	"swap_fee": %s
 }`, string(poolData), string(feeData))
 
@@ -62,7 +62,7 @@ func TestParams_MarshalYAML(t *testing.T) {
 	err = yaml.Unmarshal(data, &params)
 	require.NoError(t, err)
 
-	_, ok := params["allowedPools"]
+	_, ok := params["allowed_pools"]
 	require.True(t, ok)
 	_, ok = params["swap_fee"]
 	require.True(t, ok)
