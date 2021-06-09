@@ -5,7 +5,6 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/swap"
-	"github.com/kava-labs/kava/x/swap/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
@@ -34,9 +33,9 @@ func (suite *handlerTestSuite) SetupTest() {
 }
 
 func (suite *handlerTestSuite) TestDeposit_CreatePool() {
-	pool := types.NewAllowedPool("ukava", "usdx")
+	pool := swap.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
-	suite.keeper.SetParams(suite.ctx, types.NewParams(types.NewAllowedPools(pool), types.DefaultSwapFee))
+	suite.keeper.SetParams(suite.ctx, swap.NewParams(swap.NewAllowedPools(pool), swap.DefaultSwapFee))
 
 	balance := sdk.NewCoins(
 		sdk.NewCoin(pool.TokenA, sdk.NewInt(10e6)),
@@ -57,6 +56,12 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	suite.ModuleAccountBalanceEqual(balance)
 	suite.PoolLiquidtyEqual(pool, balance)
 	suite.PoolShareValueEqual(depositor, pool, balance)
+
+	suite.EventsContains(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, depositor.String()),
+	))
 
 	suite.EventsContains(sdk.NewEvent(
 		swap.EventTypeSwapDeposit,

@@ -8,15 +8,16 @@ import (
 )
 
 const (
-	AttributeKeyDepositor = types.AttributeKeyDepositor
-	AttributeKeyPoolName  = types.AttributeKeyPoolName
-	DefaultParamspace     = types.DefaultParamspace
-	EventTypeSwapDeposit  = types.EventTypeSwapDeposit
-	ModuleName            = types.ModuleName
-	QuerierRoute          = types.QuerierRoute
-	QueryGetParams        = types.QueryGetParams
-	RouterKey             = types.RouterKey
-	StoreKey              = types.StoreKey
+	AttributeKeyDepositor  = types.AttributeKeyDepositor
+	AttributeKeyPoolName   = types.AttributeKeyPoolName
+	AttributeValueCategory = types.AttributeValueCategory
+	DefaultParamspace      = types.DefaultParamspace
+	EventTypeSwapDeposit   = types.EventTypeSwapDeposit
+	ModuleName             = types.ModuleName
+	QuerierRoute           = types.QuerierRoute
+	QueryGetParams         = types.QueryGetParams
+	RouterKey              = types.RouterKey
+	StoreKey               = types.StoreKey
 )
 
 var (
