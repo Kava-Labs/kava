@@ -12,8 +12,9 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
-	"github.com/kava-labs/kava/x/committee/types"
+	comtypes "github.com/kava-labs/kava/x/committee/types"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
+	v0_15swap "github.com/kava-labs/kava/x/swap/types"
 )
 
 var (
@@ -75,7 +76,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	for _, com := range genesisState.Committees {
 		if com.ID == 1 {
 			// Initialize member committee without permissions
-			stabilityCom := types.NewMemberCommittee(com.ID, com.Description, com.Members,
+			stabilityCom := comtypes.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{}, com.VoteThreshold, com.ProposalDuration,
 				v0_15committee.FirstPastThePost)
 
@@ -171,7 +172,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 			newStabilityCom := v0_15committee.MemberCommittee{BaseCommittee: baseStabilityCom}
 			committees = append(committees, newStabilityCom)
 		} else {
-			safetyCom := types.NewMemberCommittee(com.ID, com.Description, com.Members,
+			safetyCom := comtypes.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{v0_15committee.SoftwareUpgradePermission{}},
 				com.VoteThreshold, com.ProposalDuration, v0_15committee.FirstPastThePost)
 			committees = append(committees, safetyCom)
@@ -179,7 +180,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	}
 
 	for _, v := range genesisState.Votes {
-		newVote := v0_15committee.NewVote(v.ProposalID, v.Voter, types.Yes)
+		newVote := v0_15committee.NewVote(v.ProposalID, v.Voter, comtypes.Yes)
 		votes = append(votes, v0_15committee.Vote(newVote))
 	}
 
@@ -190,4 +191,9 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	}
 	return v0_15committee.NewGenesisState(
 		genesisState.NextProposalID, committees, proposals, votes)
+}
+
+// Swap migrates new swap module state to a v0.15 swap genesis state
+func Swap(genesisState v0_15swap.GenesisState) v0_15swap.GenesisState {
+	return v0_15swap.NewGenesisState(genesisState.Params)
 }
