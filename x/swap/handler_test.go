@@ -66,6 +66,17 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	))
 }
 
+func (suite *handlerTestSuite) GetAccount(initialBalance sdk.Coins) authexported.Account {
+	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	ak := suite.app.GetAccountKeeper()
+
+	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
+	acc.SetCoins(initialBalance)
+
+	ak.SetAccount(suite.ctx, acc)
+	return acc
+}
+
 func (suite *handlerTestSuite) TestInvalidMsg() {
 	res, err := suite.handler(suite.ctx, sdk.NewTestMsg())
 	suite.Nil(res)
