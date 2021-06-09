@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -80,6 +81,18 @@ func (suite *handlerTestSuite) GetAccount(initialBalance sdk.Coins) authexported
 
 	ak.SetAccount(suite.ctx, acc)
 	return acc
+}
+
+func (suite *handlerTestSuite) AccountBalanceEqual(acc authexported.Account, coins sdk.Coins) {
+	ak := suite.app.GetAccountKeeper()
+	acc = ak.GetAccount(suite.ctx, acc.GetAddress())
+	suite.Equal(acc.GetCoins(), coins)
+}
+
+func (suite *handlerTestSuite) ModuleAccountBalanceEqual(coins sdk.Coins) {
+	sk := suite.app.GetSupplyKeeper()
+	macc, _ := sk.GetModuleAccountAndPermissions(suite.ctx, swap.ModuleName)
+	suite.Equal(macc.GetCoins(), coins)
 }
 
 func (suite *handlerTestSuite) TestInvalidMsg() {
