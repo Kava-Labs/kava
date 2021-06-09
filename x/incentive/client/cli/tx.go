@@ -27,7 +27,9 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	incentiveTxCmd.AddCommand(flags.PostCommands(
 		getCmdClaimCdp(cdc),
+		getCmdClaimCdpVVesting(cdc),
 		getCmdClaimHard(cdc),
+		getCmdClaimHardVVesting(cdc),
 	)...)
 
 	return incentiveTxCmd
@@ -55,6 +57,76 @@ func getCmdClaimCdp(cdc *codec.Codec) *cobra.Command {
 
 			msg := types.NewMsgClaimUSDXMintingReward(sender, multiplier)
 			err := msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+func getCmdClaimCdpVVesting(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "claim-cdp-vesting [multiplier] [receiver]",
+		Short: "claim CDP rewards using a given multiplier on behalf of a validator vesting account",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Claim sender's outstanding CDP rewards on behalf of a validator vesting using a given multiplier
+
+			Example:
+			$ %s tx %s claim-cdp-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+		`, version.ClientName, types.ModuleName),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			sender := cliCtx.GetFromAddress()
+			multiplier := args[0]
+			receiverStr := args[1]
+			receiver, err := sdk.AccAddressFromBech32(receiverStr)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgClaimUSDXMintingRewardVVesting(sender, receiver, multiplier)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+func getCmdClaimHardVVesting(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "claim-hard-vesting [multiplier] [receiver]",
+		Short: "claim Hard module rewards on behalf of a validator vesting account using a given multiplier",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Claim sender's outstanding Hard rewards on behalf of a validator vesting account for deposit/borrow/delegate using given multiplier
+
+			Example:
+			$ %s tx %s claim-hard-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+		`, version.ClientName, types.ModuleName),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			sender := cliCtx.GetFromAddress()
+			multiplier := args[0]
+			receiverStr := args[1]
+			receiver, err := sdk.AccAddressFromBech32(receiverStr)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgClaimHardRewardVVesting(sender, receiver, multiplier)
+			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}

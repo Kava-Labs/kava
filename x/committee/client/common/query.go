@@ -159,6 +159,6 @@ func calculateDeadline(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 		return deadline, err
 	}
 
-	deadline = resultBlock.Block.Header.Time.Add(committee.ProposalDuration)
+	deadline = resultBlock.Block.Header.Time.Add(committee.GetProposalDuration())
 	return deadline, nil
 }

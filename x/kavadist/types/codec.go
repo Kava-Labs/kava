@@ -14,4 +14,5 @@ func init() {
 
 // RegisterCodec registers the necessary types for cdp module
 func RegisterCodec(cdc *codec.Codec) {
+	cdc.RegisterConcrete(CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal", nil)
 }

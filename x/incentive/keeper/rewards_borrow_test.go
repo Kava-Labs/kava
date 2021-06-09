@@ -741,11 +741,13 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			suite.Require().NoError(err)
 
 			// 5. Committee votes and passes proposal
-			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne)
-			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne, committee.Yes)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo, committee.Yes)
 
 			// 6. Check proposal passed
-			proposalPasses, err := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID)
+			com, found := suite.committeeKeeper.GetCommittee(suite.ctx, 1)
+			suite.Require().True(found)
+			proposalPasses := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID, com)
 			suite.Require().NoError(err)
 			suite.Require().True(proposalPasses)
 

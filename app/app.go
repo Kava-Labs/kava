@@ -69,7 +69,7 @@ var (
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler, distr.ProposalHandler, committee.ProposalHandler,
-			upgradeclient.ProposalHandler,
+			upgradeclient.ProposalHandler, kavadist.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -303,6 +303,16 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		keys[committee.StoreKey],
 		committeeGovRouter,
 		app.paramsKeeper,
+		app.accountKeeper,
+		app.supplyKeeper,
+	)
+	app.kavadistKeeper = kavadist.NewKeeper(
+		app.cdc,
+		keys[kavadist.StoreKey],
+		kavadistSubspace,
+		app.supplyKeeper,
+		app.distrKeeper,
+		app.ModuleAccountAddrs(),
 	)
 
 	// create gov keeper with router
@@ -312,7 +322,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
-		AddRoute(committee.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
+		AddRoute(committee.RouterKey, committee.NewProposalHandler(app.committeeKeeper)).
+		AddRoute(kavadist.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper))
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
 		keys[gov.StoreKey],
@@ -368,12 +379,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		&stakingKeeper,
 		app.pricefeedKeeper,
 		app.auctionKeeper,
-	)
-	app.kavadistKeeper = kavadist.NewKeeper(
-		app.cdc,
-		keys[kavadist.StoreKey],
-		kavadistSubspace,
-		app.supplyKeeper,
 	)
 	app.incentiveKeeper = incentive.NewKeeper(
 		app.cdc,
