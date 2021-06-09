@@ -44,11 +44,11 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	)
 	depositor := suite.GetAccount(balance)
 
-	deposit := swap.NewMsgDeposit{
-		depositor: depositor.GetAddress(),
-		depositor.GetCoins().AmountOf(pool.TokenA),
-		depositor.GetCoins().AmountOf(pool.TokenB),
-	}
+	deposit := swap.NewMsgDeposit(
+		depositor.GetAddress(),
+		sdk.NewCoin(pool.TokenA, depositor.GetCoins().AmountOf(pool.TokenA)),
+		sdk.NewCoin(pool.TokenB, depositor.GetCoins().AmountOf(pool.TokenB)),
+	)
 
 	res, err := suite.handler(suite.ctx, deposit)
 	suite.Require().NoError(err)
@@ -59,9 +59,9 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	suite.PoolShareValueEqual(depositor, pool, balance)
 
 	suite.EventsContains(sdk.NewEvent(
-		types.EventTypeSwapPoolDeposit,
-		sdk.NewAttribute(types.AttributeKeyPoolName, pool.Name()),
-		sdk.NewAttribute(types.AttributeKeyDepositor, depositor.GetAddress.String()),
+		swap.EventTypeSwapDeposit,
+		sdk.NewAttribute(swap.AttributeKeyPoolName, pool.Name()),
+		sdk.NewAttribute(swap.AttributeKeyDepositor, depositor.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, balance.String()),
 	))
 }
