@@ -1,23 +1,75 @@
 package keeper_test
 
 import (
+	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee"
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/hard"
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
+// Test suite used for all keeper tests
+type BorrowRewardsTestSuite struct {
+	suite.Suite
+
+	keeper          keeper.Keeper
+	hardKeeper      hardkeeper.Keeper
+	committeeKeeper committeekeeper.Keeper
+
+	app app.TestApp
+	ctx sdk.Context
+
+	genesisTime time.Time
+	addrs       []sdk.AccAddress
+}
+
+// SetupTest is run automatically before each suite test
+func (suite *BorrowRewardsTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
+	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
+
+	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+}
+
+func (suite *BorrowRewardsTestSuite) SetupApp() {
+	suite.app = app.NewTestApp()
+
+	suite.keeper = suite.app.GetIncentiveKeeper()
+	suite.hardKeeper = suite.app.GetHardKeeper()
+	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
+
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
+}
+
+func (suite *BorrowRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder IncentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
+	suite.SetupApp()
+
+	suite.app.InitializeFromGenesisStatesWithTime(
+		suite.genesisTime,
+		authBuilder.BuildMarshalled(),
+		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
+		hardBuilder.BuildMarshalled(),
+		NewCommitteeGenesisState(suite.addrs[:2]), // TODO add committee members to suite,
+		incentBuilder.BuildMarshalled(),
+	)
+}
+
+func (suite *BorrowRewardsTestSuite) TestAccumulateHardBorrowRewards() {
 	type args struct {
 		borrow                sdk.Coin
 		rewardsPerSecond      sdk.Coins
-		initialTime           time.Time
 		timeElapsed           int
 		expectedRewardIndexes types.RewardIndexes
 	}
@@ -31,7 +83,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			args{
 				borrow:                c("bnb", 1000000000000),
 				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:           7,
 				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.000000856478000001"))},
 			},
@@ -41,7 +92,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			args{
 				borrow:                c("bnb", 1000000000000),
 				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:           86400,
 				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.010571385600010177"))},
 			},
@@ -51,7 +101,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			args{
 				borrow:                c("bnb", 1000000000000),
 				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:           0,
 				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.0"))},
 			},
@@ -61,7 +110,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			args{
 				borrow:           c("bnb", 1000000000000),
 				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:      7,
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("0.000000856478000001")),
@@ -74,7 +122,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			args{
 				borrow:           c("bnb", 1000000000000),
 				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:      86400,
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("0.010571385600010177")),
@@ -87,7 +134,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			args{
 				borrow:           c("bnb", 1000000000000),
 				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:      0,
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("0.0")),
@@ -100,7 +146,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			args{
 				borrow:           c("bnb", 1000000000000),
 				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 555555)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:      86400,
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("0.010571385600010177")),
@@ -111,43 +156,22 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
-
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
-			// setup incentive state
-			params := types.NewParams(
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
-				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				tc.args.initialTime.Add(time.Hour*24*365*5),
+			userAddr := suite.addrs[3]
+			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(
+				userAddr,
+				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
-			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
-			var rewardIndexes types.RewardIndexes
-			for _, rewardCoin := range tc.args.rewardsPerSecond {
-				rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
-				rewardIndexes = append(rewardIndexes, rewardIndex)
-			}
-			suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom, rewardIndexes)
 
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetBorrowInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleBorrowRewardPeriod(tc.args.borrow.Denom, tc.args.rewardsPerSecond)
+
+			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
 			// User deposits and borrows to increase total borrowed amount
-			hardKeeper := suite.app.GetHardKeeper()
-			userAddr := suite.addrs[3]
-			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin(tc.args.borrow.Denom, tc.args.borrow.Amount.Mul(sdk.NewInt(2)))))
+			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin(tc.args.borrow.Denom, tc.args.borrow.Amount.Mul(sdk.NewInt(2)))))
 			suite.Require().NoError(err)
-			err = hardKeeper.Borrow(suite.ctx, userAddr, sdk.NewCoins(tc.args.borrow))
+			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, sdk.NewCoins(tc.args.borrow))
 			suite.Require().NoError(err)
 
 			// Set up chain context at future time
@@ -175,13 +199,12 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
+func (suite *BorrowRewardsTestSuite) TestInitializeHardBorrowRewards() {
 
 	type args struct {
-		moneyMarketRewardDenoms          map[string][]string
+		moneyMarketRewardDenoms          map[string]sdk.Coins
 		deposit                          sdk.Coins
 		borrow                           sdk.Coins
-		initialTime                      time.Time
 		expectedClaimBorrowRewardIndexes types.MultiRewardIndexes
 	}
 	type test struct {
@@ -189,10 +212,9 @@ func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
 		args args
 	}
 
-	standardMoneyMarketRewardDenoms := map[string][]string{
-		"bnb":  {"hard"},
-		"btcb": {"hard", "ukava"},
-		"xrp":  {},
+	standardMoneyMarketRewardDenoms := map[string]sdk.Coins{
+		"bnb":  cs(c("hard", 1)),
+		"btcb": cs(c("hard", 1), c("ukava", 1)),
 	}
 
 	testCases := []test{
@@ -202,7 +224,6 @@ func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
 				moneyMarketRewardDenoms: standardMoneyMarketRewardDenoms,
 				deposit:                 cs(c("bnb", 1000000000000)),
 				borrow:                  cs(c("bnb", 100000000000)),
-				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedClaimBorrowRewardIndexes: types.MultiRewardIndexes{
 					types.NewMultiRewardIndex(
 						"bnb",
@@ -219,7 +240,6 @@ func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
 				moneyMarketRewardDenoms: standardMoneyMarketRewardDenoms,
 				deposit:                 cs(c("btcb", 1000000000000)),
 				borrow:                  cs(c("btcb", 100000000000)),
-				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedClaimBorrowRewardIndexes: types.MultiRewardIndexes{
 					types.NewMultiRewardIndex(
 						"btcb",
@@ -237,7 +257,6 @@ func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
 				moneyMarketRewardDenoms: standardMoneyMarketRewardDenoms,
 				deposit:                 cs(c("xrp", 1000000000000)),
 				borrow:                  cs(c("xrp", 100000000000)),
-				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedClaimBorrowRewardIndexes: types.MultiRewardIndexes{
 					types.NewMultiRewardIndex(
 						"xrp",
@@ -252,7 +271,6 @@ func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
 				moneyMarketRewardDenoms: standardMoneyMarketRewardDenoms,
 				deposit:                 cs(c("bnb", 1000000000000), c("btcb", 1000000000000)),
 				borrow:                  cs(c("bnb", 100000000000), c("btcb", 100000000000)),
-				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedClaimBorrowRewardIndexes: types.MultiRewardIndexes{
 					types.NewMultiRewardIndex(
 						"bnb",
@@ -276,7 +294,6 @@ func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
 				moneyMarketRewardDenoms: standardMoneyMarketRewardDenoms,
 				deposit:                 cs(c("bnb", 1000000000000), c("xrp", 1000000000000)),
 				borrow:                  cs(c("bnb", 100000000000), c("xrp", 100000000000)),
-				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedClaimBorrowRewardIndexes: types.MultiRewardIndexes{
 					types.NewMultiRewardIndex(
 						"bnb",
@@ -294,64 +311,24 @@ func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
-
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
 			userAddr := suite.addrs[3]
-
-			// Prepare money market + reward params
-			i := 0
-			var multiRewardPeriods types.MultiRewardPeriods
-			var rewardPeriods types.RewardPeriods
-			for moneyMarketDenom, rewardDenoms := range tc.args.moneyMarketRewardDenoms {
-				// Set up multi reward periods for supply/borrow indexes with dynamic money market denoms/reward denoms
-				var rewardsPerSecond sdk.Coins
-				for _, rewardDenom := range rewardDenoms {
-					rewardsPerSecond = append(rewardsPerSecond, sdk.NewCoin(rewardDenom, sdk.OneInt()))
-				}
-				multiRewardPeriod := types.NewMultiRewardPeriod(true, moneyMarketDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), rewardsPerSecond)
-				multiRewardPeriods = append(multiRewardPeriods, multiRewardPeriod)
-
-				// Set up generic reward periods for usdx minting/delegator indexes
-				if i == 0 && len(rewardDenoms) > 0 {
-					rewardPeriod := types.NewRewardPeriod(true, moneyMarketDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), rewardsPerSecond[i])
-					rewardPeriods = append(rewardPeriods, rewardPeriod)
-					i++
-				}
-			}
-
-			// Initialize and set incentive params
-			params := types.NewParams(
-				rewardPeriods, multiRewardPeriods, multiRewardPeriods, rewardPeriods,
-				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				tc.args.initialTime.Add(time.Hour*24*365*5),
+			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(
+				userAddr,
+				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
-			suite.keeper.SetParams(suite.ctx, params)
 
-			// Set each money market's previous accrual time and supply reward indexes
-			for moneyMarketDenom, rewardDenoms := range tc.args.moneyMarketRewardDenoms {
-				var rewardIndexes types.RewardIndexes
-				for _, rewardDenom := range rewardDenoms {
-					rewardIndex := types.NewRewardIndex(rewardDenom, sdk.ZeroDec())
-					rewardIndexes = append(rewardIndexes, rewardIndex)
-				}
-				suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, moneyMarketDenom, tc.args.initialTime)
-				if len(rewardIndexes) > 0 {
-					suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, moneyMarketDenom, rewardIndexes)
-				}
+			incentBuilder := NewIncentiveGenesisBuilder().WithGenesisTime(suite.genesisTime)
+			for moneyMarketDenom, rewardsPerSecond := range tc.args.moneyMarketRewardDenoms {
+				incentBuilder = incentBuilder.WithSimpleBorrowRewardPeriod(moneyMarketDenom, rewardsPerSecond)
 			}
 
-			hardKeeper := suite.app.GetHardKeeper()
+			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
+
 			// User deposits
-			err := hardKeeper.Deposit(suite.ctx, userAddr, tc.args.deposit)
+			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, tc.args.deposit)
 			suite.Require().NoError(err)
 			// User borrows
-			err = hardKeeper.Borrow(suite.ctx, userAddr, tc.args.borrow)
+			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, tc.args.borrow)
 			suite.Require().NoError(err)
 
 			claim, foundClaim := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
@@ -361,12 +338,11 @@ func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
+func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 	type args struct {
 		incentiveBorrowRewardDenom   string
 		borrow                       sdk.Coin
 		rewardsPerSecond             sdk.Coins
-		initialTime                  time.Time
 		blockTimes                   []int
 		expectedRewardIndexes        types.RewardIndexes
 		expectedRewards              sdk.Coins
@@ -389,7 +365,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				incentiveBorrowRewardDenom: "bnb",
 				borrow:                     c("bnb", 10000000000),
 				rewardsPerSecond:           cs(c("hard", 122354)),
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:                 []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardIndexes:      types.RewardIndexes{types.NewRewardIndex("hard", d("0.001223540000173228"))},
 				expectedRewards:            cs(c("hard", 12235400)),
@@ -402,7 +377,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				incentiveBorrowRewardDenom: "bnb",
 				borrow:                     c("bnb", 10000000000),
 				rewardsPerSecond:           cs(c("hard", 122354)),
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:                 []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
 				expectedRewardIndexes:      types.RewardIndexes{types.NewRewardIndex("hard", d("10.571385603126235340"))},
 				expectedRewards:            cs(c("hard", 105713856031)),
@@ -414,7 +388,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				incentiveBorrowRewardDenom: "ukava",
 				borrow:                     c("ukava", 1), // borrow a tiny amount so that rewards round to zero
 				rewardsPerSecond:           cs(c("hard", 122354)),
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:                 []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardIndexes:      types.RewardIndexes{types.NewRewardIndex("hard", d("0.122354003908172328"))},
 				expectedRewards:            cs(),
@@ -427,7 +400,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				incentiveBorrowRewardDenom: "bnb",
 				borrow:                     c("bnb", 10000000000),
 				rewardsPerSecond:           cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:                 []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("0.001223540000173228")),
@@ -442,7 +414,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				incentiveBorrowRewardDenom: "bnb",
 				borrow:                     c("bnb", 10000000000),
 				rewardsPerSecond:           cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:                 []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("10.571385603126235340")),
@@ -457,7 +428,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				incentiveBorrowRewardDenom: "bnb",
 				borrow:                     c("bnb", 10000000000),
 				rewardsPerSecond:           cs(c("hard", 122354), c("ukava", 555555)),
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:                 []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("0.001223540000173228")),
@@ -467,32 +437,11 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			},
 		},
 		{
-			"denom is in incentive's hard borrow reward params but it has no rewards; add reward",
-			args{
-				incentiveBorrowRewardDenom: "bnb",
-				borrow:                     c("bnb", 10000000000),
-				rewardsPerSecond:           sdk.Coins{},
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				blockTimes:                 []int{100},
-				expectedRewardIndexes:      types.RewardIndexes{},
-				expectedRewards:            sdk.Coins{},
-				updateRewardsViaCommmittee: true,
-				updatedBaseDenom:           "bnb",
-				updatedRewardsPerSecond:    cs(c("hard", 100000)),
-				updatedExpectedRewards:     cs(c("hard", 8640000000)),
-				updatedExpectedRewardIndexes: types.RewardIndexes{
-					types.NewRewardIndex("hard", d("0.864000000049803065")),
-				},
-				updatedTimeDuration: 86400,
-			},
-		},
-		{
 			"denom is in incentive's hard borrow reward params and has rewards; add new reward type",
 			args{
 				incentiveBorrowRewardDenom: "bnb",
 				borrow:                     c("bnb", 10000000000),
 				rewardsPerSecond:           cs(c("hard", 122354)),
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:                 []int{86400},
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("1.057138560060101160")),
@@ -514,8 +463,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			args{
 				incentiveBorrowRewardDenom: "bnb",
 				borrow:                     c("zzz", 10000000000),
-				rewardsPerSecond:           sdk.Coins{},
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				rewardsPerSecond:           nil,
 				blockTimes:                 []int{100},
 				expectedRewardIndexes:      types.RewardIndexes{},
 				expectedRewards:            sdk.Coins{},
@@ -530,34 +478,11 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			},
 		},
 		{
-			"denom incentive's hard borrow reward params but it has no rewards; add multiple reward types",
-			args{
-				incentiveBorrowRewardDenom: "bnb",
-				borrow:                     c("bnb", 10000000000),
-				rewardsPerSecond:           sdk.Coins{},
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				blockTimes:                 []int{100},
-				expectedRewardIndexes:      types.RewardIndexes{},
-				expectedRewards:            sdk.Coins{},
-				updateRewardsViaCommmittee: true,
-				updatedBaseDenom:           "bnb",
-				updatedRewardsPerSecond:    cs(c("hard", 100000), c("ukava", 100500), c("swap", 500)),
-				updatedExpectedRewards:     cs(c("hard", 8640000000), c("ukava", 8683200001), c("swap", 43200000)),
-				updatedExpectedRewardIndexes: types.RewardIndexes{
-					types.NewRewardIndex("hard", d("0.864000000049803065")),
-					types.NewRewardIndex("ukava", d("0.868320000050052081")),
-					types.NewRewardIndex("swap", d("0.004320000000249015")),
-				},
-				updatedTimeDuration: 86400,
-			},
-		},
-		{
 			"denom is in hard's money market params but not in incentive's hard supply reward params; add multiple reward types",
 			args{
 				incentiveBorrowRewardDenom: "bnb",
 				borrow:                     c("zzz", 10000000000),
-				rewardsPerSecond:           sdk.Coins{},
-				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				rewardsPerSecond:           nil,
 				blockTimes:                 []int{100},
 				expectedRewardIndexes:      types.RewardIndexes{},
 				expectedRewards:            sdk.Coins{},
@@ -573,45 +498,23 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				updatedTimeDuration: 86400,
 			},
 		},
+		// TODO test synchronize when there is a reward period with 0 rewardsPerSecond
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+			userAddr := suite.addrs[3]
+			authBuilder := app.NewAuthGenesisBuilder().
+				WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
+				WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)))
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
-
-			// Set up incentive state
-			incentiveParams := types.NewParams(
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.incentiveBorrowRewardDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), c("hard", 1))},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.incentiveBorrowRewardDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), sdk.Coins{})}, // Don't set any supply rewards for easier accounting
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.incentiveBorrowRewardDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.incentiveBorrowRewardDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), c("hard", 1))},
-				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				tc.args.initialTime.Add(time.Hour*24*365*5),
-			)
-			suite.keeper.SetParams(suite.ctx, incentiveParams)
-			suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, tc.args.incentiveBorrowRewardDenom, tc.args.initialTime)
-			var rewardIndexes types.RewardIndexes
-			for _, rewardCoin := range tc.args.rewardsPerSecond {
-				rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
-				rewardIndexes = append(rewardIndexes, rewardIndex)
+			incentBuilder := NewIncentiveGenesisBuilder().WithGenesisTime(suite.genesisTime)
+			if tc.args.rewardsPerSecond != nil {
+				incentBuilder = incentBuilder.WithSimpleBorrowRewardPeriod(tc.args.incentiveBorrowRewardDenom, tc.args.rewardsPerSecond)
 			}
-			if len(rewardIndexes) > 0 {
-				suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, tc.args.incentiveBorrowRewardDenom, rewardIndexes)
-			}
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetBorrowInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
 			// Set the minimum borrow to 0 to allow testing small borrows
-			hardParams := suite.hardKeeper.GetParams(suite.ctx)
-			hardParams.MinimumBorrowUSDValue = sdk.ZeroDec()
-			suite.hardKeeper.SetParams(suite.ctx, hardParams)
+			hardBuilder := NewHardGenStateMulti(suite.genesisTime).WithMinBorrow(sdk.ZeroDec())
+
+			suite.SetupWithGenState(authBuilder, incentBuilder, hardBuilder)
 
 			// Borrow a fixed amount from another user to dilute primary user's rewards per second.
 			suite.Require().NoError(
@@ -622,11 +525,9 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			)
 
 			// User deposits and borrows to increase total borrowed amount
-			hardKeeper := suite.app.GetHardKeeper()
-			userAddr := suite.addrs[3]
-			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin(tc.args.borrow.Denom, tc.args.borrow.Amount.Mul(sdk.NewInt(2)))))
+			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin(tc.args.borrow.Denom, tc.args.borrow.Amount.Mul(sdk.NewInt(2)))))
 			suite.Require().NoError(err)
-			err = hardKeeper.Borrow(suite.ctx, userAddr, sdk.NewCoins(tc.args.borrow))
+			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, sdk.NewCoins(tc.args.borrow))
 			suite.Require().NoError(err)
 
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim
@@ -662,7 +563,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
 
 			// After we've accumulated, run synchronize
-			borrow, found := hardKeeper.GetBorrow(suite.ctx, userAddr)
+			borrow, found := suite.hardKeeper.GetBorrow(suite.ctx, userAddr)
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
 				suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
@@ -714,7 +615,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				// Borrow denom's reward period does not exist
 				_, found := currIncentiveHardBorrowRewardPeriods.GetMultiRewardPeriodIndex(tc.args.borrow.Denom)
 				suite.Require().False(found)
-				newMultiRewardPeriod := types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.updatedRewardsPerSecond)
+				newMultiRewardPeriod := types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, suite.genesisTime, suite.genesisTime.Add(time.Hour*24*365*4), tc.args.updatedRewardsPerSecond)
 				currIncentiveHardBorrowRewardPeriods = append(currIncentiveHardBorrowRewardPeriods, newMultiRewardPeriod)
 			}
 
@@ -742,7 +643,9 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 
 			// 5. Committee votes and passes proposal
 			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne, committee.Yes)
+			suite.Require().NoError(err)
 			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo, committee.Yes)
+			suite.Require().NoError(err)
 
 			// 6. Check proposal passed
 			com, found := suite.committeeKeeper.GetCommittee(suite.ctx, 1)
@@ -774,7 +677,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			suite.Require().NoError(err)
 
 			// After we've accumulated, run synchronize
-			borrow, found = hardKeeper.GetBorrow(suite.ctx, userAddr)
+			borrow, found = suite.hardKeeper.GetBorrow(suite.ctx, userAddr)
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
 				suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
@@ -808,7 +711,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
+func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 	type withdrawModification struct {
 		coins sdk.Coins
 		repay bool
@@ -819,7 +722,6 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 		firstBorrow               sdk.Coins
 		modification              withdrawModification
 		rewardsPerSecond          sdk.Coins
-		initialTime               time.Time
 		expectedBorrowIndexDenoms []string
 	}
 	type test struct {
@@ -835,7 +737,6 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 				firstBorrow:               cs(c("bnb", 50000000)),
 				modification:              withdrawModification{coins: cs(c("ukava", 500000000))},
 				rewardsPerSecond:          cs(c("hard", 122354)),
-				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"bnb", "ukava"},
 			},
 		},
@@ -846,7 +747,6 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 				firstBorrow:               cs(c("btcb", 50000000)),
 				modification:              withdrawModification{coins: cs(c("ukava", 500000000), c("bnb", 50000000000), c("xrp", 50000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354)),
-				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"btcb", "ukava", "bnb", "xrp"},
 			},
 		},
@@ -857,7 +757,6 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 				firstBorrow:               cs(c("bnb", 50000000)),
 				modification:              withdrawModification{coins: cs(c("bnb", 50000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354)),
-				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"bnb"},
 			},
 		},
@@ -868,7 +767,6 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 				firstBorrow:               cs(c("bnb", 50000000)),
 				modification:              withdrawModification{coins: cs(c("ukava", 500000000))},
 				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"bnb", "ukava"},
 			},
 		},
@@ -879,7 +777,6 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 				firstBorrow:               cs(c("btcb", 50000000)),
 				modification:              withdrawModification{coins: cs(c("ukava", 500000000), c("bnb", 50000000000), c("xrp", 50000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"btcb", "ukava", "bnb", "xrp"},
 			},
 		},
@@ -890,7 +787,6 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 				firstBorrow:               cs(c("bnb", 50000000)),
 				modification:              withdrawModification{coins: cs(c("bnb", 50000000000))},
 				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"bnb"},
 			},
 		},
@@ -901,7 +797,6 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 				firstBorrow:               cs(c("bnb", 100000000)),
 				modification:              withdrawModification{coins: cs(c("bnb", 1100000000)), repay: true},
 				rewardsPerSecond:          cs(c("hard", 122354)),
-				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{},
 			},
 		},
@@ -912,7 +807,6 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 				firstBorrow:               cs(c("bnb", 100000000), c("ukava", 10000000)),
 				modification:              withdrawModification{coins: cs(c("bnb", 1100000000)), repay: true},
 				rewardsPerSecond:          cs(c("hard", 122354)),
-				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"ukava"},
 			},
 		},
@@ -923,70 +817,51 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 				firstBorrow:               cs(c("bnb", 100000000), c("ukava", 10000000)),
 				modification:              withdrawModification{coins: cs(c("bnb", 1100000000)), repay: true},
 				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"ukava"},
 			},
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+			userAddr := suite.addrs[3]
+			authBuilder := app.NewAuthGenesisBuilder().
+				WithSimpleAccount(
+					userAddr,
+					cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
+				).
+				WithSimpleAccount(
+					suite.addrs[0],
+					cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
+				)
 
-			// Mint coins to hard module account so it can service borrow requests
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := tc.args.firstBorrow.Add(tc.args.modification.coins...)
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleBorrowRewardPeriod("bnb", tc.args.rewardsPerSecond).
+				WithSimpleBorrowRewardPeriod("ukava", tc.args.rewardsPerSecond).
+				WithSimpleBorrowRewardPeriod("btcb", tc.args.rewardsPerSecond).
+				WithSimpleBorrowRewardPeriod("xrp", tc.args.rewardsPerSecond)
 
-			// Set up generic reward periods
-			var multiRewardPeriods types.MultiRewardPeriods
-			var rewardPeriods types.RewardPeriods
-			for i, denom := range tc.args.expectedBorrowIndexDenoms {
-				// Create just one reward period for USDX Minting / Hard Delegator reward periods (otherwise params will panic on duplicate)
-				if i == 0 {
-					rewardPeriod := types.NewRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[i])
-					rewardPeriods = append(rewardPeriods, rewardPeriod)
-				}
-				multiRewardPeriod := types.NewMultiRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)
-				multiRewardPeriods = append(multiRewardPeriods, multiRewardPeriod)
-			}
+			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
-			// Setup incentive state
-			params := types.NewParams(
-				rewardPeriods, multiRewardPeriods, multiRewardPeriods, rewardPeriods,
-				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				tc.args.initialTime.Add(time.Hour*24*365*5),
-			)
-			suite.keeper.SetParams(suite.ctx, params)
-
-			// Set each expected borrow denom's previous accrual time and borrow reward factor
-			var rewardIndexes types.RewardIndexes
-			for _, rewardCoin := range tc.args.rewardsPerSecond {
-				rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
-				rewardIndexes = append(rewardIndexes, rewardIndex)
-			}
-			for _, denom := range tc.args.expectedBorrowIndexDenoms {
-				suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, denom, tc.args.initialTime)
-				suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, denom, rewardIndexes)
-			}
+			// Fill the hard supply to allow user to borrow
+			err := suite.hardKeeper.Deposit(suite.ctx, suite.addrs[0], tc.args.firstBorrow.Add(tc.args.modification.coins...))
+			suite.Require().NoError(err)
 
 			// User deposits initial funds (so that user can borrow)
-			hardKeeper := suite.app.GetHardKeeper()
-			userAddr := suite.addrs[3]
-			err := hardKeeper.Deposit(suite.ctx, userAddr, tc.args.initialDeposit)
+			err = suite.hardKeeper.Deposit(suite.ctx, userAddr, tc.args.initialDeposit)
 			suite.Require().NoError(err)
 
 			// Confirm that claim exists but no borrow reward indexes have been added
-			claimAfterDeposit, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimAfterDeposit, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(found)
 			suite.Require().Equal(0, len(claimAfterDeposit.BorrowRewardIndexes))
 
 			// User borrows (first time)
-			err = hardKeeper.Borrow(suite.ctx, userAddr, tc.args.firstBorrow)
+			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, tc.args.firstBorrow)
 			suite.Require().NoError(err)
 
 			// Confirm that claim's borrow reward indexes have been updated
-			claimAfterFirstBorrow, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimAfterFirstBorrow, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(found)
 			for _, coin := range tc.args.firstBorrow {
 				_, hasIndex := claimAfterFirstBorrow.HasBorrowRewardIndex(coin.Denom)
@@ -996,14 +871,14 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 
 			// User modifies their Borrow by either repaying or borrowing more
 			if tc.args.modification.repay {
-				err = hardKeeper.Repay(suite.ctx, userAddr, userAddr, tc.args.modification.coins)
+				err = suite.hardKeeper.Repay(suite.ctx, userAddr, userAddr, tc.args.modification.coins)
 			} else {
-				err = hardKeeper.Borrow(suite.ctx, userAddr, tc.args.modification.coins)
+				err = suite.hardKeeper.Borrow(suite.ctx, userAddr, tc.args.modification.coins)
 			}
 			suite.Require().NoError(err)
 
 			// Confirm that claim's borrow reward indexes contain expected values
-			claimAfterModification, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimAfterModification, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(found)
 			for _, coin := range tc.args.modification.coins {
 				_, hasIndex := claimAfterModification.HasBorrowRewardIndex(coin.Denom)
@@ -1021,11 +896,10 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSimulateHardBorrowRewardSynchronization() {
+func (suite *BorrowRewardsTestSuite) TestSimulateHardBorrowRewardSynchronization() {
 	type args struct {
 		borrow                sdk.Coin
 		rewardsPerSecond      sdk.Coins
-		initialTime           time.Time
 		blockTimes            []int
 		expectedRewardIndexes types.RewardIndexes
 		expectedRewards       sdk.Coins
@@ -1041,7 +915,6 @@ func (suite *KeeperTestSuite) TestSimulateHardBorrowRewardSynchronization() {
 			args{
 				borrow:                c("bnb", 10000000000),
 				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:            []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.001223540000173228"))},
 				expectedRewards:       cs(c("hard", 12235400)),
@@ -1052,7 +925,6 @@ func (suite *KeeperTestSuite) TestSimulateHardBorrowRewardSynchronization() {
 			args{
 				borrow:                c("bnb", 10000000000),
 				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:            []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
 				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("10.571385603126235340"))},
 				expectedRewards:       cs(c("hard", 105713856031)),
@@ -1061,54 +933,20 @@ func (suite *KeeperTestSuite) TestSimulateHardBorrowRewardSynchronization() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+			userAddr := suite.addrs[3]
+			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)))
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleBorrowRewardPeriod(tc.args.borrow.Denom, tc.args.rewardsPerSecond)
 
-			// setup incentive state
-			params := types.NewParams(
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
-				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				tc.args.initialTime.Add(time.Hour*24*365*5),
-			)
-			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
-			var rewardIndexes types.RewardIndexes
-			for _, rewardCoin := range tc.args.rewardsPerSecond {
-				rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
-				rewardIndexes = append(rewardIndexes, rewardIndex)
-			}
-			suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom, rewardIndexes)
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetBorrowInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
+			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
 			// User deposits and borrows to increase total borrowed amount
-			hardKeeper := suite.app.GetHardKeeper()
-			userAddr := suite.addrs[3]
-			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin(tc.args.borrow.Denom, tc.args.borrow.Amount.Mul(sdk.NewInt(2)))))
+			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin(tc.args.borrow.Denom, tc.args.borrow.Amount.Mul(sdk.NewInt(2)))))
 			suite.Require().NoError(err)
-			err = hardKeeper.Borrow(suite.ctx, userAddr, sdk.NewCoins(tc.args.borrow))
+			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, sdk.NewCoins(tc.args.borrow))
 			suite.Require().NoError(err)
-
-			// Check that Hard hooks initialized a HardLiquidityProviderClaim
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
-			suite.Require().True(found)
-			multiRewardIndex, _ := claim.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
-			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
-				currRewardIndex, found := multiRewardIndex.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
-				suite.Require().True(found)
-				suite.Require().Equal(sdk.ZeroDec(), currRewardIndex.RewardFactor)
-			}
 
 			// Run accumulator at several intervals
 			var timeElapsed int
@@ -1132,7 +970,7 @@ func (suite *KeeperTestSuite) TestSimulateHardBorrowRewardSynchronization() {
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
 
 			// Confirm that the user's claim hasn't been synced
-			claimPre, foundPre := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claimPre, foundPre := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(foundPre)
 			multiRewardIndexPre, _ := claimPre.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
@@ -1142,7 +980,7 @@ func (suite *KeeperTestSuite) TestSimulateHardBorrowRewardSynchronization() {
 			}
 
 			// Check that the synced claim held in memory has properly simulated syncing
-			syncedClaim := suite.keeper.SimulateHardSynchronization(suite.ctx, claim)
+			syncedClaim := suite.keeper.SimulateHardSynchronization(suite.ctx, claimPre)
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				// Check that the user's claim's reward index matches the expected reward index
 				multiRewardIndex, found := syncedClaim.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
@@ -1159,4 +997,8 @@ func (suite *KeeperTestSuite) TestSimulateHardBorrowRewardSynchronization() {
 			}
 		})
 	}
+}
+
+func TestBorrowRewardsTestSuite(t *testing.T) {
+	suite.Run(t, new(BorrowRewardsTestSuite))
 }

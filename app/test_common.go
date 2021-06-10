@@ -18,6 +18,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
@@ -40,6 +41,11 @@ import (
 	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/kava-labs/kava/x/swap"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
+)
+
+var (
+	emptyTime    time.Time
+	emptyChainID string
 )
 
 // TestApp is a simple wrapper around an App. It exposes internal keepers for use in integration tests.
@@ -92,55 +98,12 @@ func (tApp TestApp) GetSwapKeeper() swap.Keeper           { return tApp.swapKeep
 
 // InitializeFromGenesisStates calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
-	// Create a default genesis state and overwrite with provided values
-	genesisState := NewDefaultGenesisState()
-	for _, state := range genesisStates {
-		for k, v := range state {
-			genesisState[k] = v
-		}
-	}
-
-	// Initialize the chain
-	stateBytes, err := codec.MarshalJSONIndent(tApp.cdc, genesisState)
-	if err != nil {
-		panic(err)
-	}
-	tApp.InitChain(
-		abci.RequestInitChain{
-			Validators:    []abci.ValidatorUpdate{},
-			AppStateBytes: stateBytes,
-		},
-	)
-	tApp.Commit()
-	tApp.BeginBlock(abci.RequestBeginBlock{Header: abci.Header{Height: tApp.LastBlockHeight() + 1}})
-	return tApp
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(emptyTime, emptyChainID, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTime calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states and genesis Time
 func (tApp TestApp) InitializeFromGenesisStatesWithTime(genTime time.Time, genesisStates ...GenesisState) TestApp {
-	// Create a default genesis state and overwrite with provided values
-	genesisState := NewDefaultGenesisState()
-	for _, state := range genesisStates {
-		for k, v := range state {
-			genesisState[k] = v
-		}
-	}
-
-	// Initialize the chain
-	stateBytes, err := codec.MarshalJSONIndent(tApp.cdc, genesisState)
-	if err != nil {
-		panic(err)
-	}
-	tApp.InitChain(
-		abci.RequestInitChain{
-			Time:          genTime,
-			Validators:    []abci.ValidatorUpdate{},
-			AppStateBytes: stateBytes,
-		},
-	)
-	tApp.Commit()
-	tApp.BeginBlock(abci.RequestBeginBlock{Header: abci.Header{Height: tApp.LastBlockHeight() + 1, Time: genTime}})
-	return tApp
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(genTime, emptyChainID, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTimeAndChainID calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states and genesis Time
@@ -177,18 +140,6 @@ func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAdd
 	require.Equal(t, expectedCoins, acc.GetCoins())
 }
 
-// Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.
-func NewAuthGenState(addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
-	// Create GenAccounts
-	accounts := authexported.GenesisAccounts{}
-	for i := range addresses {
-		accounts = append(accounts, auth.NewBaseAccount(addresses[i], coins[i], nil, 0, 0))
-	}
-	// Create the auth genesis state
-	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)
-	return GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
-}
-
 // GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n secp256k1 private keys and addresses.
 func GeneratePrivKeyAddressPairs(n int) (keys []crypto.PrivKey, addrs []sdk.AccAddress) {
 	r := rand.New(rand.NewSource(12345)) // make the generation deterministic
@@ -204,4 +155,103 @@ func GeneratePrivKeyAddressPairs(n int) (keys []crypto.PrivKey, addrs []sdk.AccA
 		addrs[i] = sdk.AccAddress(keys[i].PubKey().Address())
 	}
 	return
+}
+
+// Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.
+func NewAuthGenState(addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
+	// Create GenAccounts
+	accounts := authexported.GenesisAccounts{}
+	for i := range addresses {
+		accounts = append(accounts, auth.NewBaseAccount(addresses[i], coins[i], nil, 0, 0))
+	}
+	// Create the auth genesis state
+	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)
+	return GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
+}
+
+// AuthGenesisBuilder is a tool for creating an auth genesis state.
+// Helper methods create basic accounts types and add them to a default genesis state.
+// All methods are immutable and return updated copies of the builder.
+// The builder inherits from auth.GenesisState, so fields can be accessed directly if a helper method doesn't exist.
+//
+// Example:
+//     // create a single account genesis state
+//     builder := NewAuthGenesisBuilder().WithSimpleAccount(testUserAddress, testCoins)
+//     genesisState := builder.Build()
+//
+type AuthGenesisBuilder struct {
+	auth.GenesisState
+}
+
+// NewAuthGenesisBuilder creates a AuthGenesisBuilder containing a default genesis state.
+func NewAuthGenesisBuilder() AuthGenesisBuilder {
+	return AuthGenesisBuilder{
+		GenesisState: auth.DefaultGenesisState(),
+	}
+}
+
+// Build assembles and returns the final GenesisState
+func (builder AuthGenesisBuilder) Build() auth.GenesisState {
+	return builder.GenesisState
+}
+
+// BuildMarshalled assembles the final GenesisState and json encodes it into a generic genesis type.
+func (builder AuthGenesisBuilder) BuildMarshalled() GenesisState {
+	return GenesisState{
+		auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(builder.Build()),
+	}
+}
+
+// WithAccounts adds accounts of any type to the genesis state.
+func (builder AuthGenesisBuilder) WithAccounts(account ...authexported.GenesisAccount) AuthGenesisBuilder {
+	builder.Accounts = append(builder.Accounts, account...)
+	return builder
+}
+
+// WithSimpleAccount adds a standard account to the genesis state.
+func (builder AuthGenesisBuilder) WithSimpleAccount(address sdk.AccAddress, balance sdk.Coins) AuthGenesisBuilder {
+	return builder.WithAccounts(auth.NewBaseAccount(address, balance, nil, 0, 0))
+}
+
+// WithSimpleModuleAccount adds a module account to the genesis state.
+func (builder AuthGenesisBuilder) WithSimpleModuleAccount(moduleName string, balance sdk.Coins, permissions ...string) AuthGenesisBuilder {
+	account := supply.NewEmptyModuleAccount(moduleName, permissions...)
+	account.SetCoins(balance)
+	return builder.WithAccounts(account)
+}
+
+// WithSimplePeriodicVestingAccount adds a periodic vesting account to the genesis state.
+func (builder AuthGenesisBuilder) WithSimplePeriodicVestingAccount(address sdk.AccAddress, balance sdk.Coins, periods vesting.Periods, firstPeriodStartTimestamp int64) AuthGenesisBuilder {
+	baseAccount := auth.NewBaseAccount(address, balance, nil, 0, 0)
+
+	originalVesting := sdk.NewCoins()
+	for _, p := range periods {
+		originalVesting = originalVesting.Add(p.Amount...)
+	}
+
+	var totalPeriods int64
+	for _, p := range periods {
+		totalPeriods += p.Length
+	}
+	endTime := firstPeriodStartTimestamp + totalPeriods
+
+	baseVestingAccount, err := vesting.NewBaseVestingAccount(baseAccount, originalVesting, endTime)
+	if err != nil {
+		panic(err.Error())
+	}
+	periodicVestingAccount := vesting.NewPeriodicVestingAccountRaw(baseVestingAccount, firstPeriodStartTimestamp, periods)
+
+	return builder.WithAccounts(periodicVestingAccount)
+}
+
+// WithEmptyValidatorVestingAccount adds a stub validator vesting account to the genesis state.
+func (builder AuthGenesisBuilder) WithEmptyValidatorVestingAccount(address sdk.AccAddress) AuthGenesisBuilder {
+	// TODO create a validator vesting account builder and remove this method
+	bacc := auth.NewBaseAccount(address, nil, nil, 0, 0)
+	bva, err := vesting.NewBaseVestingAccount(bacc, nil, 1)
+	if err != nil {
+		panic(err.Error())
+	}
+	account := validatorvesting.NewValidatorVestingAccountRaw(bva, 0, nil, sdk.ConsAddress{}, nil, 90)
+	return builder.WithAccounts(account)
 }

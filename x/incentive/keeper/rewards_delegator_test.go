@@ -1,23 +1,73 @@
 package keeper_test
 
 import (
+	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 
-	"github.com/kava-labs/kava/x/hard"
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
+// Test suite used for all keeper tests
+type DelegatorRewardsTestSuite struct {
+	suite.Suite
+
+	keeper        keeper.Keeper
+	stakingKeeper stakingkeeper.Keeper
+
+	app app.TestApp
+	ctx sdk.Context
+
+	genesisTime    time.Time
+	addrs          []sdk.AccAddress
+	validatorAddrs []sdk.ValAddress
+}
+
+// SetupTest is run automatically before each suite test
+func (suite *DelegatorRewardsTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
+	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
+	suite.addrs = allAddrs[:5]
+	for _, a := range allAddrs[5:] {
+		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
+	}
+	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+}
+
+func (suite *DelegatorRewardsTestSuite) SetupApp() {
+	suite.app = app.NewTestApp()
+
+	suite.keeper = suite.app.GetIncentiveKeeper()
+	suite.stakingKeeper = suite.app.GetStakingKeeper()
+
+	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
+}
+
+func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder IncentiveGenesisBuilder) {
+	suite.SetupApp()
+
+	suite.app.InitializeFromGenesisStatesWithTime(
+		suite.genesisTime,
+		authBuilder.BuildMarshalled(),
+		NewStakingGenesisState(),
+		incentBuilder.BuildMarshalled(),
+	)
+}
+
+func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 	type args struct {
 		delegation           sdk.Coin
 		rewardsPerSecond     sdk.Coin
-		initialTime          time.Time
 		timeElapsed          int
 		expectedRewardFactor sdk.Dec
 	}
@@ -31,7 +81,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 			args{
 				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          7,
 				expectedRewardFactor: d("0.428239000000000000"),
 			},
@@ -41,7 +90,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 			args{
 				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          86400,
 				expectedRewardFactor: d("5285.692800000000000000"),
 			},
@@ -51,7 +99,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 			args{
 				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          0,
 				expectedRewardFactor: d("0.0"),
 			},
@@ -59,29 +106,15 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+			authBuilder := app.NewAuthGenesisBuilder().
+				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
 
-			// Set up incentive state
-			params := types.NewParams(
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				tc.args.initialTime.Add(time.Hour*24*365*5),
-			)
-			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
-			suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
+			suite.SetupWithGenState(authBuilder, incentBuilder)
 
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
@@ -94,25 +127,21 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			runCtx := suite.ctx.WithBlockTime(runAtTime)
 
-			// Run Hard begin blocker in order to update the denom's index factor
-			hard.BeginBlocker(runCtx, suite.hardKeeper)
-
 			rewardPeriod, found := suite.keeper.GetHardDelegatorRewardPeriod(runCtx, tc.args.delegation.Denom)
 			suite.Require().True(found)
 			err = suite.keeper.AccumulateHardDelegatorRewards(runCtx, rewardPeriod)
 			suite.Require().NoError(err)
 
-			rewardFactor, found := suite.keeper.GetHardDelegatorRewardFactor(runCtx, tc.args.delegation.Denom)
+			rewardFactor, _ := suite.keeper.GetHardDelegatorRewardFactor(runCtx, tc.args.delegation.Denom)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
+func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 	type args struct {
 		delegation           sdk.Coin
 		rewardsPerSecond     sdk.Coin
-		initialTime          time.Time
 		blockTimes           []int
 		expectedRewardFactor sdk.Dec
 		expectedRewards      sdk.Coins
@@ -128,7 +157,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			args{
 				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardFactor: d("6.117700000000000000"),
 				expectedRewards:      cs(c("hard", 6117700)),
@@ -139,7 +167,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			args{
 				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
 				expectedRewardFactor: d("52856.928000000000000000"),
 				expectedRewards:      cs(c("hard", 52856928000)),
@@ -150,7 +177,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			args{
 				delegation:           c("ukava", 1),
 				rewardsPerSecond:     c("hard", 1),
-				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardFactor: d("0.000099999900000100"),
 				expectedRewards:      nil,
@@ -159,29 +185,15 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+			authBuilder := app.NewAuthGenesisBuilder().
+				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
 
-			// setup incentive state
-			params := types.NewParams(
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				tc.args.initialTime.Add(time.Hour*24*365*5),
-			)
-			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
-			suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
+			suite.SetupWithGenState(authBuilder, incentBuilder)
 
 			// Create validator account
 			staking.BeginBlocker(suite.ctx, suite.stakingKeeper)
@@ -214,9 +226,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
 
-				// Run Hard begin blocker for each block ctx to update denom's interest factor
-				hard.BeginBlocker(blockCtx, suite.hardKeeper)
-
 				rewardPeriod, found := suite.keeper.GetHardDelegatorRewardPeriod(blockCtx, tc.args.delegation.Denom)
 				suite.Require().True(found)
 
@@ -232,7 +241,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			})
 
 			// Check that reward factor and claim have been updated as expected
-			rewardFactor, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom)
+			rewardFactor, _ := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 
 			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
@@ -243,11 +252,10 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
+func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
 	type args struct {
 		delegation            sdk.Coin
-		rewardsPerSecond      sdk.Coins
-		initialTime           time.Time
+		rewardsPerSecond      sdk.Coin
 		blockTimes            []int
 		expectedRewardIndexes types.RewardIndexes
 		expectedRewards       sdk.Coins
@@ -262,8 +270,7 @@ func (suite *KeeperTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
 			"10 blocks",
 			args{
 				delegation:            c("ukava", 1_000_000),
-				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				rewardsPerSecond:      c("hard", 122354),
 				blockTimes:            []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("ukava", d("6.117700000000000000"))}, // Here the reward index stores data differently than inside a MultiRewardIndex
 				expectedRewards:       cs(c("hard", 6117700)),
@@ -273,8 +280,7 @@ func (suite *KeeperTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
 			"10 blocks - long block time",
 			args{
 				delegation:            c("ukava", 1_000_000),
-				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				rewardsPerSecond:      c("hard", 122354),
 				blockTimes:            []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
 				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("ukava", d("52856.928000000000000000"))},
 				expectedRewards:       cs(c("hard", 52856928000)),
@@ -284,29 +290,15 @@ func (suite *KeeperTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithGenState()
-			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+			authBuilder := app.NewAuthGenesisBuilder().
+				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
-			// Mint coins to hard module account
-			supplyKeeper := suite.app.GetSupplyKeeper()
-			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+			incentBuilder := NewIncentiveGenesisBuilder().
+				WithGenesisTime(suite.genesisTime).
+				WithSimpleDelegatorRewardPeriod(tc.args.delegation.Denom, tc.args.rewardsPerSecond)
 
-			// setup incentive state
-			params := types.NewParams(
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
-				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				tc.args.initialTime.Add(time.Hour*24*365*5),
-			)
-			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
-			suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
-
-			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
+			suite.SetupWithGenState(authBuilder, incentBuilder)
 
 			// Delegator delegates
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
@@ -329,9 +321,6 @@ func (suite *KeeperTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
 				updatedBlockTime := previousBlockTime.Add(time.Duration(int(time.Second) * t))
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
-
-				// Run Hard begin blocker for each block ctx to update denom's interest factor
-				hard.BeginBlocker(blockCtx, suite.hardKeeper)
 
 				// Accumulate hard delegator rewards
 				rewardPeriod, found := suite.keeper.GetHardDelegatorRewardPeriod(blockCtx, tc.args.delegation.Denom)
@@ -360,7 +349,7 @@ func (suite *KeeperTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
 	}
 }
 
-func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
+func (suite *DelegatorRewardsTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
 	msg := staking.NewMsgCreateValidator(
 		address,
 		ed25519.GenPrivKey().PubKey(),
@@ -374,7 +363,7 @@ func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address
 	return err
 }
 
-func (suite *KeeperTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
+func (suite *DelegatorRewardsTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
 	msg := staking.NewMsgDelegate(
 		delegator,
 		validator,
@@ -385,7 +374,7 @@ func (suite *KeeperTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.
 	return err
 }
 
-func (suite *KeeperTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sdk.AccAddress, sourceValidator, destinationValidator sdk.ValAddress, amount sdk.Coin) error {
+func (suite *DelegatorRewardsTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sdk.AccAddress, sourceValidator, destinationValidator sdk.ValAddress, amount sdk.Coin) error {
 	msg := staking.NewMsgBeginRedelegate(
 		delegator,
 		sourceValidator,
@@ -398,28 +387,24 @@ func (suite *KeeperTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sd
 }
 
 // given a user has a delegation to a bonded validator, when the validator starts unbonding, the user does not accumulate rewards
-func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
-	suite.SetupWithGenState()
-	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
-	suite.ctx = suite.ctx.WithBlockTime(initialTime)
-	blockDuration := 10 * time.Second
+func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
+	authBuilder := app.NewAuthGenesisBuilder().
+		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+		WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[2]), cs(c("ukava", 1e9)))
 
-	// Setup incentive state
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
-	params := types.NewParams(
-		nil,
-		nil,
-		nil,
-		types.RewardPeriods{
-			types.NewRewardPeriod(true, bondDenom, initialTime.Add(-1*oneYear), initialTime.Add(4*oneYear), rewardsPerSecond),
-		},
-		types.DefaultMultipliers,
-		initialTime.Add(5*oneYear),
-	)
-	suite.keeper.SetParams(suite.ctx, params)
-	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime)
-	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
+
+	incentBuilder := NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
+
+	suite.SetupWithGenState(authBuilder, incentBuilder)
+
+	blockDuration := 10 * time.Second
 
 	// Reduce the size of the validator set
 	stakingParams := suite.app.GetStakingKeeper().GetParams(suite.ctx)
@@ -437,7 +422,7 @@ func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 	// End the block so top validators become bonded
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
 
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Delegate to a bonded validator from the test user. This will initialize their incentive claim.
@@ -446,7 +431,7 @@ func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 
 	// Start a new block to accumulate some delegation rewards for the user.
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(2 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(2 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Delegate to the unbonded validator to push it into the bonded validator set, pushing out the user's delegated validator
@@ -473,7 +458,7 @@ func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 	)
 
 	// Run another block and check the claim is not accumulating more rewards
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(3 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(3 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
 
 	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
@@ -492,28 +477,24 @@ func (suite *KeeperTestSuite) TestUnbondingValidatorSyncsClaim() {
 }
 
 // given a user has a delegation to an unbonded validator, when the validator becomes bonded, the user starts accumulating rewards
-func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
-	suite.SetupWithGenState()
-	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
-	suite.ctx = suite.ctx.WithBlockTime(initialTime)
-	blockDuration := 10 * time.Second
+func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
+	authBuilder := app.NewAuthGenesisBuilder().
+		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+		WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[2]), cs(c("ukava", 1e9)))
 
-	// Setup incentive state
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
-	params := types.NewParams(
-		nil,
-		nil,
-		nil,
-		types.RewardPeriods{
-			types.NewRewardPeriod(true, bondDenom, initialTime.Add(-1*oneYear), initialTime.Add(4*oneYear), rewardsPerSecond),
-		},
-		types.DefaultMultipliers,
-		initialTime.Add(5*oneYear),
-	)
-	suite.keeper.SetParams(suite.ctx, params)
-	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime)
-	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
+
+	incentBuilder := NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
+
+	suite.SetupWithGenState(authBuilder, incentBuilder)
+
+	blockDuration := 10 * time.Second
 
 	// Reduce the size of the validator set
 	stakingParams := suite.app.GetStakingKeeper().GetParams(suite.ctx)
@@ -531,7 +512,7 @@ func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
 	// End the block so top validators become bonded
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
 
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Delegate to an unbonded validator from the test user. This will initialize their incentive claim.
@@ -540,7 +521,7 @@ func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
 
 	// Start a new block to accumulate some delegation rewards globally.
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(2 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(2 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
 
 	// Delegate to the user's unbonded validator to push it into the bonded validator set
@@ -567,7 +548,7 @@ func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
 	)
 
 	// Run another block and check the claim is accumulating more rewards
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(3 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(3 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
 
 	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
@@ -586,28 +567,22 @@ func (suite *KeeperTestSuite) TestBondingValidatorSyncsClaim() {
 }
 
 // If a validator is slashed delegators should have their claims synced
-func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
-	suite.SetupWithGenState()
-	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
-	suite.ctx = suite.ctx.WithBlockTime(initialTime)
-	blockDuration := 10 * time.Second
+func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
+	authBuilder := app.NewAuthGenesisBuilder().
+		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9)))
 
-	// Setup incentive state
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
-	params := types.NewParams(
-		nil,
-		nil,
-		nil,
-		types.RewardPeriods{
-			types.NewRewardPeriod(true, bondDenom, initialTime.Add(-1*oneYear), initialTime.Add(4*oneYear), rewardsPerSecond),
-		},
-		types.DefaultMultipliers,
-		initialTime.Add(5*oneYear),
-	)
-	suite.keeper.SetParams(suite.ctx, params)
-	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime.Add(-1*blockDuration))
-	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
+
+	incentBuilder := NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
+
+	suite.SetupWithGenState(authBuilder, incentBuilder)
+
+	blockDuration := 10 * time.Second
 
 	// Reduce the size of the validator set
 	stakingParams := suite.app.GetStakingKeeper().GetParams(suite.ctx)
@@ -623,7 +598,7 @@ func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
 	// End the block so validators become bonded
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
 
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Delegate to a bonded validator from the test user. This will initialize their incentive claim.
@@ -642,7 +617,7 @@ func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
 
 	// Start a new block to accumulate some delegation rewards for the user.
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(2 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(2 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Fetch validator and slash them
@@ -673,28 +648,23 @@ func (suite *KeeperTestSuite) TestSlashingValidatorSyncsClaim() {
 }
 
 // Given a delegation to a bonded validator, when a user redelegates everything to another (bonded) validator, the user's claim is synced
-func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
-	suite.SetupWithGenState()
-	initialTime := time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
-	suite.ctx = suite.ctx.WithBlockTime(initialTime)
-	blockDuration := 10 * time.Second
+func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
+	authBuilder := app.NewAuthGenesisBuilder().
+		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
+		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9)))
 
-	// Setup incentive state
 	rewardsPerSecond := c("hard", 122354)
 	bondDenom := "ukava"
-	params := types.NewParams(
-		nil,
-		nil,
-		nil,
-		types.RewardPeriods{
-			types.NewRewardPeriod(true, bondDenom, initialTime.Add(-1*oneYear), initialTime.Add(4*oneYear), rewardsPerSecond),
-		},
-		types.DefaultMultipliers,
-		initialTime.Add(5*oneYear),
-	)
-	suite.keeper.SetParams(suite.ctx, params)
-	suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, bondDenom, initialTime)
-	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, bondDenom, sdk.ZeroDec())
+
+	incentBuilder := NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithSimpleDelegatorRewardPeriod(bondDenom, rewardsPerSecond)
+
+	suite.SetupWithGenState(authBuilder, incentBuilder)
+
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime)
+	blockDuration := 10 * time.Second
 
 	// Create 2 validators
 	err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
@@ -708,7 +678,7 @@ func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
 
 	// Start a new block to accumulate some delegation rewards globally.
 	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	suite.ctx = suite.ctx.WithBlockTime(initialTime.Add(1 * blockDuration))
+	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
 
 	// Redelegate the user's delegation between the two validators. This should trigger hooks that sync the user's claim.
@@ -728,4 +698,8 @@ func (suite *KeeperTestSuite) TestRedelegationSyncsClaim() {
 		cs(c(rewardsPerSecond.Denom, 76471)),
 		claim.Reward,
 	)
+}
+
+func TestDelegatorRewardsTestSuite(t *testing.T) {
+	suite.Run(t, new(DelegatorRewardsTestSuite))
 }
