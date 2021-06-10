@@ -4,6 +4,9 @@ const (
 	// ModuleName name that will be used throughout the module
 	ModuleName = "swap"
 
+	// ModuleAccountName name of module account used to hold liquidity
+	ModuleAccountName = "swap"
+
 	// StoreKey Top level store key where all module items will be stored
 	StoreKey = ModuleName
 

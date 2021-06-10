@@ -13,6 +13,7 @@ const (
 	AttributeValueCategory = types.AttributeValueCategory
 	DefaultParamspace      = types.DefaultParamspace
 	EventTypeSwapDeposit   = types.EventTypeSwapDeposit
+	ModuleAccountName      = types.ModuleAccountName
 	ModuleName             = types.ModuleName
 	QuerierRoute           = types.QuerierRoute
 	QueryGetParams         = types.QueryGetParams
@@ -46,11 +47,13 @@ var (
 )
 
 type (
-	Keeper       = keeper.Keeper
-	AllowedPool  = types.AllowedPool
-	AllowedPools = types.AllowedPools
-	GenesisState = types.GenesisState
-	MsgDeposit   = types.MsgDeposit
-	Params       = types.Params
-	Pool         = types.Pool
+	Keeper        = keeper.Keeper
+	AccountKeeper = types.AccountKeeper
+	AllowedPool   = types.AllowedPool
+	AllowedPools  = types.AllowedPools
+	GenesisState  = types.GenesisState
+	MsgDeposit    = types.MsgDeposit
+	Params        = types.Params
+	Pool          = types.Pool
+	SupplyKeeper  = types.SupplyKeeper
 )
