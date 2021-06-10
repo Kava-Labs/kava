@@ -43,17 +43,20 @@ func GenAllowedPools(r *rand.Rand) types.AllowedPools {
 }
 
 func genTokenDenoms(r *rand.Rand) (string, string) {
-	tokens := []string{genTokenDenom(r), genTokenDenom(r)}
+	tokenA := genTokenDenom(r)
+	tokenB := genTokenDenom(r)
+	for strings.Compare(tokenA, tokenB) == 0 {
+		tokenA = genTokenDenom(r)
+	}
+	tokens := []string{tokenA, tokenB}
 	sort.Strings(tokens)
 	return tokens[0], tokens[1]
 }
 
 func genTokenDenom(r *rand.Rand) string {
 	denom := strings.ToLower(simulation.RandStringOfLength(r, 3))
-	err := sdk.ValidateDenom(denom)
-	for err != nil {
+	for err := sdk.ValidateDenom(denom); err != nil; {
 		denom = strings.ToLower(simulation.RandStringOfLength(r, 3))
-		err = sdk.ValidateDenom(denom)
 	}
 	return denom
 }
