@@ -1,6 +1,7 @@
 package swap_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/kava-labs/kava/app"
@@ -92,27 +93,32 @@ func (suite *handlerTestSuite) TestInvalidMsg() {
 func (suite *handlerTestSuite) AccountBalanceEqual(acc authexported.Account, coins sdk.Coins) {
 	ak := suite.app.GetAccountKeeper()
 	acc = ak.GetAccount(suite.ctx, acc.GetAddress())
-	suite.Equal(acc.GetCoins(), coins)
+	suite.Equal(acc.GetCoins(), coins, fmt.Sprintf("expected account balance to equal coins %s, but got %s", coins, acc.GetCoins()))
 }
 
 func (suite *handlerTestSuite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 	sk := suite.app.GetSupplyKeeper()
 	macc, _ := sk.GetModuleAccountAndPermissions(suite.ctx, swap.ModuleName)
-	suite.Equal(macc.GetCoins(), coins)
+	suite.Require().NotNil(macc, "expected module account to be defined")
+	suite.Equal(macc.GetCoins(), coins, fmt.Sprintf("expected module account balance to equal coins %s, but got %s", coins, macc.GetCoins()))
 }
 
 func (suite *handlerTestSuite) PoolLiquidityEqual(pool swap.AllowedPool, coins sdk.Coins) {
 	storedPool, ok := suite.keeper.GetPool(pool.Name())
-	suite.Require().True(ok)
-	suite.Equal(coins.AmountOf(pool.TokenA), storedPool.ReservesA.Amount)
-	suite.Equal(coins.AmountOf(pool.TokenB), storedPool.ReservesB.Amount)
+	suite.Require().True(ok, "expected pool to exist")
+	suite.Equal(coins.AmountOf(pool.TokenA), storedPool.ReservesA.Amount,
+		"expected pool reservers of %s%s", coins.AmountOf(pool.TokenA), pool.TokenA,
+	)
+	suite.Equal(coins.AmountOf(pool.TokenB), storedPool.ReservesB.Amount,
+		"expected pool reservers of %s%s", coins.AmountOf(pool.TokenB), pool.TokenB,
+	)
 }
 
 func (suite *handlerTestSuite) PoolShareValueEqual(depositor authexported.Account, pool swap.AllowedPool, coins sdk.Coins) {
 	storedPool, ok := suite.keeper.GetPool(pool.Name())
-	suite.Require().True(ok)
+	suite.Require().True(ok, fmt.Sprintf("expected pool %s to exist", pool.Name()))
 	shares, ok := suite.keeper.GetShares(depositor.GetAddress(), storedPool)
-	suite.Require().True(ok)
+	suite.Require().True(ok, "expected shares to exist for depositor %s", depositor.GetAddress())
 
 	value := storedPool.ShareValue(shares)
 	suite.Equal(coins, value)
@@ -121,7 +127,7 @@ func (suite *handlerTestSuite) PoolShareValueEqual(depositor authexported.Accoun
 func (suite *handlerTestSuite) EventsContains(events sdk.Events, expectedEvent sdk.Event) {
 	for _, event := range events {
 		if event.Type == expectedEvent.Type {
-			suite.Equal(expectedEvent.Attributes, event.Attributes)
+			suite.Equal(expectedEvent.Attributes, event.Attributes, fmt.Sprintf("expected event attributes did not match event type %s", event.Type))
 			return
 		}
 	}
