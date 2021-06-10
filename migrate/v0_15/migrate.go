@@ -63,6 +63,9 @@ func MigrateAppState(v0_14AppState genutil.AppMap) genutil.AppMap {
 		v0_15AppState[v0_15committee.ModuleName] = cdc.MustMarshalJSON(Committee(committeeGS))
 	}
 
+	cdc := app.MakeCodec()
+	v0_15AppState[v0_15swap.ModuleName] = cdc.MustMarshalJSON(Swap())
+
 	return v0_15AppState
 }
 
@@ -193,7 +196,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 		genesisState.NextProposalID, committees, proposals, votes)
 }
 
-// Swap migrates new swap module state to a v0.15 swap genesis state
-func Swap(genesisState v0_15swap.GenesisState) v0_15swap.GenesisState {
-	return v0_15swap.NewGenesisState(genesisState.Params)
+// Swap introduces new v0.15 swap genesis state
+func Swap() v0_15swap.GenesisState {
+	return v0_15swap.NewGenesisState(v0_15swap.DefaultParams())
 }
