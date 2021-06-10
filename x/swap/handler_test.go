@@ -55,7 +55,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 
 	suite.AccountBalanceEqual(depositor, sdk.Coins{})
 	suite.ModuleAccountBalanceEqual(balance)
-	suite.PoolLiquidtyEqual(pool, balance)
+	suite.PoolLiquidityEqual(pool, balance)
 	suite.PoolShareValueEqual(depositor, pool, balance)
 
 	suite.EventsContains(sdk.NewEvent(
@@ -83,6 +83,12 @@ func (suite *handlerTestSuite) GetAccount(initialBalance sdk.Coins) authexported
 	return acc
 }
 
+func (suite *handlerTestSuite) TestInvalidMsg() {
+	res, err := suite.handler(suite.ctx, sdk.NewTestMsg())
+	suite.Nil(res)
+	suite.EqualError(err, "unknown request: unrecognized swap message type: *types.TestMsg")
+}
+
 func (suite *handlerTestSuite) AccountBalanceEqual(acc authexported.Account, coins sdk.Coins) {
 	ak := suite.app.GetAccountKeeper()
 	acc = ak.GetAccount(suite.ctx, acc.GetAddress())
@@ -95,10 +101,34 @@ func (suite *handlerTestSuite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 	suite.Equal(macc.GetCoins(), coins)
 }
 
-func (suite *handlerTestSuite) TestInvalidMsg() {
-	res, err := suite.handler(suite.ctx, sdk.NewTestMsg())
-	suite.Nil(res)
-	suite.EqualError(err, "unknown request: unrecognized swap message type: *types.TestMsg")
+func (suite *handlerTestSuite) PoolLiquidityEqual(pool swap.AllowedPool, coins sdk.Coins) {
+	storedPool, ok := suite.keeper.GetPool(pool)
+	suite.Require().True(ok)
+	suite.Equal(coins.AmountOf(pool.TokenA), storedPool.ReserveA.Amount)
+	suite.Equal(coins.AmountOf(pool.TokenB), storedPool.ReserveB.Amount)
+}
+
+func (suite *handlerTestSuite) PoolShareValueEqual(depositor authexported.Account, pool swap.AllowedPool, coins sdk.Coins) {
+	storedPool, ok := suite.keeper.GetPool(pool)
+	suite.Require().True(ok)
+	shares, ok := suite.keeper.GetShares(depositor, storedPool)
+	suite.Require().True(ok)
+
+	value := storedPool.ShareValue(shares)
+	suite.Equal(coins, value)
+}
+
+func (suite *handlerTestSuite) EventsContains(expectedEvent sdk.Event) {
+	events := suite.ctx.EventManager().ABCIEvents()
+
+	for _, event := range events {
+		if event.Type == expectedEvent.Type {
+			suite.Equal(expectedEvent.Attributes, event.Attributes)
+			return
+		}
+	}
+
+	suite.Fail("event of type %s not found", expectedEvent.Type)
 }
 
 func TestHandlerTestSuite(t *testing.T) {
