@@ -31,6 +31,7 @@ var (
 	NewGenesisState     = types.NewGenesisState
 	NewMsgDeposit       = types.NewMsgDeposit
 	NewParams           = types.NewParams
+	NewPool             = types.NewPool
 	ParamKeyTable       = types.ParamKeyTable
 	RegisterCodec       = types.RegisterCodec
 
@@ -51,4 +52,5 @@ type (
 	GenesisState = types.GenesisState
 	MsgDeposit   = types.MsgDeposit
 	Params       = types.Params
+	Pool         = types.Pool
 )
