@@ -88,3 +88,26 @@ func (p AllowedPools) Validate() error {
 
 	return nil
 }
+
+// Pool implements a constant-product liquidty pool
+type Pool struct {
+	ReservesA   sdk.Coin
+	ReservesB   sdk.Coin
+	TotalShares sdk.Int
+}
+
+// NewPool creates a pool from an initial reserve and initializes the total shares
+func NewPool(reservesA sdk.Coin, reservesB sdk.Coin) Pool {
+	return Pool{
+		ReservesA: reservesA,
+		ReservesB: reservesB,
+		// TODO:  initialize total shares
+		TotalShares: sdk.ZeroInt(),
+	}
+}
+
+// ShareValue returns the reserves represented by the provided number of shares
+func (p Pool) ShareValue(numShares sdk.Int) sdk.Coins {
+	// TODO: calculate reserve value from numShares / totalShares
+	return sdk.Coins{}
+}

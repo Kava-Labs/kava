@@ -58,13 +58,13 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	suite.PoolLiquidityEqual(pool, balance)
 	suite.PoolShareValueEqual(depositor, pool, balance)
 
-	suite.EventsContains(sdk.NewEvent(
+	suite.EventsContains(res.Events, sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, depositor.String()),
 	))
 
-	suite.EventsContains(sdk.NewEvent(
+	suite.EventsContains(res.Events, sdk.NewEvent(
 		swap.EventTypeSwapDeposit,
 		sdk.NewAttribute(swap.AttributeKeyPoolName, pool.Name()),
 		sdk.NewAttribute(swap.AttributeKeyDepositor, depositor.GetAddress().String()),
@@ -102,25 +102,23 @@ func (suite *handlerTestSuite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 }
 
 func (suite *handlerTestSuite) PoolLiquidityEqual(pool swap.AllowedPool, coins sdk.Coins) {
-	storedPool, ok := suite.keeper.GetPool(pool)
+	storedPool, ok := suite.keeper.GetPool(pool.Name())
 	suite.Require().True(ok)
-	suite.Equal(coins.AmountOf(pool.TokenA), storedPool.ReserveA.Amount)
-	suite.Equal(coins.AmountOf(pool.TokenB), storedPool.ReserveB.Amount)
+	suite.Equal(coins.AmountOf(pool.TokenA), storedPool.ReservesA.Amount)
+	suite.Equal(coins.AmountOf(pool.TokenB), storedPool.ReservesB.Amount)
 }
 
 func (suite *handlerTestSuite) PoolShareValueEqual(depositor authexported.Account, pool swap.AllowedPool, coins sdk.Coins) {
-	storedPool, ok := suite.keeper.GetPool(pool)
+	storedPool, ok := suite.keeper.GetPool(pool.Name())
 	suite.Require().True(ok)
-	shares, ok := suite.keeper.GetShares(depositor, storedPool)
+	shares, ok := suite.keeper.GetShares(depositor.GetAddress(), storedPool)
 	suite.Require().True(ok)
 
 	value := storedPool.ShareValue(shares)
 	suite.Equal(coins, value)
 }
 
-func (suite *handlerTestSuite) EventsContains(expectedEvent sdk.Event) {
-	events := suite.ctx.EventManager().ABCIEvents()
-
+func (suite *handlerTestSuite) EventsContains(events sdk.Events, expectedEvent sdk.Event) {
 	for _, event := range events {
 		if event.Type == expectedEvent.Type {
 			suite.Equal(expectedEvent.Attributes, event.Attributes)
