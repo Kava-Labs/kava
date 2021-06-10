@@ -17,7 +17,7 @@ func TestMsgDeposit_Attributes(t *testing.T) {
 }
 
 func TestMsgDeposit_Signing(t *testing.T) {
-	signData := `{"depositor":"kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d","token_a":{"amount":"1000000","denom":"ukava"},"token_b":{"amount":"5000000","denom":"usdx"}}`
+	signData := `{"type":"swap/MsgDeposit","value":{"depositor":"kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d","token_a":{"amount":"1000000","denom":"ukava"},"token_b":{"amount":"5000000","denom":"usdx"}}}`
 	signBytes := []byte(signData)
 
 	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
