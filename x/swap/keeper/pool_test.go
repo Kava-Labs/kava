@@ -10,7 +10,9 @@ func (suite *keeperTestSuite) TestPool_Persistance() {
 	reserveA := sdk.NewCoin("ukava", sdk.NewInt(10e6))
 	reserveB := sdk.NewCoin("usdx", sdk.NewInt(50e6))
 
-	pool := types.NewPool(reserveA, reserveB)
+	pool, err := types.NewPool(reserveA, reserveB)
+	suite.Nil(err)
+
 	suite.Keeper.SetPool(suite.Ctx, pool)
 
 	savedPool, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
