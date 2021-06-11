@@ -185,6 +185,7 @@ func TestAllowedPools_Validate(t *testing.T) {
 	}
 }
 
+// TODO: example tests for init share math, cover edge cases
 func TestPool_InitShares(t *testing.T) {
 	a := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	b := sdk.NewCoin("usdx", sdk.NewInt(5e6))
@@ -193,8 +194,15 @@ func TestPool_InitShares(t *testing.T) {
 	assert.Equal(t, a, pool.ReservesA)
 	assert.Equal(t, b, pool.ReservesB)
 
-	// TODO: implment initial share value, stubbed to zero for first pass
-	assert.Equal(t, sdk.ZeroInt(), pool.TotalShares)
+	assert.Equal(t, sdk.NewInt(2236067), pool.TotalShares)
+}
+
+func TestPool_Name(t *testing.T) {
+	a := sdk.NewCoin("ukava", sdk.NewInt(1e6))
+	b := sdk.NewCoin("usdx", sdk.NewInt(5e6))
+	pool := types.NewPool(a, b)
+
+	assert.Equal(t, "ukava/usdx", pool.Name())
 }
 
 func TestPool_ShareValue(t *testing.T) {
@@ -202,5 +210,5 @@ func TestPool_ShareValue(t *testing.T) {
 	b := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 	pool := types.NewPool(a, b)
 
-	assert.Equal(t, sdk.Coins{}, pool.ShareValue(pool.TotalShares))
+	assert.Equal(t, sdk.NewCoins(a, b), pool.ShareValue(pool.TotalShares))
 }

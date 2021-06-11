@@ -1,11 +1,24 @@
 package keeper_test
 
 import (
-	"testing"
+	"github.com/kava-labs/kava/x/swap/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func TestKeeper_PoolDeposit_CreatePool(t *testing.T) {
-}
+func (suite *keeperTestSuite) TestPool_Persistance() {
+	reserveA := sdk.NewCoin("ukava", sdk.NewInt(10e6))
+	reserveB := sdk.NewCoin("usdx", sdk.NewInt(50e6))
 
-func TestKeeper_Pool_Persistance(t *testing.T) {
+	pool := types.NewPool(reserveA, reserveB)
+	suite.Keeper.SetPool(suite.Ctx, pool)
+
+	savedPool, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
+	suite.True(ok)
+	suite.Equal(pool, savedPool)
+
+	suite.Keeper.DeletePool(suite.Ctx, pool.Name())
+	deletedPool, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
+	suite.False(ok)
+	suite.Equal(deletedPool, types.Pool{})
 }

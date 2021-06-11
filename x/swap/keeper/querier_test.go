@@ -3,49 +3,37 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	"github.com/kava-labs/kava/x/swap/keeper"
+	"github.com/kava-labs/kava/x/swap/testutil"
+	"github.com/kava-labs/kava/x/swap/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/swap/keeper"
-	"github.com/kava-labs/kava/x/swap/types"
+	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-type QuerierTestSuite struct {
-	suite.Suite
-	keeper  keeper.Keeper
-	app     app.TestApp
-	ctx     sdk.Context
+type querierTestSuite struct {
+	testutil.Suite
 	querier sdk.Querier
 }
 
-func (suite *QuerierTestSuite) SetupTest() {
-	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-
-	tApp.InitializeFromGenesisStates(
+func (suite *querierTestSuite) SetupTest() {
+	suite.Suite.SetupTest()
+	suite.App.InitializeFromGenesisStates(
 		NewSwapGenStateMulti(),
 	)
-
-	suite.ctx = ctx
-	suite.app = tApp
-	suite.keeper = tApp.GetSwapKeeper()
-	suite.querier = keeper.NewQuerier(suite.keeper)
+	suite.querier = keeper.NewQuerier(suite.Keeper)
 }
 
-func (suite *QuerierTestSuite) TestUnkownRequest() {
-	ctx := suite.ctx.WithIsCheckTx(false)
+func (suite *querierTestSuite) TestUnkownRequest() {
+	ctx := suite.Ctx.WithIsCheckTx(false)
 	bz, err := suite.querier(ctx, []string{"invalid-path"}, abci.RequestQuery{})
 	suite.Nil(bz)
 	suite.EqualError(err, "unknown request: unknown swap query endpoint")
 }
 
-func (suite *QuerierTestSuite) TestQueryParams() {
-	ctx := suite.ctx.WithIsCheckTx(false)
+func (suite *querierTestSuite) TestQueryParams() {
+	ctx := suite.Ctx.WithIsCheckTx(false)
 	bz, err := suite.querier(ctx, []string{types.QueryGetParams}, abci.RequestQuery{})
 	suite.Nil(err)
 	suite.NotNil(bz)
@@ -61,5 +49,5 @@ func (suite *QuerierTestSuite) TestQueryParams() {
 }
 
 func TestQuerierTestSuite(t *testing.T) {
-	suite.Run(t, new(QuerierTestSuite))
+	suite.Run(t, new(querierTestSuite))
 }

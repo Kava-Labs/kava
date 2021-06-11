@@ -22,10 +22,18 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgDeposit) (*sdk.Result, error) {
-	err := k.Deposit(ctx, msg.Depositor, msg.TokenA, msg.TokenA)
+	err := k.Deposit(ctx, msg.Depositor, msg.TokenA, msg.TokenB)
 	if err != nil {
 		return nil, err
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
+		),
+	)
 
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),

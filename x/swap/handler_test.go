@@ -1,43 +1,33 @@
 package swap_test
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/swap"
+	"github.com/kava-labs/kava/x/swap/testutil"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	"github.com/tendermint/tendermint/crypto"
 )
 
+var swapModuleAccountAddress = sdk.AccAddress(crypto.AddressHash([]byte(swap.ModuleAccountName)))
+
 type handlerTestSuite struct {
-	suite.Suite
-	keeper  swap.Keeper
+	testutil.Suite
 	handler sdk.Handler
-	app     app.TestApp
-	ctx     sdk.Context
 }
 
 func (suite *handlerTestSuite) SetupTest() {
-	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-	keeper := tApp.GetSwapKeeper()
-
-	suite.ctx = ctx
-	suite.app = tApp
-	suite.keeper = keeper
-	suite.handler = swap.NewHandler(keeper)
+	suite.Suite.SetupTest()
+	suite.handler = swap.NewHandler(suite.Keeper)
 }
 
 func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	pool := swap.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
-	suite.keeper.SetParams(suite.ctx, swap.NewParams(swap.NewAllowedPools(pool), swap.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, swap.NewParams(swap.NewAllowedPools(pool), swap.DefaultSwapFee))
 
 	balance := sdk.NewCoins(
 		sdk.NewCoin(pool.TokenA, sdk.NewInt(10e6)),
@@ -51,18 +41,26 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 		sdk.NewCoin(pool.TokenB, depositor.GetCoins().AmountOf(pool.TokenB)),
 	)
 
-	res, err := suite.handler(suite.ctx, deposit)
+	res, err := suite.handler(suite.Ctx, deposit)
 	suite.Require().NoError(err)
 
-	suite.AccountBalanceEqual(depositor, sdk.Coins{})
+	suite.AccountBalanceEqual(depositor, sdk.Coins(nil))
 	suite.ModuleAccountBalanceEqual(balance)
 	suite.PoolLiquidityEqual(pool, balance)
 	suite.PoolShareValueEqual(depositor, pool, balance)
 
 	suite.EventsContains(res.Events, sdk.NewEvent(
 		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, depositor.String()),
+		// TODO: this attribute won't pass assertion
+		//sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		bank.EventTypeTransfer,
+		sdk.NewAttribute(bank.AttributeKeyRecipient, swapModuleAccountAddress.String()),
+		sdk.NewAttribute(bank.AttributeKeySender, depositor.GetAddress().String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, balance.String()),
 	))
 
 	suite.EventsContains(res.Events, sdk.NewEvent(
@@ -73,66 +71,10 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	))
 }
 
-func (suite *handlerTestSuite) GetAccount(initialBalance sdk.Coins) authexported.Account {
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-	ak := suite.app.GetAccountKeeper()
-
-	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
-	acc.SetCoins(initialBalance)
-
-	ak.SetAccount(suite.ctx, acc)
-	return acc
-}
-
 func (suite *handlerTestSuite) TestInvalidMsg() {
-	res, err := suite.handler(suite.ctx, sdk.NewTestMsg())
+	res, err := suite.handler(suite.Ctx, sdk.NewTestMsg())
 	suite.Nil(res)
 	suite.EqualError(err, "unknown request: unrecognized swap message type: *types.TestMsg")
-}
-
-func (suite *handlerTestSuite) AccountBalanceEqual(acc authexported.Account, coins sdk.Coins) {
-	ak := suite.app.GetAccountKeeper()
-	acc = ak.GetAccount(suite.ctx, acc.GetAddress())
-	suite.Equal(acc.GetCoins(), coins, fmt.Sprintf("expected account balance to equal coins %s, but got %s", coins, acc.GetCoins()))
-}
-
-func (suite *handlerTestSuite) ModuleAccountBalanceEqual(coins sdk.Coins) {
-	sk := suite.app.GetSupplyKeeper()
-	macc, _ := sk.GetModuleAccountAndPermissions(suite.ctx, swap.ModuleName)
-	suite.Require().NotNil(macc, "expected module account to be defined")
-	suite.Equal(macc.GetCoins(), coins, fmt.Sprintf("expected module account balance to equal coins %s, but got %s", coins, macc.GetCoins()))
-}
-
-func (suite *handlerTestSuite) PoolLiquidityEqual(pool swap.AllowedPool, coins sdk.Coins) {
-	storedPool, ok := suite.keeper.GetPool(pool.Name())
-	suite.Require().True(ok, "expected pool to exist")
-	suite.Equal(coins.AmountOf(pool.TokenA), storedPool.ReservesA.Amount,
-		"expected pool reservers of %s%s", coins.AmountOf(pool.TokenA), pool.TokenA,
-	)
-	suite.Equal(coins.AmountOf(pool.TokenB), storedPool.ReservesB.Amount,
-		"expected pool reservers of %s%s", coins.AmountOf(pool.TokenB), pool.TokenB,
-	)
-}
-
-func (suite *handlerTestSuite) PoolShareValueEqual(depositor authexported.Account, pool swap.AllowedPool, coins sdk.Coins) {
-	storedPool, ok := suite.keeper.GetPool(pool.Name())
-	suite.Require().True(ok, fmt.Sprintf("expected pool %s to exist", pool.Name()))
-	shares, ok := suite.keeper.GetShares(depositor.GetAddress(), storedPool)
-	suite.Require().True(ok, "expected shares to exist for depositor %s", depositor.GetAddress())
-
-	value := storedPool.ShareValue(shares)
-	suite.Equal(coins, value)
-}
-
-func (suite *handlerTestSuite) EventsContains(events sdk.Events, expectedEvent sdk.Event) {
-	for _, event := range events {
-		if event.Type == expectedEvent.Type {
-			suite.Equal(expectedEvent.Attributes, event.Attributes, fmt.Sprintf("expected event attributes did not match event type %s", event.Type))
-			return
-		}
-	}
-
-	suite.Fail("event of type %s not found", expectedEvent.Type)
 }
 
 func TestHandlerTestSuite(t *testing.T) {

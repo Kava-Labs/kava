@@ -23,27 +23,33 @@ const (
 
 var (
 	// function aliases
-	NewKeeper           = keeper.NewKeeper
-	NewQuerier          = keeper.NewQuerier
-	DefaultGenesisState = types.DefaultGenesisState
-	DefaultParams       = types.DefaultParams
-	NewAllowedPool      = types.NewAllowedPool
-	NewAllowedPools     = types.NewAllowedPools
-	NewGenesisState     = types.NewGenesisState
-	NewMsgDeposit       = types.NewMsgDeposit
-	NewParams           = types.NewParams
-	NewPool             = types.NewPool
-	ParamKeyTable       = types.ParamKeyTable
-	RegisterCodec       = types.RegisterCodec
+	NewKeeper              = keeper.NewKeeper
+	NewQuerier             = keeper.NewQuerier
+	DefaultGenesisState    = types.DefaultGenesisState
+	DefaultParams          = types.DefaultParams
+	DepositorPoolSharesKey = types.DepositorPoolSharesKey
+	NewAllowedPool         = types.NewAllowedPool
+	NewAllowedPools        = types.NewAllowedPools
+	NewGenesisState        = types.NewGenesisState
+	NewMsgDeposit          = types.NewMsgDeposit
+	NewParams              = types.NewParams
+	NewPool                = types.NewPool
+	ParamKeyTable          = types.ParamKeyTable
+	PoolKey                = types.PoolKey
+	PoolName               = types.PoolName
+	RegisterCodec          = types.RegisterCodec
 
 	// variable aliases
-	DefaultAllowedPools = types.DefaultAllowedPools
-	DefaultSwapFee      = types.DefaultSwapFee
-	ErrCustom           = types.ErrCustom
-	KeyAllowedPools     = types.KeyAllowedPools
-	KeySwapFee          = types.KeySwapFee
-	MaxSwapFee          = types.MaxSwapFee
-	ModuleCdc           = types.ModuleCdc
+	DefaultAllowedPools       = types.DefaultAllowedPools
+	DefaultSwapFee            = types.DefaultSwapFee
+	DepositorPoolSharesPrefix = types.DepositorPoolSharesPrefix
+	ErrNotAllowed             = types.ErrNotAllowed
+	ErrNotImplemented         = types.ErrNotImplemented
+	KeyAllowedPools           = types.KeyAllowedPools
+	KeySwapFee                = types.KeySwapFee
+	MaxSwapFee                = types.MaxSwapFee
+	ModuleCdc                 = types.ModuleCdc
+	PoolKeyPrefix             = types.PoolKeyPrefix
 )
 
 type (
