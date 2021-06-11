@@ -28,3 +28,13 @@ func (k Keeper) DeletePool(ctx sdk.Context, poolName string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
 	store.Delete(types.PoolKey(poolName))
 }
+
+func (k Keeper) InitializePool(ctx sdk.Context, depositor sdk.AccAddress, amountA, amountB sdk.Coin) error {
+	pool, err := types.NewPool(amountA, amountB)
+	if err != nil {
+		return err
+	}
+	k.SetPool(ctx, pool)
+	k.SetDepositorShares(ctx, depositor, pool.Name(), pool.TotalShares)
+	return nil
+}
