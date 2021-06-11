@@ -102,20 +102,19 @@ type Pool struct {
 }
 
 // NewPool creates a pool from an initial reserve and initializes the total shares
-func NewPool(reservesA sdk.Coin, reservesB sdk.Coin) Pool {
+func NewPool(reservesA sdk.Coin, reservesB sdk.Coin) (Pool, error) {
 	product := reservesA.Amount.Mul(reservesB.Amount)
 	totalShares, err := product.ToDec().ApproxSqrt()
 
-	// TODO: don't panic, handle error
 	if err != nil {
-		panic("unable to calculate total shares")
+		return Pool{}, fmt.Errorf("unable to calculate total shares")
 	}
 
 	return Pool{
 		ReservesA:   reservesA,
 		ReservesB:   reservesB,
 		TotalShares: totalShares.TruncateInt(),
-	}
+	}, nil
 }
 
 // Name returns the name for the pool
@@ -124,13 +123,16 @@ func (p Pool) Name() string {
 }
 
 // ShareValue returns the reserves represented by the provided number of shares
-func (p Pool) ShareValue(numShares sdk.Int) sdk.Coins {
-	// TODO: handle zeros
+func (p Pool) ShareValue(numShares sdk.Int) (sdk.Coins, error) {
+	if p.TotalShares.Equal(sdk.ZeroInt()) {
+		return sdk.Coins{}, fmt.Errorf("error calculating share value, cannot divide by 0")
+	}
+
 	valueA := p.ReservesA.Amount.Mul(numShares).Quo(p.TotalShares)
 	valueB := p.ReservesB.Amount.Mul(numShares).Quo(p.TotalShares)
 
 	return sdk.NewCoins(
 		sdk.NewCoin(p.ReservesA.Denom, valueA),
 		sdk.NewCoin(p.ReservesB.Denom, valueB),
-	)
+	), nil
 }
