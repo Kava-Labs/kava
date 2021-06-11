@@ -100,14 +100,16 @@ func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, val
 			continue
 		}
 
-		if valAddr == nil {
-			// Delegators don't accumulate rewards if their validator is unbonded
-			if validator.GetStatus() != sdk.Bonded {
+		if validator.OperatorAddress.Equals(valAddr) {
+			if shouldIncludeValidator {
+				// do nothing, so the validator is included regardless of bonded status
+			} else {
+				// skip this validator
 				continue
 			}
 		} else {
-			if !shouldIncludeValidator && validator.OperatorAddress.Equals(valAddr) {
-				// ignore tokens delegated to the validator
+			// skip any not bonded validator
+			if validator.GetStatus() != sdk.Bonded {
 				continue
 			}
 		}

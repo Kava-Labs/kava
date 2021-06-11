@@ -267,7 +267,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenExcludingA
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
 
 	suite.Equal(
-		d("1110"), // FIXME should be d("10"): total delegation to bonded validators, excluding one
+		d("10"),
 		suite.keeper.GetTotalDelegated(suite.ctx, delegator, validatorAddresses[0], false),
 	)
 }
@@ -310,7 +310,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenIncludingA
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
 
 	suite.Equal(
-		d("1111"), // FIXME should be d("111"): total delegation to bonded validators, including an unbonding one
+		d("111"),
 		suite.keeper.GetTotalDelegated(suite.ctx, delegator, validatorAddresses[2], true),
 	)
 }
