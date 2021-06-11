@@ -189,7 +189,8 @@ func TestAllowedPools_Validate(t *testing.T) {
 func TestPool_InitShares(t *testing.T) {
 	a := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	b := sdk.NewCoin("usdx", sdk.NewInt(5e6))
-	pool := types.NewPool(a, b)
+	pool, err := types.NewPool(a, b)
+	assert.Nil(t, err)
 
 	assert.Equal(t, a, pool.ReservesA)
 	assert.Equal(t, b, pool.ReservesB)
@@ -200,7 +201,8 @@ func TestPool_InitShares(t *testing.T) {
 func TestPool_Name(t *testing.T) {
 	a := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	b := sdk.NewCoin("usdx", sdk.NewInt(5e6))
-	pool := types.NewPool(a, b)
+	pool, err := types.NewPool(a, b)
+	assert.Nil(t, err)
 
 	assert.Equal(t, "ukava/usdx", pool.Name())
 }
@@ -208,7 +210,10 @@ func TestPool_Name(t *testing.T) {
 func TestPool_ShareValue(t *testing.T) {
 	a := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	b := sdk.NewCoin("usdx", sdk.NewInt(5e6))
-	pool := types.NewPool(a, b)
+	pool, err := types.NewPool(a, b)
+	assert.Nil(t, err)
 
-	assert.Equal(t, sdk.NewCoins(a, b), pool.ShareValue(pool.TotalShares))
+	shareValue, err := pool.ShareValue(pool.TotalShares)
+	assert.Nil(t, err)
+	assert.Equal(t, sdk.NewCoins(a, b), shareValue)
 }

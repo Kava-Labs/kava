@@ -90,7 +90,8 @@ func (suite *Suite) PoolShareValueEqual(depositor authexported.Account, pool swa
 	shares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), storedPool.Name())
 	suite.Require().True(ok, fmt.Sprintf("expected shares to exist for depositor %s", depositor.GetAddress()))
 
-	value := storedPool.ShareValue(shares)
+	value, err := storedPool.ShareValue(shares)
+	suite.Nil(err)
 	suite.Equal(coins, value, fmt.Sprintf("expected shares to equal %s, but got %s", coins, value))
 }
 
