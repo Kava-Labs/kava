@@ -114,7 +114,10 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 
 		userMultiRewardIndexes, foundUserMultiRewardIndex := claim.SupplyRewardIndexes.Get(coin.Denom)
 		if !foundUserMultiRewardIndex {
-			continue
+			// Normally the reward indexes should always be found.
+			// But if a denom was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that supplied denom.
+			// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
+			userMultiRewardIndexes = types.RewardIndexes{}
 		}
 
 		newRewards, err := k.CalculateRewards(userMultiRewardIndexes, globalRewardIndexes, coin.Amount.ToDec())

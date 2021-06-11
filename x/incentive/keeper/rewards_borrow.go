@@ -113,7 +113,10 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 
 		userRewardIndexes, found := claim.BorrowRewardIndexes.Get(coin.Denom)
 		if !found {
-			continue
+			// Normally the reward indexes should always be found.
+			// But if a denom was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that borrowed denom.
+			// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
+			userRewardIndexes = types.RewardIndexes{}
 		}
 
 		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount.ToDec())

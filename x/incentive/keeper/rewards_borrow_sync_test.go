@@ -81,7 +81,6 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUnchangedWhenG
 func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardAdded() {
 	// When a new reward is added (via gov) for a hard borrow denom the user has already borrowed, and the claim is synced;
 	// Then the new reward's index should be added to the claim.
-	suite.T().Skip("TODO fix this bug")
 
 	claim := types.HardLiquidityProviderClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -104,32 +103,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
 }
-func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardAddedWithZeroRewardsPerSecond() {
-	// When a new reward (with zero rewards per second) is added (via gov) for a hard borrow denom the user has already borrowed, and the claim is synced;
-	// Then the new reward's index should be added to the claim.
-	suite.T().Skip("TODO fix this bug")
 
-	claim := types.HardLiquidityProviderClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
-			Owner: arbitraryAddress(),
-		},
-		BorrowRewardIndexes: nonEmptyMultiRewardIndexes,
-	}
-	suite.storeClaim(claim)
-
-	globalIndexes := nonEmptyMultiRewardIndexes.With("uniquezerorps", nil)
-	suite.storeGlobalBorrowIndexes(globalIndexes)
-
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
-
-	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
-
-	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
-	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
-}
 func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardDenomAdded() {
 	// When a new reward coin is added (via gov) to an already rewarded borrow denom (that the user has already borrowed), and the claim is synced;
 	// Then the new reward coin's index should be added to the claim.
@@ -213,7 +187,6 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenGlobal
 func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRewardAdded() {
 	// When a new reward is added (via gov) for a hard borrow denom the user has already borrowed, and the claim is synced
 	// Then the user earns rewards for the time since the reward was added
-	suite.T().Skip("TODO fix this bug")
 
 	originalReward := arbitraryCoins()
 	claim := types.HardLiquidityProviderClaim{
