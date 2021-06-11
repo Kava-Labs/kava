@@ -109,7 +109,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardUnchangedWhenGlobalInd
 
 	suite.storeGlobalUSDXIndexes(unchangingRewardIndexes)
 
-	cdp := NewCDPBuilder(claim.Owner, collateralType).Build()
+	cdp := NewCDPBuilder(claim.Owner, collateralType).WithPrincipal(i(1e12)).Build()
 
 	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 
@@ -155,7 +155,6 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGloba
 }
 
 func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenNewRewardAddedAndClaimDoesNotExit() {
-	suite.T().Skip("TODO fix this bug")
 	collateralType := "bnb-a"
 
 	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)

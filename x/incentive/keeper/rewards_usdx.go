@@ -91,8 +91,11 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 	}
 
 	userRewardFactor, hasRewardIndex := claim.RewardIndexes.Get(cdp.Type)
-	if !hasRewardIndex { // this is the owner's first usdx minting reward for this collateral type
-		userRewardFactor = globalRewardFactor
+	if !hasRewardIndex {
+		// Normally the factor should always be found, as it is added when the cdp is created in InitializeUSDXMintingClaim.
+		// However if a cdp type is not rewarded then becomes rewarded (ie a reward period is added to params), existing cdps will not have the factor in their claims.
+		// So assume the factor is the starting value for any global factor: 0.
+		userRewardFactor = sdk.ZeroDec()
 	}
 
 	newRewardsAmount := k.calculateSingleReward(userRewardFactor, globalRewardFactor, cdp.GetTotalPrincipal().Amount.ToDec())
