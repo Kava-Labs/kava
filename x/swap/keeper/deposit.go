@@ -16,38 +16,38 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amountA sdk.C
 		return sdkerrors.Wrap(types.ErrNotImplemented, fmt.Sprintf("can not deposit into existing pool '%s'", poolName))
 	}
 
-	// TODO: extract method
-	params := k.GetParams(ctx)
-	creationAllowed := false
-	for _, p := range params.AllowedPools {
-		if p.TokenA == amountA.Denom && p.TokenB == amountB.Denom {
-			creationAllowed = true
-		}
-	}
-	if !creationAllowed {
-		return sdkerrors.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolName))
-	}
-
-	// TODO: extract method, wrap error
-	amount := sdk.NewCoins(amountA, amountB)
-	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, amount)
+	err := k.DepositAllowed(ctx, poolName, amountA, amountB)
 	if err != nil {
 		return err
 	}
 
-	// TODO: extra method
-	pool := types.NewPool(amountA, amountB)
-	k.SetPool(ctx, pool)
-	k.SetDepositorShares(ctx, depositor, pool.Name(), pool.TotalShares)
+	// TODO: extract method, wrap error
+	amount := sdk.NewCoins(amountA, amountB)
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, amount)
+	if err != nil {
+		return err
+	}
+
+	k.InitializePool(ctx, depositor, amountA, amountB)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSwapDeposit,
-			sdk.NewAttribute(types.AttributeKeyPoolName, pool.Name()),
+			sdk.NewAttribute(types.AttributeKeyPoolName, poolName),
 			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
 		),
 	)
 
 	return nil
+}
+
+func (k Keeper) DepositAllowed(ctx sdk.Context, poolName string, amountA, amountB sdk.Coin) error {
+	params := k.GetParams(ctx)
+	for _, p := range params.AllowedPools {
+		if p.TokenA == amountA.Denom && p.TokenB == amountB.Denom {
+			return nil
+		}
+	}
+	return sdkerrors.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolName))
 }

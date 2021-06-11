@@ -14,11 +14,12 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool_PoolExists() {
 
 	amountA := sdk.NewCoin("ukava", sdk.NewInt(10e6))
 	amountB := sdk.NewCoin("usdx", sdk.NewInt(50e6))
-	pool := types.NewPool(amountA, amountB)
+	pool, err := types.NewPool(amountA, amountB)
+	suite.Nil(err)
 
 	suite.Keeper.SetPool(suite.Ctx, pool)
 
-	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), amountA, amountB)
+	err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), amountA, amountB)
 	suite.Require().EqualError(err, "not implemented: can not deposit into existing pool 'ukava/usdx'")
 }
 
