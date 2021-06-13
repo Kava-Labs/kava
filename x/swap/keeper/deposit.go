@@ -42,6 +42,16 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amountA sdk.C
 	return nil
 }
 
+func (k Keeper) InitializePool(ctx sdk.Context, depositor sdk.AccAddress, amountA, amountB sdk.Coin) error {
+	pool, err := types.NewPool(amountA, amountB)
+	if err != nil {
+		return err
+	}
+	k.SetPool(ctx, pool)
+	k.SetDepositorShares(ctx, depositor, pool.Name(), pool.TotalShares)
+	return nil
+}
+
 func (k Keeper) DepositAllowed(ctx sdk.Context, poolName string, amountA, amountB sdk.Coin) error {
 	params := k.GetParams(ctx)
 	for _, p := range params.AllowedPools {
