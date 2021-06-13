@@ -5,6 +5,6 @@ import (
 )
 
 var (
-	ErrNotAllowed     = sdkerrors.Register(ModuleName, 1, "not allowed")
-	ErrNotImplemented = sdkerrors.Register(ModuleName, 99, "not implemented")
+	ErrNotAllowed     = sdkerrors.Register(ModuleName, 2, "not allowed")
+	ErrNotImplemented = sdkerrors.Register(ModuleName, 3, "not implemented")
 )
