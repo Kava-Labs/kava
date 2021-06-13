@@ -21,7 +21,6 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 		return err
 	}
 
-	// TODO: extract method, wrap error
 	amount := sdk.NewCoins(coinA, coinB)
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, amount)
 	if err != nil {
