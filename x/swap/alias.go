@@ -43,6 +43,8 @@ var (
 	DefaultAllowedPools       = types.DefaultAllowedPools
 	DefaultSwapFee            = types.DefaultSwapFee
 	DepositorPoolSharesPrefix = types.DepositorPoolSharesPrefix
+	ErrDeadlineExceeded       = types.ErrDeadlineExceeded
+	ErrInvalidDeadline        = types.ErrInvalidDeadline
 	ErrNotAllowed             = types.ErrNotAllowed
 	ErrNotImplemented         = types.ErrNotImplemented
 	KeyAllowedPools           = types.KeyAllowedPools
@@ -53,13 +55,14 @@ var (
 )
 
 type (
-	Keeper        = keeper.Keeper
-	AccountKeeper = types.AccountKeeper
-	AllowedPool   = types.AllowedPool
-	AllowedPools  = types.AllowedPools
-	GenesisState  = types.GenesisState
-	MsgDeposit    = types.MsgDeposit
-	Params        = types.Params
-	Pool          = types.Pool
-	SupplyKeeper  = types.SupplyKeeper
+	Keeper          = keeper.Keeper
+	AccountKeeper   = types.AccountKeeper
+	AllowedPool     = types.AllowedPool
+	AllowedPools    = types.AllowedPools
+	GenesisState    = types.GenesisState
+	MsgDeposit      = types.MsgDeposit
+	MsgWithDeadline = types.MsgWithDeadline
+	Params          = types.Params
+	Pool            = types.Pool
+	SupplyKeeper    = types.SupplyKeeper
 )
