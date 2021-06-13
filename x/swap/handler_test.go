@@ -1,7 +1,9 @@
 package swap_test
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/kava-labs/kava/x/swap"
 	"github.com/kava-labs/kava/x/swap/testutil"
@@ -39,6 +41,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 		depositor.GetAddress(),
 		sdk.NewCoin(pool.TokenA, depositor.GetCoins().AmountOf(pool.TokenA)),
 		sdk.NewCoin(pool.TokenB, depositor.GetCoins().AmountOf(pool.TokenB)),
+		time.Now().Add(10*time.Minute).Unix(),
 	)
 
 	res, err := suite.handler(suite.Ctx, deposit)
@@ -69,6 +72,29 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 		sdk.NewAttribute(swap.AttributeKeyDepositor, depositor.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, balance.String()),
 	))
+}
+
+func (suite *handlerTestSuite) TestDeposit_DeadlineExceeded() {
+	pool := swap.NewAllowedPool("ukava", "usdx")
+	suite.Require().NoError(pool.Validate())
+	suite.Keeper.SetParams(suite.Ctx, swap.NewParams(swap.NewAllowedPools(pool), swap.DefaultSwapFee))
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin(pool.TokenA, sdk.NewInt(10e6)),
+		sdk.NewCoin(pool.TokenB, sdk.NewInt(50e6)),
+	)
+	depositor := suite.GetAccount(balance)
+
+	deposit := swap.NewMsgDeposit(
+		depositor.GetAddress(),
+		sdk.NewCoin(pool.TokenA, depositor.GetCoins().AmountOf(pool.TokenA)),
+		sdk.NewCoin(pool.TokenB, depositor.GetCoins().AmountOf(pool.TokenB)),
+		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
+	)
+
+	res, err := suite.handler(suite.Ctx, deposit)
+	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), deposit.GetDeadline().Unix()))
+	suite.Nil(res)
 }
 
 func (suite *handlerTestSuite) TestInvalidMsg() {

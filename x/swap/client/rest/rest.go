@@ -20,8 +20,9 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 // PostDepositReq defines the properties of a deposit create request's body
 type PostCreateDepositReq struct {
-	BaseReq rest.BaseReq   `json:"base_req" yaml:"base_req"`
-	From    sdk.AccAddress `json:"from" yaml:"from"`
-	TokenA  sdk.Coin       `json:"token_a" yaml:"token_a"`
-	TokenB  sdk.Coin       `json:"token_b" yaml:"token_b"`
+	BaseReq  rest.BaseReq   `json:"base_req" yaml:"base_req"`
+	From     sdk.AccAddress `json:"from" yaml:"from"`
+	TokenA   sdk.Coin       `json:"token_a" yaml:"token_a"`
+	TokenB   sdk.Coin       `json:"token_b" yaml:"token_b"`
+	Deadline int64          `json:"deadline" yaml:"deadline"`
 }

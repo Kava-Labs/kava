@@ -12,6 +12,13 @@ import (
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
+
+		if deadlineMsg, ok := msg.(types.MsgWithDeadline); ok {
+			if deadlineExceeded := deadlineMsg.DeadlineExceeded(ctx.BlockTime()); deadlineExceeded {
+				return nil, sdkerrors.Wrapf(types.ErrDeadlineExceeded, "block time %d >= deadline %d", ctx.BlockTime().Unix(), deadlineMsg.GetDeadline().Unix())
+			}
+		}
+
 		switch msg := msg.(type) {
 		case types.MsgDeposit:
 			return handleMsgDeposit(ctx, k, msg)
