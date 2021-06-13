@@ -8,27 +8,27 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
-func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amountA sdk.Coin, amountB sdk.Coin) error {
-	poolName := types.PoolName(amountA.Denom, amountB.Denom)
+func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coin, coinB sdk.Coin) error {
+	poolName := types.PoolName(coinA.Denom, coinB.Denom)
 
 	_, found := k.GetPool(ctx, poolName)
 	if found {
 		return sdkerrors.Wrap(types.ErrNotImplemented, fmt.Sprintf("can not deposit into existing pool '%s'", poolName))
 	}
 
-	err := k.depositAllowed(ctx, poolName, amountA, amountB)
+	err := k.depositAllowed(ctx, poolName, coinA, coinB)
 	if err != nil {
 		return err
 	}
 
 	// TODO: extract method, wrap error
-	amount := sdk.NewCoins(amountA, amountB)
+	amount := sdk.NewCoins(coinA, coinB)
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, amount)
 	if err != nil {
 		return err
 	}
 
-	k.initializePool(ctx, depositor, amountA, amountB)
+	k.initializePool(ctx, depositor, coinA, coinB)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -42,18 +42,18 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amountA sdk.C
 	return nil
 }
 
-func (k Keeper) depositAllowed(ctx sdk.Context, poolName string, amountA, amountB sdk.Coin) error {
+func (k Keeper) depositAllowed(ctx sdk.Context, poolName string, coinA, coinB sdk.Coin) error {
 	params := k.GetParams(ctx)
 	for _, p := range params.AllowedPools {
-		if p.TokenA == amountA.Denom && p.TokenB == amountB.Denom {
+		if p.TokenA == coinA.Denom && p.TokenB == coinB.Denom {
 			return nil
 		}
 	}
 	return sdkerrors.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolName))
 }
 
-func (k Keeper) initializePool(ctx sdk.Context, depositor sdk.AccAddress, amountA, amountB sdk.Coin) error {
-	pool, err := types.NewPool(amountA, amountB)
+func (k Keeper) initializePool(ctx sdk.Context, depositor sdk.AccAddress, coinA, coinB sdk.Coin) error {
+	pool, err := types.NewPool(coinA, coinB)
 	if err != nil {
 		return err
 	}
