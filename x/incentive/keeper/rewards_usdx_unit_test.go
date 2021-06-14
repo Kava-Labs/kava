@@ -302,24 +302,3 @@ func extractFirstCollateralType(indexes types.RewardIndexes) string {
 	}
 	return indexes[0].CollateralType
 }
-
-/*
-Init
-given a claim doesn't exist, when sync is called, a claim is created with the current global index for cdp.Type
-given a claim does exist, when sync is called, the claim's indexes are updated with the current global index for cdp.Type
-same as above but with new cdp.Type, rather than existing one
-
-other
-given a reward period doesn't exist, do nothing
-given the global index doesn't exist, update index with 0
-
-
-Sync
-given increase in global indexes, new rewards are added
-given unchanged global indexes, no new rewards
-given new global index added, new rewards starting from zero
-
-other
-given no reward period, do nothing
-given no claim, create one with 0 global index
-*/
