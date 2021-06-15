@@ -20,6 +20,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetParams(ctx, req, k)
 		case types.QueryGetDeposits:
 			return queryGetDeposits(ctx, req, k)
+		case types.QueryGetPool:
+			return queryGetPool(ctx, req, k)
+		case types.QueryGetPools:
+			return queryGetPools(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -73,6 +77,66 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 
 	var bz []byte
 	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, shareValue)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryGetPool(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+
+	var params types.QueryPoolParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	hasPoolParam := len(params.Pool) > 0
+
+	if !hasPoolParam {
+		return []byte{}, fmt.Errorf("must specify param 'pool'")
+	}
+
+	pool, found := k.GetPool(ctx, params.Pool)
+	if !found {
+		return []byte{}, fmt.Errorf("pool %s does not exist", params.Pool)
+	}
+
+	totalShares := pool.TotalShares
+	totalCoins, err := pool.ShareValue(totalShares)
+	if err != nil {
+		return []byte{}, err
+	}
+	poolStats := types.NewPoolStatsQueryResult(totalCoins, totalShares)
+
+	var bz []byte
+	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, poolStats)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryGetPools(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+
+	var pools []types.Pool
+	k.IteratePools(ctx, func(pool types.Pool) bool {
+		pools = append(pools, pool)
+		return false
+	})
+
+	var allPoolStats types.PoolStatsQueryResults
+	for _, pool := range pools {
+		totalShares := pool.TotalShares
+		totalCoins, err := pool.ShareValue(totalShares)
+		if err != nil {
+			return []byte{}, err
+		}
+		poolStats := types.NewPoolStatsQueryResult(totalCoins, totalShares)
+		allPoolStats = append(allPoolStats, poolStats)
+	}
+
+	// Encode results
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, allPoolStats)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
