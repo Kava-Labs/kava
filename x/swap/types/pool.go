@@ -11,7 +11,7 @@ func PoolName(denomA string, denomB string) string {
 	return fmt.Sprintf("%s/%s", denomA, denomB)
 }
 
-// Pool implements a constant-product liquidty pool
+// Pool implements a constant-product liquidity pool
 type Pool struct {
 	ReservesA   sdk.Coin
 	ReservesB   sdk.Coin
