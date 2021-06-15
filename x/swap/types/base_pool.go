@@ -107,7 +107,7 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	// if we do not use the min or max ratio, then the result becomes
 	// dependent on the order on the order of the reserves
 	//
-	// min is used to always ensure the the share ratio is never larger
+	// min is used to always ensure the share ratio is never larger
 	// than the deposit ratio for either A or B
 	var shares sdk.Int
 	if sharesA.Cmp(&sharesB) <= 0 {
@@ -143,11 +143,13 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 }
 
 // SwapAForB trades a for b with a percentage fee
+// TODO: implementation
 func (p *BasePool) SwapAForB(a sdk.Int, fee sdk.Dec) sdk.Int {
 	return sdk.ZeroInt()
 }
 
 // SwapAForB trades b for a with a percentage fee
+// TODO: implementation
 func (p *BasePool) SwapBForA(b sdk.Int, fee sdk.Dec) sdk.Int {
 	return sdk.ZeroInt()
 }

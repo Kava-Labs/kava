@@ -244,7 +244,7 @@ func TestBasePool_AddLiquidity(t *testing.T) {
 	}
 }
 
-func TestPool_RemoveLiquidity(t *testing.T) {
+func TestBasePool_RemoveLiquidity(t *testing.T) {
 	testCases := []struct {
 		reservesA sdk.Int
 		reservesB sdk.Int
