@@ -253,7 +253,6 @@ func TestBasePool_RemoveLiquidity(t *testing.T) {
 		expectedB sdk.Int
 	}{
 		{i(1), i(1), i(1), i(1), i(1)},
-		{i(1), i(1), i(0), i(0), i(0)},
 		{i(100), i(100), i(50), i(50), i(50)},
 		{i(100), i(10000000), i(10435), i(32), i(3299917)},
 		{i(10000000), i(100), i(10435), i(3299917), i(32)},
@@ -285,7 +284,7 @@ func TestBasePool_RemoveLiquidity(t *testing.T) {
 	}
 }
 
-func TestBasePool_OutOfBounds(t *testing.T) {
+func TestBasePool_Panic_OutOfBounds(t *testing.T) {
 	pool, err := types.NewBasePool(sdk.NewInt(100), sdk.NewInt(100))
 	require.NoError(t, err)
 
@@ -328,24 +327,50 @@ func TestBasePool_EmptyAndRefill(t *testing.T) {
 	}
 }
 
-func TestBasePool_PanicOnZeroReserves(t *testing.T) {
+func TestBasePool_Panics_AddLiquidity(t *testing.T) {
 	assert.Panics(t, func() {
 		pool, err := types.NewBasePool(i(1e6), i(1e6))
 		require.NoError(t, err)
-		pool.RemoveLiquidity(pool.TotalShares())
 
 		pool.AddLiquidity(i(0), i(1e6))
-		pool.AddLiquidity(i(1e6), i(1e6))
 	}, "did not panic when reserve A is zero")
 
 	assert.Panics(t, func() {
 		pool, err := types.NewBasePool(i(1e6), i(1e6))
 		require.NoError(t, err)
-		pool.RemoveLiquidity(pool.TotalShares())
+
+		pool.AddLiquidity(i(-1), i(1e6))
+	}, "did not panic when reserve A is negative")
+
+	assert.Panics(t, func() {
+		pool, err := types.NewBasePool(i(1e6), i(1e6))
+		require.NoError(t, err)
 
 		pool.AddLiquidity(i(1e6), i(0))
-		pool.AddLiquidity(i(1e6), i(1e6))
 	}, "did not panic when reserve B is zero")
+
+	assert.Panics(t, func() {
+		pool, err := types.NewBasePool(i(1e6), i(1e6))
+		require.NoError(t, err)
+
+		pool.AddLiquidity(i(1e6), i(0))
+	}, "did not panic when reserve B is zero")
+}
+
+func TestBasePool_Panics_RemoveLiquidity(t *testing.T) {
+	assert.Panics(t, func() {
+		pool, err := types.NewBasePool(i(1e6), i(1e6))
+		require.NoError(t, err)
+
+		pool.RemoveLiquidity(i(0))
+	}, "did not panic when shares are zero")
+
+	assert.Panics(t, func() {
+		pool, err := types.NewBasePool(i(1e6), i(1e6))
+		require.NoError(t, err)
+
+		pool.RemoveLiquidity(i(-1))
+	}, "did not panic when shares are negative")
 }
 
 func TestBasePool_ReservesOnlyDepletedWithLastShare(t *testing.T) {
@@ -353,7 +378,7 @@ func TestBasePool_ReservesOnlyDepletedWithLastShare(t *testing.T) {
 		reservesA sdk.Int
 		reservesB sdk.Int
 	}{
-		{i(1), i(1)},
+		{i(5), i(5)},
 		{i(100), i(100)},
 		{i(100), i(10000000)},
 		{i(1e5), i(5e6)}, {i(1e6), i(5e6)},

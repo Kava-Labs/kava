@@ -12,28 +12,34 @@ var (
 	zero = sdk.ZeroInt()
 )
 
-// calculateInitialShares calculates initial shares as sqrt(A*B)
+// calculateInitialShares calculates initial shares as sqrt(A*B), the geometric mean of A and B
 func calculateInitialShares(reservesA, reservesB sdk.Int) sdk.Int {
-	// big.Int allows multiplication without overflow at 255 bits.
-	// In addition, sqrt converges to a correct solution for inputs
-	// that take longer than 100 iterations.  sdk.Int.ApproxSqrt() does
-	// not always converge.
+	// Big.Int allows multiplication without overflow at 255 bits.
+	// In addition, Sqrt converges to a correct solution for inputs
+	// where sdk.Int.ApproxSqrt does not converge due to exceeding
+	// 100 iterations.
 	var result big.Int
 	result.Mul(reservesA.BigInt(), reservesB.BigInt()).Sqrt(&result)
 	return sdk.NewIntFromBigInt(&result)
 }
 
-// BasePool implements a unitless constant-product liquidty pool
-// Reserves A is base asset, Reserves B is quote asset
-// Math is done using big.Int wheere n
+// BasePool implements a unitless constant-product liquidty pool.
+//
+// The pool is symmetric. For all A,B,s, any operation F on a pool (A,B,s) and pool (B,A,s)
+// will result in equal state values of A', B', s': F(A,B,s) => (A',B',s'), F(B,A,s) => (B',A',s')
+//
+// In addition, the pool is protected from overflow in intermediate calculations, and will
+// only overflow when A, B, or s become larger than the max sdk.Int.
+//
+// Pool operations with non-positive values are invalid, and all functions on a pool will panic
+// when given zero or negative values.
 type BasePool struct {
 	reservesA   sdk.Int
 	reservesB   sdk.Int
 	totalShares sdk.Int
 }
 
-// NewBasePool returns a new pool initialized with the provided results and total shares
-// equal to sqrt(reservesA * reservesB)
+// NewBasePool returns a pointer to a base pool with reserves and total shares initialzed
 func NewBasePool(reservesA, reservesB sdk.Int) (*BasePool, error) {
 	if reservesA.LTE(zero) || reservesB.LTE(zero) {
 		return nil, sdkerrors.Wrap(ErrInvalidPool, "reserves must be greater than zero")
@@ -48,7 +54,7 @@ func NewBasePool(reservesA, reservesB sdk.Int) (*BasePool, error) {
 	}, nil
 }
 
-// NewBasePoolWithExistingShares returns a new pool and sets the total number of shares.
+// NewBasePoolWithExistingShares returns a pointer to a base pool with existing shares
 func NewBasePoolWithExistingShares(reservesA, reservesB, totalShares sdk.Int) (*BasePool, error) {
 	if reservesA.LTE(zero) || reservesB.LTE(zero) {
 		return nil, sdkerrors.Wrap(ErrInvalidPool, "reserves must be greater than zero")
@@ -65,17 +71,18 @@ func NewBasePoolWithExistingShares(reservesA, reservesB, totalShares sdk.Int) (*
 	}, nil
 }
 
-// ReservesA returns the base asset reserves of the pool
+// ReservesA returns the A reserves of the pool
 func (p *BasePool) ReservesA() sdk.Int {
 	return p.reservesA
 }
 
-// ReservesA returns the quote asset reserves of the pool
+// ReservesB returns the B reserves of the pool
 func (p *BasePool) ReservesB() sdk.Int {
 	return p.reservesB
 }
 
-// Empty returns true if all reserves are zero
+// Empty returns true if all reserves are zero and
+// returns false if reserveA or reserveB is not empty
 func (p *BasePool) IsEmpty() bool {
 	return p.reservesA.IsZero() && p.reservesB.IsZero()
 }
@@ -85,10 +92,14 @@ func (p *BasePool) TotalShares() sdk.Int {
 	return p.totalShares
 }
 
-// AddLiquidty adds liquidty to the pool returned the actual reservesA, reservesB, and shares created
-// actual deposits are always <= desired deposits
+// AddLiquidty adds liquidty to the pool retruns the actual reservesA, reservesB deposits in addition
+// to the number of shares created.  The deposits are always less than or equal to the provided and desired
+// values.
 func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sdk.Int, sdk.Int) {
-	// reinitialize the pool and return if it is empty
+	// Panics if provided values are zero
+	p.assertDepositsArePositive(desiredA, desiredB)
+
+	// Reinitialize the pool if reserves are empty and return the initialized state.
 	if p.IsEmpty() {
 		p.reservesA = desiredA
 		p.reservesB = desiredB
@@ -96,8 +107,8 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 		return p.ReservesA(), p.ReservesB(), p.TotalShares()
 	}
 
-	// panics if reserves are zero
-	p.assertValidReserves()
+	// Panics if reserveA or reserveB is zero.
+	p.assertReservesArePositive()
 
 	actualA := desiredA.BigInt()
 	actualB := desiredB.BigInt()
@@ -109,8 +120,9 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	productB.Mul(p.reservesA.BigInt(), desiredB.BigInt())
 
 	// optimalB <= desiredB
-	// reservesB * deisredA / reservesA <= desiredB multiplied by reservesA
-	// in order to avoid truncation and loss of precision on division
+	// reservesB * desiredA / reservesA <= desiredB
+	// Note: reservesB * desiredA <= reservesA * desiredB
+	// in order to avoid loss of precision on truncation when using division
 	if productA.Cmp(&productB) <= 0 {
 		actualB.Quo(&productA, p.reservesA.BigInt())
 	} else { // optimalA <= desiredA
@@ -123,13 +135,15 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	var sharesB big.Int
 	sharesB.Mul(actualB, p.totalShares.BigInt()).Quo(&sharesB, p.reservesB.BigInt())
 
-	// a/A and b/B may not be equal - use the smallest ratio
+	// a/A and b/B may not be equal due to truncation errors, so use the smallest ratio
 	//
-	// if we do not use the min or max ratio, then the result becomes
-	// dependent on the order on the order of the reserves
+	// If we do not use the min or max ratio, then the result becomes
+	// dependent on the order of reserves in the pool
 	//
-	// min is used to always ensure the share ratio is never larger
-	// than the deposit ratio for either A or B
+	// Min is used to always ensure the share ratio is never larger
+	// than the deposit ratio for either A or B, ensuring there are no
+	// cases where a withdraw will allow funds to be removed at a higher ratio
+	// than it was deposited.
 	var shares sdk.Int
 	if sharesA.Cmp(&sharesB) <= 0 {
 		shares = sdk.NewIntFromBigInt(&sharesA)
@@ -148,17 +162,24 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	return depositA, depositB, shares
 }
 
-// RemoveLiquidity removes liquidity from the pool
-// panics if shares > totalShares
+// RemoveLiquidity removes liquidity from the pool and panics if the
+// the shares provided are greater than the total shares of the pool
+// or the shares are not positive.
+// In addition, also panics if reserves go negative, which should not happen.
+// If panic occurs, it is a bug.
 func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 	// calculate amount to withdraw from the pool based
-	// on the number of shares provided
+	// on the number of shares provided. s/S * reserves
 	withdrawA, withdrawB := p.ShareValue(shares)
 
 	// update internal pool state
 	p.reservesA = p.reservesA.Sub(withdrawA)
 	p.reservesB = p.reservesB.Sub(withdrawB)
 	p.totalShares = p.totalShares.Sub(shares)
+
+	// Panics if reserveA or reserveB are negative
+	// A zero value (100% withdraw) is OK and should not panic.
+	p.assertReservesAreNotNegative()
 
 	return withdrawA, withdrawB
 }
@@ -175,10 +196,12 @@ func (p *BasePool) SwapBForA(b sdk.Int, fee sdk.Dec) sdk.Int {
 	return sdk.ZeroInt()
 }
 
-// ShareValue returns the value of the provided shares
-// panics if shares > totalShares
+// ShareValue returns the value of the provided shares and panics
+// if the shares are greater than the total shares of the pool or
+// if the shares are not positive.
 func (p *BasePool) ShareValue(shares sdk.Int) (sdk.Int, sdk.Int) {
-	p.assertSharesLessThanTotal(shares)
+	p.assertSharesArePositive(shares)
+	p.assertSharesAreLessThanTotal(shares)
 
 	var resultA big.Int
 	resultA.Mul(p.reservesA.BigInt(), shares.BigInt())
@@ -191,20 +214,51 @@ func (p *BasePool) ShareValue(shares sdk.Int) (sdk.Int, sdk.Int) {
 	return sdk.NewIntFromBigInt(&resultA), sdk.NewIntFromBigInt(&resultB)
 }
 
+// assertSharesPositive panics if shares is zero or negative
+func (p *BasePool) assertSharesArePositive(shares sdk.Int) {
+	if !shares.IsPositive() {
+		panic("invalid value: shares must be positive")
+	}
+}
+
 // assertSharesLessThanTotal panics if the number of shares is greater than the total shares
-func (p *BasePool) assertSharesLessThanTotal(shares sdk.Int) {
+func (p *BasePool) assertSharesAreLessThanTotal(shares sdk.Int) {
 	if shares.GT(p.totalShares) {
 		panic(fmt.Sprintf("out of bounds: shares %s > total shares %s", shares, p.totalShares))
 	}
 }
 
-// assertValidReserves panics if reserves are zero
-func (p *BasePool) assertValidReserves() {
-	if p.reservesA.IsZero() {
-		panic("invalid state: reserves A equal to zero")
+// assertDepositsPositive panics if a deposit is zero or negative
+func (p *BasePool) assertDepositsArePositive(depositA, depositB sdk.Int) {
+	if !depositA.IsPositive() {
+		panic("invalid value: deposit A must be positive")
 	}
 
-	if p.reservesB.IsZero() {
-		panic("invalid state: reserves B equal to zero")
+	if !depositB.IsPositive() {
+		panic("invalid state: deposit B must be positive")
+	}
+}
+
+// assertReservesArePositive panics if any reserves are zero.  This is an invalid
+// state that should never happen.  If this panic is seen, it is a bug.
+func (p *BasePool) assertReservesArePositive() {
+	if !p.reservesA.IsPositive() {
+		panic("invalid state: reserves A must be positive")
+	}
+
+	if !p.reservesB.IsPositive() {
+		panic("invalid state: reserves B must be positive")
+	}
+}
+
+// assertReservesAreNotNegative panics if any reserves are negative.  This is an invalid
+// state that should never happen.  If this panic is seen, it is a bug.
+func (p *BasePool) assertReservesAreNotNegative() {
+	if p.reservesA.IsNegative() {
+		panic("invalid state: reserves A can not be negative")
+	}
+
+	if p.reservesB.IsNegative() {
+		panic("invalid state: reserves B can not be negative")
 	}
 }
