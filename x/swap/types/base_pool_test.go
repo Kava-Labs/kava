@@ -292,3 +292,92 @@ func TestBasePool_OutOfBounds(t *testing.T) {
 	assert.Panics(t, func() { pool.ShareValue(pool.TotalShares().Add(sdk.NewInt(1))) }, "ShareValue did not panic when shares > totalShares")
 	assert.Panics(t, func() { pool.RemoveLiquidity(pool.TotalShares().Add(sdk.NewInt(1))) }, "RemoveLiquidity did not panic when shares > totalShares")
 }
+
+func TestBasePool_EmptyAndRefill(t *testing.T) {
+	testCases := []struct {
+		reservesA sdk.Int
+		reservesB sdk.Int
+	}{
+		{i(1), i(1)},
+		{i(100), i(100)},
+		{i(100), i(10000000)},
+		{i(1e5), i(5e6)},
+		{i(1e6), i(5e6)},
+		{i(1e15), i(7e15)},
+		{i(1), i(6e18)},
+		{i(1.345678e18), i(4.313456e18)},
+		{i(145345664).Mul(exp(i(10), 26)), i(6432294561).Mul(exp(i(10), 20))},
+		{i(465432423).Mul(exp(i(10), 50)), i(4565432).Mul(exp(i(10), 50))},
+		{exp(i(2), 253), exp(i(2), 253)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("reservesA=%s reservesB=%s", tc.reservesA, tc.reservesB), func(t *testing.T) {
+			pool, err := types.NewBasePool(tc.reservesA, tc.reservesB)
+			require.NoError(t, err)
+
+			initialShares := pool.TotalShares()
+			pool.RemoveLiquidity(initialShares)
+
+			assert.True(t, pool.IsEmpty())
+			assert.True(t, pool.TotalShares().IsZero(), "total shares are not depleted")
+
+			pool.AddLiquidity(tc.reservesA, tc.reservesB)
+			assert.Equal(t, initialShares, pool.TotalShares(), "total shares not equal")
+		})
+	}
+}
+
+func TestBasePool_PanicOnZeroReserves(t *testing.T) {
+	assert.Panics(t, func() {
+		pool, err := types.NewBasePool(i(1e6), i(1e6))
+		require.NoError(t, err)
+		pool.RemoveLiquidity(pool.TotalShares())
+
+		pool.AddLiquidity(i(0), i(1e6))
+		pool.AddLiquidity(i(1e6), i(1e6))
+	}, "did not panic when reserve A is zero")
+
+	assert.Panics(t, func() {
+		pool, err := types.NewBasePool(i(1e6), i(1e6))
+		require.NoError(t, err)
+		pool.RemoveLiquidity(pool.TotalShares())
+
+		pool.AddLiquidity(i(1e6), i(0))
+		pool.AddLiquidity(i(1e6), i(1e6))
+	}, "did not panic when reserve B is zero")
+}
+
+func TestBasePool_ReservesOnlyDepletedWithLastShare(t *testing.T) {
+	testCases := []struct {
+		reservesA sdk.Int
+		reservesB sdk.Int
+	}{
+		{i(1), i(1)},
+		{i(100), i(100)},
+		{i(100), i(10000000)},
+		{i(1e5), i(5e6)}, {i(1e6), i(5e6)},
+		{i(1e15), i(7e15)},
+		{i(1), i(6e18)},
+		{i(1.345678e18), i(4.313456e18)},
+		{i(145345664).Mul(exp(i(10), 26)), i(6432294561).Mul(exp(i(10), 20))},
+		{i(465432423).Mul(exp(i(10), 50)), i(4565432).Mul(exp(i(10), 50))},
+		{exp(i(2), 253), exp(i(2), 253)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("reservesA=%s reservesB=%s", tc.reservesA, tc.reservesB), func(t *testing.T) {
+			pool, err := types.NewBasePool(tc.reservesA, tc.reservesB)
+			require.NoError(t, err)
+
+			initialShares := pool.TotalShares()
+			pool.RemoveLiquidity(initialShares.Sub(i(1)))
+
+			assert.False(t, pool.ReservesA().IsZero(), "reserves A equal to zero")
+			assert.False(t, pool.ReservesB().IsZero(), "reserves B equal to zero")
+
+			pool.RemoveLiquidity(i(1))
+			assert.True(t, pool.IsEmpty())
+		})
+	}
+}

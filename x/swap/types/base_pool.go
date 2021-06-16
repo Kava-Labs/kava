@@ -12,6 +12,17 @@ var (
 	zero = sdk.ZeroInt()
 )
 
+// calculateInitialShares calculates initial shares as sqrt(A*B)
+func calculateInitialShares(reservesA, reservesB sdk.Int) sdk.Int {
+	// big.Int allows multiplication without overflow at 255 bits.
+	// In addition, sqrt converges to a correct solution for inputs
+	// that take longer than 100 iterations.  sdk.Int.ApproxSqrt() does
+	// not always converge.
+	var result big.Int
+	result.Mul(reservesA.BigInt(), reservesB.BigInt()).Sqrt(&result)
+	return sdk.NewIntFromBigInt(&result)
+}
+
 // BasePool implements a unitless constant-product liquidty pool
 // Reserves A is base asset, Reserves B is quote asset
 // Math is done using big.Int wheere n
@@ -28,13 +39,7 @@ func NewBasePool(reservesA, reservesB sdk.Int) (*BasePool, error) {
 		return nil, sdkerrors.Wrap(ErrInvalidPool, "reserves must be greater than zero")
 	}
 
-	// big.Int allows multiplication without overflow at 255 bits.
-	// In addition, sqrt converges to a correct solution for inputs
-	// that take longer than 100 iterations.  sdk.Int.ApproxSqrt() does
-	// not always converge.
-	var result big.Int
-	result.Mul(reservesA.BigInt(), reservesB.BigInt()).Sqrt(&result)
-	totalShares := sdk.NewIntFromBigInt(&result)
+	totalShares := calculateInitialShares(reservesA, reservesB)
 
 	return &BasePool{
 		reservesA:   reservesA,
@@ -70,6 +75,11 @@ func (p *BasePool) ReservesB() sdk.Int {
 	return p.reservesB
 }
 
+// Empty returns true if all reserves are zero
+func (p *BasePool) IsEmpty() bool {
+	return p.reservesA.IsZero() && p.reservesB.IsZero()
+}
+
 // TotalShares returns the total number of shares in the pool
 func (p *BasePool) TotalShares() sdk.Int {
 	return p.totalShares
@@ -78,6 +88,17 @@ func (p *BasePool) TotalShares() sdk.Int {
 // AddLiquidty adds liquidty to the pool returned the actual reservesA, reservesB, and shares created
 // actual deposits are always <= desired deposits
 func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sdk.Int, sdk.Int) {
+	// reinitialize the pool and return if it is empty
+	if p.IsEmpty() {
+		p.reservesA = desiredA
+		p.reservesB = desiredB
+		p.totalShares = calculateInitialShares(desiredA, desiredB)
+		return p.ReservesA(), p.ReservesB(), p.TotalShares()
+	}
+
+	// panics if reserves are zero
+	p.assertValidReserves()
+
 	actualA := desiredA.BigInt()
 	actualB := desiredB.BigInt()
 
@@ -143,14 +164,14 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 }
 
 // SwapAForB trades a for b with a percentage fee
-// TODO: implementation
 func (p *BasePool) SwapAForB(a sdk.Int, fee sdk.Dec) sdk.Int {
+	// TODO: implementation
 	return sdk.ZeroInt()
 }
 
 // SwapAForB trades b for a with a percentage fee
-// TODO: implementation
 func (p *BasePool) SwapBForA(b sdk.Int, fee sdk.Dec) sdk.Int {
+	// TODO: implementation
 	return sdk.ZeroInt()
 }
 
@@ -174,5 +195,16 @@ func (p *BasePool) ShareValue(shares sdk.Int) (sdk.Int, sdk.Int) {
 func (p *BasePool) assertSharesLessThanTotal(shares sdk.Int) {
 	if shares.GT(p.totalShares) {
 		panic(fmt.Sprintf("out of bounds: shares %s > total shares %s", shares, p.totalShares))
+	}
+}
+
+// assertValidReserves panics if reserves are zero
+func (p *BasePool) assertValidReserves() {
+	if p.reservesA.IsZero() {
+		panic("invalid state: reserves A equal to zero")
+	}
+
+	if p.reservesB.IsZero() {
+		panic("invalid state: reserves B equal to zero")
 	}
 }
