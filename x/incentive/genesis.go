@@ -37,7 +37,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 			newRewardIndexes = append(newRewardIndexes, ri)
 		}
 		k.SetHardSupplyRewardIndexes(ctx, mrp.CollateralType, newRewardIndexes)
-		// XXX if params removed there'll be claims with missing collat type
 	}
 
 	for _, mrp := range gs.Params.HardBorrowRewardPeriods {
