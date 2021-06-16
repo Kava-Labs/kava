@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -99,7 +101,12 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 		userRewardFactor = sdk.ZeroDec()
 	}
 
-	newRewardsAmount := k.calculateSingleReward(userRewardFactor, globalRewardFactor, cdp.GetTotalPrincipal().Amount.ToDec())
+	newRewardsAmount, err := k.CalculateSingleReward(userRewardFactor, globalRewardFactor, cdp.GetTotalPrincipal().Amount.ToDec())
+	if err != nil {
+		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
+		// This panics if a global reward factor decreases or disappears between the old and new indexes.
+		panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
+	}
 	newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
 
 	claim.Reward = claim.Reward.Add(newRewardsCoin)

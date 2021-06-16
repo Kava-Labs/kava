@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -90,7 +92,12 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 
 	totalDelegated := k.GetTotalDelegated(ctx, delegator, valAddr, shouldIncludeValidator)
 
-	rewardsEarned := k.calculateSingleReward(userRewardFactor, globalRewardFactor, totalDelegated)
+	rewardsEarned, err := k.CalculateSingleReward(userRewardFactor, globalRewardFactor, totalDelegated)
+	if err != nil {
+		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
+		// This panics if a global reward factor decreases or disappears between the old and new indexes.
+		panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
+	}
 	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
 
 	claim.Reward = claim.Reward.Add(newRewardsCoin)

@@ -466,3 +466,63 @@ func TestCalculateRewards(t *testing.T) {
 		})
 	}
 }
+func TestCalculateSingleReward(t *testing.T) {
+	type expected struct {
+		err    error
+		reward sdk.Int
+	}
+	type args struct {
+		oldIndex, newIndex sdk.Dec
+		sourceAmount       sdk.Dec
+	}
+	testcases := []struct {
+		name     string
+		args     args
+		expected expected
+	}{
+		{
+			name: "when new index is > old, rewards are calculated correctly",
+			args: args{
+				oldIndex:     d("0.000000001"),
+				newIndex:     d("1000.0"),
+				sourceAmount: d("1000000000"),
+			},
+			expected: expected{
+				// (new - old) * sourceAmount
+				reward: i(999999999999),
+			},
+		},
+		{
+			name: "when new index is < old, an error is returned",
+			args: args{
+				oldIndex:     d("0.000000001"),
+				newIndex:     d("0.0"),
+				sourceAmount: d("1000000000"),
+			},
+			expected: expected{
+				err: types.ErrDecreasingRewardFactor,
+			},
+		},
+		{
+			name: "when old and new indexes are 0, rewards are 0",
+			args: args{
+				oldIndex:     d("0.0"),
+				newIndex:     d("0.0"),
+				sourceAmount: d("1000000000"),
+			},
+			expected: expected{
+				reward: sdk.ZeroInt(),
+			},
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			reward, err := keeper.Keeper{}.CalculateSingleReward(tc.args.oldIndex, tc.args.newIndex, tc.args.sourceAmount)
+			if tc.expected.err != nil {
+				require.True(t, errors.Is(err, tc.expected.err))
+			} else {
+				require.Equal(t, tc.expected.reward, reward)
+			}
+		})
+	}
+}

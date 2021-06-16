@@ -172,7 +172,7 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
-// CalculateRewards computes how much rewards should have accrued to a source (eg user's hard borrowed btc amount)
+// CalculateRewards computes how much rewards should have accrued to a source (eg a user's hard borrowed btc amount)
 // between two index values.
 //
 // oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
@@ -188,39 +188,35 @@ func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rew
 	}
 	var reward sdk.Coins
 	for _, newIndex := range newIndexes {
-		factor, found := oldIndexes.Get(newIndex.CollateralType)
+		oldFactor, found := oldIndexes.Get(newIndex.CollateralType)
 		if !found {
-			factor = sdk.ZeroDec()
+			oldFactor = sdk.ZeroDec()
 		}
 
-		// check no RewardFactor has decreased
-		if newIndex.RewardFactor.Sub(factor).IsNegative() {
-			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", factor, newIndex)
+		rewardAmount, err := k.CalculateSingleReward(oldFactor, newIndex.RewardFactor, rewardSource)
+		if err != nil {
+			return nil, err
 		}
 
 		reward = reward.Add(
-			sdk.NewCoin(
-				newIndex.CollateralType,
-				k.calculateSingleReward(
-					factor,
-					newIndex.RewardFactor,
-					rewardSource,
-				),
-			),
+			sdk.NewCoin(newIndex.CollateralType, rewardAmount),
 		)
 	}
 	return reward, nil
 }
 
-// calculateSingleReward computes the rewards that should accumulate between two index values.
+// CalculateSingleReward computes how much rewards should have accrued to a source (eg a user's btcb-a cdp principal)
+// between two index values.
 //
-// oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
-// newIndex MUST be greater than oldIndex otherwise it will panic
-func (k Keeper) calculateSingleReward(oldIndex, newIndex, rewardSource sdk.Dec) sdk.Int {
+// oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a cdp principal amount.
+//
+// Returns an error if oldIndex > newIndex. This should never happen, as it would mean that a global reward index has decreased in value,
+// or that a global reward index has been deleted from state.
+func (k Keeper) CalculateSingleReward(oldIndex, newIndex, rewardSource sdk.Dec) (sdk.Int, error) {
 	increase := newIndex.Sub(oldIndex)
 	if increase.IsNegative() {
-		panic(fmt.Sprintf("new reward index cannot be less than previous: new %s, old %s", newIndex, oldIndex))
+		return sdk.Int{}, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
 	}
-
-	return increase.Mul(rewardSource).RoundInt()
+	reward := increase.Mul(rewardSource).RoundInt()
+	return reward, nil
 }
