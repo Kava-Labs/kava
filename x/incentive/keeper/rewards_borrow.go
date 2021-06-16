@@ -176,9 +176,13 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 // between two index values.
 //
 // oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
+//
+// Returns an error if newIndexes does not contain all CollateralTypes from oldIndexes, or if any value of oldIndex.RewardFactor > newIndex.RewardFactor.
+// This should never happen, as it would mean that a global reward index has decreased in value, or that a global reward index has been deleted from state.
 func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rewardSource sdk.Dec) (sdk.Coins, error) {
+	// check for missing CollateralType's
 	for _, oldIndex := range oldIndexes {
-		if newIndex, f := newIndexes.Get(oldIndex.CollateralType); !f {
+		if newIndex, found := newIndexes.Get(oldIndex.CollateralType); !found {
 			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
 		}
 	}
@@ -189,6 +193,7 @@ func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rew
 			factor = sdk.ZeroDec()
 		}
 
+		// check no RewardFactor has decreased
 		if newIndex.RewardFactor.Sub(factor).IsNegative() {
 			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", factor, newIndex)
 		}
