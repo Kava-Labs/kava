@@ -71,15 +71,16 @@ func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
 // SynchronizeUSDXMintingReward updates the claim object by adding any accumulated rewards and updating the reward index value.
 // this should be called before a cdp is modified, immediately after the 'SynchronizeInterest' method is called in the cdp module
 func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) {
-	_, found := k.GetUSDXMintingRewardPeriod(ctx, cdp.Type)
-	if !found {
-		// this collateral type is not incentivized, do nothing
-		return
-	}
 
 	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
 	if !found {
-		globalRewardFactor = sdk.ZeroDec()
+		// The global factor is only not found if
+		// - the cdp collateral type has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+		// If not found we could either skip this sync, or assume the global factor is zero.
+		// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+		// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
+		return
 	}
 	claim, found := k.GetUSDXMintingClaim(ctx, cdp.Owner)
 	if !found {

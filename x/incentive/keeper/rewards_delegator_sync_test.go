@@ -114,8 +114,48 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGloba
 	suite.Equal(claim.Reward, syncedClaim.Reward)
 }
 
-// No test for TestRewardIsIncrementedWhenNewRewardAdded as we can currently only have one reward denom for our one bond denom.
-// So new rewards cannot be added.
+func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRewardAdded() {
+	delegator := arbitraryAddress()
+	validatorAddress := arbitraryValidatorAddress()
+	stakingKeeper := fakeStakingKeeper{
+		delegations: stakingtypes.Delegations{
+			{
+				DelegatorAddress: delegator,
+				ValidatorAddress: validatorAddress,
+				Shares:           d("1000"),
+			},
+		},
+		validators: stakingtypes.Validators{
+			unslashedBondedValidator(validatorAddress),
+		},
+	}
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
+
+	claim := types.HardLiquidityProviderClaim{
+		BaseMultiClaim: types.BaseMultiClaim{
+			Owner:  delegator,
+			Reward: arbitraryCoins(),
+		},
+		DelegatorRewardIndexes: types.RewardIndexes{},
+	}
+	suite.storeClaim(claim)
+
+	newGlobalIndexes := types.RewardIndexes{{
+		CollateralType: types.BondDenom,
+		RewardFactor:   d("0.1"),
+	}}
+	suite.storeGlobalDelegatorFactor(newGlobalIndexes)
+
+	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
+
+	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+
+	suite.Equal(newGlobalIndexes, syncedClaim.DelegatorRewardIndexes)
+	suite.Equal(
+		cs(c(types.HardLiquidityRewardDenom, 100)).Add(claim.Reward...),
+		syncedClaim.Reward,
+	)
+}
 
 func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGlobalFactorIncreased() {
 	delegator := arbitraryAddress()

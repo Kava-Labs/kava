@@ -95,9 +95,6 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardUnchangedWhenGlobalInd
 	unchangingRewardIndexes := nonEmptyRewardIndexes
 	collateralType := extractFirstCollateralType(unchangingRewardIndexes)
 
-	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil)
-
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
 			Owner:  arbitraryAddress(),
@@ -119,9 +116,6 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardUnchangedWhenGlobalInd
 
 func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGlobalIndexIncreased() {
 	collateralType := "bnb-a"
-
-	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil)
 
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
@@ -157,9 +151,6 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGloba
 func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenNewRewardAddedAndClaimDoesNotExit() {
 	collateralType := "bnb-a"
 
-	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil)
-
 	globalIndexes := types.RewardIndexes{
 		{
 			CollateralType: collateralType,
@@ -182,9 +173,6 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenNewRe
 func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIndexIsUpdatedWhenGlobalIndexIncreased() {
 	claimsRewardIndexes := nonEmptyRewardIndexes
 	collateralType := extractFirstCollateralType(claimsRewardIndexes)
-
-	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil)
 
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
@@ -223,9 +211,6 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIndexIsUpdatedWhenNewRe
 	}
 	newRewardIndex := types.NewRewardIndex("xrp-a", d("0.0001"))
 
-	subspace := paramsWithSingleUSDXRewardPeriod(newRewardIndex.CollateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil)
-
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
 			Owner:  arbitraryAddress(),
@@ -248,6 +233,28 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIndexIsUpdatedWhenNewRe
 	// Only the claim's index for `collateralType` should have been changed
 	expectedIndexes := claimsRewardIndexes.With(newRewardIndex.CollateralType, newRewardIndex.RewardFactor)
 	suite.Equal(expectedIndexes, syncedClaim.RewardIndexes)
+}
+
+func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIsUnchangedWhenGlobalFactorMissing() {
+	claimsRewardIndexes := nonEmptyRewardIndexes
+	claim := types.USDXMintingClaim{
+		BaseClaim: types.BaseClaim{
+			Owner:  arbitraryAddress(),
+			Reward: c(types.USDXMintingRewardDenom, 0),
+		},
+		RewardIndexes: claimsRewardIndexes,
+	}
+	suite.storeClaim(claim)
+	// don't store any reward indexes
+
+	// create a cdp with collateral type that doesn't exist in the claim's indexes, and does not have a corresponding global factor
+	cdp := NewCDPBuilder(claim.Owner, "unrewardedcollateral").WithPrincipal(i(1e12)).Build()
+
+	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
+
+	syncedClaim, _ := suite.keeper.GetUSDXMintingClaim(suite.ctx, claim.Owner)
+	suite.Equal(claim.RewardIndexes, syncedClaim.RewardIndexes)
+	suite.Equal(claim.Reward, syncedClaim.Reward)
 }
 
 type cdpBuilder struct {

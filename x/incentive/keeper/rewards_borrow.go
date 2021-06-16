@@ -108,6 +108,12 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 	for _, coin := range borrow.Amount {
 		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
 		if !foundGlobalRewardIndexes {
+			// The global factor is only not found if
+			// - the borrowed denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+			// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+			// If not found we could either skip this sync, or assume the global factor is zero.
+			// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+			// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
 			continue
 		}
 
