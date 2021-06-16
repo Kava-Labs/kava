@@ -73,15 +73,14 @@ func (k Keeper) DeletePool(ctx sdk.Context, poolName string) {
 	store.Delete(types.PoolKey(poolName))
 }
 
-// IteratePools provides an iterator over all stored pools
+// IteratePools iterates over all pool objects in the store and performs a callback function
 func (k Keeper) IteratePools(ctx sdk.Context, cb func(pool types.Pool) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.PoolKeyPrefix)
-
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var pool types.Pool
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &pool)
-
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &pool)
 		if cb(pool) {
 			break
 		}

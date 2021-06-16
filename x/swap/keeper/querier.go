@@ -106,7 +106,7 @@ func queryGetPool(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, err
 	if err != nil {
 		return []byte{}, err
 	}
-	poolStats := types.NewPoolStatsQueryResult(totalCoins, totalShares)
+	poolStats := types.NewPoolStatsQueryResult(pool.Name(), totalCoins, totalShares)
 
 	var bz []byte
 	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, poolStats)
@@ -131,7 +131,7 @@ func queryGetPools(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, er
 		if err != nil {
 			return []byte{}, err
 		}
-		poolStats := types.NewPoolStatsQueryResult(totalCoins, totalShares)
+		poolStats := types.NewPoolStatsQueryResult(pool.Name(), totalCoins, totalShares)
 		allPoolStats = append(allPoolStats, poolStats)
 	}
 
@@ -140,5 +140,6 @@ func queryGetPools(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, er
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
+
 	return bz, nil
 }

@@ -136,7 +136,7 @@ func queryPoolCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Example:
 		$ kvcli q swap pool ukava/usdx`,
 		),
-		Args: cobra.NoArgs,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
@@ -196,6 +196,7 @@ func queryPoolsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err := cdc.UnmarshalJSON(res, &poolStats); err != nil {
 				return fmt.Errorf("failed to unmarshal pools' stats: %w", err)
 			}
+
 			return cliCtx.PrintOutput(poolStats)
 		},
 	}

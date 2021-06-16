@@ -37,12 +37,14 @@ func NewQueryPoolParams(pool string) QueryPoolParams {
 }
 
 type PoolStatsQueryResult struct {
+	Name        string    `json:"name" yaml:"name"`
 	Coins       sdk.Coins `json:"coins" yaml:"coins"`
 	TotalShares sdk.Int   `json:"total_shares" yaml:"total_shares"`
 }
 
-func NewPoolStatsQueryResult(coins sdk.Coins, totalShares sdk.Int) PoolStatsQueryResult {
+func NewPoolStatsQueryResult(name string, coins sdk.Coins, totalShares sdk.Int) PoolStatsQueryResult {
 	return PoolStatsQueryResult{
+		Name:        name,
 		Coins:       coins,
 		TotalShares: totalShares,
 	}
