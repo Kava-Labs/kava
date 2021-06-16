@@ -48,36 +48,41 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 }
 
 func (suite *keeperTestSuite) TestPool_Persistance() {
-	reserveA := sdk.NewCoin("ukava", sdk.NewInt(10e6))
-	reserveB := sdk.NewCoin("usdx", sdk.NewInt(50e6))
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
+	)
 
-	pool, err := types.NewPool(reserveA, reserveB)
+	pool, err := types.NewDenominatedPool(reserves)
 	suite.Nil(err)
+	record := types.NewPoolRecord(pool)
 
-	suite.Keeper.SetPool(suite.Ctx, pool)
+	suite.Keeper.SetPool(suite.Ctx, record)
 
-	savedPool, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
+	savedRecord, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolID)
 	suite.True(ok)
-	suite.Equal(pool, savedPool)
+	suite.Equal(record, savedRecord)
 
-	suite.Keeper.DeletePool(suite.Ctx, pool.Name())
-	deletedPool, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
+	suite.Keeper.DeletePool(suite.Ctx, record.PoolID)
+	deletedPool, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolID)
 	suite.False(ok)
-	suite.Equal(deletedPool, types.Pool{})
+	suite.Equal(deletedPool, types.PoolRecord{})
 }
 
 func (suite *keeperTestSuite) TestShare_Persistance() {
-	poolName := "ukava/usdx"
+	poolID := "ukava/usdx"
 	depositor := sdk.AccAddress("testAddress1")
 	shares := sdk.NewInt(3126432331)
-	suite.Keeper.SetDepositorShares(suite.Ctx, depositor, poolName, shares)
 
-	savedShares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolName)
+	record := types.NewShareRecord(depositor, poolID, shares)
+	suite.Keeper.SetDepositorShares(suite.Ctx, record)
+
+	savedRecord, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolID)
 	suite.True(ok)
-	suite.Equal(shares, savedShares)
+	suite.Equal(record, savedRecord)
 
-	suite.Keeper.DeleteDepositorShares(suite.Ctx, depositor, poolName)
-	deletedShares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolName)
+	suite.Keeper.DeleteDepositorShares(suite.Ctx, depositor, poolID)
+	deletedShares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolID)
 	suite.False(ok)
-	suite.Equal(deletedShares, sdk.ZeroInt())
+	suite.Equal(deletedShares, types.ShareRecord{})
 }

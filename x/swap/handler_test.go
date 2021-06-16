@@ -49,7 +49,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 
 	suite.AccountBalanceEqual(depositor, sdk.Coins(nil))
 	suite.ModuleAccountBalanceEqual(balance)
-	suite.PoolLiquidityEqual(pool, balance)
+	suite.PoolLiquidityEqual(balance)
 	suite.PoolShareValueEqual(depositor, pool, balance)
 
 	suite.EventsContains(res.Events, sdk.NewEvent(
@@ -68,7 +68,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 
 	suite.EventsContains(res.Events, sdk.NewEvent(
 		swap.EventTypeSwapDeposit,
-		sdk.NewAttribute(swap.AttributeKeyPoolName, pool.Name()),
+		sdk.NewAttribute(swap.AttributeKeyPoolID, swap.PoolID(pool.TokenA, pool.TokenB)),
 		sdk.NewAttribute(swap.AttributeKeyDepositor, depositor.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, balance.String()),
 	))
@@ -95,6 +95,9 @@ func (suite *handlerTestSuite) TestDeposit_DeadlineExceeded() {
 	res, err := suite.handler(suite.Ctx, deposit)
 	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), deposit.GetDeadline().Unix()))
 	suite.Nil(res)
+}
+
+func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 }
 
 func (suite *handlerTestSuite) TestInvalidMsg() {

@@ -135,7 +135,7 @@ func (p AllowedPool) Validate() error {
 
 // Name returns the name for the allowed pool
 func (p AllowedPool) Name() string {
-	return PoolName(p.TokenA, p.TokenB)
+	return PoolID(p.TokenA, p.TokenB)
 }
 
 // String pretty prints the allowedPool

@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/kava-labs/kava/x/swap/types"
 
@@ -14,10 +15,11 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool_PoolExists() {
 
 	amountA := sdk.NewCoin("ukava", sdk.NewInt(10e6))
 	amountB := sdk.NewCoin("usdx", sdk.NewInt(50e6))
-	pool, err := types.NewPool(amountA, amountB)
+	pool, err := types.NewDenominatedPool(sdk.NewCoins(amountA, amountB))
 	suite.Nil(err)
 
-	suite.Keeper.SetPool(suite.Ctx, pool)
+	record := types.NewPoolRecord(pool)
+	suite.Keeper.SetPool(suite.Ctx, record)
 
 	err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), amountA, amountB)
 	suite.Require().EqualError(err, "not implemented: can not deposit into existing pool 'ukava/usdx'")
@@ -64,17 +66,21 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool_InsufficientFunds() {
 	}
 
 	for _, tc := range testCases {
-		pool := types.NewAllowedPool(tc.depositA.Denom, tc.depositB.Denom)
-		suite.Require().NoError(pool.Validate())
-		suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.NewAllowedPools(pool), types.DefaultSwapFee))
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-		balance := sdk.Coins{tc.balanceA, tc.balanceB}
-		balance.Sort()
-		depositor := suite.GetAccount(balance)
+			pool := types.NewAllowedPool(tc.depositA.Denom, tc.depositB.Denom)
+			suite.Require().NoError(pool.Validate())
+			suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.NewAllowedPools(pool), types.DefaultSwapFee))
 
-		err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB)
-		// TODO: wrap in module specific error?
-		suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds))
+			balance := sdk.Coins{tc.balanceA, tc.balanceB}
+			balance.Sort()
+			depositor := suite.GetAccount(balance)
+
+			err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB)
+			// TODO: wrap in module specific error?
+			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
+		})
 	}
 }
 
@@ -118,19 +124,22 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool_InsufficientFunds_Vesting()
 	}
 
 	for _, tc := range testCases {
-		pool := types.NewAllowedPool(tc.depositA.Denom, tc.depositB.Denom)
-		suite.Require().NoError(pool.Validate())
-		suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.NewAllowedPools(pool), types.DefaultSwapFee))
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			pool := types.NewAllowedPool(tc.depositA.Denom, tc.depositB.Denom)
+			suite.Require().NoError(pool.Validate())
+			suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.NewAllowedPools(pool), types.DefaultSwapFee))
 
-		balance := sdk.Coins{tc.balanceA, tc.balanceB}
-		balance.Sort()
-		vesting := sdk.Coins{tc.vestingA, tc.vestingB}
-		vesting.Sort()
-		depositor := suite.GetVestingAccount(balance, vesting)
+			balance := sdk.Coins{tc.balanceA, tc.balanceB}
+			balance.Sort()
+			vesting := sdk.Coins{tc.vestingA, tc.vestingB}
+			vesting.Sort()
+			depositor := suite.GetVestingAccount(balance, vesting)
 
-		err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB)
-		// TODO: wrap in module specific error?
-		suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds))
+			err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB)
+			// TODO: wrap in module specific error?
+			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds))
+		})
 	}
 }
 
@@ -152,12 +161,12 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool() {
 	suite.Require().NoError(err)
 	suite.AccountBalanceEqual(depositor, sdk.NewCoins(amountA.Sub(depositA), amountB.Sub(depositB)))
 	suite.ModuleAccountBalanceEqual(sdk.NewCoins(depositA, depositB))
-	suite.PoolLiquidityEqual(pool, deposit)
+	suite.PoolLiquidityEqual(deposit)
 	suite.PoolShareValueEqual(depositor, pool, deposit)
 
 	suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 		types.EventTypeSwapDeposit,
-		sdk.NewAttribute(types.AttributeKeyPoolName, pool.Name()),
+		sdk.NewAttribute(types.AttributeKeyPoolID, pool.Name()),
 		sdk.NewAttribute(types.AttributeKeyDepositor, depositor.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, deposit.String()),
 	))

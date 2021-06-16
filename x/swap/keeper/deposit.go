@@ -9,54 +9,71 @@ import (
 )
 
 func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coin, coinB sdk.Coin) error {
-	poolName := types.PoolName(coinA.Denom, coinB.Denom)
+	depositAmount := sdk.NewCoins(coinA, coinB)
+	poolID := types.PoolIDFromCoins(depositAmount)
 
-	_, found := k.GetPool(ctx, poolName)
+	_, found := k.GetPool(ctx, poolID)
 	if found {
-		return sdkerrors.Wrap(types.ErrNotImplemented, fmt.Sprintf("can not deposit into existing pool '%s'", poolName))
+		//		//depositAmount, shares := pool.AddLiquidty(depositAmount)
+		//		//if depositAmount.IsZero() || shares.IsZero() {
+		return sdkerrors.Wrap(types.ErrNotImplemented, fmt.Sprintf("can not deposit into existing pool '%s'", poolID))
+		//		//}
+		//
+		//		//desiredPrice := types.PriceFromPair(coinA, coinB)
+		//		//actualPrice := types.PriceFromCoins(coinA.Denom, depositAmount)
+		//
+		//		//if actualPrice.Sub(desiredPrice).Quo(desiredPrice).Abs().GT(slippage) {
+		//		//	// TODO: slippage error!
+		//		//}
+		//
+		//		//k.SetPool(pool)
+		//		//k.SetDepositorShares(meow)
+	} else {
+		if allowed := k.depositAllowed(ctx, poolID); !allowed {
+			return sdkerrors.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolID))
+		}
+
+		k.initializePool(ctx, depositor, depositAmount)
 	}
 
-	err := k.depositAllowed(ctx, poolName, coinA, coinB)
+	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, depositAmount)
 	if err != nil {
 		return err
 	}
-
-	amount := sdk.NewCoins(coinA, coinB)
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, amount)
-	if err != nil {
-		return err
-	}
-
-	k.initializePool(ctx, depositor, coinA, coinB)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSwapDeposit,
-			sdk.NewAttribute(types.AttributeKeyPoolName, poolName),
+			sdk.NewAttribute(types.AttributeKeyPoolID, poolID),
 			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.String()),
 		),
 	)
 
 	return nil
 }
 
-func (k Keeper) depositAllowed(ctx sdk.Context, poolName string, coinA, coinB sdk.Coin) error {
+func (k Keeper) depositAllowed(ctx sdk.Context, poolID string) bool {
 	params := k.GetParams(ctx)
 	for _, p := range params.AllowedPools {
-		if p.TokenA == coinA.Denom && p.TokenB == coinB.Denom {
-			return nil
+		if poolID == types.PoolID(p.TokenA, p.TokenB) {
+			return true
 		}
 	}
-	return sdkerrors.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolName))
+	return false
 }
 
-func (k Keeper) initializePool(ctx sdk.Context, depositor sdk.AccAddress, coinA, coinB sdk.Coin) error {
-	pool, err := types.NewPool(coinA, coinB)
+func (k Keeper) initializePool(ctx sdk.Context, depositor sdk.AccAddress, reserves sdk.Coins) error {
+	pool, err := types.NewDenominatedPool(reserves)
 	if err != nil {
 		return err
 	}
-	k.SetPool(ctx, pool)
-	k.SetDepositorShares(ctx, depositor, pool.Name(), pool.TotalShares)
+
+	poolRecord := types.NewPoolRecord(pool)
+	shareRecord := types.NewShareRecord(depositor, poolRecord.PoolID, pool.TotalShares())
+
+	k.SetPool(ctx, poolRecord)
+	k.SetDepositorShares(ctx, shareRecord)
+
 	return nil
 }

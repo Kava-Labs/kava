@@ -9,7 +9,7 @@ import (
 
 const (
 	AttributeKeyDepositor  = types.AttributeKeyDepositor
-	AttributeKeyPoolName   = types.AttributeKeyPoolName
+	AttributeKeyPoolID     = types.AttributeKeyPoolID
 	AttributeValueCategory = types.AttributeValueCategory
 	DefaultParamspace      = types.DefaultParamspace
 	EventTypeSwapDeposit   = types.EventTypeSwapDeposit
@@ -23,21 +23,27 @@ const (
 
 var (
 	// function aliases
-	NewKeeper              = keeper.NewKeeper
-	NewQuerier             = keeper.NewQuerier
-	DefaultGenesisState    = types.DefaultGenesisState
-	DefaultParams          = types.DefaultParams
-	DepositorPoolSharesKey = types.DepositorPoolSharesKey
-	NewAllowedPool         = types.NewAllowedPool
-	NewAllowedPools        = types.NewAllowedPools
-	NewGenesisState        = types.NewGenesisState
-	NewMsgDeposit          = types.NewMsgDeposit
-	NewParams              = types.NewParams
-	NewPool                = types.NewPool
-	ParamKeyTable          = types.ParamKeyTable
-	PoolKey                = types.PoolKey
-	PoolName               = types.PoolName
-	RegisterCodec          = types.RegisterCodec
+	NewKeeper                            = keeper.NewKeeper
+	NewQuerier                           = keeper.NewQuerier
+	DefaultGenesisState                  = types.DefaultGenesisState
+	DefaultParams                        = types.DefaultParams
+	DepositorPoolSharesKey               = types.DepositorPoolSharesKey
+	NewAllowedPool                       = types.NewAllowedPool
+	NewAllowedPools                      = types.NewAllowedPools
+	NewBasePool                          = types.NewBasePool
+	NewBasePoolWithExistingShares        = types.NewBasePoolWithExistingShares
+	NewDenominatedPool                   = types.NewDenominatedPool
+	NewDenominatedPoolWithExistingShares = types.NewDenominatedPoolWithExistingShares
+	NewGenesisState                      = types.NewGenesisState
+	NewMsgDeposit                        = types.NewMsgDeposit
+	NewParams                            = types.NewParams
+	NewPoolRecord                        = types.NewPoolRecord
+	NewShareRecord                       = types.NewShareRecord
+	ParamKeyTable                        = types.ParamKeyTable
+	PoolID                               = types.PoolID
+	PoolIDFromCoins                      = types.PoolIDFromCoins
+	PoolKey                              = types.PoolKey
+	RegisterCodec                        = types.RegisterCodec
 
 	// variable aliases
 	DefaultAllowedPools       = types.DefaultAllowedPools
@@ -45,6 +51,7 @@ var (
 	DepositorPoolSharesPrefix = types.DepositorPoolSharesPrefix
 	ErrDeadlineExceeded       = types.ErrDeadlineExceeded
 	ErrInvalidDeadline        = types.ErrInvalidDeadline
+	ErrInvalidPool            = types.ErrInvalidPool
 	ErrNotAllowed             = types.ErrNotAllowed
 	ErrNotImplemented         = types.ErrNotImplemented
 	KeyAllowedPools           = types.KeyAllowedPools
@@ -59,10 +66,13 @@ type (
 	AccountKeeper   = types.AccountKeeper
 	AllowedPool     = types.AllowedPool
 	AllowedPools    = types.AllowedPools
+	BasePool        = types.BasePool
+	DenominatedPool = types.DenominatedPool
 	GenesisState    = types.GenesisState
 	MsgDeposit      = types.MsgDeposit
 	MsgWithDeadline = types.MsgWithDeadline
 	Params          = types.Params
-	Pool            = types.Pool
+	PoolRecord      = types.PoolRecord
+	ShareRecord     = types.ShareRecord
 	SupplyKeeper    = types.SupplyKeeper
 )

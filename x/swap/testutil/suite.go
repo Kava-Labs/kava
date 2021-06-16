@@ -60,6 +60,15 @@ func (suite *Suite) GetVestingAccount(initialBalance sdk.Coins, vestingBalance s
 	return vacc
 }
 
+func (suite *Suite) CreatePool(reserves sdk.Coins) error {
+	depositor := suite.GetAccount(reserves)
+	pool := swap.NewAllowedPool(reserves[0].Denom, reserves[1].Denom)
+	suite.Require().NoError(pool.Validate())
+	suite.Keeper.SetParams(suite.Ctx, swap.NewParams(swap.NewAllowedPools(pool), swap.DefaultSwapFee))
+
+	return suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1])
+}
+
 func (suite *Suite) AccountBalanceEqual(acc authexported.Account, coins sdk.Coins) {
 	ak := suite.App.GetAccountKeeper()
 	acc = ak.GetAccount(suite.Ctx, acc.GetAddress())
@@ -73,25 +82,22 @@ func (suite *Suite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 	suite.Equal(coins, macc.GetCoins(), fmt.Sprintf("expected module account balance to equal coins %s, but got %s", coins, macc.GetCoins()))
 }
 
-func (suite *Suite) PoolLiquidityEqual(pool swap.AllowedPool, coins sdk.Coins) {
-	storedPool, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
+func (suite *Suite) PoolLiquidityEqual(coins sdk.Coins) {
+	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, swap.PoolIDFromCoins(coins))
 	suite.Require().True(ok, "expected pool to exist")
-	suite.Equal(coins.AmountOf(pool.TokenA), storedPool.ReservesA.Amount,
-		"expected pool reservers of %s%s", coins.AmountOf(pool.TokenA), pool.TokenA,
-	)
-	suite.Equal(coins.AmountOf(pool.TokenB), storedPool.ReservesB.Amount,
-		"expected pool reservers of %s%s", coins.AmountOf(pool.TokenB), pool.TokenB,
-	)
+	reserves := sdk.NewCoins(poolRecord.ReservesA, poolRecord.ReservesB)
+	suite.Equal(coins, reserves, fmt.Sprintf("expected pool reserves of %s, got %s", coins, reserves))
 }
 
 func (suite *Suite) PoolShareValueEqual(depositor authexported.Account, pool swap.AllowedPool, coins sdk.Coins) {
-	storedPool, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
+	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
 	suite.Require().True(ok, fmt.Sprintf("expected pool %s to exist", pool.Name()))
-	shares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), storedPool.Name())
+	shares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolRecord.PoolID)
 	suite.Require().True(ok, fmt.Sprintf("expected shares to exist for depositor %s", depositor.GetAddress()))
 
-	value, err := storedPool.ShareValue(shares)
+	storedPool, err := swap.NewDenominatedPoolWithExistingShares(sdk.NewCoins(poolRecord.ReservesA, poolRecord.ReservesB), poolRecord.TotalShares)
 	suite.Nil(err)
+	value := storedPool.ShareValue(shares.SharesOwned)
 	suite.Equal(coins, value, fmt.Sprintf("expected shares to equal %s, but got %s", coins, value))
 }
 
