@@ -54,8 +54,8 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 	}
 
 	globalRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
-	if !found { // Should always be found...
-		// if there is no global delegator reward factor, initialize the claim with a delegator factor of zero. This prevents rewards from being lost if delegator rewards are turned on in the future.
+	if !found {
+		// If there's no global delegator reward factor, initialize the claim with a delegator factor of zero.
 		globalRewardFactor = sdk.ZeroDec()
 	}
 

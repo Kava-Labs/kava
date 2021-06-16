@@ -71,7 +71,7 @@ func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
 }
 
 // SynchronizeUSDXMintingReward updates the claim object by adding any accumulated rewards and updating the reward index value.
-// this should be called before a cdp is modified, immediately after the 'SynchronizeInterest' method is called in the cdp module
+// this should be called before a cdp is modified.
 func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) {
 
 	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
