@@ -22,7 +22,6 @@ The Kava community has developed some amazing tools and services. If you've buil
 
 ## Staking
 - [Staking rewards calculator](https://www.stakingrewards.com/earn/kava/calculate)
-- [Hubble](https://hubble.figment.network/kava/chains/kava-3) validator explorer by Figment
 
 ### Staking Providers
 Listed in alphabetical order.
@@ -34,7 +33,7 @@ Listed in alphabetical order.
 - [ChainLayer](https://www.chainlayer.io/)
 - [Chorus One](https://chorus.one/)
 - [Cosmostation](https://www.cosmostation.io/)
-- [Figment](https://figment.network/protocols/kava/)
+- [Figment](https://figment.io/protocols/kava/)
 - [Forbole](https://www.forbole.com/)
 - [Huboi Pool](https://www.huobipool.com/)
 - [Lemniscap](https://lemniscap.com/)
