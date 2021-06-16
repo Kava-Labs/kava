@@ -86,8 +86,8 @@ func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bor
 
 	var borrowRewardIndexes types.MultiRewardIndexes
 	for _, coin := range borrow.Amount {
-		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
+		globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+		if !found {
 			globalRewardIndexes = types.RewardIndexes{}
 		}
 		borrowRewardIndexes = borrowRewardIndexes.With(coin.Denom, globalRewardIndexes)
@@ -106,8 +106,8 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 	}
 
 	for _, coin := range borrow.Amount {
-		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
+		globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+		if !found {
 			// The global factor is only not found if
 			// - the borrowed denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
 			// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)

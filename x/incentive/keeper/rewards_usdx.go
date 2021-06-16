@@ -59,11 +59,11 @@ func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
 	if !found { // this is the owner's first usdx minting reward claim
 		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{})
 	}
-	rewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
+	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
 	if !found {
-		rewardFactor = sdk.ZeroDec()
+		globalRewardFactor = sdk.ZeroDec()
 	}
-	claim.RewardIndexes = claim.RewardIndexes.With(cdp.Type, rewardFactor)
+	claim.RewardIndexes = claim.RewardIndexes.With(cdp.Type, globalRewardFactor)
 
 	k.SetUSDXMintingClaim(ctx, claim)
 }
@@ -91,8 +91,8 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 		)
 	}
 
-	userRewardFactor, hasRewardIndex := claim.RewardIndexes.Get(cdp.Type)
-	if !hasRewardIndex {
+	userRewardFactor, found := claim.RewardIndexes.Get(cdp.Type)
+	if !found {
 		// Normally the factor should always be found, as it is added when the cdp is created in InitializeUSDXMintingClaim.
 		// However if a cdp type is not rewarded then becomes rewarded (ie a reward period is added to params), existing cdps will not have the factor in their claims.
 		// So assume the factor is the starting value for any global factor: 0.

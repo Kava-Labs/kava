@@ -51,12 +51,12 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 		claim, _ = k.GetHardLiquidityProviderClaim(ctx, delegator)
 	}
 
-	delegatorFactor, foundDelegatorFactor := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
-	if !foundDelegatorFactor { // Should always be found...
-		delegatorFactor = sdk.ZeroDec()
+	globalRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
+	if !found { // Should always be found...
+		globalRewardFactor = sdk.ZeroDec()
 	}
 
-	claim.DelegatorRewardIndexes = types.RewardIndexes{types.NewRewardIndex(types.BondDenom, delegatorFactor)}
+	claim.DelegatorRewardIndexes = types.RewardIndexes{types.NewRewardIndex(types.BondDenom, globalRewardFactor)}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
@@ -69,7 +69,7 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 		return
 	}
 
-	delegatorFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
+	globalRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
 	if !found {
 		// The global factor is only not found if
 		// - the bond denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
@@ -82,16 +82,19 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 
 	userRewardFactor, found := claim.DelegatorRewardIndexes.Get(types.BondDenom)
 	if !found {
+		// Normally the factor should always be found, as it is added in InitializeHardDelegatorReward when a user delegates.
+		// However if there were no delegator rewards (ie no reward period in params) then a reward period is added, existing claims will not have the factor.
+		// So assume the factor is the starting value for any global factor: 0.
 		userRewardFactor = sdk.ZeroDec()
 	}
 
 	totalDelegated := k.GetTotalDelegated(ctx, delegator, valAddr, shouldIncludeValidator)
 
-	rewardsEarned := k.calculateSingleReward(userRewardFactor, delegatorFactor, totalDelegated)
+	rewardsEarned := k.calculateSingleReward(userRewardFactor, globalRewardFactor, totalDelegated)
 	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
 
 	claim.Reward = claim.Reward.Add(newRewardsCoin)
-	claim.DelegatorRewardIndexes = claim.DelegatorRewardIndexes.With(types.BondDenom, delegatorFactor)
+	claim.DelegatorRewardIndexes = claim.DelegatorRewardIndexes.With(types.BondDenom, globalRewardFactor)
 
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
