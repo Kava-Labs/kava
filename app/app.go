@@ -105,6 +105,7 @@ var (
 		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
 		hard.ModuleAccountName:      {supply.Minter},
+		swap.ModuleAccountName:      nil,
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -401,6 +402,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.cdc,
 		keys[swap.StoreKey],
 		swapSubspace,
+		app.accountKeeper,
+		app.supplyKeeper,
 	)
 
 	// register the staking hooks
