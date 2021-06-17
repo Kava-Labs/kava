@@ -81,7 +81,7 @@ func (p *BasePool) ReservesB() sdk.Int {
 	return p.reservesB
 }
 
-// Empty returns true if all reserves are zero and
+// IsEmpty returns true if all reserves are zero and
 // returns false if reserveA or reserveB is not empty
 func (p *BasePool) IsEmpty() bool {
 	return p.reservesA.IsZero() && p.reservesB.IsZero()
@@ -92,7 +92,7 @@ func (p *BasePool) TotalShares() sdk.Int {
 	return p.totalShares
 }
 
-// AddLiquidty adds liquidty to the pool retruns the actual reservesA, reservesB deposits in addition
+// AddLiquidity adds liquidty to the pool retruns the actual reservesA, reservesB deposits in addition
 // to the number of shares created.  The deposits are always less than or equal to the provided and desired
 // values.
 func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sdk.Int, sdk.Int) {
@@ -190,7 +190,7 @@ func (p *BasePool) SwapAForB(a sdk.Int, fee sdk.Dec) sdk.Int {
 	return sdk.ZeroInt()
 }
 
-// SwapAForB trades b for a with a percentage fee
+// SwapBForA trades b for a with a percentage fee
 func (p *BasePool) SwapBForA(b sdk.Int, fee sdk.Dec) sdk.Int {
 	// TODO: implementation
 	return sdk.ZeroInt()

@@ -18,7 +18,7 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	registerTxRoutes(cliCtx, r)
 }
 
-// PostDepositReq defines the properties of a deposit create request's body
+// PostCreateDepositReq defines the properties of a deposit create request's body
 type PostCreateDepositReq struct {
 	BaseReq  rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	From     sdk.AccAddress `json:"from" yaml:"from"`

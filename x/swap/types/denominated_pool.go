@@ -62,18 +62,22 @@ func NewDenominatedPoolWithExistingShares(reserves sdk.Coins, totalShares sdk.In
 	}, nil
 }
 
+// Reserves returns the reserves held in the pool
 func (p *DenominatedPool) Reserves() sdk.Coins {
 	return p.coins(p.pool.ReservesA(), p.pool.ReservesB())
 }
 
+// TotalShares returns the total shares for the pool
 func (p *DenominatedPool) TotalShares() sdk.Int {
 	return p.pool.TotalShares()
 }
 
+// IsEmpty returns true if the pool is empty
 func (p *DenominatedPool) IsEmpty() bool {
 	return p.pool.IsEmpty()
 }
 
+// AddLiquidity adds liquidity to the reserves and returns the added amount and shares created
 func (p *DenominatedPool) AddLiquidity(deposit sdk.Coins) (sdk.Coins, sdk.Int) {
 	desiredA := deposit.AmountOf(p.denomA)
 	desiredB := deposit.AmountOf(p.denomB)
@@ -83,18 +87,22 @@ func (p *DenominatedPool) AddLiquidity(deposit sdk.Coins) (sdk.Coins, sdk.Int) {
 	return p.coins(actualA, actualB), shares
 }
 
+// RemoveLiquidity removes liquidity from the pool
 func (p *DenominatedPool) RemoveLiquidity(shares sdk.Int) sdk.Coins {
 	withdrawnA, withdrawnB := p.pool.RemoveLiquidity(shares)
 
 	return p.coins(withdrawnA, withdrawnB)
 }
 
+// ShareValue returns the value of the provided shares
 func (p *DenominatedPool) ShareValue(shares sdk.Int) sdk.Coins {
 	valueA, valueB := p.pool.ShareValue(shares)
 
 	return p.coins(valueA, valueB)
 }
 
+// Swap swaps a coin in one reserve for the other.  Panics if denom
+// does not match the pool.
 func (p *DenominatedPool) Swap(coin sdk.Coin, fee sdk.Dec) sdk.Coin {
 	var result sdk.Coin
 

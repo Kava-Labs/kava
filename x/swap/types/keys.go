@@ -24,6 +24,7 @@ const (
 	DefaultParamspace = ModuleName
 )
 
+// key prefixes for store
 var (
 	PoolKeyPrefix             = []byte{0x01}
 	DepositorPoolSharesPrefix = []byte{0x02}
@@ -31,12 +32,14 @@ var (
 	sep = []byte(":")
 )
 
-func PoolKey(poolName string) []byte {
-	return []byte(poolName)
+// PoolKey returns a key generated from a poolID
+func PoolKey(poolID string) []byte {
+	return []byte(poolID)
 }
 
-func DepositorPoolSharesKey(depositor sdk.AccAddress, poolName string) []byte {
-	return createKey(depositor, sep, []byte(poolName))
+// DepositorPoolSharesKey returns a key from a depositor and poolID
+func DepositorPoolSharesKey(depositor sdk.AccAddress, poolID string) []byte {
+	return createKey(depositor, sep, []byte(poolID))
 }
 
 func createKey(bytes ...[]byte) (r []byte) {
