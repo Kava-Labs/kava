@@ -56,6 +56,10 @@ func (msg MsgDeposit) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "token b deposit amount %s", msg.TokenB)
 	}
 
+	if msg.TokenA.Denom == msg.TokenB.Denom {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
+	}
+
 	if msg.Deadline <= 0 {
 		return sdkerrors.Wrapf(ErrInvalidDeadline, "deadline %d", msg.Deadline)
 	}

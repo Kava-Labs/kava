@@ -103,6 +103,14 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			expectedErr: "invalid coins: token b deposit amount 1000000UKAVA",
 		},
 		{
+			name:        "denoms can not be the same",
+			depositor:   validMsg.Depositor,
+			tokenA:      sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(1e6)},
+			tokenB:      sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(1e6)},
+			deadline:    validMsg.Deadline,
+			expectedErr: "invalid coins: denominations can not be equal",
+		},
+		{
 			name:        "zero deadline",
 			depositor:   validMsg.Depositor,
 			tokenA:      validMsg.TokenA,
