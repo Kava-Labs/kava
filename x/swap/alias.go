@@ -10,6 +10,7 @@ import (
 const (
 	AttributeKeyDepositor  = types.AttributeKeyDepositor
 	AttributeKeyPoolID     = types.AttributeKeyPoolID
+	AttributeKeyShares     = types.AttributeKeyShares
 	AttributeValueCategory = types.AttributeValueCategory
 	DefaultParamspace      = types.DefaultParamspace
 	EventTypeSwapDeposit   = types.EventTypeSwapDeposit

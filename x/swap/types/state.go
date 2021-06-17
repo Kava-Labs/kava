@@ -31,6 +31,10 @@ type PoolRecord struct {
 	TotalShares sdk.Int  `json:"total_shares" yaml:"total_shares"`
 }
 
+func (p PoolRecord) Reserves() sdk.Coins {
+	return sdk.NewCoins(p.ReservesA, p.ReservesB)
+}
+
 // NewPoolRecord takes a pointer to a denominated pool and returns a
 // pool record for storage in state.
 func NewPoolRecord(pool *DenominatedPool) PoolRecord {

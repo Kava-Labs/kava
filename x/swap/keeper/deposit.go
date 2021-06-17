@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	//"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,35 +9,33 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
+// Deposit creates a new pool or adds liquidity to an existing pool.  For a pool to be created, a pool
+// for the coin denominations must not exist yet, and it must be allowed by the swap module parameters.
+//
+// When adding liquidity to an existing pool, the provided coins are consided to be the desired deposit
+// amount, and the actual deposited coins may be less than or equal to the provided coins.  A deposit
+// will never be exceed the coinA and coinB amounts.
 func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coin, coinB sdk.Coin) error {
-	depositAmount := sdk.NewCoins(coinA, coinB)
-	poolID := types.PoolIDFromCoins(depositAmount)
+	desiredAmount := sdk.NewCoins(coinA, coinB)
 
-	_, found := k.GetPool(ctx, poolID)
+	poolID := types.PoolIDFromCoins(desiredAmount)
+	poolRecord, found := k.GetPool(ctx, poolID)
+
+	var (
+		depositAmount sdk.Coins
+		shares        sdk.Int
+		err           error
+	)
 	if found {
-		//		//depositAmount, shares := pool.AddLiquidty(depositAmount)
-		//		//if depositAmount.IsZero() || shares.IsZero() {
-		return sdkerrors.Wrap(types.ErrNotImplemented, fmt.Sprintf("can not deposit into existing pool '%s'", poolID))
-		//		//}
-		//
-		//		//desiredPrice := types.PriceFromPair(coinA, coinB)
-		//		//actualPrice := types.PriceFromCoins(coinA.Denom, depositAmount)
-		//
-		//		//if actualPrice.Sub(desiredPrice).Quo(desiredPrice).Abs().GT(slippage) {
-		//		//	// TODO: slippage error!
-		//		//}
-		//
-		//		//k.SetPool(pool)
-		//		//k.SetDepositorShares(meow)
+		depositAmount, shares, err = k.addLiquidityToPool(ctx, poolRecord, depositor, desiredAmount)
 	} else {
-		if allowed := k.depositAllowed(ctx, poolID); !allowed {
-			return sdkerrors.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolID))
-		}
-
-		k.initializePool(ctx, depositor, depositAmount)
+		depositAmount, shares, err = k.initializePool(ctx, poolID, depositor, desiredAmount)
+	}
+	if err != nil {
+		return err
 	}
 
-	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, depositAmount)
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, depositAmount)
 	if err != nil {
 		return err
 	}
@@ -47,6 +46,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 			sdk.NewAttribute(types.AttributeKeyPoolID, poolID),
 			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.String()),
+			sdk.NewAttribute(types.AttributeKeyShares, shares.String()),
 		),
 	)
 
@@ -63,10 +63,14 @@ func (k Keeper) depositAllowed(ctx sdk.Context, poolID string) bool {
 	return false
 }
 
-func (k Keeper) initializePool(ctx sdk.Context, depositor sdk.AccAddress, reserves sdk.Coins) error {
+func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.AccAddress, reserves sdk.Coins) (sdk.Coins, sdk.Int, error) {
+	if allowed := k.depositAllowed(ctx, poolID); !allowed {
+		return sdk.Coins{}, sdk.ZeroInt(), sdkerrors.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolID))
+	}
+
 	pool, err := types.NewDenominatedPool(reserves)
 	if err != nil {
-		return err
+		return sdk.Coins{}, sdk.ZeroInt(), err
 	}
 
 	poolRecord := types.NewPoolRecord(pool)
@@ -75,5 +79,22 @@ func (k Keeper) initializePool(ctx sdk.Context, depositor sdk.AccAddress, reserv
 	k.SetPool(ctx, poolRecord)
 	k.SetDepositorShares(ctx, shareRecord)
 
-	return nil
+	return pool.Reserves(), pool.TotalShares(), nil
+}
+
+func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, depositor sdk.AccAddress, desiredAmount sdk.Coins) (sdk.Coins, sdk.Int, error) {
+	pool, err := types.NewDenominatedPoolWithExistingShares(record.Reserves(), record.TotalShares)
+	if err != nil {
+		return sdk.Coins{}, sdk.ZeroInt(), err
+	}
+
+	depositAmount, shares := pool.AddLiquidity(desiredAmount)
+
+	poolRecord := types.NewPoolRecord(pool)
+	shareRecord := types.NewShareRecord(depositor, poolRecord.PoolID, shares)
+
+	k.SetPool(ctx, poolRecord)
+	k.SetDepositorShares(ctx, shareRecord)
+
+	return depositAmount, shares, nil
 }

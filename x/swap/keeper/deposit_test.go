@@ -8,22 +8,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
-
-func (suite *keeperTestSuite) TestDeposit_CreatePool_PoolExists() {
-	depositor := suite.GetAccount(sdk.Coins{})
-
-	amountA := sdk.NewCoin("ukava", sdk.NewInt(10e6))
-	amountB := sdk.NewCoin("usdx", sdk.NewInt(50e6))
-	pool, err := types.NewDenominatedPool(sdk.NewCoins(amountA, amountB))
-	suite.Nil(err)
-
-	record := types.NewPoolRecord(pool)
-	suite.Keeper.SetPool(suite.Ctx, record)
-
-	err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), amountA, amountB)
-	suite.Require().EqualError(err, "not implemented: can not deposit into existing pool 'ukava/usdx'")
-}
 
 func (suite *keeperTestSuite) TestDeposit_CreatePool_PoolNotAllowed() {
 	depositor := suite.GetAccount(sdk.Coins{})
@@ -34,7 +21,7 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool_PoolNotAllowed() {
 	suite.Require().EqualError(err, "not allowed: can not create pool 'ukava/usdx'")
 }
 
-func (suite *keeperTestSuite) TestDeposit_CreatePool_InsufficientFunds() {
+func (suite *keeperTestSuite) TestDeposit_InsufficientFunds() {
 	testCases := []struct {
 		name     string
 		balanceA sdk.Coin
@@ -80,11 +67,16 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool_InsufficientFunds() {
 			err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB)
 			// TODO: wrap in module specific error?
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
+
+			// test deposit to existing pool insuffient funds
+			suite.CreatePool(sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10e6)), sdk.NewCoin("usdx", sdk.NewInt(50e6))))
+			err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB)
+			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds))
 		})
 	}
 }
 
-func (suite *keeperTestSuite) TestDeposit_CreatePool_InsufficientFunds_Vesting() {
+func (suite *keeperTestSuite) TestDeposit_InsufficientFunds_Vesting() {
 	testCases := []struct {
 		name     string
 		balanceA sdk.Coin
@@ -136,8 +128,14 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool_InsufficientFunds_Vesting()
 			vesting.Sort()
 			depositor := suite.GetVestingAccount(balance, vesting)
 
+			// test create pool insuffient funds
 			err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB)
 			// TODO: wrap in module specific error?
+			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds))
+
+			// test deposit to existing pool insuffient funds
+			suite.CreatePool(sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10e6)), sdk.NewCoin("usdx", sdk.NewInt(50e6))))
+			err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB)
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds))
 		})
 	}
@@ -169,5 +167,52 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool() {
 		sdk.NewAttribute(types.AttributeKeyPoolID, pool.Name()),
 		sdk.NewAttribute(types.AttributeKeyDepositor, depositor.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, deposit.String()),
+		sdk.NewAttribute(types.AttributeKeyShares, "22360679"),
+	))
+}
+
+func (suite *keeperTestSuite) TestDeposit_PoolExists() {
+	pool := types.NewAllowedPool("ukava", "usdx")
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+	)
+	depositor := suite.GetAccount(balance)
+
+	depositA := sdk.NewCoin("usdx", depositor.GetCoins().AmountOf("usdx"))
+	depositB := sdk.NewCoin("ukava", depositor.GetCoins().AmountOf("ukava"))
+
+	ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	err = suite.Keeper.Deposit(ctx, depositor.GetAddress(), depositA, depositB)
+	suite.Require().NoError(err)
+
+	expectedDeposit := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+	)
+
+	expectedShareValue := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(999999)),
+		sdk.NewCoin("usdx", sdk.NewInt(4999998)),
+	)
+
+	suite.AccountBalanceEqual(depositor, balance.Sub(expectedDeposit))
+	suite.ModuleAccountBalanceEqual(reserves.Add(expectedDeposit...))
+	suite.PoolLiquidityEqual(reserves.Add(expectedDeposit...))
+	suite.PoolShareValueEqual(depositor, pool, expectedShareValue)
+
+	suite.EventsContains(ctx.EventManager().Events(), sdk.NewEvent(
+		types.EventTypeSwapDeposit,
+		sdk.NewAttribute(types.AttributeKeyPoolID, types.PoolID(pool.TokenA, pool.TokenB)),
+		sdk.NewAttribute(types.AttributeKeyDepositor, depositor.GetAddress().String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedDeposit.String()),
+		sdk.NewAttribute(types.AttributeKeyShares, "2236067"),
 	))
 }

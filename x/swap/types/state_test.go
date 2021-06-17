@@ -43,10 +43,11 @@ func TestState_NewPoolRecord(t *testing.T) {
 
 	record := types.NewPoolRecord(pool)
 
-	assert.Equal(t, record.PoolID, types.PoolID("ukava", "usdx"))
-	assert.Equal(t, record.ReservesA, ukava(10e6))
+	assert.Equal(t, types.PoolID("ukava", "usdx"), record.PoolID)
+	assert.Equal(t, ukava(10e6), record.ReservesA)
 	assert.Equal(t, record.ReservesB, usdx(50e6))
-	assert.Equal(t, record.TotalShares, pool.TotalShares())
+	assert.Equal(t, pool.TotalShares(), record.TotalShares)
+	assert.Equal(t, sdk.NewCoins(ukava(10e6), usdx(50e6)), record.Reserves())
 }
 
 func TestState_NewShareRecord(t *testing.T) {

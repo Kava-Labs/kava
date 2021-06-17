@@ -6,4 +6,5 @@ const (
 	AttributeValueCategory = ModuleName
 	AttributeKeyPoolID     = "pool_id"
 	AttributeKeyDepositor  = "depositor"
+	AttributeKeyShares     = "shares"
 )
