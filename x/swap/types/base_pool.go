@@ -135,7 +135,8 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	var sharesB big.Int
 	sharesB.Mul(actualB, p.totalShares.BigInt()).Quo(&sharesB, p.reservesB.BigInt())
 
-	// a/A and b/B may not be equal due to truncation errors, so use the smallest ratio
+	// a/A and b/B may not be equal due to discrete math and truncation errors,
+	// so use the smallest deposit ratio to calculate the number of shares
 	//
 	// If we do not use the min or max ratio, then the result becomes
 	// dependent on the order of reserves in the pool
