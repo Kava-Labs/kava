@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -110,6 +111,49 @@ func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
 
 	claims = suite.keeper.GetAllUSDXMintingClaims(suite.ctx)
 	suite.Require().Equal(len(suite.addrs), len(claims))
+}
+
+type accrualtime struct {
+	denom string
+	time  time.Time
+}
+
+func (suite *KeeperTestSuite) TestIterateUSDXMintingAccrualTimes_Empty() {
+
+	var expectedAccrualTimes []accrualtime
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateUSDXMintingAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
+
+func (suite *KeeperTestSuite) TestIterateUSDXMintingAccrualTimes_NotEmpty() {
+
+	expectedAccrualTimes := []accrualtime{
+		{
+			denom: "",
+			time:  time.Time{},
+		},
+		{
+			denom: "btcb",
+			time:  time.Date(1998, 1, 1, 0, 0, 0, 1, time.UTC),
+		},
+	}
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateUSDXMintingAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
 }
 
 func createPeriodicVestingAccount(origVesting sdk.Coins, periods vesting.Periods, startTime, endTime int64) (*vesting.PeriodicVestingAccount, error) {
