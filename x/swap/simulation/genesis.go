@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	accs []simulation.Account
+	accs            []simulation.Account
+	consistentPools = [2][2]string{{"ukava", "usdx"}, {"hard", "usdx"}}
 )
 
 // GenSwapFee generates a random SwapFee in range [0.01, 1.00]
@@ -28,17 +29,27 @@ func GenSwapFee(r *rand.Rand) sdk.Dec {
 
 // GenSupportedAssets generates random allowed pools
 func GenAllowedPools(r *rand.Rand) types.AllowedPools {
+	var pools types.AllowedPools
 
-	numPools := (r.Intn(10) + 1)
-	pools := make(types.AllowedPools, numPools)
-	for i := 0; i < numPools; i++ {
+	// Generate a set [1, 10] of random pools
+	numRandPools := (r.Intn(10) + 1)
+	for i := 0; i < numRandPools; i++ {
 		tokenA, tokenB := genTokenDenoms(r)
 		for strings.Compare(tokenA, tokenB) == 0 {
 			tokenA, tokenB = genTokenDenoms(r)
 		}
 		newPool := types.NewAllowedPool(tokenA, tokenB)
-		pools[i] = newPool
+		pools = append(pools, newPool)
 	}
+
+	// Append consistent pools
+	for i := 0; i < len(consistentPools); i++ {
+		tokenA := consistentPools[i][0]
+		tokenB := consistentPools[i][1]
+		newPool := types.NewAllowedPool(tokenA, tokenB)
+		pools = append(pools, newPool)
+	}
+
 	return pools
 }
 
