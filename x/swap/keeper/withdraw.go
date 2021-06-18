@@ -35,9 +35,12 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, poolID string, w
 	}
 
 	// Update pool record
-	// TODO: this will panic if denominatedPool has 0 reserves
-	poolRecord := types.NewPoolRecord(denominatedPool)
-	k.SetPool(ctx, poolRecord)
+	if denominatedPool.IsEmpty() {
+		k.DeletePool(ctx, poolID)
+	} else {
+		poolRecord := types.NewPoolRecord(denominatedPool)
+		k.SetPool(ctx, poolRecord)
+	}
 
 	// Update depositor's share record
 	depositorShareRecord.SharesOwned = depositorShareRecord.SharesOwned.Sub(withdrawShares)
