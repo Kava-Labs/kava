@@ -87,3 +87,52 @@ func (msg MsgDeposit) GetDeadline() time.Time {
 func (msg MsgDeposit) DeadlineExceeded(blockTime time.Time) bool {
 	return blockTime.Unix() >= msg.Deadline
 }
+
+// MsgWithdraw deposits liquidity into a pool
+type MsgWithdraw struct {
+	From   sdk.AccAddress `json:"from" yaml:"from"`
+	Pool   string         `json:"pool" yaml:"pool"`
+	Shares sdk.Int        `json:"shares" yaml:"shares"`
+}
+
+// NewMsgWithdraw returns a new MsgWithdraw
+func NewMsgWithdraw(from sdk.AccAddress, pool string, shares sdk.Int) MsgWithdraw {
+	return MsgWithdraw{
+		From:   from,
+		Pool:   pool,
+		Shares: shares,
+	}
+}
+
+// Route return the message type used for routing the message.
+func (msg MsgWithdraw) Route() string { return RouterKey }
+
+// Type returns a human-readable string for the message, intended for utilization within tags.
+func (msg MsgWithdraw) Type() string { return "swap_withdraw" }
+
+// ValidateBasic does a simple validation check that doesn't require access to any other information.
+func (msg MsgWithdraw) ValidateBasic() error {
+	if msg.From.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "from address cannot be empty")
+	}
+
+	if len(msg.Pool) == 0 {
+		return sdkerrors.Wrap(ErrInvalidPool, "pool ID cannot be empty")
+	}
+
+	if msg.Shares.IsZero() {
+		return sdkerrors.Wrapf(ErrInvalidShares, "cannot withdraw 0 shares")
+	}
+	return nil
+}
+
+// GetSignBytes gets the canonical byte representation of the Msg.
+func (msg MsgWithdraw) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners returns the addresses of signers that must sign.
+func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
