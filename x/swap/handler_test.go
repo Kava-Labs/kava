@@ -35,7 +35,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 		sdk.NewCoin(pool.TokenA, sdk.NewInt(10e6)),
 		sdk.NewCoin(pool.TokenB, sdk.NewInt(50e6)),
 	)
-	depositor := suite.GetAccount(balance)
+	depositor := suite.CreateAccount(balance)
 
 	deposit := swap.NewMsgDeposit(
 		depositor.GetAddress(),
@@ -84,7 +84,7 @@ func (suite *handlerTestSuite) TestDeposit_DeadlineExceeded() {
 		sdk.NewCoin(pool.TokenA, sdk.NewInt(10e6)),
 		sdk.NewCoin(pool.TokenB, sdk.NewInt(50e6)),
 	)
-	depositor := suite.GetAccount(balance)
+	depositor := suite.CreateAccount(balance)
 
 	deposit := swap.NewMsgDeposit(
 		depositor.GetAddress(),
@@ -111,7 +111,7 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 	)
-	depositor := suite.GetAccount(balance)
+	depositor := suite.CreateAccount(balance)
 
 	deposit := swap.NewMsgDeposit(
 		depositor.GetAddress(),

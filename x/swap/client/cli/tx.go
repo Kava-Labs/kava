@@ -72,3 +72,33 @@ func getCmdDeposit(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 }
+
+func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "withdraw [pool-id] [shares]",
+		Short: "withdraw coins from a swap liquidity pool",
+		Example: fmt.Sprintf(
+			`%s tx %s withdraw ukava/usdx 153000 --from <key>`, version.ClientName, types.ModuleName,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			poolID := args[0]
+
+			numShares, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+			shares := sdk.NewInt(numShares)
+
+			msg := types.NewMsgWithdraw(cliCtx.GetFromAddress(), poolID, shares)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
