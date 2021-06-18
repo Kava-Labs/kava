@@ -60,11 +60,11 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, poolID string, w
 }
 
 func (k Keeper) loadDenominatedPool(ctx sdk.Context, poolID string) (*types.DenominatedPool, error) {
-	pool, found := k.GetPool(ctx, poolID)
+	poolRecord, found := k.GetPool(ctx, poolID)
 	if !found {
 		return &types.DenominatedPool{}, types.ErrInvalidPool
 	}
-	denominatedPool, err := types.NewDenominatedPool(pool.Reserves())
+	denominatedPool, err := types.NewDenominatedPoolWithExistingShares(poolRecord.Reserves(), poolRecord.TotalShares)
 	if err != nil {
 		return &types.DenominatedPool{}, types.ErrInvalidPool
 	}
