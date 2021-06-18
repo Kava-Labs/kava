@@ -36,8 +36,14 @@ func (suite *Suite) SetupTest() {
 	suite.Keeper = keeper
 }
 
-// GetAccount creates a new account from the provided balance
-func (suite *Suite) GetAccount(initialBalance sdk.Coins) authexported.Account {
+// GetAccount gets an existing account
+func (suite *Suite) GetAccount(addr sdk.AccAddress) authexported.Account {
+	ak := suite.App.GetAccountKeeper()
+	return ak.GetAccount(suite.Ctx, addr)
+}
+
+// CreateAccount creates a new account from the provided balance
+func (suite *Suite) CreateAccount(initialBalance sdk.Coins) authexported.Account {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	ak := suite.App.GetAccountKeeper()
 
@@ -48,9 +54,9 @@ func (suite *Suite) GetAccount(initialBalance sdk.Coins) authexported.Account {
 	return acc
 }
 
-// GetVestingAccount creats a new vesting account from the provided balance and vesting balance
-func (suite *Suite) GetVestingAccount(initialBalance sdk.Coins, vestingBalance sdk.Coins) authexported.Account {
-	acc := suite.GetAccount(initialBalance)
+// CreateVestingAccount creats a new vesting account from the provided balance and vesting balance
+func (suite *Suite) CreateVestingAccount(initialBalance sdk.Coins, vestingBalance sdk.Coins) authexported.Account {
+	acc := suite.CreateAccount(initialBalance)
 	bacc := acc.(*auth.BaseAccount)
 
 	periods := vestingtypes.Periods{
@@ -66,7 +72,7 @@ func (suite *Suite) GetVestingAccount(initialBalance sdk.Coins, vestingBalance s
 
 // CreatePool creates a pool and stores it in state with the provided reserves
 func (suite *Suite) CreatePool(reserves sdk.Coins) error {
-	depositor := suite.GetAccount(reserves)
+	depositor := suite.CreateAccount(reserves)
 	pool := swap.NewAllowedPool(reserves[0].Denom, reserves[1].Denom)
 	suite.Require().NoError(pool.Validate())
 	suite.Keeper.SetParams(suite.Ctx, swap.NewParams(swap.NewAllowedPools(pool), swap.DefaultSwapFee))
