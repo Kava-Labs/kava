@@ -41,8 +41,9 @@ func getCmdDeposit(cdc *codec.Codec) *cobra.Command {
 		Use:   "deposit [tokenA] [tokenB] [deadline]",
 		Short: "deposit coins to a swap liquidity pool",
 		Example: fmt.Sprintf(
-			`%s tx %s deposit 10000000ukava 10000000usdx --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s deposit 10000000ukava 10000000usdx 1624224736 --from <key>`, version.ClientName, types.ModuleName,
 		),
+		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
