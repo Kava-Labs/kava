@@ -28,12 +28,6 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, poolID string, w
 	}
 	withdrawCoins := denominatedPool.RemoveLiquidity(withdrawShares)
 
-	// Send withdrawn tokens to owner
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawCoins)
-	if err != nil {
-		return err
-	}
-
 	// Update pool record
 	if denominatedPool.IsEmpty() {
 		k.DeletePool(ctx, poolID)
@@ -45,6 +39,12 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, poolID string, w
 	// Update depositor's share record
 	depositorShareRecord.SharesOwned = depositorShareRecord.SharesOwned.Sub(withdrawShares)
 	k.SetDepositorShares(ctx, depositorShareRecord)
+
+	// Send withdrawn tokens to owner
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawCoins)
+	if err != nil {
+		return err
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
