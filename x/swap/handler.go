@@ -29,7 +29,7 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgDeposit) (*sdk.Result, error) {
-	err := k.Deposit(ctx, msg.Depositor, msg.TokenA, msg.TokenB)
+	err := k.Deposit(ctx, msg.Depositor, msg.TokenA, msg.TokenB, msg.Slippage)
 	if err != nil {
 		return nil, err
 	}

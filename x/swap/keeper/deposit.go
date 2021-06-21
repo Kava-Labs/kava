@@ -15,7 +15,29 @@ import (
 // When adding liquidity to an existing pool, the provided coins are consided to be the desired deposit
 // amount, and the actual deposited coins may be less than or equal to the provided coins.  A deposit
 // will never be exceed the coinA and coinB amounts.
-func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coin, coinB sdk.Coin) error {
+//
+// The slippage is calculated using both the price and inverse price of the provided coinA and coinB.
+// Since adding liquidity is not directional, like a swap would be, using both the price (coinB/coinA),
+// and the inverse price (coinA/coinB), protects the depositor from a large deviation in their deposit.
+
+// The amount deposited may only change by B' < B or A' < A -- either B depreciates, or A depreciates.
+// Therefore, slippage can be writen as a function of this depreciation d.  Where the new price is
+// B*(1-d)/A or A*(1-d)/B, and the inverse of each, and is A/(B*(1-d)) and B/(A*(1-d))
+// respectively.
+//
+// Since 1/(1-d) >= (1-d) for d <= 1, the maximum slippage is always in the appreciating price
+// A/(B*(1-d)) and B/(A*(1-d)).  In other words, when the price have an asset depreciates, the
+// inverse price -- or the price of the other pool asset,  appreciates by a larger amount.
+// It's this percent change we calculate and compare to the slippage limit provided.
+//
+// For example, if we have a pool with 100e6 ukava and 400e6 usdx.  The ukava price is 4 usdx and the
+// usdx price is 0.25 ukava.  If a depositor adds liquidity of 4e6 ukava and 14e6 usdx, a kava price of
+// 3.50 usdx and a usdx price of 0.29 ukava.  This is a -12.5% slippage is the ukava price, and a 14.3%
+// slippage in the usdx price.
+//
+// These slippages can be calculated by S_B = ((A/B')/(A/B) - 1) and S_A ((B/A')/(B/A) - 1), simplifying to
+// S_B = (A/A' - 1), and S_B = (B/B' - 1).  An error is returned when max(S_A, S_B) > slippageLimit.
+func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coin, coinB sdk.Coin, slippageLimit sdk.Dec) error {
 	desiredAmount := sdk.NewCoins(coinA, coinB)
 
 	poolID := types.PoolIDFromCoins(desiredAmount)
@@ -33,6 +55,16 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 	}
 	if err != nil {
 		return err
+	}
+
+	maxPercentPriceChange := sdk.MaxDec(
+		desiredAmount.AmountOf(coinA.Denom).ToDec().Quo(depositAmount.AmountOf(coinA.Denom).ToDec()),
+		desiredAmount.AmountOf(coinB.Denom).ToDec().Quo(depositAmount.AmountOf(coinB.Denom).ToDec()),
+	)
+	slippage := maxPercentPriceChange.Sub(sdk.OneDec())
+
+	if slippage.GT(slippageLimit) {
+		return sdkerrors.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)
 	}
 
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, depositAmount)

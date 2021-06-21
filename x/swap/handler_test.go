@@ -41,6 +41,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 		depositor.GetAddress(),
 		sdk.NewCoin(pool.TokenA, depositor.GetCoins().AmountOf(pool.TokenA)),
 		sdk.NewCoin(pool.TokenB, depositor.GetCoins().AmountOf(pool.TokenB)),
+		sdk.MustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -90,6 +91,7 @@ func (suite *handlerTestSuite) TestDeposit_DeadlineExceeded() {
 		depositor.GetAddress(),
 		sdk.NewCoin(pool.TokenA, depositor.GetCoins().AmountOf(pool.TokenA)),
 		sdk.NewCoin(pool.TokenB, depositor.GetCoins().AmountOf(pool.TokenB)),
+		sdk.MustNewDecFromStr("0.01"),
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 
@@ -108,7 +110,7 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 	suite.Require().NoError(err)
 
 	balance := sdk.NewCoins(
-		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
+		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 	)
 	depositor := suite.GetAccount(balance)
@@ -117,6 +119,7 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 		depositor.GetAddress(),
 		sdk.NewCoin("usdx", depositor.GetCoins().AmountOf("usdx")),
 		sdk.NewCoin("ukava", depositor.GetCoins().AmountOf("ukava")),
+		sdk.MustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -159,6 +162,33 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedDeposit.String()),
 		sdk.NewAttribute(swap.AttributeKeyShares, "2236067"),
 	))
+}
+
+func (suite *handlerTestSuite) TestDeposit_ExistingPool_SlippageFailure() {
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+	)
+	depositor := suite.GetAccount(balance)
+
+	deposit := swap.NewMsgDeposit(
+		depositor.GetAddress(),
+		sdk.NewCoin("usdx", depositor.GetCoins().AmountOf("usdx")),
+		sdk.NewCoin("ukava", depositor.GetCoins().AmountOf("ukava")),
+		sdk.MustNewDecFromStr("0.01"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	res, err := suite.handler(suite.Ctx, deposit)
+	suite.EqualError(err, "slippage exceeded: slippage 4.000000000000000000 > limit 0.010000000000000000")
+	suite.Nil(res)
 }
 
 func (suite *handlerTestSuite) TestInvalidMsg() {
