@@ -262,9 +262,6 @@ func (builder IncentiveGenesisBuilder) WithSimpleBorrowRewardPeriod(ctype string
 	))
 }
 func (builder IncentiveGenesisBuilder) WithInitializedSupplyRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
-	// TODO this could set the start/end times on the period according to builder.genesisTime
-	// Then they could be created by a different builder
-
 	builder.Params.HardSupplyRewardPeriods = append(builder.Params.HardSupplyRewardPeriods, period)
 
 	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)

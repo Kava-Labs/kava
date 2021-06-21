@@ -86,8 +86,8 @@ func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bor
 
 	var borrowRewardIndexes types.MultiRewardIndexes
 	for _, coin := range borrow.Amount {
-		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
+		globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+		if !found {
 			globalRewardIndexes = types.RewardIndexes{}
 		}
 		borrowRewardIndexes = borrowRewardIndexes.With(coin.Denom, globalRewardIndexes)
@@ -106,17 +106,26 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 	}
 
 	for _, coin := range borrow.Amount {
-		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
+		globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+		if !found {
+			// The global factor is only not found if
+			// - the borrowed denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+			// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+			// If not found we could either skip this sync, or assume the global factor is zero.
+			// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+			// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
 			continue
 		}
 
 		userRewardIndexes, found := claim.BorrowRewardIndexes.Get(coin.Denom)
 		if !found {
-			continue
+			// Normally the reward indexes should always be found.
+			// But if a denom was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that borrowed denom.
+			// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
+			userRewardIndexes = types.RewardIndexes{}
 		}
 
-		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount)
+		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount.ToDec())
 		if err != nil {
 			// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
 			// This panics if a global reward factor decreases or disappears between the old and new indexes.
@@ -163,50 +172,51 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
-// CalculateRewards computes how much rewards should have accrued to a source (eg user's hard borrowed btc amount)
+// CalculateRewards computes how much rewards should have accrued to a source (eg a user's hard borrowed btc amount)
 // between two index values.
 //
 // oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
-func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rewardSource sdk.Int) (sdk.Coins, error) {
+//
+// Returns an error if newIndexes does not contain all CollateralTypes from oldIndexes, or if any value of oldIndex.RewardFactor > newIndex.RewardFactor.
+// This should never happen, as it would mean that a global reward index has decreased in value, or that a global reward index has been deleted from state.
+func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rewardSource sdk.Dec) (sdk.Coins, error) {
+	// check for missing CollateralType's
 	for _, oldIndex := range oldIndexes {
-		if newIndex, f := newIndexes.Get(oldIndex.CollateralType); !f {
+		if newIndex, found := newIndexes.Get(oldIndex.CollateralType); !found {
 			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
 		}
 	}
-	reward := sdk.NewCoins()
+	var reward sdk.Coins
 	for _, newIndex := range newIndexes {
-		factor, found := oldIndexes.Get(newIndex.CollateralType)
+		oldFactor, found := oldIndexes.Get(newIndex.CollateralType)
 		if !found {
-			factor = sdk.ZeroDec()
+			oldFactor = sdk.ZeroDec()
 		}
 
-		if newIndex.RewardFactor.Sub(factor).IsNegative() {
-			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", factor, newIndex)
+		rewardAmount, err := k.CalculateSingleReward(oldFactor, newIndex.RewardFactor, rewardSource)
+		if err != nil {
+			return nil, err
 		}
 
 		reward = reward.Add(
-			sdk.NewCoin(
-				newIndex.CollateralType,
-				k.calculateSingleReward(
-					factor,
-					newIndex.RewardFactor,
-					rewardSource,
-				),
-			),
+			sdk.NewCoin(newIndex.CollateralType, rewardAmount),
 		)
 	}
 	return reward, nil
 }
 
-// calculateSingleReward computes the rewards that should accumulate between two index values.
-
-// oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
-// newIndex MUST be greater than oldIndex otherwise it will panic
-func (k Keeper) calculateSingleReward(oldIndex, newIndex sdk.Dec, rewardSource sdk.Int) sdk.Int {
+// CalculateSingleReward computes how much rewards should have accrued to a source (eg a user's btcb-a cdp principal)
+// between two index values.
+//
+// oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a cdp principal amount.
+//
+// Returns an error if oldIndex > newIndex. This should never happen, as it would mean that a global reward index has decreased in value,
+// or that a global reward index has been deleted from state.
+func (k Keeper) CalculateSingleReward(oldIndex, newIndex, rewardSource sdk.Dec) (sdk.Int, error) {
 	increase := newIndex.Sub(oldIndex)
 	if increase.IsNegative() {
-		panic(fmt.Sprintf("new reward index cannot be less than previous: new %s, old %s", newIndex, oldIndex))
+		return sdk.Int{}, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
 	}
-
-	return increase.Mul(rewardSource.ToDec()).RoundInt()
+	reward := increase.Mul(rewardSource).RoundInt()
+	return reward, nil
 }

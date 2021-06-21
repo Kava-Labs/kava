@@ -45,23 +45,21 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod typ
 
 // InitializeHardDelegatorReward initializes the delegator reward index of a hard claim
 func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress) {
-	delegatorFactor, foundDelegatorFactor := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
-	if !foundDelegatorFactor { // Should always be found...
-		delegatorFactor = sdk.ZeroDec()
-	}
-
-	delegatorRewardIndexes := types.NewRewardIndex(types.BondDenom, delegatorFactor)
-
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
 	if !found {
-		// Instantiate claim object
 		claim = types.NewHardLiquidityProviderClaim(delegator, sdk.Coins{}, nil, nil, nil)
 	} else {
 		k.SynchronizeHardDelegatorRewards(ctx, delegator, nil, false)
 		claim, _ = k.GetHardLiquidityProviderClaim(ctx, delegator)
 	}
 
-	claim.DelegatorRewardIndexes = types.RewardIndexes{delegatorRewardIndexes}
+	globalRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
+	if !found {
+		// If there's no global delegator reward factor, initialize the claim with a delegator factor of zero.
+		globalRewardFactor = sdk.ZeroDec()
+	}
+
+	claim.DelegatorRewardIndexes = types.RewardIndexes{types.NewRewardIndex(types.BondDenom, globalRewardFactor)}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
@@ -74,23 +72,42 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 		return
 	}
 
-	delagatorFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
+	globalRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
 	if !found {
+		// The global factor is only not found if
+		// - the bond denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+		// If not found we could either skip this sync, or assume the global factor is zero.
+		// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+		// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
 		return
 	}
 
-	delegatorIndex, hasDelegatorRewardIndex := claim.HasDelegatorRewardIndex(types.BondDenom)
-	if !hasDelegatorRewardIndex {
-		return
+	userRewardFactor, found := claim.DelegatorRewardIndexes.Get(types.BondDenom)
+	if !found {
+		// Normally the factor should always be found, as it is added in InitializeHardDelegatorReward when a user delegates.
+		// However if there were no delegator rewards (ie no reward period in params) then a reward period is added, existing claims will not have the factor.
+		// So assume the factor is the starting value for any global factor: 0.
+		userRewardFactor = sdk.ZeroDec()
 	}
 
-	userRewardFactor := claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor
-	rewardsAccumulatedFactor := delagatorFactor.Sub(userRewardFactor)
-	if rewardsAccumulatedFactor.IsNegative() {
-		panic(fmt.Sprintf("reward accumulation factor cannot be negative: %s", rewardsAccumulatedFactor))
-	}
-	claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor = delagatorFactor
+	totalDelegated := k.GetTotalDelegated(ctx, delegator, valAddr, shouldIncludeValidator)
 
+	rewardsEarned, err := k.CalculateSingleReward(userRewardFactor, globalRewardFactor, totalDelegated)
+	if err != nil {
+		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
+		// This panics if a global reward factor decreases or disappears between the old and new indexes.
+		panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
+	}
+	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
+
+	claim.Reward = claim.Reward.Add(newRewardsCoin)
+	claim.DelegatorRewardIndexes = claim.DelegatorRewardIndexes.With(types.BondDenom, globalRewardFactor)
+
+	k.SetHardLiquidityProviderClaim(ctx, claim)
+}
+
+func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) sdk.Dec {
 	totalDelegated := sdk.ZeroDec()
 
 	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, delegator, 200)
@@ -100,14 +117,16 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 			continue
 		}
 
-		if valAddr == nil {
-			// Delegators don't accumulate rewards if their validator is unbonded
-			if validator.GetStatus() != sdk.Bonded {
+		if validator.OperatorAddress.Equals(valAddr) {
+			if shouldIncludeValidator {
+				// do nothing, so the validator is included regardless of bonded status
+			} else {
+				// skip this validator
 				continue
 			}
 		} else {
-			if !shouldIncludeValidator && validator.OperatorAddress.Equals(valAddr) {
-				// ignore tokens delegated to the validator
+			// skip any not bonded validator
+			if validator.GetStatus() != sdk.Bonded {
 				continue
 			}
 		}
@@ -122,10 +141,5 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 		}
 		totalDelegated = totalDelegated.Add(delegatedTokens)
 	}
-	rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
-
-	// Add rewards to delegator's hard claim
-	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
-	claim.Reward = claim.Reward.Add(newRewardsCoin)
-	k.SetHardLiquidityProviderClaim(ctx, claim)
+	return totalDelegated
 }
