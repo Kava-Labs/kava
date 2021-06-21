@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -51,12 +53,13 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 		claim, _ = k.GetHardLiquidityProviderClaim(ctx, delegator)
 	}
 
-	delegatorFactor, foundDelegatorFactor := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
-	if !foundDelegatorFactor { // Should always be found...
-		delegatorFactor = sdk.ZeroDec()
+	globalRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
+	if !found {
+		// If there's no global delegator reward factor, initialize the claim with a delegator factor of zero.
+		globalRewardFactor = sdk.ZeroDec()
 	}
 
-	claim.DelegatorRewardIndexes = types.RewardIndexes{types.NewRewardIndex(types.BondDenom, delegatorFactor)}
+	claim.DelegatorRewardIndexes = types.RewardIndexes{types.NewRewardIndex(types.BondDenom, globalRewardFactor)}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
@@ -69,23 +72,37 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 		return
 	}
 
-	delegatorFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
+	globalRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
 	if !found {
+		// The global factor is only not found if
+		// - the bond denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+		// If not found we could either skip this sync, or assume the global factor is zero.
+		// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+		// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
 		return
 	}
 
 	userRewardFactor, found := claim.DelegatorRewardIndexes.Get(types.BondDenom)
 	if !found {
-		return
+		// Normally the factor should always be found, as it is added in InitializeHardDelegatorReward when a user delegates.
+		// However if there were no delegator rewards (ie no reward period in params) then a reward period is added, existing claims will not have the factor.
+		// So assume the factor is the starting value for any global factor: 0.
+		userRewardFactor = sdk.ZeroDec()
 	}
 
 	totalDelegated := k.GetTotalDelegated(ctx, delegator, valAddr, shouldIncludeValidator)
 
-	rewardsEarned := k.calculateSingleReward(userRewardFactor, delegatorFactor, totalDelegated.RoundInt()) // TODO fix rounding
+	rewardsEarned, err := k.CalculateSingleReward(userRewardFactor, globalRewardFactor, totalDelegated)
+	if err != nil {
+		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
+		// This panics if a global reward factor decreases or disappears between the old and new indexes.
+		panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
+	}
 	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
 
 	claim.Reward = claim.Reward.Add(newRewardsCoin)
-	claim.DelegatorRewardIndexes = claim.DelegatorRewardIndexes.With(types.BondDenom, delegatorFactor)
+	claim.DelegatorRewardIndexes = claim.DelegatorRewardIndexes.With(types.BondDenom, globalRewardFactor)
 
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
@@ -100,14 +117,16 @@ func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, val
 			continue
 		}
 
-		if valAddr == nil {
-			// Delegators don't accumulate rewards if their validator is unbonded
-			if validator.GetStatus() != sdk.Bonded {
+		if validator.OperatorAddress.Equals(valAddr) {
+			if shouldIncludeValidator {
+				// do nothing, so the validator is included regardless of bonded status
+			} else {
+				// skip this validator
 				continue
 			}
 		} else {
-			if !shouldIncludeValidator && validator.OperatorAddress.Equals(valAddr) {
-				// ignore tokens delegated to the validator
+			// skip any not bonded validator
+			if validator.GetStatus() != sdk.Bonded {
 				continue
 			}
 		}

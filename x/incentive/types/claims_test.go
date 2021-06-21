@@ -349,7 +349,6 @@ func TestMultiRewardIndexes(t *testing.T) {
 	})
 }
 
-// TODO dedupe with copy in keeper
 func appendUniqueRewardIndex(indexes RewardIndexes) RewardIndexes {
 	const uniqueDenom = "uniquereward"
 

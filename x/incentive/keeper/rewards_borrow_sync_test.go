@@ -81,7 +81,6 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUnchangedWhenG
 func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardAdded() {
 	// When a new reward is added (via gov) for a hard borrow denom the user has already borrowed, and the claim is synced;
 	// Then the new reward's index should be added to the claim.
-	suite.T().Skip("TODO fix this bug")
 
 	claim := types.HardLiquidityProviderClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -104,6 +103,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
 }
+
 func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardDenomAdded() {
 	// When a new reward coin is added (via gov) to an already rewarded borrow denom (that the user has already borrowed), and the claim is synced;
 	// Then the new reward coin's index should be added to the claim.
@@ -187,7 +187,6 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenGlobal
 func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRewardAdded() {
 	// When a new reward is added (via gov) for a hard borrow denom the user has already borrowed, and the claim is synced
 	// Then the user earns rewards for the time since the reward was added
-	suite.T().Skip("TODO fix this bug")
 
 	originalReward := arbitraryCoins()
 	claim := types.HardLiquidityProviderClaim{
@@ -314,7 +313,7 @@ func TestCalculateRewards(t *testing.T) {
 	}
 	type args struct {
 		oldIndexes, newIndexes types.RewardIndexes
-		sourceAmount           sdk.Int
+		sourceAmount           sdk.Dec
 	}
 	testcases := []struct {
 		name     string
@@ -344,7 +343,7 @@ func TestCalculateRewards(t *testing.T) {
 						RewardFactor:   d("0.100000001"),
 					},
 				},
-				sourceAmount: i(1e9),
+				sourceAmount: d("1000000000"),
 			},
 			expected: expected{
 				// for each denom: (new - old) * sourceAmount
@@ -370,7 +369,7 @@ func TestCalculateRewards(t *testing.T) {
 						RewardFactor:   d("0.100000001"),
 					},
 				},
-				sourceAmount: i(1e9),
+				sourceAmount: d("1000000000"),
 			},
 			expected: expected{
 				// for each denom: (new - old) * sourceAmount
@@ -392,7 +391,7 @@ func TestCalculateRewards(t *testing.T) {
 						RewardFactor:   d("0.1"),
 					},
 				},
-				sourceAmount: i(1e9),
+				sourceAmount: d("1000000000"),
 			},
 			expected: expected{
 				err: types.ErrDecreasingRewardFactor,
@@ -417,10 +416,42 @@ func TestCalculateRewards(t *testing.T) {
 						RewardFactor:   d("0.2"),
 					},
 				},
-				sourceAmount: i(1e9),
+				sourceAmount: d("1000000000"),
 			},
 			expected: expected{
 				err: types.ErrDecreasingRewardFactor,
+			},
+		},
+		{
+			name: "when old and new indexes are 0, rewards are 0",
+			args: args{
+				oldIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.0"),
+					},
+				},
+				newIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.0"),
+					},
+				},
+				sourceAmount: d("1000000000"),
+			},
+			expected: expected{
+				coins: nil,
+			},
+		},
+		{
+			name: "when old and new indexes are empty, rewards are 0",
+			args: args{
+				oldIndexes:   types.RewardIndexes{},
+				newIndexes:   nil,
+				sourceAmount: d("1000000000"),
+			},
+			expected: expected{
+				coins: nil,
 			},
 		},
 	}
@@ -431,6 +462,66 @@ func TestCalculateRewards(t *testing.T) {
 				require.True(t, errors.Is(err, tc.expected.err))
 			} else {
 				require.Equal(t, tc.expected.coins, coins)
+			}
+		})
+	}
+}
+func TestCalculateSingleReward(t *testing.T) {
+	type expected struct {
+		err    error
+		reward sdk.Int
+	}
+	type args struct {
+		oldIndex, newIndex sdk.Dec
+		sourceAmount       sdk.Dec
+	}
+	testcases := []struct {
+		name     string
+		args     args
+		expected expected
+	}{
+		{
+			name: "when new index is > old, rewards are calculated correctly",
+			args: args{
+				oldIndex:     d("0.000000001"),
+				newIndex:     d("1000.0"),
+				sourceAmount: d("1000000000"),
+			},
+			expected: expected{
+				// (new - old) * sourceAmount
+				reward: i(999999999999),
+			},
+		},
+		{
+			name: "when new index is < old, an error is returned",
+			args: args{
+				oldIndex:     d("0.000000001"),
+				newIndex:     d("0.0"),
+				sourceAmount: d("1000000000"),
+			},
+			expected: expected{
+				err: types.ErrDecreasingRewardFactor,
+			},
+		},
+		{
+			name: "when old and new indexes are 0, rewards are 0",
+			args: args{
+				oldIndex:     d("0.0"),
+				newIndex:     d("0.0"),
+				sourceAmount: d("1000000000"),
+			},
+			expected: expected{
+				reward: sdk.ZeroInt(),
+			},
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			reward, err := keeper.Keeper{}.CalculateSingleReward(tc.args.oldIndex, tc.args.newIndex, tc.args.sourceAmount)
+			if tc.expected.err != nil {
+				require.True(t, errors.Is(err, tc.expected.err))
+			} else {
+				require.Equal(t, tc.expected.reward, reward)
 			}
 		})
 	}

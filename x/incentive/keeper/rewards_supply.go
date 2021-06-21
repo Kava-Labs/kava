@@ -87,8 +87,8 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.De
 
 	var supplyRewardIndexes types.MultiRewardIndexes
 	for _, coin := range deposit.Amount {
-		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
+		globalRewardIndexes, found := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
+		if !found {
 			globalRewardIndexes = types.RewardIndexes{}
 		}
 		supplyRewardIndexes = supplyRewardIndexes.With(coin.Denom, globalRewardIndexes)
@@ -107,17 +107,26 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 	}
 
 	for _, coin := range deposit.Amount {
-		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
+		globalRewardIndexes, found := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
+		if !found {
+			// The global factor is only not found if
+			// - the supply denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+			// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+			// If not found we could either skip this sync, or assume the global factor is zero.
+			// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+			// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
 			continue
 		}
 
-		userMultiRewardIndexes, foundUserMultiRewardIndex := claim.SupplyRewardIndexes.Get(coin.Denom)
-		if !foundUserMultiRewardIndex {
-			continue
+		userRewardIndexes, found := claim.SupplyRewardIndexes.Get(coin.Denom)
+		if !found {
+			// Normally the reward indexes should always be found.
+			// But if a denom was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that supplied denom.
+			// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
+			userRewardIndexes = types.RewardIndexes{}
 		}
 
-		newRewards, err := k.CalculateRewards(userMultiRewardIndexes, globalRewardIndexes, coin.Amount)
+		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount.ToDec())
 		if err != nil {
 			// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
 			// This panics if a global reward factor decreases or disappears between the old and new indexes.

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -59,27 +61,28 @@ func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
 	if !found { // this is the owner's first usdx minting reward claim
 		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{})
 	}
-	rewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
+	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
 	if !found {
-		rewardFactor = sdk.ZeroDec()
+		globalRewardFactor = sdk.ZeroDec()
 	}
-	claim.RewardIndexes = claim.RewardIndexes.With(cdp.Type, rewardFactor)
+	claim.RewardIndexes = claim.RewardIndexes.With(cdp.Type, globalRewardFactor)
 
 	k.SetUSDXMintingClaim(ctx, claim)
 }
 
 // SynchronizeUSDXMintingReward updates the claim object by adding any accumulated rewards and updating the reward index value.
-// this should be called before a cdp is modified, immediately after the 'SynchronizeInterest' method is called in the cdp module
+// this should be called before a cdp is modified.
 func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) {
-	_, found := k.GetUSDXMintingRewardPeriod(ctx, cdp.Type)
-	if !found {
-		// this collateral type is not incentivized, do nothing
-		return
-	}
 
 	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
 	if !found {
-		globalRewardFactor = sdk.ZeroDec()
+		// The global factor is only not found if
+		// - the cdp collateral type has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+		// If not found we could either skip this sync, or assume the global factor is zero.
+		// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+		// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
+		return
 	}
 	claim, found := k.GetUSDXMintingClaim(ctx, cdp.Owner)
 	if !found {
@@ -90,12 +93,20 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 		)
 	}
 
-	userRewardFactor, hasRewardIndex := claim.RewardIndexes.Get(cdp.Type)
-	if !hasRewardIndex { // this is the owner's first usdx minting reward for this collateral type
-		userRewardFactor = globalRewardFactor
+	userRewardFactor, found := claim.RewardIndexes.Get(cdp.Type)
+	if !found {
+		// Normally the factor should always be found, as it is added when the cdp is created in InitializeUSDXMintingClaim.
+		// However if a cdp type is not rewarded then becomes rewarded (ie a reward period is added to params), existing cdps will not have the factor in their claims.
+		// So assume the factor is the starting value for any global factor: 0.
+		userRewardFactor = sdk.ZeroDec()
 	}
 
-	newRewardsAmount := k.calculateSingleReward(userRewardFactor, globalRewardFactor, cdp.GetTotalPrincipal().Amount)
+	newRewardsAmount, err := k.CalculateSingleReward(userRewardFactor, globalRewardFactor, cdp.GetTotalPrincipal().Amount.ToDec())
+	if err != nil {
+		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
+		// This panics if a global reward factor decreases or disappears between the old and new indexes.
+		panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
+	}
 	newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
 
 	claim.Reward = claim.Reward.Add(newRewardsCoin)
