@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"bytes"
-	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -832,11 +831,12 @@ func (suite *KeeperTestSuite) TestCloseProposal() {
 		if string(attr.GetKey()) == "proposal_tally" {
 			hasProposalTallyAttr = true
 			valueStr := string(attr.GetValue())
-			suite.Require().True(strings.Contains(valueStr, "Yes votes:"))
-			suite.Require().True(strings.Contains(valueStr, "Current votes:"))
-			suite.Require().True(strings.Contains(valueStr, "Possible votes:"))
-			suite.Require().True(strings.Contains(valueStr, "Vote threshold:"))
-			suite.Require().True(strings.Contains(valueStr, "Quorum:"))
+			suite.Contains(valueStr, "proposal_id")
+			suite.Contains(valueStr, "yes_votes")
+			suite.Contains(valueStr, "current_votes")
+			suite.Contains(valueStr, "possible_votes")
+			suite.Contains(valueStr, "vote_threshold")
+			suite.Contains(valueStr, "quorum")
 		}
 	}
 	suite.Require().True(hasProposalTallyAttr)

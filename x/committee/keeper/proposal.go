@@ -271,12 +271,17 @@ func (k Keeper) CloseProposal(ctx sdk.Context, proposal types.Proposal, outcome 
 
 	k.DeleteProposalAndVotes(ctx, proposal.ID)
 
+	bz, err := k.cdc.MarshalJSON(proposalTally)
+	if err != nil {
+		fmt.Println("error marshaling proposal tally to bytes:", proposalTally.String())
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeProposalClose,
 			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
 			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
-			sdk.NewAttribute(types.AttributeKeyProposalTally, proposalTally.String()),
+			sdk.NewAttribute(types.AttributeKeyProposalTally, fmt.Sprintf("%s", bz)),
 			sdk.NewAttribute(types.AttributeKeyProposalOutcome, outcome.String()),
 		),
 	)
