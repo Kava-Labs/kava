@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -85,14 +86,11 @@ func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bor
 
 	var borrowRewardIndexes types.MultiRewardIndexes
 	for _, coin := range borrow.Amount {
-		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-		var multiRewardIndex types.MultiRewardIndex
-		if foundGlobalRewardIndexes {
-			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
-		} else {
-			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
+		globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+		if !found {
+			globalRewardIndexes = types.RewardIndexes{}
 		}
-		borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
+		borrowRewardIndexes = borrowRewardIndexes.With(coin.Denom, globalRewardIndexes)
 	}
 
 	claim.BorrowRewardIndexes = borrowRewardIndexes
@@ -108,49 +106,34 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 	}
 
 	for _, coin := range borrow.Amount {
-		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
+		globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+		if !found {
+			// The global factor is only not found if
+			// - the borrowed denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+			// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+			// If not found we could either skip this sync, or assume the global factor is zero.
+			// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+			// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
 			continue
 		}
 
-		userMultiRewardIndex, foundUserMultiRewardIndex := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
-		if !foundUserMultiRewardIndex {
-			continue
+		userRewardIndexes, found := claim.BorrowRewardIndexes.Get(coin.Denom)
+		if !found {
+			// Normally the reward indexes should always be found.
+			// But if a denom was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that borrowed denom.
+			// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
+			userRewardIndexes = types.RewardIndexes{}
 		}
 
-		userRewardIndexIndex, foundUserRewardIndexIndex := claim.BorrowRewardIndexes.GetRewardIndexIndex(coin.Denom)
-		if !foundUserRewardIndexIndex {
-			continue
+		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount.ToDec())
+		if err != nil {
+			// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
+			// This panics if a global reward factor decreases or disappears between the old and new indexes.
+			panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
 		}
 
-		for _, globalRewardIndex := range globalRewardIndexes {
-			userRewardIndex, foundUserRewardIndex := userMultiRewardIndex.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
-			if !foundUserRewardIndex {
-				// User borrowed this coin type before it had rewards. When new rewards are added, legacy borrowers
-				// should immediately begin earning rewards. Enable users to do so by updating their claim with the global
-				// reward index denom and start their reward factor at 0.0
-				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
-				userMultiRewardIndex.RewardIndexes = append(userMultiRewardIndex.RewardIndexes, userRewardIndex)
-				claim.BorrowRewardIndexes[userRewardIndexIndex] = userMultiRewardIndex
-			}
-
-			globalRewardFactor := globalRewardIndex.RewardFactor
-			userRewardFactor := userRewardIndex.RewardFactor
-			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
-			if rewardsAccumulatedFactor.IsNegative() {
-				panic(fmt.Sprintf("reward accumulation factor cannot be negative: %s", rewardsAccumulatedFactor))
-			}
-
-			newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
-
-			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
-			if !foundFactorIndex { // should never trigger
-				continue
-			}
-			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
-			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
-			claim.Reward = claim.Reward.Add(newRewardsCoin)
-		}
+		claim.Reward = claim.Reward.Add(newRewards...)
+		claim.BorrowRewardIndexes = claim.BorrowRewardIndexes.With(coin.Denom, globalRewardIndexes)
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
@@ -165,30 +148,75 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	borrowDenoms := getDenoms(borrow.Amount)
 	borrowRewardIndexDenoms := claim.BorrowRewardIndexes.GetCollateralTypes()
 
-	uniqueBorrowDenoms := setDifference(borrowDenoms, borrowRewardIndexDenoms)
-	uniqueBorrowRewardDenoms := setDifference(borrowRewardIndexDenoms, borrowDenoms)
-
 	borrowRewardIndexes := claim.BorrowRewardIndexes
+
 	// Create a new multi-reward index in the claim for every new borrow denom
+	uniqueBorrowDenoms := setDifference(borrowDenoms, borrowRewardIndexDenoms)
+
 	for _, denom := range uniqueBorrowDenoms {
-		_, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(denom)
-		if !foundUserRewardIndexes {
-			globalBorrowRewardIndexes, foundGlobalBorrowRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, denom)
-			var multiRewardIndex types.MultiRewardIndex
-			if foundGlobalBorrowRewardIndexes {
-				multiRewardIndex = types.NewMultiRewardIndex(denom, globalBorrowRewardIndexes)
-			} else {
-				multiRewardIndex = types.NewMultiRewardIndex(denom, types.RewardIndexes{})
-			}
-			borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
+		globalBorrowRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, denom)
+		if !found {
+			globalBorrowRewardIndexes = types.RewardIndexes{}
 		}
+		borrowRewardIndexes = borrowRewardIndexes.With(denom, globalBorrowRewardIndexes)
 	}
 
 	// Delete multi-reward index from claim if the collateral type is no longer borrowed
+	uniqueBorrowRewardDenoms := setDifference(borrowRewardIndexDenoms, borrowDenoms)
+
 	for _, denom := range uniqueBorrowRewardDenoms {
 		borrowRewardIndexes = borrowRewardIndexes.RemoveRewardIndex(denom)
 	}
 
 	claim.BorrowRewardIndexes = borrowRewardIndexes
 	k.SetHardLiquidityProviderClaim(ctx, claim)
+}
+
+// CalculateRewards computes how much rewards should have accrued to a source (eg a user's hard borrowed btc amount)
+// between two index values.
+//
+// oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
+//
+// Returns an error if newIndexes does not contain all CollateralTypes from oldIndexes, or if any value of oldIndex.RewardFactor > newIndex.RewardFactor.
+// This should never happen, as it would mean that a global reward index has decreased in value, or that a global reward index has been deleted from state.
+func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rewardSource sdk.Dec) (sdk.Coins, error) {
+	// check for missing CollateralType's
+	for _, oldIndex := range oldIndexes {
+		if newIndex, found := newIndexes.Get(oldIndex.CollateralType); !found {
+			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
+		}
+	}
+	var reward sdk.Coins
+	for _, newIndex := range newIndexes {
+		oldFactor, found := oldIndexes.Get(newIndex.CollateralType)
+		if !found {
+			oldFactor = sdk.ZeroDec()
+		}
+
+		rewardAmount, err := k.CalculateSingleReward(oldFactor, newIndex.RewardFactor, rewardSource)
+		if err != nil {
+			return nil, err
+		}
+
+		reward = reward.Add(
+			sdk.NewCoin(newIndex.CollateralType, rewardAmount),
+		)
+	}
+	return reward, nil
+}
+
+// CalculateSingleReward computes how much rewards should have accrued to a source (eg a user's btcb-a cdp principal)
+// between two index values.
+//
+// oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a cdp principal amount.
+//
+// Returns an error if oldIndex > newIndex. This should never happen, as it would mean that a global reward index has decreased in value,
+// or that a global reward index has been deleted from state.
+func (k Keeper) CalculateSingleReward(oldIndex, newIndex, rewardSource sdk.Dec) (sdk.Int, error) {
+	increase := newIndex.Sub(oldIndex)
+	if increase.IsNegative() {
+		return sdk.Int{}, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
+	}
+	reward := increase.Mul(rewardSource).RoundInt()
+	return reward, nil
 }
