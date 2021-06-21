@@ -268,3 +268,40 @@ func (suite *keeperTestSuite) TestDeposit_Slippage() {
 		})
 	}
 }
+
+func (suite *keeperTestSuite) TestDeposit_InsufficientLiquidity() {
+	testCases := []struct {
+		poolA      sdk.Coin
+		poolB      sdk.Coin
+		poolShares sdk.Int
+		depositA   sdk.Coin
+		depositB   sdk.Coin
+	}{
+		// test deposit amount truncating to zero
+		{sdk.NewCoin("ukava", sdk.NewInt(10e6)), sdk.NewCoin("usdx", sdk.NewInt(50e6)), sdk.NewInt(40e6), sdk.NewCoin("ukava", sdk.NewInt(1)), sdk.NewCoin("usdx", sdk.NewInt(1))},
+		// test share value rounding to zero
+		{sdk.NewCoin("ukava", sdk.NewInt(10e6)), sdk.NewCoin("usdx", sdk.NewInt(10e6)), sdk.NewInt(100), sdk.NewCoin("ukava", sdk.NewInt(1000)), sdk.NewCoin("usdx", sdk.NewInt(1000))},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("depositA=%s depositB=%s", tc.depositA, tc.depositB), func() {
+			suite.SetupTest()
+
+			record := types.PoolRecord{
+				PoolID:      "ukava/usdx",
+				ReservesA:   tc.poolA,
+				ReservesB:   tc.poolB,
+				TotalShares: tc.poolShares,
+			}
+
+			suite.Keeper.SetPool(suite.Ctx, record)
+
+			balance := sdk.Coins{tc.depositA, tc.depositB}
+			balance.Sort()
+			depositor := suite.GetAccount(balance)
+
+			err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB, sdk.MustNewDecFromStr("10"))
+			suite.EqualError(err, "insufficient liquidity: deposit must be increased")
+		})
+	}
+}

@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	//"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -55,6 +54,14 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 	}
 	if err != nil {
 		return err
+	}
+
+	if depositAmount.AmountOf(coinA.Denom).IsZero() || depositAmount.AmountOf(coinB.Denom).IsZero() {
+		return sdkerrors.Wrap(types.ErrInsufficientLiquidity, "deposit must be increased")
+	}
+
+	if shares.IsZero() {
+		return sdkerrors.Wrap(types.ErrInsufficientLiquidity, "deposit must be increased")
 	}
 
 	maxPercentPriceChange := sdk.MaxDec(
