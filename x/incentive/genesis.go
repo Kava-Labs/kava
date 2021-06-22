@@ -33,35 +33,29 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 	for _, gat := range gs.USDXAccumulationTimes {
 		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
-		k.SetHardSupplyRewardIndexes(ctx, mrp.CollateralType, newRewardIndexes)
+	for _, gri := range gs.USDXRewardIndexes {
+		k.SetUSDXMintingRewardFactor(ctx, gri.CollateralType, gri.RewardIndexes[0].RewardFactor)
 	}
 
 	for _, gat := range gs.HardDelegatorAccumulationTimes {
 		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
-		k.SetHardBorrowRewardIndexes(ctx, mrp.CollateralType, newRewardIndexes)
-	}
-
-	for _, rp := range gs.Params.HardDelegatorRewardPeriods {
-		k.SetHardDelegatorRewardFactor(ctx, rp.CollateralType, sdk.ZeroDec())
-	}
-
-	k.SetParams(ctx, gs.Params)
-
-	for _, gat := range gs.USDXAccumulationTimes {
-		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+	for _, gri := range gs.HardDelegatorRewardIndexes {
+		k.SetHardDelegatorRewardFactor(ctx, gri.CollateralType, gri.RewardIndexes[0].RewardFactor)
 	}
 
 	for _, gat := range gs.HardSupplyAccumulationTimes {
 		k.SetPreviousHardSupplyRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
+	for _, gri := range gs.HardSupplyRewardIndexes {
+		k.SetHardSupplyRewardIndexes(ctx, gri.CollateralType, gri.RewardIndexes)
+	}
 
 	for _, gat := range gs.HardBorrowAccumulationTimes {
 		k.SetPreviousHardBorrowRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
-
-	for _, gat := range gs.HardDelegatorAccumulationTimes {
-		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+	for _, gri := range gs.HardBorrowRewardIndexes {
+		k.SetHardBorrowRewardIndexes(ctx, gri.CollateralType, gri.RewardIndexes)
 	}
 
 	for _, claim := range gs.USDXMintingClaims {
@@ -86,10 +80,20 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		usdxMintingGats = append(usdxMintingGats, types.NewGenesisAccumulationTime(ct, accTime))
 		return false
 	})
+	usdxMintingGris := types.GenesisRewardIndexesSlice{}
+	k.IterateUSDXMintingRewardFactors(ctx, func(ct string, factor sdk.Dec) bool {
+		usdxMintingGris = append(usdxMintingGris, types.NewGenesisRewardIndexes(ct, types.RewardIndexes{types.NewRewardIndex(types.USDXMintingRewardDenom, factor)}))
+		return false
+	})
 
 	hardDelegatorGats := GenesisAccumulationTimes{}
 	k.IterateHardDelegatorRewardAccrualTimes(ctx, func(ct string, accTime time.Time) bool {
 		hardDelegatorGats = append(hardDelegatorGats, types.NewGenesisAccumulationTime(ct, accTime))
+		return false
+	})
+	hardDelegatorGris := types.GenesisRewardIndexesSlice{}
+	k.IterateHardDelegatorRewardFactors(ctx, func(ct string, factor sdk.Dec) bool {
+		hardDelegatorGris = append(hardDelegatorGris, types.NewGenesisRewardIndexes(ct, types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, factor)}))
 		return false
 	})
 
@@ -98,16 +102,27 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		hardSupplyGats = append(hardSupplyGats, types.NewGenesisAccumulationTime(denom, accTime))
 		return false
 	})
+	hardSupplyGris := types.GenesisRewardIndexesSlice{}
+	k.IterateHardSupplyRewardIndexes(ctx, func(ct string, indexes types.RewardIndexes) bool {
+		hardSupplyGris = append(hardSupplyGris, types.NewGenesisRewardIndexes(ct, indexes))
+		return false
+	})
 
 	hardBorrowGats := GenesisAccumulationTimes{}
 	k.IterateHardBorrowRewardAccrualTimes(ctx, func(denom string, accTime time.Time) bool {
 		hardBorrowGats = append(hardBorrowGats, types.NewGenesisAccumulationTime(denom, accTime))
 		return false
 	})
+	hardBorrowGris := types.GenesisRewardIndexesSlice{}
+	k.IterateHardBorrowRewardIndexes(ctx, func(ct string, indexes types.RewardIndexes) bool {
+		hardBorrowGris = append(hardBorrowGris, types.NewGenesisRewardIndexes(ct, indexes))
+		return false
+	})
 
 	return types.NewGenesisState(
 		params,
 		usdxMintingGats, hardSupplyGats, hardBorrowGats, hardDelegatorGats,
+		usdxMintingGris, hardSupplyGris, hardBorrowGris, hardDelegatorGris,
 		usdxClaims,
 		hardClaims,
 	)

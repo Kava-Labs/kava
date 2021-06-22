@@ -73,6 +73,10 @@ func (suite *GenesisTestSuite) SetupTest() {
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultGenesisAccumulationTimes,
+		incentive.DefaultGenesisRewardIndexes,
+		incentive.DefaultGenesisRewardIndexes,
+		incentive.DefaultGenesisRewardIndexes,
+		incentive.DefaultGenesisRewardIndexes,
 		incentive.DefaultUSDXClaims,
 		incentive.DefaultHardClaims,
 	)
@@ -127,6 +131,88 @@ func (suite *GenesisTestSuite) TestPaidOutClaimsPassValidateGenesis() {
 	suite.Require().NoError(
 		genState.Validate(),
 	)
+}
+
+func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
+	genesisTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+	genesisState := incentive.NewGenesisState(
+		incentive.NewParams(
+			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), c("ukava", 122354))},
+			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("hard", 122354)))},
+			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("hard", 122354)))},
+			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "ukava", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), c("hard", 122354))},
+			incentive.Multipliers{incentive.NewMultiplier(incentive.Small, 1, d("0.25")), incentive.NewMultiplier(incentive.Large, 12, d("1.0"))},
+			genesisTime.Add(5*oneYear),
+		),
+		incentive.GenesisAccumulationTimes{
+			incentive.NewGenesisAccumulationTime("bnb-a", genesisTime),
+		},
+		incentive.GenesisAccumulationTimes{
+			incentive.NewGenesisAccumulationTime("bnb", genesisTime.Add(-1*time.Hour)),
+		},
+		incentive.GenesisAccumulationTimes{
+			incentive.NewGenesisAccumulationTime("bnb", genesisTime.Add(-2*time.Hour)),
+		},
+		incentive.GenesisAccumulationTimes{
+			incentive.NewGenesisAccumulationTime("ukava", genesisTime.Add(-3*time.Hour)),
+		},
+		incentive.GenesisRewardIndexesSlice{
+			incentive.NewGenesisRewardIndexes("bnb-a", incentive.RewardIndexes{{CollateralType: "ukava", RewardFactor: d("0.3")}}),
+		},
+		incentive.GenesisRewardIndexesSlice{
+			incentive.NewGenesisRewardIndexes("bnb", incentive.RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.1")}}),
+		},
+		incentive.GenesisRewardIndexesSlice{
+			incentive.NewGenesisRewardIndexes("bnb", incentive.RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.05")}}),
+		},
+		incentive.GenesisRewardIndexesSlice{
+			incentive.NewGenesisRewardIndexes("ukava", incentive.RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.2")}}),
+		},
+		incentive.USDXMintingClaims{
+			incentive.NewUSDXMintingClaim(
+				suite.addrs[0],
+				c("ukava", 1e9),
+				incentive.RewardIndexes{{CollateralType: "bnb-a", RewardFactor: d("0.3")}},
+			),
+			incentive.NewUSDXMintingClaim(
+				suite.addrs[1],
+				c("ukava", 1),
+				incentive.RewardIndexes{{CollateralType: "bnb-a", RewardFactor: d("0.001")}},
+			),
+		},
+		incentive.HardLiquidityProviderClaims{
+			incentive.NewHardLiquidityProviderClaim(
+				suite.addrs[0],
+				cs(c("ukava", 1e9), c("hard", 1e9)),
+				incentive.MultiRewardIndexes{{CollateralType: "bnb", RewardIndexes: incentive.RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.01")}}}},
+				incentive.MultiRewardIndexes{{CollateralType: "bnb", RewardIndexes: incentive.RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.0")}}}},
+				incentive.RewardIndexes{{CollateralType: "ukava", RewardFactor: d("0.2")}},
+			),
+			incentive.NewHardLiquidityProviderClaim(
+				suite.addrs[1],
+				cs(c("hard", 1)),
+				incentive.MultiRewardIndexes{{CollateralType: "bnb", RewardIndexes: incentive.RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.1")}}}},
+				incentive.MultiRewardIndexes{{CollateralType: "bnb", RewardIndexes: incentive.RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.0")}}}},
+				incentive.RewardIndexes{{CollateralType: "ukava", RewardFactor: d("0.0")}},
+			),
+		},
+	)
+
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, abci.Header{Height: 1})
+
+	// Incentive init genesis reads from the cdp keeper to check params are ok. So it needs to be initialized first.
+	// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.
+	tApp.InitializeFromGenesisStates(
+		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMulti(),
+	)
+
+	incentive.InitGenesis(ctx, tApp.GetIncentiveKeeper(), tApp.GetSupplyKeeper(), tApp.GetCDPKeeper(), genesisState)
+
+	exportedGenesisState := incentive.ExportGenesis(ctx, tApp.GetIncentiveKeeper())
+
+	suite.Equal(genesisState, exportedGenesisState)
 }
 
 func TestGenesisTestSuite(t *testing.T) {

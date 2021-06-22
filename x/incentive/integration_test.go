@@ -168,6 +168,10 @@ func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ..
 		accumulationTimes,
 		accumulationTimes,
 		incentive.DefaultGenesisAccumulationTimes,
+		incentive.DefaultGenesisRewardIndexes,
+		incentive.DefaultGenesisRewardIndexes,
+		incentive.DefaultGenesisRewardIndexes,
+		incentive.DefaultGenesisRewardIndexes,
 		incentive.DefaultUSDXClaims,
 		incentive.DefaultHardClaims,
 	)
