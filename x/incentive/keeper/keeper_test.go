@@ -82,6 +82,71 @@ func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
 	suite.Require().Equal(len(suite.addrs), len(claims))
 }
 
+func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
+	testCases := []struct {
+		name      string
+		poolName  string
+		indexes   types.RewardIndexes
+		setPanics bool
+	}{
+		{
+			name:     "two factors can be written and read",
+			poolName: "btc/usdx",
+			indexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			name:     "indexes with empty pool name can be written and read",
+			poolName: "",
+			indexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			name:      "setting empty indexes panics",
+			poolName:  "btc/usdx",
+			indexes:   types.RewardIndexes{},
+			setPanics: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupApp()
+
+			_, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, tc.poolName)
+			suite.False(found)
+
+			setFunc := func() { suite.keeper.SetSwapRewardIndexes(suite.ctx, tc.poolName, tc.indexes) }
+			if tc.setPanics {
+				suite.Panics(setFunc)
+				return
+			} else {
+				suite.NotPanics(setFunc)
+			}
+
+			storedIndexes, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, tc.poolName)
+			suite.True(found)
+			suite.Equal(tc.indexes, storedIndexes)
+		})
+	}
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }

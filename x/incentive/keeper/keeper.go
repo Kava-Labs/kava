@@ -354,3 +354,22 @@ func (k Keeper) SetPreviousHardDelegatorRewardAccrualTime(ctx sdk.Context, denom
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix)
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
 }
+
+// SetSwapRewardIndexes sets the global reward indexes that track total rewards to a swap pool
+func (k Keeper) SetSwapRewardIndexes(ctx sdk.Context, poolName string, indexes types.RewardIndexes) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(indexes)
+	store.Set([]byte(poolName), bz)
+}
+
+// GetSwapRewardIndexes fetches the global reward indexes that track total rewards to a swap pool
+func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolName string) (types.RewardIndexes, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
+	bz := store.Get([]byte(poolName))
+	if bz == nil {
+		return types.RewardIndexes{}, false
+	}
+	var rewardIndexes types.RewardIndexes
+	k.cdc.MustUnmarshalBinaryBare(bz, &rewardIndexes)
+	return rewardIndexes, true
+}
