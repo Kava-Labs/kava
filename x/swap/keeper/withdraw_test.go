@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/kava-labs/kava/x/swap/types"
@@ -33,50 +32,108 @@ func (suite *keeperTestSuite) setupPoolDeposit() (string, sdk.AccAddress) {
 	return pool.Name(), depositor.GetAddress()
 }
 
-func (suite *keeperTestSuite) TestWithdraw() {
+func (suite *keeperTestSuite) TestWithdraw_Full() {
 	poolID, depositorAddr := suite.setupPoolDeposit()
 
-	// Fetch pools pre-withdraw balances
+	// Confirm module account holds pool's reserves
 	initialPoolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
 	suite.Require().True(found)
-	initialReservesA := initialPoolRecord.ReservesA
-	initialReservesB := initialPoolRecord.ReservesB
-	initialTotalShares := initialPoolRecord.TotalShares
+	depositedCoins := sdk.NewCoins(initialPoolRecord.ReservesA, initialPoolRecord.ReservesB)
+	suite.ModuleAccountBalanceEqual(depositedCoins)
 
-	// Fetch updated account and initial share record
+	// Fetch initial depositor balances and share record
 	depositor := suite.GetAccount(depositorAddr)
-	// initialCoins := depositor.GetCoins()
+	initialDepositorCoins := depositor.GetCoins()
 	initialShareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolID)
 	suite.Require().True(found)
 
-	withdrawSharesAmt := initialShareRecord.SharesOwned
-	err := suite.Keeper.Withdraw(suite.Ctx, depositor.GetAddress(), poolID, withdrawSharesAmt)
+	// Depositor withdraws all shares, expecting all coins to be withdrawn with a slippage of 1%
+	err := suite.Keeper.Withdraw(suite.Ctx, depositor.GetAddress(), poolID,
+		initialShareRecord.SharesOwned, sdk.MustNewDecFromStr("0.01"),
+		initialPoolRecord.ReservesA, initialPoolRecord.ReservesB)
 	suite.Require().NoError(err)
 
 	// Move forward block time one minute
 	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Minute))
 
-	// Check pool's post-withdraw balances
-	finalPoolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
-	suite.Require().True(found)
+	// Check that full withdraw deleted the pool
+	_, found = suite.Keeper.GetPool(suite.Ctx, poolID)
+	suite.Require().False(found)
 
-	// TODO: these print statements are just here to satisfy the compiler
-	fmt.Println(initialReservesA)
-	fmt.Println(initialReservesB)
-	fmt.Println(initialTotalShares)
-	fmt.Println(finalPoolRecord)
+	// Confirm that depositor received withdrawn coins and module account balance is empty
+	suite.AccountBalanceEqual(depositor, initialDepositorCoins.Add(initialPoolRecord.ReservesA, initialPoolRecord.ReservesB))
+	suite.ModuleAccountBalanceEqual(nil)
 
-	// TODO: check initial vs. final pool record
-	// TODO: check depositor balances
-	// suite.AccountBalanceEqual(depositor, balance.Sub(expectedDeposit))
-	// suite.ModuleAccountBalanceEqual(reserves.Add(expectedDeposit...))
-	// suite.PoolLiquidityEqual(reserves.Add(expectedDeposit...))
-	// suite.PoolShareValueEqual(depositor, pool, expectedShareValue)
-
+	// Check withdraw event attributes
 	suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 		types.EventTypeSwapWithdraw,
 		sdk.NewAttribute(types.AttributeKeyPoolID, types.PoolID(initialPoolRecord.ReservesA.Denom, initialPoolRecord.ReservesB.Denom)),
-		sdk.NewAttribute(types.AttributeKeyDepositor, depositor.GetAddress().String()),
-		sdk.NewAttribute(types.AttributeKeyShares, withdrawSharesAmt.String()),
+		sdk.NewAttribute(types.AttributeKeyOwner, depositor.GetAddress().String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, depositedCoins.String()),
+		sdk.NewAttribute(types.AttributeKeyShares, initialShareRecord.SharesOwned.String()),
 	))
+}
+
+func (suite *keeperTestSuite) TestWithdraw_Partial() {
+
+	testCases := []struct {
+		name                    string
+		percentageExpectedCoinA sdk.Dec
+		percentageExpectedCoinB sdk.Dec
+		percentageShares        sdk.Dec
+		slippage                sdk.Dec
+		expectErr               bool
+		expectedErr             string
+	}{
+		{
+			name:                    "normal",
+			percentageExpectedCoinA: sdk.MustNewDecFromStr("0.99"),
+			percentageExpectedCoinB: sdk.MustNewDecFromStr("0.99"),
+			percentageShares:        sdk.MustNewDecFromStr("0.99"),
+			slippage:                sdk.NewDec(0),
+			expectErr:               false,
+			expectedErr:             "",
+		},
+		// TODO: add test cases for each error
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			poolID, depositorAddr := suite.setupPoolDeposit()
+
+			// Fetch initial pool record
+			initialPoolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
+			suite.Require().True(found)
+
+			// Fetch initial depositor balances and share record
+			depositor := suite.GetAccount(depositorAddr)
+			initialDepositorCoins := depositor.GetCoins()
+			initialShareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolID)
+			suite.Require().True(found)
+
+			withdrawShares := initialShareRecord.SharesOwned.ToDec().Mul(tc.percentageShares).RoundInt()
+			expectedCoinAmountA := initialPoolRecord.ReservesA.Amount.ToDec().Mul(tc.percentageExpectedCoinA)
+			expectedCoinA := sdk.NewCoin(initialPoolRecord.ReservesA.Denom, expectedCoinAmountA.RoundInt())
+			expectedCoinAmountB := initialPoolRecord.ReservesB.Amount.ToDec().Mul(tc.percentageExpectedCoinB)
+			expectedCoinB := sdk.NewCoin(initialPoolRecord.ReservesB.Denom, expectedCoinAmountB.RoundInt())
+
+			// Depositor withdraws shares
+			err := suite.Keeper.Withdraw(suite.Ctx, depositor.GetAddress(), poolID,
+				withdrawShares, tc.slippage, expectedCoinA, expectedCoinB)
+			if tc.expectErr {
+				suite.Require().Error(err)
+				suite.Contains(err, tc.expectedErr)
+
+				// TODO: confirm pool/depositor balances are unchanged
+			}
+
+			suite.Require().NoError(err)
+			suite.AccountBalanceEqual(depositor, initialDepositorCoins.Add(expectedCoinA, expectedCoinB))
+
+			// // TODO: Fetch pool record after withdrawal and check shares/reserves
+			// suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Minute))
+			// finalPoolRecord, found = suite.Keeper.GetPool(suite.Ctx, poolID)
+		})
+	}
 }
