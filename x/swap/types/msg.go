@@ -96,15 +96,17 @@ type MsgWithdraw struct {
 	From     sdk.AccAddress `json:"from" yaml:"from"`
 	Pool     string         `json:"pool" yaml:"pool"`
 	Shares   sdk.Int        `json:"shares" yaml:"shares"`
+	Slippage sdk.Dec        `json:"slippage" yaml:"slippage"`
 	Deadline int64          `json:"deadline" yaml:"deadline"`
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(from sdk.AccAddress, pool string, shares sdk.Int, deadline int64) MsgWithdraw {
+func NewMsgWithdraw(from sdk.AccAddress, pool string, shares sdk.Int, slippage sdk.Dec, deadline int64) MsgWithdraw {
 	return MsgWithdraw{
 		From:     from,
 		Pool:     pool,
 		Shares:   shares,
+		Slippage: slippage,
 		Deadline: deadline,
 	}
 }
@@ -125,9 +127,18 @@ func (msg MsgWithdraw) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidPool, "pool ID cannot be empty")
 	}
 
-	if msg.Shares.IsZero() || msg.Shares.IsNegative() || msg.Shares.IsNil() {
+	if msg.Shares.IsNil() || msg.Shares.IsZero() || msg.Shares.IsNegative() {
 		return sdkerrors.Wrapf(ErrInvalidShares, fmt.Sprintf("%s", msg.Shares))
 	}
+
+	if msg.Slippage.IsNil() || msg.Slippage.IsNegative() || msg.Slippage.GT(sdk.OneDec()) {
+		return sdkerrors.Wrapf(ErrInvalidSlippage, fmt.Sprintf("%s", msg.Slippage))
+	}
+
+	if msg.Deadline <= 0 {
+		return sdkerrors.Wrapf(ErrInvalidDeadline, "deadline %d", msg.Deadline)
+	}
+
 	return nil
 }
 

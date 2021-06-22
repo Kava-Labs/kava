@@ -13,4 +13,5 @@ var (
 	ErrNotImplemented      = sdkerrors.Register(ModuleName, 6, "not implemented")
 	ErrShareRecordNotFound = sdkerrors.Register(ModuleName, 7, "share record not found")
 	ErrInvalidShares       = sdkerrors.Register(ModuleName, 8, "invalid shares")
+	ErrInvalidSlippage     = sdkerrors.Register(ModuleName, 9, "invalid slippage")
 )

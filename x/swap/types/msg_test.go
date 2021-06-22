@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -183,16 +182,145 @@ func TestMsgWithdraw_Attributes(t *testing.T) {
 }
 
 func TestMsgWithdraw_Signing(t *testing.T) {
-	// TODO: include deadline
-	signData := `{"type":"swap/MsgWithdraw","value":{"from":"kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d","pool":"ukava/usdx","shares":"1500000","deadline":"1623606299"}}`
+	signData := `{"type":"swap/MsgWithdraw","value":{"deadline":"1623606299","from":"kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d","pool":"ukava/usdx","shares":"1500000","slippage":"0.050000000000000000"}}`
 	signBytes := []byte(signData)
 
 	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
 	require.NoError(t, err)
 
-	msg := types.NewMsgWithdraw(addr, "ukava/usdx", sdk.NewInt(1500000), 1623606299)
+	msg := types.NewMsgWithdraw(addr, "ukava/usdx", sdk.NewInt(1500000), sdk.MustNewDecFromStr("0.05"), 1623606299)
 	assert.Equal(t, []sdk.AccAddress{addr}, msg.GetSigners())
-
-	fmt.Println(msg)
 	assert.Equal(t, signBytes, msg.GetSignBytes())
+}
+
+func TestMsgWithdraw_Validation(t *testing.T) {
+	validMsg := types.NewMsgWithdraw(
+		sdk.AccAddress("test1"),
+		"ukava/usdx",
+		sdk.NewInt(1500000),
+		sdk.MustNewDecFromStr("0.05"),
+		1623606299,
+	)
+	require.NoError(t, validMsg.ValidateBasic())
+
+	testCases := []struct {
+		name        string
+		from        sdk.AccAddress
+		pool        string
+		shares      sdk.Int
+		slippage    sdk.Dec
+		deadline    int64
+		expectedErr string
+	}{
+		{
+			name:        "empty address",
+			from:        sdk.AccAddress(""),
+			pool:        validMsg.Pool,
+			shares:      validMsg.Shares,
+			slippage:    validMsg.Slippage,
+			deadline:    validMsg.Deadline,
+			expectedErr: "invalid address: from address cannot be empty",
+		},
+		{
+			name:        "empty pool ID",
+			from:        validMsg.From,
+			pool:        "",
+			shares:      validMsg.Shares,
+			slippage:    validMsg.Slippage,
+			deadline:    validMsg.Deadline,
+			expectedErr: "invalid pool: pool ID cannot be empty",
+		},
+		{
+			name:        "0 shares",
+			from:        validMsg.From,
+			pool:        validMsg.Pool,
+			shares:      sdk.ZeroInt(),
+			slippage:    validMsg.Slippage,
+			deadline:    validMsg.Deadline,
+			expectedErr: "invalid shares: 0",
+		},
+		{
+			name:        "negative shares",
+			from:        validMsg.From,
+			pool:        validMsg.Pool,
+			shares:      sdk.ZeroInt().Sub(sdk.OneInt()),
+			slippage:    validMsg.Slippage,
+			deadline:    validMsg.Deadline,
+			expectedErr: "invalid shares: -1",
+		},
+		{
+			name:        "negative slippage",
+			from:        validMsg.From,
+			pool:        validMsg.Pool,
+			shares:      validMsg.Shares,
+			slippage:    sdk.MustNewDecFromStr("-0.05"),
+			deadline:    validMsg.Deadline,
+			expectedErr: "invalid slippage: -0.050000000000000000",
+		},
+		{
+			name:        "slippage too large",
+			from:        validMsg.From,
+			pool:        validMsg.Pool,
+			shares:      validMsg.Shares,
+			slippage:    sdk.MustNewDecFromStr("1.1"),
+			deadline:    validMsg.Deadline,
+			expectedErr: "invalid slippage: 1.100000000000000000",
+		},
+		{
+			name:        "negative deadline",
+			from:        validMsg.From,
+			pool:        validMsg.Pool,
+			shares:      validMsg.Shares,
+			slippage:    validMsg.Slippage,
+			deadline:    -1,
+			expectedErr: "invalid deadline: deadline -1",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			msg := types.NewMsgWithdraw(tc.from, tc.pool, tc.shares, tc.slippage, tc.deadline)
+			err := msg.ValidateBasic()
+			assert.EqualError(t, err, tc.expectedErr)
+		})
+	}
+}
+
+func TestMsgWithdraw_Deadline(t *testing.T) {
+	blockTime := time.Now()
+
+	testCases := []struct {
+		name       string
+		deadline   int64
+		isExceeded bool
+	}{
+		{
+			name:       "deadline in future",
+			deadline:   blockTime.Add(1 * time.Second).Unix(),
+			isExceeded: false,
+		},
+		{
+			name:       "deadline in past",
+			deadline:   blockTime.Add(-1 * time.Second).Unix(),
+			isExceeded: true,
+		},
+		{
+			name:       "deadline is equal",
+			deadline:   blockTime.Unix(),
+			isExceeded: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		msg := types.NewMsgWithdraw(
+			sdk.AccAddress("test1"),
+			"ukava/usdx",
+			sdk.NewInt(1500000),
+			sdk.MustNewDecFromStr("0.05"),
+			tc.deadline,
+		)
+		require.NoError(t, msg.ValidateBasic())
+		assert.Equal(t, tc.isExceeded, msg.DeadlineExceeded(blockTime))
+		assert.Equal(t, time.Unix(tc.deadline, 0), msg.GetDeadline())
+	}
 }
