@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -173,4 +174,25 @@ func TestMsgDeposit_Deadline(t *testing.T) {
 		assert.Equal(t, tc.isExceeded, msg.DeadlineExceeded(blockTime))
 		assert.Equal(t, time.Unix(tc.deadline, 0), msg.GetDeadline())
 	}
+}
+
+func TestMsgWithdraw_Attributes(t *testing.T) {
+	msg := types.MsgWithdraw{}
+	assert.Equal(t, "swap", msg.Route())
+	assert.Equal(t, "swap_withdraw", msg.Type())
+}
+
+func TestMsgWithdraw_Signing(t *testing.T) {
+	// TODO: include deadline
+	signData := `{"type":"swap/MsgWithdraw","value":{"from":"kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d","pool":"ukava/usdx","shares":"1500000","deadline":"1623606299"}}`
+	signBytes := []byte(signData)
+
+	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
+	require.NoError(t, err)
+
+	msg := types.NewMsgWithdraw(addr, "ukava/usdx", sdk.NewInt(1500000), 1623606299)
+	assert.Equal(t, []sdk.AccAddress{addr}, msg.GetSigners())
+
+	fmt.Println(msg)
+	assert.Equal(t, signBytes, msg.GetSignBytes())
 }
