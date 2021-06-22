@@ -185,16 +185,16 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 	return withdrawA, withdrawB
 }
 
-// SwapAForB trades a for b with a percentage fee
-func (p *BasePool) SwapAForB(a sdk.Int, fee sdk.Dec) sdk.Int {
+// SwapAForB trades a for b with a percentage fee, returns b and fee amount in a
+func (p *BasePool) SwapAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	// TODO: implementation
-	return sdk.ZeroInt()
+	return sdk.ZeroInt(), sdk.ZeroInt()
 }
 
-// SwapBForA trades b for a with a percentage fee
-func (p *BasePool) SwapBForA(b sdk.Int, fee sdk.Dec) sdk.Int {
+// SwapBForA trades b for a with a percentage fee, returns a and fee amount in b
+func (p *BasePool) SwapBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	// TODO: implementation
-	return sdk.ZeroInt()
+	return sdk.ZeroInt(), sdk.ZeroInt()
 }
 
 // ShareValue returns the value of the provided shares and panics

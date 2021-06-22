@@ -102,20 +102,24 @@ func (p *DenominatedPool) ShareValue(shares sdk.Int) sdk.Coins {
 }
 
 // Swap swaps a coin in one reserve for the other.  Panics if denom
-// does not match the pool.
-func (p *DenominatedPool) Swap(coin sdk.Coin, fee sdk.Dec) sdk.Coin {
-	var result sdk.Coin
+// does not match the pool.  Returns the amount received for the input coins,
+// and the amount paid by the fee
+func (p *DenominatedPool) Swap(coin sdk.Coin, fee sdk.Dec) (sdk.Coin, sdk.Coin) {
+	var (
+		swapResult sdk.Int
+		feePaid    sdk.Int
+	)
 
 	switch coin.Denom {
 	case p.denomA:
-		result = p.coinB(p.pool.SwapAForB(coin.Amount, fee))
+		swapResult, feePaid = p.pool.SwapAForB(coin.Amount, fee)
+		return p.coinB(swapResult), p.coinA(feePaid)
 	case p.denomB:
-		result = p.coinA(p.pool.SwapBForA(coin.Amount, fee))
+		swapResult, feePaid = p.pool.SwapBForA(coin.Amount, fee)
+		return p.coinA(swapResult), p.coinB(feePaid)
 	default:
 		panic(fmt.Sprintf("invalid denomination: denom '%s' does not match pool reserves", coin.Denom))
 	}
-
-	return result
 }
 
 // coins returns a new coins slice with correct reserve denoms from ordered sdk.Ints
