@@ -142,8 +142,8 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	// to:
 	//   reservesB * desiredA <= desiredB * reservesA
 	//
-	// which also shares the same intermediate product
-	// as the calculation for optimalB or optimalA.
+	// which also shares the same intermediate products
+	// as the calculation for optimalB and optimalA.
 	actualA := desiredA.BigInt()
 	actualB := desiredB.BigInt()
 
