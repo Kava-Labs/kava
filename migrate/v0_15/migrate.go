@@ -64,7 +64,13 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		// Marshal v15 committee genesis state
 		v0_14AppState[v0_15committee.ModuleName] = v0_15Codec.MustMarshalJSON(Committee(committeeGS))
 	}
+	// Migrate incentive app state
+	if v0_14AppState[v0_14incentive.ModuleName] != nil {
+		var incentiveGS v0_14incentive.GenesisState
+		v0_14Codec.MustUnmarshalJSON(v0_14AppState[v0_14incentive.ModuleName], &incentiveGS)
+		delete(v0_14AppState, v0_14incentive.ModuleName)
 
+		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(incentiveGS))
 	}
 }
 
