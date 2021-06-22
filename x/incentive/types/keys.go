@@ -39,7 +39,8 @@ var (
 	HardDelegatorRewardFactorKeyPrefix              = []byte{0x09} // prefix for key that stores Hard delegator reward factors
 	PreviousHardDelegatorRewardAccrualTimeKeyPrefix = []byte{0x10} // prefix for key that stores the previous time Hard delegator rewards accrued
 
-	SwapRewardIndexesKeyPrefix = []byte{0x12}
+	SwapRewardIndexesKeyPrefix             = []byte{0x12} // prefix for key that stores swap reward factors
+	PreviousSwapRewardAccrualTimeKeyPrefix = []byte{0x13} // prefix for key that stores the previous time swap rewards accrued
 
 	USDXMintingRewardDenom   = "ukava"
 	HardLiquidityRewardDenom = "hard"

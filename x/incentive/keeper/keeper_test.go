@@ -147,6 +147,47 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestGetSetSwapRewardAccrualTimes() {
+	testCases := []struct {
+		name        string
+		poolName    string
+		accrualTime time.Time
+		setPanics   bool
+	}{
+		{
+			name:        "normal time can be written and read",
+			poolName:    "btc/usdx",
+			accrualTime: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name:        "zero time can be written and read",
+			poolName:    "btc/usdx",
+			accrualTime: time.Time{},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupApp()
+
+			_, found := suite.keeper.GetSwapRewardAccrualTime(suite.ctx, tc.poolName)
+			suite.False(found)
+
+			setFunc := func() { suite.keeper.SetSwapRewardAccrualTime(suite.ctx, tc.poolName, tc.accrualTime) }
+			if tc.setPanics {
+				suite.Panics(setFunc)
+				return
+			} else {
+				suite.NotPanics(setFunc)
+			}
+
+			storedTime, found := suite.keeper.GetSwapRewardAccrualTime(suite.ctx, tc.poolName)
+			suite.True(found)
+			suite.Equal(tc.accrualTime, storedTime)
+		})
+	}
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
