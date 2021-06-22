@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -259,100 +258,6 @@ func (cs HardLiquidityProviderClaims) Validate() error {
 		if err := c.Validate(); err != nil {
 			return err
 		}
-	}
-
-	return nil
-}
-
-// ---------------------- Reward periods are used by the params ----------------------
-
-// MultiRewardPeriod supports multiple reward types
-type MultiRewardPeriod struct {
-	Active           bool      `json:"active" yaml:"active"`
-	CollateralType   string    `json:"collateral_type" yaml:"collateral_type"`
-	Start            time.Time `json:"start" yaml:"start"`
-	End              time.Time `json:"end" yaml:"end"`
-	RewardsPerSecond sdk.Coins `json:"rewards_per_second" yaml:"rewards_per_second"` // per second reward payouts
-}
-
-// String implements fmt.Stringer
-func (mrp MultiRewardPeriod) String() string {
-	return fmt.Sprintf(`Reward Period:
-	Collateral Type: %s,
-	Start: %s,
-	End: %s,
-	Rewards Per Second: %s,
-	Active %t,
-	`, mrp.CollateralType, mrp.Start, mrp.End, mrp.RewardsPerSecond, mrp.Active)
-}
-
-// NewMultiRewardPeriod returns a new MultiRewardPeriod
-func NewMultiRewardPeriod(active bool, collateralType string, start time.Time, end time.Time, reward sdk.Coins) MultiRewardPeriod {
-	return MultiRewardPeriod{
-		Active:           active,
-		CollateralType:   collateralType,
-		Start:            start,
-		End:              end,
-		RewardsPerSecond: reward,
-	}
-}
-
-// Validate performs a basic check of a MultiRewardPeriod.
-func (mrp MultiRewardPeriod) Validate() error {
-	if mrp.Start.IsZero() {
-		return errors.New("reward period start time cannot be 0")
-	}
-	if mrp.End.IsZero() {
-		return errors.New("reward period end time cannot be 0")
-	}
-	if mrp.Start.After(mrp.End) {
-		return fmt.Errorf("end period time %s cannot be before start time %s", mrp.End, mrp.Start)
-	}
-	if !mrp.RewardsPerSecond.IsValid() {
-		return fmt.Errorf("invalid reward amount: %s", mrp.RewardsPerSecond)
-	}
-	if strings.TrimSpace(mrp.CollateralType) == "" {
-		return fmt.Errorf("reward period collateral type cannot be blank: %s", mrp)
-	}
-	return nil
-}
-
-// MultiRewardPeriods array of MultiRewardPeriod
-type MultiRewardPeriods []MultiRewardPeriod
-
-// GetMultiRewardPeriod fetches a MultiRewardPeriod from an array of MultiRewardPeriods by its denom
-func (mrps MultiRewardPeriods) GetMultiRewardPeriod(denom string) (MultiRewardPeriod, bool) {
-	for _, rp := range mrps {
-		if rp.CollateralType == denom {
-			return rp, true
-		}
-	}
-	return MultiRewardPeriod{}, false
-}
-
-// GetMultiRewardPeriodIndex returns the index of a MultiRewardPeriod inside array MultiRewardPeriods
-func (mrps MultiRewardPeriods) GetMultiRewardPeriodIndex(denom string) (int, bool) {
-	for i, rp := range mrps {
-		if rp.CollateralType == denom {
-			return i, true
-		}
-	}
-	return -1, false
-}
-
-// Validate checks if all the RewardPeriods are valid and there are no duplicated
-// entries.
-func (mrps MultiRewardPeriods) Validate() error {
-	seenPeriods := make(map[string]bool)
-	for _, rp := range mrps {
-		if seenPeriods[rp.CollateralType] {
-			return fmt.Errorf("duplicated reward period with collateral type %s", rp.CollateralType)
-		}
-
-		if err := rp.Validate(); err != nil {
-			return err
-		}
-		seenPeriods[rp.CollateralType] = true
 	}
 
 	return nil
