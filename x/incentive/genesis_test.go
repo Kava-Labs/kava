@@ -65,6 +65,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "ukava", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), c("hard", 122354))},
+			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "btcb/usdx", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			incentive.Multipliers{incentive.NewMultiplier(incentive.Small, 1, d("0.25")), incentive.NewMultiplier(incentive.Large, 12, d("1.0"))},
 			suite.genesisTime.Add(5*oneYear),
 		),

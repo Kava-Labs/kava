@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -17,6 +16,21 @@ type ParamTestSuite struct {
 }
 
 func (suite *ParamTestSuite) SetupTest() {}
+
+var rewardPeriodWithInvalidRewardsPerSecond = types.NewRewardPeriod(
+	true,
+	"bnb",
+	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+	sdk.Coin{Denom: "INVALID!@#😫", Amount: sdk.ZeroInt()},
+)
+var rewardMultiPeriodWithInvalidRewardsPerSecond = types.NewMultiRewardPeriod(
+	true,
+	"bnb",
+	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+	sdk.Coins{sdk.Coin{Denom: "INVALID!@#😫", Amount: sdk.ZeroInt()}},
+)
 
 func (suite *ParamTestSuite) TestParamValidation() {
 	type args struct {
@@ -34,33 +48,30 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	}
 	type test struct {
 		name    string
-		args    args
+		params  types.Params
 		errArgs errArgs
 	}
 
 	testCases := []test{
 		{
-			"default",
-			args{
-				usdxMintingRewardPeriods:   types.DefaultRewardPeriods,
-				hardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
-				hardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
-				hardDelegatorRewardPeriods: types.DefaultRewardPeriods,
-				multipliers:                types.DefaultMultipliers,
-				end:                        types.DefaultClaimEnd,
-			},
+			"default is valid",
+			types.DefaultParams(),
 			errArgs{
 				expectPass: true,
-				contains:   "",
 			},
 		},
 		{
 			"valid",
-			args{
-				usdxMintingRewardPeriods: types.RewardPeriods{types.NewRewardPeriod(
-					true, "bnb-a", time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
-					sdk.NewCoin(types.USDXMintingRewardDenom, sdk.NewInt(122354)))},
-				multipliers: types.Multipliers{
+			types.Params{
+				USDXMintingRewardPeriods: types.RewardPeriods{
+					types.NewRewardPeriod(
+						true,
+						"bnb-a",
+						time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+						time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+						sdk.NewCoin(types.USDXMintingRewardDenom, sdk.NewInt(122354)),
+					)},
+				ClaimMultipliers: types.Multipliers{
 					types.NewMultiplier(
 						types.Small, 1, sdk.MustNewDecFromStr("0.25"),
 					),
@@ -68,29 +79,107 @@ func (suite *ParamTestSuite) TestParamValidation() {
 						types.Large, 1, sdk.MustNewDecFromStr("1.0"),
 					),
 				},
-				hardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
-				hardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
-				hardDelegatorRewardPeriods: types.DefaultRewardPeriods,
-				end:                        time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
+				HardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
+				HardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				SwapRewardPeriods:          types.DefaultMultiRewardPeriods,
+				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
 			errArgs{
 				expectPass: true,
-				contains:   "",
+			},
+		},
+		{
+			"invalid usdx minting period makes params invalid",
+			types.Params{
+				USDXMintingRewardPeriods:   types.RewardPeriods{rewardPeriodWithInvalidRewardsPerSecond},
+				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
+				HardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
+				HardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				SwapRewardPeriods:          types.DefaultMultiRewardPeriods,
+				ClaimMultipliers:           types.DefaultMultipliers,
+				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "invalid reward amount",
+			},
+		},
+		{
+			"invalid hard supply periods makes params invalid",
+			types.Params{
+				USDXMintingRewardPeriods:   types.DefaultRewardPeriods,
+				HardSupplyRewardPeriods:    types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
+				HardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
+				HardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				SwapRewardPeriods:          types.DefaultMultiRewardPeriods,
+				ClaimMultipliers:           types.DefaultMultipliers,
+				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "invalid reward amount",
+			},
+		},
+		{
+			"invalid hard borrow periods makes params invalid",
+			types.Params{
+				USDXMintingRewardPeriods:   types.DefaultRewardPeriods,
+				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
+				HardBorrowRewardPeriods:    types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
+				HardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				SwapRewardPeriods:          types.DefaultMultiRewardPeriods,
+				ClaimMultipliers:           types.DefaultMultipliers,
+				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "invalid reward amount",
+			},
+		},
+		{
+			"invalid delegator periods makes params invalid",
+			types.Params{
+				USDXMintingRewardPeriods:   types.DefaultRewardPeriods,
+				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
+				HardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
+				HardDelegatorRewardPeriods: types.RewardPeriods{rewardPeriodWithInvalidRewardsPerSecond},
+				SwapRewardPeriods:          types.DefaultMultiRewardPeriods,
+				ClaimMultipliers:           types.DefaultMultipliers,
+				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "invalid reward amount",
+			},
+		},
+		{
+			"invalid usdx minting period makes params invalid",
+			types.Params{
+				USDXMintingRewardPeriods:   types.DefaultRewardPeriods,
+				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
+				HardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
+				HardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				SwapRewardPeriods:          types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
+				ClaimMultipliers:           types.DefaultMultipliers,
+				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "invalid reward amount",
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			params := types.NewParams(tc.args.usdxMintingRewardPeriods, tc.args.hardSupplyRewardPeriods,
-				tc.args.hardBorrowRewardPeriods, tc.args.hardDelegatorRewardPeriods, tc.args.multipliers, tc.args.end,
-			)
-			err := params.Validate()
+			err := tc.params.Validate()
+
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+				suite.Require().Contains(err.Error(), tc.errArgs.contains)
 			}
 		})
 	}
