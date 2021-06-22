@@ -78,9 +78,9 @@ func (suite *QuerierTestSuite) SetupTest() {
 			{ID: 2, CommitteeID: 1, PubProposal: gov.NewTextProposal("Another Title", "A description of this other proposal."), Deadline: testTime.Add(21 * 24 * time.Hour)},
 		},
 		[]types.Vote{
-			{ProposalID: 1, Voter: suite.addresses[0]},
-			{ProposalID: 1, Voter: suite.addresses[1]},
-			{ProposalID: 2, Voter: suite.addresses[2]},
+			{ProposalID: 1, Voter: suite.addresses[0], VoteType: types.Yes},
+			{ProposalID: 1, Voter: suite.addresses[1], VoteType: types.Yes},
+			{ProposalID: 2, Voter: suite.addresses[2], VoteType: types.Yes},
 		},
 	)
 	suite.app.InitializeFromGenesisStates(

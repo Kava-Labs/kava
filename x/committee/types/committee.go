@@ -29,6 +29,14 @@ const (
 	BondDenom           = "ukava"
 )
 
+func init() {
+	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
+	// But since these proposals contain Committees, these types also need registering:
+	govtypes.ModuleCdc.RegisterInterface((*Committee)(nil), nil)
+	govtypes.RegisterProposalTypeCodec(MemberCommittee{}, "kava/MemberCommittee")
+	govtypes.RegisterProposalTypeCodec(TokenCommittee{}, "kava/TokenCommittee")
+}
+
 // TallyOptionFromString returns a TallyOption from a string. It returns an error
 // if the string is invalid.
 func TallyOptionFromString(str string) (TallyOption, error) {

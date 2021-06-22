@@ -65,7 +65,7 @@ func (suite *ProposalHandlerTestSuite) SetupTest() {
 			{ID: 1, CommitteeID: 1, PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."), Deadline: testTime.Add(7 * 24 * time.Hour)},
 		},
 		[]committee.Vote{
-			{ProposalID: 1, Voter: suite.addresses[0]},
+			{ProposalID: 1, Voter: suite.addresses[0], VoteType: types.Yes},
 		},
 	)
 }
@@ -105,6 +105,8 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 						Permissions:      suite.testGenesis.Committees[0].GetPermissions(),
 						VoteThreshold:    suite.testGenesis.Committees[0].GetVoteThreshold(),
 						ProposalDuration: suite.testGenesis.Committees[0].GetProposalDuration(),
+						TallyOption:      types.FirstPastThePost,
+						Type:             types.MemberCommitteeType,
 					},
 				},
 			),

@@ -81,6 +81,8 @@ When delegated tokens (to bonded validators) are changed:
   - jail: total bonded delegation decreases (tokens no longer bonded (after end blocker runs))
 - validator becomes unbonded (ie when they drop out of the top 100)
   - total bonded delegation decreases (tokens no longer bonded)
+- validator becomes bonded (ie when they're promoted into the top 100)
+  - total bonded delegation increases (tokens become bonded)
 
 */
 

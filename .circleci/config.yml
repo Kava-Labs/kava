@@ -96,13 +96,6 @@ jobs:
           target: start-remote-sims
           description: "Test multi-seed simulation (long)"
 
-  broken-link-check:
-    executor: golang
-    steps:
-      - make:
-          target: link-check
-          description: "Check url links are not broken"
-
   docker-build-and-push:
     # adapted from: https://circleci.com/blog/using-circleci-workflows-to-replicate-docker-hub-automated-builds/
     environment:
@@ -142,9 +135,6 @@ workflows:
           filters:
             branches:
               only: "master"
-      - broken-link-check:
-          requires:
-            - setup-dependencies
   upload-docker-images:
     jobs:
       - docker-build-and-push:

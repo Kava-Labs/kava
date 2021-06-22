@@ -159,6 +159,7 @@ func (k Keeper) CalculateNewInterest(ctx sdk.Context, cdp types.CDP) sdk.Coin {
 func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, slice sdk.Int, targetRatio sdk.Dec, collateralType string) error {
 	cdps := k.GetSliceOfCDPsByRatioAndType(ctx, slice, targetRatio, collateralType)
 	for _, cdp := range cdps {
+		k.hooks.BeforeCDPModified(ctx, cdp)
 		k.SynchronizeInterest(ctx, cdp)
 	}
 	return nil
