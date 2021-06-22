@@ -15,4 +15,5 @@ func init() {
 // RegisterCodec registers the necessary types for swap module
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgDeposit{}, "swap/MsgDeposit", nil)
+	cdc.RegisterConcrete(MsgDeposit{}, "swap/MsgWithdraw", nil)
 }
