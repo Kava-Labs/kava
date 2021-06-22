@@ -75,7 +75,7 @@ func getCmdDeposit(cdc *codec.Codec) *cobra.Command {
 
 func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "withdraw [pool-id] [shares]",
+		Use:   "withdraw [pool-id] [shares] [deadline]",
 		Short: "withdraw coins from a swap liquidity pool",
 		Example: fmt.Sprintf(
 			`%s tx %s withdraw ukava/usdx 153000 --from <key>`, version.ClientName, types.ModuleName,
@@ -93,7 +93,12 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 			}
 			shares := sdk.NewInt(numShares)
 
-			msg := types.NewMsgWithdraw(cliCtx.GetFromAddress(), poolID, shares)
+			deadline, err := strconv.ParseInt(args[2], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgWithdraw(cliCtx.GetFromAddress(), poolID, shares, deadline)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

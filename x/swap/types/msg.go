@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,6 +11,8 @@ import (
 var (
 	_ sdk.Msg         = &MsgDeposit{}
 	_ MsgWithDeadline = &MsgDeposit{}
+	_ sdk.Msg         = &MsgWithdraw{}
+	_ MsgWithDeadline = &MsgWithdraw{}
 )
 
 // MsgWithDeadline allows messages to define a deadline of when they are considered invalid
@@ -90,17 +93,19 @@ func (msg MsgDeposit) DeadlineExceeded(blockTime time.Time) bool {
 
 // MsgWithdraw deposits liquidity into a pool
 type MsgWithdraw struct {
-	From   sdk.AccAddress `json:"from" yaml:"from"`
-	Pool   string         `json:"pool" yaml:"pool"`
-	Shares sdk.Int        `json:"shares" yaml:"shares"`
+	From     sdk.AccAddress `json:"from" yaml:"from"`
+	Pool     string         `json:"pool" yaml:"pool"`
+	Shares   sdk.Int        `json:"shares" yaml:"shares"`
+	Deadline int64          `json:"deadline" yaml:"deadline"`
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(from sdk.AccAddress, pool string, shares sdk.Int) MsgWithdraw {
+func NewMsgWithdraw(from sdk.AccAddress, pool string, shares sdk.Int, deadline int64) MsgWithdraw {
 	return MsgWithdraw{
-		From:   from,
-		Pool:   pool,
-		Shares: shares,
+		From:     from,
+		Pool:     pool,
+		Shares:   shares,
+		Deadline: deadline,
 	}
 }
 
@@ -120,8 +125,8 @@ func (msg MsgWithdraw) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidPool, "pool ID cannot be empty")
 	}
 
-	if msg.Shares.IsZero() {
-		return sdkerrors.Wrapf(ErrInvalidShares, "cannot withdraw 0 shares")
+	if msg.Shares.IsZero() || msg.Shares.IsNegative() || msg.Shares.IsNil() {
+		return sdkerrors.Wrapf(ErrInvalidShares, fmt.Sprintf("%s", msg.Shares))
 	}
 	return nil
 }
@@ -135,4 +140,14 @@ func (msg MsgWithdraw) GetSignBytes() []byte {
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
+}
+
+// GetDeadline returns the time at which the msg is considered invalid
+func (msg MsgWithdraw) GetDeadline() time.Time {
+	return time.Unix(msg.Deadline, 0)
+}
+
+// DeadlineExceeded returns if the msg has exceeded it's deadline
+func (msg MsgWithdraw) DeadlineExceeded(blockTime time.Time) bool {
+	return blockTime.Unix() >= msg.Deadline
 }
