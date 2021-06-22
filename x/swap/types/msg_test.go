@@ -182,13 +182,21 @@ func TestMsgWithdraw_Attributes(t *testing.T) {
 }
 
 func TestMsgWithdraw_Signing(t *testing.T) {
-	signData := `{"type":"swap/MsgWithdraw","value":{"deadline":"1623606299","from":"kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d","pool":"ukava/usdx","shares":"1500000","slippage":"0.050000000000000000"}}`
+	signData := `{"type":"swap/MsgWithdraw","value":{"deadline":"1623606299","expected_coin_a":{"amount":"1000000","denom":"ukava"},"expected_coin_b":{"amount":"2000000","denom":"usdx"},"from":"kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d","pool":"ukava/usdx","shares":"1500000","slippage":"0.050000000000000000"}}`
 	signBytes := []byte(signData)
 
 	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
 	require.NoError(t, err)
 
-	msg := types.NewMsgWithdraw(addr, "ukava/usdx", sdk.NewInt(1500000), sdk.MustNewDecFromStr("0.05"), 1623606299)
+	msg := types.NewMsgWithdraw(
+		addr,
+		"ukava/usdx",
+		sdk.NewInt(1500000),
+		sdk.MustNewDecFromStr("0.05"),
+		sdk.NewCoin("ukava", sdk.NewInt(1000000)),
+		sdk.NewCoin("usdx", sdk.NewInt(2000000)),
+		1623606299,
+	)
 	assert.Equal(t, []sdk.AccAddress{addr}, msg.GetSigners())
 	assert.Equal(t, signBytes, msg.GetSignBytes())
 }
@@ -199,87 +207,127 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 		"ukava/usdx",
 		sdk.NewInt(1500000),
 		sdk.MustNewDecFromStr("0.05"),
+		sdk.NewCoin("ukava", sdk.NewInt(1000000)),
+		sdk.NewCoin("usdx", sdk.NewInt(2000000)),
 		1623606299,
 	)
 	require.NoError(t, validMsg.ValidateBasic())
 
 	testCases := []struct {
-		name        string
-		from        sdk.AccAddress
-		pool        string
-		shares      sdk.Int
-		slippage    sdk.Dec
-		deadline    int64
-		expectedErr string
+		name          string
+		from          sdk.AccAddress
+		pool          string
+		shares        sdk.Int
+		slippage      sdk.Dec
+		expectedCoinA sdk.Coin
+		expectedCoinB sdk.Coin
+		deadline      int64
+		expectedErr   string
 	}{
 		{
-			name:        "empty address",
-			from:        sdk.AccAddress(""),
-			pool:        validMsg.Pool,
-			shares:      validMsg.Shares,
-			slippage:    validMsg.Slippage,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid address: from address cannot be empty",
+			name:          "empty address",
+			from:          sdk.AccAddress(""),
+			pool:          validMsg.Pool,
+			shares:        validMsg.Shares,
+			slippage:      validMsg.Slippage,
+			expectedCoinA: validMsg.ExpectedCoinA,
+			expectedCoinB: validMsg.ExpectedCoinB,
+			deadline:      validMsg.Deadline,
+			expectedErr:   "invalid address: from address cannot be empty",
 		},
 		{
-			name:        "empty pool ID",
-			from:        validMsg.From,
-			pool:        "",
-			shares:      validMsg.Shares,
-			slippage:    validMsg.Slippage,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid pool: pool ID cannot be empty",
+			name:          "empty pool ID",
+			from:          validMsg.From,
+			pool:          "",
+			shares:        validMsg.Shares,
+			slippage:      validMsg.Slippage,
+			expectedCoinA: validMsg.ExpectedCoinA,
+			expectedCoinB: validMsg.ExpectedCoinB,
+			deadline:      validMsg.Deadline,
+			expectedErr:   "invalid pool: pool ID cannot be empty",
 		},
 		{
-			name:        "0 shares",
-			from:        validMsg.From,
-			pool:        validMsg.Pool,
-			shares:      sdk.ZeroInt(),
-			slippage:    validMsg.Slippage,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid shares: 0",
+			name:          "0 shares",
+			from:          validMsg.From,
+			pool:          validMsg.Pool,
+			shares:        sdk.ZeroInt(),
+			slippage:      validMsg.Slippage,
+			expectedCoinA: validMsg.ExpectedCoinA,
+			expectedCoinB: validMsg.ExpectedCoinB,
+			deadline:      validMsg.Deadline,
+			expectedErr:   "invalid shares: 0",
 		},
 		{
-			name:        "negative shares",
-			from:        validMsg.From,
-			pool:        validMsg.Pool,
-			shares:      sdk.ZeroInt().Sub(sdk.OneInt()),
-			slippage:    validMsg.Slippage,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid shares: -1",
+			name:          "negative shares",
+			from:          validMsg.From,
+			pool:          validMsg.Pool,
+			shares:        sdk.ZeroInt().Sub(sdk.OneInt()),
+			slippage:      validMsg.Slippage,
+			expectedCoinA: validMsg.ExpectedCoinA,
+			expectedCoinB: validMsg.ExpectedCoinB,
+			deadline:      validMsg.Deadline,
+			expectedErr:   "invalid shares: -1",
 		},
 		{
-			name:        "negative slippage",
-			from:        validMsg.From,
-			pool:        validMsg.Pool,
-			shares:      validMsg.Shares,
-			slippage:    sdk.MustNewDecFromStr("-0.05"),
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid slippage: -0.050000000000000000",
+			name:          "negative slippage",
+			from:          validMsg.From,
+			pool:          validMsg.Pool,
+			shares:        validMsg.Shares,
+			slippage:      sdk.MustNewDecFromStr("-0.05"),
+			expectedCoinA: validMsg.ExpectedCoinA,
+			expectedCoinB: validMsg.ExpectedCoinB,
+			deadline:      validMsg.Deadline,
+			expectedErr:   "invalid slippage: -0.050000000000000000",
 		},
 		{
-			name:        "slippage too large",
-			from:        validMsg.From,
-			pool:        validMsg.Pool,
-			shares:      validMsg.Shares,
-			slippage:    sdk.MustNewDecFromStr("1.1"),
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid slippage: 1.100000000000000000",
+			name:          "expected coin A not in pool",
+			from:          validMsg.From,
+			pool:          validMsg.Pool,
+			shares:        validMsg.Shares,
+			slippage:      validMsg.Slippage,
+			expectedCoinA: sdk.NewCoin("hard", sdk.OneInt()),
+			expectedCoinB: validMsg.ExpectedCoinB,
+			deadline:      validMsg.Deadline,
+			expectedErr:   "invalid coin: denom hard not in pool ukava/usdx",
 		},
 		{
-			name:        "negative deadline",
-			from:        validMsg.From,
-			pool:        validMsg.Pool,
-			shares:      validMsg.Shares,
-			slippage:    validMsg.Slippage,
-			deadline:    -1,
-			expectedErr: "invalid deadline: deadline -1",
+			name:          "expected coin B not in pool",
+			from:          validMsg.From,
+			pool:          validMsg.Pool,
+			shares:        validMsg.Shares,
+			slippage:      validMsg.Slippage,
+			expectedCoinA: validMsg.ExpectedCoinA,
+			expectedCoinB: sdk.NewCoin("swap", sdk.OneInt()),
+			deadline:      validMsg.Deadline,
+			expectedErr:   "invalid coin: denom swap not in pool ukava/usdx",
+		},
+		{
+			name:          "slippage too large",
+			from:          validMsg.From,
+			pool:          validMsg.Pool,
+			shares:        validMsg.Shares,
+			slippage:      sdk.MustNewDecFromStr("1.1"),
+			expectedCoinA: validMsg.ExpectedCoinA,
+			expectedCoinB: validMsg.ExpectedCoinB,
+			deadline:      validMsg.Deadline,
+			expectedErr:   "invalid slippage: 1.100000000000000000",
+		},
+		{
+			name:          "negative deadline",
+			from:          validMsg.From,
+			pool:          validMsg.Pool,
+			shares:        validMsg.Shares,
+			slippage:      validMsg.Slippage,
+			expectedCoinA: validMsg.ExpectedCoinA,
+			expectedCoinB: validMsg.ExpectedCoinB,
+			deadline:      -1,
+			expectedErr:   "invalid deadline: deadline -1",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			msg := types.NewMsgWithdraw(tc.from, tc.pool, tc.shares, tc.slippage, tc.deadline)
+			msg := types.NewMsgWithdraw(tc.from, tc.pool, tc.shares, tc.slippage, tc.expectedCoinA, tc.expectedCoinB, tc.deadline)
 			err := msg.ValidateBasic()
 			assert.EqualError(t, err, tc.expectedErr)
 		})
@@ -317,6 +365,8 @@ func TestMsgWithdraw_Deadline(t *testing.T) {
 			"ukava/usdx",
 			sdk.NewInt(1500000),
 			sdk.MustNewDecFromStr("0.05"),
+			sdk.NewCoin("ukava", sdk.NewInt(1000000)),
+			sdk.NewCoin("usdx", sdk.NewInt(2000000)),
 			tc.deadline,
 		)
 		require.NoError(t, msg.ValidateBasic())

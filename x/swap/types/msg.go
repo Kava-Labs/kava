@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -93,21 +94,26 @@ func (msg MsgDeposit) DeadlineExceeded(blockTime time.Time) bool {
 
 // MsgWithdraw deposits liquidity into a pool
 type MsgWithdraw struct {
-	From     sdk.AccAddress `json:"from" yaml:"from"`
-	Pool     string         `json:"pool" yaml:"pool"`
-	Shares   sdk.Int        `json:"shares" yaml:"shares"`
-	Slippage sdk.Dec        `json:"slippage" yaml:"slippage"`
-	Deadline int64          `json:"deadline" yaml:"deadline"`
+	From          sdk.AccAddress `json:"from" yaml:"from"`
+	Pool          string         `json:"pool" yaml:"pool"`
+	Shares        sdk.Int        `json:"shares" yaml:"shares"`
+	Slippage      sdk.Dec        `json:"slippage" yaml:"slippage"`
+	ExpectedCoinA sdk.Coin       `json:"expected_coin_a" yaml:"expected_coin_a"`
+	ExpectedCoinB sdk.Coin       `json:"expected_coin_b" yaml:"expected_coin_b"`
+	Deadline      int64          `json:"deadline" yaml:"deadline"`
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(from sdk.AccAddress, pool string, shares sdk.Int, slippage sdk.Dec, deadline int64) MsgWithdraw {
+func NewMsgWithdraw(from sdk.AccAddress, pool string, shares sdk.Int, slippage sdk.Dec,
+	expectedCoinA, expectedCoinB sdk.Coin, deadline int64) MsgWithdraw {
 	return MsgWithdraw{
-		From:     from,
-		Pool:     pool,
-		Shares:   shares,
-		Slippage: slippage,
-		Deadline: deadline,
+		From:          from,
+		Pool:          pool,
+		Shares:        shares,
+		Slippage:      slippage,
+		ExpectedCoinA: expectedCoinA,
+		ExpectedCoinB: expectedCoinB,
+		Deadline:      deadline,
 	}
 }
 
@@ -133,6 +139,14 @@ func (msg MsgWithdraw) ValidateBasic() error {
 
 	if msg.Slippage.IsNil() || msg.Slippage.IsNegative() || msg.Slippage.GT(sdk.OneDec()) {
 		return sdkerrors.Wrapf(ErrInvalidSlippage, fmt.Sprintf("%s", msg.Slippage))
+	}
+
+	if !strings.Contains(msg.Pool, msg.ExpectedCoinA.Denom) {
+		return sdkerrors.Wrapf(ErrInvalidCoin, "denom %s not in pool %s", msg.ExpectedCoinA.Denom, msg.Pool)
+	}
+
+	if !strings.Contains(msg.Pool, msg.ExpectedCoinB.Denom) {
+		return sdkerrors.Wrapf(ErrInvalidCoin, "denom %s not in pool %s", msg.ExpectedCoinB.Denom, msg.Pool)
 	}
 
 	if msg.Deadline <= 0 {
