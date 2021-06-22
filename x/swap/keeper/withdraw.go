@@ -7,7 +7,9 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
-func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, poolID string, withdrawShares sdk.Int) error {
+func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress,
+	poolID string, withdrawShares sdk.Int, slippageLimit sdk.Dec,
+	expectedCoinA, expectedCoinB sdk.Coin) error {
 	// Confirm that the depositor owns the requested shares to withdraw
 	depositorShareRecord, found := k.GetDepositorShares(ctx, owner, poolID)
 	if !found {
@@ -26,7 +28,21 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, poolID string, w
 	if err != nil {
 		return err
 	}
+
+	calculatedWithdrawCoins := denominatedPool.ShareValue(withdrawShares)
+	slippageA := (expectedCoinA.Amount.ToDec().Quo(calculatedWithdrawCoins.AmountOf(expectedCoinA.Denom).ToDec())).Sub(sdk.OneDec())
+	if slippageA.GT(slippageLimit) {
+		return sdkerrors.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippageA, slippageLimit)
+	}
+	slippageB := (expectedCoinB.Amount.ToDec().Quo(calculatedWithdrawCoins.AmountOf(expectedCoinB.Denom).ToDec())).Sub(sdk.OneDec())
+	if slippageB.GT(slippageLimit) {
+		return sdkerrors.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippageB, slippageLimit)
+	}
+
 	withdrawCoins := denominatedPool.RemoveLiquidity(withdrawShares)
+	if !withdrawCoins.IsEqual(calculatedWithdrawCoins) {
+		panic("unexpected amount of coins to be withdrawn") // Sanity check
+	}
 
 	// Update pool record
 	if denominatedPool.IsEmpty() {
