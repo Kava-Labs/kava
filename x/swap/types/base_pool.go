@@ -126,7 +126,7 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	// optimalB = reservesB * desiredA / reservesA
 	// optimalA = reservesA * desiredB / reservesB
 	//
-	// Which show us:
+	// Which shows us:
 	//
 	// if optimalB < desiredB then optimalA > desiredA
 	// if optimalB = desiredB then optimalA = desiredA
