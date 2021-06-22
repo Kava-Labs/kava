@@ -2,6 +2,7 @@ package incentive
 
 import (
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -23,28 +24,21 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 	}
 
 	for _, rp := range gs.Params.USDXMintingRewardPeriods {
-		_, found := cdpKeeper.GetCollateral(ctx, rp.CollateralType)
-		if !found {
-			panic(fmt.Sprintf("usdx minting collateral type %s not found in cdp collateral types", rp.CollateralType))
+		if _, found := cdpKeeper.GetCollateral(ctx, rp.CollateralType); !found {
+			panic(fmt.Sprintf("incentive params contain collateral not found in cdp params: %s", rp.CollateralType))
 		}
-		k.SetUSDXMintingRewardFactor(ctx, rp.CollateralType, sdk.ZeroDec())
 	}
+	k.SetParams(ctx, gs.Params)
 
-	for _, mrp := range gs.Params.HardSupplyRewardPeriods {
-		newRewardIndexes := types.RewardIndexes{}
-		for _, rc := range mrp.RewardsPerSecond {
-			ri := types.NewRewardIndex(rc.Denom, sdk.ZeroDec())
-			newRewardIndexes = append(newRewardIndexes, ri)
-		}
+	for _, gat := range gs.USDXAccumulationTimes {
+		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+	}
 		k.SetHardSupplyRewardIndexes(ctx, mrp.CollateralType, newRewardIndexes)
 	}
 
-	for _, mrp := range gs.Params.HardBorrowRewardPeriods {
-		newRewardIndexes := types.RewardIndexes{}
-		for _, rc := range mrp.RewardsPerSecond {
-			ri := types.NewRewardIndex(rc.Denom, sdk.ZeroDec())
-			newRewardIndexes = append(newRewardIndexes, ri)
-		}
+	for _, gat := range gs.HardDelegatorAccumulationTimes {
+		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+	}
 		k.SetHardBorrowRewardIndexes(ctx, mrp.CollateralType, newRewardIndexes)
 	}
 
@@ -70,35 +64,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
 
-	for i, claim := range gs.USDXMintingClaims {
-		for j, ri := range claim.RewardIndexes {
-			if ri.RewardFactor != sdk.ZeroDec() {
-				gs.USDXMintingClaims[i].RewardIndexes[j].RewardFactor = sdk.ZeroDec()
-			}
-		}
+	for _, claim := range gs.USDXMintingClaims {
 		k.SetUSDXMintingClaim(ctx, claim)
 	}
-
-	for i, claim := range gs.HardLiquidityProviderClaims {
-		for j, mri := range claim.SupplyRewardIndexes {
-			for k, ri := range mri.RewardIndexes {
-				if ri.RewardFactor != sdk.ZeroDec() {
-					gs.HardLiquidityProviderClaims[i].SupplyRewardIndexes[j].RewardIndexes[k].RewardFactor = sdk.ZeroDec()
-				}
-			}
-		}
-		for j, mri := range claim.BorrowRewardIndexes {
-			for k, ri := range mri.RewardIndexes {
-				if ri.RewardFactor != sdk.ZeroDec() {
-					gs.HardLiquidityProviderClaims[i].BorrowRewardIndexes[j].RewardIndexes[k].RewardFactor = sdk.ZeroDec()
-				}
-			}
-		}
-		for j, ri := range claim.DelegatorRewardIndexes {
-			if ri.RewardFactor != sdk.ZeroDec() {
-				gs.HardLiquidityProviderClaims[i].DelegatorRewardIndexes[j].RewardFactor = sdk.ZeroDec()
-			}
-		}
+	for _, claim := range gs.HardLiquidityProviderClaims {
 		k.SetHardLiquidityProviderClaim(ctx, claim)
 	}
 }
@@ -110,82 +79,36 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	usdxClaims := k.GetAllUSDXMintingClaims(ctx)
 	hardClaims := k.GetAllHardLiquidityProviderClaims(ctx)
 
-	synchronizedUsdxClaims := types.USDXMintingClaims{}
-	synchronizedHardClaims := types.HardLiquidityProviderClaims{}
+	// Not using nil for initial slice values as it makes the exported genesis json a bit nicer - represented as `[]` rather than `null`
 
-	for _, usdxClaim := range usdxClaims {
-		claim, err := k.SynchronizeUSDXMintingClaim(ctx, usdxClaim)
-		if err != nil {
-			panic(err)
-		}
-		for i := range claim.RewardIndexes {
-			claim.RewardIndexes[i].RewardFactor = sdk.ZeroDec()
-		}
-		synchronizedUsdxClaims = append(synchronizedUsdxClaims, claim)
-	}
+	usdxMintingGats := GenesisAccumulationTimes{}
+	k.IterateUSDXMintingAccrualTimes(ctx, func(ct string, accTime time.Time) bool {
+		usdxMintingGats = append(usdxMintingGats, types.NewGenesisAccumulationTime(ct, accTime))
+		return false
+	})
 
-	for _, hardClaim := range hardClaims {
-		k.SynchronizeHardLiquidityProviderClaim(ctx, hardClaim.Owner)
-		claim, found := k.GetHardLiquidityProviderClaim(ctx, hardClaim.Owner)
-		if !found {
-			panic("hard liquidity provider claim should always be found after synchronization")
-		}
-		for i, bri := range claim.BorrowRewardIndexes {
-			for j := range bri.RewardIndexes {
-				claim.BorrowRewardIndexes[i].RewardIndexes[j].RewardFactor = sdk.ZeroDec()
-			}
-		}
-		for i, sri := range claim.SupplyRewardIndexes {
-			for j := range sri.RewardIndexes {
-				claim.SupplyRewardIndexes[i].RewardIndexes[j].RewardFactor = sdk.ZeroDec()
-			}
-		}
-		for i := range claim.DelegatorRewardIndexes {
-			claim.DelegatorRewardIndexes[i].RewardFactor = sdk.ZeroDec()
-		}
-		synchronizedHardClaims = append(synchronizedHardClaims, claim)
-	}
+	hardDelegatorGats := GenesisAccumulationTimes{}
+	k.IterateHardDelegatorRewardAccrualTimes(ctx, func(ct string, accTime time.Time) bool {
+		hardDelegatorGats = append(hardDelegatorGats, types.NewGenesisAccumulationTime(ct, accTime))
+		return false
+	})
 
-	var usdxMintingGats GenesisAccumulationTimes
-	for _, rp := range params.USDXMintingRewardPeriods {
-		pat, found := k.GetPreviousUSDXMintingAccrualTime(ctx, rp.CollateralType)
-		if !found {
-			panic(fmt.Sprintf("expected previous usdx minting reward accrual time to be set in state for %s", rp.CollateralType))
-		}
-		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat)
-		usdxMintingGats = append(usdxMintingGats, gat)
-	}
+	hardSupplyGats := GenesisAccumulationTimes{}
+	k.IterateHardSupplyRewardAccrualTimes(ctx, func(denom string, accTime time.Time) bool {
+		hardSupplyGats = append(hardSupplyGats, types.NewGenesisAccumulationTime(denom, accTime))
+		return false
+	})
 
-	var hardSupplyGats GenesisAccumulationTimes
-	for _, rp := range params.HardSupplyRewardPeriods {
-		pat, found := k.GetPreviousHardSupplyRewardAccrualTime(ctx, rp.CollateralType)
-		if !found {
-			panic(fmt.Sprintf("expected previous hard supply reward accrual time to be set in state for %s", rp.CollateralType))
-		}
-		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat)
-		hardSupplyGats = append(hardSupplyGats, gat)
-	}
+	hardBorrowGats := GenesisAccumulationTimes{}
+	k.IterateHardBorrowRewardAccrualTimes(ctx, func(denom string, accTime time.Time) bool {
+		hardBorrowGats = append(hardBorrowGats, types.NewGenesisAccumulationTime(denom, accTime))
+		return false
+	})
 
-	var hardBorrowGats GenesisAccumulationTimes
-	for _, rp := range params.HardBorrowRewardPeriods {
-		pat, found := k.GetPreviousHardBorrowRewardAccrualTime(ctx, rp.CollateralType)
-		if !found {
-			panic(fmt.Sprintf("expected previous hard borrow reward accrual time to be set in state for %s", rp.CollateralType))
-		}
-		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat)
-		hardBorrowGats = append(hardBorrowGats, gat)
-	}
-
-	var hardDelegatorGats GenesisAccumulationTimes
-	for _, rp := range params.HardDelegatorRewardPeriods {
-		pat, found := k.GetPreviousHardDelegatorRewardAccrualTime(ctx, rp.CollateralType)
-		if !found {
-			panic(fmt.Sprintf("expected previous hard delegator reward accrual time to be set in state for %s", rp.CollateralType))
-		}
-		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat)
-		hardDelegatorGats = append(hardDelegatorGats, gat)
-	}
-
-	return types.NewGenesisState(params, usdxMintingGats, hardSupplyGats,
-		hardBorrowGats, hardDelegatorGats, synchronizedUsdxClaims, synchronizedHardClaims)
+	return types.NewGenesisState(
+		params,
+		usdxMintingGats, hardSupplyGats, hardBorrowGats, hardDelegatorGats,
+		usdxClaims,
+		hardClaims,
+	)
 }

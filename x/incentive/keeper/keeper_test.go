@@ -80,18 +80,54 @@ func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.Modul
 
 func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
 	c := types.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
-	_, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
+	_, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, c.Owner)
 	suite.Require().False(found)
 	suite.Require().NotPanics(func() {
 		suite.keeper.SetUSDXMintingClaim(suite.ctx, c)
 	})
-	testC, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
+	testC, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, c.Owner)
 	suite.Require().True(found)
 	suite.Require().Equal(c, testC)
 	suite.Require().NotPanics(func() {
-		suite.keeper.DeleteUSDXMintingClaim(suite.ctx, suite.addrs[0])
+		suite.keeper.DeleteUSDXMintingClaim(suite.ctx, c.Owner)
 	})
-	_, found = suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
+	_, found = suite.keeper.GetUSDXMintingClaim(suite.ctx, c.Owner)
+	suite.Require().False(found)
+}
+
+var nonEmptyRewardIndexes = types.RewardIndexes{
+	types.NewRewardIndex("hard", d("0.1")),
+	types.NewRewardIndex("ukava", d("0.2")),
+}
+var singleRewardIndexes = types.RewardIndexes{
+	types.NewRewardIndex("hard", d("0.1")),
+}
+var nonEmptyMultiRewardIndexes = types.MultiRewardIndexes{
+	// sorted by denom
+	types.NewMultiRewardIndex("bnb", singleRewardIndexes), // use single to ensure indexes are different
+	types.NewMultiRewardIndex("btcb", nonEmptyRewardIndexes),
+}
+
+func (suite *KeeperTestSuite) TestGetSetDeleteHardLiquidityProviderClaim() {
+	claim := types.NewHardLiquidityProviderClaim(
+		suite.addrs[0],
+		cs(c("ukava", 1e9), c("hard", 1e9)),
+		nonEmptyMultiRewardIndexes,
+		nonEmptyMultiRewardIndexes,
+		nonEmptyRewardIndexes,
+	)
+	_, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	suite.Require().False(found)
+	suite.Require().NotPanics(func() {
+		suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
+	})
+	storedClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	suite.Require().True(found)
+	suite.Require().Equal(claim, storedClaim)
+	suite.Require().NotPanics(func() {
+		suite.keeper.DeleteHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	})
+	_, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 	suite.Require().False(found)
 }
 
@@ -118,6 +154,17 @@ type accrualtime struct {
 	time  time.Time
 }
 
+var nonEmptyAccrualTimes = []accrualtime{
+	{
+		denom: "",
+		time:  time.Time{},
+	},
+	{
+		denom: "btcb",
+		time:  time.Date(1998, 1, 1, 0, 0, 0, 1, time.UTC),
+	},
+}
+
 func (suite *KeeperTestSuite) TestIterateUSDXMintingAccrualTimes_Empty() {
 
 	var expectedAccrualTimes []accrualtime
@@ -133,16 +180,8 @@ func (suite *KeeperTestSuite) TestIterateUSDXMintingAccrualTimes_Empty() {
 
 func (suite *KeeperTestSuite) TestIterateUSDXMintingAccrualTimes_NotEmpty() {
 
-	expectedAccrualTimes := []accrualtime{
-		{
-			denom: "",
-			time:  time.Time{},
-		},
-		{
-			denom: "btcb",
-			time:  time.Date(1998, 1, 1, 0, 0, 0, 1, time.UTC),
-		},
-	}
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
 	for _, at := range expectedAccrualTimes {
 		suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, at.denom, at.time)
 	}
@@ -156,6 +195,58 @@ func (suite *KeeperTestSuite) TestIterateUSDXMintingAccrualTimes_NotEmpty() {
 	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
 }
 
+
+func (suite *KeeperTestSuite) TestIterateHardDelegatorRewardAccrualTimes_NotEmpty() {
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateHardDelegatorRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
+
+
+func (suite *KeeperTestSuite) TestIterateHardSupplyRewardAccrualTimes_NotEmpty() {
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateHardSupplyRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
+
+func (suite *KeeperTestSuite) TestIterateHardBorrowrRewardAccrualTimes_NotEmpty() {
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateHardBorrowRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
 func createPeriodicVestingAccount(origVesting sdk.Coins, periods vesting.Periods, startTime, endTime int64) (*vesting.PeriodicVestingAccount, error) {
 	_, addr := app.GeneratePrivKeyAddressPairs(1)
 	bacc := auth.NewBaseAccountWithAddress(addr[0])

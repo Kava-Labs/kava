@@ -317,6 +317,20 @@ func (k Keeper) SetPreviousHardSupplyRewardAccrualTime(ctx sdk.Context, denom st
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
 }
 
+func (k Keeper) IterateHardSupplyRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		denom := string(iterator.Key())
+		var accrualTime time.Time
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &accrualTime)
+		if cb(denom, accrualTime) {
+			break
+		}
+	}
+}
+
 // GetPreviousHardBorrowRewardAccrualTime returns the last time a denom accrued Hard protocol borrow-side rewards
 func (k Keeper) GetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardBorrowRewardAccrualTimeKeyPrefix)
@@ -334,6 +348,20 @@ func (k Keeper) SetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom st
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
 }
 
+func (k Keeper) IterateHardBorrowRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardBorrowRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		denom := string(iterator.Key())
+		var accrualTime time.Time
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &accrualTime)
+		if cb(denom, accrualTime) {
+			break
+		}
+	}
+}
+
 // GetPreviousHardDelegatorRewardAccrualTime returns the last time a denom accrued Hard protocol delegator rewards
 func (k Keeper) GetPreviousHardDelegatorRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix)
@@ -349,4 +377,18 @@ func (k Keeper) GetPreviousHardDelegatorRewardAccrualTime(ctx sdk.Context, denom
 func (k Keeper) SetPreviousHardDelegatorRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix)
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
+}
+
+func (k Keeper) IterateHardDelegatorRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		denom := string(iterator.Key())
+		var accrualTime time.Time
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &accrualTime)
+		if cb(denom, accrualTime) {
+			break
+		}
+	}
 }

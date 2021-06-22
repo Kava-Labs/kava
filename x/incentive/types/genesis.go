@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+var (
+	DefaultUSDXClaims               = USDXMintingClaims{}
+	DefaultHardClaims               = HardLiquidityProviderClaims{}
+	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
+)
+
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
 	Params                         Params                      `json:"params" yaml:"params"`
@@ -92,6 +98,14 @@ func NewGenesisAccumulationTime(ctype string, prevTime time.Time) GenesisAccumul
 		CollateralType:           ctype,
 		PreviousAccumulationTime: prevTime,
 	}
+}
+
+// Validate performs validation of GenesisAccumulationTime
+func (gat GenesisAccumulationTime) Validate() error {
+	if len(gat.CollateralType) == 0 {
+		return fmt.Errorf("genesis accumulation time's collateral type must be defined")
+	}
+	return nil
 }
 
 // GenesisAccumulationTimes slice of GenesisAccumulationTime
