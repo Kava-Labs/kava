@@ -135,7 +135,7 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	// so we first check if optimalB <= desiredB, then deposit
 	// (desiredA, optimalB) else deposit (optimalA, desiredA).
 	//
-	// In order avoid precision loss, we rearragne the inequality
+	// In order avoid precision loss, we rearrange the inequality
 	// of optimalB <= desiredB
 	// from:
 	//   reservesB * desiredA / reservesA <= desiredB
