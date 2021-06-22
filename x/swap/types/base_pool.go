@@ -158,7 +158,7 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	// optimalB <= desiredB
 	if productA.Cmp(&productB) <= 0 {
 		actualB.Quo(&productA, p.reservesA.BigInt())
-	} else { // optimalA <= desiredA
+	} else { // optimalA < desiredA
 		actualA.Quo(&productB, p.reservesB.BigInt())
 	}
 
