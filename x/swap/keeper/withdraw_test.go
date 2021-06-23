@@ -178,6 +178,44 @@ func (suite *keeperTestSuite) TestWithdraw_Partial() {
 			// Confirm depositor/module account balances have been updated
 			suite.ModuleAccountBalanceDelta(initialPoolRecord.Reserves().Sub(sdk.NewCoins(expectedCoinA, expectedCoinB)), acceptableDelta)
 			suite.AccountBalanceDelta(depositor, initialDepositorCoins.Add(expectedCoinA, expectedCoinB), acceptableDelta)
+
+			// Check withdraw event attributes
+			suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
+				types.EventTypeSwapWithdraw,
+				sdk.NewAttribute(types.AttributeKeyPoolID, types.PoolID(initialPoolRecord.ReservesA.Denom, initialPoolRecord.ReservesB.Denom)),
+				sdk.NewAttribute(types.AttributeKeyOwner, depositor.GetAddress().String()),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, expectedCoins.String()),
+				sdk.NewAttribute(types.AttributeKeyShares, initialShareRecord.SharesOwned.String()),
+			))
 		})
 	}
+}
+
+func (suite *keeperTestSuite) TestWithdraw_NoPool() {
+	// Create pool and confirm it exists
+	poolID, depositorAddr := suite.setupPoolDeposit()
+	poolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
+	suite.Require().True(found)
+
+	invalidCoin := sdk.NewCoin("fail", poolRecord.ReservesB.Amount)
+	err := suite.Keeper.Withdraw(suite.Ctx, depositorAddr, sdk.NewInt(100),
+		sdk.MustNewDecFromStr("0.01"), poolRecord.ReservesA, invalidCoin)
+
+	suite.Require().Error(err)
+	suite.Contains(err.Error(), "share record not found")
+}
+
+// TestWithdraw_NoDepositRecord tests no deposit record for an existing pool
+func (suite *keeperTestSuite) TestWithdraw_NoDepositRecord() {
+	// Create pool and confirm it exists
+	poolID, _ := suite.setupPoolDeposit()
+	poolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
+	suite.Require().True(found)
+
+	randAddr := sdk.AccAddress([]byte("random"))
+	err := suite.Keeper.Withdraw(suite.Ctx, randAddr, sdk.NewInt(100),
+		sdk.MustNewDecFromStr("0.01"), poolRecord.ReservesA, poolRecord.ReservesB)
+
+	suite.Require().Error(err)
+	suite.Contains(err.Error(), "share record not found")
 }
