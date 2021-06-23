@@ -90,6 +90,8 @@ var (
 	)
 
 	// module account permissions
+	// if these are changed, then the permissions
+	// must also be migrated during a chain upgrade
 	mAccPerms = map[string][]string{
 		auth.FeeCollectorName:       nil,
 		distr.ModuleName:            nil,

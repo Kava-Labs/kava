@@ -51,46 +51,55 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
-func (k Keeper) GetPool(ctx sdk.Context, poolName string) (types.Pool, bool) {
-	var pool types.Pool
+// GetPool retrieves a pool record from the store
+func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
-	bz := store.Get(types.PoolKey(poolName))
+
+	bz := store.Get(types.PoolKey(poolID))
 	if bz == nil {
-		return pool, false
+		return types.PoolRecord{}, false
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
-	return pool, true
+
+	var record types.PoolRecord
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &record)
+
+	return record, true
 }
 
-func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
+// SetPool saves a pool record to the store
+func (k Keeper) SetPool(ctx sdk.Context, record types.PoolRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pool)
-	store.Set(types.PoolKey(pool.Name()), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(record)
+	store.Set(types.PoolKey(record.PoolID), bz)
 }
 
-func (k Keeper) DeletePool(ctx sdk.Context, poolName string) {
+// DeletePool deletes a pool record from the store
+func (k Keeper) DeletePool(ctx sdk.Context, poolID string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
-	store.Delete(types.PoolKey(poolName))
+	store.Delete(types.PoolKey(poolID))
 }
 
-func (k Keeper) GetDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, poolName string) (sdk.Int, bool) {
+// GetDepositorShares gets a share record from the store
+func (k Keeper) GetDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (types.ShareRecord, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
-	bz := store.Get(types.DepositorPoolSharesKey(depositor, poolName))
+	bz := store.Get(types.DepositorPoolSharesKey(depositor, poolID))
 	if bz == nil {
-		return sdk.ZeroInt(), false
+		return types.ShareRecord{}, false
 	}
-	var shares sdk.Int
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &shares)
-	return shares, true
+	var record types.ShareRecord
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &record)
+	return record, true
 }
 
-func (k Keeper) SetDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, poolName string, shares sdk.Int) {
+// SetDepositorShares saves a share record to the store
+func (k Keeper) SetDepositorShares(ctx sdk.Context, record types.ShareRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(shares)
-	store.Set(types.DepositorPoolSharesKey(depositor, poolName), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(record)
+	store.Set(types.DepositorPoolSharesKey(record.Depositor, record.PoolID), bz)
 }
 
-func (k Keeper) DeleteDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, poolName string) {
+// DeleteDepositorShares deletes a share record from the store
+func (k Keeper) DeleteDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, poolID string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
-	store.Delete(types.DepositorPoolSharesKey(depositor, poolName))
+	store.Delete(types.DepositorPoolSharesKey(depositor, poolID))
 }

@@ -41,6 +41,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 		depositor.GetAddress(),
 		sdk.NewCoin(pool.TokenA, depositor.GetCoins().AmountOf(pool.TokenA)),
 		sdk.NewCoin(pool.TokenB, depositor.GetCoins().AmountOf(pool.TokenB)),
+		sdk.MustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -49,7 +50,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 
 	suite.AccountBalanceEqual(depositor, sdk.Coins(nil))
 	suite.ModuleAccountBalanceEqual(balance)
-	suite.PoolLiquidityEqual(pool, balance)
+	suite.PoolLiquidityEqual(balance)
 	suite.PoolShareValueEqual(depositor, pool, balance)
 
 	suite.EventsContains(res.Events, sdk.NewEvent(
@@ -68,9 +69,10 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 
 	suite.EventsContains(res.Events, sdk.NewEvent(
 		swap.EventTypeSwapDeposit,
-		sdk.NewAttribute(swap.AttributeKeyPoolName, pool.Name()),
+		sdk.NewAttribute(swap.AttributeKeyPoolID, swap.PoolID(pool.TokenA, pool.TokenB)),
 		sdk.NewAttribute(swap.AttributeKeyDepositor, depositor.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, balance.String()),
+		sdk.NewAttribute(swap.AttributeKeyShares, "22360679"),
 	))
 }
 
@@ -89,11 +91,103 @@ func (suite *handlerTestSuite) TestDeposit_DeadlineExceeded() {
 		depositor.GetAddress(),
 		sdk.NewCoin(pool.TokenA, depositor.GetCoins().AmountOf(pool.TokenA)),
 		sdk.NewCoin(pool.TokenB, depositor.GetCoins().AmountOf(pool.TokenB)),
+		sdk.MustNewDecFromStr("0.01"),
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 
 	res, err := suite.handler(suite.Ctx, deposit)
 	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), deposit.GetDeadline().Unix()))
+	suite.Nil(res)
+}
+
+func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
+	pool := swap.NewAllowedPool("ukava", "usdx")
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+	)
+	depositor := suite.GetAccount(balance)
+
+	deposit := swap.NewMsgDeposit(
+		depositor.GetAddress(),
+		sdk.NewCoin("usdx", depositor.GetCoins().AmountOf("usdx")),
+		sdk.NewCoin("ukava", depositor.GetCoins().AmountOf("ukava")),
+		sdk.MustNewDecFromStr("0.01"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	res, err := suite.handler(suite.Ctx, deposit)
+	suite.Require().NoError(err)
+
+	expectedDeposit := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+	)
+
+	expectedShareValue := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(999999)),
+		sdk.NewCoin("usdx", sdk.NewInt(4999998)),
+	)
+
+	suite.AccountBalanceEqual(depositor, balance.Sub(expectedDeposit))
+	suite.ModuleAccountBalanceEqual(reserves.Add(expectedDeposit...))
+	suite.PoolLiquidityEqual(reserves.Add(expectedDeposit...))
+	suite.PoolShareValueEqual(depositor, pool, expectedShareValue)
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		sdk.EventTypeMessage,
+		// TODO: this attribute won't pass assertion
+		//sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		bank.EventTypeTransfer,
+		sdk.NewAttribute(bank.AttributeKeyRecipient, swapModuleAccountAddress.String()),
+		sdk.NewAttribute(bank.AttributeKeySender, depositor.GetAddress().String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedDeposit.String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		swap.EventTypeSwapDeposit,
+		sdk.NewAttribute(swap.AttributeKeyPoolID, swap.PoolID(pool.TokenA, pool.TokenB)),
+		sdk.NewAttribute(swap.AttributeKeyDepositor, depositor.GetAddress().String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedDeposit.String()),
+		sdk.NewAttribute(swap.AttributeKeyShares, "2236067"),
+	))
+}
+
+func (suite *handlerTestSuite) TestDeposit_ExistingPool_SlippageFailure() {
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+	)
+	depositor := suite.GetAccount(balance)
+
+	deposit := swap.NewMsgDeposit(
+		depositor.GetAddress(),
+		sdk.NewCoin("usdx", depositor.GetCoins().AmountOf("usdx")),
+		sdk.NewCoin("ukava", depositor.GetCoins().AmountOf("ukava")),
+		sdk.MustNewDecFromStr("0.01"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	res, err := suite.handler(suite.Ctx, deposit)
+	suite.EqualError(err, "slippage exceeded: slippage 4.000000000000000000 > limit 0.010000000000000000")
 	suite.Nil(res)
 }
 

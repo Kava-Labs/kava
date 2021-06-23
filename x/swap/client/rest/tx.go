@@ -30,7 +30,7 @@ func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgDeposit(req.From, req.TokenA, req.TokenB, req.Deadline)
+		msg := types.NewMsgDeposit(req.From, req.TokenA, req.TokenB, req.Slippage, req.Deadline)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -51,7 +51,7 @@ func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// ParamSetAllowedPools implements the ParamSet interface and returns all the key/value pairs
+// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyAllowedPools, &p.AllowedPools, validateAllowedPoolsParams),
@@ -135,7 +135,7 @@ func (p AllowedPool) Validate() error {
 
 // Name returns the name for the allowed pool
 func (p AllowedPool) Name() string {
-	return PoolName(p.TokenA, p.TokenB)
+	return PoolID(p.TokenA, p.TokenB)
 }
 
 // String pretty prints the allowedPool

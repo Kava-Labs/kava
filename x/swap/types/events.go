@@ -4,6 +4,7 @@ package types
 const (
 	EventTypeSwapDeposit   = "swap_deposit"
 	AttributeValueCategory = ModuleName
-	AttributeKeyPoolName   = "pool_name"
+	AttributeKeyPoolID     = "pool_id"
 	AttributeKeyDepositor  = "depositor"
+	AttributeKeyShares     = "shares"
 )
