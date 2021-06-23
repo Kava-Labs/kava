@@ -1,7 +1,6 @@
 package types
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -55,7 +54,7 @@ func TestGenesisState_Validate(t *testing.T) {
 				}},
 				USDXRewardIndexes: GenesisRewardIndexesSlice{{
 					CollateralType: "bnb-a",
-					RewardIndexes:  normalRewardIndexes,
+					RewardIndexes:  normalRewardIndexes[:1],
 				}},
 				USDXMintingClaims: USDXMintingClaims{
 					{
@@ -118,6 +117,50 @@ func TestGenesisState_Validate(t *testing.T) {
 				contains:   "claim owner cannot be empty",
 			},
 		},
+		{
+			name: "too many USDX reward factors is invalid",
+			genesis: GenesisState{
+				USDXRewardIndexes: GenesisRewardIndexesSlice{{
+					CollateralType: "bnb-a",
+					RewardIndexes: RewardIndexes{
+						{
+							CollateralType: "ukava",
+							RewardFactor:   sdk.ZeroDec(),
+						},
+						{
+							CollateralType: "hard",
+							RewardFactor:   sdk.ZeroDec(),
+						},
+					},
+				}},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "USDX reward indexes cannot have more than one reward denom",
+			},
+		},
+		{
+			name: "too many Delegator reward factors is invalid",
+			genesis: GenesisState{
+				HardDelegatorRewardIndexes: GenesisRewardIndexesSlice{{
+					CollateralType: "ukava",
+					RewardIndexes: RewardIndexes{
+						{
+							CollateralType: "ukava",
+							RewardFactor:   sdk.ZeroDec(),
+						},
+						{
+							CollateralType: "hard",
+							RewardFactor:   sdk.ZeroDec(),
+						},
+					},
+				}},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "Delegator reward indexes cannot have more than one reward denom",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -127,7 +170,7 @@ func TestGenesisState_Validate(t *testing.T) {
 				require.NoError(t, err, tc.name)
 			} else {
 				require.Error(t, err, tc.name)
-				require.True(t, strings.Contains(err.Error(), tc.errArgs.contains))
+				require.Contains(t, err.Error(), tc.errArgs.contains)
 			}
 		})
 	}

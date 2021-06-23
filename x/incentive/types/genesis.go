@@ -81,6 +81,11 @@ func (gs GenesisState) Validate() error {
 	if err := gs.USDXRewardIndexes.Validate(); err != nil {
 		return err
 	}
+	for _, ri := range gs.USDXRewardIndexes {
+		if len(ri.RewardIndexes) > 1 {
+			return fmt.Errorf("USDX reward indexes cannot have more than one reward denom, found: %s", ri.RewardIndexes)
+		}
+	}
 
 	if err := gs.HardSupplyAccumulationTimes.Validate(); err != nil {
 		return err
@@ -101,6 +106,11 @@ func (gs GenesisState) Validate() error {
 	}
 	if err := gs.HardDelegatorRewardIndexes.Validate(); err != nil {
 		return err
+	}
+	for _, ri := range gs.HardDelegatorRewardIndexes {
+		if len(ri.RewardIndexes) > 1 {
+			return fmt.Errorf("Delegator reward indexes cannot have more than one reward denom, found: %s", ri.RewardIndexes)
+		}
 	}
 
 	if err := gs.HardLiquidityProviderClaims.Validate(); err != nil {
