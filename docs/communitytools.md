@@ -40,7 +40,7 @@ Listed in alphabetical order.
 - [ChainLayer](https://www.chainlayer.io/)
 - [Chorus One](https://chorus.one/)
 - [Cosmostation](https://www.cosmostation.io/)
-- [Figment](https://figment/protocols/kava/)
+- [Figment](https://figment.io/protocols/kava/)
 - [Forbole](https://www.forbole.com/)
 - [Huboi Pool](https://www.huobipool.com/)
 - [Lemniscap](https://lemniscap.com/)
