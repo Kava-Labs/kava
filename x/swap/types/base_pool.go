@@ -23,7 +23,7 @@ func calculateInitialShares(reservesA, reservesB sdk.Int) sdk.Int {
 	return sdk.NewIntFromBigInt(&result)
 }
 
-// BasePool implements a unitless constant-product liquidty pool.
+// BasePool implements a unitless constant-product liquidity pool.
 //
 // The pool is symmetric. For all A,B,s, any operation F on a pool (A,B,s) and pool (B,A,s)
 // will result in equal state values of A', B', s': F(A,B,s) => (A',B',s'), F(B,A,s) => (B',A',s')
@@ -39,7 +39,7 @@ type BasePool struct {
 	totalShares sdk.Int
 }
 
-// NewBasePool returns a pointer to a base pool with reserves and total shares initialzed
+// NewBasePool returns a pointer to a base pool with reserves and total shares initialized
 func NewBasePool(reservesA, reservesB sdk.Int) (*BasePool, error) {
 	if reservesA.LTE(zero) || reservesB.LTE(zero) {
 		return nil, sdkerrors.Wrap(ErrInvalidPool, "reserves must be greater than zero")
@@ -92,7 +92,7 @@ func (p *BasePool) TotalShares() sdk.Int {
 	return p.totalShares
 }
 
-// AddLiquidity adds liquidty to the pool retruns the actual reservesA, reservesB deposits in addition
+// AddLiquidity adds liquidity to the pool returns the actual reservesA, reservesB deposits in addition
 // to the number of shares created.  The deposits are always less than or equal to the provided and desired
 // values.
 func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sdk.Int, sdk.Int) {
@@ -110,22 +110,55 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	// Panics if reserveA or reserveB is zero.
 	p.assertReservesArePositive()
 
+	// In order to preserve the reserve ratio of the pool, we must deposit
+	// A and B in the same ratio of the existing reserves.  In addition,
+	// we should not deposit more funds than requested.
+	//
+	// To meet these requirements, we first calculate the optimalB to deposit
+	// if we keep desiredA fixed.  If this is less than or equal to the desiredB,
+	// then we use (desiredA, optimalB) as the deposit.
+	//
+	// If the optimalB is greater than the desiredB, we calculate the optimalA
+	// from the desiredB and use (optimalA, optimalB) as the deposit.
+	//
+	// These optimal values are calculated as:
+	//
+	// optimalB = reservesB * desiredA / reservesA
+	// optimalA = reservesA * desiredB / reservesB
+	//
+	// Which shows us:
+	//
+	// if optimalB < desiredB then optimalA > desiredA
+	// if optimalB = desiredB then optimalA = desiredA
+	// if optimalB > desiredB then optimalA < desiredA
+	//
+	// so we first check if optimalB <= desiredB, then deposit
+	// (desiredA, optimalB) else deposit (optimalA, desiredA).
+	//
+	// In order avoid precision loss, we rearrange the inequality
+	// of optimalB <= desiredB
+	// from:
+	//   reservesB * desiredA / reservesA <= desiredB
+	// to:
+	//   reservesB * desiredA <= desiredB * reservesA
+	//
+	// which also shares the same intermediate products
+	// as the calculations for optimalB and optimalA.
 	actualA := desiredA.BigInt()
 	actualB := desiredB.BigInt()
 
+	// productA = reservesB * desiredA
 	var productA big.Int
-	productA.Mul(p.reservesB.BigInt(), desiredA.BigInt())
+	productA.Mul(p.reservesB.BigInt(), actualA)
 
+	// productB = reservesA * desiredB
 	var productB big.Int
-	productB.Mul(p.reservesA.BigInt(), desiredB.BigInt())
+	productB.Mul(p.reservesA.BigInt(), actualB)
 
 	// optimalB <= desiredB
-	// reservesB * desiredA / reservesA <= desiredB
-	// Note: reservesB * desiredA <= reservesA * desiredB
-	// in order to avoid loss of precision on truncation when using division
 	if productA.Cmp(&productB) <= 0 {
 		actualB.Quo(&productA, p.reservesA.BigInt())
-	} else { // optimalA <= desiredA
+	} else { // optimalA < desiredA
 		actualA.Quo(&productB, p.reservesB.BigInt())
 	}
 

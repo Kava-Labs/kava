@@ -11,7 +11,7 @@ import (
 // Deposit creates a new pool or adds liquidity to an existing pool.  For a pool to be created, a pool
 // for the coin denominations must not exist yet, and it must be allowed by the swap module parameters.
 //
-// When adding liquidity to an existing pool, the provided coins are consided to be the desired deposit
+// When adding liquidity to an existing pool, the provided coins are considered to be the desired deposit
 // amount, and the actual deposited coins may be less than or equal to the provided coins.  A deposit
 // will never be exceed the coinA and coinB amounts.
 //
@@ -20,13 +20,13 @@ import (
 // and the inverse price (coinA/coinB), protects the depositor from a large deviation in their deposit.
 
 // The amount deposited may only change by B' < B or A' < A -- either B depreciates, or A depreciates.
-// Therefore, slippage can be writen as a function of this depreciation d.  Where the new price is
+// Therefore, slippage can be written as a function of this depreciation d.  Where the new price is
 // B*(1-d)/A or A*(1-d)/B, and the inverse of each, and is A/(B*(1-d)) and B/(A*(1-d))
 // respectively.
 //
 // Since 1/(1-d) >= (1-d) for d <= 1, the maximum slippage is always in the appreciating price
-// A/(B*(1-d)) and B/(A*(1-d)).  In other words, when the price have an asset depreciates, the
-// inverse price -- or the price of the other pool asset,  appreciates by a larger amount.
+// A/(B*(1-d)) and B/(A*(1-d)).  In other words, when the price of an asset depreciates, the
+// inverse price -- or the price of the other pool asset, appreciates by a larger amount.
 // It's this percent change we calculate and compare to the slippage limit provided.
 //
 // For example, if we have a pool with 100e6 ukava and 400e6 usdx.  The ukava price is 4 usdx and the
