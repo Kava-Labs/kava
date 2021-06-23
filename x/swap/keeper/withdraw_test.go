@@ -75,7 +75,6 @@ func (suite *keeperTestSuite) TestWithdraw_Full() {
 }
 
 func (suite *keeperTestSuite) TestWithdraw_Partial() {
-
 	testCases := []struct {
 		name                    string
 		percentageExpectedCoinA sdk.Dec
@@ -90,11 +89,37 @@ func (suite *keeperTestSuite) TestWithdraw_Partial() {
 			percentageExpectedCoinA: sdk.MustNewDecFromStr("0.99"),
 			percentageExpectedCoinB: sdk.MustNewDecFromStr("0.99"),
 			percentageShares:        sdk.MustNewDecFromStr("0.99"),
-			slippage:                sdk.NewDec(0),
+			slippage:                sdk.MustNewDecFromStr("0.00001"), // 0.001%
 			expectErr:               false,
 			expectedErr:             "",
 		},
-		// TODO: add test cases for each error
+		{
+			name:                    "coin A slippage exceeds limit",
+			percentageExpectedCoinA: sdk.MustNewDecFromStr("0.60"),
+			percentageExpectedCoinB: sdk.MustNewDecFromStr("0.50"),
+			percentageShares:        sdk.MustNewDecFromStr("0.50"),
+			slippage:                sdk.MustNewDecFromStr("0.05"), // 5%
+			expectErr:               true,
+			expectedErr:             "slippage exceeded",
+		},
+		{
+			name:                    "coin B slippage exceeds limit",
+			percentageExpectedCoinA: sdk.MustNewDecFromStr("0.50"),
+			percentageExpectedCoinB: sdk.MustNewDecFromStr("0.60"),
+			percentageShares:        sdk.MustNewDecFromStr("0.50"),
+			slippage:                sdk.MustNewDecFromStr("0.05"), // 5%
+			expectErr:               true,
+			expectedErr:             "slippage exceeded",
+		},
+		{
+			name:                    "insufficient owned shares",
+			percentageExpectedCoinA: sdk.MustNewDecFromStr("0.50"),
+			percentageExpectedCoinB: sdk.MustNewDecFromStr("0.50"),
+			percentageShares:        sdk.MustNewDecFromStr("1.01"),    // 101% of owned shares
+			slippage:                sdk.MustNewDecFromStr("0.00001"), // 0.001%
+			expectErr:               true,
+			expectedErr:             "invalid shares",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -117,23 +142,42 @@ func (suite *keeperTestSuite) TestWithdraw_Partial() {
 			expectedCoinA := sdk.NewCoin(initialPoolRecord.ReservesA.Denom, expectedCoinAmountA.RoundInt())
 			expectedCoinAmountB := initialPoolRecord.ReservesB.Amount.ToDec().Mul(tc.percentageExpectedCoinB)
 			expectedCoinB := sdk.NewCoin(initialPoolRecord.ReservesB.Denom, expectedCoinAmountB.RoundInt())
+			expectedCoins := sdk.NewCoins(expectedCoinA, expectedCoinB)
 
 			// Depositor withdraws shares
 			err := suite.Keeper.Withdraw(suite.Ctx, depositor.GetAddress(),
 				withdrawShares, tc.slippage, expectedCoinA, expectedCoinB)
+
 			if tc.expectErr {
 				suite.Require().Error(err)
-				suite.Contains(err, tc.expectedErr)
+				suite.Contains(err.Error(), tc.expectedErr)
 
-				// TODO: confirm pool/depositor balances are unchanged
+				// Confirm depositor/module account balances are unchanged
+				suite.AccountBalanceEqual(depositor, initialDepositorCoins)
+				suite.ModuleAccountBalanceEqual(initialPoolRecord.Reserves())
+
+				// Confirm that the pool is unchanged
+				finalPoolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
+				suite.True(found)
+				suite.Equal(initialPoolRecord, finalPoolRecord)
+				return
 			}
 
 			suite.Require().NoError(err)
-			suite.AccountBalanceEqual(depositor, initialDepositorCoins.Add(expectedCoinA, expectedCoinB))
+			acceptableDelta := 1.0 // Handle off-by-1 errors resulting from truncation/rounding
 
-			// // TODO: Fetch pool record after withdrawal and check shares/reserves
-			// suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Minute))
-			// finalPoolRecord, found = suite.Keeper.GetPool(suite.Ctx, poolID)
+			// Confirm pool reserves and shares have been updated
+			pool := types.NewAllowedPool(expectedCoinA.Denom, expectedCoinB.Denom)
+			expectedPoolLiquidity := sdk.NewCoins(
+				initialPoolRecord.ReservesA.Sub(expectedCoinA),
+				initialPoolRecord.ReservesB.Sub(expectedCoinB),
+			)
+			suite.PoolShareValueDelta(depositor, pool, expectedPoolLiquidity, acceptableDelta)
+			suite.PoolLiquidityDelta(initialPoolRecord.Reserves().Sub(expectedCoins), acceptableDelta)
+
+			// Confirm depositor/module account balances have been updated
+			suite.ModuleAccountBalanceDelta(initialPoolRecord.Reserves().Sub(sdk.NewCoins(expectedCoinA, expectedCoinB)), acceptableDelta)
+			suite.AccountBalanceDelta(depositor, initialDepositorCoins.Add(expectedCoinA, expectedCoinB), acceptableDelta)
 		})
 	}
 }

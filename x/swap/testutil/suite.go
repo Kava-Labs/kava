@@ -87,6 +87,22 @@ func (suite *Suite) AccountBalanceEqual(acc authexported.Account, coins sdk.Coin
 	suite.Equal(coins, acc.GetCoins(), fmt.Sprintf("expected account balance to equal coins %s, but got %s", coins, acc.GetCoins()))
 }
 
+// AccountBalanceEqual asserts that the coins are within delta of the account balance
+func (suite *Suite) AccountBalanceDelta(acc authexported.Account, coins sdk.Coins, delta float64) {
+	ak := suite.App.GetAccountKeeper()
+	acc = ak.GetAccount(suite.Ctx, acc.GetAddress())
+	accCoins := acc.GetCoins()
+	allCoins := coins.Add(accCoins...)
+	for _, coin := range allCoins {
+		suite.InDelta(
+			coins.AmountOf(coin.Denom).Int64(),
+			accCoins.AmountOf(coin.Denom).Int64(),
+			delta,
+			fmt.Sprintf("expected module account balance to be in delta %f of coins %s, but got %s", delta, coins, accCoins),
+		)
+	}
+}
+
 // ModuleAccountBalanceEqual asserts that the swap module account balance matches the provided coins
 func (suite *Suite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 	sk := suite.App.GetSupplyKeeper()
@@ -95,12 +111,48 @@ func (suite *Suite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 	suite.Equal(coins, macc.GetCoins(), fmt.Sprintf("expected module account balance to equal coins %s, but got %s", coins, macc.GetCoins()))
 }
 
+// ModuleAccountBalanceEqual asserts that the swap module account balance is within acceptable delta of the provided coins
+func (suite *Suite) ModuleAccountBalanceDelta(coins sdk.Coins, delta float64) {
+	sk := suite.App.GetSupplyKeeper()
+	macc, _ := sk.GetModuleAccountAndPermissions(suite.Ctx, swap.ModuleName)
+	suite.Require().NotNil(macc, "expected module account to be defined")
+
+	allCoins := coins.Add(macc.GetCoins()...)
+	for _, coin := range allCoins {
+		suite.InDelta(
+			coins.AmountOf(coin.Denom).Int64(),
+			macc.GetCoins().AmountOf(coin.Denom).Int64(),
+			delta,
+			fmt.Sprintf("expected module account balance to be in delta %f of coins %s, but got %s", delta, coins, macc.GetCoins()),
+		)
+	}
+}
+
 // PoolLiquidityEqual asserts that the pool matching the provided coins has those reserves
 func (suite *Suite) PoolLiquidityEqual(coins sdk.Coins) {
 	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, swap.PoolIDFromCoins(coins))
 	suite.Require().True(ok, "expected pool to exist")
 	reserves := sdk.NewCoins(poolRecord.ReservesA, poolRecord.ReservesB)
 	suite.Equal(coins, reserves, fmt.Sprintf("expected pool reserves of %s, got %s", coins, reserves))
+}
+
+// PoolLiquidityEqual asserts that the pool matching the provided coins has those reserves within delta
+func (suite *Suite) PoolLiquidityDelta(coins sdk.Coins, delta float64) {
+	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, swap.PoolIDFromCoins(coins))
+	suite.Require().True(ok, "expected pool to exist")
+
+	suite.InDelta(
+		poolRecord.ReservesA.Amount.Int64(),
+		coins.AmountOf(poolRecord.ReservesA.Denom).Int64(),
+		delta,
+		fmt.Sprintf("expected pool reserves within delta %f of %s, got %s", delta, coins, poolRecord.Reserves()),
+	)
+	suite.InDelta(
+		poolRecord.ReservesB.Amount.Int64(),
+		coins.AmountOf(poolRecord.ReservesB.Denom).Int64(),
+		delta,
+		fmt.Sprintf("expected pool reserves within delta %f of %s, got %s", delta, coins, poolRecord.Reserves()),
+	)
 }
 
 // PoolShareValueEqual asserts that the depositor shares are in state and the value matches the expected coins
@@ -114,6 +166,27 @@ func (suite *Suite) PoolShareValueEqual(depositor authexported.Account, pool swa
 	suite.Nil(err)
 	value := storedPool.ShareValue(shares.SharesOwned)
 	suite.Equal(coins, value, fmt.Sprintf("expected shares to equal %s, but got %s", coins, value))
+}
+
+// PoolShareValueEqual asserts that the depositor shares are in state and the value is within delta of the expected coins
+func (suite *Suite) PoolShareValueDelta(depositor authexported.Account, pool swap.AllowedPool, coins sdk.Coins, delta float64) {
+	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
+	suite.Require().True(ok, fmt.Sprintf("expected pool %s to exist", pool.Name()))
+	shares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolRecord.PoolID)
+	suite.Require().True(ok, fmt.Sprintf("expected shares to exist for depositor %s", depositor.GetAddress()))
+
+	storedPool, err := swap.NewDenominatedPoolWithExistingShares(sdk.NewCoins(poolRecord.ReservesA, poolRecord.ReservesB), poolRecord.TotalShares)
+	suite.Nil(err)
+	value := storedPool.ShareValue(shares.SharesOwned)
+
+	for _, coin := range coins {
+		suite.InDelta(
+			coin.Amount.Int64(),
+			value.AmountOf(coin.Denom).Int64(),
+			delta,
+			fmt.Sprintf("expected shares to be within delta %f of %s, but got %s", delta, coins, value),
+		)
+	}
 }
 
 // EventsContains asserts that the expected event is in the provided events
