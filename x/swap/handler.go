@@ -50,7 +50,7 @@ func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgDeposit) (*
 }
 
 func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) (*sdk.Result, error) {
-	err := k.Withdraw(ctx, msg.From, msg.Pool, msg.Shares, msg.Slippage, msg.ExpectedCoinA, msg.ExpectedCoinB)
+	err := k.Withdraw(ctx, msg.From, msg.Shares, msg.Slippage, msg.ExpectedCoinA, msg.ExpectedCoinB)
 	if err != nil {
 		return nil, err
 	}

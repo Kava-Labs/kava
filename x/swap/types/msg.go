@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -95,7 +94,6 @@ func (msg MsgDeposit) DeadlineExceeded(blockTime time.Time) bool {
 // MsgWithdraw deposits liquidity into a pool
 type MsgWithdraw struct {
 	From          sdk.AccAddress `json:"from" yaml:"from"`
-	Pool          string         `json:"pool" yaml:"pool"`
 	Shares        sdk.Int        `json:"shares" yaml:"shares"`
 	Slippage      sdk.Dec        `json:"slippage" yaml:"slippage"`
 	ExpectedCoinA sdk.Coin       `json:"expected_coin_a" yaml:"expected_coin_a"`
@@ -104,11 +102,10 @@ type MsgWithdraw struct {
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(from sdk.AccAddress, pool string, shares sdk.Int, slippage sdk.Dec,
+func NewMsgWithdraw(from sdk.AccAddress, shares sdk.Int, slippage sdk.Dec,
 	expectedCoinA, expectedCoinB sdk.Coin, deadline int64) MsgWithdraw {
 	return MsgWithdraw{
 		From:          from,
-		Pool:          pool,
 		Shares:        shares,
 		Slippage:      slippage,
 		ExpectedCoinA: expectedCoinA,
@@ -129,10 +126,6 @@ func (msg MsgWithdraw) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "from address cannot be empty")
 	}
 
-	if len(msg.Pool) == 0 {
-		return sdkerrors.Wrap(ErrInvalidPool, "pool ID cannot be empty")
-	}
-
 	if msg.Shares.IsNil() || msg.Shares.IsZero() || msg.Shares.IsNegative() {
 		return sdkerrors.Wrapf(ErrInvalidShares, fmt.Sprintf("%s", msg.Shares))
 	}
@@ -141,12 +134,12 @@ func (msg MsgWithdraw) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidSlippage, fmt.Sprintf("%s", msg.Slippage))
 	}
 
-	if !strings.Contains(msg.Pool, msg.ExpectedCoinA.Denom) {
-		return sdkerrors.Wrapf(ErrInvalidCoin, "denom %s not in pool %s", msg.ExpectedCoinA.Denom, msg.Pool)
+	if !msg.ExpectedCoinA.IsValid() {
+		return sdkerrors.Wrapf(ErrInvalidCoin, fmt.Sprintf("%s", msg.ExpectedCoinA))
 	}
 
-	if !strings.Contains(msg.Pool, msg.ExpectedCoinB.Denom) {
-		return sdkerrors.Wrapf(ErrInvalidCoin, "denom %s not in pool %s", msg.ExpectedCoinB.Denom, msg.Pool)
+	if !msg.ExpectedCoinB.IsValid() {
+		return sdkerrors.Wrapf(ErrInvalidCoin, fmt.Sprintf("%s", msg.ExpectedCoinB))
 	}
 
 	if msg.Deadline <= 0 {

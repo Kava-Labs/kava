@@ -48,7 +48,7 @@ func (suite *keeperTestSuite) TestWithdraw_Full() {
 	suite.Require().True(found)
 
 	// Depositor withdraws all shares, expecting all coins to be withdrawn with a slippage of 1%
-	err := suite.Keeper.Withdraw(suite.Ctx, depositor.GetAddress(), poolID,
+	err := suite.Keeper.Withdraw(suite.Ctx, depositor.GetAddress(),
 		initialShareRecord.SharesOwned, sdk.MustNewDecFromStr("0.01"),
 		initialPoolRecord.ReservesA, initialPoolRecord.ReservesB)
 	suite.Require().NoError(err)
@@ -119,7 +119,7 @@ func (suite *keeperTestSuite) TestWithdraw_Partial() {
 			expectedCoinB := sdk.NewCoin(initialPoolRecord.ReservesB.Denom, expectedCoinAmountB.RoundInt())
 
 			// Depositor withdraws shares
-			err := suite.Keeper.Withdraw(suite.Ctx, depositor.GetAddress(), poolID,
+			err := suite.Keeper.Withdraw(suite.Ctx, depositor.GetAddress(),
 				withdrawShares, tc.slippage, expectedCoinA, expectedCoinB)
 			if tc.expectErr {
 				suite.Require().Error(err)

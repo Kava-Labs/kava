@@ -7,9 +7,11 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
-func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress,
-	poolID string, withdrawShares sdk.Int, slippageLimit sdk.Dec,
-	expectedCoinA, expectedCoinB sdk.Coin) error {
+func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, withdrawShares sdk.Int,
+	slippageLimit sdk.Dec, expectedCoinA, expectedCoinB sdk.Coin) error {
+	desiredAmount := sdk.NewCoins(expectedCoinA, expectedCoinB)
+	poolID := types.PoolIDFromCoins(desiredAmount)
+
 	// Confirm that the depositor owns the requested shares to withdraw
 	depositorShareRecord, found := k.GetDepositorShares(ctx, owner, poolID)
 	if !found {
