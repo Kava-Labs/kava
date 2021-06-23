@@ -818,8 +818,29 @@ func (suite *KeeperTestSuite) TestCloseProposal() {
 	// Confirm proposal exists
 	proposal, found := keeper.GetProposal(ctx, proposalID)
 	suite.True(found)
+
 	// Close proposal
 	keeper.CloseProposal(ctx, proposal, types.Passed)
+
+	events := ctx.EventManager().Events()
+	event := events[0]
+	suite.Require().Equal("proposal_close", event.Type)
+
+	hasProposalTallyAttr := false
+	for _, attr := range event.Attributes {
+		if string(attr.GetKey()) == "proposal_tally" {
+			hasProposalTallyAttr = true
+			valueStr := string(attr.GetValue())
+			suite.Contains(valueStr, "proposal_id")
+			suite.Contains(valueStr, "yes_votes")
+			suite.Contains(valueStr, "current_votes")
+			suite.Contains(valueStr, "possible_votes")
+			suite.Contains(valueStr, "vote_threshold")
+			suite.Contains(valueStr, "quorum")
+		}
+	}
+	suite.Require().True(hasProposalTallyAttr)
+
 	// Confirm proposal doesn't exist
 	_, found = keeper.GetProposal(ctx, proposalID)
 	suite.False(found)

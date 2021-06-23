@@ -37,11 +37,10 @@ func (suite *GenesisTestSuite) SetupTest() {
 	suite.genesisTime = time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	coins := []sdk.Coins{}
-	for j := 0; j < 3; j++ {
-		coins = append(coins, cs(c("bnb", 10_000_000_000), c("ukava", 10_000_000_000)))
-	}
-	authGS := app.NewAuthGenState(addrs, coins)
+
+	authBuilder := app.NewAuthGenesisBuilder().
+		WithSimpleAccount(addrs[0], cs(c("bnb", 1e10), c("ukava", 1e10))).
+		WithSimpleModuleAccount(kavadist.KavaDistMacc, cs(c("hard", 1e15), c("ukava", 1e15)))
 
 	loanToValue, _ := sdk.NewDecFromStr("0.6")
 	borrowLimit := sdk.NewDec(1000000000000000)
@@ -78,7 +77,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 	)
 	tApp.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
-		authGS,
+		authBuilder.BuildMarshalled(),
 		app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)},
 		app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGS)},
 		NewCDPGenStateMulti(),
@@ -86,14 +85,6 @@ func (suite *GenesisTestSuite) SetupTest() {
 	)
 
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
-
-	// TODO add to auth gen state to tidy up test
-	err := tApp.GetSupplyKeeper().MintCoins(
-		ctx,
-		kavadist.KavaDistMacc,
-		cs(c("hard", 1_000_000_000_000_000), c("ukava", 1_000_000_000_000_000)),
-	)
-	suite.Require().NoError(err)
 
 	suite.addrs = addrs
 	suite.keeper = keeper
