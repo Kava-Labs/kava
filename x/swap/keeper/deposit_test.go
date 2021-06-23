@@ -254,7 +254,7 @@ func (suite *keeperTestSuite) TestDeposit_Slippage() {
 				sdk.NewCoin("ukava", sdk.NewInt(100e6)),
 				sdk.NewCoin("usdx", sdk.NewInt(100e6)),
 			)
-			depositor := suite.GetAccount(balance)
+			depositor := suite.CreateAccount(balance)
 
 			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
@@ -298,7 +298,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientLiquidity() {
 
 			balance := sdk.Coins{tc.depositA, tc.depositB}
 			balance.Sort()
-			depositor := suite.GetAccount(balance)
+			depositor := suite.CreateAccount(balance)
 
 			err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB, sdk.MustNewDecFromStr("10"))
 			suite.EqualError(err, "insufficient liquidity: deposit must be increased")

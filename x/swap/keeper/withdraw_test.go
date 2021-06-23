@@ -22,7 +22,7 @@ func (suite *keeperTestSuite) setupPoolDeposit() (string, sdk.AccAddress) {
 	depositB := sdk.NewCoin(pool.TokenB, sdk.NewInt(50e6))
 	deposit := sdk.NewCoins(depositA, depositB)
 
-	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB)
+	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0.05"))
 	suite.Require().NoError(err)
 	suite.AccountBalanceEqual(depositor, sdk.NewCoins(amountA.Sub(depositA), amountB.Sub(depositB)))
 	suite.ModuleAccountBalanceEqual(sdk.NewCoins(depositA, depositB))

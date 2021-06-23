@@ -176,7 +176,7 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool_SlippageFailure() {
 		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 	)
-	depositor := suite.GetAccount(balance)
+	depositor := suite.CreateAccount(balance)
 
 	deposit := swap.NewMsgDeposit(
 		depositor.GetAddress(),
