@@ -14,4 +14,5 @@ const (
 	AttributeKeyVoter               = "voter"
 	AttributeKeyVote                = "vote"
 	AttributeKeyProposalOutcome     = "proposal_outcome"
+	AttributeKeyProposalTally       = "proposal_tally"
 )

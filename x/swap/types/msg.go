@@ -26,15 +26,17 @@ type MsgDeposit struct {
 	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
 	TokenA    sdk.Coin       `json:"token_a" yaml:"token_a"`
 	TokenB    sdk.Coin       `json:"token_b" yaml:"token_b"`
+	Slippage  sdk.Dec        `json:"slippage" yaml:"slippage`
 	Deadline  int64          `json:"deadline" yaml:"deadline"`
 }
 
 // NewMsgDeposit returns a new MsgDeposit
-func NewMsgDeposit(depositor sdk.AccAddress, tokenA sdk.Coin, tokenB sdk.Coin, deadline int64) MsgDeposit {
+func NewMsgDeposit(depositor sdk.AccAddress, tokenA sdk.Coin, tokenB sdk.Coin, slippage sdk.Dec, deadline int64) MsgDeposit {
 	return MsgDeposit{
 		Depositor: depositor,
 		TokenA:    tokenA,
 		TokenB:    tokenB,
+		Slippage:  slippage,
 		Deadline:  deadline,
 	}
 }
@@ -61,6 +63,10 @@ func (msg MsgDeposit) ValidateBasic() error {
 
 	if msg.TokenA.Denom == msg.TokenB.Denom {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
+	}
+
+	if msg.Slippage.IsNegative() {
+		return sdkerrors.Wrapf(ErrInvalidSlippage, "slippage can not be negative")
 	}
 
 	if msg.Deadline <= 0 {

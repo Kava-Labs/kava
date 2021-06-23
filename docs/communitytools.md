@@ -27,7 +27,6 @@ The Kava community has developed some amazing tools and services. If you've buil
 ## Staking
 
 - [Staking rewards calculator](https://www.stakingrewards.com/earn/kava/calculate)
-- [Hubble](https://hubble.figment.network/kava/chains/kava-3) validator explorer by Figment
 
 ### Staking Providers
 
