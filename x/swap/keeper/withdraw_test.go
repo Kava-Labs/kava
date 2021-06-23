@@ -178,15 +178,6 @@ func (suite *keeperTestSuite) TestWithdraw_Partial() {
 			// Confirm depositor/module account balances have been updated
 			suite.ModuleAccountBalanceDelta(initialPoolRecord.Reserves().Sub(sdk.NewCoins(expectedCoinA, expectedCoinB)), acceptableDelta)
 			suite.AccountBalanceDelta(depositor, initialDepositorCoins.Add(expectedCoinA, expectedCoinB), acceptableDelta)
-
-			// Check withdraw event attributes
-			suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
-				types.EventTypeSwapWithdraw,
-				sdk.NewAttribute(types.AttributeKeyPoolID, types.PoolID(initialPoolRecord.ReservesA.Denom, initialPoolRecord.ReservesB.Denom)),
-				sdk.NewAttribute(types.AttributeKeyOwner, depositor.GetAddress().String()),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, expectedCoins.String()),
-				sdk.NewAttribute(types.AttributeKeyShares, initialShareRecord.SharesOwned.String()),
-			))
 		})
 	}
 }
