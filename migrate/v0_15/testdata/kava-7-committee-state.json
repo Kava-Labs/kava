@@ -416,6 +416,10 @@
                             {
                                 "subspace": "swap",
                                 "key": "SwapFee"
+                            },
+                            {
+                                "subspace": "incentive",
+                                "key": "HardDelegatorRewardPeriods"
                             }
                         ]
                     }
