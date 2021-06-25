@@ -397,6 +397,97 @@
             ],
             "vote_threshold": "0.500000000000000000",
             "proposal_duration": "604800000000000"
+        },
+        {
+            "id": "3",
+            "description": "Hard Governance Committee",
+            "members": [
+                "kava1e0agyg6eug9r62fly9sls77ycjgw8ax6xk73es"
+            ],
+            "permissions": [
+                {
+                    "type": "kava/SubParamChangePermission",
+                    "value": {
+                        "allowed_params": [
+                            {
+                                "subspace": "hard",
+                                "key": "MoneyMarkets"
+                            },
+                            {
+                                "subspace": "hard",
+                                "key": "MinimumBorrowUSDValue"
+                            }
+                        ],
+                        "allowed_money_markets": [
+                            {
+                                "denom": "bnb",
+                                "borrow_limit": true,
+                                "spot_market_id": false,
+                                "conversion_factor": false,
+                                "interest_rate_model": true,
+                                "reserve_factor": true,
+                                "keeper_reward_percentage": true
+                            },
+                            {
+                                "denom": "busd",
+                                "borrow_limit": true,
+                                "spot_market_id": false,
+                                "conversion_factor": false,
+                                "interest_rate_model": true,
+                                "reserve_factor": true,
+                                "keeper_reward_percentage": true
+                            },
+                            {
+                                "denom": "btcb",
+                                "borrow_limit": true,
+                                "spot_market_id": false,
+                                "conversion_factor": false,
+                                "interest_rate_model": true,
+                                "reserve_factor": true,
+                                "keeper_reward_percentage": true
+                            },
+                            {
+                                "denom": "xrpb",
+                                "borrow_limit": true,
+                                "spot_market_id": false,
+                                "conversion_factor": false,
+                                "interest_rate_model": true,
+                                "reserve_factor": true,
+                                "keeper_reward_percentage": true
+                            },
+                            {
+                                "denom": "usdx",
+                                "borrow_limit": true,
+                                "spot_market_id": false,
+                                "conversion_factor": false,
+                                "interest_rate_model": true,
+                                "reserve_factor": true,
+                                "keeper_reward_percentage": true
+                            },
+                            {
+                                "denom": "ukava",
+                                "borrow_limit": true,
+                                "spot_market_id": false,
+                                "conversion_factor": false,
+                                "interest_rate_model": true,
+                                "reserve_factor": true,
+                                "keeper_reward_percentage": true
+                            },
+                            {
+                                "denom": "hard",
+                                "borrow_limit": true,
+                                "spot_market_id": false,
+                                "conversion_factor": false,
+                                "interest_rate_model": true,
+                                "reserve_factor": true,
+                                "keeper_reward_percentage": true
+                            }
+                        ]
+                    }
+                }
+            ],
+            "vote_threshold": "0.500000000000000000",
+            "proposal_duration": "604800000000000"
         }
     ]
 }
