@@ -397,6 +397,32 @@
             ],
             "vote_threshold": "0.500000000000000000",
             "proposal_duration": "604800000000000"
+        },
+        {
+            "id": "3",
+            "description": "Swap Governance Committee",
+            "members": [
+                "kava1e0agyg6eug9r62fly9sls77ycjgw8ax6xk73es"
+            ],
+            "permissions": [
+                {
+                    "type": "kava/SubParamChangePermission",
+                    "value": {
+                        "allowed_params": [
+                            {
+                                "subspace": "swap",
+                                "key": "AllowedPools"
+                            },
+                            {
+                                "subspace": "swap",
+                                "key": "SwapFee"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "vote_threshold": "0.500000000000000000",
+            "proposal_duration": "604800000000000"
         }
     ]
 }
