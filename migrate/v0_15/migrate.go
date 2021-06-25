@@ -77,7 +77,8 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	proposals := []v0_15committee.Proposal{}
 
 	for _, com := range genesisState.Committees {
-		if com.ID == 1 {
+		switch com.ID {
+		case 1:
 			// Initialize member committee without permissions
 			stabilityCom := comtypes.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{}, com.VoteThreshold, com.ProposalDuration,
@@ -174,11 +175,38 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 			baseStabilityCom := stabilityCom.SetPermissions(newStabilityCommitteePermissions)
 			newStabilityCom := v0_15committee.MemberCommittee{BaseCommittee: baseStabilityCom}
 			committees = append(committees, newStabilityCom)
-		} else {
+		case 2:
 			safetyCom := comtypes.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{v0_15committee.SoftwareUpgradePermission{}},
 				com.VoteThreshold, com.ProposalDuration, v0_15committee.FirstPastThePost)
 			committees = append(committees, safetyCom)
+		case 3:
+			// Initialize swap governance committee without permissions
+			quorum := sdk.MustNewDecFromStr("0.33")
+			tallyDenom := "swp"
+			swapGovCom := comtypes.NewTokenCommittee(com.ID, com.Description, com.Members,
+				[]v0_15committee.Permission{}, com.VoteThreshold, com.ProposalDuration,
+				v0_15committee.FirstPastThePost, quorum, tallyDenom)
+
+			// Build swap governance committee permissions
+			var newSwapCommitteePermissions []v0_15committee.Permission
+			var newSwapSubParamPermissions v0_15committee.SubParamChangePermission
+			for _, perm := range com.Permissions {
+				subPerm, ok := perm.(v0_14committee.SubParamChangePermission)
+				if ok {
+					// Update AllowedParams
+					var newAllowedParams v0_15committee.AllowedParams
+					for _, ap := range subPerm.AllowedParams {
+						newAP := v0_15committee.AllowedParam(ap)
+						newAllowedParams = append(newAllowedParams, newAP)
+					}
+					newSwapSubParamPermissions.AllowedParams = newAllowedParams
+					newSwapCommitteePermissions = append(newSwapCommitteePermissions, newSwapSubParamPermissions)
+				}
+			}
+			// Set swap governance committee permissions
+			permissionedSwapGovCom := swapGovCom.SetPermissions(newSwapCommitteePermissions)
+			committees = append(committees, permissionedSwapGovCom)
 		}
 	}
 
