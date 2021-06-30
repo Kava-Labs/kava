@@ -94,9 +94,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 				}
 			}
 		}
-		for j, ri := range claim.DelegatorRewardIndexes {
-			if ri.RewardFactor != sdk.ZeroDec() {
-				gs.HardLiquidityProviderClaims[i].DelegatorRewardIndexes[j].RewardFactor = sdk.ZeroDec()
+		for j, dri := range claim.DelegatorRewardIndexes {
+			for k, ri := range dri.RewardIndexes {
+				if ri.RewardFactor != sdk.ZeroDec() {
+					gs.HardLiquidityProviderClaims[i].DelegatorRewardIndexes[j].RewardIndexes[k].RewardFactor = sdk.ZeroDec()
+				}
 			}
 		}
 		k.SetHardLiquidityProviderClaim(ctx, claim)
@@ -140,8 +142,10 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 				claim.SupplyRewardIndexes[i].RewardIndexes[j].RewardFactor = sdk.ZeroDec()
 			}
 		}
-		for i := range claim.DelegatorRewardIndexes {
-			claim.DelegatorRewardIndexes[i].RewardFactor = sdk.ZeroDec()
+		for i, dri := range claim.DelegatorRewardIndexes {
+			for j := range dri.RewardIndexes {
+				claim.DelegatorRewardIndexes[i].RewardIndexes[j].RewardFactor = sdk.ZeroDec()
+			}
 		}
 		synchronizedHardClaims = append(synchronizedHardClaims, claim)
 	}

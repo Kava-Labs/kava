@@ -88,10 +88,9 @@ func (suite *HandlerTestSuite) addHardLiquidityProviderClaim() {
 	err := sk.MintCoins(suite.ctx, kavadist.ModuleName, cs(c("ukava", 1000000000000)))
 	suite.Require().NoError(err)
 	rewardPeriod := types.RewardIndexes{types.NewRewardIndex("bnb-s", sdk.ZeroDec())}
-
 	multiRewardIndex := types.NewMultiRewardIndex("bnb-s", rewardPeriod)
 	multiRewardIndexes := types.MultiRewardIndexes{multiRewardIndex}
-	c1 := incentive.NewHardLiquidityProviderClaim(suite.addrs[0], cs(c("ukava", 1000000)), multiRewardIndexes, multiRewardIndexes, rewardPeriod)
+	c1 := incentive.NewHardLiquidityProviderClaim(suite.addrs[0], cs(c("ukava", 1000000)), multiRewardIndexes, multiRewardIndexes, multiRewardIndexes)
 	suite.NotPanics(func() {
 		suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, c1)
 	})

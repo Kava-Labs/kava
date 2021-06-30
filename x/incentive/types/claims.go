@@ -167,12 +167,12 @@ type HardLiquidityProviderClaim struct {
 	BaseMultiClaim         `json:"base_claim" yaml:"base_claim"`
 	SupplyRewardIndexes    MultiRewardIndexes `json:"supply_reward_indexes" yaml:"supply_reward_indexes"`
 	BorrowRewardIndexes    MultiRewardIndexes `json:"borrow_reward_indexes" yaml:"borrow_reward_indexes"`
-	DelegatorRewardIndexes RewardIndexes      `json:"delegator_reward_indexes" yaml:"delegator_reward_indexes"`
+	DelegatorRewardIndexes MultiRewardIndexes `json:"delegator_reward_indexes" yaml:"delegator_reward_indexes"`
 }
 
 // NewHardLiquidityProviderClaim returns a new HardLiquidityProviderClaim
 func NewHardLiquidityProviderClaim(owner sdk.AccAddress, rewards sdk.Coins, supplyRewardIndexes,
-	borrowRewardIndexes MultiRewardIndexes, delegatorRewardIndexes RewardIndexes) HardLiquidityProviderClaim {
+	borrowRewardIndexes, delegatorRewardIndexes MultiRewardIndexes) HardLiquidityProviderClaim {
 	return HardLiquidityProviderClaim{
 		BaseMultiClaim: BaseMultiClaim{
 			Owner:  owner,
