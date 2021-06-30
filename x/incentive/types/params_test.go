@@ -23,7 +23,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		usdxMintingRewardPeriods   types.RewardPeriods
 		hardSupplyRewardPeriods    types.MultiRewardPeriods
 		hardBorrowRewardPeriods    types.MultiRewardPeriods
-		hardDelegatorRewardPeriods types.RewardPeriods
+		hardDelegatorRewardPeriods types.MultiRewardPeriods
 		multipliers                types.Multipliers
 		end                        time.Time
 	}
@@ -45,7 +45,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				usdxMintingRewardPeriods:   types.DefaultRewardPeriods,
 				hardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
 				hardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
-				hardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				hardDelegatorRewardPeriods: types.DefaultMultiRewardPeriods,
 				multipliers:                types.DefaultMultipliers,
 				end:                        types.DefaultClaimEnd,
 			},
@@ -70,7 +70,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				},
 				hardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
 				hardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
-				hardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				hardDelegatorRewardPeriods: types.DefaultMultiRewardPeriods,
 				end:                        time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
 			errArgs{
