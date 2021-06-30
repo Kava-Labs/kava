@@ -54,14 +54,14 @@ func (k Keeper) GetHardBorrowRewardPeriods(ctx sdk.Context, denom string) (types
 }
 
 // GetHardDelegatorRewardPeriod returns the reward period with the specified collateral type if it's found in the params
-func (k Keeper) GetHardDelegatorRewardPeriod(ctx sdk.Context, denom string) (types.RewardPeriod, bool) {
+func (k Keeper) GetHardDelegatorRewardPeriod(ctx sdk.Context, denom string) (types.MultiRewardPeriod, bool) {
 	params := k.GetParams(ctx)
 	for _, rp := range params.HardDelegatorRewardPeriods {
 		if rp.CollateralType == denom {
 			return rp, true
 		}
 	}
-	return types.RewardPeriod{}, false
+	return types.MultiRewardPeriod{}, false
 }
 
 // GetMultiplier returns the multiplier with the specified name if it's found in the params
