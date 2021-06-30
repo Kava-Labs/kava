@@ -53,13 +53,14 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 		claim, _ = k.GetHardLiquidityProviderClaim(ctx, delegator)
 	}
 
-	globalRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
+	var delegatorRewardIndexes types.MultiRewardIndexes
+	globalRewardIndexes, found := k.GetHardDelegatorRewardIndexes(ctx, types.BondDenom)
 	if !found {
-		// If there's no global delegator reward factor, initialize the claim with a delegator factor of zero.
-		globalRewardFactor = sdk.ZeroDec()
+		globalRewardIndexes = types.RewardIndexes{}
 	}
+	delegatorRewardIndexes = delegatorRewardIndexes.With(types.BondDenom, globalRewardIndexes)
 
-	claim.DelegatorRewardIndexes = types.RewardIndexes{types.NewRewardIndex(types.BondDenom, globalRewardFactor)}
+	claim.DelegatorRewardIndexes = delegatorRewardIndexes
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
