@@ -222,8 +222,9 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	b, feeValue := p.swapExactInput(a, p.reservesA, p.reservesB, fee)
 
-	p.reservesA = p.reservesA.Add(a)
-	p.reservesB = p.reservesB.Sub(b)
+	p.assertInvariantAndUpdateRerserves(
+		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdk.ZeroInt(),
+	)
 
 	return b, feeValue
 }
@@ -232,8 +233,9 @@ func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	a, feeValue := p.swapExactInput(b, p.reservesB, p.reservesA, fee)
 
-	p.reservesB = p.reservesB.Add(b)
-	p.reservesA = p.reservesA.Sub(a)
+	p.assertInvariantAndUpdateRerserves(
+		p.reservesA.Sub(a), sdk.ZeroInt(), p.reservesB.Add(b), feeValue,
+	)
 
 	return a, feeValue
 }
@@ -259,8 +261,9 @@ func (p *BasePool) swapExactInput(in, inReserves, outReserves sdk.Int, fee sdk.D
 func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	a, feeValue := p.swapExactOutput(b, p.reservesB, p.reservesA, fee)
 
-	p.reservesA = p.reservesA.Add(a)
-	p.reservesB = p.reservesB.Sub(b)
+	p.assertInvariantAndUpdateRerserves(
+		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdk.ZeroInt(),
+	)
 
 	return a, feeValue
 }
@@ -269,8 +272,9 @@ func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	b, feeValue := p.swapExactOutput(a, p.reservesA, p.reservesB, fee)
 
-	p.reservesB = p.reservesB.Add(b)
-	p.reservesA = p.reservesA.Sub(a)
+	p.assertInvariantAndUpdateRerserves(
+		p.reservesA.Sub(a), sdk.ZeroInt(), p.reservesB.Add(b), feeValue,
+	)
 
 	return b, feeValue
 }
@@ -313,6 +317,21 @@ func (p *BasePool) ShareValue(shares sdk.Int) (sdk.Int, sdk.Int) {
 	resultB.Quo(&resultB, p.totalShares.BigInt())
 
 	return sdk.NewIntFromBigInt(&resultA), sdk.NewIntFromBigInt(&resultB)
+}
+
+// assertInvariantAndUpdateRerserves asserts the constant product invariant is not violated, subtracting
+// any fees first, then updates the pool reserves.  Panics if invariant is violated.
+func (p *BasePool) assertInvariantAndUpdateRerserves(newReservesA, feeA, newReservesB, feeB sdk.Int) {
+	var invariant big.Int
+	invariant.Mul(p.reservesA.BigInt(), p.reservesB.BigInt())
+
+	var newInvariant big.Int
+	newInvariant.Mul(newReservesA.Sub(feeA).BigInt(), newReservesB.Sub(feeB).BigInt())
+
+	p.assertInvariant(&invariant, &newInvariant)
+
+	p.reservesA = newReservesA
+	p.reservesB = newReservesB
 }
 
 // assertSwapInputIsValid checks if the provided swap input is positive
@@ -388,5 +407,14 @@ func (p *BasePool) assertReservesAreNotNegative() {
 
 	if p.reservesB.IsNegative() {
 		panic("invalid state: reserves B can not be negative")
+	}
+}
+
+// assertInvariant panics if the new invariant is less than the previous invariant.  This
+// is an invalid state that should never happen.  If this panic is seen, it is a bug.
+func (p *BasePool) assertInvariant(prevInvariant, newInvariant *big.Int) {
+	// invariant > newInvariant
+	if prevInvariant.Cmp(newInvariant) == 1 {
+		panic(fmt.Sprintf("invalid state: invariant %s decreased to %s", prevInvariant.String(), newInvariant.String()))
 	}
 }
