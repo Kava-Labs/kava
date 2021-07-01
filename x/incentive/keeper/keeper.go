@@ -275,7 +275,7 @@ func (k Keeper) IterateHardBorrowRewardIndexes(ctx sdk.Context, cb func(denom st
 
 // GetHardDelegatorRewardIndexes gets the current reward indexes for an individual denom
 func (k Keeper) GetHardDelegatorRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardIndexesKeyPrefix)
 	bz := store.Get([]byte(denom))
 	if bz == nil {
 		return types.RewardIndexes{}, false
@@ -287,14 +287,14 @@ func (k Keeper) GetHardDelegatorRewardIndexes(ctx sdk.Context, denom string) (ty
 
 // SetHardDelegatorRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetHardDelegatorRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardIndexesKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryBare(indexes)
 	store.Set([]byte(denom), bz)
 }
 
 // IterateHardDelegatorRewardIndexes iterates over all Delegator reward index objects in the store and preforms a callback function
 func (k Keeper) IterateHardDelegatorRewardIndexes(ctx sdk.Context, cb func(denom string, indexes types.RewardIndexes) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardIndexesKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

@@ -48,8 +48,13 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		k.SetHardBorrowRewardIndexes(ctx, mrp.CollateralType, newRewardIndexes)
 	}
 
-	for _, rp := range gs.Params.HardDelegatorRewardPeriods {
-		k.SetHardDelegatorRewardFactor(ctx, rp.CollateralType, sdk.ZeroDec())
+	for _, drp := range gs.Params.HardDelegatorRewardPeriods {
+		newRewardIndexes := types.RewardIndexes{}
+		for _, rc := range drp.RewardsPerSecond {
+			ri := types.NewRewardIndex(rc.Denom, sdk.ZeroDec())
+			newRewardIndexes = append(newRewardIndexes, ri)
+		}
+		k.SetHardDelegatorRewardIndexes(ctx, drp.CollateralType, newRewardIndexes)
 	}
 
 	k.SetParams(ctx, gs.Params)
