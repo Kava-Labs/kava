@@ -27,9 +27,10 @@ func TestInitializeHardDelegatorReward(t *testing.T) {
 	suite.Run(t, new(InitializeHardDelegatorRewardTests))
 }
 
-func (suite *InitializeHardDelegatorRewardTests) storeGlobalDelegatorFactor(rewardIndexes types.RewardIndexes) {
-	factor := rewardIndexes[0]
-	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, factor.CollateralType, factor.RewardFactor)
+// Hardcoded to use bond denom
+func (suite *InitializeHardDelegatorRewardTests) storeGlobalDelegatorFactor(multiRewardIndexes types.MultiRewardIndexes) {
+	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
+	suite.keeper.SetHardDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
 }
 
 func (suite *InitializeHardDelegatorRewardTests) TestClaimIndexesAreSetWhenClaimDoesNotExist() {
@@ -70,19 +71,29 @@ func (suite *InitializeHardDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreS
 
 	// Set the global factor to a value different to one in claim so
 	// we can detect if it is overwritten.
-	globalIndex := increaseRewardFactors(claim.DelegatorRewardIndexes)
-	suite.storeGlobalDelegatorFactor(globalIndex)
+	rewardIndexes, _ := claim.DelegatorRewardIndexes.Get(types.BondDenom)
+	globalIndexes := increaseRewardFactors(rewardIndexes)
+
+	// Update the claim object with the new global factor
+	bondIndex, _ := claim.DelegatorRewardIndexes.GetRewardIndexIndex(types.BondDenom)
+	claim.DelegatorRewardIndexes[bondIndex].RewardIndexes = globalIndexes
+	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
 
 	suite.keeper.InitializeHardDelegatorReward(suite.ctx, claim.Owner)
 
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
-	suite.Equal(globalIndex, syncedClaim.DelegatorRewardIndexes)
+	suite.Equal(globalIndexes, syncedClaim.DelegatorRewardIndexes[bondIndex].RewardIndexes)
 	suite.Truef(syncedClaim.Reward.IsAllGT(claim.Reward), "'%s' not greater than '%s'", syncedClaim.Reward, claim.Reward)
 }
 
 // arbitraryDelegatorRewardIndexes contains only one reward index as there is only every one bond denom
-var arbitraryDelegatorRewardIndexes = types.RewardIndexes{
-	types.NewRewardIndex(types.BondDenom, d("0.2")),
+var arbitraryDelegatorRewardIndexes = types.MultiRewardIndexes{
+	types.NewMultiRewardIndex(
+		types.BondDenom,
+		types.RewardIndexes{
+			types.NewRewardIndex("hard", d("0.2")),
+		},
+	),
 }
 
 type fakeStakingKeeper struct {
