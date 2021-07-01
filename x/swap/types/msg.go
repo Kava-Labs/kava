@@ -23,7 +23,7 @@ type MsgDeposit struct {
 	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
 	TokenA    sdk.Coin       `json:"token_a" yaml:"token_a"`
 	TokenB    sdk.Coin       `json:"token_b" yaml:"token_b"`
-	Slippage  sdk.Dec        `json:"slippage" yaml:"slippage`
+	Slippage  sdk.Dec        `json:"slippage" yaml:"slippage"`
 	Deadline  int64          `json:"deadline" yaml:"deadline"`
 }
 
