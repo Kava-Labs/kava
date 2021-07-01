@@ -18,7 +18,7 @@ import (
 // The slippage is calculated using both the price and inverse price of the provided coinA and coinB.
 // Since adding liquidity is not directional, like a swap would be, using both the price (coinB/coinA),
 // and the inverse price (coinA/coinB), protects the depositor from a large deviation in their deposit.
-
+//
 // The amount deposited may only change by B' < B or A' < A -- either B depreciates, or A depreciates.
 // Therefore, slippage can be written as a function of this depreciation d.  Where the new price is
 // B*(1-d)/A or A*(1-d)/B, and the inverse of each, and is A/(B*(1-d)) and B/(A*(1-d))
