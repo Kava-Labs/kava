@@ -12,7 +12,6 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
-	"github.com/kava-labs/kava/x/committee/types"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
 )
 
@@ -75,7 +74,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	for _, com := range genesisState.Committees {
 		if com.ID == 1 {
 			// Initialize member committee without permissions
-			stabilityCom := types.NewMemberCommittee(com.ID, com.Description, com.Members,
+			stabilityCom := v0_15committee.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{}, com.VoteThreshold, com.ProposalDuration,
 				v0_15committee.FirstPastThePost)
 
@@ -171,7 +170,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 			newStabilityCom := v0_15committee.MemberCommittee{BaseCommittee: baseStabilityCom}
 			committees = append(committees, newStabilityCom)
 		} else {
-			safetyCom := types.NewMemberCommittee(com.ID, com.Description, com.Members,
+			safetyCom := v0_15committee.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{v0_15committee.SoftwareUpgradePermission{}},
 				com.VoteThreshold, com.ProposalDuration, v0_15committee.FirstPastThePost)
 			committees = append(committees, safetyCom)
@@ -179,7 +178,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	}
 
 	for _, v := range genesisState.Votes {
-		newVote := v0_15committee.NewVote(v.ProposalID, v.Voter, types.Yes)
+		newVote := v0_15committee.NewVote(v.ProposalID, v.Voter, v0_15committee.Yes)
 		votes = append(votes, v0_15committee.Vote(newVote))
 	}
 
