@@ -218,7 +218,8 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 	return withdrawA, withdrawB
 }
 
-// SwapAForB trades a for b with a percentage fee, returns b and fee amount in a
+// SwapExactAForB trades an exact value of a for b.  Returns the positive amount b
+// that is removed from the pool and the portion of a that is used for paying the fee.
 func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	b, feeValue := p.swapExactInput(a, p.reservesA, p.reservesB, fee)
 
@@ -229,7 +230,8 @@ func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	return b, feeValue
 }
 
-// SwapBForA trades b for a with a percentage fee, returns a and fee amount in b
+// SwapExactAForB trades an exact value of b for a.  Returns the positive amount a
+// that is removed from the pool and the portion of b that is used for paying the fee.
 func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	a, feeValue := p.swapExactInput(b, p.reservesB, p.reservesA, fee)
 
@@ -240,6 +242,13 @@ func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	return a, feeValue
 }
 
+// swapExactInput calculates the output amount of a swap using a fixed input, returning this amount in
+// addition to the amount of input that is used to pay the fee.
+//
+// The fee is ceiled, ensuring a minimum fee of 1 and ensuring fees of a trade can not be reduced
+// by splitting a trade into multiple trades.
+//
+// The swap output is truncated to ensure the pool invariant is always greater than the previous invariant.
 func (p *BasePool) swapExactInput(in, inReserves, outReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	p.assertSwapInputIsValid(in)
 	p.assertFeeIsValid(fee)
@@ -256,8 +265,8 @@ func (p *BasePool) swapExactInput(in, inReserves, outReserves sdk.Int, fee sdk.D
 	return out, feeValue
 }
 
-// SwapAForExactB trades a for an exact b.  The amount of a added to the reserves is returned,
-// in addition to the amount of a that was used to pay for fees
+// SwapAForExactB trades a for an exact b.  Returns the positive amount a
+// that is added to the pool, and the portion of a that is used to pay the fee.
 func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	a, feeValue := p.swapExactOutput(b, p.reservesB, p.reservesA, fee)
 
@@ -268,7 +277,8 @@ func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	return a, feeValue
 }
 
-// SwapBForA trades b for a with a percentage fee, returns a and fee amount in b
+// SwapBForExactA trades b for an exact a.  Returns the positive amount b
+// that is added to the pool, and the portion of b that is used to pay the fee.
 func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	b, feeValue := p.swapExactOutput(a, p.reservesA, p.reservesB, fee)
 
@@ -279,6 +289,13 @@ func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	return b, feeValue
 }
 
+// swapExactInput calculates the input amount of a swap using a fixed output, returning this amount in
+// addition to the amount of input that is used to pay the fee.
+//
+// The fee is ceiled, ensuring a minimum fee of 1 and ensuring fees of a trade can not be reduced
+// by splitting a trade into multiple trades.
+//
+// The swap input is ceiled to ensure the pool invariant is always greater than the previous invariant.
 func (p *BasePool) swapExactOutput(out, outReserves, inReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	p.assertSwapOutputIsValid(out, outReserves)
 	p.assertFeeIsValid(fee)
