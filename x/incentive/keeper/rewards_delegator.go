@@ -9,7 +9,7 @@ import (
 )
 
 // AccumulateHardDelegatorRewards updates the rewards accumulated for the input reward period
-func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
+func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) error {
 	previousAccrualTime, found := k.GetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
 		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
@@ -19,7 +19,7 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod typ
 	if timeElapsed.IsZero() {
 		return nil
 	}
-	if rewardPeriod.RewardsPerSecond.Amount.IsZero() {
+	if rewardPeriod.RewardsPerSecond.IsZero() {
 		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
@@ -30,15 +30,35 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod typ
 		return nil
 	}
 
-	newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-	rewardFactor := newRewards.ToDec().Quo(totalBonded)
-
-	previousRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, rewardPeriod.CollateralType)
+	previousRewardIndexes, found := k.GetHardDelegatorRewardIndexes(ctx, rewardPeriod.CollateralType)
 	if !found {
-		previousRewardFactor = sdk.ZeroDec()
+		for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
+			rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+			previousRewardIndexes = append(previousRewardIndexes, rewardIndex)
+		}
+		k.SetHardDelegatorRewardIndexes(ctx, rewardPeriod.CollateralType, previousRewardIndexes)
 	}
-	newRewardFactor := previousRewardFactor.Add(rewardFactor)
-	k.SetHardDelegatorRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
+
+	newRewardIndexes := previousRewardIndexes
+	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
+		newRewards := rewardCoin.Amount.ToDec().Mul(timeElapsed.ToDec())
+		previousRewardIndex, found := previousRewardIndexes.GetRewardIndex(rewardCoin.Denom)
+		if !found {
+			previousRewardIndex = types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+		}
+
+		// Calculate new reward factor and update reward index
+		rewardFactor := newRewards.Quo(totalBonded)
+		newRewardFactorValue := previousRewardIndex.RewardFactor.Add(rewardFactor)
+		newRewardIndex := types.NewRewardIndex(rewardCoin.Denom, newRewardFactorValue)
+		i, found := newRewardIndexes.GetFactorIndex(rewardCoin.Denom)
+		if found {
+			newRewardIndexes[i] = newRewardIndex
+		} else {
+			newRewardIndexes = append(newRewardIndexes, newRewardIndex)
+		}
+	}
+	k.SetHardDelegatorRewardIndexes(ctx, rewardPeriod.CollateralType, newRewardIndexes)
 	k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 	return nil
 }
