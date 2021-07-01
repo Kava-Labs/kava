@@ -28,9 +28,9 @@ func TestSynchronizeHardDelegatorReward(t *testing.T) {
 	suite.Run(t, new(SynchronizeHardDelegatorRewardTests))
 }
 
-func (suite *SynchronizeHardDelegatorRewardTests) storeGlobalDelegatorFactor(rewardIndexes types.RewardIndexes) {
-	factor := rewardIndexes[0]
-	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, factor.CollateralType, factor.RewardFactor)
+func (suite *SynchronizeHardDelegatorRewardTests) storeGlobalDelegatorFactor(multiRewardIndexes types.MultiRewardIndexes) {
+	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
+	suite.keeper.SetHardDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
 }
 
 func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUnchangedWhenGlobalFactorUnchanged() {
@@ -68,14 +68,20 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUpdatedWhen
 	}
 	suite.storeClaim(claim)
 
-	globalIndexes := increaseRewardFactors(claim.DelegatorRewardIndexes)
-	suite.storeGlobalDelegatorFactor(globalIndexes)
+	rewardIndexes, _ := claim.DelegatorRewardIndexes.Get(types.BondDenom)
+	globalIndexes := increaseRewardFactors(rewardIndexes)
+
+	// Update the claim object with the new global factor
+	bondIndex, _ := claim.DelegatorRewardIndexes.GetRewardIndexIndex(types.BondDenom)
+	claim.DelegatorRewardIndexes[bondIndex].RewardIndexes = globalIndexes
+	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
 
 	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
-	suite.Equal(globalIndexes, syncedClaim.DelegatorRewardIndexes)
+	suite.Equal(globalIndexes, syncedClaim.DelegatorRewardIndexes[bondIndex].RewardIndexes)
 }
+
 func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGlobalFactorUnchanged() {
 	delegator := arbitraryAddress()
 	validatorAddress := arbitraryValidatorAddress()
@@ -98,9 +104,13 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGloba
 			Owner:  delegator,
 			Reward: arbitraryCoins(),
 		},
-		DelegatorRewardIndexes: types.RewardIndexes{{
+		DelegatorRewardIndexes: types.MultiRewardIndexes{{
 			CollateralType: types.BondDenom,
-			RewardFactor:   d("0.1"),
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "hard", RewardFactor: d("0.1"),
+				},
+			},
 		}},
 	}
 	suite.storeClaim(claim)
@@ -136,13 +146,17 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRe
 			Owner:  delegator,
 			Reward: arbitraryCoins(),
 		},
-		DelegatorRewardIndexes: types.RewardIndexes{},
+		DelegatorRewardIndexes: types.MultiRewardIndexes{},
 	}
 	suite.storeClaim(claim)
 
-	newGlobalIndexes := types.RewardIndexes{{
+	newGlobalIndexes := types.MultiRewardIndexes{{
 		CollateralType: types.BondDenom,
-		RewardFactor:   d("0.1"),
+		RewardIndexes: types.RewardIndexes{
+			{
+				CollateralType: "hard", RewardFactor: d("0.1"),
+			},
+		},
 	}}
 	suite.storeGlobalDelegatorFactor(newGlobalIndexes)
 
@@ -179,16 +193,27 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 			Owner:  delegator,
 			Reward: arbitraryCoins(),
 		},
-		DelegatorRewardIndexes: types.RewardIndexes{{
+		DelegatorRewardIndexes: types.MultiRewardIndexes{{
 			CollateralType: types.BondDenom,
-			RewardFactor:   d("0.1"),
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "hard", RewardFactor: d("0.1"),
+				},
+			},
 		}},
 	}
 	suite.storeClaim(claim)
 
 	suite.storeGlobalDelegatorFactor(
-		types.RewardIndexes{
-			types.NewRewardIndex(types.BondDenom, d("0.2")),
+		types.MultiRewardIndexes{
+			types.NewMultiRewardIndex(
+				types.BondDenom,
+				types.RewardIndexes{
+					{
+						CollateralType: "hard", RewardFactor: d("0.2"),
+					},
+				},
+			),
 		},
 	)
 
