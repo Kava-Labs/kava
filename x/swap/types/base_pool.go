@@ -219,15 +219,94 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 }
 
 // SwapAForB trades a for b with a percentage fee, returns b and fee amount in a
-func (p *BasePool) SwapAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
-	// TODO: implementation
-	return sdk.ZeroInt(), sdk.ZeroInt()
+func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	p.assertSwapInputIsValid(a)
+	p.assertFeeIsValid(fee)
+
+	aAfterFee := a.ToDec().Mul(sdk.OneDec().Sub(fee)).TruncateInt()
+	feeValue := a.Sub(aAfterFee)
+
+	var result big.Int
+	result.Mul(p.reservesB.BigInt(), aAfterFee.BigInt())
+	result.Quo(&result, p.reservesA.Add(aAfterFee).BigInt())
+
+	b := sdk.NewIntFromBigInt(&result)
+
+	p.reservesA = p.reservesA.Add(a)
+	p.reservesB = p.reservesB.Sub(b)
+
+	return b, feeValue
 }
 
 // SwapBForA trades b for a with a percentage fee, returns a and fee amount in b
-func (p *BasePool) SwapBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
-	// TODO: implementation
-	return sdk.ZeroInt(), sdk.ZeroInt()
+func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	p.assertSwapInputIsValid(b)
+	p.assertFeeIsValid(fee)
+
+	bAfterFee := b.ToDec().Mul(sdk.OneDec().Sub(fee)).TruncateInt()
+	feeValue := b.Sub(bAfterFee)
+
+	var result big.Int
+	result.Mul(p.reservesA.BigInt(), bAfterFee.BigInt())
+	result.Quo(&result, p.reservesB.Add(bAfterFee).BigInt())
+
+	a := sdk.NewIntFromBigInt(&result)
+
+	p.reservesB = p.reservesB.Add(b)
+	p.reservesA = p.reservesA.Sub(a)
+
+	return a, feeValue
+}
+
+// SwapAForExactB trades a for an exact b.  The amount of a added to the reserves is returned,
+// in addition to the amount of a that was used to pay for fees
+func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	p.assertSwapOutputIsValid(b, p.reservesB)
+	p.assertFeeIsValid(fee)
+
+	var result big.Int
+	result.Mul(p.reservesA.BigInt(), b.BigInt())
+
+	newReservesB := p.reservesB.Sub(b)
+	var remainder big.Int
+	result.QuoRem(&result, newReservesB.BigInt(), &remainder)
+
+	aWithoutFee := sdk.NewIntFromBigInt(&result)
+	if remainder.Sign() != 0 {
+		aWithoutFee = aWithoutFee.Add(sdk.OneInt())
+	}
+
+	a := aWithoutFee.ToDec().Quo(sdk.OneDec().Sub(fee)).Ceil().TruncateInt()
+
+	p.reservesA = p.reservesA.Add(a)
+	p.reservesB = newReservesB
+
+	return a, a.Sub(aWithoutFee)
+}
+
+// SwapBForA trades b for a with a percentage fee, returns a and fee amount in b
+func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	p.assertSwapOutputIsValid(a, p.reservesA)
+	p.assertFeeIsValid(fee)
+
+	var result big.Int
+	result.Mul(p.reservesB.BigInt(), a.BigInt())
+
+	newReservesA := p.reservesA.Sub(a)
+	var remainder big.Int
+	result.QuoRem(&result, newReservesA.BigInt(), &remainder)
+
+	bWithoutFee := sdk.NewIntFromBigInt(&result)
+	if remainder.Sign() != 0 {
+		bWithoutFee = bWithoutFee.Add(sdk.OneInt())
+	}
+
+	b := bWithoutFee.ToDec().Quo(sdk.OneDec().Sub(fee)).Ceil().TruncateInt()
+
+	p.reservesB = p.reservesB.Add(b)
+	p.reservesA = newReservesA
+
+	return b, b.Sub(bWithoutFee)
 }
 
 // ShareValue returns the value of the provided shares and panics
@@ -246,6 +325,33 @@ func (p *BasePool) ShareValue(shares sdk.Int) (sdk.Int, sdk.Int) {
 	resultB.Quo(&resultB, p.totalShares.BigInt())
 
 	return sdk.NewIntFromBigInt(&resultA), sdk.NewIntFromBigInt(&resultB)
+}
+
+// assertSwapInputIsValid checks if the provided swap input is positive
+// and panics if it is 0 or negative
+func (p *BasePool) assertSwapInputIsValid(input sdk.Int) {
+	if !input.IsPositive() {
+		panic("invalid value: swap input must be positive")
+	}
+}
+
+// assertSwapOutputIsValid checks if the provided swap input is positive and
+// less than the provided reserves.
+func (p *BasePool) assertSwapOutputIsValid(output sdk.Int, reserves sdk.Int) {
+	if !output.IsPositive() {
+		panic("invalid value: swap output must be positive")
+	}
+
+	if output.GTE(reserves) {
+		panic("invalid value: swap output must be less than reserves")
+	}
+}
+
+// assertFeeIsValid checks if the provided fee is less
+func (p *BasePool) assertFeeIsValid(fee sdk.Dec) {
+	if fee.IsNegative() || fee.GTE(sdk.OneDec()) {
+		panic("invalid value: fee must be between 0 and 1")
+	}
 }
 
 // assertSharesPositive panics if shares is zero or negative

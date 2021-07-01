@@ -184,7 +184,7 @@ func TestParams_Validation(t *testing.T) {
 			testFn: func(params *types.Params) {
 				params.SwapFee = sdk.OneDec()
 			},
-			expectedErr: "",
+			expectedErr: "invalid swap fee: 1.000000000000000000",
 		},
 	}
 
