@@ -221,7 +221,7 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 // SwapExactAForB trades an exact value of a for b.  Returns the positive amount b
 // that is removed from the pool and the portion of a that is used for paying the fee.
 func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
-	b, feeValue := p.swapExactInput(a, p.reservesA, p.reservesB, fee)
+	b, feeValue := p.calculateOutputForExactInput(a, p.reservesA, p.reservesB, fee)
 
 	p.assertInvariantAndUpdateRerserves(
 		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdk.ZeroInt(),
@@ -233,7 +233,7 @@ func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 // SwapExactBForA trades an exact value of b for a.  Returns the positive amount a
 // that is removed from the pool and the portion of b that is used for paying the fee.
 func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
-	a, feeValue := p.swapExactInput(b, p.reservesB, p.reservesA, fee)
+	a, feeValue := p.calculateOutputForExactInput(b, p.reservesB, p.reservesA, fee)
 
 	p.assertInvariantAndUpdateRerserves(
 		p.reservesA.Sub(a), sdk.ZeroInt(), p.reservesB.Add(b), feeValue,
@@ -242,14 +242,14 @@ func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	return a, feeValue
 }
 
-// swapExactInput calculates the output amount of a swap using a fixed input, returning this amount in
+// calculateOutputForExactInput calculates the output amount of a swap using a fixed input, returning this amount in
 // addition to the amount of input that is used to pay the fee.
 //
 // The fee is ceiled, ensuring a minimum fee of 1 and ensuring fees of a trade can not be reduced
 // by splitting a trade into multiple trades.
 //
 // The swap output is truncated to ensure the pool invariant is always greater than or equal to the previous invariant.
-func (p *BasePool) swapExactInput(in, inReserves, outReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	p.assertSwapInputIsValid(in)
 	p.assertFeeIsValid(fee)
 
@@ -268,7 +268,7 @@ func (p *BasePool) swapExactInput(in, inReserves, outReserves sdk.Int, fee sdk.D
 // SwapAForExactB trades a for an exact b.  Returns the positive amount a
 // that is added to the pool, and the portion of a that is used to pay the fee.
 func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
-	a, feeValue := p.swapExactOutput(b, p.reservesB, p.reservesA, fee)
+	a, feeValue := p.calculateInputForExactOutput(b, p.reservesB, p.reservesA, fee)
 
 	p.assertInvariantAndUpdateRerserves(
 		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdk.ZeroInt(),
@@ -280,7 +280,7 @@ func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 // SwapBForExactA trades b for an exact a.  Returns the positive amount b
 // that is added to the pool, and the portion of b that is used to pay the fee.
 func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
-	b, feeValue := p.swapExactOutput(a, p.reservesA, p.reservesB, fee)
+	b, feeValue := p.calculateInputForExactOutput(a, p.reservesA, p.reservesB, fee)
 
 	p.assertInvariantAndUpdateRerserves(
 		p.reservesA.Sub(a), sdk.ZeroInt(), p.reservesB.Add(b), feeValue,
@@ -289,14 +289,14 @@ func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	return b, feeValue
 }
 
-// swapExactInput calculates the input amount of a swap using a fixed output, returning this amount in
+// calculateInputForExactOutput calculates the input amount of a swap using a fixed output, returning this amount in
 // addition to the amount of input that is used to pay the fee.
 //
 // The fee is ceiled, ensuring a minimum fee of 1 and ensuring fees of a trade can not be reduced
 // by splitting a trade into multiple trades.
 //
 // The swap input is ceiled to ensure the pool invariant is always greater than or equal to the previous invariant.
-func (p *BasePool) swapExactOutput(out, outReserves, inReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+func (p *BasePool) calculateInputForExactOutput(out, outReserves, inReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	p.assertSwapOutputIsValid(out, outReserves)
 	p.assertFeeIsValid(fee)
 
