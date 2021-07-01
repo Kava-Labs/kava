@@ -300,57 +300,109 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 		}
 	}
 
-	// 3. Simulate Hard delegator rewards
-	delagatorFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
-	if !found {
-		return claim
-	}
+	// -----------------------------------------------------------------------------------
 
-	delegatorIndex, hasDelegatorRewardIndex := claim.HasDelegatorRewardIndex(types.BondDenom)
-	if !hasDelegatorRewardIndex {
-		return claim
-	}
-
-	userRewardFactor := claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor
-	rewardsAccumulatedFactor := delagatorFactor.Sub(userRewardFactor)
-	if rewardsAccumulatedFactor.IsZero() {
-		return claim
-	}
-	claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor = delagatorFactor
-
-	totalDelegated := sdk.ZeroDec()
-
-	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, claim.GetOwner(), 200)
-	for _, delegation := range delegations {
-		validator, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
-		if !found {
+	for _, ri := range claim.DelegatorRewardIndexes {
+		// For each Delegator reward index (there's only one: the bond denom 'ukava')
+		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardDelegatorRewardIndexes(ctx, ri.CollateralType)
+		if !foundGlobalRewardIndexes {
 			continue
 		}
 
-		// Delegators don't accumulate rewards if their validator is unbonded/slashed
-		if validator.GetStatus() != sdk.Bonded {
+		userRewardIndexes, foundUserRewardIndexes := claim.DelegatorRewardIndexes.GetRewardIndex(ri.CollateralType)
+		if !foundUserRewardIndexes {
 			continue
 		}
 
-		if validator.GetTokens().IsZero() {
+		userRewardIndexIndex, foundUserRewardIndexIndex := claim.DelegatorRewardIndexes.GetRewardIndexIndex(ri.CollateralType)
+		if !foundUserRewardIndexIndex {
 			continue
 		}
 
-		delegatedTokens := validator.TokensFromShares(delegation.GetShares())
-		if delegatedTokens.IsZero() || delegatedTokens.IsNegative() {
-			continue
+		// TODO: does this validator address conversion work?
+		amtDelegated := k.GetTotalDelegated(ctx, claim.GetOwner(), sdk.ValAddress(claim.Owner.String()), true)
+
+		for _, globalRewardIndex := range globalRewardIndexes {
+			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndex {
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userRewardIndexes.RewardIndexes = append(userRewardIndexes.RewardIndexes, userRewardIndex)
+				claim.DelegatorRewardIndexes[userRewardIndexIndex].RewardIndexes = append(claim.DelegatorRewardIndexes[userRewardIndexIndex].RewardIndexes, userRewardIndex)
+			}
+
+			globalRewardFactor := globalRewardIndex.RewardFactor
+			userRewardFactor := userRewardIndex.RewardFactor
+			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+			if rewardsAccumulatedFactor.IsZero() {
+				continue
+			}
+
+			rewardsEarned := rewardsAccumulatedFactor.Mul(amtDelegated).RoundInt()
+			if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
+				continue
+			}
+
+			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundFactorIndex {
+				continue
+			}
+			claim.DelegatorRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
+			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, rewardsEarned)
+			claim.Reward = claim.Reward.Add(newRewardsCoin)
 		}
-		totalDelegated = totalDelegated.Add(delegatedTokens)
 	}
 
-	rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
-	if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
-		return claim
-	}
+	// // 3. Simulate Hard delegator rewards
+	// delagatorFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
+	// if !found {
+	// 	return claim
+	// }
 
-	// Add rewards to delegator's hard claim
-	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
-	claim.Reward = claim.Reward.Add(newRewardsCoin)
+	// delegatorIndex, hasDelegatorRewardIndex := claim.HasDelegatorRewardIndex(types.BondDenom)
+	// if !hasDelegatorRewardIndex {
+	// 	return claim
+	// }
+
+	// userRewardFactor := claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor
+	// rewardsAccumulatedFactor := delagatorFactor.Sub(userRewardFactor)
+	// if rewardsAccumulatedFactor.IsZero() {
+	// 	return claim
+	// }
+	// claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor = delagatorFactor
+
+	// totalDelegated := sdk.ZeroDec()
+
+	// delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, claim.GetOwner(), 200)
+	// for _, delegation := range delegations {
+	// 	validator, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
+	// 	if !found {
+	// 		continue
+	// 	}
+
+	// 	// Delegators don't accumulate rewards if their validator is unbonded/slashed
+	// 	if validator.GetStatus() != sdk.Bonded {
+	// 		continue
+	// 	}
+
+	// 	if validator.GetTokens().IsZero() {
+	// 		continue
+	// 	}
+
+	// 	delegatedTokens := validator.TokensFromShares(delegation.GetShares())
+	// 	if delegatedTokens.IsZero() || delegatedTokens.IsNegative() {
+	// 		continue
+	// 	}
+	// 	totalDelegated = totalDelegated.Add(delegatedTokens)
+	// }
+
+	// rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
+	// if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
+	// 	return claim
+	// }
+
+	// // Add rewards to delegator's hard claim
+	// newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
+	// claim.Reward = claim.Reward.Add(newRewardsCoin)
 
 	return claim
 }

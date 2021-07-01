@@ -286,13 +286,13 @@ func (builder IncentiveGenesisBuilder) WithInitializedDelegatorRewardPeriod(peri
 	return builder
 }
 
-func (builder IncentiveGenesisBuilder) WithSimpleDelegatorRewardPeriod(ctype string, rewardsPerSecond sdk.Coin) IncentiveGenesisBuilder {
+func (builder IncentiveGenesisBuilder) WithSimpleDelegatorRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) IncentiveGenesisBuilder {
 	return builder.WithInitializedDelegatorRewardPeriod(types.NewMultiRewardPeriod(
 		true,
 		ctype,
 		builder.genesisTime,
 		builder.genesisTime.Add(4*oneYear),
-		cs(rewardsPerSecond),
+		rewardsPerSecond,
 	))
 }
 func (builder IncentiveGenesisBuilder) WithInitializedUSDXRewardPeriod(period types.RewardPeriod) IncentiveGenesisBuilder {
