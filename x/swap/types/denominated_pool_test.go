@@ -21,6 +21,11 @@ func usdx(amount int64) sdk.Coin {
 	return sdk.NewCoin("usdx", sdk.NewInt(amount))
 }
 
+// create a new hard coin from int64
+func hard(amount int64) sdk.Coin {
+	return sdk.NewCoin("hard", sdk.NewInt(amount))
+}
+
 func TestDenominatedPool_NewDenominatedPool_Validation(t *testing.T) {
 	testCases := []struct {
 		reservesA   sdk.Coin
@@ -126,4 +131,52 @@ func TestDenominatedPool_RemoveLiquidity(t *testing.T) {
 	assert.True(t, pool.TotalShares().IsZero())
 	assert.True(t, pool.IsEmpty())
 	assert.Equal(t, reserves, withdraw)
+}
+
+func TestDenominatedPool_SwapWithExactInput(t *testing.T) {
+	reserves := sdk.NewCoins(ukava(10e6), usdx(50e6))
+
+	pool, err := types.NewDenominatedPool(reserves)
+	require.NoError(t, err)
+
+	output, fee := pool.SwapWithExactInput(ukava(1e6), d("0.003"))
+
+	assert.Equal(t, usdx(4533054), output)
+	assert.Equal(t, ukava(3000), fee)
+	assert.Equal(t, sdk.NewCoins(ukava(11e6), usdx(45466946)), pool.Reserves())
+
+	pool, err = types.NewDenominatedPool(reserves)
+	require.NoError(t, err)
+
+	output, fee = pool.SwapWithExactInput(usdx(5e6), d("0.003"))
+
+	assert.Equal(t, ukava(906610), output)
+	assert.Equal(t, usdx(15000), fee)
+	assert.Equal(t, sdk.NewCoins(ukava(9093390), usdx(55e6)), pool.Reserves())
+
+	assert.Panics(t, func() { pool.SwapWithExactInput(hard(1e6), d("0.003")) }, "SwapWithExactInput did not panic on invalid denomination")
+}
+
+func TestDenominatedPool_SwapWithExactOuput(t *testing.T) {
+	reserves := sdk.NewCoins(ukava(10e6), usdx(50e6))
+
+	pool, err := types.NewDenominatedPool(reserves)
+	require.NoError(t, err)
+
+	input, fee := pool.SwapWithExactOutput(ukava(1e6), d("0.003"))
+
+	assert.Equal(t, usdx(5572273), input)
+	assert.Equal(t, usdx(16717), fee)
+	assert.Equal(t, sdk.NewCoins(ukava(9e6), usdx(55572273)), pool.Reserves())
+
+	pool, err = types.NewDenominatedPool(reserves)
+	require.NoError(t, err)
+
+	input, fee = pool.SwapWithExactOutput(usdx(5e6), d("0.003"))
+
+	assert.Equal(t, ukava(1114456), input)
+	assert.Equal(t, ukava(3344), fee)
+	assert.Equal(t, sdk.NewCoins(ukava(11114456), usdx(45e6)), pool.Reserves())
+
+	assert.Panics(t, func() { pool.SwapWithExactOutput(hard(1e6), d("0.003")) }, "SwapWithExactOutput did not panic on invalid denomination")
 }

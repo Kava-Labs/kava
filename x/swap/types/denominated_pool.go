@@ -104,21 +104,42 @@ func (p *DenominatedPool) ShareValue(shares sdk.Int) sdk.Coins {
 // Swap swaps a coin in one reserve for the other.  Panics if denom
 // does not match the pool.  Returns the amount received for the input coins,
 // and the amount paid by the fee
-func (p *DenominatedPool) Swap(coin sdk.Coin, fee sdk.Dec) (sdk.Coin, sdk.Coin) {
+func (p *DenominatedPool) SwapWithExactInput(swapInput sdk.Coin, fee sdk.Dec) (sdk.Coin, sdk.Coin) {
 	var (
-		swapResult sdk.Int
+		swapOutput sdk.Int
 		feePaid    sdk.Int
 	)
 
-	switch coin.Denom {
+	switch swapInput.Denom {
 	case p.denomA:
-		swapResult, feePaid = p.pool.SwapAForB(coin.Amount, fee)
-		return p.coinB(swapResult), p.coinA(feePaid)
+		swapOutput, feePaid = p.pool.SwapExactAForB(swapInput.Amount, fee)
+		return p.coinB(swapOutput), p.coinA(feePaid)
 	case p.denomB:
-		swapResult, feePaid = p.pool.SwapBForA(coin.Amount, fee)
-		return p.coinA(swapResult), p.coinB(feePaid)
+		swapOutput, feePaid = p.pool.SwapExactBForA(swapInput.Amount, fee)
+		return p.coinA(swapOutput), p.coinB(feePaid)
 	default:
-		panic(fmt.Sprintf("invalid denomination: denom '%s' does not match pool reserves", coin.Denom))
+		panic(fmt.Sprintf("invalid denomination: denom '%s' does not match pool reserves", swapInput.Denom))
+	}
+}
+
+// Swap swaps a coin in one reserve for the other.  Panics if denom
+// does not match the pool.  Returns the amount received for the input coins,
+// and the amount paid by the fee
+func (p *DenominatedPool) SwapWithExactOutput(swapOutput sdk.Coin, fee sdk.Dec) (sdk.Coin, sdk.Coin) {
+	var (
+		swapInput sdk.Int
+		feePaid   sdk.Int
+	)
+
+	switch swapOutput.Denom {
+	case p.denomA:
+		swapInput, feePaid = p.pool.SwapBForExactA(swapOutput.Amount, fee)
+		return p.coinB(swapInput), p.coinB(feePaid)
+	case p.denomB:
+		swapInput, feePaid = p.pool.SwapAForExactB(swapOutput.Amount, fee)
+		return p.coinA(swapInput), p.coinA(feePaid)
+	default:
+		panic(fmt.Sprintf("invalid denomination: denom '%s' does not match pool reserves", swapOutput.Denom))
 	}
 }
 
