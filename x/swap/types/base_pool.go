@@ -197,7 +197,7 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 }
 
 // RemoveLiquidity removes liquidity from the pool and panics if the
-// the shares provided are greater than the total shares of the pool
+// shares provided are greater than the total shares of the pool
 // or the shares are not positive.
 // In addition, also panics if reserves go negative, which should not happen.
 // If panic occurs, it is a bug.
@@ -248,7 +248,7 @@ func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 // The fee is ceiled, ensuring a minimum fee of 1 and ensuring fees of a trade can not be reduced
 // by splitting a trade into multiple trades.
 //
-// The swap output is truncated to ensure the pool invariant is always greater than the previous invariant.
+// The swap output is truncated to ensure the pool invariant is always greater than or equal to the previous invariant.
 func (p *BasePool) swapExactInput(in, inReserves, outReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	p.assertSwapInputIsValid(in)
 	p.assertFeeIsValid(fee)
@@ -295,7 +295,7 @@ func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 // The fee is ceiled, ensuring a minimum fee of 1 and ensuring fees of a trade can not be reduced
 // by splitting a trade into multiple trades.
 //
-// The swap input is ceiled to ensure the pool invariant is always greater than the previous invariant.
+// The swap input is ceiled to ensure the pool invariant is always greater than or equal to the previous invariant.
 func (p *BasePool) swapExactOutput(out, outReserves, inReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	p.assertSwapOutputIsValid(out, outReserves)
 	p.assertFeeIsValid(fee)
