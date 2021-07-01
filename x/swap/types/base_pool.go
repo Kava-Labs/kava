@@ -230,7 +230,7 @@ func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	return b, feeValue
 }
 
-// SwapExactAForB trades an exact value of b for a.  Returns the positive amount a
+// SwapExactBForA trades an exact value of b for a.  Returns the positive amount a
 // that is removed from the pool and the portion of b that is used for paying the fee.
 func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	a, feeValue := p.swapExactInput(b, p.reservesB, p.reservesA, fee)

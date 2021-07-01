@@ -101,9 +101,9 @@ func (p *DenominatedPool) ShareValue(shares sdk.Int) sdk.Coins {
 	return p.coins(valueA, valueB)
 }
 
-// Swap swaps a coin in one reserve for the other.  Panics if denom
-// does not match the pool.  Returns the amount received for the input coins,
-// and the amount paid by the fee
+// SwapWithExactInput trades an exact input coin for the other.  Returns the positive other coin amount
+// that is removed from the pool and the portion of the input coin that is used for the fee.
+// It panics if the input denom does not match the pool reserves.
 func (p *DenominatedPool) SwapWithExactInput(swapInput sdk.Coin, fee sdk.Dec) (sdk.Coin, sdk.Coin) {
 	var (
 		swapOutput sdk.Int
@@ -122,9 +122,9 @@ func (p *DenominatedPool) SwapWithExactInput(swapInput sdk.Coin, fee sdk.Dec) (s
 	}
 }
 
-// Swap swaps a coin in one reserve for the other.  Panics if denom
-// does not match the pool.  Returns the amount received for the input coins,
-// and the amount paid by the fee
+// SwapWithExactOutput trades a coin for an exact output coin b.  Returns the positive input coin
+// that is added to the pool, and the portion of that input that is used to pay the fee.
+// Panics if the output denom does not match the pool reserves.
 func (p *DenominatedPool) SwapWithExactOutput(swapOutput sdk.Coin, fee sdk.Dec) (sdk.Coin, sdk.Coin) {
 	var (
 		swapInput sdk.Int
