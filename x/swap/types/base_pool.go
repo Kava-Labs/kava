@@ -220,17 +220,7 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 
 // SwapAForB trades a for b with a percentage fee, returns b and fee amount in a
 func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
-	p.assertSwapInputIsValid(a)
-	p.assertFeeIsValid(fee)
-
-	aAfterFee := a.ToDec().Mul(sdk.OneDec().Sub(fee)).TruncateInt()
-	feeValue := a.Sub(aAfterFee)
-
-	var result big.Int
-	result.Mul(p.reservesB.BigInt(), aAfterFee.BigInt())
-	result.Quo(&result, p.reservesA.Add(aAfterFee).BigInt())
-
-	b := sdk.NewIntFromBigInt(&result)
+	b, feeValue := p.swapExactInput(a, p.reservesA, p.reservesB, fee)
 
 	p.reservesA = p.reservesA.Add(a)
 	p.reservesB = p.reservesB.Sub(b)
@@ -240,17 +230,7 @@ func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 
 // SwapBForA trades b for a with a percentage fee, returns a and fee amount in b
 func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
-	p.assertSwapInputIsValid(b)
-	p.assertFeeIsValid(fee)
-
-	bAfterFee := b.ToDec().Mul(sdk.OneDec().Sub(fee)).TruncateInt()
-	feeValue := b.Sub(bAfterFee)
-
-	var result big.Int
-	result.Mul(p.reservesA.BigInt(), bAfterFee.BigInt())
-	result.Quo(&result, p.reservesB.Add(bAfterFee).BigInt())
-
-	a := sdk.NewIntFromBigInt(&result)
+	a, feeValue := p.swapExactInput(b, p.reservesB, p.reservesA, fee)
 
 	p.reservesB = p.reservesB.Add(b)
 	p.reservesA = p.reservesA.Sub(a)
@@ -258,55 +238,63 @@ func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	return a, feeValue
 }
 
+func (p *BasePool) swapExactInput(in, inReserves, outReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	p.assertSwapInputIsValid(in)
+	p.assertFeeIsValid(fee)
+
+	inAfterFee := in.ToDec().Mul(sdk.OneDec().Sub(fee)).TruncateInt()
+
+	var result big.Int
+	result.Mul(outReserves.BigInt(), inAfterFee.BigInt())
+	result.Quo(&result, inReserves.Add(inAfterFee).BigInt())
+
+	out := sdk.NewIntFromBigInt(&result)
+	feeValue := in.Sub(inAfterFee)
+
+	return out, feeValue
+}
+
 // SwapAForExactB trades a for an exact b.  The amount of a added to the reserves is returned,
 // in addition to the amount of a that was used to pay for fees
 func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
-	p.assertSwapOutputIsValid(b, p.reservesB)
-	p.assertFeeIsValid(fee)
-
-	var result big.Int
-	result.Mul(p.reservesA.BigInt(), b.BigInt())
-
-	newReservesB := p.reservesB.Sub(b)
-	var remainder big.Int
-	result.QuoRem(&result, newReservesB.BigInt(), &remainder)
-
-	aWithoutFee := sdk.NewIntFromBigInt(&result)
-	if remainder.Sign() != 0 {
-		aWithoutFee = aWithoutFee.Add(sdk.OneInt())
-	}
-
-	a := aWithoutFee.ToDec().Quo(sdk.OneDec().Sub(fee)).Ceil().TruncateInt()
+	a, feeValue := p.swapExactOutput(b, p.reservesB, p.reservesA, fee)
 
 	p.reservesA = p.reservesA.Add(a)
-	p.reservesB = newReservesB
+	p.reservesB = p.reservesB.Sub(b)
 
-	return a, a.Sub(aWithoutFee)
+	return a, feeValue
 }
 
 // SwapBForA trades b for a with a percentage fee, returns a and fee amount in b
 func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
-	p.assertSwapOutputIsValid(a, p.reservesA)
+	b, feeValue := p.swapExactOutput(a, p.reservesA, p.reservesB, fee)
+
+	p.reservesB = p.reservesB.Add(b)
+	p.reservesA = p.reservesA.Sub(a)
+
+	return b, feeValue
+}
+
+func (p *BasePool) swapExactOutput(out, outReserves, inReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	p.assertSwapOutputIsValid(out, outReserves)
 	p.assertFeeIsValid(fee)
 
 	var result big.Int
-	result.Mul(p.reservesB.BigInt(), a.BigInt())
+	result.Mul(inReserves.BigInt(), out.BigInt())
 
-	newReservesA := p.reservesA.Sub(a)
+	newOutReserves := outReserves.Sub(out)
 	var remainder big.Int
-	result.QuoRem(&result, newReservesA.BigInt(), &remainder)
+	result.QuoRem(&result, newOutReserves.BigInt(), &remainder)
 
-	bWithoutFee := sdk.NewIntFromBigInt(&result)
+	inWithoutFee := sdk.NewIntFromBigInt(&result)
 	if remainder.Sign() != 0 {
-		bWithoutFee = bWithoutFee.Add(sdk.OneInt())
+		inWithoutFee = inWithoutFee.Add(sdk.OneInt())
 	}
 
-	b := bWithoutFee.ToDec().Quo(sdk.OneDec().Sub(fee)).Ceil().TruncateInt()
+	in := inWithoutFee.ToDec().Quo(sdk.OneDec().Sub(fee)).Ceil().TruncateInt()
+	feeValue := in.Sub(inWithoutFee)
 
-	p.reservesB = p.reservesB.Add(b)
-	p.reservesA = newReservesA
-
-	return b, b.Sub(bWithoutFee)
+	return in, feeValue
 }
 
 // ShareValue returns the value of the provided shares and panics
