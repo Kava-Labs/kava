@@ -319,8 +319,7 @@ func (ris RewardIndexes) Get(denom string) (sdk.Dec, bool) {
 
 // With returns a copy of the indexes with a new reward factor added
 func (ris RewardIndexes) With(denom string, factor sdk.Dec) RewardIndexes {
-	newIndexes := make(RewardIndexes, len(ris))
-	copy(newIndexes, ris)
+	newIndexes := ris.copy()
 
 	for i, ri := range newIndexes {
 		if ri.CollateralType == denom {
@@ -349,6 +348,57 @@ func (ris RewardIndexes) Validate() error {
 		}
 	}
 	return nil
+}
+
+// Mul multiplies all the factors in the reward indexes by a single value.
+func (ris RewardIndexes) Mul(multiplier sdk.Dec) RewardIndexes {
+	newIndexes := ris.copy()
+
+	for i := range newIndexes {
+		newIndexes[i].RewardFactor = newIndexes[i].RewardFactor.Mul(multiplier)
+	}
+	return newIndexes
+}
+
+// Mul divides all the factors in the reward indexes by a single value.
+// It uses sdk.Dec.Quo for the division.
+func (ris RewardIndexes) Quo(divisor sdk.Dec) RewardIndexes {
+	newIndexes := ris.copy()
+
+	for i := range newIndexes {
+		newIndexes[i].RewardFactor = newIndexes[i].RewardFactor.Quo(divisor)
+	}
+	return newIndexes
+}
+
+// Add combines two reward indexes by adding together factors with the same CollateralType.
+// Any CollateralTypes unique to either reward indexes are included in the output as is.
+func (ris RewardIndexes) Add(addend RewardIndexes) RewardIndexes {
+	newIndexes := ris.copy()
+
+	for _, addRi := range addend {
+		found := false
+		for i, origRi := range newIndexes {
+			if origRi.CollateralType == addRi.CollateralType {
+				found = true
+				newIndexes[i].RewardFactor = newIndexes[i].RewardFactor.Add(addRi.RewardFactor)
+			}
+		}
+		if !found {
+			newIndexes = append(newIndexes, addRi)
+		}
+	}
+	return newIndexes
+}
+
+// copy returns a copy of the reward indexes slice and underlying array
+func (ris RewardIndexes) copy() RewardIndexes {
+	if ris == nil { // return nil rather than empty slice when ris is nil
+		return nil
+	}
+	newIndexes := make(RewardIndexes, len(ris))
+	copy(newIndexes, ris)
+	return newIndexes
 }
 
 // MultiRewardIndex stores reward accumulation information on multiple reward types
