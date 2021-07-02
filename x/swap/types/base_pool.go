@@ -223,7 +223,7 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	b, feeValue := p.calculateOutputForExactInput(a, p.reservesA, p.reservesB, fee)
 
-	p.assertInvariantAndUpdateRerserves(
+	p.assertInvariantAndUpdateReserves(
 		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdk.ZeroInt(),
 	)
 
@@ -235,7 +235,7 @@ func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	a, feeValue := p.calculateOutputForExactInput(b, p.reservesB, p.reservesA, fee)
 
-	p.assertInvariantAndUpdateRerserves(
+	p.assertInvariantAndUpdateReserves(
 		p.reservesA.Sub(a), sdk.ZeroInt(), p.reservesB.Add(b), feeValue,
 	)
 
@@ -270,7 +270,7 @@ func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdk.
 func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	a, feeValue := p.calculateInputForExactOutput(b, p.reservesB, p.reservesA, fee)
 
-	p.assertInvariantAndUpdateRerserves(
+	p.assertInvariantAndUpdateReserves(
 		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdk.ZeroInt(),
 	)
 
@@ -282,7 +282,7 @@ func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 	b, feeValue := p.calculateInputForExactOutput(a, p.reservesA, p.reservesB, fee)
 
-	p.assertInvariantAndUpdateRerserves(
+	p.assertInvariantAndUpdateReserves(
 		p.reservesA.Sub(a), sdk.ZeroInt(), p.reservesB.Add(b), feeValue,
 	)
 
@@ -338,7 +338,7 @@ func (p *BasePool) ShareValue(shares sdk.Int) (sdk.Int, sdk.Int) {
 
 // assertInvariantAndUpdateRerserves asserts the constant product invariant is not violated, subtracting
 // any fees first, then updates the pool reserves.  Panics if invariant is violated.
-func (p *BasePool) assertInvariantAndUpdateRerserves(newReservesA, feeA, newReservesB, feeB sdk.Int) {
+func (p *BasePool) assertInvariantAndUpdateReserves(newReservesA, feeA, newReservesB, feeB sdk.Int) {
 	var invariant big.Int
 	invariant.Mul(p.reservesA.BigInt(), p.reservesB.BigInt())
 
