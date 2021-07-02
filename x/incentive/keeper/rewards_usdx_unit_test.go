@@ -36,7 +36,7 @@ func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimDoesNo
 	collateralType := "bnb-a"
 
 	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil)
 
 	cdp := NewCDPBuilder(arbitraryAddress(), collateralType).Build()
 
@@ -57,7 +57,7 @@ func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimExists
 	collateralType := "bnb-a"
 
 	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil)
 
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{

@@ -14,18 +14,20 @@ import (
 type Keeper struct {
 	accountKeeper types.AccountKeeper
 	cdc           *codec.Codec
-	cdpKeeper     types.CdpKeeper
-	hardKeeper    types.HardKeeper
 	key           sdk.StoreKey
 	paramSubspace types.ParamSubspace
 	supplyKeeper  types.SupplyKeeper
+	cdpKeeper     types.CdpKeeper
+	hardKeeper    types.HardKeeper
 	stakingKeeper types.StakingKeeper
+	swapKeeper    types.SwapKeeper
 }
 
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc *codec.Codec, key sdk.StoreKey, paramstore types.ParamSubspace, sk types.SupplyKeeper,
 	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
+	swpk types.SwapKeeper,
 ) Keeper {
 
 	if !paramstore.HasKeyTable() {
@@ -35,12 +37,13 @@ func NewKeeper(
 	return Keeper{
 		accountKeeper: ak,
 		cdc:           cdc,
-		cdpKeeper:     cdpk,
-		hardKeeper:    hk,
 		key:           key,
 		paramSubspace: paramstore,
 		supplyKeeper:  sk,
+		cdpKeeper:     cdpk,
+		hardKeeper:    hk,
 		stakingKeeper: stk,
+		swapKeeper:    swpk,
 	}
 }
 
@@ -356,16 +359,16 @@ func (k Keeper) SetPreviousHardDelegatorRewardAccrualTime(ctx sdk.Context, denom
 }
 
 // SetSwapRewardIndexes stores the global reward indexes that track total rewards to a swap pool.
-func (k Keeper) SetSwapRewardIndexes(ctx sdk.Context, poolName string, indexes types.RewardIndexes) {
+func (k Keeper) SetSwapRewardIndexes(ctx sdk.Context, poolID string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryBare(indexes)
-	store.Set([]byte(poolName), bz)
+	store.Set([]byte(poolID), bz)
 }
 
 // GetSwapRewardIndexes fetches the global reward indexes that track total rewards to a swap pool.
-func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolName string) (types.RewardIndexes, bool) {
+func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolID string) (types.RewardIndexes, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
-	bz := store.Get([]byte(poolName))
+	bz := store.Get([]byte(poolID))
 	if bz == nil {
 		return types.RewardIndexes{}, false
 	}
@@ -389,9 +392,9 @@ func (k Keeper) IncrementSwapRewardIndexes(ctx sdk.Context, poolID string, incre
 }
 
 // GetSwapRewardAccrualTime fetches the last time rewards were accrued for a swap pool.
-func (k Keeper) GetSwapRewardAccrualTime(ctx sdk.Context, poolName string) (blockTime time.Time, found bool) {
+func (k Keeper) GetSwapRewardAccrualTime(ctx sdk.Context, poolID string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
-	bz := store.Get([]byte(poolName))
+	bz := store.Get([]byte(poolID))
 	if bz == nil {
 		return time.Time{}, false
 	}
@@ -400,7 +403,7 @@ func (k Keeper) GetSwapRewardAccrualTime(ctx sdk.Context, poolName string) (bloc
 }
 
 // SetSwapRewardAccrualTime stores the last time rewards were accrued for a swap pool.
-func (k Keeper) SetSwapRewardAccrualTime(ctx sdk.Context, poolName string, blockTime time.Time) {
+func (k Keeper) SetSwapRewardAccrualTime(ctx sdk.Context, poolID string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
-	store.Set([]byte(poolName), k.cdc.MustMarshalBinaryBare(blockTime))
+	store.Set([]byte(poolID), k.cdc.MustMarshalBinaryBare(blockTime))
 }

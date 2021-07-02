@@ -32,7 +32,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUnchangedWh
 	delegator := arbitraryAddress()
 
 	stakingKeeper := fakeStakingKeeper{} // use an empty staking keeper that returns no delegations
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	claim := types.HardLiquidityProviderClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -53,7 +53,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUnchangedWh
 func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUpdatedWhenGlobalFactorIncreased() {
 	delegator := arbitraryAddress()
 
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, fakeStakingKeeper{})
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, fakeStakingKeeper{}, nil)
 
 	claim := types.HardLiquidityProviderClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -86,7 +86,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGloba
 			unslashedBondedValidator(validatorAddress),
 		},
 	}
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	claim := types.HardLiquidityProviderClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -124,7 +124,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRe
 			unslashedBondedValidator(validatorAddress),
 		},
 	}
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	claim := types.HardLiquidityProviderClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -167,7 +167,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 			unslashedBondedValidator(validatorAddress),
 		},
 	}
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	claim := types.HardLiquidityProviderClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -256,7 +256,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenValAddrIsN
 			unslashedNotBondedValidator(validatorAddresses[3]),
 		},
 	}
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	suite.Equal(
 		d("11"), // delegation to bonded validators
@@ -299,7 +299,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenExcludingA
 			unslashedNotBondedValidator(validatorAddresses[3]),
 		},
 	}
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	suite.Equal(
 		d("10"),
@@ -342,7 +342,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenIncludingA
 			unslashedNotBondedValidator(validatorAddresses[3]),
 		},
 	}
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	suite.Equal(
 		d("111"),

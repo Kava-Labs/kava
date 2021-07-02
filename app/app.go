@@ -380,16 +380,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 	)
-	app.incentiveKeeper = incentive.NewKeeper(
-		app.cdc,
-		keys[incentive.StoreKey],
-		incentiveSubspace,
-		app.supplyKeeper,
-		&cdpKeeper,
-		&hardKeeper,
-		app.accountKeeper,
-		&stakingKeeper,
-	)
 	app.issuanceKeeper = issuance.NewKeeper(
 		app.cdc,
 		keys[issuance.StoreKey],
@@ -401,6 +391,17 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.cdc,
 		keys[swap.StoreKey],
 		swapSubspace,
+	)
+	app.incentiveKeeper = incentive.NewKeeper(
+		app.cdc,
+		keys[incentive.StoreKey],
+		incentiveSubspace,
+		app.supplyKeeper,
+		&cdpKeeper,
+		&hardKeeper,
+		app.accountKeeper,
+		app.stakingKeeper,
+		app.swapKeeper,
 	)
 
 	// register the staking hooks
