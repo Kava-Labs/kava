@@ -374,6 +374,20 @@ func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolName string) (types.Re
 	return rewardIndexes, true
 }
 
+// IncrementSwapRewardIndexes adds to the stored swap reward indexes.
+func (k Keeper) IncrementSwapRewardIndexes(ctx sdk.Context, poolID string, increment types.RewardIndexes) {
+	indexes, found := k.GetSwapRewardIndexes(ctx, poolID)
+	if !found {
+		indexes = types.RewardIndexes{}
+	}
+	indexes = indexes.Add(increment)
+
+	// Set will panic if it tries to write an empty reward indexes.
+	if len(indexes) > 0 {
+		k.SetSwapRewardIndexes(ctx, poolID, indexes)
+	}
+}
+
 // GetSwapRewardAccrualTime fetches the last time rewards were accrued for a swap pool.
 func (k Keeper) GetSwapRewardAccrualTime(ctx sdk.Context, poolName string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
