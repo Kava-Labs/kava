@@ -109,6 +109,18 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 				},
 			},
 		},
+		{
+			"multiple reward coins",
+			args{
+				delegation:       c("ukava", 1_000_000),
+				rewardsPerSecond: cs(c("hard", 122354), c("swp", 567889)),
+				timeElapsed:      7,
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.428239000000000000")),
+					types.NewRewardIndex("swp", d("1.987611500000000000")),
+				},
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -194,6 +206,19 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 				expectedRewards: nil,
 			},
 		},
+		{
+			"multiple reward coins",
+			args{
+				delegation:       c("ukava", 1_000_000),
+				rewardsPerSecond: cs(c("hard", 122354), c("swp", 56789)),
+				blockTimes:       []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("6.117700000000000000")),
+					types.NewRewardIndex("swp", d("2.839450000000000000")),
+				},
+				expectedRewards: cs(c("hard", 6117700), c("swp", 2839450)),
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -227,7 +252,9 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 			// Check that Staking hooks initialized a HardLiquidityProviderClaim
 			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
-			suite.Require().Equal(sdk.ZeroDec(), claim.DelegatorRewardIndexes[0].RewardIndexes[0].RewardFactor)
+			for _, rewardIndex := range claim.DelegatorRewardIndexes[0].RewardIndexes {
+				suite.Require().Equal(sdk.ZeroDec(), rewardIndex.RewardFactor)
+			}
 
 			// Run accumulator at several intervals
 			var timeElapsed int
@@ -254,12 +281,16 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 
 			// Check that reward factor and claim have been updated as expected
 			rewardIndexes, _ := suite.keeper.GetHardDelegatorRewardIndexes(suite.ctx, tc.args.delegation.Denom)
-			rewardFactor, _ := rewardIndexes.Get(tc.args.rewardsPerSecond[0].Denom)
-			suite.Require().Equal(tc.args.expectedRewardIndexes[0].RewardFactor, rewardFactor)
+			for i, rewardPerSecond := range tc.args.rewardsPerSecond {
+				rewardFactor, _ := rewardIndexes.Get(rewardPerSecond.Denom)
+				suite.Require().Equal(tc.args.expectedRewardIndexes[i].RewardFactor, rewardFactor)
+			}
 
 			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
-			suite.Require().Equal(tc.args.expectedRewardIndexes[0].RewardFactor, claim.DelegatorRewardIndexes[0].RewardIndexes[0].RewardFactor)
+			for i, delegatorRewardIndex := range claim.DelegatorRewardIndexes[0].RewardIndexes {
+				suite.Require().Equal(tc.args.expectedRewardIndexes[i].RewardFactor, delegatorRewardIndex.RewardFactor)
+			}
 			suite.Require().Equal(tc.args.expectedRewards, claim.Reward)
 		})
 	}
@@ -299,6 +330,19 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 				expectedRewards:       cs(c("hard", 52856928000)),
 			},
 		},
+		{
+			"multiple rewards coins",
+			args{
+				delegation:       c("ukava", 1_000_000),
+				rewardsPerSecond: cs(c("hard", 122354), c("swp", 56789)),
+				blockTimes:       []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("6.117700000000000000")),
+					types.NewRewardIndex("swp", d("2.839450000000000000")),
+				},
+				expectedRewards: cs(c("hard", 6117700), c("swp", 2839450)),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -324,7 +368,9 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 			// Check that Staking hooks initialized a HardLiquidityProviderClaim
 			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
-			suite.Require().Equal(sdk.ZeroDec(), claim.DelegatorRewardIndexes[0].RewardIndexes[0].RewardFactor)
+			for _, rewardIndex := range claim.DelegatorRewardIndexes[0].RewardIndexes {
+				suite.Require().Equal(sdk.ZeroDec(), rewardIndex.RewardFactor)
+			}
 
 			// Run accumulator at several intervals
 			var timeElapsed int
@@ -347,11 +393,11 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 			// Check that the synced claim held in memory has properly simulated syncing
 			syncedClaim := suite.keeper.SimulateHardSynchronization(suite.ctx, claim)
 
-			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
+			for i, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				// Check that the user's claim's reward index matches the expected reward index
 				multiRewardIndex, found := syncedClaim.DelegatorRewardIndexes.Get(types.BondDenom)
 				suite.Require().True(found)
-				suite.Require().Equal(expectedRewardIndex, multiRewardIndex[0])
+				suite.Require().Equal(expectedRewardIndex, multiRewardIndex[i])
 
 				// Check that the user's claim holds the expected amount of reward coins
 				suite.Require().Equal(
