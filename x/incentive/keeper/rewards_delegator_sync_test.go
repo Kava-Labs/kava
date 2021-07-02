@@ -28,11 +28,6 @@ func TestSynchronizeHardDelegatorReward(t *testing.T) {
 	suite.Run(t, new(SynchronizeHardDelegatorRewardTests))
 }
 
-func (suite *SynchronizeHardDelegatorRewardTests) storeGlobalDelegatorFactor(rewardIndexes types.RewardIndexes) {
-	factor := rewardIndexes[0]
-	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, factor.CollateralType, factor.RewardFactor)
-}
-
 func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUnchangedWhenGlobalFactorUnchanged() {
 	delegator := arbitraryAddress()
 

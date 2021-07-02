@@ -27,11 +27,6 @@ func TestInitializeHardDelegatorReward(t *testing.T) {
 	suite.Run(t, new(InitializeHardDelegatorRewardTests))
 }
 
-func (suite *InitializeHardDelegatorRewardTests) storeGlobalDelegatorFactor(rewardIndexes types.RewardIndexes) {
-	factor := rewardIndexes[0]
-	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, factor.CollateralType, factor.RewardFactor)
-}
-
 func (suite *InitializeHardDelegatorRewardTests) TestClaimIndexesAreSetWhenClaimDoesNotExist() {
 	globalIndex := arbitraryDelegatorRewardIndexes
 	suite.storeGlobalDelegatorFactor(globalIndex)

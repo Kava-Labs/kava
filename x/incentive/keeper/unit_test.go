@@ -73,6 +73,18 @@ func (suite *unitTester) storeGlobalSupplyIndexes(indexes types.MultiRewardIndex
 		suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
+func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes) {
+	for _, i := range indexes {
+		suite.keeper.SetSwapRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
+	}
+}
+func (suite *unitTester) storeGlobalDelegatorFactor(rewardIndexes types.RewardIndexes) {
+	if len(rewardIndexes) != 1 {
+		panic("delegator indexes must contain 1 factor")
+	}
+	factor := rewardIndexes[0]
+	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, factor.CollateralType, factor.RewardFactor)
+}
 
 func (suite *unitTester) storeClaim(claim types.HardLiquidityProviderClaim) {
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
@@ -89,7 +101,7 @@ func (subspace *fakeParamSubspace) SetParamSet(_ sdk.Context, ps params.ParamSet
 	subspace.params = *(ps.(*types.Params))
 }
 func (subspace *fakeParamSubspace) HasKeyTable() bool {
-	// return true so the keeper does no try to set the key table, which does nothing
+	// return true so the keeper does not try to call WithKeyTable, which does nothing
 	return true
 }
 func (subspace *fakeParamSubspace) WithKeyTable(params.KeyTable) params.Subspace {

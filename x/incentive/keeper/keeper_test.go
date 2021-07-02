@@ -84,10 +84,10 @@ func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
 
 func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 	testCases := []struct {
-		name      string
-		poolName  string
-		indexes   types.RewardIndexes
-		setPanics bool
+		name     string
+		poolName string
+		indexes  types.RewardIndexes
+		panics   bool
 	}{
 		{
 			name:     "two factors can be written and read",
@@ -118,10 +118,18 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 			},
 		},
 		{
-			name:      "setting empty indexes panics",
-			poolName:  "btc/usdx",
-			indexes:   types.RewardIndexes{},
-			setPanics: true,
+			// this test is to detect any changes in behavior, it would be nice if Set didn't panic
+			name:     "setting empty indexes panics",
+			poolName: "btc/usdx",
+			indexes:  types.RewardIndexes{},
+			panics:   true,
+		},
+		{
+			// this test is to detect any changes in behavior, it would be nice if Set didn't panic
+			name:     "setting nil indexes panics",
+			poolName: "btc/usdx",
+			indexes:  nil,
+			panics:   true,
 		},
 	}
 
@@ -133,7 +141,7 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 			suite.False(found)
 
 			setFunc := func() { suite.keeper.SetSwapRewardIndexes(suite.ctx, tc.poolName, tc.indexes) }
-			if tc.setPanics {
+			if tc.panics {
 				suite.Panics(setFunc)
 				return
 			} else {
@@ -152,7 +160,7 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardAccrualTimes() {
 		name        string
 		poolName    string
 		accrualTime time.Time
-		setPanics   bool
+		panics      bool
 	}{
 		{
 			name:        "normal time can be written and read",
@@ -174,7 +182,7 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardAccrualTimes() {
 			suite.False(found)
 
 			setFunc := func() { suite.keeper.SetSwapRewardAccrualTime(suite.ctx, tc.poolName, tc.accrualTime) }
-			if tc.setPanics {
+			if tc.panics {
 				suite.Panics(setFunc)
 				return
 			} else {
