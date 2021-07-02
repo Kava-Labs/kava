@@ -31,6 +31,7 @@ type PoolRecord struct {
 	TotalShares sdk.Int  `json:"total_shares" yaml:"total_shares"`
 }
 
+// Reserves returns the total reserves for a pool
 func (p PoolRecord) Reserves() sdk.Coins {
 	return sdk.NewCoins(p.ReservesA, p.ReservesB)
 }

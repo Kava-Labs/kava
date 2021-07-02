@@ -26,6 +26,11 @@ func s(str string) sdk.Int {
 	return num
 }
 
+// d creates a new sdk.Dec from a string
+func d(str string) sdk.Dec {
+	return sdk.MustNewDecFromStr(str)
+}
+
 // exp takes a sdk.Int and computes the power
 // helper to generate large numbers
 func exp(n sdk.Int, power int64) sdk.Int {
@@ -403,6 +408,182 @@ func TestBasePool_ReservesOnlyDepletedWithLastShare(t *testing.T) {
 
 			pool.RemoveLiquidity(i(1))
 			assert.True(t, pool.IsEmpty())
+		})
+	}
+}
+
+func TestBasePool_Swap_ExactInput(t *testing.T) {
+	testCases := []struct {
+		reservesA      sdk.Int
+		reservesB      sdk.Int
+		exactInput     sdk.Int
+		fee            sdk.Dec
+		expectedOutput sdk.Int
+		expectedFee    sdk.Int
+	}{
+		// test small pools
+		{i(10), i(10), i(1), d("0.003"), i(0), i(1)},
+		{i(10), i(10), i(3), d("0.003"), i(1), i(1)},
+		{i(10), i(10), i(10), d("0.003"), i(4), i(1)},
+		{i(10), i(10), i(91), d("0.003"), i(9), i(1)},
+		// test fee values and ceil
+		{i(1e6), i(1e6), i(1000), d("0.003"), i(996), i(3)},
+		{i(1e6), i(1e6), i(1000), d("0.0031"), i(995), i(4)},
+		{i(1e6), i(1e6), i(1000), d("0.0039"), i(995), i(4)},
+		{i(1e6), i(1e6), i(1000), d("0.001"), i(998), i(1)},
+		{i(1e6), i(1e6), i(1000), d("0.025"), i(974), i(25)},
+		{i(1e6), i(1e6), i(1000), d("0.1"), i(899), i(100)},
+		{i(1e6), i(1e6), i(1000), d("0.5"), i(499), i(500)},
+		// test various random pools and swaps
+		{i(10e6), i(500e6), i(1e6), d("0.0025"), i(45351216), i(2500)},
+		{i(10e6), i(500e6), i(8e6), d("0.003456"), i(221794899), i(27648)},
+		// test very large pools and swaps
+		{exp(i(2), 250), exp(i(2), 250), exp(i(2), 249), d("0.003"), s("601876423139828614225164081027182620796370196819963934493551943901658899790"), s("2713877091499598330239944961141122840311015265600950719674787125185463976")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("reservesA=%s reservesB=%s exactInput=%s fee=%s", tc.reservesA, tc.reservesB, tc.exactInput, tc.fee), func(t *testing.T) {
+			poolA, err := types.NewBasePool(tc.reservesA, tc.reservesB)
+			require.NoError(t, err)
+			swapA, feeA := poolA.SwapExactAForB(tc.exactInput, tc.fee)
+
+			poolB, err := types.NewBasePool(tc.reservesB, tc.reservesA)
+			require.NoError(t, err)
+			swapB, feeB := poolB.SwapExactBForA(tc.exactInput, tc.fee)
+
+			// pool must be symmetric - if we swap reserves, then swap opposite direction
+			// then the results should be equal
+			require.Equal(t, swapA, swapB, "expected swap methods to have equal swap results")
+			require.Equal(t, feeA, feeB, "expected swap methods to have equal fee results")
+			require.Equal(t, poolA.ReservesA(), poolB.ReservesB(), "expected reserves A to be equal")
+			require.Equal(t, poolA.ReservesB(), poolB.ReservesA(), "expected reserves B to be equal")
+
+			assert.Equal(t, tc.expectedOutput, swapA, "returned swap not equal")
+			assert.Equal(t, tc.expectedFee, feeA, "returned fee not equal")
+
+			expectedReservesA := tc.reservesA.Add(tc.exactInput)
+			expectedReservesB := tc.reservesB.Sub(tc.expectedOutput)
+
+			assert.Equal(t, expectedReservesA, poolA.ReservesA(), "expected new reserves A not equal")
+			assert.Equal(t, expectedReservesB, poolA.ReservesB(), "expected new reserves B not equal")
+		})
+	}
+}
+
+func TestBasePool_Swap_ExactOutput(t *testing.T) {
+	testCases := []struct {
+		reservesA     sdk.Int
+		reservesB     sdk.Int
+		exactOutput   sdk.Int
+		fee           sdk.Dec
+		expectedInput sdk.Int
+		expectedFee   sdk.Int
+	}{
+		// test small pools
+		{i(10), i(10), i(1), d("0.003"), i(3), i(1)},
+		{i(10), i(10), i(9), d("0.003"), i(91), i(1)},
+		// test fee values and ceil
+		{i(1e6), i(1e6), i(996), d("0.003"), i(1000), i(3)},
+		{i(1e6), i(1e6), i(995), d("0.0031"), i(1000), i(4)},
+		{i(1e6), i(1e6), i(995), d("0.0039"), i(1000), i(4)},
+		{i(1e6), i(1e6), i(998), d("0.001"), i(1000), i(1)},
+		{i(1e6), i(1e6), i(974), d("0.025"), i(1000), i(25)},
+		{i(1e6), i(1e6), i(899), d("0.1"), i(1000), i(100)},
+		{i(1e6), i(1e6), i(499), d("0.5"), i(1000), i(500)},
+		// test various random pools and swaps
+		{i(10e6), i(500e6), i(45351216), d("0.0025"), i(1e6), i(2500)},
+		{i(10e6), i(500e6), i(221794899), d("0.003456"), i(8e6), i(27648)},
+		// test very large pools and swaps
+		{exp(i(2), 250), exp(i(2), 250), s("601876423139828614225164081027182620796370196819963934493551943901658899790"), d("0.003"), s("904625697166532776746648320380374280103671755200316906558262375061821325311"), s("2713877091499598330239944961141122840311015265600950719674787125185463976")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("reservesA=%s reservesB=%s exactOutput=%s fee=%s", tc.reservesA, tc.reservesB, tc.exactOutput, tc.fee), func(t *testing.T) {
+			poolA, err := types.NewBasePool(tc.reservesA, tc.reservesB)
+			require.NoError(t, err)
+			swapA, feeA := poolA.SwapAForExactB(tc.exactOutput, tc.fee)
+
+			poolB, err := types.NewBasePool(tc.reservesB, tc.reservesA)
+			require.NoError(t, err)
+			swapB, feeB := poolB.SwapBForExactA(tc.exactOutput, tc.fee)
+
+			// pool must be symmetric - if we swap reserves, then swap opposite direction
+			// then the results should be equal
+			require.Equal(t, swapA, swapB, "expected swap methods to have equal swap results")
+			require.Equal(t, feeA, feeB, "expected swap methods to have equal fee results")
+			require.Equal(t, poolA.ReservesA(), poolB.ReservesB(), "expected reserves A to be equal")
+			require.Equal(t, poolA.ReservesB(), poolB.ReservesA(), "expected reserves B to be equal")
+
+			assert.Equal(t, tc.expectedInput.String(), swapA.String(), "returned swap not equal")
+			assert.Equal(t, tc.expectedFee, feeA, "returned fee not equal")
+
+			expectedReservesA := tc.reservesA.Add(tc.expectedInput)
+			expectedReservesB := tc.reservesB.Sub(tc.exactOutput)
+
+			assert.Equal(t, expectedReservesA, poolA.ReservesA(), "expected new reserves A not equal")
+			assert.Equal(t, expectedReservesB, poolA.ReservesB(), "expected new reserves B not equal")
+		})
+	}
+}
+
+func TestBasePool_Panics_Swap_ExactInput(t *testing.T) {
+	testCases := []struct {
+		swap sdk.Int
+		fee  sdk.Dec
+	}{
+		{i(0), d("0.003")},
+		{i(-1), d("0.003")},
+		{i(1), d("1")},
+		{i(1), d("-0.003")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("swap=%s fee=%s", tc.swap, tc.fee), func(t *testing.T) {
+			assert.Panics(t, func() {
+				pool, err := types.NewBasePool(i(1e6), i(1e6))
+				require.NoError(t, err)
+
+				pool.SwapExactAForB(tc.swap, tc.fee)
+			}, "SwapExactAForB did not panic")
+
+			assert.Panics(t, func() {
+				pool, err := types.NewBasePool(i(1e6), i(1e6))
+				require.NoError(t, err)
+
+				pool.SwapExactBForA(tc.swap, tc.fee)
+			}, "SwapExactBForA did not panic")
+		})
+	}
+}
+
+func TestBasePool_Panics_Swap_ExactOutput(t *testing.T) {
+	testCases := []struct {
+		swap sdk.Int
+		fee  sdk.Dec
+	}{
+		{i(0), d("0.003")},
+		{i(-1), d("0.003")},
+		{i(1), d("1")},
+		{i(1), d("-0.003")},
+		{i(1000000), d("0.003")},
+		{i(1000001), d("0.003")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("swap=%s fee=%s", tc.swap, tc.fee), func(t *testing.T) {
+			assert.Panics(t, func() {
+				pool, err := types.NewBasePool(i(1e6), i(1e6))
+				require.NoError(t, err)
+
+				pool.SwapAForExactB(tc.swap, tc.fee)
+			}, "SwapAForExactB did not panic")
+
+			assert.Panics(t, func() {
+				pool, err := types.NewBasePool(i(1e6), i(1e6))
+				require.NoError(t, err)
+
+				pool.SwapBForExactA(tc.swap, tc.fee)
+			}, "SwapBForExactA did not panic")
 		})
 	}
 }

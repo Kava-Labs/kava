@@ -197,7 +197,7 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 }
 
 // RemoveLiquidity removes liquidity from the pool and panics if the
-// the shares provided are greater than the total shares of the pool
+// shares provided are greater than the total shares of the pool
 // or the shares are not positive.
 // In addition, also panics if reserves go negative, which should not happen.
 // If panic occurs, it is a bug.
@@ -218,16 +218,104 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 	return withdrawA, withdrawB
 }
 
-// SwapAForB trades a for b with a percentage fee
-func (p *BasePool) SwapAForB(a sdk.Int, fee sdk.Dec) sdk.Int {
-	// TODO: implementation
-	return sdk.ZeroInt()
+// SwapExactAForB trades an exact value of a for b.  Returns the positive amount b
+// that is removed from the pool and the portion of a that is used for paying the fee.
+func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	b, feeValue := p.calculateOutputForExactInput(a, p.reservesA, p.reservesB, fee)
+
+	p.assertInvariantAndUpdateReserves(
+		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdk.ZeroInt(),
+	)
+
+	return b, feeValue
 }
 
-// SwapBForA trades b for a with a percentage fee
-func (p *BasePool) SwapBForA(b sdk.Int, fee sdk.Dec) sdk.Int {
-	// TODO: implementation
-	return sdk.ZeroInt()
+// SwapExactBForA trades an exact value of b for a.  Returns the positive amount a
+// that is removed from the pool and the portion of b that is used for paying the fee.
+func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	a, feeValue := p.calculateOutputForExactInput(b, p.reservesB, p.reservesA, fee)
+
+	p.assertInvariantAndUpdateReserves(
+		p.reservesA.Sub(a), sdk.ZeroInt(), p.reservesB.Add(b), feeValue,
+	)
+
+	return a, feeValue
+}
+
+// calculateOutputForExactInput calculates the output amount of a swap using a fixed input, returning this amount in
+// addition to the amount of input that is used to pay the fee.
+//
+// The fee is ceiled, ensuring a minimum fee of 1 and ensuring fees of a trade can not be reduced
+// by splitting a trade into multiple trades.
+//
+// The swap output is truncated to ensure the pool invariant is always greater than or equal to the previous invariant.
+func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	p.assertSwapInputIsValid(in)
+	p.assertFeeIsValid(fee)
+
+	inAfterFee := in.ToDec().Mul(sdk.OneDec().Sub(fee)).TruncateInt()
+
+	var result big.Int
+	result.Mul(outReserves.BigInt(), inAfterFee.BigInt())
+	result.Quo(&result, inReserves.Add(inAfterFee).BigInt())
+
+	out := sdk.NewIntFromBigInt(&result)
+	feeValue := in.Sub(inAfterFee)
+
+	return out, feeValue
+}
+
+// SwapAForExactB trades a for an exact b.  Returns the positive amount a
+// that is added to the pool, and the portion of a that is used to pay the fee.
+func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	a, feeValue := p.calculateInputForExactOutput(b, p.reservesB, p.reservesA, fee)
+
+	p.assertInvariantAndUpdateReserves(
+		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdk.ZeroInt(),
+	)
+
+	return a, feeValue
+}
+
+// SwapBForExactA trades b for an exact a.  Returns the positive amount b
+// that is added to the pool, and the portion of b that is used to pay the fee.
+func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	b, feeValue := p.calculateInputForExactOutput(a, p.reservesA, p.reservesB, fee)
+
+	p.assertInvariantAndUpdateReserves(
+		p.reservesA.Sub(a), sdk.ZeroInt(), p.reservesB.Add(b), feeValue,
+	)
+
+	return b, feeValue
+}
+
+// calculateInputForExactOutput calculates the input amount of a swap using a fixed output, returning this amount in
+// addition to the amount of input that is used to pay the fee.
+//
+// The fee is ceiled, ensuring a minimum fee of 1 and ensuring fees of a trade can not be reduced
+// by splitting a trade into multiple trades.
+//
+// The swap input is ceiled to ensure the pool invariant is always greater than or equal to the previous invariant.
+func (p *BasePool) calculateInputForExactOutput(out, outReserves, inReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+	p.assertSwapOutputIsValid(out, outReserves)
+	p.assertFeeIsValid(fee)
+
+	var result big.Int
+	result.Mul(inReserves.BigInt(), out.BigInt())
+
+	newOutReserves := outReserves.Sub(out)
+	var remainder big.Int
+	result.QuoRem(&result, newOutReserves.BigInt(), &remainder)
+
+	inWithoutFee := sdk.NewIntFromBigInt(&result)
+	if remainder.Sign() != 0 {
+		inWithoutFee = inWithoutFee.Add(sdk.OneInt())
+	}
+
+	in := inWithoutFee.ToDec().Quo(sdk.OneDec().Sub(fee)).Ceil().TruncateInt()
+	feeValue := in.Sub(inWithoutFee)
+
+	return in, feeValue
 }
 
 // ShareValue returns the value of the provided shares and panics
@@ -246,6 +334,48 @@ func (p *BasePool) ShareValue(shares sdk.Int) (sdk.Int, sdk.Int) {
 	resultB.Quo(&resultB, p.totalShares.BigInt())
 
 	return sdk.NewIntFromBigInt(&resultA), sdk.NewIntFromBigInt(&resultB)
+}
+
+// assertInvariantAndUpdateRerserves asserts the constant product invariant is not violated, subtracting
+// any fees first, then updates the pool reserves.  Panics if invariant is violated.
+func (p *BasePool) assertInvariantAndUpdateReserves(newReservesA, feeA, newReservesB, feeB sdk.Int) {
+	var invariant big.Int
+	invariant.Mul(p.reservesA.BigInt(), p.reservesB.BigInt())
+
+	var newInvariant big.Int
+	newInvariant.Mul(newReservesA.Sub(feeA).BigInt(), newReservesB.Sub(feeB).BigInt())
+
+	p.assertInvariant(&invariant, &newInvariant)
+
+	p.reservesA = newReservesA
+	p.reservesB = newReservesB
+}
+
+// assertSwapInputIsValid checks if the provided swap input is positive
+// and panics if it is 0 or negative
+func (p *BasePool) assertSwapInputIsValid(input sdk.Int) {
+	if !input.IsPositive() {
+		panic("invalid value: swap input must be positive")
+	}
+}
+
+// assertSwapOutputIsValid checks if the provided swap input is positive and
+// less than the provided reserves.
+func (p *BasePool) assertSwapOutputIsValid(output sdk.Int, reserves sdk.Int) {
+	if !output.IsPositive() {
+		panic("invalid value: swap output must be positive")
+	}
+
+	if output.GTE(reserves) {
+		panic("invalid value: swap output must be less than reserves")
+	}
+}
+
+// assertFeeIsValid checks if the provided fee is less
+func (p *BasePool) assertFeeIsValid(fee sdk.Dec) {
+	if fee.IsNegative() || fee.GTE(sdk.OneDec()) {
+		panic("invalid value: fee must be between 0 and 1")
+	}
 }
 
 // assertSharesPositive panics if shares is zero or negative
@@ -294,5 +424,14 @@ func (p *BasePool) assertReservesAreNotNegative() {
 
 	if p.reservesB.IsNegative() {
 		panic("invalid state: reserves B can not be negative")
+	}
+}
+
+// assertInvariant panics if the new invariant is less than the previous invariant.  This
+// is an invalid state that should never happen.  If this panic is seen, it is a bug.
+func (p *BasePool) assertInvariant(prevInvariant, newInvariant *big.Int) {
+	// invariant > newInvariant
+	if prevInvariant.Cmp(newInvariant) == 1 {
+		panic(fmt.Sprintf("invalid state: invariant %s decreased to %s", prevInvariant.String(), newInvariant.String()))
 	}
 }

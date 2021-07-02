@@ -27,7 +27,7 @@ func GenSwapFee(r *rand.Rand) sdk.Dec {
 	return sdk.NewDec(percentage).Quo(sdk.NewDec(100))
 }
 
-// GenSupportedAssets generates random allowed pools
+// GenAllowedPools generates random allowed pools
 func GenAllowedPools(r *rand.Rand) types.AllowedPools {
 	var pools types.AllowedPools
 
