@@ -180,46 +180,44 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 				[]v0_15committee.Permission{v0_15committee.SoftwareUpgradePermission{}},
 				com.VoteThreshold, com.ProposalDuration, v0_15committee.FirstPastThePost)
 			committees = append(committees, safetyCom)
-		case 3:
-			// Initialize hard governance committee without permissions
-			quorum := sdk.MustNewDecFromStr("0.33")
-			tallyDenom := "hard"
-			hardGovCom := comtypes.NewTokenCommittee(com.ID, com.Description, com.Members,
-				[]v0_15committee.Permission{}, com.VoteThreshold, com.ProposalDuration,
-				v0_15committee.FirstPastThePost, quorum, tallyDenom)
-
-			// Build hard governance committee permissions
-			var newHardCommitteePermissions []v0_15committee.Permission
-			var newHardSubParamPermissions v0_15committee.SubParamChangePermission
-			for _, perm := range com.Permissions {
-				subPerm, ok := perm.(v0_14committee.SubParamChangePermission)
-				if ok {
-					// Update AllowedParams
-					var newAllowedParams v0_15committee.AllowedParams
-					for _, ap := range subPerm.AllowedParams {
-						newAP := v0_15committee.AllowedParam(ap)
-						newAllowedParams = append(newAllowedParams, newAP)
-					}
-					newHardSubParamPermissions.AllowedParams = newAllowedParams
-
-					// Add hard money market committee permissions
-					var newMoneyMarketParams v0_15committee.AllowedMoneyMarkets
-					for _, mm := range subPerm.AllowedMoneyMarkets {
-						newMoneyMarketParam := v0_15committee.NewAllowedMoneyMarket(
-							mm.Denom, mm.BorrowLimit, mm.SpotMarketID, mm.ConversionFactor,
-							mm.InterestRateModel, mm.ReserveFactor, mm.KeeperRewardPercentage,
-						)
-						newMoneyMarketParams = append(newMoneyMarketParams, newMoneyMarketParam)
-					}
-					newHardSubParamPermissions.AllowedMoneyMarkets = newMoneyMarketParams
-					newHardCommitteePermissions = append(newHardCommitteePermissions, newHardSubParamPermissions)
-				}
-			}
-			// Set hard governance committee permissions
-			permissionedHardGovCom := hardGovCom.SetPermissions(newHardCommitteePermissions)
-			committees = append(committees, permissionedHardGovCom)
 		}
 	}
+
+	// Initialize hard governance committee
+	hardGovCom := comtypes.TokenCommittee{}
+	hardGovCom.ID = 3
+	hardGovCom.Description = "Hard Governance Committee"
+	hardGovCom.Members = []sdk.AccAddress{sdk.AccAddress("kava1e0agyg6eug9r62fly9sls77ycjgw8ax6xk73es")}
+	hardGovCom.VoteThreshold = sdk.MustNewDecFromStr("0.5")
+	hardGovCom.ProposalDuration = time.Duration(604800000000000)
+	hardGovCom.TallyOption = v0_15committee.FirstPastThePost
+	hardGovCom.Quorum = sdk.MustNewDecFromStr("0.33")
+	hardGovCom.TallyDenom = "hard"
+
+	// Add hard money market committee permissions
+	var newHardCommitteePermissions []v0_15committee.Permission
+	var newHardSubParamPermissions v0_15committee.SubParamChangePermission
+
+	// Allowed params permissions
+	newAllowedParams := v0_15committee.AllowedParams{
+		v0_15committee.AllowedParam{Subspace: "hard", Key: "MoneyMarkets"},
+		v0_15committee.AllowedParam{Subspace: "hard", Key: "MinimumBorrowUSDValue"},
+	}
+	newHardSubParamPermissions.AllowedParams = newAllowedParams
+
+	// Money market permissions
+	var newMoneyMarketParams v0_15committee.AllowedMoneyMarkets
+	hardMMDenoms := []string{"bnb", "busd", "btcb", "xrpb", "usdx", "ukava", "hard"}
+	for _, mmDenom := range hardMMDenoms {
+		newMoneyMarketParam := v0_15committee.NewAllowedMoneyMarket(mmDenom, true, false, false, true, true, true)
+		newMoneyMarketParams = append(newMoneyMarketParams, newMoneyMarketParam)
+	}
+	newHardSubParamPermissions.AllowedMoneyMarkets = newMoneyMarketParams
+	newHardCommitteePermissions = append(newHardCommitteePermissions, newHardSubParamPermissions)
+
+	// Set hard governance committee permissions
+	permissionedHardGovCom := hardGovCom.SetPermissions(newHardCommitteePermissions)
+	committees = append(committees, permissionedHardGovCom)
 
 	for _, v := range genesisState.Votes {
 		newVote := v0_15committee.NewVote(v.ProposalID, v.Voter, comtypes.Yes)
