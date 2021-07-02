@@ -110,6 +110,9 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGloba
 				{
 					CollateralType: "hard", RewardFactor: d("0.1"),
 				},
+				{
+					CollateralType: "swp", RewardFactor: d("0.2"),
+				},
 			},
 		}},
 	}
@@ -156,6 +159,9 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRe
 			{
 				CollateralType: "hard", RewardFactor: d("0.1"),
 			},
+			{
+				CollateralType: "swp", RewardFactor: d("0.2"),
+			},
 		},
 	}}
 	suite.storeGlobalDelegatorFactor(newGlobalIndexes)
@@ -166,7 +172,10 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRe
 
 	suite.Equal(newGlobalIndexes, syncedClaim.DelegatorRewardIndexes)
 	suite.Equal(
-		cs(c(types.HardLiquidityRewardDenom, 100)).Add(claim.Reward...),
+		cs(
+			c(types.HardLiquidityRewardDenom, 100),
+			c("swp", 200),
+		).Add(claim.Reward...),
 		syncedClaim.Reward,
 	)
 }
@@ -199,6 +208,9 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 				{
 					CollateralType: "hard", RewardFactor: d("0.1"),
 				},
+				{
+					CollateralType: "swp", RewardFactor: d("0.2"),
+				},
 			},
 		}},
 	}
@@ -212,6 +224,9 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 					{
 						CollateralType: "hard", RewardFactor: d("0.2"),
 					},
+					{
+						CollateralType: "swp", RewardFactor: d("0.4"),
+					},
 				},
 			),
 		},
@@ -222,7 +237,10 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 
 	suite.Equal(
-		cs(c(types.HardLiquidityRewardDenom, 100)).Add(claim.Reward...),
+		cs(
+			c(types.HardLiquidityRewardDenom, 100),
+			c("swp", 200),
+		).Add(claim.Reward...),
 		syncedClaim.Reward,
 	)
 }
