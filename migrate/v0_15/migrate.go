@@ -180,35 +180,33 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 				[]v0_15committee.Permission{v0_15committee.SoftwareUpgradePermission{}},
 				com.VoteThreshold, com.ProposalDuration, v0_15committee.FirstPastThePost)
 			committees = append(committees, safetyCom)
-		case 3:
-			// Initialize swap governance committee without permissions
-			quorum := sdk.MustNewDecFromStr("0.33")
-			tallyDenom := "swp"
-			swapGovCom := comtypes.NewTokenCommittee(com.ID, com.Description, com.Members,
-				[]v0_15committee.Permission{}, com.VoteThreshold, com.ProposalDuration,
-				v0_15committee.FirstPastThePost, quorum, tallyDenom)
-
-			// Build swap governance committee permissions
-			var newSwapCommitteePermissions []v0_15committee.Permission
-			var newSwapSubParamPermissions v0_15committee.SubParamChangePermission
-			for _, perm := range com.Permissions {
-				subPerm, ok := perm.(v0_14committee.SubParamChangePermission)
-				if ok {
-					// Update AllowedParams
-					var newAllowedParams v0_15committee.AllowedParams
-					for _, ap := range subPerm.AllowedParams {
-						newAP := v0_15committee.AllowedParam(ap)
-						newAllowedParams = append(newAllowedParams, newAP)
-					}
-					newSwapSubParamPermissions.AllowedParams = newAllowedParams
-					newSwapCommitteePermissions = append(newSwapCommitteePermissions, newSwapSubParamPermissions)
-				}
-			}
-			// Set swap governance committee permissions
-			permissionedSwapGovCom := swapGovCom.SetPermissions(newSwapCommitteePermissions)
-			committees = append(committees, permissionedSwapGovCom)
 		}
 	}
+
+	// Initialize swap governance committee
+	swapGovCom := comtypes.TokenCommittee{}
+	swapGovCom.ID = 3
+	swapGovCom.Description = "Swap Governance Committee"
+	swapGovCom.Members = []sdk.AccAddress{sdk.AccAddress("kava1e0agyg6eug9r62fly9sls77ycjgw8ax6xk73es")}
+	swapGovCom.VoteThreshold = sdk.MustNewDecFromStr("0.5")
+	swapGovCom.ProposalDuration = time.Duration(604800000000000)
+	swapGovCom.TallyOption = v0_15committee.FirstPastThePost
+	swapGovCom.Quorum = sdk.MustNewDecFromStr("0.33")
+	swapGovCom.TallyDenom = "swp"
+
+	// Add swap money market committee permissions
+	var newSwapCommitteePermissions []v0_15committee.Permission
+	var newSwapSubParamPermissions v0_15committee.SubParamChangePermission
+
+	newAllowedParams := v0_15committee.AllowedParams{
+		v0_15committee.AllowedParam{Subspace: "swap", Key: "AllowedPools"},
+		v0_15committee.AllowedParam{Subspace: "swap", Key: "SwapFee"},
+		v0_15committee.AllowedParam{Subspace: "swap", Key: "HardDelegatorRewardPeriods"},
+	}
+	newSwapSubParamPermissions.AllowedParams = newAllowedParams
+
+	permissionedSwapGovCom := swapGovCom.SetPermissions(newSwapCommitteePermissions)
+	committees = append(committees, permissionedSwapGovCom)
 
 	for _, v := range genesisState.Votes {
 		newVote := v0_15committee.NewVote(v.ProposalID, v.Voter, comtypes.Yes)
