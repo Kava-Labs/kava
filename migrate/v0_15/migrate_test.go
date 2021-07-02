@@ -41,7 +41,7 @@ func TestCommittee(t *testing.T) {
 	err = newGenState.Validate()
 	require.NoError(t, err)
 
-	require.Equal(t, len(oldGenState.Committees), len(newGenState.Committees))
+	require.Equal(t, len(oldGenState.Committees), len(newGenState.Committees)-1) // New gen state has 1 additional committee
 	for i := 0; i < len(oldGenState.Committees); i++ {
 		require.Equal(t, len(oldGenState.Committees[i].Permissions), len(newGenState.Committees[i].GetPermissions()))
 	}
