@@ -172,8 +172,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 			newStabilityCommitteePermissions = append(newStabilityCommitteePermissions, v0_15committee.TextPermission{})
 
 			// Set stability committee permissions
-			baseStabilityCom := stabilityCom.SetPermissions(newStabilityCommitteePermissions)
-			newStabilityCom := v0_15committee.MemberCommittee{BaseCommittee: baseStabilityCom}
+			newStabilityCom := stabilityCom.SetPermissions(newStabilityCommitteePermissions)
 			committees = append(committees, newStabilityCom)
 		case 2:
 			safetyCom := comtypes.NewMemberCommittee(com.ID, com.Description, com.Members,
@@ -183,11 +182,12 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 		}
 	}
 
+	// Initialize hard governance committee
 	members, err := loadStabilityComMembers()
 	if err != nil {
 		panic(err)
 	}
-	duration := time.Duration(time.Hour * 168) // 7 days
+	duration := time.Duration(time.Hour * 24 * 7)
 	threshold := sdk.MustNewDecFromStr("0.5")
 	quorum := sdk.MustNewDecFromStr("0.33")
 

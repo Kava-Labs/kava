@@ -131,7 +131,7 @@ type Committee interface {
 	HasMember(addr sdk.AccAddress) bool
 
 	GetPermissions() []Permission
-	SetPermissions([]Permission) BaseCommittee
+	SetPermissions([]Permission) Committee
 	HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, proposal PubProposal) bool
 
 	GetProposalDuration() time.Duration
@@ -311,6 +311,12 @@ func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress,
 	}
 }
 
+// SetPermissions is a setter for committee permissions
+func (c MemberCommittee) SetPermissions(permissions []Permission) Committee {
+	c.Permissions = permissions
+	return c
+}
+
 // Validate validates the committee's fields
 func (c MemberCommittee) Validate() error {
 	return c.BaseCommittee.Validate()
@@ -347,6 +353,12 @@ func (c TokenCommittee) GetQuorum() sdk.Dec { return c.Quorum }
 
 // GetTallyDenom returns the tally denom of the committee
 func (c TokenCommittee) GetTallyDenom() string { return c.TallyDenom }
+
+// SetPermissions is a setter for committee permissions
+func (c TokenCommittee) SetPermissions(permissions []Permission) Committee {
+	c.Permissions = permissions
+	return c
+}
 
 // Validate validates the committee's fields
 func (c TokenCommittee) Validate() error {
