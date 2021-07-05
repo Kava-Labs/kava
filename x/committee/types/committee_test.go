@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
@@ -337,6 +338,54 @@ func TestTokenCommittee(t *testing.T) {
 			} else {
 				require.Error(t, err)
 			}
+		})
+	}
+}
+
+// TestTokenCommitteeMarshalJSON tests TokenCommittee JSON marshaling
+func TestTokenCommitteeMarshalJSON(t *testing.T) {
+	addresses := []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
+	}
+
+	testCases := []struct {
+		name      string
+		committee TokenCommittee
+	}{
+		{
+			name: "normal",
+			committee: TokenCommittee{
+				BaseCommittee: BaseCommittee{
+					ID:               1,
+					Description:      "This token committee is for testing.",
+					Members:          addresses[:2],
+					Permissions:      []Permission{GodPermission{}},
+					VoteThreshold:    d("0.667"),
+					ProposalDuration: time.Hour * 24 * 7,
+					TallyOption:      Deadline,
+					Type:             TokenCommitteeType,
+				},
+				Quorum:     d("0.4"),
+				TallyDenom: "hard",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.committee.Validate()
+			require.NoError(t, err)
+
+			// Marshal and unmarshal the TokenCommittee
+			cdc := codec.New()
+			RegisterCodec(cdc)
+			bz := cdc.MustMarshalJSON(tc.committee)
+
+			var com TokenCommittee
+			cdc.MustUnmarshalJSON(bz, &com)
+
+			require.Equal(t, tc.committee, com)
 		})
 	}
 }

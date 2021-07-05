@@ -33,6 +33,7 @@ func init() {
 	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
 	// But since these proposals contain Committees, these types also need registering:
 	govtypes.ModuleCdc.RegisterInterface((*Committee)(nil), nil)
+	govtypes.RegisterProposalTypeCodec(BaseCommittee{}, "kava/BaseCommittee")
 	govtypes.RegisterProposalTypeCodec(MemberCommittee{}, "kava/MemberCommittee")
 	govtypes.RegisterProposalTypeCodec(TokenCommittee{}, "kava/TokenCommittee")
 }
