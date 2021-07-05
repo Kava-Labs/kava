@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// An Accumulator handles calculating and tracking global reward distributions.
 type Accumulator struct {
 	PreviousAccumulationTime time.Time
 	Indexes                  RewardIndexes
@@ -20,7 +21,11 @@ func NewAccumulator(previousAccrual time.Time, indexes RewardIndexes) *Accumulat
 	}
 }
 
-// Accumulate updates the reward indexes for a new block.
+// Accumulate accrues rewards up to the current time.
+// It calculates new rewards and adds them to the reward indexes for the period from PreviousAccumulationTime to currentTime.
+// It stores the currentTime in PreviousAccumulationTime to be used for later accumulations.
+// Rewards are not accrued for times outside of the start and end times of a reward period.
+// If a period ends before currentTime, the PreviousAccrualTime is shortened to the end time. This allows accumulate to be called sequentially on consecutive reward periods.
 func (acc *Accumulator) Accumulate(period MultiRewardPeriod, rewardSourceTotal sdk.Dec, currentTime time.Time) {
 	accumulationDuration := acc.getTimeElapsedWithinLimits(acc.PreviousAccumulationTime, currentTime, period.Start, period.End)
 	indexesIncrement := acc.calculateNewRewards(period.RewardsPerSecond, rewardSourceTotal, accumulationDuration)
@@ -46,8 +51,8 @@ func (acc *Accumulator) getTimeElapsedWithinLimits(start, end, limitMin, limitMa
 }
 
 // calculateNewRewards calculates the amount to increase the global reward indexes for a given reward rate, duration, and source total.
-// The total rewards to distribute in this block are given by reward rate * duration. This update to global indexes is this value divided
-// by the source total. This gives rewards per unit of source.
+// The total rewards to distribute in this block are given by reward rate * duration. This value divided by the source total to give
+// total rewards per unit of source, which is what the indexes store.
 // Note, duration is rounded to the nearest second to keep rewards calculation the same as in kava-7.
 func (acc *Accumulator) calculateNewRewards(rewardsPerSecond sdk.Coins, rewardSourceTotal sdk.Dec, duration time.Duration) RewardIndexes {
 	if rewardSourceTotal.IsZero() {

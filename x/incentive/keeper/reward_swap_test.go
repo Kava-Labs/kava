@@ -10,7 +10,6 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-
 type AccumulateSwapRewardsTests struct {
 	unitTester
 }

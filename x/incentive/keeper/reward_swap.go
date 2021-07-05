@@ -6,7 +6,8 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// AccumulateSwapRewards calculates new rewards to distribute this block and updates the global index to reflect this.
+// AccumulateSwapRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
+// The provided rewardPeriod must be valid to avoid panics in calculating time durations.
 func (k Keeper) AccumulateSwapRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
 
 	previousAccrualTime, found := k.GetSwapRewardAccrualTime(ctx, rewardPeriod.CollateralType)
