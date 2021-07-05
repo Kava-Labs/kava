@@ -47,7 +47,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
 			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
 			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
-			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
+			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
 			incentive.Multipliers{incentive.NewMultiplier(incentive.MultiplierName("small"), 1, d("0.25")), incentive.NewMultiplier(incentive.MultiplierName("large"), 12, d("1.0"))},
 			time.Date(2025, 12, 15, 14, 0, 0, 0, time.UTC),
 		),
@@ -88,10 +88,9 @@ func (suite *HandlerTestSuite) addHardLiquidityProviderClaim() {
 	err := sk.MintCoins(suite.ctx, kavadist.ModuleName, cs(c("ukava", 1000000000000)))
 	suite.Require().NoError(err)
 	rewardPeriod := types.RewardIndexes{types.NewRewardIndex("bnb-s", sdk.ZeroDec())}
-
 	multiRewardIndex := types.NewMultiRewardIndex("bnb-s", rewardPeriod)
 	multiRewardIndexes := types.MultiRewardIndexes{multiRewardIndex}
-	c1 := incentive.NewHardLiquidityProviderClaim(suite.addrs[0], cs(c("ukava", 1000000)), multiRewardIndexes, multiRewardIndexes, rewardPeriod)
+	c1 := incentive.NewHardLiquidityProviderClaim(suite.addrs[0], cs(c("ukava", 1000000)), multiRewardIndexes, multiRewardIndexes, multiRewardIndexes)
 	suite.NotPanics(func() {
 		suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, c1)
 	})

@@ -117,22 +117,22 @@ func NewQueryRewardFactorsParams(denom string) QueryRewardFactorsParams {
 
 // RewardFactor is a unique type returned by reward factor queries
 type RewardFactor struct {
-	Denom                     string        `json:"denom" yaml:"denom"`
-	USDXMintingRewardFactor   sdk.Dec       `json:"usdx_minting_reward_factor" yaml:"usdx_minting_reward_factor"`
-	HardSupplyRewardFactors   RewardIndexes `json:"hard_supply_reward_factors" yaml:"hard_supply_reward_factors"`
-	HardBorrowRewardFactors   RewardIndexes `json:"hard_borrow_reward_factors" yaml:"hard_borrow_reward_factors"`
-	HardDelegatorRewardFactor sdk.Dec       `json:"hard_delegator_reward_factor" yaml:"hard_delegator_reward_factor"`
+	Denom                      string        `json:"denom" yaml:"denom"`
+	USDXMintingRewardFactor    sdk.Dec       `json:"usdx_minting_reward_factor" yaml:"usdx_minting_reward_factor"`
+	HardSupplyRewardFactors    RewardIndexes `json:"hard_supply_reward_factors" yaml:"hard_supply_reward_factors"`
+	HardBorrowRewardFactors    RewardIndexes `json:"hard_borrow_reward_factors" yaml:"hard_borrow_reward_factors"`
+	HardDelegatorRewardFactors RewardIndexes `json:"hard_delegator_reward_factors" yaml:"hard_delegator_reward_factors"`
 }
 
 // NewRewardFactor returns a new instance of RewardFactor
 func NewRewardFactor(denom string, usdxMintingRewardFactor sdk.Dec, hardSupplyRewardFactors,
-	hardBorrowRewardFactors RewardIndexes, hardDelegatorRewardFactor sdk.Dec) RewardFactor {
+	hardBorrowRewardFactors, hardDelegatorRewardFactors RewardIndexes) RewardFactor {
 	return RewardFactor{
-		Denom:                     denom,
-		USDXMintingRewardFactor:   usdxMintingRewardFactor,
-		HardSupplyRewardFactors:   hardSupplyRewardFactors,
-		HardBorrowRewardFactors:   hardBorrowRewardFactors,
-		HardDelegatorRewardFactor: hardDelegatorRewardFactor,
+		Denom:                      denom,
+		USDXMintingRewardFactor:    usdxMintingRewardFactor,
+		HardSupplyRewardFactors:    hardSupplyRewardFactors,
+		HardBorrowRewardFactors:    hardBorrowRewardFactors,
+		HardDelegatorRewardFactors: hardDelegatorRewardFactors,
 	}
 }
 

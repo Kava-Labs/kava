@@ -12,13 +12,16 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
-	"github.com/kava-labs/kava/x/committee/types"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
+	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
+	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 )
 
 var (
 	// TODO: update GenesisTime for kava-8 launch
 	GenesisTime = time.Date(2021, 4, 8, 15, 0, 0, 0, time.UTC)
+	// TODO: update SWP reward per second amount before production
+	SwpRewardsPerSecond = sdk.NewCoin("swp", sdk.OneInt())
 )
 
 // Migrate translates a genesis file from kava v0.14 format to kava v0.15 format
@@ -47,6 +50,15 @@ func Migrate(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 // MigrateAppState migrates application state from v0.14 format to a kava v0.15 format
 func MigrateAppState(v0_14AppState genutil.AppMap) genutil.AppMap {
 	v0_15AppState := v0_14AppState
+	cdc := app.MakeCodec()
+
+	// Migrate incentive app state
+	if v0_14AppState[v0_14incentive.ModuleName] != nil {
+		var incentiveGenState v0_14incentive.GenesisState
+		cdc.MustUnmarshalJSON(v0_14AppState[v0_15incentive.ModuleName], &incentiveGenState)
+		delete(v0_14AppState, v0_14incentive.ModuleName)
+		v0_15AppState[v0_15incentive.ModuleName] = cdc.MustMarshalJSON(Incentive(incentiveGenState))
+	}
 
 	// Migrate commmittee app state
 	if v0_14AppState[v0_14committee.ModuleName] != nil {
@@ -75,7 +87,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	for _, com := range genesisState.Committees {
 		if com.ID == 1 {
 			// Initialize member committee without permissions
-			stabilityCom := types.NewMemberCommittee(com.ID, com.Description, com.Members,
+			stabilityCom := v0_15committee.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{}, com.VoteThreshold, com.ProposalDuration,
 				v0_15committee.FirstPastThePost)
 
@@ -171,7 +183,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 			newStabilityCom := v0_15committee.MemberCommittee{BaseCommittee: baseStabilityCom}
 			committees = append(committees, newStabilityCom)
 		} else {
-			safetyCom := types.NewMemberCommittee(com.ID, com.Description, com.Members,
+			safetyCom := v0_15committee.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{v0_15committee.SoftwareUpgradePermission{}},
 				com.VoteThreshold, com.ProposalDuration, v0_15committee.FirstPastThePost)
 			committees = append(committees, safetyCom)
@@ -179,7 +191,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	}
 
 	for _, v := range genesisState.Votes {
-		newVote := v0_15committee.NewVote(v.ProposalID, v.Voter, types.Yes)
+		newVote := v0_15committee.NewVote(v.ProposalID, v.Voter, v0_15committee.Yes)
 		votes = append(votes, v0_15committee.Vote(newVote))
 	}
 
@@ -190,4 +202,142 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	}
 	return v0_15committee.NewGenesisState(
 		genesisState.NextProposalID, committees, proposals, votes)
+}
+
+// Incentive migrates from a v0.14 incentive genesis state to a v0.15 incentive genesis state
+func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisState {
+	// Migrate params
+	var claimMultipliers v0_15incentive.Multipliers
+	for _, m := range incentiveGS.Params.ClaimMultipliers {
+		newMultiplier := v0_15incentive.NewMultiplier(v0_15incentive.MultiplierName(m.Name), m.MonthsLockup, m.Factor)
+		claimMultipliers = append(claimMultipliers, newMultiplier)
+	}
+
+	var usdxMintingRewardPeriods v0_15incentive.RewardPeriods
+	for _, rp := range incentiveGS.Params.USDXMintingRewardPeriods {
+		usdxMintingRewardPeriod := v0_15incentive.NewRewardPeriod(rp.Active,
+			rp.CollateralType, rp.Start, rp.End, rp.RewardsPerSecond)
+		usdxMintingRewardPeriods = append(usdxMintingRewardPeriods, usdxMintingRewardPeriod)
+	}
+
+	var hardSupplyRewardPeriods v0_15incentive.MultiRewardPeriods
+	for _, rp := range incentiveGS.Params.HardSupplyRewardPeriods {
+		hardSupplyRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
+			rp.CollateralType, rp.Start, rp.End, rp.RewardsPerSecond)
+		hardSupplyRewardPeriods = append(hardSupplyRewardPeriods, hardSupplyRewardPeriod)
+	}
+
+	var hardBorrowRewardPeriods v0_15incentive.MultiRewardPeriods
+	for _, rp := range incentiveGS.Params.HardBorrowRewardPeriods {
+		hardBorrowRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
+			rp.CollateralType, rp.Start, rp.End, rp.RewardsPerSecond)
+		hardBorrowRewardPeriods = append(hardBorrowRewardPeriods, hardBorrowRewardPeriod)
+	}
+
+	var hardDelegatorRewardPeriods v0_15incentive.MultiRewardPeriods
+	for _, rp := range incentiveGS.Params.HardDelegatorRewardPeriods {
+		rewardsPerSecond := sdk.NewCoins(rp.RewardsPerSecond, SwpRewardsPerSecond)
+		hardDelegatorRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
+			rp.CollateralType, rp.Start, rp.End, rewardsPerSecond)
+		hardDelegatorRewardPeriods = append(hardDelegatorRewardPeriods, hardDelegatorRewardPeriod)
+	}
+
+	// Build new params from migrated values
+	params := v0_15incentive.NewParams(
+		usdxMintingRewardPeriods,
+		hardSupplyRewardPeriods,
+		hardBorrowRewardPeriods,
+		hardDelegatorRewardPeriods,
+		claimMultipliers,
+		incentiveGS.Params.ClaimEnd,
+	)
+
+	// Migrate accumulation times
+	var usdxAccumulationTimes v0_15incentive.GenesisAccumulationTimes
+	for _, t := range incentiveGS.USDXAccumulationTimes {
+		newAccumulationTime := v0_15incentive.NewGenesisAccumulationTime(t.CollateralType, t.PreviousAccumulationTime)
+		usdxAccumulationTimes = append(usdxAccumulationTimes, newAccumulationTime)
+	}
+
+	var hardSupplyAccumulationTimes v0_15incentive.GenesisAccumulationTimes
+	for _, t := range incentiveGS.HardSupplyAccumulationTimes {
+		newAccumulationTime := v0_15incentive.NewGenesisAccumulationTime(t.CollateralType, t.PreviousAccumulationTime)
+		hardSupplyAccumulationTimes = append(hardSupplyAccumulationTimes, newAccumulationTime)
+	}
+
+	var hardBorrowAccumulationTimes v0_15incentive.GenesisAccumulationTimes
+	for _, t := range incentiveGS.HardBorrowAccumulationTimes {
+		newAccumulationTime := v0_15incentive.NewGenesisAccumulationTime(t.CollateralType, t.PreviousAccumulationTime)
+		hardBorrowAccumulationTimes = append(hardBorrowAccumulationTimes, newAccumulationTime)
+	}
+
+	var hardDelegatorAccumulationTimes v0_15incentive.GenesisAccumulationTimes
+	for _, t := range incentiveGS.HardDelegatorAccumulationTimes {
+		newAccumulationTime := v0_15incentive.NewGenesisAccumulationTime(t.CollateralType, t.PreviousAccumulationTime)
+		hardDelegatorAccumulationTimes = append(hardDelegatorAccumulationTimes, newAccumulationTime)
+	}
+
+	// Migrate USDX minting claims
+	var usdxMintingClaims v0_15incentive.USDXMintingClaims
+	for _, claim := range incentiveGS.USDXMintingClaims {
+		var rewardIndexes v0_15incentive.RewardIndexes
+		for _, ri := range claim.RewardIndexes {
+			rewardIndex := v0_15incentive.NewRewardIndex(ri.CollateralType, ri.RewardFactor)
+			rewardIndexes = append(rewardIndexes, rewardIndex)
+		}
+		usdxMintingClaim := v0_15incentive.NewUSDXMintingClaim(claim.Owner, claim.Reward, rewardIndexes)
+		usdxMintingClaims = append(usdxMintingClaims, usdxMintingClaim)
+	}
+
+	// Migrate Hard protocol claims (including delegation rewards)
+	var hardClaims v0_15incentive.HardLiquidityProviderClaims
+	for _, claim := range incentiveGS.HardLiquidityProviderClaims {
+		// Migrate supply multi reward indexes
+		var supplyMultiRewardIndexes v0_15incentive.MultiRewardIndexes
+		for _, sri := range claim.SupplyRewardIndexes {
+			var rewardIndexes v0_15incentive.RewardIndexes
+			for _, ri := range sri.RewardIndexes {
+				rewardIndex := v0_15incentive.NewRewardIndex(ri.CollateralType, ri.RewardFactor)
+				rewardIndexes = append(rewardIndexes, rewardIndex)
+			}
+			supplyMultiRewardIndex := v0_15incentive.NewMultiRewardIndex(sri.CollateralType, rewardIndexes)
+			supplyMultiRewardIndexes = append(supplyMultiRewardIndexes, supplyMultiRewardIndex)
+		}
+
+		// Migrate borrow multi reward indexes
+		var borrowMultiRewardIndexes v0_15incentive.MultiRewardIndexes
+		for _, bri := range claim.BorrowRewardIndexes {
+			var rewardIndexes v0_15incentive.RewardIndexes
+			for _, ri := range bri.RewardIndexes {
+				rewardIndex := v0_15incentive.NewRewardIndex(ri.CollateralType, ri.RewardFactor)
+				rewardIndexes = append(rewardIndexes, rewardIndex)
+			}
+			borrowMultiRewardIndex := v0_15incentive.NewMultiRewardIndex(bri.CollateralType, rewardIndexes)
+			borrowMultiRewardIndexes = append(borrowMultiRewardIndexes, borrowMultiRewardIndex)
+		}
+
+		// Migrate delegator reward indexes to multi reward indexes under BondDenom
+		var delegatorMultiRewardIndexes v0_15incentive.MultiRewardIndexes
+		var delegatorRewardIndexes v0_15incentive.RewardIndexes
+		for _, ri := range claim.DelegatorRewardIndexes {
+			delegatorRewardIndex := v0_15incentive.NewRewardIndex(ri.CollateralType, ri.RewardFactor)
+			delegatorRewardIndexes = append(delegatorRewardIndexes, delegatorRewardIndex)
+		}
+		delegatorMultiRewardIndex := v0_15incentive.NewMultiRewardIndex(v0_15incentive.BondDenom, delegatorRewardIndexes)
+		delegatorMultiRewardIndexes = append(delegatorMultiRewardIndexes, delegatorMultiRewardIndex)
+
+		hardClaim := v0_15incentive.NewHardLiquidityProviderClaim(claim.Owner, claim.Reward,
+			supplyMultiRewardIndexes, borrowMultiRewardIndexes, delegatorMultiRewardIndexes)
+		hardClaims = append(hardClaims, hardClaim)
+	}
+
+	return v0_15incentive.NewGenesisState(
+		params,
+		usdxAccumulationTimes,
+		hardSupplyAccumulationTimes,
+		hardBorrowAccumulationTimes,
+		hardDelegatorAccumulationTimes,
+		usdxMintingClaims,
+		hardClaims,
+	)
 }
