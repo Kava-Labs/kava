@@ -237,6 +237,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	var newSwapCommitteePermissions []v0_15committee.Permission
 	var newSwapSubParamPermissions v0_15committee.SubParamChangePermission
 
+	// TODO: add additional incentive params that manage LP rewards
 	swpAllowedParams := v0_15committee.AllowedParams{
 		v0_15committee.AllowedParam{Subspace: "swap", Key: "AllowedPools"},
 		v0_15committee.AllowedParam{Subspace: "swap", Key: "SwapFee"},
