@@ -183,16 +183,17 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 		}
 	}
 
+	members, err := loadStabilityComMembers()
+	if err != nil {
+		panic(err)
+	}
+	duration := time.Duration(time.Hour * 168) // 7 days
+	threshold := sdk.MustNewDecFromStr("0.5")
+	quorum := sdk.MustNewDecFromStr("0.33")
+
 	// Initialize hard governance committee
-	hardGovCom := comtypes.TokenCommittee{}
-	hardGovCom.ID = 3
-	hardGovCom.Description = "Hard Governance Committee"
-	hardGovCom.Members = []sdk.AccAddress{sdk.AccAddress("kava1e0agyg6eug9r62fly9sls77ycjgw8ax6xk73es")}
-	hardGovCom.VoteThreshold = sdk.MustNewDecFromStr("0.5")
-	hardGovCom.ProposalDuration = time.Duration(604800000000000)
-	hardGovCom.TallyOption = v0_15committee.FirstPastThePost
-	hardGovCom.Quorum = sdk.MustNewDecFromStr("0.33")
-	hardGovCom.TallyDenom = "hard"
+	hardGovCom := comtypes.NewTokenCommittee(3, "Hard Governance Committee", members,
+		[]v0_15committee.Permission{}, threshold, duration, v0_15committee.Deadline, quorum, "hard")
 
 	// Add hard money market committee permissions
 	var newHardCommitteePermissions []v0_15committee.Permission
@@ -209,7 +210,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	var newMoneyMarketParams v0_15committee.AllowedMoneyMarkets
 	hardMMDenoms := []string{"bnb", "busd", "btcb", "xrpb", "usdx", "ukava", "hard"}
 	for _, mmDenom := range hardMMDenoms {
-		newMoneyMarketParam := v0_15committee.NewAllowedMoneyMarket(mmDenom, true, false, false, true, true, true)
+		newMoneyMarketParam := v0_15committee.NewAllowedMoneyMarket(mmDenom, true, true, false, true, true, true)
 		newMoneyMarketParams = append(newMoneyMarketParams, newMoneyMarketParam)
 	}
 	newHardSubParamPermissions.AllowedMoneyMarkets = newMoneyMarketParams
@@ -236,4 +237,25 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 // Swap introduces new v0.15 swap genesis state
 func Swap() v0_15swap.GenesisState {
 	return v0_15swap.NewGenesisState(v0_15swap.DefaultParams())
+}
+
+func loadStabilityComMembers() ([]sdk.AccAddress, error) {
+	strAddrs := []string{
+		"kava1gru35up50ql2wxhegr880qy6ynl63ujlv8gum2",
+		"kava1sc3mh3pkas5e7xd269am4xm5mp6zweyzmhjagj",
+		"kava1c9ye54e3pzwm3e0zpdlel6pnavrj9qqv6e8r4h",
+		"kava1m7p6sjqrz6mylz776ct48wj6lpnpcd0z82209d",
+		"kava1a9pmkzk570egv3sflu3uwdf3gejl7qfy9hghzl",
+	}
+
+	var addrs []sdk.AccAddress
+	for _, strAddr := range strAddrs {
+		addr, err := sdk.AccAddressFromBech32(strAddr)
+		if err != nil {
+			return addrs, err
+		}
+		addrs = append(addrs, addr)
+	}
+
+	return addrs, nil
 }
