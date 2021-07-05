@@ -182,32 +182,33 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 		}
 	}
 
-	// Initialize hard governance committee
-	members, err := loadStabilityComMembers()
+	stabilityComMembers, err := loadStabilityComMembers()
 	if err != nil {
 		panic(err)
 	}
-	duration := time.Duration(time.Hour * 24 * 7)
-	threshold := sdk.MustNewDecFromStr("0.5")
-	quorum := sdk.MustNewDecFromStr("0.33")
 
-	// Initialize hard governance committee
-	hardGovCom := comtypes.NewTokenCommittee(3, "Hard Governance Committee", members,
-		[]v0_15committee.Permission{}, threshold, duration, v0_15committee.Deadline, quorum, "hard")
+	// ---------------------------- Initialize hard governance committee ----------------------------
+	hardGovDuration := time.Duration(time.Hour * 24 * 7)
+	hardGovThreshold := sdk.MustNewDecFromStr("0.5")
+	hardGovQuorum := sdk.MustNewDecFromStr("0.33")
+
+	hardGovCom := comtypes.NewTokenCommittee(3, "Hard Governance Committee", stabilityComMembers,
+		[]v0_15committee.Permission{}, hardGovThreshold, hardGovDuration, v0_15committee.Deadline,
+		hardGovQuorum, "hard")
 
 	// Add hard money market committee permissions
 	var newHardCommitteePermissions []v0_15committee.Permission
 	var newHardSubParamPermissions v0_15committee.SubParamChangePermission
 
 	// Allowed params permissions
-	newAllowedParams := v0_15committee.AllowedParams{
+	hardComAllowedParams := v0_15committee.AllowedParams{
 		v0_15committee.AllowedParam{Subspace: "hard", Key: "MoneyMarkets"},
 		v0_15committee.AllowedParam{Subspace: "hard", Key: "MinimumBorrowUSDValue"},
 		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardSupplyRewardPeriods"},
 		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardBorrowRewardPeriods"},
 		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardDelegatorRewardPeriods"},
 	}
-	newHardSubParamPermissions.AllowedParams = newAllowedParams
+	newHardSubParamPermissions.AllowedParams = hardComAllowedParams
 
 	// Money market permissions
 	var newMoneyMarketParams v0_15committee.AllowedMoneyMarkets
@@ -222,6 +223,30 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	// Set hard governance committee permissions
 	permissionedHardGovCom := hardGovCom.SetPermissions(newHardCommitteePermissions)
 	committees = append(committees, permissionedHardGovCom)
+
+	// ---------------------------- Initialize swp governance committee ----------------------------
+	swpGovDuration := time.Duration(time.Hour * 24 * 7)
+	swpGovThreshold := sdk.MustNewDecFromStr("0.5")
+	swpGovQuorum := sdk.MustNewDecFromStr("0.33")
+
+	swpGovCom := comtypes.NewTokenCommittee(4, "Swp Governance Committee", stabilityComMembers,
+		[]v0_15committee.Permission{}, swpGovThreshold, swpGovDuration, v0_15committee.Deadline,
+		swpGovQuorum, "swp")
+
+	// Add swap money market committee permissions
+	var newSwapCommitteePermissions []v0_15committee.Permission
+	var newSwapSubParamPermissions v0_15committee.SubParamChangePermission
+
+	swpAllowedParams := v0_15committee.AllowedParams{
+		v0_15committee.AllowedParam{Subspace: "swap", Key: "AllowedPools"},
+		v0_15committee.AllowedParam{Subspace: "swap", Key: "SwapFee"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardDelegatorRewardPeriods"},
+	}
+	newSwapSubParamPermissions.AllowedParams = swpAllowedParams
+
+	newSwpCommitteePermissions := append(newSwapCommitteePermissions, newSwapSubParamPermissions)
+	permissionedSwapGovCom := swpGovCom.SetPermissions(newSwpCommitteePermissions)
+	committees = append(committees, permissionedSwapGovCom)
 
 	for _, v := range genesisState.Votes {
 		newVote := v0_15committee.NewVote(v.ProposalID, v.Voter, comtypes.Yes)
