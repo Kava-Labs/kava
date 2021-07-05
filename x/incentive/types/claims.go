@@ -350,7 +350,7 @@ func (ris RewardIndexes) Validate() error {
 	return nil
 }
 
-// Mul multiplies all the factors in the reward indexes by a single value.
+// Mul returns a copy of RewardIndexes with all factors multiplied by a single value.
 func (ris RewardIndexes) Mul(multiplier sdk.Dec) RewardIndexes {
 	newIndexes := ris.copy()
 
@@ -360,7 +360,7 @@ func (ris RewardIndexes) Mul(multiplier sdk.Dec) RewardIndexes {
 	return newIndexes
 }
 
-// Mul divides all the factors in the reward indexes by a single value.
+// Quo returns a copy of RewardIndexes with all factors divided by a single value.
 // It uses sdk.Dec.Quo for the division.
 func (ris RewardIndexes) Quo(divisor sdk.Dec) RewardIndexes {
 	newIndexes := ris.copy()

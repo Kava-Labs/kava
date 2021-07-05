@@ -12,6 +12,12 @@ import (
 // d is a helper function for creating sdk.Dec values in tests
 func d(str string) sdk.Dec { return sdk.MustNewDecFromStr(str) }
 
+// c is a helper function for created sdk.Coin types in tests
+func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
+
+// c is a helper function for created sdk.Coins types in tests
+func cs(coins ...sdk.Coin) sdk.Coins { return sdk.NewCoins(coins...) }
+
 func TestClaimsValidate(t *testing.T) {
 	owner := sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
 
