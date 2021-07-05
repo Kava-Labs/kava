@@ -203,6 +203,9 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	newAllowedParams := v0_15committee.AllowedParams{
 		v0_15committee.AllowedParam{Subspace: "hard", Key: "MoneyMarkets"},
 		v0_15committee.AllowedParam{Subspace: "hard", Key: "MinimumBorrowUSDValue"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardSupplyRewardPeriods"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardBorrowRewardPeriods"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardDelegatorRewardPeriods"},
 	}
 	newHardSubParamPermissions.AllowedParams = newAllowedParams
 
