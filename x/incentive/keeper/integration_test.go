@@ -279,10 +279,10 @@ func (builder IncentiveGenesisBuilder) WithSimpleSupplyRewardPeriod(ctype string
 	))
 }
 func (builder IncentiveGenesisBuilder) WithInitializedDelegatorRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
-	builder.Params.HardDelegatorRewardPeriods = append(builder.Params.HardDelegatorRewardPeriods, period)
+	builder.Params.DelegatorRewardPeriods = append(builder.Params.DelegatorRewardPeriods, period)
 
 	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
-	builder.HardDelegatorAccumulationTimes = append(builder.HardDelegatorAccumulationTimes, accumulationTimeForPeriod)
+	builder.DelegatorAccumulationTimes = append(builder.DelegatorAccumulationTimes, accumulationTimeForPeriod)
 	return builder
 }
 

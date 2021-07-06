@@ -10,7 +10,7 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// SynchronizeHardDelegatorRewardTests runs unit tests for the keeper.SynchronizeHardDelegatorReward method
+// SynchronizeDelegatorRewardTests runs unit tests for the keeper.SynchronizeDelegatorReward method
 //
 // inputs
 // - claim in store if it exists (only claim.DelegatorRewardIndexes and claim.Reward)
@@ -20,69 +20,69 @@ import (
 //
 // outputs
 // - sets or creates a claim
-type SynchronizeHardDelegatorRewardTests struct {
+type SynchronizeDelegatorRewardTests struct {
 	unitTester
 }
 
-func TestSynchronizeHardDelegatorReward(t *testing.T) {
-	suite.Run(t, new(SynchronizeHardDelegatorRewardTests))
+func TestSynchronizeDelegatorReward(t *testing.T) {
+	suite.Run(t, new(SynchronizeDelegatorRewardTests))
 }
 
-func (suite *SynchronizeHardDelegatorRewardTests) storeGlobalDelegatorFactor(multiRewardIndexes types.MultiRewardIndexes) {
+func (suite *SynchronizeDelegatorRewardTests) storeGlobalDelegatorFactor(multiRewardIndexes types.MultiRewardIndexes) {
 	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
-	suite.keeper.SetHardDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
+	suite.keeper.SetDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
 }
 
-func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUnchangedWhenGlobalFactorUnchanged() {
+func (suite *SynchronizeDelegatorRewardTests) TestClaimIndexesAreUnchangedWhenGlobalFactorUnchanged() {
 	delegator := arbitraryAddress()
 
 	stakingKeeper := fakeStakingKeeper{} // use an empty staking keeper that returns no delegations
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
 
-	claim := types.HardLiquidityProviderClaim{
+	claim := types.DelegatorClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
 			Owner: delegator,
 		},
-		DelegatorRewardIndexes: arbitraryDelegatorRewardIndexes,
+		RewardIndexes: arbitraryDelegatorRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeDelegatorClaim(claim)
 
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
+	suite.storeGlobalDelegatorFactor(claim.RewardIndexes)
 
-	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
+	suite.keeper.SynchronizeDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
-	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
-	suite.Equal(claim.DelegatorRewardIndexes, syncedClaim.DelegatorRewardIndexes)
+	syncedClaim, _ := suite.keeper.GetDelegatorClaim(suite.ctx, claim.Owner)
+	suite.Equal(claim.RewardIndexes, syncedClaim.RewardIndexes)
 }
 
-func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUpdatedWhenGlobalFactorIncreased() {
+func (suite *SynchronizeDelegatorRewardTests) TestClaimIndexesAreUpdatedWhenGlobalFactorIncreased() {
 	delegator := arbitraryAddress()
 
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, fakeStakingKeeper{})
 
-	claim := types.HardLiquidityProviderClaim{
+	claim := types.DelegatorClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
 			Owner: delegator,
 		},
-		DelegatorRewardIndexes: arbitraryDelegatorRewardIndexes,
+		RewardIndexes: arbitraryDelegatorRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeDelegatorClaim(claim)
 
-	rewardIndexes, _ := claim.DelegatorRewardIndexes.Get(types.BondDenom)
+	rewardIndexes, _ := claim.RewardIndexes.Get(types.BondDenom)
 	globalIndexes := increaseRewardFactors(rewardIndexes)
 
 	// Update the claim object with the new global factor
-	bondIndex, _ := claim.DelegatorRewardIndexes.GetRewardIndexIndex(types.BondDenom)
-	claim.DelegatorRewardIndexes[bondIndex].RewardIndexes = globalIndexes
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
+	bondIndex, _ := claim.RewardIndexes.GetRewardIndexIndex(types.BondDenom)
+	claim.RewardIndexes[bondIndex].RewardIndexes = globalIndexes
+	suite.storeGlobalDelegatorFactor(claim.RewardIndexes)
 
-	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
+	suite.keeper.SynchronizeDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
-	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
-	suite.Equal(globalIndexes, syncedClaim.DelegatorRewardIndexes[bondIndex].RewardIndexes)
+	syncedClaim, _ := suite.keeper.GetDelegatorClaim(suite.ctx, claim.Owner)
+	suite.Equal(globalIndexes, syncedClaim.RewardIndexes[bondIndex].RewardIndexes)
 }
 
-func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGlobalFactorUnchanged() {
+func (suite *SynchronizeDelegatorRewardTests) TestRewardIsUnchangedWhenGlobalFactorUnchanged() {
 	delegator := arbitraryAddress()
 	validatorAddress := arbitraryValidatorAddress()
 	stakingKeeper := fakeStakingKeeper{
@@ -99,12 +99,12 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGloba
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
 
-	claim := types.HardLiquidityProviderClaim{
+	claim := types.DelegatorClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
 			Owner:  delegator,
 			Reward: arbitraryCoins(),
 		},
-		DelegatorRewardIndexes: types.MultiRewardIndexes{{
+		RewardIndexes: types.MultiRewardIndexes{{
 			CollateralType: types.BondDenom,
 			RewardIndexes: types.RewardIndexes{
 				{
@@ -116,18 +116,18 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGloba
 			},
 		}},
 	}
-	suite.storeClaim(claim)
+	suite.storeDelegatorClaim(claim)
 
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
+	suite.storeGlobalDelegatorFactor(claim.RewardIndexes)
 
-	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
+	suite.keeper.SynchronizeDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
-	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetDelegatorClaim(suite.ctx, claim.Owner)
 
 	suite.Equal(claim.Reward, syncedClaim.Reward)
 }
 
-func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRewardAdded() {
+func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenNewRewardAdded() {
 	delegator := arbitraryAddress()
 	validatorAddress := arbitraryValidatorAddress()
 	stakingKeeper := fakeStakingKeeper{
@@ -144,14 +144,14 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRe
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
 
-	claim := types.HardLiquidityProviderClaim{
+	claim := types.DelegatorClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
 			Owner:  delegator,
 			Reward: arbitraryCoins(),
 		},
-		DelegatorRewardIndexes: types.MultiRewardIndexes{},
+		RewardIndexes: types.MultiRewardIndexes{},
 	}
-	suite.storeClaim(claim)
+	suite.storeDelegatorClaim(claim)
 
 	newGlobalIndexes := types.MultiRewardIndexes{{
 		CollateralType: types.BondDenom,
@@ -166,11 +166,11 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRe
 	}}
 	suite.storeGlobalDelegatorFactor(newGlobalIndexes)
 
-	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
+	suite.keeper.SynchronizeDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
-	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetDelegatorClaim(suite.ctx, claim.Owner)
 
-	suite.Equal(newGlobalIndexes, syncedClaim.DelegatorRewardIndexes)
+	suite.Equal(newGlobalIndexes, syncedClaim.RewardIndexes)
 	suite.Equal(
 		cs(
 			c(types.HardLiquidityRewardDenom, 100),
@@ -180,7 +180,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRe
 	)
 }
 
-func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGlobalFactorIncreased() {
+func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenGlobalFactorIncreased() {
 	delegator := arbitraryAddress()
 	validatorAddress := arbitraryValidatorAddress()
 	stakingKeeper := fakeStakingKeeper{
@@ -197,12 +197,12 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper)
 
-	claim := types.HardLiquidityProviderClaim{
+	claim := types.DelegatorClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
 			Owner:  delegator,
 			Reward: arbitraryCoins(),
 		},
-		DelegatorRewardIndexes: types.MultiRewardIndexes{{
+		RewardIndexes: types.MultiRewardIndexes{{
 			CollateralType: types.BondDenom,
 			RewardIndexes: types.RewardIndexes{
 				{
@@ -214,7 +214,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 			},
 		}},
 	}
-	suite.storeClaim(claim)
+	suite.storeDelegatorClaim(claim)
 
 	suite.storeGlobalDelegatorFactor(
 		types.MultiRewardIndexes{
@@ -232,9 +232,9 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 		},
 	)
 
-	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
+	suite.keeper.SynchronizeDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
-	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetDelegatorClaim(suite.ctx, claim.Owner)
 
 	suite.Equal(
 		cs(
@@ -268,7 +268,7 @@ func unslashedNotBondedValidator(address sdk.ValAddress) stakingtypes.Validator 
 	}
 }
 
-func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenValAddrIsNil() {
+func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenValAddrIsNil() {
 	// when valAddr is nil, get total delegated to bonded validators
 	delegator := arbitraryAddress()
 	validatorAddresses := generateValidatorAddresses(4)
@@ -311,7 +311,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenValAddrIsN
 		suite.keeper.GetTotalDelegated(suite.ctx, delegator, nil, false),
 	)
 }
-func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenExcludingAValidator() {
+func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenExcludingAValidator() {
 	// when valAddr is x, get total delegated to bonded validators excluding those to x
 	delegator := arbitraryAddress()
 	validatorAddresses := generateValidatorAddresses(4)
@@ -354,7 +354,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenExcludingA
 		suite.keeper.GetTotalDelegated(suite.ctx, delegator, validatorAddresses[0], false),
 	)
 }
-func (suite *SynchronizeHardDelegatorRewardTests) TestGetDelegatedWhenIncludingAValidator() {
+func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenIncludingAValidator() {
 	// when valAddr is x, get total delegated to bonded validators including those to x
 	delegator := arbitraryAddress()
 	validatorAddresses := generateValidatorAddresses(4)
