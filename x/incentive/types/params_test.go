@@ -145,7 +145,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 			},
 		},
 		{
-			"invalid usdx minting period makes params invalid",
+			"invalid swap periods makes params invalid",
 			types.Params{
 				USDXMintingRewardPeriods:   types.DefaultRewardPeriods,
 				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,

@@ -80,7 +80,7 @@ func (suite *InitializeHardDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreS
 	suite.Truef(syncedClaim.Reward.IsAllGT(claim.Reward), "'%s' not greater than '%s'", syncedClaim.Reward, claim.Reward)
 }
 
-// arbitraryDelegatorRewardIndexes contains only one reward index as there is only every one bond denom
+// arbitraryDelegatorRewardIndexes contains only one reward index as there is only ever one bond denom
 var arbitraryDelegatorRewardIndexes = types.MultiRewardIndexes{
 	types.NewMultiRewardIndex(
 		types.BondDenom,

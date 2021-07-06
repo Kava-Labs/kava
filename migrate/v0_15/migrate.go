@@ -86,9 +86,11 @@ func makeV014Codec() *codec.Codec {
 
 // Committee migrates from a v0.14 committee genesis state to a v0.15 committee genesis state
 func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisState {
+
 	committees := []v0_15committee.Committee{}
 	votes := []v0_15committee.Vote{}
 	proposals := []v0_15committee.Proposal{}
+
 	for _, com := range genesisState.Committees {
 		if com.ID == 1 {
 			// Initialize member committee without permissions
@@ -109,6 +111,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 						newAllowedParams = append(newAllowedParams, newAP)
 					}
 					newStabilitySubParamPermissions.AllowedParams = newAllowedParams
+
 					// update AllowedCollateralParams
 					var newCollateralParams v0_15committee.AllowedCollateralParams
 					collateralTypes := []string{"bnb-a", "busd-a", "busd-b", "btcb-a", "xrpb-a", "ukava-a", "hard-a", "hbtc-a"}
@@ -143,6 +146,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 						}
 					}
 					newStabilitySubParamPermissions.AllowedCollateralParams = newCollateralParams
+
 					// update AllowedDebtParam
 					newDP := v0_15committee.AllowedDebtParam{
 						Denom:            subPerm.AllowedDebtParam.Denom,
@@ -151,6 +155,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 						DebtFloor:        subPerm.AllowedDebtParam.DebtFloor,
 					}
 					newStabilitySubParamPermissions.AllowedDebtParam = newDP
+
 					// update AllowedAssetParams
 					var newAssetParams v0_15committee.AllowedAssetParams
 					for _, ap := range subPerm.AllowedAssetParams {
@@ -158,6 +163,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 						newAssetParams = append(newAssetParams, newAP)
 					}
 					newStabilitySubParamPermissions.AllowedAssetParams = newAssetParams
+
 					// Update Allowed Markets
 					var newMarketParams v0_15committee.AllowedMarkets
 					for _, mp := range subPerm.AllowedMarkets {
@@ -165,6 +171,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 						newMarketParams = append(newMarketParams, newMP)
 					}
 					newStabilitySubParamPermissions.AllowedMarkets = newMarketParams
+
 					// Add hard money market committee permissions
 					var newMoneyMarketParams v0_15committee.AllowedMoneyMarkets
 					hardMMDenoms := []string{"bnb", "busd", "btcb", "xrpb", "usdx", "ukava", "hard"}
@@ -177,6 +184,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 				}
 			}
 			newStabilityCommitteePermissions = append(newStabilityCommitteePermissions, v0_15committee.TextPermission{})
+
 			// Set stability committee permissions
 			baseStabilityCom := stabilityCom.SetPermissions(newStabilityCommitteePermissions)
 			newStabilityCom := v0_15committee.MemberCommittee{BaseCommittee: baseStabilityCom}

@@ -106,9 +106,9 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 
 	userRewardIndexes, found := claim.DelegatorRewardIndexes.Get(types.BondDenom)
 	if !found {
-		// Normally the factor should always be found, as it is added in InitializeHardDelegatorReward when a user delegates.
+		// Normally the reward indexes should always be found.
 		// However if there were no delegator rewards (ie no reward period in params) then a reward period is added, existing claims will not have the factor.
-		// So assume the factor is the starting value for any global factor: 0.
+		// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
 		userRewardIndexes = types.RewardIndexes{}
 	}
 
