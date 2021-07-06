@@ -12,6 +12,7 @@ const (
 	USDXMintingClaimType           = "usdx_minting"
 	HardLiquidityProviderClaimType = "hard_liquidity_provider"
 	DelegatorClaimType             = "delegator_claim"
+	SwapClaimType                  = "swap"
 	BondDenom                      = "ukava"
 )
 
@@ -305,6 +306,71 @@ type DelegatorClaims []DelegatorClaim
 // Validate checks if all the claims are valid and there are no duplicated
 // entries.
 func (cs DelegatorClaims) Validate() error {
+	for _, c := range cs {
+		if err := c.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// SwapClaim stores the swap rewards that can be claimed by owner
+type SwapClaim struct {
+	BaseMultiClaim `json:"base_claim" yaml:"base_claim"`
+	RewardIndexes  MultiRewardIndexes `json:"reward_indexes" yaml:"reward_indexes"`
+}
+
+// NewSwapClaim returns a new SwapClaim
+func NewSwapClaim(owner sdk.AccAddress, rewards sdk.Coins, rewardIndexes MultiRewardIndexes) SwapClaim {
+	return SwapClaim{
+		BaseMultiClaim: BaseMultiClaim{
+			Owner:  owner,
+			Reward: rewards,
+		},
+		RewardIndexes: rewardIndexes,
+	}
+}
+
+// GetType returns the claim's type
+func (c SwapClaim) GetType() string { return SwapClaimType }
+
+// GetReward returns the claim's reward coin
+func (c SwapClaim) GetReward() sdk.Coins { return c.Reward }
+
+// GetOwner returns the claim's owner
+func (c SwapClaim) GetOwner() sdk.AccAddress { return c.Owner }
+
+// Validate performs a basic check of a HardLiquidityProviderClaim fields
+func (c SwapClaim) Validate() error {
+	if err := c.RewardIndexes.Validate(); err != nil {
+		return err
+	}
+	return c.BaseMultiClaim.Validate()
+}
+
+// String implements fmt.Stringer
+func (c SwapClaim) String() string {
+	return fmt.Sprintf(`%s
+	Reward Indexes: %s,
+	`, c.BaseMultiClaim, c.RewardIndexes)
+}
+
+// HasRewardIndex check if a claim has a reward index for the input pool ID.
+func (c SwapClaim) HasRewardIndex(poolID string) (int64, bool) {
+	for index, ri := range c.RewardIndexes {
+		if ri.CollateralType == poolID {
+			return int64(index), true
+		}
+	}
+	return 0, false
+}
+
+// SwapClaims slice of SwapClaim
+type SwapClaims []SwapClaim
+
+// Validate checks if all the claims are valid.
+func (cs SwapClaims) Validate() error {
 	for _, c := range cs {
 		if err := c.Validate(); err != nil {
 			return err
