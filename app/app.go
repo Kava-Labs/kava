@@ -400,7 +400,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		&cdpKeeper,
 		&hardKeeper,
 		app.accountKeeper,
-		app.stakingKeeper,
+		&stakingKeeper,
 		app.swapKeeper,
 	)
 
