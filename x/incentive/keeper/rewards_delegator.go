@@ -8,11 +8,11 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// AccumulateHardDelegatorRewards updates the rewards accumulated for the input reward period
-func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriods types.MultiRewardPeriod) error {
-	previousAccrualTime, found := k.GetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType)
+// AccumulateDelegatorRewards updates the rewards accumulated for the input reward period
+func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriods types.MultiRewardPeriod) error {
+	previousAccrualTime, found := k.GetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType)
 	if !found {
-		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
+		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
 		return nil
 	}
 	timeElapsed := CalculateTimeElapsed(rewardPeriods.Start, rewardPeriods.End, ctx.BlockTime(), previousAccrualTime)
@@ -20,23 +20,23 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriods ty
 		return nil
 	}
 	if rewardPeriods.RewardsPerSecond.IsZero() {
-		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
+		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
 		return nil
 	}
 
 	totalBonded := k.stakingKeeper.TotalBondedTokens(ctx).ToDec()
 	if totalBonded.IsZero() {
-		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
+		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
 		return nil
 	}
 
-	previousRewardIndexes, found := k.GetHardDelegatorRewardIndexes(ctx, rewardPeriods.CollateralType)
+	previousRewardIndexes, found := k.GetDelegatorRewardIndexes(ctx, rewardPeriods.CollateralType)
 	if !found {
 		for _, rewardCoin := range rewardPeriods.RewardsPerSecond {
 			rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
 			previousRewardIndexes = append(previousRewardIndexes, rewardIndex)
 		}
-		k.SetHardDelegatorRewardIndexes(ctx, rewardPeriods.CollateralType, previousRewardIndexes)
+		k.SetDelegatorRewardIndexes(ctx, rewardPeriods.CollateralType, previousRewardIndexes)
 	}
 
 	newRewardIndexes := previousRewardIndexes
@@ -58,42 +58,53 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriods ty
 			newRewardIndexes = append(newRewardIndexes, newRewardIndex)
 		}
 	}
-	k.SetHardDelegatorRewardIndexes(ctx, rewardPeriods.CollateralType, newRewardIndexes)
-	k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
+	k.SetDelegatorRewardIndexes(ctx, rewardPeriods.CollateralType, newRewardIndexes)
+	k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
 	return nil
 }
 
-// InitializeHardDelegatorReward initializes the delegator reward index of a hard claim
-func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress) {
-	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
+// InitializeDelegatorReward initializes the reward index of a delegator claim
+func (k Keeper) InitializeDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress) {
+	claim, found := k.GetDelegatorClaim(ctx, delegator)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(delegator, sdk.Coins{}, nil, nil, nil)
+		claim = types.NewDelegatorClaim(delegator, sdk.Coins{}, nil)
 	} else {
-		k.SynchronizeHardDelegatorRewards(ctx, delegator, nil, false)
-		claim, _ = k.GetHardLiquidityProviderClaim(ctx, delegator)
+		k.SynchronizeDelegatorRewards(ctx, delegator, nil, false)
+		claim, _ = k.GetDelegatorClaim(ctx, delegator)
 	}
 
-	var delegatorRewardIndexes types.MultiRewardIndexes
-	globalRewardIndexes, found := k.GetHardDelegatorRewardIndexes(ctx, types.BondDenom)
+	var rewardIndexes types.MultiRewardIndexes
+	globalRewardIndexes, found := k.GetDelegatorRewardIndexes(ctx, types.BondDenom)
 	if !found {
 		globalRewardIndexes = types.RewardIndexes{}
 	}
-	delegatorRewardIndexes = delegatorRewardIndexes.With(types.BondDenom, globalRewardIndexes)
-
-	claim.DelegatorRewardIndexes = delegatorRewardIndexes
-	k.SetHardLiquidityProviderClaim(ctx, claim)
+	rewardIndexes = rewardIndexes.With(types.BondDenom, globalRewardIndexes)
+	claim.RewardIndexes = rewardIndexes
+	k.SetDelegatorClaim(ctx, claim)
 }
 
-// SynchronizeHardDelegatorRewards updates the claim object by adding any accumulated rewards, and setting the reward indexes to the global values.
+// SynchronizeDelegatorClaim is a wrapper around SynchronizeDelegatorRewards that returns the synced claim
+func (k Keeper) SynchronizeDelegatorClaim(ctx sdk.Context, claim types.DelegatorClaim) (types.DelegatorClaim, error) {
+	k.SynchronizeDelegatorRewards(ctx, claim.Owner, nil, false)
+
+	claim, found := k.GetDelegatorClaim(ctx, claim.Owner)
+	if !found {
+		return claim, types.ErrClaimNotFound
+	}
+	return claim, nil
+}
+
+// SynchronizeDelegatorRewards updates the claim object by adding any accumulated rewards, and setting the reward indexes to the global values.
 // valAddr and shouldIncludeValidator are used to ignore or include delegations to a particular validator when summing up the total delegation.
-// Normally only delegations to Bonded validators are included in the total. This is needed as staking hooks are sometimes called on the wrong side of a validator's state update (from this module's perspective).
-func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) {
-	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
+// Normally only delegations to Bonded validators are included in the total. This is needed as staking hooks are sometimes called on the wrong
+// side of a validator's state update (from this module's perspective).
+func (k Keeper) SynchronizeDelegatorRewards(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) {
+	claim, found := k.GetDelegatorClaim(ctx, delegator)
 	if !found {
 		return
 	}
 
-	globalRewardIndexes, found := k.GetHardDelegatorRewardIndexes(ctx, types.BondDenom)
+	globalRewardIndexes, found := k.GetDelegatorRewardIndexes(ctx, types.BondDenom)
 	if !found {
 		// The global factor is only not found if
 		// - the bond denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
@@ -104,9 +115,9 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 		return
 	}
 
-	userRewardIndexes, found := claim.DelegatorRewardIndexes.Get(types.BondDenom)
+	userRewardIndexes, found := claim.RewardIndexes.Get(types.BondDenom)
 	if !found {
-		// Normally the factor should always be found, as it is added in InitializeHardDelegatorReward when a user delegates.
+		// Normally the factor should always be found, as it is added in InitializeDelegatorReward when a user delegates.
 		// However if there were no delegator rewards (ie no reward period in params) then a reward period is added, existing claims will not have the factor.
 		// So assume the factor is the starting value for any global factor: 0.
 		userRewardIndexes = types.RewardIndexes{}
@@ -122,8 +133,8 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 	}
 
 	claim.Reward = claim.Reward.Add(rewardsEarned...)
-	claim.DelegatorRewardIndexes = claim.DelegatorRewardIndexes.With(types.BondDenom, globalRewardIndexes)
-	k.SetHardLiquidityProviderClaim(ctx, claim)
+	claim.RewardIndexes = claim.RewardIndexes.With(types.BondDenom, globalRewardIndexes)
+	k.SetDelegatorClaim(ctx, claim)
 }
 
 func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) sdk.Dec {
@@ -161,4 +172,57 @@ func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, val
 		totalDelegated = totalDelegated.Add(delegatedTokens)
 	}
 	return totalDelegated
+}
+
+// SimulateDelegatorSynchronization calculates a user's outstanding delegator rewards by simulating reward synchronization
+func (k Keeper) SimulateDelegatorSynchronization(ctx sdk.Context, claim types.DelegatorClaim) types.DelegatorClaim {
+	for _, ri := range claim.RewardIndexes {
+		// For each Delegator reward index (there's only one: the bond denom 'ukava')
+		globalRewardIndexes, foundGlobalRewardIndexes := k.GetDelegatorRewardIndexes(ctx, ri.CollateralType)
+		if !foundGlobalRewardIndexes {
+			continue
+		}
+
+		userRewardIndexes, foundUserRewardIndexes := claim.RewardIndexes.GetRewardIndex(ri.CollateralType)
+		if !foundUserRewardIndexes {
+			continue
+		}
+
+		userRewardIndexIndex, foundUserRewardIndexIndex := claim.RewardIndexes.GetRewardIndexIndex(ri.CollateralType)
+		if !foundUserRewardIndexIndex {
+			continue
+		}
+
+		amtDelegated := k.GetTotalDelegated(ctx, claim.GetOwner(), sdk.ValAddress(claim.Owner.String()), true)
+
+		for _, globalRewardIndex := range globalRewardIndexes {
+			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndex {
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userRewardIndexes.RewardIndexes = append(userRewardIndexes.RewardIndexes, userRewardIndex)
+				claim.RewardIndexes[userRewardIndexIndex].RewardIndexes = append(claim.RewardIndexes[userRewardIndexIndex].RewardIndexes, userRewardIndex)
+			}
+
+			globalRewardFactor := globalRewardIndex.RewardFactor
+			userRewardFactor := userRewardIndex.RewardFactor
+			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+			if rewardsAccumulatedFactor.IsZero() {
+				continue
+			}
+
+			rewardsEarned := rewardsAccumulatedFactor.Mul(amtDelegated).RoundInt()
+			if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
+				continue
+			}
+
+			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundFactorIndex {
+				continue
+			}
+			claim.RewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
+			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, rewardsEarned)
+			claim.Reward = claim.Reward.Add(newRewardsCoin)
+		}
+	}
+	return claim
 }
