@@ -24,8 +24,8 @@ import (
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_14hard "github.com/kava-labs/kava/x/hard"
 	v0_11hard "github.com/kava-labs/kava/x/hard/legacy/v0_11"
-	v0_14incentive "github.com/kava-labs/kava/x/incentive"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
+	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_11pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 

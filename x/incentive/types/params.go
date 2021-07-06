@@ -49,15 +49,15 @@ type Params struct {
 	USDXMintingRewardPeriods   RewardPeriods      `json:"usdx_minting_reward_periods" yaml:"usdx_minting_reward_periods"`
 	HardSupplyRewardPeriods    MultiRewardPeriods `json:"hard_supply_reward_periods" yaml:"hard_supply_reward_periods"`
 	HardBorrowRewardPeriods    MultiRewardPeriods `json:"hard_borrow_reward_periods" yaml:"hard_borrow_reward_periods"`
-	HardDelegatorRewardPeriods RewardPeriods      `json:"hard_delegator_reward_periods" yaml:"hard_delegator_reward_periods"`
+	HardDelegatorRewardPeriods MultiRewardPeriods `json:"hard_delegator_reward_periods" yaml:"hard_delegator_reward_periods"`
 	SwapRewardPeriods          MultiRewardPeriods `json:"swap_reward_periods" json:"swap_reward_periods"`
 	ClaimMultipliers           Multipliers        `json:"claim_multipliers" yaml:"claim_multipliers"`
 	ClaimEnd                   time.Time          `json:"claim_end" yaml:"claim_end"`
 }
 
 // NewParams returns a new params object
-func NewParams(usdxMinting RewardPeriods, hardSupply, hardBorrow MultiRewardPeriods,
-	hardDelegator RewardPeriods, swap MultiRewardPeriods, multipliers Multipliers, claimEnd time.Time) Params {
+func NewParams(usdxMinting RewardPeriods, hardSupply, hardBorrow, hardDelegator, swap MultiRewardPeriods,
+	multipliers Multipliers, claimEnd time.Time) Params {
 	return Params{
 		USDXMintingRewardPeriods:   usdxMinting,
 		HardSupplyRewardPeriods:    hardSupply,
@@ -75,7 +75,7 @@ func DefaultParams() Params {
 		DefaultRewardPeriods,
 		DefaultMultiRewardPeriods,
 		DefaultMultiRewardPeriods,
-		DefaultRewardPeriods,
+		DefaultMultiRewardPeriods,
 		DefaultMultiRewardPeriods,
 		DefaultMultipliers,
 		DefaultClaimEnd,
@@ -107,7 +107,7 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		params.NewParamSetPair(KeyUSDXMintingRewardPeriods, &p.USDXMintingRewardPeriods, validateRewardPeriodsParam),
 		params.NewParamSetPair(KeyHardSupplyRewardPeriods, &p.HardSupplyRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeyHardBorrowRewardPeriods, &p.HardBorrowRewardPeriods, validateMultiRewardPeriodsParam),
-		params.NewParamSetPair(KeyHardDelegatorRewardPeriods, &p.HardDelegatorRewardPeriods, validateRewardPeriodsParam),
+		params.NewParamSetPair(KeyHardDelegatorRewardPeriods, &p.HardDelegatorRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeySwapRewardPeriods, &p.SwapRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
 		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersParam),
@@ -133,7 +133,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateRewardPeriodsParam(p.HardDelegatorRewardPeriods); err != nil {
+	if err := validateMultiRewardPeriodsParam(p.HardDelegatorRewardPeriods); err != nil {
 		return err
 	}
 

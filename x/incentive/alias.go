@@ -104,7 +104,7 @@ var (
 	PreviousHardSupplyRewardAccrualTimeKeyPrefix    = types.PreviousHardSupplyRewardAccrualTimeKeyPrefix
 	HardBorrowRewardIndexesKeyPrefix                = types.HardBorrowRewardIndexesKeyPrefix
 	PreviousHardBorrowRewardAccrualTimeKeyPrefix    = types.PreviousHardBorrowRewardAccrualTimeKeyPrefix
-	HardDelegatorRewardFactorKeyPrefix              = types.HardDelegatorRewardFactorKeyPrefix
+	HardDelegatorRewardIndexesKeyPrefix             = types.HardDelegatorRewardIndexesKeyPrefix
 	PreviousHardDelegatorRewardAccrualTimeKeyPrefix = types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix
 	USDXMintingRewardDenom                          = types.USDXMintingRewardDenom
 	HardLiquidityRewardDenom                        = types.HardLiquidityRewardDenom

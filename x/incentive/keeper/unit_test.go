@@ -73,17 +73,15 @@ func (suite *unitTester) storeGlobalSupplyIndexes(indexes types.MultiRewardIndex
 		suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
+func (suite *unitTester) storeGlobalDelegatorFactor(multiRewardIndexes types.MultiRewardIndexes) {
+	// Hardcoded to use bond denom
+	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
+	suite.keeper.SetHardDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
+}
 func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
 		suite.keeper.SetSwapRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
-}
-func (suite *unitTester) storeGlobalDelegatorFactor(rewardIndexes types.RewardIndexes) {
-	if len(rewardIndexes) != 1 {
-		panic("delegator indexes must contain 1 factor")
-	}
-	factor := rewardIndexes[0]
-	suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, factor.CollateralType, factor.RewardFactor)
 }
 
 func (suite *unitTester) storeClaim(claim types.HardLiquidityProviderClaim) {

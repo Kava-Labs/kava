@@ -63,14 +63,20 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUpdatedWhen
 	}
 	suite.storeClaim(claim)
 
-	globalIndexes := increaseRewardFactors(claim.DelegatorRewardIndexes)
-	suite.storeGlobalDelegatorFactor(globalIndexes)
+	rewardIndexes, _ := claim.DelegatorRewardIndexes.Get(types.BondDenom)
+	globalIndexes := increaseRewardFactors(rewardIndexes)
+
+	// Update the claim object with the new global factor
+	bondIndex, _ := claim.DelegatorRewardIndexes.GetRewardIndexIndex(types.BondDenom)
+	claim.DelegatorRewardIndexes[bondIndex].RewardIndexes = globalIndexes
+	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
 
 	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
-	suite.Equal(globalIndexes, syncedClaim.DelegatorRewardIndexes)
+	suite.Equal(globalIndexes, syncedClaim.DelegatorRewardIndexes[bondIndex].RewardIndexes)
 }
+
 func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGlobalFactorUnchanged() {
 	delegator := arbitraryAddress()
 	validatorAddress := arbitraryValidatorAddress()
@@ -93,9 +99,16 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGloba
 			Owner:  delegator,
 			Reward: arbitraryCoins(),
 		},
-		DelegatorRewardIndexes: types.RewardIndexes{{
+		DelegatorRewardIndexes: types.MultiRewardIndexes{{
 			CollateralType: types.BondDenom,
-			RewardFactor:   d("0.1"),
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "hard", RewardFactor: d("0.1"),
+				},
+				{
+					CollateralType: "swp", RewardFactor: d("0.2"),
+				},
+			},
 		}},
 	}
 	suite.storeClaim(claim)
@@ -131,13 +144,20 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRe
 			Owner:  delegator,
 			Reward: arbitraryCoins(),
 		},
-		DelegatorRewardIndexes: types.RewardIndexes{},
+		DelegatorRewardIndexes: types.MultiRewardIndexes{},
 	}
 	suite.storeClaim(claim)
 
-	newGlobalIndexes := types.RewardIndexes{{
+	newGlobalIndexes := types.MultiRewardIndexes{{
 		CollateralType: types.BondDenom,
-		RewardFactor:   d("0.1"),
+		RewardIndexes: types.RewardIndexes{
+			{
+				CollateralType: "hard", RewardFactor: d("0.1"),
+			},
+			{
+				CollateralType: "swp", RewardFactor: d("0.2"),
+			},
+		},
 	}}
 	suite.storeGlobalDelegatorFactor(newGlobalIndexes)
 
@@ -147,7 +167,10 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRe
 
 	suite.Equal(newGlobalIndexes, syncedClaim.DelegatorRewardIndexes)
 	suite.Equal(
-		cs(c(types.HardLiquidityRewardDenom, 100)).Add(claim.Reward...),
+		cs(
+			c(types.HardLiquidityRewardDenom, 100),
+			c("swp", 200),
+		).Add(claim.Reward...),
 		syncedClaim.Reward,
 	)
 }
@@ -174,16 +197,33 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 			Owner:  delegator,
 			Reward: arbitraryCoins(),
 		},
-		DelegatorRewardIndexes: types.RewardIndexes{{
+		DelegatorRewardIndexes: types.MultiRewardIndexes{{
 			CollateralType: types.BondDenom,
-			RewardFactor:   d("0.1"),
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "hard", RewardFactor: d("0.1"),
+				},
+				{
+					CollateralType: "swp", RewardFactor: d("0.2"),
+				},
+			},
 		}},
 	}
 	suite.storeClaim(claim)
 
 	suite.storeGlobalDelegatorFactor(
-		types.RewardIndexes{
-			types.NewRewardIndex(types.BondDenom, d("0.2")),
+		types.MultiRewardIndexes{
+			types.NewMultiRewardIndex(
+				types.BondDenom,
+				types.RewardIndexes{
+					{
+						CollateralType: "hard", RewardFactor: d("0.2"),
+					},
+					{
+						CollateralType: "swp", RewardFactor: d("0.4"),
+					},
+				},
+			),
 		},
 	)
 
@@ -192,7 +232,10 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 
 	suite.Equal(
-		cs(c(types.HardLiquidityRewardDenom, 100)).Add(claim.Reward...),
+		cs(
+			c(types.HardLiquidityRewardDenom, 100),
+			c("swp", 200),
+		).Add(claim.Reward...),
 		syncedClaim.Reward,
 	)
 }

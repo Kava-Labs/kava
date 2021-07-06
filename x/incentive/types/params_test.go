@@ -33,15 +33,6 @@ var rewardMultiPeriodWithInvalidRewardsPerSecond = types.NewMultiRewardPeriod(
 )
 
 func (suite *ParamTestSuite) TestParamValidation() {
-	type args struct {
-		usdxMintingRewardPeriods   types.RewardPeriods
-		hardSupplyRewardPeriods    types.MultiRewardPeriods
-		hardBorrowRewardPeriods    types.MultiRewardPeriods
-		hardDelegatorRewardPeriods types.RewardPeriods
-		multipliers                types.Multipliers
-		end                        time.Time
-	}
-
 	type errArgs struct {
 		expectPass bool
 		contains   string
@@ -81,7 +72,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				},
 				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
 				HardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
-				HardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				HardDelegatorRewardPeriods: types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:          types.DefaultMultiRewardPeriods,
 				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
@@ -95,7 +86,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				USDXMintingRewardPeriods:   types.RewardPeriods{rewardPeriodWithInvalidRewardsPerSecond},
 				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
 				HardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
-				HardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				HardDelegatorRewardPeriods: types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:          types.DefaultMultiRewardPeriods,
 				ClaimMultipliers:           types.DefaultMultipliers,
 				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
@@ -111,7 +102,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				USDXMintingRewardPeriods:   types.DefaultRewardPeriods,
 				HardSupplyRewardPeriods:    types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
 				HardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
-				HardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				HardDelegatorRewardPeriods: types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:          types.DefaultMultiRewardPeriods,
 				ClaimMultipliers:           types.DefaultMultipliers,
 				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
@@ -127,7 +118,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				USDXMintingRewardPeriods:   types.DefaultRewardPeriods,
 				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
 				HardBorrowRewardPeriods:    types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
-				HardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				HardDelegatorRewardPeriods: types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:          types.DefaultMultiRewardPeriods,
 				ClaimMultipliers:           types.DefaultMultipliers,
 				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
@@ -143,7 +134,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				USDXMintingRewardPeriods:   types.DefaultRewardPeriods,
 				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
 				HardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
-				HardDelegatorRewardPeriods: types.RewardPeriods{rewardPeriodWithInvalidRewardsPerSecond},
+				HardDelegatorRewardPeriods: types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
 				SwapRewardPeriods:          types.DefaultMultiRewardPeriods,
 				ClaimMultipliers:           types.DefaultMultipliers,
 				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
@@ -159,7 +150,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				USDXMintingRewardPeriods:   types.DefaultRewardPeriods,
 				HardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
 				HardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
-				HardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				HardDelegatorRewardPeriods: types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:          types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
 				ClaimMultipliers:           types.DefaultMultipliers,
 				ClaimEnd:                   time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
