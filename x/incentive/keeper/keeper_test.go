@@ -82,6 +82,46 @@ func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
 	suite.Require().Equal(len(suite.addrs), len(claims))
 }
 
+func (suite *KeeperTestSuite) TestGetSetDeleteSwapClaims() {
+	suite.SetupApp()
+	c := types.NewSwapClaim(suite.addrs[0], arbitraryCoins(), nonEmptyMultiRewardIndexes)
+
+	_, found := suite.keeper.GetSwapClaim(suite.ctx, suite.addrs[0])
+	suite.Require().False(found)
+
+	suite.Require().NotPanics(func() {
+		suite.keeper.SetSwapClaim(suite.ctx, c)
+	})
+	testC, found := suite.keeper.GetSwapClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+	suite.Require().Equal(c, testC)
+
+	suite.Require().NotPanics(func() {
+		suite.keeper.DeleteSwapClaim(suite.ctx, suite.addrs[0])
+	})
+	_, found = suite.keeper.GetSwapClaim(suite.ctx, suite.addrs[0])
+	suite.Require().False(found)
+}
+
+func (suite *KeeperTestSuite) TestIterateSwapClaims() {
+	suite.SetupApp()
+	claims := types.SwapClaims{
+		types.NewSwapClaim(suite.addrs[0], arbitraryCoins(), nonEmptyMultiRewardIndexes),
+		types.NewSwapClaim(suite.addrs[1], nil, nil), // different claim to the first
+	}
+	for _, claim := range claims {
+		suite.keeper.SetSwapClaim(suite.ctx, claim)
+	}
+
+	var actualClaims types.SwapClaims
+	suite.keeper.IterateSwapClaims(suite.ctx, func(c types.SwapClaim) bool {
+		actualClaims = append(actualClaims, c)
+		return false
+	})
+
+	suite.Require().Equal(claims, actualClaims)
+}
+
 func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 	testCases := []struct {
 		name     string
