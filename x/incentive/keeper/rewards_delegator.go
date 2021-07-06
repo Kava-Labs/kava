@@ -174,6 +174,13 @@ func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, val
 	return totalDelegated
 }
 
+// ZeroDelegatorClaim zeroes out the claim object's rewards and returns the updated claim object
+func (k Keeper) ZeroDelegatorClaim(ctx sdk.Context, claim types.DelegatorClaim) types.DelegatorClaim {
+	claim.Reward = sdk.NewCoins()
+	k.SetDelegatorClaim(ctx, claim)
+	return claim
+}
+
 // SimulateDelegatorSynchronization calculates a user's outstanding delegator rewards by simulating reward synchronization
 func (k Keeper) SimulateDelegatorSynchronization(ctx sdk.Context, claim types.DelegatorClaim) types.DelegatorClaim {
 	for _, ri := range claim.RewardIndexes {
