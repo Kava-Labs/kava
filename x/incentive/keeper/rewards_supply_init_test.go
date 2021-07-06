@@ -36,7 +36,7 @@ func (suite *InitializeHardSupplyRewardTests) TestClaimIndexesAreSetWhenClaimExi
 		// which means UpdateHardSupplyIndexDenoms was called and should have remove indexes.
 		SupplyRewardIndexes: types.MultiRewardIndexes{},
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 
 	globalIndexes := nonEmptyMultiRewardIndexes
 	suite.storeGlobalSupplyIndexes(globalIndexes)
