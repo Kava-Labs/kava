@@ -11,6 +11,8 @@ const (
 	QueryGetHardRewardsUnsynced        = "hard-rewards-unsynced"
 	QueryGetUSDXMintingRewards         = "usdx-minting-rewards"
 	QueryGetUSDXMintingRewardsUnsynced = "usdx-minting-rewards-unsynced"
+	QueryGetDelegatorRewards           = "delegator-rewards"
+	QueryGetDelegatorRewardsUnsynced   = "delegator-rewards-unsynced"
 	QueryGetRewardFactors              = "reward-factors"
 	QueryGetParams                     = "parameters"
 	QueryGetRewardPeriods              = "reward-periods"
@@ -112,6 +114,38 @@ type QueryRewardFactorsParams struct {
 func NewQueryRewardFactorsParams(denom string) QueryRewardFactorsParams {
 	return QueryRewardFactorsParams{
 		Denom: denom,
+	}
+}
+
+// QueryDelegatorRewardsParams params for query /incentive/rewards type delegator
+type QueryDelegatorRewardsParams struct {
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress
+}
+
+// NewQueryDelegatorRewardsParams returns QueryDelegatorRewardsParams
+func NewQueryDelegatorRewardsParams(page, limit int, owner sdk.AccAddress) QueryDelegatorRewardsParams {
+	return QueryDelegatorRewardsParams{
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
+	}
+}
+
+// QueryDelegatorRewardsUnsyncedParams params for query unsynced /incentive/rewards type delegator
+type QueryDelegatorRewardsUnsyncedParams struct {
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress
+}
+
+// NewQueryDelegatorRewardsUnsyncedParams returns QueryDelegatorRewardsUnsyncedParams
+func NewQueryDelegatorRewardsUnsyncedParams(page, limit int, owner sdk.AccAddress) QueryDelegatorRewardsUnsyncedParams {
+	return QueryDelegatorRewardsUnsyncedParams{
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
 	}
 }
 

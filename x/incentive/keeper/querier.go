@@ -25,6 +25,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetUSDXMintingRewards(ctx, req, k)
 		case types.QueryGetUSDXMintingRewardsUnsynced:
 			return queryGetUSDXMintingRewardsUnsynced(ctx, req, k)
+		case types.QueryGetDelegatorRewards:
+			return queryGetDelegatorRewards(ctx, req, k)
+		case types.QueryGetDelegatorRewardsUnsynced:
+			return queryGetDelegatorRewardsUnsynced(ctx, req, k)
 		case types.QueryGetRewardFactors:
 			return queryGetRewardFactors(ctx, req, k)
 		default:
@@ -192,6 +196,82 @@ func queryGetUSDXMintingRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, 
 
 	// Marshal USDX minting claims
 	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedUsdxMintingClaims)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryGetDelegatorRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryDelegatorRewardsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	owner := len(params.Owner) > 0
+
+	var delegatorClaims types.DelegatorClaims
+	switch {
+	case owner:
+		delegatorClaim, foundDelegatorClaim := k.GetDelegatorClaim(ctx, params.Owner)
+		if foundDelegatorClaim {
+			delegatorClaims = append(delegatorClaims, delegatorClaim)
+		}
+	default:
+		delegatorClaims = k.GetAllDelegatorClaims(ctx)
+	}
+
+	var paginatedDelegatorClaims types.DelegatorClaims
+	startH, endH := client.Paginate(len(delegatorClaims), params.Page, params.Limit, 100)
+	if startH < 0 || endH < 0 {
+		paginatedDelegatorClaims = types.DelegatorClaims{}
+	} else {
+		paginatedDelegatorClaims = delegatorClaims[startH:endH]
+	}
+
+	var augmentedDelegatorClaims types.DelegatorClaims
+	for _, claim := range paginatedDelegatorClaims {
+		augmentedClaim := k.SimulateDelegatorSynchronization(ctx, claim)
+		augmentedDelegatorClaims = append(augmentedDelegatorClaims, augmentedClaim)
+	}
+
+	// Marshal Hard claims
+	bz, err := codec.MarshalJSONIndent(k.cdc, augmentedDelegatorClaims)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryGetDelegatorRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryDelegatorRewardsUnsyncedParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	owner := len(params.Owner) > 0
+
+	var delegatorClaims types.DelegatorClaims
+	switch {
+	case owner:
+		delegatorClaim, foundHardClaim := k.GetDelegatorClaim(ctx, params.Owner)
+		if foundHardClaim {
+			delegatorClaims = append(delegatorClaims, delegatorClaim)
+		}
+	default:
+		delegatorClaims = k.GetAllDelegatorClaims(ctx)
+	}
+
+	var paginatedDelegatorClaims types.DelegatorClaims
+	startH, endH := client.Paginate(len(delegatorClaims), params.Page, params.Limit, 100)
+	if startH < 0 || endH < 0 {
+		paginatedDelegatorClaims = types.DelegatorClaims{}
+	} else {
+		paginatedDelegatorClaims = delegatorClaims[startH:endH]
+	}
+
+	// Marshal Hard claims
+	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedDelegatorClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
