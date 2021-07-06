@@ -17,11 +17,12 @@ type GenesisState struct {
 	USDXMintingClaims           USDXMintingClaims           `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
 	HardLiquidityProviderClaims HardLiquidityProviderClaims `json:"hard_liquidity_provider_claims" yaml:"hard_liquidity_provider_claims"`
 	DelegatorClaims             DelegatorClaims             `json:"delegator_claims" yaml:"delegator_claims"`
+	SwapClaims                  SwapClaims                  `json:"swap_claims" yaml:"swap_claims"`
 }
 
 // NewGenesisState returns a new genesis state
 func NewGenesisState(params Params, usdxAccumTimes, hardSupplyAccumTimes, hardBorrowAccumTimes, delegatorAccumTimes,
-	swapAccumTimes GenesisAccumulationTimes, c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims) GenesisState {
+	swapAccumTimes GenesisAccumulationTimes, c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims) GenesisState {
 	return GenesisState{
 		Params:                      params,
 		USDXAccumulationTimes:       usdxAccumTimes,
@@ -32,6 +33,7 @@ func NewGenesisState(params Params, usdxAccumTimes, hardSupplyAccumTimes, hardBo
 		USDXMintingClaims:           c,
 		HardLiquidityProviderClaims: hc,
 		DelegatorClaims:             dc,
+		SwapClaims:                  sc,
 	}
 }
 
@@ -47,6 +49,7 @@ func DefaultGenesisState() GenesisState {
 		USDXMintingClaims:           DefaultUSDXClaims,
 		HardLiquidityProviderClaims: DefaultHardClaims,
 		DelegatorClaims:             DefaultDelegatorClaims,
+		SwapClaims:                  DefaultSwapClaims,
 	}
 }
 
@@ -72,13 +75,16 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	if err := gs.HardLiquidityProviderClaims.Validate(); err != nil {
-		return err
-	}
 	if err := gs.USDXMintingClaims.Validate(); err != nil {
 		return err
 	}
-	return gs.DelegatorClaims.Validate()
+	if err := gs.HardLiquidityProviderClaims.Validate(); err != nil {
+		return err
+	}
+	if err := gs.DelegatorClaims.Validate(); err != nil {
+		return err
+	}
+	return gs.SwapClaims.Validate()
 }
 
 // Equal checks whether two gov GenesisState structs are equivalent

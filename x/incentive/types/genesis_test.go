@@ -141,6 +141,7 @@ func TestGenesisStateValidate(t *testing.T) {
 				tc.args.claims,
 				DefaultHardClaims,
 				DefaultDelegatorClaims,
+				DefaultSwapClaims,
 			)
 			err := gs.Validate()
 			if tc.errArgs.expectPass {

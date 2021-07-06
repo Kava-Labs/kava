@@ -115,6 +115,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		}
 		k.SetDelegatorClaim(ctx, claim)
 	}
+
+	// TODO no synchronization of swap claims as it is about to be removed in a subsequent PR
+	for _, claim := range gs.SwapClaims {
+		k.SetSwapClaim(ctx, claim)
+	}
 }
 
 // ExportGenesis export genesis state for incentive module
@@ -124,10 +129,12 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	usdxClaims := k.GetAllUSDXMintingClaims(ctx)
 	hardClaims := k.GetAllHardLiquidityProviderClaims(ctx)
 	delegatorClaims := k.GetAllDelegatorClaims(ctx)
+	swapClaims := k.GetAllSwapClaims(ctx)
 
 	synchronizedUsdxClaims := types.USDXMintingClaims{}
 	synchronizedHardClaims := types.HardLiquidityProviderClaims{}
 	synchronizedDelegatorClaims := types.DelegatorClaims{}
+	// TODO no synchronization of swap claims as it is about to be removed in a subsequent PR
 
 	for _, usdxClaim := range usdxClaims {
 		claim, err := k.SynchronizeUSDXMintingClaim(ctx, usdxClaim)
@@ -222,7 +229,9 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		swapGats = append(swapGats, gat)
 	}
 
-	return types.NewGenesisState(params, usdxMintingGats, hardSupplyGats,
-		hardBorrowGats, delegatorGats, swapGats, synchronizedUsdxClaims,
-		synchronizedHardClaims, synchronizedDelegatorClaims)
+	return types.NewGenesisState(
+		params,
+		usdxMintingGats, hardSupplyGats, hardBorrowGats, delegatorGats, swapGats,
+		synchronizedUsdxClaims, synchronizedHardClaims, synchronizedDelegatorClaims, swapClaims,
+	)
 }
