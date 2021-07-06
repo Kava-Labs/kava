@@ -255,7 +255,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		hardSupplyRewardPeriods,
 		hardBorrowRewardPeriods,
 		hardDelegatorRewardPeriods,
-		v0_15incentive.MultiRewardPeriods{}, // TODO
+		v0_15incentive.DefaultMultiRewardPeriods, // TODO add expected swap reward periods
 		claimMultipliers,
 		incentiveGS.Params.ClaimEnd,
 	)
@@ -345,6 +345,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		hardSupplyAccumulationTimes,
 		hardBorrowAccumulationTimes,
 		hardDelegatorAccumulationTimes,
+		v0_15incentive.DefaultGenesisAccumulationTimes, // There is no previous swap rewards to accumulation starts at genesis time.
 		usdxMintingClaims,
 		hardClaims,
 	)

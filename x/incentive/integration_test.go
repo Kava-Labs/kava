@@ -7,8 +7,6 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
-	"github.com/kava-labs/kava/x/incentive"
-	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
@@ -141,39 +139,39 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
 }
 
-func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ...incentive.RewardPeriod) app.GenesisState {
-	var accumulationTimes incentive.GenesisAccumulationTimes
-	for _, rp := range rewardPeriods {
-		accumulationTimes = append(
-			accumulationTimes,
-			incentive.NewGenesisAccumulationTime(
-				rp.CollateralType,
-				previousAccumTime,
-			),
-		)
-	}
-	genesis := incentive.NewGenesisState(
-		incentive.NewParams(
-			rewardPeriods,
-			types.MultiRewardPeriods{},
-			types.MultiRewardPeriods{},
-			types.MultiRewardPeriods{},
-			types.MultiRewardPeriods{},
-			incentive.Multipliers{
-				incentive.NewMultiplier(incentive.Small, 1, d("0.25")),
-				incentive.NewMultiplier(incentive.Large, 12, d("1.0")),
-			},
-			endTime,
-		),
-		accumulationTimes,
-		accumulationTimes,
-		accumulationTimes,
-		incentive.DefaultGenesisAccumulationTimes,
-		incentive.DefaultUSDXClaims,
-		incentive.DefaultHardClaims,
-	)
-	return app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(genesis)}
-}
+// func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ...incentive.RewardPeriod) app.GenesisState {
+// 	var accumulationTimes incentive.GenesisAccumulationTimes
+// 	for _, rp := range rewardPeriods {
+// 		accumulationTimes = append(
+// 			accumulationTimes,
+// 			incentive.NewGenesisAccumulationTime(
+// 				rp.CollateralType,
+// 				previousAccumTime,
+// 			),
+// 		)
+// 	}
+// 	genesis := incentive.NewGenesisState(
+// 		incentive.NewParams(
+// 			rewardPeriods,
+// 			types.MultiRewardPeriods{},
+// 			types.MultiRewardPeriods{},
+// 			types.MultiRewardPeriods{},
+// 			types.MultiRewardPeriods{},
+// 			incentive.Multipliers{
+// 				incentive.NewMultiplier(incentive.Small, 1, d("0.25")),
+// 				incentive.NewMultiplier(incentive.Large, 12, d("1.0")),
+// 			},
+// 			endTime,
+// 		),
+// 		accumulationTimes,
+// 		accumulationTimes,
+// 		accumulationTimes,
+// 		incentive.DefaultGenesisAccumulationTimes,
+// 		incentive.DefaultUSDXClaims,
+// 		incentive.DefaultHardClaims,
+// 	)
+// 	return app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(genesis)}
+// }
 
 func NewCDPGenStateHighInterest() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{

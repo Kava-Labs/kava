@@ -73,6 +73,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultGenesisAccumulationTimes,
+		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultUSDXClaims,
 		incentive.DefaultHardClaims,
 	)
