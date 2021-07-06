@@ -36,7 +36,7 @@ func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetWhenClaimExi
 		// which means UpdateHardBorrowIndexDenoms was called and should have remove indexes.
 		BorrowRewardIndexes: types.MultiRewardIndexes{},
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 
 	globalIndexes := nonEmptyMultiRewardIndexes
 	suite.storeGlobalBorrowIndexes(globalIndexes)
