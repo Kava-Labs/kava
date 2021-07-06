@@ -83,7 +83,7 @@ func validateSwapFee(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if swapFee.IsNil() || swapFee.IsNegative() || swapFee.GT(MaxSwapFee) {
+	if swapFee.IsNil() || swapFee.IsNegative() || swapFee.GTE(MaxSwapFee) {
 		return fmt.Errorf(fmt.Sprintf("invalid swap fee: %s", swapFee))
 	}
 
