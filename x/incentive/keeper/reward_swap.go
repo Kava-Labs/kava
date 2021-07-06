@@ -30,5 +30,8 @@ func (k Keeper) AccumulateSwapRewards(ctx sdk.Context, rewardPeriod types.MultiR
 	acc.Accumulate(rewardPeriod, totalShares, ctx.BlockTime())
 
 	k.SetSwapRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
-	k.SetSwapRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
+	if len(acc.Indexes) > 0 {
+		// the store panics when setting empty or nil indexes
+		k.SetSwapRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
+	}
 }

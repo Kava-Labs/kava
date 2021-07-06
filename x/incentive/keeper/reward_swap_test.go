@@ -187,9 +187,6 @@ func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 
 	pool := "btc/usdx"
 
-	accrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.ctx = suite.ctx.WithBlockTime(accrualTime)
-
 	period := types.NewMultiRewardPeriod(
 		true,
 		pool,
@@ -198,23 +195,60 @@ func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 		cs(c("swap", 2000), c("ukava", 1000)),
 	)
 
+	firstAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
+
 	suite.keeper.AccumulateSwapRewards(suite.ctx, period)
 
-	// check time and factors
+	// After the first accumulation only the current block time should be stored.
+	// This indexes will be zero as no time has passed since the previous block because it didn't exist.
+	suite.checkStoredTimeEquals(pool, firstAccrualTime)
 
-	suite.checkStoredTimeEquals(pool, accrualTime)
+	secondAccrualTime := firstAccrualTime.Add(10 * time.Second)
+	suite.ctx = suite.ctx.WithBlockTime(secondAccrualTime)
+
+	suite.keeper.AccumulateSwapRewards(suite.ctx, period)
+
+	// After the second accumulation both current block time and indexes should be stored.
+	suite.checkStoredTimeEquals(pool, secondAccrualTime)
 
 	expectedIndexes := types.RewardIndexes{
 		{
 			CollateralType: "swap",
-			RewardFactor:   d("0.0"),
+			RewardFactor:   d("0.02"),
 		},
 		{
 			CollateralType: "ukava",
-			RewardFactor:   d("0.0"),
+			RewardFactor:   d("0.01"),
 		},
 	}
 	suite.checkStoredIndexesEqual(pool, expectedIndexes)
+}
+func (suite *AccumulateSwapRewardsTests) TestNoPanicWhenStateDoesNotExist() {
+	swapKeeper := &fakeSwapKeeper{d("0")}
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper)
+
+	pool := "btc/usdx"
+
+	period := types.NewMultiRewardPeriod(
+		true,
+		pool,
+		time.Unix(0, 0), // ensure the test is within start and end times
+		distantFuture,
+		cs(),
+	)
+
+	accrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+	suite.ctx = suite.ctx.WithBlockTime(accrualTime)
+
+	// Accumulate with no swap shares and no rewards per second will result in no increment to the indexes.
+	// No increment and no previous indexes stored, results in an updated of nil. Setting this in the state panics.
+	// Check there is no panic.
+	suite.NotPanics(func() {
+		suite.keeper.AccumulateSwapRewards(suite.ctx, period)
+	})
+
+	suite.checkStoredTimeEquals(pool, accrualTime)
 }
 
 type fakeSwapKeeper struct {
