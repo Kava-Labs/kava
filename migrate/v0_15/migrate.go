@@ -80,7 +80,7 @@ func makeV014Codec() *codec.Codec {
 	cdc := codec.New()
 	sdk.RegisterCodec(cdc)
 	v0_14committee.RegisterCodec(cdc)
-	v0_14incentive.RegisterCodec(cdc) // TODO
+	v0_14incentive.RegisterCodec(cdc)
 	return cdc
 }
 
