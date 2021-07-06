@@ -223,9 +223,9 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]
 		if found {
 			rewardFactor.HardBorrowRewardFactors = hardBorrowRewardIndexes
 		}
-		hardDelegatorRewardIndexes, found := k.GetHardDelegatorRewardIndexes(ctx, params.Denom)
+		delegatorRewardIndexes, found := k.GetDelegatorRewardIndexes(ctx, params.Denom)
 		if found {
-			rewardFactor.HardDelegatorRewardFactors = hardDelegatorRewardIndexes
+			rewardFactor.DelegatorRewardFactors = delegatorRewardIndexes
 		}
 		rewardFactors = append(rewardFactors, rewardFactor)
 	} else {
@@ -262,13 +262,13 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]
 			return false
 		})
 
-		// Populate mapping with Hard delegator reward factors
-		k.IterateHardDelegatorRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
+		// Populate mapping with delegator reward factors
+		k.IterateDelegatorRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
 			rewardFactor, ok := rewardFactorMap[denom]
 			if !ok {
-				rewardFactor = types.RewardFactor{Denom: denom, HardDelegatorRewardFactors: indexes}
+				rewardFactor = types.RewardFactor{Denom: denom, DelegatorRewardFactors: indexes}
 			} else {
-				rewardFactor.HardDelegatorRewardFactors = indexes
+				rewardFactor.DelegatorRewardFactors = indexes
 			}
 			rewardFactorMap[denom] = rewardFactor
 			return false
