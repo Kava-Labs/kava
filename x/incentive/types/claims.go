@@ -12,6 +12,7 @@ import (
 const (
 	USDXMintingClaimType           = "usdx_minting"
 	HardLiquidityProviderClaimType = "hard_liquidity_provider"
+	DelegatorClaimType             = "delegator_claim"
 	BondDenom                      = "ukava"
 )
 
@@ -164,23 +165,21 @@ func (cs USDXMintingClaims) Validate() error {
 
 // HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
 type HardLiquidityProviderClaim struct {
-	BaseMultiClaim         `json:"base_claim" yaml:"base_claim"`
-	SupplyRewardIndexes    MultiRewardIndexes `json:"supply_reward_indexes" yaml:"supply_reward_indexes"`
-	BorrowRewardIndexes    MultiRewardIndexes `json:"borrow_reward_indexes" yaml:"borrow_reward_indexes"`
-	DelegatorRewardIndexes MultiRewardIndexes `json:"delegator_reward_indexes" yaml:"delegator_reward_indexes"`
+	BaseMultiClaim      `json:"base_claim" yaml:"base_claim"`
+	SupplyRewardIndexes MultiRewardIndexes `json:"supply_reward_indexes" yaml:"supply_reward_indexes"`
+	BorrowRewardIndexes MultiRewardIndexes `json:"borrow_reward_indexes" yaml:"borrow_reward_indexes"`
 }
 
 // NewHardLiquidityProviderClaim returns a new HardLiquidityProviderClaim
-func NewHardLiquidityProviderClaim(owner sdk.AccAddress, rewards sdk.Coins, supplyRewardIndexes,
-	borrowRewardIndexes, delegatorRewardIndexes MultiRewardIndexes) HardLiquidityProviderClaim {
+func NewHardLiquidityProviderClaim(owner sdk.AccAddress, rewards sdk.Coins,
+	supplyRewardIndexes, borrowRewardIndexes MultiRewardIndexes) HardLiquidityProviderClaim {
 	return HardLiquidityProviderClaim{
 		BaseMultiClaim: BaseMultiClaim{
 			Owner:  owner,
 			Reward: rewards,
 		},
-		SupplyRewardIndexes:    supplyRewardIndexes,
-		BorrowRewardIndexes:    borrowRewardIndexes,
-		DelegatorRewardIndexes: delegatorRewardIndexes,
+		SupplyRewardIndexes: supplyRewardIndexes,
+		BorrowRewardIndexes: borrowRewardIndexes,
 	}
 }
 
@@ -203,10 +202,6 @@ func (c HardLiquidityProviderClaim) Validate() error {
 		return err
 	}
 
-	if err := c.DelegatorRewardIndexes.Validate(); err != nil {
-		return err
-	}
-
 	return c.BaseMultiClaim.Validate()
 }
 
@@ -215,8 +210,7 @@ func (c HardLiquidityProviderClaim) String() string {
 	return fmt.Sprintf(`%s
 	Supply Reward Indexes: %s,
 	Borrow Reward Indexes: %s,
-	Delegator Reward Indexes: %s,
-	`, c.BaseMultiClaim, c.SupplyRewardIndexes, c.BorrowRewardIndexes, c.DelegatorRewardIndexes)
+	`, c.BaseMultiClaim, c.SupplyRewardIndexes, c.BorrowRewardIndexes)
 }
 
 // HasSupplyRewardIndex check if a claim has a supply reward index for the input collateral type
@@ -239,9 +233,66 @@ func (c HardLiquidityProviderClaim) HasBorrowRewardIndex(denom string) (int64, b
 	return 0, false
 }
 
-// HasDelegatorRewardIndex check if a claim has a delegator reward index for the input collateral type
-func (c HardLiquidityProviderClaim) HasDelegatorRewardIndex(collateralType string) (int64, bool) {
-	for index, ri := range c.DelegatorRewardIndexes {
+// HardLiquidityProviderClaims slice of HardLiquidityProviderClaim
+type HardLiquidityProviderClaims []HardLiquidityProviderClaim
+
+// Validate checks if all the claims are valid and there are no duplicated
+// entries.
+func (cs HardLiquidityProviderClaims) Validate() error {
+	for _, c := range cs {
+		if err := c.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DelegatorClaim stores delegation rewards that can be claimed by owner
+type DelegatorClaim struct {
+	BaseMultiClaim `json:"base_claim" yaml:"base_claim"`
+	RewardIndexes  MultiRewardIndexes `json:"reward_indexes" yaml:"reward_indexes"`
+}
+
+// NewDelegatorClaim returns a new DelegatorClaim
+func NewDelegatorClaim(owner sdk.AccAddress, rewards sdk.Coins, rewardIndexes MultiRewardIndexes) DelegatorClaim {
+	return DelegatorClaim{
+		BaseMultiClaim: BaseMultiClaim{
+			Owner:  owner,
+			Reward: rewards,
+		},
+		RewardIndexes: rewardIndexes,
+	}
+}
+
+// GetType returns the claim's type
+func (c DelegatorClaim) GetType() string { return DelegatorClaimType }
+
+// GetReward returns the claim's reward coin
+func (c DelegatorClaim) GetReward() sdk.Coins { return c.Reward }
+
+// GetOwner returns the claim's owner
+func (c DelegatorClaim) GetOwner() sdk.AccAddress { return c.Owner }
+
+// Validate performs a basic check of a DelegatorClaim fields
+func (c DelegatorClaim) Validate() error {
+	if err := c.RewardIndexes.Validate(); err != nil {
+		return err
+	}
+
+	return c.BaseMultiClaim.Validate()
+}
+
+// String implements fmt.Stringer
+func (c DelegatorClaim) String() string {
+	return fmt.Sprintf(`%s
+	Reward Indexes: %s,
+	`, c.BaseMultiClaim, c.RewardIndexes)
+}
+
+// HasRewardIndex checks if a DelegatorClaim has a reward index for the input collateral type
+func (c DelegatorClaim) HasRewardIndex(collateralType string) (int64, bool) {
+	for index, ri := range c.RewardIndexes {
 		if ri.CollateralType == collateralType {
 			return int64(index), true
 		}
@@ -249,12 +300,12 @@ func (c HardLiquidityProviderClaim) HasDelegatorRewardIndex(collateralType strin
 	return 0, false
 }
 
-// HardLiquidityProviderClaims slice of HardLiquidityProviderClaim
-type HardLiquidityProviderClaims []HardLiquidityProviderClaim
+// DelegatorClaim slice of DelegatorClaim
+type DelegatorClaims []DelegatorClaim
 
 // Validate checks if all the claims are valid and there are no duplicated
 // entries.
-func (cs HardLiquidityProviderClaims) Validate() error {
+func (cs DelegatorClaims) Validate() error {
 	for _, c := range cs {
 		if err := c.Validate(); err != nil {
 			return err

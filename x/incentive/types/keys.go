@@ -23,16 +23,17 @@ const (
 
 // Key Prefixes
 var (
-	USDXMintingClaimKeyPrefix                       = []byte{0x01} // prefix for keys that store USDX minting claims
-	USDXMintingRewardFactorKeyPrefix                = []byte{0x02} // prefix for key that stores USDX minting reward factors
-	PreviousUSDXMintingRewardAccrualTimeKeyPrefix   = []byte{0x03} // prefix for key that stores the blocktime
-	HardLiquidityClaimKeyPrefix                     = []byte{0x04} // prefix for keys that store Hard liquidity claims
-	HardSupplyRewardIndexesKeyPrefix                = []byte{0x05} // prefix for key that stores Hard supply reward indexes
-	PreviousHardSupplyRewardAccrualTimeKeyPrefix    = []byte{0x06} // prefix for key that stores the previous time Hard supply rewards accrued
-	HardBorrowRewardIndexesKeyPrefix                = []byte{0x07} // prefix for key that stores Hard borrow reward indexes
-	PreviousHardBorrowRewardAccrualTimeKeyPrefix    = []byte{0x08} // prefix for key that stores the previous time Hard borrow rewards accrued
-	HardDelegatorRewardIndexesKeyPrefix             = []byte{0x09} // prefix for key that stores Hard delegator reward indexes
-	PreviousHardDelegatorRewardAccrualTimeKeyPrefix = []byte{0x10} // prefix for key that stores the previous time Hard delegator rewards accrued
+	USDXMintingClaimKeyPrefix                     = []byte{0x01} // prefix for keys that store USDX minting claims
+	USDXMintingRewardFactorKeyPrefix              = []byte{0x02} // prefix for key that stores USDX minting reward factors
+	PreviousUSDXMintingRewardAccrualTimeKeyPrefix = []byte{0x03} // prefix for key that stores the blocktime
+	HardLiquidityClaimKeyPrefix                   = []byte{0x04} // prefix for keys that store Hard liquidity claims
+	HardSupplyRewardIndexesKeyPrefix              = []byte{0x05} // prefix for key that stores Hard supply reward indexes
+	PreviousHardSupplyRewardAccrualTimeKeyPrefix  = []byte{0x06} // prefix for key that stores the previous time Hard supply rewards accrued
+	HardBorrowRewardIndexesKeyPrefix              = []byte{0x07} // prefix for key that stores Hard borrow reward indexes
+	PreviousHardBorrowRewardAccrualTimeKeyPrefix  = []byte{0x08} // prefix for key that stores the previous time Hard borrow rewards accrued
+	DelegatorClaimKeyPrefix                       = []byte{0x09} // prefix for keys that store delegator claims
+	DelegatorRewardIndexesKeyPrefix               = []byte{0x10} // prefix for key that stores delegator reward indexes
+	PreviousDelegatorRewardAccrualTimeKeyPrefix   = []byte{0x11} // prefix for key that stores the previous time delegator rewards accrued
 
 	USDXMintingRewardDenom   = "ukava"
 	HardLiquidityRewardDenom = "hard"
