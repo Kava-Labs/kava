@@ -82,6 +82,53 @@ func (suite *AccumulateSwapRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	}
 	suite.checkStoredIndexesEqual(pool, expectedIndexes)
 }
+
+func (suite *AccumulateSwapRewardsTests) TestLimitsOfAccumulationPrecision() {
+	swapKeeper := &fakeSwapKeeper{d("100000000000000000")} // approximate shares in a $1B pool of 10^8 precision assets
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper)
+
+	pool := "btc/usdx"
+	suite.storeGlobalSwapIndexes(types.MultiRewardIndexes{
+		{
+			CollateralType: pool,
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "swap",
+					RewardFactor:   d("0.0"),
+				},
+			},
+		},
+	})
+	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+	suite.keeper.SetSwapRewardAccrualTime(suite.ctx, pool, previousAccrualTime)
+
+	newAccrualTime := previousAccrualTime.Add(1 * time.Second) // 1 second is the smallest increment accrual happens over
+	suite.ctx = suite.ctx.WithBlockTime(newAccrualTime)
+
+	period := types.NewMultiRewardPeriod(
+		true,
+		pool,
+		time.Unix(0, 0),
+		distantFuture,
+		cs(c("swap", 1)), // single unit of any denom is the smallest reward amount
+	)
+
+	suite.keeper.AccumulateSwapRewards(suite.ctx, period)
+
+	// check time and factors
+
+	suite.checkStoredTimeEquals(pool, newAccrualTime)
+
+	expectedIndexes := types.RewardIndexes{
+		{
+			CollateralType: "swap",
+			// smallest reward amount over smallest accumulation duration does not go past 10^-18 decimal precision
+			RewardFactor: d("0.000000000000000010"),
+		},
+	}
+	suite.checkStoredIndexesEqual(pool, expectedIndexes)
+}
+
 func (suite *AccumulateSwapRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
 	swapKeeper := &fakeSwapKeeper{d("1000000")}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper)
