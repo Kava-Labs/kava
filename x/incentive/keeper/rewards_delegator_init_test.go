@@ -29,7 +29,7 @@ func TestInitializeHardDelegatorReward(t *testing.T) {
 
 func (suite *InitializeHardDelegatorRewardTests) TestClaimIndexesAreSetWhenClaimDoesNotExist() {
 	globalIndex := arbitraryDelegatorRewardIndexes
-	suite.storeGlobalDelegatorFactor(globalIndex)
+	suite.storeGlobalDelegatorIndexes(globalIndex)
 
 	delegator := arbitraryAddress()
 	suite.keeper.InitializeHardDelegatorReward(suite.ctx, delegator)
@@ -71,7 +71,7 @@ func (suite *InitializeHardDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreS
 	// Update the claim object with the new global factor
 	bondIndex, _ := claim.DelegatorRewardIndexes.GetRewardIndexIndex(types.BondDenom)
 	claim.DelegatorRewardIndexes[bondIndex].RewardIndexes = globalIndexes
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
+	suite.storeGlobalDelegatorIndexes(claim.DelegatorRewardIndexes)
 
 	suite.keeper.InitializeHardDelegatorReward(suite.ctx, claim.Owner)
 

@@ -42,7 +42,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUnchangedWh
 	}
 	suite.storeClaim(claim)
 
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
+	suite.storeGlobalDelegatorIndexes(claim.DelegatorRewardIndexes)
 
 	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
@@ -69,7 +69,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestClaimIndexesAreUpdatedWhen
 	// Update the claim object with the new global factor
 	bondIndex, _ := claim.DelegatorRewardIndexes.GetRewardIndexIndex(types.BondDenom)
 	claim.DelegatorRewardIndexes[bondIndex].RewardIndexes = globalIndexes
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
+	suite.storeGlobalDelegatorIndexes(claim.DelegatorRewardIndexes)
 
 	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
@@ -113,7 +113,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsUnchangedWhenGloba
 	}
 	suite.storeClaim(claim)
 
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
+	suite.storeGlobalDelegatorIndexes(claim.DelegatorRewardIndexes)
 
 	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
@@ -159,7 +159,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenNewRe
 			},
 		},
 	}}
-	suite.storeGlobalDelegatorFactor(newGlobalIndexes)
+	suite.storeGlobalDelegatorIndexes(newGlobalIndexes)
 
 	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, claim.Owner, nil, false)
 
@@ -211,7 +211,7 @@ func (suite *SynchronizeHardDelegatorRewardTests) TestRewardIsIncreasedWhenGloba
 	}
 	suite.storeClaim(claim)
 
-	suite.storeGlobalDelegatorFactor(
+	suite.storeGlobalDelegatorIndexes(
 		types.MultiRewardIndexes{
 			types.NewMultiRewardIndex(
 				types.BondDenom,

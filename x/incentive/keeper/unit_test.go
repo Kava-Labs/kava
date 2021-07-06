@@ -73,7 +73,7 @@ func (suite *unitTester) storeGlobalSupplyIndexes(indexes types.MultiRewardIndex
 		suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
-func (suite *unitTester) storeGlobalDelegatorFactor(multiRewardIndexes types.MultiRewardIndexes) {
+func (suite *unitTester) storeGlobalDelegatorIndexes(multiRewardIndexes types.MultiRewardIndexes) {
 	// Hardcoded to use bond denom
 	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
 	suite.keeper.SetHardDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
