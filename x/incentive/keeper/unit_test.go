@@ -76,7 +76,7 @@ func (suite *unitTester) storeGlobalSupplyIndexes(indexes types.MultiRewardIndex
 func (suite *unitTester) storeGlobalDelegatorIndexes(multiRewardIndexes types.MultiRewardIndexes) {
 	// Hardcoded to use bond denom
 	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
-	suite.keeper.SetHardDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
+	suite.keeper.SetDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
 }
 func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
@@ -84,8 +84,12 @@ func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes
 	}
 }
 
-func (suite *unitTester) storeClaim(claim types.HardLiquidityProviderClaim) {
+func (suite *unitTester) storeHardClaim(claim types.HardLiquidityProviderClaim) {
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
+}
+
+func (suite *unitTester) storeDelegatorClaim(claim types.DelegatorClaim) {
+	suite.keeper.SetDelegatorClaim(suite.ctx, claim)
 }
 
 type fakeParamSubspace struct {

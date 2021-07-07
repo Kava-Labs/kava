@@ -59,6 +59,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultUSDXClaims,
 		incentive.DefaultHardClaims,
+		incentive.DefaultDelegatorClaims,
 	)
 	tApp.InitializeFromGenesisStates(authGS, app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)}, NewCDPGenStateMulti(), NewPricefeedGenStateMulti())
 
@@ -92,7 +93,7 @@ func (suite *HandlerTestSuite) addHardLiquidityProviderClaim() {
 	rewardPeriod := types.RewardIndexes{types.NewRewardIndex("bnb-s", sdk.ZeroDec())}
 	multiRewardIndex := types.NewMultiRewardIndex("bnb-s", rewardPeriod)
 	multiRewardIndexes := types.MultiRewardIndexes{multiRewardIndex}
-	c1 := incentive.NewHardLiquidityProviderClaim(suite.addrs[0], cs(c("ukava", 1000000)), multiRewardIndexes, multiRewardIndexes, multiRewardIndexes)
+	c1 := incentive.NewHardLiquidityProviderClaim(suite.addrs[0], cs(c("ukava", 1000000)), multiRewardIndexes, multiRewardIndexes)
 	suite.NotPanics(func() {
 		suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, c1)
 	})
@@ -107,6 +108,8 @@ func (suite *HandlerTestSuite) addUSDXMintingClaim() {
 		suite.keeper.SetUSDXMintingClaim(suite.ctx, c1)
 	})
 }
+
+// TODO: add tests
 
 func TestHandlerTestSuite(t *testing.T) {
 	suite.Run(t, new(HandlerTestSuite))

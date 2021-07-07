@@ -297,8 +297,9 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		usdxMintingClaims = append(usdxMintingClaims, usdxMintingClaim)
 	}
 
-	// Migrate Hard protocol claims (including delegation rewards)
+	// Migrate Hard protocol claims (includes creating new Delegator claims)
 	var hardClaims v0_15incentive.HardLiquidityProviderClaims
+	var delegatorClaims v0_15incentive.DelegatorClaims
 	for _, claim := range incentiveGS.HardLiquidityProviderClaims {
 		// Migrate supply multi reward indexes
 		var supplyMultiRewardIndexes v0_15incentive.MultiRewardIndexes
@@ -324,7 +325,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 			borrowMultiRewardIndexes = append(borrowMultiRewardIndexes, borrowMultiRewardIndex)
 		}
 
-		// Migrate delegator reward indexes to multi reward indexes under BondDenom
+		// Migrate delegator reward indexes to multi reward indexes inside DelegatorClaims
 		var delegatorMultiRewardIndexes v0_15incentive.MultiRewardIndexes
 		var delegatorRewardIndexes v0_15incentive.RewardIndexes
 		for _, ri := range claim.DelegatorRewardIndexes {
@@ -334,8 +335,14 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		delegatorMultiRewardIndex := v0_15incentive.NewMultiRewardIndex(v0_15incentive.BondDenom, delegatorRewardIndexes)
 		delegatorMultiRewardIndexes = append(delegatorMultiRewardIndexes, delegatorMultiRewardIndex)
 
+		// TODO: It's impossible to distinguish between rewards from delegation vs. liquidity providing
+		//		 as they're all combined inside claim.Reward, so I'm just putting them all inside
+		// 		 the hard claim to avoid duplicating rewards.
+		delegatorClaim := v0_15incentive.NewDelegatorClaim(claim.Owner, sdk.NewCoins(), delegatorMultiRewardIndexes)
+		delegatorClaims = append(delegatorClaims, delegatorClaim)
+
 		hardClaim := v0_15incentive.NewHardLiquidityProviderClaim(claim.Owner, claim.Reward,
-			supplyMultiRewardIndexes, borrowMultiRewardIndexes, delegatorMultiRewardIndexes)
+			supplyMultiRewardIndexes, borrowMultiRewardIndexes)
 		hardClaims = append(hardClaims, hardClaim)
 	}
 
@@ -348,5 +355,6 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		v0_15incentive.DefaultGenesisAccumulationTimes, // There is no previous swap rewards to accumulation starts at genesis time.
 		usdxMintingClaims,
 		hardClaims,
+		delegatorClaims,
 	)
 }

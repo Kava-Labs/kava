@@ -75,4 +75,6 @@ func TestIncentive(t *testing.T) {
 
 	require.Equal(t, len(oldIncentiveGenState.USDXMintingClaims), len(newGenState.USDXMintingClaims))
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.HardLiquidityProviderClaims))
+	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
+	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
 }

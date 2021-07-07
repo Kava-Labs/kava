@@ -76,6 +76,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultUSDXClaims,
 		incentive.DefaultHardClaims,
+		incentive.DefaultDelegatorClaims,
 	)
 	tApp.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,

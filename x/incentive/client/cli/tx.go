@@ -30,6 +30,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		getCmdClaimCdpVVesting(cdc),
 		getCmdClaimHard(cdc),
 		getCmdClaimHardVVesting(cdc),
+		getCmdClaimDelegator(cdc),
+		getCmdClaimDelegatorVVesting(cdc),
 	)...)
 
 	return incentiveTxCmd
@@ -157,6 +159,71 @@ func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 
 			msg := types.NewMsgClaimHardReward(sender, multiplier)
 			err := msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+func getCmdClaimDelegator(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "claim-delegator [multiplier]",
+		Short: "claim sender's delegator rewards using a given multiplier",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Claim sender's outstanding delegator rewards using given multiplier
+
+			Example:
+			$ %s tx %s claim-delegator large
+		`, version.ClientName, types.ModuleName),
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			sender := cliCtx.GetFromAddress()
+			multiplier := args[0]
+
+			msg := types.NewMsgClaimDelegatorReward(sender, multiplier)
+			err := msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+func getCmdClaimDelegatorVVesting(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "claim-delegator-vesting [multiplier] [receiver]",
+		Short: "claim delegator rewards on behalf of a validator vesting account using a given multiplier",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Claim sender's outstanding delegator rewards on behalf of a validator vesting account using given multiplier
+
+			Example:
+			$ %s tx %s claim-delegator-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+		`, version.ClientName, types.ModuleName),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			sender := cliCtx.GetFromAddress()
+			multiplier := args[0]
+			receiverStr := args[1]
+			receiver, err := sdk.AccAddressFromBech32(receiverStr)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgClaimDelegatorRewardVVesting(sender, receiver, multiplier)
+			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}

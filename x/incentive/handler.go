@@ -21,6 +21,10 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgClaimHardReward(ctx, k, msg)
 		case types.MsgClaimHardRewardVVesting:
 			return handleMsgClaimHardRewardVVesting(ctx, k, msg)
+		case types.MsgClaimDelegatorReward:
+			return handleMsgClaimDelegatorReward(ctx, k, msg)
+		case types.MsgClaimDelegatorRewardVVesting:
+			return handleMsgClaimDelegatorRewardVVesting(ctx, k, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -62,6 +66,28 @@ func handleMsgClaimHardReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgCla
 func handleMsgClaimHardRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimHardRewardVVesting) (*sdk.Result, error) {
 
 	err := k.ClaimHardRewardVVesting(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName))
+	if err != nil {
+		return nil, err
+	}
+	return &sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}, nil
+}
+
+func handleMsgClaimDelegatorReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimDelegatorReward) (*sdk.Result, error) {
+
+	err := k.ClaimDelegatorReward(ctx, msg.Sender, types.MultiplierName(msg.MultiplierName))
+	if err != nil {
+		return nil, err
+	}
+	return &sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}, nil
+}
+
+func handleMsgClaimDelegatorRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimDelegatorRewardVVesting) (*sdk.Result, error) {
+
+	err := k.ClaimDelegatorRewardVVesting(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName))
 	if err != nil {
 		return nil, err
 	}

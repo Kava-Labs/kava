@@ -10,7 +10,7 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// InitializeHardDelegatorRewardTests runs unit tests for the keeper.InitializeHardDelegatorReward method
+// InitializeDelegatorRewardTests runs unit tests for the keeper.InitializeDelegatorReward method
 //
 // inputs
 // - claim in store if it exists (only claim.DelegatorRewardIndexes)
@@ -19,27 +19,33 @@ import (
 //
 // outputs
 // - sets or creates a claim
-type InitializeHardDelegatorRewardTests struct {
+type InitializeDelegatorRewardTests struct {
 	unitTester
 }
 
-func TestInitializeHardDelegatorReward(t *testing.T) {
-	suite.Run(t, new(InitializeHardDelegatorRewardTests))
+func TestInitializeDelegatorReward(t *testing.T) {
+	suite.Run(t, new(InitializeDelegatorRewardTests))
 }
 
-func (suite *InitializeHardDelegatorRewardTests) TestClaimIndexesAreSetWhenClaimDoesNotExist() {
+// Hardcoded to use bond denom
+func (suite *InitializeDelegatorRewardTests) storeGlobalDelegatorFactor(multiRewardIndexes types.MultiRewardIndexes) {
+	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
+	suite.keeper.SetDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
+}
+
+func (suite *InitializeDelegatorRewardTests) TestClaimIndexesAreSetWhenClaimDoesNotExist() {
 	globalIndex := arbitraryDelegatorRewardIndexes
 	suite.storeGlobalDelegatorIndexes(globalIndex)
 
 	delegator := arbitraryAddress()
-	suite.keeper.InitializeHardDelegatorReward(suite.ctx, delegator)
+	suite.keeper.InitializeDelegatorReward(suite.ctx, delegator)
 
-	syncedClaim, f := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, delegator)
+	syncedClaim, f := suite.keeper.GetDelegatorClaim(suite.ctx, delegator)
 	suite.True(f)
-	suite.Equal(globalIndex, syncedClaim.DelegatorRewardIndexes)
+	suite.Equal(globalIndex, syncedClaim.RewardIndexes)
 }
 
-func (suite *InitializeHardDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreSetWhenClaimDoesExist() {
+func (suite *InitializeDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreSetWhenClaimDoesExist() {
 	validatorAddress := arbitraryValidatorAddress()
 	sk := fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{{
@@ -55,28 +61,28 @@ func (suite *InitializeHardDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreS
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, sk, nil)
 
-	claim := types.HardLiquidityProviderClaim{
+	claim := types.DelegatorClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
 			Owner: arbitraryAddress(),
 		},
-		DelegatorRewardIndexes: arbitraryDelegatorRewardIndexes,
+		RewardIndexes: arbitraryDelegatorRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeDelegatorClaim(claim)
 
 	// Set the global factor to a value different to one in claim so
 	// we can detect if it is overwritten.
-	rewardIndexes, _ := claim.DelegatorRewardIndexes.Get(types.BondDenom)
+	rewardIndexes, _ := claim.RewardIndexes.Get(types.BondDenom)
 	globalIndexes := increaseRewardFactors(rewardIndexes)
 
 	// Update the claim object with the new global factor
-	bondIndex, _ := claim.DelegatorRewardIndexes.GetRewardIndexIndex(types.BondDenom)
-	claim.DelegatorRewardIndexes[bondIndex].RewardIndexes = globalIndexes
-	suite.storeGlobalDelegatorIndexes(claim.DelegatorRewardIndexes)
+	bondIndex, _ := claim.RewardIndexes.GetRewardIndexIndex(types.BondDenom)
+	claim.RewardIndexes[bondIndex].RewardIndexes = globalIndexes
+	suite.storeGlobalDelegatorFactor(claim.RewardIndexes)
 
-	suite.keeper.InitializeHardDelegatorReward(suite.ctx, claim.Owner)
+	suite.keeper.InitializeDelegatorReward(suite.ctx, claim.Owner)
 
-	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
-	suite.Equal(globalIndexes, syncedClaim.DelegatorRewardIndexes[bondIndex].RewardIndexes)
+	syncedClaim, _ := suite.keeper.GetDelegatorClaim(suite.ctx, claim.Owner)
+	suite.Equal(globalIndexes, syncedClaim.RewardIndexes[bondIndex].RewardIndexes)
 	suite.Truef(syncedClaim.Reward.IsAllGT(claim.Reward), "'%s' not greater than '%s'", syncedClaim.Reward, claim.Reward)
 }
 

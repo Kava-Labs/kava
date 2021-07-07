@@ -64,7 +64,7 @@ func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGe
 	)
 }
 
-func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
+func (suite *DelegatorRewardsTestSuite) TestAccumulateDelegatorRewards() {
 	type args struct {
 		delegation            sdk.Coin
 		rewardsPerSecond      sdk.Coins
@@ -145,18 +145,18 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateHardDelegatorRewards() {
 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			runCtx := suite.ctx.WithBlockTime(runAtTime)
 
-			rewardPeriods, found := suite.keeper.GetHardDelegatorRewardPeriods(runCtx, tc.args.delegation.Denom)
+			rewardPeriods, found := suite.keeper.GetDelegatorRewardPeriods(runCtx, tc.args.delegation.Denom)
 			suite.Require().True(found)
-			err = suite.keeper.AccumulateHardDelegatorRewards(runCtx, rewardPeriods)
+			err = suite.keeper.AccumulateDelegatorRewards(runCtx, rewardPeriods)
 			suite.Require().NoError(err)
 
-			rewardIndexes, _ := suite.keeper.GetHardDelegatorRewardIndexes(runCtx, tc.args.delegation.Denom)
+			rewardIndexes, _ := suite.keeper.GetDelegatorRewardIndexes(runCtx, tc.args.delegation.Denom)
 			suite.Require().Equal(tc.args.expectedRewardIndexes, rewardIndexes)
 		})
 	}
 }
 
-func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
+func (suite *DelegatorRewardsTestSuite) TestSynchronizeDelegatorReward() {
 	type args struct {
 		delegation            sdk.Coin
 		rewardsPerSecond      sdk.Coins
@@ -249,10 +249,10 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 			suite.Require().Equal(valAcc.Status, sdk.Bonded)
 			suite.Require().Equal(valAcc.Tokens, tc.args.delegation.Amount.Add(selfDelegationCoins.Amount))
 
-			// Check that Staking hooks initialized a HardLiquidityProviderClaim
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+			// Check that Staking hooks initialized a DelegatorClaim
+			claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
-			for _, rewardIndex := range claim.DelegatorRewardIndexes[0].RewardIndexes {
+			for _, rewardIndex := range claim.RewardIndexes[0].RewardIndexes {
 				suite.Require().Equal(sdk.ZeroDec(), rewardIndex.RewardFactor)
 			}
 
@@ -265,10 +265,10 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
 
-				rewardPeriods, found := suite.keeper.GetHardDelegatorRewardPeriods(blockCtx, tc.args.delegation.Denom)
+				rewardPeriods, found := suite.keeper.GetDelegatorRewardPeriods(blockCtx, tc.args.delegation.Denom)
 				suite.Require().True(found)
 
-				err := suite.keeper.AccumulateHardDelegatorRewards(blockCtx, rewardPeriods)
+				err := suite.keeper.AccumulateDelegatorRewards(blockCtx, rewardPeriods)
 				suite.Require().NoError(err)
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
@@ -276,19 +276,19 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 
 			// After we've accumulated, run synchronize
 			suite.Require().NotPanics(func() {
-				suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
+				suite.keeper.SynchronizeDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
 			})
 
 			// Check that reward factor and claim have been updated as expected
-			rewardIndexes, _ := suite.keeper.GetHardDelegatorRewardIndexes(suite.ctx, tc.args.delegation.Denom)
+			rewardIndexes, _ := suite.keeper.GetDelegatorRewardIndexes(suite.ctx, tc.args.delegation.Denom)
 			for i, rewardPerSecond := range tc.args.rewardsPerSecond {
 				rewardFactor, _ := rewardIndexes.Get(rewardPerSecond.Denom)
 				suite.Require().Equal(tc.args.expectedRewardIndexes[i].RewardFactor, rewardFactor)
 			}
 
-			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+			claim, found = suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
-			for i, delegatorRewardIndex := range claim.DelegatorRewardIndexes[0].RewardIndexes {
+			for i, delegatorRewardIndex := range claim.RewardIndexes[0].RewardIndexes {
 				suite.Require().Equal(tc.args.expectedRewardIndexes[i].RewardFactor, delegatorRewardIndex.RewardFactor)
 			}
 			suite.Require().Equal(tc.args.expectedRewards, claim.Reward)
@@ -296,7 +296,7 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeHardDelegatorReward() {
 	}
 }
 
-func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
+func (suite *DelegatorRewardsTestSuite) TestSimulateDelegatorRewardSynchronization() {
 	type args struct {
 		delegation            sdk.Coin
 		rewardsPerSecond      sdk.Coins
@@ -365,10 +365,10 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 
 			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
 
-			// Check that Staking hooks initialized a HardLiquidityProviderClaim
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+			// Check that Staking hooks initialized a DelegatorClaim
+			claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
-			for _, rewardIndex := range claim.DelegatorRewardIndexes[0].RewardIndexes {
+			for _, rewardIndex := range claim.RewardIndexes[0].RewardIndexes {
 				suite.Require().Equal(sdk.ZeroDec(), rewardIndex.RewardFactor)
 			}
 
@@ -381,21 +381,21 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateHardDelegatorRewardSynchroni
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
 
-				// Accumulate hard delegator rewards
-				rewardPeriods, found := suite.keeper.GetHardDelegatorRewardPeriods(blockCtx, tc.args.delegation.Denom)
+				// Accumulate delegator rewards
+				rewardPeriods, found := suite.keeper.GetDelegatorRewardPeriods(blockCtx, tc.args.delegation.Denom)
 				suite.Require().True(found)
-				err := suite.keeper.AccumulateHardDelegatorRewards(blockCtx, rewardPeriods)
+				err := suite.keeper.AccumulateDelegatorRewards(blockCtx, rewardPeriods)
 				suite.Require().NoError(err)
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
 
 			// Check that the synced claim held in memory has properly simulated syncing
-			syncedClaim := suite.keeper.SimulateHardSynchronization(suite.ctx, claim)
+			syncedClaim := suite.keeper.SimulateDelegatorSynchronization(suite.ctx, claim)
 
 			for i, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				// Check that the user's claim's reward index matches the expected reward index
-				multiRewardIndex, found := syncedClaim.DelegatorRewardIndexes.Get(types.BondDenom)
+				multiRewardIndex, found := syncedClaim.RewardIndexes.Get(types.BondDenom)
 				suite.Require().True(found)
 				suite.Require().Equal(expectedRewardIndex, multiRewardIndex[i])
 
@@ -503,14 +503,14 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 	// but don't start the next block as it will accumulate delegator rewards and we won't be able to tell if the user's reward was synced.
 
 	// Check that the user's claim has been synced. ie rewards added, index updated
-	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 
-	rewardIndexes, found := suite.keeper.GetHardDelegatorRewardIndexes(suite.ctx, bondDenom)
+	rewardIndexes, found := suite.keeper.GetDelegatorRewardIndexes(suite.ctx, bondDenom)
 	suite.Require().True(found)
 	globalIndex, found := rewardIndexes.Get(rewardsPerSecond[0].Denom)
 	suite.Require().True(found)
-	claimIndex, found := claim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	claimIndex, found := claim.RewardIndexes.GetRewardIndex(bondDenom)
 	suite.Require().True(found)
 	suite.Require().Equal(globalIndex, claimIndex.RewardIndexes[0].RewardFactor)
 
@@ -523,17 +523,17 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(3 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
 
-	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
+	suite.keeper.SynchronizeDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
 
 	// rewards are the same as before
-	laterClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	laterClaim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 	suite.Require().Equal(claim.Reward, laterClaim.Reward)
 
 	// claim index has been updated to latest global value
-	laterClaimIndex, found := laterClaim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	laterClaimIndex, found := laterClaim.RewardIndexes.GetRewardIndex(bondDenom)
 	suite.Require().True(found)
-	rewardIndexes, found = suite.keeper.GetHardDelegatorRewardIndexes(suite.ctx, bondDenom)
+	rewardIndexes, found = suite.keeper.GetDelegatorRewardIndexes(suite.ctx, bondDenom)
 	suite.Require().True(found)
 	globalIndex, found = rewardIndexes.Get(rewardsPerSecond[0].Denom)
 	suite.Require().True(found)
@@ -597,14 +597,14 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 	// but don't start the next block as it will accumulate delegator rewards and we won't be able to tell if the user's reward was synced.
 
 	// Check that the user's claim has been synced. ie rewards added, index updated
-	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 
-	rewardIndexes, found := suite.keeper.GetHardDelegatorRewardIndexes(suite.ctx, bondDenom)
+	rewardIndexes, found := suite.keeper.GetDelegatorRewardIndexes(suite.ctx, bondDenom)
 	suite.Require().True(found)
 	globalIndex, found := rewardIndexes.Get(rewardsPerSecond[0].Denom)
 	suite.Require().True(found)
-	claimIndex, found := claim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	claimIndex, found := claim.RewardIndexes.GetRewardIndex(bondDenom)
 	suite.Require().True(found)
 	suite.Require().Equal(globalIndex, claimIndex.RewardIndexes[0].RewardFactor)
 
@@ -617,17 +617,17 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(3 * blockDuration))
 	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
 
-	suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
+	suite.keeper.SynchronizeDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
 
 	// rewards are greater than before
-	laterClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	laterClaim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 	suite.Require().True(laterClaim.Reward.IsAllGT(claim.Reward))
 
 	// claim index has been updated to latest global value
-	laterClaimIndex, found := laterClaim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	laterClaimIndex, found := laterClaim.RewardIndexes.GetRewardIndex(bondDenom)
 	suite.Require().True(found)
-	rewardIndexes, found = suite.keeper.GetHardDelegatorRewardIndexes(suite.ctx, bondDenom)
+	rewardIndexes, found = suite.keeper.GetDelegatorRewardIndexes(suite.ctx, bondDenom)
 	suite.Require().True(found)
 	globalIndex, found = rewardIndexes.Get(rewardsPerSecond[0].Denom)
 	suite.Require().True(found)
@@ -674,11 +674,11 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 	suite.Require().NoError(err)
 
 	// Check that claim has been created with synced reward index but no reward coins
-	initialClaim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	initialClaim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 	suite.True(found)
-	initialGlobalIndex, found := suite.keeper.GetHardDelegatorRewardIndexes(suite.ctx, bondDenom)
+	initialGlobalIndex, found := suite.keeper.GetDelegatorRewardIndexes(suite.ctx, bondDenom)
 	suite.True(found)
-	initialClaimIndex, found := initialClaim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	initialClaimIndex, found := initialClaim.RewardIndexes.GetRewardIndex(bondDenom)
 	suite.True(found)
 	suite.Require().Equal(initialGlobalIndex, initialClaimIndex.RewardIndexes)
 	suite.True(initialClaim.Reward.Empty()) // Initial claim should not have any rewards
@@ -697,11 +697,11 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 	stakingKeeper.Slash(suite.ctx, validator.ConsAddress(), suite.ctx.BlockHeight(), 10, fraction)
 
 	// Check that the user's claim has been synced. ie rewards added, index updated
-	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
-	globalIndex, found := suite.keeper.GetHardDelegatorRewardIndexes(suite.ctx, bondDenom)
+	globalIndex, found := suite.keeper.GetDelegatorRewardIndexes(suite.ctx, bondDenom)
 	suite.Require().True(found)
-	claimIndex, found := claim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	claimIndex, found := claim.RewardIndexes.GetRewardIndex(bondDenom)
 	suite.Require().True(found)
 	suite.Require().Equal(globalIndex, claimIndex.RewardIndexes)
 
@@ -754,12 +754,12 @@ func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
 	suite.Require().NoError(err)
 
 	// Check that the user's claim has been synced. ie rewards added, index updated
-	claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+	claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 
-	globalIndex, found := suite.keeper.GetHardDelegatorRewardIndexes(suite.ctx, bondDenom)
+	globalIndex, found := suite.keeper.GetDelegatorRewardIndexes(suite.ctx, bondDenom)
 	suite.Require().True(found)
-	claimIndex, found := claim.DelegatorRewardIndexes.GetRewardIndex(bondDenom)
+	claimIndex, found := claim.RewardIndexes.GetRewardIndex(bondDenom)
 	suite.Require().True(found)
 	suite.Require().Equal(globalIndex, claimIndex.RewardIndexes)
 	suite.Require().Equal(

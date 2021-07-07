@@ -82,7 +82,7 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.Deposit) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil)
 	}
 
 	var supplyRewardIndexes types.MultiRewardIndexes
@@ -143,7 +143,7 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.Deposit) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil)
 	}
 
 	depositDenoms := getDenoms(deposit.Amount)
@@ -186,9 +186,6 @@ func (k Keeper) SynchronizeHardLiquidityProviderClaim(ctx sdk.Context, owner sdk
 	if foundBorrow {
 		k.SynchronizeHardBorrowReward(ctx, borrow)
 	}
-
-	// Synchronize any hard delegator rewards
-	k.SynchronizeHardDelegatorRewards(ctx, owner, nil, false)
 }
 
 // ZeroHardLiquidityProviderClaim zeroes out the claim object's rewards and returns the updated claim object
@@ -296,56 +293,6 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 			}
 			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
 			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
-			claim.Reward = claim.Reward.Add(newRewardsCoin)
-		}
-	}
-
-	// 3. Simulate delegator rewards
-	for _, ri := range claim.DelegatorRewardIndexes {
-		// For each Delegator reward index (there's only one: the bond denom 'ukava')
-		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardDelegatorRewardIndexes(ctx, ri.CollateralType)
-		if !foundGlobalRewardIndexes {
-			continue
-		}
-
-		userRewardIndexes, foundUserRewardIndexes := claim.DelegatorRewardIndexes.GetRewardIndex(ri.CollateralType)
-		if !foundUserRewardIndexes {
-			continue
-		}
-
-		userRewardIndexIndex, foundUserRewardIndexIndex := claim.DelegatorRewardIndexes.GetRewardIndexIndex(ri.CollateralType)
-		if !foundUserRewardIndexIndex {
-			continue
-		}
-
-		amtDelegated := k.GetTotalDelegated(ctx, claim.GetOwner(), sdk.ValAddress(claim.Owner.String()), true)
-
-		for _, globalRewardIndex := range globalRewardIndexes {
-			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
-			if !foundUserRewardIndex {
-				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
-				userRewardIndexes.RewardIndexes = append(userRewardIndexes.RewardIndexes, userRewardIndex)
-				claim.DelegatorRewardIndexes[userRewardIndexIndex].RewardIndexes = append(claim.DelegatorRewardIndexes[userRewardIndexIndex].RewardIndexes, userRewardIndex)
-			}
-
-			globalRewardFactor := globalRewardIndex.RewardFactor
-			userRewardFactor := userRewardIndex.RewardFactor
-			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
-			if rewardsAccumulatedFactor.IsZero() {
-				continue
-			}
-
-			rewardsEarned := rewardsAccumulatedFactor.Mul(amtDelegated).RoundInt()
-			if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
-				continue
-			}
-
-			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
-			if !foundFactorIndex {
-				continue
-			}
-			claim.DelegatorRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
-			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, rewardsEarned)
 			claim.Reward = claim.Reward.Add(newRewardsCoin)
 		}
 	}
