@@ -6,6 +6,22 @@ order: 1
 
 This module presents an implementation of user incentives that are controlled by governance. When users take a certain action, for example opening a CDP, they become eligible for rewards. Rewards are __opt in__ meaning that users must submit a message before the claim deadline to claim their rewards. The goals and background of this module were subject of a previous Kava governance proposal, which can be found [here](https://ipfs.io/ipfs/QmSYedssC3nyQacDJmNcREtgmTPyaMx2JX7RNkMdAVkdkr/user-growth-fund-proposal.pdf)
 
+## General Reward Distribution
+
+Rewards target various user activity. For example, usdx borrowed from bnb CDPs, btcb supplied to the hard money market, or owned shares in a swap kava/usdx pool.
+
+Each second, the rewards accumulate at a rate set in the params, eg 100 ukava per second. These are then distributed to all users ratably based on their percentage involvement in the rewarded activity. For example if a user holds 1% of all funds deposited to the kava/usdx swap pool. They will receive 1% of the total rewards each second.
+
+The number tracking a user's involvement is referred to as "reward source" in the code. And the total across all users the "reward source total".
+
+## Efficiency
+
+Paying out rewards to every user every block would be slow and lead to long block times. Instead rewards are calculated much less frequently.
+
+Every block a global tracker adds up total rewards paid out per unit of user involvement. For example, per unit of xrpb supplied to hard, or per share in a kava/usdx swap pool. A user's specific reward can then be calculated as needed based on their current deposit/shares/borrow.
+
+User's rewards must be updated whenever their reward source changes. This happens through hooks into other modules that run before deposits/borrows/supplies etc.
+
 ## HARD Token distribution
 
 The incentive module also distributes the HARD token on the Kava blockchain. HARD tokens are distributed to two types of ecosystem participants:

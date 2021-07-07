@@ -22,10 +22,14 @@ func NewAccumulator(previousAccrual time.Time, indexes RewardIndexes) *Accumulat
 }
 
 // Accumulate accrues rewards up to the current time.
+//
 // It calculates new rewards and adds them to the reward indexes for the period from PreviousAccumulationTime to currentTime.
 // It stores the currentTime in PreviousAccumulationTime to be used for later accumulations.
+//
 // Rewards are not accrued for times outside of the start and end times of a reward period.
 // If a period ends before currentTime, the PreviousAccrualTime is shortened to the end time. This allows accumulate to be called sequentially on consecutive reward periods.
+//
+// rewardSourceTotal is the total of all user reward sources. For example: total shares in a swap pool, total btcb supplied to hard, or total usdx borrowed from all bnb CDPs.
 func (acc *Accumulator) Accumulate(period MultiRewardPeriod, rewardSourceTotal sdk.Dec, currentTime time.Time) {
 	accumulationDuration := acc.getTimeElapsedWithinLimits(acc.PreviousAccumulationTime, currentTime, period.Start, period.End)
 	indexesIncrement := acc.calculateNewRewards(period.RewardsPerSecond, rewardSourceTotal, accumulationDuration)
