@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 
@@ -46,6 +47,13 @@ var (
 	PrincipalDenom                  = "usdx"
 	IncentiveMacc                   = kavadistTypes.ModuleName
 )
+
+// RegisterCodec registers the necessary types for incentive module
+func RegisterCodec(cdc *codec.Codec) {
+	cdc.RegisterInterface((*Claim)(nil), nil)
+	cdc.RegisterConcrete(USDXMintingClaim{}, "incentive/USDXMintingClaim", nil)
+	cdc.RegisterConcrete(HardLiquidityProviderClaim{}, "incentive/HardLiquidityProviderClaim", nil)
+}
 
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {

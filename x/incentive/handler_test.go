@@ -45,12 +45,14 @@ func (suite *HandlerTestSuite) SetupTest() {
 	incentiveGS := incentive.NewGenesisState(
 		incentive.NewParams(
 			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
-			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
-			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
-			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
+			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
+			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
+			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "ukava", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
+			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "btcb/usdx", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
 			incentive.Multipliers{incentive.NewMultiplier(incentive.MultiplierName("small"), 1, d("0.25")), incentive.NewMultiplier(incentive.MultiplierName("large"), 12, d("1.0"))},
 			time.Date(2025, 12, 15, 14, 0, 0, 0, time.UTC),
 		),
+		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultGenesisAccumulationTimes,

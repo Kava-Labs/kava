@@ -9,6 +9,15 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 )
 
+// d is a helper function for creating sdk.Dec values in tests
+func d(str string) sdk.Dec { return sdk.MustNewDecFromStr(str) }
+
+// c is a helper function for created sdk.Coin types in tests
+func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
+
+// c is a helper function for created sdk.Coins types in tests
+func cs(coins ...sdk.Coin) sdk.Coins { return sdk.NewCoins(coins...) }
+
 func TestClaimsValidate(t *testing.T) {
 	owner := sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
 
@@ -166,6 +175,249 @@ func TestRewardIndexes(t *testing.T) {
 
 				require.Equal(t, tc.expected.found, found)
 				require.Equal(t, tc.expected.factor, factor)
+			})
+		}
+	})
+	t.Run("Mul", func(t *testing.T) {
+
+		testcases := []struct {
+			name          string
+			rewardIndexes RewardIndexes
+			multiplier    sdk.Dec
+			expected      RewardIndexes
+		}{
+			{
+				name: "non zero values are all multiplied",
+				rewardIndexes: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+					NewRewardIndex("denom2", d("0.2")),
+				},
+				multiplier: d("2.0"),
+				expected: RewardIndexes{
+					NewRewardIndex("denom", d("0.2")),
+					NewRewardIndex("denom2", d("0.4")),
+				},
+			},
+			{
+				name: "multiplying by zero, zeros all values",
+				rewardIndexes: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+					NewRewardIndex("denom2", d("0.0")),
+				},
+				multiplier: d("0.0"),
+				expected: RewardIndexes{
+					NewRewardIndex("denom", d("0.0")),
+					NewRewardIndex("denom2", d("0.0")),
+				},
+			},
+			{
+				name:          "empty indexes are unchanged",
+				rewardIndexes: RewardIndexes{},
+				multiplier:    d("2.0"),
+				expected:      RewardIndexes{},
+			},
+			{
+				name:          "nil indexes are unchanged",
+				rewardIndexes: nil,
+				multiplier:    d("2.0"),
+				expected:      nil,
+			},
+		}
+
+		for _, tc := range testcases {
+			t.Run(tc.name, func(t *testing.T) {
+				require.Equal(t, tc.expected, tc.rewardIndexes.Mul(tc.multiplier))
+			})
+		}
+	})
+	t.Run("Quo", func(t *testing.T) {
+		type expected struct {
+			indexes RewardIndexes
+			panics  bool
+		}
+		testcases := []struct {
+			name          string
+			rewardIndexes RewardIndexes
+			divisor       sdk.Dec
+			expected      expected
+		}{
+			{
+				name: "non zero values are all divided",
+				rewardIndexes: RewardIndexes{
+					NewRewardIndex("denom", d("0.6")),
+					NewRewardIndex("denom2", d("0.2")),
+				},
+				divisor: d("3.0"),
+				expected: expected{
+					indexes: RewardIndexes{
+						NewRewardIndex("denom", d("0.2")),
+						NewRewardIndex("denom2", d("0.066666666666666667")),
+					},
+				},
+			},
+			{
+				name: "diving by zero panics when values are present",
+				rewardIndexes: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+					NewRewardIndex("denom2", d("0.0")),
+				},
+				divisor: d("0.0"),
+				expected: expected{
+					panics: true,
+				},
+			},
+			{
+				name:          "empty indexes are unchanged",
+				rewardIndexes: RewardIndexes{},
+				divisor:       d("2.0"),
+				expected: expected{
+					indexes: RewardIndexes{},
+				},
+			},
+			{
+				name:          "nil indexes are unchanged",
+				rewardIndexes: nil,
+				divisor:       d("2.0"),
+				expected: expected{
+					indexes: nil,
+				},
+			},
+		}
+
+		for _, tc := range testcases {
+			t.Run(tc.name, func(t *testing.T) {
+				var actual RewardIndexes
+				quoFunc := func() { actual = tc.rewardIndexes.Quo(tc.divisor) }
+				if tc.expected.panics {
+					require.Panics(t, quoFunc)
+					return
+				} else {
+					require.NotPanics(t, quoFunc)
+				}
+				require.Equal(t, tc.expected.indexes, actual)
+			})
+		}
+	})
+	t.Run("Add", func(t *testing.T) {
+
+		testcases := []struct {
+			name          string
+			rewardIndexes RewardIndexes
+			addend        RewardIndexes
+			expected      RewardIndexes
+		}{
+			{
+				name: "same denoms are added",
+				rewardIndexes: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+					NewRewardIndex("denom2", d("0.2")),
+				},
+				addend: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+					NewRewardIndex("denom2", d("0.2")),
+				},
+				expected: RewardIndexes{
+					NewRewardIndex("denom", d("0.2")),
+					NewRewardIndex("denom2", d("0.4")),
+				},
+			},
+			{
+				name: "new denoms are appended",
+				rewardIndexes: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+				},
+				addend: RewardIndexes{
+					NewRewardIndex("denom", d("0.3")),
+					NewRewardIndex("denom2", d("0.2")),
+				},
+				expected: RewardIndexes{
+					NewRewardIndex("denom", d("0.4")),
+					NewRewardIndex("denom2", d("0.2")),
+				},
+			},
+			{
+				name: "missing denoms are unchanged",
+				rewardIndexes: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+					NewRewardIndex("denom2", d("0.2")),
+				},
+				addend: RewardIndexes{
+					NewRewardIndex("denom2", d("0.2")),
+				},
+				expected: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+					NewRewardIndex("denom2", d("0.4")),
+				},
+			},
+			{
+				name: "adding empty indexes does nothing",
+				rewardIndexes: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+				},
+				addend: RewardIndexes{},
+				expected: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+				},
+			},
+			{
+				name: "adding nil indexes does nothing",
+				rewardIndexes: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+				},
+				addend: nil,
+				expected: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+				},
+			},
+			{
+				name:          "denom can be added to empty indexes",
+				rewardIndexes: RewardIndexes{},
+				addend: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+				},
+				expected: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+				},
+			},
+			{
+				name:          "denom can be added to nil indexes",
+				rewardIndexes: nil,
+				addend: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+				},
+				expected: RewardIndexes{
+					NewRewardIndex("denom", d("0.1")),
+				},
+			},
+			{
+				name:          "adding empty indexes to nil does nothing",
+				rewardIndexes: nil,
+				addend:        RewardIndexes{},
+				expected:      nil,
+			},
+			{
+				name:          "adding nil to empty indexes does nothing",
+				rewardIndexes: RewardIndexes{},
+				addend:        nil,
+				expected:      RewardIndexes{},
+			},
+			{
+				name:          "adding nil to nil indexes does nothing",
+				rewardIndexes: nil,
+				addend:        nil,
+				expected:      nil,
+			},
+			{
+				name:          "adding empty indexes to empty indexes does nothing",
+				rewardIndexes: RewardIndexes{},
+				addend:        RewardIndexes{},
+				expected:      RewardIndexes{},
+			},
+		}
+		for _, tc := range testcases {
+			t.Run(tc.name, func(t *testing.T) {
+				sum := tc.rewardIndexes.Add(tc.addend)
+				require.Equal(t, tc.expected, sum)
 			})
 		}
 	})

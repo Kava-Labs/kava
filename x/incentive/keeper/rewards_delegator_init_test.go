@@ -27,15 +27,9 @@ func TestInitializeHardDelegatorReward(t *testing.T) {
 	suite.Run(t, new(InitializeHardDelegatorRewardTests))
 }
 
-// Hardcoded to use bond denom
-func (suite *InitializeHardDelegatorRewardTests) storeGlobalDelegatorFactor(multiRewardIndexes types.MultiRewardIndexes) {
-	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
-	suite.keeper.SetHardDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
-}
-
 func (suite *InitializeHardDelegatorRewardTests) TestClaimIndexesAreSetWhenClaimDoesNotExist() {
 	globalIndex := arbitraryDelegatorRewardIndexes
-	suite.storeGlobalDelegatorFactor(globalIndex)
+	suite.storeGlobalDelegatorIndexes(globalIndex)
 
 	delegator := arbitraryAddress()
 	suite.keeper.InitializeHardDelegatorReward(suite.ctx, delegator)
@@ -59,7 +53,7 @@ func (suite *InitializeHardDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreS
 			DelegatorShares: d("1000"),
 		}},
 	}
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, sk)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, sk, nil)
 
 	claim := types.HardLiquidityProviderClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -77,7 +71,7 @@ func (suite *InitializeHardDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreS
 	// Update the claim object with the new global factor
 	bondIndex, _ := claim.DelegatorRewardIndexes.GetRewardIndexIndex(types.BondDenom)
 	claim.DelegatorRewardIndexes[bondIndex].RewardIndexes = globalIndexes
-	suite.storeGlobalDelegatorFactor(claim.DelegatorRewardIndexes)
+	suite.storeGlobalDelegatorIndexes(claim.DelegatorRewardIndexes)
 
 	suite.keeper.InitializeHardDelegatorReward(suite.ctx, claim.Owner)
 
@@ -86,7 +80,7 @@ func (suite *InitializeHardDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreS
 	suite.Truef(syncedClaim.Reward.IsAllGT(claim.Reward), "'%s' not greater than '%s'", syncedClaim.Reward, claim.Reward)
 }
 
-// arbitraryDelegatorRewardIndexes contains only one reward index as there is only every one bond denom
+// arbitraryDelegatorRewardIndexes contains only one reward index as there is only ever one bond denom
 var arbitraryDelegatorRewardIndexes = types.MultiRewardIndexes{
 	types.NewMultiRewardIndex(
 		types.BondDenom,

@@ -82,6 +82,120 @@ func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
 	suite.Require().Equal(len(suite.addrs), len(claims))
 }
 
+func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
+	testCases := []struct {
+		name     string
+		poolName string
+		indexes  types.RewardIndexes
+		panics   bool
+	}{
+		{
+			name:     "two factors can be written and read",
+			poolName: "btc/usdx",
+			indexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			name:     "indexes with empty pool name can be written and read",
+			poolName: "",
+			indexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			// this test is to detect any changes in behavior, it would be nice if Set didn't panic
+			name:     "setting empty indexes panics",
+			poolName: "btc/usdx",
+			indexes:  types.RewardIndexes{},
+			panics:   true,
+		},
+		{
+			// this test is to detect any changes in behavior, it would be nice if Set didn't panic
+			name:     "setting nil indexes panics",
+			poolName: "btc/usdx",
+			indexes:  nil,
+			panics:   true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupApp()
+
+			_, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, tc.poolName)
+			suite.False(found)
+
+			setFunc := func() { suite.keeper.SetSwapRewardIndexes(suite.ctx, tc.poolName, tc.indexes) }
+			if tc.panics {
+				suite.Panics(setFunc)
+				return
+			} else {
+				suite.NotPanics(setFunc)
+			}
+
+			storedIndexes, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, tc.poolName)
+			suite.True(found)
+			suite.Equal(tc.indexes, storedIndexes)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetSetSwapRewardAccrualTimes() {
+	testCases := []struct {
+		name        string
+		poolName    string
+		accrualTime time.Time
+		panics      bool
+	}{
+		{
+			name:        "normal time can be written and read",
+			poolName:    "btc/usdx",
+			accrualTime: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name:        "zero time can be written and read",
+			poolName:    "btc/usdx",
+			accrualTime: time.Time{},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupApp()
+
+			_, found := suite.keeper.GetSwapRewardAccrualTime(suite.ctx, tc.poolName)
+			suite.False(found)
+
+			setFunc := func() { suite.keeper.SetSwapRewardAccrualTime(suite.ctx, tc.poolName, tc.accrualTime) }
+			if tc.panics {
+				suite.Panics(setFunc)
+				return
+			} else {
+				suite.NotPanics(setFunc)
+			}
+
+			storedTime, found := suite.keeper.GetSwapRewardAccrualTime(suite.ctx, tc.poolName)
+			suite.True(found)
+			suite.Equal(tc.accrualTime, storedTime)
+		})
+	}
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }

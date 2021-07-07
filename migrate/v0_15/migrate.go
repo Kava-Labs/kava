@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-
 	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -18,8 +17,9 @@ import (
 )
 
 var (
-	// TODO: update GenesisTime for kava-8 launch
+	// TODO: update GenesisTime and chain-id for kava-8 launch
 	GenesisTime = time.Date(2021, 4, 8, 15, 0, 0, 0, time.UTC)
+	ChainID     = "kava-8"
 	// TODO: update SWP reward per second amount before production
 	SwpRewardsPerSecond = sdk.NewCoin("swp", sdk.OneInt())
 )
@@ -32,49 +32,56 @@ func Migrate(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 	cryptoAmino.RegisterAmino(cdc)
 	tmtypes.RegisterEvidences(cdc)
 
+	// Old codec does not need all old modules registered on it to correctly decode at this stage
+	// as it only decodes the app state into a map of module names to json encoded bytes.
 	if err := cdc.UnmarshalJSON(genDoc.AppState, &appStateMap); err != nil {
 		panic(err)
 	}
-	newAppState := MigrateAppState(appStateMap)
+
+	MigrateAppState(appStateMap)
+
 	v0_15Codec := app.MakeCodec()
-	marshaledNewAppState, err := v0_15Codec.MarshalJSON(newAppState)
+	marshaledNewAppState, err := v0_15Codec.MarshalJSON(appStateMap)
 	if err != nil {
 		panic(err)
 	}
 	genDoc.AppState = marshaledNewAppState
 	genDoc.GenesisTime = GenesisTime
-	genDoc.ChainID = "kava-8"
+	genDoc.ChainID = ChainID
 	return genDoc
 }
 
 // MigrateAppState migrates application state from v0.14 format to a kava v0.15 format
-func MigrateAppState(v0_14AppState genutil.AppMap) genutil.AppMap {
-	v0_15AppState := v0_14AppState
-	cdc := app.MakeCodec()
+// It modifies the provided genesis state in place.
+func MigrateAppState(v0_14AppState genutil.AppMap) {
+	v0_14Codec := makeV014Codec()
+	v0_15Codec := app.MakeCodec()
 
 	// Migrate incentive app state
 	if v0_14AppState[v0_14incentive.ModuleName] != nil {
 		var incentiveGenState v0_14incentive.GenesisState
-		cdc.MustUnmarshalJSON(v0_14AppState[v0_15incentive.ModuleName], &incentiveGenState)
+		v0_14Codec.MustUnmarshalJSON(v0_14AppState[v0_14incentive.ModuleName], &incentiveGenState)
 		delete(v0_14AppState, v0_14incentive.ModuleName)
-		v0_15AppState[v0_15incentive.ModuleName] = cdc.MustMarshalJSON(Incentive(incentiveGenState))
+		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(incentiveGenState))
 	}
 
 	// Migrate commmittee app state
 	if v0_14AppState[v0_14committee.ModuleName] != nil {
 		// Unmarshal v14 committee genesis state and delete it
 		var committeeGS v0_14committee.GenesisState
-		cdc := codec.New()
-		sdk.RegisterCodec(cdc)
-		v0_14committee.RegisterCodec(cdc)
-		cdc.MustUnmarshalJSON(v0_14AppState[v0_14committee.ModuleName], &committeeGS)
+		v0_14Codec.MustUnmarshalJSON(v0_14AppState[v0_14committee.ModuleName], &committeeGS)
 		delete(v0_14AppState, v0_14committee.ModuleName)
 		// Marshal v15 committee genesis state
-		cdc = app.MakeCodec()
-		v0_15AppState[v0_15committee.ModuleName] = cdc.MustMarshalJSON(Committee(committeeGS))
+		v0_14AppState[v0_15committee.ModuleName] = v0_15Codec.MustMarshalJSON(Committee(committeeGS))
 	}
+}
 
-	return v0_15AppState
+func makeV014Codec() *codec.Codec {
+	cdc := codec.New()
+	sdk.RegisterCodec(cdc)
+	v0_14committee.RegisterCodec(cdc)
+	v0_14incentive.RegisterCodec(cdc)
+	return cdc
 }
 
 // Committee migrates from a v0.14 committee genesis state to a v0.15 committee genesis state
@@ -248,6 +255,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		hardSupplyRewardPeriods,
 		hardBorrowRewardPeriods,
 		hardDelegatorRewardPeriods,
+		v0_15incentive.DefaultMultiRewardPeriods, // TODO add expected swap reward periods
 		claimMultipliers,
 		incentiveGS.Params.ClaimEnd,
 	)
@@ -337,6 +345,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		hardSupplyAccumulationTimes,
 		hardBorrowAccumulationTimes,
 		hardDelegatorAccumulationTimes,
+		v0_15incentive.DefaultGenesisAccumulationTimes, // There is no previous swap rewards to accumulation starts at genesis time.
 		usdxMintingClaims,
 		hardClaims,
 	)

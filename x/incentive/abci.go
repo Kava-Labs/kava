@@ -33,4 +33,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 			panic(err)
 		}
 	}
+	for _, rp := range params.SwapRewardPeriods {
+		k.AccumulateSwapRewards(ctx, rp)
+	}
 }
