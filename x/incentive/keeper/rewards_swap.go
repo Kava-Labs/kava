@@ -38,6 +38,22 @@ func (k Keeper) AccumulateSwapRewards(ctx sdk.Context, rewardPeriod types.MultiR
 	}
 }
 
+// InitializeSwapReward creates a new claim with zero rewards and indexes matching the global indexes.
+// If the claim already exists it just updates the indexes.
+func (k Keeper) InitializeSwapReward(ctx sdk.Context, poolID string, owner sdk.AccAddress) {
+	claim, found := k.GetSwapClaim(ctx, owner)
+	if !found {
+		claim = types.NewSwapClaim(owner, sdk.Coins{}, nil)
+	}
+
+	globalRewardIndexes, found := k.GetSwapRewardIndexes(ctx, poolID)
+	if !found {
+		globalRewardIndexes = types.RewardIndexes{}
+	}
+	claim.RewardIndexes = claim.RewardIndexes.With(poolID, globalRewardIndexes)
+
+	k.SetSwapClaim(ctx, claim)
+}
 
 // SynchronizeSwapReward updates the claim object by adding any accumulated rewards
 // and updating the reward index value.

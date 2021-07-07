@@ -25,11 +25,6 @@ func TestSynchronizeSwapReward(t *testing.T) {
 	suite.Run(t, new(SynchronizeSwapRewardTests))
 }
 
-// TODO reuse across swap tests
-func (suite *SynchronizeSwapRewardTests) storeClaim(claim types.SwapClaim) {
-	suite.keeper.SetSwapClaim(suite.ctx, claim)
-}
-
 func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIncreased() {
 	// This is the normal case
 	// Given some time has passed (meaning the global indexes have increased)
@@ -56,7 +51,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIn
 			},
 		},
 	}
-	suite.storeClaim(claim)
+	suite.storeSwapClaim(claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -108,7 +103,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUnchangedWhenGlobalIndexesUnch
 		},
 		RewardIndexes: unchangingIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeSwapClaim(claim)
 
 	suite.storeGlobalSwapIndexes(unchangingIndexes)
 
@@ -144,7 +139,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardAdded() {
 			},
 		},
 	}
-	suite.storeClaim(claim)
+	suite.storeSwapClaim(claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -198,7 +193,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUnchangedWhenNoReward() {
 		},
 		RewardIndexes: nonEmptyMultiRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeSwapClaim(claim)
 
 	poolID := "nonRewardPool"
 	// No global indexes stored as this pool is not rewarded
@@ -235,7 +230,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardDenomAdded
 			},
 		},
 	}
-	suite.storeClaim(claim)
+	suite.storeSwapClaim(claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -295,7 +290,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesIncrea
 			},
 		},
 	}
-	suite.storeClaim(claim)
+	suite.storeSwapClaim(claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
