@@ -387,7 +387,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.accountKeeper,
 		app.supplyKeeper,
 	)
-	app.swapKeeper = swap.NewKeeper(
+	swapKeeper := swap.NewKeeper(
 		app.cdc,
 		keys[swap.StoreKey],
 		swapSubspace,
@@ -401,7 +401,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		&hardKeeper,
 		app.accountKeeper,
 		&stakingKeeper,
-		app.swapKeeper,
+		&swapKeeper,
 	)
 
 	// register the staking hooks
@@ -412,6 +412,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdp.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
 
 	app.hardKeeper = *hardKeeper.SetHooks(hard.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
+
+	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)

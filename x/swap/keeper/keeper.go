@@ -13,6 +13,7 @@ type Keeper struct {
 	key           sdk.StoreKey
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
+	hooks         types.SwapHooks
 }
 
 // NewKeeper creates a new keeper
@@ -26,4 +27,13 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace)
 		cdc:           cdc,
 		paramSubspace: paramstore,
 	}
+}
+
+// SetHooks adds hooks to the keeper.
+func (k *Keeper) SetHooks(sh types.SwapHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set swap hooks twice")
+	}
+	k.hooks = sh
+	return k
 }
