@@ -149,3 +149,26 @@ func (k Keeper) GetAllDepositorShares(ctx sdk.Context) (records types.ShareRecor
 	})
 	return
 }
+
+// IterateDepositorSharesByOwner iterates over share records for a specific address and performs a callback function
+func (k Keeper) IterateDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddress, cb func(record types.ShareRecord) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, owner.Bytes())
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var record types.ShareRecord
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &record)
+		if cb(record) {
+			break
+		}
+	}
+}
+
+// GetAllDepositorShares returns all depositor share records from the store for a specific address
+func (k Keeper) GetAllDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddress) (records types.ShareRecords) {
+	k.IterateDepositorSharesByOwner(ctx, owner, func(record types.ShareRecord) bool {
+		records = append(records, record)
+		return false
+	})
+	return
+}

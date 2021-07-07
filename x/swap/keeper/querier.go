@@ -51,10 +51,12 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	unfilteredRecords := k.GetAllDepositorShares(ctx)
-	records := filterShareRecords(ctx, unfilteredRecords, params)
-	if records == nil {
-		records = types.ShareRecords{}
+	var records types.ShareRecords
+	if len(params.Owner) > 0 {
+		records = k.GetAllDepositorSharesByOwner(ctx, params.Owner)
+	} else {
+		unfilteredRecords := k.GetAllDepositorShares(ctx)
+		records = filterShareRecords(ctx, unfilteredRecords, params)
 	}
 
 	// Augment each deposit result with the actual share value of depositor's shares
