@@ -6,6 +6,7 @@ import (
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
 // Hooks wrapper struct for hooks
@@ -16,6 +17,7 @@ type Hooks struct {
 var _ cdptypes.CDPHooks = Hooks{}
 var _ hardtypes.HARDHooks = Hooks{}
 var _ stakingtypes.StakingHooks = Hooks{}
+var _ swaptypes.SwapHooks = Hooks{}
 
 // Hooks create new incentive hooks
 func (k Keeper) Hooks() Hooks { return Hooks{k} }
@@ -148,4 +150,14 @@ func (h Hooks) BeforeValidatorModified(ctx sdk.Context, valAddr sdk.ValAddress) 
 
 // AfterValidatorRemoved runs after a validator is removed
 func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+}
+
+// ------------------- Swap Module Hooks -------------------
+
+func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, _ sdk.Int) {
+	h.k.InitializeSwapReward(ctx, poolID, depositor)
+}
+
+func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharesOwned sdk.Int) {
+	h.k.SynchronizeSwapReward(ctx, poolID, depositor, sharesOwned)
 }
