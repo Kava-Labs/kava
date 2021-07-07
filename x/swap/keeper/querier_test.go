@@ -135,6 +135,38 @@ func (suite *querierTestSuite) TestQueryPools() {
 	}
 }
 
+func (suite *querierTestSuite) TestQueryDeposit() {
+	// Set up pool in store
+	coinA := sdk.NewCoin("ukava", sdk.NewInt(10))
+	coinB := sdk.NewCoin("usdx", sdk.NewInt(200))
+	pool, err := types.NewDenominatedPool(sdk.NewCoins(coinA, coinB))
+	suite.Nil(err)
+	poolRecord := types.NewPoolRecord(pool)
+	suite.Keeper.SetPool(suite.Ctx, poolRecord)
+
+	// Deposit into pool
+	owner := suite.addresses[0]
+	err = suite.Keeper.Deposit(suite.Ctx, owner, coinA, coinB, sdk.MustNewDecFromStr("0.20"))
+	suite.Nil(err)
+
+	ctx := suite.Ctx.WithIsCheckTx(false)
+	// Set up request query
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{"custom", types.QuerierRoute, types.QueryGetDeposits}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryDepositsParams(1, 100, owner, poolRecord.PoolID)),
+	}
+
+	bz, err := suite.querier(ctx, []string{types.QueryGetDeposits}, query)
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	var res types.DepositsQueryResults
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &res))
+
+	// As the only depositor all pool shares should belong to the owner
+	suite.Equal(poolRecord.TotalShares, res[0].SharesOwned)
+}
+
 func TestQuerierTestSuite(t *testing.T) {
 	suite.Run(t, new(querierTestSuite))
 }
