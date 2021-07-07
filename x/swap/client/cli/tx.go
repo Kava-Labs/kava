@@ -81,10 +81,10 @@ func getCmdDeposit(cdc *codec.Codec) *cobra.Command {
 
 func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "withdraw [shares] [slippage] [expected-coin-a] [expected-coin-b] [deadline]",
+		Use:   "withdraw [shares] [minCoinA] [minCoinB] [deadline]",
 		Short: "withdraw coins from a swap liquidity pool",
 		Example: fmt.Sprintf(
-			`%s tx %s withdraw 153000 0.05 10000000ukava 20000000usdx 176293740 --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s withdraw 153000 10000000ukava 20000000usdx 176293740 --from <key>`, version.ClientName, types.ModuleName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -97,24 +97,22 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 			}
 			shares := sdk.NewInt(numShares)
 
-			slippage := sdk.MustNewDecFromStr(args[1])
-
-			deadline, err := strconv.ParseInt(args[2], 10, 64)
+			minTokenA, err := sdk.ParseCoin(args[1])
 			if err != nil {
 				return err
 			}
 
-			expectedCoinA, err := sdk.ParseCoin(args[3])
+			minTokenB, err := sdk.ParseCoin(args[2])
 			if err != nil {
 				return err
 			}
 
-			expectedCoinB, err := sdk.ParseCoin(args[4])
+			deadline, err := strconv.ParseInt(args[3], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgWithdraw(cliCtx.GetFromAddress(), shares, slippage, expectedCoinA, expectedCoinB, deadline)
+			msg := types.NewMsgWithdraw(cliCtx.GetFromAddress(), shares, minTokenA, minTokenB, deadline)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

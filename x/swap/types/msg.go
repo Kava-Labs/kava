@@ -65,6 +65,10 @@ func (msg MsgDeposit) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
 	}
 
+	if msg.Slippage.IsNil() {
+		return sdkerrors.Wrapf(ErrInvalidSlippage, "slippage must be set")
+	}
+
 	if msg.Slippage.IsNegative() {
 		return sdkerrors.Wrapf(ErrInvalidSlippage, "slippage can not be negative")
 	}
@@ -99,24 +103,21 @@ func (msg MsgDeposit) DeadlineExceeded(blockTime time.Time) bool {
 
 // MsgWithdraw deposits liquidity into a pool
 type MsgWithdraw struct {
-	From          sdk.AccAddress `json:"from" yaml:"from"`
-	Shares        sdk.Int        `json:"shares" yaml:"shares"`
-	Slippage      sdk.Dec        `json:"slippage" yaml:"slippage"`
-	ExpectedCoinA sdk.Coin       `json:"expected_coin_a" yaml:"expected_coin_a"`
-	ExpectedCoinB sdk.Coin       `json:"expected_coin_b" yaml:"expected_coin_b"`
-	Deadline      int64          `json:"deadline" yaml:"deadline"`
+	From      sdk.AccAddress `json:"from" yaml:"from"`
+	Shares    sdk.Int        `json:"shares" yaml:"shares"`
+	MinTokenA sdk.Coin       `json:"min_token_a" yaml:"min_token_a"`
+	MinTokenB sdk.Coin       `json:"min_token_b" yaml:"min_token_b"`
+	Deadline  int64          `json:"deadline" yaml:"deadline"`
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(from sdk.AccAddress, shares sdk.Int, slippage sdk.Dec,
-	expectedCoinA, expectedCoinB sdk.Coin, deadline int64) MsgWithdraw {
+func NewMsgWithdraw(from sdk.AccAddress, shares sdk.Int, minTokenA, minTokenB sdk.Coin, deadline int64) MsgWithdraw {
 	return MsgWithdraw{
-		From:          from,
-		Shares:        shares,
-		Slippage:      slippage,
-		ExpectedCoinA: expectedCoinA,
-		ExpectedCoinB: expectedCoinB,
-		Deadline:      deadline,
+		From:      from,
+		Shares:    shares,
+		MinTokenA: minTokenA,
+		MinTokenB: minTokenB,
+		Deadline:  deadline,
 	}
 }
 
@@ -132,20 +133,24 @@ func (msg MsgWithdraw) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "from address cannot be empty")
 	}
 
-	if msg.Shares.IsNil() || msg.Shares.IsZero() || msg.Shares.IsNegative() {
+	if msg.Shares.IsNil() {
+		return sdkerrors.Wrapf(ErrInvalidShares, "shares must be set")
+	}
+
+	if msg.Shares.IsZero() || msg.Shares.IsNegative() {
 		return sdkerrors.Wrapf(ErrInvalidShares, fmt.Sprintf("%s", msg.Shares))
 	}
 
-	if msg.Slippage.IsNil() || msg.Slippage.IsNegative() || msg.Slippage.GT(sdk.OneDec()) {
-		return sdkerrors.Wrapf(ErrInvalidSlippage, fmt.Sprintf("%s", msg.Slippage))
+	if !msg.MinTokenA.IsValid() || msg.MinTokenA.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "min token a amount %s", msg.MinTokenA)
 	}
 
-	if !msg.ExpectedCoinA.IsValid() {
-		return sdkerrors.Wrapf(ErrInvalidCoin, fmt.Sprintf("%s", msg.ExpectedCoinA))
+	if !msg.MinTokenB.IsValid() || msg.MinTokenB.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "min token b amount %s", msg.MinTokenB)
 	}
 
-	if !msg.ExpectedCoinB.IsValid() {
-		return sdkerrors.Wrapf(ErrInvalidCoin, fmt.Sprintf("%s", msg.ExpectedCoinB))
+	if msg.MinTokenA.Denom == msg.MinTokenB.Denom {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
 	}
 
 	if msg.Deadline <= 0 {
