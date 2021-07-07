@@ -18,7 +18,7 @@ parent:
 
 ## Abstract
 
-`x/incentive` is an implementation of a Cosmos SDK Module that allows for governance controlled user incentives for users who take certain actions, such as opening a collateralized debt position (CDP). Governance proposes an array of rewards, with each item representing a collateral type that will be eligible for rewards. Each collateral reward specifies the number of coins awarded per second, the length of rewards periods, and the length of claim periods. Governance can alter the collateral rewards using parameter change proposals as well as adding or removing collateral types. All changes to parameters would take place in the _next_ period. User rewards are __opt in__, ie. users must claim rewards in order to receive them. If users fail to claim rewards before the claim period expiry, they are no longer eligible for rewards.
+`x/incentive` is an implementation of a Cosmos SDK Module that allows for governance controlled user incentives for users who take certain actions, such as opening a collateralized debt position (CDP). Governance proposes an array of rewards, with each item representing a collateral type that will be eligible for rewards. Each collateral reward specifies the number of coins awarded per second, the length of rewards periods. Governance can alter the collateral rewards using parameter change proposals as well as adding or removing collateral types. All changes to parameters would take place in the _next_ period. User rewards are __opt in__, ie. users must claim rewards in order to receive them. If users fail to claim rewards before the claim period expiry, they are no longer eligible for rewards.
 
 ### Dependencies
 
