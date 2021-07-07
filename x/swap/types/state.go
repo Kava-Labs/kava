@@ -68,3 +68,6 @@ func NewShareRecord(depositor sdk.AccAddress, poolID string, sharesOwned sdk.Int
 		SharesOwned: sharesOwned,
 	}
 }
+
+// ShareRecords is a slice of ShareRecord
+type ShareRecords []ShareRecord
