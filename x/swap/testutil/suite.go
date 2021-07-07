@@ -136,6 +136,12 @@ func (suite *Suite) PoolLiquidityEqual(coins sdk.Coins) {
 	suite.Equal(coins, reserves, fmt.Sprintf("expected pool reserves of %s, got %s", coins, reserves))
 }
 
+// PoolDeleted asserts that the pool does not exist
+func (suite *Suite) PoolDeleted(denomA, denomB string) {
+	_, ok := suite.Keeper.GetPool(suite.Ctx, swap.PoolID(denomA, denomB))
+	suite.Require().False(ok, "expected pool to not exist")
+}
+
 // PoolLiquidityEqual asserts that the pool matching the provided coins has those reserves within delta
 func (suite *Suite) PoolLiquidityDelta(coins sdk.Coins, delta float64) {
 	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, swap.PoolIDFromCoins(coins))
@@ -187,6 +193,12 @@ func (suite *Suite) PoolShareValueDelta(depositor authexported.Account, pool swa
 			fmt.Sprintf("expected shares to be within delta %f of %s, but got %s", delta, coins, value),
 		)
 	}
+}
+
+// PoolSharesDeleted asserts that the pool shares have been removed
+func (suite *Suite) PoolSharesDeleted(depositor sdk.AccAddress, denomA, denomB string) {
+	_, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, swap.PoolID(denomA, denomB))
+	suite.Require().False(ok, "expected pool shares to not exist")
 }
 
 // EventsContains asserts that the expected event is in the provided events

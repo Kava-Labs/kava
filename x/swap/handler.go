@@ -31,8 +31,7 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgDeposit) (*sdk.Result, error) {
-	err := k.Deposit(ctx, msg.Depositor, msg.TokenA, msg.TokenB, msg.Slippage)
-	if err != nil {
+	if err := k.Deposit(ctx, msg.Depositor, msg.TokenA, msg.TokenB, msg.Slippage); err != nil {
 		return nil, err
 	}
 
@@ -50,8 +49,7 @@ func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgDeposit) (*
 }
 
 func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) (*sdk.Result, error) {
-	err := k.Withdraw(ctx, msg.From, msg.Shares, msg.Slippage, msg.ExpectedCoinA, msg.ExpectedCoinB)
-	if err != nil {
+	if err := k.Withdraw(ctx, msg.From, msg.Shares, msg.MinTokenA, msg.MinTokenB); err != nil {
 		return nil, err
 	}
 
