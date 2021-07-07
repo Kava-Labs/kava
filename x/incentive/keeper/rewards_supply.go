@@ -186,9 +186,6 @@ func (k Keeper) SynchronizeHardLiquidityProviderClaim(ctx sdk.Context, owner sdk
 	if foundBorrow {
 		k.SynchronizeHardBorrowReward(ctx, borrow)
 	}
-
-	// Synchronize any delegator rewards
-	k.SynchronizeDelegatorRewards(ctx, owner, nil, false)
 }
 
 // ZeroHardLiquidityProviderClaim zeroes out the claim object's rewards and returns the updated claim object
