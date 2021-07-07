@@ -9,11 +9,13 @@ import (
 
 const (
 	AttributeKeyDepositor  = types.AttributeKeyDepositor
+	AttributeKeyOwner      = types.AttributeKeyOwner
 	AttributeKeyPoolID     = types.AttributeKeyPoolID
 	AttributeKeyShares     = types.AttributeKeyShares
 	AttributeValueCategory = types.AttributeValueCategory
 	DefaultParamspace      = types.DefaultParamspace
 	EventTypeSwapDeposit   = types.EventTypeSwapDeposit
+	EventTypeSwapWithdraw  = types.EventTypeSwapWithdraw
 	ModuleAccountName      = types.ModuleAccountName
 	ModuleName             = types.ModuleName
 	QuerierRoute           = types.QuerierRoute
@@ -37,6 +39,7 @@ var (
 	NewDenominatedPoolWithExistingShares = types.NewDenominatedPoolWithExistingShares
 	NewGenesisState                      = types.NewGenesisState
 	NewMsgDeposit                        = types.NewMsgDeposit
+	NewMsgWithdraw                       = types.NewMsgWithdraw
 	NewParams                            = types.NewParams
 	NewPoolRecord                        = types.NewPoolRecord
 	NewShareRecord                       = types.NewShareRecord
@@ -51,10 +54,16 @@ var (
 	DefaultSwapFee            = types.DefaultSwapFee
 	DepositorPoolSharesPrefix = types.DepositorPoolSharesPrefix
 	ErrDeadlineExceeded       = types.ErrDeadlineExceeded
+	ErrInsufficientLiquidity  = types.ErrInsufficientLiquidity
+	ErrInvalidCoin            = types.ErrInvalidCoin
 	ErrInvalidDeadline        = types.ErrInvalidDeadline
 	ErrInvalidPool            = types.ErrInvalidPool
+	ErrInvalidShares          = types.ErrInvalidShares
+	ErrInvalidSlippage        = types.ErrInvalidSlippage
 	ErrNotAllowed             = types.ErrNotAllowed
 	ErrNotImplemented         = types.ErrNotImplemented
+	ErrShareRecordNotFound    = types.ErrShareRecordNotFound
+	ErrSlippageExceeded       = types.ErrSlippageExceeded
 	KeyAllowedPools           = types.KeyAllowedPools
 	KeySwapFee                = types.KeySwapFee
 	MaxSwapFee                = types.MaxSwapFee
@@ -72,6 +81,7 @@ type (
 	GenesisState    = types.GenesisState
 	MsgDeposit      = types.MsgDeposit
 	MsgWithDeadline = types.MsgWithDeadline
+	MsgWithdraw     = types.MsgWithdraw
 	Params          = types.Params
 	PoolRecord      = types.PoolRecord
 	ShareRecord     = types.ShareRecord
