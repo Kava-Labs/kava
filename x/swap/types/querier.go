@@ -6,6 +6,8 @@ import sdk "github.com/cosmos/cosmos-sdk/types"
 const (
 	QueryGetParams   = "params"
 	QueryGetDeposits = "deposits"
+	QueryGetPool     = "pool"
+	QueryGetPools    = "pools"
 )
 
 // QueryDepositsParams is the params for a filtered deposits query
@@ -46,3 +48,34 @@ func NewDepositsQueryResult(shareRecord ShareRecord, sharesValue sdk.Coins) Depo
 
 // DepositsQueryResults is a slice of DepositsQueryResult
 type DepositsQueryResults []DepositsQueryResult
+
+// QueryPoolParams is the params for a pool query
+type QueryPoolParams struct {
+	Pool string `json:"pool" yaml:"pool"`
+}
+
+// NewQueryPoolParams creates a new QueryPoolParams
+func NewQueryPoolParams(pool string) QueryPoolParams {
+	return QueryPoolParams{
+		Pool: pool,
+	}
+}
+
+// PoolStatsQueryResult contains the result of a pool query
+type PoolStatsQueryResult struct {
+	Name        string    `json:"name" yaml:"name"`
+	Coins       sdk.Coins `json:"coins" yaml:"coins"`
+	TotalShares sdk.Int   `json:"total_shares" yaml:"total_shares"`
+}
+
+// NewPoolStatsQueryResult creates a new PoolStatsQueryResult
+func NewPoolStatsQueryResult(name string, coins sdk.Coins, totalShares sdk.Int) PoolStatsQueryResult {
+	return PoolStatsQueryResult{
+		Name:        name,
+		Coins:       coins,
+		TotalShares: totalShares,
+	}
+}
+
+// PoolStatsQueryResults is a slice of PoolStatsQueryResult
+type PoolStatsQueryResults []PoolStatsQueryResult

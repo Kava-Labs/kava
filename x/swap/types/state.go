@@ -50,6 +50,9 @@ func NewPoolRecord(pool *DenominatedPool) PoolRecord {
 	}
 }
 
+// PoolRecords is a slice of PoolRecord
+type PoolRecords []PoolRecord
+
 // ShareRecord stores the shares owned for a depositor and pool
 type ShareRecord struct {
 	// primary key
