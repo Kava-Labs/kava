@@ -103,3 +103,26 @@ func (k Keeper) DeleteDepositorShares(ctx sdk.Context, depositor sdk.AccAddress,
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
 	store.Delete(types.DepositorPoolSharesKey(depositor, poolID))
 }
+
+// IterateDepositorShares iterates over all pool objects in the store and performs a callback function
+func (k Keeper) IterateDepositorShares(ctx sdk.Context, cb func(record types.ShareRecord) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var record types.ShareRecord
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &record)
+		if cb(record) {
+			break
+		}
+	}
+}
+
+// GetAllDepositorShares returns all depositor share records from the store
+func (k Keeper) GetAllDepositorShares(ctx sdk.Context) (records types.ShareRecords) {
+	k.IterateDepositorShares(ctx, func(record types.ShareRecord) bool {
+		records = append(records, record)
+		return false
+	})
+	return
+}
