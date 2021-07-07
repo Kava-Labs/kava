@@ -74,6 +74,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 	for _, gat := range gs.DelegatorAccumulationTimes {
 		k.SetPreviousDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
+	for _, gat := range gs.SwapAccumulationTimes {
+		k.SetSwapRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+	}
 
 	for i, claim := range gs.USDXMintingClaims {
 		for j, ri := range claim.RewardIndexes {
@@ -209,6 +212,17 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		delegatorGats = append(delegatorGats, gat)
 	}
 
-	return types.NewGenesisState(params, usdxMintingGats, hardSupplyGats, hardBorrowGats,
-		delegatorGats, synchronizedUsdxClaims, synchronizedHardClaims, synchronizedDelegatorClaims)
+	var swapGats GenesisAccumulationTimes
+	for _, rp := range params.SwapRewardPeriods {
+		pat, found := k.GetSwapRewardAccrualTime(ctx, rp.CollateralType)
+		if !found {
+			panic(fmt.Sprintf("expected previous swap reward accrual time to be set in state for %s", rp.CollateralType))
+		}
+		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat)
+		swapGats = append(swapGats, gat)
+	}
+
+	return types.NewGenesisState(params, usdxMintingGats, hardSupplyGats,
+		hardBorrowGats, delegatorGats, swapGats, synchronizedUsdxClaims,
+		synchronizedHardClaims, synchronizedDelegatorClaims)
 }

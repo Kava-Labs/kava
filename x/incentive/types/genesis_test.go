@@ -55,6 +55,7 @@ func TestGenesisStateValidate(t *testing.T) {
 					DefaultMultiRewardPeriods,
 					DefaultMultiRewardPeriods,
 					DefaultMultiRewardPeriods,
+					DefaultMultiRewardPeriods,
 					Multipliers{
 						NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33")),
 					},
@@ -130,8 +131,17 @@ func TestGenesisStateValidate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			gs := NewGenesisState(tc.args.params, tc.args.genAccTimes, tc.args.genAccTimes, tc.args.genAccTimes,
-				tc.args.genAccTimes, tc.args.claims, DefaultHardClaims, DefaultDelegatorClaims)
+			gs := NewGenesisState(
+				tc.args.params,
+				tc.args.genAccTimes,
+				tc.args.genAccTimes,
+				tc.args.genAccTimes,
+				tc.args.genAccTimes,
+				tc.args.genAccTimes,
+				tc.args.claims,
+				DefaultHardClaims,
+				DefaultDelegatorClaims,
+			)
 			err := gs.Validate()
 			if tc.errArgs.expectPass {
 				require.NoError(t, err, tc.name)
