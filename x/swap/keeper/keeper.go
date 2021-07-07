@@ -79,6 +79,29 @@ func (k Keeper) DeletePool(ctx sdk.Context, poolID string) {
 	store.Delete(types.PoolKey(poolID))
 }
 
+// IteratePools iterates over all pool objects in the store and performs a callback function
+func (k Keeper) IteratePools(ctx sdk.Context, cb func(record types.PoolRecord) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var record types.PoolRecord
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &record)
+		if cb(record) {
+			break
+		}
+	}
+}
+
+// GetAllPools returns all pool records from the store
+func (k Keeper) GetAllPools(ctx sdk.Context) (records types.PoolRecords) {
+	k.IteratePools(ctx, func(record types.PoolRecord) bool {
+		records = append(records, record)
+		return false
+	})
+	return
+}
+
 // GetDepositorShares gets a share record from the store
 func (k Keeper) GetDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (types.ShareRecord, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)

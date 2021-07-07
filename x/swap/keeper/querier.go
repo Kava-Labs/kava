@@ -21,6 +21,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetParams(ctx, req, k)
 		case types.QueryGetDeposits:
 			return queryGetDeposits(ctx, req, k)
+		case types.QueryGetPool:
+			return queryGetPool(ctx, req, k)
+		case types.QueryGetPools:
+			return queryGetPools(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -70,6 +74,58 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
+	return bz, nil
+}
+
+func queryGetPool(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+
+	var params types.QueryPoolParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	hasPoolParam := len(params.Pool) > 0
+	if !hasPoolParam {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "must specify pool param")
+
+	}
+
+	pool, err := k.loadDenominatedPool(ctx, params.Pool)
+	if err != nil {
+		return nil, err
+	}
+	totalCoins := pool.ShareValue(pool.TotalShares())
+	poolStats := types.NewPoolStatsQueryResult(params.Pool, totalCoins, pool.TotalShares())
+
+	var bz []byte
+	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, poolStats)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryGetPools(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	pools := k.GetAllPools(ctx)
+
+	var queryResults types.PoolStatsQueryResults
+	for _, pool := range pools {
+		denomPool, err := k.loadDenominatedPool(ctx, pool.PoolID)
+		if err != nil {
+			return nil, err
+		}
+		totalCoins := denomPool.ShareValue(denomPool.TotalShares())
+		queryResult := types.NewPoolStatsQueryResult(pool.PoolID, totalCoins, denomPool.TotalShares())
+		queryResults = append(queryResults, queryResult)
+	}
+
+	// Encode results
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, queryResults)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
 	return bz, nil
 }
 
