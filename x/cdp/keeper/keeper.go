@@ -45,10 +45,10 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 	}
 }
 
-// SetHooks sets the cdp keeper hooks
+// SetHooks adds hooks to the keeper.
 func (k *Keeper) SetHooks(hooks types.CDPHooks) *Keeper {
 	if k.hooks != nil {
-		panic("cannot set validator hooks twice")
+		panic("cannot set cdp hooks twice")
 	}
 	k.hooks = hooks
 	return k
