@@ -35,8 +35,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	swapQueryCmd.AddCommand(flags.GetCommands(
 		queryParamsCmd(queryRoute, cdc),
 		queryDepositsCmd(queryRoute, cdc),
-		// queryPoolCmd(queryRoute, cdc),
-		// queryPoolsCmd(queryRoute, cdc),
+		queryPoolCmd(queryRoute, cdc),
+		queryPoolsCmd(queryRoute, cdc),
 	)...)
 
 	return swapQueryCmd
@@ -122,5 +122,79 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of deposits to query for")
 	cmd.Flags().String(flagPool, "", "pool name")
 	cmd.Flags().String(flagOwner, "", "owner, also known as a liquidity provider")
+	return cmd
+}
+
+func queryPoolCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pool",
+		Short: "get pool statistics",
+		Long: strings.TrimSpace(`get statistics about a given liquidity pool:
+		Example:
+		$ kvcli q swap pool ukava/usdx`,
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			poolName := args[0]
+			if len(poolName) == 0 {
+				return fmt.Errorf("must specify pool ID")
+			}
+
+			// Construct query with params
+			params := types.NewQueryPoolParams(poolName)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// Execute query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetPool)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			var poolStats types.PoolStatsQueryResult
+			if err := cdc.UnmarshalJSON(res, &poolStats); err != nil {
+				return fmt.Errorf("failed to unmarshal pool stats: %w", err)
+			}
+			return cliCtx.PrintOutput(poolStats)
+		},
+	}
+	cmd.Flags().String(flagPool, "", "pool ID")
+	return cmd
+}
+
+func queryPoolsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pools",
+		Short: "get statistics for all pools",
+		Long: strings.TrimSpace(`get statistics for all liquidity pools:
+		Example:
+		$ kvcli q swap pools`,
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Execute query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetPools)
+			res, height, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			var poolStats types.PoolStatsQueryResults
+			if err := cdc.UnmarshalJSON(res, &poolStats); err != nil {
+				return fmt.Errorf("failed to unmarshal pools' stats: %w", err)
+			}
+
+			return cliCtx.PrintOutput(poolStats)
+		},
+	}
 	return cmd
 }
