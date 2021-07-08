@@ -97,6 +97,13 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 					return err
 				}
 				return cliCtx.PrintOutput(claims)
+			case "swap":
+				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+				claims, err := executeSwapRewardsQuery(queryRoute, cdc, cliCtx, params)
+				if err != nil {
+					return err
+				}
+				return cliCtx.PrintOutput(claims)
 			default:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
 
@@ -112,6 +119,10 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				if err != nil {
 					return err
 				}
+				swapClaims, err := executeSwapRewardsQuery(queryRoute, cdc, cliCtx, params)
+				if err != nil {
+					return err
+				}
 				if len(hardClaims) > 0 {
 					cliCtx.PrintOutput(hardClaims)
 				}
@@ -120,6 +131,9 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				}
 				if len(delegatorClaims) > 0 {
 					cliCtx.PrintOutput(delegatorClaims)
+				}
+				if len(swapClaims) > 0 {
+					cliCtx.PrintOutput(swapClaims)
 				}
 			}
 			return nil
@@ -264,6 +278,28 @@ func executeDelegatorRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx co
 	var claims types.DelegatorClaims
 	if err := cdc.UnmarshalJSON(res, &claims); err != nil {
 		return types.DelegatorClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
+	}
+
+	return claims, nil
+}
+
+func executeSwapRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext, params types.QueryRewardsParams) (types.SwapClaims, error) {
+	bz, err := cdc.MarshalJSON(params)
+	if err != nil {
+		return types.SwapClaims{}, err
+	}
+
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetSwapRewards)
+	res, height, err := cliCtx.QueryWithData(route, bz)
+	if err != nil {
+		return types.SwapClaims{}, err
+	}
+
+	cliCtx = cliCtx.WithHeight(height)
+
+	var claims types.SwapClaims
+	if err := cdc.UnmarshalJSON(res, &claims); err != nil {
+		return types.SwapClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
 	}
 
 	return claims, nil
