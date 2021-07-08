@@ -11,9 +11,9 @@ func (k Keeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Int, bool) {
 	return sdk.Int{}, false
 }
 
-func (k *Keeper) GetDepositedShares(ctx sdk.Context, poolID string, depositor sdk.AccAddress) sdk.Int {
+func (k *Keeper) GetDepositorSharesInPool(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
 	// FIXME return depositor shares once merged with acceptance branch
-	return sdk.ZeroInt()
+	return sdk.Int{}, false
 }
 
 // Implements SwapHooks interface

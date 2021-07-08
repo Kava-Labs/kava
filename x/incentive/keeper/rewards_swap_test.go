@@ -258,9 +258,9 @@ type fakeSwapKeeper struct {
 func (k fakeSwapKeeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Int, bool) {
 	return k.poolShares, true
 }
-func (k fakeSwapKeeper) GetDepositedShares(ctx sdk.Context, poolID string, owner sdk.AccAddress) sdk.Int {
+func (k fakeSwapKeeper) GetDepositorSharesInPool(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
 	// This is just to implement the swap keeper interface.
-	return sdk.Int{}
+	return sdk.Int{}, false
 }
 
 // note: amino panics when encoding times ≥ the start of year 10000.

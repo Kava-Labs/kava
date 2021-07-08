@@ -110,7 +110,10 @@ func (k Keeper) GetSynchronizedSwapClaim(ctx sdk.Context, owner sdk.AccAddress) 
 	for _, indexes := range claim.RewardIndexes {
 		poolID := indexes.CollateralType
 
-		shares := k.swapKeeper.GetDepositedShares(ctx, poolID, owner)
+		shares, found := k.swapKeeper.GetDepositorSharesInPool(ctx, owner, poolID)
+		if !found {
+			shares = sdk.ZeroInt()
+		}
 
 		claim = k.synchronizeSwapReward(ctx, claim, poolID, owner, shares)
 	}

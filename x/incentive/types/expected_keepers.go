@@ -54,7 +54,7 @@ type HardKeeper interface {
 // SwapKeeper defines the required methods needed by this modules keeper
 type SwapKeeper interface {
 	GetPoolShares(ctx sdk.Context, poolID string) (shares sdk.Int, found bool)
-	GetDepositedShares(ctx sdk.Context, poolID string, depositor sdk.AccAddress) sdk.Int
+	GetDepositorSharesInPool(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (shares sdk.Int, found bool)
 }
 
 // AccountKeeper defines the expected keeper interface for interacting with account
