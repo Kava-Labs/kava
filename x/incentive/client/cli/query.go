@@ -77,89 +77,40 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 			switch strings.ToLower(strType) {
 			case "hard":
-				var claims types.HardLiquidityProviderClaims
-				if boolUnsynced {
-					params := types.NewQueryHardRewardsUnsyncedParams(page, limit, owner)
-					claims, err = executeHardRewardsUnsyncedQuery(queryRoute, cdc, cliCtx, params)
-					if err != nil {
-						return err
-					}
-				} else {
-					params := types.NewQueryHardRewardsParams(page, limit, owner)
-					claims, err = executeHardRewardsQuery(queryRoute, cdc, cliCtx, params)
-					if err != nil {
-						return err
-					}
+				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+				claims, err := executeHardRewardsQuery(queryRoute, cdc, cliCtx, params)
+				if err != nil {
+					return err
 				}
 				return cliCtx.PrintOutput(claims)
 			case "usdx-minting":
-				var claims types.USDXMintingClaims
-				if boolUnsynced {
-					params := types.NewQueryUSDXMintingRewardsUnsyncedParams(page, limit, owner)
-					claims, err = executeUSDXMintingRewardsUnsyncedQuery(queryRoute, cdc, cliCtx, params)
-					if err != nil {
-						return err
-					}
-				} else {
-					params := types.NewQueryUSDXMintingRewardsParams(page, limit, owner)
-					claims, err = executeUSDXMintingRewardsQuery(queryRoute, cdc, cliCtx, params)
-					if err != nil {
-						return err
-					}
+				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+				claims, err := executeUSDXMintingRewardsQuery(queryRoute, cdc, cliCtx, params)
+				if err != nil {
+					return err
 				}
 				return cliCtx.PrintOutput(claims)
 			case "delegator":
-				var claims types.DelegatorClaims
-				if boolUnsynced {
-					params := types.NewQueryDelegatorRewardsUnsyncedParams(page, limit, owner)
-					claims, err = executeDelegatorRewardsUnsyncedQuery(queryRoute, cdc, cliCtx, params)
-					if err != nil {
-						return err
-					}
-				} else {
-					params := types.NewQueryDelegatorRewardsParams(page, limit, owner)
-					claims, err = executeDelegatorRewardsQuery(queryRoute, cdc, cliCtx, params)
-					if err != nil {
-						return err
-					}
+				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+				claims, err := executeDelegatorRewardsQuery(queryRoute, cdc, cliCtx, params)
+				if err != nil {
+					return err
 				}
 				return cliCtx.PrintOutput(claims)
 			default:
-				var hardClaims types.HardLiquidityProviderClaims
-				var usdxMintingClaims types.USDXMintingClaims
-				var delegatorClaims types.DelegatorClaims
-				if boolUnsynced {
-					paramsHard := types.NewQueryHardRewardsUnsyncedParams(page, limit, owner)
-					hardClaims, err = executeHardRewardsUnsyncedQuery(queryRoute, cdc, cliCtx, paramsHard)
-					if err != nil {
-						return err
-					}
-					paramsUSDXMinting := types.NewQueryUSDXMintingRewardsUnsyncedParams(page, limit, owner)
-					usdxMintingClaims, err = executeUSDXMintingRewardsUnsyncedQuery(queryRoute, cdc, cliCtx, paramsUSDXMinting)
-					if err != nil {
-						return err
-					}
-					paramsDelegator := types.NewQueryDelegatorRewardsUnsyncedParams(page, limit, owner)
-					delegatorClaims, err = executeDelegatorRewardsUnsyncedQuery(queryRoute, cdc, cliCtx, paramsDelegator)
-					if err != nil {
-						return err
-					}
-				} else {
-					paramsHard := types.NewQueryHardRewardsParams(page, limit, owner)
-					hardClaims, err = executeHardRewardsQuery(queryRoute, cdc, cliCtx, paramsHard)
-					if err != nil {
-						return err
-					}
-					paramsUSDXMinting := types.NewQueryUSDXMintingRewardsParams(page, limit, owner)
-					usdxMintingClaims, err = executeUSDXMintingRewardsQuery(queryRoute, cdc, cliCtx, paramsUSDXMinting)
-					if err != nil {
-						return err
-					}
-					paramsDelegator := types.NewQueryDelegatorRewardsParams(page, limit, owner)
-					delegatorClaims, err = executeDelegatorRewardsQuery(queryRoute, cdc, cliCtx, paramsDelegator)
-					if err != nil {
-						return err
-					}
+				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+
+				hardClaims, err := executeHardRewardsQuery(queryRoute, cdc, cliCtx, params)
+				if err != nil {
+					return err
+				}
+				usdxMintingClaims, err := executeUSDXMintingRewardsQuery(queryRoute, cdc, cliCtx, params)
+				if err != nil {
+					return err
+				}
+				delegatorClaims, err := executeDelegatorRewardsQuery(queryRoute, cdc, cliCtx, params)
+				if err != nil {
+					return err
 				}
 				if len(hardClaims) > 0 {
 					cliCtx.PrintOutput(hardClaims)
@@ -252,8 +203,7 @@ func queryRewardFactorsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func executeHardRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext,
-	params types.QueryHardRewardsParams) (types.HardLiquidityProviderClaims, error) {
+func executeHardRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext, params types.QueryRewardsParams) (types.HardLiquidityProviderClaims, error) {
 	bz, err := cdc.MarshalJSON(params)
 	if err != nil {
 		return types.HardLiquidityProviderClaims{}, err
@@ -275,31 +225,7 @@ func executeHardRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context
 	return claims, nil
 }
 
-func executeHardRewardsUnsyncedQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext,
-	params types.QueryHardRewardsUnsyncedParams) (types.HardLiquidityProviderClaims, error) {
-	bz, err := cdc.MarshalJSON(params)
-	if err != nil {
-		return types.HardLiquidityProviderClaims{}, err
-	}
-
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetHardRewardsUnsynced)
-	res, height, err := cliCtx.QueryWithData(route, bz)
-	if err != nil {
-		return types.HardLiquidityProviderClaims{}, err
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-
-	var claims types.HardLiquidityProviderClaims
-	if err := cdc.UnmarshalJSON(res, &claims); err != nil {
-		return types.HardLiquidityProviderClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
-	}
-
-	return claims, nil
-}
-
-func executeUSDXMintingRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext,
-	params types.QueryUSDXMintingRewardsParams) (types.USDXMintingClaims, error) {
+func executeUSDXMintingRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext, params types.QueryRewardsParams) (types.USDXMintingClaims, error) {
 	bz, err := cdc.MarshalJSON(params)
 	if err != nil {
 		return types.USDXMintingClaims{}, err
@@ -321,60 +247,13 @@ func executeUSDXMintingRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx 
 	return claims, nil
 }
 
-func executeUSDXMintingRewardsUnsyncedQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext,
-	params types.QueryUSDXMintingRewardsUnsyncedParams) (types.USDXMintingClaims, error) {
-	bz, err := cdc.MarshalJSON(params)
-	if err != nil {
-		return types.USDXMintingClaims{}, err
-	}
-
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetUSDXMintingRewardsUnsynced)
-	res, height, err := cliCtx.QueryWithData(route, bz)
-	if err != nil {
-		return types.USDXMintingClaims{}, err
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-
-	var claims types.USDXMintingClaims
-	if err := cdc.UnmarshalJSON(res, &claims); err != nil {
-		return types.USDXMintingClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
-	}
-
-	return claims, nil
-}
-
-func executeDelegatorRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext,
-	params types.QueryDelegatorRewardsParams) (types.DelegatorClaims, error) {
+func executeDelegatorRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext, params types.QueryRewardsParams) (types.DelegatorClaims, error) {
 	bz, err := cdc.MarshalJSON(params)
 	if err != nil {
 		return types.DelegatorClaims{}, err
 	}
 
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetDelegatorRewards)
-	res, height, err := cliCtx.QueryWithData(route, bz)
-	if err != nil {
-		return types.DelegatorClaims{}, err
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-
-	var claims types.DelegatorClaims
-	if err := cdc.UnmarshalJSON(res, &claims); err != nil {
-		return types.DelegatorClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
-	}
-
-	return claims, nil
-}
-
-func executeDelegatorRewardsUnsyncedQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext,
-	params types.QueryDelegatorRewardsUnsyncedParams) (types.DelegatorClaims, error) {
-	bz, err := cdc.MarshalJSON(params)
-	if err != nil {
-		return types.DelegatorClaims{}, err
-	}
-
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetDelegatorRewardsUnsynced)
 	res, height, err := cliCtx.QueryWithData(route, bz)
 	if err != nil {
 		return types.DelegatorClaims{}, err
