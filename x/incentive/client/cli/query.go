@@ -178,39 +178,25 @@ func queryRewardFactorsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reward-factors",
 		Short: "get current global reward factors",
-		Long: strings.TrimSpace(`get current global reward factors:
-
-		Example:
-		$ kvcli q hard reward-factors
-		$ kvcli q hard reward-factors --denom bnb`,
-		),
-		Args: cobra.NoArgs,
+		Long:  `Get current global reward factors for all reward types.`,
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			denom := viper.GetString(flagDenom)
-
-			// Construct query with params
-			params := types.NewQueryRewardFactorsParams(denom)
-			bz, err := cdc.MarshalJSON(params)
-			if err != nil {
-				return err
-			}
-
 			// Execute query
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetRewardFactors)
-			res, height, err := cliCtx.QueryWithData(route, bz)
+			res, height, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
 			cliCtx = cliCtx.WithHeight(height)
 
 			// Decode and print results
-			var rewardFactors types.RewardFactors
-			if err := cdc.UnmarshalJSON(res, &rewardFactors); err != nil {
+			var response types.QueryGetRewardFactorsResponse
+			if err := cdc.UnmarshalJSON(res, &response); err != nil {
 				return fmt.Errorf("failed to unmarshal reward factors: %w", err)
 			}
-			return cliCtx.PrintOutput(rewardFactors)
+			return cliCtx.PrintOutput(response)
 		},
 	}
 	cmd.Flags().String(flagDenom, "", "(optional) filter reward factors by denom")

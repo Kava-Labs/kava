@@ -217,88 +217,46 @@ func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 }
 
 func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryRewardFactorsParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
 
-	var rewardFactors types.RewardFactors
-	if len(params.Denom) > 0 {
-		// Fetch reward factors for a single denom
-		rewardFactor := types.RewardFactor{}
-		rewardFactor.Denom = params.Denom
+	var usdxFactors types.RewardIndexes
+	k.IterateUSDXMintingRewardFactors(ctx, func(collateralType string, factor sdk.Dec) (stop bool) {
+		usdxFactors = usdxFactors.With(collateralType, factor)
+		return false
+	})
 
-		usdxMintingRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, params.Denom)
-		if found {
-			rewardFactor.USDXMintingRewardFactor = usdxMintingRewardFactor
-		}
-		hardSupplyRewardIndexes, found := k.GetHardSupplyRewardIndexes(ctx, params.Denom)
-		if found {
-			rewardFactor.HardSupplyRewardFactors = hardSupplyRewardIndexes
-		}
-		hardBorrowRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, params.Denom)
-		if found {
-			rewardFactor.HardBorrowRewardFactors = hardBorrowRewardIndexes
-		}
-		delegatorRewardIndexes, found := k.GetDelegatorRewardIndexes(ctx, params.Denom)
-		if found {
-			rewardFactor.DelegatorRewardFactors = delegatorRewardIndexes
-		}
-		rewardFactors = append(rewardFactors, rewardFactor)
-	} else {
-		rewardFactorMap := make(map[string]types.RewardFactor)
+	var supplyFactors types.MultiRewardIndexes
+	k.IterateHardSupplyRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
+		supplyFactors = supplyFactors.With(denom, indexes)
+		return false
+	})
 
-		// Populate mapping with usdx minting reward factors
-		k.IterateUSDXMintingRewardFactors(ctx, func(denom string, factor sdk.Dec) (stop bool) {
-			rewardFactor := types.RewardFactor{Denom: denom, USDXMintingRewardFactor: factor}
-			rewardFactorMap[denom] = rewardFactor
-			return false
-		})
+	var borrowFactors types.MultiRewardIndexes
+	k.IterateHardBorrowRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
+		borrowFactors = borrowFactors.With(denom, indexes)
+		return false
+	})
 
-		// Populate mapping with Hard supply reward factors
-		k.IterateHardSupplyRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
-			rewardFactor, ok := rewardFactorMap[denom]
-			if !ok {
-				rewardFactor = types.RewardFactor{Denom: denom, HardSupplyRewardFactors: indexes}
-			} else {
-				rewardFactor.HardSupplyRewardFactors = indexes
-			}
-			rewardFactorMap[denom] = rewardFactor
-			return false
-		})
+	var delegatorFactors types.MultiRewardIndexes
+	k.IterateDelegatorRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
+		delegatorFactors = delegatorFactors.With(denom, indexes)
+		return false
+	})
 
-		// Populate mapping with Hard borrow reward factors
-		k.IterateHardBorrowRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
-			rewardFactor, ok := rewardFactorMap[denom]
-			if !ok {
-				rewardFactor = types.RewardFactor{Denom: denom, HardBorrowRewardFactors: indexes}
-			} else {
-				rewardFactor.HardBorrowRewardFactors = indexes
-			}
-			rewardFactorMap[denom] = rewardFactor
-			return false
-		})
+	var swapFactors types.MultiRewardIndexes
+	k.IterateSwapRewardIndexes(ctx, func(poolID string, indexes types.RewardIndexes) (stop bool) {
+		swapFactors = swapFactors.With(poolID, indexes)
+		return false
+	})
 
-		// Populate mapping with delegator reward factors
-		k.IterateDelegatorRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
-			rewardFactor, ok := rewardFactorMap[denom]
-			if !ok {
-				rewardFactor = types.RewardFactor{Denom: denom, DelegatorRewardFactors: indexes}
-			} else {
-				rewardFactor.DelegatorRewardFactors = indexes
-			}
-			rewardFactorMap[denom] = rewardFactor
-			return false
-		})
+	response := types.NewQueryGetRewardFactorsResponse(
+		usdxFactors,
+		supplyFactors,
+		borrowFactors,
+		delegatorFactors,
+		swapFactors,
+	)
 
-		// Translate mapping to slice
-		for _, val := range rewardFactorMap {
-			rewardFactors = append(rewardFactors, val)
-		}
-	}
-
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, rewardFactors)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, response)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

@@ -33,6 +33,7 @@ const (
 	QueryGetHardRewards            = types.QueryGetHardRewards
 	QueryGetParams                 = types.QueryGetParams
 	QueryGetRewardFactors          = types.QueryGetRewardFactors
+	QueryGetSwapRewards            = types.QueryGetSwapRewards
 	QueryGetUSDXMintingRewards     = types.QueryGetUSDXMintingRewards
 	RestClaimCollateralType        = types.RestClaimCollateralType
 	RestClaimOwner                 = types.RestClaimOwner
@@ -69,9 +70,8 @@ var (
 	NewMultiplier                        = types.NewMultiplier
 	NewParams                            = types.NewParams
 	NewPeriod                            = types.NewPeriod
-	NewQueryRewardFactorsParams          = types.NewQueryRewardFactorsParams
+	NewQueryGetRewardFactorsResponse     = types.NewQueryGetRewardFactorsResponse
 	NewQueryRewardsParams                = types.NewQueryRewardsParams
-	NewRewardFactor                      = types.NewRewardFactor
 	NewRewardIndex                       = types.NewRewardIndex
 	NewRewardPeriod                      = types.NewRewardPeriod
 	NewSwapClaim                         = types.NewSwapClaim
@@ -166,10 +166,8 @@ type (
 	Multipliers                       = types.Multipliers
 	ParamSubspace                     = types.ParamSubspace
 	Params                            = types.Params
-	QueryRewardFactorsParams          = types.QueryRewardFactorsParams
+	QueryGetRewardFactorsResponse     = types.QueryGetRewardFactorsResponse
 	QueryRewardsParams                = types.QueryRewardsParams
-	RewardFactor                      = types.RewardFactor
-	RewardFactors                     = types.RewardFactors
 	RewardIndex                       = types.RewardIndex
 	RewardIndexes                     = types.RewardIndexes
 	RewardPeriod                      = types.RewardPeriod
