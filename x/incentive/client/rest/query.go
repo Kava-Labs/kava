@@ -66,6 +66,8 @@ func queryRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			executeUSDXMintingRewardsQuery(w, cliCtx, params)
 		case "delegator":
 			executeDelegatorRewardsQuery(w, cliCtx, params)
+		case "swap":
+			executeSwapRewardsQuery(w, cliCtx, params)
 		default:
 			executeAllRewardQueries(w, cliCtx, params)
 		}
@@ -181,6 +183,23 @@ func executeDelegatorRewardsQuery(w http.ResponseWriter, cliCtx context.CLIConte
 	rest.PostProcessResponse(w, cliCtx, res)
 }
 
+func executeSwapRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryRewardsParams) {
+	bz, err := cliCtx.Codec.MarshalJSON(params)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
+		return
+	}
+
+	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetSwapRewards), bz)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	cliCtx = cliCtx.WithHeight(height)
+	rest.PostProcessResponse(w, cliCtx, res)
+}
+
 func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryRewardsParams) {
 
 	paramsBz, err := cliCtx.Codec.MarshalJSON(params)
@@ -188,7 +207,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, p
 		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 		return
 	}
-	hardRes, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetHardRewards), paramsBz)
+	hardRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetHardRewards), paramsBz)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
@@ -196,7 +215,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, p
 	var hardClaims types.HardLiquidityProviderClaims
 	cliCtx.Codec.MustUnmarshalJSON(hardRes, &hardClaims)
 
-	usdxMintingRes, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetUSDXMintingRewards), paramsBz)
+	usdxMintingRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetUSDXMintingRewards), paramsBz)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
@@ -204,7 +223,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, p
 	var usdxMintingClaims types.USDXMintingClaims
 	cliCtx.Codec.MustUnmarshalJSON(usdxMintingRes, &usdxMintingClaims)
 
-	delegatorRes, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetDelegatorRewards), paramsBz)
+	delegatorRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetDelegatorRewards), paramsBz)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
@@ -212,18 +231,28 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, p
 	var delegatorClaims types.DelegatorClaims
 	cliCtx.Codec.MustUnmarshalJSON(delegatorRes, &delegatorClaims)
 
+	swapRes, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetSwapRewards), paramsBz)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	var swapClaims types.SwapClaims
+	cliCtx.Codec.MustUnmarshalJSON(swapRes, &swapClaims)
+
 	cliCtx = cliCtx.WithHeight(height)
 
 	type rewardResult struct {
 		HardClaims        types.HardLiquidityProviderClaims `json:"hard_claims" yaml:"hard_claims"`
 		UsdxMintingClaims types.USDXMintingClaims           `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
 		DelegatorClaims   types.DelegatorClaims             `json:"delegator_claims" yaml:"delegator_claims"`
+		SwapClaims        types.SwapClaims                  `json:"swap_claims" yaml:"swap_claims"`
 	}
 
 	res := rewardResult{
 		HardClaims:        hardClaims,
 		UsdxMintingClaims: usdxMintingClaims,
 		DelegatorClaims:   delegatorClaims,
+		SwapClaims:        swapClaims,
 	}
 
 	resBz, err := cliCtx.Codec.MarshalJSON(res)
