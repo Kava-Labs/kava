@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	//nolint
 	accs            []simulation.Account
 	consistentPools = [2][2]string{{"ukava", "usdx"}, {"hard", "usdx"}}
 )

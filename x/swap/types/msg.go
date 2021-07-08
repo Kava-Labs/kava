@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -138,7 +137,7 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	}
 
 	if msg.Shares.IsZero() || msg.Shares.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidShares, fmt.Sprintf("%s", msg.Shares))
+		return sdkerrors.Wrapf(ErrInvalidShares, msg.Shares.String())
 	}
 
 	if !msg.MinTokenA.IsValid() || msg.MinTokenA.IsZero() {

@@ -48,13 +48,15 @@ func (suite *Suite) SetupTest() {
 // AddCoinsToModule adds coins to the swap module account
 func (suite *Suite) AddCoinsToModule(amount sdk.Coins) {
 	macc, _ := suite.supplyKeeper.GetModuleAccountAndPermissions(suite.Ctx, swap.ModuleName)
-	suite.bankKeeper.AddCoins(suite.Ctx, macc.GetAddress(), amount)
+	_, err := suite.bankKeeper.AddCoins(suite.Ctx, macc.GetAddress(), amount)
+	suite.Require().NoError(err)
 }
 
 // RemoveCoinsFromModule adds coins to the swap module account
 func (suite *Suite) RemoveCoinsFromModule(amount sdk.Coins) {
 	macc, _ := suite.supplyKeeper.GetModuleAccountAndPermissions(suite.Ctx, swap.ModuleName)
-	suite.bankKeeper.SubtractCoins(suite.Ctx, macc.GetAddress(), amount)
+	_, err := suite.bankKeeper.SubtractCoins(suite.Ctx, macc.GetAddress(), amount)
+	suite.Require().NoError(err)
 }
 
 // GetAccount gets an existing account
@@ -69,7 +71,8 @@ func (suite *Suite) CreateAccount(initialBalance sdk.Coins) authexported.Account
 	ak := suite.App.GetAccountKeeper()
 
 	acc := ak.NewAccountWithAddress(suite.Ctx, addrs[0])
-	acc.SetCoins(initialBalance)
+	err := acc.SetCoins(initialBalance)
+	suite.Require().NoError(err)
 
 	ak.SetAccount(suite.Ctx, acc)
 	return acc
@@ -108,7 +111,7 @@ func (suite *Suite) AccountBalanceEqual(acc authexported.Account, coins sdk.Coin
 	suite.Equal(coins, acc.GetCoins(), fmt.Sprintf("expected account balance to equal coins %s, but got %s", coins, acc.GetCoins()))
 }
 
-// AccountBalanceEqual asserts that the coins are within delta of the account balance
+// AccountBalanceDelta asserts that the coins are within delta of the account balance
 func (suite *Suite) AccountBalanceDelta(acc authexported.Account, coins sdk.Coins, delta float64) {
 	ak := suite.App.GetAccountKeeper()
 	acc = ak.GetAccount(suite.Ctx, acc.GetAddress())
@@ -131,7 +134,7 @@ func (suite *Suite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 	suite.Equal(coins, macc.GetCoins(), fmt.Sprintf("expected module account balance to equal coins %s, but got %s", coins, macc.GetCoins()))
 }
 
-// ModuleAccountBalanceEqual asserts that the swap module account balance is within acceptable delta of the provided coins
+// ModuleAccountBalanceDelta asserts that the swap module account balance is within acceptable delta of the provided coins
 func (suite *Suite) ModuleAccountBalanceDelta(coins sdk.Coins, delta float64) {
 	macc, _ := suite.supplyKeeper.GetModuleAccountAndPermissions(suite.Ctx, swap.ModuleName)
 	suite.Require().NotNil(macc, "expected module account to be defined")
@@ -161,7 +164,7 @@ func (suite *Suite) PoolDeleted(denomA, denomB string) {
 	suite.Require().False(ok, "expected pool to not exist")
 }
 
-// PoolLiquidityEqual asserts that the pool matching the provided coins has those reserves within delta
+// PoolLiquidityDelta asserts that the pool matching the provided coins has those reserves within delta
 func (suite *Suite) PoolLiquidityDelta(coins sdk.Coins, delta float64) {
 	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, swap.PoolIDFromCoins(coins))
 	suite.Require().True(ok, "expected pool to exist")
@@ -194,6 +197,7 @@ func (suite *Suite) PoolDepositorSharesEqual(depositor sdk.AccAddress, poolID st
 	suite.Equal(shares, shareRecord.SharesOwned)
 }
 
+// PoolReservesEqual assets the stored pool reserves are equal to the provided reserves
 func (suite *Suite) PoolReservesEqual(poolID string, reserves sdk.Coins) {
 	poolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
 	suite.Require().True(found, fmt.Sprintf("expected pool %s to exist", poolID))
@@ -213,7 +217,7 @@ func (suite *Suite) PoolShareValueEqual(depositor authexported.Account, pool swa
 	suite.Equal(coins, value, fmt.Sprintf("expected shares to equal %s, but got %s", coins, value))
 }
 
-// PoolShareValueEqual asserts that the depositor shares are in state and the value is within delta of the expected coins
+// PoolShareValueDelta asserts that the depositor shares are in state and the value is within delta of the expected coins
 func (suite *Suite) PoolShareValueDelta(depositor authexported.Account, pool swap.AllowedPool, coins sdk.Coins, delta float64) {
 	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
 	suite.Require().True(ok, fmt.Sprintf("expected pool %s to exist", pool.Name()))

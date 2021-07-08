@@ -9,9 +9,14 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
-func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
+//nolint
+func i(in int64) sdk.Int { return sdk.NewInt(in) }
+
+//nolint
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
-func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
+
+//nolint
+func cs(coins ...sdk.Coin) sdk.Coins { return sdk.NewCoins(coins...) }
 
 func NewAuthGenStateFromAccs(accounts ...authexported.GenesisAccount) app.GenesisState {
 	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)

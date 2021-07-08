@@ -139,7 +139,7 @@ func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// ParamSetAllowedPools implements the ParamSet interface and returns all the key/value pairs
+// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyAllowedPools, &p.AllowedPools, validateAllowedPoolsParams),

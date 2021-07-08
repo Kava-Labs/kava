@@ -31,6 +31,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	swapTxCmd.AddCommand(flags.PostCommands(
 		getCmdDeposit(cdc),
+		getCmdWithdraw(cdc),
 	)...)
 
 	return swapTxCmd

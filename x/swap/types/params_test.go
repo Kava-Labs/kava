@@ -87,7 +87,7 @@ func TestParams_ParamSetPairs_AllowedPools(t *testing.T) {
 
 	var paramSetPair *paramstypes.ParamSetPair
 	for _, pair := range defaultParams.ParamSetPairs() {
-		if bytes.Compare(pair.Key, types.KeyAllowedPools) == 0 {
+		if bytes.Equal(pair.Key, types.KeyAllowedPools) {
 			paramSetPair = &pair
 			break
 		}
@@ -108,7 +108,7 @@ func TestParams_ParamSetPairs_SwapFee(t *testing.T) {
 
 	var paramSetPair *paramstypes.ParamSetPair
 	for _, pair := range defaultParams.ParamSetPairs() {
-		if bytes.Compare(pair.Key, types.KeySwapFee) == 0 {
+		if bytes.Equal(pair.Key, types.KeySwapFee) {
 			paramSetPair = &pair
 			break
 		}
@@ -203,7 +203,7 @@ func TestParams_Validation(t *testing.T) {
 
 			var paramSetPair *paramstypes.ParamSetPair
 			for _, pair := range params.ParamSetPairs() {
-				if bytes.Compare(pair.Key, tc.key) == 0 {
+				if bytes.Equal(pair.Key, tc.key) {
 					paramSetPair = &pair
 					break
 				}
