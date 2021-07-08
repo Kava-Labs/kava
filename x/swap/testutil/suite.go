@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/kava-labs/kava/app"
@@ -11,6 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	kv "github.com/tendermint/tendermint/libs/kv"
@@ -20,9 +23,11 @@ import (
 // Suite implements a test suite for the swap module integration tests
 type Suite struct {
 	suite.Suite
-	Keeper swap.Keeper
-	App    app.TestApp
-	Ctx    sdk.Context
+	Keeper       swap.Keeper
+	App          app.TestApp
+	Ctx          sdk.Context
+	bankKeeper   bank.Keeper
+	supplyKeeper supply.Keeper
 }
 
 // SetupTest instantiates a new app, keepers, and sets suite state
@@ -30,10 +35,26 @@ func (suite *Suite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	keeper := tApp.GetSwapKeeper()
+	bankKeeper := tApp.GetBankKeeper()
+	supplyKeeper := tApp.GetSupplyKeeper()
 
 	suite.Ctx = ctx
 	suite.App = tApp
 	suite.Keeper = keeper
+	suite.bankKeeper = bankKeeper
+	suite.supplyKeeper = supplyKeeper
+}
+
+// AddCoinsToModule adds coins to the swap module account
+func (suite *Suite) AddCoinsToModule(amount sdk.Coins) {
+	macc, _ := suite.supplyKeeper.GetModuleAccountAndPermissions(suite.Ctx, swap.ModuleName)
+	suite.bankKeeper.AddCoins(suite.Ctx, macc.GetAddress(), amount)
+}
+
+// RemoveCoinsFromModule adds coins to the swap module account
+func (suite *Suite) RemoveCoinsFromModule(amount sdk.Coins) {
+	macc, _ := suite.supplyKeeper.GetModuleAccountAndPermissions(suite.Ctx, swap.ModuleName)
+	suite.bankKeeper.SubtractCoins(suite.Ctx, macc.GetAddress(), amount)
 }
 
 // GetAccount gets an existing account
@@ -105,16 +126,14 @@ func (suite *Suite) AccountBalanceDelta(acc authexported.Account, coins sdk.Coin
 
 // ModuleAccountBalanceEqual asserts that the swap module account balance matches the provided coins
 func (suite *Suite) ModuleAccountBalanceEqual(coins sdk.Coins) {
-	sk := suite.App.GetSupplyKeeper()
-	macc, _ := sk.GetModuleAccountAndPermissions(suite.Ctx, swap.ModuleName)
+	macc, _ := suite.supplyKeeper.GetModuleAccountAndPermissions(suite.Ctx, swap.ModuleName)
 	suite.Require().NotNil(macc, "expected module account to be defined")
 	suite.Equal(coins, macc.GetCoins(), fmt.Sprintf("expected module account balance to equal coins %s, but got %s", coins, macc.GetCoins()))
 }
 
 // ModuleAccountBalanceEqual asserts that the swap module account balance is within acceptable delta of the provided coins
 func (suite *Suite) ModuleAccountBalanceDelta(coins sdk.Coins, delta float64) {
-	sk := suite.App.GetSupplyKeeper()
-	macc, _ := sk.GetModuleAccountAndPermissions(suite.Ctx, swap.ModuleName)
+	macc, _ := suite.supplyKeeper.GetModuleAccountAndPermissions(suite.Ctx, swap.ModuleName)
 	suite.Require().NotNil(macc, "expected module account to be defined")
 
 	allCoins := coins.Add(macc.GetCoins()...)
@@ -161,6 +180,26 @@ func (suite *Suite) PoolLiquidityDelta(coins sdk.Coins, delta float64) {
 	)
 }
 
+// PoolShareTotalEqual asserts the total shares match the stored pool
+func (suite *Suite) PoolShareTotalEqual(poolID string, totalShares sdk.Int) {
+	poolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
+	suite.Require().True(found, fmt.Sprintf("expected pool %s to exist", poolID))
+	suite.Equal(totalShares, poolRecord.TotalShares, "expected pool total shares to be equal")
+}
+
+// PoolDepositorSharesEqual asserts the depositor owns the shares for the provided pool
+func (suite *Suite) PoolDepositorSharesEqual(depositor sdk.AccAddress, poolID string, shares sdk.Int) {
+	shareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolID)
+	suite.Require().True(found, fmt.Sprintf("expected share record to exist for depositor %s and pool %s", depositor.String(), poolID))
+	suite.Equal(shares, shareRecord.SharesOwned)
+}
+
+func (suite *Suite) PoolReservesEqual(poolID string, reserves sdk.Coins) {
+	poolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
+	suite.Require().True(found, fmt.Sprintf("expected pool %s to exist", poolID))
+	suite.Equal(reserves, poolRecord.Reserves(), "expected pool reserves to be equal")
+}
+
 // PoolShareValueEqual asserts that the depositor shares are in state and the value matches the expected coins
 func (suite *Suite) PoolShareValueEqual(depositor authexported.Account, pool swap.AllowedPool, coins sdk.Coins) {
 	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
@@ -203,14 +242,16 @@ func (suite *Suite) PoolSharesDeleted(depositor sdk.AccAddress, denomA, denomB s
 
 // EventsContains asserts that the expected event is in the provided events
 func (suite *Suite) EventsContains(events sdk.Events, expectedEvent sdk.Event) {
+	foundMatch := false
 	for _, event := range events {
 		if event.Type == expectedEvent.Type {
-			suite.Equal(attrsToMap(expectedEvent.Attributes), attrsToMap(event.Attributes), fmt.Sprintf("expected event attributes did not match event type %s", event.Type))
-			return
+			if reflect.DeepEqual(attrsToMap(expectedEvent.Attributes), attrsToMap(event.Attributes)) {
+				foundMatch = true
+			}
 		}
 	}
 
-	suite.Fail(fmt.Sprintf("event of type %s not found", expectedEvent.Type))
+	suite.True(foundMatch, fmt.Sprintf("event of type %s not found or did not match", expectedEvent.Type))
 }
 
 func attrsToMap(attrs []kv.Pair) []sdk.Attribute {

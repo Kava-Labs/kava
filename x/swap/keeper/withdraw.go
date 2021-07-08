@@ -1,67 +1,63 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
-func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, withdrawShares sdk.Int,
-	slippageLimit sdk.Dec, expectedCoinA, expectedCoinB sdk.Coin) error {
-	desiredAmount := sdk.NewCoins(expectedCoinA, expectedCoinB)
-	poolID := types.PoolIDFromCoins(desiredAmount)
+// Withdraw removes liquidity from an existing pool, converting the provided shares for
+// the returned pool liquidity.
+func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, minCoinA, minCoinB sdk.Coin) error {
+	poolID := types.PoolID(minCoinA.Denom, minCoinB.Denom)
 
-	// Confirm that the depositor owns the requested shares to withdraw
-	depositorShareRecord, found := k.GetDepositorShares(ctx, owner, poolID)
+	shareRecord, found := k.GetDepositorShares(ctx, owner, poolID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrShareRecordNotFound, "share record of %s for pool %s not found", owner, poolID)
+		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit for account %s and pool %s", owner, poolID)
 	}
 
-	if withdrawShares.GT(depositorShareRecord.SharesOwned) {
-		return sdkerrors.Wrapf(types.ErrInvalidShares,
-			"requested shares to withdraw %s is greater than total amount of shares owned by requester %s",
-			withdrawShares,
-			depositorShareRecord.SharesOwned,
-		)
+	if shares.GT(shareRecord.SharesOwned) {
+		return sdkerrors.Wrapf(types.ErrInvalidShares, "withdraw of %s shares greater than %s shares owned", shares, shareRecord.SharesOwned)
 	}
 
-	denominatedPool, err := k.loadDenominatedPool(ctx, poolID)
+	poolRecord, found := k.GetPool(ctx, poolID)
+	if !found {
+		panic(fmt.Sprintf("pool %s not found", poolID))
+	}
+
+	pool, err := types.NewDenominatedPoolWithExistingShares(poolRecord.Reserves(), poolRecord.TotalShares)
 	if err != nil {
-		return err
+		panic(fmt.Sprintf("invalid pool %s: %s", poolID, err))
 	}
 
-	calculatedWithdrawCoins := denominatedPool.ShareValue(withdrawShares)
-	slippageA := (expectedCoinA.Amount.ToDec().Quo(calculatedWithdrawCoins.AmountOf(expectedCoinA.Denom).ToDec())).Sub(sdk.OneDec())
-	if slippageA.GT(slippageLimit) {
-		return sdkerrors.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippageA, slippageLimit)
+	withdrawnAmount := pool.RemoveLiquidity(shares)
+	if withdrawnAmount.AmountOf(minCoinA.Denom).IsZero() || withdrawnAmount.AmountOf(minCoinB.Denom).IsZero() {
+		return sdkerrors.Wrap(types.ErrInsufficientLiquidity, "shares must be increased")
 	}
-	slippageB := (expectedCoinB.Amount.ToDec().Quo(calculatedWithdrawCoins.AmountOf(expectedCoinB.Denom).ToDec())).Sub(sdk.OneDec())
-	if slippageB.GT(slippageLimit) {
-		return sdkerrors.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippageB, slippageLimit)
+	if withdrawnAmount.AmountOf(minCoinA.Denom).LT(minCoinA.Amount) || withdrawnAmount.AmountOf(minCoinB.Denom).LT(minCoinB.Amount) {
+		return sdkerrors.Wrap(types.ErrSlippageExceeded, "minimum withdraw not met")
 	}
 
-	withdrawCoins := denominatedPool.RemoveLiquidity(withdrawShares)
-	if !withdrawCoins.IsEqual(calculatedWithdrawCoins) {
-		panic("unexpected amount of coins to be withdrawn") // Sanity check
-	}
-
-	// Update pool record
-	if denominatedPool.IsEmpty() {
+	if pool.IsEmpty() {
 		k.DeletePool(ctx, poolID)
 	} else {
-		poolRecord := types.NewPoolRecord(denominatedPool)
+		poolRecord = types.NewPoolRecord(pool)
 		k.SetPool(ctx, poolRecord)
 	}
 
-	// Update depositor's share record
-	depositorShareRecord.SharesOwned = depositorShareRecord.SharesOwned.Sub(withdrawShares)
-	k.SetDepositorShares(ctx, depositorShareRecord)
+	shareRecord.SharesOwned = shareRecord.SharesOwned.Sub(shares)
+	if shareRecord.SharesOwned.IsZero() {
+		k.DeleteDepositorShares(ctx, owner, poolID)
+	} else {
+		k.SetDepositorShares(ctx, shareRecord)
+	}
 
-	// Send withdrawn tokens to owner
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawCoins)
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawnAmount)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -69,22 +65,10 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, withdrawShares s
 			types.EventTypeSwapWithdraw,
 			sdk.NewAttribute(types.AttributeKeyPoolID, poolID),
 			sdk.NewAttribute(types.AttributeKeyOwner, owner.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, withdrawCoins.String()),
-			sdk.NewAttribute(types.AttributeKeyShares, withdrawShares.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, withdrawnAmount.String()),
+			sdk.NewAttribute(types.AttributeKeyShares, shares.String()),
 		),
 	)
 
 	return nil
-}
-
-func (k Keeper) loadDenominatedPool(ctx sdk.Context, poolID string) (*types.DenominatedPool, error) {
-	poolRecord, found := k.GetPool(ctx, poolID)
-	if !found {
-		return &types.DenominatedPool{}, types.ErrInvalidPool
-	}
-	denominatedPool, err := types.NewDenominatedPoolWithExistingShares(poolRecord.Reserves(), poolRecord.TotalShares)
-	if err != nil {
-		return &types.DenominatedPool{}, types.ErrInvalidPool
-	}
-	return denominatedPool, nil
 }

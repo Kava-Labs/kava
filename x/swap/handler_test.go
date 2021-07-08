@@ -57,8 +57,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 
 	suite.EventsContains(res.Events, sdk.NewEvent(
 		sdk.EventTypeMessage,
-		// TODO: this attribute won't pass assertion
-		//sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
 	))
 
@@ -145,8 +144,7 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 
 	suite.EventsContains(res.Events, sdk.NewEvent(
 		sdk.EventTypeMessage,
-		// TODO: this attribute won't pass assertion
-		//sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
 	))
 
@@ -225,8 +223,7 @@ func (suite *handlerTestSuite) TestWithdraw_AllShares() {
 
 	suite.EventsContains(res.Events, sdk.NewEvent(
 		sdk.EventTypeMessage,
-		// TODO: this attribute won't pass assertion
-		//sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
 	))
 
@@ -281,12 +278,11 @@ func (suite *handlerTestSuite) TestWithdraw_PartialShares() {
 	suite.PoolLiquidityEqual(reserves.Sub(expectedCoinsReceived))
 	suite.PoolShareValueEqual(depositor, swap.NewAllowedPool("ukava", "usdx"), reserves.Sub(expectedCoinsReceived))
 
-	//suite.EventsContains(res.Events, sdk.NewEvent(
-	//sdk.EventTypeMessage,
-	// TODO: this attribute won't pass assertion
-	//sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
-	//sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
-	//))
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
+	))
 
 	suite.EventsContains(res.Events, sdk.NewEvent(
 		bank.EventTypeTransfer,
@@ -329,9 +325,8 @@ func (suite *handlerTestSuite) TestWithdraw_SlippageFailure() {
 	)
 
 	res, err := suite.handler(suite.Ctx, withdraw)
-	suite.EqualError(err, "slippage exceeded: slippage 4.000000000000000000 > limit 0.010000000000000000")
+	suite.EqualError(err, "slippage exceeded: minimum withdraw not met")
 	suite.Nil(res)
-
 }
 
 func (suite *handlerTestSuite) TestWithdraw_DeadlineExceeded() {

@@ -14,7 +14,7 @@ var (
 	ErrInvalidSlippage       = sdkerrors.Register(ModuleName, 7, "invalid slippage")
 	ErrInsufficientLiquidity = sdkerrors.Register(ModuleName, 8, "insufficient liquidity")
 	ErrInvalidShares         = sdkerrors.Register(ModuleName, 9, "invalid shares")
-	ErrShareRecordNotFound   = sdkerrors.Register(ModuleName, 10, "share record not found")
+	ErrDepositNotFound       = sdkerrors.Register(ModuleName, 10, "deposit not found")
 	ErrInvalidCoin           = sdkerrors.Register(ModuleName, 11, "invalid coin")
 	ErrNotImplemented        = sdkerrors.Register(ModuleName, 12, "not implemented")
 )

@@ -54,6 +54,7 @@ var (
 	DefaultSwapFee            = types.DefaultSwapFee
 	DepositorPoolSharesPrefix = types.DepositorPoolSharesPrefix
 	ErrDeadlineExceeded       = types.ErrDeadlineExceeded
+	ErrDepositNotFound        = types.ErrDepositNotFound
 	ErrInsufficientLiquidity  = types.ErrInsufficientLiquidity
 	ErrInvalidCoin            = types.ErrInvalidCoin
 	ErrInvalidDeadline        = types.ErrInvalidDeadline
@@ -62,7 +63,6 @@ var (
 	ErrInvalidSlippage        = types.ErrInvalidSlippage
 	ErrNotAllowed             = types.ErrNotAllowed
 	ErrNotImplemented         = types.ErrNotImplemented
-	ErrShareRecordNotFound    = types.ErrShareRecordNotFound
 	ErrSlippageExceeded       = types.ErrSlippageExceeded
 	KeyAllowedPools           = types.KeyAllowedPools
 	KeySwapFee                = types.KeySwapFee
