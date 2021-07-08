@@ -130,7 +130,13 @@ func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, dep
 	depositAmount, shares := pool.AddLiquidity(desiredAmount)
 
 	poolRecord := types.NewPoolRecord(pool)
-	shareRecord := types.NewShareRecord(depositor, poolRecord.PoolID, shares)
+
+	shareRecord, found := k.GetDepositorShares(ctx, depositor, poolRecord.PoolID)
+	if found {
+		shareRecord.SharesOwned = shareRecord.SharesOwned.Add(shares)
+	} else {
+		shareRecord = types.NewShareRecord(depositor, poolRecord.PoolID, shares)
+	}
 
 	k.SetPool(ctx, poolRecord)
 	k.SetDepositorShares(ctx, shareRecord)

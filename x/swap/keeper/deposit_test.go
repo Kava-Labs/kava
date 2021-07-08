@@ -189,7 +189,7 @@ func (suite *keeperTestSuite) TestDeposit_PoolExists() {
 		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 	)
-	depositor := suite.CreateAccount(balance)
+	depositor := suite.NewAccountFromAddr(sdk.AccAddress("new depositor"), balance)
 
 	depositA := sdk.NewCoin("usdx", depositor.GetCoins().AmountOf("usdx"))
 	depositB := sdk.NewCoin("ukava", depositor.GetCoins().AmountOf("ukava"))
@@ -219,6 +219,42 @@ func (suite *keeperTestSuite) TestDeposit_PoolExists() {
 		sdk.NewAttribute(types.AttributeKeyDepositor, depositor.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedDeposit.String()),
 		sdk.NewAttribute(types.AttributeKeyShares, "2236067"),
+	))
+}
+
+func (suite *keeperTestSuite) TestDeposit_MultipleDeposit() {
+	fundsToDeposit := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(25e6)),
+	)
+	owner := suite.CreateAccount(fundsToDeposit)
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
+	)
+	initialShares := sdk.NewInt(30e6)
+	poolID := suite.setupPool(reserves, initialShares, owner.GetAddress())
+
+	depositA := sdk.NewCoin("usdx", owner.GetCoins().AmountOf("usdx"))
+	depositB := sdk.NewCoin("ukava", owner.GetCoins().AmountOf("ukava"))
+
+	err := suite.Keeper.Deposit(suite.Ctx, owner.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("4"))
+	suite.Require().NoError(err)
+
+	totalDeposit := reserves.Add(fundsToDeposit...)
+	totalShares := initialShares.Add(sdk.NewInt(15e6))
+
+	suite.AccountBalanceEqual(owner, sdk.Coins(nil))
+	suite.ModuleAccountBalanceEqual(totalDeposit)
+	suite.PoolLiquidityEqual(totalDeposit)
+	suite.PoolDepositorSharesEqual(owner.GetAddress(), poolID, totalShares)
+
+	suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
+		types.EventTypeSwapDeposit,
+		sdk.NewAttribute(types.AttributeKeyPoolID, poolID),
+		sdk.NewAttribute(types.AttributeKeyDepositor, owner.GetAddress().String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, fundsToDeposit.String()),
+		sdk.NewAttribute(types.AttributeKeyShares, "15000000"),
 	))
 }
 

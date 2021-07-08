@@ -23,6 +23,28 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(keeperTestSuite))
 }
 
+func (suite *keeperTestSuite) setupPool(reserves sdk.Coins, totalShares sdk.Int, depositor sdk.AccAddress) string {
+	poolID := types.PoolIDFromCoins(reserves)
+	suite.AddCoinsToModule(reserves)
+
+	poolRecord := types.PoolRecord{
+		PoolID:      poolID,
+		ReservesA:   reserves[0],
+		ReservesB:   reserves[1],
+		TotalShares: totalShares,
+	}
+	suite.Keeper.SetPool(suite.Ctx, poolRecord)
+
+	shareRecord := types.ShareRecord{
+		Depositor:   depositor,
+		PoolID:      poolID,
+		SharesOwned: totalShares,
+	}
+	suite.Keeper.SetDepositorShares(suite.Ctx, shareRecord)
+
+	return poolID
+}
+
 func (suite keeperTestSuite) TestParams_Persistance() {
 	keeper := suite.Keeper
 
