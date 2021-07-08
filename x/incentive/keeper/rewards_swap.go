@@ -26,10 +26,10 @@ func (k Keeper) AccumulateSwapRewards(ctx sdk.Context, rewardPeriod types.MultiR
 
 	totalShares, found := k.swapKeeper.GetPoolShares(ctx, rewardPeriod.CollateralType)
 	if !found {
-		totalShares = sdk.ZeroDec()
+		totalShares = sdk.ZeroInt()
 	}
 
-	acc.Accumulate(rewardPeriod, totalShares, ctx.BlockTime())
+	acc.Accumulate(rewardPeriod, totalShares.ToDec(), ctx.BlockTime())
 
 	k.SetSwapRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {

@@ -6,9 +6,9 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
-func (k Keeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Dec, bool) {
+func (k Keeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Int, bool) {
 	// FIXME return pool shares once merged with acceptance branch
-	return sdk.Dec{}, false
+	return sdk.Int{}, false
 }
 
 func (k *Keeper) GetDepositedShares(ctx sdk.Context, poolID string, depositor sdk.AccAddress) sdk.Int {

@@ -31,7 +31,7 @@ func TestAccumulateSwapRewards(t *testing.T) {
 }
 
 func (suite *AccumulateSwapRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased() {
-	swapKeeper := &fakeSwapKeeper{d("1000000")}
+	swapKeeper := &fakeSwapKeeper{i(1e6)}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper)
 
 	pool := "btc/usdx"
@@ -84,7 +84,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 }
 
 func (suite *AccumulateSwapRewardsTests) TestLimitsOfAccumulationPrecision() {
-	swapKeeper := &fakeSwapKeeper{d("100000000000000000")} // approximate shares in a $1B pool of 10^8 precision assets
+	swapKeeper := &fakeSwapKeeper{i(1e17)} // approximate shares in a $1B pool of 10^8 precision ~$1 asset
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper)
 
 	pool := "btc/usdx"
@@ -130,7 +130,7 @@ func (suite *AccumulateSwapRewardsTests) TestLimitsOfAccumulationPrecision() {
 }
 
 func (suite *AccumulateSwapRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
-	swapKeeper := &fakeSwapKeeper{d("1000000")}
+	swapKeeper := &fakeSwapKeeper{i(1e6)}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper)
 
 	pool := "btc/usdx"
@@ -182,7 +182,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 }
 
 func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
-	swapKeeper := &fakeSwapKeeper{d("1000000")}
+	swapKeeper := &fakeSwapKeeper{i(1e6)}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper)
 
 	pool := "btc/usdx"
@@ -225,7 +225,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 	suite.checkStoredIndexesEqual(pool, expectedIndexes)
 }
 func (suite *AccumulateSwapRewardsTests) TestNoPanicWhenStateDoesNotExist() {
-	swapKeeper := &fakeSwapKeeper{d("0")}
+	swapKeeper := &fakeSwapKeeper{i(0)}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper)
 
 	pool := "btc/usdx"
@@ -252,10 +252,10 @@ func (suite *AccumulateSwapRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 }
 
 type fakeSwapKeeper struct {
-	poolShares sdk.Dec
+	poolShares sdk.Int
 }
 
-func (k fakeSwapKeeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Dec, bool) {
+func (k fakeSwapKeeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Int, bool) {
 	return k.poolShares, true
 }
 func (k fakeSwapKeeper) GetDepositedShares(ctx sdk.Context, poolID string, owner sdk.AccAddress) sdk.Int {
