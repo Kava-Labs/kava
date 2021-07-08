@@ -9,8 +9,18 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
-// Withdraw removes liquidity from an existing pool, converting the provided shares for
+// Withdraw removes liquidity from an existing pool from an owners deposit, converting the provided shares for
 // the returned pool liquidity.
+//
+// If 100% of the owners shares are removed, then the deposit is deleted.  In addition, if all the pool shares
+// are removed then the pool is deleted.
+//
+// The number of shares must be large enough to result in at least 1 unit of the smallest reserve in the pool.
+// If the share input is below the minimum required for positive liquidity to be remove from both reserves, a
+// insufficient error is returned.
+//
+// In addition, if the withdrawn liquidity for each reserve is below the provided minimum, a slippage exceeded
+// error is returned.
 func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, minCoinA, minCoinB sdk.Coin) error {
 	poolID := types.PoolID(minCoinA.Denom, minCoinB.Denom)
 
@@ -41,7 +51,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, 
 		return sdkerrors.Wrap(types.ErrSlippageExceeded, "minimum withdraw not met")
 	}
 
-	if pool.IsEmpty() {
+	if pool.TotalShares().IsZero() {
 		k.DeletePool(ctx, poolID)
 	} else {
 		poolRecord = types.NewPoolRecord(pool)
