@@ -9,6 +9,7 @@ const (
 	QueryGetHardRewards        = "hard-rewards"
 	QueryGetUSDXMintingRewards = "usdx-minting-rewards"
 	QueryGetDelegatorRewards   = "delegator-rewards"
+	QueryGetSwapRewards        = "swap-rewards"
 	QueryGetRewardFactors      = "reward-factors"
 	QueryGetParams             = "parameters"
 

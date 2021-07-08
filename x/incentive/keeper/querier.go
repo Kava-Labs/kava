@@ -24,6 +24,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetUSDXMintingRewards(ctx, req, k)
 		case types.QueryGetDelegatorRewards:
 			return queryGetDelegatorRewards(ctx, req, k)
+		case types.QueryGetSwapRewards:
+			return queryGetSwapRewards(ctx, req, k)
 
 		case types.QueryGetRewardFactors:
 			return queryGetRewardFactors(ctx, req, k)
@@ -163,6 +165,51 @@ func queryGetDelegatorRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) 
 
 	// Marshal Hard claims
 	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedDelegatorClaims)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryRewardsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	owner := len(params.Owner) > 0
+
+	var claims types.SwapClaims
+	switch {
+	case owner:
+		claim, found := k.GetSwapClaim(ctx, params.Owner)
+		if found {
+			claims = append(claims, claim)
+		}
+	default:
+		claims = k.GetAllSwapClaims(ctx)
+	}
+
+	var paginatedClaims types.SwapClaims
+	startH, endH := client.Paginate(len(claims), params.Page, params.Limit, 100)
+	if startH < 0 || endH < 0 {
+		paginatedClaims = types.SwapClaims{}
+	} else {
+		paginatedClaims = claims[startH:endH]
+	}
+
+	if !params.Unsynchronized {
+		for i, claim := range paginatedClaims {
+			syncedClaim, found := k.GetSynchronizedSwapClaim(ctx, claim.Owner)
+			if !found {
+				panic("previously found claim should still be found")
+			}
+			paginatedClaims[i] = syncedClaim
+		}
+	}
+
+	// Marshal claims
+	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

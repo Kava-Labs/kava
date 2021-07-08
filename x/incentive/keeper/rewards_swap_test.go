@@ -258,6 +258,10 @@ type fakeSwapKeeper struct {
 func (k fakeSwapKeeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Dec, bool) {
 	return k.poolShares, true
 }
+func (k fakeSwapKeeper) GetDepositedShares(ctx sdk.Context, poolID string, owner sdk.AccAddress) sdk.Int {
+	// This is just to implement the swap keeper interface.
+	return sdk.Int{}
+}
 
 // note: amino panics when encoding times ≥ the start of year 10000.
 var distantFuture = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
