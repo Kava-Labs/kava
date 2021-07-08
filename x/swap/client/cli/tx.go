@@ -87,6 +87,7 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 		Example: fmt.Sprintf(
 			`%s tx %s withdraw 153000 10000000ukava 20000000usdx 176293740 --from <key>`, version.ClientName, types.ModuleName,
 		),
+		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
