@@ -349,6 +349,44 @@ func (suite *handlerTestSuite) TestWithdraw_DeadlineExceeded() {
 	suite.Nil(res)
 }
 
+func (suite *handlerTestSuite) TestSwapExactForTokens_DeadlineExceeded() {
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+	)
+	requester := suite.CreateAccount(balance)
+
+	swap := swap.NewMsgSwapExactForTokens(
+		requester.GetAddress(),
+		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(25e5)),
+		sdk.MustNewDecFromStr("0.01"),
+		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
+	)
+
+	res, err := suite.handler(suite.Ctx, swap)
+	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), swap.GetDeadline().Unix()))
+	suite.Nil(res)
+}
+
+func (suite *handlerTestSuite) TestSwapForExactTokens_DeadlineExceeded() {
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+	)
+	requester := suite.CreateAccount(balance)
+
+	swap := swap.NewMsgSwapForExactTokens(
+		requester.GetAddress(),
+		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(25e5)),
+		sdk.MustNewDecFromStr("0.01"),
+		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
+	)
+
+	res, err := suite.handler(suite.Ctx, swap)
+	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), swap.GetDeadline().Unix()))
+	suite.Nil(res)
+}
+
 func (suite *handlerTestSuite) TestInvalidMsg() {
 	res, err := suite.handler(suite.Ctx, sdk.NewTestMsg())
 	suite.Nil(res)
