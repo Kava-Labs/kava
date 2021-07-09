@@ -349,13 +349,45 @@ func (suite *handlerTestSuite) TestWithdraw_DeadlineExceeded() {
 	suite.Nil(res)
 }
 
+func (suite *handlerTestSuite) TestSwapExactForTokens() {
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+	)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+
+	swapMsg := swap.NewMsgSwapExactForTokens(
+		requester.GetAddress(),
+		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+		sdk.MustNewDecFromStr("0.001"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.handler(ctx, swapMsg)
+	suite.Require().NoError(err)
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, requester.GetAddress().String()),
+	))
+}
+
 func (suite *handlerTestSuite) TestSwapExactForTokens_DeadlineExceeded() {
 	balance := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 	)
 	requester := suite.CreateAccount(balance)
 
-	swap := swap.NewMsgSwapExactForTokens(
+	swapMsg := swap.NewMsgSwapExactForTokens(
 		requester.GetAddress(),
 		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(25e5)),
@@ -363,9 +395,41 @@ func (suite *handlerTestSuite) TestSwapExactForTokens_DeadlineExceeded() {
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 
-	res, err := suite.handler(suite.Ctx, swap)
-	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), swap.GetDeadline().Unix()))
+	res, err := suite.handler(suite.Ctx, swapMsg)
+	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), swapMsg.GetDeadline().Unix()))
 	suite.Nil(res)
+}
+
+func (suite *handlerTestSuite) TestSwapForExactTokens() {
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+	)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+
+	swapMsg := swap.NewMsgSwapForExactTokens(
+		requester.GetAddress(),
+		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+		sdk.MustNewDecFromStr("0.001"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.handler(ctx, swapMsg)
+	suite.Require().NoError(err)
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, requester.GetAddress().String()),
+	))
 }
 
 func (suite *handlerTestSuite) TestSwapForExactTokens_DeadlineExceeded() {
@@ -374,7 +438,7 @@ func (suite *handlerTestSuite) TestSwapForExactTokens_DeadlineExceeded() {
 	)
 	requester := suite.CreateAccount(balance)
 
-	swap := swap.NewMsgSwapForExactTokens(
+	swapMsg := swap.NewMsgSwapForExactTokens(
 		requester.GetAddress(),
 		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(25e5)),
@@ -382,8 +446,8 @@ func (suite *handlerTestSuite) TestSwapForExactTokens_DeadlineExceeded() {
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 
-	res, err := suite.handler(suite.Ctx, swap)
-	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), swap.GetDeadline().Unix()))
+	res, err := suite.handler(suite.Ctx, swapMsg)
+	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), swapMsg.GetDeadline().Unix()))
 	suite.Nil(res)
 }
 
