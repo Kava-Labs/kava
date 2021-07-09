@@ -39,6 +39,8 @@ var (
 	NewDenominatedPoolWithExistingShares = types.NewDenominatedPoolWithExistingShares
 	NewGenesisState                      = types.NewGenesisState
 	NewMsgDeposit                        = types.NewMsgDeposit
+	NewMsgSwapExactForTokens             = types.NewMsgSwapExactForTokens
+	NewMsgSwapForExactTokens             = types.NewMsgSwapForExactTokens
 	NewMsgWithdraw                       = types.NewMsgWithdraw
 	NewParams                            = types.NewParams
 	NewPoolRecord                        = types.NewPoolRecord
@@ -72,18 +74,20 @@ var (
 )
 
 type (
-	Keeper          = keeper.Keeper
-	AccountKeeper   = types.AccountKeeper
-	AllowedPool     = types.AllowedPool
-	AllowedPools    = types.AllowedPools
-	BasePool        = types.BasePool
-	DenominatedPool = types.DenominatedPool
-	GenesisState    = types.GenesisState
-	MsgDeposit      = types.MsgDeposit
-	MsgWithDeadline = types.MsgWithDeadline
-	MsgWithdraw     = types.MsgWithdraw
-	Params          = types.Params
-	PoolRecord      = types.PoolRecord
-	ShareRecord     = types.ShareRecord
-	SupplyKeeper    = types.SupplyKeeper
+	Keeper                = keeper.Keeper
+	AccountKeeper         = types.AccountKeeper
+	AllowedPool           = types.AllowedPool
+	AllowedPools          = types.AllowedPools
+	BasePool              = types.BasePool
+	DenominatedPool       = types.DenominatedPool
+	GenesisState          = types.GenesisState
+	MsgDeposit            = types.MsgDeposit
+	MsgSwapExactForTokens = types.MsgSwapExactForTokens
+	MsgSwapForExactTokens = types.MsgSwapForExactTokens
+	MsgWithDeadline       = types.MsgWithDeadline
+	MsgWithdraw           = types.MsgWithdraw
+	Params                = types.Params
+	PoolRecord            = types.PoolRecord
+	ShareRecord           = types.ShareRecord
+	SupplyKeeper          = types.SupplyKeeper
 )
