@@ -32,7 +32,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 }
 
 func handleMsgClaimUSDXMintingReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimUSDXMintingReward) (*sdk.Result, error) {
-	err := k.ClaimUSDXMintingReward(ctx, msg.Sender, types.MultiplierName(msg.MultiplierName))
+	err := k.ClaimUSDXMintingReward(ctx, msg.Sender, msg.Sender, types.MultiplierName(msg.MultiplierName))
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,10 @@ func handleMsgClaimUSDXMintingReward(ctx sdk.Context, k keeper.Keeper, msg types
 
 func handleMsgClaimUSDXMintingRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimUSDXMintingRewardVVesting) (*sdk.Result, error) {
 
-	err := k.ClaimUSDXMintingRewardVVesting(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName))
+	if err := k.ValidateIsValidatorVestingAccount(ctx, msg.Sender); err != nil {
+		return nil, err
+	}
+	err := k.ClaimUSDXMintingReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName))
 	if err != nil {
 		return nil, err
 	}
