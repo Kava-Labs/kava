@@ -6,6 +6,14 @@ import (
 	"time"
 )
 
+var (
+	DefaultUSDXClaims               = USDXMintingClaims{}
+	DefaultHardClaims               = HardLiquidityProviderClaims{}
+	DefaultDelegatorClaims          = DelegatorClaims{}
+	DefaultSwapClaims               = SwapClaims{}
+	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
+)
+
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
 	Params                      Params                      `json:"params" yaml:"params"`
