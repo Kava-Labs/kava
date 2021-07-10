@@ -12,7 +12,6 @@ import (
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
@@ -32,109 +31,14 @@ func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) 
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 
-type HandlerTestSuite struct {
-	suite.Suite
-
-	ctx     sdk.Context
-	app     app.TestApp
-	handler sdk.Handler
-	keeper  incentive.Keeper
-	addrs   []sdk.AccAddress
-}
-
-func (suite *HandlerTestSuite) SetupTest() {
-	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-	keeper := tApp.GetIncentiveKeeper()
-
-	// Set up genesis state and initialize
-	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	coins := []sdk.Coins{}
-	for j := 0; j < 3; j++ {
-		coins = append(coins, cs(c("bnb", 10000000000), c("ukava", 10000000000)))
-	}
-	authGS := app.NewAuthGenState(addrs, coins)
-	incentiveGS := incentive.NewGenesisState(
-		incentive.NewParams(
-			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
-			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
-			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
-			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "ukava", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
-			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "btcb/usdx", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), cs(c("ukava", 122354)))},
-			incentive.Multipliers{incentive.NewMultiplier(incentive.MultiplierName("small"), 1, d("0.25")), incentive.NewMultiplier(incentive.MultiplierName("large"), 12, d("1.0"))},
-			time.Date(2025, 12, 15, 14, 0, 0, 0, time.UTC),
-		),
-		incentive.DefaultGenesisAccumulationTimes,
-		incentive.DefaultGenesisAccumulationTimes,
-		incentive.DefaultGenesisAccumulationTimes,
-		incentive.DefaultGenesisAccumulationTimes,
-		incentive.DefaultGenesisAccumulationTimes,
-		incentive.DefaultUSDXClaims,
-		incentive.DefaultHardClaims,
-		incentive.DefaultDelegatorClaims,
-		incentive.DefaultSwapClaims,
-	)
-	tApp.InitializeFromGenesisStates(authGS, app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)}, NewCDPGenStateMulti(), NewPricefeedGenStateMulti())
-
-	suite.addrs = addrs
-	suite.handler = incentive.NewHandler(keeper)
-	suite.keeper = keeper
-	suite.app = tApp
-	suite.ctx = ctx
-}
-
-func (suite *HandlerTestSuite) TestMsgUSDXMintingClaimReward() {
-	suite.addUSDXMintingClaim()
-	msg := incentive.NewMsgClaimUSDXMintingReward(suite.addrs[0], "small")
-	res, err := suite.handler(suite.ctx, msg)
-	suite.NoError(err)
-	suite.Require().NotNil(res)
-}
-
-func (suite *HandlerTestSuite) TestMsgHardClaimReward() {
-	suite.addHardLiquidityProviderClaim()
-	msg := incentive.NewMsgClaimHardReward(suite.addrs[0], "small")
-	res, err := suite.handler(suite.ctx, msg)
-	suite.NoError(err)
-	suite.Require().NotNil(res)
-}
-
-func (suite *HandlerTestSuite) addHardLiquidityProviderClaim() {
-	sk := suite.app.GetSupplyKeeper()
-	err := sk.MintCoins(suite.ctx, kavadist.ModuleName, cs(c("ukava", 1000000000000)))
-	suite.Require().NoError(err)
-	rewardPeriod := types.RewardIndexes{types.NewRewardIndex("bnb-s", sdk.ZeroDec())}
-	multiRewardIndex := types.NewMultiRewardIndex("bnb-s", rewardPeriod)
-	multiRewardIndexes := types.MultiRewardIndexes{multiRewardIndex}
-	c1 := incentive.NewHardLiquidityProviderClaim(suite.addrs[0], cs(c("ukava", 1000000)), multiRewardIndexes, multiRewardIndexes)
-	suite.NotPanics(func() {
-		suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, c1)
-	})
-}
-
-func (suite *HandlerTestSuite) addUSDXMintingClaim() {
-	sk := suite.app.GetSupplyKeeper()
-	err := sk.MintCoins(suite.ctx, kavadist.ModuleName, cs(c("ukava", 1000000000000)))
-	suite.Require().NoError(err)
-	c1 := incentive.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-s", sdk.ZeroDec())})
-	suite.NotPanics(func() {
-		suite.keeper.SetUSDXMintingClaim(suite.ctx, c1)
-	})
-}
-
-// TODO: add tests
-
-func TestHandlerTestSuite(t *testing.T) {
-	suite.Run(t, new(HandlerTestSuite))
-}
-
 // Test suite used for all keeper tests
-type PayoutTestSuite struct {
+type HandlerTestSuite struct {
 	suite.Suite
 
 	keeper     keeper.Keeper
 	hardKeeper hardkeeper.Keeper
 	cdpKeeper  cdpkeeper.Keeper
+	handler    sdk.Handler
 
 	app app.TestApp
 	ctx sdk.Context
@@ -143,12 +47,12 @@ type PayoutTestSuite struct {
 	addrs       []sdk.AccAddress
 }
 
-func TestPayoutTestSuite(t *testing.T) {
-	suite.Run(t, new(PayoutTestSuite))
+func TestHandlerTestSuite(t *testing.T) {
+	suite.Run(t, new(HandlerTestSuite))
 }
 
 // SetupTest is run automatically before each suite test
-func (suite *PayoutTestSuite) SetupTest() {
+func (suite *HandlerTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 
@@ -157,17 +61,18 @@ func (suite *PayoutTestSuite) SetupTest() {
 	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 }
 
-func (suite *PayoutTestSuite) SetupApp() {
+func (suite *HandlerTestSuite) SetupApp() {
 	suite.app = app.NewTestApp()
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.hardKeeper = suite.app.GetHardKeeper()
 	suite.cdpKeeper = suite.app.GetCDPKeeper()
+	suite.handler = incentive.NewHandler(suite.keeper)
 
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder, hardBuilder testutil.HardGenesisBuilder) {
+func (suite *HandlerTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder, hardBuilder testutil.HardGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
@@ -180,24 +85,24 @@ func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuild
 	)
 }
 
-func (suite *PayoutTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
+func (suite *HandlerTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
 }
 
-func (suite *PayoutTestSuite) getModuleAccount(name string) supplyexported.ModuleAccountI {
+func (suite *HandlerTestSuite) getModuleAccount(name string) supplyexported.ModuleAccountI {
 	sk := suite.app.GetSupplyKeeper()
 	return sk.GetModuleAccount(suite.ctx, name)
 }
 
-func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
+func (suite *HandlerTestSuite) TestPayoutUSDXMintingClaim() {
 	type args struct {
 		ctype                    string
 		rewardsPerSecond         sdk.Coin
 		initialCollateral        sdk.Coin
 		initialPrincipal         sdk.Coin
 		multipliers              types.Multipliers
-		multiplier               types.MultiplierName
+		multiplier               string
 		timeElapsed              int
 		expectedBalance          sdk.Coins
 		expectedPeriods          vesting.Periods
@@ -221,7 +126,7 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
 				initialCollateral:        c("bnb", 1000000000000),
 				initialPrincipal:         c("usdx", 10000000000),
 				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:               types.MultiplierName("large"),
+				multiplier:               "large",
 				timeElapsed:              86400,
 				expectedBalance:          cs(c("usdx", 10000000000), c("ukava", 10571385600)),
 				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("ukava", 10571385600))}},
@@ -240,7 +145,7 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
 				initialCollateral:        c("bnb", 1000000000000),
 				initialPrincipal:         c("usdx", 10000000000),
 				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:               types.MultiplierName("large"),
+				multiplier:               "large",
 				timeElapsed:              86400,
 				expectedBalance:          cs(c("usdx", 10000000000)),
 				expectedPeriods:          vesting.Periods{},
@@ -281,7 +186,8 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
 			err = suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
 			suite.Require().NoError(err)
 
-			err = suite.keeper.ClaimUSDXMintingReward(suite.ctx, userAddr, tc.args.multiplier)
+			msg := incentive.NewMsgClaimUSDXMintingReward(userAddr, tc.args.multiplier)
+			_, err = suite.handler(suite.ctx, msg)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
@@ -306,14 +212,14 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
 	}
 }
 
-func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaimVVesting() {
+func (suite *HandlerTestSuite) TestPayoutUSDXMintingClaimVVesting() {
 	type args struct {
 		ctype             string
 		rewardsPerSecond  sdk.Coin
 		initialCollateral sdk.Coin
 		initialPrincipal  sdk.Coin
 		multipliers       types.Multipliers
-		multiplier        types.MultiplierName
+		multiplier        string
 		timeElapsed       int
 		expectedBalance   sdk.Coins
 		expectedPeriods   vesting.Periods
@@ -336,7 +242,7 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaimVVesting() {
 				initialCollateral: c("bnb", 1e12),
 				initialPrincipal:  c("usdx", 1e10),
 				multipliers:       types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:        types.MultiplierName("large"),
+				multiplier:        "large",
 				timeElapsed:       86400,
 				expectedBalance:   cs(c("ukava", 10571385600)),
 				expectedPeriods:   vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("ukava", 10571385600))}},
@@ -354,7 +260,7 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaimVVesting() {
 				initialCollateral: c("bnb", 1e12),
 				initialPrincipal:  c("usdx", 1e10),
 				multipliers:       types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:        types.MultiplierName("large"),
+				multiplier:        "large",
 				timeElapsed:       86400,
 				expectedBalance:   cs(),
 				expectedPeriods:   vesting.Periods{},
@@ -408,7 +314,8 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaimVVesting() {
 			err = suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
 			suite.Require().NoError(err)
 
-			err = suite.keeper.ClaimUSDXMintingRewardVVesting(suite.ctx, suite.addrs[2], suite.addrs[0], tc.args.multiplier)
+			msg := incentive.NewMsgClaimUSDXMintingRewardVVesting(suite.addrs[2], suite.addrs[0], tc.args.multiplier)
+			_, err = suite.handler(suite.ctx, msg)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
@@ -431,13 +338,13 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaimVVesting() {
 	}
 }
 
-func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
+func (suite *HandlerTestSuite) TestPayoutHardLiquidityProviderClaim() {
 	type args struct {
 		deposit                  sdk.Coins
 		borrow                   sdk.Coins
 		rewardsPerSecond         sdk.Coins
 		multipliers              types.Multipliers
-		multiplier               types.MultiplierName
+		multiplier               string
 		timeElapsed              int64
 		expectedRewards          sdk.Coins
 		expectedPeriods          vesting.Periods
@@ -460,7 +367,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 				borrow:                   cs(c("bnb", 5000000000)),
 				rewardsPerSecond:         cs(c("hard", 122354)),
 				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:               types.MultiplierName("large"),
+				multiplier:               "large",
 				timeElapsed:              86400,
 				expectedRewards:          cs(c("hard", 21142771200)), // 10571385600 (deposit reward) + 10571385600 (borrow reward)
 				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("hard", 21142771200))}},
@@ -478,7 +385,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 				borrow:                   cs(c("bnb", 5000000000)),
 				rewardsPerSecond:         cs(c("hard", 122354)),
 				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:               types.MultiplierName("large"),
+				multiplier:               "large",
 				timeElapsed:              864000,
 				expectedRewards:          cs(c("hard", 211427712000)), // 105713856000 (deposit reward) + 105713856000 (borrow reward)
 				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32140800, Amount: cs(c("hard", 211427712000))}},
@@ -496,7 +403,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 				borrow:                   cs(c("bnb", 5000000000)),
 				rewardsPerSecond:         cs(c("hard", 122354), c("ukava", 122354)),
 				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:               types.MultiplierName("large"),
+				multiplier:               "large",
 				timeElapsed:              86400,
 				expectedRewards:          cs(c("hard", 21142771200), c("ukava", 21142771200)), // 10571385600 (deposit reward) + 10571385600 (borrow reward)
 				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("hard", 21142771200), c("ukava", 21142771200))}},
@@ -514,7 +421,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 				borrow:                   cs(c("bnb", 5000000000)),
 				rewardsPerSecond:         cs(c("hard", 122354), c("ukava", 122354)),
 				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:               types.MultiplierName("large"),
+				multiplier:               "large",
 				timeElapsed:              864000,
 				expectedRewards:          cs(c("hard", 211427712000), c("ukava", 211427712000)), // 105713856000 (deposit reward) + 105713856000 (borrow reward)
 				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32140800, Amount: cs(c("hard", 211427712000), c("ukava", 211427712000))}},
@@ -532,7 +439,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 				borrow:                   cs(c("bnb", 5000000000)),
 				rewardsPerSecond:         cs(c("hard", 122354), c("ukava", 222222)),
 				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:               types.MultiplierName("large"),
+				multiplier:               "large",
 				timeElapsed:              86400,
 				expectedRewards:          cs(c("hard", 21142771200), c("ukava", 38399961600)),
 				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("hard", 21142771200), c("ukava", 38399961600))}},
@@ -611,7 +518,9 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 			ak := suite.app.GetAccountKeeper()
 			preClaimAcc := ak.GetAccount(runCtx, userAddr)
 
-			err = suite.keeper.ClaimHardReward(runCtx, userAddr, tc.args.multiplier)
+			msg := types.NewMsgClaimHardReward(userAddr, tc.args.multiplier)
+			_, err = suite.handler(runCtx, msg)
+
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 
@@ -639,13 +548,13 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 	}
 }
 
-func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
+func (suite *HandlerTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 	type args struct {
 		deposit          sdk.Coins
 		borrow           sdk.Coins
 		rewardsPerSecond sdk.Coins
 		multipliers      types.Multipliers
-		multiplier       types.MultiplierName
+		multiplier       string
 		timeElapsed      int64
 		expectedRewards  sdk.Coins
 		expectedPeriods  vesting.Periods
@@ -667,7 +576,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 				borrow:           cs(c("bnb", 5000000000)),
 				rewardsPerSecond: cs(c("hard", 122354)),
 				multipliers:      types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:       types.MultiplierName("large"),
+				multiplier:       "large",
 				timeElapsed:      86400,
 				expectedRewards:  cs(c("hard", 21142771202)),
 				expectedPeriods:  vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("hard", 21142771202))}},
@@ -684,7 +593,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 				borrow:           cs(c("bnb", 5000000000)),
 				rewardsPerSecond: cs(c("hard", 122354)),
 				multipliers:      types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:       types.MultiplierName("large"),
+				multiplier:       "large",
 				timeElapsed:      864000,
 				expectedRewards:  cs(c("hard", 211427712008)),
 				expectedPeriods:  vesting.Periods{vesting.Period{Length: 32140800, Amount: cs(c("hard", 211427712008))}},
@@ -701,7 +610,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 				borrow:           cs(c("bnb", 5000000000)),
 				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
 				multipliers:      types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:       types.MultiplierName("large"),
+				multiplier:       "large",
 				timeElapsed:      86400,
 				expectedRewards:  cs(c("hard", 21142771202), c("ukava", 21142771202)),
 				expectedPeriods:  vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("hard", 21142771202), c("ukava", 21142771202))}},
@@ -718,7 +627,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 				borrow:           cs(c("bnb", 5000000000)),
 				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
 				multipliers:      types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:       types.MultiplierName("large"),
+				multiplier:       "large",
 				timeElapsed:      864000,
 				expectedRewards:  cs(c("hard", 211427712008), c("ukava", 211427712008)),
 				expectedPeriods:  vesting.Periods{vesting.Period{Length: 32140800, Amount: cs(c("hard", 211427712008), c("ukava", 211427712008))}},
@@ -735,7 +644,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 				borrow:           cs(c("bnb", 5000000000)),
 				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 222222)),
 				multipliers:      types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-				multiplier:       types.MultiplierName("large"),
+				multiplier:       "large",
 				timeElapsed:      86400,
 				expectedRewards:  cs(c("hard", 21142771202), c("ukava", 38399961603)),
 				expectedPeriods:  vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("hard", 21142771202), c("ukava", 38399961603))}},
@@ -832,7 +741,9 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 			// Fetch pre-claim balances
 			preClaimAcc := ak.GetAccount(runCtx, suite.addrs[2])
 
-			err = suite.keeper.ClaimHardRewardVVesting(runCtx, userAddr, suite.addrs[2], tc.args.multiplier)
+			msg := types.NewMsgClaimHardRewardVVesting(userAddr, suite.addrs[2], tc.args.multiplier)
+			_, err = suite.handler(runCtx, msg)
+
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 
