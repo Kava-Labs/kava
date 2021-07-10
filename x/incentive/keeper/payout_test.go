@@ -21,6 +21,7 @@ import (
 	"github.com/kava-labs/kava/x/hard"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/incentive/keeper"
+	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/kavadist"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
@@ -61,7 +62,7 @@ func (suite *PayoutTestSuite) SetupApp() {
 	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder IncentiveGenesisBuilder, hardBuilder HardGenesisBuilder) {
+func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder, hardBuilder testutil.HardGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
@@ -153,7 +154,7 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaim() {
 				WithSimpleAccount(userAddr, cs(tc.args.initialCollateral)).
 				WithSimpleModuleAccount(kavadist.ModuleName, cs(c("ukava", 1000000000000)))
 
-			incentBuilder := NewIncentiveGenesisBuilder().
+			incentBuilder := testutil.NewIncentiveGenesisBuilder().
 				WithGenesisTime(suite.genesisTime).
 				WithSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond).
 				WithMultipliers(tc.args.multipliers)
@@ -278,7 +279,7 @@ func (suite *PayoutTestSuite) TestPayoutUSDXMintingClaimVVesting() {
 				WithSimpleModuleAccount(kavadist.ModuleName, cs(c("ukava", 1e18))).
 				WithSimpleAccount(suite.addrs[0], cs()) // the recipient address needs to be a instantiated account // TODO change?
 
-			incentBuilder := NewIncentiveGenesisBuilder().
+			incentBuilder := testutil.NewIncentiveGenesisBuilder().
 				WithGenesisTime(suite.genesisTime).
 				WithSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond).
 				WithMultipliers(tc.args.multipliers)
@@ -446,7 +447,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaim() {
 				WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15))).
 				WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1000000000000000000), c("ukava", 1000000000000000000)))
 
-			incentBuilder := NewIncentiveGenesisBuilder().
+			incentBuilder := testutil.NewIncentiveGenesisBuilder().
 				WithGenesisTime(suite.genesisTime).
 				WithMultipliers(tc.args.multipliers)
 			for _, c := range tc.args.deposit {
@@ -662,7 +663,7 @@ func (suite *PayoutTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 				WithSimpleAccount(suite.addrs[2], cs()).
 				WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1000000000000000000), c("ukava", 1000000000000000000)))
 
-			incentBuilder := NewIncentiveGenesisBuilder().
+			incentBuilder := testutil.NewIncentiveGenesisBuilder().
 				WithGenesisTime(suite.genesisTime).
 				WithMultipliers(tc.args.multipliers)
 			for _, c := range tc.args.deposit {
