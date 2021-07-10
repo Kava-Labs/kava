@@ -20,7 +20,7 @@ type GenesisState struct {
 
 	USDXRewardState       GenesisRewardState `json:"usdx_reward_state" yaml:"usdx_reward_state"`
 	HardSupplyRewardState GenesisRewardState `json:"hard_supply_reward_state" yaml:"hard_supply_reward_state"`
-	HarBorrowRewardState  GenesisRewardState `json:"hard_borrow_reward_state" yaml:"hard_borrow_reward_state"`
+	HardBorrowRewardState GenesisRewardState `json:"hard_borrow_reward_state" yaml:"hard_borrow_reward_state"`
 	DelegatorRewardState  GenesisRewardState `json:"delegator_reward_state" yaml:"delegator_reward_state"`
 	SwapRewardState       GenesisRewardState `json:"swap_reward_state" yaml:"swap_reward_state"`
 
@@ -41,7 +41,7 @@ func NewGenesisState(
 
 		USDXRewardState:       usdxState,
 		HardSupplyRewardState: hardSupplyState,
-		HarBorrowRewardState:  hardBorrowState,
+		HardBorrowRewardState: hardBorrowState,
 		DelegatorRewardState:  delegatorState,
 		SwapRewardState:       swapState,
 
@@ -58,7 +58,7 @@ func DefaultGenesisState() GenesisState {
 		Params:                      DefaultParams(),
 		USDXRewardState:             DefaultGenesisRewardState,
 		HardSupplyRewardState:       DefaultGenesisRewardState,
-		HarBorrowRewardState:        DefaultGenesisRewardState,
+		HardBorrowRewardState:       DefaultGenesisRewardState,
 		DelegatorRewardState:        DefaultGenesisRewardState,
 		SwapRewardState:             DefaultGenesisRewardState,
 		USDXMintingClaims:           DefaultUSDXClaims,
@@ -81,7 +81,7 @@ func (gs GenesisState) Validate() error {
 	if err := gs.HardSupplyRewardState.Validate(); err != nil {
 		return err
 	}
-	if err := gs.HarBorrowRewardState.Validate(); err != nil {
+	if err := gs.HardBorrowRewardState.Validate(); err != nil {
 		return err
 	}
 	if err := gs.DelegatorRewardState.Validate(); err != nil {

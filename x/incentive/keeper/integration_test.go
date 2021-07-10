@@ -247,59 +247,60 @@ func (builder IncentiveGenesisBuilder) WithGenesisTime(time time.Time) Incentive
 func (builder IncentiveGenesisBuilder) WithInitializedBorrowRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
 	builder.Params.HardBorrowRewardPeriods = append(builder.Params.HardBorrowRewardPeriods, period)
 
-	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
-	builder.HardBorrowAccumulationTimes = append(builder.HardBorrowAccumulationTimes, accumulationTimeForPeriod)
+	accumulationTimeForPeriod := types.NewAccumulationTime(period.CollateralType, builder.genesisTime)
+	builder.HardBorrowRewardState.AccumulationTimes = append(
+		builder.HardBorrowRewardState.AccumulationTimes,
+		accumulationTimeForPeriod,
+	)
+	// TODO add zeroed global indexes for period?
 	return builder
 }
 
 func (builder IncentiveGenesisBuilder) WithSimpleBorrowRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) IncentiveGenesisBuilder {
-	return builder.WithInitializedBorrowRewardPeriod(types.NewMultiRewardPeriod(
-		true,
-		ctype,
-		builder.genesisTime,
-		builder.genesisTime.Add(4*oneYear),
-		rewardsPerSecond,
-	))
+	return builder.WithInitializedBorrowRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
 }
+
 func (builder IncentiveGenesisBuilder) WithInitializedSupplyRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
 	builder.Params.HardSupplyRewardPeriods = append(builder.Params.HardSupplyRewardPeriods, period)
 
-	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
-	builder.HardSupplyAccumulationTimes = append(builder.HardSupplyAccumulationTimes, accumulationTimeForPeriod)
+	accumulationTimeForPeriod := types.NewAccumulationTime(period.CollateralType, builder.genesisTime)
+	builder.HardSupplyRewardState.AccumulationTimes = append(
+		builder.HardSupplyRewardState.AccumulationTimes,
+		accumulationTimeForPeriod,
+	)
+	// TODO add zeroed global indexes for period?
 	return builder
 }
 
 func (builder IncentiveGenesisBuilder) WithSimpleSupplyRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) IncentiveGenesisBuilder {
-	return builder.WithInitializedSupplyRewardPeriod(types.NewMultiRewardPeriod(
-		true,
-		ctype,
-		builder.genesisTime,
-		builder.genesisTime.Add(4*oneYear),
-		rewardsPerSecond,
-	))
+	return builder.WithInitializedSupplyRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
 }
+
 func (builder IncentiveGenesisBuilder) WithInitializedDelegatorRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
 	builder.Params.DelegatorRewardPeriods = append(builder.Params.DelegatorRewardPeriods, period)
 
-	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
-	builder.DelegatorAccumulationTimes = append(builder.DelegatorAccumulationTimes, accumulationTimeForPeriod)
+	accumulationTimeForPeriod := types.NewAccumulationTime(period.CollateralType, builder.genesisTime)
+	builder.DelegatorRewardState.AccumulationTimes = append(
+		builder.DelegatorRewardState.AccumulationTimes,
+		accumulationTimeForPeriod,
+	)
+	// TODO add zeroed global indexes for period?
 	return builder
 }
 
 func (builder IncentiveGenesisBuilder) WithSimpleDelegatorRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) IncentiveGenesisBuilder {
-	return builder.WithInitializedDelegatorRewardPeriod(types.NewMultiRewardPeriod(
-		true,
-		ctype,
-		builder.genesisTime,
-		builder.genesisTime.Add(4*oneYear),
-		rewardsPerSecond,
-	))
+	return builder.WithInitializedDelegatorRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
 }
+
 func (builder IncentiveGenesisBuilder) WithInitializedUSDXRewardPeriod(period types.RewardPeriod) IncentiveGenesisBuilder {
 	builder.Params.USDXMintingRewardPeriods = append(builder.Params.USDXMintingRewardPeriods, period)
 
-	accumulationTimeForPeriod := types.NewGenesisAccumulationTime(period.CollateralType, builder.genesisTime)
-	builder.USDXAccumulationTimes = append(builder.USDXAccumulationTimes, accumulationTimeForPeriod)
+	accumulationTimeForPeriod := types.NewAccumulationTime(period.CollateralType, builder.genesisTime)
+	builder.USDXRewardState.AccumulationTimes = append(
+		builder.USDXRewardState.AccumulationTimes,
+		accumulationTimeForPeriod,
+	)
+	// TODO add zeroed global indexes for period?
 	return builder
 }
 
@@ -313,9 +314,35 @@ func (builder IncentiveGenesisBuilder) WithSimpleUSDXRewardPeriod(ctype string, 
 	))
 }
 
+func (builder IncentiveGenesisBuilder) WithInitializedSwapRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
+	builder.Params.SwapRewardPeriods = append(builder.Params.SwapRewardPeriods, period)
+
+	accumulationTimeForPeriod := types.NewAccumulationTime(period.CollateralType, builder.genesisTime)
+	builder.SwapRewardState.AccumulationTimes = append(
+		builder.SwapRewardState.AccumulationTimes,
+		accumulationTimeForPeriod,
+	)
+	// TODO add zeroed global indexes for period?
+	return builder
+}
+
+func (builder IncentiveGenesisBuilder) WithSimpleSwapRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) IncentiveGenesisBuilder {
+	return builder.WithInitializedSwapRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
+}
+
 func (builder IncentiveGenesisBuilder) WithMultipliers(multipliers types.Multipliers) IncentiveGenesisBuilder {
 	builder.Params.ClaimMultipliers = multipliers
 	return builder
+}
+
+func (builder IncentiveGenesisBuilder) simpleRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) types.MultiRewardPeriod {
+	return types.NewMultiRewardPeriod(
+		true,
+		ctype,
+		builder.genesisTime,
+		builder.genesisTime.Add(4*oneYear),
+		rewardsPerSecond,
+	)
 }
 
 // HardGenesisBuilder is a tool for creating a hard genesis state.
