@@ -7,21 +7,23 @@ import (
 )
 
 var (
-	DefaultUSDXClaims               = USDXMintingClaims{}
-	DefaultHardClaims               = HardLiquidityProviderClaims{}
-	DefaultDelegatorClaims          = DelegatorClaims{}
-	DefaultSwapClaims               = SwapClaims{}
-	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
+	DefaultUSDXClaims         = USDXMintingClaims{}
+	DefaultHardClaims         = HardLiquidityProviderClaims{}
+	DefaultDelegatorClaims    = DelegatorClaims{}
+	DefaultSwapClaims         = SwapClaims{}
+	DefaultGenesisRewardState = GenesisRewardState{}
 )
 
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-	Params                      Params                      `json:"params" yaml:"params"`
-	USDXAccumulationTimes       GenesisAccumulationTimes    `json:"usdx_accumulation_times" yaml:"usdx_accumulation_times"`
-	HardSupplyAccumulationTimes GenesisAccumulationTimes    `json:"hard_supply_accumulation_times" yaml:"hard_supply_accumulation_times"`
-	HardBorrowAccumulationTimes GenesisAccumulationTimes    `json:"hard_borrow_accumulation_times" yaml:"hard_borrow_accumulation_times"`
-	DelegatorAccumulationTimes  GenesisAccumulationTimes    `json:"delegator_accumulation_times" yaml:"delegator_accumulation_times"`
-	SwapAccumulationTimes       GenesisAccumulationTimes    `json:"swap_accumulation_times" yaml:"swap_accumulation_times"`
+	Params Params `json:"params" yaml:"params"`
+
+	USDXRewardState       GenesisRewardState `json:"usdx_reward_state" yaml:"usdx_reward_state"`
+	HardSupplyRewardState GenesisRewardState `json:"hard_supply_reward_state" yaml:"hard_supply_reward_state"`
+	HarBorrowRewardState  GenesisRewardState `json:"hard_borrow_reward_state" yaml:"hard_borrow_reward_state"`
+	DelegatorRewardState  GenesisRewardState `json:"delegator_reward_state" yaml:"delegator_reward_state"`
+	SwapRewardState       GenesisRewardState `json:"swap_reward_state" yaml:"swap_reward_state"`
+
 	USDXMintingClaims           USDXMintingClaims           `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
 	HardLiquidityProviderClaims HardLiquidityProviderClaims `json:"hard_liquidity_provider_claims" yaml:"hard_liquidity_provider_claims"`
 	DelegatorClaims             DelegatorClaims             `json:"delegator_claims" yaml:"delegator_claims"`
@@ -29,15 +31,20 @@ type GenesisState struct {
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, usdxAccumTimes, hardSupplyAccumTimes, hardBorrowAccumTimes, delegatorAccumTimes,
-	swapAccumTimes GenesisAccumulationTimes, c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims) GenesisState {
+func NewGenesisState(
+	params Params,
+	usdxState, hardSupplyState, hardBorrowState, delegatorState, swapState GenesisRewardState,
+	c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims,
+) GenesisState {
 	return GenesisState{
-		Params:                      params,
-		USDXAccumulationTimes:       usdxAccumTimes,
-		HardSupplyAccumulationTimes: hardSupplyAccumTimes,
-		HardBorrowAccumulationTimes: hardBorrowAccumTimes,
-		DelegatorAccumulationTimes:  delegatorAccumTimes,
-		SwapAccumulationTimes:       swapAccumTimes,
+		Params: params,
+
+		USDXRewardState:       usdxState,
+		HardSupplyRewardState: hardSupplyState,
+		HarBorrowRewardState:  hardBorrowState,
+		DelegatorRewardState:  delegatorState,
+		SwapRewardState:       swapState,
+
 		USDXMintingClaims:           c,
 		HardLiquidityProviderClaims: hc,
 		DelegatorClaims:             dc,
@@ -49,11 +56,11 @@ func NewGenesisState(params Params, usdxAccumTimes, hardSupplyAccumTimes, hardBo
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Params:                      DefaultParams(),
-		USDXAccumulationTimes:       GenesisAccumulationTimes{},
-		HardSupplyAccumulationTimes: GenesisAccumulationTimes{},
-		HardBorrowAccumulationTimes: GenesisAccumulationTimes{},
-		DelegatorAccumulationTimes:  GenesisAccumulationTimes{},
-		SwapAccumulationTimes:       GenesisAccumulationTimes{},
+		USDXRewardState:             DefaultGenesisRewardState,
+		HardSupplyRewardState:       DefaultGenesisRewardState,
+		HarBorrowRewardState:        DefaultGenesisRewardState,
+		DelegatorRewardState:        DefaultGenesisRewardState,
+		SwapRewardState:             DefaultGenesisRewardState,
 		USDXMintingClaims:           DefaultUSDXClaims,
 		HardLiquidityProviderClaims: DefaultHardClaims,
 		DelegatorClaims:             DefaultDelegatorClaims,
@@ -67,19 +74,20 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	if err := gs.USDXAccumulationTimes.Validate(); err != nil {
+
+	if err := gs.USDXRewardState.Validate(); err != nil {
 		return err
 	}
-	if err := gs.HardSupplyAccumulationTimes.Validate(); err != nil {
+	if err := gs.HardSupplyRewardState.Validate(); err != nil {
 		return err
 	}
-	if err := gs.HardBorrowAccumulationTimes.Validate(); err != nil {
+	if err := gs.HarBorrowRewardState.Validate(); err != nil {
 		return err
 	}
-	if err := gs.DelegatorAccumulationTimes.Validate(); err != nil {
+	if err := gs.DelegatorRewardState.Validate(); err != nil {
 		return err
 	}
-	if err := gs.SwapAccumulationTimes.Validate(); err != nil {
+	if err := gs.SwapRewardState.Validate(); err != nil {
 		return err
 	}
 
@@ -107,71 +115,57 @@ func (gs GenesisState) IsEmpty() bool {
 	return gs.Equal(GenesisState{})
 }
 
-// GenesisAccumulationTime stores the previous reward distribution time and its corresponding collateral type
-type GenesisAccumulationTime struct {
+// GenesisRewardState groups together the global state for a particular reward so it can be exported in genesis.
+type GenesisRewardState struct {
+	AccumulationTimes  AccumulationTimes
+	MultiRewardIndexes MultiRewardIndexes
+}
+
+// NewGenesisRewardState returns a new GenesisRewardState
+func NewGenesisRewardState(accumTimes AccumulationTimes, indexes MultiRewardIndexes) GenesisRewardState {
+	return GenesisRewardState{
+		AccumulationTimes:  accumTimes,
+		MultiRewardIndexes: indexes,
+	}
+}
+
+// Validate performs validation of a GenesisRewardState
+func (grs GenesisRewardState) Validate() error {
+	if err := grs.AccumulationTimes.Validate(); err != nil {
+		return err
+	}
+	return grs.MultiRewardIndexes.Validate()
+}
+
+// AccumulationTime stores the previous reward distribution time and its corresponding collateral type
+type AccumulationTime struct {
 	CollateralType           string    `json:"collateral_type" yaml:"collateral_type"`
 	PreviousAccumulationTime time.Time `json:"previous_accumulation_time" yaml:"previous_accumulation_time"`
 }
 
-// NewGenesisAccumulationTime returns a new GenesisAccumulationTime
-func NewGenesisAccumulationTime(ctype string, prevTime time.Time) GenesisAccumulationTime {
-	return GenesisAccumulationTime{
+// NewAccumulationTime returns a new GenesisAccumulationTime
+func NewAccumulationTime(ctype string, prevTime time.Time) AccumulationTime {
+	return AccumulationTime{
 		CollateralType:           ctype,
 		PreviousAccumulationTime: prevTime,
 	}
 }
 
 // Validate performs validation of GenesisAccumulationTime
-func (gat GenesisAccumulationTime) Validate() error {
+func (gat AccumulationTime) Validate() error {
 	if len(gat.CollateralType) == 0 {
 		return fmt.Errorf("genesis accumulation time's collateral type must be defined")
 	}
 	return nil
 }
 
-// GenesisAccumulationTimes slice of GenesisAccumulationTime
-type GenesisAccumulationTimes []GenesisAccumulationTime
+// AccumulationTimes slice of GenesisAccumulationTime
+type AccumulationTimes []AccumulationTime
 
 // Validate performs validation of GenesisAccumulationTimes
-func (gats GenesisAccumulationTimes) Validate() error {
+func (gats AccumulationTimes) Validate() error {
 	for _, gat := range gats {
 		if err := gat.Validate(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-type GenesisRewardIndexes struct {
-	CollateralType string        `json:"collateral_type" yaml:"collateral_type"`
-	RewardIndexes  RewardIndexes `json:"reward_indexes" yaml:"reward_indexes"`
-}
-
-// NewGenesisRewardIndexes returns a new GenesisRewardIndexes
-func NewGenesisRewardIndexes(ctype string, indexes RewardIndexes) GenesisRewardIndexes {
-	return GenesisRewardIndexes{
-		CollateralType: ctype,
-		RewardIndexes:  indexes,
-	}
-}
-
-// Validate performs validation of GenesisAccumulationTime
-func (gris GenesisRewardIndexes) Validate() error {
-	if len(gris.CollateralType) == 0 {
-		return fmt.Errorf("genesis reward indexes's collateral type must be defined")
-	}
-	if err := gris.RewardIndexes.Validate(); err != nil {
-		return fmt.Errorf("invalid reward indexes: %v", err)
-	}
-	return nil
-}
-
-type GenesisRewardIndexesSlice []GenesisRewardIndexes
-
-// Validate performs validation of GenesisAccumulationTimes
-func (gris GenesisRewardIndexesSlice) Validate() error {
-	for _, gri := range gris {
-		if err := gri.Validate(); err != nil {
 			return err
 		}
 	}
