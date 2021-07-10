@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
@@ -168,4 +169,12 @@ func NewHardGenStateMulti(genTime time.Time) testutil.HardGenesisBuilder {
 		WithInitializedMoneyMarket(testutil.NewStandardMoneyMarket("xrp")).
 		WithInitializedMoneyMarket(testutil.NewStandardMoneyMarket("zzz"))
 	return builder
+}
+
+func NewStakingGenesisState() app.GenesisState {
+	genState := staking.DefaultGenesisState()
+	genState.Params.BondDenom = "ukava"
+	return app.GenesisState{
+		staking.ModuleName: staking.ModuleCdc.MustMarshalJSON(genState),
+	}
 }

@@ -82,7 +82,7 @@ func handleMsgClaimHardRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg type
 
 func handleMsgClaimDelegatorReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimDelegatorReward) (*sdk.Result, error) {
 
-	err := k.ClaimDelegatorReward(ctx, msg.Sender, types.MultiplierName(msg.MultiplierName))
+	err := k.ClaimDelegatorReward(ctx, msg.Sender, msg.Sender, types.MultiplierName(msg.MultiplierName))
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,10 @@ func handleMsgClaimDelegatorReward(ctx sdk.Context, k keeper.Keeper, msg types.M
 
 func handleMsgClaimDelegatorRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimDelegatorRewardVVesting) (*sdk.Result, error) {
 
-	err := k.ClaimDelegatorRewardVVesting(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName))
+	if err := k.ValidateIsValidatorVestingAccount(ctx, msg.Sender); err != nil {
+		return nil, err
+	}
+	err := k.ClaimDelegatorReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName))
 	if err != nil {
 		return nil, err
 	}
