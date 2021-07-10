@@ -121,6 +121,14 @@ func NewGenesisAccumulationTime(ctype string, prevTime time.Time) GenesisAccumul
 	}
 }
 
+// Validate performs validation of GenesisAccumulationTime
+func (gat GenesisAccumulationTime) Validate() error {
+	if len(gat.CollateralType) == 0 {
+		return fmt.Errorf("genesis accumulation time's collateral type must be defined")
+	}
+	return nil
+}
+
 // GenesisAccumulationTimes slice of GenesisAccumulationTime
 type GenesisAccumulationTimes []GenesisAccumulationTime
 
@@ -134,10 +142,38 @@ func (gats GenesisAccumulationTimes) Validate() error {
 	return nil
 }
 
+type GenesisRewardIndexes struct {
+	CollateralType string        `json:"collateral_type" yaml:"collateral_type"`
+	RewardIndexes  RewardIndexes `json:"reward_indexes" yaml:"reward_indexes"`
+}
+
+// NewGenesisRewardIndexes returns a new GenesisRewardIndexes
+func NewGenesisRewardIndexes(ctype string, indexes RewardIndexes) GenesisRewardIndexes {
+	return GenesisRewardIndexes{
+		CollateralType: ctype,
+		RewardIndexes:  indexes,
+	}
+}
+
 // Validate performs validation of GenesisAccumulationTime
-func (gat GenesisAccumulationTime) Validate() error {
-	if len(gat.CollateralType) == 0 {
-		return fmt.Errorf("genesis accumulation time's collateral type must be defined")
+func (gris GenesisRewardIndexes) Validate() error {
+	if len(gris.CollateralType) == 0 {
+		return fmt.Errorf("genesis reward indexes's collateral type must be defined")
+	}
+	if err := gris.RewardIndexes.Validate(); err != nil {
+		return fmt.Errorf("invalid reward indexes: %v", err)
+	}
+	return nil
+}
+
+type GenesisRewardIndexesSlice []GenesisRewardIndexes
+
+// Validate performs validation of GenesisAccumulationTimes
+func (gris GenesisRewardIndexesSlice) Validate() error {
+	for _, gri := range gris {
+		if err := gri.Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

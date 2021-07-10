@@ -153,3 +153,96 @@ func TestGenesisStateValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestGenesisRewardIndexesSlice_Validate(t *testing.T) {
+
+	testCases := []struct {
+		name    string
+		indexes GenesisRewardIndexesSlice
+		wantErr bool
+	}{
+		{
+			name: "normal case",
+			indexes: GenesisRewardIndexesSlice{
+				{CollateralType: "btcb", RewardIndexes: normalRewardIndexes},
+				{CollateralType: "bnb", RewardIndexes: normalRewardIndexes},
+			},
+			wantErr: false,
+		},
+		{
+			name:    "empty",
+			indexes: nil,
+			wantErr: false,
+		},
+		{
+			name:    "empty collateral type",
+			indexes: GenesisRewardIndexesSlice{{RewardIndexes: normalRewardIndexes}},
+			wantErr: true,
+		},
+		{
+			name:    "invalid reward index",
+			indexes: GenesisRewardIndexesSlice{{CollateralType: "btcb", RewardIndexes: invalidRewardIndexes}},
+			wantErr: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.indexes.Validate()
+			if tc.wantErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}
+func TestGenesisAccumulationTimes_Validate(t *testing.T) {
+
+	testCases := []struct {
+		name    string
+		gats    GenesisAccumulationTimes
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			gats: GenesisAccumulationTimes{
+				{CollateralType: "btcb", PreviousAccumulationTime: normalAccumulationtime},
+				{CollateralType: "bnb", PreviousAccumulationTime: normalAccumulationtime},
+			},
+			wantErr: false,
+		},
+		{
+			name:    "empty",
+			gats:    nil,
+			wantErr: false,
+		},
+		{
+			name: "empty collateral type",
+			gats: GenesisAccumulationTimes{
+				{PreviousAccumulationTime: normalAccumulationtime},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.gats.Validate()
+			if tc.wantErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}
+
+var normalRewardIndexes = RewardIndexes{
+	NewRewardIndex("hard", sdk.MustNewDecFromStr("0.000001")),
+	NewRewardIndex("ukava", sdk.MustNewDecFromStr("0.1")),
+}
+
+var invalidRewardIndexes = RewardIndexes{
+	RewardIndex{"hard", sdk.MustNewDecFromStr("-0.01")},
+}
+
+var normalAccumulationtime = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
