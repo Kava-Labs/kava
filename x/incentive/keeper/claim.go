@@ -84,14 +84,7 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
-	var rewardCoins sdk.Coins
-	for _, coin := range claim.Reward {
-		rewardAmount := coin.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
-		if rewardAmount.IsZero() {
-			continue
-		}
-		rewardCoins = append(rewardCoins, sdk.NewCoin(coin.Denom, rewardAmount))
-	}
+	rewardCoins := types.MultiplyCoins(claim.Reward, multiplier.Factor)
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
@@ -141,14 +134,7 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
-	var rewardCoins sdk.Coins
-	for _, coin := range syncedClaim.Reward {
-		rewardAmount := coin.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
-		if rewardAmount.IsZero() {
-			continue
-		}
-		rewardCoins = append(rewardCoins, sdk.NewCoin(coin.Denom, rewardAmount))
-	}
+	rewardCoins := types.MultiplyCoins(syncedClaim.Reward, multiplier.Factor)
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
