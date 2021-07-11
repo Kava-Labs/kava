@@ -10,20 +10,20 @@ import (
 // Incentive migrates from a v0.14 incentive genesis state to a v0.15 incentive genesis state
 func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisState {
 	// Migrate params
-	var claimMultipliers v0_15incentive.Multipliers
+	claimMultipliers := v0_15incentive.Multipliers{}
 	for _, m := range incentiveGS.Params.ClaimMultipliers {
 		newMultiplier := v0_15incentive.NewMultiplier(v0_15incentive.MultiplierName(m.Name), m.MonthsLockup, m.Factor)
 		claimMultipliers = append(claimMultipliers, newMultiplier)
 	}
 
-	var usdxMintingRewardPeriods v0_15incentive.RewardPeriods
+	usdxMintingRewardPeriods := v0_15incentive.RewardPeriods{}
 	for _, rp := range incentiveGS.Params.USDXMintingRewardPeriods {
 		usdxMintingRewardPeriod := v0_15incentive.NewRewardPeriod(rp.Active,
 			rp.CollateralType, rp.Start, rp.End, rp.RewardsPerSecond)
 		usdxMintingRewardPeriods = append(usdxMintingRewardPeriods, usdxMintingRewardPeriod)
 	}
 
-	var hardDelegatorRewardPeriods v0_15incentive.MultiRewardPeriods
+	hardDelegatorRewardPeriods := v0_15incentive.MultiRewardPeriods{}
 	for _, rp := range incentiveGS.Params.HardDelegatorRewardPeriods {
 		rewardsPerSecond := sdk.NewCoins(rp.RewardsPerSecond, SwpRewardsPerSecond)
 		hardDelegatorRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
@@ -53,20 +53,16 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 	swapGenesisRewardState := v0_15incentive.DefaultGenesisRewardState // There is no previous swap rewards so accumulation starts at genesis time.
 
 	// Migrate USDX minting claims
-	var usdxMintingClaims v0_15incentive.USDXMintingClaims
+	usdxMintingClaims := v0_15incentive.USDXMintingClaims{}
 	for _, claim := range incentiveGS.USDXMintingClaims {
-		var rewardIndexes v0_15incentive.RewardIndexes
-		for _, ri := range claim.RewardIndexes {
-			rewardIndex := v0_15incentive.NewRewardIndex(ri.CollateralType, ri.RewardFactor)
-			rewardIndexes = append(rewardIndexes, rewardIndex)
-		}
+		rewardIndexes := migrateRewardIndexes(claim.RewardIndexes)
 		usdxMintingClaim := v0_15incentive.NewUSDXMintingClaim(claim.Owner, claim.Reward, rewardIndexes)
 		usdxMintingClaims = append(usdxMintingClaims, usdxMintingClaim)
 	}
 
 	// Migrate Hard protocol claims (includes creating new Delegator claims)
-	var hardClaims v0_15incentive.HardLiquidityProviderClaims
-	var delegatorClaims v0_15incentive.DelegatorClaims
+	hardClaims := v0_15incentive.HardLiquidityProviderClaims{}
+	delegatorClaims := v0_15incentive.DelegatorClaims{}
 	for _, claim := range incentiveGS.HardLiquidityProviderClaims {
 		// Migrate supply multi reward indexes
 		supplyMultiRewardIndexes := migrateMultiRewardIndexes(claim.SupplyRewardIndexes)
@@ -75,12 +71,14 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		borrowMultiRewardIndexes := migrateMultiRewardIndexes(claim.BorrowRewardIndexes)
 
 		// Migrate delegator reward indexes to multi reward indexes inside DelegatorClaims
-		var delegatorMultiRewardIndexes v0_15incentive.MultiRewardIndexes
-		var delegatorRewardIndexes v0_15incentive.RewardIndexes
+		delegatorMultiRewardIndexes := v0_15incentive.MultiRewardIndexes{}
+		delegatorRewardIndexes := v0_15incentive.RewardIndexes{}
 		for _, ri := range claim.DelegatorRewardIndexes {
-			delegatorRewardIndex := v0_15incentive.NewRewardIndex(ri.CollateralType, ri.RewardFactor)
+			// TODO add checks to ensure old reward indexes are as expected
+			delegatorRewardIndex := v0_15incentive.NewRewardIndex(v0_15incentive.HardLiquidityRewardDenom, ri.RewardFactor)
 			delegatorRewardIndexes = append(delegatorRewardIndexes, delegatorRewardIndex)
 		}
+		// TODO should this include indexes if none exist on the old claim?
 		delegatorMultiRewardIndex := v0_15incentive.NewMultiRewardIndex(v0_15incentive.BondDenom, delegatorRewardIndexes)
 		delegatorMultiRewardIndexes = append(delegatorMultiRewardIndexes, delegatorMultiRewardIndex)
 
@@ -113,7 +111,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 }
 
 func migrateMultiRewardPeriods(oldPeriods v0_14incentive.MultiRewardPeriods) v0_15incentive.MultiRewardPeriods {
-	var newPeriods v0_15incentive.MultiRewardPeriods
+	newPeriods := v0_15incentive.MultiRewardPeriods{}
 	for _, rp := range oldPeriods {
 		newPeriod := v0_15incentive.NewMultiRewardPeriod(
 			rp.Active,
@@ -128,12 +126,12 @@ func migrateMultiRewardPeriods(oldPeriods v0_14incentive.MultiRewardPeriods) v0_
 }
 
 func migrateGenesisRewardState(oldAccumulationTimes v0_14incentive.GenesisAccumulationTimes, oldIndexes v0_14incentive.GenesisRewardIndexesSlice) v0_15incentive.GenesisRewardState {
-	var accumulationTimes v0_15incentive.AccumulationTimes
+	accumulationTimes := v0_15incentive.AccumulationTimes{}
 	for _, t := range oldAccumulationTimes {
 		newAccumulationTime := v0_15incentive.NewAccumulationTime(t.CollateralType, t.PreviousAccumulationTime)
 		accumulationTimes = append(accumulationTimes, newAccumulationTime)
 	}
-	var multiRewardIndexes v0_15incentive.MultiRewardIndexes
+	multiRewardIndexes := v0_15incentive.MultiRewardIndexes{}
 	for _, gri := range oldIndexes {
 		multiRewardIndex := v0_15incentive.NewMultiRewardIndex(gri.CollateralType, migrateRewardIndexes(gri.RewardIndexes))
 		multiRewardIndexes = append(multiRewardIndexes, multiRewardIndex)
@@ -145,7 +143,7 @@ func migrateGenesisRewardState(oldAccumulationTimes v0_14incentive.GenesisAccumu
 }
 
 func migrateMultiRewardIndexes(oldIndexes v0_14incentive.MultiRewardIndexes) v0_15incentive.MultiRewardIndexes {
-	var newIndexes v0_15incentive.MultiRewardIndexes
+	newIndexes := v0_15incentive.MultiRewardIndexes{}
 	for _, mri := range oldIndexes {
 		multiRewardIndex := v0_15incentive.NewMultiRewardIndex(
 			mri.CollateralType,
@@ -157,7 +155,7 @@ func migrateMultiRewardIndexes(oldIndexes v0_14incentive.MultiRewardIndexes) v0_
 }
 
 func migrateRewardIndexes(oldIndexes v0_14incentive.RewardIndexes) v0_15incentive.RewardIndexes {
-	var newIndexes v0_15incentive.RewardIndexes
+	newIndexes := v0_15incentive.RewardIndexes{}
 	for _, ri := range oldIndexes {
 		rewardIndex := v0_15incentive.NewRewardIndex(ri.CollateralType, ri.RewardFactor)
 		newIndexes = append(newIndexes, rewardIndex)

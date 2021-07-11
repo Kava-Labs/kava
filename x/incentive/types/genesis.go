@@ -11,7 +11,10 @@ var (
 	DefaultHardClaims         = HardLiquidityProviderClaims{}
 	DefaultDelegatorClaims    = DelegatorClaims{}
 	DefaultSwapClaims         = SwapClaims{}
-	DefaultGenesisRewardState = GenesisRewardState{}
+	DefaultGenesisRewardState = NewGenesisRewardState(
+		AccumulationTimes{},
+		MultiRewardIndexes{},
+	)
 )
 
 // GenesisState is the state that must be provided at genesis.
@@ -117,8 +120,8 @@ func (gs GenesisState) IsEmpty() bool {
 
 // GenesisRewardState groups together the global state for a particular reward so it can be exported in genesis.
 type GenesisRewardState struct {
-	AccumulationTimes  AccumulationTimes
-	MultiRewardIndexes MultiRewardIndexes
+	AccumulationTimes  AccumulationTimes  `json:"accumulation_times" yaml:"accumulation_times"`
+	MultiRewardIndexes MultiRewardIndexes `json:"multi_reward_indexes" yaml:"multi_reward_indexes"`
 }
 
 // NewGenesisRewardState returns a new GenesisRewardState
