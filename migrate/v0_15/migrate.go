@@ -22,6 +22,7 @@ var (
 	GenesisTime = time.Date(2021, 4, 8, 15, 0, 0, 0, time.UTC)
 	ChainID     = "kava-8"
 	// TODO: update SWP reward per second amount before production
+	// TODO: add swap tokens to kavadist module account
 	SwpRewardsPerSecond = sdk.NewCoin("swp", sdk.OneInt())
 )
 
