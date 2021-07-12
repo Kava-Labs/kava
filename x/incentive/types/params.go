@@ -7,6 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -418,5 +419,5 @@ func (mn MultiplierName) IsValid() error {
 	case Small, Medium, Large:
 		return nil
 	}
-	return fmt.Errorf("invalid multiplier name: %s", mn)
+	return sdkerrors.Wrapf(ErrInvalidMultiplier, "invalid multiplier name: %s", mn)
 }
