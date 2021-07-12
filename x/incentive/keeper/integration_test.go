@@ -252,7 +252,12 @@ func (builder IncentiveGenesisBuilder) WithInitializedBorrowRewardPeriod(period 
 		builder.HardBorrowRewardState.AccumulationTimes,
 		accumulationTimeForPeriod,
 	)
-	// TODO add zeroed global indexes for period?
+
+	builder.HardBorrowRewardState.MultiRewardIndexes = builder.HardBorrowRewardState.MultiRewardIndexes.With(
+		period.CollateralType,
+		newZeroRewardIndexesFromCoins(period.RewardsPerSecond...),
+	)
+
 	return builder
 }
 
@@ -268,7 +273,12 @@ func (builder IncentiveGenesisBuilder) WithInitializedSupplyRewardPeriod(period 
 		builder.HardSupplyRewardState.AccumulationTimes,
 		accumulationTimeForPeriod,
 	)
-	// TODO add zeroed global indexes for period?
+
+	builder.HardSupplyRewardState.MultiRewardIndexes = builder.HardSupplyRewardState.MultiRewardIndexes.With(
+		period.CollateralType,
+		newZeroRewardIndexesFromCoins(period.RewardsPerSecond...),
+	)
+
 	return builder
 }
 
@@ -284,7 +294,12 @@ func (builder IncentiveGenesisBuilder) WithInitializedDelegatorRewardPeriod(peri
 		builder.DelegatorRewardState.AccumulationTimes,
 		accumulationTimeForPeriod,
 	)
-	// TODO add zeroed global indexes for period?
+
+	builder.DelegatorRewardState.MultiRewardIndexes = builder.DelegatorRewardState.MultiRewardIndexes.With(
+		period.CollateralType,
+		newZeroRewardIndexesFromCoins(period.RewardsPerSecond...),
+	)
+
 	return builder
 }
 
@@ -300,7 +315,12 @@ func (builder IncentiveGenesisBuilder) WithInitializedUSDXRewardPeriod(period ty
 		builder.USDXRewardState.AccumulationTimes,
 		accumulationTimeForPeriod,
 	)
-	// TODO add zeroed global indexes for period?
+
+	builder.USDXRewardState.MultiRewardIndexes = builder.USDXRewardState.MultiRewardIndexes.With(
+		period.CollateralType,
+		newZeroRewardIndexesFromCoins(period.RewardsPerSecond),
+	)
+
 	return builder
 }
 
@@ -322,7 +342,12 @@ func (builder IncentiveGenesisBuilder) WithInitializedSwapRewardPeriod(period ty
 		builder.SwapRewardState.AccumulationTimes,
 		accumulationTimeForPeriod,
 	)
-	// TODO add zeroed global indexes for period?
+
+	builder.SwapRewardState.MultiRewardIndexes = builder.SwapRewardState.MultiRewardIndexes.With(
+		period.CollateralType,
+		newZeroRewardIndexesFromCoins(period.RewardsPerSecond...),
+	)
+
 	return builder
 }
 
@@ -343,6 +368,14 @@ func (builder IncentiveGenesisBuilder) simpleRewardPeriod(ctype string, rewardsP
 		builder.genesisTime.Add(4*oneYear),
 		rewardsPerSecond,
 	)
+}
+
+func newZeroRewardIndexesFromCoins(coins ...sdk.Coin) types.RewardIndexes {
+	var ri types.RewardIndexes
+	for _, coin := range coins {
+		ri = ri.With(coin.Denom, sdk.ZeroDec())
+	}
+	return ri
 }
 
 // HardGenesisBuilder is a tool for creating a hard genesis state.
