@@ -412,6 +412,34 @@ func (suite *handlerTestSuite) TestSwapExactForTokens() {
 	))
 }
 
+func (suite *handlerTestSuite) TestSwapExactForTokens_SlippageFailure() {
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(100e6)),
+	)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+
+	swapInput := sdk.NewCoin("ukava", sdk.NewInt(1e6))
+	swapMsg := swap.NewMsgSwapExactForTokens(
+		requester.GetAddress(),
+		swapInput,
+		sdk.NewCoin("usdx", sdk.NewInt(5030338)),
+		sdk.MustNewDecFromStr("0.01"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.handler(ctx, swapMsg)
+	suite.EqualError(err, "slippage exceeded: slippage 0.010000123252155223 > limit 0.010000000000000000")
+	suite.Nil(res)
+}
+
 func (suite *handlerTestSuite) TestSwapExactForTokens_DeadlineExceeded() {
 	balance := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
@@ -449,7 +477,7 @@ func (suite *handlerTestSuite) TestSwapForExactTokens() {
 		requester.GetAddress(),
 		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
 		swapOutput,
-		sdk.MustNewDecFromStr("0.001"),
+		sdk.MustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -492,6 +520,34 @@ func (suite *handlerTestSuite) TestSwapForExactTokens() {
 		sdk.NewAttribute(swap.AttributeKeyFeePaid, "3013ukava"),
 		sdk.NewAttribute(swap.AttributeKeyExactDirection, "output"),
 	))
+}
+
+func (suite *handlerTestSuite) TestSwapForExactTokens_SlippageFailure() {
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+	)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+
+	swapOutput := sdk.NewCoin("usdx", sdk.NewInt(5e6))
+	swapMsg := swap.NewMsgSwapForExactTokens(
+		requester.GetAddress(),
+		sdk.NewCoin("ukava", sdk.NewInt(990991)),
+		swapOutput,
+		sdk.MustNewDecFromStr("0.01"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.handler(ctx, swapMsg)
+	suite.EqualError(err, "slippage exceeded: slippage 0.010000979019022939 > limit 0.010000000000000000")
+	suite.Nil(res)
 }
 
 func (suite *handlerTestSuite) TestSwapForExactTokens_DeadlineExceeded() {
