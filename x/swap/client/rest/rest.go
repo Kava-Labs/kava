@@ -27,3 +27,13 @@ type PostCreateDepositReq struct {
 	Slippage sdk.Dec        `json:"slippage" yaml:"slippage"`
 	Deadline int64          `json:"deadline" yaml:"deadline"`
 }
+
+// PostCreateWithdrawReq defines the properties of a withdraw create request's body
+type PostCreateWithdrawReq struct {
+	BaseReq   rest.BaseReq   `json:"base_req" yaml:"base_req"`
+	From      sdk.AccAddress `json:"from" yaml:"from"`
+	Shares    sdk.Int        `json:"shares" yaml:"shares"`
+	MinTokenA sdk.Coin       `json:"token_a" yaml:"token_a"`
+	MinTokenB sdk.Coin       `json:"token_b" yaml:"token_b"`
+	Deadline  int64          `json:"deadline" yaml:"deadline"`
+}
