@@ -7,5 +7,6 @@ import (
 )
 
 var (
+	//nolint
 	noOpMsg = simulation.NoOpMsg(types.ModuleName)
 )

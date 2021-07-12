@@ -57,7 +57,8 @@ func (suite *querierTestSuite) TestQueryParams() {
 
 	swapGenesisState := NewSwapGenStateMulti()
 	gs := types.GenesisState{}
-	types.ModuleCdc.UnmarshalJSON(swapGenesisState["swap"], &gs)
+	err = types.ModuleCdc.UnmarshalJSON(swapGenesisState["swap"], &gs)
+	suite.Require().NoError(err)
 
 	suite.Equal(gs.Params, p)
 }
