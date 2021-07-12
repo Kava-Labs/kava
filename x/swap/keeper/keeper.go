@@ -51,6 +51,11 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
+// GetSwapFee returns the swap fee set in the module parameters
+func (k Keeper) GetSwapFee(ctx sdk.Context) sdk.Dec {
+	return k.GetParams(ctx).SwapFee
+}
+
 // GetPool retrieves a pool record from the store
 func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)

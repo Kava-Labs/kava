@@ -362,11 +362,12 @@ func (suite *handlerTestSuite) TestSwapExactForTokens() {
 	)
 	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
 
+	swapInput := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	swapMsg := swap.NewMsgSwapExactForTokens(
 		requester.GetAddress(),
-		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
+		swapInput,
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
-		sdk.MustNewDecFromStr("0.001"),
+		sdk.MustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -374,10 +375,40 @@ func (suite *handlerTestSuite) TestSwapExactForTokens() {
 	res, err := suite.handler(ctx, swapMsg)
 	suite.Require().NoError(err)
 
+	expectedSwapOutput := sdk.NewCoin("usdx", sdk.NewInt(4980034))
+
+	suite.AccountBalanceEqual(requester, balance.Sub(sdk.NewCoins(swapInput)).Add(expectedSwapOutput))
+	suite.ModuleAccountBalanceEqual(reserves.Add(swapInput).Sub(sdk.NewCoins(expectedSwapOutput)))
+	suite.PoolLiquidityEqual(reserves.Add(swapInput).Sub(sdk.NewCoins(expectedSwapOutput)))
+
 	suite.EventsContains(res.Events, sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, requester.GetAddress().String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		bank.EventTypeTransfer,
+		sdk.NewAttribute(bank.AttributeKeyRecipient, swapModuleAccountAddress.String()),
+		sdk.NewAttribute(bank.AttributeKeySender, requester.GetAddress().String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, swapInput.String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		bank.EventTypeTransfer,
+		sdk.NewAttribute(bank.AttributeKeyRecipient, requester.GetAddress().String()),
+		sdk.NewAttribute(bank.AttributeKeySender, swapModuleAccountAddress.String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedSwapOutput.String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		swap.EventTypeSwapTrade,
+		sdk.NewAttribute(swap.AttributeKeyPoolID, swap.PoolID("ukava", "usdx")),
+		sdk.NewAttribute(swap.AttributeKeyRequester, requester.GetAddress().String()),
+		sdk.NewAttribute(swap.AttributeKeySwapInput, swapInput.String()),
+		sdk.NewAttribute(swap.AttributeKeySwapOutput, expectedSwapOutput.String()),
+		sdk.NewAttribute(swap.AttributeKeyFeePaid, "3000ukava"),
+		sdk.NewAttribute(swap.AttributeKeyExactDirection, "input"),
 	))
 }
 
@@ -413,10 +444,11 @@ func (suite *handlerTestSuite) TestSwapForExactTokens() {
 	)
 	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
 
+	swapOutput := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 	swapMsg := swap.NewMsgSwapForExactTokens(
 		requester.GetAddress(),
 		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
-		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+		swapOutput,
 		sdk.MustNewDecFromStr("0.001"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
@@ -425,10 +457,40 @@ func (suite *handlerTestSuite) TestSwapForExactTokens() {
 	res, err := suite.handler(ctx, swapMsg)
 	suite.Require().NoError(err)
 
+	expectedSwapInput := sdk.NewCoin("ukava", sdk.NewInt(1004015))
+
+	suite.AccountBalanceEqual(requester, balance.Sub(sdk.NewCoins(expectedSwapInput)).Add(swapOutput))
+	suite.ModuleAccountBalanceEqual(reserves.Add(expectedSwapInput).Sub(sdk.NewCoins(swapOutput)))
+	suite.PoolLiquidityEqual(reserves.Add(expectedSwapInput).Sub(sdk.NewCoins(swapOutput)))
+
 	suite.EventsContains(res.Events, sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, requester.GetAddress().String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		bank.EventTypeTransfer,
+		sdk.NewAttribute(bank.AttributeKeyRecipient, swapModuleAccountAddress.String()),
+		sdk.NewAttribute(bank.AttributeKeySender, requester.GetAddress().String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedSwapInput.String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		bank.EventTypeTransfer,
+		sdk.NewAttribute(bank.AttributeKeyRecipient, requester.GetAddress().String()),
+		sdk.NewAttribute(bank.AttributeKeySender, swapModuleAccountAddress.String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, swapOutput.String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		swap.EventTypeSwapTrade,
+		sdk.NewAttribute(swap.AttributeKeyPoolID, swap.PoolID("ukava", "usdx")),
+		sdk.NewAttribute(swap.AttributeKeyRequester, requester.GetAddress().String()),
+		sdk.NewAttribute(swap.AttributeKeySwapInput, expectedSwapInput.String()),
+		sdk.NewAttribute(swap.AttributeKeySwapOutput, swapOutput.String()),
+		sdk.NewAttribute(swap.AttributeKeyFeePaid, "3013ukava"),
+		sdk.NewAttribute(swap.AttributeKeyExactDirection, "output"),
 	))
 }
 
