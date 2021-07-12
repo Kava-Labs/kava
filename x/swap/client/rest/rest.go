@@ -10,7 +10,10 @@ import (
 
 // REST variable names
 // nolint
-const ()
+const (
+	RestPool  = "pool"
+	RestOwner = "owner"
+)
 
 // RegisterRoutes registers swap-related REST handlers to a router
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
