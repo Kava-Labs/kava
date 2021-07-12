@@ -78,6 +78,18 @@ func (suite *Suite) CreateAccount(initialBalance sdk.Coins) authexported.Account
 	return acc
 }
 
+// NewAccountFromAddr creates a new account from the provided address with the provided balance
+func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) authexported.Account {
+	ak := suite.App.GetAccountKeeper()
+
+	acc := ak.NewAccountWithAddress(suite.Ctx, addr)
+	err := acc.SetCoins(balance)
+	suite.Require().NoError(err)
+
+	ak.SetAccount(suite.Ctx, acc)
+	return acc
+}
+
 // CreateVestingAccount creats a new vesting account from the provided balance and vesting balance
 func (suite *Suite) CreateVestingAccount(initialBalance sdk.Coins, vestingBalance sdk.Coins) authexported.Account {
 	acc := suite.CreateAccount(initialBalance)

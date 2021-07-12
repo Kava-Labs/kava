@@ -114,7 +114,7 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 	)
-	depositor := suite.CreateAccount(balance)
+	depositor := suite.NewAccountFromAddr(sdk.AccAddress("new depositor"), balance)
 
 	deposit := swap.NewMsgDeposit(
 		depositor.GetAddress(),
