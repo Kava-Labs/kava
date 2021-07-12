@@ -7,6 +7,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const MaxDenomsToClaim = 1000
+
 // ensure Msg interface compliance at compile time
 var _ sdk.Msg = &MsgClaimUSDXMintingReward{}
 var _ sdk.Msg = &MsgClaimHardReward{}
@@ -189,13 +191,15 @@ func (msg MsgClaimHardRewardVVesting) GetSigners() []sdk.AccAddress {
 type MsgClaimDelegatorReward struct {
 	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
 	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 
 // NewMsgClaimDelegatorReward returns a new MsgClaimDelegatorReward.
-func NewMsgClaimDelegatorReward(sender sdk.AccAddress, multiplierName string) MsgClaimDelegatorReward {
+func NewMsgClaimDelegatorReward(sender sdk.AccAddress, multiplierName string, denomsToClaim []string) MsgClaimDelegatorReward {
 	return MsgClaimDelegatorReward{
 		Sender:         sender,
 		MultiplierName: multiplierName,
+		DenomsToClaim:  denomsToClaim,
 	}
 }
 
@@ -212,7 +216,18 @@ func (msg MsgClaimDelegatorReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	return MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid()
+	if err := MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid(); err != nil {
+		return err
+	}
+	for i, d := range msg.DenomsToClaim {
+		if i >= MaxDenomsToClaim {
+			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
+		}
+		if err := sdk.ValidateDenom(d); err != nil {
+			return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
+		}
+	}
+	return nil
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg.

@@ -179,7 +179,7 @@ func postClaimDelegatorHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgClaimDelegatorReward(requestBody.Sender, requestBody.MultiplierName)
+		msg := types.NewMsgClaimDelegatorReward(requestBody.Sender, requestBody.MultiplierName, requestBody.DenomsToClaim)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

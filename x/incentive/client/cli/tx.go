@@ -169,13 +169,14 @@ func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 
 func getCmdClaimDelegator(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "claim-delegator [multiplier]",
+		Use:   "claim-delegator [multiplier] [denoms to claim]",
 		Short: "claim sender's delegator rewards using a given multiplier",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim sender's outstanding delegator rewards using given multiplier
+			fmt.Sprintf(`Claim sender's outstanding delegator rewards using given multiplier.
+			Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.
 
 			Example:
-			$ %s tx %s claim-delegator large
+			$ %s tx %s claim-delegator large swap,hard
 		`, version.ClientName, types.ModuleName),
 		),
 		Args: cobra.ExactArgs(1),
@@ -186,8 +187,9 @@ func getCmdClaimDelegator(cdc *codec.Codec) *cobra.Command {
 
 			sender := cliCtx.GetFromAddress()
 			multiplier := args[0]
+			denomsToClaim := strings.Split(args[1], ",")
 
-			msg := types.NewMsgClaimDelegatorReward(sender, multiplier)
+			msg := types.NewMsgClaimDelegatorReward(sender, multiplier, denomsToClaim)
 			err := msg.ValidateBasic()
 			if err != nil {
 				return err

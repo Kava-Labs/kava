@@ -41,16 +41,16 @@ func (suite *ClaimTests) TestCannotClaimWhenMultiplierNotRecognised() {
 	suite.storeDelegatorClaim(claim)
 
 	// multiplier not in params
-	err := suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, types.Large)
+	err := suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, types.Large, nil)
 	suite.ErrorIs(err, types.ErrInvalidMultiplier)
 
 	// invalid multiplier name
-	err = suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, "")
+	err = suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, "", nil)
 	suite.ErrorIs(err, types.ErrInvalidMultiplier)
 
 	// invalid multiplier name
 	const zeroWidthSpace = "​"
-	err = suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, types.Small+zeroWidthSpace)
+	err = suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, types.Small+zeroWidthSpace, nil)
 	suite.ErrorIs(err, types.ErrInvalidMultiplier)
 }
 
@@ -76,6 +76,6 @@ func (suite *ClaimTests) TestCannotClaimAfterEndTime() {
 	}
 	suite.storeDelegatorClaim(claim)
 
-	err := suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, types.Small)
+	err := suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, types.Small, nil)
 	suite.ErrorIs(err, types.ErrClaimExpired)
 }

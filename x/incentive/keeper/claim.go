@@ -112,7 +112,7 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 }
 
 // ClaimDelegatorReward sends the reward amount to the input address and zero's out the claim in the store
-func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName) error {
+func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName, denomsToClaim []string) error {
 	claim, found := k.GetDelegatorClaim(ctx, owner)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
@@ -134,10 +134,12 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
-	rewardCoins := types.MultiplyCoins(syncedClaim.Reward, multiplier.Factor)
+	claimingCoins := types.FilterCoins(syncedClaim.Reward, denomsToClaim)
+	rewardCoins := types.MultiplyCoins(claimingCoins, multiplier.Factor)
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
+
 	length, err := k.GetPeriodLength(ctx, multiplier)
 	if err != nil {
 		return err
@@ -148,7 +150,9 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 		return err
 	}
 
-	k.ZeroDelegatorClaim(ctx, syncedClaim)
+	// remove claimed coins (NOT reward coins)
+	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
+	k.SetDelegatorClaim(ctx, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

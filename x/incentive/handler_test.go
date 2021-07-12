@@ -782,13 +782,13 @@ func (suite *HandlerTestSuite) TestPayoutDelegatorClaim() {
 
 	preClaimAcc := suite.app.GetAccountKeeper().GetAccount(suite.ctx, valAddr)
 
-	// Check rewards cannot be claimed by normal claim msgs
+	// Check rewards cannot be claimed by vvesting claim msgs
 	failMsg := types.NewMsgClaimDelegatorRewardVVesting(valAddr, userAddr, "large")
 	_, err := suite.handler(suite.ctx, failMsg)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim rewards
-	msg := types.NewMsgClaimDelegatorReward(valAddr, "large")
+	msg := types.NewMsgClaimDelegatorReward(valAddr, "large", nil)
 	_, err = suite.handler(suite.ctx, msg)
 	suite.NoError(err)
 
@@ -807,7 +807,59 @@ func (suite *HandlerTestSuite) TestPayoutDelegatorClaim() {
 	// Check that each claim reward coin's amount has been reset to 0
 	claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, valAddr)
 	suite.True(found)
-	suite.True(claim.Reward.IsEqual(nil))
+	suite.Equal(sdk.Coins(nil), claim.Reward)
+}
+
+func (suite *HandlerTestSuite) TestPayoutDelegatorClaimSingleDenom() {
+	userAddr := suite.addrs[0]
+	valAddr := suite.addrs[1]
+
+	authBulder := app.NewAuthGenesisBuilder().
+		WithSimpleAccount(userAddr, cs(c("ukava", 1e12))).
+		WithSimpleAccount(valAddr, cs(c("ukava", 1e12))).
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1e18), c("swap", 1e18)))
+
+	incentBuilder := testutil.NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithMultipliers(types.Multipliers{
+			types.NewMultiplier("large", 12, d("1.0")),
+		}).
+		WithSimpleDelegatorRewardPeriod(types.BondDenom, cs(c("hard", 1e6), c("swap", 1e6)))
+
+	suite.SetupWithGenState(authBulder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
+
+	// create a delegation (need to create a validator first, which will have a self delegation)
+	suite.NoError(
+		suite.deliverMsgCreateValidator(sdk.ValAddress(valAddr), c("ukava", 1e9)),
+	)
+	suite.NextBlockAfter(7 * time.Second) // new block required to bond validator
+
+	// Now the delegation is bonded, accumulate some delegator rewards
+	suite.NextBlockAfter(7 * time.Second)
+
+	preClaimAcc := suite.app.GetAccountKeeper().GetAccount(suite.ctx, valAddr)
+
+	// Claim rewards
+	msg := types.NewMsgClaimDelegatorReward(valAddr, "large", []string{"swap"})
+	_, err := suite.handler(suite.ctx, msg)
+	suite.NoError(err)
+
+	// Check rewards were paid out
+	expectedRewards := c("swap", 2*7*1e6)
+	postClaimAcc := suite.app.GetAccountKeeper().GetAccount(suite.ctx, valAddr)
+	suite.Equal(preClaimAcc.GetCoins().Add(expectedRewards), postClaimAcc.GetCoins())
+
+	expectedPeriods := vesting.Periods{
+		{Length: 33004786, Amount: cs(expectedRewards)},
+	}
+	vacc, ok := postClaimAcc.(*vesting.PeriodicVestingAccount)
+	suite.True(ok)
+	suite.Equal(expectedPeriods, vacc.VestingPeriods)
+
+	// Check that each claim reward coin's amount has been reset to 0
+	claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, valAddr)
+	suite.True(found)
+	suite.Equal(cs(c("hard", 14e6)), claim.Reward)
 }
 
 func (suite *HandlerTestSuite) TestPayoutDelegatorClaimVVesting() {
@@ -849,7 +901,7 @@ func (suite *HandlerTestSuite) TestPayoutDelegatorClaimVVesting() {
 	preClaimAcc := suite.app.GetAccountKeeper().GetAccount(suite.ctx, userAddr)
 
 	// Check rewards cannot be claimed by normal claim msgs
-	failMsg := types.NewMsgClaimDelegatorReward(valAddr, "large")
+	failMsg := types.NewMsgClaimDelegatorReward(valAddr, "large", nil)
 	_, err = suite.handler(suite.ctx, failMsg)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
@@ -873,5 +925,5 @@ func (suite *HandlerTestSuite) TestPayoutDelegatorClaimVVesting() {
 	// Check that each claim reward coin's amount has been reset to 0
 	claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, valAddr)
 	suite.True(found)
-	suite.True(claim.Reward.IsEqual(nil))
+	suite.Equal(sdk.Coins(nil), claim.Reward)
 }
