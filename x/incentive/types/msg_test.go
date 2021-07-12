@@ -3,29 +3,19 @@ package types_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-type msgTest struct {
-	from           sdk.AccAddress
-	multiplierName string
-	expectPass     bool
-}
-
-type MsgTestSuite struct {
-	suite.Suite
-
-	tests []msgTest
-}
-
-func (suite *MsgTestSuite) SetupTest() {
-	tests := []msgTest{
+func TestMsgClaimUSDXMintingReward_Validate(t *testing.T) {
+	tests := []struct {
+		from           sdk.AccAddress
+		multiplierName string
+		expectPass     bool
+	}{
 		{
 			from:           sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
 			multiplierName: "large",
@@ -52,21 +42,13 @@ func (suite *MsgTestSuite) SetupTest() {
 			expectPass:     false,
 		},
 	}
-	suite.tests = tests
-}
-
-func (suite *MsgTestSuite) TestMsgValidation() {
-	for _, t := range suite.tests {
-		msg := types.NewMsgClaimUSDXMintingReward(t.from, t.multiplierName)
+	for _, tc := range tests {
+		msg := types.NewMsgClaimUSDXMintingReward(tc.from, tc.multiplierName)
 		err := msg.ValidateBasic()
-		if t.expectPass {
-			suite.Require().NoError(err)
+		if tc.expectPass {
+			require.NoError(t, err)
 		} else {
-			suite.Require().Error(err)
+			require.Error(t, err)
 		}
 	}
-}
-
-func TestMsgTestSuite(t *testing.T) {
-	suite.Run(t, new(MsgTestSuite))
 }
