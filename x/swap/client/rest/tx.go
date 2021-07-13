@@ -17,6 +17,8 @@ import (
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/deposit", types.ModuleName), postDepositHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/withdraw", types.ModuleName), postWithdrawHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/swapExactForTokens", types.ModuleName), postSwapExactForTokensHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/swapForExactTokens", types.ModuleName), postSwapForExactTokensHandlerFn(cliCtx)).Methods("POST")
 }
 
 func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -53,6 +55,48 @@ func postWithdrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgWithdraw(req.From, req.Shares, req.MinTokenA, req.MinTokenA, req.Deadline)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postSwapExactForTokensHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Decode POST request body
+		var req PostCreateSwapExactForTokensReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		msg := types.NewMsgSwapExactForTokens(req.Requester, req.ExactTokenA, req.TokenB, req.Slippage, req.Deadline)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postSwapForExactTokensHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Decode POST request body
+		var req PostCreateSwapForExactTokensReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		msg := types.NewMsgSwapForExactTokens(req.Requester, req.TokenA, req.ExactTokenB, req.Slippage, req.Deadline)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

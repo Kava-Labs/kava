@@ -69,6 +69,17 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 	suite.Equal(keeper.GetParams(suite.Ctx), params)
 }
 
+func (suite keeperTestSuite) TestParams_GetSwapFee() {
+	keeper := suite.Keeper
+
+	params := types.Params{
+		SwapFee: sdk.MustNewDecFromStr("0.00333"),
+	}
+	keeper.SetParams(suite.Ctx, params)
+
+	suite.Equal(keeper.GetSwapFee(suite.Ctx), params.SwapFee)
+}
+
 func (suite *keeperTestSuite) TestPool_Persistance() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),

@@ -61,6 +61,11 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
+// GetSwapFee returns the swap fee set in the module parameters
+func (k Keeper) GetSwapFee(ctx sdk.Context) sdk.Dec {
+	return k.GetParams(ctx).SwapFee
+}
+
 // GetPool retrieves a pool record from the store
 func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
@@ -174,7 +179,7 @@ func (k Keeper) IterateDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddr
 	}
 }
 
-// GetAllDepositorShares returns all depositor share records from the store for a specific address
+// GetAllDepositorSharesByOwner returns all depositor share records from the store for a specific address
 func (k Keeper) GetAllDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddress) (records types.ShareRecords) {
 	k.IterateDepositorSharesByOwner(ctx, owner, func(record types.ShareRecord) bool {
 		records = append(records, record)
