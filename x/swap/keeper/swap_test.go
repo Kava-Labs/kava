@@ -67,7 +67,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_OutputGreaterThanZero() {
 	coinB := sdk.NewCoin("ukava", sdk.NewInt(1))
 
 	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("1"))
-	suite.EqualError(err, "insufficient liquidity: increase input amount")
+	suite.EqualError(err, "insufficient liquidity: swap output rounds to zero, increase input amount")
 }
 
 func (suite *keeperTestSuite) TestSwapExactForTokens_Slippage() {
@@ -287,7 +287,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInvalidPool() {
 	}, "expected invalid pool record to panic")
 }
 
-func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInsuffientModuleAccFunds() {
+func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInsufficientModuleAccFunds() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
@@ -598,7 +598,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInvalidPool() {
 	}, "expected invalid pool record to panic")
 }
 
-func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInsuffientModuleAccFunds() {
+func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInsufficientModuleAccFunds() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),

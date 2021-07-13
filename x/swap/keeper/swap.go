@@ -18,7 +18,7 @@ func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, e
 
 	swapOutput, feePaid := pool.SwapWithExactInput(exactCoinA, k.GetSwapFee(ctx))
 	if swapOutput.IsZero() {
-		return sdkerrors.Wrapf(types.ErrInsufficientLiquidity, "increase input amount")
+		return sdkerrors.Wrapf(types.ErrInsufficientLiquidity, "swap output rounds to zero, increase input amount")
 	}
 
 	priceChange := swapOutput.Amount.ToDec().Quo(coinB.Amount.ToDec())
