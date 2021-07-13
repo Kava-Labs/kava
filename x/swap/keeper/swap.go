@@ -10,7 +10,7 @@ import (
 )
 
 // SwapExactForTokens swaps an exact coin a input for a coin b output
-func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, exactCoinA, coinB sdk.Coin, slippage sdk.Dec) error {
+func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, exactCoinA, coinB sdk.Coin, slippageLimit sdk.Dec) error {
 	poolID := types.PoolID(exactCoinA.Denom, coinB.Denom)
 
 	poolRecord, found := k.GetPool(ctx, poolID)
@@ -24,6 +24,13 @@ func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, e
 	}
 
 	swapOutput, feePaid := pool.SwapWithExactInput(exactCoinA, k.GetSwapFee(ctx))
+
+	priceChange := swapOutput.Amount.ToDec().Quo(coinB.Amount.ToDec())
+	slippage := sdk.OneDec().Sub(priceChange)
+	if slippage.GT(slippageLimit) {
+		return sdkerrors.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)
+	}
+
 	k.SetPool(ctx, types.NewPoolRecord(pool))
 
 	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, requester, types.ModuleAccountName, sdk.NewCoins(exactCoinA)); err != nil {
@@ -50,7 +57,7 @@ func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, e
 }
 
 // SwapExactForTokens swaps a coin a input for an exact coin b output
-func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, coinA, exactCoinB sdk.Coin, slippage sdk.Dec) error {
+func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, coinA, exactCoinB sdk.Coin, slippageLimit sdk.Dec) error {
 	poolID := types.PoolID(coinA.Denom, exactCoinB.Denom)
 
 	poolRecord, found := k.GetPool(ctx, poolID)
@@ -65,6 +72,13 @@ func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, c
 
 	// TODO: validate output is not greater than pool reserves
 	swapInput, feePaid := pool.SwapWithExactOutput(exactCoinB, k.GetSwapFee(ctx))
+
+	priceChange := coinA.Amount.ToDec().Quo(swapInput.Sub(feePaid).Amount.ToDec())
+	slippage := sdk.OneDec().Sub(priceChange)
+	if slippage.GT(slippageLimit) {
+		return sdkerrors.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)
+	}
+
 	k.SetPool(ctx, types.NewPoolRecord(pool))
 
 	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, requester, types.ModuleAccountName, sdk.NewCoins(swapInput)); err != nil {
