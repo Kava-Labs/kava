@@ -24,6 +24,10 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgDeposit(ctx, k, msg)
 		case types.MsgWithdraw:
 			return handleMsgWithdraw(ctx, k, msg)
+		case types.MsgSwapExactForTokens:
+			return handleMsgSwapExactForTokens(ctx, k, msg)
+		case types.MsgSwapForExactTokens:
+			return handleMsgSwapForExactTokens(ctx, k, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -35,17 +39,7 @@ func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgDeposit) (*
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
-		),
-	)
-
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return resultWithMsgSender(ctx, msg.Depositor), nil
 }
 
 func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) (*sdk.Result, error) {
@@ -53,15 +47,35 @@ func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) 
 		return nil, err
 	}
 
+	return resultWithMsgSender(ctx, msg.From), nil
+}
+
+func handleMsgSwapExactForTokens(ctx sdk.Context, k keeper.Keeper, msg types.MsgSwapExactForTokens) (*sdk.Result, error) {
+	if err := k.SwapExactForTokens(ctx, msg.Requester, msg.ExactTokenA, msg.TokenB, msg.Slippage); err != nil {
+		return nil, err
+	}
+
+	return resultWithMsgSender(ctx, msg.Requester), nil
+}
+
+func handleMsgSwapForExactTokens(ctx sdk.Context, k keeper.Keeper, msg types.MsgSwapForExactTokens) (*sdk.Result, error) {
+	if err := k.SwapForExactTokens(ctx, msg.Requester, msg.TokenA, msg.ExactTokenB, msg.Slippage); err != nil {
+		return nil, err
+	}
+
+	return resultWithMsgSender(ctx, msg.Requester), nil
+}
+
+func resultWithMsgSender(ctx sdk.Context, sender sdk.AccAddress) *sdk.Result {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
 		),
 	)
 
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
-	}, nil
+	}
 }

@@ -104,7 +104,7 @@ func queryPoolHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			poolName = strings.TrimSpace(x)
 		}
 		if len(poolName) == 0 {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("must specify pool param"))
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "must specify pool param")
 			return
 		}
 

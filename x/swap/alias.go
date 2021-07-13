@@ -8,20 +8,26 @@ import (
 )
 
 const (
-	AttributeKeyDepositor  = types.AttributeKeyDepositor
-	AttributeKeyOwner      = types.AttributeKeyOwner
-	AttributeKeyPoolID     = types.AttributeKeyPoolID
-	AttributeKeyShares     = types.AttributeKeyShares
-	AttributeValueCategory = types.AttributeValueCategory
-	DefaultParamspace      = types.DefaultParamspace
-	EventTypeSwapDeposit   = types.EventTypeSwapDeposit
-	EventTypeSwapWithdraw  = types.EventTypeSwapWithdraw
-	ModuleAccountName      = types.ModuleAccountName
-	ModuleName             = types.ModuleName
-	QuerierRoute           = types.QuerierRoute
-	QueryGetParams         = types.QueryGetParams
-	RouterKey              = types.RouterKey
-	StoreKey               = types.StoreKey
+	AttributeKeyDepositor      = types.AttributeKeyDepositor
+	AttributeKeyExactDirection = types.AttributeKeyExactDirection
+	AttributeKeyFeePaid        = types.AttributeKeyFeePaid
+	AttributeKeyOwner          = types.AttributeKeyOwner
+	AttributeKeyPoolID         = types.AttributeKeyPoolID
+	AttributeKeyRequester      = types.AttributeKeyRequester
+	AttributeKeyShares         = types.AttributeKeyShares
+	AttributeKeySwapInput      = types.AttributeKeySwapInput
+	AttributeKeySwapOutput     = types.AttributeKeySwapOutput
+	AttributeValueCategory     = types.AttributeValueCategory
+	DefaultParamspace          = types.DefaultParamspace
+	EventTypeSwapDeposit       = types.EventTypeSwapDeposit
+	EventTypeSwapTrade         = types.EventTypeSwapTrade
+	EventTypeSwapWithdraw      = types.EventTypeSwapWithdraw
+	ModuleAccountName          = types.ModuleAccountName
+	ModuleName                 = types.ModuleName
+	QuerierRoute               = types.QuerierRoute
+	QueryGetParams             = types.QueryGetParams
+	RouterKey                  = types.RouterKey
+	StoreKey                   = types.StoreKey
 )
 
 var (
@@ -39,6 +45,8 @@ var (
 	NewDenominatedPoolWithExistingShares = types.NewDenominatedPoolWithExistingShares
 	NewGenesisState                      = types.NewGenesisState
 	NewMsgDeposit                        = types.NewMsgDeposit
+	NewMsgSwapExactForTokens             = types.NewMsgSwapExactForTokens
+	NewMsgSwapForExactTokens             = types.NewMsgSwapForExactTokens
 	NewMsgWithdraw                       = types.NewMsgWithdraw
 	NewParams                            = types.NewParams
 	NewPoolRecord                        = types.NewPoolRecord
@@ -72,18 +80,20 @@ var (
 )
 
 type (
-	Keeper          = keeper.Keeper
-	AccountKeeper   = types.AccountKeeper
-	AllowedPool     = types.AllowedPool
-	AllowedPools    = types.AllowedPools
-	BasePool        = types.BasePool
-	DenominatedPool = types.DenominatedPool
-	GenesisState    = types.GenesisState
-	MsgDeposit      = types.MsgDeposit
-	MsgWithDeadline = types.MsgWithDeadline
-	MsgWithdraw     = types.MsgWithdraw
-	Params          = types.Params
-	PoolRecord      = types.PoolRecord
-	ShareRecord     = types.ShareRecord
-	SupplyKeeper    = types.SupplyKeeper
+	Keeper                = keeper.Keeper
+	AccountKeeper         = types.AccountKeeper
+	AllowedPool           = types.AllowedPool
+	AllowedPools          = types.AllowedPools
+	BasePool              = types.BasePool
+	DenominatedPool       = types.DenominatedPool
+	GenesisState          = types.GenesisState
+	MsgDeposit            = types.MsgDeposit
+	MsgSwapExactForTokens = types.MsgSwapExactForTokens
+	MsgSwapForExactTokens = types.MsgSwapForExactTokens
+	MsgWithDeadline       = types.MsgWithDeadline
+	MsgWithdraw           = types.MsgWithdraw
+	Params                = types.Params
+	PoolRecord            = types.PoolRecord
+	ShareRecord           = types.ShareRecord
+	SupplyKeeper          = types.SupplyKeeper
 )

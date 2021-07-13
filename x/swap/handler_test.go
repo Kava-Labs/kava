@@ -349,6 +349,226 @@ func (suite *handlerTestSuite) TestWithdraw_DeadlineExceeded() {
 	suite.Nil(res)
 }
 
+func (suite *handlerTestSuite) TestSwapExactForTokens() {
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+	)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+
+	swapInput := sdk.NewCoin("ukava", sdk.NewInt(1e6))
+	swapMsg := swap.NewMsgSwapExactForTokens(
+		requester.GetAddress(),
+		swapInput,
+		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+		sdk.MustNewDecFromStr("0.01"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.handler(ctx, swapMsg)
+	suite.Require().NoError(err)
+
+	expectedSwapOutput := sdk.NewCoin("usdx", sdk.NewInt(4980034))
+
+	suite.AccountBalanceEqual(requester, balance.Sub(sdk.NewCoins(swapInput)).Add(expectedSwapOutput))
+	suite.ModuleAccountBalanceEqual(reserves.Add(swapInput).Sub(sdk.NewCoins(expectedSwapOutput)))
+	suite.PoolLiquidityEqual(reserves.Add(swapInput).Sub(sdk.NewCoins(expectedSwapOutput)))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, requester.GetAddress().String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		bank.EventTypeTransfer,
+		sdk.NewAttribute(bank.AttributeKeyRecipient, swapModuleAccountAddress.String()),
+		sdk.NewAttribute(bank.AttributeKeySender, requester.GetAddress().String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, swapInput.String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		bank.EventTypeTransfer,
+		sdk.NewAttribute(bank.AttributeKeyRecipient, requester.GetAddress().String()),
+		sdk.NewAttribute(bank.AttributeKeySender, swapModuleAccountAddress.String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedSwapOutput.String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		swap.EventTypeSwapTrade,
+		sdk.NewAttribute(swap.AttributeKeyPoolID, swap.PoolID("ukava", "usdx")),
+		sdk.NewAttribute(swap.AttributeKeyRequester, requester.GetAddress().String()),
+		sdk.NewAttribute(swap.AttributeKeySwapInput, swapInput.String()),
+		sdk.NewAttribute(swap.AttributeKeySwapOutput, expectedSwapOutput.String()),
+		sdk.NewAttribute(swap.AttributeKeyFeePaid, "3000ukava"),
+		sdk.NewAttribute(swap.AttributeKeyExactDirection, "input"),
+	))
+}
+
+func (suite *handlerTestSuite) TestSwapExactForTokens_SlippageFailure() {
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(100e6)),
+	)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+
+	swapInput := sdk.NewCoin("ukava", sdk.NewInt(1e6))
+	swapMsg := swap.NewMsgSwapExactForTokens(
+		requester.GetAddress(),
+		swapInput,
+		sdk.NewCoin("usdx", sdk.NewInt(5030338)),
+		sdk.MustNewDecFromStr("0.01"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.handler(ctx, swapMsg)
+	suite.EqualError(err, "slippage exceeded: slippage 0.010000123252155223 > limit 0.010000000000000000")
+	suite.Nil(res)
+}
+
+func (suite *handlerTestSuite) TestSwapExactForTokens_DeadlineExceeded() {
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+	)
+	requester := suite.CreateAccount(balance)
+
+	swapMsg := swap.NewMsgSwapExactForTokens(
+		requester.GetAddress(),
+		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(25e5)),
+		sdk.MustNewDecFromStr("0.01"),
+		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
+	)
+
+	res, err := suite.handler(suite.Ctx, swapMsg)
+	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), swapMsg.GetDeadline().Unix()))
+	suite.Nil(res)
+}
+
+func (suite *handlerTestSuite) TestSwapForExactTokens() {
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+	)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+
+	swapOutput := sdk.NewCoin("usdx", sdk.NewInt(5e6))
+	swapMsg := swap.NewMsgSwapForExactTokens(
+		requester.GetAddress(),
+		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
+		swapOutput,
+		sdk.MustNewDecFromStr("0.01"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.handler(ctx, swapMsg)
+	suite.Require().NoError(err)
+
+	expectedSwapInput := sdk.NewCoin("ukava", sdk.NewInt(1004015))
+
+	suite.AccountBalanceEqual(requester, balance.Sub(sdk.NewCoins(expectedSwapInput)).Add(swapOutput))
+	suite.ModuleAccountBalanceEqual(reserves.Add(expectedSwapInput).Sub(sdk.NewCoins(swapOutput)))
+	suite.PoolLiquidityEqual(reserves.Add(expectedSwapInput).Sub(sdk.NewCoins(swapOutput)))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, swap.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, requester.GetAddress().String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		bank.EventTypeTransfer,
+		sdk.NewAttribute(bank.AttributeKeyRecipient, swapModuleAccountAddress.String()),
+		sdk.NewAttribute(bank.AttributeKeySender, requester.GetAddress().String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedSwapInput.String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		bank.EventTypeTransfer,
+		sdk.NewAttribute(bank.AttributeKeyRecipient, requester.GetAddress().String()),
+		sdk.NewAttribute(bank.AttributeKeySender, swapModuleAccountAddress.String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, swapOutput.String()),
+	))
+
+	suite.EventsContains(res.Events, sdk.NewEvent(
+		swap.EventTypeSwapTrade,
+		sdk.NewAttribute(swap.AttributeKeyPoolID, swap.PoolID("ukava", "usdx")),
+		sdk.NewAttribute(swap.AttributeKeyRequester, requester.GetAddress().String()),
+		sdk.NewAttribute(swap.AttributeKeySwapInput, expectedSwapInput.String()),
+		sdk.NewAttribute(swap.AttributeKeySwapOutput, swapOutput.String()),
+		sdk.NewAttribute(swap.AttributeKeyFeePaid, "3013ukava"),
+		sdk.NewAttribute(swap.AttributeKeyExactDirection, "output"),
+	))
+}
+
+func (suite *handlerTestSuite) TestSwapForExactTokens_SlippageFailure() {
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+	)
+	err := suite.CreatePool(reserves)
+	suite.Require().NoError(err)
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+	)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+
+	swapOutput := sdk.NewCoin("usdx", sdk.NewInt(5e6))
+	swapMsg := swap.NewMsgSwapForExactTokens(
+		requester.GetAddress(),
+		sdk.NewCoin("ukava", sdk.NewInt(990991)),
+		swapOutput,
+		sdk.MustNewDecFromStr("0.01"),
+		time.Now().Add(10*time.Minute).Unix(),
+	)
+
+	ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.handler(ctx, swapMsg)
+	suite.EqualError(err, "slippage exceeded: slippage 0.010000979019022939 > limit 0.010000000000000000")
+	suite.Nil(res)
+}
+
+func (suite *handlerTestSuite) TestSwapForExactTokens_DeadlineExceeded() {
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
+	)
+	requester := suite.CreateAccount(balance)
+
+	swapMsg := swap.NewMsgSwapForExactTokens(
+		requester.GetAddress(),
+		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(25e5)),
+		sdk.MustNewDecFromStr("0.01"),
+		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
+	)
+
+	res, err := suite.handler(suite.Ctx, swapMsg)
+	suite.EqualError(err, fmt.Sprintf("deadline exceeded: block time %d >= deadline %d", suite.Ctx.BlockTime().Unix(), swapMsg.GetDeadline().Unix()))
+	suite.Nil(res)
+}
+
 func (suite *handlerTestSuite) TestInvalidMsg() {
 	res, err := suite.handler(suite.Ctx, sdk.NewTestMsg())
 	suite.Nil(res)
