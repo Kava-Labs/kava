@@ -90,6 +90,8 @@ var (
 	)
 
 	// module account permissions
+	// if these are changed, then the permissions
+	// must also be migrated during a chain upgrade
 	mAccPerms = map[string][]string{
 		auth.FeeCollectorName:       nil,
 		distr.ModuleName:            nil,
@@ -105,6 +107,7 @@ var (
 		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
 		hard.ModuleAccountName:      {supply.Minter},
+		swap.ModuleAccountName:      nil,
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -391,6 +394,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.cdc,
 		keys[swap.StoreKey],
 		swapSubspace,
+		app.accountKeeper,
+		app.supplyKeeper,
 	)
 	app.incentiveKeeper = incentive.NewKeeper(
 		app.cdc,
@@ -494,6 +499,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),
+		swap.NewAppModule(app.swapKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

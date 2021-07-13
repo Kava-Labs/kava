@@ -43,7 +43,7 @@ func TestCommittee(t *testing.T) {
 	err = newGenState.Validate()
 	require.NoError(t, err)
 
-	require.Equal(t, len(oldGenState.Committees), len(newGenState.Committees))
+	require.Equal(t, len(oldGenState.Committees)+2, len(newGenState.Committees)) // New gen state has 2 additional committees
 	for i := 0; i < len(oldGenState.Committees); i++ {
 		require.Equal(t, len(oldGenState.Committees[i].Permissions), len(newGenState.Committees[i].GetPermissions()))
 	}
@@ -55,6 +55,12 @@ func TestCommittee(t *testing.T) {
 	require.Equal(t, len(oldSPCP.AllowedCollateralParams), len(newSPCP.AllowedCollateralParams))
 	require.Equal(t, len(oldSPCP.AllowedMarkets), len(newSPCP.AllowedMarkets))
 	require.Equal(t, len(oldSPCP.AllowedMoneyMarkets), len(newSPCP.AllowedMoneyMarkets))
+}
+
+// exportGenesisJSON is a utility testing method
+func exportGenesisJSON(genState v0_15committee.GenesisState) {
+	v15Cdc := app.MakeCodec()
+	ioutil.WriteFile(filepath.Join("testdata", "kava-8-committee-state.json"), v15Cdc.MustMarshalJSON(genState), 0644)
 }
 
 func TestIncentive(t *testing.T) {

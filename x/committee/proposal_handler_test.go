@@ -106,7 +106,6 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 						VoteThreshold:    suite.testGenesis.Committees[0].GetVoteThreshold(),
 						ProposalDuration: suite.testGenesis.Committees[0].GetProposalDuration(),
 						TallyOption:      types.FirstPastThePost,
-						Type:             types.MemberCommitteeType,
 					},
 				},
 			),
