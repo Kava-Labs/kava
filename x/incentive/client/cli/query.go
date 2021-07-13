@@ -21,7 +21,14 @@ const (
 	flagType     = "type"
 	flagUnsynced = "unsynced"
 	flagDenom    = "denom"
+
+	typeDelegator   = "delegator"
+	typeHard        = "hard"
+	typeUSDXMinting = "usdx-minting"
+	typeSwap        = "swap"
 )
+
+var rewardTypes = []string{typeDelegator, typeHard, typeUSDXMinting, typeSwap}
 
 // GetQueryCmd returns the cli query commands for the incentive module
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
@@ -52,13 +59,14 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			$ %s query %s rewards --type hard
 			$ %s query %s rewards --type usdx-minting
 			$ %s query %s rewards --type delegator
+			$ %s query %s rewards --type swap
 			$ %s query %s rewards --type hard --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
-			$ %s query %s rewards --type hard --unsynced true
+			$ %s query %s rewards --type hard --unsynced
 			`,
 				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName,
 				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName,
 				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName,
-				version.ClientName, types.ModuleName)),
+				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName)),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -76,28 +84,28 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			switch strings.ToLower(strType) {
-			case "hard":
+			case typeHard:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
 				claims, err := executeHardRewardsQuery(queryRoute, cdc, cliCtx, params)
 				if err != nil {
 					return err
 				}
 				return cliCtx.PrintOutput(claims)
-			case "usdx-minting":
+			case typeUSDXMinting:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
 				claims, err := executeUSDXMintingRewardsQuery(queryRoute, cdc, cliCtx, params)
 				if err != nil {
 					return err
 				}
 				return cliCtx.PrintOutput(claims)
-			case "delegator":
+			case typeDelegator:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
 				claims, err := executeDelegatorRewardsQuery(queryRoute, cdc, cliCtx, params)
 				if err != nil {
 					return err
 				}
 				return cliCtx.PrintOutput(claims)
-			case "swap":
+			case typeSwap:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
 				claims, err := executeSwapRewardsQuery(queryRoute, cdc, cliCtx, params)
 				if err != nil {
@@ -140,8 +148,8 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		},
 	}
 	cmd.Flags().String(flagOwner, "", "(optional) filter by owner address")
-	cmd.Flags().String(flagType, "", "(optional) filter by reward type")
-	cmd.Flags().String(flagUnsynced, "", "(optional) get unsynced claims")
+	cmd.Flags().String(flagType, "", fmt.Sprintf("(optional) filter by a reward type: %s", strings.Join(rewardTypes, "|")))
+	cmd.Flags().Bool(flagUnsynced, false, "(optional) get unsynced claims")
 	cmd.Flags().Int(flags.FlagPage, 1, "pagination page rewards of to to query for")
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of rewards to query for")
 	return cmd
