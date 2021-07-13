@@ -1,7 +1,9 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -62,16 +64,35 @@ func NewPoolRecordFromPool(pool *DenominatedPool) PoolRecord {
 	}
 }
 
+// Validate performs basic validation checks of the record data
 func (p PoolRecord) Validate() error {
-	if !p.ReservesA.IsValid() {
-		return fmt.Errorf("pool %s has invalid reserves: %s", p.PoolID, p.ReservesA)
+	if p.PoolID == "" {
+		return errors.New("poolID must be set")
 	}
-	if !p.ReservesB.IsValid() {
-		return fmt.Errorf("pool %s has invalid reserves: %s", p.PoolID, p.ReservesB)
+
+	tokens := strings.Split(p.PoolID, "/")
+	if len(tokens) != 2 || tokens[0] == "" || tokens[1] == "" || tokens[1] < tokens[0] || tokens[0] == tokens[1] {
+		return fmt.Errorf("poolID '%s' is invalid", p.PoolID)
 	}
-	if p.TotalShares.IsNegative() {
-		return fmt.Errorf("pool %s has negative shares: %s", p.PoolID, p.TotalShares)
+	if sdk.ValidateDenom(tokens[0]) != nil || sdk.ValidateDenom(tokens[1]) != nil {
+		return fmt.Errorf("poolID '%s' is invalid", p.PoolID)
 	}
+	if tokens[0] != p.ReservesA.Denom || tokens[1] != p.ReservesB.Denom {
+		return fmt.Errorf("poolID '%s' does not match reserves", p.PoolID)
+	}
+
+	if !p.ReservesA.IsPositive() {
+		return fmt.Errorf("pool '%s' has invalid reserves: %s", p.PoolID, p.ReservesA)
+	}
+
+	if !p.ReservesB.IsPositive() {
+		return fmt.Errorf("pool '%s' has invalid reserves: %s", p.PoolID, p.ReservesB)
+	}
+
+	if !p.TotalShares.IsPositive() {
+		return fmt.Errorf("pool '%s' has invalid total shares: %s", p.PoolID, p.TotalShares)
+	}
+
 	return nil
 }
 
@@ -83,6 +104,7 @@ func (p PoolRecord) Reserves() sdk.Coins {
 // PoolRecords is a slice of PoolRecord
 type PoolRecords []PoolRecord
 
+// Validate performs basic validation checks on all records in the slice
 func (prs PoolRecords) Validate() error {
 	for _, p := range prs {
 		if err := p.Validate(); err != nil {
@@ -111,19 +133,35 @@ func NewShareRecord(depositor sdk.AccAddress, poolID string, sharesOwned sdk.Int
 	}
 }
 
+// Validate performs basic validation checks of the record data
 func (sr ShareRecord) Validate() error {
+	if sr.PoolID == "" {
+		return errors.New("poolID must be set")
+	}
+
+	tokens := strings.Split(sr.PoolID, "/")
+	if len(tokens) != 2 || tokens[0] == "" || tokens[1] == "" || tokens[1] < tokens[0] || tokens[0] == tokens[1] {
+		return fmt.Errorf("poolID '%s' is invalid", sr.PoolID)
+	}
+	if sdk.ValidateDenom(tokens[0]) != nil || sdk.ValidateDenom(tokens[1]) != nil {
+		return fmt.Errorf("poolID '%s' is invalid", sr.PoolID)
+	}
+
 	if sr.Depositor.Empty() {
 		return fmt.Errorf("share record cannot have empty depositor address")
 	}
-	if sr.SharesOwned.IsNegative() {
-		return fmt.Errorf("pool %s depositor %s has negative shares: %s", sr.PoolID, sr.Depositor, sr.SharesOwned)
+
+	if !sr.SharesOwned.IsPositive() {
+		return fmt.Errorf("depositor '%s' and pool '%s' has invalid total shares: %s", sr.Depositor.String(), sr.PoolID, sr.SharesOwned.String())
 	}
+
 	return nil
 }
 
 // ShareRecords is a slice of ShareRecord
 type ShareRecords []ShareRecord
 
+// Validate performs basic validation checks on all records in the slice
 func (srs ShareRecords) Validate() error {
 	for _, sr := range srs {
 		if err := sr.Validate(); err != nil {

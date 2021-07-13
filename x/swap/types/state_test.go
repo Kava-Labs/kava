@@ -110,32 +110,169 @@ total_shares: "3000000"
 	assert.Equal(t, expected, string(data))
 }
 
-func TestState_InvalidPoolRecordNegativeShares(t *testing.T) {
-	record := types.PoolRecord{
-		PoolID:      types.PoolID("ukava", "usdx"),
-		ReservesA:   usdx(50e6),
-		ReservesB:   ukava(10e6),
-		TotalShares: i(-100),
+func TestState_PoolRecord_Validations(t *testing.T) {
+	validRecord := types.NewPoolRecord(
+		sdk.NewCoins(usdx(500e6), ukava(100e6)),
+		i(300e6),
+	)
+	testCases := []struct {
+		name        string
+		poolID      string
+		reservesA   sdk.Coin
+		reservesB   sdk.Coin
+		totalShares sdk.Int
+		expectedErr string
+	}{
+		{
+			name:        "empty pool id",
+			poolID:      "",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID must be set",
+		},
+		{
+			name:        "no poolID tokens",
+			poolID:      "ukavausdx",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID 'ukavausdx' is invalid",
+		},
+		{
+			name:        "poolID empty tokens",
+			poolID:      "/",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID '/' is invalid",
+		},
+		{
+			name:        "poolID empty token a",
+			poolID:      "/usdx",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID '/usdx' is invalid",
+		},
+		{
+			name:        "poolID empty token b",
+			poolID:      "ukava/",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID 'ukava/' is invalid",
+		},
+		{
+			name:        "poolID is not sorted",
+			poolID:      "usdx/ukava",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID 'usdx/ukava' is invalid",
+		},
+		{
+			name:        "poolID has invalid denom a",
+			poolID:      "UKAVA/usdx",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID 'UKAVA/usdx' is invalid",
+		},
+		{
+			name:        "poolID has invalid denom b",
+			poolID:      "ukava/USDX",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID 'ukava/USDX' is invalid",
+		},
+		{
+			name:        "poolID has duplicate denoms",
+			poolID:      "ukava/ukava",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID 'ukava/ukava' is invalid",
+		},
+		{
+			name:        "poolID does not match reserve A",
+			poolID:      "ukava/usdx",
+			reservesA:   hard(5e6),
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID 'ukava/usdx' does not match reserves",
+		},
+		{
+			name:        "poolID does not match reserve B",
+			poolID:      "ukava/usdx",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   hard(5e6),
+			totalShares: validRecord.TotalShares,
+			expectedErr: "poolID 'ukava/usdx' does not match reserves",
+		},
+		{
+			name:        "negative reserve a",
+			poolID:      "ukava/usdx",
+			reservesA:   sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)},
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "pool 'ukava/usdx' has invalid reserves: -1ukava",
+		},
+		{
+			name:        "zero reserve a",
+			poolID:      "ukava/usdx",
+			reservesA:   sdk.Coin{Denom: "ukava", Amount: sdk.ZeroInt()},
+			reservesB:   validRecord.ReservesB,
+			totalShares: validRecord.TotalShares,
+			expectedErr: "pool 'ukava/usdx' has invalid reserves: 0ukava",
+		},
+		{
+			name:        "negative reserve b",
+			poolID:      "ukava/usdx",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   sdk.Coin{Denom: "usdx", Amount: sdk.NewInt(-1)},
+			totalShares: validRecord.TotalShares,
+			expectedErr: "pool 'ukava/usdx' has invalid reserves: -1usdx",
+		},
+		{
+			name:        "zero reserve b",
+			poolID:      "ukava/usdx",
+			reservesA:   validRecord.ReservesA,
+			reservesB:   sdk.Coin{Denom: "usdx", Amount: sdk.ZeroInt()},
+			totalShares: validRecord.TotalShares,
+			expectedErr: "pool 'ukava/usdx' has invalid reserves: 0usdx",
+		},
+		{
+			name:        "negative total shares",
+			poolID:      validRecord.PoolID,
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: sdk.NewInt(-1),
+			expectedErr: "pool 'ukava/usdx' has invalid total shares: -1",
+		},
+		{
+			name:        "zero total shares",
+			poolID:      validRecord.PoolID,
+			reservesA:   validRecord.ReservesA,
+			reservesB:   validRecord.ReservesB,
+			totalShares: sdk.ZeroInt(),
+			expectedErr: "pool 'ukava/usdx' has invalid total shares: 0",
+		},
 	}
-	require.Error(t, record.Validate())
-}
 
-func TestState_InvalidPoolRecordNegativeReserves(t *testing.T) {
-	recordA := types.PoolRecord{
-		PoolID:      types.PoolID("ukava", "usdx"),
-		ReservesA:   sdk.Coin{Denom: "usdx", Amount: i(-50e6)},
-		ReservesB:   ukava(10e6),
-		TotalShares: i(100),
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			record := types.PoolRecord{
+				PoolID:      tc.poolID,
+				ReservesA:   tc.reservesA,
+				ReservesB:   tc.reservesB,
+				TotalShares: tc.totalShares,
+			}
+			err := record.Validate()
+			assert.EqualError(t, err, tc.expectedErr)
+		})
 	}
-	require.Error(t, recordA.Validate())
-
-	recordB := types.PoolRecord{
-		PoolID:      types.PoolID("ukava", "usdx"),
-		ReservesA:   usdx(50e6),
-		ReservesB:   sdk.Coin{Denom: "ukava", Amount: i(-10e6)},
-		TotalShares: i(100),
-	}
-	require.Error(t, recordB.Validate())
 }
 
 func TestState_NewShareRecord(t *testing.T) {
@@ -197,4 +334,111 @@ func TestState_InvalidShareRecordNegativeShares(t *testing.T) {
 		SharesOwned: sdk.NewInt(-1e6),
 	}
 	require.Error(t, record.Validate())
+}
+
+func TestState_ShareRecord_Validations(t *testing.T) {
+	depositor, err := sdk.AccAddressFromBech32("kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w")
+	require.NoError(t, err)
+	validRecord := types.NewShareRecord(
+		depositor,
+		types.PoolID("ukava", "usdx"),
+		i(30e6),
+	)
+	testCases := []struct {
+		name        string
+		depositor   sdk.AccAddress
+		poolID      string
+		sharesOwned sdk.Int
+		expectedErr string
+	}{
+		{
+			name:        "empty pool id",
+			depositor:   validRecord.Depositor,
+			poolID:      "",
+			sharesOwned: validRecord.SharesOwned,
+			expectedErr: "poolID must be set",
+		},
+		{
+			name:        "no poolID tokens",
+			depositor:   validRecord.Depositor,
+			poolID:      "ukavausdx",
+			sharesOwned: validRecord.SharesOwned,
+			expectedErr: "poolID 'ukavausdx' is invalid",
+		},
+		{
+			name:        "poolID empty tokens",
+			depositor:   validRecord.Depositor,
+			poolID:      "/",
+			sharesOwned: validRecord.SharesOwned,
+			expectedErr: "poolID '/' is invalid",
+		},
+		{
+			name:        "poolID empty token a",
+			depositor:   validRecord.Depositor,
+			poolID:      "/usdx",
+			sharesOwned: validRecord.SharesOwned,
+			expectedErr: "poolID '/usdx' is invalid",
+		},
+		{
+			name:        "poolID empty token b",
+			depositor:   validRecord.Depositor,
+			poolID:      "ukava/",
+			sharesOwned: validRecord.SharesOwned,
+			expectedErr: "poolID 'ukava/' is invalid",
+		},
+		{
+			name:        "poolID is not sorted",
+			depositor:   validRecord.Depositor,
+			poolID:      "usdx/ukava",
+			sharesOwned: validRecord.SharesOwned,
+			expectedErr: "poolID 'usdx/ukava' is invalid",
+		},
+		{
+			name:        "poolID has invalid denom a",
+			depositor:   validRecord.Depositor,
+			poolID:      "UKAVA/usdx",
+			sharesOwned: validRecord.SharesOwned,
+			expectedErr: "poolID 'UKAVA/usdx' is invalid",
+		},
+		{
+			name:        "poolID has invalid denom b",
+			depositor:   validRecord.Depositor,
+			poolID:      "ukava/USDX",
+			sharesOwned: validRecord.SharesOwned,
+			expectedErr: "poolID 'ukava/USDX' is invalid",
+		},
+		{
+			name:        "poolID has duplicate denoms",
+			depositor:   validRecord.Depositor,
+			poolID:      "ukava/ukava",
+			sharesOwned: validRecord.SharesOwned,
+			expectedErr: "poolID 'ukava/ukava' is invalid",
+		},
+		{
+			name:        "negative total shares",
+			depositor:   validRecord.Depositor,
+			poolID:      validRecord.PoolID,
+			sharesOwned: sdk.NewInt(-1),
+			expectedErr: "depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and pool 'ukava/usdx' has invalid total shares: -1",
+		},
+		{
+			name:        "zero total shares",
+			depositor:   validRecord.Depositor,
+			poolID:      validRecord.PoolID,
+			sharesOwned: sdk.ZeroInt(),
+			expectedErr: "depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and pool 'ukava/usdx' has invalid total shares: 0",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			record := types.ShareRecord{
+				Depositor:   tc.depositor,
+				PoolID:      tc.poolID,
+				SharesOwned: tc.sharesOwned,
+			}
+			err := record.Validate()
+			assert.EqualError(t, err, tc.expectedErr)
+		})
+	}
 }
