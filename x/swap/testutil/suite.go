@@ -20,7 +20,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-var DefaultSwapFee = sdk.MustNewDecFromStr("0.003")
+var defaultSwapFee = sdk.MustNewDecFromStr("0.003")
 
 // Suite implements a test suite for the swap module integration tests
 type Suite struct {
@@ -113,7 +113,7 @@ func (suite *Suite) CreatePool(reserves sdk.Coins) error {
 	depositor := suite.CreateAccount(reserves)
 	pool := swap.NewAllowedPool(reserves[0].Denom, reserves[1].Denom)
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, swap.NewParams(swap.NewAllowedPools(pool), DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, swap.NewParams(swap.NewAllowedPools(pool), defaultSwapFee))
 
 	return suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdk.MustNewDecFromStr("1"))
 }

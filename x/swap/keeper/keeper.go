@@ -179,7 +179,7 @@ func (k Keeper) IterateDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddr
 	}
 }
 
-// GetAllDepositorShares returns all depositor share records from the store for a specific address
+// GetAllDepositorSharesByOwner returns all depositor share records from the store for a specific address
 func (k Keeper) GetAllDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddress) (records types.ShareRecords) {
 	k.IterateDepositorSharesByOwner(ctx, owner, func(record types.ShareRecord) bool {
 		records = append(records, record)

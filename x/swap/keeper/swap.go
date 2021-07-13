@@ -59,7 +59,7 @@ func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, e
 	return nil
 }
 
-// SwapExactForTokens swaps a coin a input for an exact coin b output
+// SwapForExactTokens swaps a coin a input for an exact coin b output
 func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, coinA, exactCoinB sdk.Coin, slippageLimit sdk.Dec) error {
 	poolID := types.PoolID(coinA.Denom, exactCoinB.Denom)
 
