@@ -87,9 +87,11 @@ func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes
 func (suite *unitTester) storeHardClaim(claim types.HardLiquidityProviderClaim) {
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
 }
-
 func (suite *unitTester) storeDelegatorClaim(claim types.DelegatorClaim) {
 	suite.keeper.SetDelegatorClaim(suite.ctx, claim)
+}
+func (suite *unitTester) storeSwapClaim(claim types.SwapClaim) {
+	suite.keeper.SetSwapClaim(suite.ctx, claim)
 }
 
 type fakeParamSubspace struct {

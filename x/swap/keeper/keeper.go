@@ -14,6 +14,7 @@ type Keeper struct {
 	key           sdk.StoreKey
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
+	hooks         types.SwapHooks
 	accountKeeper types.AccountKeeper
 	supplyKeeper  types.SupplyKeeper
 }
@@ -37,6 +38,15 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		supplyKeeper:  supplyKeeper,
 	}
+}
+
+// SetHooks adds hooks to the keeper.
+func (k *Keeper) SetHooks(sh types.SwapHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set swap hooks twice")
+	}
+	k.hooks = sh
+	return k
 }
 
 // GetParams returns the params from the store

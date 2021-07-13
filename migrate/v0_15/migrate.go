@@ -448,9 +448,10 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		hardSupplyAccumulationTimes,
 		hardBorrowAccumulationTimes,
 		hardDelegatorAccumulationTimes,
-		v0_15incentive.DefaultGenesisAccumulationTimes, // There is no previous swap rewards to accumulation starts at genesis time.
+		v0_15incentive.DefaultGenesisAccumulationTimes, // There is no previous swap rewards so accumulation starts at genesis time.
 		usdxMintingClaims,
 		hardClaims,
 		delegatorClaims,
+		v0_15incentive.DefaultSwapClaims,
 	)
 }

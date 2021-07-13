@@ -60,6 +60,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 		incentive.DefaultUSDXClaims,
 		incentive.DefaultHardClaims,
 		incentive.DefaultDelegatorClaims,
+		incentive.DefaultSwapClaims,
 	)
 	tApp.InitializeFromGenesisStates(authGS, app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)}, NewCDPGenStateMulti(), NewPricefeedGenStateMulti())
 

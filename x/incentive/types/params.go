@@ -38,6 +38,7 @@ var (
 	DefaultUSDXClaims               = USDXMintingClaims{}
 	DefaultHardClaims               = HardLiquidityProviderClaims{}
 	DefaultDelegatorClaims          = DelegatorClaims{}
+	DefaultSwapClaims               = SwapClaims{}
 	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
 	DefaultClaimEnd                 = tmtime.Canonical(time.Unix(1, 0))
 	GovDenom                        = cdptypes.DefaultGovDenom

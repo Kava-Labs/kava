@@ -1,4 +1,4 @@
-package types // noalias
+package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,4 +19,10 @@ type SupplyKeeper interface {
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
 	SetAccount(ctx sdk.Context, acc authexported.Account)
+}
+
+// SwapHooks are event hooks called when a user's deposit to a swap pool changes.
+type SwapHooks interface {
+	AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharedOwned sdk.Int)
+	BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharedOwned sdk.Int)
 }

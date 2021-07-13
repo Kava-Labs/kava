@@ -18,67 +18,125 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 // c is a helper function for created sdk.Coins types in tests
 func cs(coins ...sdk.Coin) sdk.Coins { return sdk.NewCoins(coins...) }
 
-func TestClaimsValidate(t *testing.T) {
+func TestClaims_Validate(t *testing.T) {
 	owner := sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
 
-	testCases := []struct {
-		msg     string
-		claims  USDXMintingClaims
-		expPass bool
-	}{
-		{
-			"valid",
-			USDXMintingClaims{
-				NewUSDXMintingClaim(owner, sdk.NewCoin("bnb", sdk.OneInt()), RewardIndexes{NewRewardIndex("bnb-a", sdk.ZeroDec())}),
-			},
-			true,
-		},
-		{
-			"invalid owner",
-			USDXMintingClaims{
-				USDXMintingClaim{
-					BaseClaim: BaseClaim{
-						Owner: nil,
-					},
-				},
-			},
-			false,
-		},
-		{
-			"invalid reward",
-			USDXMintingClaims{
-				{
-					BaseClaim: BaseClaim{
-						Owner:  owner,
-						Reward: sdk.Coin{Denom: "", Amount: sdk.ZeroInt()},
-					},
-				},
-			},
-			false,
-		},
-		{
-			"invalid collateral type",
-			USDXMintingClaims{
-				{
-					BaseClaim: BaseClaim{
-						Owner:  owner,
-						Reward: sdk.NewCoin("bnb", sdk.OneInt()),
-					},
-					RewardIndexes: []RewardIndex{{"", sdk.ZeroDec()}},
-				},
-			},
-			false,
-		},
-	}
+	t.Run("USDXMintingClaims", func(t *testing.T) {
 
-	for _, tc := range testCases {
-		err := tc.claims.Validate()
-		if tc.expPass {
-			require.NoError(t, err, tc.msg)
-		} else {
-			require.Error(t, err, tc.msg)
+		testCases := []struct {
+			name    string
+			claims  USDXMintingClaims
+			expPass bool
+		}{
+			{
+				"valid",
+				USDXMintingClaims{
+					NewUSDXMintingClaim(owner, sdk.NewCoin("bnb", sdk.OneInt()), RewardIndexes{NewRewardIndex("bnb-a", sdk.ZeroDec())}),
+				},
+				true,
+			},
+			{
+				"invalid owner",
+				USDXMintingClaims{
+					USDXMintingClaim{
+						BaseClaim: BaseClaim{
+							Owner: nil,
+						},
+					},
+				},
+				false,
+			},
+			{
+				"invalid reward",
+				USDXMintingClaims{
+					{
+						BaseClaim: BaseClaim{
+							Owner:  owner,
+							Reward: sdk.Coin{Denom: "", Amount: sdk.ZeroInt()},
+						},
+					},
+				},
+				false,
+			},
+			{
+				"invalid collateral type",
+				USDXMintingClaims{
+					{
+						BaseClaim: BaseClaim{
+							Owner:  owner,
+							Reward: sdk.NewCoin("bnb", sdk.OneInt()),
+						},
+						RewardIndexes: []RewardIndex{{"", sdk.ZeroDec()}},
+					},
+				},
+				false,
+			},
 		}
-	}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				err := tc.claims.Validate()
+				if tc.expPass {
+					require.NoError(t, err)
+				} else {
+					require.Error(t, err)
+				}
+			})
+		}
+	})
+	t.Run("SwapClaims", func(t *testing.T) {
+
+		validRewardIndexes := RewardIndexes{}.With("swap", d("0.002"))
+		validMultiRewardIndexes := MultiRewardIndexes{}.With("btcb/usdx", validRewardIndexes)
+		invalidRewardIndexes := RewardIndexes{}.With("swap", d("-0.002"))
+		invalidMultiRewardIndexes := MultiRewardIndexes{}.With("btcb/usdx", invalidRewardIndexes)
+
+		testCases := []struct {
+			name    string
+			claims  SwapClaims
+			expPass bool
+		}{
+			{
+				name: "valid",
+				claims: SwapClaims{
+					NewSwapClaim(owner, cs(c("bnb", 1)), validMultiRewardIndexes),
+				},
+				expPass: true,
+			},
+			{
+				name: "invalid owner",
+				claims: SwapClaims{
+					NewSwapClaim(nil, cs(c("bnb", 1)), validMultiRewardIndexes),
+				},
+				expPass: false,
+			},
+			{
+				name: "invalid reward",
+				claims: SwapClaims{
+					NewSwapClaim(owner, sdk.Coins{sdk.Coin{Denom: "invalid😫"}}, validMultiRewardIndexes),
+				},
+				expPass: false,
+			},
+			{
+				name: "invalid indexes",
+				claims: SwapClaims{
+					NewSwapClaim(nil, cs(c("bnb", 1)), invalidMultiRewardIndexes),
+				},
+				expPass: false,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				err := tc.claims.Validate()
+				if tc.expPass {
+					require.NoError(t, err)
+				} else {
+					require.Error(t, err)
+				}
+			})
+		}
+	})
 }
 
 func TestRewardIndexes(t *testing.T) {

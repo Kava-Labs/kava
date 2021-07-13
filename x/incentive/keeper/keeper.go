@@ -259,6 +259,55 @@ func (k Keeper) GetAllDelegatorClaims(ctx sdk.Context) types.DelegatorClaims {
 	return cs
 }
 
+// GetSwapClaim returns the claim in the store corresponding the the input address.
+func (k Keeper) GetSwapClaim(ctx sdk.Context, addr sdk.AccAddress) (types.SwapClaim, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapClaimKeyPrefix)
+	bz := store.Get(addr)
+	if bz == nil {
+		return types.SwapClaim{}, false
+	}
+	var c types.SwapClaim
+	k.cdc.MustUnmarshalBinaryBare(bz, &c)
+	return c, true
+}
+
+// SetSwapClaim sets the claim in the store corresponding to the input address.
+func (k Keeper) SetSwapClaim(ctx sdk.Context, c types.SwapClaim) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapClaimKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(c)
+	store.Set(c.Owner, bz)
+}
+
+// DeleteSwapClaim deletes the claim in the store corresponding to the input address.
+func (k Keeper) DeleteSwapClaim(ctx sdk.Context, owner sdk.AccAddress) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapClaimKeyPrefix)
+	store.Delete(owner)
+}
+
+// IterateSwapClaims iterates over all claim  objects in the store and preforms a callback function
+func (k Keeper) IterateSwapClaims(ctx sdk.Context, cb func(c types.SwapClaim) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapClaimKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var c types.SwapClaim
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &c)
+		if cb(c) {
+			break
+		}
+	}
+}
+
+// GetAllSwapClaims returns all Claim objects in the store
+func (k Keeper) GetAllSwapClaims(ctx sdk.Context) types.SwapClaims {
+	cs := types.SwapClaims{}
+	k.IterateSwapClaims(ctx, func(c types.SwapClaim) (stop bool) {
+		cs = append(cs, c)
+		return false
+	})
+	return cs
+}
+
 // SetHardSupplyRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetHardSupplyRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
@@ -426,6 +475,20 @@ func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolID string) (types.Rewa
 	var rewardIndexes types.RewardIndexes
 	k.cdc.MustUnmarshalBinaryBare(bz, &rewardIndexes)
 	return rewardIndexes, true
+}
+
+// IterateSwapRewardIndexes iterates over all swap reward index objects in the store and preforms a callback function
+func (k Keeper) IterateSwapRewardIndexes(ctx sdk.Context, cb func(poolID string, indexes types.RewardIndexes) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var indexes types.RewardIndexes
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &indexes)
+		if cb(string(iterator.Key()), indexes) {
+			break
+		}
+	}
 }
 
 // GetSwapRewardAccrualTime fetches the last time rewards were accrued for a swap pool.
