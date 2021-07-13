@@ -337,6 +337,30 @@ func (suite *keeperTestSuite) TestSwapForExactTokens() {
 	))
 }
 
+func (suite *keeperTestSuite) TestSwapForExactTokens_OutputLessThanPoolReserves() {
+	owner := suite.CreateAccount(sdk.Coins{})
+	reserves := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(100e6)),
+		sdk.NewCoin("usdx", sdk.NewInt(500e6)),
+	)
+	totalShares := sdk.NewInt(300e6)
+	suite.setupPool(reserves, totalShares, owner.GetAddress())
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+	)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
+
+	coinB := sdk.NewCoin("usdx", sdk.NewInt(500e6).Add(sdk.OneInt()))
+	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	suite.EqualError(err, "insufficient liquidity: output 500000001 >= pool reserves 500000000")
+
+	coinB = sdk.NewCoin("usdx", sdk.NewInt(500e6))
+	err = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	suite.EqualError(err, "insufficient liquidity: output 500000000 >= pool reserves 500000000")
+}
+
 func (suite *keeperTestSuite) TestSwapForExactTokens_Slippage() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
