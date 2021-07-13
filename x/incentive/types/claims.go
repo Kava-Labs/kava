@@ -341,7 +341,7 @@ func (c SwapClaim) GetReward() sdk.Coins { return c.Reward }
 // GetOwner returns the claim's owner
 func (c SwapClaim) GetOwner() sdk.AccAddress { return c.Owner }
 
-// Validate performs a basic check of a HardLiquidityProviderClaim fields
+// Validate performs a basic check of a SwapClaim fields
 func (c SwapClaim) Validate() error {
 	if err := c.RewardIndexes.Validate(); err != nil {
 		return err
