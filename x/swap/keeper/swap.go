@@ -71,7 +71,10 @@ func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, c
 	}
 
 	if exactCoinB.Amount.GTE(pool.Reserves().AmountOf(exactCoinB.Denom)) {
-		return sdkerrors.Wrapf(types.ErrInsufficientLiquidity, "output %s >= pool reserves %s", exactCoinB.Amount.String(), pool.Reserves().AmountOf(exactCoinB.Denom).String())
+		return sdkerrors.Wrapf(
+			types.ErrInsufficientLiquidity,
+			"output %s >= pool reserves %s", exactCoinB.Amount.String(), pool.Reserves().AmountOf(exactCoinB.Denom).String(),
+		)
 	}
 
 	swapInput, feePaid := pool.SwapWithExactOutput(exactCoinB, k.GetSwapFee(ctx))
