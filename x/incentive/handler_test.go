@@ -970,3 +970,103 @@ func (suite *HandlerTestSuite) TestPayoutDelegatorClaimVVesting() {
 	// Check that each claim reward coin's amount has been reset to 0
 	suite.DelegatorRewardEquals(valAddr, nil)
 }
+
+func (suite *HandlerTestSuite) TestPayoutSwapClaim() {
+	userAddr := suite.addrs[0]
+
+	authBulder := app.NewAuthGenesisBuilder().
+		WithSimpleAccount(userAddr, cs(c("ukava", 1e12), c("busd", 1e12))).
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("swap", 1e18)))
+
+	incentBuilder := testutil.NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithMultipliers(types.Multipliers{
+			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
+		}).
+		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("swap", 1e6)))
+
+	suite.SetupWithGenState(authBulder, incentBuilder)
+
+	// deposit into a swap pool
+	suite.NoError(
+		suite.DeliverSwapMsgDeposit(userAddr, c("ukava", 1e9), c("busd", 1e9), d("1.0")),
+	)
+
+	// accumulate some swap rewards
+	suite.NextBlockAfter(7 * time.Second)
+
+	preClaimBal := suite.GetBalance(userAddr)
+
+	// Check rewards cannot be claimed by vvesting claim msgs
+	failMsg := types.NewMsgClaimSwapRewardVVesting(userAddr, suite.addrs[2], "large")
+	_, err := suite.handler(suite.ctx, failMsg)
+	suite.ErrorIs(err, types.ErrInvalidAccountType)
+
+	// Claim rewards
+	msg := types.NewMsgClaimSwapReward(userAddr, "large")
+	_, err = suite.handler(suite.ctx, msg)
+	suite.NoError(err)
+
+	// Check rewards were paid out
+	expectedRewards := c("swap", 7*1e6)
+	suite.BalanceEquals(userAddr, preClaimBal.Add(expectedRewards))
+
+	suite.VestingPeriodsEqual(userAddr, vesting.Periods{
+		{Length: 33004793, Amount: cs(expectedRewards)},
+	})
+
+	// Check that each claim reward coin's amount has been reset to 0
+	suite.SwapRewardEquals(userAddr, nil)
+}
+
+func (suite *HandlerTestSuite) TestPayoutSwapClaimVVesting() {
+	valAddr := suite.addrs[0]
+	receiverAddr := suite.addrs[1]
+
+	vva := suite.NewValidatorVestingAccountWithBalance(valAddr, cs(c("ukava", 1e12), c("busd", 1e12)))
+
+	authBulder := app.NewAuthGenesisBuilder().
+		WithAccounts(vva).
+		WithSimpleAccount(receiverAddr, nil).
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("swap", 1e18)))
+
+	incentBuilder := testutil.NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithMultipliers(types.Multipliers{
+			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
+		}).
+		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("swap", 1e6)))
+
+	suite.SetupWithGenState(authBulder, incentBuilder)
+
+	// deposit into a swap pool
+	suite.NoError(
+		suite.DeliverSwapMsgDeposit(valAddr, c("ukava", 1e9), c("busd", 1e9), d("1.0")),
+	)
+
+	// accumulate some swap rewards
+	suite.NextBlockAfter(7 * time.Second)
+
+	preClaimBal := suite.GetBalance(receiverAddr)
+
+	// Check rewards cannot be claimed by normal claim msgs
+	failMsg := types.NewMsgClaimSwapReward(valAddr, "large")
+	_, err := suite.handler(suite.ctx, failMsg)
+	suite.ErrorIs(err, types.ErrInvalidAccountType)
+
+	// Claim rewards
+	msg := types.NewMsgClaimSwapRewardVVesting(valAddr, receiverAddr, "large")
+	_, err = suite.handler(suite.ctx, msg)
+	suite.NoError(err)
+
+	// Check rewards were paid out
+	expectedRewards := c("swap", 7*1e6)
+	suite.BalanceEquals(receiverAddr, preClaimBal.Add(expectedRewards))
+
+	suite.VestingPeriodsEqual(receiverAddr, vesting.Periods{
+		{Length: 33004793, Amount: cs(expectedRewards)},
+	})
+
+	// Check that each claim reward coin's amount has been reset to 0
+	suite.SwapRewardEquals(valAddr, nil)
+}

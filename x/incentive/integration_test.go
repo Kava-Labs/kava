@@ -10,6 +10,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/pricefeed"
+	"github.com/kava-labs/kava/x/swap"
 )
 
 func NewCDPGenStateMulti() app.GenesisState {
@@ -176,5 +177,17 @@ func NewStakingGenesisState() app.GenesisState {
 	genState.Params.BondDenom = "ukava"
 	return app.GenesisState{
 		staking.ModuleName: staking.ModuleCdc.MustMarshalJSON(genState),
+	}
+}
+
+func NewSwapGenesisState() app.GenesisState {
+	genesis := swap.NewGenesisState(
+		swap.NewParams(
+			swap.NewAllowedPools(swap.NewAllowedPool("busd", "ukava")),
+			d("0.0"),
+		),
+	)
+	return app.GenesisState{
+		swap.ModuleName: swap.ModuleCdc.MustMarshalJSON(genesis),
 	}
 }

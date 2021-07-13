@@ -8,7 +8,8 @@ import (
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
-// ClaimUSDXMintingReward sends the reward amount to the input receiver address and zero's out the claim in the store
+// ClaimUSDXMintingReward pays out funds from a claim to a receiver account.
+// Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName) error {
 	claim, found := k.GetUSDXMintingClaim(ctx, owner)
 	if !found {
@@ -59,7 +60,8 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 	return nil
 }
 
-// ClaimHardReward sends the reward amount to the input address and zero's out the claim in the store
+// ClaimHardReward pays out funds from a claim to a receiver account.
+// Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName) error {
 	_, found := k.GetHardLiquidityProviderClaim(ctx, owner)
 	if !found {
@@ -111,7 +113,8 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	return nil
 }
 
-// ClaimDelegatorReward sends the reward amount to the input address and zero's out the claim in the store
+// ClaimDelegatorReward pays out funds from a claim to a receiver account.
+// Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName, denomsToClaim []string) error {
 	claim, found := k.GetDelegatorClaim(ctx, owner)
 	if !found {
@@ -153,6 +156,59 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 	// remove claimed coins (NOT reward coins)
 	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
 	k.SetDelegatorClaim(ctx, syncedClaim)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeClaim,
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, syncedClaim.GetOwner().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, syncedClaim.GetReward().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
+		),
+	)
+	return nil
+}
+
+// ClaimSwapReward pays out funds from a claim to a receiver account.
+// Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
+func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName) error {
+	_, found := k.GetSwapClaim(ctx, owner)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
+	}
+
+	multiplier, found := k.GetMultiplier(ctx, multiplierName)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(multiplierName))
+	}
+
+	claimEnd := k.GetClaimEnd(ctx)
+
+	if ctx.BlockTime().After(claimEnd) {
+		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
+	}
+
+	syncedClaim, found := k.GetSynchronizedSwapClaim(ctx, owner)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
+	}
+
+	rewardCoins := types.MultiplyCoins(syncedClaim.Reward, multiplier.Factor)
+	if rewardCoins.IsZero() {
+		return types.ErrZeroClaim
+	}
+	length, err := k.GetPeriodLength(ctx, multiplier)
+	if err != nil {
+		return err
+	}
+
+	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
+	if err != nil {
+		return err
+	}
+
+	// remove claimed coins (NOT reward coins)
+	syncedClaim.Reward = sdk.NewCoins()
+	k.SetSwapClaim(ctx, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
