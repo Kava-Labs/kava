@@ -38,7 +38,7 @@ func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, e
 	}
 
 	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, requester, sdk.NewCoins(swapOutput)); err != nil {
-		return err
+		panic(err)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -86,7 +86,7 @@ func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, c
 	}
 
 	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, requester, sdk.NewCoins(exactCoinB)); err != nil {
-		return err
+		panic(err)
 	}
 
 	ctx.EventManager().EmitEvent(
