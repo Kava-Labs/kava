@@ -33,7 +33,7 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestClaimIndexesAreRemovedForDeno
 		},
 		SupplyRewardIndexes: nonEmptyMultiRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 	suite.storeGlobalSupplyIndexes(claim.SupplyRewardIndexes)
 
 	// remove one denom from the indexes already in the deposit
@@ -56,7 +56,7 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestClaimIndexesAreAddedForNewlyS
 		},
 		SupplyRewardIndexes: nonEmptyMultiRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 	globalIndexes := appendUniqueMultiRewardIndex(claim.SupplyRewardIndexes)
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
@@ -78,7 +78,7 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestClaimIndexesAreUnchangedWhenS
 		},
 		SupplyRewardIndexes: nonEmptyMultiRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 	// Set global indexes with same denoms but different values.
 	// UpdateHardSupplyIndexDenoms should ignore the new values.
 	suite.storeGlobalSupplyIndexes(increaseAllRewardFactors(claim.SupplyRewardIndexes))
@@ -101,7 +101,7 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestEmptyClaimIndexesAreAddedForN
 		},
 		SupplyRewardIndexes: nonEmptyMultiRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 	suite.storeGlobalSupplyIndexes(claim.SupplyRewardIndexes)
 
 	// add a denom to the deposited amount that is not in the global or claim's indexes

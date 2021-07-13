@@ -39,7 +39,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenGlo
 		},
 		BorrowRewardIndexes: nonEmptyMultiRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 
 	globalIndexes := increaseAllRewardFactors(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalBorrowIndexes(globalIndexes)
@@ -64,7 +64,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUnchangedWhenG
 		},
 		BorrowRewardIndexes: unchangingIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 
 	suite.storeGlobalBorrowIndexes(unchangingIndexes)
 
@@ -88,7 +88,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 		},
 		BorrowRewardIndexes: nonEmptyMultiRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 
 	globalIndexes := appendUniqueMultiRewardIndex(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalBorrowIndexes(globalIndexes)
@@ -114,7 +114,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 		},
 		BorrowRewardIndexes: nonEmptyMultiRewardIndexes,
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 
 	globalIndexes := appendUniqueRewardIndexToFirstItem(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalBorrowIndexes(globalIndexes)
@@ -155,7 +155,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenGlobal
 			},
 		},
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 
 	suite.storeGlobalBorrowIndexes(types.MultiRewardIndexes{
 		{
@@ -206,7 +206,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRew
 			},
 		},
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -269,7 +269,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRew
 			},
 		},
 	}
-	suite.storeClaim(claim)
+	suite.storeHardClaim(claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{

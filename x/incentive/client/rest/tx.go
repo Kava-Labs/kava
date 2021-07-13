@@ -20,7 +20,8 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/incentive/claim-cdp-vesting", postClaimCdpVVestingHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/incentive/claim-hard", postClaimHardHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/incentive/claim-hard-vesting", postClaimHardVVestingHandlerFn(cliCtx)).Methods("POST")
-
+	r.HandleFunc("/incentive/claim-delegator", postClaimDelegatorHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/incentive/claim-delegator-vesting", postClaimDelegatorVVestingHandlerFn(cliCtx)).Methods("POST")
 }
 
 func postClaimCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -146,6 +147,72 @@ func postClaimHardVVestingHandlerFn(cliCtx context.CLIContext) http.HandlerFunc 
 		}
 
 		msg := types.NewMsgClaimHardRewardVVesting(requestBody.Sender, requestBody.Receiver, requestBody.MultiplierName)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postClaimDelegatorHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var requestBody PostClaimReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+			return
+		}
+
+		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
+		if !requestBody.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if !bytes.Equal(fromAddr, requestBody.Sender) {
+			rest.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Sprintf("expected: %s, got: %s", fromAddr, requestBody.Sender))
+			return
+		}
+
+		msg := types.NewMsgClaimDelegatorReward(requestBody.Sender, requestBody.MultiplierName)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postClaimDelegatorVVestingHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var requestBody PostClaimVVestingReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+			return
+		}
+
+		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
+		if !requestBody.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if !bytes.Equal(fromAddr, requestBody.Sender) {
+			rest.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Sprintf("expected: %s, got: %s", fromAddr, requestBody.Sender))
+			return
+		}
+
+		msg := types.NewMsgClaimDelegatorRewardVVesting(requestBody.Sender, requestBody.Receiver, requestBody.MultiplierName)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

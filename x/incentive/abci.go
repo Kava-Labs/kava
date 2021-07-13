@@ -27,10 +27,13 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 			panic(err)
 		}
 	}
-	for _, rp := range params.HardDelegatorRewardPeriods {
-		err := k.AccumulateHardDelegatorRewards(ctx, rp)
+	for _, rp := range params.DelegatorRewardPeriods {
+		err := k.AccumulateDelegatorRewards(ctx, rp)
 		if err != nil {
 			panic(err)
 		}
+	}
+	for _, rp := range params.SwapRewardPeriods {
+		k.AccumulateSwapRewards(ctx, rp)
 	}
 }

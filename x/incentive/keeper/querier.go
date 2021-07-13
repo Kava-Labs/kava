@@ -25,6 +25,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetUSDXMintingRewards(ctx, req, k)
 		case types.QueryGetUSDXMintingRewardsUnsynced:
 			return queryGetUSDXMintingRewardsUnsynced(ctx, req, k)
+		case types.QueryGetDelegatorRewards:
+			return queryGetDelegatorRewards(ctx, req, k)
+		case types.QueryGetDelegatorRewardsUnsynced:
+			return queryGetDelegatorRewardsUnsynced(ctx, req, k)
 		case types.QueryGetRewardFactors:
 			return queryGetRewardFactors(ctx, req, k)
 		default:
@@ -198,6 +202,82 @@ func queryGetUSDXMintingRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, 
 	return bz, nil
 }
 
+func queryGetDelegatorRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryDelegatorRewardsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	owner := len(params.Owner) > 0
+
+	var delegatorClaims types.DelegatorClaims
+	switch {
+	case owner:
+		delegatorClaim, foundDelegatorClaim := k.GetDelegatorClaim(ctx, params.Owner)
+		if foundDelegatorClaim {
+			delegatorClaims = append(delegatorClaims, delegatorClaim)
+		}
+	default:
+		delegatorClaims = k.GetAllDelegatorClaims(ctx)
+	}
+
+	var paginatedDelegatorClaims types.DelegatorClaims
+	startH, endH := client.Paginate(len(delegatorClaims), params.Page, params.Limit, 100)
+	if startH < 0 || endH < 0 {
+		paginatedDelegatorClaims = types.DelegatorClaims{}
+	} else {
+		paginatedDelegatorClaims = delegatorClaims[startH:endH]
+	}
+
+	var augmentedDelegatorClaims types.DelegatorClaims
+	for _, claim := range paginatedDelegatorClaims {
+		augmentedClaim := k.SimulateDelegatorSynchronization(ctx, claim)
+		augmentedDelegatorClaims = append(augmentedDelegatorClaims, augmentedClaim)
+	}
+
+	// Marshal Hard claims
+	bz, err := codec.MarshalJSONIndent(k.cdc, augmentedDelegatorClaims)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryGetDelegatorRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryDelegatorRewardsUnsyncedParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	owner := len(params.Owner) > 0
+
+	var delegatorClaims types.DelegatorClaims
+	switch {
+	case owner:
+		delegatorClaim, foundHardClaim := k.GetDelegatorClaim(ctx, params.Owner)
+		if foundHardClaim {
+			delegatorClaims = append(delegatorClaims, delegatorClaim)
+		}
+	default:
+		delegatorClaims = k.GetAllDelegatorClaims(ctx)
+	}
+
+	var paginatedDelegatorClaims types.DelegatorClaims
+	startH, endH := client.Paginate(len(delegatorClaims), params.Page, params.Limit, 100)
+	if startH < 0 || endH < 0 {
+		paginatedDelegatorClaims = types.DelegatorClaims{}
+	} else {
+		paginatedDelegatorClaims = delegatorClaims[startH:endH]
+	}
+
+	// Marshal Hard claims
+	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedDelegatorClaims)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
 func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryRewardFactorsParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
@@ -223,9 +303,9 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]
 		if found {
 			rewardFactor.HardBorrowRewardFactors = hardBorrowRewardIndexes
 		}
-		hardDelegatorRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, params.Denom)
+		delegatorRewardIndexes, found := k.GetDelegatorRewardIndexes(ctx, params.Denom)
 		if found {
-			rewardFactor.HardDelegatorRewardFactor = hardDelegatorRewardFactor
+			rewardFactor.DelegatorRewardFactors = delegatorRewardIndexes
 		}
 		rewardFactors = append(rewardFactors, rewardFactor)
 	} else {
@@ -262,13 +342,13 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]
 			return false
 		})
 
-		// Populate mapping with Hard delegator reward factors
-		k.IterateHardDelegatorRewardFactors(ctx, func(denom string, factor sdk.Dec) (stop bool) {
+		// Populate mapping with delegator reward factors
+		k.IterateDelegatorRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
 			rewardFactor, ok := rewardFactorMap[denom]
 			if !ok {
-				rewardFactor = types.RewardFactor{Denom: denom, HardDelegatorRewardFactor: factor}
+				rewardFactor = types.RewardFactor{Denom: denom, DelegatorRewardFactors: indexes}
 			} else {
-				rewardFactor.HardDelegatorRewardFactor = factor
+				rewardFactor.DelegatorRewardFactors = indexes
 			}
 			rewardFactorMap[denom] = rewardFactor
 			return false

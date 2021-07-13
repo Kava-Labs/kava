@@ -51,7 +51,7 @@ func (suite *unitTester) SetupSuite() {
 
 func (suite *unitTester) SetupTest() {
 	suite.ctx = NewTestContext(suite.incentiveStoreKey)
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil)
 }
 
 func (suite *unitTester) TearDownTest() {
@@ -59,8 +59,8 @@ func (suite *unitTester) TearDownTest() {
 	suite.ctx = sdk.Context{}
 }
 
-func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, sk types.SupplyKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper) keeper.Keeper {
-	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, sk, cdpk, hk, ak, stk)
+func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, sk types.SupplyKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper) keeper.Keeper {
+	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, sk, cdpk, hk, ak, stk, swk)
 }
 
 func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {
@@ -73,9 +73,23 @@ func (suite *unitTester) storeGlobalSupplyIndexes(indexes types.MultiRewardIndex
 		suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
+func (suite *unitTester) storeGlobalDelegatorIndexes(multiRewardIndexes types.MultiRewardIndexes) {
+	// Hardcoded to use bond denom
+	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
+	suite.keeper.SetDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
+}
+func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes) {
+	for _, i := range indexes {
+		suite.keeper.SetSwapRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
+	}
+}
 
-func (suite *unitTester) storeClaim(claim types.HardLiquidityProviderClaim) {
+func (suite *unitTester) storeHardClaim(claim types.HardLiquidityProviderClaim) {
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
+}
+
+func (suite *unitTester) storeDelegatorClaim(claim types.DelegatorClaim) {
+	suite.keeper.SetDelegatorClaim(suite.ctx, claim)
 }
 
 type fakeParamSubspace struct {
@@ -89,7 +103,7 @@ func (subspace *fakeParamSubspace) SetParamSet(_ sdk.Context, ps params.ParamSet
 	subspace.params = *(ps.(*types.Params))
 }
 func (subspace *fakeParamSubspace) HasKeyTable() bool {
-	// return true so the keeper does no try to set the key table, which does nothing
+	// return true so the keeper does not try to call WithKeyTable, which does nothing
 	return true
 }
 func (subspace *fakeParamSubspace) WithKeyTable(params.KeyTable) params.Subspace {

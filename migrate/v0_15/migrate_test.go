@@ -9,11 +9,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/kava-labs/kava/app"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
-
-	"github.com/stretchr/testify/require"
+	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
+	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 )
 
 func TestMain(m *testing.M) {
@@ -59,4 +61,26 @@ func TestCommittee(t *testing.T) {
 func exportGenesisJSON(genState v0_15committee.GenesisState) {
 	v15Cdc := app.MakeCodec()
 	ioutil.WriteFile(filepath.Join("testdata", "kava-8-committee-state.json"), v15Cdc.MustMarshalJSON(genState), 0644)
+}
+
+func TestIncentive(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-incentive-state.json"))
+	require.NoError(t, err)
+	var oldIncentiveGenState v0_14incentive.GenesisState
+	cdc := app.MakeCodec()
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldIncentiveGenState)
+	})
+
+	newGenState := v0_15incentive.GenesisState{}
+	require.NotPanics(t, func() {
+		newGenState = Incentive(oldIncentiveGenState)
+	})
+	err = newGenState.Validate()
+	require.NoError(t, err)
+
+	require.Equal(t, len(oldIncentiveGenState.USDXMintingClaims), len(newGenState.USDXMintingClaims))
+	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.HardLiquidityProviderClaims))
+	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
+	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
 }

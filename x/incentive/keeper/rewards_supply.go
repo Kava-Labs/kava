@@ -82,7 +82,7 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.Deposit) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil)
 	}
 
 	var supplyRewardIndexes types.MultiRewardIndexes
@@ -143,7 +143,7 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.Deposit) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil)
 	}
 
 	depositDenoms := getDenoms(deposit.Amount)
@@ -186,9 +186,6 @@ func (k Keeper) SynchronizeHardLiquidityProviderClaim(ctx sdk.Context, owner sdk
 	if foundBorrow {
 		k.SynchronizeHardBorrowReward(ctx, borrow)
 	}
-
-	// Synchronize any hard delegator rewards
-	k.SynchronizeHardDelegatorRewards(ctx, owner, nil, false)
 }
 
 // ZeroHardLiquidityProviderClaim zeroes out the claim object's rewards and returns the updated claim object
@@ -299,58 +296,6 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 			claim.Reward = claim.Reward.Add(newRewardsCoin)
 		}
 	}
-
-	// 3. Simulate Hard delegator rewards
-	delagatorFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
-	if !found {
-		return claim
-	}
-
-	delegatorIndex, hasDelegatorRewardIndex := claim.HasDelegatorRewardIndex(types.BondDenom)
-	if !hasDelegatorRewardIndex {
-		return claim
-	}
-
-	userRewardFactor := claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor
-	rewardsAccumulatedFactor := delagatorFactor.Sub(userRewardFactor)
-	if rewardsAccumulatedFactor.IsZero() {
-		return claim
-	}
-	claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor = delagatorFactor
-
-	totalDelegated := sdk.ZeroDec()
-
-	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, claim.GetOwner(), 200)
-	for _, delegation := range delegations {
-		validator, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
-		if !found {
-			continue
-		}
-
-		// Delegators don't accumulate rewards if their validator is unbonded/slashed
-		if validator.GetStatus() != sdk.Bonded {
-			continue
-		}
-
-		if validator.GetTokens().IsZero() {
-			continue
-		}
-
-		delegatedTokens := validator.TokensFromShares(delegation.GetShares())
-		if delegatedTokens.IsZero() || delegatedTokens.IsNegative() {
-			continue
-		}
-		totalDelegated = totalDelegated.Add(delegatedTokens)
-	}
-
-	rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
-	if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
-		return claim
-	}
-
-	// Add rewards to delegator's hard claim
-	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
-	claim.Reward = claim.Reward.Add(newRewardsCoin)
 
 	return claim
 }

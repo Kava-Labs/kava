@@ -8,38 +8,45 @@ import (
 
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-	Params                         Params                      `json:"params" yaml:"params"`
-	USDXAccumulationTimes          GenesisAccumulationTimes    `json:"usdx_accumulation_times" yaml:"usdx_accumulation_times"`
-	HardSupplyAccumulationTimes    GenesisAccumulationTimes    `json:"hard_supply_accumulation_times" yaml:"hard_supply_accumulation_times"`
-	HardBorrowAccumulationTimes    GenesisAccumulationTimes    `json:"hard_borrow_accumulation_times" yaml:"hard_borrow_accumulation_times"`
-	HardDelegatorAccumulationTimes GenesisAccumulationTimes    `json:"hard_delegator_accumulation_times" yaml:"hard_delegator_accumulation_times"`
-	USDXMintingClaims              USDXMintingClaims           `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
-	HardLiquidityProviderClaims    HardLiquidityProviderClaims `json:"hard_liquidity_provider_claims" yaml:"hard_liquidity_provider_claims"`
+	Params                      Params                      `json:"params" yaml:"params"`
+	USDXAccumulationTimes       GenesisAccumulationTimes    `json:"usdx_accumulation_times" yaml:"usdx_accumulation_times"`
+	HardSupplyAccumulationTimes GenesisAccumulationTimes    `json:"hard_supply_accumulation_times" yaml:"hard_supply_accumulation_times"`
+	HardBorrowAccumulationTimes GenesisAccumulationTimes    `json:"hard_borrow_accumulation_times" yaml:"hard_borrow_accumulation_times"`
+	DelegatorAccumulationTimes  GenesisAccumulationTimes    `json:"delegator_accumulation_times" yaml:"delegator_accumulation_times"`
+	SwapAccumulationTimes       GenesisAccumulationTimes    `json:"swap_accumulation_times" yaml:"swap_accumulation_times"`
+	USDXMintingClaims           USDXMintingClaims           `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
+	HardLiquidityProviderClaims HardLiquidityProviderClaims `json:"hard_liquidity_provider_claims" yaml:"hard_liquidity_provider_claims"`
+	DelegatorClaims             DelegatorClaims             `json:"delegator_claims" yaml:"delegator_claims"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, usdxAccumTimes, hardSupplyAccumTimes, hardBorrowAccumTimes, hardDelegatorAccumTimes GenesisAccumulationTimes, c USDXMintingClaims, hc HardLiquidityProviderClaims) GenesisState {
+func NewGenesisState(params Params, usdxAccumTimes, hardSupplyAccumTimes, hardBorrowAccumTimes, delegatorAccumTimes,
+	swapAccumTimes GenesisAccumulationTimes, c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims) GenesisState {
 	return GenesisState{
-		Params:                         params,
-		USDXAccumulationTimes:          usdxAccumTimes,
-		HardSupplyAccumulationTimes:    hardSupplyAccumTimes,
-		HardBorrowAccumulationTimes:    hardBorrowAccumTimes,
-		HardDelegatorAccumulationTimes: hardDelegatorAccumTimes,
-		USDXMintingClaims:              c,
-		HardLiquidityProviderClaims:    hc,
+		Params:                      params,
+		USDXAccumulationTimes:       usdxAccumTimes,
+		HardSupplyAccumulationTimes: hardSupplyAccumTimes,
+		HardBorrowAccumulationTimes: hardBorrowAccumTimes,
+		DelegatorAccumulationTimes:  delegatorAccumTimes,
+		SwapAccumulationTimes:       swapAccumTimes,
+		USDXMintingClaims:           c,
+		HardLiquidityProviderClaims: hc,
+		DelegatorClaims:             dc,
 	}
 }
 
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params:                         DefaultParams(),
-		USDXAccumulationTimes:          GenesisAccumulationTimes{},
-		HardSupplyAccumulationTimes:    GenesisAccumulationTimes{},
-		HardBorrowAccumulationTimes:    GenesisAccumulationTimes{},
-		HardDelegatorAccumulationTimes: GenesisAccumulationTimes{},
-		USDXMintingClaims:              DefaultUSDXClaims,
-		HardLiquidityProviderClaims:    DefaultHardClaims,
+		Params:                      DefaultParams(),
+		USDXAccumulationTimes:       GenesisAccumulationTimes{},
+		HardSupplyAccumulationTimes: GenesisAccumulationTimes{},
+		HardBorrowAccumulationTimes: GenesisAccumulationTimes{},
+		DelegatorAccumulationTimes:  GenesisAccumulationTimes{},
+		SwapAccumulationTimes:       GenesisAccumulationTimes{},
+		USDXMintingClaims:           DefaultUSDXClaims,
+		HardLiquidityProviderClaims: DefaultHardClaims,
+		DelegatorClaims:             DefaultDelegatorClaims,
 	}
 }
 
@@ -58,14 +65,20 @@ func (gs GenesisState) Validate() error {
 	if err := gs.HardBorrowAccumulationTimes.Validate(); err != nil {
 		return err
 	}
-	if err := gs.HardDelegatorAccumulationTimes.Validate(); err != nil {
+	if err := gs.DelegatorAccumulationTimes.Validate(); err != nil {
+		return err
+	}
+	if err := gs.SwapAccumulationTimes.Validate(); err != nil {
 		return err
 	}
 
 	if err := gs.HardLiquidityProviderClaims.Validate(); err != nil {
 		return err
 	}
-	return gs.USDXMintingClaims.Validate()
+	if err := gs.USDXMintingClaims.Validate(); err != nil {
+		return err
+	}
+	return gs.DelegatorClaims.Validate()
 }
 
 // Equal checks whether two gov GenesisState structs are equivalent

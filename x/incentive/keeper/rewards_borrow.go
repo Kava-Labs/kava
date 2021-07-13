@@ -81,7 +81,7 @@ func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.
 func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower, sdk.Coins{}, nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower, sdk.Coins{}, nil, nil)
 	}
 
 	var borrowRewardIndexes types.MultiRewardIndexes
@@ -142,7 +142,7 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower, sdk.Coins{}, nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower, sdk.Coins{}, nil, nil)
 	}
 
 	borrowDenoms := getDenoms(borrow.Amount)

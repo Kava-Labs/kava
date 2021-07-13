@@ -14,18 +14,20 @@ import (
 type Keeper struct {
 	accountKeeper types.AccountKeeper
 	cdc           *codec.Codec
-	cdpKeeper     types.CdpKeeper
-	hardKeeper    types.HardKeeper
 	key           sdk.StoreKey
 	paramSubspace types.ParamSubspace
 	supplyKeeper  types.SupplyKeeper
+	cdpKeeper     types.CdpKeeper
+	hardKeeper    types.HardKeeper
 	stakingKeeper types.StakingKeeper
+	swapKeeper    types.SwapKeeper
 }
 
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc *codec.Codec, key sdk.StoreKey, paramstore types.ParamSubspace, sk types.SupplyKeeper,
 	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
+	swpk types.SwapKeeper,
 ) Keeper {
 
 	if !paramstore.HasKeyTable() {
@@ -35,12 +37,13 @@ func NewKeeper(
 	return Keeper{
 		accountKeeper: ak,
 		cdc:           cdc,
-		cdpKeeper:     cdpk,
-		hardKeeper:    hk,
 		key:           key,
 		paramSubspace: paramstore,
 		supplyKeeper:  sk,
+		cdpKeeper:     cdpk,
+		hardKeeper:    hk,
 		stakingKeeper: stk,
+		swapKeeper:    swpk,
 	}
 }
 
@@ -207,6 +210,55 @@ func (k Keeper) GetAllHardLiquidityProviderClaims(ctx sdk.Context) types.HardLiq
 	return cs
 }
 
+// GetDelegatorClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
+func (k Keeper) GetDelegatorClaim(ctx sdk.Context, addr sdk.AccAddress) (types.DelegatorClaim, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorClaimKeyPrefix)
+	bz := store.Get(addr)
+	if bz == nil {
+		return types.DelegatorClaim{}, false
+	}
+	var c types.DelegatorClaim
+	k.cdc.MustUnmarshalBinaryBare(bz, &c)
+	return c, true
+}
+
+// SetDelegatorClaim sets the claim in the store corresponding to the input address, collateral type, and id
+func (k Keeper) SetDelegatorClaim(ctx sdk.Context, c types.DelegatorClaim) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorClaimKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(c)
+	store.Set(c.Owner, bz)
+}
+
+// DeleteDelegatorClaim deletes the claim in the store corresponding to the input address, collateral type, and id
+func (k Keeper) DeleteDelegatorClaim(ctx sdk.Context, owner sdk.AccAddress) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorClaimKeyPrefix)
+	store.Delete(owner)
+}
+
+// IterateDelegatorClaims iterates over all claim  objects in the store and preforms a callback function
+func (k Keeper) IterateDelegatorClaims(ctx sdk.Context, cb func(c types.DelegatorClaim) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorClaimKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var c types.DelegatorClaim
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &c)
+		if cb(c) {
+			break
+		}
+	}
+}
+
+// GetAllDelegatorClaims returns all DelegatorClaim objects in the store
+func (k Keeper) GetAllDelegatorClaims(ctx sdk.Context) types.DelegatorClaims {
+	cs := types.DelegatorClaims{}
+	k.IterateDelegatorClaims(ctx, func(c types.DelegatorClaim) (stop bool) {
+		cs = append(cs, c)
+		return false
+	})
+	return cs
+}
+
 // SetHardSupplyRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetHardSupplyRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
@@ -273,32 +325,34 @@ func (k Keeper) IterateHardBorrowRewardIndexes(ctx sdk.Context, cb func(denom st
 	}
 }
 
-// GetHardDelegatorRewardFactor returns the current reward factor for an individual collateral type
-func (k Keeper) GetHardDelegatorRewardFactor(ctx sdk.Context, ctype string) (factor sdk.Dec, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
-	bz := store.Get([]byte(ctype))
+// GetDelegatorRewardIndexes gets the current reward indexes for an individual denom
+func (k Keeper) GetDelegatorRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
+	bz := store.Get([]byte(denom))
 	if bz == nil {
-		return sdk.ZeroDec(), false
+		return types.RewardIndexes{}, false
 	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &factor)
-	return factor, true
+	var rewardIndexes types.RewardIndexes
+	k.cdc.MustUnmarshalBinaryBare(bz, &rewardIndexes)
+	return rewardIndexes, true
 }
 
-// SetHardDelegatorRewardFactor sets the current reward factor for an individual collateral type
-func (k Keeper) SetHardDelegatorRewardFactor(ctx sdk.Context, ctype string, factor sdk.Dec) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
-	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(factor))
+// SetDelegatorRewardIndexes sets the current reward indexes for an individual denom
+func (k Keeper) SetDelegatorRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(indexes)
+	store.Set([]byte(denom), bz)
 }
 
-// IterateHardDelegatorRewardFactors iterates over all Hard delegator reward factor objects in the store and preforms a callback function
-func (k Keeper) IterateHardDelegatorRewardFactors(ctx sdk.Context, cb func(denom string, factor sdk.Dec) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
+// IterateDelegatorRewardIndexes iterates over all delegator reward index objects in the store and preforms a callback function
+func (k Keeper) IterateDelegatorRewardIndexes(ctx sdk.Context, cb func(denom string, indexes types.RewardIndexes) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var factor sdk.Dec
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &factor)
-		if cb(string(iterator.Key()), factor) {
+		var indexes types.RewardIndexes
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &indexes)
+		if cb(string(iterator.Key()), indexes) {
 			break
 		}
 	}
@@ -338,9 +392,9 @@ func (k Keeper) SetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom st
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
 }
 
-// GetPreviousHardDelegatorRewardAccrualTime returns the last time a denom accrued Hard protocol delegator rewards
-func (k Keeper) GetPreviousHardDelegatorRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix)
+// GetPreviousDelegatorRewardAccrualTime returns the last time a denom accrued protocol delegator rewards
+func (k Keeper) GetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousDelegatorRewardAccrualTimeKeyPrefix)
 	bz := store.Get([]byte(denom))
 	if bz == nil {
 		return time.Time{}, false
@@ -349,8 +403,44 @@ func (k Keeper) GetPreviousHardDelegatorRewardAccrualTime(ctx sdk.Context, denom
 	return blockTime, true
 }
 
-// SetPreviousHardDelegatorRewardAccrualTime sets the last time a denom accrued Hard protocol delegator rewards
-func (k Keeper) SetPreviousHardDelegatorRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix)
+// SetPreviousDelegatorRewardAccrualTime sets the last time a denom accrued protocol delegator rewards
+func (k Keeper) SetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousDelegatorRewardAccrualTimeKeyPrefix)
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
+}
+
+// SetSwapRewardIndexes stores the global reward indexes that track total rewards to a swap pool.
+func (k Keeper) SetSwapRewardIndexes(ctx sdk.Context, poolID string, indexes types.RewardIndexes) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(indexes)
+	store.Set([]byte(poolID), bz)
+}
+
+// GetSwapRewardIndexes fetches the global reward indexes that track total rewards to a swap pool.
+func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolID string) (types.RewardIndexes, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
+	bz := store.Get([]byte(poolID))
+	if bz == nil {
+		return types.RewardIndexes{}, false
+	}
+	var rewardIndexes types.RewardIndexes
+	k.cdc.MustUnmarshalBinaryBare(bz, &rewardIndexes)
+	return rewardIndexes, true
+}
+
+// GetSwapRewardAccrualTime fetches the last time rewards were accrued for a swap pool.
+func (k Keeper) GetSwapRewardAccrualTime(ctx sdk.Context, poolID string) (blockTime time.Time, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
+	bz := store.Get([]byte(poolID))
+	if bz == nil {
+		return time.Time{}, false
+	}
+	k.cdc.MustUnmarshalBinaryBare(bz, &blockTime)
+	return blockTime, true
+}
+
+// SetSwapRewardAccrualTime stores the last time rewards were accrued for a swap pool.
+func (k Keeper) SetSwapRewardAccrualTime(ctx sdk.Context, poolID string, blockTime time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
+	store.Set([]byte(poolID), k.cdc.MustMarshalBinaryBare(blockTime))
 }
