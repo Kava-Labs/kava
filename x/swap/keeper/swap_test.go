@@ -1,9 +1,11 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/x/swap/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -136,6 +138,78 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_Slippage() {
 	}
 }
 
+func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds() {
+	testCases := []struct {
+		name     string
+		balanceA sdk.Coin
+		coinA    sdk.Coin
+		coinB    sdk.Coin
+	}{
+		{"no ukava balance", sdk.NewCoin("ukava", sdk.ZeroInt()), sdk.NewCoin("ukava", sdk.NewInt(100)), sdk.NewCoin("usdx", sdk.NewInt(500))},
+		{"no usdx balance", sdk.NewCoin("usdx", sdk.ZeroInt()), sdk.NewCoin("usdx", sdk.NewInt(500)), sdk.NewCoin("ukava", sdk.NewInt(100))},
+		{"low ukava balance", sdk.NewCoin("ukava", sdk.NewInt(1000000)), sdk.NewCoin("ukava", sdk.NewInt(1000001)), sdk.NewCoin("usdx", sdk.NewInt(5000000))},
+		{"low ukava balance", sdk.NewCoin("usdx", sdk.NewInt(5000000)), sdk.NewCoin("usdx", sdk.NewInt(5000001)), sdk.NewCoin("ukava", sdk.NewInt(1000000))},
+		{"large ukava balance difference", sdk.NewCoin("ukava", sdk.NewInt(100e6)), sdk.NewCoin("ukava", sdk.NewInt(1000e6)), sdk.NewCoin("usdx", sdk.NewInt(5000e6))},
+		{"large usdx balance difference", sdk.NewCoin("usdx", sdk.NewInt(500e6)), sdk.NewCoin("usdx", sdk.NewInt(5000e6)), sdk.NewCoin("ukava", sdk.NewInt(1000e6))},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			owner := suite.CreateAccount(sdk.Coins{})
+			reserves := sdk.NewCoins(
+				sdk.NewCoin("ukava", sdk.NewInt(100000e6)),
+				sdk.NewCoin("usdx", sdk.NewInt(500000e6)),
+			)
+			totalShares := sdk.NewInt(30000e6)
+			suite.setupPool(reserves, totalShares, owner.GetAddress())
+			balance := sdk.NewCoins(tc.balanceA)
+			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+
+			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
+		})
+	}
+}
+
+func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds_Vesting() {
+	testCases := []struct {
+		name     string
+		balanceA sdk.Coin
+		vestingA sdk.Coin
+		coinA    sdk.Coin
+		coinB    sdk.Coin
+	}{
+		{"no ukava balance, vesting only", sdk.NewCoin("ukava", sdk.ZeroInt()), sdk.NewCoin("ukava", sdk.NewInt(100)), sdk.NewCoin("ukava", sdk.NewInt(100)), sdk.NewCoin("usdx", sdk.NewInt(500))},
+		{"no usdx balance, vesting only", sdk.NewCoin("usdx", sdk.ZeroInt()), sdk.NewCoin("usdx", sdk.NewInt(500)), sdk.NewCoin("usdx", sdk.NewInt(500)), sdk.NewCoin("ukava", sdk.NewInt(100))},
+		{"low ukava balance, vesting matches exact", sdk.NewCoin("ukava", sdk.NewInt(1000000)), sdk.NewCoin("ukava", sdk.NewInt(1)), sdk.NewCoin("ukava", sdk.NewInt(1000001)), sdk.NewCoin("usdx", sdk.NewInt(5000000))},
+		{"low ukava balance, vesting matches exact", sdk.NewCoin("usdx", sdk.NewInt(5000000)), sdk.NewCoin("usdx", sdk.NewInt(1)), sdk.NewCoin("usdx", sdk.NewInt(5000001)), sdk.NewCoin("ukava", sdk.NewInt(1000000))},
+		{"large ukava balance difference, vesting covers difference", sdk.NewCoin("ukava", sdk.NewInt(100e6)), sdk.NewCoin("ukava", sdk.NewInt(1000e6)), sdk.NewCoin("ukava", sdk.NewInt(1000e6)), sdk.NewCoin("usdx", sdk.NewInt(5000e6))},
+		{"large usdx balance difference, vesting covers difference", sdk.NewCoin("usdx", sdk.NewInt(500e6)), sdk.NewCoin("usdx", sdk.NewInt(5000e6)), sdk.NewCoin("usdx", sdk.NewInt(5000e6)), sdk.NewCoin("ukava", sdk.NewInt(1000e6))},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			owner := suite.CreateAccount(sdk.Coins{})
+			reserves := sdk.NewCoins(
+				sdk.NewCoin("ukava", sdk.NewInt(100000e6)),
+				sdk.NewCoin("usdx", sdk.NewInt(500000e6)),
+			)
+			totalShares := sdk.NewInt(30000e6)
+			suite.setupPool(reserves, totalShares, owner.GetAddress())
+			balance := sdk.NewCoins(tc.balanceA)
+			vesting := sdk.NewCoins(tc.vestingA)
+			requester := suite.CreateVestingAccount(balance, vesting)
+
+			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
+		})
+	}
+}
+
 func (suite *keeperTestSuite) TestSwapForExactTokens() {
 	suite.Keeper.SetParams(suite.Ctx, types.Params{
 		SwapFee: sdk.MustNewDecFromStr("0.0025"),
@@ -259,6 +333,78 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_Slippage() {
 			} else {
 				suite.NoError(err)
 			}
+		})
+	}
+}
+
+func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds() {
+	testCases := []struct {
+		name     string
+		balanceA sdk.Coin
+		coinA    sdk.Coin
+		coinB    sdk.Coin
+	}{
+		{"no ukava balance", sdk.NewCoin("ukava", sdk.ZeroInt()), sdk.NewCoin("ukava", sdk.NewInt(100)), sdk.NewCoin("usdx", sdk.NewInt(500))},
+		{"no usdx balance", sdk.NewCoin("usdx", sdk.ZeroInt()), sdk.NewCoin("usdx", sdk.NewInt(500)), sdk.NewCoin("ukava", sdk.NewInt(100))},
+		{"low ukava balance", sdk.NewCoin("ukava", sdk.NewInt(1000000)), sdk.NewCoin("ukava", sdk.NewInt(1000000)), sdk.NewCoin("usdx", sdk.NewInt(5000000))},
+		{"low ukava balance", sdk.NewCoin("usdx", sdk.NewInt(5000000)), sdk.NewCoin("usdx", sdk.NewInt(5000000)), sdk.NewCoin("ukava", sdk.NewInt(1000000))},
+		{"large ukava balance difference", sdk.NewCoin("ukava", sdk.NewInt(100e6)), sdk.NewCoin("ukava", sdk.NewInt(1000e6)), sdk.NewCoin("usdx", sdk.NewInt(5000e6))},
+		{"large usdx balance difference", sdk.NewCoin("usdx", sdk.NewInt(500e6)), sdk.NewCoin("usdx", sdk.NewInt(5000e6)), sdk.NewCoin("ukava", sdk.NewInt(1000e6))},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			owner := suite.CreateAccount(sdk.Coins{})
+			reserves := sdk.NewCoins(
+				sdk.NewCoin("ukava", sdk.NewInt(100000e6)),
+				sdk.NewCoin("usdx", sdk.NewInt(500000e6)),
+			)
+			totalShares := sdk.NewInt(30000e6)
+			suite.setupPool(reserves, totalShares, owner.GetAddress())
+			balance := sdk.NewCoins(tc.balanceA)
+			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+
+			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
+		})
+	}
+}
+
+func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds_Vesting() {
+	testCases := []struct {
+		name     string
+		balanceA sdk.Coin
+		vestingA sdk.Coin
+		coinA    sdk.Coin
+		coinB    sdk.Coin
+	}{
+		{"no ukava balance, vesting only", sdk.NewCoin("ukava", sdk.ZeroInt()), sdk.NewCoin("ukava", sdk.NewInt(100)), sdk.NewCoin("ukava", sdk.NewInt(1000)), sdk.NewCoin("usdx", sdk.NewInt(500))},
+		{"no usdx balance, vesting only", sdk.NewCoin("usdx", sdk.ZeroInt()), sdk.NewCoin("usdx", sdk.NewInt(500)), sdk.NewCoin("usdx", sdk.NewInt(5000)), sdk.NewCoin("ukava", sdk.NewInt(100))},
+		{"low ukava balance, vesting matches exact", sdk.NewCoin("ukava", sdk.NewInt(1000000)), sdk.NewCoin("ukava", sdk.NewInt(100000)), sdk.NewCoin("ukava", sdk.NewInt(1000000)), sdk.NewCoin("usdx", sdk.NewInt(5000000))},
+		{"low ukava balance, vesting matches exact", sdk.NewCoin("usdx", sdk.NewInt(5000000)), sdk.NewCoin("usdx", sdk.NewInt(500000)), sdk.NewCoin("usdx", sdk.NewInt(5000000)), sdk.NewCoin("ukava", sdk.NewInt(1000000))},
+		{"large ukava balance difference, vesting covers difference", sdk.NewCoin("ukava", sdk.NewInt(100e6)), sdk.NewCoin("ukava", sdk.NewInt(10000e6)), sdk.NewCoin("ukava", sdk.NewInt(1000e6)), sdk.NewCoin("usdx", sdk.NewInt(5000e6))},
+		{"large usdx balance difference, vesting covers difference", sdk.NewCoin("usdx", sdk.NewInt(500e6)), sdk.NewCoin("usdx", sdk.NewInt(500000e6)), sdk.NewCoin("usdx", sdk.NewInt(5000e6)), sdk.NewCoin("ukava", sdk.NewInt(1000e6))},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			owner := suite.CreateAccount(sdk.Coins{})
+			reserves := sdk.NewCoins(
+				sdk.NewCoin("ukava", sdk.NewInt(100000e6)),
+				sdk.NewCoin("usdx", sdk.NewInt(500000e6)),
+			)
+			totalShares := sdk.NewInt(30000e6)
+			suite.setupPool(reserves, totalShares, owner.GetAddress())
+			balance := sdk.NewCoins(tc.balanceA)
+			vesting := sdk.NewCoins(tc.vestingA)
+			requester := suite.CreateVestingAccount(balance, vesting)
+
+			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
 	}
 }
