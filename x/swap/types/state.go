@@ -25,10 +25,41 @@ func PoolID(denomA string, denomB string) string {
 // and is used to store the state of a denominated pool
 type PoolRecord struct {
 	// primary key
-	PoolID      string
+	PoolID      string   `json:"pool_id" yaml:"pool_id"`
 	ReservesA   sdk.Coin `json:"reserves_a" yaml:"reserves_a"`
 	ReservesB   sdk.Coin `json:"reserves_b" yaml:"reserves_b"`
 	TotalShares sdk.Int  `json:"total_shares" yaml:"total_shares"`
+}
+
+// NewPoolRecord takes reserve coins and total shares, returning
+// a new pool record with a id
+func NewPoolRecord(reserves sdk.Coins, totalShares sdk.Int) PoolRecord {
+	if len(reserves) != 2 {
+		panic("reserves must have two denominations")
+	}
+
+	poolID := PoolIDFromCoins(reserves)
+
+	return PoolRecord{
+		PoolID:      poolID,
+		ReservesA:   reserves[0],
+		ReservesB:   reserves[1],
+		TotalShares: totalShares,
+	}
+}
+
+// NewPoolRecordFromPool takes a pointer to a denominated pool and returns a
+// pool record for storage in state.
+func NewPoolRecordFromPool(pool *DenominatedPool) PoolRecord {
+	reserves := pool.Reserves()
+	poolID := PoolIDFromCoins(reserves)
+
+	return PoolRecord{
+		PoolID:      poolID,
+		ReservesA:   reserves[0],
+		ReservesB:   reserves[1],
+		TotalShares: pool.TotalShares(),
+	}
 }
 
 func (p PoolRecord) Validate() error {
@@ -47,20 +78,6 @@ func (p PoolRecord) Validate() error {
 // Reserves returns the total reserves for a pool
 func (p PoolRecord) Reserves() sdk.Coins {
 	return sdk.NewCoins(p.ReservesA, p.ReservesB)
-}
-
-// NewPoolRecord takes a pointer to a denominated pool and returns a
-// pool record for storage in state.
-func NewPoolRecord(pool *DenominatedPool) PoolRecord {
-	reserves := pool.Reserves()
-	poolID := PoolIDFromCoins(reserves)
-
-	return PoolRecord{
-		PoolID:      poolID,
-		ReservesA:   reserves[0],
-		ReservesB:   reserves[1],
-		TotalShares: pool.TotalShares(),
-	}
 }
 
 // PoolRecords is a slice of PoolRecord

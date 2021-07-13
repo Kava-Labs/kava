@@ -77,7 +77,7 @@ func (suite *keeperTestSuite) TestPool_Persistance() {
 
 	pool, err := types.NewDenominatedPool(reserves)
 	suite.Nil(err)
-	record := types.NewPoolRecord(pool)
+	record := types.NewPoolRecordFromPool(pool)
 
 	suite.Keeper.SetPool(suite.Ctx, record)
 
