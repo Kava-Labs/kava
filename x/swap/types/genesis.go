@@ -2,15 +2,24 @@ package types
 
 import "bytes"
 
+var (
+	DefaultPoolRecords  = PoolRecords{}
+	DefaultShareRecords = ShareRecords{}
+)
+
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-	Params Params `json:"params" yaml:"params"`
+	Params       Params `json:"params" yaml:"params"`
+	PoolRecords  `json:"pool_records" yaml:"pool_records"`
+	ShareRecords `json:"share_records" yaml:"share_records"`
 }
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState(params Params) GenesisState {
+func NewGenesisState(params Params, poolRecords PoolRecords, shareRecords ShareRecords) GenesisState {
 	return GenesisState{
-		Params: params,
+		Params:       params,
+		PoolRecords:  poolRecords,
+		ShareRecords: shareRecords,
 	}
 }
 
@@ -19,13 +28,18 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	return nil
+	if err := gs.PoolRecords.Validate(); err != nil {
+		return err
+	}
+	return gs.ShareRecords.Validate()
 }
 
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
 		DefaultParams(),
+		DefaultPoolRecords,
+		DefaultShareRecords,
 	)
 }
 

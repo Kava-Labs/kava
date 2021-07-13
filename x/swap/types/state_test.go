@@ -48,6 +48,35 @@ func TestState_NewPoolRecord(t *testing.T) {
 	assert.Equal(t, record.ReservesB, usdx(50e6))
 	assert.Equal(t, pool.TotalShares(), record.TotalShares)
 	assert.Equal(t, sdk.NewCoins(ukava(10e6), usdx(50e6)), record.Reserves())
+	assert.Nil(t, record.Validate())
+}
+
+func TestState_InvalidPoolRecordNegativeShares(t *testing.T) {
+	record := types.PoolRecord{
+		PoolID:      types.PoolID("ukava", "usdx"),
+		ReservesA:   usdx(50e6),
+		ReservesB:   ukava(10e6),
+		TotalShares: i(-100),
+	}
+	require.Error(t, record.Validate())
+}
+
+func TestState_InvalidPoolRecordNegativeReserves(t *testing.T) {
+	recordA := types.PoolRecord{
+		PoolID:      types.PoolID("ukava", "usdx"),
+		ReservesA:   sdk.Coin{Denom: "usdx", Amount: i(-50e6)},
+		ReservesB:   ukava(10e6),
+		TotalShares: i(100),
+	}
+	require.Error(t, recordA.Validate())
+
+	recordB := types.PoolRecord{
+		PoolID:      types.PoolID("ukava", "usdx"),
+		ReservesA:   usdx(50e6),
+		ReservesB:   sdk.Coin{Denom: "ukava", Amount: i(-10e6)},
+		TotalShares: i(100),
+	}
+	require.Error(t, recordB.Validate())
 }
 
 func TestState_NewShareRecord(t *testing.T) {
@@ -60,4 +89,22 @@ func TestState_NewShareRecord(t *testing.T) {
 	assert.Equal(t, depositor, record.Depositor)
 	assert.Equal(t, poolID, record.PoolID)
 	assert.Equal(t, shares, record.SharesOwned)
+}
+
+func TestState_InvalidShareRecordEmptyDepositor(t *testing.T) {
+	record := types.ShareRecord{
+		Depositor:   sdk.AccAddress{},
+		PoolID:      types.PoolID("ukava", "usdx"),
+		SharesOwned: sdk.NewInt(1e6),
+	}
+	require.Error(t, record.Validate())
+}
+
+func TestState_InvalidShareRecordNegativeShares(t *testing.T) {
+	record := types.ShareRecord{
+		Depositor:   sdk.AccAddress("some user"),
+		PoolID:      types.PoolID("ukava", "usdx"),
+		SharesOwned: sdk.NewInt(-1e6),
+	}
+	require.Error(t, record.Validate())
 }

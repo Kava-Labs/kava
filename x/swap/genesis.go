@@ -15,10 +15,18 @@ func InitGenesis(ctx sdk.Context, k Keeper, gs types.GenesisState) {
 	}
 
 	k.SetParams(ctx, gs.Params)
+	for _, pr := range gs.PoolRecords {
+		k.SetPool(ctx, pr)
+	}
+	for _, sh := range gs.ShareRecords {
+		k.SetDepositorShares(ctx, sh)
+	}
 }
 
 // ExportGenesis exports the genesis state
 func ExportGenesis(ctx sdk.Context, k Keeper) types.GenesisState {
 	params := k.GetParams(ctx)
-	return types.NewGenesisState(params)
+	pools := k.GetAllPools(ctx)
+	shares := k.GetAllDepositorShares(ctx)
+	return types.NewGenesisState(params, pools, shares)
 }

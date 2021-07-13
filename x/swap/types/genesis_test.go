@@ -133,8 +133,8 @@ func TestGenesis_Equal(t *testing.T) {
 		sdk.MustNewDecFromStr("0.85"),
 	}
 
-	genesisA := types.GenesisState{params}
-	genesisB := types.GenesisState{params}
+	genesisA := types.GenesisState{params, types.DefaultPoolRecords, types.DefaultShareRecords}
+	genesisB := types.GenesisState{params, types.DefaultPoolRecords, types.DefaultShareRecords}
 
 	assert.True(t, genesisA.Equal(genesisB))
 }
@@ -147,17 +147,17 @@ func TestGenesis_NotEqual(t *testing.T) {
 
 	// Base params
 	genesisAParams := baseParams
-	genesisA := types.GenesisState{genesisAParams}
+	genesisA := types.GenesisState{genesisAParams, types.DefaultPoolRecords, types.DefaultShareRecords}
 
 	// Different swap fee
 	genesisBParams := baseParams
 	genesisBParams.SwapFee = sdk.MustNewDecFromStr("0.84")
-	genesisB := types.GenesisState{genesisBParams}
+	genesisB := types.GenesisState{genesisBParams, types.DefaultPoolRecords, types.DefaultShareRecords}
 
 	// Different pairs
 	genesisCParams := baseParams
 	genesisCParams.AllowedPools = types.NewAllowedPools(types.NewAllowedPool("ukava", "hard"))
-	genesisC := types.GenesisState{genesisCParams}
+	genesisC := types.GenesisState{genesisCParams, types.DefaultPoolRecords, types.DefaultShareRecords}
 
 	// A and B have different swap fees
 	assert.False(t, genesisA.Equal(genesisB))

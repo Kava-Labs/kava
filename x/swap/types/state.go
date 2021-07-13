@@ -31,6 +31,19 @@ type PoolRecord struct {
 	TotalShares sdk.Int  `json:"total_shares" yaml:"total_shares"`
 }
 
+func (p PoolRecord) Validate() error {
+	if !p.ReservesA.IsValid() {
+		return fmt.Errorf("pool %s has invalid reserves: %s", p.PoolID, p.ReservesA)
+	}
+	if !p.ReservesB.IsValid() {
+		return fmt.Errorf("pool %s has invalid reserves: %s", p.PoolID, p.ReservesB)
+	}
+	if p.TotalShares.IsNegative() {
+		return fmt.Errorf("pool %s has negative shares: %s", p.PoolID, p.TotalShares)
+	}
+	return nil
+}
+
 // Reserves returns the total reserves for a pool
 func (p PoolRecord) Reserves() sdk.Coins {
 	return sdk.NewCoins(p.ReservesA, p.ReservesB)
@@ -53,6 +66,15 @@ func NewPoolRecord(pool *DenominatedPool) PoolRecord {
 // PoolRecords is a slice of PoolRecord
 type PoolRecords []PoolRecord
 
+func (prs PoolRecords) Validate() error {
+	for _, p := range prs {
+		if err := p.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // ShareRecord stores the shares owned for a depositor and pool
 type ShareRecord struct {
 	// primary key
@@ -72,5 +94,24 @@ func NewShareRecord(depositor sdk.AccAddress, poolID string, sharesOwned sdk.Int
 	}
 }
 
+func (sr ShareRecord) Validate() error {
+	if sr.Depositor.Empty() {
+		return fmt.Errorf("share record cannot have empty depositor address")
+	}
+	if sr.SharesOwned.IsNegative() {
+		return fmt.Errorf("pool %s depositor %s has negative shares: %s", sr.PoolID, sr.Depositor, sr.SharesOwned)
+	}
+	return nil
+}
+
 // ShareRecords is a slice of ShareRecord
 type ShareRecords []ShareRecord
+
+func (srs ShareRecords) Validate() error {
+	for _, sr := range srs {
+		if err := sr.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
