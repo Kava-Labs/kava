@@ -6,9 +6,14 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
-func (k Keeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Dec, bool) {
+func (k Keeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Int, bool) {
 	// FIXME return pool shares once merged with acceptance branch
-	return sdk.Dec{}, false
+	return sdk.Int{}, false
+}
+
+func (k *Keeper) GetDepositorSharesInPool(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
+	// FIXME return depositor shares once merged with acceptance branch
+	return sdk.Int{}, false
 }
 
 // Implements SwapHooks interface

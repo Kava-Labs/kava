@@ -14,6 +14,7 @@ import (
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
+	v0_15swap "github.com/kava-labs/kava/x/swap/types"
 )
 
 var (
@@ -74,6 +75,8 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		// Marshal v15 committee genesis state
 		v0_14AppState[v0_15committee.ModuleName] = v0_15Codec.MustMarshalJSON(Committee(committeeGS))
 	}
+
+	v0_14AppState[v0_15swap.ModuleName] = v0_15Codec.MustMarshalJSON(Swap())
 }
 
 func makeV014Codec() *codec.Codec {
@@ -92,7 +95,8 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	proposals := []v0_15committee.Proposal{}
 
 	for _, com := range genesisState.Committees {
-		if com.ID == 1 {
+		switch com.ID {
+		case 1:
 			// Initialize member committee without permissions
 			stabilityCom := v0_15committee.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{}, com.VoteThreshold, com.ProposalDuration,
@@ -186,16 +190,82 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 			newStabilityCommitteePermissions = append(newStabilityCommitteePermissions, v0_15committee.TextPermission{})
 
 			// Set stability committee permissions
-			baseStabilityCom := stabilityCom.SetPermissions(newStabilityCommitteePermissions)
-			newStabilityCom := v0_15committee.MemberCommittee{BaseCommittee: baseStabilityCom}
+			newStabilityCom := stabilityCom.SetPermissions(newStabilityCommitteePermissions)
 			committees = append(committees, newStabilityCom)
-		} else {
+		case 2:
 			safetyCom := v0_15committee.NewMemberCommittee(com.ID, com.Description, com.Members,
 				[]v0_15committee.Permission{v0_15committee.SoftwareUpgradePermission{}},
 				com.VoteThreshold, com.ProposalDuration, v0_15committee.FirstPastThePost)
 			committees = append(committees, safetyCom)
 		}
 	}
+
+	stabilityComMembers, err := loadStabilityComMembers()
+	if err != nil {
+		panic(err)
+	}
+
+	// ---------------------------- Initialize hard governance committee ----------------------------
+	hardGovDuration := time.Duration(time.Hour * 24 * 7)
+	hardGovThreshold := sdk.MustNewDecFromStr("0.5")
+	hardGovQuorum := sdk.MustNewDecFromStr("0.33")
+
+	hardGovCom := v0_15committee.NewTokenCommittee(3, "Hard Governance Committee", stabilityComMembers,
+		[]v0_15committee.Permission{}, hardGovThreshold, hardGovDuration, v0_15committee.Deadline,
+		hardGovQuorum, "hard")
+
+	// Add hard money market committee permissions
+	var newHardCommitteePermissions []v0_15committee.Permission
+	var newHardSubParamPermissions v0_15committee.SubParamChangePermission
+
+	// Allowed params permissions
+	hardComAllowedParams := v0_15committee.AllowedParams{
+		v0_15committee.AllowedParam{Subspace: "hard", Key: "MoneyMarkets"},
+		v0_15committee.AllowedParam{Subspace: "hard", Key: "MinimumBorrowUSDValue"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardSupplyRewardPeriods"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardBorrowRewardPeriods"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardDelegatorRewardPeriods"},
+	}
+	newHardSubParamPermissions.AllowedParams = hardComAllowedParams
+
+	// Money market permissions
+	var newMoneyMarketParams v0_15committee.AllowedMoneyMarkets
+	hardMMDenoms := []string{"bnb", "busd", "btcb", "xrpb", "usdx", "ukava", "hard"}
+	for _, mmDenom := range hardMMDenoms {
+		newMoneyMarketParam := v0_15committee.NewAllowedMoneyMarket(mmDenom, true, true, false, true, true, true)
+		newMoneyMarketParams = append(newMoneyMarketParams, newMoneyMarketParam)
+	}
+	newHardSubParamPermissions.AllowedMoneyMarkets = newMoneyMarketParams
+	newHardCommitteePermissions = append(newHardCommitteePermissions, newHardSubParamPermissions)
+
+	// Set hard governance committee permissions
+	permissionedHardGovCom := hardGovCom.SetPermissions(newHardCommitteePermissions)
+	committees = append(committees, permissionedHardGovCom)
+
+	// ---------------------------- Initialize swp governance committee ----------------------------
+	swpGovDuration := time.Duration(time.Hour * 24 * 7)
+	swpGovThreshold := sdk.MustNewDecFromStr("0.5")
+	swpGovQuorum := sdk.MustNewDecFromStr("0.33")
+
+	swpGovCom := v0_15committee.NewTokenCommittee(4, "Swp Governance Committee", stabilityComMembers,
+		[]v0_15committee.Permission{}, swpGovThreshold, swpGovDuration, v0_15committee.Deadline,
+		swpGovQuorum, "swp")
+
+	// Add swap money market committee permissions
+	var newSwapCommitteePermissions []v0_15committee.Permission
+	var newSwapSubParamPermissions v0_15committee.SubParamChangePermission
+
+	// TODO: add additional incentive params that manage LP rewards
+	swpAllowedParams := v0_15committee.AllowedParams{
+		v0_15committee.AllowedParam{Subspace: "swap", Key: "AllowedPools"},
+		v0_15committee.AllowedParam{Subspace: "swap", Key: "SwapFee"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardDelegatorRewardPeriods"},
+	}
+	newSwapSubParamPermissions.AllowedParams = swpAllowedParams
+
+	newSwpCommitteePermissions := append(newSwapCommitteePermissions, newSwapSubParamPermissions)
+	permissionedSwapGovCom := swpGovCom.SetPermissions(newSwpCommitteePermissions)
+	committees = append(committees, permissionedSwapGovCom)
 
 	for _, v := range genesisState.Votes {
 		newVote := v0_15committee.NewVote(v.ProposalID, v.Voter, v0_15committee.Yes)
@@ -209,6 +279,32 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	}
 	return v0_15committee.NewGenesisState(
 		genesisState.NextProposalID, committees, proposals, votes)
+}
+
+func loadStabilityComMembers() ([]sdk.AccAddress, error) {
+	strAddrs := []string{
+		"kava1gru35up50ql2wxhegr880qy6ynl63ujlv8gum2",
+		"kava1sc3mh3pkas5e7xd269am4xm5mp6zweyzmhjagj",
+		"kava1c9ye54e3pzwm3e0zpdlel6pnavrj9qqv6e8r4h",
+		"kava1m7p6sjqrz6mylz776ct48wj6lpnpcd0z82209d",
+		"kava1a9pmkzk570egv3sflu3uwdf3gejl7qfy9hghzl",
+	}
+
+	var addrs []sdk.AccAddress
+	for _, strAddr := range strAddrs {
+		addr, err := sdk.AccAddressFromBech32(strAddr)
+		if err != nil {
+			return addrs, err
+		}
+		addrs = append(addrs, addr)
+	}
+
+	return addrs, nil
+}
+
+// Swap introduces new v0.15 swap genesis state
+func Swap() v0_15swap.GenesisState {
+	return v0_15swap.NewGenesisState(v0_15swap.DefaultParams())
 }
 
 // Incentive migrates from a v0.14 incentive genesis state to a v0.15 incentive genesis state

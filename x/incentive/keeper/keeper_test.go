@@ -195,6 +195,45 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestIterateSwapRewardIndexes() {
+	suite.SetupApp()
+	multiIndexes := types.MultiRewardIndexes{
+		{
+			CollateralType: "bnb/usdx",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "swap",
+					RewardFactor:   d("0.0000002"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			CollateralType: "btcb/usdx",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+			},
+		},
+	}
+	for _, mi := range multiIndexes {
+		suite.keeper.SetSwapRewardIndexes(suite.ctx, mi.CollateralType, mi.RewardIndexes)
+	}
+
+	var actualMultiIndexes types.MultiRewardIndexes
+	suite.keeper.IterateSwapRewardIndexes(suite.ctx, func(poolID string, i types.RewardIndexes) bool {
+		actualMultiIndexes = actualMultiIndexes.With(poolID, i)
+		return false
+	})
+
+	suite.Require().Equal(multiIndexes, actualMultiIndexes)
+}
+
 func (suite *KeeperTestSuite) TestGetSetSwapRewardAccrualTimes() {
 	testCases := []struct {
 		name        string

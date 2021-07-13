@@ -26,10 +26,10 @@ func (k Keeper) AccumulateSwapRewards(ctx sdk.Context, rewardPeriod types.MultiR
 
 	totalShares, found := k.swapKeeper.GetPoolShares(ctx, rewardPeriod.CollateralType)
 	if !found {
-		totalShares = sdk.ZeroDec()
+		totalShares = sdk.ZeroInt()
 	}
 
-	acc.Accumulate(rewardPeriod, totalShares, ctx.BlockTime())
+	acc.Accumulate(rewardPeriod, totalShares.ToDec(), ctx.BlockTime())
 
 	k.SetSwapRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
@@ -62,16 +62,22 @@ func (k Keeper) SynchronizeSwapReward(ctx sdk.Context, poolID string, owner sdk.
 	if !found {
 		return
 	}
+	claim = k.synchronizeSwapReward(ctx, claim, poolID, owner, shares)
 
+	k.SetSwapClaim(ctx, claim)
+}
+
+// synchronizeSwapReward updates the reward in a swap claim for one pool.
+func (k *Keeper) synchronizeSwapReward(ctx sdk.Context, claim types.SwapClaim, poolID string, owner sdk.AccAddress, shares sdk.Int) types.SwapClaim {
 	globalRewardIndexes, found := k.GetSwapRewardIndexes(ctx, poolID)
 	if !found {
 		// The global factor is only not found if
 		// - the pool has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
 		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
 		// If not found we could either skip this sync, or assume the global factor is zero.
-		// Skipping will avoid storing unnecessary factors in the claim for non rewarded pool.
+		// Skipping will avoid storing unnecessary factors in the claim for non rewarded pools.
 		// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
-		return
+		return claim
 	}
 
 	userRewardIndexes, found := claim.RewardIndexes.Get(poolID)
@@ -92,5 +98,24 @@ func (k Keeper) SynchronizeSwapReward(ctx sdk.Context, poolID string, owner sdk.
 	claim.Reward = claim.Reward.Add(newRewards...)
 	claim.RewardIndexes = claim.RewardIndexes.With(poolID, globalRewardIndexes)
 
-	k.SetSwapClaim(ctx, claim)
+	return claim
+}
+
+// GetSynchronizedSwapClaim fetches a swap claim from the store and syncs rewards for all pools.
+func (k Keeper) GetSynchronizedSwapClaim(ctx sdk.Context, owner sdk.AccAddress) (types.SwapClaim, bool) {
+	claim, found := k.GetSwapClaim(ctx, owner)
+	if !found {
+		return types.SwapClaim{}, false
+	}
+	for _, indexes := range claim.RewardIndexes {
+		poolID := indexes.CollateralType
+
+		shares, found := k.swapKeeper.GetDepositorSharesInPool(ctx, owner, poolID)
+		if !found {
+			shares = sdk.ZeroInt()
+		}
+
+		claim = k.synchronizeSwapReward(ctx, claim, poolID, owner, shares)
+	}
+	return claim, true
 }

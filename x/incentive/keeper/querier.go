@@ -17,18 +17,16 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, k)
+
 		case types.QueryGetHardRewards:
 			return queryGetHardRewards(ctx, req, k)
-		case types.QueryGetHardRewardsUnsynced:
-			return queryGetHardRewardsUnsynced(ctx, req, k)
 		case types.QueryGetUSDXMintingRewards:
 			return queryGetUSDXMintingRewards(ctx, req, k)
-		case types.QueryGetUSDXMintingRewardsUnsynced:
-			return queryGetUSDXMintingRewardsUnsynced(ctx, req, k)
 		case types.QueryGetDelegatorRewards:
 			return queryGetDelegatorRewards(ctx, req, k)
-		case types.QueryGetDelegatorRewardsUnsynced:
-			return queryGetDelegatorRewardsUnsynced(ctx, req, k)
+		case types.QueryGetSwapRewards:
+			return queryGetSwapRewards(ctx, req, k)
+
 		case types.QueryGetRewardFactors:
 			return queryGetRewardFactors(ctx, req, k)
 		default:
@@ -51,7 +49,7 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 }
 
 func queryGetHardRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryHardRewardsParams
+	var params types.QueryRewardsParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -77,45 +75,10 @@ func queryGetHardRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 		paginatedHardClaims = hardClaims[startH:endH]
 	}
 
-	var augmentedHardClaims types.HardLiquidityProviderClaims
-	for _, claim := range paginatedHardClaims {
-		augmentedClaim := k.SimulateHardSynchronization(ctx, claim)
-		augmentedHardClaims = append(augmentedHardClaims, augmentedClaim)
-	}
-
-	// Marshal Hard claims
-	bz, err := codec.MarshalJSONIndent(k.cdc, augmentedHardClaims)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, nil
-}
-
-func queryGetHardRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryHardRewardsUnsyncedParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-	owner := len(params.Owner) > 0
-
-	var hardClaims types.HardLiquidityProviderClaims
-	switch {
-	case owner:
-		hardClaim, foundHardClaim := k.GetHardLiquidityProviderClaim(ctx, params.Owner)
-		if foundHardClaim {
-			hardClaims = append(hardClaims, hardClaim)
+	if !params.Unsynchronized {
+		for i, claim := range paginatedHardClaims {
+			paginatedHardClaims[i] = k.SimulateHardSynchronization(ctx, claim)
 		}
-	default:
-		hardClaims = k.GetAllHardLiquidityProviderClaims(ctx)
-	}
-
-	var paginatedHardClaims types.HardLiquidityProviderClaims
-	startH, endH := client.Paginate(len(hardClaims), params.Page, params.Limit, 100)
-	if startH < 0 || endH < 0 {
-		paginatedHardClaims = types.HardLiquidityProviderClaims{}
-	} else {
-		paginatedHardClaims = hardClaims[startH:endH]
 	}
 
 	// Marshal Hard claims
@@ -127,7 +90,7 @@ func queryGetHardRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, k Keepe
 }
 
 func queryGetUSDXMintingRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryUSDXMintingRewardsParams
+	var params types.QueryRewardsParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -153,45 +116,10 @@ func queryGetUSDXMintingRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper
 		paginatedUsdxMintingClaims = usdxMintingClaims[startU:endU]
 	}
 
-	var augmentedUsdxMintingClaims types.USDXMintingClaims
-	for _, claim := range paginatedUsdxMintingClaims {
-		augmentedClaim := k.SimulateUSDXMintingSynchronization(ctx, claim)
-		augmentedUsdxMintingClaims = append(augmentedUsdxMintingClaims, augmentedClaim)
-	}
-
-	// Marshal USDX minting claims
-	bz, err := codec.MarshalJSONIndent(k.cdc, augmentedUsdxMintingClaims)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, nil
-}
-
-func queryGetUSDXMintingRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryUSDXMintingRewardsUnsyncedParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-	owner := len(params.Owner) > 0
-
-	var usdxMintingClaims types.USDXMintingClaims
-	switch {
-	case owner:
-		usdxMintingClaim, foundUsdxMintingClaim := k.GetUSDXMintingClaim(ctx, params.Owner)
-		if foundUsdxMintingClaim {
-			usdxMintingClaims = append(usdxMintingClaims, usdxMintingClaim)
+	if !params.Unsynchronized {
+		for i, claim := range paginatedUsdxMintingClaims {
+			paginatedUsdxMintingClaims[i] = k.SimulateUSDXMintingSynchronization(ctx, claim)
 		}
-	default:
-		usdxMintingClaims = k.GetAllUSDXMintingClaims(ctx)
-	}
-
-	var paginatedUsdxMintingClaims types.USDXMintingClaims
-	startU, endU := client.Paginate(len(usdxMintingClaims), params.Page, params.Limit, 100)
-	if startU < 0 || endU < 0 {
-		paginatedUsdxMintingClaims = types.USDXMintingClaims{}
-	} else {
-		paginatedUsdxMintingClaims = usdxMintingClaims[startU:endU]
 	}
 
 	// Marshal USDX minting claims
@@ -203,7 +131,7 @@ func queryGetUSDXMintingRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, 
 }
 
 func queryGetDelegatorRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryDelegatorRewardsParams
+	var params types.QueryRewardsParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -229,45 +157,10 @@ func queryGetDelegatorRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) 
 		paginatedDelegatorClaims = delegatorClaims[startH:endH]
 	}
 
-	var augmentedDelegatorClaims types.DelegatorClaims
-	for _, claim := range paginatedDelegatorClaims {
-		augmentedClaim := k.SimulateDelegatorSynchronization(ctx, claim)
-		augmentedDelegatorClaims = append(augmentedDelegatorClaims, augmentedClaim)
-	}
-
-	// Marshal Hard claims
-	bz, err := codec.MarshalJSONIndent(k.cdc, augmentedDelegatorClaims)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, nil
-}
-
-func queryGetDelegatorRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryDelegatorRewardsUnsyncedParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-	owner := len(params.Owner) > 0
-
-	var delegatorClaims types.DelegatorClaims
-	switch {
-	case owner:
-		delegatorClaim, foundHardClaim := k.GetDelegatorClaim(ctx, params.Owner)
-		if foundHardClaim {
-			delegatorClaims = append(delegatorClaims, delegatorClaim)
+	if !params.Unsynchronized {
+		for i, claim := range paginatedDelegatorClaims {
+			paginatedDelegatorClaims[i] = k.SimulateDelegatorSynchronization(ctx, claim)
 		}
-	default:
-		delegatorClaims = k.GetAllDelegatorClaims(ctx)
-	}
-
-	var paginatedDelegatorClaims types.DelegatorClaims
-	startH, endH := client.Paginate(len(delegatorClaims), params.Page, params.Limit, 100)
-	if startH < 0 || endH < 0 {
-		paginatedDelegatorClaims = types.DelegatorClaims{}
-	} else {
-		paginatedDelegatorClaims = delegatorClaims[startH:endH]
 	}
 
 	// Marshal Hard claims
@@ -278,89 +171,92 @@ func queryGetDelegatorRewardsUnsynced(ctx sdk.Context, req abci.RequestQuery, k 
 	return bz, nil
 }
 
-func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryRewardFactorsParams
+func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryRewardsParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
+	owner := len(params.Owner) > 0
 
-	var rewardFactors types.RewardFactors
-	if len(params.Denom) > 0 {
-		// Fetch reward factors for a single denom
-		rewardFactor := types.RewardFactor{}
-		rewardFactor.Denom = params.Denom
+	var claims types.SwapClaims
+	switch {
+	case owner:
+		claim, found := k.GetSwapClaim(ctx, params.Owner)
+		if found {
+			claims = append(claims, claim)
+		}
+	default:
+		claims = k.GetAllSwapClaims(ctx)
+	}
 
-		usdxMintingRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, params.Denom)
-		if found {
-			rewardFactor.USDXMintingRewardFactor = usdxMintingRewardFactor
-		}
-		hardSupplyRewardIndexes, found := k.GetHardSupplyRewardIndexes(ctx, params.Denom)
-		if found {
-			rewardFactor.HardSupplyRewardFactors = hardSupplyRewardIndexes
-		}
-		hardBorrowRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, params.Denom)
-		if found {
-			rewardFactor.HardBorrowRewardFactors = hardBorrowRewardIndexes
-		}
-		delegatorRewardIndexes, found := k.GetDelegatorRewardIndexes(ctx, params.Denom)
-		if found {
-			rewardFactor.DelegatorRewardFactors = delegatorRewardIndexes
-		}
-		rewardFactors = append(rewardFactors, rewardFactor)
+	var paginatedClaims types.SwapClaims
+	startH, endH := client.Paginate(len(claims), params.Page, params.Limit, 100)
+	if startH < 0 || endH < 0 {
+		paginatedClaims = types.SwapClaims{}
 	} else {
-		rewardFactorMap := make(map[string]types.RewardFactor)
+		paginatedClaims = claims[startH:endH]
+	}
 
-		// Populate mapping with usdx minting reward factors
-		k.IterateUSDXMintingRewardFactors(ctx, func(denom string, factor sdk.Dec) (stop bool) {
-			rewardFactor := types.RewardFactor{Denom: denom, USDXMintingRewardFactor: factor}
-			rewardFactorMap[denom] = rewardFactor
-			return false
-		})
-
-		// Populate mapping with Hard supply reward factors
-		k.IterateHardSupplyRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
-			rewardFactor, ok := rewardFactorMap[denom]
-			if !ok {
-				rewardFactor = types.RewardFactor{Denom: denom, HardSupplyRewardFactors: indexes}
-			} else {
-				rewardFactor.HardSupplyRewardFactors = indexes
+	if !params.Unsynchronized {
+		for i, claim := range paginatedClaims {
+			syncedClaim, found := k.GetSynchronizedSwapClaim(ctx, claim.Owner)
+			if !found {
+				panic("previously found claim should still be found")
 			}
-			rewardFactorMap[denom] = rewardFactor
-			return false
-		})
-
-		// Populate mapping with Hard borrow reward factors
-		k.IterateHardBorrowRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
-			rewardFactor, ok := rewardFactorMap[denom]
-			if !ok {
-				rewardFactor = types.RewardFactor{Denom: denom, HardBorrowRewardFactors: indexes}
-			} else {
-				rewardFactor.HardBorrowRewardFactors = indexes
-			}
-			rewardFactorMap[denom] = rewardFactor
-			return false
-		})
-
-		// Populate mapping with delegator reward factors
-		k.IterateDelegatorRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
-			rewardFactor, ok := rewardFactorMap[denom]
-			if !ok {
-				rewardFactor = types.RewardFactor{Denom: denom, DelegatorRewardFactors: indexes}
-			} else {
-				rewardFactor.DelegatorRewardFactors = indexes
-			}
-			rewardFactorMap[denom] = rewardFactor
-			return false
-		})
-
-		// Translate mapping to slice
-		for _, val := range rewardFactorMap {
-			rewardFactors = append(rewardFactors, val)
+			paginatedClaims[i] = syncedClaim
 		}
 	}
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, rewardFactors)
+	// Marshal claims
+	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedClaims)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+
+	var usdxFactors types.RewardIndexes
+	k.IterateUSDXMintingRewardFactors(ctx, func(collateralType string, factor sdk.Dec) (stop bool) {
+		usdxFactors = usdxFactors.With(collateralType, factor)
+		return false
+	})
+
+	var supplyFactors types.MultiRewardIndexes
+	k.IterateHardSupplyRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
+		supplyFactors = supplyFactors.With(denom, indexes)
+		return false
+	})
+
+	var borrowFactors types.MultiRewardIndexes
+	k.IterateHardBorrowRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
+		borrowFactors = borrowFactors.With(denom, indexes)
+		return false
+	})
+
+	var delegatorFactors types.MultiRewardIndexes
+	k.IterateDelegatorRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
+		delegatorFactors = delegatorFactors.With(denom, indexes)
+		return false
+	})
+
+	var swapFactors types.MultiRewardIndexes
+	k.IterateSwapRewardIndexes(ctx, func(poolID string, indexes types.RewardIndexes) (stop bool) {
+		swapFactors = swapFactors.With(poolID, indexes)
+		return false
+	})
+
+	response := types.NewQueryGetRewardFactorsResponse(
+		usdxFactors,
+		supplyFactors,
+		borrowFactors,
+		delegatorFactors,
+		swapFactors,
+	)
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, response)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

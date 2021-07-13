@@ -477,6 +477,20 @@ func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolID string) (types.Rewa
 	return rewardIndexes, true
 }
 
+// IterateSwapRewardIndexes iterates over all swap reward index objects in the store and preforms a callback function
+func (k Keeper) IterateSwapRewardIndexes(ctx sdk.Context, cb func(poolID string, indexes types.RewardIndexes) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var indexes types.RewardIndexes
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &indexes)
+		if cb(string(iterator.Key()), indexes) {
+			break
+		}
+	}
+}
+
 // GetSwapRewardAccrualTime fetches the last time rewards were accrued for a swap pool.
 func (k Keeper) GetSwapRewardAccrualTime(ctx sdk.Context, poolID string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)

@@ -2,6 +2,7 @@ package swap
 
 import (
 	"encoding/json"
+	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -10,20 +11,21 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	// "github.com/kava-labs/kava/x/swap/simulation"
 	"github.com/kava-labs/kava/x/swap/client/cli"
 	"github.com/kava-labs/kava/x/swap/client/rest"
 	"github.com/kava-labs/kava/x/swap/keeper"
+	"github.com/kava-labs/kava/x/swap/simulation"
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
-	// _ module.AppModuleSimulation = AppModule{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic app module basics object
@@ -140,27 +142,27 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 
 //____________________________________________________________________________
 
-// // GenerateGenesisState creates a randomized GenState of the swap module
-// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
+// GenerateGenesisState creates a randomized GenState of the swap module
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
 
-// // ProposalContents doesn't return any content functions for governance proposals.
-// func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-// 	return nil
-// }
+// ProposalContents doesn't return any content functions for governance proposals.
+func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+	return nil
+}
 
-// // RandomizedParams returns nil because swap has no params.
-// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-// 	return simulation.ParamChanges(r)
-// }
+// RandomizedParams returns nil because swap has no params.
+func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+	return simulation.ParamChanges(r)
+}
 
-// // RegisterStoreDecoder registers a decoder for swap module's types
-// func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[StoreKey] = simulation.DecodeStore
-// }
+// RegisterStoreDecoder registers a decoder for swap module's types
+func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[StoreKey] = simulation.DecodeStore
+}
 
-// // WeightedOperations returns the all the swap module operations with their respective weights.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-// 	return nil
-// }
+// WeightedOperations returns the all the swap module operations with their respective weights.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+	return nil
+}
