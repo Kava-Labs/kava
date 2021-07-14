@@ -275,6 +275,29 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 	}
 }
 
+func TestState_PoolRecords_OrderedReserves(t *testing.T) {
+	invalidOrder := types.NewPoolRecord(
+		// force order to not be sorted
+		sdk.Coins{usdx(500e6), ukava(100e6)},
+		i(300e6),
+	)
+	assert.Error(t, invalidOrder.Validate())
+
+	validOrder := types.NewPoolRecord(
+		// force order to not be sorted
+		sdk.Coins{ukava(500e6), usdx(100e6)},
+		i(300e6),
+	)
+	assert.NoError(t, validOrder.Validate())
+
+	record_1 := types.NewPoolRecord(sdk.NewCoins(usdx(500e6), ukava(100e6)), i(300e6))
+	record_2 := types.NewPoolRecord(sdk.NewCoins(ukava(100e6), usdx(500e6)), i(300e6))
+	// ensure no regresssions in NewCoins ordering
+	assert.Equal(t, record_1, record_2)
+	assert.Equal(t, "ukava/usdx", record_1.PoolID)
+	assert.Equal(t, "ukava/usdx", record_2.PoolID)
+}
+
 func TestState_PoolRecords_Validation(t *testing.T) {
 	validRecord := types.NewPoolRecord(
 		sdk.NewCoins(usdx(500e6), ukava(100e6)),
