@@ -1,6 +1,16 @@
 package types
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+type poolShares struct {
+	totalShares      sdk.Int
+	totalSharesOwned sdk.Int
+}
 
 var (
 	DefaultPoolRecords  = PoolRecords{}
@@ -31,7 +41,36 @@ func (gs GenesisState) Validate() error {
 	if err := gs.PoolRecords.Validate(); err != nil {
 		return err
 	}
-	return gs.ShareRecords.Validate()
+	if err := gs.ShareRecords.Validate(); err != nil {
+		return err
+	}
+
+	totalShares := make(map[string]poolShares)
+	for _, pr := range gs.PoolRecords {
+		totalShares[pr.PoolID] = poolShares{
+			totalShares:      pr.TotalShares,
+			totalSharesOwned: sdk.ZeroInt(),
+		}
+	}
+	for _, sr := range gs.ShareRecords {
+		if shares, found := totalShares[sr.PoolID]; found {
+			shares.totalSharesOwned = shares.totalSharesOwned.Add(sr.SharesOwned)
+			totalShares[sr.PoolID] = shares
+		} else {
+			totalShares[sr.PoolID] = poolShares{
+				totalShares:      sdk.ZeroInt(),
+				totalSharesOwned: sr.SharesOwned,
+			}
+		}
+	}
+
+	for poolID, ps := range totalShares {
+		if !ps.totalShares.Equal(ps.totalSharesOwned) {
+			return fmt.Errorf("total depositor shares %s not equal to pool '%s' total shares %s", ps.totalSharesOwned.String(), poolID, ps.totalShares.String())
+		}
+	}
+
+	return nil
 }
 
 // DefaultGenesisState returns a default genesis state
