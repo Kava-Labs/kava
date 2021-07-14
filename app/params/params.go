@@ -13,6 +13,8 @@ const (
 	DefaultWeightMsgUpdatePrices          int = 20
 	DefaultWeightMsgCdp                   int = 20
 	DefaultWeightMsgClaimReward           int = 20
+	DefaultWeightMsgDeposit               int = 20
+	DefaultWeightMsgWithdraw              int = 20
 	DefaultWeightMsgIssue                 int = 20
 	DefaultWeightMsgRedeem                int = 20
 	DefaultWeightMsgBlock                 int = 20

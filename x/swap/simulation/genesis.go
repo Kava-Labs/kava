@@ -17,7 +17,7 @@ import (
 var (
 	//nolint
 	accs            []simulation.Account
-	consistentPools = [2][2]string{{"ukava", "usdx"}, {"hard", "usdx"}}
+	consistentPools = [2][2]string{{"ukava", "usdx"}, {"bnb", "stake"}}
 )
 
 // GenSwapFee generates a random SwapFee in range [0.01, 1.00]
