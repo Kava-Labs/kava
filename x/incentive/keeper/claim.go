@@ -62,7 +62,7 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 
 // ClaimHardReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
-func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName) error {
+func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName, denomsToClaim []string) error {
 	_, found := k.GetHardLiquidityProviderClaim(ctx, owner)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
@@ -81,12 +81,13 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 
 	k.SynchronizeHardLiquidityProviderClaim(ctx, owner)
 
-	claim, found := k.GetHardLiquidityProviderClaim(ctx, owner)
+	syncedClaim, found := k.GetHardLiquidityProviderClaim(ctx, owner)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
-	rewardCoins := types.MultiplyCoins(claim.Reward, multiplier.Factor)
+	claimingCoins := types.FilterCoins(syncedClaim.Reward, denomsToClaim)
+	rewardCoins := types.MultiplyCoins(claimingCoins, multiplier.Factor)
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
@@ -100,14 +101,16 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 		return err
 	}
 
-	k.ZeroHardLiquidityProviderClaim(ctx, claim)
+	// remove claimed coins (NOT reward coins)
+	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
+	k.SetHardLiquidityProviderClaim(ctx, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeyClaimedBy, claim.GetOwner().String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.GetReward().String()),
-			sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType()),
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, syncedClaim.GetOwner().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, syncedClaim.GetReward().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
 		),
 	)
 	return nil

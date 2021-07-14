@@ -61,7 +61,7 @@ func handleMsgClaimUSDXMintingRewardVVesting(ctx sdk.Context, k keeper.Keeper, m
 
 func handleMsgClaimHardReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimHardReward) (*sdk.Result, error) {
 
-	err := k.ClaimHardReward(ctx, msg.Sender, msg.Sender, types.MultiplierName(msg.MultiplierName))
+	err := k.ClaimHardReward(ctx, msg.Sender, msg.Sender, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func handleMsgClaimHardRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg type
 	if err := k.ValidateIsValidatorVestingAccount(ctx, msg.Sender); err != nil {
 		return nil, err
 	}
-	err := k.ClaimHardReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName))
+	err := k.ClaimHardReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
 	if err != nil {
 		return nil, err
 	}
