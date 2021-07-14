@@ -25,7 +25,10 @@ const (
 	ModuleAccountName          = types.ModuleAccountName
 	ModuleName                 = types.ModuleName
 	QuerierRoute               = types.QuerierRoute
+	QueryGetDeposits           = types.QueryGetDeposits
 	QueryGetParams             = types.QueryGetParams
+	QueryGetPool               = types.QueryGetPool
+	QueryGetPools              = types.QueryGetPools
 	RouterKey                  = types.RouterKey
 	StoreKey                   = types.StoreKey
 )
@@ -43,6 +46,7 @@ var (
 	NewBasePoolWithExistingShares        = types.NewBasePoolWithExistingShares
 	NewDenominatedPool                   = types.NewDenominatedPool
 	NewDenominatedPoolWithExistingShares = types.NewDenominatedPoolWithExistingShares
+	NewDepositsQueryResult               = types.NewDepositsQueryResult
 	NewGenesisState                      = types.NewGenesisState
 	NewMsgDeposit                        = types.NewMsgDeposit
 	NewMsgSwapExactForTokens             = types.NewMsgSwapExactForTokens
@@ -50,6 +54,10 @@ var (
 	NewMsgWithdraw                       = types.NewMsgWithdraw
 	NewParams                            = types.NewParams
 	NewPoolRecord                        = types.NewPoolRecord
+	NewPoolRecordFromPool                = types.NewPoolRecordFromPool
+	NewPoolStatsQueryResult              = types.NewPoolStatsQueryResult
+	NewQueryDepositsParams               = types.NewQueryDepositsParams
+	NewQueryPoolParams                   = types.NewQueryPoolParams
 	NewShareRecord                       = types.NewShareRecord
 	ParamKeyTable                        = types.ParamKeyTable
 	PoolID                               = types.PoolID
@@ -59,6 +67,8 @@ var (
 
 	// variable aliases
 	DefaultAllowedPools       = types.DefaultAllowedPools
+	DefaultPoolRecords        = types.DefaultPoolRecords
+	DefaultShareRecords       = types.DefaultShareRecords
 	DefaultSwapFee            = types.DefaultSwapFee
 	DepositorPoolSharesPrefix = types.DepositorPoolSharesPrefix
 	ErrDeadlineExceeded       = types.ErrDeadlineExceeded
@@ -86,6 +96,8 @@ type (
 	AllowedPools          = types.AllowedPools
 	BasePool              = types.BasePool
 	DenominatedPool       = types.DenominatedPool
+	DepositsQueryResult   = types.DepositsQueryResult
+	DepositsQueryResults  = types.DepositsQueryResults
 	GenesisState          = types.GenesisState
 	MsgDeposit            = types.MsgDeposit
 	MsgSwapExactForTokens = types.MsgSwapExactForTokens
@@ -94,6 +106,13 @@ type (
 	MsgWithdraw           = types.MsgWithdraw
 	Params                = types.Params
 	PoolRecord            = types.PoolRecord
+	PoolRecords           = types.PoolRecords
+	PoolStatsQueryResult  = types.PoolStatsQueryResult
+	PoolStatsQueryResults = types.PoolStatsQueryResults
+	QueryDepositsParams   = types.QueryDepositsParams
+	QueryPoolParams       = types.QueryPoolParams
 	ShareRecord           = types.ShareRecord
+	ShareRecords          = types.ShareRecords
 	SupplyKeeper          = types.SupplyKeeper
+	SwapHooks             = types.SwapHooks
 )
