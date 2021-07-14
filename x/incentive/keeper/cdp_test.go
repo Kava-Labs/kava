@@ -8,6 +8,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -23,7 +24,7 @@ func TestRiskyCDPsAccumulateRewards(t *testing.T) {
 	collateralType := "bnb-a"
 	rewardsPerSecond := c(types.USDXMintingRewardDenom, 1_000_000)
 
-	incentBuilder := NewIncentiveGenesisBuilder().
+	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(genesisTime).
 		WithSimpleUSDXRewardPeriod(collateralType, rewardsPerSecond)
 

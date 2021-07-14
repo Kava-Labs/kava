@@ -85,7 +85,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 		app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)},
 		app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGS)},
 		NewCDPGenStateMulti(),
-		NewPricefeedGenStateMulti(),
+		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 	)
 
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
