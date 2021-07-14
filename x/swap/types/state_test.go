@@ -275,6 +275,28 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 	}
 }
 
+func TestState_PoolRecords_Validation(t *testing.T) {
+	validRecord := types.NewPoolRecord(
+		sdk.NewCoins(usdx(500e6), ukava(100e6)),
+		i(300e6),
+	)
+
+	invalidRecord := types.NewPoolRecord(
+		sdk.NewCoins(usdx(500e6), ukava(100e6)),
+		i(-1),
+	)
+
+	records := types.PoolRecords{
+		validRecord,
+	}
+	assert.NoError(t, records.Validate())
+
+	records = append(records, invalidRecord)
+	err := records.Validate()
+	assert.Error(t, err)
+	assert.EqualError(t, err, "pool 'ukava/usdx' has invalid total shares: -1")
+}
+
 func TestState_NewShareRecord(t *testing.T) {
 	depositor := sdk.AccAddress("some user")
 	poolID := types.PoolID("ukava", "usdx")
@@ -441,4 +463,31 @@ func TestState_ShareRecord_Validations(t *testing.T) {
 			assert.EqualError(t, err, tc.expectedErr)
 		})
 	}
+}
+
+func TestState_ShareRecords_Validation(t *testing.T) {
+	depositor, err := sdk.AccAddressFromBech32("kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w")
+	require.NoError(t, err)
+
+	validRecord := types.NewShareRecord(
+		depositor,
+		"ukava/usdx",
+		i(300e6),
+	)
+
+	invalidRecord := types.NewShareRecord(
+		depositor,
+		"hard/usdx",
+		i(-1),
+	)
+
+	records := types.ShareRecords{
+		validRecord,
+	}
+	assert.NoError(t, records.Validate())
+
+	records = append(records, invalidRecord)
+	err = records.Validate()
+	assert.Error(t, err)
+	assert.EqualError(t, err, "depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and pool 'hard/usdx' has invalid total shares: -1")
 }
