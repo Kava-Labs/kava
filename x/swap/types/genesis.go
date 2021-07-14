@@ -13,7 +13,9 @@ type poolShares struct {
 }
 
 var (
-	DefaultPoolRecords  = PoolRecords{}
+	// DefaultPoolRecords is used to set default records in default genesis state
+	DefaultPoolRecords = PoolRecords{}
+	// DefaultShareRecords is used to set default records in default genesis state
 	DefaultShareRecords = ShareRecords{}
 )
 
