@@ -275,6 +275,112 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardAccrualTimes() {
 	}
 }
 
+type accrualtime struct {
+	denom string
+	time  time.Time
+}
+
+var nonEmptyAccrualTimes = []accrualtime{
+	{
+		denom: "",
+		time:  time.Time{},
+	},
+	{
+		denom: "btcb",
+		time:  time.Date(1998, 1, 1, 0, 0, 0, 1, time.UTC),
+	},
+}
+
+func (suite *KeeperTestSuite) TestIterateUSDXMintingAccrualTimes() {
+	suite.SetupApp()
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateUSDXMintingAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
+
+func (suite *KeeperTestSuite) TestIterateHardSupplyRewardAccrualTimes() {
+	suite.SetupApp()
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateHardSupplyRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
+
+func (suite *KeeperTestSuite) TestIterateHardBorrowrRewardAccrualTimes() {
+	suite.SetupApp()
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateHardBorrowRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
+
+func (suite *KeeperTestSuite) TestIterateDelegatorRewardAccrualTimes() {
+	suite.SetupApp()
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateDelegatorRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
+
+func (suite *KeeperTestSuite) TestIterateSwapRewardAccrualTimes() {
+	suite.SetupApp()
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetSwapRewardAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateSwapRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }

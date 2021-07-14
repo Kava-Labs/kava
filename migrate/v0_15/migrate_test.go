@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
 
 	"github.com/stretchr/testify/require"
 
@@ -63,7 +64,8 @@ func exportGenesisJSON(genState v0_15committee.GenesisState) {
 	ioutil.WriteFile(filepath.Join("testdata", "kava-8-committee-state.json"), v15Cdc.MustMarshalJSON(genState), 0644)
 }
 
-func TestIncentive(t *testing.T) {
+func TestIncentive_MainnetState(t *testing.T) {
+	// TODO add copy of mainnet state to json
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-incentive-state.json"))
 	require.NoError(t, err)
 	var oldIncentiveGenState v0_14incentive.GenesisState
@@ -83,4 +85,17 @@ func TestIncentive(t *testing.T) {
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.HardLiquidityProviderClaims))
 	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
+}
+
+func TestIncentive(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "v0_14-incentive-state.json"))
+	require.NoError(t, err)
+	appState := genutil.AppMap{v0_14incentive.ModuleName: bz}
+
+	MigrateAppState(appState)
+
+	bz, err = ioutil.ReadFile(filepath.Join("testdata", "v0_15-incentive-state.json"))
+	require.NoError(t, err)
+
+	require.JSONEq(t, string(bz), string(appState[v0_15incentive.ModuleName]))
 }

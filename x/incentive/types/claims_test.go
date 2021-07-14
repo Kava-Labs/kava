@@ -657,6 +657,60 @@ func TestMultiRewardIndexes(t *testing.T) {
 			})
 		}
 	})
+	t.Run("Validate", func(t *testing.T) {
+		testcases := []struct {
+			name               string
+			multiRewardIndexes MultiRewardIndexes
+			wantErr            bool
+		}{
+			{
+				name: "normal case",
+				multiRewardIndexes: MultiRewardIndexes{
+					{CollateralType: "btcb", RewardIndexes: normalRewardIndexes},
+					{CollateralType: "bnb", RewardIndexes: normalRewardIndexes},
+				},
+				wantErr: false,
+			},
+			{
+				name:               "empty",
+				multiRewardIndexes: nil,
+				wantErr:            false,
+			},
+			{
+				name: "empty collateral type",
+				multiRewardIndexes: MultiRewardIndexes{
+					{RewardIndexes: normalRewardIndexes},
+				},
+				wantErr: true,
+			},
+			{
+				name: "invalid reward index",
+				multiRewardIndexes: MultiRewardIndexes{
+					{CollateralType: "btcb", RewardIndexes: invalidRewardIndexes},
+				},
+				wantErr: true,
+			},
+		}
+		for _, tc := range testcases {
+			t.Run(tc.name, func(t *testing.T) {
+				err := tc.multiRewardIndexes.Validate()
+				if tc.wantErr {
+					require.NotNil(t, err)
+				} else {
+					require.Nil(t, err)
+				}
+			})
+		}
+	})
+}
+
+var normalRewardIndexes = RewardIndexes{
+	NewRewardIndex("hard", sdk.MustNewDecFromStr("0.000001")),
+	NewRewardIndex("ukava", sdk.MustNewDecFromStr("0.1")),
+}
+
+var invalidRewardIndexes = RewardIndexes{
+	RewardIndex{"hard", sdk.MustNewDecFromStr("-0.01")},
 }
 
 func appendUniqueRewardIndex(indexes RewardIndexes) RewardIndexes {
