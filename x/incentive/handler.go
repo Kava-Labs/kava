@@ -100,7 +100,7 @@ func handleMsgClaimDelegatorRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg
 	if err := k.ValidateIsValidatorVestingAccount(ctx, msg.Sender); err != nil {
 		return nil, err
 	}
-	err := k.ClaimDelegatorReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName), nil)
+	err := k.ClaimDelegatorReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
 	if err != nil {
 		return nil, err
 	}
