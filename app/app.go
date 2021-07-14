@@ -442,7 +442,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),
-		swap.NewAppModule(app.swapKeeper),
+		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -496,7 +496,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),
-		swap.NewAppModule(app.swapKeeper),
+		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

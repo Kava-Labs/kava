@@ -77,14 +77,16 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper Keeper
+	keeper        Keeper
+	accountKeeper types.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
+		accountKeeper:  accountKeeper,
 	}
 }
 
@@ -162,7 +164,7 @@ func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
-// WeightedOperations returns the all the swap module operations with their respective weights.
+// WeightedOperations returns the all the bep3 module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return nil
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
 }
