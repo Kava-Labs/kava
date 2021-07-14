@@ -32,6 +32,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		getCmdClaimHardVVesting(cdc),
 		getCmdClaimDelegator(cdc),
 		getCmdClaimDelegatorVVesting(cdc),
+		getCmdClaimSwap(cdc),
+		getCmdClaimSwapVVesting(cdc),
 	)...)
 
 	return incentiveTxCmd
