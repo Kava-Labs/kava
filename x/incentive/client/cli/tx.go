@@ -139,7 +139,7 @@ A receiver address for the rewards is needed as validator vesting accounts canno
 Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
 		Example: strings.Join([]string{
 			fmt.Sprintf("  $ %s tx %s claim-hard-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw", version.ClientName, types.ModuleName),
-			fmt.Sprintf("  $ %s tx %s claim-hard-vesting small kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --claim-only swap,hard", version.ClientName, types.ModuleName),
+			fmt.Sprintf("  $ %s tx %s claim-hard-vesting small kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --claim-only swp,hard", version.ClientName, types.ModuleName),
 		}, "\n"),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -177,7 +177,7 @@ func getCmdClaimDelegator(cdc *codec.Codec) *cobra.Command {
 Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
 		Example: strings.Join([]string{
 			fmt.Sprintf("  $ %s tx %s claim-delegator large", version.ClientName, types.ModuleName),
-			fmt.Sprintf("  $ %s tx %s claim-delegator large --claim-only swap,hard", version.ClientName, types.ModuleName),
+			fmt.Sprintf("  $ %s tx %s claim-delegator large --claim-only swp,hard", version.ClientName, types.ModuleName),
 		}, "\n"),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -211,7 +211,7 @@ A receiver address for the rewards is needed as validator vesting accounts canno
 Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
 		Example: strings.Join([]string{
 			fmt.Sprintf("  $ %s tx %s claim-delegator-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw", version.ClientName, types.ModuleName),
-			fmt.Sprintf("  $ %s tx %s claim-delegator-vesting small kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --claim-only swap,hard", version.ClientName, types.ModuleName),
+			fmt.Sprintf("  $ %s tx %s claim-delegator-vesting small kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --claim-only swp,hard", version.ClientName, types.ModuleName),
 		}, "\n"),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -249,7 +249,7 @@ func getCmdClaimSwap(cdc *codec.Codec) *cobra.Command {
 Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
 		Example: strings.Join([]string{
 			fmt.Sprintf("  $ %s tx %s claim-swap large", version.ClientName, types.ModuleName),
-			fmt.Sprintf("  $ %s tx %s claim-swap large --claim-only swap,hard", version.ClientName, types.ModuleName),
+			fmt.Sprintf("  $ %s tx %s claim-swap large --claim-only swp,hard", version.ClientName, types.ModuleName),
 		}, "\n"),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -283,7 +283,7 @@ A receiver address for the rewards is needed as validator vesting accounts canno
 Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
 		Example: strings.Join([]string{
 			fmt.Sprintf("  $ %s tx %s claim-swap-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw", version.ClientName, types.ModuleName),
-			fmt.Sprintf("  $ %s tx %s claim-swap-vesting small kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --claim-only swap,hard", version.ClientName, types.ModuleName),
+			fmt.Sprintf("  $ %s tx %s claim-swap-vesting small kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --claim-only swp,hard", version.ClientName, types.ModuleName),
 		}, "\n"),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
