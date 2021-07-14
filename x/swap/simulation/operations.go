@@ -27,7 +27,8 @@ var (
 
 // Simulation operation weights constants
 const (
-	OpWeightMsgDeposit = "op_weight_msg_deposit"
+	OpWeightMsgDeposit  = "op_weight_msg_deposit"
+	OpWeightMsgWithdraw = "op_weight_msg_withdraw"
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
@@ -35,6 +36,7 @@ func WeightedOperations(
 	appParams simulation.AppParams, cdc *codec.Codec, ak types.AccountKeeper, k keeper.Keeper,
 ) simulation.WeightedOperations {
 	var weightMsgDeposit int
+	var weightMsgWithdraw int
 
 	appParams.GetOrGenerate(cdc, OpWeightMsgDeposit, &weightMsgDeposit, nil,
 		func(_ *rand.Rand) {
@@ -42,10 +44,20 @@ func WeightedOperations(
 		},
 	)
 
+	appParams.GetOrGenerate(cdc, OpWeightMsgWithdraw, &weightMsgWithdraw, nil,
+		func(_ *rand.Rand) {
+			weightMsgWithdraw = appparams.DefaultWeightMsgWithdraw
+		},
+	)
+
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightMsgDeposit,
 			SimulateMsgDeposit(ak, k),
+		),
+		simulation.NewWeightedOperation(
+			weightMsgWithdraw,
+			SimulateMsgWithdraw(ak, k),
 		),
 	}
 }
@@ -79,13 +91,14 @@ func SimulateMsgDeposit(ak types.AccountKeeper, k keeper.Keeper) simulation.Oper
 			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid allowed pool and depositor)", "", false, nil), nil, nil
 		}
 
-		// Construct initial msg using slippage, deadline, and depositor's address
+		// Get random slippage amount between 1-99%
 		slippageRaw, err := RandIntInclusive(r, sdk.OneInt(), sdk.NewInt(99))
 		if err != nil {
 			panic(err)
 		}
 		slippage := slippageRaw.ToDec().Quo(sdk.NewDec(100))
 
+		// Set up deadline
 		durationNanoseconds, err := RandIntInclusive(r,
 			sdk.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
 			sdk.NewInt((time.Hour * 24).Nanoseconds()),   // one day
@@ -99,6 +112,7 @@ func SimulateMsgDeposit(ak types.AccountKeeper, k keeper.Keeper) simulation.Oper
 		depositorAcc := ak.GetAccount(ctx, depositor.Address)
 		depositorCoins := depositorAcc.SpendableCoins(blockTime)
 
+		// Construct initial msg (without coin amounts)
 		msg := types.NewMsgDeposit(depositorAcc.GetAddress(), sdk.Coin{}, sdk.Coin{}, slippage, deadline)
 
 		// Populate msg with randomized token amounts
@@ -156,6 +170,94 @@ func SimulateMsgDeposit(ak types.AccountKeeper, k keeper.Keeper) simulation.Oper
 	}
 }
 
+// SimulateMsgWithdraw generates a MsgWithdraw
+func SimulateMsgWithdraw(ak types.AccountKeeper, k keeper.Keeper) simulation.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+
+		poolRecords := k.GetAllPools(ctx)
+		r.Shuffle(len(poolRecords), func(i, j int) {
+			poolRecords[i], poolRecords[j] = poolRecords[j], poolRecords[i]
+		})
+
+		// Find an account-pool pair for which withdraw is possible
+		withdrawer, poolRecord, found := findValidAccountPoolRecordPair(accs, poolRecords, func(acc simulation.Account, poolRecord types.PoolRecord) bool {
+			_, found := k.GetDepositorShares(ctx, acc.Address, poolRecord.PoolID)
+			if !found {
+				return false // keep searching
+			}
+			return true
+		})
+		if !found {
+			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid pool record and withdrawer)", "", false, nil), nil, nil
+		}
+
+		withdrawerAcc := ak.GetAccount(ctx, withdrawer.Address)
+		shareRecord, _ := k.GetDepositorShares(ctx, withdrawerAcc.GetAddress(), poolRecord.PoolID)
+		denominatedPool, err := types.NewDenominatedPoolWithExistingShares(poolRecord.Reserves(), poolRecord.TotalShares)
+		if err != nil {
+			return noOpMsg, nil, nil
+		}
+		coinsOwned := denominatedPool.ShareValue(shareRecord.SharesOwned)
+
+		// Get random amount of shares between 2-50% of the total
+		sharePercentage, err := RandIntInclusive(r, sdk.NewInt(2), sdk.NewInt(50))
+		if err != nil {
+			panic(err)
+		}
+		shares := shareRecord.SharesOwned.Mul(sharePercentage).Quo(sdk.NewInt(100))
+
+		// Expect minimum token amounts relative to the % of shares owned and withdrawn
+		oneLessThanSharePercentage := sharePercentage.Sub(sdk.OneInt())
+
+		amtTokenAOwned := coinsOwned.AmountOf(poolRecord.ReservesA.Denom)
+		minAmtTokenA := amtTokenAOwned.Mul(oneLessThanSharePercentage).Quo(sdk.NewInt(100))
+		minTokenA := sdk.NewCoin(poolRecord.ReservesA.Denom, minAmtTokenA)
+
+		amtTokenBOwned := coinsOwned.AmountOf(poolRecord.ReservesB.Denom)
+		minTokenAmtB := amtTokenBOwned.Mul(oneLessThanSharePercentage).Quo(sdk.NewInt(100))
+		minTokenB := sdk.NewCoin(poolRecord.ReservesB.Denom, minTokenAmtB)
+
+		// Set up deadline
+		blockTime := ctx.BlockHeader().Time
+		durationNanoseconds, err := RandIntInclusive(r,
+			sdk.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
+			sdk.NewInt((time.Hour * 24).Nanoseconds()),   // one day
+		)
+		if err != nil {
+			panic(err)
+		}
+		extraTime := time.Duration(durationNanoseconds.Int64())
+		deadline := blockTime.Add(extraTime).Unix()
+
+		// Construct MsgWithdraw
+		msg := types.NewMsgWithdraw(withdrawerAcc.GetAddress(), shares, minTokenA, minTokenB, deadline)
+		err = msg.ValidateBasic()
+		if err != nil {
+			return noOpMsg, nil, nil
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			sdk.NewCoins(),
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{withdrawerAcc.GetAccountNumber()},
+			[]uint64{withdrawerAcc.GetSequence()},
+			withdrawer.PrivKey,
+		)
+
+		_, result, err := app.Deliver(tx)
+		if err != nil {
+			// to aid debugging, add the stack trace to the comment field of the returned opMsg
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
+		}
+		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
+
+	}
+}
+
 // From a set of coins return a coin of the specified denom with 1-10% of the total amount
 func randCoinFromCoins(r *rand.Rand, coins sdk.Coins, denom string) sdk.Coin {
 	percentOfBalance, err := RandIntInclusive(r, sdk.OneInt(), sdk.NewInt(10))
@@ -173,15 +275,9 @@ func validateDepositor(ctx sdk.Context, k keeper.Keeper, allowedPool types.Allow
 	tokenABalance := depositorCoins.AmountOf(allowedPool.TokenA)
 	tokenBBalance := depositorCoins.AmountOf(allowedPool.TokenB)
 
-	_, found := k.GetPool(ctx, allowedPool.Name())
-	if !found {
-		if tokenABalance.IsZero() || tokenBBalance.IsZero() {
-			return errorNotEnoughCoins
-		}
-	} else {
-		if tokenABalance.IsZero() && tokenBBalance.IsZero() {
-			return errorNotEnoughCoins
-		}
+	oneThousand := sdk.NewInt(1000)
+	if tokenABalance.LT(oneThousand) || tokenBBalance.LT(oneThousand) {
+		return errorNotEnoughCoins
 	}
 
 	return nil
@@ -198,6 +294,19 @@ func findValidAccountAllowedPoolPair(accounts []simulation.Account, pools types.
 		}
 	}
 	return simulation.Account{}, types.AllowedPool{}, false
+}
+
+// findValidAccountPoolRecordPair finds an account for which the callback func returns true
+func findValidAccountPoolRecordPair(accounts []simulation.Account, pools types.PoolRecords,
+	cb func(simulation.Account, types.PoolRecord) bool) (simulation.Account, types.PoolRecord, bool) {
+	for _, pool := range pools {
+		for _, acc := range accounts {
+			if isValid := cb(acc, pool); isValid {
+				return acc, pool, true
+			}
+		}
+	}
+	return simulation.Account{}, types.PoolRecord{}, false
 }
 
 // RandIntInclusive randomly generates an sdk.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.
