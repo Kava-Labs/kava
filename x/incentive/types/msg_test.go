@@ -20,74 +20,132 @@ func TestMsgClaimVVesting_Validate(t *testing.T) {
 		wraps error
 		pass  bool
 	}
-	tests := []struct {
-		name           string
+	type msgArgs struct {
 		sender         sdk.AccAddress
 		receiver       sdk.AccAddress
 		multiplierName string
-		expect         expectedErr
+		denomsToClaim  []string
+	}
+	tests := []struct {
+		name    string
+		msgArgs msgArgs
+		expect  expectedErr
 	}{
 		{
-			name:           "large multiplier is valid",
-			sender:         validAddress,
-			receiver:       validAddress,
-			multiplierName: "large",
+			name: "large multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "large",
+			},
 			expect: expectedErr{
 				pass: true,
 			},
 		},
 		{
-			name:           "medium multiplier is valid",
-			sender:         validAddress,
-			receiver:       validAddress,
-			multiplierName: "medium",
+			name: "medium multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "medium",
+			},
 			expect: expectedErr{
 				pass: true,
 			},
 		},
 		{
-			name:           "small multiplier is valid",
-			sender:         validAddress,
-			receiver:       validAddress,
-			multiplierName: "small",
+			name: "small multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "small",
+			},
 			expect: expectedErr{
 				pass: true,
 			},
 		},
 		{
-			name:           "invalid sender",
-			sender:         sdk.AccAddress{},
-			receiver:       validAddress,
-			multiplierName: "medium",
+			name: "empty denoms to claim is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "small",
+				denomsToClaim:  []string{},
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "invalid sender",
+			msgArgs: msgArgs{
+				sender:         sdk.AccAddress{},
+				receiver:       validAddress,
+				multiplierName: "medium",
+			},
 			expect: expectedErr{
 				wraps: sdkerrors.ErrInvalidAddress,
 			},
 		},
 		{
-			name:           "invalid receiver",
-			sender:         validAddress,
-			receiver:       sdk.AccAddress{},
-			multiplierName: "medium",
+			name: "invalid receiver",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       sdk.AccAddress{},
+				multiplierName: "medium",
+			},
 			expect: expectedErr{
 				wraps: sdkerrors.ErrInvalidAddress,
 			},
 		},
 		{
-			name:           "invalid multiplier",
-			sender:         validAddress,
-			receiver:       validAddress,
-			multiplierName: "huge",
+			name: "invalid multiplier",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "huge",
+			},
 			expect: expectedErr{
 				wraps: types.ErrInvalidMultiplier,
+			},
+		},
+		{
+			name: "invalid claim denom",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "small",
+				denomsToClaim:  []string{"a denom string that is invalid because it is much too long"},
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidClaimDenoms,
+			},
+		},
+		{
+			name: "too many claim denoms",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "small",
+				denomsToClaim:  tooManyClaimDenoms(),
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidClaimDenoms,
 			},
 		},
 	}
 
 	for _, tc := range tests {
 		msgs := []sdk.Msg{
-			types.NewMsgClaimUSDXMintingRewardVVesting(tc.sender, tc.receiver, tc.multiplierName),
-			types.NewMsgClaimHardRewardVVesting(tc.sender, tc.receiver, tc.multiplierName),
-			types.NewMsgClaimDelegatorRewardVVesting(tc.sender, tc.receiver, tc.multiplierName),
+			types.NewMsgClaimHardRewardVVesting(
+				tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
+			),
+			types.NewMsgClaimDelegatorRewardVVesting(
+				tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
+			),
+			types.NewMsgClaimSwapRewardVVesting(
+				tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
+			),
 		}
 		for _, msg := range msgs {
 			t.Run(msg.Type()+" "+tc.name, func(t *testing.T) {
@@ -110,58 +168,112 @@ func TestMsgClaim_Validate(t *testing.T) {
 		wraps error
 		pass  bool
 	}
-	tests := []struct {
-		name           string
+	type msgArgs struct {
 		sender         sdk.AccAddress
 		multiplierName string
-		expect         expectedErr
+		denomsToClaim  []string
+	}
+	tests := []struct {
+		name    string
+		msgArgs msgArgs
+		expect  expectedErr
 	}{
 		{
-			name:           "large multiplier is valid",
-			sender:         validAddress,
-			multiplierName: "large",
+			name: "large multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "large",
+			},
 			expect: expectedErr{
 				pass: true,
 			},
 		},
 		{
-			name:           "medium multiplier is valid",
-			sender:         validAddress,
-			multiplierName: "medium",
+			name: "medium multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "medium",
+			},
 			expect: expectedErr{
 				pass: true,
 			},
 		},
 		{
-			name:           "small multiplier is valid",
-			sender:         validAddress,
-			multiplierName: "small",
+			name: "small multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "small",
+			},
 			expect: expectedErr{
 				pass: true,
 			},
 		},
 		{
-			name:           "invalid sender",
-			sender:         sdk.AccAddress{},
-			multiplierName: "medium",
+			name: "empty denoms to claim is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "small",
+				denomsToClaim:  []string{},
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "invalid sender",
+			msgArgs: msgArgs{
+				sender:         sdk.AccAddress{},
+				multiplierName: "medium",
+			},
 			expect: expectedErr{
 				wraps: sdkerrors.ErrInvalidAddress,
 			},
 		},
 		{
-			name:           "invalid multiplier",
-			sender:         validAddress,
-			multiplierName: "huge",
+			name: "invalid multiplier",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "huge",
+			},
 			expect: expectedErr{
 				wraps: types.ErrInvalidMultiplier,
+			},
+		},
+		{
+			name: "invalid claim denom",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "small",
+				denomsToClaim:  []string{"a denom string that is invalid because it is much too long"},
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidClaimDenoms,
+			},
+		},
+		{
+			name: "too many claim denoms",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "small",
+				denomsToClaim:  tooManyClaimDenoms(),
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidClaimDenoms,
 			},
 		},
 	}
 
 	for _, tc := range tests {
 		msgs := []sdk.Msg{
-			types.NewMsgClaimUSDXMintingReward(tc.sender, tc.multiplierName),
-			types.NewMsgClaimHardReward(tc.sender, tc.multiplierName),
+			types.NewMsgClaimHardReward(
+				tc.msgArgs.sender, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
+			),
+			types.NewMsgClaimDelegatorReward(
+				tc.msgArgs.sender, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
+			),
+			types.NewMsgClaimSwapReward(
+				tc.msgArgs.sender, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
+			),
 		}
 		for _, msg := range msgs {
 			t.Run(msg.Type()+" "+tc.name, func(t *testing.T) {
@@ -177,87 +289,193 @@ func TestMsgClaim_Validate(t *testing.T) {
 	}
 }
 
-func TestMsgClaimDelegatorReward_Validate(t *testing.T) {
+func TestMsgClaimUSDXMintingRewardVVesting_Validate(t *testing.T) {
 	validAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1")))
-
-	tooManyClaimDenoms := make([]string, types.MaxDenomsToClaim+1)
-	for i := range tooManyClaimDenoms {
-		tooManyClaimDenoms[i] = fmt.Sprintf("denom%d", i)
-	}
 
 	type expectedErr struct {
 		wraps error
 		pass  bool
 	}
+	type msgArgs struct {
+		sender         sdk.AccAddress
+		receiver       sdk.AccAddress
+		multiplierName string
+	}
 	tests := []struct {
-		name     string
-		msg      types.MsgClaimDelegatorReward
-		expected expectedErr
+		name    string
+		msgArgs msgArgs
+		expect  expectedErr
 	}{
 		{
-			name: "valid msg passed validate",
-			msg: types.MsgClaimDelegatorReward{
-				Sender:         validAddress,
-				MultiplierName: "large",
-				DenomsToClaim:  nil,
+			name: "large multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "large",
 			},
-			expected: expectedErr{
+			expect: expectedErr{
 				pass: true,
 			},
 		},
 		{
-			name: "invalid multiplier name",
-			msg: types.MsgClaimDelegatorReward{
-				Sender:         validAddress,
-				MultiplierName: "invalid multiplier name",
-				DenomsToClaim:  nil,
+			name: "medium multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "medium",
 			},
-			expected: expectedErr{
-				wraps: types.ErrInvalidMultiplier,
-			},
-		},
-		{
-			name: "invalid claim denom",
-			msg: types.MsgClaimDelegatorReward{
-				Sender:         validAddress,
-				MultiplierName: "small",
-				DenomsToClaim:  []string{"a denom string that is invalid because it is much too long"},
-			},
-			expected: expectedErr{
-				wraps: types.ErrInvalidClaimDenoms,
+			expect: expectedErr{
+				pass: true,
 			},
 		},
 		{
-			name: "too many claim denoms",
-			msg: types.MsgClaimDelegatorReward{
-				Sender:         validAddress,
-				MultiplierName: "small",
-				DenomsToClaim:  tooManyClaimDenoms,
+			name: "small multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "small",
 			},
-			expected: expectedErr{
-				wraps: types.ErrInvalidClaimDenoms,
+			expect: expectedErr{
+				pass: true,
 			},
 		},
 		{
 			name: "invalid sender",
-			msg: types.MsgClaimDelegatorReward{
-				Sender:         nil,
-				MultiplierName: "medium",
-				DenomsToClaim:  nil,
+			msgArgs: msgArgs{
+				sender:         sdk.AccAddress{},
+				receiver:       validAddress,
+				multiplierName: "medium",
 			},
-			expected: expectedErr{
+			expect: expectedErr{
 				wraps: sdkerrors.ErrInvalidAddress,
 			},
 		},
+		{
+			name: "invalid receiver",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       sdk.AccAddress{},
+				multiplierName: "medium",
+			},
+			expect: expectedErr{
+				wraps: sdkerrors.ErrInvalidAddress,
+			},
+		},
+		{
+			name: "invalid multiplier",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "huge",
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidMultiplier,
+			},
+		},
 	}
+
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.msg.ValidateBasic()
-			if tc.expected.pass {
+
+			msg := types.NewMsgClaimUSDXMintingRewardVVesting(tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.multiplierName)
+
+			err := msg.ValidateBasic()
+			if tc.expect.pass {
 				require.NoError(t, err)
 			} else {
-				require.Truef(t, errors.Is(err, tc.expected.wraps), "expected error '%s' was not actual '%s'", tc.expected.wraps, err)
+				require.Truef(t, errors.Is(err, tc.expect.wraps), "expected error '%s' was not actual '%s'", tc.expect.wraps, err)
 			}
 		})
 	}
+}
+
+func TestMsgClaimUSDXMintingReward_Validate(t *testing.T) {
+	validAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1")))
+
+	type expectedErr struct {
+		wraps error
+		pass  bool
+	}
+	type msgArgs struct {
+		sender         sdk.AccAddress
+		multiplierName string
+		denomsToClaim  []string
+	}
+	tests := []struct {
+		name    string
+		msgArgs msgArgs
+		expect  expectedErr
+	}{
+		{
+			name: "large multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "large",
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "medium multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "medium",
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "small multiplier is valid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "small",
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "invalid sender",
+			msgArgs: msgArgs{
+				sender:         sdk.AccAddress{},
+				multiplierName: "medium",
+			},
+			expect: expectedErr{
+				wraps: sdkerrors.ErrInvalidAddress,
+			},
+		},
+		{
+			name: "invalid multiplier",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "huge",
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidMultiplier,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			msg := types.NewMsgClaimUSDXMintingReward(tc.msgArgs.sender, tc.msgArgs.multiplierName)
+
+			err := msg.ValidateBasic()
+			if tc.expect.pass {
+				require.NoError(t, err)
+			} else {
+				require.Truef(t, errors.Is(err, tc.expect.wraps), "expected error '%s' was not actual '%s'", tc.expect.wraps, err)
+			}
+		})
+	}
+}
+
+func tooManyClaimDenoms() []string {
+	claimDenoms := make([]string, types.MaxDenomsToClaim+1)
+	for i := range claimDenoms {
+		claimDenoms[i] = fmt.Sprintf("denom%d", i)
+	}
+	return claimDenoms
 }

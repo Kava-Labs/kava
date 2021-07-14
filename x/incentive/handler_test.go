@@ -601,7 +601,7 @@ func (suite *HandlerTestSuite) TestPayoutHardLiquidityProviderClaim() {
 			ak := suite.app.GetAccountKeeper()
 			preClaimAcc := ak.GetAccount(suite.ctx, userAddr)
 
-			msg := types.NewMsgClaimHardReward(userAddr, tc.args.multiplier)
+			msg := types.NewMsgClaimHardReward(userAddr, tc.args.multiplier, nil)
 			_, err = suite.handler(suite.ctx, msg)
 
 			if tc.errArgs.expectPass {
@@ -794,7 +794,7 @@ func (suite *HandlerTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 			// Fetch pre-claim balances
 			preClaimAcc := ak.GetAccount(suite.ctx, suite.addrs[2])
 
-			msg := types.NewMsgClaimHardRewardVVesting(userAddr, suite.addrs[2], tc.args.multiplier)
+			msg := types.NewMsgClaimHardRewardVVesting(userAddr, suite.addrs[2], tc.args.multiplier, nil)
 			_, err = suite.handler(suite.ctx, msg)
 
 			if tc.errArgs.expectPass {
@@ -853,7 +853,7 @@ func (suite *HandlerTestSuite) TestPayoutDelegatorClaim() {
 	preClaimBal := suite.GetBalance(userAddr)
 
 	// Check rewards cannot be claimed by vvesting claim msgs
-	failMsg := types.NewMsgClaimDelegatorRewardVVesting(userAddr, receiverAddr, "large")
+	failMsg := types.NewMsgClaimDelegatorRewardVVesting(userAddr, receiverAddr, "large", nil)
 	_, err := suite.handler(suite.ctx, failMsg)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
@@ -956,7 +956,7 @@ func (suite *HandlerTestSuite) TestPayoutDelegatorClaimVVesting() {
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim the delegation rewards
-	msg := types.NewMsgClaimDelegatorRewardVVesting(valAddr, receiverAddr, "large")
+	msg := types.NewMsgClaimDelegatorRewardVVesting(valAddr, receiverAddr, "large", nil)
 	_, err = suite.handler(suite.ctx, msg)
 	suite.NoError(err)
 
@@ -998,12 +998,12 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaim() {
 	preClaimBal := suite.GetBalance(userAddr)
 
 	// Check rewards cannot be claimed by vvesting claim msgs
-	failMsg := types.NewMsgClaimSwapRewardVVesting(userAddr, suite.addrs[2], "large")
+	failMsg := types.NewMsgClaimSwapRewardVVesting(userAddr, suite.addrs[2], "large", nil)
 	_, err := suite.handler(suite.ctx, failMsg)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim rewards
-	msg := types.NewMsgClaimSwapReward(userAddr, "large")
+	msg := types.NewMsgClaimSwapReward(userAddr, "large", nil)
 	_, err = suite.handler(suite.ctx, msg)
 	suite.NoError(err)
 
@@ -1050,12 +1050,12 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaimVVesting() {
 	preClaimBal := suite.GetBalance(receiverAddr)
 
 	// Check rewards cannot be claimed by normal claim msgs
-	failMsg := types.NewMsgClaimSwapReward(valAddr, "large")
+	failMsg := types.NewMsgClaimSwapReward(valAddr, "large", nil)
 	_, err := suite.handler(suite.ctx, failMsg)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim rewards
-	msg := types.NewMsgClaimSwapRewardVVesting(valAddr, receiverAddr, "large")
+	msg := types.NewMsgClaimSwapRewardVVesting(valAddr, receiverAddr, "large", nil)
 	_, err = suite.handler(suite.ctx, msg)
 	suite.NoError(err)
 

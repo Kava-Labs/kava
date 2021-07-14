@@ -33,13 +33,13 @@ func usdxMintingGenerator(req PostClaimReq) sdk.Msg {
 	return types.NewMsgClaimUSDXMintingReward(req.Sender, req.MultiplierName)
 }
 func hardGenerator(req PostClaimReq) sdk.Msg {
-	return types.NewMsgClaimHardReward(req.Sender, req.MultiplierName)
+	return types.NewMsgClaimHardReward(req.Sender, req.MultiplierName, req.DenomsToClaim)
 }
 func delegatorGenerator(req PostClaimReq) sdk.Msg {
 	return types.NewMsgClaimDelegatorReward(req.Sender, req.MultiplierName, req.DenomsToClaim)
 }
 func swapGenerator(req PostClaimReq) sdk.Msg {
-	return types.NewMsgClaimSwapReward(req.Sender, req.MultiplierName)
+	return types.NewMsgClaimSwapReward(req.Sender, req.MultiplierName, req.DenomsToClaim)
 }
 
 func postClaimHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostClaimReq) sdk.Msg) http.HandlerFunc {
@@ -79,13 +79,13 @@ func usdxMintingVVGenerator(req PostClaimVVestingReq) sdk.Msg {
 	return types.NewMsgClaimUSDXMintingRewardVVesting(req.Sender, req.Receiver, req.MultiplierName)
 }
 func hardVVGenerator(req PostClaimVVestingReq) sdk.Msg {
-	return types.NewMsgClaimHardRewardVVesting(req.Sender, req.Receiver, req.MultiplierName)
+	return types.NewMsgClaimHardRewardVVesting(req.Sender, req.Receiver, req.MultiplierName, req.DenomsToClaim)
 }
 func delegatorVVGenerator(req PostClaimVVestingReq) sdk.Msg {
-	return types.NewMsgClaimDelegatorRewardVVesting(req.Sender, req.Receiver, req.MultiplierName)
+	return types.NewMsgClaimDelegatorRewardVVesting(req.Sender, req.Receiver, req.MultiplierName, req.DenomsToClaim)
 }
 func swapVVGenerator(req PostClaimVVestingReq) sdk.Msg {
-	return types.NewMsgClaimSwapRewardVVesting(req.Sender, req.Receiver, req.MultiplierName)
+	return types.NewMsgClaimSwapRewardVVesting(req.Sender, req.Receiver, req.MultiplierName, req.DenomsToClaim)
 }
 
 func postClaimVVestingHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostClaimVVestingReq) sdk.Msg) http.HandlerFunc {

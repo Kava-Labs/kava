@@ -34,4 +34,5 @@ type PostClaimVVestingReq struct {
 	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
 	Receiver       sdk.AccAddress `json:"receiver" yaml:"receiver"`
 	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }

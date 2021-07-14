@@ -38,17 +38,13 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 }
 
 func getCmdClaimCdp(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "claim-cdp [multiplier]",
-		Short: "claim CDP rewards using a given multiplier",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim sender's outstanding CDP rewards using a given multiplier
 
-			Example:
-			$ %s tx %s claim-cdp large
-		`, version.ClientName, types.ModuleName),
-		),
-		Args: cobra.ExactArgs(1),
+	cmd := &cobra.Command{
+		Use:     "claim-cdp [multiplier]",
+		Short:   "claim USDX minting rewards using a given multiplier",
+		Long:    `Claim sender's outstanding USDX minting rewards using a given multiplier.`,
+		Example: fmt.Sprintf(`  $ %s tx %s claim-cdp large`, version.ClientName, types.ModuleName),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -58,27 +54,25 @@ func getCmdClaimCdp(cdc *codec.Codec) *cobra.Command {
 			multiplier := args[0]
 
 			msg := types.NewMsgClaimUSDXMintingReward(sender, multiplier)
-			err := msg.ValidateBasic()
-			if err != nil {
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+
+	return cmd
 }
 
 func getCmdClaimCdpVVesting(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "claim-cdp-vesting [multiplier] [receiver]",
-		Short: "claim CDP rewards using a given multiplier on behalf of a validator vesting account",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim sender's outstanding CDP rewards on behalf of a validator vesting using a given multiplier
 
-			Example:
-			$ %s tx %s claim-cdp-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
-		`, version.ClientName, types.ModuleName),
-		),
-		Args: cobra.ExactArgs(2),
+	cmd := &cobra.Command{
+		Use:   "claim-cdp-vesting [multiplier] [receiver]",
+		Short: "claim USDX minting rewards using a given multiplier on behalf of a validator vesting account",
+		Long: `Claim sender's outstanding USDX minting rewards on behalf of a validator vesting using a given multiplier.
+A receiver address for the rewards is needed as validator vesting accounts cannot receive locked tokens.`,
+		Example: fmt.Sprintf(`  $ %s tx %s claim-cdp-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw`, version.ClientName, types.ModuleName),
+		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -93,62 +87,25 @@ func getCmdClaimCdpVVesting(cdc *codec.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgClaimUSDXMintingRewardVVesting(sender, receiver, multiplier)
-			err = msg.ValidateBasic()
-			if err != nil {
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-}
 
-func getCmdClaimHardVVesting(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "claim-hard-vesting [multiplier] [receiver]",
-		Short: "claim Hard module rewards on behalf of a validator vesting account using a given multiplier",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim sender's outstanding Hard rewards on behalf of a validator vesting account for deposit/borrow/delegate using given multiplier
-
-			Example:
-			$ %s tx %s claim-hard-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
-		`, version.ClientName, types.ModuleName),
-		),
-		Args: cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			sender := cliCtx.GetFromAddress()
-			multiplier := args[0]
-			receiverStr := args[1]
-			receiver, err := sdk.AccAddressFromBech32(receiverStr)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgClaimHardRewardVVesting(sender, receiver, multiplier)
-			err = msg.ValidateBasic()
-			if err != nil {
-				return err
-			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
+	return cmd
 }
 
 func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "claim-hard [multiplier]",
-		Short: "claim sender's Hard module rewards using a given multiplier",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim sender's outstanding Hard rewards for deposit/borrow/delegate using given multiplier
+	var denomsToClaim []string
 
-			Example:
-			$ %s tx %s claim-hard large
-		`, version.ClientName, types.ModuleName),
-		),
-		Args: cobra.ExactArgs(1),
+	cmd := &cobra.Command{
+		Use:     "claim-hard [multiplier]",
+		Short:   "claim sender's Hard module rewards using a given multiplier",
+		Long:    `Claim sender's outstanding Hard rewards for deposit/borrow using given multiplier`,
+		Example: fmt.Sprintf(`  $ %s tx %s claim-hard large`, version.ClientName, types.ModuleName),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -157,28 +114,69 @@ func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 			sender := cliCtx.GetFromAddress()
 			multiplier := args[0]
 
-			msg := types.NewMsgClaimHardReward(sender, multiplier)
-			err := msg.ValidateBasic()
-			if err != nil {
+			msg := types.NewMsgClaimHardReward(sender, multiplier, denomsToClaim)
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	cmd.Flags().StringSliceVar(&denomsToClaim, "claim-only", nil, "claim only these denoms, otherwise claim all denoms")
+
+	return cmd
+}
+
+func getCmdClaimHardVVesting(cdc *codec.Codec) *cobra.Command {
+	var denomsToClaim []string
+
+	cmd := &cobra.Command{
+		Use:   "claim-hard-vesting [multiplier] [receiver]",
+		Short: "claim Hard module rewards on behalf of a validator vesting account using a given multiplier",
+		Long: `Claim sender's outstanding hard supply/borrow rewards on behalf of a validator vesting account using given multiplier
+A receiver address for the rewards is needed as validator vesting accounts cannot receive locked tokens.
+Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
+		Example: strings.Join([]string{
+			fmt.Sprintf("  $ %s tx %s claim-hard-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw", version.ClientName, types.ModuleName),
+			fmt.Sprintf("  $ %s tx %s claim-hard-vesting small kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --claim-only swap,hard", version.ClientName, types.ModuleName),
+		}, "\n"),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			sender := cliCtx.GetFromAddress()
+			multiplier := args[0]
+			receiverStr := args[1]
+			receiver, err := sdk.AccAddressFromBech32(receiverStr)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgClaimHardRewardVVesting(sender, receiver, multiplier, denomsToClaim)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	cmd.Flags().StringSliceVar(&denomsToClaim, "claim-only", nil, "claim only these denoms, otherwise claim all denoms")
+
+	return cmd
 }
 
 func getCmdClaimDelegator(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "claim-delegator [multiplier] [denoms to claim]",
-		Short: "claim sender's delegator rewards using a given multiplier",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim sender's outstanding delegator rewards using given multiplier.
-			Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.
+	var denomsToClaim []string
 
-			Example:
-			$ %s tx %s claim-delegator large swap,hard
-		`, version.ClientName, types.ModuleName),
-		),
+	cmd := &cobra.Command{
+		Use:   "claim-delegator [multiplier]",
+		Short: "claim sender's delegator rewards using a given multiplier",
+		Long: `Claim sender's outstanding delegator rewards using given multiplier.
+Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
+		Example: strings.Join([]string{
+			fmt.Sprintf("  $ %s tx %s claim-delegator large", version.ClientName, types.ModuleName),
+			fmt.Sprintf("  $ %s tx %s claim-delegator large --claim-only swap,hard", version.ClientName, types.ModuleName),
+		}, "\n"),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -187,29 +185,32 @@ func getCmdClaimDelegator(cdc *codec.Codec) *cobra.Command {
 
 			sender := cliCtx.GetFromAddress()
 			multiplier := args[0]
-			denomsToClaim := strings.Split(args[1], ",")
 
 			msg := types.NewMsgClaimDelegatorReward(sender, multiplier, denomsToClaim)
-			err := msg.ValidateBasic()
-			if err != nil {
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	cmd.Flags().StringSliceVar(&denomsToClaim, "claim-only", nil, "claim only these denoms, otherwise claim all denoms")
+
+	return cmd
 }
 
 func getCmdClaimDelegatorVVesting(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+	var denomsToClaim []string
+
+	cmd := &cobra.Command{
 		Use:   "claim-delegator-vesting [multiplier] [receiver]",
 		Short: "claim delegator rewards on behalf of a validator vesting account using a given multiplier",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim sender's outstanding delegator rewards on behalf of a validator vesting account using given multiplier
-
-			Example:
-			$ %s tx %s claim-delegator-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
-		`, version.ClientName, types.ModuleName),
-		),
+		Long: `Claim sender's outstanding delegator rewards on behalf of a validator vesting account using given multiplier
+A receiver address for the rewards is needed as validator vesting accounts cannot receive locked tokens.
+Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
+		Example: strings.Join([]string{
+			fmt.Sprintf("  $ %s tx %s claim-delegator-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw", version.ClientName, types.ModuleName),
+			fmt.Sprintf("  $ %s tx %s claim-delegator-vesting small kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --claim-only swap,hard", version.ClientName, types.ModuleName),
+		}, "\n"),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -224,27 +225,30 @@ func getCmdClaimDelegatorVVesting(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgClaimDelegatorRewardVVesting(sender, receiver, multiplier)
-			err = msg.ValidateBasic()
-			if err != nil {
+			msg := types.NewMsgClaimDelegatorRewardVVesting(sender, receiver, multiplier, denomsToClaim)
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	cmd.Flags().StringSliceVar(&denomsToClaim, "claim-only", nil, "claim only these denoms, otherwise claim all denoms")
+
+	return cmd
 }
 
 func getCmdClaimSwap(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+	var denomsToClaim []string
+
+	cmd := &cobra.Command{
 		Use:   "claim-swap [multiplier]",
 		Short: "claim sender's swap rewards using a given multiplier",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim sender's outstanding swap rewards using given multiplier.
-
-			Example:
-			$ %s tx %s claim-swap large
-		`, version.ClientName, types.ModuleName),
-		),
+		Long: `Claim sender's outstanding swap rewards using given multiplier.
+Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
+		Example: strings.Join([]string{
+			fmt.Sprintf("  $ %s tx %s claim-swap large", version.ClientName, types.ModuleName),
+			fmt.Sprintf("  $ %s tx %s claim-swap large --claim-only swap,hard", version.ClientName, types.ModuleName),
+		}, "\n"),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -254,27 +258,31 @@ func getCmdClaimSwap(cdc *codec.Codec) *cobra.Command {
 			sender := cliCtx.GetFromAddress()
 			multiplier := args[0]
 
-			msg := types.NewMsgClaimSwapReward(sender, multiplier)
-			err := msg.ValidateBasic()
-			if err != nil {
+			msg := types.NewMsgClaimSwapReward(sender, multiplier, denomsToClaim)
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	cmd.Flags().StringSliceVar(&denomsToClaim, "claim-only", nil, "claim only these denoms, otherwise claim all denoms")
+
+	return cmd
 }
 
 func getCmdClaimSwapVVesting(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+	var denomsToClaim []string
+
+	cmd := &cobra.Command{
 		Use:   "claim-swap-vesting [multiplier] [receiver]",
 		Short: "claim swap rewards on behalf of a validator vesting account using a given multiplier",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim sender's outstanding swap rewards on behalf of a validator vesting account using given multiplier
-
-			Example:
-			$ %s tx %s claim-swap-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
-		`, version.ClientName, types.ModuleName),
-		),
+		Long: `Claim sender's outstanding swap rewards on behalf of a validator vesting account using given multiplier
+A receiver address for the rewards is needed as validator vesting accounts cannot receive locked tokens.
+Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
+		Example: strings.Join([]string{
+			fmt.Sprintf("  $ %s tx %s claim-swap-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw", version.ClientName, types.ModuleName),
+			fmt.Sprintf("  $ %s tx %s claim-swap-vesting small kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --claim-only swap,hard", version.ClientName, types.ModuleName),
+		}, "\n"),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -289,12 +297,14 @@ func getCmdClaimSwapVVesting(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgClaimSwapRewardVVesting(sender, receiver, multiplier)
-			err = msg.ValidateBasic()
-			if err != nil {
+			msg := types.NewMsgClaimSwapRewardVVesting(sender, receiver, multiplier, denomsToClaim)
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	cmd.Flags().StringSliceVar(&denomsToClaim, "claim-only", nil, "claim only these denoms, otherwise claim all denoms")
+
+	return cmd
 }
