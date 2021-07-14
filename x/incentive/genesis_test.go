@@ -115,7 +115,7 @@ func (suite *GenesisTestSuite) TestPaidOutClaimsPassValidateGenesis() {
 	suite.Require().NoError(err)
 
 	incentiveHandler := incentive.NewHandler(suite.keeper)
-	_, err = incentiveHandler(suite.ctx, incentive.NewMsgClaimHardReward(suite.addrs[0], string(incentive.Large)))
+	_, err = incentiveHandler(suite.ctx, incentive.NewMsgClaimHardReward(suite.addrs[0], string(incentive.Large), nil))
 	suite.Require().NoError(err)
 
 	genState := incentive.ExportGenesis(suite.ctx, suite.keeper)

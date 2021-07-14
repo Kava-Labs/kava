@@ -112,6 +112,15 @@ func (k Keeper) GetAllPools(ctx sdk.Context) (records types.PoolRecords) {
 	return
 }
 
+// GetPoolShares gets the total shares in a pool from the store
+func (k Keeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Int, bool) {
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return sdk.Int{}, false
+	}
+	return pool.TotalShares, true
+}
+
 // GetDepositorShares gets a share record from the store
 func (k Keeper) GetDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (types.ShareRecord, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
@@ -181,4 +190,13 @@ func (k Keeper) GetAllDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddre
 		return false
 	})
 	return
+}
+
+// GetDepositorSharesAmount gets a depositor's shares in a pool from the store
+func (k *Keeper) GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
+	record, found := k.GetDepositorShares(ctx, depositor, poolID)
+	if !found {
+		return sdk.Int{}, false
+	}
+	return record.SharesOwned, true
 }

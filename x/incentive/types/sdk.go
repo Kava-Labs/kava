@@ -24,3 +24,18 @@ func MultiplyCoins(coins sdk.Coins, multiple sdk.Dec) sdk.Coins {
 	}
 	return result
 }
+
+// FilterCoins returns a subset of the coins by denom. Specifying no denoms will return the original coins.
+func FilterCoins(coins sdk.Coins, denoms []string) sdk.Coins {
+
+	if len(denoms) == 0 {
+		// with no filter, return all the coins
+		return coins
+	}
+	// otherwise select denoms in filter
+	var filteredCoins sdk.Coins
+	for _, denom := range denoms {
+		filteredCoins = filteredCoins.Add(sdk.NewCoin(denom, coins.AmountOf(denom)))
+	}
+	return filteredCoins
+}

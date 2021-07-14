@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
@@ -118,6 +119,8 @@ func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.Acc
 	k.SetPool(ctx, poolRecord)
 	k.SetDepositorShares(ctx, shareRecord)
 
+	k.hooks.AfterPoolDepositCreated(ctx, poolRecord.PoolID, depositor, shareRecord.SharesOwned)
+
 	return pool.Reserves(), pool.TotalShares(), nil
 }
 
@@ -131,8 +134,10 @@ func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, dep
 
 	poolRecord := types.NewPoolRecord(pool)
 
-	shareRecord, found := k.GetDepositorShares(ctx, depositor, poolRecord.PoolID)
-	if found {
+	shareRecord, sharesFound := k.GetDepositorShares(ctx, depositor, poolRecord.PoolID)
+	if sharesFound {
+		k.hooks.BeforePoolDepositModified(ctx, poolRecord.PoolID, depositor, shareRecord.SharesOwned)
+
 		shareRecord.SharesOwned = shareRecord.SharesOwned.Add(shares)
 	} else {
 		shareRecord = types.NewShareRecord(depositor, poolRecord.PoolID, shares)
@@ -140,6 +145,10 @@ func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, dep
 
 	k.SetPool(ctx, poolRecord)
 	k.SetDepositorShares(ctx, shareRecord)
+
+	if !sharesFound {
+		k.hooks.AfterPoolDepositCreated(ctx, poolRecord.PoolID, depositor, shareRecord.SharesOwned)
+	}
 
 	return depositAmount, shares, nil
 }
