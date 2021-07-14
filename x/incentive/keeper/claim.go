@@ -52,8 +52,8 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeyClaimedBy, claim.GetOwner().String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.GetReward().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.Reward.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.GetType()),
 		),
 	)
@@ -108,8 +108,8 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeyClaimedBy, syncedClaim.GetOwner().String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, syncedClaim.GetReward().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claimingCoins.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
 		),
 	)
@@ -163,8 +163,8 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeyClaimedBy, syncedClaim.GetOwner().String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, syncedClaim.GetReward().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claimingCoins.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
 		),
 	)
@@ -217,8 +217,8 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeyClaimedBy, syncedClaim.GetOwner().String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, syncedClaim.GetReward().String()), // TODO
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claimingCoins.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
 		),
 	)
