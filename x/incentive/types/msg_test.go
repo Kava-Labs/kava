@@ -110,6 +110,17 @@ func TestMsgClaimVVesting_Validate(t *testing.T) {
 			},
 		},
 		{
+			name: "multiplier with capitalization is invalid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "Large",
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidMultiplier,
+			},
+		},
+		{
 			name: "invalid claim denom",
 			msgArgs: msgArgs{
 				sender:         validAddress,
@@ -234,6 +245,16 @@ func TestMsgClaim_Validate(t *testing.T) {
 			msgArgs: msgArgs{
 				sender:         validAddress,
 				multiplierName: "huge",
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidMultiplier,
+			},
+		},
+		{
+			name: "multiplier with capitalization is invalid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "Large",
 			},
 			expect: expectedErr{
 				wraps: types.ErrInvalidMultiplier,
@@ -372,6 +393,17 @@ func TestMsgClaimUSDXMintingRewardVVesting_Validate(t *testing.T) {
 				wraps: types.ErrInvalidMultiplier,
 			},
 		},
+		{
+			name: "multiplier with capitalization is invalid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				receiver:       validAddress,
+				multiplierName: "Large",
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidMultiplier,
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -451,6 +483,16 @@ func TestMsgClaimUSDXMintingReward_Validate(t *testing.T) {
 			msgArgs: msgArgs{
 				sender:         validAddress,
 				multiplierName: "huge",
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidMultiplier,
+			},
+		},
+		{
+			name: "multiplier with capitalization is invalid",
+			msgArgs: msgArgs{
+				sender:         validAddress,
+				multiplierName: "Large",
 			},
 			expect: expectedErr{
 				wraps: types.ErrInvalidMultiplier,

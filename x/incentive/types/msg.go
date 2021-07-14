@@ -1,8 +1,6 @@
 package types
 
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -44,7 +42,7 @@ func (msg MsgClaimUSDXMintingReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if err := MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid(); err != nil {
+	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
 		return err
 	}
 	return nil
@@ -93,7 +91,7 @@ func (msg MsgClaimUSDXMintingRewardVVesting) ValidateBasic() error {
 	if msg.Receiver.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
-	if err := MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid(); err != nil {
+	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
 		return err
 	}
 	return nil
@@ -139,7 +137,7 @@ func (msg MsgClaimHardReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if err := MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid(); err != nil {
+	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
 		return err
 	}
 	for i, d := range msg.DenomsToClaim {
@@ -198,7 +196,7 @@ func (msg MsgClaimHardRewardVVesting) ValidateBasic() error {
 	if msg.Receiver.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
-	if err := MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid(); err != nil {
+	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
 		return err
 	}
 	for i, d := range msg.DenomsToClaim {
@@ -252,7 +250,7 @@ func (msg MsgClaimDelegatorReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if err := MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid(); err != nil {
+	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
 		return err
 	}
 	for i, d := range msg.DenomsToClaim {
@@ -311,7 +309,7 @@ func (msg MsgClaimDelegatorRewardVVesting) ValidateBasic() error {
 	if msg.Receiver.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
-	if err := MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid(); err != nil {
+	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
 		return err
 	}
 	for i, d := range msg.DenomsToClaim {
@@ -365,7 +363,7 @@ func (msg MsgClaimSwapReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if err := MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid(); err != nil {
+	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
 		return err
 	}
 	for i, d := range msg.DenomsToClaim {
@@ -424,7 +422,7 @@ func (msg MsgClaimSwapRewardVVesting) ValidateBasic() error {
 	if msg.Receiver.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
-	if err := MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid(); err != nil {
+	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
 		return err
 	}
 	for i, d := range msg.DenomsToClaim {
