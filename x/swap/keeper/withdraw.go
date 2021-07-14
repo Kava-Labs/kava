@@ -76,7 +76,7 @@ func (k Keeper) updatePool(ctx sdk.Context, poolID string, pool *types.Denominat
 	if pool.TotalShares().IsZero() {
 		k.DeletePool(ctx, poolID)
 	} else {
-		k.SetPool(ctx, types.NewPoolRecord(pool))
+		k.SetPool(ctx, types.NewPoolRecordFromPool(pool))
 	}
 }
 

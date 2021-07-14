@@ -70,7 +70,7 @@ func (suite *querierTestSuite) TestQueryPool() {
 
 	pool, err := types.NewDenominatedPool(sdk.NewCoins(coinA, coinB))
 	suite.Nil(err)
-	poolRecord := types.NewPoolRecord(pool)
+	poolRecord := types.NewPoolRecordFromPool(pool)
 	suite.Keeper.SetPool(suite.Ctx, poolRecord)
 
 	ctx := suite.Ctx.WithIsCheckTx(false)
@@ -101,12 +101,12 @@ func (suite *querierTestSuite) TestQueryPools() {
 
 	poolAB, err := types.NewDenominatedPool(sdk.NewCoins(coinA, coinB))
 	suite.Nil(err)
-	poolRecordAB := types.NewPoolRecord(poolAB)
+	poolRecordAB := types.NewPoolRecordFromPool(poolAB)
 	suite.Keeper.SetPool(suite.Ctx, poolRecordAB)
 
 	poolAC, err := types.NewDenominatedPool(sdk.NewCoins(coinA, coinC))
 	suite.Nil(err)
-	poolRecordAC := types.NewPoolRecord(poolAC)
+	poolRecordAC := types.NewPoolRecordFromPool(poolAC)
 	suite.Keeper.SetPool(suite.Ctx, poolRecordAC)
 
 	// Build a map of pools to compare to query results
@@ -142,7 +142,7 @@ func (suite *querierTestSuite) TestQueryDeposit() {
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(200))
 	pool, err := types.NewDenominatedPool(sdk.NewCoins(coinA, coinB))
 	suite.Nil(err)
-	poolRecord := types.NewPoolRecord(pool)
+	poolRecord := types.NewPoolRecordFromPool(pool)
 	suite.Keeper.SetPool(suite.Ctx, poolRecord)
 
 	// Deposit into pool

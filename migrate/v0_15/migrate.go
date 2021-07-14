@@ -304,7 +304,7 @@ func loadStabilityComMembers() ([]sdk.AccAddress, error) {
 
 // Swap introduces new v0.15 swap genesis state
 func Swap() v0_15swap.GenesisState {
-	return v0_15swap.NewGenesisState(v0_15swap.DefaultParams())
+	return v0_15swap.DefaultGenesisState()
 }
 
 // Incentive migrates from a v0.14 incentive genesis state to a v0.15 incentive genesis state

@@ -112,7 +112,7 @@ func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.Acc
 		return sdk.Coins{}, sdk.ZeroInt(), err
 	}
 
-	poolRecord := types.NewPoolRecord(pool)
+	poolRecord := types.NewPoolRecordFromPool(pool)
 	shareRecord := types.NewShareRecord(depositor, poolRecord.PoolID, pool.TotalShares())
 
 	k.SetPool(ctx, poolRecord)
@@ -129,7 +129,7 @@ func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, dep
 
 	depositAmount, shares := pool.AddLiquidity(desiredAmount)
 
-	poolRecord := types.NewPoolRecord(pool)
+	poolRecord := types.NewPoolRecordFromPool(pool)
 
 	shareRecord, found := k.GetDepositorShares(ctx, depositor, poolRecord.PoolID)
 	if found {
