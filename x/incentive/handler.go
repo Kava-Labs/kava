@@ -111,7 +111,7 @@ func handleMsgClaimDelegatorRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg
 
 func handleMsgClaimSwapReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimSwapReward) (*sdk.Result, error) {
 
-	err := k.ClaimSwapReward(ctx, msg.Sender, msg.Sender, types.MultiplierName(msg.MultiplierName))
+	err := k.ClaimSwapReward(ctx, msg.Sender, msg.Sender, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func handleMsgClaimSwapRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg type
 	if err := k.ValidateIsValidatorVestingAccount(ctx, msg.Sender); err != nil {
 		return nil, err
 	}
-	err := k.ClaimSwapReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName))
+	err := k.ClaimSwapReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
 	if err != nil {
 		return nil, err
 	}

@@ -170,7 +170,7 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 
 // ClaimSwapReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
-func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName) error {
+func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName, denomsToClaim []string) error {
 	_, found := k.GetSwapClaim(ctx, owner)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
@@ -192,7 +192,8 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
-	rewardCoins := types.MultiplyCoins(syncedClaim.Reward, multiplier.Factor)
+	claimingCoins := types.FilterCoins(syncedClaim.Reward, denomsToClaim)
+	rewardCoins := types.MultiplyCoins(claimingCoins, multiplier.Factor)
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
@@ -207,14 +208,14 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	}
 
 	// remove claimed coins (NOT reward coins)
-	syncedClaim.Reward = sdk.NewCoins()
+	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
 	k.SetSwapClaim(ctx, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
 			sdk.NewAttribute(types.AttributeKeyClaimedBy, syncedClaim.GetOwner().String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, syncedClaim.GetReward().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, syncedClaim.GetReward().String()), // TODO
 			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
 		),
 	)

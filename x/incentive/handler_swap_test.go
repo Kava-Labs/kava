@@ -207,14 +207,14 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaim() {
 
 	authBulder := app.NewAuthGenesisBuilder().
 		WithSimpleAccount(userAddr, cs(c("ukava", 1e12), c("busd", 1e12))).
-		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("swap", 1e18)))
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1e18), c("swap", 1e18)))
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
 		WithMultipliers(types.Multipliers{
 			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
 		}).
-		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("swap", 1e6)))
+		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("hard", 1e6), c("swap", 1e6)))
 
 	suite.SetupWithGenState(authBulder, incentBuilder)
 
@@ -239,6 +239,54 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaim() {
 	suite.NoError(err)
 
 	// Check rewards were paid out
+	expectedRewards := cs(c("swap", 7*1e6), c("hard", 7*1e6))
+	suite.BalanceEquals(userAddr, preClaimBal.Add(expectedRewards...))
+
+	suite.VestingPeriodsEqual(userAddr, vesting.Periods{
+		{Length: 33004793, Amount: expectedRewards},
+	})
+
+	// Check that each claim reward coin's amount has been reset to 0
+	suite.SwapRewardEquals(userAddr, nil)
+}
+
+func (suite *HandlerTestSuite) TestPayoutSwapClaimSingleDenom() {
+	userAddr := suite.addrs[0]
+
+	authBulder := app.NewAuthGenesisBuilder().
+		WithSimpleAccount(userAddr, cs(c("ukava", 1e12), c("busd", 1e12))).
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1e18), c("swap", 1e18)))
+
+	incentBuilder := testutil.NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithMultipliers(types.Multipliers{
+			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
+		}).
+		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("hard", 1e6), c("swap", 1e6)))
+
+	suite.SetupWithGenState(authBulder, incentBuilder)
+
+	// deposit into a swap pool
+	suite.NoError(
+		suite.DeliverSwapMsgDeposit(userAddr, c("ukava", 1e9), c("busd", 1e9), d("1.0")),
+	)
+
+	// accumulate some swap rewards
+	suite.NextBlockAfter(7 * time.Second)
+
+	preClaimBal := suite.GetBalance(userAddr)
+
+	// Check rewards cannot be claimed by vvesting claim msgs
+	failMsg := types.NewMsgClaimSwapRewardVVesting(userAddr, suite.addrs[2], "large", nil)
+	_, err := suite.handler(suite.ctx, failMsg)
+	suite.ErrorIs(err, types.ErrInvalidAccountType)
+
+	// Claim rewards
+	msg := types.NewMsgClaimSwapReward(userAddr, "large", []string{"swap"})
+	_, err = suite.handler(suite.ctx, msg)
+	suite.NoError(err)
+
+	// Check rewards were paid out
 	expectedRewards := c("swap", 7*1e6)
 	suite.BalanceEquals(userAddr, preClaimBal.Add(expectedRewards))
 
@@ -246,8 +294,8 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaim() {
 		{Length: 33004793, Amount: cs(expectedRewards)},
 	})
 
-	// Check that each claim reward coin's amount has been reset to 0
-	suite.SwapRewardEquals(userAddr, nil)
+	// Check that claimed coins have been removed from a claim's reward
+	suite.SwapRewardEquals(userAddr, cs(c("hard", 7*1e6)))
 }
 
 func (suite *HandlerTestSuite) TestPayoutSwapClaimVVesting() {
@@ -259,14 +307,14 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaimVVesting() {
 	authBulder := app.NewAuthGenesisBuilder().
 		WithAccounts(vva).
 		WithSimpleAccount(receiverAddr, nil).
-		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("swap", 1e18)))
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1e18), c("swap", 1e18)))
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
 		WithMultipliers(types.Multipliers{
 			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
 		}).
-		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("swap", 1e6)))
+		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("hard", 1e6), c("swap", 1e6)))
 
 	suite.SetupWithGenState(authBulder, incentBuilder)
 
@@ -291,6 +339,58 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaimVVesting() {
 	suite.NoError(err)
 
 	// Check rewards were paid out
+	expectedRewards := cs(c("hard", 7*1e6), c("swap", 7*1e6))
+	suite.BalanceEquals(receiverAddr, preClaimBal.Add(expectedRewards...))
+
+	suite.VestingPeriodsEqual(receiverAddr, vesting.Periods{
+		{Length: 33004793, Amount: expectedRewards},
+	})
+
+	// Check that each claim reward coin's amount has been reset to 0
+	suite.SwapRewardEquals(valAddr, nil)
+}
+
+func (suite *HandlerTestSuite) TestPayoutSwapClaimVVestingSingleDenom() {
+	valAddr := suite.addrs[0]
+	receiverAddr := suite.addrs[1]
+
+	vva := suite.NewValidatorVestingAccountWithBalance(valAddr, cs(c("ukava", 1e12), c("busd", 1e12)))
+
+	authBulder := app.NewAuthGenesisBuilder().
+		WithAccounts(vva).
+		WithSimpleAccount(receiverAddr, nil).
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1e18), c("swap", 1e18)))
+
+	incentBuilder := testutil.NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithMultipliers(types.Multipliers{
+			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
+		}).
+		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("hard", 1e6), c("swap", 1e6)))
+
+	suite.SetupWithGenState(authBulder, incentBuilder)
+
+	// deposit into a swap pool
+	suite.NoError(
+		suite.DeliverSwapMsgDeposit(valAddr, c("ukava", 1e9), c("busd", 1e9), d("1.0")),
+	)
+
+	// accumulate some swap rewards
+	suite.NextBlockAfter(7 * time.Second)
+
+	preClaimBal := suite.GetBalance(receiverAddr)
+
+	// Check rewards cannot be claimed by normal claim msgs
+	failMsg := types.NewMsgClaimSwapReward(valAddr, "large", []string{"swap"})
+	_, err := suite.handler(suite.ctx, failMsg)
+	suite.ErrorIs(err, types.ErrInvalidAccountType)
+
+	// Claim rewards
+	msg := types.NewMsgClaimSwapRewardVVesting(valAddr, receiverAddr, "large", []string{"swap"})
+	_, err = suite.handler(suite.ctx, msg)
+	suite.NoError(err)
+
+	// Check rewards were paid out
 	expectedRewards := c("swap", 7*1e6)
 	suite.BalanceEquals(receiverAddr, preClaimBal.Add(expectedRewards))
 
@@ -298,6 +398,6 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaimVVesting() {
 		{Length: 33004793, Amount: cs(expectedRewards)},
 	})
 
-	// Check that each claim reward coin's amount has been reset to 0
-	suite.SwapRewardEquals(valAddr, nil)
+	// Check that claimed coins have been removed from a claim's reward
+	suite.SwapRewardEquals(valAddr, cs(c("hard", 7*1e6)))
 }
