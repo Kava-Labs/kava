@@ -431,7 +431,6 @@ func TestMsgClaimUSDXMintingReward_Validate(t *testing.T) {
 	type msgArgs struct {
 		sender         sdk.AccAddress
 		multiplierName string
-		denomsToClaim  []string
 	}
 	tests := []struct {
 		name    string
