@@ -106,11 +106,20 @@ type PoolRecords []PoolRecord
 
 // Validate performs basic validation checks on all records in the slice
 func (prs PoolRecords) Validate() error {
+	seenPoolIDs := make(map[string]bool)
+
 	for _, p := range prs {
 		if err := p.Validate(); err != nil {
 			return err
 		}
+
+		if seenPoolIDs[p.PoolID] {
+			return fmt.Errorf("duplicate poolID '%s'", p.PoolID)
+		}
+
+		seenPoolIDs[p.PoolID] = true
 	}
+
 	return nil
 }
 
@@ -163,10 +172,24 @@ type ShareRecords []ShareRecord
 
 // Validate performs basic validation checks on all records in the slice
 func (srs ShareRecords) Validate() error {
+	seenDepositors := make(map[string]map[string]bool)
+
 	for _, sr := range srs {
 		if err := sr.Validate(); err != nil {
 			return err
 		}
+
+		if seenPools, found := seenDepositors[sr.Depositor.String()]; found {
+			if seenPools[sr.PoolID] {
+				return fmt.Errorf("duplicate depositor '%s' and poolID '%s'", sr.Depositor.String(), sr.PoolID)
+			}
+			seenPools[sr.PoolID] = true
+		} else {
+			seenPools := make(map[string]bool)
+			seenPools[sr.PoolID] = true
+			seenDepositors[sr.Depositor.String()] = seenPools
+		}
 	}
+
 	return nil
 }
