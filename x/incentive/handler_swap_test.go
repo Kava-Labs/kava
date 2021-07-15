@@ -98,7 +98,8 @@ func (suite *HandlerTestSuite) NewValidatorVestingAccountWithBalance(address sdk
 
 // authBuilder returns a new auth genesis builder with a full kavadist module account.
 func (suite *HandlerTestSuite) authBuilder() app.AuthGenesisBuilder {
-	return app.NewAuthGenesisBuilder().WithSimpleModuleAccount(kavadist.ModuleName, cs(c("bnb", 1e18), c("hard", 1e18), c("swap", 1e18)))
+	return app.NewAuthGenesisBuilder().
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18), c("hard", 1e18), c("swap", 1e18)))
 }
 
 // incentiveBuilder returns a new incentive genesis builder with a genesis time and multipliers set
