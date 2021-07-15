@@ -93,17 +93,17 @@ func (suite *HandlerTestSuite) TestPayoutUSDXMintingClaim() {
 			suite.SetupWithGenState(authBulder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
 			// setup cdp state
-			err := suite.cdpKeeper.AddCdp(suite.ctx, userAddr, tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
+			err := suite.cdpKeeper.AddCdp(suite.Ctx, userAddr, tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
 			suite.Require().NoError(err)
 
-			claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, userAddr)
+			claim, found := suite.keeper.GetUSDXMintingClaim(suite.Ctx, userAddr)
 			suite.Require().True(found)
 			suite.Require().Equal(sdk.ZeroDec(), claim.RewardIndexes[0].RewardFactor)
 
 			suite.NextBlockAfter(tc.args.timeElapsed)
 
 			msg := incentive.NewMsgClaimUSDXMintingReward(userAddr, tc.args.multiplier)
-			_, err = suite.handler(suite.ctx, msg)
+			_, err = suite.handler(suite.Ctx, msg)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
@@ -117,7 +117,7 @@ func (suite *HandlerTestSuite) TestPayoutUSDXMintingClaim() {
 					suite.Require().Equal(tc.args.expectedPeriods, vacc.VestingPeriods)
 				}
 
-				claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, userAddr)
+				claim, found := suite.keeper.GetUSDXMintingClaim(suite.Ctx, userAddr)
 				suite.Require().True(found)
 				suite.Require().Equal(c("ukava", 0), claim.Reward)
 			} else {
@@ -214,11 +214,11 @@ func (suite *HandlerTestSuite) TestPayoutUSDXMintingClaimVVesting() {
 			suite.SetupWithGenState(authBulder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
 			// setup cdp state
-			cdpKeeper := suite.app.GetCDPKeeper()
-			err = cdpKeeper.AddCdp(suite.ctx, suite.addrs[2], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
+			cdpKeeper := suite.App.GetCDPKeeper()
+			err = cdpKeeper.AddCdp(suite.Ctx, suite.addrs[2], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
 			suite.Require().NoError(err)
 
-			claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[2])
+			claim, found := suite.keeper.GetUSDXMintingClaim(suite.Ctx, suite.addrs[2])
 			suite.Require().True(found)
 			suite.Require().Equal(sdk.ZeroDec(), claim.RewardIndexes[0].RewardFactor)
 
@@ -226,19 +226,19 @@ func (suite *HandlerTestSuite) TestPayoutUSDXMintingClaimVVesting() {
 			suite.NextBlockAfter(tc.args.timeElapsed)
 
 			msg := incentive.NewMsgClaimUSDXMintingRewardVVesting(suite.addrs[2], suite.addrs[0], tc.args.multiplier)
-			_, err = suite.handler(suite.ctx, msg)
+			_, err = suite.handler(suite.Ctx, msg)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
-				ak := suite.app.GetAccountKeeper()
-				acc := ak.GetAccount(suite.ctx, suite.addrs[0])
+				ak := suite.App.GetAccountKeeper()
+				acc := ak.GetAccount(suite.Ctx, suite.addrs[0])
 				suite.Require().Equal(tc.args.expectedBalance, acc.GetCoins())
 
 				vacc, ok := acc.(*vesting.PeriodicVestingAccount)
 				suite.Require().True(ok)
 				suite.Require().Equal(tc.args.expectedPeriods, vacc.VestingPeriods)
 
-				claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[2])
+				claim, found := suite.keeper.GetUSDXMintingClaim(suite.Ctx, suite.addrs[2])
 				suite.Require().True(found)
 				suite.Require().Equal(c("ukava", 0), claim.Reward)
 			} else {

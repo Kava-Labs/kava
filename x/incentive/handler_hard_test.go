@@ -149,13 +149,13 @@ func (suite *HandlerTestSuite) TestPayoutHardLiquidityProviderClaim() {
 			suite.SetupWithGenState(authBulder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
 			// User deposits and borrows
-			err := suite.hardKeeper.Deposit(suite.ctx, userAddr, tc.args.deposit)
+			err := suite.hardKeeper.Deposit(suite.Ctx, userAddr, tc.args.deposit)
 			suite.Require().NoError(err)
-			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, tc.args.borrow)
+			err = suite.hardKeeper.Borrow(suite.Ctx, userAddr, tc.args.borrow)
 			suite.Require().NoError(err)
 
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim that has 0 rewards
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.Ctx, userAddr)
 			suite.Require().True(found)
 			for _, coin := range tc.args.deposit {
 				suite.Require().Equal(sdk.ZeroInt(), claim.Reward.AmountOf(coin.Denom))
@@ -165,17 +165,17 @@ func (suite *HandlerTestSuite) TestPayoutHardLiquidityProviderClaim() {
 			suite.NextBlockAfter(tc.args.timeElapsed)
 
 			// Fetch pre-claim balances
-			ak := suite.app.GetAccountKeeper()
-			preClaimAcc := ak.GetAccount(suite.ctx, userAddr)
+			ak := suite.App.GetAccountKeeper()
+			preClaimAcc := ak.GetAccount(suite.Ctx, userAddr)
 
 			msg := types.NewMsgClaimHardReward(userAddr, tc.args.multiplier, nil)
-			_, err = suite.handler(suite.ctx, msg)
+			_, err = suite.handler(suite.Ctx, msg)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 
 				// Check that user's balance has increased by expected reward amount
-				postClaimAcc := ak.GetAccount(suite.ctx, userAddr)
+				postClaimAcc := ak.GetAccount(suite.Ctx, userAddr)
 				suite.Require().Equal(preClaimAcc.GetCoins().Add(tc.args.expectedRewards...), postClaimAcc.GetCoins())
 
 				if tc.args.isPeriodicVestingAccount {
@@ -185,7 +185,7 @@ func (suite *HandlerTestSuite) TestPayoutHardLiquidityProviderClaim() {
 				}
 
 				// Check that each claim reward coin's amount has been reset to 0
-				claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+				claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.Ctx, userAddr)
 				suite.Require().True(found)
 				for _, claimRewardCoin := range claim.Reward {
 					suite.Require().Equal(c(claimRewardCoin.Denom, 0), claimRewardCoin)
@@ -339,17 +339,17 @@ func (suite *HandlerTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 
 			suite.SetupWithGenState(authBulder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
-			ak := suite.app.GetAccountKeeper()
-			hardKeeper := suite.app.GetHardKeeper()
+			ak := suite.App.GetAccountKeeper()
+			hardKeeper := suite.App.GetHardKeeper()
 
 			// User deposits and borrows
-			err = hardKeeper.Deposit(suite.ctx, userAddr, tc.args.deposit)
+			err = hardKeeper.Deposit(suite.Ctx, userAddr, tc.args.deposit)
 			suite.Require().NoError(err)
-			err = hardKeeper.Borrow(suite.ctx, userAddr, tc.args.borrow)
+			err = hardKeeper.Borrow(suite.Ctx, userAddr, tc.args.borrow)
 			suite.Require().NoError(err)
 
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim that has 0 rewards
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.Ctx, userAddr)
 			suite.Require().True(found)
 			for _, coin := range tc.args.deposit {
 				suite.Require().Equal(sdk.ZeroInt(), claim.Reward.AmountOf(coin.Denom))
@@ -359,16 +359,16 @@ func (suite *HandlerTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 			suite.NextBlockAfter(tc.args.timeElapsed)
 
 			// Fetch pre-claim balances
-			preClaimAcc := ak.GetAccount(suite.ctx, suite.addrs[2])
+			preClaimAcc := ak.GetAccount(suite.Ctx, suite.addrs[2])
 
 			msg := types.NewMsgClaimHardRewardVVesting(userAddr, suite.addrs[2], tc.args.multiplier, nil)
-			_, err = suite.handler(suite.ctx, msg)
+			_, err = suite.handler(suite.Ctx, msg)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 
 				// Check that user's balance has increased by expected reward amount
-				postClaimAcc := ak.GetAccount(suite.ctx, suite.addrs[2])
+				postClaimAcc := ak.GetAccount(suite.Ctx, suite.addrs[2])
 				suite.Require().Equal(preClaimAcc.GetCoins().Add(tc.args.expectedRewards...), postClaimAcc.GetCoins())
 
 				vacc, ok := postClaimAcc.(*vesting.PeriodicVestingAccount)
@@ -376,7 +376,7 @@ func (suite *HandlerTestSuite) TestPayoutHardLiquidityProviderClaimVVesting() {
 				suite.Require().Equal(tc.args.expectedPeriods, vacc.VestingPeriods)
 
 				// Check that each claim reward coin's amount has been reset to 0
-				claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+				claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.Ctx, suite.addrs[3])
 				suite.Require().True(found)
 				for _, claimRewardCoin := range claim.Reward {
 					suite.Require().Equal(c(claimRewardCoin.Denom, 0), claimRewardCoin)
