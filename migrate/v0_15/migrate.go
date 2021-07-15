@@ -304,6 +304,7 @@ func loadStabilityComMembers() ([]sdk.AccAddress, error) {
 
 // Swap introduces new v0.15 swap genesis state
 func Swap() v0_15swap.GenesisState {
+	// TODO add swap genesis state
 	return v0_15swap.DefaultGenesisState()
 }
 
