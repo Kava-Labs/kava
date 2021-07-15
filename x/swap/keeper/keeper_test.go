@@ -5,6 +5,7 @@ import (
 
 	"github.com/kava-labs/kava/x/swap/testutil"
 	"github.com/kava-labs/kava/x/swap/types"
+	"github.com/kava-labs/kava/x/swap/types/mocks"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -106,6 +107,17 @@ func (suite *keeperTestSuite) TestPool_Persistance() {
 	suite.Equal(deletedPool, types.PoolRecord{})
 }
 
+func (suite *keeperTestSuite) TestPool_PanicsWhenInvalid() {
+	invalidRecord := types.NewPoolRecord(
+		sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100e6)), sdk.NewCoin("usdx", sdk.NewInt(100e6))),
+		i(-1),
+	)
+
+	suite.Panics(func() {
+		suite.Keeper.SetPool(suite.Ctx, invalidRecord)
+	}, "expected set pool to panic with invalid record")
+}
+
 func (suite *keeperTestSuite) TestShare_Persistance() {
 	poolID := "ukava/usdx"
 	depositor := sdk.AccAddress("testAddress1")
@@ -126,4 +138,48 @@ func (suite *keeperTestSuite) TestShare_Persistance() {
 	deletedShares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolID)
 	suite.False(ok)
 	suite.Equal(deletedShares, types.ShareRecord{})
+}
+
+func (suite *keeperTestSuite) TestShare_PanicsWhenInvalid() {
+	depositor, err := sdk.AccAddressFromBech32("kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w")
+	suite.Require().NoError(err)
+
+	invalidRecord := types.NewShareRecord(
+		depositor,
+		"hard/usdx",
+		i(-1),
+	)
+
+	suite.Panics(func() {
+		suite.Keeper.SetDepositorShares(suite.Ctx, invalidRecord)
+	}, "expected set depositor shares to panic with invalid record")
+}
+
+func (suite *keeperTestSuite) TestHooks() {
+	// ensure no hooks are set
+	suite.Keeper.ClearHooks()
+
+	// data
+	depositor, err := sdk.AccAddressFromBech32("kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w")
+	suite.Require().NoError(err)
+
+	// hooks can be called when not set
+	suite.Keeper.AfterPoolDepositCreated(suite.Ctx, "ukava/usdx", depositor, sdk.NewInt(1e6))
+	suite.Keeper.BeforePoolDepositModified(suite.Ctx, "ukava/usdx", depositor, sdk.NewInt(1e6))
+
+	// set hooks
+	swapHooks := &mocks.SwapHooks{}
+	suite.Keeper.SetHooks(swapHooks)
+
+	// test hook calls are correct
+	swapHooks.On("AfterPoolDepositCreated", suite.Ctx, "ukava/usdx", depositor, sdk.NewInt(1e6)).Once()
+	suite.Keeper.AfterPoolDepositCreated(suite.Ctx, "ukava/usdx", depositor, sdk.NewInt(1e6))
+	swapHooks.On("BeforePoolDepositModified", suite.Ctx, "ukava/usdx", depositor, sdk.NewInt(1e6)).Once()
+	suite.Keeper.BeforePoolDepositModified(suite.Ctx, "ukava/usdx", depositor, sdk.NewInt(1e6))
+	swapHooks.AssertExpectations(suite.T())
+
+	// test second set panics
+	suite.PanicsWithValue("cannot set swap hooks twice", func() {
+		suite.Keeper.SetHooks(swapHooks)
+	}, "expected hooks to panic on second set")
 }
