@@ -96,6 +96,10 @@ func (suite *keeperTestSuite) TestPool_Persistance() {
 	suite.True(ok)
 	suite.Equal(record, savedRecord)
 
+	savedShares, ok := suite.Keeper.GetPoolShares(suite.Ctx, record.PoolID)
+	suite.True(ok)
+	suite.Equal(record.TotalShares, savedShares)
+
 	suite.Keeper.DeletePool(suite.Ctx, record.PoolID)
 	deletedPool, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolID)
 	suite.False(ok)
@@ -113,6 +117,10 @@ func (suite *keeperTestSuite) TestShare_Persistance() {
 	savedRecord, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolID)
 	suite.True(ok)
 	suite.Equal(record, savedRecord)
+
+	savedShares, ok := suite.Keeper.GetDepositorSharesAmount(suite.Ctx, depositor, poolID)
+	suite.True(ok)
+	suite.Equal(record.SharesOwned, savedShares)
 
 	suite.Keeper.DeleteDepositorShares(suite.Ctx, depositor, poolID)
 	deletedShares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolID)

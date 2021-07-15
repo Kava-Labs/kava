@@ -172,10 +172,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenNewReward
 
 	suite.Equal(newGlobalIndexes, syncedClaim.RewardIndexes)
 	suite.Equal(
-		cs(
-			c(types.HardLiquidityRewardDenom, 100),
-			c("swp", 200),
-		).Add(claim.Reward...),
+		cs(c("hard", 100), c("swp", 200)).Add(claim.Reward...),
 		syncedClaim.Reward,
 	)
 }
@@ -237,10 +234,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenGlobalFac
 	syncedClaim, _ := suite.keeper.GetDelegatorClaim(suite.ctx, claim.Owner)
 
 	suite.Equal(
-		cs(
-			c(types.HardLiquidityRewardDenom, 100),
-			c("swp", 200),
-		).Add(claim.Reward...),
+		cs(c("hard", 100), c("swp", 200)).Add(claim.Reward...),
 		syncedClaim.Reward,
 	)
 }

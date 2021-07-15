@@ -17,10 +17,6 @@ const (
 	QuerierRoute = ModuleName
 )
 
-// TODO: Refactor so that each incentive type has:
-// 1. [Incentive]ClaimKeyPrefix
-// 2. [Incentve]AccumulatorKeyPrefix { PreviousAccrualTime block.Time, IndexFactors types.IndexFactors }
-
 // Key Prefixes
 var (
 	USDXMintingClaimKeyPrefix                     = []byte{0x01} // prefix for keys that store USDX minting claims
@@ -38,6 +34,5 @@ var (
 	SwapRewardIndexesKeyPrefix                    = []byte{0x13} // prefix for key that stores swap reward indexes
 	PreviousSwapRewardAccrualTimeKeyPrefix        = []byte{0x14} // prefix for key that stores the previous time swap rewards accrued
 
-	USDXMintingRewardDenom   = "ukava"
-	HardLiquidityRewardDenom = "hard"
+	USDXMintingRewardDenom = "ukava"
 )
