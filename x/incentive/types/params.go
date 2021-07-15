@@ -25,26 +25,21 @@ const (
 
 // Parameter keys and default values
 var (
-	KeyUSDXMintingRewardPeriods     = []byte("USDXMintingRewardPeriods")
-	KeyHardSupplyRewardPeriods      = []byte("HardSupplyRewardPeriods")
-	KeyHardBorrowRewardPeriods      = []byte("HardBorrowRewardPeriods")
-	KeyDelegatorRewardPeriods       = []byte("DelegatorRewardPeriods")
-	KeySwapRewardPeriods            = []byte("SwapRewardPeriods")
-	KeyClaimEnd                     = []byte("ClaimEnd")
-	KeyMultipliers                  = []byte("ClaimMultipliers")
-	DefaultActive                   = false
-	DefaultRewardPeriods            = RewardPeriods{}
-	DefaultMultiRewardPeriods       = MultiRewardPeriods{}
-	DefaultMultipliers              = Multipliers{}
-	DefaultUSDXClaims               = USDXMintingClaims{}
-	DefaultHardClaims               = HardLiquidityProviderClaims{}
-	DefaultDelegatorClaims          = DelegatorClaims{}
-	DefaultSwapClaims               = SwapClaims{}
-	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
-	DefaultClaimEnd                 = tmtime.Canonical(time.Unix(1, 0))
-	GovDenom                        = cdptypes.DefaultGovDenom
-	PrincipalDenom                  = "usdx"
-	IncentiveMacc                   = kavadistTypes.ModuleName
+	KeyUSDXMintingRewardPeriods = []byte("USDXMintingRewardPeriods")
+	KeyHardSupplyRewardPeriods  = []byte("HardSupplyRewardPeriods")
+	KeyHardBorrowRewardPeriods  = []byte("HardBorrowRewardPeriods")
+	KeyDelegatorRewardPeriods   = []byte("DelegatorRewardPeriods")
+	KeySwapRewardPeriods        = []byte("SwapRewardPeriods")
+	KeyClaimEnd                 = []byte("ClaimEnd")
+	KeyMultipliers              = []byte("ClaimMultipliers")
+	DefaultActive               = false
+	DefaultRewardPeriods        = RewardPeriods{}
+	DefaultMultiRewardPeriods   = MultiRewardPeriods{}
+	DefaultMultipliers          = Multipliers{}
+	DefaultClaimEnd             = tmtime.Canonical(time.Unix(1, 0))
+	GovDenom                    = cdptypes.DefaultGovDenom
+	PrincipalDenom              = "usdx"
+	IncentiveMacc               = kavadistTypes.ModuleName
 )
 
 // Params governance parameters for the incentive module

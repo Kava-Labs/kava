@@ -120,11 +120,10 @@ func (k Keeper) IterateUSDXMintingAccrualTimes(ctx sdk.Context, cb func(string, 
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
+		denom := string(iterator.Key())
 		var accrualTime time.Time
-		var collateralType string
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &collateralType)
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &accrualTime)
-		if cb(collateralType, accrualTime) {
+		if cb(denom, accrualTime) {
 			break
 		}
 	}
@@ -341,6 +340,20 @@ func (k Keeper) IterateHardSupplyRewardIndexes(ctx sdk.Context, cb func(denom st
 	}
 }
 
+func (k Keeper) IterateHardSupplyRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		denom := string(iterator.Key())
+		var accrualTime time.Time
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &accrualTime)
+		if cb(denom, accrualTime) {
+			break
+		}
+	}
+}
+
 // SetHardBorrowRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetHardBorrowRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardIndexesKeyPrefix)
@@ -374,6 +387,20 @@ func (k Keeper) IterateHardBorrowRewardIndexes(ctx sdk.Context, cb func(denom st
 	}
 }
 
+func (k Keeper) IterateHardBorrowRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardBorrowRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		denom := string(iterator.Key())
+		var accrualTime time.Time
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &accrualTime)
+		if cb(denom, accrualTime) {
+			break
+		}
+	}
+}
+
 // GetDelegatorRewardIndexes gets the current reward indexes for an individual denom
 func (k Keeper) GetDelegatorRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
@@ -402,6 +429,20 @@ func (k Keeper) IterateDelegatorRewardIndexes(ctx sdk.Context, cb func(denom str
 		var indexes types.RewardIndexes
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &indexes)
 		if cb(string(iterator.Key()), indexes) {
+			break
+		}
+	}
+}
+
+func (k Keeper) IterateDelegatorRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousDelegatorRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		denom := string(iterator.Key())
+		var accrualTime time.Time
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &accrualTime)
+		if cb(denom, accrualTime) {
 			break
 		}
 	}
@@ -506,4 +547,18 @@ func (k Keeper) GetSwapRewardAccrualTime(ctx sdk.Context, poolID string) (blockT
 func (k Keeper) SetSwapRewardAccrualTime(ctx sdk.Context, poolID string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
 	store.Set([]byte(poolID), k.cdc.MustMarshalBinaryBare(blockTime))
+}
+
+func (k Keeper) IterateSwapRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		poolID := string(iterator.Key())
+		var accrualTime time.Time
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &accrualTime)
+		if cb(poolID, accrualTime) {
+			break
+		}
+	}
 }

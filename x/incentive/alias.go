@@ -57,9 +57,10 @@ var (
 	FilterCoins                          = types.FilterCoins
 	GetTotalVestingPeriodLength          = types.GetTotalVestingPeriodLength
 	MultiplyCoins                        = types.MultiplyCoins
+	NewAccumulationTime                  = types.NewAccumulationTime
 	NewAccumulator                       = types.NewAccumulator
 	NewDelegatorClaim                    = types.NewDelegatorClaim
-	NewGenesisAccumulationTime           = types.NewGenesisAccumulationTime
+	NewGenesisRewardState                = types.NewGenesisRewardState
 	NewGenesisState                      = types.NewGenesisState
 	NewHardLiquidityProviderClaim        = types.NewHardLiquidityProviderClaim
 	NewMsgClaimDelegatorReward           = types.NewMsgClaimDelegatorReward
@@ -88,7 +89,7 @@ var (
 	DefaultActive                                 = types.DefaultActive
 	DefaultClaimEnd                               = types.DefaultClaimEnd
 	DefaultDelegatorClaims                        = types.DefaultDelegatorClaims
-	DefaultGenesisAccumulationTimes               = types.DefaultGenesisAccumulationTimes
+	DefaultGenesisRewardState                     = types.DefaultGenesisRewardState
 	DefaultHardClaims                             = types.DefaultHardClaims
 	DefaultMultiRewardPeriods                     = types.DefaultMultiRewardPeriods
 	DefaultMultipliers                            = types.DefaultMultipliers
@@ -140,6 +141,8 @@ type (
 	Hooks                             = keeper.Hooks
 	Keeper                            = keeper.Keeper
 	AccountKeeper                     = types.AccountKeeper
+	AccumulationTime                  = types.AccumulationTime
+	AccumulationTimes                 = types.AccumulationTimes
 	Accumulator                       = types.Accumulator
 	BaseClaim                         = types.BaseClaim
 	BaseMultiClaim                    = types.BaseMultiClaim
@@ -149,8 +152,7 @@ type (
 	Claims                            = types.Claims
 	DelegatorClaim                    = types.DelegatorClaim
 	DelegatorClaims                   = types.DelegatorClaims
-	GenesisAccumulationTime           = types.GenesisAccumulationTime
-	GenesisAccumulationTimes          = types.GenesisAccumulationTimes
+	GenesisRewardState                = types.GenesisRewardState
 	GenesisState                      = types.GenesisState
 	HARDHooks                         = types.HARDHooks
 	HardKeeper                        = types.HardKeeper
