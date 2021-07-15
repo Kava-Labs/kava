@@ -26,10 +26,10 @@ func NewBorrow(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFa
 // Validate deposit validation
 func (b Borrow) Validate() error {
 	if b.Borrower.Empty() {
-		return fmt.Errorf("Depositor cannot be empty")
+		return fmt.Errorf("Borrower cannot be empty")
 	}
 	if !b.Amount.IsValid() {
-		return fmt.Errorf("Invalid deposit coins: %s", b.Amount)
+		return fmt.Errorf("Invalid borrow coins: %s", b.Amount)
 	}
 
 	if err := b.Index.Validate(); err != nil {
@@ -40,7 +40,7 @@ func (b Borrow) Validate() error {
 }
 
 func (b Borrow) String() string {
-	return fmt.Sprintf(`Deposit:
+	return fmt.Sprintf(`Borrow:
 	Borrower: %s
 	Amount: %s
 	Index: %s
