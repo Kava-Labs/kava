@@ -40,3 +40,23 @@ type PostCreateWithdrawReq struct {
 	MinTokenB sdk.Coin       `json:"token_b" yaml:"token_b"`
 	Deadline  int64          `json:"deadline" yaml:"deadline"`
 }
+
+// PostCreateSwapExactForTokensReq trades an exact coinA for coinB
+type PostCreateSwapExactForTokensReq struct {
+	BaseReq     rest.BaseReq   `json:"base_req" yaml:"base_req"`
+	Requester   sdk.AccAddress `json:"requester" yaml:"requester"`
+	ExactTokenA sdk.Coin       `json:"exact_token_a" yaml:"exact_token_a"`
+	TokenB      sdk.Coin       `json:"token_b" yaml:"token_b"`
+	Slippage    sdk.Dec        `json:"slippage" yaml:"slippage"`
+	Deadline    int64          `json:"deadline" yaml:"deadline"`
+}
+
+// PostCreateSwapForExactTokensReq trades an exact coinA for coinB
+type PostCreateSwapForExactTokensReq struct {
+	BaseReq     rest.BaseReq   `json:"base_req" yaml:"base_req"`
+	Requester   sdk.AccAddress `json:"requester" yaml:"requester"`
+	TokenA      sdk.Coin       `json:"exact_token_a" yaml:"exact_token_a"`
+	ExactTokenB sdk.Coin       `json:"token_b" yaml:"token_b"`
+	Slippage    sdk.Dec        `json:"slippage" yaml:"slippage"`
+	Deadline    int64          `json:"deadline" yaml:"deadline"`
+}

@@ -85,7 +85,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 		app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)},
 		app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGS)},
 		NewCDPGenStateMulti(),
-		NewPricefeedGenStateMulti(),
+		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 	)
 
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
@@ -115,7 +115,7 @@ func (suite *GenesisTestSuite) TestPaidOutClaimsPassValidateGenesis() {
 	suite.Require().NoError(err)
 
 	incentiveHandler := incentive.NewHandler(suite.keeper)
-	_, err = incentiveHandler(suite.ctx, incentive.NewMsgClaimHardReward(suite.addrs[0], string(incentive.Large)))
+	_, err = incentiveHandler(suite.ctx, incentive.NewMsgClaimHardReward(suite.addrs[0], string(incentive.Large), nil))
 	suite.Require().NoError(err)
 
 	genState := incentive.ExportGenesis(suite.ctx, suite.keeper)
@@ -225,7 +225,7 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 	// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.
 	tApp.InitializeFromGenesisStates(
 		NewCDPGenStateMulti(),
-		NewPricefeedGenStateMulti(),
+		NewPricefeedGenStateMultiFromTime(genesisTime),
 	)
 
 	incentive.InitGenesis(ctx, tApp.GetIncentiveKeeper(), tApp.GetSupplyKeeper(), tApp.GetCDPKeeper(), genesisState)

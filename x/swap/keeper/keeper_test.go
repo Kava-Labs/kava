@@ -69,6 +69,17 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 	suite.Equal(keeper.GetParams(suite.Ctx), params)
 }
 
+func (suite keeperTestSuite) TestParams_GetSwapFee() {
+	keeper := suite.Keeper
+
+	params := types.Params{
+		SwapFee: sdk.MustNewDecFromStr("0.00333"),
+	}
+	keeper.SetParams(suite.Ctx, params)
+
+	suite.Equal(keeper.GetSwapFee(suite.Ctx), params.SwapFee)
+}
+
 func (suite *keeperTestSuite) TestPool_Persistance() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
@@ -84,6 +95,10 @@ func (suite *keeperTestSuite) TestPool_Persistance() {
 	savedRecord, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolID)
 	suite.True(ok)
 	suite.Equal(record, savedRecord)
+
+	savedShares, ok := suite.Keeper.GetPoolShares(suite.Ctx, record.PoolID)
+	suite.True(ok)
+	suite.Equal(record.TotalShares, savedShares)
 
 	suite.Keeper.DeletePool(suite.Ctx, record.PoolID)
 	deletedPool, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolID)
@@ -102,6 +117,10 @@ func (suite *keeperTestSuite) TestShare_Persistance() {
 	savedRecord, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolID)
 	suite.True(ok)
 	suite.Equal(record, savedRecord)
+
+	savedShares, ok := suite.Keeper.GetDepositorSharesAmount(suite.Ctx, depositor, poolID)
+	suite.True(ok)
+	suite.Equal(record.SharesOwned, savedShares)
 
 	suite.Keeper.DeleteDepositorShares(suite.Ctx, depositor, poolID)
 	deletedShares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolID)

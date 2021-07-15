@@ -7,6 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -47,7 +48,7 @@ type Params struct {
 	HardSupplyRewardPeriods  MultiRewardPeriods `json:"hard_supply_reward_periods" yaml:"hard_supply_reward_periods"`
 	HardBorrowRewardPeriods  MultiRewardPeriods `json:"hard_borrow_reward_periods" yaml:"hard_borrow_reward_periods"`
 	DelegatorRewardPeriods   MultiRewardPeriods `json:"delegator_reward_periods" yaml:"delegator_reward_periods"`
-	SwapRewardPeriods        MultiRewardPeriods `json:"swap_reward_periods" json:"swap_reward_periods"`
+	SwapRewardPeriods        MultiRewardPeriods `json:"swap_reward_periods" yaml:"swap_reward_periods"`
 	ClaimMultipliers         Multipliers        `json:"claim_multipliers" yaml:"claim_multipliers"`
 	ClaimEnd                 time.Time          `json:"claim_end" yaml:"claim_end"`
 }
@@ -413,5 +414,5 @@ func (mn MultiplierName) IsValid() error {
 	case Small, Medium, Large:
 		return nil
 	}
-	return fmt.Errorf("invalid multiplier name: %s", mn)
+	return sdkerrors.Wrapf(ErrInvalidMultiplier, "invalid multiplier name: %s", mn)
 }

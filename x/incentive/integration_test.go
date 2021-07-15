@@ -4,11 +4,20 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/pricefeed"
+	"github.com/kava-labs/kava/x/swap"
 )
+
+// Avoid cluttering test cases with long function names
+func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
+func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) }
+func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
+func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 
 func NewCDPGenStateMulti() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
@@ -99,120 +108,92 @@ func NewCDPGenStateMulti() app.GenesisState {
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
 
-func NewPricefeedGenStateMulti() app.GenesisState {
+func NewPricefeedGenStateMultiFromTime(t time.Time) app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
+				{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "busd:usd", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "zzz:usd", BaseAsset: "zzz", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
 			{
+				MarketID:      "kava:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("2.00"),
+				Expiry:        t.Add(1 * time.Hour),
+			},
+			{
 				MarketID:      "btc:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("8000.00"),
-				Expiry:        time.Now().Add(1 * time.Hour),
+				Expiry:        t.Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "xrp:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("0.25"),
-				Expiry:        time.Now().Add(1 * time.Hour),
+				Expiry:        t.Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "bnb:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("17.25"),
-				Expiry:        time.Now().Add(1 * time.Hour),
+				Expiry:        t.Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "busd:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.OneDec(),
-				Expiry:        time.Now().Add(1 * time.Hour),
+				Expiry:        t.Add(1 * time.Hour),
+			},
+			{
+				MarketID:      "zzz:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("2.00"),
+				Expiry:        t.Add(1 * time.Hour),
 			},
 		},
 	}
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
 }
 
-// func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ...incentive.RewardPeriod) app.GenesisState {
-// 	var accumulationTimes incentive.GenesisAccumulationTimes
-// 	for _, rp := range rewardPeriods {
-// 		accumulationTimes = append(
-// 			accumulationTimes,
-// 			incentive.NewGenesisAccumulationTime(
-// 				rp.CollateralType,
-// 				previousAccumTime,
-// 			),
-// 		)
-// 	}
-// 	genesis := incentive.NewGenesisState(
-// 		incentive.NewParams(
-// 			rewardPeriods,
-// 			types.MultiRewardPeriods{},
-// 			types.MultiRewardPeriods{},
-// 			types.MultiRewardPeriods{},
-// 			types.MultiRewardPeriods{},
-// 			incentive.Multipliers{
-// 				incentive.NewMultiplier(incentive.Small, 1, d("0.25")),
-// 				incentive.NewMultiplier(incentive.Large, 12, d("1.0")),
-// 			},
-// 			endTime,
-// 		),
-// 		accumulationTimes,
-// 		accumulationTimes,
-// 		accumulationTimes,
-// 		incentive.DefaultGenesisAccumulationTimes,
-// 		incentive.DefaultUSDXClaims,
-// 		incentive.DefaultHardClaims,
-// 	)
-// 	return app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(genesis)}
-// }
+func NewHardGenStateMulti(genTime time.Time) testutil.HardGenesisBuilder {
+	kavaMM := testutil.NewStandardMoneyMarket("ukava")
+	kavaMM.SpotMarketID = "kava:usd"
+	btcMM := testutil.NewStandardMoneyMarket("btcb")
+	btcMM.SpotMarketID = "btc:usd"
 
-func NewCDPGenStateHighInterest() app.GenesisState {
-	cdpGenesis := cdp.GenesisState{
-		Params: cdp.Params{
-			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 2000000000000),
-			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
-			SurplusAuctionLot:       cdp.DefaultSurplusLot,
-			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
-			DebtAuctionLot:          cdp.DefaultDebtLot,
-			CollateralParams: cdp.CollateralParams{
-				{
-					Denom:               "bnb",
-					Type:                "bnb-a",
-					LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
-					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
-					StabilityFee:        sdk.MustNewDecFromStr("1.000000051034942716"), // 500% APR
-					LiquidationPenalty:  d("0.05"),
-					AuctionSize:         i(50000000000),
-					Prefix:              0x22,
-					SpotMarketID:        "bnb:usd",
-					LiquidationMarketID: "bnb:usd",
-					ConversionFactor:    i(8),
-				},
-			},
-			DebtParam: cdp.DebtParam{
-				Denom:            "usdx",
-				ReferenceAsset:   "usd",
-				ConversionFactor: i(6),
-				DebtFloor:        i(10000000),
-			},
-		},
-		StartingCdpID: cdp.DefaultCdpStartingID,
-		DebtDenom:     cdp.DefaultDebtDenom,
-		GovDenom:      cdp.DefaultGovDenom,
-		CDPs:          cdp.CDPs{},
-		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
-			cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec()),
-		},
-		TotalPrincipals: cdp.GenesisTotalPrincipals{
-			cdp.NewGenesisTotalPrincipal("bnb-a", sdk.ZeroInt()),
-		},
+	builder := testutil.NewHardGenesisBuilder().WithGenesisTime(genTime).
+		WithInitializedMoneyMarket(testutil.NewStandardMoneyMarket("usdx")).
+		WithInitializedMoneyMarket(kavaMM).
+		WithInitializedMoneyMarket(testutil.NewStandardMoneyMarket("bnb")).
+		WithInitializedMoneyMarket(btcMM).
+		WithInitializedMoneyMarket(testutil.NewStandardMoneyMarket("xrp")).
+		WithInitializedMoneyMarket(testutil.NewStandardMoneyMarket("zzz"))
+	return builder
+}
+
+func NewStakingGenesisState() app.GenesisState {
+	genState := staking.DefaultGenesisState()
+	genState.Params.BondDenom = "ukava"
+	return app.GenesisState{
+		staking.ModuleName: staking.ModuleCdc.MustMarshalJSON(genState),
 	}
-	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
+}
+
+func NewSwapGenesisState() app.GenesisState {
+	genesis := swap.NewGenesisState(
+		swap.NewParams(
+			swap.NewAllowedPools(swap.NewAllowedPool("busd", "ukava")),
+			d("0.0"),
+		),
+	)
+	return app.GenesisState{
+		swap.ModuleName: swap.ModuleCdc.MustMarshalJSON(genesis),
+	}
 }

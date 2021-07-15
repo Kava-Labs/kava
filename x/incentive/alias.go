@@ -26,6 +26,7 @@ const (
 	EventTypeRewardPeriod          = types.EventTypeRewardPeriod
 	HardLiquidityProviderClaimType = types.HardLiquidityProviderClaimType
 	Large                          = types.Large
+	MaxDenomsToClaim               = types.MaxDenomsToClaim
 	Medium                         = types.Medium
 	ModuleName                     = types.ModuleName
 	QuerierRoute                   = types.QuerierRoute
@@ -53,8 +54,10 @@ var (
 	NewQuerier                           = keeper.NewQuerier
 	DefaultGenesisState                  = types.DefaultGenesisState
 	DefaultParams                        = types.DefaultParams
+	FilterCoins                          = types.FilterCoins
 	GetTotalVestingPeriodLength          = types.GetTotalVestingPeriodLength
 	NewAccumulationTime                  = types.NewAccumulationTime
+	MultiplyCoins                        = types.MultiplyCoins
 	NewAccumulator                       = types.NewAccumulator
 	NewDelegatorClaim                    = types.NewDelegatorClaim
 	NewGenesisRewardState                = types.NewGenesisRewardState
@@ -64,6 +67,8 @@ var (
 	NewMsgClaimDelegatorRewardVVesting   = types.NewMsgClaimDelegatorRewardVVesting
 	NewMsgClaimHardReward                = types.NewMsgClaimHardReward
 	NewMsgClaimHardRewardVVesting        = types.NewMsgClaimHardRewardVVesting
+	NewMsgClaimSwapReward                = types.NewMsgClaimSwapReward
+	NewMsgClaimSwapRewardVVesting        = types.NewMsgClaimSwapRewardVVesting
 	NewMsgClaimUSDXMintingReward         = types.NewMsgClaimUSDXMintingReward
 	NewMsgClaimUSDXMintingRewardVVesting = types.NewMsgClaimUSDXMintingRewardVVesting
 	NewMultiRewardIndex                  = types.NewMultiRewardIndex
@@ -99,6 +104,7 @@ var (
 	ErrDecreasingRewardFactor                     = types.ErrDecreasingRewardFactor
 	ErrInsufficientModAccountBalance              = types.ErrInsufficientModAccountBalance
 	ErrInvalidAccountType                         = types.ErrInvalidAccountType
+	ErrInvalidClaimDenoms                         = types.ErrInvalidClaimDenoms
 	ErrInvalidClaimOwner                          = types.ErrInvalidClaimOwner
 	ErrInvalidClaimType                           = types.ErrInvalidClaimType
 	ErrInvalidMultiplier                          = types.ErrInvalidMultiplier
@@ -108,7 +114,6 @@ var (
 	GovDenom                                      = types.GovDenom
 	HardBorrowRewardIndexesKeyPrefix              = types.HardBorrowRewardIndexesKeyPrefix
 	HardLiquidityClaimKeyPrefix                   = types.HardLiquidityClaimKeyPrefix
-	HardLiquidityRewardDenom                      = types.HardLiquidityRewardDenom
 	HardSupplyRewardIndexesKeyPrefix              = types.HardSupplyRewardIndexesKeyPrefix
 	IncentiveMacc                                 = types.IncentiveMacc
 	KeyClaimEnd                                   = types.KeyClaimEnd
@@ -157,6 +162,8 @@ type (
 	MsgClaimDelegatorRewardVVesting   = types.MsgClaimDelegatorRewardVVesting
 	MsgClaimHardReward                = types.MsgClaimHardReward
 	MsgClaimHardRewardVVesting        = types.MsgClaimHardRewardVVesting
+	MsgClaimSwapReward                = types.MsgClaimSwapReward
+	MsgClaimSwapRewardVVesting        = types.MsgClaimSwapRewardVVesting
 	MsgClaimUSDXMintingReward         = types.MsgClaimUSDXMintingReward
 	MsgClaimUSDXMintingRewardVVesting = types.MsgClaimUSDXMintingRewardVVesting
 	MultiRewardIndex                  = types.MultiRewardIndex
