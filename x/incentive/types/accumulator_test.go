@@ -135,13 +135,13 @@ func TestAccumulator(t *testing.T) {
 				},
 			},
 			{
-				name: "when duration is zero the rewards are zero",
+				name: "when duration is zero there is no rewards",
 				args: args{
 					rewardsPerSecond:  cs(c("hard", 1000)),
 					duration:          0,
 					rewardSourceTotal: d("1000"),
 				},
-				expected: RewardIndexes{{CollateralType: "hard", RewardFactor: d("0")}}, // TODO should this be nil?
+				expected: nil,
 			},
 			{
 				name: "when rewards per second are nil there is no rewards",
@@ -198,7 +198,10 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					accumulator: Accumulator{
 						PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-						Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.1")}},
+						Indexes: RewardIndexes{
+							{CollateralType: "hard", RewardFactor: d("0.1")},
+							{CollateralType: "swap", RewardFactor: d("0.2")},
+						},
 					},
 					period: MultiRewardPeriod{
 						Start:            time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -210,15 +213,18 @@ func TestAccumulator(t *testing.T) {
 				},
 				expected: Accumulator{
 					PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
-					Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("5.1")}},
+					Indexes: RewardIndexes{
+						{CollateralType: "hard", RewardFactor: d("5.1")},
+						{CollateralType: "swap", RewardFactor: d("0.2")},
+					},
 				},
 			},
 			{
-				name: "nil reward indexes are treated as empty",
+				name: "empty reward indexes are added to correctly",
 				args: args{
 					accumulator: Accumulator{
 						PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-						Indexes:                  nil,
+						Indexes:                  RewardIndexes{},
 					},
 					period: MultiRewardPeriod{
 						Start:            time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),

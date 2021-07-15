@@ -22,7 +22,7 @@ func (suite *AccumulateSwapRewardsTests) checkStoredTimeEquals(poolID string, ex
 
 func (suite *AccumulateSwapRewardsTests) checkStoredIndexesEqual(poolID string, expected types.RewardIndexes) {
 	storedIndexes, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, poolID)
-	suite.True(found)
+	suite.Equal(found, expected != nil)
 	suite.Equal(expected, storedIndexes)
 }
 
@@ -201,8 +201,9 @@ func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 	suite.keeper.AccumulateSwapRewards(suite.ctx, period)
 
 	// After the first accumulation only the current block time should be stored.
-	// This indexes will be zero as no time has passed since the previous block because it didn't exist.
+	// This indexes will be empty as no time has passed since the previous block because it didn't exist.
 	suite.checkStoredTimeEquals(pool, firstAccrualTime)
+	suite.checkStoredIndexesEqual(pool, nil)
 
 	secondAccrualTime := firstAccrualTime.Add(10 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(secondAccrualTime)
@@ -249,6 +250,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 	})
 
 	suite.checkStoredTimeEquals(pool, accrualTime)
+	suite.checkStoredIndexesEqual(pool, nil)
 }
 
 type fakeSwapKeeper struct {

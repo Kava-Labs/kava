@@ -31,7 +31,9 @@ func NewAccumulator(previousAccrual time.Time, indexes RewardIndexes) *Accumulat
 //
 // rewardSourceTotal is the total of all user reward sources. For example: total shares in a swap pool, total btcb supplied to hard, or total usdx borrowed from all bnb CDPs.
 func (acc *Accumulator) Accumulate(period MultiRewardPeriod, rewardSourceTotal sdk.Dec, currentTime time.Time) {
+
 	accumulationDuration := acc.getTimeElapsedWithinLimits(acc.PreviousAccumulationTime, currentTime, period.Start, period.End)
+
 	indexesIncrement := acc.calculateNewRewards(period.RewardsPerSecond, rewardSourceTotal, accumulationDuration)
 
 	acc.Indexes = acc.Indexes.Add(indexesIncrement)
@@ -40,7 +42,7 @@ func (acc *Accumulator) Accumulate(period MultiRewardPeriod, rewardSourceTotal s
 
 // getTimeElapsedWithinLimits returns the duration between start and end times, capped by min and max times.
 // If the start and end range is outside the min to max time range then zero duration is returned.
-func (acc *Accumulator) getTimeElapsedWithinLimits(start, end, limitMin, limitMax time.Time) time.Duration {
+func (*Accumulator) getTimeElapsedWithinLimits(start, end, limitMin, limitMax time.Time) time.Duration {
 	if start.After(end) {
 		panic(fmt.Sprintf("start time (%s) cannot be after end time (%s)", start, end))
 	}
@@ -58,15 +60,21 @@ func (acc *Accumulator) getTimeElapsedWithinLimits(start, end, limitMin, limitMa
 // The total rewards to distribute in this block are given by reward rate * duration. This value divided by the source total to give
 // total rewards per unit of source, which is what the indexes store.
 // Note, duration is rounded to the nearest second to keep rewards calculation the same as in kava-7.
-func (acc *Accumulator) calculateNewRewards(rewardsPerSecond sdk.Coins, rewardSourceTotal sdk.Dec, duration time.Duration) RewardIndexes {
-	if rewardSourceTotal.IsZero() {
+func (*Accumulator) calculateNewRewards(rewardsPerSecond sdk.Coins, rewardSourceTotal sdk.Dec, duration time.Duration) RewardIndexes {
+	if rewardSourceTotal.LTE(sdk.ZeroDec()) {
 		// When the source total is zero, there is no users with deposits/borrows/delegations to pay out the current block's rewards to.
 		// So drop the rewards and pay out nothing.
 		return nil
 	}
 	durationSeconds := int64(math.RoundToEven(duration.Seconds()))
+	if durationSeconds <= 0 {
+		// If the duration is zero, there will be no increment.
+		// So return an empty increment instead of one full of zeros.
+		return nil
+	}
 	increment := newRewardIndexesFromCoins(rewardsPerSecond)
-	return increment.Mul(sdk.NewDec(durationSeconds)).Quo(rewardSourceTotal)
+	increment = increment.Mul(sdk.NewDec(durationSeconds)).Quo(rewardSourceTotal)
+	return increment
 }
 
 // minTime returns the earliest of two times.
