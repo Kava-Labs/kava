@@ -25,6 +25,7 @@ type PostClaimReq struct {
 	BaseReq        rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
 	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 
 // PostClaimReq defines the properties of claim transaction's request body.
@@ -33,4 +34,5 @@ type PostClaimVVestingReq struct {
 	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
 	Receiver       sdk.AccAddress `json:"receiver" yaml:"receiver"`
 	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }

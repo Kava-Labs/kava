@@ -106,3 +106,65 @@ func TestMultiplyCoins(t *testing.T) {
 		})
 	}
 }
+
+func TestFilterCoins(t *testing.T) {
+	testCases := []struct {
+		name     string
+		coins    sdk.Coins
+		denoms   []string
+		expected sdk.Coins
+	}{
+		{
+			name: "non-empty filter selects subset of coins",
+			coins: sdk.NewCoins(
+				sdk.NewInt64Coin("hard", 1e3),
+				sdk.NewInt64Coin("ukava", 2e3),
+				sdk.NewInt64Coin("btc", 3e3),
+			),
+			denoms: []string{"hard", "btc"},
+			expected: sdk.NewCoins(
+				sdk.NewInt64Coin("hard", 1e3),
+				sdk.NewInt64Coin("btc", 3e3),
+			),
+		},
+		{
+			name:     "when coins are nil a non-empty filter returns nil coins",
+			coins:    nil,
+			denoms:   []string{"hard", "btc"},
+			expected: nil,
+		},
+		{
+			name: "nil filter returns original coins",
+			coins: sdk.NewCoins(
+				sdk.NewInt64Coin("hard", 1e3),
+				sdk.NewInt64Coin("ukava", 2e3),
+			),
+			denoms: nil,
+			expected: sdk.NewCoins(
+				sdk.NewInt64Coin("hard", 1e3),
+				sdk.NewInt64Coin("ukava", 2e3),
+			),
+		},
+		{
+			name: "empty filter returns original coins",
+			coins: sdk.NewCoins(
+				sdk.NewInt64Coin("hard", 1e3),
+				sdk.NewInt64Coin("ukava", 2e3),
+			),
+			denoms: []string{},
+			expected: sdk.NewCoins(
+				sdk.NewInt64Coin("hard", 1e3),
+				sdk.NewInt64Coin("ukava", 2e3),
+			),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t,
+				tc.expected,
+				types.FilterCoins(tc.coins, tc.denoms),
+			)
+		})
+	}
+}
