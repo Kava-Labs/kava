@@ -135,6 +135,18 @@ func TestAccumulator(t *testing.T) {
 				},
 			},
 			{
+				name: "reward indexes have enough precision for extreme params",
+				args: args{
+					rewardsPerSecond:  cs(c("anydenom", 1)),    // minimum possible rewards
+					duration:          1 * time.Second,         // minimum possible duration (beyond zero as it's rounded)
+					rewardSourceTotal: d("100000000000000000"), // approximate shares in a $1B pool of 10^8 precision assets
+				},
+				expected: RewardIndexes{
+					// smallest reward amount over smallest accumulation duration does not go past 10^-18 decimal precision
+					{CollateralType: "anydenom", RewardFactor: d("0.000000000000000010")},
+				},
+			},
+			{
 				name: "when duration is zero there is no rewards",
 				args: args{
 					rewardsPerSecond:  cs(c("hard", 1000)),
