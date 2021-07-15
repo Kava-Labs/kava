@@ -137,6 +137,10 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 		// close 25% of the time
 		if canClose(spendableCoins, existingCDP, debtParam.Denom) && shouldClose(r) {
 			repaymentAmount := spendableCoins.AmountOf(debtParam.Denom)
+			// check that repayment isn't below the debt floor
+			if existingCDP.Principal.Amount.Add(existingCDP.AccumulatedFees.Amount).Sub(repaymentAmount).LT(debtParam.DebtFloor) {
+				repaymentAmount = existingCDP.Principal.Amount.Add(existingCDP.AccumulatedFees.Amount).Sub(debtParam.DebtFloor)
+			}
 			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Type, sdk.NewCoin(debtParam.Denom, repaymentAmount))
 
 			tx := helpers.GenTx(
@@ -225,7 +229,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 		// repay debt 25% of the time
 		if hasCoins(spendableCoins, debtParam.Denom) {
-			debt := existingCDP.Principal.Amount
+			debt := existingCDP.Principal.Amount.Add(existingCDP.AccumulatedFees.Amount)
 			payableDebt := debt.Sub(debtParam.DebtFloor)
 			if payableDebt.IsZero() {
 				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "cannot make partial repayment, cdp at debt floor", false, nil), nil, nil

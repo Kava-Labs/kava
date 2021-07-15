@@ -158,7 +158,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		// Get an amount of coins between 0.1 and 2% of total coins
 		amount := maximumAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
 		minAmountPlusFee := asset.MinSwapAmount.Add(asset.FixedFee)
-		if amount.LT(minAmountPlusFee) {
+		if amount.LTE(minAmountPlusFee) {
 			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (account funds exhausted for asset %s)", asset.Denom), "", false, nil), nil, nil
 		}
 		coins := sdk.NewCoins(sdk.NewCoin(asset.Denom, amount))
