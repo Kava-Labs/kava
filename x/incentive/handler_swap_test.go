@@ -71,6 +71,7 @@ func (suite *HandlerTestSuite) SetupWithGenState(builders ...genesisBuilder) {
 		NewStakingGenesisState(),
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		NewCDPGenStateMulti(),
+		NewHardGenStateMulti(suite.genesisTime).BuildMarshalled(),
 		NewSwapGenesisState(),
 	}
 	for _, builder := range builders {

@@ -15,6 +15,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/swap"
 )
@@ -85,6 +86,18 @@ func (suite *IntegrationTester) DeliverSwapMsgDeposit(depositor sdk.AccAddress, 
 	return err
 }
 
+func (suite *IntegrationTester) DeliverHardMsgDeposit(depositor sdk.AccAddress, deposit sdk.Coins) error {
+	msg := hard.NewMsgDeposit(depositor, deposit)
+	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	return err
+}
+
+func (suite *IntegrationTester) DeliverHardMsgBorrow(depositor sdk.AccAddress, borrow sdk.Coins) error {
+	msg := hard.NewMsgBorrow(depositor, borrow)
+	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	return err
+}
+
 func (suite *IntegrationTester) GetAccount(addr sdk.AccAddress) authexported.Account {
 	ak := suite.App.GetAccountKeeper()
 	return ak.GetAccount(suite.Ctx, addr)
@@ -130,6 +143,12 @@ func (suite *IntegrationTester) SwapRewardEquals(owner sdk.AccAddress, expected 
 
 func (suite *IntegrationTester) DelegatorRewardEquals(owner sdk.AccAddress, expected sdk.Coins) {
 	claim, found := suite.App.GetIncentiveKeeper().GetDelegatorClaim(suite.Ctx, owner)
+	suite.Require().Truef(found, "expected delegator claim to be found for %s", owner)
+	suite.Equalf(expected, claim.Reward, "expected delegator claim reward to be %s, but got %s", expected, claim.Reward)
+}
+
+func (suite *IntegrationTester) HardRewardEquals(owner sdk.AccAddress, expected sdk.Coins) {
+	claim, found := suite.App.GetIncentiveKeeper().GetHardLiquidityProviderClaim(suite.Ctx, owner)
 	suite.Require().Truef(found, "expected delegator claim to be found for %s", owner)
 	suite.Equalf(expected, claim.Reward, "expected delegator claim reward to be %s, but got %s", expected, claim.Reward)
 }
