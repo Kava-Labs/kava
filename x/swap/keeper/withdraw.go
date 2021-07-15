@@ -52,8 +52,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, 
 	}
 
 	k.updatePool(ctx, poolID, pool)
-
-	k.hooks.BeforePoolDepositModified(ctx, poolID, owner, shareRecord.SharesOwned)
+	k.BeforePoolDepositModified(ctx, poolID, owner, shareRecord.SharesOwned)
 	k.updateShares(ctx, owner, poolID, shareRecord.SharesOwned.Sub(shares))
 
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawnAmount)
@@ -72,21 +71,4 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, 
 	)
 
 	return nil
-}
-
-func (k Keeper) updatePool(ctx sdk.Context, poolID string, pool *types.DenominatedPool) {
-	if pool.TotalShares().IsZero() {
-		k.DeletePool(ctx, poolID)
-	} else {
-		k.SetPool(ctx, types.NewPoolRecordFromPool(pool))
-	}
-}
-
-func (k Keeper) updateShares(ctx sdk.Context, owner sdk.AccAddress, poolID string, shares sdk.Int) {
-	if shares.IsZero() {
-		k.DeleteDepositorShares(ctx, owner, poolID)
-	} else {
-		shareRecord := types.NewShareRecord(owner, poolID, shares)
-		k.SetDepositorShares(ctx, shareRecord)
-	}
 }

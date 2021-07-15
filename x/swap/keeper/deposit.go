@@ -44,14 +44,15 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 	poolRecord, found := k.GetPool(ctx, poolID)
 
 	var (
+		pool          *types.DenominatedPool
 		depositAmount sdk.Coins
 		shares        sdk.Int
 		err           error
 	)
 	if found {
-		depositAmount, shares, err = k.addLiquidityToPool(ctx, poolRecord, depositor, desiredAmount)
+		pool, depositAmount, shares, err = k.addLiquidityToPool(ctx, poolRecord, depositor, desiredAmount)
 	} else {
-		depositAmount, shares, err = k.initializePool(ctx, poolID, depositor, desiredAmount)
+		pool, depositAmount, shares, err = k.initializePool(ctx, poolID, depositor, desiredAmount)
 	}
 	if err != nil {
 		return err
@@ -73,6 +74,15 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 
 	if slippage.GT(slippageLimit) {
 		return sdkerrors.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)
+	}
+
+	k.updatePool(ctx, poolID, pool)
+	if shareRecord, hasExistingShares := k.GetDepositorShares(ctx, depositor, poolID); hasExistingShares {
+		k.BeforePoolDepositModified(ctx, poolID, depositor, shareRecord.SharesOwned)
+		k.updateShares(ctx, depositor, poolID, shareRecord.SharesOwned.Add(shares))
+	} else {
+		k.updateShares(ctx, depositor, poolID, shares)
+		k.AfterPoolDepositCreated(ctx, poolID, depositor, shares)
 	}
 
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, depositAmount)
@@ -103,52 +113,26 @@ func (k Keeper) depositAllowed(ctx sdk.Context, poolID string) bool {
 	return false
 }
 
-func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.AccAddress, reserves sdk.Coins) (sdk.Coins, sdk.Int, error) {
+func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.AccAddress, reserves sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdk.Int, error) {
 	if allowed := k.depositAllowed(ctx, poolID); !allowed {
-		return sdk.Coins{}, sdk.ZeroInt(), sdkerrors.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolID))
+		return nil, sdk.Coins{}, sdk.ZeroInt(), sdkerrors.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolID))
 	}
 
 	pool, err := types.NewDenominatedPool(reserves)
 	if err != nil {
-		return sdk.Coins{}, sdk.ZeroInt(), err
+		return nil, sdk.Coins{}, sdk.ZeroInt(), err
 	}
 
-	poolRecord := types.NewPoolRecordFromPool(pool)
-	shareRecord := types.NewShareRecord(depositor, poolRecord.PoolID, pool.TotalShares())
-
-	k.SetPool(ctx, poolRecord)
-	k.SetDepositorShares(ctx, shareRecord)
-
-	k.hooks.AfterPoolDepositCreated(ctx, poolRecord.PoolID, depositor, shareRecord.SharesOwned)
-
-	return pool.Reserves(), pool.TotalShares(), nil
+	return pool, pool.Reserves(), pool.TotalShares(), nil
 }
 
-func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, depositor sdk.AccAddress, desiredAmount sdk.Coins) (sdk.Coins, sdk.Int, error) {
+func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, depositor sdk.AccAddress, desiredAmount sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdk.Int, error) {
 	pool, err := types.NewDenominatedPoolWithExistingShares(record.Reserves(), record.TotalShares)
 	if err != nil {
-		return sdk.Coins{}, sdk.ZeroInt(), err
+		return nil, sdk.Coins{}, sdk.ZeroInt(), err
 	}
 
 	depositAmount, shares := pool.AddLiquidity(desiredAmount)
 
-	poolRecord := types.NewPoolRecordFromPool(pool)
-
-	shareRecord, sharesFound := k.GetDepositorShares(ctx, depositor, poolRecord.PoolID)
-	if sharesFound {
-		k.hooks.BeforePoolDepositModified(ctx, poolRecord.PoolID, depositor, shareRecord.SharesOwned)
-
-		shareRecord.SharesOwned = shareRecord.SharesOwned.Add(shares)
-	} else {
-		shareRecord = types.NewShareRecord(depositor, poolRecord.PoolID, shares)
-	}
-
-	k.SetPool(ctx, poolRecord)
-	k.SetDepositorShares(ctx, shareRecord)
-
-	if !sharesFound {
-		k.hooks.AfterPoolDepositCreated(ctx, poolRecord.PoolID, depositor, shareRecord.SharesOwned)
-	}
-
-	return depositAmount, shares, nil
+	return pool, depositAmount, shares, nil
 }

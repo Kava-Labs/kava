@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/kava-labs/kava/x/swap/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -49,6 +51,11 @@ func (k *Keeper) SetHooks(sh types.SwapHooks) *Keeper {
 	return k
 }
 
+// ClearHooks clears the hooks on the keeper
+func (k *Keeper) ClearHooks() {
+	k.hooks = nil
+}
+
 // GetParams returns the params from the store
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	var p types.Params
@@ -81,11 +88,20 @@ func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool)
 	return record, true
 }
 
-// SetPool saves a pool record to the store
-func (k Keeper) SetPool(ctx sdk.Context, record types.PoolRecord) {
+// SetPool_Raw saves a pool record to the store without any validation
+func (k Keeper) SetPool_Raw(ctx sdk.Context, record types.PoolRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(record)
 	store.Set(types.PoolKey(record.PoolID), bz)
+}
+
+// SetPool saves a pool to the store and panics if the record is invalid
+func (k Keeper) SetPool(ctx sdk.Context, record types.PoolRecord) {
+	if err := record.Validate(); err != nil {
+		panic(fmt.Sprintf("invalid pool record: %s", err))
+	}
+
+	k.SetPool_Raw(ctx, record)
 }
 
 // DeletePool deletes a pool record from the store
@@ -138,11 +154,20 @@ func (k Keeper) GetDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, po
 	return record, true
 }
 
-// SetDepositorShares saves a share record to the store
-func (k Keeper) SetDepositorShares(ctx sdk.Context, record types.ShareRecord) {
+// SetDepositorShares_Raw saves a share record to the store without validation
+func (k Keeper) SetDepositorShares_Raw(ctx sdk.Context, record types.ShareRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(record)
 	store.Set(types.DepositorPoolSharesKey(record.Depositor, record.PoolID), bz)
+}
+
+// SetDepositorShares saves a share record to the store and panics if the record is invalid
+func (k Keeper) SetDepositorShares(ctx sdk.Context, record types.ShareRecord) {
+	if err := record.Validate(); err != nil {
+		panic(fmt.Sprintf("invalid share record: %s", err))
+	}
+
+	k.SetDepositorShares_Raw(ctx, record)
 }
 
 // DeleteDepositorShares deletes a share record from the store
@@ -198,10 +223,29 @@ func (k Keeper) GetAllDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddre
 }
 
 // GetDepositorSharesAmount gets a depositor's shares in a pool from the store
-func (k *Keeper) GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
+func (k Keeper) GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
 	record, found := k.GetDepositorShares(ctx, depositor, poolID)
 	if !found {
 		return sdk.Int{}, false
 	}
 	return record.SharesOwned, true
+}
+
+// updatePool updates a pool, deleting the pool record if the shares are zero
+func (k Keeper) updatePool(ctx sdk.Context, poolID string, pool *types.DenominatedPool) {
+	if pool.TotalShares().IsZero() {
+		k.DeletePool(ctx, poolID)
+	} else {
+		k.SetPool(ctx, types.NewPoolRecordFromPool(pool))
+	}
+}
+
+// updateShares updates a depositor shares records for a pool, deleting the record if the new shares are zero
+func (k Keeper) updateShares(ctx sdk.Context, owner sdk.AccAddress, poolID string, shares sdk.Int) {
+	if shares.IsZero() {
+		k.DeleteDepositorShares(ctx, owner, poolID)
+	} else {
+		shareRecord := types.NewShareRecord(owner, poolID, shares)
+		k.SetDepositorShares(ctx, shareRecord)
+	}
 }
