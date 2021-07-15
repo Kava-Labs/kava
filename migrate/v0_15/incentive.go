@@ -75,11 +75,11 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		delegatorRewardIndexes := v0_15incentive.RewardIndexes{}
 		for _, ri := range claim.DelegatorRewardIndexes {
 			// TODO add checks to ensure old reward indexes are as expected
-			delegatorRewardIndex := v0_15incentive.NewRewardIndex(v0_15incentive.HardLiquidityRewardDenom, ri.RewardFactor)
+			delegatorRewardIndex := v0_15incentive.NewRewardIndex(v0_14incentive.HardLiquidityRewardDenom, ri.RewardFactor)
 			delegatorRewardIndexes = append(delegatorRewardIndexes, delegatorRewardIndex)
 		}
 		// TODO should this include indexes if none exist on the old claim?
-		delegatorMultiRewardIndex := v0_15incentive.NewMultiRewardIndex(v0_15incentive.BondDenom, delegatorRewardIndexes)
+		delegatorMultiRewardIndex := v0_15incentive.NewMultiRewardIndex(v0_14incentive.BondDenom, delegatorRewardIndexes)
 		delegatorMultiRewardIndexes = append(delegatorMultiRewardIndexes, delegatorMultiRewardIndex)
 
 		// TODO: It's impossible to distinguish between rewards from delegation vs. liquidity providing

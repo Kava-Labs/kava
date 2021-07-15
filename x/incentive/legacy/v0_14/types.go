@@ -47,6 +47,9 @@ var (
 	GovDenom                        = cdptypes.DefaultGovDenom
 	PrincipalDenom                  = "usdx"
 	IncentiveMacc                   = kavadistTypes.ModuleName
+
+	USDXMintingRewardDenom   = "ukava"
+	HardLiquidityRewardDenom = "hard"
 )
 
 // RegisterCodec registers the necessary types for incentive module
