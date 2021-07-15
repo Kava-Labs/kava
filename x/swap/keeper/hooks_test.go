@@ -5,6 +5,7 @@ import (
 	"github.com/kava-labs/kava/x/swap/types/mocks"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/mock"
 )
 
 func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
@@ -81,7 +82,7 @@ func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
 	// test hooks with a full withdraw of all shares
 	shareRecord, found = suite.Keeper.GetDepositorShares(suite.Ctx, depositor_1.GetAddress(), types.PoolIDFromCoins(deposit))
 	suite.Require().True(found)
-	// all shares given to before deposito modified
+	// all shares given to BeforePoolDepositModified
 	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_1.GetAddress(), shareRecord.SharesOwned).Once()
 	err = suite.Keeper.Withdraw(suite.Ctx, depositor_1.GetAddress(), shareRecord.SharesOwned, sdk.NewCoin("ukava", sdk.NewInt(1)), sdk.NewCoin("usdx", sdk.NewInt(1)))
 	suite.Require().NoError(err)
@@ -144,5 +145,53 @@ func (suite *keeperTestSuite) TestHooks_NoPanicsOnNilHooks() {
 	shareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), types.PoolIDFromCoins(deposit))
 	suite.Require().True(found)
 	err = suite.Keeper.Withdraw(suite.Ctx, depositor.GetAddress(), shareRecord.SharesOwned, sdk.NewCoin("ukava", sdk.NewInt(1)), sdk.NewCoin("usdx", sdk.NewInt(1)))
+	suite.Require().NoError(err)
+}
+
+func (suite *keeperTestSuite) TestHooks_HookOrdering() {
+	suite.Keeper.ClearHooks()
+	swapHooks := &mocks.SwapHooks{}
+	suite.Keeper.SetHooks(swapHooks)
+
+	pool := types.NewAllowedPool("ukava", "usdx")
+	suite.Require().NoError(pool.Validate())
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.NewAllowedPools(pool), types.DefaultSwapFee))
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin(pool.TokenA, sdk.NewInt(1000e6)),
+		sdk.NewCoin(pool.TokenB, sdk.NewInt(1000e6)),
+	)
+	depositor := suite.CreateAccount(balance)
+
+	depositA := sdk.NewCoin(pool.TokenA, sdk.NewInt(10e6))
+	depositB := sdk.NewCoin(pool.TokenB, sdk.NewInt(50e6))
+	deposit := sdk.NewCoins(depositA, depositB)
+
+	poolID := types.PoolIDFromCoins(deposit)
+	expectedShares := sdk.NewInt(22360679)
+
+	swapHooks.On("AfterPoolDepositCreated", suite.Ctx, poolID, depositor.GetAddress(), expectedShares).Run(func(args mock.Arguments) {
+		_, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolID)
+		suite.Require().True(found, "expected after hook to be called after shares are updated")
+	})
+	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0.0015"))
+	suite.Require().NoError(err)
+
+	swapHooks.On("BeforePoolDepositModified", suite.Ctx, poolID, depositor.GetAddress(), expectedShares).Run(func(args mock.Arguments) {
+		shareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolID)
+		suite.Require().True(found, "expected share record to exist")
+		suite.Equal(expectedShares, shareRecord.SharesOwned, "expected hook to be called before shares are updated")
+	})
+	err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0.0015"))
+	suite.Require().NoError(err)
+
+	existingShareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), types.PoolIDFromCoins(deposit))
+	suite.Require().True(found)
+	swapHooks.On("BeforePoolDepositModified", suite.Ctx, poolID, depositor.GetAddress(), existingShareRecord.SharesOwned).Run(func(args mock.Arguments) {
+		shareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolID)
+		suite.Require().True(found, "expected share record to exist")
+		suite.Equal(existingShareRecord.SharesOwned, shareRecord.SharesOwned, "expected hook to be called before shares are updated")
+	})
+	err = suite.Keeper.Withdraw(suite.Ctx, depositor.GetAddress(), existingShareRecord.SharesOwned.Quo(sdk.NewInt(2)), sdk.NewCoin("ukava", sdk.NewInt(1)), sdk.NewCoin("usdx", sdk.NewInt(1)))
 	suite.Require().NoError(err)
 }
