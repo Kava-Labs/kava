@@ -107,7 +107,7 @@ func (suite *keeperTestSuite) TestPool_Persistance() {
 }
 
 func (suite *keeperTestSuite) TestShare_Persistance() {
-	poolID := "ukava/usdx"
+	poolID := types.PoolID("ukava", "usdx")
 	depositor := sdk.AccAddress("testAddress1")
 	shares := sdk.NewInt(3126432331)
 

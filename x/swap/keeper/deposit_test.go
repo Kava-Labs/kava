@@ -18,7 +18,7 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool_PoolNotAllowed() {
 	amountB := sdk.NewCoin("usdx", sdk.NewInt(50e6))
 
 	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), amountA, amountB, sdk.MustNewDecFromStr("0.01"))
-	suite.Require().EqualError(err, "not allowed: can not create pool 'ukava/usdx'")
+	suite.Require().EqualError(err, "not allowed: can not create pool 'ukava:usdx'")
 }
 
 func (suite *keeperTestSuite) TestDeposit_InsufficientFunds() {
@@ -324,7 +324,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientLiquidity() {
 			suite.SetupTest()
 
 			record := types.PoolRecord{
-				PoolID:      "ukava/usdx",
+				PoolID:      types.PoolID("ukava", "usdx"),
 				ReservesA:   tc.poolA,
 				ReservesB:   tc.poolB,
 				TotalShares: tc.poolShares,

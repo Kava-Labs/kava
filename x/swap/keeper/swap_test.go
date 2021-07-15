@@ -249,10 +249,10 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PoolNotFound() {
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
 	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
-	suite.EqualError(err, "invalid pool: pool ukava/usdx not found")
+	suite.EqualError(err, "invalid pool: pool ukava:usdx not found")
 
 	err = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
-	suite.EqualError(err, "invalid pool: pool ukava/usdx not found")
+	suite.EqualError(err, "invalid pool: pool ukava:usdx not found")
 }
 
 func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInvalidPool() {
@@ -278,11 +278,11 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInvalidPool() {
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
-	suite.PanicsWithValue("invalid pool ukava/usdx: invalid pool: total shares must be greater than zero", func() {
+	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
 		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 
-	suite.PanicsWithValue("invalid pool ukava/usdx: invalid pool: total shares must be greater than zero", func() {
+	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
 		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 }
@@ -560,10 +560,10 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PoolNotFound() {
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
 	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
-	suite.EqualError(err, "invalid pool: pool ukava/usdx not found")
+	suite.EqualError(err, "invalid pool: pool ukava:usdx not found")
 
 	err = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
-	suite.EqualError(err, "invalid pool: pool ukava/usdx not found")
+	suite.EqualError(err, "invalid pool: pool ukava:usdx not found")
 }
 
 func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInvalidPool() {
@@ -589,11 +589,11 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInvalidPool() {
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
-	suite.PanicsWithValue("invalid pool ukava/usdx: invalid pool: total shares must be greater than zero", func() {
+	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
 		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 
-	suite.PanicsWithValue("invalid pool ukava/usdx: invalid pool: total shares must be greater than zero", func() {
+	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
 		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 }

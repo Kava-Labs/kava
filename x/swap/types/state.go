@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const PoolKeySep = "/"
+const PoolIDSep = ":"
 
 // PoolIDFromCoins returns a poolID from a coins object
 func PoolIDFromCoins(coins sdk.Coins) string {
@@ -19,10 +19,10 @@ func PoolIDFromCoins(coins sdk.Coins) string {
 // The name is commutative for any all pairs A,B: f(A,B) == f(B,A).
 func PoolID(denomA string, denomB string) string {
 	if denomB < denomA {
-		return fmt.Sprintf("%s%s%s", denomB, PoolKeySep, denomA)
+		return fmt.Sprintf("%s%s%s", denomB, PoolIDSep, denomA)
 	}
 
-	return fmt.Sprintf("%s%s%s", denomA, PoolKeySep, denomB)
+	return fmt.Sprintf("%s%s%s", denomA, PoolIDSep, denomB)
 }
 
 // PoolRecord represents the state of a liquidity pool
@@ -72,7 +72,7 @@ func (p PoolRecord) Validate() error {
 		return errors.New("poolID must be set")
 	}
 
-	tokens := strings.Split(p.PoolID, "/")
+	tokens := strings.Split(p.PoolID, PoolIDSep)
 	if len(tokens) != 2 || tokens[0] == "" || tokens[1] == "" || tokens[1] < tokens[0] || tokens[0] == tokens[1] {
 		return fmt.Errorf("poolID '%s' is invalid", p.PoolID)
 	}
@@ -150,7 +150,7 @@ func (sr ShareRecord) Validate() error {
 		return errors.New("poolID must be set")
 	}
 
-	tokens := strings.Split(sr.PoolID, "/")
+	tokens := strings.Split(sr.PoolID, PoolIDSep)
 	if len(tokens) != 2 || tokens[0] == "" || tokens[1] == "" || tokens[1] < tokens[0] || tokens[0] == tokens[1] {
 		return fmt.Errorf("poolID '%s' is invalid", sr.PoolID)
 	}
