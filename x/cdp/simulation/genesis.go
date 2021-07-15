@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -127,6 +128,23 @@ func randomCdpGenState(selection int) types.GenesisState {
 			DebtDenom:     types.DefaultDebtDenom,
 			GovDenom:      types.DefaultGovDenom,
 			CDPs:          types.CDPs{},
+			PreviousAccumulationTimes: types.GenesisAccumulationTimes{
+				types.GenesisAccumulationTime{
+					CollateralType:           "xrp-a",
+					PreviousAccumulationTime: time.Unix(0, 0),
+					InterestFactor:           sdk.OneDec(),
+				},
+				types.GenesisAccumulationTime{
+					CollateralType:           "btc-a",
+					PreviousAccumulationTime: time.Unix(0, 0),
+					InterestFactor:           sdk.OneDec(),
+				},
+				types.GenesisAccumulationTime{
+					CollateralType:           "bnb-a",
+					PreviousAccumulationTime: time.Unix(0, 0),
+					InterestFactor:           sdk.OneDec(),
+				},
+			},
 		}
 	case 1:
 		return types.GenesisState{
@@ -162,6 +180,13 @@ func randomCdpGenState(selection int) types.GenesisState {
 			DebtDenom:     types.DefaultDebtDenom,
 			GovDenom:      types.DefaultGovDenom,
 			CDPs:          types.CDPs{},
+			PreviousAccumulationTimes: types.GenesisAccumulationTimes{
+				types.GenesisAccumulationTime{
+					CollateralType:           "bnb-a",
+					PreviousAccumulationTime: time.Unix(0, 0),
+					InterestFactor:           sdk.OneDec(),
+				},
+			},
 		}
 	default:
 		panic("invalid genesis state selector")
