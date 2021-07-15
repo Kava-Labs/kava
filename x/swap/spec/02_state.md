@@ -30,6 +30,33 @@ type AllowedPools []AllowedPool
 ```go
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-	Params Params `json:"params" yaml:"params"`
+	Params       Params `json:"params" yaml:"params"`
+	PoolRecords  `json:"pool_records" yaml:"pool_records"`
+	ShareRecords `json:"share_records" yaml:"share_records"`
 }
+
+// PoolRecord represents the state of a liquidity pool
+// and is used to store the state of a denominated pool
+type PoolRecord struct {
+	// primary key
+	PoolID      string   `json:"pool_id" yaml:"pool_id"`
+	ReservesA   sdk.Coin `json:"reserves_a" yaml:"reserves_a"`
+	ReservesB   sdk.Coin `json:"reserves_b" yaml:"reserves_b"`
+	TotalShares sdk.Int  `json:"total_shares" yaml:"total_shares"`
+}
+
+// PoolRecords is a slice of PoolRecord
+type PoolRecords []PoolRecord
+
+// ShareRecord stores the shares owned for a depositor and pool
+type ShareRecord struct {
+	// primary key
+	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
+	// secondary / sort key
+	PoolID      string  `json:"pool_id" yaml:"pool_id"`
+	SharesOwned sdk.Int `json:"shares_owned" yaml:"shares_owned"`
+}
+
+// ShareRecords is a slice of ShareRecord
+type ShareRecords []ShareRecord
 ```
