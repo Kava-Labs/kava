@@ -192,6 +192,8 @@ func NewSwapGenesisState() app.GenesisState {
 			swap.NewAllowedPools(swap.NewAllowedPool("busd", "ukava")),
 			d("0.0"),
 		),
+		swap.DefaultPoolRecords,
+		swap.DefaultShareRecords,
 	)
 	return app.GenesisState{
 		swap.ModuleName: swap.ModuleCdc.MustMarshalJSON(genesis),
