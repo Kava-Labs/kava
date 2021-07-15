@@ -29,7 +29,7 @@ var (
 	PoolKeyPrefix             = []byte{0x01}
 	DepositorPoolSharesPrefix = []byte{0x02}
 
-	sep = []byte(":")
+	sep = []byte("|")
 )
 
 // PoolKey returns a key generated from a poolID

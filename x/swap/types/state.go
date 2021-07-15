@@ -8,6 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const PoolKeySep = "/"
+
 // PoolIDFromCoins returns a poolID from a coins object
 func PoolIDFromCoins(coins sdk.Coins) string {
 	return PoolID(coins[0].Denom, coins[1].Denom)
@@ -17,10 +19,10 @@ func PoolIDFromCoins(coins sdk.Coins) string {
 // The name is commutative for any all pairs A,B: f(A,B) == f(B,A).
 func PoolID(denomA string, denomB string) string {
 	if denomB < denomA {
-		return fmt.Sprintf("%s/%s", denomB, denomA)
+		return fmt.Sprintf("%s%s%s", denomB, PoolKeySep, denomA)
 	}
 
-	return fmt.Sprintf("%s/%s", denomA, denomB)
+	return fmt.Sprintf("%s%s%s", denomA, PoolKeySep, denomB)
 }
 
 // PoolRecord represents the state of a liquidity pool
