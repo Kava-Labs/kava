@@ -96,7 +96,7 @@ func (k Keeper) commitSwap(
 	feePaid sdk.Coin,
 	exactDirection string,
 ) error {
-	k.SetPool(ctx, types.NewPoolRecord(pool))
+	k.SetPool(ctx, types.NewPoolRecordFromPool(pool))
 
 	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, requester, types.ModuleAccountName, sdk.NewCoins(swapInput)); err != nil {
 		return err
