@@ -56,8 +56,8 @@ var (
 	DefaultParams                        = types.DefaultParams
 	FilterCoins                          = types.FilterCoins
 	GetTotalVestingPeriodLength          = types.GetTotalVestingPeriodLength
-	NewAccumulationTime                  = types.NewAccumulationTime
 	MultiplyCoins                        = types.MultiplyCoins
+	NewAccumulationTime                  = types.NewAccumulationTime
 	NewAccumulator                       = types.NewAccumulator
 	NewDelegatorClaim                    = types.NewDelegatorClaim
 	NewGenesisRewardState                = types.NewGenesisRewardState
