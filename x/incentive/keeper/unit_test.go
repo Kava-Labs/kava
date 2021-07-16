@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -94,6 +95,7 @@ func (suite *unitTester) storeSwapClaim(claim types.SwapClaim) {
 	suite.keeper.SetSwapClaim(suite.ctx, claim)
 }
 
+// fakeParamSubspace is a stub paramSpace to simplify keeper unit test setup.
 type fakeParamSubspace struct {
 	params types.Params
 }
@@ -112,6 +114,35 @@ func (subspace *fakeParamSubspace) WithKeyTable(params.KeyTable) params.Subspace
 	// return an non-functional subspace to satisfy the interface
 	return params.Subspace{}
 }
+
+// fakeSwapKeeper is a stub swap keeper.
+// It can be used to return values to the incentive keeper without having to initialize a full swap keeper.
+type fakeSwapKeeper struct {
+	poolShares map[string]sdk.Int
+}
+
+func newFakeSwapKeeper() *fakeSwapKeeper {
+	return &fakeSwapKeeper{
+		poolShares: map[string]sdk.Int{},
+	}
+}
+func (k *fakeSwapKeeper) addPool(id string, shares sdk.Int) *fakeSwapKeeper {
+	k.poolShares[id] = shares
+	return k
+}
+func (k *fakeSwapKeeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Int, bool) {
+	shares, ok := k.poolShares[poolID]
+	return shares, ok
+}
+func (k *fakeSwapKeeper) GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
+	// This is just to implement the swap keeper interface.
+	return sdk.Int{}, false
+}
+
+// Assorted Testing Data
+
+// note: amino panics when encoding times ≥ the start of year 10000.
+var distantFuture = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
 
 func arbitraryCoin() sdk.Coin {
 	return c("hard", 1e9)
