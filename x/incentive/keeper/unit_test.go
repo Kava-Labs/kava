@@ -15,6 +15,7 @@ import (
 	db "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
+	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -260,6 +261,47 @@ func (k *fakeStakingKeeper) GetValidatorDelegations(_ sdk.Context, valAddr sdk.V
 		}
 	}
 	return delegations
+}
+
+// fakeCDPKeeper is a stub cdp keeper.
+// It can be used to return values to the incentive keeper without having to initialize a full cdp keeper.
+type fakeCDPKeeper struct {
+	interestFactor *sdk.Dec
+	totalPrincipal sdk.Int
+}
+
+var _ types.CdpKeeper = newFakeCDPKeeper()
+
+func newFakeCDPKeeper() *fakeCDPKeeper {
+	return &fakeCDPKeeper{
+		interestFactor: nil,
+		totalPrincipal: sdk.ZeroInt(),
+	}
+}
+
+func (k *fakeCDPKeeper) addInterestFactor(f sdk.Dec) *fakeCDPKeeper {
+	k.interestFactor = &f
+	return k
+}
+func (k *fakeCDPKeeper) addTotalPrincipal(p sdk.Int) *fakeCDPKeeper {
+	k.totalPrincipal = p
+	return k
+}
+
+func (k *fakeCDPKeeper) GetInterestFactor(_ sdk.Context, collateralType string) (sdk.Dec, bool) {
+	if k.interestFactor != nil {
+		return *k.interestFactor, true
+	}
+	return sdk.Dec{}, false
+}
+func (k *fakeCDPKeeper) GetTotalPrincipal(_ sdk.Context, collateralType string, principalDenom string) sdk.Int {
+	return k.totalPrincipal
+}
+func (k *fakeCDPKeeper) GetCdpByOwnerAndCollateralType(_ sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool) {
+	return cdptypes.CDP{}, false
+}
+func (k *fakeCDPKeeper) GetCollateral(_ sdk.Context, collateralType string) (cdptypes.CollateralParam, bool) {
+	return cdptypes.CollateralParam{}, false
 }
 
 // Assorted Testing Data

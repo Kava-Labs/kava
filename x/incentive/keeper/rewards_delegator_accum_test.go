@@ -188,7 +188,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateAddedWhenStateDoesNotExis
 	suite.keeper.AccumulateDelegatorRewards(suite.ctx, period)
 
 	// After the first accumulation only the current block time should be stored.
-	// This indexes will be empty as no time has passed since the previous block because it didn't exist.
+	// The indexes will be empty as no time has passed since the previous block because it didn't exist.
 	suite.storedTimeEquals(types.GovDenom, firstAccrualTime)
 	suite.storedIndexesEqual(types.GovDenom, nil)
 

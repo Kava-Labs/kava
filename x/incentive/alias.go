@@ -73,6 +73,7 @@ var (
 	NewMsgClaimUSDXMintingRewardVVesting = types.NewMsgClaimUSDXMintingRewardVVesting
 	NewMultiRewardIndex                  = types.NewMultiRewardIndex
 	NewMultiRewardPeriod                 = types.NewMultiRewardPeriod
+	NewMultiRewardPeriodFromRewardPeriod = types.NewMultiRewardPeriodFromRewardPeriod
 	NewMultiplier                        = types.NewMultiplier
 	NewParams                            = types.NewParams
 	NewPeriod                            = types.NewPeriod
@@ -129,7 +130,6 @@ var (
 	PreviousHardSupplyRewardAccrualTimeKeyPrefix  = types.PreviousHardSupplyRewardAccrualTimeKeyPrefix
 	PreviousSwapRewardAccrualTimeKeyPrefix        = types.PreviousSwapRewardAccrualTimeKeyPrefix
 	PreviousUSDXMintingRewardAccrualTimeKeyPrefix = types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix
-	PrincipalDenom                                = types.PrincipalDenom
 	SwapClaimKeyPrefix                            = types.SwapClaimKeyPrefix
 	SwapRewardIndexesKeyPrefix                    = types.SwapRewardIndexesKeyPrefix
 	USDXMintingClaimKeyPrefix                     = types.USDXMintingClaimKeyPrefix

@@ -8,12 +8,11 @@ import (
 
 // BeginBlocker runs at the start of every block
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
+
 	params := k.GetParams(ctx)
+
 	for _, rp := range params.USDXMintingRewardPeriods {
-		err := k.AccumulateUSDXMintingRewards(ctx, rp)
-		if err != nil {
-			panic(err)
-		}
+		k.AccumulateUSDXMintingRewards(ctx, rp)
 	}
 	for _, rp := range params.HardSupplyRewardPeriods {
 		k.AccumulateHardSupplyRewards(ctx, rp)
