@@ -24,18 +24,25 @@ func (k Keeper) AccumulateSwapRewards(ctx sdk.Context, rewardPeriod types.MultiR
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalShares, found := k.swapKeeper.GetPoolShares(ctx, rewardPeriod.CollateralType)
-	if !found {
-		totalShares = sdk.ZeroInt()
-	}
+	totalSource := k.getSwapTotalSourceShares(ctx, rewardPeriod.CollateralType)
 
-	acc.Accumulate(rewardPeriod, totalShares.ToDec(), ctx.BlockTime())
+	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
 
 	k.SetSwapRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
 		k.SetSwapRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
 	}
+}
+
+// getSwapTotalSourceShares fetches the sum of all source shares for a swap reward.
+// In the case of swap, these are the total (swap module) shares in a particular pool.
+func (k Keeper) getSwapTotalSourceShares(ctx sdk.Context, poolID string) sdk.Dec {
+	totalShares, found := k.swapKeeper.GetPoolShares(ctx, poolID)
+	if !found {
+		totalShares = sdk.ZeroInt()
+	}
+	return totalShares.ToDec()
 }
 
 // InitializeSwapReward creates a new claim with zero rewards and indexes matching the global indexes.
@@ -107,7 +114,7 @@ func (k Keeper) GetSynchronizedSwapClaim(ctx sdk.Context, owner sdk.AccAddress) 
 	if !found {
 		return types.SwapClaim{}, false
 	}
-	for _, indexes := range claim.RewardIndexes {
+	for _, indexes := range claim.RewardIndexes { // TODO shouldn't this loop through global indexes, in case some have been recently added?
 		poolID := indexes.CollateralType
 
 		shares, found := k.swapKeeper.GetDepositorSharesAmount(ctx, owner, poolID)

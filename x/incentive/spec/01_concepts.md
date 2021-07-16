@@ -12,15 +12,15 @@ Rewards target various user activity. For example, usdx borrowed from bnb CDPs, 
 
 Each second, the rewards accumulate at a rate set in the params, eg 100 ukava per second. These are then distributed to all users ratably based on their percentage involvement in the rewarded activity. For example if a user holds 1% of all funds deposited to the kava/usdx swap pool. They will receive 1% of the total rewards each second.
 
-The number tracking a user's involvement is referred to as "reward source" in the code. And the total across all users the "reward source total".
+The quantity tracking a user's involvement is referred to as "source shares" in the code. And the total across all users the "total source shares". The quotient then gives their percentage involvement, eg if a user borrowed 10,000 usdx, and there is 100,000 usdx borrowed by all users, then they will get 10% of rewards.
 
 ## Efficiency
 
 Paying out rewards to every user every block would be slow and lead to long block times. Instead rewards are calculated much less frequently.
 
-Every block a global tracker adds up total rewards paid out per unit of user involvement. For example, per unit of xrpb supplied to hard, or per share in a kava/usdx swap pool. A user's specific reward can then be calculated as needed based on their current deposit/shares/borrow.
+Every block a global tracker adds up total rewards paid out per unit of user involvement. For example, per unit of xrpb supplied to hard, or per share in a kava/usdx swap pool. A user's specific reward can then be calculated as needed based on their current source shares.
 
-User's rewards must be updated whenever their reward source changes. This happens through hooks into other modules that run before deposits/borrows/supplies etc.
+Users' rewards must be updated whenever their source shares change. This happens through hooks into other modules that run before deposits/borrows/supplies etc.
 
 ## HARD Token distribution
 

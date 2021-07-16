@@ -104,7 +104,7 @@ func TestAccumulator(t *testing.T) {
 		type args struct {
 			rewardsPerSecond  sdk.Coins
 			duration          time.Duration
-			rewardSourceTotal sdk.Dec
+			totalSourceShares sdk.Dec
 		}
 		testcases := []struct {
 			name     string
@@ -116,7 +116,7 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(c("hard", 1000), c("swap", 100)),
 					duration:          10 * time.Second,
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 				},
 				expected: RewardIndexes{
 					{CollateralType: "hard", RewardFactor: d("10")},
@@ -128,7 +128,7 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(c("hard", 1000)),
 					duration:          10*time.Second + 500*time.Millisecond,
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 				},
 				expected: RewardIndexes{
 					{CollateralType: "hard", RewardFactor: d("10")},
@@ -139,7 +139,7 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(c("anydenom", 1)),    // minimum possible rewards
 					duration:          1 * time.Second,         // minimum possible duration (beyond zero as it's rounded)
-					rewardSourceTotal: d("100000000000000000"), // approximate shares in a $1B pool of 10^8 precision assets
+					totalSourceShares: d("100000000000000000"), // approximate shares in a $1B pool of 10^8 precision assets
 				},
 				expected: RewardIndexes{
 					// smallest reward amount over smallest accumulation duration does not go past 10^-18 decimal precision
@@ -151,7 +151,7 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(c("hard", 1000)),
 					duration:          0,
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 				},
 				expected: nil,
 			},
@@ -160,7 +160,7 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(),
 					duration:          10 * time.Second,
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 				},
 				expected: nil,
 			},
@@ -169,7 +169,7 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(c("hard", 1000)),
 					duration:          10 * time.Second,
-					rewardSourceTotal: d("0"),
+					totalSourceShares: d("0"),
 				},
 				expected: nil,
 			},
@@ -178,7 +178,7 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(),
 					duration:          0,
-					rewardSourceTotal: d("0"),
+					totalSourceShares: d("0"),
 				},
 				expected: nil,
 			},
@@ -187,7 +187,7 @@ func TestAccumulator(t *testing.T) {
 		for _, tc := range testcases {
 			t.Run(tc.name, func(t *testing.T) {
 				acc := &Accumulator{}
-				indexes := acc.calculateNewRewards(tc.args.rewardsPerSecond, tc.args.rewardSourceTotal, tc.args.duration)
+				indexes := acc.calculateNewRewards(tc.args.rewardsPerSecond, tc.args.totalSourceShares, tc.args.duration)
 
 				require.Equal(t, tc.expected, indexes)
 			})
@@ -197,7 +197,7 @@ func TestAccumulator(t *testing.T) {
 		type args struct {
 			accumulator       Accumulator
 			period            MultiRewardPeriod
-			rewardSourceTotal sdk.Dec
+			totalSourceShares sdk.Dec
 			currentTime       time.Time
 		}
 		testcases := []struct {
@@ -220,7 +220,7 @@ func TestAccumulator(t *testing.T) {
 						End:              time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 						RewardsPerSecond: cs(c("hard", 1000)),
 					},
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 					currentTime:       time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
 				},
 				expected: Accumulator{
@@ -243,7 +243,7 @@ func TestAccumulator(t *testing.T) {
 						End:              time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 						RewardsPerSecond: cs(c("hard", 1000)),
 					},
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 					currentTime:       time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
 				},
 				expected: Accumulator{
@@ -263,7 +263,7 @@ func TestAccumulator(t *testing.T) {
 						End:              time.Date(1998, 1, 1, 0, 0, 7, 0, time.UTC),
 						RewardsPerSecond: cs(c("hard", 1000)),
 					},
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 					currentTime:       time.Date(1998, 1, 1, 0, 0, 10, 0, time.UTC),
 				},
 				expected: Accumulator{
@@ -275,7 +275,7 @@ func TestAccumulator(t *testing.T) {
 
 		for _, tc := range testcases {
 			t.Run(tc.name, func(t *testing.T) {
-				tc.args.accumulator.Accumulate(tc.args.period, tc.args.rewardSourceTotal, tc.args.currentTime)
+				tc.args.accumulator.Accumulate(tc.args.period, tc.args.totalSourceShares, tc.args.currentTime)
 				require.Equal(t, tc.expected, tc.args.accumulator)
 			})
 		}

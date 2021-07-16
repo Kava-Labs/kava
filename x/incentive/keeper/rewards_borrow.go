@@ -172,14 +172,14 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
-// CalculateRewards computes how much rewards should have accrued to a source (eg a user's hard borrowed btc amount)
+// CalculateRewards computes how much rewards should have accrued to a reward source (eg a user's hard borrowed btc amount)
 // between two index values.
 //
-// oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a hard borrowed/supplied amount.
+// oldIndex is normally the index stored on a claim, newIndex the current global value, and sourceShares a hard borrowed/supplied amount.
 //
-// Returns an error if newIndexes does not contain all CollateralTypes from oldIndexes, or if any value of oldIndex.RewardFactor > newIndex.RewardFactor.
+// It returns an error if newIndexes does not contain all CollateralTypes from oldIndexes, or if any value of oldIndex.RewardFactor > newIndex.RewardFactor.
 // This should never happen, as it would mean that a global reward index has decreased in value, or that a global reward index has been deleted from state.
-func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rewardSource sdk.Dec) (sdk.Coins, error) {
+func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, sourceShares sdk.Dec) (sdk.Coins, error) {
 	// check for missing CollateralType's
 	for _, oldIndex := range oldIndexes {
 		if newIndex, found := newIndexes.Get(oldIndex.CollateralType); !found {
@@ -193,7 +193,7 @@ func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rew
 			oldFactor = sdk.ZeroDec()
 		}
 
-		rewardAmount, err := k.CalculateSingleReward(oldFactor, newIndex.RewardFactor, rewardSource)
+		rewardAmount, err := k.CalculateSingleReward(oldFactor, newIndex.RewardFactor, sourceShares)
 		if err != nil {
 			return nil, err
 		}
@@ -205,18 +205,18 @@ func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, rew
 	return reward, nil
 }
 
-// CalculateSingleReward computes how much rewards should have accrued to a source (eg a user's btcb-a cdp principal)
+// CalculateSingleReward computes how much rewards should have accrued to a reward source (eg a user's btcb-a cdp principal)
 // between two index values.
 //
-// oldIndex is normally the index stored on a claim, newIndex the current global value, and rewardSource a cdp principal amount.
+// oldIndex is normally the index stored on a claim, newIndex the current global value, and sourceShares a cdp principal amount.
 //
 // Returns an error if oldIndex > newIndex. This should never happen, as it would mean that a global reward index has decreased in value,
 // or that a global reward index has been deleted from state.
-func (k Keeper) CalculateSingleReward(oldIndex, newIndex, rewardSource sdk.Dec) (sdk.Int, error) {
+func (k Keeper) CalculateSingleReward(oldIndex, newIndex, sourceShares sdk.Dec) (sdk.Int, error) {
 	increase := newIndex.Sub(oldIndex)
 	if increase.IsNegative() {
 		return sdk.Int{}, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
 	}
-	reward := increase.Mul(rewardSource).RoundInt()
+	reward := increase.Mul(sourceShares).RoundInt()
 	return reward, nil
 }
