@@ -16,10 +16,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 		}
 	}
 	for _, rp := range params.HardSupplyRewardPeriods {
-		err := k.AccumulateHardSupplyRewards(ctx, rp)
-		if err != nil {
-			panic(err)
-		}
+		k.AccumulateHardSupplyRewards(ctx, rp)
 	}
 	for _, rp := range params.HardBorrowRewardPeriods {
 		k.AccumulateHardBorrowRewards(ctx, rp)

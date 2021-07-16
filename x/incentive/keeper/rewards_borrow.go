@@ -10,7 +10,7 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// AccumulateSwapRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
+// AccumulateHardBorrowRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
 func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
 
