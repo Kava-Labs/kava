@@ -46,22 +46,22 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 			swap.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6))), sdk.NewInt(3e6)),
 		},
 		types.ShareRecords{
-			types.NewShareRecord(depositor_2, "hard/usdx", sdk.NewInt(1e6)),
-			types.NewShareRecord(depositor_1, "ukava/usdx", sdk.NewInt(3e6)),
+			types.NewShareRecord(depositor_2, types.PoolID("hard", "usdx"), sdk.NewInt(1e6)),
+			types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), sdk.NewInt(3e6)),
 		},
 	)
 
 	swap.InitGenesis(suite.Ctx, suite.Keeper, state)
 	suite.Equal(state.Params, suite.Keeper.GetParams(suite.Ctx))
 
-	poolRecord1, _ := suite.Keeper.GetPool(suite.Ctx, "hard/usdx")
+	poolRecord1, _ := suite.Keeper.GetPool(suite.Ctx, types.PoolID("hard", "usdx"))
 	suite.Equal(state.PoolRecords[0], poolRecord1)
-	poolRecord2, _ := suite.Keeper.GetPool(suite.Ctx, "ukava/usdx")
+	poolRecord2, _ := suite.Keeper.GetPool(suite.Ctx, types.PoolID("ukava", "usdx"))
 	suite.Equal(state.PoolRecords[1], poolRecord2)
 
-	shareRecord1, _ := suite.Keeper.GetDepositorShares(suite.Ctx, depositor_2, "hard/usdx")
+	shareRecord1, _ := suite.Keeper.GetDepositorShares(suite.Ctx, depositor_2, types.PoolID("hard", "usdx"))
 	suite.Equal(state.ShareRecords[0], shareRecord1)
-	shareRecord2, _ := suite.Keeper.GetDepositorShares(suite.Ctx, depositor_1, "ukava/usdx")
+	shareRecord2, _ := suite.Keeper.GetDepositorShares(suite.Ctx, depositor_1, types.PoolID("ukava", "usdx"))
 	suite.Equal(state.ShareRecords[1], shareRecord2)
 
 	exportedState := swap.ExportGenesis(suite.Ctx, suite.Keeper)

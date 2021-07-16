@@ -119,7 +119,7 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaim() {
 		WithSimpleAccount(userAddr, cs(c("ukava", 1e12), c("busd", 1e12)))
 
 	incentBuilder := suite.incentiveBuilder().
-		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("hard", 1e6), c("swap", 1e6)))
+		WithSimpleSwapRewardPeriod("busd:ukava", cs(c("hard", 1e6), c("swap", 1e6)))
 
 	suite.SetupWithGenState(authBulder, incentBuilder)
 
@@ -163,7 +163,7 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaimSingleDenom() {
 		WithSimpleAccount(userAddr, cs(c("ukava", 1e12), c("busd", 1e12)))
 
 	incentBuilder := suite.incentiveBuilder().
-		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("hard", 1e6), c("swap", 1e6)))
+		WithSimpleSwapRewardPeriod("busd:ukava", cs(c("hard", 1e6), c("swap", 1e6)))
 
 	suite.SetupWithGenState(authBulder, incentBuilder)
 
@@ -211,7 +211,7 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaimVVesting() {
 		WithSimpleAccount(receiverAddr, nil)
 
 	incentBuilder := suite.incentiveBuilder().
-		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("hard", 1e6), c("swap", 1e6)))
+		WithSimpleSwapRewardPeriod("busd:ukava", cs(c("hard", 1e6), c("swap", 1e6)))
 
 	suite.SetupWithGenState(authBulder, incentBuilder)
 
@@ -259,7 +259,7 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaimVVestingSingleDenom() {
 		WithSimpleAccount(receiverAddr, nil)
 
 	incentBuilder := suite.incentiveBuilder().
-		WithSimpleSwapRewardPeriod("busd/ukava", cs(c("hard", 1e6), c("swap", 1e6)))
+		WithSimpleSwapRewardPeriod("busd:ukava", cs(c("hard", 1e6), c("swap", 1e6)))
 
 	suite.SetupWithGenState(authBulder, incentBuilder)
 

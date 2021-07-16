@@ -186,13 +186,13 @@ func TestGenesis_JSONEncoding(t *testing.T) {
 		},
 		"pool_records": [
 		  {
-			  "pool_id": "ukava/usdx",
+				"pool_id": "ukava:usdx",
 			  "reserves_a": { "denom": "ukava", "amount": "1000000" },
 			  "reserves_b": { "denom": "usdx", "amount": "5000000" },
 			  "total_shares": "3000000"
 			},
 		  {
-			  "pool_id": "hard/usdx",
+			  "pool_id": "hard:usdx",
 			  "reserves_a": { "denom": "ukava", "amount": "1000000" },
 			  "reserves_b": { "denom": "usdx", "amount": "2000000" },
 			  "total_shares": "2000000"
@@ -201,12 +201,12 @@ func TestGenesis_JSONEncoding(t *testing.T) {
 		"share_records": [
 		  {
 		    "depositor": "kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w",
-		    "pool_id": "ukava/usdx",
+		    "pool_id": "ukava:usdx",
 		    "shares_owned": "100000"
 			},
 		  {
 		    "depositor": "kava1esagqd83rhqdtpy5sxhklaxgn58k2m3s3mnpea",
-		    "pool_id": "hard/usdx",
+		    "pool_id": "hard:usdx",
 		    "shares_owned": "200000"
 			}
 		]
@@ -231,7 +231,7 @@ func TestGenesis_YAMLEncoding(t *testing.T) {
     token_b: busd
   swap_fee: "0.003000000000000000"
 pool_records:
-- pool_id: ukava/usdx
+- pool_id: ukava:usdx
   reserves_a:
     denom: ukava
     amount: "1000000"
@@ -239,7 +239,7 @@ pool_records:
     denom: usdx
     amount: "5000000"
   total_shares: "3000000"
-- pool_id: hard/usdx
+- pool_id: hard:usdx
   reserves_a:
     denom: hard
     amount: "1000000"
@@ -249,10 +249,10 @@ pool_records:
   total_shares: "1500000"
 share_records:
 - depositor: kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w
-  pool_id: ukava/usdx
+  pool_id: ukava:usdx
   shares_owned: "100000"
 - depositor: kava1esagqd83rhqdtpy5sxhklaxgn58k2m3s3mnpea
-  pool_id: hard/usdx
+  pool_id: hard:usdx
   shares_owned: "200000"
 `
 
@@ -274,8 +274,8 @@ share_records:
 			types.NewPoolRecord(sdk.NewCoins(hard(1e6), usdx(2e6)), i(15e5)),
 		},
 		types.ShareRecords{
-			types.NewShareRecord(depositor_1, "ukava/usdx", i(1e5)),
-			types.NewShareRecord(depositor_2, "hard/usdx", i(2e5)),
+			types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), i(1e5)),
+			types.NewShareRecord(depositor_2, types.PoolID("hard", "usdx"), i(2e5)),
 		},
 	)
 
@@ -330,15 +330,15 @@ func TestGenesis_Validate_PoolShareIntegration(t *testing.T) {
 				types.NewPoolRecord(sdk.NewCoins(ukava(1e6), usdx(5e6)), i(3e6)),
 			},
 			shareRecords: types.ShareRecords{},
-			expectedErr:  "total depositor shares 0 not equal to pool 'ukava/usdx' total shares 3000000",
+			expectedErr:  "total depositor shares 0 not equal to pool 'ukava:usdx' total shares 3000000",
 		},
 		{
 			name:        "zero pool records, one share record",
 			poolRecords: types.PoolRecords{},
 			shareRecords: types.ShareRecords{
-				types.NewShareRecord(depositor_1, "ukava/usdx", i(5e6)),
+				types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), i(5e6)),
 			},
-			expectedErr: "total depositor shares 5000000 not equal to pool 'ukava/usdx' total shares 0",
+			expectedErr: "total depositor shares 5000000 not equal to pool 'ukava:usdx' total shares 0",
 		},
 		{
 			name: "one pool record, one share record",
@@ -346,9 +346,9 @@ func TestGenesis_Validate_PoolShareIntegration(t *testing.T) {
 				types.NewPoolRecord(sdk.NewCoins(ukava(1e6), usdx(5e6)), i(3e6)),
 			},
 			shareRecords: types.ShareRecords{
-				types.NewShareRecord(depositor_1, "ukava/usdx", i(15e5)),
+				types.NewShareRecord(depositor_1, "ukava:usdx", i(15e5)),
 			},
-			expectedErr: "total depositor shares 1500000 not equal to pool 'ukava/usdx' total shares 3000000",
+			expectedErr: "total depositor shares 1500000 not equal to pool 'ukava:usdx' total shares 3000000",
 		},
 		{
 			name: "more than one pool records, more than one share record",
@@ -357,11 +357,11 @@ func TestGenesis_Validate_PoolShareIntegration(t *testing.T) {
 				types.NewPoolRecord(sdk.NewCoins(hard(1e6), usdx(2e6)), i(2e6)),
 			},
 			shareRecords: types.ShareRecords{
-				types.NewShareRecord(depositor_1, "ukava/usdx", i(15e5)),
-				types.NewShareRecord(depositor_2, "ukava/usdx", i(15e5)),
-				types.NewShareRecord(depositor_1, "hard/usdx", i(1e6)),
+				types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), i(15e5)),
+				types.NewShareRecord(depositor_2, types.PoolID("ukava", "usdx"), i(15e5)),
+				types.NewShareRecord(depositor_1, types.PoolID("hard", "usdx"), i(1e6)),
 			},
-			expectedErr: "total depositor shares 1000000 not equal to pool 'hard/usdx' total shares 2000000",
+			expectedErr: "total depositor shares 1000000 not equal to pool 'hard:usdx' total shares 2000000",
 		},
 		{
 			name: "valid case with many pool records and share records",
@@ -371,11 +371,11 @@ func TestGenesis_Validate_PoolShareIntegration(t *testing.T) {
 				types.NewPoolRecord(sdk.NewCoins(hard(7e6), ukava(10e6)), i(8e6)),
 			},
 			shareRecords: types.ShareRecords{
-				types.NewShareRecord(depositor_1, "ukava/usdx", i(15e5)),
-				types.NewShareRecord(depositor_2, "ukava/usdx", i(15e5)),
-				types.NewShareRecord(depositor_1, "hard/usdx", i(2e6)),
-				types.NewShareRecord(depositor_1, "hard/ukava", i(3e6)),
-				types.NewShareRecord(depositor_2, "hard/ukava", i(5e6)),
+				types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), i(15e5)),
+				types.NewShareRecord(depositor_2, types.PoolID("ukava", "usdx"), i(15e5)),
+				types.NewShareRecord(depositor_1, types.PoolID("hard", "usdx"), i(2e6)),
+				types.NewShareRecord(depositor_1, types.PoolID("hard", "ukava"), i(3e6)),
+				types.NewShareRecord(depositor_2, types.PoolID("hard", "ukava"), i(5e6)),
 			},
 			expectedErr: "",
 		},

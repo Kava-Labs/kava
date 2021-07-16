@@ -178,7 +178,7 @@ func (suite *keeperTestSuite) TestWithdraw_PanicOnMissingPool() {
 
 	suite.Keeper.DeletePool(suite.Ctx, poolID)
 
-	suite.PanicsWithValue("pool ukava/usdx not found", func() {
+	suite.PanicsWithValue("pool ukava:usdx not found", func() {
 		_ = suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
 	}, "expected missing pool record to panic")
 }
@@ -198,7 +198,7 @@ func (suite *keeperTestSuite) TestWithdraw_PanicOnInvalidPool() {
 	poolRecord.TotalShares = sdk.ZeroInt()
 	suite.Keeper.SetPool_Raw(suite.Ctx, poolRecord)
 
-	suite.PanicsWithValue("invalid pool ukava/usdx: invalid pool: total shares must be greater than zero", func() {
+	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
 		_ = suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
 	}, "expected invalid pool record to panic")
 }

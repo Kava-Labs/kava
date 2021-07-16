@@ -228,8 +228,8 @@ func TestParams_String(t *testing.T) {
 	require.NoError(t, params.Validate())
 
 	output := params.String()
-	assert.Contains(t, output, "hard/ukava")
-	assert.Contains(t, output, "ukava/usdx")
+	assert.Contains(t, output, types.PoolID("hard", "ukava"))
+	assert.Contains(t, output, types.PoolID("ukava", "usdx"))
 	assert.Contains(t, output, "0.5")
 }
 
@@ -310,7 +310,7 @@ func TestAllowedPool_String(t *testing.T) {
 	require.NoError(t, allowedPool.Validate())
 
 	output := `AllowedPool:
-  Name: hard/ukava
+  Name: hard:ukava
 	Token A: hard
 	Token B: ukava
 `
@@ -324,31 +324,31 @@ func TestAllowedPool_Name(t *testing.T) {
 	}{
 		{
 			tokens: "atoken btoken",
-			name:   "atoken/btoken",
+			name:   "atoken:btoken",
 		},
 		{
 			tokens: "aaa aaaa",
-			name:   "aaa/aaaa",
+			name:   "aaa:aaaa",
 		},
 		{
 			tokens: "aaaa aaab",
-			name:   "aaaa/aaab",
+			name:   "aaaa:aaab",
 		},
 		{
 			tokens: "a001 a002",
-			name:   "a001/a002",
+			name:   "a001:a002",
 		},
 		{
 			tokens: "hard ukava",
-			name:   "hard/ukava",
+			name:   "hard:ukava",
 		},
 		{
 			tokens: "bnb hard",
-			name:   "bnb/hard",
+			name:   "bnb:hard",
 		},
 		{
 			tokens: "bnb xrpb",
-			name:   "bnb/xrpb",
+			name:   "bnb:xrpb",
 		},
 	}
 
@@ -385,7 +385,7 @@ func TestAllowedPools_Validate(t *testing.T) {
 				types.NewAllowedPool("hard", "ukava"),
 				types.NewAllowedPool("hard", "ukava"),
 			),
-			expectedErr: "duplicate pool: hard/ukava",
+			expectedErr: "duplicate pool: hard:ukava",
 		},
 		{
 			name: "duplicate pools",
@@ -395,7 +395,7 @@ func TestAllowedPools_Validate(t *testing.T) {
 				types.NewAllowedPool("btcb", "xrpb"),
 				types.NewAllowedPool("bnb", "usdx"),
 			),
-			expectedErr: "duplicate pool: bnb/usdx",
+			expectedErr: "duplicate pool: bnb:usdx",
 		},
 	}
 
