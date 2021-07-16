@@ -9,35 +9,34 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-type AccumulateBorrowRewardsTests struct {
+type AccumulateDelegatorRewardsTests struct {
 	unitTester
 }
 
-func (suite *AccumulateBorrowRewardsTests) storedTimeEquals(denom string, expected time.Time) {
-	storedTime, found := suite.keeper.GetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom)
+func (suite *AccumulateDelegatorRewardsTests) storedTimeEquals(denom string, expected time.Time) {
+	storedTime, found := suite.keeper.GetPreviousDelegatorRewardAccrualTime(suite.ctx, denom)
 	suite.True(found)
 	suite.Equal(expected, storedTime)
 }
 
-func (suite *AccumulateBorrowRewardsTests) storedIndexesEqual(denom string, expected types.RewardIndexes) {
-	storedIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, denom)
+func (suite *AccumulateDelegatorRewardsTests) storedIndexesEqual(denom string, expected types.RewardIndexes) {
+	storedIndexes, found := suite.keeper.GetDelegatorRewardIndexes(suite.ctx, denom)
 	suite.Equal(found, expected != nil)
 	suite.Equal(expected, storedIndexes)
 }
 
-func TestAccumulateBorrowRewards(t *testing.T) {
-	suite.Run(t, new(AccumulateBorrowRewardsTests))
+func TestAccumulateDelegatorRewards(t *testing.T) {
+	suite.Run(t, new(AccumulateDelegatorRewardsTests))
 }
 
-func (suite *AccumulateBorrowRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased() {
-	denom := "bnb"
+func (suite *AccumulateDelegatorRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased() {
 
-	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil)
+	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
-	suite.storeGlobalBorrowIndexes(types.MultiRewardIndexes{
+	suite.storeGlobalDelegatorIndexes(types.MultiRewardIndexes{
 		{
-			CollateralType: denom,
+			CollateralType: types.GovDenom,
 			RewardIndexes: types.RewardIndexes{
 				{
 					CollateralType: "hard",
@@ -51,25 +50,25 @@ func (suite *AccumulateBorrowRewardsTests) TestStateUpdatedWhenBlockTimeHasIncre
 		},
 	})
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, previousAccrualTime)
+	suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, types.GovDenom, previousAccrualTime)
 
 	newAccrualTime := previousAccrualTime.Add(1 * time.Hour)
 	suite.ctx = suite.ctx.WithBlockTime(newAccrualTime)
 
 	period := types.NewMultiRewardPeriod(
 		true,
-		denom,
+		types.GovDenom,
 		time.Unix(0, 0), // ensure the test is within start and end times
 		distantFuture,
 		cs(c("hard", 2000), c("ukava", 1000)), // same denoms as in global indexes
 	)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateDelegatorRewards(suite.ctx, period)
 
 	// check time and factors
 
-	suite.storedTimeEquals(denom, newAccrualTime)
-	suite.storedIndexesEqual(denom, types.RewardIndexes{
+	suite.storedTimeEquals(types.GovDenom, newAccrualTime)
+	suite.storedIndexesEqual(types.GovDenom, types.RewardIndexes{
 		{
 			CollateralType: "hard",
 			RewardFactor:   d("7.22"),
@@ -81,15 +80,14 @@ func (suite *AccumulateBorrowRewardsTests) TestStateUpdatedWhenBlockTimeHasIncre
 	})
 }
 
-func (suite *AccumulateBorrowRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
-	denom := "bnb"
+func (suite *AccumulateDelegatorRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
 
-	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil)
+	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
-			CollateralType: denom,
+			CollateralType: types.GovDenom,
 			RewardIndexes: types.RewardIndexes{
 				{
 					CollateralType: "hard",
@@ -102,39 +100,38 @@ func (suite *AccumulateBorrowRewardsTests) TestStateUnchangedWhenBlockTimeHasNot
 			},
 		},
 	}
-	suite.storeGlobalBorrowIndexes(previousIndexes)
+	suite.storeGlobalDelegatorIndexes(previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, previousAccrualTime)
+	suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, types.GovDenom, previousAccrualTime)
 
 	suite.ctx = suite.ctx.WithBlockTime(previousAccrualTime)
 
 	period := types.NewMultiRewardPeriod(
 		true,
-		denom,
+		types.GovDenom,
 		time.Unix(0, 0), // ensure the test is within start and end times
 		distantFuture,
 		cs(c("hard", 2000), c("ukava", 1000)), // same denoms as in global indexes
 	)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateDelegatorRewards(suite.ctx, period)
 
 	// check time and factors
 
-	suite.storedTimeEquals(denom, previousAccrualTime)
-	expected, f := previousIndexes.Get(denom)
+	suite.storedTimeEquals(types.GovDenom, previousAccrualTime)
+	expected, f := previousIndexes.Get(types.GovDenom)
 	suite.True(f)
-	suite.storedIndexesEqual(denom, expected)
+	suite.storedIndexesEqual(types.GovDenom, expected)
 }
 
-func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
-	denom := "bnb"
+func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
 
-	hardKeeper := newFakeHardKeeper() // zero total borrows
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil)
+	stakingKeeper := newFakeStakingKeeper() // zero total bonded
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
-			CollateralType: denom,
+			CollateralType: types.GovDenom,
 			RewardIndexes: types.RewardIndexes{
 				{
 					CollateralType: "hard",
@@ -147,40 +144,39 @@ func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenSourceSharesAre
 			},
 		},
 	}
-	suite.storeGlobalBorrowIndexes(previousIndexes)
+	suite.storeGlobalDelegatorIndexes(previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, previousAccrualTime)
+	suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, types.GovDenom, previousAccrualTime)
 
 	firstAccrualTime := previousAccrualTime.Add(7 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
 
 	period := types.NewMultiRewardPeriod(
 		true,
-		denom,
+		types.GovDenom,
 		time.Unix(0, 0), // ensure the test is within start and end times
 		distantFuture,
 		cs(c("hard", 2000), c("ukava", 1000)), // same denoms as in global indexes
 	)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateDelegatorRewards(suite.ctx, period)
 
 	// check time and factors
 
-	suite.storedTimeEquals(denom, firstAccrualTime)
-	expected, f := previousIndexes.Get(denom)
+	suite.storedTimeEquals(types.GovDenom, firstAccrualTime)
+	expected, f := previousIndexes.Get(types.GovDenom)
 	suite.True(f)
-	suite.storedIndexesEqual(denom, expected)
+	suite.storedIndexesEqual(types.GovDenom, expected)
 }
 
-func (suite *AccumulateBorrowRewardsTests) TestStateAddedWhenStateDoesNotExist() {
-	denom := "bnb"
+func (suite *AccumulateDelegatorRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 
-	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil)
+	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	period := types.NewMultiRewardPeriod(
 		true,
-		denom,
+		types.GovDenom,
 		time.Unix(0, 0), // ensure the test is within start and end times
 		distantFuture,
 		cs(c("hard", 2000), c("ukava", 1000)),
@@ -189,21 +185,21 @@ func (suite *AccumulateBorrowRewardsTests) TestStateAddedWhenStateDoesNotExist()
 	firstAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateDelegatorRewards(suite.ctx, period)
 
 	// After the first accumulation only the current block time should be stored.
 	// This indexes will be empty as no time has passed since the previous block because it didn't exist.
-	suite.storedTimeEquals(denom, firstAccrualTime)
-	suite.storedIndexesEqual(denom, nil)
+	suite.storedTimeEquals(types.GovDenom, firstAccrualTime)
+	suite.storedIndexesEqual(types.GovDenom, nil)
 
 	secondAccrualTime := firstAccrualTime.Add(10 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(secondAccrualTime)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateDelegatorRewards(suite.ctx, period)
 
 	// After the second accumulation both current block time and indexes should be stored.
-	suite.storedTimeEquals(denom, secondAccrualTime)
-	suite.storedIndexesEqual(denom, types.RewardIndexes{
+	suite.storedTimeEquals(types.GovDenom, secondAccrualTime)
+	suite.storedIndexesEqual(types.GovDenom, types.RewardIndexes{
 		{
 			CollateralType: "hard",
 			RewardFactor:   d("0.02"),
@@ -215,15 +211,14 @@ func (suite *AccumulateBorrowRewardsTests) TestStateAddedWhenStateDoesNotExist()
 	})
 }
 
-func (suite *AccumulateBorrowRewardsTests) TestNoPanicWhenStateDoesNotExist() {
-	denom := "bnb"
+func (suite *AccumulateDelegatorRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 
-	hardKeeper := newFakeHardKeeper()
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil)
+	stakingKeeper := newFakeStakingKeeper()
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	period := types.NewMultiRewardPeriod(
 		true,
-		denom,
+		types.GovDenom,
 		time.Unix(0, 0), // ensure the test is within start and end times
 		distantFuture,
 		cs(),
@@ -236,22 +231,21 @@ func (suite *AccumulateBorrowRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 	// No increment and no previous indexes stored, results in an updated of nil. Setting this in the state panics.
 	// Check there is no panic.
 	suite.NotPanics(func() {
-		suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+		suite.keeper.AccumulateDelegatorRewards(suite.ctx, period)
 	})
 
-	suite.storedTimeEquals(denom, accrualTime)
-	suite.storedIndexesEqual(denom, nil)
+	suite.storedTimeEquals(types.GovDenom, accrualTime)
+	suite.storedIndexesEqual(types.GovDenom, nil)
 }
 
-func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
-	denom := "bnb"
+func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
 
-	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil)
+	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
-			CollateralType: denom,
+			CollateralType: types.GovDenom,
 			RewardIndexes: types.RewardIndexes{
 				{
 					CollateralType: "hard",
@@ -264,15 +258,15 @@ func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenBeforeStartTime
 			},
 		},
 	}
-	suite.storeGlobalBorrowIndexes(previousIndexes)
+	suite.storeGlobalDelegatorIndexes(previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, previousAccrualTime)
+	suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, types.GovDenom, previousAccrualTime)
 
 	firstAccrualTime := previousAccrualTime.Add(10 * time.Second)
 
 	period := types.NewMultiRewardPeriod(
 		true,
-		denom,
+		types.GovDenom,
 		firstAccrualTime.Add(time.Nanosecond), // start time after accrual time
 		distantFuture,
 		cs(c("hard", 2000), c("ukava", 1000)),
@@ -280,29 +274,28 @@ func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenBeforeStartTime
 
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateDelegatorRewards(suite.ctx, period)
 
 	// The accrual time should be updated, but the indexes unchanged
-	suite.storedTimeEquals(denom, firstAccrualTime)
-	expectedIndexes, f := previousIndexes.Get(denom)
+	suite.storedTimeEquals(types.GovDenom, firstAccrualTime)
+	expectedIndexes, f := previousIndexes.Get(types.GovDenom)
 	suite.True(f)
-	suite.storedIndexesEqual(denom, expectedIndexes)
+	suite.storedIndexesEqual(types.GovDenom, expectedIndexes)
 }
 
-func (suite *AccumulateBorrowRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {
-	denom := "bnb"
+func (suite *AccumulateDelegatorRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {
 
-	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil)
+	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, previousAccrualTime)
+	suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, types.GovDenom, previousAccrualTime)
 
 	firstAccrualTime := time.Time{}
 
 	period := types.NewMultiRewardPeriod(
 		true,
-		denom,
+		types.GovDenom,
 		time.Time{}, // start time after accrual time
 		distantFuture,
 		cs(c("hard", 2000), c("ukava", 1000)),
@@ -311,6 +304,6 @@ func (suite *AccumulateBorrowRewardsTests) TestPanicWhenCurrentTimeLessThanPrevi
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
 
 	suite.Panics(func() {
-		suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+		suite.keeper.AccumulateDelegatorRewards(suite.ctx, period)
 	})
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -206,6 +207,59 @@ func (k *fakeHardKeeper) GetBorrow(_ sdk.Context, _ sdk.AccAddress) (hardtypes.B
 }
 func (k *fakeHardKeeper) GetDeposit(_ sdk.Context, _ sdk.AccAddress) (hardtypes.Deposit, bool) {
 	panic("unimplemented")
+}
+
+// fakeStakingKeeper is a stub staking keeper.
+// It can be used to return values to the incentive keeper without having to initialize a full staking keeper.
+type fakeStakingKeeper struct {
+	delegations stakingtypes.Delegations
+	validators  stakingtypes.Validators
+}
+
+var _ types.StakingKeeper = newFakeStakingKeeper()
+
+func newFakeStakingKeeper() *fakeStakingKeeper { return &fakeStakingKeeper{} }
+
+func (k *fakeStakingKeeper) addBondedTokens(amount int64) *fakeStakingKeeper {
+	if len(k.validators) != 0 {
+		panic("cannot set total bonded if keeper already has validators set")
+	}
+	// add a validator with all the tokens
+	k.validators = append(k.validators, stakingtypes.Validator{
+		Status: sdk.Bonded,
+		Tokens: sdk.NewInt(amount),
+	})
+	return k
+}
+
+func (k *fakeStakingKeeper) TotalBondedTokens(_ sdk.Context) sdk.Int {
+	total := sdk.ZeroInt()
+	for _, val := range k.validators {
+		if val.GetStatus() == sdk.Bonded {
+			total = total.Add(val.GetBondedTokens())
+		}
+	}
+	return total
+}
+func (k *fakeStakingKeeper) GetDelegatorDelegations(_ sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) []stakingtypes.Delegation {
+	return k.delegations
+}
+func (k *fakeStakingKeeper) GetValidator(_ sdk.Context, addr sdk.ValAddress) (stakingtypes.Validator, bool) {
+	for _, val := range k.validators {
+		if val.GetOperator().Equals(addr) {
+			return val, true
+		}
+	}
+	return stakingtypes.Validator{}, false
+}
+func (k *fakeStakingKeeper) GetValidatorDelegations(_ sdk.Context, valAddr sdk.ValAddress) []stakingtypes.Delegation {
+	var delegations stakingtypes.Delegations
+	for _, d := range k.delegations {
+		if d.ValidatorAddress.Equals(valAddr) {
+			delegations = append(delegations, d)
+		}
+	}
+	return delegations
 }
 
 // Assorted Testing Data
