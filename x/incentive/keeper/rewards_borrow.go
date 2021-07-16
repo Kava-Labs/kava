@@ -10,70 +10,52 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// AccumulateHardBorrowRewards updates the rewards accumulated for the input reward period
-func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) error {
+// AccumulateSwapRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
+// The provided rewardPeriod must be valid to avoid panics in calculating time durations.
+func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
+
 	previousAccrualTime, found := k.GetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
-		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-		return nil
-	}
-	timeElapsed := CalculateTimeElapsed(rewardPeriod.Start, rewardPeriod.End, ctx.BlockTime(), previousAccrualTime)
-	if timeElapsed.IsZero() {
-		return nil
-	}
-	if rewardPeriod.RewardsPerSecond.IsZero() {
-		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-		return nil
+		previousAccrualTime = ctx.BlockTime()
 	}
 
-	totalBorrowedCoins, foundTotalBorrowedCoins := k.hardKeeper.GetBorrowedCoins(ctx)
-	if !foundTotalBorrowedCoins {
-		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-		return nil
-	}
-
-	totalBorrowed := totalBorrowedCoins.AmountOf(rewardPeriod.CollateralType).ToDec()
-	if totalBorrowed.IsZero() {
-		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-		return nil
-	}
-
-	previousRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, rewardPeriod.CollateralType)
+	indexes, found := k.GetHardBorrowRewardIndexes(ctx, rewardPeriod.CollateralType)
 	if !found {
-		for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
-			rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
-			previousRewardIndexes = append(previousRewardIndexes, rewardIndex)
-		}
-		k.SetHardBorrowRewardIndexes(ctx, rewardPeriod.CollateralType, previousRewardIndexes)
+		indexes = types.RewardIndexes{}
 	}
-	hardFactor, found := k.hardKeeper.GetBorrowInterestFactor(ctx, rewardPeriod.CollateralType)
+
+	acc := types.NewAccumulator(previousAccrualTime, indexes)
+
+	totalSource := k.getHardBorrowTotalSourceShares(ctx, rewardPeriod.CollateralType)
+
+	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
+
+	k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
+	if len(acc.Indexes) > 0 {
+		// the store panics when setting empty or nil indexes
+		k.SetHardBorrowRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
+	}
+}
+
+// getHardBorrowTotalSourceShares fetches the sum of all source shares for a borrow reward.
+// In the case of hard borrow, this is the total borrowed divided by the borrow interest factor.
+// This give the "pre interest" value of the total borrowed.
+func (k Keeper) getHardBorrowTotalSourceShares(ctx sdk.Context, denom string) sdk.Dec {
+	totalBorrowedCoins, found := k.hardKeeper.GetBorrowedCoins(ctx)
 	if !found {
-		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-		return nil
+		// assume no coins have been borrowed
+		totalBorrowedCoins = sdk.NewCoins()
+	}
+	totalBorrowed := totalBorrowedCoins.AmountOf(denom)
+
+	interestFactor, found := k.hardKeeper.GetBorrowInterestFactor(ctx, denom)
+	if !found {
+		// assume nothing has been borrowed so the factor starts at it's default value
+		interestFactor = sdk.OneDec()
 	}
 
-	newRewardIndexes := previousRewardIndexes
-	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
-		newRewards := rewardCoin.Amount.ToDec().Mul(timeElapsed.ToDec())
-		previousRewardIndex, found := previousRewardIndexes.GetRewardIndex(rewardCoin.Denom)
-		if !found {
-			previousRewardIndex = types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
-		}
-
-		// Calculate new reward factor and update reward index
-		rewardFactor := newRewards.Mul(hardFactor).Quo(totalBorrowed)
-		newRewardFactorValue := previousRewardIndex.RewardFactor.Add(rewardFactor)
-		newRewardIndex := types.NewRewardIndex(rewardCoin.Denom, newRewardFactorValue)
-		i, found := newRewardIndexes.GetFactorIndex(rewardCoin.Denom)
-		if found {
-			newRewardIndexes[i] = newRewardIndex
-		} else {
-			newRewardIndexes = append(newRewardIndexes, newRewardIndex)
-		}
-	}
-	k.SetHardBorrowRewardIndexes(ctx, rewardPeriod.CollateralType, newRewardIndexes)
-	k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-	return nil
+	// return borrowed/factor to get the "pre interest" value of the current total borrowed
+	return totalBorrowed.ToDec().Quo(interestFactor)
 }
 
 // InitializeHardBorrowReward initializes the borrow-side of a hard liquidity provider claim

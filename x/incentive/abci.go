@@ -22,10 +22,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 		}
 	}
 	for _, rp := range params.HardBorrowRewardPeriods {
-		err := k.AccumulateHardBorrowRewards(ctx, rp)
-		if err != nil {
-			panic(err)
-		}
+		k.AccumulateHardBorrowRewards(ctx, rp)
 	}
 	for _, rp := range params.DelegatorRewardPeriods {
 		err := k.AccumulateDelegatorRewards(ctx, rp)

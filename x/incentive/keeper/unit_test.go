@@ -14,6 +14,7 @@ import (
 	db "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -121,6 +122,8 @@ type fakeSwapKeeper struct {
 	poolShares map[string]sdk.Int
 }
 
+var _ types.SwapKeeper = newFakeSwapKeeper()
+
 func newFakeSwapKeeper() *fakeSwapKeeper {
 	return &fakeSwapKeeper{
 		poolShares: map[string]sdk.Int{},
@@ -130,13 +133,79 @@ func (k *fakeSwapKeeper) addPool(id string, shares sdk.Int) *fakeSwapKeeper {
 	k.poolShares[id] = shares
 	return k
 }
-func (k *fakeSwapKeeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Int, bool) {
+func (k *fakeSwapKeeper) GetPoolShares(_ sdk.Context, poolID string) (sdk.Int, bool) {
 	shares, ok := k.poolShares[poolID]
 	return shares, ok
 }
-func (k *fakeSwapKeeper) GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
+func (k *fakeSwapKeeper) GetDepositorSharesAmount(_ sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
 	// This is just to implement the swap keeper interface.
 	return sdk.Int{}, false
+}
+
+// fakeHardKeeper is a stub hard keeper.
+// It can be used to return values to the incentive keeper without having to initialize a full hard keeper.
+type fakeHardKeeper struct {
+	borrows  fakeHardState
+	deposits fakeHardState
+}
+
+type fakeHardState struct {
+	total           sdk.Coins
+	interestFactors map[string]sdk.Dec
+}
+
+func newFakeHardState() fakeHardState {
+	return fakeHardState{
+		total:           nil,
+		interestFactors: map[string]sdk.Dec{}, // initialize map to avoid panics on read
+	}
+}
+
+var _ types.HardKeeper = newFakeHardKeeper()
+
+func newFakeHardKeeper() *fakeHardKeeper {
+	return &fakeHardKeeper{
+		borrows:  newFakeHardState(),
+		deposits: newFakeHardState(),
+	}
+}
+
+func (k *fakeHardKeeper) addTotalBorrow(coin sdk.Coin, factor sdk.Dec) *fakeHardKeeper {
+	k.borrows.total = k.borrows.total.Add(coin)
+	k.borrows.interestFactors[coin.Denom] = factor
+	return k
+}
+func (k *fakeHardKeeper) addTotalSupply(coin sdk.Coin, factor sdk.Dec) *fakeHardKeeper {
+	k.deposits.total = k.deposits.total.Add(coin)
+	k.deposits.interestFactors[coin.Denom] = factor
+	return k
+}
+
+func (k *fakeHardKeeper) GetBorrowedCoins(_ sdk.Context) (sdk.Coins, bool) {
+	if k.borrows.total == nil {
+		return nil, false
+	}
+	return k.borrows.total, true
+}
+func (k *fakeHardKeeper) GetSuppliedCoins(_ sdk.Context) (sdk.Coins, bool) {
+	if k.deposits.total == nil {
+		return nil, false
+	}
+	return k.deposits.total, true
+}
+func (k *fakeHardKeeper) GetBorrowInterestFactor(_ sdk.Context, denom string) (sdk.Dec, bool) {
+	f, ok := k.borrows.interestFactors[denom]
+	return f, ok
+}
+func (k *fakeHardKeeper) GetSupplyInterestFactor(_ sdk.Context, denom string) (sdk.Dec, bool) {
+	f, ok := k.deposits.interestFactors[denom]
+	return f, ok
+}
+func (k *fakeHardKeeper) GetBorrow(_ sdk.Context, _ sdk.AccAddress) (hardtypes.Borrow, bool) {
+	panic("unimplemented")
+}
+func (k *fakeHardKeeper) GetDeposit(_ sdk.Context, _ sdk.AccAddress) (hardtypes.Deposit, bool) {
+	panic("unimplemented")
 }
 
 // Assorted Testing Data
