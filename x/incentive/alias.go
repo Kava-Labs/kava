@@ -17,7 +17,6 @@ const (
 	AttributeKeyClaimedBy          = types.AttributeKeyClaimedBy
 	AttributeKeyRewardPeriod       = types.AttributeKeyRewardPeriod
 	AttributeValueCategory         = types.AttributeValueCategory
-	BondDenom                      = types.BondDenom
 	DefaultParamspace              = types.DefaultParamspace
 	DelegatorClaimType             = types.DelegatorClaimType
 	EventTypeClaim                 = types.EventTypeClaim
@@ -87,6 +86,7 @@ var (
 	RegisterCodec                        = types.RegisterCodec
 
 	// variable aliases
+	BondDenom                                     = types.BondDenom
 	DefaultActive                                 = types.DefaultActive
 	DefaultClaimEnd                               = types.DefaultClaimEnd
 	DefaultDelegatorClaims                        = types.DefaultDelegatorClaims
@@ -112,7 +112,6 @@ var (
 	ErrNoClaimsFound                              = types.ErrNoClaimsFound
 	ErrRewardPeriodNotFound                       = types.ErrRewardPeriodNotFound
 	ErrZeroClaim                                  = types.ErrZeroClaim
-	GovDenom                                      = types.GovDenom
 	HardBorrowRewardIndexesKeyPrefix              = types.HardBorrowRewardIndexesKeyPrefix
 	HardLiquidityClaimKeyPrefix                   = types.HardLiquidityClaimKeyPrefix
 	HardSupplyRewardIndexesKeyPrefix              = types.HardSupplyRewardIndexesKeyPrefix

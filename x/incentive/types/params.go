@@ -11,8 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
-	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-
 	kavadistTypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -32,13 +30,17 @@ var (
 	KeySwapRewardPeriods        = []byte("SwapRewardPeriods")
 	KeyClaimEnd                 = []byte("ClaimEnd")
 	KeyMultipliers              = []byte("ClaimMultipliers")
-	DefaultActive               = false
-	DefaultRewardPeriods        = RewardPeriods{}
-	DefaultMultiRewardPeriods   = MultiRewardPeriods{}
-	DefaultMultipliers          = Multipliers{}
-	DefaultClaimEnd             = tmtime.Canonical(time.Unix(1, 0))
-	USDXMintingRewardDenom      = "ukava"
-	IncentiveMacc               = kavadistTypes.ModuleName
+
+	DefaultActive             = false
+	DefaultRewardPeriods      = RewardPeriods{}
+	DefaultMultiRewardPeriods = MultiRewardPeriods{}
+	DefaultMultipliers        = Multipliers{}
+	DefaultClaimEnd           = tmtime.Canonical(time.Unix(1, 0))
+
+	BondDenom              = "ukava"
+	USDXMintingRewardDenom = "ukava"
+
+	IncentiveMacc = kavadistTypes.ModuleName
 )
 
 // Params governance parameters for the incentive module
