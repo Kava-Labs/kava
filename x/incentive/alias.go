@@ -48,7 +48,6 @@ const (
 
 var (
 	// function aliases
-	CalculateTimeElapsed                 = keeper.CalculateTimeElapsed
 	NewKeeper                            = keeper.NewKeeper
 	NewQuerier                           = keeper.NewQuerier
 	DefaultGenesisState                  = types.DefaultGenesisState

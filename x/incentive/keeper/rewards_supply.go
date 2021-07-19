@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"math"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -170,13 +168,6 @@ func (k Keeper) SynchronizeHardLiquidityProviderClaim(ctx sdk.Context, owner sdk
 	}
 }
 
-// ZeroHardLiquidityProviderClaim zeroes out the claim object's rewards and returns the updated claim object
-func (k Keeper) ZeroHardLiquidityProviderClaim(ctx sdk.Context, claim types.HardLiquidityProviderClaim) types.HardLiquidityProviderClaim {
-	claim.Reward = sdk.NewCoins()
-	k.SetHardLiquidityProviderClaim(ctx, claim)
-	return claim
-}
-
 // SimulateHardSynchronization calculates a user's outstanding hard rewards by simulating reward synchronization
 func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiquidityProviderClaim) types.HardLiquidityProviderClaim {
 	// 1. Simulate Hard supply-side rewards
@@ -280,29 +271,6 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 	}
 
 	return claim
-}
-
-// CalculateTimeElapsed calculates the number of reward-eligible seconds that have passed since the previous
-// time rewards were accrued, taking into account the end time of the reward period
-func CalculateTimeElapsed(start, end, blockTime time.Time, previousAccrualTime time.Time) sdk.Int {
-	if (end.Before(blockTime) &&
-		(end.Before(previousAccrualTime) || end.Equal(previousAccrualTime))) ||
-		(start.After(blockTime)) ||
-		(start.Equal(blockTime)) {
-		return sdk.ZeroInt()
-	}
-	if start.After(previousAccrualTime) && start.Before(blockTime) {
-		previousAccrualTime = start
-	}
-
-	if end.Before(blockTime) {
-		return sdk.MaxInt(sdk.ZeroInt(), sdk.NewInt(int64(math.RoundToEven(
-			end.Sub(previousAccrualTime).Seconds(),
-		))))
-	}
-	return sdk.MaxInt(sdk.ZeroInt(), sdk.NewInt(int64(math.RoundToEven(
-		blockTime.Sub(previousAccrualTime).Seconds(),
-	))))
 }
 
 // Set setDifference: A - B
