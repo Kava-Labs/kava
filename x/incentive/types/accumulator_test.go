@@ -291,6 +291,28 @@ func TestAccumulator(t *testing.T) {
 					Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("2.1")}},
 				},
 			},
+			{
+				name: "accumulation duration is capped at param start when previous stored time is in the distant past",
+				// This could happend in the default time value time.Time{} was accidentally stored, or if a reward period was
+				// removed from the params, then added back a long time later.
+				args: args{
+					accumulator: Accumulator{
+						PreviousAccumulationTime: time.Time{},
+						Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.1")}},
+					},
+					period: MultiRewardPeriod{
+						Start:            time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+						End:              time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+						RewardsPerSecond: cs(c("hard", 1000)),
+					},
+					totalSourceShares: d("1000"),
+					currentTime:       time.Date(1998, 1, 1, 0, 0, 10, 0, time.UTC),
+				},
+				expected: Accumulator{
+					PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 10, 0, time.UTC),
+					Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("10.1")}},
+				},
+			},
 		}
 
 		for _, tc := range testcases {
