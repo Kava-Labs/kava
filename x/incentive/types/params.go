@@ -235,6 +235,9 @@ func (rp RewardPeriod) Validate() error {
 		// This is needed to ensure that the begin blocker accumulation does not panic.
 		return fmt.Errorf("end period time %s cannot be before start time %s", rp.End, rp.Start)
 	}
+	if rp.RewardsPerSecond.Denom != USDXMintingRewardDenom {
+		return fmt.Errorf("reward denom must be %s, got: %s", USDXMintingRewardDenom, rp.RewardsPerSecond.Denom)
+	}
 	if !rp.RewardsPerSecond.IsValid() {
 		return fmt.Errorf("invalid reward amount: %s", rp.RewardsPerSecond)
 	}

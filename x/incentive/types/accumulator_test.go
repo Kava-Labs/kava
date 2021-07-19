@@ -252,6 +252,26 @@ func TestAccumulator(t *testing.T) {
 				},
 			},
 			{
+				name: "empty reward indexes are unchanged when there's no rewards",
+				args: args{
+					accumulator: Accumulator{
+						PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+						Indexes:                  RewardIndexes{},
+					},
+					period: MultiRewardPeriod{
+						Start:            time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
+						End:              time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+						RewardsPerSecond: cs(),
+					},
+					totalSourceShares: d("1000"),
+					currentTime:       time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
+				},
+				expected: Accumulator{
+					PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
+					Indexes:                  RewardIndexes{},
+				},
+			},
+			{
 				name: "when a period is enclosed within block the accumulation time is set to the period end time",
 				args: args{
 					accumulator: Accumulator{
