@@ -62,7 +62,14 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 
 // ClaimHardReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
-func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName, denomsToClaim []string) error {
+func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress, selections types.Selections) error {
+	// TODO remove
+	multiplierName := types.MultiplierName(selections[0].MultiplierName)
+	denomsToClaim := []string{}
+	for _, s := range selections {
+		denomsToClaim = append(denomsToClaim, s.Denom)
+	}
+
 	_, found := k.GetHardLiquidityProviderClaim(ctx, owner)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)

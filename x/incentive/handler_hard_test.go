@@ -32,13 +32,13 @@ func (suite *HandlerTestSuite) TestPayoutHardClaim() {
 
 	// Check rewards cannot be claimed by vvesting claim msgs
 	err := suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardRewardVVesting(userAddr, receiverAddr, "large", nil),
+		types.NewMsgClaimHardRewardVVesting(userAddr, receiverAddr, types.NewSelection("hard", "large")),
 	)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim a single denom
 	err = suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardReward(userAddr, "large", nil),
+		types.NewMsgClaimHardReward(userAddr, types.NewSelection("hard", "large")),
 	)
 	suite.NoError(err)
 
@@ -76,13 +76,13 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimSingleDenom() {
 
 	// Check rewards cannot be claimed by vvesting claim msgs
 	err := suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardRewardVVesting(userAddr, suite.addrs[1], "large", []string{"swap"}),
+		types.NewMsgClaimHardRewardVVesting(userAddr, suite.addrs[1], types.NewSelection("swap", "large")),
 	)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim rewards
 	err = suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardReward(userAddr, "large", []string{"swap"}),
+		types.NewMsgClaimHardReward(userAddr, types.NewSelection("swap", "large")),
 	)
 	suite.NoError(err)
 
@@ -124,13 +124,13 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimVVesting() {
 
 	// Check rewards cannot be claimed by normal claim msgs
 	err := suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardReward(valAddr, "large", nil),
+		types.NewMsgClaimHardReward(valAddr, types.NewSelection("hard", "large")),
 	)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim rewards
 	err = suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardRewardVVesting(valAddr, receiverAddr, "large", nil),
+		types.NewMsgClaimHardRewardVVesting(valAddr, receiverAddr, types.NewSelection("hard", "large")),
 	)
 	suite.NoError(err)
 
@@ -172,13 +172,13 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimVVestingSingleDenom() {
 
 	// Check rewards cannot be claimed by normal claim msgs
 	err := suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardReward(valAddr, "large", []string{"swap"}),
+		types.NewMsgClaimHardReward(valAddr, types.NewSelection("swap", "large")),
 	)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim rewards
 	err = suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardRewardVVesting(valAddr, receiverAddr, "large", []string{"swap"}),
+		types.NewMsgClaimHardRewardVVesting(valAddr, receiverAddr, types.NewSelection("swap", "large")),
 	)
 	suite.NoError(err)
 

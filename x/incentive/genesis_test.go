@@ -13,6 +13,7 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/incentive"
+	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/kavadist"
 )
 
@@ -115,7 +116,7 @@ func (suite *GenesisTestSuite) TestPaidOutClaimsPassValidateGenesis() {
 	suite.Require().NoError(err)
 
 	incentiveHandler := incentive.NewHandler(suite.keeper)
-	_, err = incentiveHandler(suite.ctx, incentive.NewMsgClaimHardReward(suite.addrs[0], string(incentive.Large), nil))
+	_, err = incentiveHandler(suite.ctx, incentive.NewMsgClaimHardReward(suite.addrs[0], types.NewSelection("hard", "large")))
 	suite.Require().NoError(err)
 
 	genState := incentive.ExportGenesis(suite.ctx, suite.keeper)

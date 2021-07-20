@@ -80,6 +80,7 @@ var (
 	NewQueryRewardsParams                = types.NewQueryRewardsParams
 	NewRewardIndex                       = types.NewRewardIndex
 	NewRewardPeriod                      = types.NewRewardPeriod
+	NewSelection                         = types.NewSelection
 	NewSwapClaim                         = types.NewSwapClaim
 	NewUSDXMintingClaim                  = types.NewUSDXMintingClaim
 	ParamKeyTable                        = types.ParamKeyTable
@@ -150,6 +151,7 @@ type (
 	CdpKeeper                         = types.CdpKeeper
 	Claim                             = types.Claim
 	Claims                            = types.Claims
+	ConfirmedSelection                = types.ConfirmedSelection
 	DelegatorClaim                    = types.DelegatorClaim
 	DelegatorClaims                   = types.DelegatorClaims
 	GenesisRewardState                = types.GenesisRewardState
@@ -181,6 +183,8 @@ type (
 	RewardIndexes                     = types.RewardIndexes
 	RewardPeriod                      = types.RewardPeriod
 	RewardPeriods                     = types.RewardPeriods
+	Selection                         = types.Selection
+	Selections                        = types.Selections
 	StakingKeeper                     = types.StakingKeeper
 	SupplyKeeper                      = types.SupplyKeeper
 	SwapClaim                         = types.SwapClaim

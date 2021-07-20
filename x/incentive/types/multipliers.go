@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -88,3 +89,57 @@ func (ms Multipliers) String() string {
 	return out
 }
 
+type Selection struct {
+	Denom          string
+	MultiplierName string
+}
+
+func NewSelection(denom, multiplierName string) Selection {
+	return Selection{
+		Denom:          denom,
+		MultiplierName: multiplierName,
+	}
+}
+
+func (s Selection) Validate() error {
+	if err := sdk.ValidateDenom(s.Denom); err != nil {
+		return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
+	}
+	// TODO validate multiplier name? or leave for on chain check
+	// if err := MultiplierName(s.MultiplierName).IsValid(); err != nil {
+	// 	return err
+	// }
+	return nil
+}
+
+// Selections are a list of denom - multiplier pairs that specify what rewards to claim and with what lockups.
+type Selections []Selection
+
+func NewSelectionsFromMap(selectionMap map[string]string) Selections {
+	var selections Selections
+	for k, v := range selectionMap {
+		selections = append(selections, NewSelection(k, v))
+	}
+	// sort the slice by denom to protect against the random range order causing consensus failures
+	sort.SliceStable(selections, func(i, j int) bool {
+		return selections[i].Denom > selections[j].Denom
+	})
+	return selections
+}
+
+func (s Selections) Validate() error {
+	for i, d := range s {
+		if i >= MaxDenomsToClaim {
+			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
+		}
+		if err := d.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type ConfirmedSelection struct {
+	Denom      string
+	Multiplier Multiplier
+}
