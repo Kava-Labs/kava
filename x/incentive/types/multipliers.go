@@ -8,14 +8,14 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// Valid reward multipliers
+// Available reward multipliers names
 const (
 	Small  MultiplierName = "small"
 	Medium MultiplierName = "medium"
 	Large  MultiplierName = "large"
 )
 
-// MultiplierName name for valid multiplier
+// MultiplierName is the user facing ID for a multiplier. There is a restricted set of possible values.
 type MultiplierName string
 
 // IsValid checks if the input is one of the expected strings
@@ -25,6 +25,15 @@ func (mn MultiplierName) IsValid() error {
 		return nil
 	}
 	return sdkerrors.Wrapf(ErrInvalidMultiplier, "invalid multiplier name: %s", mn)
+}
+
+// ParseMultiplierName converts a string into a valid MultiplierName value.
+func ParseMultiplierName(unparsedName string) (MultiplierName, error) {
+	name := MultiplierName(unparsedName)
+	if err := name.IsValid(); err != nil {
+		return "", err
+	}
+	return name, nil
 }
 
 // Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
@@ -107,7 +116,8 @@ type MultipliersPerDenom []struct {
 
 // Validate checks each denom and multipliers for invalid values.
 func (mpd MultipliersPerDenom) Validate() error {
-	// TODO duplicate check
+	foundDenoms := map[string]bool{}
+
 	for _, item := range mpd {
 		if err := sdk.ValidateDenom(item.Denom); err != nil {
 			return err
@@ -115,6 +125,11 @@ func (mpd MultipliersPerDenom) Validate() error {
 		if err := item.Multipliers.Validate(); err != nil {
 			return err
 		}
+
+		if foundDenoms[item.Denom] {
+			return fmt.Errorf("")
+		}
+		foundDenoms[item.Denom] = true
 	}
 	return nil
 }
@@ -138,10 +153,9 @@ func (s Selection) Validate() error {
 	if err := sdk.ValidateDenom(s.Denom); err != nil {
 		return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
 	}
-	// TODO validate multiplier name? or leave for on chain check
-	// if err := MultiplierName(s.MultiplierName).IsValid(); err != nil {
-	// 	return err
-	// }
+	if _, err := ParseMultiplierName(s.MultiplierName); err != nil {
+		return err
+	}
 	return nil
 }
 

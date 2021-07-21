@@ -30,62 +30,86 @@ func TestMsgClaimVVesting_Validate(t *testing.T) {
 		msgArgs msgArgs
 		expect  expectedErr
 	}{
-		// TODO
-		// {
-		// 	name: "large multiplier is valid",
-		// 	msgArgs: msgArgs{
-		// 		sender:         validAddress,
-		// 		receiver:       validAddress,
-		// 		multiplierName: "large",
-		// 	},
-		// 	expect: expectedErr{
-		// 		pass: true,
-		// 	},
-		// },
-		// {
-		// 	name: "medium multiplier is valid",
-		// 	msgArgs: msgArgs{
-		// 		sender:         validAddress,
-		// 		receiver:       validAddress,
-		// 		multiplierName: "medium",
-		// 	},
-		// 	expect: expectedErr{
-		// 		pass: true,
-		// 	},
-		// },
-		// {
-		// 	name: "small multiplier is valid",
-		// 	msgArgs: msgArgs{
-		// 		sender:         validAddress,
-		// 		receiver:       validAddress,
-		// 		multiplierName: "small",
-		// 	},
-		// 	expect: expectedErr{
-		// 		pass: true,
-		// 	},
-		// },
-		// {
-		// 	name: "invalid multiplier",
-		// 	msgArgs: msgArgs{
-		// 		sender:         validAddress,
-		// 		receiver:       validAddress,
-		// 		multiplierName: "huge",
-		// 	},
-		// 	expect: expectedErr{
-		// 		wraps: types.ErrInvalidMultiplier,
-		// 	},
-		// },
-		// {
-		// 	name: "multiplier with capitalization is invalid",
-		// 	msgArgs: msgArgs{
-		// 		sender:         validAddress,
-		// 		receiver:       validAddress,
-		// 		multiplierName: "Large",
-		// 	},
-		// 	expect: expectedErr{
-		// 		wraps: types.ErrInvalidMultiplier,
-		// 	},
-		// },
+		{
+			name: "large multiplier is valid",
+			msgArgs: msgArgs{
+				sender:   validAddress,
+				receiver: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "large",
+					},
+				},
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "medium multiplier is valid",
+			msgArgs: msgArgs{
+				sender:   validAddress,
+				receiver: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "medium",
+					},
+				},
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "small multiplier is valid",
+			msgArgs: msgArgs{
+				sender:   validAddress,
+				receiver: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "small",
+					},
+				},
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "invalid multiplier",
+			msgArgs: msgArgs{
+				sender:   validAddress,
+				receiver: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "huge",
+					},
+				},
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidMultiplier,
+			},
+		},
+		{
+			name: "multiplier with capitalization is invalid",
+			msgArgs: msgArgs{
+				sender:   validAddress,
+				receiver: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "Large",
+					},
+				},
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidMultiplier,
+			},
+		},
 		{
 			name: "empty denoms to claim is not valid",
 			msgArgs: msgArgs{
@@ -232,57 +256,82 @@ func TestMsgClaim_Validate(t *testing.T) {
 		msgArgs msgArgs
 		expect  expectedErr
 	}{
-		// TODO
-		// {
-		// 	name: "large multiplier is valid",
-		// 	msgArgs: msgArgs{
-		// 		sender:         validAddress,
-		// 		multiplierName: "large",
-		// 	},
-		// 	expect: expectedErr{
-		// 		pass: true,
-		// 	},
-		// },
-		// {
-		// 	name: "medium multiplier is valid",
-		// 	msgArgs: msgArgs{
-		// 		sender:         validAddress,
-		// 		multiplierName: "medium",
-		// 	},
-		// 	expect: expectedErr{
-		// 		pass: true,
-		// 	},
-		// },
-		// {
-		// 	name: "small multiplier is valid",
-		// 	msgArgs: msgArgs{
-		// 		sender:         validAddress,
-		// 		multiplierName: "small",
-		// 	},
-		// 	expect: expectedErr{
-		// 		pass: true,
-		// 	},
-		// },
-		// {
-		// 	name: "invalid multiplier",
-		// 	msgArgs: msgArgs{
-		// 		sender:         validAddress,
-		// 		multiplierName: "huge",
-		// 	},
-		// 	expect: expectedErr{
-		// 		wraps: types.ErrInvalidMultiplier,
-		// 	},
-		// },
-		// {
-		// 	name: "multiplier with capitalization is invalid",
-		// 	msgArgs: msgArgs{
-		// 		sender:         validAddress,
-		// 		multiplierName: "Large",
-		// 	},
-		// 	expect: expectedErr{
-		// 		wraps: types.ErrInvalidMultiplier,
-		// 	},
-		// },
+
+		{
+			name: "large multiplier is valid",
+			msgArgs: msgArgs{
+				sender: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "large",
+					},
+				},
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "medium multiplier is valid",
+			msgArgs: msgArgs{
+				sender: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "medium",
+					},
+				},
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "small multiplier is valid",
+			msgArgs: msgArgs{
+				sender: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "small",
+					},
+				},
+			},
+			expect: expectedErr{
+				pass: true,
+			},
+		},
+		{
+			name: "invalid multiplier",
+			msgArgs: msgArgs{
+				sender: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "huge",
+					},
+				},
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidMultiplier,
+			},
+		},
+		{
+			name: "multiplier with capitalization is invalid",
+			msgArgs: msgArgs{
+				sender: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "Large",
+					},
+				},
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidMultiplier,
+			},
+		},
 		{
 			name: "empty denoms to claim is not valid",
 			msgArgs: msgArgs{
