@@ -110,16 +110,8 @@ func SimulateMsgDeposit(ak types.AccountKeeper, k keeper.Keeper) simulation.Oper
 		}
 		slippage := slippageRaw.ToDec().Quo(sdk.NewDec(100))
 
-		// Set up deadline
-		durationNanoseconds, err := RandIntInclusive(r,
-			sdk.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
-			sdk.NewInt((time.Hour * 24).Nanoseconds()),   // one day
-		)
-		if err != nil {
-			panic(err)
-		}
-		extraTime := time.Duration(durationNanoseconds.Int64())
-		deadline := blockTime.Add(extraTime).Unix()
+		// Generate random deadline
+		deadline := genRandDeadline(r, blockTime)
 
 		depositorAcc := ak.GetAccount(ctx, depositor.Address)
 		depositorCoins := depositorAcc.SpendableCoins(blockTime)
@@ -231,17 +223,9 @@ func SimulateMsgWithdraw(ak types.AccountKeeper, k keeper.Keeper) simulation.Ope
 		minTokenAmtB := amtTokenBOwned.Mul(oneLessThanSharePercentage).Quo(sdk.NewInt(100))
 		minTokenB := sdk.NewCoin(poolRecord.ReservesB.Denom, minTokenAmtB)
 
-		// Set up deadline
+		// Generate random deadline
 		blockTime := ctx.BlockHeader().Time
-		durationNanoseconds, err := RandIntInclusive(r,
-			sdk.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
-			sdk.NewInt((time.Hour * 24).Nanoseconds()),   // one day
-		)
-		if err != nil {
-			panic(err)
-		}
-		extraTime := time.Duration(durationNanoseconds.Int64())
-		deadline := blockTime.Add(extraTime).Unix()
+		deadline := genRandDeadline(r, blockTime)
 
 		// Construct MsgWithdraw
 		msg := types.NewMsgWithdraw(withdrawerAcc.GetAddress(), shares, minTokenA, minTokenB, deadline)
@@ -336,17 +320,9 @@ func SimulateMsgSwapExactForTokens(ak types.AccountKeeper, k keeper.Keeper) simu
 		}
 		slippage := slippageRaw.ToDec().Quo(sdk.NewDec(100))
 
-		// Set up deadline
+		// Generate random deadline
 		blockTime := ctx.BlockHeader().Time
-		durationNanoseconds, err := RandIntInclusive(r,
-			sdk.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
-			sdk.NewInt((time.Hour * 24).Nanoseconds()),   // one day
-		)
-		if err != nil {
-			panic(err)
-		}
-		extraTime := time.Duration(durationNanoseconds.Int64())
-		deadline := blockTime.Add(extraTime).Unix()
+		deadline := genRandDeadline(r, blockTime)
 
 		// Construct MsgWithdraw
 		msg := types.NewMsgSwapExactForTokens(traderAcc.GetAddress(), exactInputToken, expectedOutputToken, slippage, deadline)
@@ -423,6 +399,19 @@ func findValidAccountPoolRecordPair(accounts []simulation.Account, pools types.P
 		}
 	}
 	return simulation.Account{}, types.PoolRecord{}, false
+}
+
+func genRandDeadline(r *rand.Rand, blockTime time.Time) int64 {
+	// Set up deadline
+	durationNanoseconds, err := RandIntInclusive(r,
+		sdk.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
+		sdk.NewInt((time.Hour * 24).Nanoseconds()),   // one day
+	)
+	if err != nil {
+		panic(err)
+	}
+	extraTime := time.Duration(durationNanoseconds.Int64())
+	return blockTime.Add(extraTime).Unix()
 }
 
 // RandIntInclusive randomly generates an sdk.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.
