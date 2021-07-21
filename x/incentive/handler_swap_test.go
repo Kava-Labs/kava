@@ -127,6 +127,13 @@ func (suite *HandlerTestSuite) incentiveBuilder() testutil.IncentiveGenesisBuild
 					types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
 				},
 			},
+			{
+				Denom: "ukava",
+				Multipliers: types.Multipliers{
+					types.NewMultiplier(types.MultiplierName("small"), 1, d("0.2")),
+					types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
+				},
+			},
 		})
 }
 
