@@ -29,17 +29,13 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/incentive/claim-swap-vesting", postClaimVVestingHandlerFn(cliCtx, swapVVGenerator)).Methods("POST")
 }
 
-// TODO remove
-func extractDenoms(selections types.Selections) []string {
-	ds := []string{}
-	for _, s := range selections {
-		ds = append(ds, s.Denom)
-	}
-	return ds
-}
-
 func usdxMintingGenerator(req PostClaimReq) sdk.Msg {
-	return types.NewMsgClaimUSDXMintingReward(req.Sender, req.MultiplierName)
+	// TODO add new request type for usdx minting rewards
+	multiplier := ""
+	if len(req.DenomsToClaim) != 0 {
+		multiplier = req.DenomsToClaim[0].MultiplierName
+	}
+	return types.NewMsgClaimUSDXMintingReward(req.Sender, multiplier)
 }
 func hardGenerator(req PostClaimReq) sdk.Msg {
 	return types.NewMsgClaimHardReward(req.Sender, req.DenomsToClaim...)
@@ -48,7 +44,7 @@ func delegatorGenerator(req PostClaimReq) sdk.Msg {
 	return types.NewMsgClaimDelegatorReward(req.Sender, req.DenomsToClaim...)
 }
 func swapGenerator(req PostClaimReq) sdk.Msg {
-	return types.NewMsgClaimSwapReward(req.Sender, req.MultiplierName, extractDenoms(req.DenomsToClaim))
+	return types.NewMsgClaimSwapReward(req.Sender, req.DenomsToClaim...)
 }
 
 func postClaimHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostClaimReq) sdk.Msg) http.HandlerFunc {
@@ -85,7 +81,12 @@ func postClaimHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostCla
 }
 
 func usdxMintingVVGenerator(req PostClaimVVestingReq) sdk.Msg {
-	return types.NewMsgClaimUSDXMintingRewardVVesting(req.Sender, req.Receiver, req.MultiplierName)
+	// TODO add new request type for usdx minting rewards
+	multiplier := ""
+	if len(req.DenomsToClaim) != 0 {
+		multiplier = req.DenomsToClaim[0].MultiplierName
+	}
+	return types.NewMsgClaimUSDXMintingRewardVVesting(req.Sender, req.Receiver, multiplier)
 }
 func hardVVGenerator(req PostClaimVVestingReq) sdk.Msg {
 	return types.NewMsgClaimHardRewardVVesting(req.Sender, req.Receiver, req.DenomsToClaim...)
@@ -94,7 +95,7 @@ func delegatorVVGenerator(req PostClaimVVestingReq) sdk.Msg {
 	return types.NewMsgClaimDelegatorRewardVVesting(req.Sender, req.Receiver, req.DenomsToClaim...)
 }
 func swapVVGenerator(req PostClaimVVestingReq) sdk.Msg {
-	return types.NewMsgClaimSwapRewardVVesting(req.Sender, req.Receiver, req.MultiplierName, extractDenoms(req.DenomsToClaim))
+	return types.NewMsgClaimSwapRewardVVesting(req.Sender, req.Receiver, req.DenomsToClaim...)
 }
 
 func postClaimVVestingHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostClaimVVestingReq) sdk.Msg) http.HandlerFunc {

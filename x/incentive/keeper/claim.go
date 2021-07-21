@@ -173,15 +173,11 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 
 // ClaimSwapReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
-func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName types.MultiplierName, denomsToClaim []string) error {
-	_, found := k.GetSwapClaim(ctx, owner)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
-	}
+func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName types.MultiplierName) error {
 
-	multiplier, found := k.GetMultiplier(ctx, multiplierName)
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(multiplierName))
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
 	}
 
 	claimEnd := k.GetClaimEnd(ctx)
@@ -195,8 +191,10 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
-	claimingCoins := types.FilterCoins(syncedClaim.Reward, denomsToClaim)
-	rewardCoins := types.MultiplyCoins(claimingCoins, multiplier.Factor)
+	amt := syncedClaim.Reward.AmountOf(denom)
+
+	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
+	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}

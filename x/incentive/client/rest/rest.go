@@ -24,17 +24,15 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 // PostClaimReq defines the properties of claim transaction's request body.
 type PostClaimReq struct {
-	BaseReq        rest.BaseReq     `json:"base_req" yaml:"base_req"`
-	Sender         sdk.AccAddress   `json:"sender" yaml:"sender"`
-	MultiplierName string           `json:"multiplier_name" yaml:"multiplier_name"` // TODO remove
-	DenomsToClaim  types.Selections `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	BaseReq       rest.BaseReq     `json:"base_req" yaml:"base_req"`
+	Sender        sdk.AccAddress   `json:"sender" yaml:"sender"`
+	DenomsToClaim types.Selections `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 
 // PostClaimReq defines the properties of claim transaction's request body.
 type PostClaimVVestingReq struct {
-	BaseReq        rest.BaseReq     `json:"base_req" yaml:"base_req"`
-	Sender         sdk.AccAddress   `json:"sender" yaml:"sender"`
-	Receiver       sdk.AccAddress   `json:"receiver" yaml:"receiver"`
-	MultiplierName string           `json:"multiplier_name" yaml:"multiplier_name"` // TODO remove
-	DenomsToClaim  types.Selections `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	BaseReq       rest.BaseReq     `json:"base_req" yaml:"base_req"`
+	Sender        sdk.AccAddress   `json:"sender" yaml:"sender"`
+	Receiver      sdk.AccAddress   `json:"receiver" yaml:"receiver"`
+	DenomsToClaim types.Selections `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
