@@ -41,7 +41,8 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		migrateMultiRewardPeriods(incentiveGS.Params.HardBorrowRewardPeriods),
 		hardDelegatorRewardPeriods,
 		swapRewardPeriods,
-		claimMultipliers,
+		claimMultipliers,                      // TODO remove
+		v0_15incentive.DefaultMultipliersTODO, // TODO
 		incentiveGS.Params.ClaimEnd,
 	)
 
