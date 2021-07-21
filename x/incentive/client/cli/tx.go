@@ -134,8 +134,6 @@ func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// TODO improve help text for --multipliers flag
-
 func getCmdClaimHardVVesting(cdc *codec.Codec) *cobra.Command {
 	var denomsToClaim map[string]string
 

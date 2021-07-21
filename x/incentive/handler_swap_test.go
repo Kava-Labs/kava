@@ -11,10 +11,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
-	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
-	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
-	"github.com/kava-labs/kava/x/incentive"
-	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/kavadist"
@@ -26,12 +22,6 @@ const secondsPerDay = 24 * 60 * 60
 // Test suite used for all keeper tests
 type HandlerTestSuite struct {
 	testutil.IntegrationTester
-
-	// TODO remove these
-	keeper     keeper.Keeper
-	hardKeeper hardkeeper.Keeper
-	cdpKeeper  cdpkeeper.Keeper
-	handler    sdk.Handler
 
 	genesisTime time.Time
 	addrs       []sdk.AccAddress
@@ -53,11 +43,6 @@ func (suite *HandlerTestSuite) SetupTest() {
 
 func (suite *HandlerTestSuite) SetupApp() {
 	suite.App = app.NewTestApp()
-
-	suite.keeper = suite.App.GetIncentiveKeeper()
-	suite.hardKeeper = suite.App.GetHardKeeper()
-	suite.cdpKeeper = suite.App.GetCDPKeeper()
-	suite.handler = incentive.NewHandler(suite.keeper)
 
 	suite.Ctx = suite.App.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
 }
