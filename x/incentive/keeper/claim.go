@@ -64,9 +64,9 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName types.MultiplierName) error {
 
-	multiplier, found := k.GetMultiplier(ctx, multiplierName)
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(multiplierName))
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
 	}
 
 	claimEnd := k.GetClaimEnd(ctx)
@@ -234,4 +234,3 @@ func (k Keeper) ValidateIsValidatorVestingAccount(ctx sdk.Context, address sdk.A
 	}
 	return nil
 }
-

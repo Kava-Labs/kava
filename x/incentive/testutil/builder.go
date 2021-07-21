@@ -162,6 +162,11 @@ func (builder IncentiveGenesisBuilder) WithMultipliers(multipliers types.Multipl
 	return builder
 }
 
+func (builder IncentiveGenesisBuilder) WithMultipliersTODO(multipliers types.MultipliersPerDenom) IncentiveGenesisBuilder {
+	builder.Params.ClaimMultipliersTODO = multipliers
+	return builder
+}
+
 func (builder IncentiveGenesisBuilder) simpleRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) types.MultiRewardPeriod {
 	return types.NewMultiRewardPeriod(
 		true,

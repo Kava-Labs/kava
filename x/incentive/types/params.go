@@ -24,10 +24,12 @@ var (
 	KeySwapRewardPeriods        = []byte("SwapRewardPeriods")
 	KeyClaimEnd                 = []byte("ClaimEnd")
 	KeyMultipliers              = []byte("ClaimMultipliers")
+	KeyMultipliersTODO          = []byte("ClaimMultipliersNEW") // TODO
 	DefaultActive               = false
 	DefaultRewardPeriods        = RewardPeriods{}
 	DefaultMultiRewardPeriods   = MultiRewardPeriods{}
 	DefaultMultipliers          = Multipliers{}
+	DefaultMultipliersTODO      = MultipliersPerDenom{}
 	DefaultClaimEnd             = tmtime.Canonical(time.Unix(1, 0))
 	GovDenom                    = cdptypes.DefaultGovDenom
 	PrincipalDenom              = "usdx"
@@ -36,18 +38,19 @@ var (
 
 // Params governance parameters for the incentive module
 type Params struct {
-	USDXMintingRewardPeriods RewardPeriods      `json:"usdx_minting_reward_periods" yaml:"usdx_minting_reward_periods"`
-	HardSupplyRewardPeriods  MultiRewardPeriods `json:"hard_supply_reward_periods" yaml:"hard_supply_reward_periods"`
-	HardBorrowRewardPeriods  MultiRewardPeriods `json:"hard_borrow_reward_periods" yaml:"hard_borrow_reward_periods"`
-	DelegatorRewardPeriods   MultiRewardPeriods `json:"delegator_reward_periods" yaml:"delegator_reward_periods"`
-	SwapRewardPeriods        MultiRewardPeriods `json:"swap_reward_periods" yaml:"swap_reward_periods"`
-	ClaimMultipliers         Multipliers        `json:"claim_multipliers" yaml:"claim_multipliers"`
-	ClaimEnd                 time.Time          `json:"claim_end" yaml:"claim_end"`
+	USDXMintingRewardPeriods RewardPeriods       `json:"usdx_minting_reward_periods" yaml:"usdx_minting_reward_periods"`
+	HardSupplyRewardPeriods  MultiRewardPeriods  `json:"hard_supply_reward_periods" yaml:"hard_supply_reward_periods"`
+	HardBorrowRewardPeriods  MultiRewardPeriods  `json:"hard_borrow_reward_periods" yaml:"hard_borrow_reward_periods"`
+	DelegatorRewardPeriods   MultiRewardPeriods  `json:"delegator_reward_periods" yaml:"delegator_reward_periods"`
+	SwapRewardPeriods        MultiRewardPeriods  `json:"swap_reward_periods" yaml:"swap_reward_periods"`
+	ClaimMultipliers         Multipliers         `json:"claim_multipliers" yaml:"claim_multipliers"`
+	ClaimMultipliersTODO     MultipliersPerDenom `json:"claim_multipliers_todo" yaml:"claim_multipliers_todo"` // TODO json
+	ClaimEnd                 time.Time           `json:"claim_end" yaml:"claim_end"`
 }
 
 // NewParams returns a new params object
 func NewParams(usdxMinting RewardPeriods, hardSupply, hardBorrow, delegator, swap MultiRewardPeriods,
-	multipliers Multipliers, claimEnd time.Time) Params {
+	multipliers Multipliers, multipliersTODO MultipliersPerDenom, claimEnd time.Time) Params {
 	return Params{
 		USDXMintingRewardPeriods: usdxMinting,
 		HardSupplyRewardPeriods:  hardSupply,
@@ -55,6 +58,7 @@ func NewParams(usdxMinting RewardPeriods, hardSupply, hardBorrow, delegator, swa
 		DelegatorRewardPeriods:   delegator,
 		SwapRewardPeriods:        swap,
 		ClaimMultipliers:         multipliers,
+		ClaimMultipliersTODO:     multipliersTODO,
 		ClaimEnd:                 claimEnd,
 	}
 }
@@ -68,19 +72,20 @@ func DefaultParams() Params {
 		DefaultMultiRewardPeriods,
 		DefaultMultiRewardPeriods,
 		DefaultMultipliers,
+		DefaultMultipliersTODO,
 		DefaultClaimEnd,
 	)
 }
 
 // String implements fmt.Stringer
-func (p Params) String() string {
+func (p Params) String() string { // FIXME
 	return fmt.Sprintf(`Params:
 	USDX Minting Reward Periods: %s
 	Hard Supply Reward Periods: %s
 	Hard Borrow Reward Periods: %s
 	Delegator Reward Periods: %s
 	Swap Reward Periods: %s
-	Claim Multipliers :%s
+	Claim Multipliers: %s
 	Claim End Time: %s
 	`, p.USDXMintingRewardPeriods, p.HardSupplyRewardPeriods, p.HardBorrowRewardPeriods,
 		p.DelegatorRewardPeriods, p.SwapRewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
@@ -92,15 +97,16 @@ func ParamKeyTable() params.KeyTable {
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
+func (p *Params) ParamSetPairs() params.ParamSetPairs { // FIXME
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyUSDXMintingRewardPeriods, &p.USDXMintingRewardPeriods, validateRewardPeriodsParam),
 		params.NewParamSetPair(KeyHardSupplyRewardPeriods, &p.HardSupplyRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeyHardBorrowRewardPeriods, &p.HardBorrowRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeyDelegatorRewardPeriods, &p.DelegatorRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeySwapRewardPeriods, &p.SwapRewardPeriods, validateMultiRewardPeriodsParam),
-		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
 		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersParam),
+		params.NewParamSetPair(KeyMultipliersTODO, &p.ClaimMultipliersTODO, validateMultipliersPerDenomParam),
+		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
 	}
 }
 
@@ -108,6 +114,9 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 func (p Params) Validate() error {
 
 	if err := validateMultipliersParam(p.ClaimMultipliers); err != nil {
+		return err
+	}
+	if err := validateMultipliersPerDenomParam(p.ClaimMultipliersTODO); err != nil {
 		return err
 	}
 
@@ -154,6 +163,14 @@ func validateMultiRewardPeriodsParam(i interface{}) error {
 
 func validateMultipliersParam(i interface{}) error {
 	multipliers, ok := i.(Multipliers)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	return multipliers.Validate()
+}
+
+func validateMultipliersPerDenomParam(i interface{}) error {
+	multipliers, ok := i.(MultipliersPerDenom)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

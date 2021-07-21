@@ -75,6 +75,18 @@ func (k Keeper) GetMultiplier(ctx sdk.Context, name types.MultiplierName) (types
 	return types.Multiplier{}, false
 }
 
+func (k Keeper) GetMultiplierByDenom(ctx sdk.Context, denom string, name types.MultiplierName) (types.Multiplier, bool) {
+	params := k.GetParams(ctx)
+
+	for _, dm := range params.ClaimMultipliersTODO {
+		if dm.Denom == denom {
+			m, found := dm.Multipliers.Get(name)
+			return m, found
+		}
+	}
+	return types.Multiplier{}, false
+}
+
 // GetClaimEnd returns the claim end time for the params
 func (k Keeper) GetClaimEnd(ctx sdk.Context) time.Time {
 	params := k.GetParams(ctx)

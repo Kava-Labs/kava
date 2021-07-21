@@ -66,8 +66,30 @@ func (suite *GenesisTestSuite) SetupTest() {
 			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "ukava", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
-			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "btcb/usdx", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
+			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "btcb/usdx", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("swp", 122354)))},
 			incentive.Multipliers{incentive.NewMultiplier(incentive.Small, 1, d("0.25")), incentive.NewMultiplier(incentive.Large, 12, d("1.0"))},
+			incentive.MultipliersPerDenom{
+				{
+					Denom: "ukava",
+					Multipliers: incentive.Multipliers{
+						incentive.NewMultiplier(incentive.Large, 12, d("1.0")),
+					},
+				},
+				{
+					Denom: "hard",
+					Multipliers: incentive.Multipliers{
+						incentive.NewMultiplier(incentive.Small, 1, d("0.25")),
+						incentive.NewMultiplier(incentive.Large, 12, d("1.0")),
+					},
+				},
+				{
+					Denom: "swp",
+					Multipliers: incentive.Multipliers{
+						incentive.NewMultiplier(incentive.Small, 1, d("0.25")),
+						incentive.NewMultiplier(incentive.Medium, 6, d("0.8")),
+					},
+				},
+			},
 			suite.genesisTime.Add(5*oneYear),
 		),
 		incentive.DefaultGenesisRewardState,
@@ -133,8 +155,30 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "bnb", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "ukava", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("hard", 122354)))},
-			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "btcb/usdx", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("swap", 122354)))},
+			incentive.MultiRewardPeriods{incentive.NewMultiRewardPeriod(true, "btcb/usdx", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("swp", 122354)))},
 			incentive.Multipliers{incentive.NewMultiplier(incentive.Small, 1, d("0.25")), incentive.NewMultiplier(incentive.Large, 12, d("1.0"))},
+			incentive.MultipliersPerDenom{
+				{
+					Denom: "ukava",
+					Multipliers: incentive.Multipliers{
+						incentive.NewMultiplier(incentive.Large, 12, d("1.0")),
+					},
+				},
+				{
+					Denom: "hard",
+					Multipliers: incentive.Multipliers{
+						incentive.NewMultiplier(incentive.Small, 1, d("0.25")),
+						incentive.NewMultiplier(incentive.Large, 12, d("1.0")),
+					},
+				},
+				{
+					Denom: "swp",
+					Multipliers: incentive.Multipliers{
+						incentive.NewMultiplier(incentive.Small, 1, d("0.25")),
+						incentive.NewMultiplier(incentive.Medium, 6, d("0.8")),
+					},
+				},
+			},
 			genesisTime.Add(5*oneYear),
 		),
 		incentive.NewGenesisRewardState(

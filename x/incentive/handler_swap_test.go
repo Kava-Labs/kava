@@ -21,6 +21,8 @@ import (
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
+const secondsPerDay = 24 * 60 * 60
+
 // Test suite used for all keeper tests
 type HandlerTestSuite struct {
 	testutil.IntegrationTester
@@ -109,6 +111,22 @@ func (suite *HandlerTestSuite) incentiveBuilder() testutil.IncentiveGenesisBuild
 		WithMultipliers(types.Multipliers{
 			types.NewMultiplier(types.MultiplierName("small"), 1, d("0.2")),
 			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
+		}).
+		WithMultipliersTODO(types.MultipliersPerDenom{
+			{
+				Denom: "hard",
+				Multipliers: types.Multipliers{
+					types.NewMultiplier(types.MultiplierName("small"), 1, d("0.2")),
+					types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
+				},
+			},
+			{
+				Denom: "swap",
+				Multipliers: types.Multipliers{
+					types.NewMultiplier(types.MultiplierName("medium"), 6, d("0.5")),
+					types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
+				},
+			},
 		})
 }
 

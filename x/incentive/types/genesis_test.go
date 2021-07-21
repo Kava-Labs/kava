@@ -48,6 +48,15 @@ func TestGenesisState_Validate(t *testing.T) {
 					Multipliers{
 						NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33")),
 					},
+					MultipliersPerDenom{
+						{
+							Denom: "ukava",
+							Multipliers: Multipliers{
+								NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33")),
+								NewMultiplier(Large, 12, sdk.MustNewDecFromStr("1.00")),
+							},
+						},
+					},
 					time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 				),
 				USDXRewardState: GenesisRewardState{

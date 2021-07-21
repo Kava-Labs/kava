@@ -81,6 +81,7 @@ var (
 	NewRewardIndex                       = types.NewRewardIndex
 	NewRewardPeriod                      = types.NewRewardPeriod
 	NewSelection                         = types.NewSelection
+	NewSelectionsFromMap                 = types.NewSelectionsFromMap
 	NewSwapClaim                         = types.NewSwapClaim
 	NewUSDXMintingClaim                  = types.NewUSDXMintingClaim
 	ParamKeyTable                        = types.ParamKeyTable
@@ -94,6 +95,7 @@ var (
 	DefaultHardClaims                             = types.DefaultHardClaims
 	DefaultMultiRewardPeriods                     = types.DefaultMultiRewardPeriods
 	DefaultMultipliers                            = types.DefaultMultipliers
+	DefaultMultipliersTODO                        = types.DefaultMultipliersTODO
 	DefaultRewardPeriods                          = types.DefaultRewardPeriods
 	DefaultSwapClaims                             = types.DefaultSwapClaims
 	DefaultUSDXClaims                             = types.DefaultUSDXClaims
@@ -121,6 +123,7 @@ var (
 	KeyHardBorrowRewardPeriods                    = types.KeyHardBorrowRewardPeriods
 	KeyHardSupplyRewardPeriods                    = types.KeyHardSupplyRewardPeriods
 	KeyMultipliers                                = types.KeyMultipliers
+	KeyMultipliersTODO                            = types.KeyMultipliersTODO
 	KeySwapRewardPeriods                          = types.KeySwapRewardPeriods
 	KeyUSDXMintingRewardPeriods                   = types.KeyUSDXMintingRewardPeriods
 	ModuleCdc                                     = types.ModuleCdc
@@ -150,7 +153,6 @@ type (
 	CdpKeeper                         = types.CdpKeeper
 	Claim                             = types.Claim
 	Claims                            = types.Claims
-	ConfirmedSelection                = types.ConfirmedSelection
 	DelegatorClaim                    = types.DelegatorClaim
 	DelegatorClaims                   = types.DelegatorClaims
 	GenesisRewardState                = types.GenesisRewardState
@@ -174,6 +176,7 @@ type (
 	Multiplier                        = types.Multiplier
 	MultiplierName                    = types.MultiplierName
 	Multipliers                       = types.Multipliers
+	MultipliersPerDenom               = types.MultipliersPerDenom
 	ParamSubspace                     = types.ParamSubspace
 	Params                            = types.Params
 	QueryGetRewardFactorsResponse     = types.QueryGetRewardFactorsResponse

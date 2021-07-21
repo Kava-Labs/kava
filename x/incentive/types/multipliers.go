@@ -67,7 +67,7 @@ func (m Multiplier) String() string {
 	`, m.Name, m.MonthsLockup, m.Factor)
 }
 
-// Multipliers slice of Multiplier
+// Multipliers is a slice of Multiplier
 type Multipliers []Multiplier
 
 // Validate validates each multiplier
@@ -80,6 +80,16 @@ func (ms Multipliers) Validate() error {
 	return nil
 }
 
+// Get returns a multiplier with a matching name
+func (ms Multipliers) Get(name MultiplierName) (Multiplier, bool) {
+	for _, m := range ms {
+		if m.Name == name {
+			return m, true
+		}
+	}
+	return Multiplier{}, false
+}
+
 // String implements fmt.Stringer
 func (ms Multipliers) String() string {
 	out := "Claim Multipliers\n"
@@ -89,11 +99,33 @@ func (ms Multipliers) String() string {
 	return out
 }
 
+// MultipliersPerDenom is a map of denoms to a set of multipliers
+type MultipliersPerDenom []struct {
+	Denom       string
+	Multipliers Multipliers
+}
+
+// Validate checks each denom and multipliers for invalid values.
+func (mpd MultipliersPerDenom) Validate() error {
+	// TODO duplicate check
+	for _, item := range mpd {
+		if err := sdk.ValidateDenom(item.Denom); err != nil {
+			return err
+		}
+		if err := item.Multipliers.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Selection a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a denom.
 type Selection struct {
 	Denom          string
 	MultiplierName string
 }
 
+// NewSelection returns a new Selection
 func NewSelection(denom, multiplierName string) Selection {
 	return Selection{
 		Denom:          denom,
@@ -101,6 +133,7 @@ func NewSelection(denom, multiplierName string) Selection {
 	}
 }
 
+// Validate performs basic validation checks
 func (s Selection) Validate() error {
 	if err := sdk.ValidateDenom(s.Denom); err != nil {
 		return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
@@ -115,18 +148,24 @@ func (s Selection) Validate() error {
 // Selections are a list of denom - multiplier pairs that specify what rewards to claim and with what lockups.
 type Selections []Selection
 
+// NewSelectionsFromMap creates a new set of selections from a string to string map.
+// It sorts the output before returning.
 func NewSelectionsFromMap(selectionMap map[string]string) Selections {
 	var selections Selections
 	for k, v := range selectionMap {
 		selections = append(selections, NewSelection(k, v))
 	}
-	// sort the slice by denom to protect against the random range order causing consensus failures
-	sort.SliceStable(selections, func(i, j int) bool {
-		return selections[i].Denom > selections[j].Denom
+	// deterministically sort the slice to protect against the random range order causing consensus failures
+	sort.Slice(selections, func(i, j int) bool {
+		if selections[i].Denom != selections[j].Denom {
+			return selections[i].Denom < selections[j].Denom
+		}
+		return selections[i].MultiplierName < selections[j].MultiplierName
 	})
 	return selections
 }
 
+// Valdate performs basic validaton checks
 func (s Selections) Validate() error {
 	if len(s) == 0 {
 		return sdkerrors.Wrap(ErrInvalidClaimDenoms, "cannot claim 0 denoms")
@@ -140,9 +179,4 @@ func (s Selections) Validate() error {
 		}
 	}
 	return nil
-}
-
-type ConfirmedSelection struct {
-	Denom      string
-	Multiplier Multiplier
 }
