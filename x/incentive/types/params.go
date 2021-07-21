@@ -23,13 +23,13 @@ var (
 	KeyDelegatorRewardPeriods   = []byte("DelegatorRewardPeriods")
 	KeySwapRewardPeriods        = []byte("SwapRewardPeriods")
 	KeyClaimEnd                 = []byte("ClaimEnd")
+	KeyMultipliersOLD           = []byte("ClaimMultipliersOLD") // TODO
 	KeyMultipliers              = []byte("ClaimMultipliers")
-	KeyMultipliersTODO          = []byte("ClaimMultipliersNEW") // TODO
 	DefaultActive               = false
 	DefaultRewardPeriods        = RewardPeriods{}
 	DefaultMultiRewardPeriods   = MultiRewardPeriods{}
-	DefaultMultipliers          = Multipliers{}
-	DefaultMultipliersTODO      = MultipliersPerDenom{}
+	DefaultMultipliersOLD       = Multipliers{}
+	DefaultMultipliers          = MultipliersPerDenom{}
 	DefaultClaimEnd             = tmtime.Canonical(time.Unix(1, 0))
 	GovDenom                    = cdptypes.DefaultGovDenom
 	PrincipalDenom              = "usdx"
@@ -43,8 +43,8 @@ type Params struct {
 	HardBorrowRewardPeriods  MultiRewardPeriods  `json:"hard_borrow_reward_periods" yaml:"hard_borrow_reward_periods"`
 	DelegatorRewardPeriods   MultiRewardPeriods  `json:"delegator_reward_periods" yaml:"delegator_reward_periods"`
 	SwapRewardPeriods        MultiRewardPeriods  `json:"swap_reward_periods" yaml:"swap_reward_periods"`
-	ClaimMultipliers         Multipliers         `json:"claim_multipliers" yaml:"claim_multipliers"`
-	ClaimMultipliersTODO     MultipliersPerDenom `json:"claim_multipliers_todo" yaml:"claim_multipliers_todo"` // TODO json
+	ClaimMultipliersOLD      Multipliers         `json:"claim_multipliers_old" yaml:"claim_multipliers_old"`
+	ClaimMultipliers         MultipliersPerDenom `json:"claim_multipliers" yaml:"claim_multipliers"`
 	ClaimEnd                 time.Time           `json:"claim_end" yaml:"claim_end"`
 }
 
@@ -57,8 +57,8 @@ func NewParams(usdxMinting RewardPeriods, hardSupply, hardBorrow, delegator, swa
 		HardBorrowRewardPeriods:  hardBorrow,
 		DelegatorRewardPeriods:   delegator,
 		SwapRewardPeriods:        swap,
-		ClaimMultipliers:         multipliers,
-		ClaimMultipliersTODO:     multipliersTODO,
+		ClaimMultipliersOLD:      multipliers,
+		ClaimMultipliers:         multipliersTODO,
 		ClaimEnd:                 claimEnd,
 	}
 }
@@ -71,14 +71,14 @@ func DefaultParams() Params {
 		DefaultMultiRewardPeriods,
 		DefaultMultiRewardPeriods,
 		DefaultMultiRewardPeriods,
+		DefaultMultipliersOLD,
 		DefaultMultipliers,
-		DefaultMultipliersTODO,
 		DefaultClaimEnd,
 	)
 }
 
 // String implements fmt.Stringer
-func (p Params) String() string { // FIXME
+func (p Params) String() string {
 	return fmt.Sprintf(`Params:
 	USDX Minting Reward Periods: %s
 	Hard Supply Reward Periods: %s
@@ -104,8 +104,8 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs { // FIXME
 		params.NewParamSetPair(KeyHardBorrowRewardPeriods, &p.HardBorrowRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeyDelegatorRewardPeriods, &p.DelegatorRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeySwapRewardPeriods, &p.SwapRewardPeriods, validateMultiRewardPeriodsParam),
-		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersParam),
-		params.NewParamSetPair(KeyMultipliersTODO, &p.ClaimMultipliersTODO, validateMultipliersPerDenomParam),
+		params.NewParamSetPair(KeyMultipliersOLD, &p.ClaimMultipliersOLD, validateMultipliersParam),
+		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersPerDenomParam),
 		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
 	}
 }
@@ -113,10 +113,10 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs { // FIXME
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
 
-	if err := validateMultipliersParam(p.ClaimMultipliers); err != nil {
+	if err := validateMultipliersParam(p.ClaimMultipliersOLD); err != nil {
 		return err
 	}
-	if err := validateMultipliersPerDenomParam(p.ClaimMultipliersTODO); err != nil {
+	if err := validateMultipliersPerDenomParam(p.ClaimMultipliers); err != nil {
 		return err
 	}
 

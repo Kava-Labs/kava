@@ -85,6 +85,7 @@ var (
 	NewSwapClaim                         = types.NewSwapClaim
 	NewUSDXMintingClaim                  = types.NewUSDXMintingClaim
 	ParamKeyTable                        = types.ParamKeyTable
+	ParseMultiplierName                  = types.ParseMultiplierName
 	RegisterCodec                        = types.RegisterCodec
 
 	// variable aliases
@@ -95,7 +96,7 @@ var (
 	DefaultHardClaims                             = types.DefaultHardClaims
 	DefaultMultiRewardPeriods                     = types.DefaultMultiRewardPeriods
 	DefaultMultipliers                            = types.DefaultMultipliers
-	DefaultMultipliersTODO                        = types.DefaultMultipliersTODO
+	DefaultMultipliersOLD                         = types.DefaultMultipliersOLD
 	DefaultRewardPeriods                          = types.DefaultRewardPeriods
 	DefaultSwapClaims                             = types.DefaultSwapClaims
 	DefaultUSDXClaims                             = types.DefaultUSDXClaims
@@ -123,7 +124,7 @@ var (
 	KeyHardBorrowRewardPeriods                    = types.KeyHardBorrowRewardPeriods
 	KeyHardSupplyRewardPeriods                    = types.KeyHardSupplyRewardPeriods
 	KeyMultipliers                                = types.KeyMultipliers
-	KeyMultipliersTODO                            = types.KeyMultipliersTODO
+	KeyMultipliersOLD                             = types.KeyMultipliersOLD
 	KeySwapRewardPeriods                          = types.KeySwapRewardPeriods
 	KeyUSDXMintingRewardPeriods                   = types.KeyUSDXMintingRewardPeriods
 	ModuleCdc                                     = types.ModuleCdc

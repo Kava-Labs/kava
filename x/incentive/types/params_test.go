@@ -62,7 +62,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 						time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
 						sdk.NewCoin(types.USDXMintingRewardDenom, sdk.NewInt(122354)),
 					)},
-				ClaimMultipliers: types.Multipliers{
+				ClaimMultipliersOLD: types.Multipliers{
 					types.NewMultiplier(
 						types.Small, 1, sdk.MustNewDecFromStr("0.25"),
 					),
@@ -88,7 +88,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:   types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:        types.DefaultMultiRewardPeriods,
-				ClaimMultipliers:         types.DefaultMultipliers,
+				ClaimMultipliersOLD:      types.DefaultMultipliersOLD,
 				ClaimEnd:                 time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
 			errArgs{
@@ -104,7 +104,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:   types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:        types.DefaultMultiRewardPeriods,
-				ClaimMultipliers:         types.DefaultMultipliers,
+				ClaimMultipliersOLD:      types.DefaultMultipliersOLD,
 				ClaimEnd:                 time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
 			errArgs{
@@ -120,7 +120,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
 				DelegatorRewardPeriods:   types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:        types.DefaultMultiRewardPeriods,
-				ClaimMultipliers:         types.DefaultMultipliers,
+				ClaimMultipliersOLD:      types.DefaultMultipliersOLD,
 				ClaimEnd:                 time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
 			errArgs{
@@ -136,7 +136,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:   types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
 				SwapRewardPeriods:        types.DefaultMultiRewardPeriods,
-				ClaimMultipliers:         types.DefaultMultipliers,
+				ClaimMultipliersOLD:      types.DefaultMultipliersOLD,
 				ClaimEnd:                 time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
 			errArgs{
@@ -152,7 +152,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:   types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:        types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
-				ClaimMultipliers:         types.DefaultMultipliers,
+				ClaimMultipliersOLD:      types.DefaultMultipliersOLD,
 				ClaimEnd:                 time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
 			errArgs{
