@@ -60,10 +60,12 @@ func handleMsgClaimUSDXMintingRewardVVesting(ctx sdk.Context, k keeper.Keeper, m
 }
 
 func handleMsgClaimHardReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimHardReward) (*sdk.Result, error) {
+	for _, selection := range msg.DenomsToClaim {
+		err := k.ClaimHardReward(ctx, msg.Sender, msg.Sender, selection.Denom, types.MultiplierName(selection.MultiplierName))
+		if err != nil {
+			return nil, err
+		}
 
-	err := k.ClaimHardReward(ctx, msg.Sender, msg.Sender, msg.DenomsToClaim)
-	if err != nil {
-		return nil, err
 	}
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
@@ -75,9 +77,12 @@ func handleMsgClaimHardRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg type
 	if err := k.ValidateIsValidatorVestingAccount(ctx, msg.Sender); err != nil {
 		return nil, err
 	}
-	err := k.ClaimHardReward(ctx, msg.Sender, msg.Receiver, msg.DenomsToClaim)
-	if err != nil {
-		return nil, err
+	for _, selection := range msg.DenomsToClaim {
+		err := k.ClaimHardReward(ctx, msg.Sender, msg.Receiver, selection.Denom, types.MultiplierName(selection.MultiplierName))
+		if err != nil {
+			return nil, err
+		}
+
 	}
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),

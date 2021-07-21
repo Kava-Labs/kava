@@ -128,10 +128,13 @@ func NewSelectionsFromMap(selectionMap map[string]string) Selections {
 }
 
 func (s Selections) Validate() error {
-	for i, d := range s {
-		if i >= MaxDenomsToClaim {
-			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
-		}
+	if len(s) == 0 {
+		return sdkerrors.Wrap(ErrInvalidClaimDenoms, "cannot claim 0 denoms")
+	}
+	if len(s) >= MaxDenomsToClaim {
+		return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
+	}
+	for _, d := range s {
 		if err := d.Validate(); err != nil {
 			return err
 		}

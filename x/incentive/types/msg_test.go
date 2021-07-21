@@ -242,14 +242,25 @@ func TestMsgClaimVVesting_Validate(t *testing.T) {
 		// 	},
 		// },
 		{
-			name: "empty denoms to claim is valid",
+			name: "empty denoms to claim is not valid",
 			msgArgs: msgArgs{
 				sender:        validAddress,
 				receiver:      validAddress,
 				denomsToClaim: types.Selections{},
 			},
 			expect: expectedErr{
-				pass: true,
+				wraps: types.ErrInvalidClaimDenoms,
+			},
+		},
+		{
+			name: "nil denoms to claim is not valid",
+			msgArgs: msgArgs{
+				sender:        validAddress,
+				receiver:      validAddress,
+				denomsToClaim: nil,
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidClaimDenoms,
 			},
 		},
 		{
@@ -543,13 +554,23 @@ func TestMsgClaim_Validate(t *testing.T) {
 		// 	},
 		// },
 		{
-			name: "empty denoms to claim is valid",
+			name: "empty denoms to claim is not valid",
 			msgArgs: msgArgs{
 				sender:        validAddress,
 				denomsToClaim: types.Selections{},
 			},
 			expect: expectedErr{
-				pass: true,
+				wraps: types.ErrInvalidClaimDenoms,
+			},
+		},
+		{
+			name: "nil denoms to claim is not valid",
+			msgArgs: msgArgs{
+				sender:        validAddress,
+				denomsToClaim: nil,
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidClaimDenoms,
 			},
 		},
 		{
