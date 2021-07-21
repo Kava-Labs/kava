@@ -106,7 +106,6 @@ var (
 	ErrInsufficientModAccountBalance              = types.ErrInsufficientModAccountBalance
 	ErrInvalidAccountType                         = types.ErrInvalidAccountType
 	ErrInvalidClaimDenoms                         = types.ErrInvalidClaimDenoms
-	ErrInvalidClaimOwner                          = types.ErrInvalidClaimOwner
 	ErrInvalidClaimType                           = types.ErrInvalidClaimType
 	ErrInvalidMultiplier                          = types.ErrInvalidMultiplier
 	ErrNoClaimsFound                              = types.ErrNoClaimsFound
