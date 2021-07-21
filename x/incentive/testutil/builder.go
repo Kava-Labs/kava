@@ -157,11 +157,6 @@ func (builder IncentiveGenesisBuilder) WithSimpleUSDXRewardPeriod(ctype string, 
 	))
 }
 
-func (builder IncentiveGenesisBuilder) WithMultipliersOLD(multipliers types.Multipliers) IncentiveGenesisBuilder {
-	builder.Params.ClaimMultipliersOLD = multipliers
-	return builder
-}
-
 func (builder IncentiveGenesisBuilder) WithMultipliers(multipliers types.MultipliersPerDenom) IncentiveGenesisBuilder {
 	builder.Params.ClaimMultipliers = multipliers
 	return builder

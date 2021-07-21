@@ -96,7 +96,6 @@ var (
 	DefaultHardClaims                             = types.DefaultHardClaims
 	DefaultMultiRewardPeriods                     = types.DefaultMultiRewardPeriods
 	DefaultMultipliers                            = types.DefaultMultipliers
-	DefaultMultipliersOLD                         = types.DefaultMultipliersOLD
 	DefaultRewardPeriods                          = types.DefaultRewardPeriods
 	DefaultSwapClaims                             = types.DefaultSwapClaims
 	DefaultUSDXClaims                             = types.DefaultUSDXClaims
@@ -124,7 +123,6 @@ var (
 	KeyHardBorrowRewardPeriods                    = types.KeyHardBorrowRewardPeriods
 	KeyHardSupplyRewardPeriods                    = types.KeyHardSupplyRewardPeriods
 	KeyMultipliers                                = types.KeyMultipliers
-	KeyMultipliersOLD                             = types.KeyMultipliersOLD
 	KeySwapRewardPeriods                          = types.KeySwapRewardPeriods
 	KeyUSDXMintingRewardPeriods                   = types.KeyUSDXMintingRewardPeriods
 	ModuleCdc                                     = types.ModuleCdc

@@ -108,10 +108,6 @@ func (suite *HandlerTestSuite) authBuilder() app.AuthGenesisBuilder {
 func (suite *HandlerTestSuite) incentiveBuilder() testutil.IncentiveGenesisBuilder {
 	return testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
-		WithMultipliersOLD(types.Multipliers{
-			types.NewMultiplier(types.MultiplierName("small"), 1, d("0.2")),
-			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")),
-		}).
 		WithMultipliers(types.MultipliersPerDenom{
 			{
 				Denom: "hard",
