@@ -148,9 +148,6 @@ func TestMsgClaimOLDVVesting_Validate(t *testing.T) {
 
 	for _, tc := range tests {
 		msgs := []sdk.Msg{
-			types.NewMsgClaimDelegatorRewardVVesting(
-				tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
-			),
 			types.NewMsgClaimSwapRewardVVesting(
 				tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
 			),
@@ -323,6 +320,26 @@ func TestMsgClaimVVesting_Validate(t *testing.T) {
 				wraps: types.ErrInvalidClaimDenoms,
 			},
 		},
+		{
+			name: "duplicated claim denoms",
+			msgArgs: msgArgs{
+				sender:   validAddress,
+				receiver: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "medium",
+					},
+					{
+						Denom:          "hard",
+						MultiplierName: "large",
+					},
+				},
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidClaimDenoms,
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -330,9 +347,9 @@ func TestMsgClaimVVesting_Validate(t *testing.T) {
 			types.NewMsgClaimHardRewardVVesting(
 				tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.denomsToClaim...,
 			),
-			// types.NewMsgClaimDelegatorRewardVVesting(
-			// 	tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
-			// ),
+			types.NewMsgClaimDelegatorRewardVVesting(
+				tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.denomsToClaim...,
+			),
 			// types.NewMsgClaimSwapRewardVVesting(
 			// 	tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
 			// ),
@@ -465,9 +482,6 @@ func TestMsgOLDClaim_Validate(t *testing.T) {
 
 	for _, tc := range tests {
 		msgs := []sdk.Msg{
-			types.NewMsgClaimDelegatorReward(
-				tc.msgArgs.sender, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
-			),
 			types.NewMsgClaimSwapReward(
 				tc.msgArgs.sender, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
 			),
@@ -613,14 +627,31 @@ func TestMsgClaim_Validate(t *testing.T) {
 				wraps: types.ErrInvalidClaimDenoms,
 			},
 		},
+		{
+			name: "duplicated claim denoms",
+			msgArgs: msgArgs{
+				sender: validAddress,
+				denomsToClaim: types.Selections{
+					{
+						Denom:          "hard",
+						MultiplierName: "medium",
+					},
+					{
+						Denom:          "hard",
+						MultiplierName: "large",
+					},
+				},
+			},
+			expect: expectedErr{
+				wraps: types.ErrInvalidClaimDenoms,
+			},
+		},
 	}
 
 	for _, tc := range tests {
 		msgs := []sdk.Msg{
 			types.NewMsgClaimHardReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim...),
-			// types.NewMsgClaimDelegatorReward(
-			// 	tc.msgArgs.sender, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
-			// ),
+			types.NewMsgClaimDelegatorReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim...),
 			// types.NewMsgClaimSwapReward(
 			// 	tc.msgArgs.sender, tc.msgArgs.multiplierName, tc.msgArgs.denomsToClaim,
 			// ),

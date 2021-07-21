@@ -166,17 +166,22 @@ func NewSelectionsFromMap(selectionMap map[string]string) Selections {
 }
 
 // Valdate performs basic validaton checks
-func (s Selections) Validate() error {
-	if len(s) == 0 {
+func (ss Selections) Validate() error {
+	if len(ss) == 0 {
 		return sdkerrors.Wrap(ErrInvalidClaimDenoms, "cannot claim 0 denoms")
 	}
-	if len(s) >= MaxDenomsToClaim {
+	if len(ss) >= MaxDenomsToClaim {
 		return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
 	}
-	for _, d := range s {
-		if err := d.Validate(); err != nil {
+	foundDenoms := map[string]bool{}
+	for _, s := range ss {
+		if err := s.Validate(); err != nil {
 			return err
 		}
+		if foundDenoms[s.Denom] {
+			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim denom '%s' more than once", s.Denom)
+		}
+		foundDenoms[s.Denom] = true
 	}
 	return nil
 }

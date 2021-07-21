@@ -175,16 +175,48 @@ A receiver address for the rewards is needed as validator vesting accounts canno
 }
 
 func getCmdClaimDelegator(cdc *codec.Codec) *cobra.Command {
-	var denomsToClaim []string
+	var denomsToClaim map[string]string
 
 	cmd := &cobra.Command{
-		Use:   "claim-delegator [multiplier]",
-		Short: "claim sender's delegator rewards using a given multiplier",
-		Long: `Claim sender's outstanding delegator rewards using given multiplier.
-Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
+		Use:   "claim-delegator",
+		Short: "claim sender's non-sdk delegator rewards using given multipliers",
+		Long:  `Claim sender's outstanding delegator rewards using given multipliers`,
 		Example: strings.Join([]string{
-			fmt.Sprintf("  $ %s tx %s claim-delegator large", version.ClientName, types.ModuleName),
-			fmt.Sprintf("  $ %s tx %s claim-delegator large --claim-only swp,hard", version.ClientName, types.ModuleName),
+			fmt.Sprintf(`  $ %s tx %s claim-delegator --%s hard=large --%s swp=small`, version.ClientName, types.ModuleName, multiplierFlag, multiplierFlag),
+			fmt.Sprintf(`  $ %s tx %s claim-delegator --%s hard=large,swp=small`, version.ClientName, types.ModuleName, multiplierFlag),
+		}, "\n"),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			sender := cliCtx.GetFromAddress()
+			selections := types.NewSelectionsFromMap(denomsToClaim)
+
+			msg := types.NewMsgClaimDelegatorReward(sender, selections...)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	cmd.Flags().StringToStringVarP(&denomsToClaim, multiplierFlag, multiplierFlagShort, nil, "specify the denoms to claim, each with a multiplier lockup")
+	cmd.MarkFlagRequired(multiplierFlag)
+	return cmd
+}
+
+func getCmdClaimDelegatorVVesting(cdc *codec.Codec) *cobra.Command {
+	var denomsToClaim map[string]string
+
+	cmd := &cobra.Command{
+		Use:   "claim-delegator-vesting [receiver]",
+		Short: "claim non-sdk delegator rewards on behalf of a validator vesting account using given multipliers",
+		Long: `Claim sender's outstanding delegator rewards on behalf of a validator vesting account using given multipliers
+A receiver address for the rewards is needed as validator vesting accounts cannot receive locked tokens.`,
+		Example: strings.Join([]string{
+			fmt.Sprintf("  $ %s tx %s claim-hard-vesting kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --%s hard=large --%s swp=small", version.ClientName, types.ModuleName, multiplierFlag, multiplierFlag),
+			fmt.Sprintf("  $ %s tx %s claim-hard-vesting kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --%s hard=large,swp=small", version.ClientName, types.ModuleName, multiplierFlag),
 		}, "\n"),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -193,55 +225,21 @@ Optionally claim only certain denoms from the rewards. Specifying none will clai
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			sender := cliCtx.GetFromAddress()
-			multiplier := args[0]
-
-			msg := types.NewMsgClaimDelegatorReward(sender, multiplier, denomsToClaim)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
-	cmd.Flags().StringSliceVar(&denomsToClaim, "claim-only", nil, "claim only these denoms, otherwise claim all denoms")
-
-	return cmd
-}
-
-func getCmdClaimDelegatorVVesting(cdc *codec.Codec) *cobra.Command {
-	var denomsToClaim []string
-
-	cmd := &cobra.Command{
-		Use:   "claim-delegator-vesting [multiplier] [receiver]",
-		Short: "claim delegator rewards on behalf of a validator vesting account using a given multiplier",
-		Long: `Claim sender's outstanding delegator rewards on behalf of a validator vesting account using given multiplier
-A receiver address for the rewards is needed as validator vesting accounts cannot receive locked tokens.
-Optionally claim only certain denoms from the rewards. Specifying none will claim all of them.`,
-		Example: strings.Join([]string{
-			fmt.Sprintf("  $ %s tx %s claim-delegator-vesting large kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw", version.ClientName, types.ModuleName),
-			fmt.Sprintf("  $ %s tx %s claim-delegator-vesting small kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --claim-only swp,hard", version.ClientName, types.ModuleName),
-		}, "\n"),
-		Args: cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			sender := cliCtx.GetFromAddress()
-			multiplier := args[0]
-			receiverStr := args[1]
-			receiver, err := sdk.AccAddressFromBech32(receiverStr)
+			receiver, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
+			selections := types.NewSelectionsFromMap(denomsToClaim)
 
-			msg := types.NewMsgClaimDelegatorRewardVVesting(sender, receiver, multiplier, denomsToClaim)
+			msg := types.NewMsgClaimDelegatorRewardVVesting(sender, receiver, selections...)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-	cmd.Flags().StringSliceVar(&denomsToClaim, "claim-only", nil, "claim only these denoms, otherwise claim all denoms")
+	cmd.Flags().StringToStringVarP(&denomsToClaim, multiplierFlag, multiplierFlagShort, nil, "specify the denoms to claim, each with a multiplier lockup")
+	cmd.MarkFlagRequired(multiplierFlag)
 
 	return cmd
 }

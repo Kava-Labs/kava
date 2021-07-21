@@ -45,7 +45,7 @@ func hardGenerator(req PostClaimReq) sdk.Msg {
 	return types.NewMsgClaimHardReward(req.Sender, req.DenomsToClaim...)
 }
 func delegatorGenerator(req PostClaimReq) sdk.Msg {
-	return types.NewMsgClaimDelegatorReward(req.Sender, req.MultiplierName, extractDenoms(req.DenomsToClaim))
+	return types.NewMsgClaimDelegatorReward(req.Sender, req.DenomsToClaim...)
 }
 func swapGenerator(req PostClaimReq) sdk.Msg {
 	return types.NewMsgClaimSwapReward(req.Sender, req.MultiplierName, extractDenoms(req.DenomsToClaim))
@@ -91,7 +91,7 @@ func hardVVGenerator(req PostClaimVVestingReq) sdk.Msg {
 	return types.NewMsgClaimHardRewardVVesting(req.Sender, req.Receiver, req.DenomsToClaim...)
 }
 func delegatorVVGenerator(req PostClaimVVestingReq) sdk.Msg {
-	return types.NewMsgClaimDelegatorRewardVVesting(req.Sender, req.Receiver, req.MultiplierName, extractDenoms(req.DenomsToClaim))
+	return types.NewMsgClaimDelegatorRewardVVesting(req.Sender, req.Receiver, req.DenomsToClaim...)
 }
 func swapVVGenerator(req PostClaimVVestingReq) sdk.Msg {
 	return types.NewMsgClaimSwapRewardVVesting(req.Sender, req.Receiver, req.MultiplierName, extractDenoms(req.DenomsToClaim))
