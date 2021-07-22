@@ -110,8 +110,8 @@ func (ms Multipliers) String() string {
 
 // MultipliersPerDenom is a map of denoms to a set of multipliers
 type MultipliersPerDenom []struct {
-	Denom       string
-	Multipliers Multipliers
+	Denom       string      `json:"denom" yaml:"denom"`
+	Multipliers Multipliers `json:"multipliers" yaml:"multipliers"`
 }
 
 // Validate checks each denom and multipliers for invalid values.
@@ -136,8 +136,8 @@ func (mpd MultipliersPerDenom) Validate() error {
 
 // Selection a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a denom.
 type Selection struct {
-	Denom          string
-	MultiplierName string
+	Denom          string `json:"denom" yaml:"denom"`
+	MultiplierName string `json:"multiplier_name" yaml:"multiplier_name"`
 }
 
 // NewSelection returns a new Selection
