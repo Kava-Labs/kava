@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -30,6 +31,20 @@ var rewardMultiPeriodWithInvalidRewardsPerSecond = types.NewMultiRewardPeriod(
 	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
 	sdk.Coins{sdk.Coin{Denom: "INVALID!@#😫", Amount: sdk.ZeroInt()}},
+)
+var validMultiRewardPeriod = types.NewMultiRewardPeriod(
+	true,
+	"bnb",
+	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+	sdk.NewCoins(sdk.NewInt64Coin("swap", 1e9)),
+)
+var validRewardPeriod = types.NewRewardPeriod(
+	true,
+	"bnb-a",
+	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+	sdk.NewInt64Coin(types.USDXMintingRewardDenom, 1e9),
 )
 
 func (suite *ParamTestSuite) TestParamValidation() {
@@ -93,7 +108,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "invalid reward amount",
+				contains:   fmt.Sprintf("reward denom must be %s", types.USDXMintingRewardDenom),
 			},
 		},
 		{
@@ -174,6 +189,120 @@ func (suite *ParamTestSuite) TestParamValidation() {
 			}
 		})
 	}
+}
+
+func (suite *ParamTestSuite) TestRewardPeriods() {
+	suite.Run("Validate", func() {
+		type err struct {
+			pass     bool
+			contains string
+		}
+		testCases := []struct {
+			name    string
+			periods types.RewardPeriods
+			expect  err
+		}{
+			{
+				name: "single period is valid",
+				periods: types.RewardPeriods{
+					validRewardPeriod,
+				},
+				expect: err{
+					pass: true,
+				},
+			},
+			{
+				name: "duplicated reward period is invalid",
+				periods: types.RewardPeriods{
+					validRewardPeriod,
+					validRewardPeriod,
+				},
+				expect: err{
+					contains: "duplicated reward period",
+				},
+			},
+			{
+				name: "invalid reward denom is invalid",
+				periods: types.RewardPeriods{
+					types.NewRewardPeriod(
+						true,
+						"bnb-a",
+						time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+						time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+						sdk.NewInt64Coin("hard", 1e9),
+					),
+				},
+				expect: err{
+					contains: fmt.Sprintf("reward denom must be %s", types.USDXMintingRewardDenom),
+				},
+			},
+		}
+		for _, tc := range testCases {
+
+			err := tc.periods.Validate()
+
+			if tc.expect.pass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Contains(err.Error(), tc.expect.contains)
+			}
+		}
+	})
+}
+
+func (suite *ParamTestSuite) TestMultiRewardPeriods() {
+	suite.Run("Validate", func() {
+		type err struct {
+			pass     bool
+			contains string
+		}
+		testCases := []struct {
+			name    string
+			periods types.MultiRewardPeriods
+			expect  err
+		}{
+			{
+				name: "single period is valid",
+				periods: types.MultiRewardPeriods{
+					validMultiRewardPeriod,
+				},
+				expect: err{
+					pass: true,
+				},
+			},
+			{
+				name: "duplicated reward period is invalid",
+				periods: types.MultiRewardPeriods{
+					validMultiRewardPeriod,
+					validMultiRewardPeriod,
+				},
+				expect: err{
+					contains: "duplicated reward period",
+				},
+			},
+			{
+				name: "invalid reward period is invalid",
+				periods: types.MultiRewardPeriods{
+					rewardMultiPeriodWithInvalidRewardsPerSecond,
+				},
+				expect: err{
+					contains: "invalid reward amount",
+				},
+			},
+		}
+		for _, tc := range testCases {
+
+			err := tc.periods.Validate()
+
+			if tc.expect.pass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Contains(err.Error(), tc.expect.contains)
+			}
+		}
+	})
 }
 
 func TestParamTestSuite(t *testing.T) {

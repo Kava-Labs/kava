@@ -104,7 +104,7 @@ func TestAccumulator(t *testing.T) {
 		type args struct {
 			rewardsPerSecond  sdk.Coins
 			duration          time.Duration
-			rewardSourceTotal sdk.Dec
+			totalSourceShares sdk.Dec
 		}
 		testcases := []struct {
 			name     string
@@ -116,7 +116,7 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(c("hard", 1000), c("swap", 100)),
 					duration:          10 * time.Second,
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 				},
 				expected: RewardIndexes{
 					{CollateralType: "hard", RewardFactor: d("10")},
@@ -128,27 +128,39 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(c("hard", 1000)),
 					duration:          10*time.Second + 500*time.Millisecond,
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 				},
 				expected: RewardIndexes{
 					{CollateralType: "hard", RewardFactor: d("10")},
 				},
 			},
 			{
-				name: "when duration is zero the rewards are zero",
+				name: "reward indexes have enough precision for extreme params",
+				args: args{
+					rewardsPerSecond:  cs(c("anydenom", 1)),    // minimum possible rewards
+					duration:          1 * time.Second,         // minimum possible duration (beyond zero as it's rounded)
+					totalSourceShares: d("100000000000000000"), // approximate shares in a $1B pool of 10^8 precision assets
+				},
+				expected: RewardIndexes{
+					// smallest reward amount over smallest accumulation duration does not go past 10^-18 decimal precision
+					{CollateralType: "anydenom", RewardFactor: d("0.000000000000000010")},
+				},
+			},
+			{
+				name: "when duration is zero there is no rewards",
 				args: args{
 					rewardsPerSecond:  cs(c("hard", 1000)),
 					duration:          0,
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 				},
-				expected: RewardIndexes{{CollateralType: "hard", RewardFactor: d("0")}}, // TODO should this be nil?
+				expected: nil,
 			},
 			{
 				name: "when rewards per second are nil there is no rewards",
 				args: args{
 					rewardsPerSecond:  cs(),
 					duration:          10 * time.Second,
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 				},
 				expected: nil,
 			},
@@ -157,7 +169,7 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(c("hard", 1000)),
 					duration:          10 * time.Second,
-					rewardSourceTotal: d("0"),
+					totalSourceShares: d("0"),
 				},
 				expected: nil,
 			},
@@ -166,7 +178,7 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					rewardsPerSecond:  cs(),
 					duration:          0,
-					rewardSourceTotal: d("0"),
+					totalSourceShares: d("0"),
 				},
 				expected: nil,
 			},
@@ -175,7 +187,7 @@ func TestAccumulator(t *testing.T) {
 		for _, tc := range testcases {
 			t.Run(tc.name, func(t *testing.T) {
 				acc := &Accumulator{}
-				indexes := acc.calculateNewRewards(tc.args.rewardsPerSecond, tc.args.rewardSourceTotal, tc.args.duration)
+				indexes := acc.calculateNewRewards(tc.args.rewardsPerSecond, tc.args.totalSourceShares, tc.args.duration)
 
 				require.Equal(t, tc.expected, indexes)
 			})
@@ -185,7 +197,7 @@ func TestAccumulator(t *testing.T) {
 		type args struct {
 			accumulator       Accumulator
 			period            MultiRewardPeriod
-			rewardSourceTotal sdk.Dec
+			totalSourceShares sdk.Dec
 			currentTime       time.Time
 		}
 		testcases := []struct {
@@ -198,39 +210,65 @@ func TestAccumulator(t *testing.T) {
 				args: args{
 					accumulator: Accumulator{
 						PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-						Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.1")}},
+						Indexes: RewardIndexes{
+							{CollateralType: "hard", RewardFactor: d("0.1")},
+							{CollateralType: "swap", RewardFactor: d("0.2")},
+						},
 					},
 					period: MultiRewardPeriod{
 						Start:            time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
 						End:              time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 						RewardsPerSecond: cs(c("hard", 1000)),
 					},
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 					currentTime:       time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
 				},
 				expected: Accumulator{
 					PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
-					Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("5.1")}},
+					Indexes: RewardIndexes{
+						{CollateralType: "hard", RewardFactor: d("5.1")},
+						{CollateralType: "swap", RewardFactor: d("0.2")},
+					},
 				},
 			},
 			{
-				name: "nil reward indexes are treated as empty",
+				name: "empty reward indexes are added to correctly",
 				args: args{
 					accumulator: Accumulator{
 						PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-						Indexes:                  nil,
+						Indexes:                  RewardIndexes{},
 					},
 					period: MultiRewardPeriod{
 						Start:            time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
 						End:              time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 						RewardsPerSecond: cs(c("hard", 1000)),
 					},
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 					currentTime:       time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
 				},
 				expected: Accumulator{
 					PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
 					Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("5.0")}},
+				},
+			},
+			{
+				name: "empty reward indexes are unchanged when there's no rewards",
+				args: args{
+					accumulator: Accumulator{
+						PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+						Indexes:                  RewardIndexes{},
+					},
+					period: MultiRewardPeriod{
+						Start:            time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
+						End:              time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+						RewardsPerSecond: cs(),
+					},
+					totalSourceShares: d("1000"),
+					currentTime:       time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
+				},
+				expected: Accumulator{
+					PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 5, 0, time.UTC),
+					Indexes:                  RewardIndexes{},
 				},
 			},
 			{
@@ -245,7 +283,7 @@ func TestAccumulator(t *testing.T) {
 						End:              time.Date(1998, 1, 1, 0, 0, 7, 0, time.UTC),
 						RewardsPerSecond: cs(c("hard", 1000)),
 					},
-					rewardSourceTotal: d("1000"),
+					totalSourceShares: d("1000"),
 					currentTime:       time.Date(1998, 1, 1, 0, 0, 10, 0, time.UTC),
 				},
 				expected: Accumulator{
@@ -253,11 +291,33 @@ func TestAccumulator(t *testing.T) {
 					Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("2.1")}},
 				},
 			},
+			{
+				name: "accumulation duration is capped at param start when previous stored time is in the distant past",
+				// This could happend in the default time value time.Time{} was accidentally stored, or if a reward period was
+				// removed from the params, then added back a long time later.
+				args: args{
+					accumulator: Accumulator{
+						PreviousAccumulationTime: time.Time{},
+						Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.1")}},
+					},
+					period: MultiRewardPeriod{
+						Start:            time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+						End:              time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+						RewardsPerSecond: cs(c("hard", 1000)),
+					},
+					totalSourceShares: d("1000"),
+					currentTime:       time.Date(1998, 1, 1, 0, 0, 10, 0, time.UTC),
+				},
+				expected: Accumulator{
+					PreviousAccumulationTime: time.Date(1998, 1, 1, 0, 0, 10, 0, time.UTC),
+					Indexes:                  RewardIndexes{{CollateralType: "hard", RewardFactor: d("10.1")}},
+				},
+			},
 		}
 
 		for _, tc := range testcases {
 			t.Run(tc.name, func(t *testing.T) {
-				tc.args.accumulator.Accumulate(tc.args.period, tc.args.rewardSourceTotal, tc.args.currentTime)
+				tc.args.accumulator.Accumulate(tc.args.period, tc.args.totalSourceShares, tc.args.currentTime)
 				require.Equal(t, tc.expected, tc.args.accumulator)
 			})
 		}

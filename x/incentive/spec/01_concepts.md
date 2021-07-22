@@ -12,15 +12,15 @@ Rewards target various user activity. For example, usdx borrowed from bnb CDPs, 
 
 Each second, the rewards accumulate at a rate set in the params, eg 100 ukava per second. These are then distributed to all users ratably based on their percentage involvement in the rewarded activity. For example if a user holds 1% of all funds deposited to the kava/usdx swap pool. They will receive 1% of the total rewards each second.
 
-The number tracking a user's involvement is referred to as "reward source" in the code. And the total across all users the "reward source total".
+The quantity tracking a user's involvement is referred to as "source shares" in the code. And the total across all users the "total source shares". The quotient then gives their percentage involvement, eg if a user borrowed 10,000 usdx, and there is 100,000 usdx borrowed by all users, then they will get 10% of rewards.
 
 ## Efficiency
 
 Paying out rewards to every user every block would be slow and lead to long block times. Instead rewards are calculated much less frequently.
 
-Every block a global tracker adds up total rewards paid out per unit of user involvement. For example, per unit of xrpb supplied to hard, or per share in a kava/usdx swap pool. A user's specific reward can then be calculated as needed based on their current deposit/shares/borrow.
+Every block a global tracker adds up total rewards paid out per unit of user involvement. For example, per unit of xrpb supplied to hard, or per share in a kava/usdx swap pool. A user's specific reward can then be calculated as needed based on their current source shares.
 
-User's rewards must be updated whenever their reward source changes. This happens through hooks into other modules that run before deposits/borrows/supplies etc.
+Users' rewards must be updated whenever their source shares change. This happens through hooks into other modules that run before deposits/borrows/supplies etc.
 
 ## HARD Token distribution
 
@@ -39,3 +39,7 @@ The exact multipliers will be voted by governance and can be changed via a gover
 ## USDX Minting Rewards
 
 The incentive module is responsible for distribution of KAVA tokens to users who mint USDX. When governance adds a collateral type to be eligible for rewards, they set the rate (coins/second) at which rewards are given to users, the length of each reward period, the length of each claim period, and the amount of time reward coins must vest before users who claim them can transfer them. For the duration of a reward period, any user that has minted USDX using an eligible collateral type will ratably accumulate rewards in a `USDXMintingClaim` object. For example, if a user has minted 10% of all USDX for the duration of the reward period, they will earn 10% of all rewards for that period. When the reward period ends, the claim period begins immediately, at which point users can submit a message to claim their rewards. Rewards are time-locked, meaning that when a user claims rewards they will receive them as a vesting balance on their account. Vesting balances can be used to stake coins, but cannot be transferred until the vesting period ends. In addition to vesting, rewards can have multipliers that vary the number of tokens received. For example, a reward with a vesting period of 1 month may have a multiplier of 0.25, meaning that the user will receive 25% of the reward balance if they choose that vesting schedule.
+
+## SWP Token Distribution
+
+TODO
