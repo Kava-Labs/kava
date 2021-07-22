@@ -32,7 +32,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIn
 	// The user earns rewards for the time passed, and the claim indexes are updated
 
 	originalReward := arbitraryCoins()
-	poolID := "base/quote"
+	poolID := "base:quote"
 
 	claim := types.SwapClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -83,7 +83,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIn
 func (suite *SynchronizeSwapRewardTests) TestClaimUnchangedWhenGlobalIndexesUnchanged() {
 	// It should be safe to call SynchronizeSwapReward multiple times
 
-	poolID := "base/quote"
+	poolID := "base:quote"
 	unchangingIndexes := types.MultiRewardIndexes{
 		{
 			CollateralType: poolID,
@@ -211,7 +211,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardDenomAdded
 	// Then the user earns rewards for the time since the reward was added, and the new indexes are added.
 
 	originalReward := arbitraryCoins()
-	poolID := "base/quote"
+	poolID := "base:quote"
 
 	claim := types.SwapClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -271,7 +271,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesIncrea
 	// When the claim is synced, but the user has no shares
 	// The user earns no rewards for the time passed, but the claim indexes are updated
 
-	poolID := "base/quote"
+	poolID := "base:quote"
 
 	claim := types.SwapClaim{
 		BaseMultiClaim: types.BaseMultiClaim{

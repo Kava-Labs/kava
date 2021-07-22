@@ -185,8 +185,7 @@ func (suite *BorrowRewardsTestSuite) TestAccumulateHardBorrowRewards() {
 			// Accumulate hard borrow rewards for the deposit denom
 			multiRewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriods(runCtx, tc.args.borrow.Denom)
 			suite.Require().True(found)
-			err = suite.keeper.AccumulateHardBorrowRewards(runCtx, multiRewardPeriod)
-			suite.Require().NoError(err)
+			suite.keeper.AccumulateHardBorrowRewards(runCtx, multiRewardPeriod)
 
 			// Check that each expected reward index matches the current stored reward index for the denom
 			globalRewardIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(runCtx, tc.args.borrow.Denom)
@@ -555,8 +554,7 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 				// Accumulate hard borrow-side rewards
 				multiRewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriods(blockCtx, tc.args.borrow.Denom)
 				if found {
-					err := suite.keeper.AccumulateHardBorrowRewards(blockCtx, multiRewardPeriod)
-					suite.Require().NoError(err)
+					suite.keeper.AccumulateHardBorrowRewards(blockCtx, multiRewardPeriod)
 				}
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
@@ -666,15 +664,13 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 			// But new borrow denoms don't have their PreviousHardBorrowRewardAccrualTime set yet,
 			// so we need to call the accumulation method once to set the initial reward accrual time
 			if tc.args.borrow.Denom != tc.args.incentiveBorrowRewardDenom {
-				err = suite.keeper.AccumulateHardBorrowRewards(suite.ctx, multiRewardPeriod)
-				suite.Require().NoError(err)
+				suite.keeper.AccumulateHardBorrowRewards(suite.ctx, multiRewardPeriod)
 			}
 
 			// Now we can jump forward in time and accumulate rewards
 			updatedBlockTime = previousBlockTime.Add(time.Duration(int(time.Second) * tc.args.updatedTimeDuration))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
-			err = suite.keeper.AccumulateHardBorrowRewards(suite.ctx, multiRewardPeriod)
-			suite.Require().NoError(err)
+			suite.keeper.AccumulateHardBorrowRewards(suite.ctx, multiRewardPeriod)
 
 			// After we've accumulated, run synchronize
 			borrow, found = suite.hardKeeper.GetBorrow(suite.ctx, userAddr)
@@ -963,8 +959,7 @@ func (suite *BorrowRewardsTestSuite) TestSimulateHardBorrowRewardSynchronization
 				// Accumulate hard borrow-side rewards
 				multiRewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriods(blockCtx, tc.args.borrow.Denom)
 				suite.Require().True(found)
-				err := suite.keeper.AccumulateHardBorrowRewards(blockCtx, multiRewardPeriod)
-				suite.Require().NoError(err)
+				suite.keeper.AccumulateHardBorrowRewards(blockCtx, multiRewardPeriod)
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)

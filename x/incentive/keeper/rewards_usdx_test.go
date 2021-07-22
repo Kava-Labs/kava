@@ -117,8 +117,7 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
 			rewardPeriod, found := suite.keeper.GetUSDXMintingRewardPeriod(suite.ctx, tc.args.ctype)
 			suite.Require().True(found)
-			err := suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
-			suite.Require().NoError(err)
+			suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
 
 			rewardFactor, _ := suite.keeper.GetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
@@ -191,8 +190,7 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
 				rewardPeriod, found := suite.keeper.GetUSDXMintingRewardPeriod(blockCtx, tc.args.ctype)
 				suite.Require().True(found)
-				err := suite.keeper.AccumulateUSDXMintingRewards(blockCtx, rewardPeriod)
-				suite.Require().NoError(err)
+				suite.keeper.AccumulateUSDXMintingRewards(blockCtx, rewardPeriod)
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
@@ -278,8 +276,7 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
 				rewardPeriod, found := suite.keeper.GetUSDXMintingRewardPeriod(blockCtx, tc.args.ctype)
 				suite.Require().True(found)
-				err := suite.keeper.AccumulateUSDXMintingRewards(blockCtx, rewardPeriod)
-				suite.Require().NoError(err)
+				suite.keeper.AccumulateUSDXMintingRewards(blockCtx, rewardPeriod)
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)

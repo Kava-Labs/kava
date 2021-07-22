@@ -17,7 +17,6 @@ const (
 	AttributeKeyClaimedBy          = types.AttributeKeyClaimedBy
 	AttributeKeyRewardPeriod       = types.AttributeKeyRewardPeriod
 	AttributeValueCategory         = types.AttributeValueCategory
-	BondDenom                      = types.BondDenom
 	DefaultParamspace              = types.DefaultParamspace
 	DelegatorClaimType             = types.DelegatorClaimType
 	EventTypeClaim                 = types.EventTypeClaim
@@ -49,7 +48,6 @@ const (
 
 var (
 	// function aliases
-	CalculateTimeElapsed                 = keeper.CalculateTimeElapsed
 	NewKeeper                            = keeper.NewKeeper
 	NewQuerier                           = keeper.NewQuerier
 	DefaultGenesisState                  = types.DefaultGenesisState
@@ -73,6 +71,7 @@ var (
 	NewMsgClaimUSDXMintingRewardVVesting = types.NewMsgClaimUSDXMintingRewardVVesting
 	NewMultiRewardIndex                  = types.NewMultiRewardIndex
 	NewMultiRewardPeriod                 = types.NewMultiRewardPeriod
+	NewMultiRewardPeriodFromRewardPeriod = types.NewMultiRewardPeriodFromRewardPeriod
 	NewMultiplier                        = types.NewMultiplier
 	NewParams                            = types.NewParams
 	NewPeriod                            = types.NewPeriod
@@ -89,6 +88,7 @@ var (
 	RegisterCodec                        = types.RegisterCodec
 
 	// variable aliases
+	BondDenom                                     = types.BondDenom
 	DefaultActive                                 = types.DefaultActive
 	DefaultClaimEnd                               = types.DefaultClaimEnd
 	DefaultDelegatorClaims                        = types.DefaultDelegatorClaims
@@ -113,7 +113,6 @@ var (
 	ErrNoClaimsFound                              = types.ErrNoClaimsFound
 	ErrRewardPeriodNotFound                       = types.ErrRewardPeriodNotFound
 	ErrZeroClaim                                  = types.ErrZeroClaim
-	GovDenom                                      = types.GovDenom
 	HardBorrowRewardIndexesKeyPrefix              = types.HardBorrowRewardIndexesKeyPrefix
 	HardLiquidityClaimKeyPrefix                   = types.HardLiquidityClaimKeyPrefix
 	HardSupplyRewardIndexesKeyPrefix              = types.HardSupplyRewardIndexesKeyPrefix
@@ -131,7 +130,6 @@ var (
 	PreviousHardSupplyRewardAccrualTimeKeyPrefix  = types.PreviousHardSupplyRewardAccrualTimeKeyPrefix
 	PreviousSwapRewardAccrualTimeKeyPrefix        = types.PreviousSwapRewardAccrualTimeKeyPrefix
 	PreviousUSDXMintingRewardAccrualTimeKeyPrefix = types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix
-	PrincipalDenom                                = types.PrincipalDenom
 	SwapClaimKeyPrefix                            = types.SwapClaimKeyPrefix
 	SwapRewardIndexesKeyPrefix                    = types.SwapRewardIndexesKeyPrefix
 	USDXMintingClaimKeyPrefix                     = types.USDXMintingClaimKeyPrefix

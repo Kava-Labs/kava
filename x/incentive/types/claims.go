@@ -13,8 +13,6 @@ const (
 	HardLiquidityProviderClaimType = "hard_liquidity_provider"
 	DelegatorClaimType             = "delegator_claim"
 	SwapClaimType                  = "swap"
-
-	BondDenom = "ukava"
 )
 
 // Claim is an interface for handling common claim actions

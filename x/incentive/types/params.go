@@ -8,10 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-
 	tmtime "github.com/tendermint/tendermint/types/time"
 
-	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	kavadistTypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -24,14 +22,17 @@ var (
 	KeySwapRewardPeriods        = []byte("SwapRewardPeriods")
 	KeyClaimEnd                 = []byte("ClaimEnd")
 	KeyMultipliers              = []byte("ClaimMultipliers")
-	DefaultActive               = false
-	DefaultRewardPeriods        = RewardPeriods{}
-	DefaultMultiRewardPeriods   = MultiRewardPeriods{}
-	DefaultMultipliers          = MultipliersPerDenom{}
-	DefaultClaimEnd             = tmtime.Canonical(time.Unix(1, 0))
-	GovDenom                    = cdptypes.DefaultGovDenom
-	PrincipalDenom              = "usdx"
-	IncentiveMacc               = kavadistTypes.ModuleName
+
+	DefaultActive             = false
+	DefaultRewardPeriods      = RewardPeriods{}
+	DefaultMultiRewardPeriods = MultiRewardPeriods{}
+	DefaultMultipliers        = MultipliersPerDenom{}
+	DefaultClaimEnd           = tmtime.Canonical(time.Unix(1, 0))
+
+	BondDenom              = "ukava"
+	USDXMintingRewardDenom = "ukava"
+
+	IncentiveMacc = kavadistTypes.ModuleName
 )
 
 // Params governance parameters for the incentive module
@@ -210,6 +211,18 @@ func NewRewardPeriod(active bool, collateralType string, start time.Time, end ti
 	}
 }
 
+// NewMultiRewardPeriodFromRewardPeriod converts a RewardPeriod into a MultiRewardPeriod.
+// It's useful for compatibility between single and multi denom rewards.
+func NewMultiRewardPeriodFromRewardPeriod(period RewardPeriod) MultiRewardPeriod {
+	return NewMultiRewardPeriod(
+		period.Active,
+		period.CollateralType,
+		period.Start,
+		period.End,
+		sdk.NewCoins(period.RewardsPerSecond),
+	)
+}
+
 // Validate performs a basic check of a RewardPeriod fields.
 func (rp RewardPeriod) Validate() error {
 	if rp.Start.Unix() <= 0 {
@@ -219,7 +232,11 @@ func (rp RewardPeriod) Validate() error {
 		return errors.New("reward period end time cannot be 0")
 	}
 	if rp.Start.After(rp.End) {
+		// This is needed to ensure that the begin blocker accumulation does not panic.
 		return fmt.Errorf("end period time %s cannot be before start time %s", rp.End, rp.Start)
+	}
+	if rp.RewardsPerSecond.Denom != USDXMintingRewardDenom {
+		return fmt.Errorf("reward denom must be %s, got: %s", USDXMintingRewardDenom, rp.RewardsPerSecond.Denom)
 	}
 	if !rp.RewardsPerSecond.IsValid() {
 		return fmt.Errorf("invalid reward amount: %s", rp.RewardsPerSecond)
@@ -291,6 +308,7 @@ func (mrp MultiRewardPeriod) Validate() error {
 		return errors.New("reward period end time cannot be 0")
 	}
 	if mrp.Start.After(mrp.End) {
+		// This is needed to ensure that the begin blocker accumulation does not panic.
 		return fmt.Errorf("end period time %s cannot be before start time %s", mrp.End, mrp.Start)
 	}
 	if !mrp.RewardsPerSecond.IsValid() {

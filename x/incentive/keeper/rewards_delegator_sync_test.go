@@ -36,7 +36,7 @@ func (suite *SynchronizeDelegatorRewardTests) storeGlobalDelegatorFactor(multiRe
 func (suite *SynchronizeDelegatorRewardTests) TestClaimIndexesAreUnchangedWhenGlobalFactorUnchanged() {
 	delegator := arbitraryAddress()
 
-	stakingKeeper := fakeStakingKeeper{} // use an empty staking keeper that returns no delegations
+	stakingKeeper := &fakeStakingKeeper{} // use an empty staking keeper that returns no delegations
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil)
 
 	claim := types.DelegatorClaim{
@@ -58,7 +58,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestClaimIndexesAreUnchangedWhenGl
 func (suite *SynchronizeDelegatorRewardTests) TestClaimIndexesAreUpdatedWhenGlobalFactorIncreased() {
 	delegator := arbitraryAddress()
 
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, fakeStakingKeeper{}, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, &fakeStakingKeeper{}, nil)
 
 	claim := types.DelegatorClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -85,7 +85,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestClaimIndexesAreUpdatedWhenGlob
 func (suite *SynchronizeDelegatorRewardTests) TestRewardIsUnchangedWhenGlobalFactorUnchanged() {
 	delegator := arbitraryAddress()
 	validatorAddress := arbitraryValidatorAddress()
-	stakingKeeper := fakeStakingKeeper{
+	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
 			{
 				DelegatorAddress: delegator,
@@ -130,7 +130,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsUnchangedWhenGlobalFac
 func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenNewRewardAdded() {
 	delegator := arbitraryAddress()
 	validatorAddress := arbitraryValidatorAddress()
-	stakingKeeper := fakeStakingKeeper{
+	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
 			{
 				DelegatorAddress: delegator,
@@ -180,7 +180,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenNewReward
 func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenGlobalFactorIncreased() {
 	delegator := arbitraryAddress()
 	validatorAddress := arbitraryValidatorAddress()
-	stakingKeeper := fakeStakingKeeper{
+	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
 			{
 				DelegatorAddress: delegator,
@@ -266,7 +266,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenValAddrIsNil()
 	// when valAddr is nil, get total delegated to bonded validators
 	delegator := arbitraryAddress()
 	validatorAddresses := generateValidatorAddresses(4)
-	stakingKeeper := fakeStakingKeeper{
+	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
 			//bonded
 			{
@@ -309,7 +309,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenExcludingAVali
 	// when valAddr is x, get total delegated to bonded validators excluding those to x
 	delegator := arbitraryAddress()
 	validatorAddresses := generateValidatorAddresses(4)
-	stakingKeeper := fakeStakingKeeper{
+	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
 			//bonded
 			{
@@ -352,7 +352,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenIncludingAVali
 	// when valAddr is x, get total delegated to bonded validators including those to x
 	delegator := arbitraryAddress()
 	validatorAddresses := generateValidatorAddresses(4)
-	stakingKeeper := fakeStakingKeeper{
+	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
 			//bonded
 			{

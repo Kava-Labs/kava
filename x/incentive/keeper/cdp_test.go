@@ -29,7 +29,8 @@ func TestRiskyCDPsAccumulateRewards(t *testing.T) {
 		WithSimpleUSDXRewardPeriod(collateralType, rewardsPerSecond)
 
 	tApp := app.NewTestApp()
-	tApp.InitializeFromGenesisStates(
+	tApp.InitializeFromGenesisStatesWithTime(
+		genesisTime,
 		authBuilder.BuildMarshalled(),
 		NewPricefeedGenStateMultiFromTime(genesisTime),
 		NewCDPGenStateMulti(),

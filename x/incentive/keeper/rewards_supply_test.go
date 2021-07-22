@@ -185,8 +185,7 @@ func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 			// Accumulate hard supply rewards for the deposit denom
 			multiRewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(runCtx, tc.args.deposit.Denom)
 			suite.Require().True(found)
-			err = suite.keeper.AccumulateHardSupplyRewards(runCtx, multiRewardPeriod)
-			suite.Require().NoError(err)
+			suite.keeper.AccumulateHardSupplyRewards(runCtx, multiRewardPeriod)
 
 			// Check that each expected reward index matches the current stored reward index for the denom
 			globalRewardIndexes, found := suite.keeper.GetHardSupplyRewardIndexes(runCtx, tc.args.deposit.Denom)
@@ -547,8 +546,8 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 				// Accumulate hard supply-side rewards
 				multiRewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(blockCtx, tc.args.deposit.Denom)
 				if found {
-					err := suite.keeper.AccumulateHardSupplyRewards(blockCtx, multiRewardPeriod)
-					suite.Require().NoError(err)
+					suite.keeper.AccumulateHardSupplyRewards(blockCtx, multiRewardPeriod)
+
 				}
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
@@ -657,15 +656,13 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 			// But new deposit denoms don't have their PreviousHardSupplyRewardAccrualTime set yet,
 			// so we need to call the accumulation method once to set the initial reward accrual time
 			if tc.args.deposit.Denom != tc.args.incentiveSupplyRewardDenom {
-				err = suite.keeper.AccumulateHardSupplyRewards(suite.ctx, multiRewardPeriod)
-				suite.Require().NoError(err)
+				suite.keeper.AccumulateHardSupplyRewards(suite.ctx, multiRewardPeriod)
 			}
 
 			// Now we can jump forward in time and accumulate rewards
 			updatedBlockTime = previousBlockTime.Add(time.Duration(int(time.Second) * tc.args.updatedTimeDuration))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
-			err = suite.keeper.AccumulateHardSupplyRewards(suite.ctx, multiRewardPeriod)
-			suite.Require().NoError(err)
+			suite.keeper.AccumulateHardSupplyRewards(suite.ctx, multiRewardPeriod)
 
 			// After we've accumulated, run synchronize
 			deposit, found = suite.hardKeeper.GetDeposit(suite.ctx, userAddr)
@@ -918,8 +915,7 @@ func (suite *SupplyRewardsTestSuite) TestSimulateHardSupplyRewardSynchronization
 				// Accumulate hard supply-side rewards
 				multiRewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(blockCtx, tc.args.deposit.Denom)
 				suite.Require().True(found)
-				err := suite.keeper.AccumulateHardSupplyRewards(blockCtx, multiRewardPeriod)
-				suite.Require().NoError(err)
+				suite.keeper.AccumulateHardSupplyRewards(blockCtx, multiRewardPeriod)
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)

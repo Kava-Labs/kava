@@ -46,6 +46,8 @@ func (builder IncentiveGenesisBuilder) WithGenesisTime(time time.Time) Incentive
 	return builder
 }
 
+// WithInitializedBorrowRewardPeriod sets the genesis time as the previous accumulation time for the specified period.
+// This can be helpful in tests. With no prev time set, the first block accrues no rewards as it just sets the prev time to the current.
 func (builder IncentiveGenesisBuilder) WithInitializedBorrowRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
 	builder.Params.HardBorrowRewardPeriods = append(builder.Params.HardBorrowRewardPeriods, period)
 
@@ -55,6 +57,7 @@ func (builder IncentiveGenesisBuilder) WithInitializedBorrowRewardPeriod(period 
 		accumulationTimeForPeriod,
 	)
 
+	// TODO remove to better reflect real states
 	builder.HardBorrowRewardState.MultiRewardIndexes = builder.HardBorrowRewardState.MultiRewardIndexes.With(
 		period.CollateralType,
 		newZeroRewardIndexesFromCoins(period.RewardsPerSecond...),
@@ -67,6 +70,8 @@ func (builder IncentiveGenesisBuilder) WithSimpleBorrowRewardPeriod(ctype string
 	return builder.WithInitializedBorrowRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
 }
 
+// WithInitializedSupplyRewardPeriod sets the genesis time as the previous accumulation time for the specified period.
+// This can be helpful in tests. With no prev time set, the first block accrues no rewards as it just sets the prev time to the current.
 func (builder IncentiveGenesisBuilder) WithInitializedSupplyRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
 	builder.Params.HardSupplyRewardPeriods = append(builder.Params.HardSupplyRewardPeriods, period)
 
@@ -76,6 +81,7 @@ func (builder IncentiveGenesisBuilder) WithInitializedSupplyRewardPeriod(period 
 		accumulationTimeForPeriod,
 	)
 
+	// TODO remove to better reflect real states
 	builder.HardSupplyRewardState.MultiRewardIndexes = builder.HardSupplyRewardState.MultiRewardIndexes.With(
 		period.CollateralType,
 		newZeroRewardIndexesFromCoins(period.RewardsPerSecond...),
@@ -88,6 +94,8 @@ func (builder IncentiveGenesisBuilder) WithSimpleSupplyRewardPeriod(ctype string
 	return builder.WithInitializedSupplyRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
 }
 
+// WithInitializedDelegatorRewardPeriod sets the genesis time as the previous accumulation time for the specified period.
+// This can be helpful in tests. With no prev time set, the first block accrues no rewards as it just sets the prev time to the current.
 func (builder IncentiveGenesisBuilder) WithInitializedDelegatorRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
 	builder.Params.DelegatorRewardPeriods = append(builder.Params.DelegatorRewardPeriods, period)
 
@@ -97,6 +105,7 @@ func (builder IncentiveGenesisBuilder) WithInitializedDelegatorRewardPeriod(peri
 		accumulationTimeForPeriod,
 	)
 
+	// TODO remove to better reflect real states
 	builder.DelegatorRewardState.MultiRewardIndexes = builder.DelegatorRewardState.MultiRewardIndexes.With(
 		period.CollateralType,
 		newZeroRewardIndexesFromCoins(period.RewardsPerSecond...),
@@ -109,6 +118,8 @@ func (builder IncentiveGenesisBuilder) WithSimpleDelegatorRewardPeriod(ctype str
 	return builder.WithInitializedDelegatorRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
 }
 
+// WithInitializedSwapRewardPeriod sets the genesis time as the previous accumulation time for the specified period.
+// This can be helpful in tests. With no prev time set, the first block accrues no rewards as it just sets the prev time to the current.
 func (builder IncentiveGenesisBuilder) WithInitializedSwapRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
 	builder.Params.SwapRewardPeriods = append(builder.Params.SwapRewardPeriods, period)
 
@@ -118,11 +129,6 @@ func (builder IncentiveGenesisBuilder) WithInitializedSwapRewardPeriod(period ty
 		accumulationTimeForPeriod,
 	)
 
-	builder.SwapRewardState.MultiRewardIndexes = builder.SwapRewardState.MultiRewardIndexes.With(
-		period.CollateralType,
-		newZeroRewardIndexesFromCoins(period.RewardsPerSecond...),
-	)
-
 	return builder
 }
 
@@ -130,6 +136,8 @@ func (builder IncentiveGenesisBuilder) WithSimpleSwapRewardPeriod(poolID string,
 	return builder.WithInitializedSwapRewardPeriod(builder.simpleRewardPeriod(poolID, rewardsPerSecond))
 }
 
+// WithInitializedUSDXRewardPeriod sets the genesis time as the previous accumulation time for the specified period.
+// This can be helpful in tests. With no prev time set, the first block accrues no rewards as it just sets the prev time to the current.
 func (builder IncentiveGenesisBuilder) WithInitializedUSDXRewardPeriod(period types.RewardPeriod) IncentiveGenesisBuilder {
 	builder.Params.USDXMintingRewardPeriods = append(builder.Params.USDXMintingRewardPeriods, period)
 
@@ -139,6 +147,7 @@ func (builder IncentiveGenesisBuilder) WithInitializedUSDXRewardPeriod(period ty
 		accumulationTimeForPeriod,
 	)
 
+	// TODO remove to better reflect real states
 	builder.USDXRewardState.MultiRewardIndexes = builder.USDXRewardState.MultiRewardIndexes.With(
 		period.CollateralType,
 		newZeroRewardIndexesFromCoins(period.RewardsPerSecond),

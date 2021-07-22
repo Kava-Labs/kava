@@ -29,7 +29,7 @@ func (suite *InitializeSwapRewardTests) TestClaimAddedWhenClaimDoesNotExistAndNo
 	// When a claim doesn't exist, and a user deposits to a non-rewarded pool;
 	// then a claim is added with no rewards and no indexes
 
-	poolID := "base/quote"
+	poolID := "base:quote"
 
 	// no global indexes stored as this pool is not rewarded
 
@@ -53,7 +53,7 @@ func (suite *InitializeSwapRewardTests) TestClaimAddedWhenClaimDoesNotExistAndRe
 	// When a claim doesn't exist, and a user deposits to a rewarded pool;
 	// then a claim is added with no rewards and indexes matching the global indexes
 
-	poolID := "base/quote"
+	poolID := "base:quote"
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -92,7 +92,7 @@ func (suite *InitializeSwapRewardTests) TestClaimUpdatedWhenClaimExistsAndNoRewa
 		},
 	}
 
-	newPoolID := "btcb/usdx"
+	newPoolID := "btcb:usdx"
 
 	claim := types.SwapClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -141,7 +141,7 @@ func (suite *InitializeSwapRewardTests) TestClaimUpdatedWhenClaimExistsAndReward
 		},
 	}
 
-	newPoolID := "btcb/usdx"
+	newPoolID := "btcb:usdx"
 	newIndexes := types.RewardIndexes{
 		{
 			CollateralType: "otherrewarddenom",

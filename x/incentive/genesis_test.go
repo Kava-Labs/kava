@@ -13,7 +13,6 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/incentive"
-	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/kavadist"
 )
 
@@ -116,34 +115,6 @@ func (suite *GenesisTestSuite) SetupTest() {
 	suite.keeper = keeper
 	suite.app = tApp
 	suite.ctx = ctx
-}
-
-// Test to cover an bug where paid out claims would zero out rewards incorrectly, creating an invalid coins object.
-// The invalid reward coins would fail the genesis state validation
-func (suite *GenesisTestSuite) TestPaidOutClaimsPassValidateGenesis() {
-	hardHandler := hard.NewHandler(suite.app.GetHardKeeper())
-	_, err := hardHandler(suite.ctx, hard.NewMsgDeposit(suite.addrs[0], cs(c("bnb", 100_000_000))))
-	suite.Require().NoError(err)
-
-	suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * 10 * time.Second))
-	suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
-
-	suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
-	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(2 * 10 * time.Second))
-	suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
-
-	_, err = hardHandler(suite.ctx, hard.NewMsgWithdraw(suite.addrs[0], cs(c("bnb", 100_000_000))))
-	suite.Require().NoError(err)
-
-	incentiveHandler := incentive.NewHandler(suite.keeper)
-	_, err = incentiveHandler(suite.ctx, incentive.NewMsgClaimHardReward(suite.addrs[0], types.NewSelection("hard", "large")))
-	suite.Require().NoError(err)
-
-	genState := incentive.ExportGenesis(suite.ctx, suite.keeper)
-	suite.Require().NoError(
-		genState.Validate(),
-	)
 }
 
 func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
@@ -262,7 +233,7 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 	)
 
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1})
+	ctx := tApp.NewContext(true, abci.Header{Height: 0, Time: genesisTime})
 
 	// Incentive init genesis reads from the cdp keeper to check params are ok. So it needs to be initialized first.
 	// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.
@@ -276,6 +247,84 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 	exportedGenesisState := incentive.ExportGenesis(ctx, tApp.GetIncentiveKeeper())
 
 	suite.Equal(genesisState, exportedGenesisState)
+}
+
+func (suite *GenesisTestSuite) TestInitGenesisPanicsWhenAccumulationTimesToLongAgo() {
+	genesisTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+	invalidRewardState := incentive.NewGenesisRewardState(
+		incentive.AccumulationTimes{
+			incentive.NewAccumulationTime("bnb", genesisTime.Add(-23*incentive.EarliestValidAccumulationTime).Add(-time.Nanosecond)),
+		},
+		incentive.MultiRewardIndexes{},
+	)
+	minimalParams := incentive.Params{
+		ClaimEnd: genesisTime.Add(5 * oneYear),
+	}
+
+	testCases := []struct {
+		genesisState incentive.GenesisState
+	}{
+		{
+			incentive.GenesisState{
+				Params:          minimalParams,
+				USDXRewardState: invalidRewardState,
+			},
+		},
+		{
+			incentive.GenesisState{
+				Params:                minimalParams,
+				HardSupplyRewardState: invalidRewardState,
+			},
+		},
+		{
+			incentive.GenesisState{
+				Params:                minimalParams,
+				HardBorrowRewardState: invalidRewardState,
+			},
+		},
+		{
+			incentive.GenesisState{
+				Params:               minimalParams,
+				DelegatorRewardState: invalidRewardState,
+			},
+		},
+		{
+			incentive.GenesisState{
+				Params:          minimalParams,
+				SwapRewardState: invalidRewardState,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+
+		tApp := app.NewTestApp()
+		ctx := tApp.NewContext(true, abci.Header{Height: 0, Time: genesisTime})
+
+		// Incentive init genesis reads from the cdp keeper to check params are ok. So it needs to be initialized first.
+		// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.
+		tApp.InitializeFromGenesisStates(
+			NewCDPGenStateMulti(),
+			NewPricefeedGenStateMultiFromTime(genesisTime),
+		)
+
+		suite.PanicsWithValue(
+			"found accumulation time '1975-01-06 23:59:59.999999999 +0000 UTC' more than '8760h0m0s' behind genesis time '1998-01-01 00:00:00 +0000 UTC'",
+			func() {
+				incentive.InitGenesis(ctx, tApp.GetIncentiveKeeper(), tApp.GetSupplyKeeper(), tApp.GetCDPKeeper(), tc.genesisState)
+			},
+		)
+	}
+}
+
+func (suite *GenesisTestSuite) TestValidateAccumulationTime() {
+	genTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	err := incentive.ValidateAccumulationTime(
+		genTime.Add(-incentive.EarliestValidAccumulationTime).Add(-time.Nanosecond),
+		genTime,
+	)
+	suite.Error(err)
 }
 
 func TestGenesisTestSuite(t *testing.T) {
