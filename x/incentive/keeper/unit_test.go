@@ -121,18 +121,27 @@ func (subspace *fakeParamSubspace) WithKeyTable(params.KeyTable) params.Subspace
 // fakeSwapKeeper is a stub swap keeper.
 // It can be used to return values to the incentive keeper without having to initialize a full swap keeper.
 type fakeSwapKeeper struct {
-	poolShares map[string]sdk.Int
+	poolShares    map[string]sdk.Int
+	depositShares map[string](map[string]sdk.Int)
 }
 
 var _ types.SwapKeeper = newFakeSwapKeeper()
 
 func newFakeSwapKeeper() *fakeSwapKeeper {
 	return &fakeSwapKeeper{
-		poolShares: map[string]sdk.Int{},
+		poolShares:    map[string]sdk.Int{},
+		depositShares: map[string](map[string]sdk.Int){},
 	}
 }
 func (k *fakeSwapKeeper) addPool(id string, shares sdk.Int) *fakeSwapKeeper {
 	k.poolShares[id] = shares
+	return k
+}
+func (k *fakeSwapKeeper) addDeposit(poolID string, depositor sdk.AccAddress, shares sdk.Int) *fakeSwapKeeper {
+	if k.depositShares[poolID] == nil {
+		k.depositShares[poolID] = map[string]sdk.Int{}
+	}
+	k.depositShares[poolID][depositor.String()] = shares
 	return k
 }
 func (k *fakeSwapKeeper) GetPoolShares(_ sdk.Context, poolID string) (sdk.Int, bool) {
@@ -140,8 +149,8 @@ func (k *fakeSwapKeeper) GetPoolShares(_ sdk.Context, poolID string) (sdk.Int, b
 	return shares, ok
 }
 func (k *fakeSwapKeeper) GetDepositorSharesAmount(_ sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
-	// This is just to implement the swap keeper interface.
-	return sdk.Int{}, false
+	shares, found := k.depositShares[poolID][depositor.String()]
+	return shares, found
 }
 
 // fakeHardKeeper is a stub hard keeper.
