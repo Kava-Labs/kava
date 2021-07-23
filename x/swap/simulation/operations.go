@@ -319,9 +319,12 @@ func SimulateMsgSwapExactForTokens(ak types.AccountKeeper, k keeper.Keeper) simu
 		exactInputToken := sdk.NewCoin(inputToken.Denom, tradeAmount)
 
 		// Calculate expected output coin
+		globalSwapFee := k.GetSwapFee(ctx)
+		tradeAmountAfterFee := exactInputToken.Amount.ToDec().Mul(sdk.OneDec().Sub(globalSwapFee)).TruncateInt()
+
 		var outputAmt big.Int
-		outputAmt.Mul(outputToken.Amount.BigInt(), tradeAmount.BigInt())
-		outputAmt.Quo(&outputAmt, inputToken.Amount.Add(tradeAmount).BigInt())
+		outputAmt.Mul(outputToken.Amount.BigInt(), tradeAmountAfterFee.BigInt())
+		outputAmt.Quo(&outputAmt, inputToken.Amount.Add(tradeAmountAfterFee).BigInt())
 		expectedOutTokenAmount := sdk.NewIntFromBigInt(&outputAmt)
 		expectedOutputToken := sdk.NewCoin(outputToken.Denom, expectedOutTokenAmount)
 
@@ -415,9 +418,12 @@ func SimulateMsgSwapForExactTokens(ak types.AccountKeeper, k keeper.Keeper) simu
 		expectedInputToken := sdk.NewCoin(inputToken.Denom, tradeAmount)
 
 		// Calculate exact output coin
+		globalSwapFee := k.GetSwapFee(ctx)
+		tradeAmountAfterFee := expectedInputToken.Amount.ToDec().Mul(sdk.OneDec().Sub(globalSwapFee)).TruncateInt()
+
 		var outputAmt big.Int
-		outputAmt.Mul(outputToken.Amount.BigInt(), tradeAmount.BigInt())
-		outputAmt.Quo(&outputAmt, inputToken.Amount.Add(tradeAmount).BigInt())
+		outputAmt.Mul(outputToken.Amount.BigInt(), tradeAmountAfterFee.BigInt())
+		outputAmt.Quo(&outputAmt, inputToken.Amount.Add(tradeAmountAfterFee).BigInt())
 		outputTokenAmount := sdk.NewIntFromBigInt(&outputAmt)
 		exactOutputToken := sdk.NewCoin(outputToken.Denom, outputTokenAmount)
 
