@@ -88,36 +88,47 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 	}
 
 	for _, coin := range borrow.Amount {
-		globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-		if !found {
-			// The global factor is only not found if
-			// - the borrowed denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
-			// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
-			// If not found we could either skip this sync, or assume the global factor is zero.
-			// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
-			// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
-			continue
-		}
+		sourceShares := coin.Amount.ToDec()
 
-		userRewardIndexes, found := claim.BorrowRewardIndexes.Get(coin.Denom)
-		if !found {
-			// Normally the reward indexes should always be found.
-			// But if a denom was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that borrowed denom.
-			// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
-			userRewardIndexes = types.RewardIndexes{}
-		}
-
-		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount.ToDec())
-		if err != nil {
-			// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
-			// This panics if a global reward factor decreases or disappears between the old and new indexes.
-			panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
-		}
-
-		claim.Reward = claim.Reward.Add(newRewards...)
-		claim.BorrowRewardIndexes = claim.BorrowRewardIndexes.With(coin.Denom, globalRewardIndexes)
+		claim = k.synchronizeSingleHardBorrowReward(ctx, claim, coin.Denom, sourceShares)
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
+}
+
+// synchronizeSingleHardBorrowReward synchronizes a single rewarded borrow denom in a hard claim.
+// It returns the claim without setting in the store.
+// Note passing around claims is easy to wrong, so use other public methods for accessing and modifying claims over this one.
+func (k Keeper) synchronizeSingleHardBorrowReward(ctx sdk.Context, claim types.HardLiquidityProviderClaim, denom string, sourceShares sdk.Dec) types.HardLiquidityProviderClaim {
+	globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, denom)
+	if !found {
+		// The global factor is only not found if
+		// - the borrowed denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+		// If not found we could either skip this sync, or assume the global factor is zero.
+		// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+		// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
+		return claim
+	}
+
+	userRewardIndexes, found := claim.BorrowRewardIndexes.Get(denom)
+	if !found {
+		// Normally the reward indexes should always be found.
+		// But if a denom was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that borrowed denom.
+		// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
+		userRewardIndexes = types.RewardIndexes{}
+	}
+
+	newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, sourceShares)
+	if err != nil {
+		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
+		// This panics if a global reward factor decreases or disappears between the old and new indexes.
+		panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
+	}
+
+	claim.Reward = claim.Reward.Add(newRewards...)
+	claim.BorrowRewardIndexes = claim.BorrowRewardIndexes.With(denom, globalRewardIndexes)
+
+	return claim
 }
 
 // UpdateHardBorrowIndexDenoms adds any new borrow denoms to the claim's borrow reward index
