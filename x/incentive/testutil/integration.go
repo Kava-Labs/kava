@@ -27,6 +27,21 @@ type IntegrationTester struct {
 	Ctx sdk.Context
 }
 
+func (suite *IntegrationTester) SetupSuite() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+}
+
+func (suite *IntegrationTester) StartChain(genesisTime time.Time, genesisStates ...app.GenesisState) {
+	suite.App = app.NewTestApp()
+	suite.Ctx = suite.App.NewContext(true, abci.Header{Height: 1, Time: genesisTime})
+
+	suite.App.InitializeFromGenesisStatesWithTime(
+		genesisTime,
+		genesisStates...,
+	)
+}
+
 func (suite *IntegrationTester) NextBlockAt(blockTime time.Time) {
 	if !suite.Ctx.BlockTime().Before(blockTime) {
 		panic(fmt.Sprintf("new block time %s must be after current %s", blockTime, suite.Ctx.BlockTime()))
@@ -87,14 +102,26 @@ func (suite *IntegrationTester) DeliverSwapMsgDeposit(depositor sdk.AccAddress, 
 	return err
 }
 
-func (suite *IntegrationTester) DeliverHardMsgDeposit(depositor sdk.AccAddress, deposit sdk.Coins) error {
-	msg := hard.NewMsgDeposit(depositor, deposit)
+func (suite *IntegrationTester) DeliverHardMsgDeposit(owner sdk.AccAddress, deposit sdk.Coins) error {
+	msg := hard.NewMsgDeposit(owner, deposit)
 	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
 	return err
 }
 
-func (suite *IntegrationTester) DeliverHardMsgBorrow(depositor sdk.AccAddress, borrow sdk.Coins) error {
-	msg := hard.NewMsgBorrow(depositor, borrow)
+func (suite *IntegrationTester) DeliverHardMsgBorrow(owner sdk.AccAddress, borrow sdk.Coins) error {
+	msg := hard.NewMsgBorrow(owner, borrow)
+	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	return err
+}
+
+func (suite *IntegrationTester) DeliverHardMsgRepay(owner sdk.AccAddress, repay sdk.Coins) error {
+	msg := hard.NewMsgRepay(owner, owner, repay)
+	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	return err
+}
+
+func (suite *IntegrationTester) DeliverHardMsgWithdraw(owner sdk.AccAddress, withdraw sdk.Coins) error {
+	msg := hard.NewMsgRepay(owner, owner, withdraw)
 	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
 	return err
 }
@@ -132,6 +159,20 @@ func (suite *IntegrationTester) BalanceEquals(address sdk.AccAddress, expected s
 	acc := suite.App.GetAccountKeeper().GetAccount(suite.Ctx, address)
 	suite.Require().NotNil(acc, "expected account to not be nil")
 	suite.Equalf(expected, acc.GetCoins(), "expected account balance to equal coins %s, but got %s", expected, acc.GetCoins())
+}
+
+func (suite *IntegrationTester) BalanceInEpsilon(address sdk.AccAddress, expected sdk.Coins, epsilon float64) {
+	actual := suite.GetBalance(address)
+
+	allDenoms := expected.Add(actual...)
+	for _, coin := range allDenoms {
+		suite.InEpsilonf(
+			expected.AmountOf(coin.Denom).Int64(),
+			actual.AmountOf(coin.Denom).Int64(),
+			epsilon,
+			"expected balance to be within %f%% of coins %s, but got %s", epsilon*100, expected, actual,
+		)
+	}
 }
 
 func (suite *IntegrationTester) VestingPeriodsEqual(address sdk.AccAddress, expectedPeriods vesting.Periods) {

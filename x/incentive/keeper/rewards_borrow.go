@@ -38,8 +38,14 @@ func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.
 }
 
 // getHardBorrowTotalSourceShares fetches the sum of all source shares for a borrow reward.
-// In the case of hard borrow, this is the total borrowed divided by the borrow interest factor.
-// This give the "pre interest" value of the total borrowed.
+//
+// In the case of hard borrow, this is the total borrowed divided by the borrow interest factor (for a particular denom).
+// This give the "pre interest" or "normalized" value of the total borrowed. This is an amount, that if it was borrowed when
+// the interest factor was zero (ie at time 0), the current value of it with interest would be equal to the current total borrowed.
+//
+// The normalized borrow is also used for each individual borrow's source shares amount. Normalized amounts do not change except through
+// user input. This is essential as claims must be synced before any change to a source shares amount. The actual borrowed amounts cannot
+// be used as they increase every block due to interest.
 func (k Keeper) getHardBorrowTotalSourceShares(ctx sdk.Context, denom string) sdk.Dec {
 	totalBorrowedCoins, found := k.hardKeeper.GetBorrowedCoins(ctx)
 	if !found {
@@ -87,17 +93,22 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 		return
 	}
 
-	for _, coin := range borrow.Amount {
-		sourceShares := coin.Amount.ToDec()
+	// Source shares for hard borrows is their normalized borrow amount
+	normalizedBorrows, err := borrow.NormalizedBorrow()
+	if err != nil {
+		panic(fmt.Sprintf("during borrow reward sync, could not get normalized borrow for %s: %s", borrow.Borrower, err.Error()))
+	}
 
-		claim = k.synchronizeSingleHardBorrowReward(ctx, claim, coin.Denom, sourceShares)
+	for _, normedBorrow := range normalizedBorrows {
+
+		claim = k.synchronizeSingleHardBorrowReward(ctx, claim, normedBorrow.Denom, normedBorrow.Amount)
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
 // synchronizeSingleHardBorrowReward synchronizes a single rewarded borrow denom in a hard claim.
 // It returns the claim without setting in the store.
-// Note passing around claims is easy to wrong, so use other public methods for accessing and modifying claims over this one.
+// The public methods for accessing and modifying claims are preferred over this one. Direct modification of claims is easy to get wrong.
 func (k Keeper) synchronizeSingleHardBorrowReward(ctx sdk.Context, claim types.HardLiquidityProviderClaim, denom string, sourceShares sdk.Dec) types.HardLiquidityProviderClaim {
 	globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, denom)
 	if !found {
@@ -131,7 +142,7 @@ func (k Keeper) synchronizeSingleHardBorrowReward(ctx sdk.Context, claim types.H
 	return claim
 }
 
-// UpdateHardBorrowIndexDenoms adds any new borrow denoms to the claim's borrow reward index
+// UpdateHardBorrowIndexDenoms adds or removes reward indexes from a claim to match the denoms in the borrow.
 func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {

@@ -5,19 +5,10 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 // UpdateHardBorrowIndexDenomsTests runs unit tests for the keeper.UpdateHardBorrowIndexDenoms method
-//
-// inputs
-// - claim in store if it exists (only claim.BorrowRewardIndexes)
-// - global indexes in store
-// - borrow function arg (only borrow.Amount)
-//
-// outputs
-// - sets a claim
 type UpdateHardBorrowIndexDenomsTests struct {
 	unitTester
 }
@@ -38,10 +29,9 @@ func (suite *UpdateHardBorrowIndexDenomsTests) TestClaimIndexesAreRemovedForDeno
 
 	// remove one denom from the indexes already in the borrow
 	expectedIndexes := claim.BorrowRewardIndexes[1:]
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(expectedIndexes)...),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(expectedIndexes)...).
+		Build()
 
 	suite.keeper.UpdateHardBorrowIndexDenoms(suite.ctx, borrow)
 
@@ -60,10 +50,9 @@ func (suite *UpdateHardBorrowIndexDenomsTests) TestClaimIndexesAreAddedForNewlyB
 	globalIndexes := appendUniqueMultiRewardIndex(claim.BorrowRewardIndexes)
 	suite.storeGlobalBorrowIndexes(globalIndexes)
 
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
+		Build()
 
 	suite.keeper.UpdateHardBorrowIndexDenoms(suite.ctx, borrow)
 
@@ -83,10 +72,9 @@ func (suite *UpdateHardBorrowIndexDenomsTests) TestClaimIndexesAreUnchangedWhenB
 	// UpdateHardBorrowIndexDenoms should ignore the new values.
 	suite.storeGlobalBorrowIndexes(increaseAllRewardFactors(claim.BorrowRewardIndexes))
 
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(claim.BorrowRewardIndexes)...),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(claim.BorrowRewardIndexes)...).
+		Build()
 
 	suite.keeper.UpdateHardBorrowIndexDenoms(suite.ctx, borrow)
 
@@ -107,10 +95,9 @@ func (suite *UpdateHardBorrowIndexDenomsTests) TestEmptyClaimIndexesAreAddedForN
 	// add a denom to the borrowed amount that is not in the global or claim's indexes
 	expectedIndexes := appendUniqueEmptyMultiRewardIndex(claim.BorrowRewardIndexes)
 	borrowedDenoms := extractCollateralTypes(expectedIndexes)
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   arbitraryCoinsWithDenoms(borrowedDenoms...),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithArbitrarySourceShares(borrowedDenoms...).
+		Build()
 
 	suite.keeper.UpdateHardBorrowIndexDenoms(suite.ctx, borrow)
 
