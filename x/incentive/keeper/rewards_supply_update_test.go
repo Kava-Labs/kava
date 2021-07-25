@@ -5,19 +5,10 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 // UpdateHardSupplyIndexDenomsTests runs unit tests for the keeper.UpdateHardSupplyIndexDenoms method
-//
-// inputs
-// - claim in store if it exists (only claim.SupplyRewardIndexes)
-// - global indexes in store
-// - deposit function arg (only deposit.Amount)
-//
-// outputs
-// - sets a claim
 type UpdateHardSupplyIndexDenomsTests struct {
 	unitTester
 }
@@ -38,10 +29,9 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestClaimIndexesAreRemovedForDeno
 
 	// remove one denom from the indexes already in the deposit
 	expectedIndexes := claim.SupplyRewardIndexes[1:]
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    arbitraryCoinsWithDenoms(extractCollateralTypes(expectedIndexes)...),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(expectedIndexes)...).
+		Build()
 
 	suite.keeper.UpdateHardSupplyIndexDenoms(suite.ctx, deposit)
 
@@ -60,10 +50,9 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestClaimIndexesAreAddedForNewlyS
 	globalIndexes := appendUniqueMultiRewardIndex(claim.SupplyRewardIndexes)
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
+		Build()
 
 	suite.keeper.UpdateHardSupplyIndexDenoms(suite.ctx, deposit)
 
@@ -83,10 +72,9 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestClaimIndexesAreUnchangedWhenS
 	// UpdateHardSupplyIndexDenoms should ignore the new values.
 	suite.storeGlobalSupplyIndexes(increaseAllRewardFactors(claim.SupplyRewardIndexes))
 
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    arbitraryCoinsWithDenoms(extractCollateralTypes(claim.SupplyRewardIndexes)...),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(claim.SupplyRewardIndexes)...).
+		Build()
 
 	suite.keeper.UpdateHardSupplyIndexDenoms(suite.ctx, deposit)
 
@@ -107,10 +95,9 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestEmptyClaimIndexesAreAddedForN
 	// add a denom to the deposited amount that is not in the global or claim's indexes
 	expectedIndexes := appendUniqueEmptyMultiRewardIndex(claim.SupplyRewardIndexes)
 	depositedDenoms := extractCollateralTypes(expectedIndexes)
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    arbitraryCoinsWithDenoms(depositedDenoms...),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithArbitrarySourceShares(depositedDenoms...).
+		Build()
 
 	suite.keeper.UpdateHardSupplyIndexDenoms(suite.ctx, deposit)
 

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
@@ -10,14 +11,6 @@ import (
 )
 
 // SynchronizeHardSupplyRewardTests runs unit tests for the keeper.SynchronizeHardSupplyReward method
-//
-// inputs
-// - claim in store (only claim.SupplyRewardIndexes, claim.Reward)
-// - global indexes in store
-// - deposit function arg (only deposit.Amount)
-//
-// outputs
-// - sets a claim
 type SynchronizeHardSupplyRewardTests struct {
 	unitTester
 }
@@ -39,10 +32,9 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenGlo
 
 	globalIndexes := increaseAllRewardFactors(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalSupplyIndexes(globalIndexes)
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    arbitraryCoinsWithDenoms(extractCollateralTypes(claim.SupplyRewardIndexes)...),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(claim.SupplyRewardIndexes)...).
+		Build()
 
 	suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
 
@@ -64,10 +56,9 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUnchangedWhenG
 
 	suite.storeGlobalSupplyIndexes(unchangingIndexes)
 
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    arbitraryCoinsWithDenoms(extractCollateralTypes(unchangingIndexes)...),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(unchangingIndexes)...).
+		Build()
 
 	suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
 
@@ -89,10 +80,9 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	globalIndexes := appendUniqueMultiRewardIndex(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
+		Build()
 
 	suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
 
@@ -115,10 +105,9 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	globalIndexes := appendUniqueRewardIndexToFirstItem(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
+		Build()
 
 	suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
 
@@ -165,10 +154,9 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenGlobal
 		},
 	})
 
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    cs(c("depositdenom", 1e9)),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithSourceShares("depositdenom", 1e9).
+		Build()
 
 	suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
 
@@ -228,10 +216,10 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenNewRew
 	}
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    cs(c("rewarded", 1e9), c("newlyrewarded", 1e9)),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithSourceShares("rewarded", 1e9).
+		WithSourceShares("newlyrewarded", 1e9).
+		Build()
 
 	suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
 
@@ -286,10 +274,9 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenNewRew
 	}
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    cs(c("deposited", 1e9)),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithSourceShares("deposited", 1e9).
+		Build()
 
 	suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
 
@@ -300,4 +287,51 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenNewRew
 		cs(c("reward", 1_000_001_000_000), c("otherreward", 1_000_001_000_000)).Add(originalReward...),
 		syncedClaim.Reward,
 	)
+}
+
+// DepositBuilder is a tool for creating a hard deposit in tests.
+// The builder inherits from hard.Deposit, so fields can be accessed directly if a helper method doesn't exist.
+type DepositBuilder struct {
+	hardtypes.Deposit
+}
+
+// NewDepositBuilder creates a DepositBuilder containing an empty deposit.
+func NewDepositBuilder(depositor sdk.AccAddress) DepositBuilder {
+	return DepositBuilder{
+		Deposit: hardtypes.Deposit{
+			Depositor: depositor,
+		}}
+}
+
+// Build assembles and returns the final deposit.
+func (builder DepositBuilder) Build() hardtypes.Deposit { return builder.Deposit }
+
+// WithSourceShares adds a deposit amount and factor such that the source shares for this deposit is equal to specified.
+// With a factor of 1, the deposit amount is the source shares. This picks an arbitrary factor to ensure factors are accounted for in production code.
+func (builder DepositBuilder) WithSourceShares(denom string, shares int64) DepositBuilder {
+	if !builder.Amount.AmountOf(denom).Equal(sdk.ZeroInt()) {
+		panic("adding to amount with existing denom not implemented")
+	}
+	if _, f := builder.Index.GetInterestFactor(denom); f {
+		panic("adding to indexes with existing denom not implemented")
+	}
+
+	// pick arbitrary factor
+	// factor := sdk.MustNewDecFromStr("2")
+
+	// Calculate deposit amount that would equal the requested source shares given the above factor.
+	amt := sdk.NewInt(shares) //.Mul(factor.RoundInt())
+
+	builder.Amount = builder.Amount.Add(sdk.NewCoin(denom, amt))
+	// builder.Index = builder.Index.SetInterestFactor(denom, factor)
+	return builder
+}
+
+// WithArbitrarySourceShares adds arbitrary deposit amounts and indexes for each specified denom.
+func (builder DepositBuilder) WithArbitrarySourceShares(denoms ...string) DepositBuilder {
+	const arbitraryShares = 1e9
+	for _, denom := range denoms {
+		builder = builder.WithSourceShares(denom, arbitraryShares)
+	}
+	return builder
 }

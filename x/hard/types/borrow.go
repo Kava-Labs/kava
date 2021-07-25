@@ -25,9 +25,8 @@ func NewBorrow(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFa
 
 // NormalizedBorrow is the borrow amounts divided by the interest factors.
 //
-// This is an amount, that if it was borrowed when the interest factor was zero (ie at time 0), the current value of it with
-// interest would be equal to the current full borrowed amount (including all interest). Multiplying the normalized borrow
-// by the current global factors gives the current full borrowed amount.
+// Multiplying the normalized borrow by the current global factors gives the current borrow (ie including all interest, ie a synced borrow).
+// The normalized borrow is effectively how big the borrow would have been if it had been borrowed at time 0 and not touched since.
 //
 // An error is returned if the borrow is in an invalid state.
 func (b Borrow) NormalizedBorrow() (sdk.DecCoins, error) {
