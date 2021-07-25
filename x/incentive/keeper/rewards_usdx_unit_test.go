@@ -257,15 +257,15 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIsUnchangedWhenGlobalFa
 	suite.Equal(claim.Reward, syncedClaim.Reward)
 }
 
-// CdpBuilder is a tool for creating a CDP in tests.
+// CDPBuilder is a tool for creating a CDP in tests.
 // The builder inherits from cdp.CDP, so fields can be accessed directly if a helper method doesn't exist.
-type CdpBuilder struct {
+type CDPBuilder struct {
 	cdptypes.CDP
 }
 
 // NewCDPBuilder creates a CdpBuilder containing a CDP with owner and collateral type set.
-func NewCDPBuilder(owner sdk.AccAddress, collateralType string) CdpBuilder {
-	return CdpBuilder{
+func NewCDPBuilder(owner sdk.AccAddress, collateralType string) CDPBuilder {
+	return CDPBuilder{
 		CDP: cdptypes.CDP{
 			Owner: owner,
 			Type:  collateralType,
@@ -273,23 +273,25 @@ func NewCDPBuilder(owner sdk.AccAddress, collateralType string) CdpBuilder {
 			// Set them to the default denom, but with 0 amount.
 			Principal:       c(cdptypes.DefaultStableDenom, 0),
 			AccumulatedFees: c(cdptypes.DefaultStableDenom, 0),
+			// zero value of sdk.Dec causes nil pointer panics
+			InterestFactor: sdk.OneDec(),
 		}}
 }
 
 // Build assembles and returns the final deposit.
-func (builder CdpBuilder) Build() cdptypes.CDP { return builder.CDP }
+func (builder CDPBuilder) Build() cdptypes.CDP { return builder.CDP }
 
 // WithSourceShares adds a principal amount and interest factor such that the source shares for this CDP is equal to specified.
 // With a factor of 1, the total principal is the source shares. This picks an arbitrary factor to ensure factors are accounted for in production code.
-func (builder CdpBuilder) WithSourceShares(shares int64) CdpBuilder {
+func (builder CDPBuilder) WithSourceShares(shares int64) CDPBuilder {
 	if !builder.GetTotalPrincipal().Amount.Equal(sdk.ZeroInt()) {
 		panic("setting source shares on cdp with existing principal or fees not implemented")
 	}
-	if !(builder.InterestFactor.IsNil() || builder.InterestFactor.Equal(sdk.ZeroDec())) {
+	if !(builder.InterestFactor.IsNil() || builder.InterestFactor.Equal(sdk.OneDec())) {
 		panic("setting source shares on cdp with existing interest factor not implemented")
 	}
 	// pick arbitrary interest factor
-	factor := sdk.NewInt(1) // TODO change to >1
+	factor := sdk.NewInt(2)
 
 	// Calculate deposit amount that would equal the requested source shares given the above factor.
 	principal := sdk.NewInt(shares).Mul(factor)
@@ -300,7 +302,7 @@ func (builder CdpBuilder) WithSourceShares(shares int64) CdpBuilder {
 	return builder
 }
 
-func (builder CdpBuilder) WithPrincipal(principal sdk.Int) CdpBuilder {
+func (builder CDPBuilder) WithPrincipal(principal sdk.Int) CDPBuilder {
 	builder.Principal = sdk.NewCoin(cdptypes.DefaultStableDenom, principal)
 	return builder
 }

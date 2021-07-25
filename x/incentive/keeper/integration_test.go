@@ -109,6 +109,8 @@ func NewCDPGenStateMulti() app.GenesisState {
 }
 
 func NewPricefeedGenStateMultiFromTime(t time.Time) app.GenesisState {
+	expiry := 100 * 365 * 24 * time.Hour // 100 years
+
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
@@ -125,37 +127,37 @@ func NewPricefeedGenStateMultiFromTime(t time.Time) app.GenesisState {
 				MarketID:      "kava:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("2.00"),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "btc:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("8000.00"),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "xrp:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("0.25"),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "bnb:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("17.25"),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "busd:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.OneDec(),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "zzz:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("2.00"),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 		},
 	}

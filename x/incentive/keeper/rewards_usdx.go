@@ -90,7 +90,10 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 		)
 	}
 
-	sourceShares := cdp.GetTotalPrincipal().Amount.ToDec()
+	sourceShares, err := cdp.GetNormalizedPrincipal()
+	if err != nil {
+		panic(fmt.Sprintf("during usdx reward sync, could not get normalized principal for %s: %s", cdp.Owner, err.Error()))
+	}
 
 	claim = k.synchronizeSingleUSDXMintingReward(ctx, claim, cdp.Type, sourceShares)
 

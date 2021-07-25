@@ -62,24 +62,24 @@ func (suite *SupplyIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 	)
 
 	// Create a deposit
-	suite.DeliverHardMsgDeposit(userA, cs(c("bnb", 1e11)))
+	suite.NoError(suite.DeliverHardMsgDeposit(userA, cs(c("bnb", 1e11))))
 	// Also create a borrow so interest accumulates on the deposit
-	suite.DeliverHardMsgBorrow(userA, cs(c("bnb", 1e10)))
+	suite.NoError(suite.DeliverHardMsgBorrow(userA, cs(c("bnb", 1e10))))
 
 	// Let time pass to accumulate interest on the deposit
 	// Use one long block instead of many to reduce any rounding errors, and speed up tests.
 	suite.NextBlockAfter(1e6 * time.Second) // about 12 days
 
 	// User withdraw and redeposits just to sync their deposit.
-	suite.DeliverHardMsgWithdraw(userA, cs(c("bnb", 1)))
-	suite.DeliverHardMsgDeposit(userA, cs(c("bnb", 1)))
+	suite.NoError(suite.DeliverHardMsgWithdraw(userA, cs(c("bnb", 1))))
+	suite.NoError(suite.DeliverHardMsgDeposit(userA, cs(c("bnb", 1))))
 
 	// Accumulate more rewards.
 	// The user still has the same percentage of all deposits (100%) so their rewards should be the same as in the previous block.
 	suite.NextBlockAfter(1e6 * time.Second) // about 12 days
 
 	// User claims all their rewards
-	suite.DeliverIncentiveMsg(types.NewMsgClaimHardReward(userA, "large", nil))
+	suite.NoError(suite.DeliverIncentiveMsg(types.NewMsgClaimHardReward(userA, "large", nil)))
 
 	// The users has always had 100% of deposits, so they should receive all rewards for the previous two blocks.
 	// Total rewards for each block is block duration * rewards per second

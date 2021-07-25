@@ -34,12 +34,13 @@ func (suite *IntegrationTester) SetupSuite() {
 
 func (suite *IntegrationTester) StartChain(genesisTime time.Time, genesisStates ...app.GenesisState) {
 	suite.App = app.NewTestApp()
-	suite.Ctx = suite.App.NewContext(true, abci.Header{Height: 1, Time: genesisTime})
 
 	suite.App.InitializeFromGenesisStatesWithTime(
 		genesisTime,
 		genesisStates...,
 	)
+
+	suite.Ctx = suite.App.NewContext(false, abci.Header{Height: 1, Time: genesisTime})
 }
 
 func (suite *IntegrationTester) NextBlockAt(blockTime time.Time) {
@@ -128,6 +129,18 @@ func (suite *IntegrationTester) DeliverHardMsgWithdraw(owner sdk.AccAddress, wit
 
 func (suite *IntegrationTester) DeliverMsgCreateCDP(owner sdk.AccAddress, collateral, principal sdk.Coin, collateralType string) error {
 	msg := cdp.NewMsgCreateCDP(owner, collateral, principal, collateralType)
+	_, err := cdp.NewHandler(suite.App.GetCDPKeeper())(suite.Ctx, msg)
+	return err
+}
+
+func (suite *IntegrationTester) DeliverCDPMsgRepay(owner sdk.AccAddress, collateralType string, payment sdk.Coin) error {
+	msg := cdp.NewMsgRepayDebt(owner, collateralType, payment)
+	_, err := cdp.NewHandler(suite.App.GetCDPKeeper())(suite.Ctx, msg)
+	return err
+}
+
+func (suite *IntegrationTester) DeliverCDPMsgBorrow(owner sdk.AccAddress, collateralType string, draw sdk.Coin) error {
+	msg := cdp.NewMsgDrawDebt(owner, collateralType, draw)
 	_, err := cdp.NewHandler(suite.App.GetCDPKeeper())(suite.Ctx, msg)
 	return err
 }
