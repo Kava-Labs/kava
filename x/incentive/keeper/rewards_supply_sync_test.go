@@ -317,13 +317,13 @@ func (builder DepositBuilder) WithSourceShares(denom string, shares int64) Depos
 	}
 
 	// pick arbitrary factor
-	// factor := sdk.MustNewDecFromStr("2")
+	factor := sdk.MustNewDecFromStr("2")
 
 	// Calculate deposit amount that would equal the requested source shares given the above factor.
-	amt := sdk.NewInt(shares) //.Mul(factor.RoundInt())
+	amt := sdk.NewInt(shares).Mul(factor.RoundInt())
 
 	builder.Amount = builder.Amount.Add(sdk.NewCoin(denom, amt))
-	// builder.Index = builder.Index.SetInterestFactor(denom, factor)
+	builder.Index = builder.Index.SetInterestFactor(denom, factor)
 	return builder
 }
 

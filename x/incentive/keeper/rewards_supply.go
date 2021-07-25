@@ -86,9 +86,15 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 		return
 	}
 
-	for _, coin := range deposit.Amount {
+	// Source shares for hard deposits is their normalized deposit amount
+	normalizedDeposit, err := deposit.NormalizedDeposit()
+	if err != nil {
+		panic(fmt.Sprintf("during deposit reward sync, could not get normalized deposit for %s: %s", deposit.Depositor, err.Error()))
+	}
 
-		claim = k.synchronizeSingleHardSupplyReward(ctx, claim, coin.Denom, coin.Amount.ToDec())
+	for _, normedDeposit := range normalizedDeposit {
+
+		claim = k.synchronizeSingleHardSupplyReward(ctx, claim, normedDeposit.Denom, normedDeposit.Amount)
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
