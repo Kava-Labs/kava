@@ -85,7 +85,6 @@ func (suite *BorrowIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 	accuracy := 1e-10 // using a very high accuracy to flag future small calculation changes
 	suite.BalanceInEpsilon(userA, cs(c("bnb", 1e12-1e11+1e10), c("hard", 2*1e6*1e6)), accuracy)
 }
-)
 
 // Test suite used for all keeper tests
 type BorrowRewardsTestSuite struct {
