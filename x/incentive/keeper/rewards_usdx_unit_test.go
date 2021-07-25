@@ -106,7 +106,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardUnchangedWhenGlobalInd
 
 	suite.storeGlobalUSDXIndexes(unchangingRewardIndexes)
 
-	cdp := NewCDPBuilder(claim.Owner, collateralType).WithPrincipal(i(1e12)).Build()
+	cdp := NewCDPBuilder(claim.Owner, collateralType).WithSourceShares(1e12).Build()
 
 	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 
@@ -139,7 +139,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGloba
 	}
 	suite.storeGlobalUSDXIndexes(globalIndexes)
 
-	cdp := NewCDPBuilder(claim.Owner, collateralType).WithPrincipal(i(1e12)).Build()
+	cdp := NewCDPBuilder(claim.Owner, collateralType).WithSourceShares(1e12).Build()
 
 	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 
@@ -159,7 +159,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenNewRe
 	}
 	suite.storeGlobalUSDXIndexes(globalIndexes)
 
-	cdp := NewCDPBuilder(arbitraryAddress(), collateralType).WithPrincipal(i(1e12)).Build()
+	cdp := NewCDPBuilder(arbitraryAddress(), collateralType).WithSourceShares(1e12).Build()
 
 	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 
@@ -248,7 +248,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIsUnchangedWhenGlobalFa
 	// don't store any reward indexes
 
 	// create a cdp with collateral type that doesn't exist in the claim's indexes, and does not have a corresponding global factor
-	cdp := NewCDPBuilder(claim.Owner, "unrewardedcollateral").WithPrincipal(i(1e12)).Build()
+	cdp := NewCDPBuilder(claim.Owner, "unrewardedcollateral").WithSourceShares(1e12).Build()
 
 	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 
@@ -257,12 +257,15 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIsUnchangedWhenGlobalFa
 	suite.Equal(claim.Reward, syncedClaim.Reward)
 }
 
-type cdpBuilder struct {
+// CdpBuilder is a tool for creating a CDP in tests.
+// The builder inherits from cdp.CDP, so fields can be accessed directly if a helper method doesn't exist.
+type CdpBuilder struct {
 	cdptypes.CDP
 }
 
-func NewCDPBuilder(owner sdk.AccAddress, collateralType string) cdpBuilder {
-	return cdpBuilder{
+// NewCDPBuilder creates a CdpBuilder containing a CDP with owner and collateral type set.
+func NewCDPBuilder(owner sdk.AccAddress, collateralType string) CdpBuilder {
+	return CdpBuilder{
 		CDP: cdptypes.CDP{
 			Owner: owner,
 			Type:  collateralType,
@@ -273,9 +276,31 @@ func NewCDPBuilder(owner sdk.AccAddress, collateralType string) cdpBuilder {
 		}}
 }
 
-func (builder cdpBuilder) Build() cdptypes.CDP { return builder.CDP }
+// Build assembles and returns the final deposit.
+func (builder CdpBuilder) Build() cdptypes.CDP { return builder.CDP }
 
-func (builder cdpBuilder) WithPrincipal(principal sdk.Int) cdpBuilder {
+// WithSourceShares adds a principal amount and interest factor such that the source shares for this CDP is equal to specified.
+// With a factor of 1, the total principal is the source shares. This picks an arbitrary factor to ensure factors are accounted for in production code.
+func (builder CdpBuilder) WithSourceShares(shares int64) CdpBuilder {
+	if !builder.GetTotalPrincipal().Amount.Equal(sdk.ZeroInt()) {
+		panic("setting source shares on cdp with existing principal or fees not implemented")
+	}
+	if !(builder.InterestFactor.IsNil() || builder.InterestFactor.Equal(sdk.ZeroDec())) {
+		panic("setting source shares on cdp with existing interest factor not implemented")
+	}
+	// pick arbitrary interest factor
+	factor := sdk.NewInt(1) // TODO change to >1
+
+	// Calculate deposit amount that would equal the requested source shares given the above factor.
+	principal := sdk.NewInt(shares).Mul(factor)
+
+	builder.Principal = sdk.NewCoin(cdptypes.DefaultStableDenom, principal)
+	builder.InterestFactor = factor.ToDec()
+
+	return builder
+}
+
+func (builder CdpBuilder) WithPrincipal(principal sdk.Int) CdpBuilder {
 	builder.Principal = sdk.NewCoin(cdptypes.DefaultStableDenom, principal)
 	return builder
 }
