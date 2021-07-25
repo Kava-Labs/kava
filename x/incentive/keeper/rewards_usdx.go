@@ -81,16 +81,6 @@ func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
 // this should be called before a cdp is modified.
 func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) {
 
-	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
-	if !found {
-		// The global factor is only not found if
-		// - the cdp collateral type has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
-		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
-		// If not found we could either skip this sync, or assume the global factor is zero.
-		// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
-		// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
-		return
-	}
 	claim, found := k.GetUSDXMintingClaim(ctx, cdp.Owner)
 	if !found {
 		claim = types.NewUSDXMintingClaim(
@@ -100,7 +90,30 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 		)
 	}
 
-	userRewardFactor, found := claim.RewardIndexes.Get(cdp.Type)
+	sourceShares := cdp.GetTotalPrincipal().Amount.ToDec()
+
+	claim = k.synchronizeSingleUSDXMintingReward(ctx, claim, cdp.Type, sourceShares)
+
+	k.SetUSDXMintingClaim(ctx, claim)
+}
+
+// synchronizeSingleUSDXMintingReward synchronizes a single rewarded cdp collateral type in a usdx minting claim.
+// It returns the claim without setting in the store.
+// The public methods for accessing and modifying claims are preferred over this one. Direct modification of claims is easy to get wrong.
+func (k Keeper) synchronizeSingleUSDXMintingReward(ctx sdk.Context, claim types.USDXMintingClaim, ctype string, sourceShares sdk.Dec) types.USDXMintingClaim {
+
+	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, ctype)
+	if !found {
+		// The global factor is only not found if
+		// - the cdp collateral type has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+		// If not found we could either skip this sync, or assume the global factor is zero.
+		// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+		// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
+		return claim
+	}
+
+	userRewardFactor, found := claim.RewardIndexes.Get(ctype)
 	if !found {
 		// Normally the factor should always be found, as it is added when the cdp is created in InitializeUSDXMintingClaim.
 		// However if a cdp type is not rewarded then becomes rewarded (ie a reward period is added to params), existing cdps will not have the factor in their claims.
@@ -108,7 +121,7 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 		userRewardFactor = sdk.ZeroDec()
 	}
 
-	newRewardsAmount, err := k.CalculateSingleReward(userRewardFactor, globalRewardFactor, cdp.GetTotalPrincipal().Amount.ToDec())
+	newRewardsAmount, err := k.CalculateSingleReward(userRewardFactor, globalRewardFactor, sourceShares)
 	if err != nil {
 		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
 		// This panics if a global reward factor decreases or disappears between the old and new indexes.
@@ -117,9 +130,9 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 	newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
 
 	claim.Reward = claim.Reward.Add(newRewardsCoin)
-	claim.RewardIndexes = claim.RewardIndexes.With(cdp.Type, globalRewardFactor)
+	claim.RewardIndexes = claim.RewardIndexes.With(ctype, globalRewardFactor)
 
-	k.SetUSDXMintingClaim(ctx, claim)
+	return claim
 }
 
 // SimulateUSDXMintingSynchronization calculates a user's outstanding USDX minting rewards by simulating reward synchronization
