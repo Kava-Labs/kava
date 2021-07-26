@@ -74,7 +74,7 @@ func (k Keeper) SynchronizeSwapReward(ctx sdk.Context, poolID string, owner sdk.
 	k.SetSwapClaim(ctx, claim)
 }
 
-// synchronizeSwapReward updates the reward in a swap claim for one pool.
+// synchronizeSwapReward updates the reward and indexes in a swap claim for one pool.
 func (k *Keeper) synchronizeSwapReward(ctx sdk.Context, claim types.SwapClaim, poolID string, owner sdk.AccAddress, shares sdk.Int) types.SwapClaim {
 	globalRewardIndexes, found := k.GetSwapRewardIndexes(ctx, poolID)
 	if !found {
@@ -108,21 +108,23 @@ func (k *Keeper) synchronizeSwapReward(ctx sdk.Context, claim types.SwapClaim, p
 	return claim
 }
 
-// GetSynchronizedSwapClaim fetches a swap claim from the store and syncs rewards for all pools.
+// GetSynchronizedSwapClaim fetches a swap claim from the store and syncs rewards for all rewarded pools.
 func (k Keeper) GetSynchronizedSwapClaim(ctx sdk.Context, owner sdk.AccAddress) (types.SwapClaim, bool) {
 	claim, found := k.GetSwapClaim(ctx, owner)
 	if !found {
 		return types.SwapClaim{}, false
 	}
-	for _, indexes := range claim.RewardIndexes { // TODO shouldn't this loop through global indexes, in case some have been recently added?
-		poolID := indexes.CollateralType
 
+	k.IterateSwapRewardIndexes(ctx, func(poolID string, _ types.RewardIndexes) bool {
 		shares, found := k.swapKeeper.GetDepositorSharesAmount(ctx, owner, poolID)
 		if !found {
 			shares = sdk.ZeroInt()
 		}
 
 		claim = k.synchronizeSwapReward(ctx, claim, poolID, owner, shares)
-	}
+
+		return false
+	})
+
 	return claim, true
 }
