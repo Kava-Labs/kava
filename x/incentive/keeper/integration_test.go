@@ -188,22 +188,20 @@ func NewStakingGenesisState() app.GenesisState {
 	}
 }
 
-func NewCommitteeGenesisState(members []sdk.AccAddress) app.GenesisState {
+func NewCommitteeGenesisState(committeeID uint64, members ...sdk.AccAddress) app.GenesisState {
 	genState := committeetypes.DefaultGenesisState()
+
 	genState.Committees = committeetypes.Committees{
-		committeetypes.MemberCommittee{
-			BaseCommittee: committeetypes.BaseCommittee{
-				ID:               genState.NextProposalID,
-				Description:      "This committee is for testing.",
-				Members:          members,
-				Permissions:      []committeetypes.Permission{committeetypes.GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      committeetypes.FirstPastThePost,
-			},
-		},
+		committeetypes.NewMemberCommittee(
+			committeeID,
+			"This committee is for testing.",
+			members,
+			[]committeetypes.Permission{committeetypes.GodPermission{}},
+			sdk.MustNewDecFromStr("0.666666667"),
+			time.Hour*24*7,
+			committeetypes.FirstPastThePost,
+		),
 	}
-	genState.NextProposalID += 1
 	return app.GenesisState{
 		committeetypes.ModuleName: committeetypes.ModuleCdc.MustMarshalJSON(genState),
 	}

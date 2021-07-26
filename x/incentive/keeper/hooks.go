@@ -138,7 +138,7 @@ func (h Hooks) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, v
 func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
 }
 
-// BeforeDelegationRemoved runs directly before a delegation is deleted
+// BeforeDelegationRemoved runs directly before a delegation is deleted. BeforeDelegationSharesModified is run prior to this.
 func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
 }
 
