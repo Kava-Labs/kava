@@ -38,7 +38,7 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 
 // getHardSupplyTotalSourceShares fetches the sum of all source shares for a supply reward.
 // In the case of hard supply, this is the total supplied divided by the supply interest factor.
-// This give the "pre interest" value of the total supplied.
+// This gives the "pre interest" value of the total supplied.
 func (k Keeper) getHardSupplyTotalSourceShares(ctx sdk.Context, denom string) sdk.Dec {
 	totalSuppliedCoins, found := k.hardKeeper.GetSuppliedCoins(ctx)
 	if !found {

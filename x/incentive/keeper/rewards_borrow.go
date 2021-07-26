@@ -40,7 +40,7 @@ func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.
 // getHardBorrowTotalSourceShares fetches the sum of all source shares for a borrow reward.
 //
 // In the case of hard borrow, this is the total borrowed divided by the borrow interest factor (for a particular denom).
-// This give the "pre interest" or "normalized" value of the total borrowed. This is an amount, that if it was borrowed when
+// This gives the "pre interest" or "normalized" value of the total borrowed. This is an amount, that if it was borrowed when
 // the interest factor was zero (ie at time 0), the current value of it with interest would be equal to the current total borrowed.
 //
 // The normalized borrow is also used for each individual borrow's source shares amount. Normalized amounts do not change except through

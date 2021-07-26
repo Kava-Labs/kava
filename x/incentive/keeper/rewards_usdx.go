@@ -41,7 +41,7 @@ func (k Keeper) AccumulateUSDXMintingRewards(ctx sdk.Context, rewardPeriod types
 
 // getUSDXTotalSourceShares fetches the sum of all source shares for a usdx minting reward.
 // In the case of usdx minting, this is the total debt from all cdps of a particular type, divided by the cdp interest factor.
-// This give the "pre interest" value of the total debt.
+// This gives the "pre interest" value of the total debt.
 func (k Keeper) getUSDXTotalSourceShares(ctx sdk.Context, collateralType string) sdk.Dec {
 	totalPrincipal := k.cdpKeeper.GetTotalPrincipal(ctx, collateralType, cdptypes.DefaultStableDenom)
 
