@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/stretchr/testify/suite"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/swap"
@@ -143,6 +145,30 @@ func (suite *IntegrationTester) DeliverCDPMsgBorrow(owner sdk.AccAddress, collat
 	msg := cdp.NewMsgDrawDebt(owner, collateralType, draw)
 	_, err := cdp.NewHandler(suite.App.GetCDPKeeper())(suite.Ctx, msg)
 	return err
+}
+
+func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, committeeID uint64, changes []paramtypes.ParamChange) {
+
+	propose := committee.NewMsgSubmitProposal(
+		paramtypes.NewParameterChangeProposal(
+			"test title",
+			"test description",
+			changes,
+		),
+		voter,
+		committeeID,
+	)
+
+	handleMsg := committee.NewHandler(suite.App.GetCommitteeKeeper())
+
+	res, err := handleMsg(suite.Ctx, propose)
+	suite.NoError(err)
+
+	proposalID := committee.Uint64FromBytes(res.Data)
+	vote := committee.NewMsgVote(voter, proposalID, committee.Yes)
+
+	_, err = handleMsg(suite.Ctx, vote)
+	suite.NoError(err)
 }
 
 func (suite *IntegrationTester) GetAccount(addr sdk.AccAddress) authexported.Account {

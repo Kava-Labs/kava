@@ -59,15 +59,11 @@ func (k Keeper) getUSDXTotalSourceShares(ctx sdk.Context, collateralType string)
 // accrue rewards during the period the cdp was closed. By setting the reward factor to the current global reward factor,
 // any unclaimed rewards are preserved, but no new rewards are added.
 func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
-	_, found := k.GetUSDXMintingRewardPeriod(ctx, cdp.Type)
-	if !found {
-		// this collateral type is not incentivized, do nothing
-		return
-	}
 	claim, found := k.GetUSDXMintingClaim(ctx, cdp.Owner)
 	if !found { // this is the owner's first usdx minting reward claim
 		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{})
 	}
+
 	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
 	if !found {
 		globalRewardFactor = sdk.ZeroDec()
@@ -83,11 +79,7 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 
 	claim, found := k.GetUSDXMintingClaim(ctx, cdp.Owner)
 	if !found {
-		claim = types.NewUSDXMintingClaim(
-			cdp.Owner,
-			sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()),
-			types.RewardIndexes{},
-		)
+		return
 	}
 
 	sourceShares, err := cdp.GetNormalizedPrincipal()

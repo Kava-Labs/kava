@@ -35,9 +35,6 @@ func TestInitializeUSDXMintingClaims(t *testing.T) {
 func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimDoesNotExist() {
 	collateralType := "bnb-a"
 
-	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil)
-
 	cdp := NewCDPBuilder(arbitraryAddress(), collateralType).Build()
 
 	globalIndexes := types.RewardIndexes{{
@@ -55,9 +52,6 @@ func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimDoesNo
 
 func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimExists() {
 	collateralType := "bnb-a"
-
-	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil)
 
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
@@ -148,28 +142,6 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGloba
 	suite.Equal(c(types.USDXMintingRewardDenom, 1e11), syncedClaim.Reward)
 }
 
-func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenNewRewardAddedAndClaimDoesNotExit() {
-	collateralType := "bnb-a"
-
-	globalIndexes := types.RewardIndexes{
-		{
-			CollateralType: collateralType,
-			RewardFactor:   d("0.2"),
-		},
-	}
-	suite.storeGlobalUSDXIndexes(globalIndexes)
-
-	cdp := NewCDPBuilder(arbitraryAddress(), collateralType).WithSourceShares(1e12).Build()
-
-	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
-
-	syncedClaim, _ := suite.keeper.GetUSDXMintingClaim(suite.ctx, cdp.Owner)
-	// The global index was not around when this cdp was created as it was not stored in a claim.
-	// Therefore it must have been added via params after.
-	// To include rewards since the params were updated, the old index should be assumed to be 0.
-	// reward is ( new index - old index ) * cdp.TotalPrincipal
-	suite.Equal(c(types.USDXMintingRewardDenom, 2e11), syncedClaim.Reward)
-}
 func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIndexIsUpdatedWhenGlobalIndexIncreased() {
 	claimsRewardIndexes := nonEmptyRewardIndexes
 	collateralType := extractFirstCollateralType(claimsRewardIndexes)
@@ -316,18 +288,6 @@ var nonEmptyRewardIndexes = types.RewardIndexes{
 		CollateralType: "busd-b",
 		RewardFactor:   d("0.4"),
 	},
-}
-
-func paramsWithSingleUSDXRewardPeriod(collateralType string) types.ParamSubspace {
-	return &fakeParamSubspace{
-		params: types.Params{
-			USDXMintingRewardPeriods: types.RewardPeriods{
-				{
-					CollateralType: collateralType,
-				},
-			},
-		},
-	}
 }
 
 func extractFirstCollateralType(indexes types.RewardIndexes) string {
