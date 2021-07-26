@@ -38,7 +38,7 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 
 // getHardSupplyTotalSourceShares fetches the sum of all source shares for a supply reward.
 // In the case of hard supply, this is the total supplied divided by the supply interest factor.
-// This give the "pre interest" value of the total supplied.
+// This gives the "pre interest" value of the total supplied.
 func (k Keeper) getHardSupplyTotalSourceShares(ctx sdk.Context, denom string) sdk.Dec {
 	totalSuppliedCoins, found := k.hardKeeper.GetSuppliedCoins(ctx)
 	if !found {
@@ -86,37 +86,53 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 		return
 	}
 
-	for _, coin := range deposit.Amount {
-		globalRewardIndexes, found := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
-		if !found {
-			// The global factor is only not found if
-			// - the supply denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
-			// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
-			// If not found we could either skip this sync, or assume the global factor is zero.
-			// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
-			// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
-			continue
-		}
+	// Source shares for hard deposits is their normalized deposit amount
+	normalizedDeposit, err := deposit.NormalizedDeposit()
+	if err != nil {
+		panic(fmt.Sprintf("during deposit reward sync, could not get normalized deposit for %s: %s", deposit.Depositor, err.Error()))
+	}
 
-		userRewardIndexes, found := claim.SupplyRewardIndexes.Get(coin.Denom)
-		if !found {
-			// Normally the reward indexes should always be found.
-			// But if a denom was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that supplied denom.
-			// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
-			userRewardIndexes = types.RewardIndexes{}
-		}
+	for _, normedDeposit := range normalizedDeposit {
 
-		newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, coin.Amount.ToDec())
-		if err != nil {
-			// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
-			// This panics if a global reward factor decreases or disappears between the old and new indexes.
-			panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
-		}
-
-		claim.Reward = claim.Reward.Add(newRewards...)
-		claim.SupplyRewardIndexes = claim.SupplyRewardIndexes.With(coin.Denom, globalRewardIndexes)
+		claim = k.synchronizeSingleHardSupplyReward(ctx, claim, normedDeposit.Denom, normedDeposit.Amount)
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
+}
+
+// synchronizeSingleHardSupplyReward synchronizes a single rewarded supply denom in a hard claim.
+// It returns the claim without setting in the store.
+// The public methods for accessing and modifying claims are preferred over this one. Direct modification of claims is easy to get wrong.
+func (k Keeper) synchronizeSingleHardSupplyReward(ctx sdk.Context, claim types.HardLiquidityProviderClaim, denom string, sourceShares sdk.Dec) types.HardLiquidityProviderClaim {
+	globalRewardIndexes, found := k.GetHardSupplyRewardIndexes(ctx, denom)
+	if !found {
+		// The global factor is only not found if
+		// - the supply denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
+		// If not found we could either skip this sync, or assume the global factor is zero.
+		// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.
+		// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
+		return claim
+	}
+
+	userRewardIndexes, found := claim.SupplyRewardIndexes.Get(denom)
+	if !found {
+		// Normally the reward indexes should always be found.
+		// But if a denom was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that supplied denom.
+		// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
+		userRewardIndexes = types.RewardIndexes{}
+	}
+
+	newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, sourceShares)
+	if err != nil {
+		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
+		// This panics if a global reward factor decreases or disappears between the old and new indexes.
+		panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
+	}
+
+	claim.Reward = claim.Reward.Add(newRewards...)
+	claim.SupplyRewardIndexes = claim.SupplyRewardIndexes.With(denom, globalRewardIndexes)
+
+	return claim
 }
 
 // UpdateHardSupplyIndexDenoms adds any new deposit denoms to the claim's supply reward index

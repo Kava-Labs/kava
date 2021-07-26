@@ -23,6 +23,36 @@ func NewBorrow(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFa
 	}
 }
 
+// NormalizedBorrow is the borrow amounts divided by the interest factors.
+//
+// Multiplying the normalized borrow by the current global factors gives the current borrow (ie including all interest, ie a synced borrow).
+// The normalized borrow is effectively how big the borrow would have been if it had been borrowed at time 0 and not touched since.
+//
+// An error is returned if the borrow is in an invalid state.
+func (b Borrow) NormalizedBorrow() (sdk.DecCoins, error) {
+
+	normalized := sdk.NewDecCoins()
+
+	for _, coin := range b.Amount {
+
+		factor, found := b.Index.GetInterestFactor(coin.Denom)
+		if !found {
+			return nil, fmt.Errorf("borrowed amount '%s' missing interest factor", coin.Denom)
+		}
+		if factor.LT(sdk.OneDec()) {
+			return nil, fmt.Errorf("interest factor '%s' < 1", coin.Denom)
+		}
+
+		normalized = normalized.Add(
+			sdk.NewDecCoinFromDec(
+				coin.Denom,
+				coin.Amount.ToDec().Quo(factor),
+			),
+		)
+	}
+	return normalized, nil
+}
+
 // Validate deposit validation
 func (b Borrow) Validate() error {
 	if b.Borrower.Empty() {

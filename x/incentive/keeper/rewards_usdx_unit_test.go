@@ -35,9 +35,6 @@ func TestInitializeUSDXMintingClaims(t *testing.T) {
 func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimDoesNotExist() {
 	collateralType := "bnb-a"
 
-	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil)
-
 	cdp := NewCDPBuilder(arbitraryAddress(), collateralType).Build()
 
 	globalIndexes := types.RewardIndexes{{
@@ -55,9 +52,6 @@ func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimDoesNo
 
 func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimExists() {
 	collateralType := "bnb-a"
-
-	subspace := paramsWithSingleUSDXRewardPeriod(collateralType)
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil)
 
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
@@ -106,7 +100,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardUnchangedWhenGlobalInd
 
 	suite.storeGlobalUSDXIndexes(unchangingRewardIndexes)
 
-	cdp := NewCDPBuilder(claim.Owner, collateralType).WithPrincipal(i(1e12)).Build()
+	cdp := NewCDPBuilder(claim.Owner, collateralType).WithSourceShares(1e12).Build()
 
 	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 
@@ -139,7 +133,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGloba
 	}
 	suite.storeGlobalUSDXIndexes(globalIndexes)
 
-	cdp := NewCDPBuilder(claim.Owner, collateralType).WithPrincipal(i(1e12)).Build()
+	cdp := NewCDPBuilder(claim.Owner, collateralType).WithSourceShares(1e12).Build()
 
 	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 
@@ -148,28 +142,6 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGloba
 	suite.Equal(c(types.USDXMintingRewardDenom, 1e11), syncedClaim.Reward)
 }
 
-func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenNewRewardAddedAndClaimDoesNotExit() {
-	collateralType := "bnb-a"
-
-	globalIndexes := types.RewardIndexes{
-		{
-			CollateralType: collateralType,
-			RewardFactor:   d("0.2"),
-		},
-	}
-	suite.storeGlobalUSDXIndexes(globalIndexes)
-
-	cdp := NewCDPBuilder(arbitraryAddress(), collateralType).WithPrincipal(i(1e12)).Build()
-
-	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
-
-	syncedClaim, _ := suite.keeper.GetUSDXMintingClaim(suite.ctx, cdp.Owner)
-	// The global index was not around when this cdp was created as it was not stored in a claim.
-	// Therefore it must have been added via params after.
-	// To include rewards since the params were updated, the old index should be assumed to be 0.
-	// reward is ( new index - old index ) * cdp.TotalPrincipal
-	suite.Equal(c(types.USDXMintingRewardDenom, 2e11), syncedClaim.Reward)
-}
 func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIndexIsUpdatedWhenGlobalIndexIncreased() {
 	claimsRewardIndexes := nonEmptyRewardIndexes
 	collateralType := extractFirstCollateralType(claimsRewardIndexes)
@@ -248,7 +220,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIsUnchangedWhenGlobalFa
 	// don't store any reward indexes
 
 	// create a cdp with collateral type that doesn't exist in the claim's indexes, and does not have a corresponding global factor
-	cdp := NewCDPBuilder(claim.Owner, "unrewardedcollateral").WithPrincipal(i(1e12)).Build()
+	cdp := NewCDPBuilder(claim.Owner, "unrewardedcollateral").WithSourceShares(1e12).Build()
 
 	suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 
@@ -257,12 +229,15 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIsUnchangedWhenGlobalFa
 	suite.Equal(claim.Reward, syncedClaim.Reward)
 }
 
-type cdpBuilder struct {
+// CDPBuilder is a tool for creating a CDP in tests.
+// The builder inherits from cdp.CDP, so fields can be accessed directly if a helper method doesn't exist.
+type CDPBuilder struct {
 	cdptypes.CDP
 }
 
-func NewCDPBuilder(owner sdk.AccAddress, collateralType string) cdpBuilder {
-	return cdpBuilder{
+// NewCDPBuilder creates a CdpBuilder containing a CDP with owner and collateral type set.
+func NewCDPBuilder(owner sdk.AccAddress, collateralType string) CDPBuilder {
+	return CDPBuilder{
 		CDP: cdptypes.CDP{
 			Owner: owner,
 			Type:  collateralType,
@@ -270,12 +245,36 @@ func NewCDPBuilder(owner sdk.AccAddress, collateralType string) cdpBuilder {
 			// Set them to the default denom, but with 0 amount.
 			Principal:       c(cdptypes.DefaultStableDenom, 0),
 			AccumulatedFees: c(cdptypes.DefaultStableDenom, 0),
+			// zero value of sdk.Dec causes nil pointer panics
+			InterestFactor: sdk.OneDec(),
 		}}
 }
 
-func (builder cdpBuilder) Build() cdptypes.CDP { return builder.CDP }
+// Build assembles and returns the final deposit.
+func (builder CDPBuilder) Build() cdptypes.CDP { return builder.CDP }
 
-func (builder cdpBuilder) WithPrincipal(principal sdk.Int) cdpBuilder {
+// WithSourceShares adds a principal amount and interest factor such that the source shares for this CDP is equal to specified.
+// With a factor of 1, the total principal is the source shares. This picks an arbitrary factor to ensure factors are accounted for in production code.
+func (builder CDPBuilder) WithSourceShares(shares int64) CDPBuilder {
+	if !builder.GetTotalPrincipal().Amount.Equal(sdk.ZeroInt()) {
+		panic("setting source shares on cdp with existing principal or fees not implemented")
+	}
+	if !(builder.InterestFactor.IsNil() || builder.InterestFactor.Equal(sdk.OneDec())) {
+		panic("setting source shares on cdp with existing interest factor not implemented")
+	}
+	// pick arbitrary interest factor
+	factor := sdk.NewInt(2)
+
+	// Calculate deposit amount that would equal the requested source shares given the above factor.
+	principal := sdk.NewInt(shares).Mul(factor)
+
+	builder.Principal = sdk.NewCoin(cdptypes.DefaultStableDenom, principal)
+	builder.InterestFactor = factor.ToDec()
+
+	return builder
+}
+
+func (builder CDPBuilder) WithPrincipal(principal sdk.Int) CDPBuilder {
 	builder.Principal = sdk.NewCoin(cdptypes.DefaultStableDenom, principal)
 	return builder
 }
@@ -289,18 +288,6 @@ var nonEmptyRewardIndexes = types.RewardIndexes{
 		CollateralType: "busd-b",
 		RewardFactor:   d("0.4"),
 	},
-}
-
-func paramsWithSingleUSDXRewardPeriod(collateralType string) types.ParamSubspace {
-	return &fakeParamSubspace{
-		params: types.Params{
-			USDXMintingRewardPeriods: types.RewardPeriods{
-				{
-					CollateralType: collateralType,
-				},
-			},
-		},
-	}
 }
 
 func extractFirstCollateralType(indexes types.RewardIndexes) string {

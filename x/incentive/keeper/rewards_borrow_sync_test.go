@@ -14,14 +14,6 @@ import (
 )
 
 // SynchronizeHardBorrowRewardTests runs unit tests for the keeper.SynchronizeHardBorrowReward method
-//
-// inputs
-// - claim in store (only claim.BorrowRewardIndexes, claim.Reward)
-// - global indexes in store
-// - borrow function arg (only borrow.Amount)
-//
-// outputs
-// - sets a claim
 type SynchronizeHardBorrowRewardTests struct {
 	unitTester
 }
@@ -43,10 +35,10 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenGlo
 
 	globalIndexes := increaseAllRewardFactors(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalBorrowIndexes(globalIndexes)
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(claim.BorrowRewardIndexes)...),
-	}
+
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(claim.BorrowRewardIndexes)...).
+		Build()
 
 	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
 
@@ -68,10 +60,9 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUnchangedWhenG
 
 	suite.storeGlobalBorrowIndexes(unchangingIndexes)
 
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(unchangingIndexes)...),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(unchangingIndexes)...).
+		Build()
 
 	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
 
@@ -93,10 +84,9 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	globalIndexes := appendUniqueMultiRewardIndex(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalBorrowIndexes(globalIndexes)
 
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
+		Build()
 
 	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
 
@@ -119,10 +109,9 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	globalIndexes := appendUniqueRewardIndexToFirstItem(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalBorrowIndexes(globalIndexes)
 
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
+		Build()
 
 	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
 
@@ -169,10 +158,9 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenGlobal
 		},
 	})
 
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   cs(c("borrowdenom", 1e9)),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithSourceShares("borrowdenom", 1e9).
+		Build()
 
 	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
 
@@ -232,10 +220,10 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRew
 	}
 	suite.storeGlobalBorrowIndexes(globalIndexes)
 
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   cs(c("rewarded", 1e9), c("newlyrewarded", 1e9)),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithSourceShares("rewarded", 1e9).
+		WithSourceShares("newlyrewarded", 1e9).
+		Build()
 
 	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
 
@@ -290,10 +278,9 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRew
 	}
 	suite.storeGlobalBorrowIndexes(globalIndexes)
 
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   cs(c("borrowed", 1e9)),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithSourceShares("borrowed", 1e9).
+		Build()
 
 	suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
 
@@ -304,6 +291,53 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRew
 		cs(c("reward", 1_000_001_000_000), c("otherreward", 1_000_001_000_000)).Add(originalReward...),
 		syncedClaim.Reward,
 	)
+}
+
+// BorrowBuilder is a tool for creating a hard borrows.
+// The builder inherits from hard.Borrow, so fields can be accessed directly if a helper method doesn't exist.
+type BorrowBuilder struct {
+	hardtypes.Borrow
+}
+
+// NewBorrowBuilder creates a BorrowBuilder containing an empty borrow.
+func NewBorrowBuilder(borrower sdk.AccAddress) BorrowBuilder {
+	return BorrowBuilder{
+		Borrow: hardtypes.Borrow{
+			Borrower: borrower,
+		}}
+}
+
+// Build assembles and returns the final borrow.
+func (builder BorrowBuilder) Build() hardtypes.Borrow { return builder.Borrow }
+
+// WithSourceShares adds a borrow amount and factor such that the source shares for this borrow is equal to specified.
+// With a factor of 1, the borrow amount is the source shares. This picks an arbitrary factor to ensure factors are accounted for in production code.
+func (builder BorrowBuilder) WithSourceShares(denom string, shares int64) BorrowBuilder {
+	if !builder.Amount.AmountOf(denom).Equal(sdk.ZeroInt()) {
+		panic("adding to amount with existing denom not implemented")
+	}
+	if _, f := builder.Index.GetInterestFactor(denom); f {
+		panic("adding to indexes with existing denom not implemented")
+	}
+
+	// pick arbitrary factor
+	factor := sdk.MustNewDecFromStr("2")
+
+	// Calculate borrow amount that would equal the requested source shares given the above factor.
+	amt := sdk.NewInt(shares).Mul(factor.RoundInt())
+
+	builder.Amount = builder.Amount.Add(sdk.NewCoin(denom, amt))
+	builder.Index = builder.Index.SetInterestFactor(denom, factor)
+	return builder
+}
+
+// WithArbitrarySourceShares adds arbitrary borrow amounts and indexes for each specified denom.
+func (builder BorrowBuilder) WithArbitrarySourceShares(denoms ...string) BorrowBuilder {
+	const arbitraryShares = 1e9
+	for _, denom := range denoms {
+		builder = builder.WithSourceShares(denom, arbitraryShares)
+	}
+	return builder
 }
 
 func TestCalculateRewards(t *testing.T) {

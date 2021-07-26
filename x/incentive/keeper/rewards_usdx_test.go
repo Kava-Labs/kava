@@ -5,15 +5,228 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/testutil"
+	"github.com/kava-labs/kava/x/incentive/types"
+	"github.com/kava-labs/kava/x/kavadist"
 )
+
+type USDXIntegrationTests struct {
+	testutil.IntegrationTester
+
+	genesisTime time.Time
+	addrs       []sdk.AccAddress
+}
+
+func TestUSDXIntegration(t *testing.T) {
+	suite.Run(t, new(USDXIntegrationTests))
+}
+
+// SetupTest is run automatically before each suite test
+func (suite *USDXIntegrationTests) SetupTest() {
+
+	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
+
+	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+}
+
+func (suite *USDXIntegrationTests) ProposeAndVoteOnNewRewardPeriods(committeeID uint64, voter sdk.AccAddress, newPeriods types.RewardPeriods) {
+	suite.ProposeAndVoteOnNewParams(
+		voter,
+		committeeID,
+		[]paramtypes.ParamChange{{
+			Subspace: incentive.ModuleName,
+			Key:      string(incentive.KeyUSDXMintingRewardPeriods),
+			Value:    string(incentive.ModuleCdc.MustMarshalJSON(newPeriods)),
+		}})
+}
+
+func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing() {
+	userA := suite.addrs[0]
+
+	authBulder := app.NewAuthGenesisBuilder().
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18))). // Fill kavadist with enough coins to pay out any reward
+		WithSimpleAccount(userA, cs(c("bnb", 1e12)))                                             // give the user some coins
+
+	incentBuilder := testutil.NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithMultipliers(types.Multipliers{
+			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")), // keep payout at 1.0 to make maths easier
+		}).
+		WithSimpleUSDXRewardPeriod("bnb-a", c(types.USDXMintingRewardDenom, 1e6))
+
+	suite.StartChain(
+		suite.genesisTime,
+		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
+		NewCDPGenStateMulti(),
+		authBulder.BuildMarshalled(),
+		incentBuilder.BuildMarshalled(),
+	)
+
+	// User creates a CDP to begin earning rewards.
+	suite.NoError(
+		suite.DeliverMsgCreateCDP(userA, c("bnb", 1e10), c(cdptypes.DefaultStableDenom, 1e9), "bnb-a"),
+	)
+
+	// Let time pass to accumulate interest on the deposit
+	// Use one long block instead of many to reduce any rounding errors, and speed up tests.
+	suite.NextBlockAfter(1e6 * time.Second) // about 12 days
+
+	// User repays and borrows just to sync their CDP
+	suite.NoError(
+		suite.DeliverCDPMsgRepay(userA, "bnb-a", c(cdptypes.DefaultStableDenom, 1)),
+	)
+	suite.NoError(
+		suite.DeliverCDPMsgBorrow(userA, "bnb-a", c(cdptypes.DefaultStableDenom, 1)),
+	)
+
+	// Accumulate more rewards.
+	// The user still has the same percentage of all CDP debt (100%) so their rewards should be the same as in the previous block.
+	suite.NextBlockAfter(1e6 * time.Second) // about 12 days
+
+	// User claims all their rewards
+	suite.NoError(
+		suite.DeliverIncentiveMsg(types.NewMsgClaimUSDXMintingReward(userA, "large")),
+	)
+
+	// The users has always had 100% of cdp debt, so they should receive all rewards for the previous two blocks.
+	// Total rewards for each block is block duration * rewards per second
+	accuracy := 1e-18 // using a very high accuracy to flag future small calculation changes
+	suite.BalanceInEpsilon(userA, cs(c("bnb", 1e12-1e10), c(cdptypes.DefaultStableDenom, 1e9), c(types.USDXMintingRewardDenom, 2*1e6*1e6)), accuracy)
+}
+
+func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncing() {
+
+	user := suite.addrs[0]
+	initialCollateral := c("bnb", 1e9)
+
+	authBuilder := app.NewAuthGenesisBuilder().
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18))). // Fill kavadist with enough coins to pay out any reward
+		WithSimpleAccount(user, cs(initialCollateral))
+
+	collateralType := "bnb-a"
+
+	incentBuilder := testutil.NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithMultipliers(types.Multipliers{
+			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")), // keep payout at 1.0 to make maths easier
+		}).
+		WithSimpleUSDXRewardPeriod(collateralType, c(types.USDXMintingRewardDenom, 1e6))
+
+	suite.StartChain(
+		suite.genesisTime,
+		authBuilder.BuildMarshalled(),
+		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
+		NewCDPGenStateMulti(),
+		incentBuilder.BuildMarshalled(),
+	)
+
+	// Setup cdp state containing one CDP
+	suite.NoError(
+		suite.DeliverMsgCreateCDP(user, initialCollateral, c("usdx", 1e8), collateralType),
+	)
+
+	// Skip ahead a few blocks blocks to accumulate both interest and usdx reward for the cdp
+	// Don't sync the CDP between the blocks
+	suite.NextBlockAfter(1e6 * time.Second) // about 12 days
+	suite.NextBlockAfter(1e6 * time.Second)
+	suite.NextBlockAfter(1e6 * time.Second)
+
+	suite.NoError(
+		suite.DeliverIncentiveMsg(types.NewMsgClaimUSDXMintingReward(user, "large")),
+	)
+
+	// The users has always had 100% of cdp debt, so they should receive all rewards for the previous two blocks.
+	// Total rewards for each block is block duration * rewards per second
+	accuracy := 1e-18 // using a very high accuracy to flag future small calculation changes
+	suite.BalanceInEpsilon(user, cs(c(cdptypes.DefaultStableDenom, 1e8), c(types.USDXMintingRewardDenom, 3*1e6*1e6)), accuracy)
+}
+
+func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOverPayments() {
+
+	userA := suite.addrs[0]
+	userB := suite.addrs[1]
+
+	authBuilder := app.NewAuthGenesisBuilder().
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18))). // Fill kavadist with enough coins to pay out any reward
+		WithSimpleAccount(userA, cs(c("bnb", 1e10))).
+		WithSimpleAccount(userB, cs(c("bnb", 1e10)))
+
+	incentBuilder := testutil.NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithMultipliers(types.Multipliers{
+			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")), // keep payout at 1.0 to make maths easier
+		}).
+		WithSimpleUSDXRewardPeriod("bnb-a", c(types.USDXMintingRewardDenom, 1e6))
+
+	suite.StartChain(
+		suite.genesisTime,
+		authBuilder.BuildMarshalled(),
+		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
+		NewCDPGenStateMulti(),
+		incentBuilder.BuildMarshalled(),
+		NewCommitteeGenesisState(0, userA), // create a committtee to change params
+	)
+
+	// Accumulate some CDP rewards, requires creating a cdp so the total borrowed isn't 0.
+	suite.NoError(
+		suite.DeliverMsgCreateCDP(userA, c("bnb", 1e10), c("usdx", 1e9), "bnb-a"),
+	)
+	suite.NextBlockAfter(1e6 * time.Second)
+
+	// Remove the USDX reward period
+	suite.ProposeAndVoteOnNewRewardPeriods(0, userA, types.RewardPeriods{})
+	// next block so proposal is enacted
+	suite.NextBlockAfter(1 * time.Second)
+
+	// Create a CDP when there is no reward periods. In a previous version the claim object would not be created, leading to the bug.
+	// Withdraw the same amount of usdx as the first cdp currently has. This make the reward maths easier, as rewards will be split 50:50 between each cdp.
+	firstCDP, f := suite.App.GetCDPKeeper().GetCdpByOwnerAndCollateralType(suite.Ctx, userA, "bnb-a")
+	suite.True(f)
+	firstCDPTotalPrincipal := firstCDP.GetTotalPrincipal()
+	suite.NoError(
+		suite.DeliverMsgCreateCDP(userB, c("bnb", 1e10), firstCDPTotalPrincipal, "bnb-a"),
+	)
+
+	// Add back the reward period
+	suite.ProposeAndVoteOnNewRewardPeriods(0, userA,
+		types.RewardPeriods{types.NewRewardPeriod(
+			true,
+			"bnb-a",
+			suite.Ctx.BlockTime(), // start accumulating again from this block
+			suite.genesisTime.Add(365*24*time.Hour),
+			c(types.USDXMintingRewardDenom, 1e6),
+		)},
+	)
+	// next block so proposal is enacted
+	suite.NextBlockAfter(1 * time.Second)
+
+	// Sync the cdp and claim by borrowing a bit
+	// In a previous version this would create the cdp with incorrect indexes, leading to overpayment.
+	suite.NoError(
+		suite.DeliverCDPMsgBorrow(userB, "bnb-a", c(cdptypes.DefaultStableDenom, 1)),
+	)
+
+	// Claim rewards
+	suite.NoError(
+		suite.DeliverIncentiveMsg(types.NewMsgClaimUSDXMintingReward(userB, "large")),
+	)
+
+	// The cdp had half the total borrows for a 1s block. So should earn half the rewards for that block
+	suite.BalanceInEpsilon(
+		userB,
+		cs(firstCDPTotalPrincipal.Add(c(cdptypes.DefaultStableDenom, 1)), c(types.USDXMintingRewardDenom, 0.5*1e6)),
+		1e-18, // using very high accuracy to catch small changes to the calculations
+	)
+}
 
 // Test suite used for all keeper tests
 type USDXRewardsTestSuite struct {

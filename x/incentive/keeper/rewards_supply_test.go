@@ -17,7 +17,75 @@ import (
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
+	"github.com/kava-labs/kava/x/kavadist"
 )
+
+type SupplyIntegrationTests struct {
+	testutil.IntegrationTester
+
+	genesisTime time.Time
+	addrs       []sdk.AccAddress
+}
+
+func TestSupplyIntegration(t *testing.T) {
+	suite.Run(t, new(SupplyIntegrationTests))
+}
+
+// SetupTest is run automatically before each suite test
+func (suite *SupplyIntegrationTests) SetupTest() {
+
+	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
+
+	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
+}
+
+func (suite *SupplyIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing() {
+	userA := suite.addrs[0]
+
+	authBulder := app.NewAuthGenesisBuilder().
+		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1e18))). // Fill kavadist with enough coins to pay out any reward
+		WithSimpleAccount(userA, cs(c("bnb", 1e12)))                       // give the user some coins
+
+	incentBuilder := testutil.NewIncentiveGenesisBuilder().
+		WithGenesisTime(suite.genesisTime).
+		WithMultipliers(types.Multipliers{
+			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")), // keep payout at 1.0 to make maths easier
+		}).
+		WithSimpleSupplyRewardPeriod("bnb", cs(c("hard", 1e6))) // only borrow rewards
+
+	suite.StartChain(
+		suite.genesisTime,
+		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
+		NewHardGenStateMulti(suite.genesisTime).BuildMarshalled(),
+		authBulder.BuildMarshalled(),
+		incentBuilder.BuildMarshalled(),
+	)
+
+	// Create a deposit
+	suite.NoError(suite.DeliverHardMsgDeposit(userA, cs(c("bnb", 1e11))))
+	// Also create a borrow so interest accumulates on the deposit
+	suite.NoError(suite.DeliverHardMsgBorrow(userA, cs(c("bnb", 1e10))))
+
+	// Let time pass to accumulate interest on the deposit
+	// Use one long block instead of many to reduce any rounding errors, and speed up tests.
+	suite.NextBlockAfter(1e6 * time.Second) // about 12 days
+
+	// User withdraw and redeposits just to sync their deposit.
+	suite.NoError(suite.DeliverHardMsgWithdraw(userA, cs(c("bnb", 1))))
+	suite.NoError(suite.DeliverHardMsgDeposit(userA, cs(c("bnb", 1))))
+
+	// Accumulate more rewards.
+	// The user still has the same percentage of all deposits (100%) so their rewards should be the same as in the previous block.
+	suite.NextBlockAfter(1e6 * time.Second) // about 12 days
+
+	// User claims all their rewards
+	suite.NoError(suite.DeliverIncentiveMsg(types.NewMsgClaimHardReward(userA, "large", nil)))
+
+	// The users has always had 100% of deposits, so they should receive all rewards for the previous two blocks.
+	// Total rewards for each block is block duration * rewards per second
+	accuracy := 1e-10 // using a very high accuracy to flag future small calculation changes
+	suite.BalanceInEpsilon(userA, cs(c("bnb", 1e12-1e11+1e10), c("hard", 2*1e6*1e6)), accuracy)
+}
 
 // Test suite used for all keeper tests
 type SupplyRewardsTestSuite struct {
@@ -62,7 +130,7 @@ func (suite *SupplyRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenes
 		authBuilder.BuildMarshalled(),
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		hardBuilder.BuildMarshalled(),
-		NewCommitteeGenesisState(suite.addrs[:2]),
+		NewCommitteeGenesisState(1, suite.addrs[:2]...),
 		incentBuilder.BuildMarshalled(),
 	)
 }

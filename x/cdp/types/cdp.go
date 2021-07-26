@@ -104,6 +104,20 @@ func (cdp CDP) GetTotalPrincipal() sdk.Coin {
 	return cdp.Principal.Add(cdp.AccumulatedFees)
 }
 
+// GetNormalizedPrincipal returns the total cdp principal divided by the interest factor.
+//
+// Multiplying the normalized principal by the current global factor gives the current debt (ie including all interest, ie a synced cdp).
+// The normalized principal is effectively how big the principal would have been if it had been borrowed at time 0 and not touched since.
+//
+// An error is returned if the cdp interest factor is in an invalid state.
+func (cdp CDP) GetNormalizedPrincipal() (sdk.Dec, error) {
+	unsyncedDebt := cdp.GetTotalPrincipal().Amount
+	if cdp.InterestFactor.LT(sdk.OneDec()) {
+		return sdk.Dec{}, fmt.Errorf("interest factor '%s' must be ≥ 1", cdp.InterestFactor)
+	}
+	return unsyncedDebt.ToDec().Quo(cdp.InterestFactor), nil
+}
+
 // CDPs a collection of CDP objects
 type CDPs []CDP
 
