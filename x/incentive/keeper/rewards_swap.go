@@ -24,18 +24,25 @@ func (k Keeper) AccumulateSwapRewards(ctx sdk.Context, rewardPeriod types.MultiR
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalShares, found := k.swapKeeper.GetPoolShares(ctx, rewardPeriod.CollateralType)
-	if !found {
-		totalShares = sdk.ZeroInt()
-	}
+	totalSource := k.getSwapTotalSourceShares(ctx, rewardPeriod.CollateralType)
 
-	acc.Accumulate(rewardPeriod, totalShares.ToDec(), ctx.BlockTime())
+	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
 
 	k.SetSwapRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
 		k.SetSwapRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
 	}
+}
+
+// getSwapTotalSourceShares fetches the sum of all source shares for a swap reward.
+// In the case of swap, these are the total (swap module) shares in a particular pool.
+func (k Keeper) getSwapTotalSourceShares(ctx sdk.Context, poolID string) sdk.Dec {
+	totalShares, found := k.swapKeeper.GetPoolShares(ctx, poolID)
+	if !found {
+		totalShares = sdk.ZeroInt()
+	}
+	return totalShares.ToDec()
 }
 
 // InitializeSwapReward creates a new claim with zero rewards and indexes matching the global indexes.
@@ -67,7 +74,7 @@ func (k Keeper) SynchronizeSwapReward(ctx sdk.Context, poolID string, owner sdk.
 	k.SetSwapClaim(ctx, claim)
 }
 
-// synchronizeSwapReward updates the reward in a swap claim for one pool.
+// synchronizeSwapReward updates the reward and indexes in a swap claim for one pool.
 func (k *Keeper) synchronizeSwapReward(ctx sdk.Context, claim types.SwapClaim, poolID string, owner sdk.AccAddress, shares sdk.Int) types.SwapClaim {
 	globalRewardIndexes, found := k.GetSwapRewardIndexes(ctx, poolID)
 	if !found {
@@ -101,21 +108,23 @@ func (k *Keeper) synchronizeSwapReward(ctx sdk.Context, claim types.SwapClaim, p
 	return claim
 }
 
-// GetSynchronizedSwapClaim fetches a swap claim from the store and syncs rewards for all pools.
+// GetSynchronizedSwapClaim fetches a swap claim from the store and syncs rewards for all rewarded pools.
 func (k Keeper) GetSynchronizedSwapClaim(ctx sdk.Context, owner sdk.AccAddress) (types.SwapClaim, bool) {
 	claim, found := k.GetSwapClaim(ctx, owner)
 	if !found {
 		return types.SwapClaim{}, false
 	}
-	for _, indexes := range claim.RewardIndexes {
-		poolID := indexes.CollateralType
 
+	k.IterateSwapRewardIndexes(ctx, func(poolID string, _ types.RewardIndexes) bool {
 		shares, found := k.swapKeeper.GetDepositorSharesAmount(ctx, owner, poolID)
 		if !found {
 			shares = sdk.ZeroInt()
 		}
 
 		claim = k.synchronizeSwapReward(ctx, claim, poolID, owner, shares)
-	}
+
+		return false
+	})
+
 	return claim, true
 }

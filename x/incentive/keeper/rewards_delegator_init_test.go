@@ -47,7 +47,7 @@ func (suite *InitializeDelegatorRewardTests) TestClaimIndexesAreSetWhenClaimDoes
 
 func (suite *InitializeDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreSetWhenClaimDoesExist() {
 	validatorAddress := arbitraryValidatorAddress()
-	sk := fakeStakingKeeper{
+	sk := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{{
 			ValidatorAddress: validatorAddress,
 			Shares:           d("1000"),
@@ -95,33 +95,4 @@ var arbitraryDelegatorRewardIndexes = types.MultiRewardIndexes{
 			types.NewRewardIndex("swp", d("0.2")),
 		},
 	),
-}
-
-type fakeStakingKeeper struct {
-	delegations stakingtypes.Delegations
-	validators  stakingtypes.Validators
-}
-
-func (k fakeStakingKeeper) TotalBondedTokens(ctx sdk.Context) sdk.Int {
-	panic("unimplemented")
-}
-func (k fakeStakingKeeper) GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) []stakingtypes.Delegation {
-	return k.delegations
-}
-func (k fakeStakingKeeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (stakingtypes.Validator, bool) {
-	for _, val := range k.validators {
-		if val.GetOperator().Equals(addr) {
-			return val, true
-		}
-	}
-	return stakingtypes.Validator{}, false
-}
-func (k fakeStakingKeeper) GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) []stakingtypes.Delegation {
-	var delegations stakingtypes.Delegations
-	for _, d := range k.delegations {
-		if d.ValidatorAddress.Equals(valAddr) {
-			delegations = append(delegations, d)
-		}
-	}
-	return delegations
 }

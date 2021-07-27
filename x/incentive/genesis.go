@@ -10,6 +10,12 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+const year = 365 * 24 * time.Hour
+
+// EarliestValidAccumulationTime is how far behind the genesis time an accumulation time can be for it to be valid.
+// It's a safety check to ensure rewards aren't accidentally accumulated for many years on the first block (eg since Jan 1970).
+var EarliestValidAccumulationTime time.Duration = year
+
 // InitGenesis initializes the store state from a genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeeper, cdpKeeper types.CdpKeeper, gs types.GenesisState) {
 
@@ -37,6 +43,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		k.SetUSDXMintingClaim(ctx, claim)
 	}
 	for _, gat := range gs.USDXRewardState.AccumulationTimes {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+			panic(err.Error())
+		}
 		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
 	for _, mri := range gs.USDXRewardState.MultiRewardIndexes {
@@ -52,12 +61,18 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		k.SetHardLiquidityProviderClaim(ctx, claim)
 	}
 	for _, gat := range gs.HardSupplyRewardState.AccumulationTimes {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+			panic(err.Error())
+		}
 		k.SetPreviousHardSupplyRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
 	for _, mri := range gs.HardSupplyRewardState.MultiRewardIndexes {
 		k.SetHardSupplyRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
 	}
 	for _, gat := range gs.HardBorrowRewardState.AccumulationTimes {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+			panic(err.Error())
+		}
 		k.SetPreviousHardBorrowRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
 	for _, mri := range gs.HardBorrowRewardState.MultiRewardIndexes {
@@ -69,6 +84,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		k.SetDelegatorClaim(ctx, claim)
 	}
 	for _, gat := range gs.DelegatorRewardState.AccumulationTimes {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+			panic(err.Error())
+		}
 		k.SetPreviousDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
 	for _, mri := range gs.DelegatorRewardState.MultiRewardIndexes {
@@ -80,6 +98,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		k.SetSwapClaim(ctx, claim)
 	}
 	for _, gat := range gs.SwapRewardState.AccumulationTimes {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+			panic(err.Error())
+		}
 		k.SetSwapRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
 	for _, mri := range gs.SwapRewardState.MultiRewardIndexes {
@@ -200,4 +221,16 @@ func getSwapGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.Gene
 	})
 
 	return types.NewGenesisRewardState(ats, mris)
+}
+
+func ValidateAccumulationTime(previousAccumulationTime, genesisTime time.Time) error {
+	if previousAccumulationTime.Before(genesisTime.Add(-1 * EarliestValidAccumulationTime)) {
+		return fmt.Errorf(
+			"found accumulation time '%s' more than '%s' behind genesis time '%s'",
+			previousAccumulationTime,
+			EarliestValidAccumulationTime,
+			genesisTime,
+		)
+	}
+	return nil
 }

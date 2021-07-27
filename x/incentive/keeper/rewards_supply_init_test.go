@@ -5,19 +5,10 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 // InitializeHardSupplyRewardTests runs unit tests for the keeper.InitializeHardSupplyReward method
-//
-// inputs
-// - claim in store if it exists (only claim.SupplyRewardIndexes)
-// - global indexes in store
-// - deposit function arg (only deposit.Amount)
-//
-// outputs
-// - sets or creates a claim
 type InitializeHardSupplyRewardTests struct {
 	unitTester
 }
@@ -41,10 +32,9 @@ func (suite *InitializeHardSupplyRewardTests) TestClaimIndexesAreSetWhenClaimExi
 	globalIndexes := nonEmptyMultiRewardIndexes
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := hardtypes.Deposit{
-		Depositor: claim.Owner,
-		Amount:    arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
+	deposit := NewDepositBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
+		Build()
 
 	suite.keeper.InitializeHardSupplyReward(suite.ctx, deposit)
 
@@ -56,10 +46,9 @@ func (suite *InitializeHardSupplyRewardTests) TestClaimIndexesAreSetWhenClaimDoe
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
 	owner := arbitraryAddress()
-	deposit := hardtypes.Deposit{
-		Depositor: owner,
-		Amount:    arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
+	deposit := NewDepositBuilder(owner).
+		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
+		Build()
 
 	suite.keeper.InitializeHardSupplyReward(suite.ctx, deposit)
 
@@ -77,10 +66,9 @@ func (suite *InitializeHardSupplyRewardTests) TestClaimIndexesAreSetEmptyForMiss
 	// This happens when a deposit denom has no rewards associated with it.
 	expectedIndexes := appendUniqueEmptyMultiRewardIndex(globalIndexes)
 	depositedDenoms := extractCollateralTypes(expectedIndexes)
-	deposit := hardtypes.Deposit{
-		Depositor: owner,
-		Amount:    arbitraryCoinsWithDenoms(depositedDenoms...),
-	}
+	deposit := NewDepositBuilder(owner).
+		WithArbitrarySourceShares(depositedDenoms...).
+		Build()
 
 	suite.keeper.InitializeHardSupplyReward(suite.ctx, deposit)
 

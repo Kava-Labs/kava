@@ -23,6 +23,36 @@ func NewDeposit(depositor sdk.AccAddress, amount sdk.Coins, indexes SupplyIntere
 	}
 }
 
+// NormalizedDeposit is the deposit amounts divided by the interest factors.
+//
+// Multiplying the normalized deposit by the current global factors gives the current deposit (ie including all interest, ie a synced deposit).
+// The normalized deposit is effectively how big the deposit would have been if it had been supplied at time 0 and not touched since.
+//
+// An error is returned if the deposit is in an invalid state.
+func (b Deposit) NormalizedDeposit() (sdk.DecCoins, error) {
+
+	normalized := sdk.NewDecCoins()
+
+	for _, coin := range b.Amount {
+
+		factor, found := b.Index.GetInterestFactor(coin.Denom)
+		if !found {
+			return nil, fmt.Errorf("deposited amount '%s' missing interest factor", coin.Denom)
+		}
+		if factor.LT(sdk.OneDec()) {
+			return nil, fmt.Errorf("interest factor '%s' < 1", coin.Denom)
+		}
+
+		normalized = normalized.Add(
+			sdk.NewDecCoinFromDec(
+				coin.Denom,
+				coin.Amount.ToDec().Quo(factor),
+			),
+		)
+	}
+	return normalized, nil
+}
+
 // Validate deposit validation
 func (d Deposit) Validate() error {
 	if d.Depositor.Empty() {

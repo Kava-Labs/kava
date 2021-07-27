@@ -8,59 +8,39 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// AccumulateDelegatorRewards updates the rewards accumulated for the input reward period
-func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriods types.MultiRewardPeriod) error {
-	previousAccrualTime, found := k.GetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType)
+// AccumulateDelegatorRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
+// The provided rewardPeriod must be valid to avoid panics in calculating time durations.
+func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
+
+	previousAccrualTime, found := k.GetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
-		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
-		return nil
-	}
-	timeElapsed := CalculateTimeElapsed(rewardPeriods.Start, rewardPeriods.End, ctx.BlockTime(), previousAccrualTime)
-	if timeElapsed.IsZero() {
-		return nil
-	}
-	if rewardPeriods.RewardsPerSecond.IsZero() {
-		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
-		return nil
+		previousAccrualTime = ctx.BlockTime()
 	}
 
-	totalBonded := k.stakingKeeper.TotalBondedTokens(ctx).ToDec()
-	if totalBonded.IsZero() {
-		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
-		return nil
-	}
-
-	previousRewardIndexes, found := k.GetDelegatorRewardIndexes(ctx, rewardPeriods.CollateralType)
+	indexes, found := k.GetDelegatorRewardIndexes(ctx, rewardPeriod.CollateralType)
 	if !found {
-		for _, rewardCoin := range rewardPeriods.RewardsPerSecond {
-			rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
-			previousRewardIndexes = append(previousRewardIndexes, rewardIndex)
-		}
-		k.SetDelegatorRewardIndexes(ctx, rewardPeriods.CollateralType, previousRewardIndexes)
+		indexes = types.RewardIndexes{}
 	}
 
-	newRewardIndexes := previousRewardIndexes
-	for _, rewardCoin := range rewardPeriods.RewardsPerSecond {
-		newRewards := rewardCoin.Amount.ToDec().Mul(timeElapsed.ToDec())
-		previousRewardIndex, found := previousRewardIndexes.GetRewardIndex(rewardCoin.Denom)
-		if !found {
-			previousRewardIndex = types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
-		}
+	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-		// Calculate new reward factor and update reward index
-		rewardFactor := newRewards.Quo(totalBonded)
-		newRewardFactorValue := previousRewardIndex.RewardFactor.Add(rewardFactor)
-		newRewardIndex := types.NewRewardIndex(rewardCoin.Denom, newRewardFactorValue)
-		i, found := newRewardIndexes.GetFactorIndex(rewardCoin.Denom)
-		if found {
-			newRewardIndexes[i] = newRewardIndex
-		} else {
-			newRewardIndexes = append(newRewardIndexes, newRewardIndex)
-		}
+	totalSource := k.getDelegatorTotalSourceShares(ctx, rewardPeriod.CollateralType)
+
+	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
+
+	k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
+	if len(acc.Indexes) > 0 {
+		// the store panics when setting empty or nil indexes
+		k.SetDelegatorRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
 	}
-	k.SetDelegatorRewardIndexes(ctx, rewardPeriods.CollateralType, newRewardIndexes)
-	k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriods.CollateralType, ctx.BlockTime())
-	return nil
+}
+
+// getDelegatorTotalSourceShares fetches the sum of all source shares for a delegator reward.
+// In the case of delegation, this is the total tokens staked to bonded validators.
+func (k Keeper) getDelegatorTotalSourceShares(ctx sdk.Context, denom string) sdk.Dec {
+	totalBonded := k.stakingKeeper.TotalBondedTokens(ctx)
+
+	return totalBonded.ToDec()
 }
 
 // InitializeDelegatorReward initializes the reward index of a delegator claim
@@ -172,13 +152,6 @@ func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, val
 		totalDelegated = totalDelegated.Add(delegatedTokens)
 	}
 	return totalDelegated
-}
-
-// ZeroDelegatorClaim zeroes out the claim object's rewards and returns the updated claim object
-func (k Keeper) ZeroDelegatorClaim(ctx sdk.Context, claim types.DelegatorClaim) types.DelegatorClaim {
-	claim.Reward = sdk.NewCoins()
-	k.SetDelegatorClaim(ctx, claim)
-	return claim
 }
 
 // SimulateDelegatorSynchronization calculates a user's outstanding delegator rewards by simulating reward synchronization

@@ -109,6 +109,8 @@ func NewCDPGenStateMulti() app.GenesisState {
 }
 
 func NewPricefeedGenStateMultiFromTime(t time.Time) app.GenesisState {
+	expiry := 100 * 365 * 24 * time.Hour // 100 years
+
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
@@ -125,37 +127,37 @@ func NewPricefeedGenStateMultiFromTime(t time.Time) app.GenesisState {
 				MarketID:      "kava:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("2.00"),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "btc:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("8000.00"),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "xrp:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("0.25"),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "bnb:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("17.25"),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "busd:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.OneDec(),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "zzz:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("2.00"),
-				Expiry:        t.Add(1 * time.Hour),
+				Expiry:        t.Add(expiry),
 			},
 		},
 	}
@@ -186,22 +188,20 @@ func NewStakingGenesisState() app.GenesisState {
 	}
 }
 
-func NewCommitteeGenesisState(members []sdk.AccAddress) app.GenesisState {
+func NewCommitteeGenesisState(committeeID uint64, members ...sdk.AccAddress) app.GenesisState {
 	genState := committeetypes.DefaultGenesisState()
+
 	genState.Committees = committeetypes.Committees{
-		committeetypes.MemberCommittee{
-			BaseCommittee: committeetypes.BaseCommittee{
-				ID:               genState.NextProposalID,
-				Description:      "This committee is for testing.",
-				Members:          members,
-				Permissions:      []committeetypes.Permission{committeetypes.GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      committeetypes.FirstPastThePost,
-			},
-		},
+		committeetypes.NewMemberCommittee(
+			committeeID,
+			"This committee is for testing.",
+			members,
+			[]committeetypes.Permission{committeetypes.GodPermission{}},
+			sdk.MustNewDecFromStr("0.666666667"),
+			time.Hour*24*7,
+			committeetypes.FirstPastThePost,
+		),
 	}
-	genState.NextProposalID += 1
 	return app.GenesisState{
 		committeetypes.ModuleName: committeetypes.ModuleCdc.MustMarshalJSON(genState),
 	}

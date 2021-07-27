@@ -27,8 +27,10 @@ var (
 
 // Simulation operation weights constants
 const (
-	OpWeightMsgDeposit  = "op_weight_msg_deposit"
-	OpWeightMsgWithdraw = "op_weight_msg_withdraw"
+	OpWeightMsgDeposit            = "op_weight_msg_deposit"
+	OpWeightMsgWithdraw           = "op_weight_msg_withdraw"
+	OpWeightMsgSwapExactForTokens = "op_weight_msg_swap_exact_for_tokens"
+	OpWeightMsgSwapForExactTokens = "op_weight_msg_swap_for_exact_tokens"
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
@@ -37,6 +39,8 @@ func WeightedOperations(
 ) simulation.WeightedOperations {
 	var weightMsgDeposit int
 	var weightMsgWithdraw int
+	var weightMsgSwapExactForTokens int
+	var weightMsgSwapForExactTokens int
 
 	appParams.GetOrGenerate(cdc, OpWeightMsgDeposit, &weightMsgDeposit, nil,
 		func(_ *rand.Rand) {
@@ -50,6 +54,18 @@ func WeightedOperations(
 		},
 	)
 
+	appParams.GetOrGenerate(cdc, OpWeightMsgSwapExactForTokens, &weightMsgSwapExactForTokens, nil,
+		func(_ *rand.Rand) {
+			weightMsgSwapExactForTokens = appparams.DefaultWeightMsgSwapExactForTokens
+		},
+	)
+
+	appParams.GetOrGenerate(cdc, OpWeightMsgSwapForExactTokens, &weightMsgSwapForExactTokens, nil,
+		func(_ *rand.Rand) {
+			weightMsgSwapForExactTokens = appparams.DefaultWeightMsgSwapForExactTokens
+		},
+	)
+
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightMsgDeposit,
@@ -58,6 +74,14 @@ func WeightedOperations(
 		simulation.NewWeightedOperation(
 			weightMsgWithdraw,
 			SimulateMsgWithdraw(ak, k),
+		),
+		simulation.NewWeightedOperation(
+			weightMsgSwapExactForTokens,
+			SimulateMsgSwapExactForTokens(ak, k),
+		),
+		simulation.NewWeightedOperation(
+			weightMsgSwapForExactTokens,
+			SimulateMsgSwapForExactTokens(ak, k),
 		),
 	}
 }
@@ -98,16 +122,8 @@ func SimulateMsgDeposit(ak types.AccountKeeper, k keeper.Keeper) simulation.Oper
 		}
 		slippage := slippageRaw.ToDec().Quo(sdk.NewDec(100))
 
-		// Set up deadline
-		durationNanoseconds, err := RandIntInclusive(r,
-			sdk.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
-			sdk.NewInt((time.Hour * 24).Nanoseconds()),   // one day
-		)
-		if err != nil {
-			panic(err)
-		}
-		extraTime := time.Duration(durationNanoseconds.Int64())
-		deadline := blockTime.Add(extraTime).Unix()
+		// Generate random deadline
+		deadline := genRandDeadline(r, blockTime)
 
 		depositorAcc := ak.GetAccount(ctx, depositor.Address)
 		depositorCoins := depositorAcc.SpendableCoins(blockTime)
@@ -201,8 +217,8 @@ func SimulateMsgWithdraw(ak types.AccountKeeper, k keeper.Keeper) simulation.Ope
 		}
 		coinsOwned := denominatedPool.ShareValue(shareRecord.SharesOwned)
 
-		// Get random amount of shares between 2-50% of the total
-		sharePercentage, err := RandIntInclusive(r, sdk.NewInt(2), sdk.NewInt(50))
+		// Get random amount of shares between 2-10% of the total
+		sharePercentage, err := RandIntInclusive(r, sdk.NewInt(2), sdk.NewInt(10))
 		if err != nil {
 			panic(err)
 		}
@@ -219,17 +235,9 @@ func SimulateMsgWithdraw(ak types.AccountKeeper, k keeper.Keeper) simulation.Ope
 		minTokenAmtB := amtTokenBOwned.Mul(oneLessThanSharePercentage).Quo(sdk.NewInt(100))
 		minTokenB := sdk.NewCoin(poolRecord.ReservesB.Denom, minTokenAmtB)
 
-		// Set up deadline
+		// Generate random deadline
 		blockTime := ctx.BlockHeader().Time
-		durationNanoseconds, err := RandIntInclusive(r,
-			sdk.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
-			sdk.NewInt((time.Hour * 24).Nanoseconds()),   // one day
-		)
-		if err != nil {
-			panic(err)
-		}
-		extraTime := time.Duration(durationNanoseconds.Int64())
-		deadline := blockTime.Add(extraTime).Unix()
+		deadline := genRandDeadline(r, blockTime)
 
 		// Construct MsgWithdraw
 		msg := types.NewMsgWithdraw(withdrawerAcc.GetAddress(), shares, minTokenA, minTokenB, deadline)
@@ -255,6 +263,204 @@ func SimulateMsgWithdraw(ak types.AccountKeeper, k keeper.Keeper) simulation.Ope
 		}
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 
+	}
+}
+
+// SimulateMsgSwapExactForTokens generates a MsgSwapExactForTokens
+func SimulateMsgSwapExactForTokens(ak types.AccountKeeper, k keeper.Keeper) simulation.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+
+		poolRecords := k.GetAllPools(ctx)
+		r.Shuffle(len(poolRecords), func(i, j int) {
+			poolRecords[i], poolRecords[j] = poolRecords[j], poolRecords[i]
+		})
+
+		// Find an account-pool pair for which trade is possible
+		trader, poolRecord, found := findValidAccountPoolRecordPair(accs, poolRecords, func(acc simulation.Account, poolRecord types.PoolRecord) bool {
+			traderAcc := ak.GetAccount(ctx, acc.Address)
+			balanceTokenA := traderAcc.GetCoins().AmountOf(poolRecord.ReservesA.Denom)
+			balanceTokenB := traderAcc.GetCoins().AmountOf(poolRecord.ReservesB.Denom)
+			if !balanceTokenA.IsPositive() || !balanceTokenB.IsPositive() {
+				return false
+			}
+			return true
+		})
+		if !found {
+			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid pool record and trader)", "", false, nil), nil, nil
+		}
+
+		// Select input token
+		randInt, err := RandInt(r, sdk.OneInt(), sdk.NewInt(9))
+		if err != nil {
+			panic(err)
+		}
+		inputToken := poolRecord.ReservesA
+		outputToken := poolRecord.ReservesB
+		if randInt.Int64()%2 == 0 {
+			inputToken = poolRecord.ReservesB
+			outputToken = poolRecord.ReservesA
+		}
+
+		// Select entity (trader account or pool) with smaller token amount
+		traderAcc := ak.GetAccount(ctx, trader.Address)
+		maxTradeAmount := inputToken.Amount
+		if traderAcc.GetCoins().AmountOf(inputToken.Denom).LT(inputToken.Amount) {
+			maxTradeAmount = traderAcc.GetCoins().AmountOf(inputToken.Denom)
+		}
+
+		// Exact input token is between 2-10% of the max trade amount
+		percentage, err := RandIntInclusive(r, sdk.NewInt(2), sdk.NewInt(10))
+		if err != nil {
+			panic(err)
+		}
+		tradeAmount := maxTradeAmount.Mul(percentage).Quo(sdk.NewInt(100))
+		exactInputToken := sdk.NewCoin(inputToken.Denom, tradeAmount)
+
+		// Calculate expected output coin
+		globalSwapFee := k.GetSwapFee(ctx)
+		tradeAmountAfterFee := exactInputToken.Amount.ToDec().Mul(sdk.OneDec().Sub(globalSwapFee)).TruncateInt()
+
+		var outputAmt big.Int
+		outputAmt.Mul(outputToken.Amount.BigInt(), tradeAmountAfterFee.BigInt())
+		outputAmt.Quo(&outputAmt, inputToken.Amount.Add(tradeAmountAfterFee).BigInt())
+		expectedOutTokenAmount := sdk.NewIntFromBigInt(&outputAmt)
+		expectedOutputToken := sdk.NewCoin(outputToken.Denom, expectedOutTokenAmount)
+
+		// Get random slippage amount between 50-100%
+		slippageRaw, err := RandIntInclusive(r, sdk.NewInt(50), sdk.NewInt(99))
+		if err != nil {
+			panic(err)
+		}
+		slippage := slippageRaw.ToDec().Quo(sdk.NewDec(100))
+
+		// Generate random deadline
+		blockTime := ctx.BlockHeader().Time
+		deadline := genRandDeadline(r, blockTime)
+
+		// Construct MsgSwapExactForTokens
+		msg := types.NewMsgSwapExactForTokens(traderAcc.GetAddress(), exactInputToken, expectedOutputToken, slippage, deadline)
+		err = msg.ValidateBasic()
+		if err != nil {
+			return noOpMsg, nil, nil
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			sdk.NewCoins(),
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{traderAcc.GetAccountNumber()},
+			[]uint64{traderAcc.GetSequence()},
+			trader.PrivKey,
+		)
+
+		_, result, err := app.Deliver(tx)
+		if err != nil {
+			// to aid debugging, add the stack trace to the comment field of the returned opMsg
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
+		}
+		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
+	}
+}
+
+// SimulateMsgSwapForExactTokens generates a MsgSwapForExactTokens
+func SimulateMsgSwapForExactTokens(ak types.AccountKeeper, k keeper.Keeper) simulation.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+
+		poolRecords := k.GetAllPools(ctx)
+		r.Shuffle(len(poolRecords), func(i, j int) {
+			poolRecords[i], poolRecords[j] = poolRecords[j], poolRecords[i]
+		})
+
+		// Find an account-pool pair for which trade is possible
+		trader, poolRecord, found := findValidAccountPoolRecordPair(accs, poolRecords, func(acc simulation.Account, poolRecord types.PoolRecord) bool {
+			traderAcc := ak.GetAccount(ctx, acc.Address)
+			balanceTokenA := traderAcc.GetCoins().AmountOf(poolRecord.ReservesA.Denom)
+			balanceTokenB := traderAcc.GetCoins().AmountOf(poolRecord.ReservesB.Denom)
+			if !balanceTokenA.IsPositive() || !balanceTokenB.IsPositive() {
+				return false
+			}
+			return true
+		})
+		if !found {
+			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid pool record and trader)", "", false, nil), nil, nil
+		}
+
+		// Select input token
+		randInt, err := RandInt(r, sdk.OneInt(), sdk.NewInt(9))
+		if err != nil {
+			panic(err)
+		}
+		inputToken := poolRecord.ReservesA
+		outputToken := poolRecord.ReservesB
+		if randInt.Int64()%2 == 0 {
+			inputToken = poolRecord.ReservesB
+			outputToken = poolRecord.ReservesA
+		}
+
+		// Select entity (trader account or pool) with smaller token amount
+		traderAcc := ak.GetAccount(ctx, trader.Address)
+		maxTradeAmount := inputToken.Amount
+		if traderAcc.GetCoins().AmountOf(inputToken.Denom).LT(inputToken.Amount) {
+			maxTradeAmount = traderAcc.GetCoins().AmountOf(inputToken.Denom)
+		}
+
+		// Expected input token is between 2-10% of the max trade amount
+		percentage, err := RandIntInclusive(r, sdk.NewInt(2), sdk.NewInt(10))
+		if err != nil {
+			panic(err)
+		}
+		tradeAmount := maxTradeAmount.Mul(percentage).Quo(sdk.NewInt(100))
+		expectedInputToken := sdk.NewCoin(inputToken.Denom, tradeAmount)
+
+		// Calculate exact output coin
+		globalSwapFee := k.GetSwapFee(ctx)
+		tradeAmountAfterFee := expectedInputToken.Amount.ToDec().Mul(sdk.OneDec().Sub(globalSwapFee)).TruncateInt()
+
+		var outputAmt big.Int
+		outputAmt.Mul(outputToken.Amount.BigInt(), tradeAmountAfterFee.BigInt())
+		outputAmt.Quo(&outputAmt, inputToken.Amount.Add(tradeAmountAfterFee).BigInt())
+		outputTokenAmount := sdk.NewIntFromBigInt(&outputAmt)
+		exactOutputToken := sdk.NewCoin(outputToken.Denom, outputTokenAmount)
+
+		// Get random slippage amount between 50-100%
+		slippageRaw, err := RandIntInclusive(r, sdk.NewInt(50), sdk.NewInt(99))
+		if err != nil {
+			panic(err)
+		}
+		slippage := slippageRaw.ToDec().Quo(sdk.NewDec(100))
+
+		// Generate random deadline
+		blockTime := ctx.BlockHeader().Time
+		deadline := genRandDeadline(r, blockTime)
+
+		// Construct MsgSwapForExactTokens
+		msg := types.NewMsgSwapForExactTokens(traderAcc.GetAddress(), expectedInputToken, exactOutputToken, slippage, deadline)
+		err = msg.ValidateBasic()
+		if err != nil {
+			return noOpMsg, nil, nil
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			sdk.NewCoins(),
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{traderAcc.GetAccountNumber()},
+			[]uint64{traderAcc.GetSequence()},
+			trader.PrivKey,
+		)
+
+		_, result, err := app.Deliver(tx)
+		if err != nil {
+			// to aid debugging, add the stack trace to the comment field of the returned opMsg
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
+		}
+		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
 }
 
@@ -307,6 +513,19 @@ func findValidAccountPoolRecordPair(accounts []simulation.Account, pools types.P
 		}
 	}
 	return simulation.Account{}, types.PoolRecord{}, false
+}
+
+func genRandDeadline(r *rand.Rand, blockTime time.Time) int64 {
+	// Set up deadline
+	durationNanoseconds, err := RandIntInclusive(r,
+		sdk.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
+		sdk.NewInt((time.Hour * 24).Nanoseconds()),   // one day
+	)
+	if err != nil {
+		panic(err)
+	}
+	extraTime := time.Duration(durationNanoseconds.Int64())
+	return blockTime.Add(extraTime).Unix()
 }
 
 // RandIntInclusive randomly generates an sdk.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.

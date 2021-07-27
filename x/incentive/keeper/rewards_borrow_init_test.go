@@ -5,19 +5,10 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 // InitializeHardBorrowRewardTests runs unit tests for the keeper.InitializeHardBorrowReward method
-//
-// inputs
-// - claim in store if it exists (only claim.BorrowRewardIndexes)
-// - global indexes in store
-// - borrow function arg (only borrow.Amount)
-//
-// outputs
-// - sets or creates a claim
 type InitializeHardBorrowRewardTests struct {
 	unitTester
 }
@@ -41,10 +32,9 @@ func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetWhenClaimExi
 	globalIndexes := nonEmptyMultiRewardIndexes
 	suite.storeGlobalBorrowIndexes(globalIndexes)
 
-	borrow := hardtypes.Borrow{
-		Borrower: claim.Owner,
-		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
+	borrow := NewBorrowBuilder(claim.Owner).
+		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
+		Build()
 
 	suite.keeper.InitializeHardBorrowReward(suite.ctx, borrow)
 
@@ -56,10 +46,9 @@ func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetWhenClaimDoe
 	suite.storeGlobalBorrowIndexes(globalIndexes)
 
 	owner := arbitraryAddress()
-	borrow := hardtypes.Borrow{
-		Borrower: owner,
-		Amount:   arbitraryCoinsWithDenoms(extractCollateralTypes(globalIndexes)...),
-	}
+	borrow := NewBorrowBuilder(owner).
+		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
+		Build()
 
 	suite.keeper.InitializeHardBorrowReward(suite.ctx, borrow)
 
@@ -77,10 +66,9 @@ func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetEmptyForMiss
 	// This happens when a borrow denom has no rewards associated with it.
 	expectedIndexes := appendUniqueEmptyMultiRewardIndex(globalIndexes)
 	borrowedDenoms := extractCollateralTypes(expectedIndexes)
-	borrow := hardtypes.Borrow{
-		Borrower: owner,
-		Amount:   arbitraryCoinsWithDenoms(borrowedDenoms...),
-	}
+	borrow := NewBorrowBuilder(owner).
+		WithArbitrarySourceShares(borrowedDenoms...).
+		Build()
 
 	suite.keeper.InitializeHardBorrowReward(suite.ctx, borrow)
 

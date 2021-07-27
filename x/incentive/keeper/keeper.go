@@ -319,7 +319,7 @@ func (k Keeper) GetHardSupplyRewardIndexes(ctx sdk.Context, denom string) (types
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
 	bz := store.Get([]byte(denom))
 	if bz == nil {
-		return types.RewardIndexes{}, false
+		return nil, false
 	}
 	var rewardIndexes types.RewardIndexes
 	k.cdc.MustUnmarshalBinaryBare(bz, &rewardIndexes)
@@ -366,7 +366,7 @@ func (k Keeper) GetHardBorrowRewardIndexes(ctx sdk.Context, denom string) (types
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardIndexesKeyPrefix)
 	bz := store.Get([]byte(denom))
 	if bz == nil {
-		return types.RewardIndexes{}, false
+		return nil, false
 	}
 	var rewardIndexes types.RewardIndexes
 	k.cdc.MustUnmarshalBinaryBare(bz, &rewardIndexes)
@@ -406,7 +406,7 @@ func (k Keeper) GetDelegatorRewardIndexes(ctx sdk.Context, denom string) (types.
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
 	bz := store.Get([]byte(denom))
 	if bz == nil {
-		return types.RewardIndexes{}, false
+		return nil, false
 	}
 	var rewardIndexes types.RewardIndexes
 	k.cdc.MustUnmarshalBinaryBare(bz, &rewardIndexes)
@@ -511,7 +511,7 @@ func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolID string) (types.Rewa
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
 	bz := store.Get([]byte(poolID))
 	if bz == nil {
-		return types.RewardIndexes{}, false
+		return nil, false
 	}
 	var rewardIndexes types.RewardIndexes
 	k.cdc.MustUnmarshalBinaryBare(bz, &rewardIndexes)

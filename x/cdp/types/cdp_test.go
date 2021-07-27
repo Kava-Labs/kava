@@ -176,6 +176,68 @@ func (suite *CdpValidationSuite) TestCdpGetTotalPrinciple() {
 	suite.Require().Equal(cdp.GetTotalPrincipal(), principal.Add(accumulatedFees))
 }
 
+func (suite *CdpValidationSuite) TestCDPGetNormalizedPrincipal() {
+	type expectedErr struct {
+		expectPass bool
+		contains   string
+	}
+	testCases := []struct {
+		name        string
+		cdp         types.CDP
+		expected    sdk.Dec
+		expectedErr expectedErr
+	}{
+		{
+			name: "principal + fees is divided by factor correctly",
+			cdp: types.CDP{
+				Principal:       sdk.NewInt64Coin("usdx", 1e9),
+				AccumulatedFees: sdk.NewInt64Coin("usdx", 1e6),
+				InterestFactor:  sdk.MustNewDecFromStr("2"),
+			},
+			expected: sdk.MustNewDecFromStr("500500000"),
+			expectedErr: expectedErr{
+				expectPass: true,
+			},
+		},
+		{
+			name: "factor < 1 returns error",
+			cdp: types.CDP{
+				Principal:       sdk.NewInt64Coin("usdx", 1e9),
+				AccumulatedFees: sdk.NewInt64Coin("usdx", 1e6),
+				InterestFactor:  sdk.MustNewDecFromStr("0.999999999999999999"),
+			},
+			expectedErr: expectedErr{
+				contains: "must be ≥ 1",
+			},
+		},
+		{
+			name: "0 factor returns error rather than div by 0 panic",
+			cdp: types.CDP{
+				Principal:       sdk.NewInt64Coin("usdx", 1e9),
+				AccumulatedFees: sdk.NewInt64Coin("usdx", 1e6),
+				InterestFactor:  sdk.MustNewDecFromStr("0"),
+			},
+			expectedErr: expectedErr{
+				contains: "must be ≥ 1",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			np, err := tc.cdp.GetNormalizedPrincipal()
+
+			if tc.expectedErr.expectPass {
+				suite.Require().NoError(err, tc.name)
+				suite.Equal(tc.expected, np)
+			} else {
+				suite.Require().Error(err, tc.name)
+				suite.Contains(err.Error(), tc.expectedErr.contains)
+			}
+		})
+	}
+}
+
 func TestCdpValidationSuite(t *testing.T) {
 	suite.Run(t, new(CdpValidationSuite))
 }

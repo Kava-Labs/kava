@@ -15,6 +15,8 @@ const (
 	DefaultWeightMsgClaimReward           int = 20
 	DefaultWeightMsgDeposit               int = 20
 	DefaultWeightMsgWithdraw              int = 20
+	DefaultWeightMsgSwapExactForTokens    int = 20
+	DefaultWeightMsgSwapForExactTokens    int = 20
 	DefaultWeightMsgIssue                 int = 20
 	DefaultWeightMsgRedeem                int = 20
 	DefaultWeightMsgBlock                 int = 20

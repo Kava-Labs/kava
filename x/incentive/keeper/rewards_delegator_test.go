@@ -148,8 +148,7 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateDelegatorRewards() {
 
 			rewardPeriods, found := suite.keeper.GetDelegatorRewardPeriods(runCtx, tc.args.delegation.Denom)
 			suite.Require().True(found)
-			err = suite.keeper.AccumulateDelegatorRewards(runCtx, rewardPeriods)
-			suite.Require().NoError(err)
+			suite.keeper.AccumulateDelegatorRewards(runCtx, rewardPeriods)
 
 			rewardIndexes, _ := suite.keeper.GetDelegatorRewardIndexes(runCtx, tc.args.delegation.Denom)
 			suite.Require().Equal(tc.args.expectedRewardIndexes, rewardIndexes)
@@ -269,8 +268,7 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeDelegatorReward() {
 				rewardPeriods, found := suite.keeper.GetDelegatorRewardPeriods(blockCtx, tc.args.delegation.Denom)
 				suite.Require().True(found)
 
-				err := suite.keeper.AccumulateDelegatorRewards(blockCtx, rewardPeriods)
-				suite.Require().NoError(err)
+				suite.keeper.AccumulateDelegatorRewards(blockCtx, rewardPeriods)
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
@@ -385,8 +383,7 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateDelegatorRewardSynchronizati
 				// Accumulate delegator rewards
 				rewardPeriods, found := suite.keeper.GetDelegatorRewardPeriods(blockCtx, tc.args.delegation.Denom)
 				suite.Require().True(found)
-				err := suite.keeper.AccumulateDelegatorRewards(blockCtx, rewardPeriods)
-				suite.Require().NoError(err)
+				suite.keeper.AccumulateDelegatorRewards(blockCtx, rewardPeriods)
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
