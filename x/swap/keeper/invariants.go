@@ -34,7 +34,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	}
 }
 
-// PoolRecordsInvariant iterates all pool records and asserts that they ar valid
+// PoolRecordsInvariant iterates all pool records and asserts that they are valid
 func PoolRecordsInvariant(k Keeper) sdk.Invariant {
 	broken := false
 	message := sdk.FormatInvariant(types.ModuleName, "validate pool records broken", "pool record invalid")
@@ -52,7 +52,7 @@ func PoolRecordsInvariant(k Keeper) sdk.Invariant {
 	}
 }
 
-// ShareRecordsInvariant iterates all pool records and asserts that they ar valid
+// ShareRecordsInvariant iterates all pool records and asserts that they are valid
 func ShareRecordsInvariant(k Keeper) sdk.Invariant {
 	broken := false
 	message := sdk.FormatInvariant(types.ModuleName, "validate share records broken", "share record invalid")
