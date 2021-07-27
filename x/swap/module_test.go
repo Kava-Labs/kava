@@ -20,7 +20,7 @@ func (suite *moduleTestSuite) SetupTest() {
 	suite.crisisKeeper = suite.App.GetCrisisKeeper()
 }
 
-func (suite *moduleTestSuite) TestRegesterInviarants() {
+func (suite *moduleTestSuite) TestRegisterInvariants() {
 	swapRoutes := []string{}
 
 	for _, route := range suite.crisisKeeper.Routes() {
