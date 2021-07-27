@@ -225,7 +225,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 		v0_15committee.AllowedParam{Subspace: "hard", Key: "MinimumBorrowUSDValue"},
 		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardSupplyRewardPeriods"},
 		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardBorrowRewardPeriods"},
-		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardDelegatorRewardPeriods"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "DelegatorRewardPeriods"},
 	}
 	newHardSubParamPermissions.AllowedParams = hardComAllowedParams
 
@@ -256,11 +256,12 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	var newSwapCommitteePermissions []v0_15committee.Permission
 	var newSwapSubParamPermissions v0_15committee.SubParamChangePermission
 
-	// TODO: add additional incentive params that manage LP rewards
+	// Allowed params permissions
 	swpAllowedParams := v0_15committee.AllowedParams{
 		v0_15committee.AllowedParam{Subspace: "swap", Key: "AllowedPools"},
 		v0_15committee.AllowedParam{Subspace: "swap", Key: "SwapFee"},
-		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardDelegatorRewardPeriods"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "DelegatorRewardPeriods"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "SwapRewardPeriods"},
 	}
 	newSwapSubParamPermissions.AllowedParams = swpAllowedParams
 
