@@ -277,7 +277,7 @@ func SimulateMsgSwapExactForTokens(ak types.AccountKeeper, k keeper.Keeper) simu
 			poolRecords[i], poolRecords[j] = poolRecords[j], poolRecords[i]
 		})
 
-		// Find an account-pool pair for which withdraw is possible
+		// Find an account-pool pair for which trade is possible
 		trader, poolRecord, found := findValidAccountPoolRecordPair(accs, poolRecords, func(acc simulation.Account, poolRecord types.PoolRecord) bool {
 			traderAcc := ak.GetAccount(ctx, acc.Address)
 			balanceTokenA := traderAcc.GetCoins().AmountOf(poolRecord.ReservesA.Denom)
@@ -376,7 +376,7 @@ func SimulateMsgSwapForExactTokens(ak types.AccountKeeper, k keeper.Keeper) simu
 			poolRecords[i], poolRecords[j] = poolRecords[j], poolRecords[i]
 		})
 
-		// Find an account-pool pair for which withdraw is possible
+		// Find an account-pool pair for which trade is possible
 		trader, poolRecord, found := findValidAccountPoolRecordPair(accs, poolRecords, func(acc simulation.Account, poolRecord types.PoolRecord) bool {
 			traderAcc := ak.GetAccount(ctx, acc.Address)
 			balanceTokenA := traderAcc.GetCoins().AmountOf(poolRecord.ReservesA.Denom)
