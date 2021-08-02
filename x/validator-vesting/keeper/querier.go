@@ -11,6 +11,8 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
+const SafuFund int64 = 10000000 // 10 million KAVA
+
 // NewQuerier returns a new querier function
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
@@ -76,17 +78,28 @@ func getCirculatingSupply(blockTime time.Time) sdk.Int {
 	case blockTime.After(vestingDates[2]) && blockTime.Before(vestingDates[3]) || blockTime.Equal(vestingDates[2]):
 		return sdk.NewInt(58524186)
 	case blockTime.After(vestingDates[3]) && blockTime.Before(vestingDates[4]) || blockTime.Equal(vestingDates[3]):
-		return sdk.NewInt(70172142)
+		safuFundInitTime := time.Date(2021, 6, 14, 14, 0, 0, 0, time.UTC)
+		safuFundFilledTime := time.Date(2021, 7, 14, 14, 0, 0, 0, time.UTC)
+		switch {
+		case blockTime.Before(safuFundInitTime):
+			return sdk.NewInt(70172142)
+		case blockTime.After(safuFundInitTime) && blockTime.Before(safuFundFilledTime):
+			days := blockTime.Sub(safuFundInitTime).Hours() / 24
+			currSafuFundAmt := int64(days) * SafuFund / 30
+			return sdk.NewInt(70172142 + currSafuFundAmt)
+		default:
+			return sdk.NewInt(70172142 + SafuFund)
+		}
 	case blockTime.After(vestingDates[4]) && blockTime.Before(vestingDates[5]) || blockTime.Equal(vestingDates[4]):
-		return sdk.NewInt(81443180)
+		return sdk.NewInt(81443180 + SafuFund)
 	case blockTime.After(vestingDates[5]) && blockTime.Before(vestingDates[6]) || blockTime.Equal(vestingDates[5]):
-		return sdk.NewInt(90625000)
+		return sdk.NewInt(90625000 + SafuFund)
 	case blockTime.After(vestingDates[6]) && blockTime.Before(vestingDates[7]) || blockTime.Equal(vestingDates[6]):
-		return sdk.NewInt(92968750)
+		return sdk.NewInt(92968750 + SafuFund)
 	case blockTime.After(vestingDates[7]) && blockTime.Before(vestingDates[8]) || blockTime.Equal(vestingDates[7]):
-		return sdk.NewInt(95312500)
+		return sdk.NewInt(95312500 + SafuFund)
 	case blockTime.After(vestingDates[8]) && blockTime.Before(vestingDates[9]) || blockTime.Equal(vestingDates[8]):
-		return sdk.NewInt(97656250)
+		return sdk.NewInt(97656250 + SafuFund)
 	default:
 		return sdk.NewInt(100000000)
 	}
