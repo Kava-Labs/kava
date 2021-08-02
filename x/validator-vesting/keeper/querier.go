@@ -85,7 +85,7 @@ func getCirculatingSupply(blockTime time.Time) sdk.Int {
 			return sdk.NewInt(70172142)
 		case blockTime.After(safuFundInitTime) && blockTime.Before(safuFundFilledTime):
 			days := blockTime.Sub(safuFundInitTime).Hours() / 24
-			currSafuFundAmt := int64(days) * SafuFund / 30
+			currSafuFundAmt := int64(days) * (SafuFund / 30)
 			return sdk.NewInt(70172142 + currSafuFundAmt)
 		default:
 			return sdk.NewInt(70172142 + SafuFund)
