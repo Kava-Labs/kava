@@ -36,7 +36,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 }
 
 func handleMsgClaimUSDXMintingReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimUSDXMintingReward) (*sdk.Result, error) {
-	err := k.ClaimUSDXMintingReward(ctx, msg.Sender, msg.Sender, types.MultiplierName(msg.MultiplierName))
+	err := k.ClaimUSDXMintingReward(ctx, msg.Sender, msg.Sender, msg.MultiplierName)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func handleMsgClaimUSDXMintingRewardVVesting(ctx sdk.Context, k keeper.Keeper, m
 	if err := k.ValidateIsValidatorVestingAccount(ctx, msg.Sender); err != nil {
 		return nil, err
 	}
-	err := k.ClaimUSDXMintingReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName))
+	err := k.ClaimUSDXMintingReward(ctx, msg.Sender, msg.Receiver, msg.MultiplierName)
 	if err != nil {
 		return nil, err
 	}
@@ -60,10 +60,12 @@ func handleMsgClaimUSDXMintingRewardVVesting(ctx sdk.Context, k keeper.Keeper, m
 }
 
 func handleMsgClaimHardReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimHardReward) (*sdk.Result, error) {
+	for _, selection := range msg.DenomsToClaim {
+		err := k.ClaimHardReward(ctx, msg.Sender, msg.Sender, selection.Denom, selection.MultiplierName)
+		if err != nil {
+			return nil, err
+		}
 
-	err := k.ClaimHardReward(ctx, msg.Sender, msg.Sender, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
-	if err != nil {
-		return nil, err
 	}
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
@@ -75,9 +77,12 @@ func handleMsgClaimHardRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg type
 	if err := k.ValidateIsValidatorVestingAccount(ctx, msg.Sender); err != nil {
 		return nil, err
 	}
-	err := k.ClaimHardReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
-	if err != nil {
-		return nil, err
+	for _, selection := range msg.DenomsToClaim {
+		err := k.ClaimHardReward(ctx, msg.Sender, msg.Receiver, selection.Denom, selection.MultiplierName)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
@@ -86,9 +91,11 @@ func handleMsgClaimHardRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg type
 
 func handleMsgClaimDelegatorReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimDelegatorReward) (*sdk.Result, error) {
 
-	err := k.ClaimDelegatorReward(ctx, msg.Sender, msg.Sender, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
-	if err != nil {
-		return nil, err
+	for _, selection := range msg.DenomsToClaim {
+		err := k.ClaimDelegatorReward(ctx, msg.Sender, msg.Sender, selection.Denom, selection.MultiplierName)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
@@ -100,9 +107,11 @@ func handleMsgClaimDelegatorRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg
 	if err := k.ValidateIsValidatorVestingAccount(ctx, msg.Sender); err != nil {
 		return nil, err
 	}
-	err := k.ClaimDelegatorReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
-	if err != nil {
-		return nil, err
+	for _, selection := range msg.DenomsToClaim {
+		err := k.ClaimDelegatorReward(ctx, msg.Sender, msg.Receiver, selection.Denom, selection.MultiplierName)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
@@ -111,9 +120,11 @@ func handleMsgClaimDelegatorRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg
 
 func handleMsgClaimSwapReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimSwapReward) (*sdk.Result, error) {
 
-	err := k.ClaimSwapReward(ctx, msg.Sender, msg.Sender, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
-	if err != nil {
-		return nil, err
+	for _, selection := range msg.DenomsToClaim {
+		err := k.ClaimSwapReward(ctx, msg.Sender, msg.Sender, selection.Denom, selection.MultiplierName)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
@@ -125,9 +136,11 @@ func handleMsgClaimSwapRewardVVesting(ctx sdk.Context, k keeper.Keeper, msg type
 	if err := k.ValidateIsValidatorVestingAccount(ctx, msg.Sender); err != nil {
 		return nil, err
 	}
-	err := k.ClaimSwapReward(ctx, msg.Sender, msg.Receiver, types.MultiplierName(msg.MultiplierName), msg.DenomsToClaim)
-	if err != nil {
-		return nil, err
+	for _, selection := range msg.DenomsToClaim {
+		err := k.ClaimSwapReward(ctx, msg.Sender, msg.Receiver, selection.Denom, selection.MultiplierName)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),

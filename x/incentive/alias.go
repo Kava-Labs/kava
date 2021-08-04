@@ -52,9 +52,7 @@ var (
 	NewQuerier                           = keeper.NewQuerier
 	DefaultGenesisState                  = types.DefaultGenesisState
 	DefaultParams                        = types.DefaultParams
-	FilterCoins                          = types.FilterCoins
 	GetTotalVestingPeriodLength          = types.GetTotalVestingPeriodLength
-	MultiplyCoins                        = types.MultiplyCoins
 	NewAccumulationTime                  = types.NewAccumulationTime
 	NewAccumulator                       = types.NewAccumulator
 	NewDelegatorClaim                    = types.NewDelegatorClaim
@@ -79,9 +77,12 @@ var (
 	NewQueryRewardsParams                = types.NewQueryRewardsParams
 	NewRewardIndex                       = types.NewRewardIndex
 	NewRewardPeriod                      = types.NewRewardPeriod
+	NewSelection                         = types.NewSelection
+	NewSelectionsFromMap                 = types.NewSelectionsFromMap
 	NewSwapClaim                         = types.NewSwapClaim
 	NewUSDXMintingClaim                  = types.NewUSDXMintingClaim
 	ParamKeyTable                        = types.ParamKeyTable
+	ParseMultiplierName                  = types.ParseMultiplierName
 	RegisterCodec                        = types.RegisterCodec
 
 	// variable aliases
@@ -105,7 +106,6 @@ var (
 	ErrInsufficientModAccountBalance              = types.ErrInsufficientModAccountBalance
 	ErrInvalidAccountType                         = types.ErrInvalidAccountType
 	ErrInvalidClaimDenoms                         = types.ErrInvalidClaimDenoms
-	ErrInvalidClaimOwner                          = types.ErrInvalidClaimOwner
 	ErrInvalidClaimType                           = types.ErrInvalidClaimType
 	ErrInvalidMultiplier                          = types.ErrInvalidMultiplier
 	ErrNoClaimsFound                              = types.ErrNoClaimsFound
@@ -171,6 +171,7 @@ type (
 	Multiplier                        = types.Multiplier
 	MultiplierName                    = types.MultiplierName
 	Multipliers                       = types.Multipliers
+	MultipliersPerDenom               = types.MultipliersPerDenom
 	ParamSubspace                     = types.ParamSubspace
 	Params                            = types.Params
 	QueryGetRewardFactorsResponse     = types.QueryGetRewardFactorsResponse
@@ -179,6 +180,8 @@ type (
 	RewardIndexes                     = types.RewardIndexes
 	RewardPeriod                      = types.RewardPeriod
 	RewardPeriods                     = types.RewardPeriods
+	Selection                         = types.Selection
+	Selections                        = types.Selections
 	StakingKeeper                     = types.StakingKeeper
 	SupplyKeeper                      = types.SupplyKeeper
 	SwapClaim                         = types.SwapClaim

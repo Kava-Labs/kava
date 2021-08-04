@@ -15,6 +15,20 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		newMultiplier := v0_15incentive.NewMultiplier(v0_15incentive.MultiplierName(m.Name), m.MonthsLockup, m.Factor)
 		claimMultipliers = append(claimMultipliers, newMultiplier)
 	}
+	newMultipliers := v0_15incentive.MultipliersPerDenom{
+		{
+			Denom:       "hard",
+			Multipliers: claimMultipliers,
+		},
+		{
+			Denom:       "ukava",
+			Multipliers: claimMultipliers,
+		},
+		{
+			Denom:       "swp",
+			Multipliers: claimMultipliers, // TODO set the correct multipliers
+		},
+	}
 
 	usdxMintingRewardPeriods := v0_15incentive.RewardPeriods{}
 	for _, rp := range incentiveGS.Params.USDXMintingRewardPeriods {
@@ -41,7 +55,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		migrateMultiRewardPeriods(incentiveGS.Params.HardBorrowRewardPeriods),
 		hardDelegatorRewardPeriods,
 		swapRewardPeriods,
-		claimMultipliers,
+		newMultipliers,
 		incentiveGS.Params.ClaimEnd,
 	)
 

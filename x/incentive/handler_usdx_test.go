@@ -44,7 +44,7 @@ func (suite *HandlerTestSuite) TestPayoutUSDXClaim() {
 	suite.BalanceEquals(userAddr, preClaimBal.Add(expectedRewards...))
 
 	suite.VestingPeriodsEqual(userAddr, vesting.Periods{
-		{Length: 33004793, Amount: expectedRewards},
+		{Length: (17+31+28+31+30+31+30+31+31+30+31+30+31)*secondsPerDay - 7, Amount: expectedRewards},
 	})
 	// Check that claimed coins have been removed from a claim's reward
 	suite.USDXRewardEquals(userAddr, c(types.USDXMintingRewardDenom, 0))
@@ -88,7 +88,7 @@ func (suite *HandlerTestSuite) TestPayoutUSDXClaimVVesting() {
 	suite.BalanceEquals(receiverAddr, preClaimBal.Add(expectedRewards))
 
 	suite.VestingPeriodsEqual(receiverAddr, vesting.Periods{
-		{Length: 33004793, Amount: cs(expectedRewards)},
+		{Length: (17+31+28+31+30+31+30+31+31+30+31+30+31)*secondsPerDay - 7, Amount: cs(expectedRewards)},
 	})
 
 	// Check that each claim reward coin's amount has been reset to 0

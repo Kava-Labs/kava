@@ -64,12 +64,14 @@ func (k Keeper) GetDelegatorRewardPeriods(ctx sdk.Context, denom string) (types.
 	return types.MultiRewardPeriod{}, false
 }
 
-// GetMultiplier returns the multiplier with the specified name if it's found in the params
-func (k Keeper) GetMultiplier(ctx sdk.Context, name types.MultiplierName) (types.Multiplier, bool) {
+// GetMultiplierByDenom fetches a multiplier from the params matching the denom and name.
+func (k Keeper) GetMultiplierByDenom(ctx sdk.Context, denom string, name types.MultiplierName) (types.Multiplier, bool) {
 	params := k.GetParams(ctx)
-	for _, m := range params.ClaimMultipliers {
-		if m.Name == name {
-			return m, true
+
+	for _, dm := range params.ClaimMultipliers {
+		if dm.Denom == denom {
+			m, found := dm.Multipliers.Get(name)
+			return m, found
 		}
 	}
 	return types.Multiplier{}, false

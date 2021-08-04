@@ -222,7 +222,6 @@ func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 				},
 			},
 		},
-		// TODO test accumulate when there is a reward period with 0 rewardsPerSecond
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {

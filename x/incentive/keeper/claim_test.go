@@ -26,8 +26,13 @@ func (suite *ClaimTests) ErrorIs(err, target error) bool {
 func (suite *ClaimTests) TestCannotClaimWhenMultiplierNotRecognised() {
 	subspace := &fakeParamSubspace{
 		params: types.Params{
-			ClaimMultipliers: types.Multipliers{
-				types.NewMultiplier(types.Small, 1, d("0.2")),
+			ClaimMultipliers: types.MultipliersPerDenom{
+				{
+					Denom: "hard",
+					Multipliers: types.Multipliers{
+						types.NewMultiplier(types.Small, 1, d("0.2")),
+					},
+				},
 			},
 		},
 	}
@@ -41,16 +46,11 @@ func (suite *ClaimTests) TestCannotClaimWhenMultiplierNotRecognised() {
 	suite.storeDelegatorClaim(claim)
 
 	// multiplier not in params
-	err := suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, types.Large, nil)
+	err := suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, "hard", "large")
 	suite.ErrorIs(err, types.ErrInvalidMultiplier)
 
 	// invalid multiplier name
-	err = suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, "", nil)
-	suite.ErrorIs(err, types.ErrInvalidMultiplier)
-
-	// invalid multiplier name
-	const zeroWidthSpace = "​"
-	err = suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, types.Small+zeroWidthSpace, nil)
+	err = suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, "hard", "")
 	suite.ErrorIs(err, types.ErrInvalidMultiplier)
 }
 
@@ -59,8 +59,13 @@ func (suite *ClaimTests) TestCannotClaimAfterEndTime() {
 
 	subspace := &fakeParamSubspace{
 		params: types.Params{
-			ClaimMultipliers: types.Multipliers{
-				types.NewMultiplier(types.Small, 1, d("0.2")),
+			ClaimMultipliers: types.MultipliersPerDenom{
+				{
+					Denom: "hard",
+					Multipliers: types.Multipliers{
+						types.NewMultiplier(types.Small, 1, d("0.2")),
+					},
+				},
 			},
 			ClaimEnd: endTime,
 		},
@@ -76,6 +81,6 @@ func (suite *ClaimTests) TestCannotClaimAfterEndTime() {
 	}
 	suite.storeDelegatorClaim(claim)
 
-	err := suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, types.Small, nil)
+	err := suite.keeper.ClaimDelegatorReward(suite.ctx, claim.Owner, claim.Owner, "hard", "small")
 	suite.ErrorIs(err, types.ErrClaimExpired)
 }
