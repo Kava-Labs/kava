@@ -52,9 +52,7 @@ var (
 	NewQuerier                           = keeper.NewQuerier
 	DefaultGenesisState                  = types.DefaultGenesisState
 	DefaultParams                        = types.DefaultParams
-	FilterCoins                          = types.FilterCoins
 	GetTotalVestingPeriodLength          = types.GetTotalVestingPeriodLength
-	MultiplyCoins                        = types.MultiplyCoins
 	NewAccumulationTime                  = types.NewAccumulationTime
 	NewAccumulator                       = types.NewAccumulator
 	NewDelegatorClaim                    = types.NewDelegatorClaim
