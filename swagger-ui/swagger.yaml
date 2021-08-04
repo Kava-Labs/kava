@@ -2409,6 +2409,154 @@ paths:
                   $ref: "#/definitions/Coin"
         500:
           description: Server internal error
+  /swap/deposit:
+    post:
+      summary: Deposit funds to swap liquidity pool
+      tags:
+        - Swap
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: swap deposit body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              depositor:
+                $ref: "#/definitions/Address"
+              token_a:
+                $ref: "#/definitions/Coin"
+              token_b:
+                $ref: "#/definitions/Coin"
+              slippage:
+                type: string
+                example: "0.05"
+              deadline:
+                type: string
+                example: "1628073801"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /swap/withdraw:
+    post:
+      summary: Withdraw funds from a swap liquidity pool
+      tags:
+        - Swap
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: swap withdraw body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              from:
+                $ref: "#/definitions/Address"
+              shares:
+                type: string
+                example: "5000"
+              min_token_a:
+                $ref: "#/definitions/Coin"
+              min_token_b:
+                $ref: "#/definitions/Coin"
+              deadline:
+                type: string
+                example: "1628073801"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /swap/swapExactForTokens:
+    post:
+      summary: Swap exact amount of input tokens for approximate amount of output tokens
+      tags:
+        - Swap
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: swap exact for tokens body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              requester:
+                $ref: "#/definitions/Address"
+              exact_token_a:
+                $ref: "#/definitions/Coin"
+              token_b:
+                $ref: "#/definitions/Coin"
+              slippage:
+                type: string
+                example: "0.05"
+              deadline:
+                type: string
+                example: "1628073801"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /swap/swapForExactTokens:
+    post:
+      summary: Swap approximate amount of input tokens for exact amount of output tokens
+      tags:
+        - Swap
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: swap for exact tokens body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              requester:
+                $ref: "#/definitions/Address"
+              token_a:
+                $ref: "#/definitions/Coin"
+              exact_token_b:
+                $ref: "#/definitions/Coin"
+              slippage:
+                type: string
+                example: "0.05"
+              deadline:
+                type: string
+                example: "1628073801"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
   /swap/parameters:
     get:
       summary: Get the current parameters of the swap module
