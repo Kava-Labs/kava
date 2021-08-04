@@ -2432,6 +2432,93 @@ paths:
                   $ref: "#/definitions/SwapParams"
         500:
           description: Server internal error
+  /swap/deposits:
+    get:
+      summary: Get the current deposits of a liquidity pool
+      tags:
+        - Swap
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: owner
+          description: Owner address in bech32 format
+          required: false
+          type: string
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+        - in: path
+          name: pool
+          description: Pool ID
+          required: false
+          type: string
+          x-example: "abc:xyz"
+      responses:
+        200:
+          description: Liquidity pool deposits
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                type: array
+                x-nullable: true
+                items:
+                  $ref: "#/definitions/SwapDepositsQueryResult"
+        500:
+          description: Server internal error
+  /swap/pool:
+    get:
+      summary: Get information about a liquidity pool by ID
+      tags:
+        - Swap
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: pool
+          description: Pool ID
+          required: true
+          type: string
+          x-example: "abc:xyz"
+      responses:
+        200:
+          description: Liquidity pool statistics
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                items:
+                  $ref: "#/definitions/SwapPoolStatsQueryResult"
+        500:
+          description: Server internal error
+  /swap/pools:
+    get:
+      summary: Get information about all liquidity pools
+      tags:
+        - Swap
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Statistics for all liquidity pools
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                type: array
+                x-nullable: true
+                items:
+                  $ref: "#/definitions/SwapPoolStatsQueryResult"
+        500:
+          description: Server internal error
   /bank/accounts/{address}/transfers:
     post:
       summary: Send coins from one account to another
@@ -4878,6 +4965,30 @@ definitions:
       token_b:
         type: string
         example: "usdx"
+  SwapDepositsQueryResult:
+    type: object
+    properties:
+      depositor:
+        $ref: "#/definitions/Address"
+      pool_id:
+        type: string
+        example: "abc:xyz"
+      shares_owned:
+        type: string
+        example: "500"
+      shares_value:
+        $ref: "#/definitions/Coins"
+  SwapPoolStatsQueryResult:
+    type: object
+    properties:
+      name:
+        type: string
+        example: "abc:xyz"
+      coins:
+        $ref: "#/definitions/Coins"
+      total_shares:
+        type: string
+        example: "500"
   HardParams:
     type: object
     properties:
