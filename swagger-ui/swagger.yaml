@@ -5483,6 +5483,8 @@ definitions:
         type: string
       proposal_id:
         type: string
+      vote_type:
+        type: string
   CommitteeProposal:
     type: object
     properties:
