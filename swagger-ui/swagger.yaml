@@ -1598,6 +1598,9 @@ paths:
                 $ref: "#/definitions/BaseReq"
               voter:
                 $ref: "#/definitions/Address"
+              vote_type:
+                type: string
+                example: "yes"
       responses:
         200:
           description: The transaction was successfully generated
