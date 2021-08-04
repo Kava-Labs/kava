@@ -52,7 +52,7 @@ func PoolRecordsInvariant(k Keeper) sdk.Invariant {
 	}
 }
 
-// ShareRecordsInvariant iterates all pool records and asserts that they are valid
+// ShareRecordsInvariant iterates all share records and asserts that they are valid
 func ShareRecordsInvariant(k Keeper) sdk.Invariant {
 	broken := false
 	message := sdk.FormatInvariant(types.ModuleName, "validate share records broken", "share record invalid")
