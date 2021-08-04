@@ -1426,6 +1426,11 @@ paths:
               multiplier_name:
                 type: string
                 example: "small"
+              denoms_to_claim:
+                type: array
+                items:
+                  type: string
+                  example: "ukava"
       responses:
         200:
           description: OK
@@ -1437,7 +1442,7 @@ paths:
           description: Internal server error
   /incentive/claim-hard:
     post:
-      summary: Claim Hard supply/borrow and Kava staking rewards
+      summary: Claim Hard supply/borrow rewards
       tags:
         - Incentive
       consumes:
@@ -1456,6 +1461,81 @@ paths:
               multiplier_name:
                 type: string
                 example: "small"
+              denoms_to_claim:
+                type: array
+                items:
+                  type: string
+                  example: "ukava"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /incentive/claim-delegator:
+    post:
+      summary: Claim Kava delegation rewards
+      tags:
+        - Incentive
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: Incentive claim delegator body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              sender:
+                $ref: "#/definitions/Address"
+              multiplier_name:
+                type: string
+                example: "small"
+              denoms_to_claim:
+                type: array
+                items:
+                  type: string
+                  example: "ukava"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /incentive/claim-swap:
+    post:
+      summary: Claim Swap liquidity provider rewards
+      tags:
+        - Incentive
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: Incentive claim swap body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              sender:
+                $ref: "#/definitions/Address"
+              multiplier_name:
+                type: string
+                example: "small"
+              denoms_to_claim:
+                type: array
+                items:
+                  type: string
+                  example: "ukava"
       responses:
         200:
           description: OK
