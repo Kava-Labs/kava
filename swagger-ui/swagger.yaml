@@ -21,6 +21,8 @@ tags:
     description: Auction module APIs
   - name: Hard
     description: Hard module APIs
+  - name: Swap
+    description: Swap module APIs
   - name: Committee
     description: Committee module APIs
   - name: Auth
