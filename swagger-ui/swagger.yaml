@@ -49,7 +49,7 @@ tags:
     description: Query app version
 schemes:
   - https
-host: kava4.data.kava.io
+host: api.data.kava.io
 securityDefinitions:
   kms:
     type: basic
