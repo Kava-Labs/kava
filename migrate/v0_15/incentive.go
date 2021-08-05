@@ -1,6 +1,8 @@
 package v0_15
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
@@ -23,23 +25,31 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		usdxMintingRewardPeriods = append(usdxMintingRewardPeriods, usdxMintingRewardPeriod)
 	}
 
-	hardDelegatorRewardPeriods := v0_15incentive.MultiRewardPeriods{}
+	hardRewardPeriods := v0_15incentive.MultiRewardPeriods{}
 	for _, rp := range incentiveGS.Params.HardDelegatorRewardPeriods {
 		rewardsPerSecond := sdk.NewCoins(rp.RewardsPerSecond, SwpDelegatorRewardsPerSecond)
-		hardDelegatorRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
+		hardRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
 			rp.CollateralType, rp.Start, rp.End, rewardsPerSecond)
-		hardDelegatorRewardPeriods = append(hardDelegatorRewardPeriods, hardDelegatorRewardPeriod)
+		hardRewardPeriods = append(hardRewardPeriods, hardRewardPeriod)
 	}
 
-	swapRewardPeriods := v0_15incentive.DefaultMultiRewardPeriods
-	// TODO add expected swap reward periods
+	// TODO: finalize swap reward pool IDs, rewards per second, start/end times. Should swap rewards start active?
+	swapRewardPeriods := v0_15incentive.MultiRewardPeriods{
+		v0_15incentive.MultiRewardPeriod{
+			Active:           true,
+			CollateralType:   "ukava:usdx", // pool ID
+			Start:            GenesisTime,
+			End:              GenesisTime.Add(time.Hour * 24 * 365 * 1), // end time = 1 year
+			RewardsPerSecond: sdk.NewCoins(SwpLiquidityProviderRewardsPerSecond),
+		},
+	}
 
 	// Build new params from migrated values
 	params := v0_15incentive.NewParams(
 		usdxMintingRewardPeriods,
 		migrateMultiRewardPeriods(incentiveGS.Params.HardSupplyRewardPeriods),
 		migrateMultiRewardPeriods(incentiveGS.Params.HardBorrowRewardPeriods),
-		hardDelegatorRewardPeriods,
+		hardRewardPeriods,
 		swapRewardPeriods,
 		claimMultipliers,
 		incentiveGS.Params.ClaimEnd,
