@@ -18,9 +18,10 @@ import (
 )
 
 var (
-	// TODO: update GenesisTime and chain-id for kava-8 launch
+	// TODO: update time -> block height
 	GenesisTime = time.Date(2021, 4, 8, 15, 0, 0, 0, time.UTC)
-	ChainID     = "kava-8"
+	// TODO: update chain-id for kava-8 launch
+	ChainID = "kava-8"
 	// TODO: add swap tokens to kavadist module account
 	// TODO: update SWP reward per second amount before production
 	SwpDelegatorRewardsPerSecond         = sdk.NewCoin("swp", sdk.OneInt())
@@ -319,8 +320,11 @@ func Swap() v0_15swap.GenesisState {
 		},
 	}
 
+	// TODO: finalize global fee
+	swapFee := sdk.MustNewDecFromStr("0.015")
+
 	swapGS := v0_15swap.NewGenesisState(
-		v0_15swap.NewParams(allowedPools, sdk.MustNewDecFromStr("0.03")),
+		v0_15swap.NewParams(allowedPools, swapFee),
 		v0_15swap.PoolRecords{},
 		v0_15swap.ShareRecords{},
 	)
