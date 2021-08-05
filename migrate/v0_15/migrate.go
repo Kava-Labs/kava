@@ -21,9 +21,10 @@ var (
 	// TODO: update GenesisTime and chain-id for kava-8 launch
 	GenesisTime = time.Date(2021, 4, 8, 15, 0, 0, 0, time.UTC)
 	ChainID     = "kava-8"
-	// TODO: update SWP reward per second amount before production
 	// TODO: add swap tokens to kavadist module account
-	SwpRewardsPerSecond = sdk.NewCoin("swp", sdk.OneInt())
+	// TODO: update SWP reward per second amount before production
+	SwpDelegatorRewardsPerSecond         = sdk.NewCoin("swp", sdk.OneInt())
+	SwpLiquidityProviderRewardsPerSecond = sdk.NewCoin("swp", sdk.OneInt())
 )
 
 // Migrate translates a genesis file from kava v0.14 format to kava v0.15 format
@@ -225,7 +226,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 		v0_15committee.AllowedParam{Subspace: "hard", Key: "MinimumBorrowUSDValue"},
 		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardSupplyRewardPeriods"},
 		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardBorrowRewardPeriods"},
-		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardDelegatorRewardPeriods"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "DelegatorRewardPeriods"},
 	}
 	newHardSubParamPermissions.AllowedParams = hardComAllowedParams
 
@@ -256,11 +257,11 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	var newSwapCommitteePermissions []v0_15committee.Permission
 	var newSwapSubParamPermissions v0_15committee.SubParamChangePermission
 
-	// TODO: add additional incentive params that manage LP rewards
 	swpAllowedParams := v0_15committee.AllowedParams{
 		v0_15committee.AllowedParam{Subspace: "swap", Key: "AllowedPools"},
 		v0_15committee.AllowedParam{Subspace: "swap", Key: "SwapFee"},
-		v0_15committee.AllowedParam{Subspace: "incentive", Key: "HardDelegatorRewardPeriods"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "DelegatorRewardPeriods"},
+		v0_15committee.AllowedParam{Subspace: "incentive", Key: "SwapRewardPeriods"},
 	}
 	newSwapSubParamPermissions.AllowedParams = swpAllowedParams
 
@@ -305,6 +306,24 @@ func loadStabilityComMembers() ([]sdk.AccAddress, error) {
 
 // Swap introduces new v0.15 swap genesis state
 func Swap() v0_15swap.GenesisState {
-	// TODO add swap genesis state
-	return v0_15swap.DefaultGenesisState()
+
+	// TODO: finalize Swap genesis allowed pools
+	allowedPools := v0_15swap.AllowedPools{
+		v0_15swap.AllowedPool{
+			TokenA: "ukava",
+			TokenB: "usdx",
+		},
+		v0_15swap.AllowedPool{
+			TokenA: "swp",
+			TokenB: "usdx",
+		},
+	}
+
+	swapGS := v0_15swap.NewGenesisState(
+		v0_15swap.NewParams(allowedPools, sdk.MustNewDecFromStr("0.03")),
+		v0_15swap.PoolRecords{},
+		v0_15swap.ShareRecords{},
+	)
+
+	return swapGS
 }

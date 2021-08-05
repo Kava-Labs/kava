@@ -25,7 +25,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 
 	hardDelegatorRewardPeriods := v0_15incentive.MultiRewardPeriods{}
 	for _, rp := range incentiveGS.Params.HardDelegatorRewardPeriods {
-		rewardsPerSecond := sdk.NewCoins(rp.RewardsPerSecond, SwpRewardsPerSecond)
+		rewardsPerSecond := sdk.NewCoins(rp.RewardsPerSecond, SwpDelegatorRewardsPerSecond)
 		hardDelegatorRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
 			rp.CollateralType, rp.Start, rp.End, rewardsPerSecond)
 		hardDelegatorRewardPeriods = append(hardDelegatorRewardPeriods, hardDelegatorRewardPeriod)
