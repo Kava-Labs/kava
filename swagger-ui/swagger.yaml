@@ -21,6 +21,8 @@ tags:
     description: Auction module APIs
   - name: Hard
     description: Hard module APIs
+  - name: Swap
+    description: Swap module APIs
   - name: Committee
     description: Committee module APIs
   - name: Auth
@@ -47,7 +49,7 @@ tags:
     description: Query app version
 schemes:
   - https
-host: kava4.data.kava.io
+host: api.data.kava.io
 securityDefinitions:
   kms:
     type: basic
@@ -1426,6 +1428,11 @@ paths:
               multiplier_name:
                 type: string
                 example: "small"
+              denoms_to_claim:
+                type: array
+                items:
+                  type: string
+                  example: "ukava"
       responses:
         200:
           description: OK
@@ -1437,7 +1444,7 @@ paths:
           description: Internal server error
   /incentive/claim-hard:
     post:
-      summary: Claim Hard supply/borrow and Kava staking rewards
+      summary: Claim Hard supply/borrow rewards
       tags:
         - Incentive
       consumes:
@@ -1456,6 +1463,81 @@ paths:
               multiplier_name:
                 type: string
                 example: "small"
+              denoms_to_claim:
+                type: array
+                items:
+                  type: string
+                  example: "ukava"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /incentive/claim-delegator:
+    post:
+      summary: Claim Kava delegation rewards
+      tags:
+        - Incentive
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: Incentive claim delegator body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              sender:
+                $ref: "#/definitions/Address"
+              multiplier_name:
+                type: string
+                example: "small"
+              denoms_to_claim:
+                type: array
+                items:
+                  type: string
+                  example: "ukava"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /incentive/claim-swap:
+    post:
+      summary: Claim Swap liquidity provider rewards
+      tags:
+        - Incentive
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: Incentive claim swap body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              sender:
+                $ref: "#/definitions/Address"
+              multiplier_name:
+                type: string
+                example: "small"
+              denoms_to_claim:
+                type: array
+                items:
+                  type: string
+                  example: "ukava"
       responses:
         200:
           description: OK
@@ -1598,6 +1680,9 @@ paths:
                 $ref: "#/definitions/BaseReq"
               voter:
                 $ref: "#/definitions/Address"
+              vote_type:
+                type: string
+                example: "yes"
       responses:
         200:
           description: The transaction was successfully generated
@@ -2409,6 +2494,154 @@ paths:
                   $ref: "#/definitions/Coin"
         500:
           description: Server internal error
+  /swap/deposit:
+    post:
+      summary: Deposit funds to swap liquidity pool
+      tags:
+        - Swap
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: swap deposit body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              depositor:
+                $ref: "#/definitions/Address"
+              token_a:
+                $ref: "#/definitions/Coin"
+              token_b:
+                $ref: "#/definitions/Coin"
+              slippage:
+                type: string
+                example: "0.05"
+              deadline:
+                type: string
+                example: "1628073801"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /swap/withdraw:
+    post:
+      summary: Withdraw funds from a swap liquidity pool
+      tags:
+        - Swap
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: swap withdraw body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              from:
+                $ref: "#/definitions/Address"
+              shares:
+                type: string
+                example: "5000"
+              min_token_a:
+                $ref: "#/definitions/Coin"
+              min_token_b:
+                $ref: "#/definitions/Coin"
+              deadline:
+                type: string
+                example: "1628073801"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /swap/swapExactForTokens:
+    post:
+      summary: Swap exact amount of input tokens for approximate amount of output tokens
+      tags:
+        - Swap
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: swap exact for tokens body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              requester:
+                $ref: "#/definitions/Address"
+              exact_token_a:
+                $ref: "#/definitions/Coin"
+              token_b:
+                $ref: "#/definitions/Coin"
+              slippage:
+                type: string
+                example: "0.05"
+              deadline:
+                type: string
+                example: "1628073801"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+  /swap/swapForExactTokens:
+    post:
+      summary: Swap approximate amount of input tokens for exact amount of output tokens
+      tags:
+        - Swap
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: swap for exact tokens body
+          schema:
+            properties:
+              base_req:
+                $ref: "#/definitions/BaseReq"
+              requester:
+                $ref: "#/definitions/Address"
+              token_a:
+                $ref: "#/definitions/Coin"
+              exact_token_b:
+                $ref: "#/definitions/Coin"
+              slippage:
+                type: string
+                example: "0.05"
+              deadline:
+                type: string
+                example: "1628073801"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/StdTx"
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
   /swap/parameters:
     get:
       summary: Get the current parameters of the swap module
@@ -2430,6 +2663,93 @@ paths:
                 x-nullable: true
                 items:
                   $ref: "#/definitions/SwapParams"
+        500:
+          description: Server internal error
+  /swap/deposits:
+    get:
+      summary: Get the current deposits of a liquidity pool
+      tags:
+        - Swap
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: owner
+          description: Owner address in bech32 format
+          required: false
+          type: string
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+        - in: path
+          name: pool
+          description: Pool ID
+          required: false
+          type: string
+          x-example: "abc:xyz"
+      responses:
+        200:
+          description: Liquidity pool deposits
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                type: array
+                x-nullable: true
+                items:
+                  $ref: "#/definitions/SwapDepositsQueryResult"
+        500:
+          description: Server internal error
+  /swap/pool:
+    get:
+      summary: Get information about a liquidity pool by ID
+      tags:
+        - Swap
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: pool
+          description: Pool ID
+          required: true
+          type: string
+          x-example: "abc:xyz"
+      responses:
+        200:
+          description: Liquidity pool statistics
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                items:
+                  $ref: "#/definitions/SwapPoolStatsQueryResult"
+        500:
+          description: Server internal error
+  /swap/pools:
+    get:
+      summary: Get information about all liquidity pools
+      tags:
+        - Swap
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Statistics for all liquidity pools
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                type: array
+                x-nullable: true
+                items:
+                  $ref: "#/definitions/SwapPoolStatsQueryResult"
         500:
           description: Server internal error
   /bank/accounts/{address}/transfers:
@@ -4878,6 +5198,30 @@ definitions:
       token_b:
         type: string
         example: "usdx"
+  SwapDepositsQueryResult:
+    type: object
+    properties:
+      depositor:
+        $ref: "#/definitions/Address"
+      pool_id:
+        type: string
+        example: "abc:xyz"
+      shares_owned:
+        type: string
+        example: "500"
+      shares_value:
+        $ref: "#/definitions/Coins"
+  SwapPoolStatsQueryResult:
+    type: object
+    properties:
+      name:
+        type: string
+        example: "abc:xyz"
+      coins:
+        $ref: "#/definitions/Coins"
+      total_shares:
+        type: string
+        example: "500"
   HardParams:
     type: object
     properties:
@@ -5223,6 +5567,8 @@ definitions:
       voter:
         type: string
       proposal_id:
+        type: string
+      vote_type:
         type: string
   CommitteeProposal:
     type: object
