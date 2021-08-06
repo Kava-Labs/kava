@@ -4,7 +4,7 @@ order: 1
 
 # Concepts
 
-This module presents an implementation of user incentives that are controlled by governance. When users take a certain action, for example opening a CDP, they become eligible for rewards. Rewards are __opt in__ meaning that users must submit a message before the claim deadline to claim their rewards. The goals and background of this module were subject of a previous Kava governance proposal, which can be found [here](https://ipfs.io/ipfs/QmSYedssC3nyQacDJmNcREtgmTPyaMx2JX7RNkMdAVkdkr/user-growth-fund-proposal.pdf)
+This module presents an implementation of user incentives that are controlled by governance. When users take a certain action, for example opening a CDP, they become eligible for rewards. Rewards are **opt in** meaning that users must submit a message before the claim deadline to claim their rewards. The goals and background of this module were subject of a previous Kava governance proposal, which can be found [here](https://ipfs.io/ipfs/QmSYedssC3nyQacDJmNcREtgmTPyaMx2JX7RNkMdAVkdkr/user-growth-fund-proposal.pdf)
 
 ## General Reward Distribution
 
@@ -42,4 +42,7 @@ The incentive module is responsible for distribution of KAVA tokens to users who
 
 ## SWP Token Distribution
 
-TODO
+The incentive module distributes the SWP token on the Kava blockchain. SWP tokens are distributed to two types of ecosystem participants:
+
+1. Kava stakers - any address that stakes (delegates) KAVA tokens will be eligible to claim SWP tokens. For each delegator, SWP tokens are accumulated ratably based on the total number of kava tokens staked. For example, if a user stakes 1 million KAVA tokens and there are 100 million staked KAVA, that user will accumulate 1% of SWP tokens earmarked for stakers during the distribution period. Distribution periods are defined by a start date, an end date, and a number of SWP tokens that are distributed per second.
+2. Liquidity providers - any address that provides liquidity to eligible Swap protocol pools will be eligible to claim SWP tokens. For each liquidity provider, SWP tokens are accumulated ratably based on the total amount of pool shares. For example, if a liquidity provider deposits "xyz" and "abc" tokens into the "abc:xyz" pool to receive 10 shares and the pool has 50 total shares, then that user will accumulate 20% of SWP tokens earmarked for liquidity providers of that pool during the distribution period. Distribution periods are defined by a start date, an end date, and a number of SWP tokens that are distributed per second.
