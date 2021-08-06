@@ -24,6 +24,7 @@ const (
 	EventTypeSwapWithdraw      = types.EventTypeSwapWithdraw
 	ModuleAccountName          = types.ModuleAccountName
 	ModuleName                 = types.ModuleName
+	PoolIDSep                  = types.PoolIDSep
 	QuerierRoute               = types.QuerierRoute
 	QueryGetDeposits           = types.QueryGetDeposits
 	QueryGetParams             = types.QueryGetParams
@@ -35,8 +36,14 @@ const (
 
 var (
 	// function aliases
+	AllInvariants                        = keeper.AllInvariants
 	NewKeeper                            = keeper.NewKeeper
 	NewQuerier                           = keeper.NewQuerier
+	PoolRecordsInvariant                 = keeper.PoolRecordsInvariant
+	PoolReservesInvariant                = keeper.PoolReservesInvariant
+	PoolSharesInvariant                  = keeper.PoolSharesInvariant
+	RegisterInvariants                   = keeper.RegisterInvariants
+	ShareRecordsInvariant                = keeper.ShareRecordsInvariant
 	DefaultGenesisState                  = types.DefaultGenesisState
 	DefaultParams                        = types.DefaultParams
 	DepositorPoolSharesKey               = types.DepositorPoolSharesKey
