@@ -28,9 +28,10 @@ func TestMigrateAccount_BaseAccount(t *testing.T) {
 	addr := sdk.AccAddress(pub.Address())
 	acc := auth.NewBaseAccount(addr, balance, pub, 1, 1)
 
-	migratedAcc := MigrateAccount(acc, time.Now())
+	accCopy := *acc
+	migratedAcc := MigrateAccount(&accCopy, time.Now())
 
-	assert.Equal(t, acc, migratedAcc)
+	assert.Equal(t, acc, migratedAcc, "expected account to be unmodified")
 }
 
 func TestMigrateAccount_PeriodicVestingAccount_NoPeriods(t *testing.T) {
@@ -44,7 +45,7 @@ func TestMigrateAccount_PeriodicVestingAccount_NoPeriods(t *testing.T) {
 	vacc := vesting.NewPeriodicVestingAccount(acc, time.Now().Unix(), vesting.Periods{})
 	migratedAcc := MigrateAccount(vacc, time.Now())
 
-	assert.Equal(t, acc, migratedAcc)
+	assert.Equal(t, acc, migratedAcc, "expected base account to be returned")
 }
 
 func TestMigrateAccount_PeriodicVestingAccount_Vesting(t *testing.T) {
@@ -57,7 +58,7 @@ func TestMigrateAccount_PeriodicVestingAccount_Vesting(t *testing.T) {
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 45 * 24 * 60 * 60, // +15 days - vested
+			Length: 45 * 24 * 60 * 60, // +15 days - vesting
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 	}
@@ -67,8 +68,8 @@ func TestMigrateAccount_PeriodicVestingAccount_Vesting(t *testing.T) {
 
 	MigrateAccount(vacc, genesisTime)
 
-	assert.Equal(t, genesisTime.Unix(), vacc.StartTime)
-	assert.Equal(t, 1, len(vacc.VestingPeriods))
+	assert.Equal(t, genesisTime.Unix(), vacc.StartTime, "expected vesting start time to equal genesis time")
+	assert.Equal(t, 1, len(vacc.VestingPeriods), "expected only one vesting period left")
 }
 
 func TestResetPeriodVestingAccount_NoVestingPeriods(t *testing.T) {
@@ -191,7 +192,7 @@ func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 45 * 24 * 60 * 60, // +15 days - vested
+			Length: 45 * 24 * 60 * 60, // +15 days - vesting
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 	}
@@ -238,7 +239,7 @@ func TestResetPeriodVestingAccount_DelegatedVesting_GreaterThanVesting(t *testin
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 45 * 24 * 60 * 60, // +15 days - vested
+			Length: 45 * 24 * 60 * 60, // +15 days - vesting
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 	}
@@ -249,8 +250,8 @@ func TestResetPeriodVestingAccount_DelegatedVesting_GreaterThanVesting(t *testin
 	newVestingStartTime := vestingStartTime.Add(30 * 24 * time.Hour)
 	ResetPeriodicVestingAccount(vacc, newVestingStartTime)
 
-	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))), vacc.DelegatedFree)
-	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))), vacc.DelegatedVesting)
+	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))), vacc.DelegatedFree, "expected delegated free to be updated")
+	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))), vacc.DelegatedVesting, "expected delegated vesting to be updated")
 }
 
 func TestResetPeriodVestingAccount_DelegatedVesting_LessThanVested(t *testing.T) {
@@ -267,7 +268,7 @@ func TestResetPeriodVestingAccount_DelegatedVesting_LessThanVested(t *testing.T)
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 45 * 24 * 60 * 60, // +15 days - vested
+			Length: 45 * 24 * 60 * 60, // +15 days - vesting
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 	}
@@ -278,6 +279,6 @@ func TestResetPeriodVestingAccount_DelegatedVesting_LessThanVested(t *testing.T)
 	newVestingStartTime := vestingStartTime.Add(30 * 24 * time.Hour)
 	ResetPeriodicVestingAccount(vacc, newVestingStartTime)
 
-	assert.Equal(t, sdk.Coins(nil), vacc.DelegatedFree)
-	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))), vacc.DelegatedVesting)
+	assert.Equal(t, sdk.Coins(nil), vacc.DelegatedFree, "expected delegrated free to be unmodified")
+	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))), vacc.DelegatedVesting, "expected delegated vesting to be unmodified")
 }
