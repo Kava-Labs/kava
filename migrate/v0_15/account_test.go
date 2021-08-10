@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	auth "github.com/cosmos/cosmos-sdk/x/auth"
-	//"github.com/tendermint/tendermint/crypto"
 	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
