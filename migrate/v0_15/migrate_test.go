@@ -150,6 +150,9 @@ func TestAuth_AccountConversion(t *testing.T) {
 	for i, acc := range migratedGenesisState.Accounts {
 		oldAcc := genesisState.Accounts[i]
 
+		// total owned coins does not change
+		require.Equal(t, oldAcc.GetCoins(), acc.GetCoins())
+
 		// ensure spenable coins at genesis time is equal
 		require.Equal(t, oldAcc.SpendableCoins(GenesisTime), acc.SpendableCoins(GenesisTime))
 		// check 30 days
