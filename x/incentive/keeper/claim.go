@@ -59,7 +59,7 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 			types.EventTypeClaim,
 			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.Reward.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.GetType()),
+			sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType()),
 		),
 	)
 	return nil
