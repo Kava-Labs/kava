@@ -6,4 +6,4 @@ then
   exit 1
 fi
 
-jq < "$1" '.app_state.auth | { params: .params, accounts: [.accounts[] | select((.value.coins | length) > 0)] }' > testdata/kava-7-test-auth-state.json
+jq < "$1" -c '.app_state.auth | { params: .params, accounts: [.accounts[] | select((.value.coins | length) > 0)] }' > testdata/kava-7-test-auth-state.json
