@@ -24,7 +24,7 @@ func MigrateAccount(acc authexported.GenesisAccount, genesisTime time.Time) auth
 	return acc
 }
 
-// ResetPeriodicVestingAccount resets a period vesting account to a new start time.  The account is
+// ResetPeriodicVestingAccount resets a periodic vesting account to a new start time.  The account is
 // modified in place, and vesting periods before the new start time are removed from the account.
 func ResetPeriodicVestingAccount(vacc *vesting.PeriodicVestingAccount, startTime time.Time) {
 	currentPeriod := vacc.StartTime
@@ -37,7 +37,7 @@ func ResetPeriodicVestingAccount(vacc *vesting.PeriodicVestingAccount, startTime
 	for _, period := range vacc.VestingPeriods {
 		currentPeriod := currentPeriod + period.Length
 
-		// Periods equal to the newStartTime are still vesting,
+		// Periods less than or equal to the newStartTime are still vesting,
 		// so adjust their length and add them to them to the newPeriods
 		if newStartTime <= currentPeriod {
 			period.Length = currentPeriod - newStartTime
