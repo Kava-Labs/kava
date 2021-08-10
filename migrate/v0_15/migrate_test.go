@@ -145,7 +145,7 @@ func TestAuth_AccountConversion(t *testing.T) {
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
 	migratedGenesisState := Auth(genesisState, GenesisTime)
-	require.Equal(t, len(genesisState.Accounts), len(migratedGenesisState.Accounts))
+	require.Equal(t, len(genesisState.Accounts), len(migratedGenesisState.Accounts), "expected the number of accounts after migration to be equal")
 
 	for i, acc := range migratedGenesisState.Accounts {
 		oldAcc := genesisState.Accounts[i]
