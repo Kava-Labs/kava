@@ -5,11 +5,15 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/kava-labs/kava/app"
@@ -98,4 +102,84 @@ func TestIncentive(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(bz), string(appState[v0_15incentive.ModuleName]))
+}
+
+// Compare migration against auto-generated snapshot to catch regressions
+func TestAuth_Snapshot(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
+	require.NoError(t, err)
+	appState := genutil.AppMap{auth.ModuleName: bz}
+
+	MigrateAppState(appState)
+
+	if _, err := os.Stat(filepath.Join("testdata", "kava-8-test-auth-state.json")); os.IsNotExist(err) {
+		err := ioutil.WriteFile(filepath.Join("testdata", "kava-8-test-auth-state.json"), appState[auth.ModuleName], 0644)
+		require.NoError(t, err)
+	}
+
+	snapshot, err := ioutil.ReadFile(filepath.Join("testdata", "kava-8-test-auth-state.json"))
+	require.NoError(t, err)
+
+	assert.JSONEq(t, string(snapshot), string(appState[auth.ModuleName]))
+}
+
+func TestAuth_ParametersEqual(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
+	require.NoError(t, err)
+
+	var genesisState auth.GenesisState
+	cdc := app.MakeCodec()
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	migratedGenesisState := Auth(genesisState, GenesisTime)
+
+	assert.Equal(t, genesisState.Params, migratedGenesisState.Params)
+}
+
+func TestAuth_AccountConversion(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
+	require.NoError(t, err)
+
+	var genesisState auth.GenesisState
+	cdc := app.MakeCodec()
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	migratedGenesisState := Auth(genesisState, GenesisTime)
+	require.Equal(t, len(genesisState.Accounts), len(migratedGenesisState.Accounts))
+
+	for i, acc := range migratedGenesisState.Accounts {
+		oldAcc := genesisState.Accounts[i]
+
+		// ensure spenable coins at genesis time is equal
+		require.Equal(t, oldAcc.SpendableCoins(GenesisTime), acc.SpendableCoins(GenesisTime))
+		// check 30 days
+		futureDate := GenesisTime.Add(30 * 24 * time.Hour)
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate))
+		// check 90 days
+		futureDate = GenesisTime.Add(90 * 24 * time.Hour)
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate))
+		// check 365 days
+		futureDate = GenesisTime.Add(365 * 24 * time.Hour)
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate))
+
+		if vacc, ok := acc.(vesting.PeriodicVestingAccount); ok {
+			// old account must be a periodic vesting account
+			oldVacc, ok := oldAcc.(vesting.PeriodicVestingAccount)
+			require.True(t, ok)
+
+			// total delegated coins must match
+			oldTotalDelegated := oldVacc.DelegatedFree.Add(oldVacc.DelegatedVesting...)
+			newTotalDelegated := vacc.DelegatedFree.Add(vacc.DelegatedVesting...)
+			require.Equal(t, oldTotalDelegated, newTotalDelegated)
+
+			// delegated vesting must be less or equal to original vesting
+			require.True(t, vacc.DelegatedVesting.IsAllLTE(vacc.OriginalVesting))
+
+			// vested coins must be nil for the new account
+			require.Equal(t, sdk.Coins(nil), vacc.GetVestedCoins(GenesisTime))
+
+			// vesting coins must not be nil
+			require.NotEqual(t, sdk.Coins(nil), vacc.GetVestingCoins(GenesisTime))
+		}
+	}
 }
