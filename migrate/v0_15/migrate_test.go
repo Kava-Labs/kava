@@ -161,6 +161,9 @@ func TestAuth_AccountConversion(t *testing.T) {
 		// check 90 days
 		futureDate = GenesisTime.Add(90 * 24 * time.Hour)
 		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not chain")
+		// check 180 days
+		futureDate = GenesisTime.Add(180 * 24 * time.Hour)
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not chain")
 		// check 365 days
 		futureDate = GenesisTime.Add(365 * 24 * time.Hour)
 		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not chain")
