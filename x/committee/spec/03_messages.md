@@ -17,22 +17,23 @@ type MsgSubmitProposal struct {
 
 ## State Modifications
 
-* Generate new `ProposalID`
-* Create new `Proposal` with deadline equal to the time that the proposal will expire.
+- Generate new `ProposalID`
+- Create new `Proposal` with deadline equal to the time that the proposal will expire.
 
-Committee members vote 'yes' on a proposal using a `MsgVote`
+Valid votes include 'yes', 'no', and 'abstain'.
 
 ```go
 // MsgVote is submitted by committee members to vote on proposals.
 type MsgVote struct {
-  ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`
-  Voter      sdk.AccAddress `json:"voter" yaml:"voter"`
+	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`
+	Voter      sdk.AccAddress `json:"voter" yaml:"voter"`
+	VoteType   VoteType       `json:"vote_type" yaml:"vote_type"`
 }
 ```
 
 ## State Modifications
 
-* Create a new `Vote`
-* If the proposal is over the threshold:
-  * Enact the proposal (proposals may cause state modifications)
-  * Delete the proposal and associated votes
+- Create a new `Vote`
+- When the proposal is evaluated:
+  - Enact the proposal (passed proposals may cause state modifications)
+  - Delete the proposal and associated votes
