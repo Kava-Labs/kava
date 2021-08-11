@@ -146,6 +146,8 @@ func TestAuth_AccountConversion(t *testing.T) {
 
 	migratedGenesisState := Auth(genesisState, GenesisTime)
 	require.Equal(t, len(genesisState.Accounts), len(migratedGenesisState.Accounts), "expected the number of accounts after migration to be equal")
+	err = auth.ValidateGenesis(migratedGenesisState)
+	require.NoError(t, err, "expected migrated genesis to be valid")
 
 	for i, acc := range migratedGenesisState.Accounts {
 		oldAcc := genesisState.Accounts[i]
@@ -154,23 +156,23 @@ func TestAuth_AccountConversion(t *testing.T) {
 		require.Equal(t, oldAcc.GetCoins(), acc.GetCoins(), "expected base coins to not change")
 
 		// ensure spenable coins at genesis time is equal
-		require.Equal(t, oldAcc.SpendableCoins(GenesisTime), acc.SpendableCoins(GenesisTime), "expected spendable coins to not chain")
+		require.Equal(t, oldAcc.SpendableCoins(GenesisTime), acc.SpendableCoins(GenesisTime), "expected spendable coins to not change")
 		// check 30 days
 		futureDate := GenesisTime.Add(30 * 24 * time.Hour)
-		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not chain")
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
 		// check 90 days
 		futureDate = GenesisTime.Add(90 * 24 * time.Hour)
-		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not chain")
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
 		// check 180 days
 		futureDate = GenesisTime.Add(180 * 24 * time.Hour)
-		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not chain")
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
 		// check 365 days
 		futureDate = GenesisTime.Add(365 * 24 * time.Hour)
-		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not chain")
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
 
-		if vacc, ok := acc.(vesting.PeriodicVestingAccount); ok {
+		if vacc, ok := acc.(*vesting.PeriodicVestingAccount); ok {
 			// old account must be a periodic vesting account
-			oldVacc, ok := oldAcc.(vesting.PeriodicVestingAccount)
+			oldVacc, ok := oldAcc.(*vesting.PeriodicVestingAccount)
 			require.True(t, ok)
 
 			// total delegated coins must match
@@ -186,6 +188,9 @@ func TestAuth_AccountConversion(t *testing.T) {
 
 			// vesting coins must not be nil
 			require.NotEqual(t, sdk.Coins(nil), vacc.GetVestingCoins(GenesisTime), "expected vesting coins to be greater than 0")
+
+			// new account as less than or equal
+			require.LessOrEqual(t, len(vacc.VestingPeriods), len(oldVacc.VestingPeriods), "expected vesting periods of new account to be less than or equal to old")
 		}
 	}
 }

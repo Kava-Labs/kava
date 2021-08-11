@@ -59,7 +59,7 @@ func TestMigrateAccount_PeriodicVestingAccount_Vesting(t *testing.T) {
 		},
 		vesting.Period{
 			Length: 45 * 24 * 60 * 60, // +15 days - vesting
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))),
 		},
 	}
 
@@ -68,8 +68,15 @@ func TestMigrateAccount_PeriodicVestingAccount_Vesting(t *testing.T) {
 
 	MigrateAccount(vacc, genesisTime)
 
+	expectedVestingPeriods := vesting.Periods{
+		vesting.Period{
+			Length: 15 * 24 * 60 * 60,
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))),
+		},
+	}
+
 	assert.Equal(t, genesisTime.Unix(), vacc.StartTime, "expected vesting start time to equal genesis time")
-	assert.Equal(t, 1, len(vacc.VestingPeriods), "expected only one vesting period left")
+	assert.Equal(t, expectedVestingPeriods, vacc.VestingPeriods, "expected only one vesting period left")
 }
 
 func TestResetPeriodVestingAccount_NoVestingPeriods(t *testing.T) {
@@ -218,7 +225,7 @@ func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))), vacc.OriginalVesting, "expected original vesting to be unchanged")
+	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))), vacc.OriginalVesting, "expected original vesting to be updated")
 	assert.Equal(t, newVestingStartTime.Unix(), vacc.StartTime, "expected vesting start time to be updated")
 	assert.Equal(t, expectedEndtime, vacc.EndTime, "expected vesting end time end at last period")
 	assert.Equal(t, expectedPeriods, vacc.VestingPeriods, "expected vesting periods to be updated")
