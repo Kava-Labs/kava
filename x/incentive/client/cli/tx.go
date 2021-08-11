@@ -213,8 +213,8 @@ func getCmdClaimDelegatorVVesting(cdc *codec.Codec) *cobra.Command {
 		Long: `Claim sender's outstanding delegator rewards on behalf of a validator vesting account using given multipliers
 A receiver address for the rewards is needed as validator vesting accounts cannot receive locked tokens.`,
 		Example: strings.Join([]string{
-			fmt.Sprintf("  $ %s tx %s claim-hard-vesting kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --%s hard=large --%s swp=small", version.ClientName, types.ModuleName, multiplierFlag, multiplierFlag),
-			fmt.Sprintf("  $ %s tx %s claim-hard-vesting kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --%s hard=large,swp=small", version.ClientName, types.ModuleName, multiplierFlag),
+			fmt.Sprintf("  $ %s tx %s claim-delegator-vesting kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --%s hard=large --%s swp=small", version.ClientName, types.ModuleName, multiplierFlag, multiplierFlag),
+			fmt.Sprintf("  $ %s tx %s claim-delegator-vesting kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --%s hard=large,swp=small", version.ClientName, types.ModuleName, multiplierFlag),
 		}, "\n"),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -250,8 +250,8 @@ func getCmdClaimSwap(cdc *codec.Codec) *cobra.Command {
 		Short: "claim sender's swap rewards using given multipliers",
 		Long:  `Claim sender's outstanding swap rewards using given multipliers`,
 		Example: strings.Join([]string{
-			fmt.Sprintf(`  $ %s tx %s claim-hard --%s swp=large --%s ukava=small`, version.ClientName, types.ModuleName, multiplierFlag, multiplierFlag),
-			fmt.Sprintf(`  $ %s tx %s claim-hard --%s swp=large,ukava=small`, version.ClientName, types.ModuleName, multiplierFlag),
+			fmt.Sprintf(`  $ %s tx %s claim-swap --%s swp=large --%s ukava=small`, version.ClientName, types.ModuleName, multiplierFlag, multiplierFlag),
+			fmt.Sprintf(`  $ %s tx %s claim-swap --%s swp=large,ukava=small`, version.ClientName, types.ModuleName, multiplierFlag),
 		}, "\n"),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -283,8 +283,8 @@ func getCmdClaimSwapVVesting(cdc *codec.Codec) *cobra.Command {
 		Long: `Claim sender's outstanding swap rewards on behalf of a validator vesting account using given multipliers
 A receiver address for the rewards is needed as validator vesting accounts cannot receive locked tokens.`,
 		Example: strings.Join([]string{
-			fmt.Sprintf("  $ %s tx %s claim-hard-vesting kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --%s ukava=large --%s swp=small", version.ClientName, types.ModuleName, multiplierFlag, multiplierFlag),
-			fmt.Sprintf("  $ %s tx %s claim-hard-vesting kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --%s ukava=large,swp=small", version.ClientName, types.ModuleName, multiplierFlag),
+			fmt.Sprintf("  $ %s tx %s claim-swap-vesting kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --%s ukava=large --%s swp=small", version.ClientName, types.ModuleName, multiplierFlag, multiplierFlag),
+			fmt.Sprintf("  $ %s tx %s claim-swap-vesting kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw --%s ukava=large,swp=small", version.ClientName, types.ModuleName, multiplierFlag),
 		}, "\n"),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

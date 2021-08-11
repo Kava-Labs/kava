@@ -296,9 +296,8 @@ func (msg MsgClaimDelegatorRewardVVesting) GetSigners() []sdk.AccAddress {
 
 // MsgClaimSwapReward message type used to claim delegator rewards
 type MsgClaimSwapReward struct {
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
-	DenomsToClaim  Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
+	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 
 // NewMsgClaimSwapReward returns a new MsgClaimSwapReward.
