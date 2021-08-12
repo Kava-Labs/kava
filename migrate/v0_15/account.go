@@ -35,12 +35,16 @@ func ResetPeriodicVestingAccount(vacc *vesting.PeriodicVestingAccount, startTime
 	newPeriods := vesting.Periods{}
 
 	for _, period := range vacc.VestingPeriods {
-		currentPeriod := currentPeriod + period.Length
+		currentPeriod = currentPeriod + period.Length
 
-		// Periods less than or equal to the newStartTime are still vesting,
-		// so adjust their length and add them to them to the newPeriods
-		if newStartTime <= currentPeriod {
-			period.Length = currentPeriod - newStartTime
+		// Periods less than the newStartTime are still vesting,
+		// so adjust their length and add them to the newPeriods
+		if newStartTime < currentPeriod {
+			// adjust the length of the first vesting period
+			// to be relative to the new start time
+			if len(newPeriods) == 0 {
+				period.Length = currentPeriod - newStartTime
+			}
 
 			newEndTime = newEndTime + period.Length
 			newOriginalVesting = newOriginalVesting.Add(period.Amount...)

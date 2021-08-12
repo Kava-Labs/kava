@@ -173,6 +173,9 @@ func TestAuth_AccountConversion(t *testing.T) {
 		// check 365 days
 		futureDate = GenesisTime.Add(365 * 24 * time.Hour)
 		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
+		// check 2 years
+		futureDate = GenesisTime.Add(2 * 365 * 24 * time.Hour)
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
 
 		if vacc, ok := acc.(*vesting.PeriodicVestingAccount); ok {
 			// old account must be a periodic vesting account
@@ -195,6 +198,9 @@ func TestAuth_AccountConversion(t *testing.T) {
 
 			// new account as less than or equal
 			require.LessOrEqual(t, len(vacc.VestingPeriods), len(oldVacc.VestingPeriods), "expected vesting periods of new account to be less than or equal to old")
+
+			// end time should not change
+			require.Equal(t, oldVacc.EndTime, vacc.EndTime, "expected end time to not change")
 		}
 	}
 }
