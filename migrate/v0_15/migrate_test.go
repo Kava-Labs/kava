@@ -140,9 +140,13 @@ func TestAuth_AccountConversion(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
 	require.NoError(t, err)
 
-	var genesisState auth.GenesisState
 	cdc := app.MakeCodec()
+
+	var genesisState auth.GenesisState
 	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	var originalGenesisState auth.GenesisState
+	cdc.MustUnmarshalJSON(bz, &originalGenesisState)
 
 	migratedGenesisState := Auth(genesisState, GenesisTime)
 	require.Equal(t, len(genesisState.Accounts), len(migratedGenesisState.Accounts), "expected the number of accounts after migration to be equal")
@@ -150,7 +154,7 @@ func TestAuth_AccountConversion(t *testing.T) {
 	require.NoError(t, err, "expected migrated genesis to be valid")
 
 	for i, acc := range migratedGenesisState.Accounts {
-		oldAcc := genesisState.Accounts[i]
+		oldAcc := originalGenesisState.Accounts[i]
 
 		// total owned coins does not change
 		require.Equal(t, oldAcc.GetCoins(), acc.GetCoins(), "expected base coins to not change")
