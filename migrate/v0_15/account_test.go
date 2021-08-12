@@ -1,7 +1,6 @@
 package v0_15
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -229,8 +228,6 @@ func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 	}
-
-	fmt.Printf("%s\n", spendableBefore.String())
 
 	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))), vacc.OriginalVesting, "expected original vesting to be updated")
 	assert.Equal(t, newVestingStartTime.Unix(), vacc.StartTime, "expected vesting start time to be updated")
