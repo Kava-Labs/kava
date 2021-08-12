@@ -241,6 +241,9 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	newHardSubParamPermissions.AllowedMoneyMarkets = newMoneyMarketParams
 	newHardCommitteePermissions = append(newHardCommitteePermissions, newHardSubParamPermissions)
 
+	// Text permissions
+	newHardCommitteePermissions = append(newHardCommitteePermissions, v0_15committee.TextPermission{})
+
 	// Set hard governance committee permissions
 	permissionedHardGovCom := hardGovCom.SetPermissions(newHardCommitteePermissions)
 	committees = append(committees, permissionedHardGovCom)
@@ -254,7 +257,7 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 		[]v0_15committee.Permission{}, swpGovThreshold, swpGovDuration, v0_15committee.Deadline,
 		swpGovQuorum, "swp")
 
-	// Add swap money market committee permissions
+	// Add swap committee permissions
 	var newSwapCommitteePermissions []v0_15committee.Permission
 	var newSwapSubParamPermissions v0_15committee.SubParamChangePermission
 
@@ -265,8 +268,12 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 		v0_15committee.AllowedParam{Subspace: "incentive", Key: "SwapRewardPeriods"},
 	}
 	newSwapSubParamPermissions.AllowedParams = swpAllowedParams
-
 	newSwpCommitteePermissions := append(newSwapCommitteePermissions, newSwapSubParamPermissions)
+
+	// Text permissions
+	newSwpCommitteePermissions = append(newSwpCommitteePermissions, v0_15committee.TextPermission{})
+
+	// Set swap governance committee permissions
 	permissionedSwapGovCom := swpGovCom.SetPermissions(newSwpCommitteePermissions)
 	committees = append(committees, permissionedSwapGovCom)
 
