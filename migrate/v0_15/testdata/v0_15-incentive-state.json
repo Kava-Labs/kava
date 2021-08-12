@@ -173,14 +173,49 @@
     "claim_end": "2026-04-08T14:00:00Z",
     "claim_multipliers": [
       {
-        "factor": "0.200000000000000000",
-        "months_lockup": "1",
-        "name": "small"
+        "denom": "hard",
+        "multipliers": [
+          {
+            "name": "small",
+            "months_lockup": "1",
+            "factor": "0.200000000000000000"
+          },
+          {
+            "name": "large",
+            "months_lockup": "12",
+            "factor": "1.000000000000000000"
+          }
+        ]
       },
       {
-        "factor": "1.000000000000000000",
-        "months_lockup": "12",
-        "name": "large"
+        "denom": "ukava",
+        "multipliers": [
+          {
+            "name": "small",
+            "months_lockup": "1",
+            "factor": "0.200000000000000000"
+          },
+          {
+            "name": "large",
+            "months_lockup": "12",
+            "factor": "1.000000000000000000"
+          }
+        ]
+      },
+      {
+        "denom": "swp",
+        "multipliers": [
+          {
+            "name": "small",
+            "months_lockup": "1",
+            "factor": "0.100000000000000000"
+          },
+          {
+            "name": "large",
+            "months_lockup": "12",
+            "factor": "1.000000000000000000"
+          }
+        ]
       }
     ],
     "delegator_reward_periods": [

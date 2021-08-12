@@ -25,8 +25,19 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 			Multipliers: claimMultipliers,
 		},
 		{
-			Denom:       "swp",
-			Multipliers: claimMultipliers, // TODO set the correct multipliers
+			Denom: "swp",
+			Multipliers: v0_15incentive.Multipliers{
+				{
+					Name:         v0_15incentive.Small,
+					MonthsLockup: 1,
+					Factor:       sdk.MustNewDecFromStr("0.1"),
+				},
+				{
+					Name:         v0_15incentive.Large,
+					MonthsLockup: 12,
+					Factor:       sdk.OneDec(),
+				},
+			}, // TODO set the correct multipliers
 		},
 	}
 
