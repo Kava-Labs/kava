@@ -31,7 +31,6 @@ func ResetPeriodicVestingAccount(vacc *vesting.PeriodicVestingAccount, startTime
 
 	newOriginalVesting := sdk.Coins{}
 	newStartTime := startTime.Unix()
-	newEndTime := newStartTime
 	newPeriods := vesting.Periods{}
 
 	for _, period := range vacc.VestingPeriods {
@@ -46,18 +45,9 @@ func ResetPeriodicVestingAccount(vacc *vesting.PeriodicVestingAccount, startTime
 				period.Length = currentPeriod - newStartTime
 			}
 
-			newEndTime = newEndTime + period.Length
 			newOriginalVesting = newOriginalVesting.Add(period.Amount...)
-
 			newPeriods = append(newPeriods, period)
 		}
-	}
-
-	// In order to preserve the spendable amount of the account, we must drop
-	// the vesting funds if the start and end time are equal.
-	if newStartTime == newEndTime {
-		newOriginalVesting = sdk.Coins{}
-		newPeriods = vesting.Periods{}
 	}
 
 	// If the new original vesting amount is less than the delegated vesting amount, set delegated vesting
@@ -72,8 +62,13 @@ func ResetPeriodicVestingAccount(vacc *vesting.PeriodicVestingAccount, startTime
 		}
 	}
 
+	// update vesting account
 	vacc.StartTime = newStartTime
-	vacc.EndTime = newEndTime
 	vacc.OriginalVesting = newOriginalVesting
 	vacc.VestingPeriods = newPeriods
+
+	// ensure end time is >= start time
+	if vacc.StartTime >= vacc.EndTime {
+		vacc.EndTime = vacc.StartTime
+	}
 }
