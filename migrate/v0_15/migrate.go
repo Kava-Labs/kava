@@ -5,7 +5,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -15,11 +19,12 @@ import (
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 	v0_15swap "github.com/kava-labs/kava/x/swap/types"
+	v0_14validator_vesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 var (
 	// TODO: update GenesisTime and chain-id for kava-8 launch
-	GenesisTime = time.Date(2021, 4, 8, 15, 0, 0, 0, time.UTC)
+	GenesisTime = time.Date(2021, 8, 30, 15, 0, 0, 0, time.UTC)
 	ChainID     = "kava-8"
 	// TODO: update SWP reward per second amount before production
 	// TODO: add swap tokens to kavadist module account
@@ -59,6 +64,14 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 	v0_14Codec := makeV014Codec()
 	v0_15Codec := app.MakeCodec()
 
+	// Migrate auth app state
+	if v0_14AppState[auth.ModuleName] != nil {
+		var authGenState auth.GenesisState
+		v0_14Codec.MustUnmarshalJSON(v0_14AppState[auth.ModuleName], &authGenState)
+		delete(v0_14AppState, auth.ModuleName)
+		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(authGenState, GenesisTime))
+	}
+
 	// Migrate incentive app state
 	if v0_14AppState[v0_14incentive.ModuleName] != nil {
 		var incentiveGenState v0_14incentive.GenesisState
@@ -83,9 +96,26 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 func makeV014Codec() *codec.Codec {
 	cdc := codec.New()
 	sdk.RegisterCodec(cdc)
+	cryptoAmino.RegisterAmino(cdc)
+	auth.RegisterCodec(cdc)
+	supply.RegisterCodec(cdc)
+	vesting.RegisterCodec(cdc)
+	v0_14validator_vesting.RegisterCodec(cdc)
 	v0_14committee.RegisterCodec(cdc)
 	v0_14incentive.RegisterCodec(cdc)
 	return cdc
+}
+
+// Auth migrates the auth genesis state to a new state with pruned vesting periods
+func Auth(genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
+	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
+	migratedGenesisState := auth.NewGenesisState(genesisState.Params, accounts)
+
+	for i, acc := range genesisState.Accounts {
+		accounts[i] = authexported.GenesisAccount(MigrateAccount(acc, genesisTime))
+	}
+
+	return migratedGenesisState
 }
 
 // Committee migrates from a v0.14 committee genesis state to a v0.15 committee genesis state
