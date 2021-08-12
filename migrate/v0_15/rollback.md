@@ -14,7 +14,7 @@ If you don't have the backup priv_validator_state.json file, you will not have d
 
 1. Copy the contents of your backup data directory back to the $KVD_HOME/data directory. By default this is ~/.kvd/data.
 
-```
+```sh
 # Assumes backup is stored in "backup" directory
 rm -rf ~/.kvd/data
 mv backup/.kvd/data ~/.kvd/data
@@ -22,7 +22,7 @@ mv backup/.kvd/data ~/.kvd/data
 
 2. Install the previous version of kava
 
-```
+```sh
 # from kava directory
 git checkout v0.14.2
 make install
@@ -33,7 +33,7 @@ kvd version --long
 
 3. Restart kvd process
 
-```
+```sh
 ### be sure to remove --halt-time flag if it is set
 sudo systemctl daemon-reload
 sudo systemctl restart kvd
