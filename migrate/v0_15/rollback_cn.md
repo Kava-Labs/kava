@@ -18,7 +18,7 @@ If you don't have the database data, the Kava developer team or another validato
 如果您没有数据库数据，Kava 开发团队或其他验证者将通过 Amazon s3 或类似服务共享数据库副本。您将能够下载数据副本并在启动节点之前对其进行验证。
 
 If you don't have the backup priv_validator_state.json file, you will not have double sign protection on the first block. If this is the case, it's best to consult in the validator discord before starting your node.
-如果您没有备份 priv_validator_state.json 文件，您将在新链的第一个区块不会有双签保护。如果是这种情况，最好在启动节点之前在 discord 里咨询其他验证着。
+如果您没有备份 priv_validator_state.json 文件，您将在新链的第一个区块不会有双签保护。如果是这种情况，最好在启动节点之前在 discord 里咨询其他验证者。
 
 ## Restoring state procedure 恢复状态过程
 

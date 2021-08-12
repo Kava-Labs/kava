@@ -40,7 +40,7 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ## Upgrade Procedure 升级流程
 
-### Before the upgrade 升级钱
+### Before the upgrade 升级前
 
 Kava Labs will submit a `SoftwareUpgradeProposal` that specifies the exact block _height_ at which the chain should shut down. This height will correspond to approximately 13:00 UTC on August 30th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators.
 Kava Labs 将提交一个“SoftwareUpgradeProposal”，该消息会指定关闭链的确切区块高度。这个高度将对应于 8 月 30 日大约 13:00 UTC。一旦提案通过，链将在指定高度自动关闭，不需要验证者的任何人工操作。
