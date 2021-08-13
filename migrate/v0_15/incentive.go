@@ -78,12 +78,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 	swapGenesisRewardState := v0_15incentive.DefaultGenesisRewardState // There is no previous swap rewards so accumulation starts at genesis time.
 
 	// Migrate USDX minting claims
-	usdxMintingClaims := v0_15incentive.USDXMintingClaims{}
-	for _, claim := range incentiveGS.USDXMintingClaims {
-		rewardIndexes := migrateRewardIndexes(claim.RewardIndexes)
-		usdxMintingClaim := v0_15incentive.NewUSDXMintingClaim(claim.Owner, claim.Reward, rewardIndexes)
-		usdxMintingClaims = append(usdxMintingClaims, usdxMintingClaim)
-	}
+	usdxMintingClaims := migrateUSDXMintingClaims(incentiveGS.USDXMintingClaims)
 
 	// Migrate Hard protocol claims (includes creating new Delegator claims)
 	hardClaims := v0_15incentive.HardLiquidityProviderClaims{}
@@ -133,6 +128,18 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		delegatorClaims,
 		swapClaims,
 	)
+}
+
+// migrateUSDXMintingClaims converts the a slice of v0.14 USDX minting claims into v0.15 USDX minting claims
+// As both types are the same underneath, this just converts types and does no other modification.
+func migrateUSDXMintingClaims(oldClaims v0_14incentive.USDXMintingClaims) v0_15incentive.USDXMintingClaims {
+	newClaims := v0_15incentive.USDXMintingClaims{}
+	for _, oldClaim := range oldClaims {
+		rewardIndexes := migrateRewardIndexes(oldClaim.RewardIndexes)
+		usdxMintingClaim := v0_15incentive.NewUSDXMintingClaim(oldClaim.Owner, oldClaim.Reward, rewardIndexes)
+		newClaims = append(newClaims, usdxMintingClaim)
+	}
+	return newClaims
 }
 
 func migrateMultiRewardPeriods(oldPeriods v0_14incentive.MultiRewardPeriods) v0_15incentive.MultiRewardPeriods {
