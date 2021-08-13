@@ -110,9 +110,13 @@ func makeV014Codec() *codec.Codec {
 func Auth(genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
 	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
 	migratedGenesisState := auth.NewGenesisState(genesisState.Params, accounts)
-
+	swpAirdropMap := MakeSwpAirdropMap("./data/hard-deposits-block-1543671.json", sdk.NewInt(1000000000000))
 	for i, acc := range genesisState.Accounts {
-		accounts[i] = authexported.GenesisAccount(MigrateAccount(acc, genesisTime))
+		migratedAcc := MigrateAccount(acc, genesisTime)
+		if swpReward, ok := swpAirdropMap[migratedAcc.GetAddress().String()]; ok {
+			migratedAcc.SetCoins(migratedAcc.GetCoins().Add(swpReward))
+		}
+		accounts[i] = authexported.GenesisAccount(migratedAcc)
 	}
 
 	return migratedGenesisState
