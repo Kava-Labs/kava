@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/kava-labs/kava/app"
+	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
@@ -72,13 +73,18 @@ func TestIncentive(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-incentive-state.json"))
 	require.NoError(t, err)
 
-	var oldIncentiveGenState v0_14incentive.GenesisState
 	cdc := app.MakeCodec()
-	require.NotPanics(t, func() {
-		cdc.MustUnmarshalJSON(bz, &oldIncentiveGenState)
-	})
 
-	newGenState := Incentive(oldIncentiveGenState)
+	var oldState genutil.AppMap
+	cdc.MustUnmarshalJSON(bz, &oldState)
+
+	var oldIncentiveGenState v0_14incentive.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_14incentive.ModuleName], &oldIncentiveGenState)
+
+	var oldCdpGenState v0_15cdp.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCdpGenState)
+
+	newGenState := Incentive(oldIncentiveGenState, oldCdpGenState.CDPs)
 
 	err = newGenState.Validate()
 	require.NoError(t, err)
@@ -98,7 +104,17 @@ func TestIncentive(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, len(oldIncentiveGenState.USDXMintingClaims), len(newGenState.USDXMintingClaims))
+	// Ensure there is a usdx claim for every cdp
+	for _, cdp := range oldCdpGenState.CDPs {
+		numClaims := 0
+		for _, claim := range newGenState.USDXMintingClaims {
+			if cdp.Owner.Equals(claim.Owner) {
+				numClaims++
+			}
+		}
+		require.Equal(t, 1, numClaims, "cdp '%s' has invalid number of claims '%d'", cdp.Owner, numClaims)
+	}
+
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.HardLiquidityProviderClaims))
 	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))

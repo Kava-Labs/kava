@@ -14,6 +14,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
+	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
@@ -77,7 +78,12 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		var incentiveGenState v0_14incentive.GenesisState
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[v0_14incentive.ModuleName], &incentiveGenState)
 		delete(v0_14AppState, v0_14incentive.ModuleName)
-		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(incentiveGenState))
+
+		// unmarshal all cdps using v0_15 types as there has been no changes since v0_14
+		var cdpGenState v0_15cdp.GenesisState
+		v0_15Codec.MustUnmarshalJSON(v0_14AppState[v0_15cdp.ModuleName], &cdpGenState)
+
+		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(incentiveGenState, cdpGenState.CDPs))
 	}
 
 	// Migrate commmittee app state

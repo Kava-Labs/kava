@@ -6,4 +6,4 @@ then
   exit 1
 fi
 
-jq < "$1" -c '.app_state.incentive' > testdata/kava-7-test-incentive-state.json
+jq < "$1" -c '{"incentive": .app_state.incentive, "cdp": .app_state.cdp }' > testdata/kava-7-test-incentive-state.json
