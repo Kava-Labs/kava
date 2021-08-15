@@ -1,6 +1,8 @@
 package v0_15
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
@@ -79,6 +81,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 
 	// Migrate USDX minting claims
 	usdxMintingClaims := migrateUSDXMintingClaims(incentiveGS.USDXMintingClaims)
+	usdxMintingClaims = syncUSDXMintingClaims(usdxMintingClaims, usdxGenesisRewardState.MultiRewardIndexes)
 
 	// Migrate Hard protocol claims (includes creating new Delegator claims)
 	hardClaims := v0_15incentive.HardLiquidityProviderClaims{}
@@ -140,6 +143,31 @@ func migrateUSDXMintingClaims(oldClaims v0_14incentive.USDXMintingClaims) v0_15i
 		newClaims = append(newClaims, usdxMintingClaim)
 	}
 	return newClaims
+}
+
+// syncUSDXMintingClaims overwrites the reward indexes in all the claims with the current global indexes.
+func syncUSDXMintingClaims(newClaims v0_15incentive.USDXMintingClaims, newGlobalIndexes v0_15incentive.MultiRewardIndexes) v0_15incentive.USDXMintingClaims {
+	usdxMintingFormatIndexes := convertRewardIndexesToUSDXMintingIndexes(newGlobalIndexes)
+
+	var syncedClaims v0_15incentive.USDXMintingClaims
+	for _, claim := range newClaims {
+		claim.RewardIndexes = usdxMintingFormatIndexes
+		syncedClaims = append(syncedClaims, claim)
+	}
+	return syncedClaims
+}
+
+// convertRewardIndexesToUSDXMintingIndexes converts a genesis reward indexes into the format used within usdx minting claims.
+func convertRewardIndexesToUSDXMintingIndexes(mris v0_15incentive.MultiRewardIndexes) v0_15incentive.RewardIndexes {
+	var newIndexes v0_15incentive.RewardIndexes
+	for _, mri := range mris {
+		factor, found := mri.RewardIndexes.Get(v0_15incentive.USDXMintingRewardDenom)
+		if !found {
+			panic(fmt.Sprintf("found global usdx minting reward index without denom '%s': %s", v0_15incentive.USDXMintingRewardDenom, mri))
+		}
+		newIndexes = newIndexes.With(mri.CollateralType, factor)
+	}
+	return newIndexes
 }
 
 func migrateMultiRewardPeriods(oldPeriods v0_14incentive.MultiRewardPeriods) v0_15incentive.MultiRewardPeriods {

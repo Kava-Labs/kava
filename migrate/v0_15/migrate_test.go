@@ -68,40 +68,40 @@ func exportGenesisJSON(genState v0_15committee.GenesisState) {
 	ioutil.WriteFile(filepath.Join("testdata", "kava-8-committee-state.json"), v15Cdc.MustMarshalJSON(genState), 0644)
 }
 
-func TestIncentive_MainnetState(t *testing.T) {
-	// TODO add copy of mainnet state to json
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-incentive-state.json"))
+func TestIncentive(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-incentive-state.json"))
 	require.NoError(t, err)
+
 	var oldIncentiveGenState v0_14incentive.GenesisState
 	cdc := app.MakeCodec()
 	require.NotPanics(t, func() {
 		cdc.MustUnmarshalJSON(bz, &oldIncentiveGenState)
 	})
 
-	newGenState := v0_15incentive.GenesisState{}
-	require.NotPanics(t, func() {
-		newGenState = Incentive(oldIncentiveGenState)
-	})
+	newGenState := Incentive(oldIncentiveGenState)
+
 	err = newGenState.Validate()
 	require.NoError(t, err)
+
+	// Ensure the usdx claim indexes match global
+	globalIndexes := newGenState.USDXRewardState.MultiRewardIndexes
+	for _, claim := range newGenState.USDXMintingClaims {
+
+		for _, globalIndex := range globalIndexes {
+			expectedFactor, found := globalIndex.RewardIndexes.Get(v0_15incentive.USDXMintingRewardDenom)
+			require.True(t, found)
+
+			factor, found := claim.RewardIndexes.Get(globalIndex.CollateralType)
+			require.True(t, found)
+
+			require.Equal(t, expectedFactor, factor)
+		}
+	}
 
 	require.Equal(t, len(oldIncentiveGenState.USDXMintingClaims), len(newGenState.USDXMintingClaims))
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.HardLiquidityProviderClaims))
 	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
-}
-
-func TestIncentive(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "v0_14-incentive-state.json"))
-	require.NoError(t, err)
-	appState := genutil.AppMap{v0_14incentive.ModuleName: bz}
-
-	MigrateAppState(appState)
-
-	bz, err = ioutil.ReadFile(filepath.Join("testdata", "v0_15-incentive-state.json"))
-	require.NoError(t, err)
-
-	require.JSONEq(t, string(bz), string(appState[v0_15incentive.ModuleName]))
 }
 
 // Compare migration against auto-generated snapshot to catch regressions
