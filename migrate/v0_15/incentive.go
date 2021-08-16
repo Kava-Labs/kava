@@ -37,7 +37,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 					MonthsLockup: 12,
 					Factor:       sdk.OneDec(),
 				},
-			}, // TODO set the correct multipliers
+			},
 		},
 	}
 
@@ -48,23 +48,23 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		usdxMintingRewardPeriods = append(usdxMintingRewardPeriods, usdxMintingRewardPeriod)
 	}
 
-	hardDelegatorRewardPeriods := v0_15incentive.MultiRewardPeriods{}
+	delegatorRewardPeriods := v0_15incentive.MultiRewardPeriods{}
 	for _, rp := range incentiveGS.Params.HardDelegatorRewardPeriods {
-		rewardsPerSecond := sdk.NewCoins(rp.RewardsPerSecond, SwpRewardsPerSecond)
-		hardDelegatorRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
+		rewardsPerSecond := sdk.NewCoins(rp.RewardsPerSecond, SwpDelegatorRewardsPerSecond)
+		delegatorRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
 			rp.CollateralType, rp.Start, rp.End, rewardsPerSecond)
-		hardDelegatorRewardPeriods = append(hardDelegatorRewardPeriods, hardDelegatorRewardPeriod)
+		delegatorRewardPeriods = append(delegatorRewardPeriods, delegatorRewardPeriod)
 	}
 
-	swapRewardPeriods := v0_15incentive.DefaultMultiRewardPeriods
-	// TODO add expected swap reward periods
+	// TODO: finalize swap reward pool IDs, rewards per second, start/end times. Should swap rewards start active?
+	swapRewardPeriods := v0_15incentive.MultiRewardPeriods{}
 
 	// Build new params from migrated values
 	params := v0_15incentive.NewParams(
 		usdxMintingRewardPeriods,
 		migrateMultiRewardPeriods(incentiveGS.Params.HardSupplyRewardPeriods),
 		migrateMultiRewardPeriods(incentiveGS.Params.HardBorrowRewardPeriods),
-		hardDelegatorRewardPeriods,
+		delegatorRewardPeriods,
 		swapRewardPeriods,
 		newMultipliers,
 		incentiveGS.Params.ClaimEnd,
