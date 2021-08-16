@@ -25,12 +25,12 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		usdxMintingRewardPeriods = append(usdxMintingRewardPeriods, usdxMintingRewardPeriod)
 	}
 
-	hardRewardPeriods := v0_15incentive.MultiRewardPeriods{}
+	delegatorRewardPeriods := v0_15incentive.MultiRewardPeriods{}
 	for _, rp := range incentiveGS.Params.HardDelegatorRewardPeriods {
 		rewardsPerSecond := sdk.NewCoins(rp.RewardsPerSecond, SwpDelegatorRewardsPerSecond)
-		hardRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
+		delegatorRewardPeriod := v0_15incentive.NewMultiRewardPeriod(rp.Active,
 			rp.CollateralType, rp.Start, rp.End, rewardsPerSecond)
-		hardRewardPeriods = append(hardRewardPeriods, hardRewardPeriod)
+		delegatorRewardPeriods = append(delegatorRewardPeriods, delegatorRewardPeriod)
 	}
 
 	// TODO: finalize swap reward pool IDs, rewards per second, start/end times. Should swap rewards start active?
@@ -49,7 +49,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		usdxMintingRewardPeriods,
 		migrateMultiRewardPeriods(incentiveGS.Params.HardSupplyRewardPeriods),
 		migrateMultiRewardPeriods(incentiveGS.Params.HardBorrowRewardPeriods),
-		hardRewardPeriods,
+		delegatorRewardPeriods,
 		swapRewardPeriods,
 		claimMultipliers,
 		incentiveGS.Params.ClaimEnd,
