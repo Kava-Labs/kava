@@ -336,6 +336,16 @@ func loadStabilityComMembers() ([]sdk.AccAddress, error) {
 
 // Swap introduces new v0.15 swap genesis state
 func Swap() v0_15swap.GenesisState {
-	// TODO add swap genesis state
-	return v0_15swap.DefaultGenesisState()
+	pools := v0_15swap.AllowedPools{
+		v0_15swap.NewAllowedPool("bnb", "usdx"),
+		v0_15swap.NewAllowedPool("btcb", "usdx"),
+		v0_15swap.NewAllowedPool("busd", "usdx"),
+		v0_15swap.NewAllowedPool("hard", "usdx"),
+		v0_15swap.NewAllowedPool("swp", "usdx"),
+		v0_15swap.NewAllowedPool("ukava", "usdx"),
+		v0_15swap.NewAllowedPool("usdx", "xrpb"),
+	}
+	fee := sdk.MustNewDecFromStr("0.0015")
+	params := v0_15swap.NewParams(pools, fee)
+	return v0_15swap.NewGenesisState(params, v0_15swap.DefaultPoolRecords, v0_15swap.DefaultShareRecords)
 }
