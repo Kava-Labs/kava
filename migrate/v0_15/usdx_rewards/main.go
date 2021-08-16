@@ -22,6 +22,8 @@ var (
 	cdpsFileName    = filepath.Join(dirPath, "cdp-cdps-829295.json")
 	indexesFileName = filepath.Join(dirPath, "incentive-usdx-indexes-829295.json")
 	claimsFileName  = filepath.Join(dirPath, "incentive-usdx-claims-829295.json")
+
+	// FIXME use real exported state
 )
 
 func main() {

@@ -1,0 +1,66 @@
+[
+    {
+      "collateral_type": "bnb-a",
+      "reward_indexes": [
+        {
+          "collateral_type": "ukava",
+          "reward_factor": "0.043949244534927716"
+        }
+      ]
+    },
+    {
+      "collateral_type": "btcb-a",
+      "reward_indexes": [
+        {
+          "collateral_type": "ukava",
+          "reward_factor": "0.046551281526135881"
+        }
+      ]
+    },
+    {
+      "collateral_type": "busd-a",
+      "reward_indexes": [
+        {
+          "collateral_type": "ukava",
+          "reward_factor": "0.011468527653896411"
+        }
+      ]
+    },
+    {
+      "collateral_type": "hard-a",
+      "reward_indexes": [
+        {
+          "collateral_type": "ukava",
+          "reward_factor": "0.123365881475003544"
+        }
+      ]
+    },
+    {
+      "collateral_type": "hbtc-a",
+      "reward_indexes": [
+        {
+          "collateral_type": "ukava",
+          "reward_factor": "1.472331865900201761"
+        }
+      ]
+    },
+    {
+      "collateral_type": "ukava-a",
+      "reward_indexes": [
+        {
+          "collateral_type": "ukava",
+          "reward_factor": "0.038864939729274249"
+        }
+      ]
+    },
+    {
+      "collateral_type": "xrpb-a",
+      "reward_indexes": [
+        {
+          "collateral_type": "ukava",
+          "reward_factor": "0.020676676769949043"
+        }
+      ]
+    }
+  ]
+  
