@@ -29,20 +29,23 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/incentive/claim-swap-vesting", postClaimVVestingHandlerFn(cliCtx, swapVVGenerator)).Methods("POST")
 }
 
-func usdxMintingGenerator(req PostClaimReq) sdk.Msg {
-	return types.NewMsgClaimUSDXMintingReward(req.Sender, req.MultiplierName)
+func usdxMintingGenerator(req PostClaimReq) (sdk.Msg, error) {
+	if len(req.DenomsToClaim) != 1 {
+		return nil, fmt.Errorf("must only claim %s denom for usdx minting rewards, got '%s", types.USDXMintingRewardDenom, req.DenomsToClaim)
+	}
+	return types.NewMsgClaimUSDXMintingReward(req.Sender, req.DenomsToClaim[0].MultiplierName), nil
 }
-func hardGenerator(req PostClaimReq) sdk.Msg {
-	return types.NewMsgClaimHardReward(req.Sender, req.MultiplierName, req.DenomsToClaim)
+func hardGenerator(req PostClaimReq) (sdk.Msg, error) {
+	return types.NewMsgClaimHardReward(req.Sender, req.DenomsToClaim...), nil
 }
-func delegatorGenerator(req PostClaimReq) sdk.Msg {
-	return types.NewMsgClaimDelegatorReward(req.Sender, req.MultiplierName, req.DenomsToClaim)
+func delegatorGenerator(req PostClaimReq) (sdk.Msg, error) {
+	return types.NewMsgClaimDelegatorReward(req.Sender, req.DenomsToClaim...), nil
 }
-func swapGenerator(req PostClaimReq) sdk.Msg {
-	return types.NewMsgClaimSwapReward(req.Sender, req.MultiplierName, req.DenomsToClaim)
+func swapGenerator(req PostClaimReq) (sdk.Msg, error) {
+	return types.NewMsgClaimSwapReward(req.Sender, req.DenomsToClaim...), nil
 }
 
-func postClaimHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostClaimReq) sdk.Msg) http.HandlerFunc {
+func postClaimHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostClaimReq) (sdk.Msg, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestBody PostClaimReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
@@ -65,7 +68,12 @@ func postClaimHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostCla
 			return
 		}
 
-		msg := msgGenerator(requestBody)
+		msg, err := msgGenerator(requestBody)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -75,20 +83,23 @@ func postClaimHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostCla
 	}
 }
 
-func usdxMintingVVGenerator(req PostClaimVVestingReq) sdk.Msg {
-	return types.NewMsgClaimUSDXMintingRewardVVesting(req.Sender, req.Receiver, req.MultiplierName)
+func usdxMintingVVGenerator(req PostClaimVVestingReq) (sdk.Msg, error) {
+	if len(req.DenomsToClaim) != 1 {
+		return nil, fmt.Errorf("must only claim %s denom for usdx minting rewards, got '%s", types.USDXMintingRewardDenom, req.DenomsToClaim)
+	}
+	return types.NewMsgClaimUSDXMintingRewardVVesting(req.Sender, req.Receiver, req.DenomsToClaim[0].MultiplierName), nil
 }
-func hardVVGenerator(req PostClaimVVestingReq) sdk.Msg {
-	return types.NewMsgClaimHardRewardVVesting(req.Sender, req.Receiver, req.MultiplierName, req.DenomsToClaim)
+func hardVVGenerator(req PostClaimVVestingReq) (sdk.Msg, error) {
+	return types.NewMsgClaimHardRewardVVesting(req.Sender, req.Receiver, req.DenomsToClaim...), nil
 }
-func delegatorVVGenerator(req PostClaimVVestingReq) sdk.Msg {
-	return types.NewMsgClaimDelegatorRewardVVesting(req.Sender, req.Receiver, req.MultiplierName, req.DenomsToClaim)
+func delegatorVVGenerator(req PostClaimVVestingReq) (sdk.Msg, error) {
+	return types.NewMsgClaimDelegatorRewardVVesting(req.Sender, req.Receiver, req.DenomsToClaim...), nil
 }
-func swapVVGenerator(req PostClaimVVestingReq) sdk.Msg {
-	return types.NewMsgClaimSwapRewardVVesting(req.Sender, req.Receiver, req.MultiplierName, req.DenomsToClaim)
+func swapVVGenerator(req PostClaimVVestingReq) (sdk.Msg, error) {
+	return types.NewMsgClaimSwapRewardVVesting(req.Sender, req.Receiver, req.DenomsToClaim...), nil
 }
 
-func postClaimVVestingHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostClaimVVestingReq) sdk.Msg) http.HandlerFunc {
+func postClaimVVestingHandlerFn(cliCtx context.CLIContext, msgGenerator func(req PostClaimVVestingReq) (sdk.Msg, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestBody PostClaimVVestingReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
@@ -111,7 +122,11 @@ func postClaimVVestingHandlerFn(cliCtx context.CLIContext, msgGenerator func(req
 			return
 		}
 
-		msg := msgGenerator(requestBody)
+		msg, err := msgGenerator(requestBody)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

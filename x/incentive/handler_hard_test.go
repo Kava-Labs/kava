@@ -8,7 +8,7 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-func (suite *HandlerTestSuite) TestPayoutHardClaim() {
+func (suite *HandlerTestSuite) TestPayoutHardClaimMultiDenom() {
 	userAddr, receiverAddr := suite.addrs[0], suite.addrs[1]
 
 	authBulder := suite.authBuilder().
@@ -16,8 +16,8 @@ func (suite *HandlerTestSuite) TestPayoutHardClaim() {
 		WithSimpleAccount(receiverAddr, nil)
 
 	incentBuilder := suite.incentiveBuilder().
-		WithSimpleSupplyRewardPeriod("bnb", cs(c("hard", 1e6))).
-		WithSimpleBorrowRewardPeriod("bnb", cs(c("hard", 1e6)))
+		WithSimpleSupplyRewardPeriod("bnb", cs(c("hard", 1e6), c("swap", 1e6))).
+		WithSimpleBorrowRewardPeriod("bnb", cs(c("hard", 1e6), c("swap", 1e6)))
 
 	suite.SetupWithGenState(authBulder, incentBuilder)
 
@@ -32,22 +32,24 @@ func (suite *HandlerTestSuite) TestPayoutHardClaim() {
 
 	// Check rewards cannot be claimed by vvesting claim msgs
 	err := suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardRewardVVesting(userAddr, receiverAddr, "large", nil),
+		types.NewMsgClaimHardRewardVVesting(userAddr, receiverAddr, types.NewSelection("hard", "small"), types.NewSelection("swap", "medium")),
 	)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
-	// Claim a single denom
+	// Claim denoms
 	err = suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardReward(userAddr, "large", nil),
+		types.NewMsgClaimHardReward(userAddr, types.NewSelection("hard", "small"), types.NewSelection("swap", "medium")),
 	)
 	suite.NoError(err)
 
 	// Check rewards were paid out
-	expectedRewards := cs(c("hard", 2*7*1e6))
-	suite.BalanceEquals(userAddr, preClaimBal.Add(expectedRewards...))
+	expectedRewardsHard := c("hard", int64(0.2*float64(2*7*1e6)))
+	expectedRewardsSwap := c("swap", int64(0.5*float64(2*7*1e6)))
+	suite.BalanceEquals(userAddr, preClaimBal.Add(expectedRewardsHard, expectedRewardsSwap))
 
 	suite.VestingPeriodsEqual(userAddr, vesting.Periods{
-		{Length: 33004793, Amount: expectedRewards},
+		{Length: (17+31)*secondsPerDay - 7, Amount: cs(expectedRewardsHard)},
+		{Length: (28 + 31 + 30 + 31 + 30) * secondsPerDay, Amount: cs(expectedRewardsSwap)}, // second length is stacked on top of the first
 	})
 	// Check that claimed coins have been removed from a claim's reward
 	suite.HardRewardEquals(userAddr, nil)
@@ -76,13 +78,13 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimSingleDenom() {
 
 	// Check rewards cannot be claimed by vvesting claim msgs
 	err := suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardRewardVVesting(userAddr, suite.addrs[1], "large", []string{"swap"}),
+		types.NewMsgClaimHardRewardVVesting(userAddr, suite.addrs[1], types.NewSelection("swap", "large")),
 	)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim rewards
 	err = suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardReward(userAddr, "large", []string{"swap"}),
+		types.NewMsgClaimHardReward(userAddr, types.NewSelection("swap", "large")),
 	)
 	suite.NoError(err)
 
@@ -91,14 +93,14 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimSingleDenom() {
 	suite.BalanceEquals(userAddr, preClaimBal.Add(expectedRewards))
 
 	suite.VestingPeriodsEqual(userAddr, vesting.Periods{
-		{Length: 33004793, Amount: cs(expectedRewards)},
+		{Length: (17+31+28+31+30+31+30+31+31+30+31+30+31)*secondsPerDay - 7, Amount: cs(expectedRewards)},
 	})
 
 	// Check that claimed coins have been removed from a claim's reward
 	suite.HardRewardEquals(userAddr, cs(c("hard", 2*7*1e6)))
 }
 
-func (suite *HandlerTestSuite) TestPayoutHardClaimVVesting() {
+func (suite *HandlerTestSuite) TestPayoutHardClaimVVestingMultiDenom() {
 	valAddr, receiverAddr := suite.addrs[0], suite.addrs[1]
 
 	vva := suite.NewValidatorVestingAccountWithBalance(valAddr, cs(c("bnb", 1e12)))
@@ -108,8 +110,8 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimVVesting() {
 		WithSimpleAccount(receiverAddr, nil)
 
 	incentBuilder := suite.incentiveBuilder().
-		WithSimpleSupplyRewardPeriod("bnb", cs(c("hard", 1e6))).
-		WithSimpleBorrowRewardPeriod("bnb", cs(c("hard", 1e6)))
+		WithSimpleSupplyRewardPeriod("bnb", cs(c("hard", 1e6), c("swap", 1e6))).
+		WithSimpleBorrowRewardPeriod("bnb", cs(c("hard", 1e6), c("swap", 1e6)))
 
 	suite.SetupWithGenState(authBulder, incentBuilder)
 
@@ -124,22 +126,24 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimVVesting() {
 
 	// Check rewards cannot be claimed by normal claim msgs
 	err := suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardReward(valAddr, "large", nil),
+		types.NewMsgClaimHardReward(valAddr, types.NewSelection("hard", "small"), types.NewSelection("swap", "medium")),
 	)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim rewards
 	err = suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardRewardVVesting(valAddr, receiverAddr, "large", nil),
+		types.NewMsgClaimHardRewardVVesting(valAddr, receiverAddr, types.NewSelection("hard", "small"), types.NewSelection("swap", "medium")),
 	)
 	suite.NoError(err)
 
 	// Check rewards were paid out
-	expectedRewards := c("hard", 2*7*1e6)
-	suite.BalanceEquals(receiverAddr, preClaimBal.Add(expectedRewards))
+	expectedRewardsHard := c("hard", int64(0.2*float64(2*7*1e6)))
+	expectedRewardsSwap := c("swap", int64(0.5*float64(2*7*1e6)))
+	suite.BalanceEquals(receiverAddr, preClaimBal.Add(expectedRewardsHard, expectedRewardsSwap))
 
 	suite.VestingPeriodsEqual(receiverAddr, vesting.Periods{
-		{Length: 33004793, Amount: cs(expectedRewards)},
+		{Length: (17+31)*secondsPerDay - 7, Amount: cs(expectedRewardsHard)},
+		{Length: (28 + 31 + 30 + 31 + 30) * secondsPerDay, Amount: cs(expectedRewardsSwap)}, // second length is stacked on top of the first
 	})
 
 	// Check that each claim reward coin's amount has been reset to 0
@@ -172,13 +176,13 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimVVestingSingleDenom() {
 
 	// Check rewards cannot be claimed by normal claim msgs
 	err := suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardReward(valAddr, "large", []string{"swap"}),
+		types.NewMsgClaimHardReward(valAddr, types.NewSelection("swap", "large")),
 	)
 	suite.ErrorIs(err, types.ErrInvalidAccountType)
 
 	// Claim rewards
 	err = suite.DeliverIncentiveMsg(
-		types.NewMsgClaimHardRewardVVesting(valAddr, receiverAddr, "large", []string{"swap"}),
+		types.NewMsgClaimHardRewardVVesting(valAddr, receiverAddr, types.NewSelection("swap", "large")),
 	)
 	suite.NoError(err)
 
@@ -187,7 +191,7 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimVVestingSingleDenom() {
 	suite.BalanceEquals(receiverAddr, preClaimBal.Add(expectedRewards))
 
 	suite.VestingPeriodsEqual(receiverAddr, vesting.Periods{
-		{Length: 33004793, Amount: cs(expectedRewards)},
+		{Length: (17+31+28+31+30+31+30+31+31+30+31+30+31)*secondsPerDay - 7, Amount: cs(expectedRewards)},
 	})
 
 	// Check that claimed coins have been removed from a claim's reward

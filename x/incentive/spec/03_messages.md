@@ -4,19 +4,34 @@ order: 3
 
 # Messages
 
-Users claim rewards using `MsgClaimUSDXMintingReward` and `MsgClaimHardReward` messages.
+Users claim rewards using messages that correspond to each claim type.
 
 ```go
 // MsgClaimUSDXMintingReward message type used to claim USDX minting rewards
 type MsgClaimUSDXMintingReward struct {
-  Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-  MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
+	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
 }
 
 // MsgClaimHardReward message type used to claim Hard liquidity provider rewards
 type MsgClaimHardReward struct {
-  Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-  MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
+	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+}
+
+// MsgClaimDelegatorReward message type used to claim delegator rewards
+type MsgClaimDelegatorReward struct {
+	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
+	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+}
+
+// MsgClaimSwapReward message type used to claim delegator rewards
+type MsgClaimSwapReward struct {
+	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
+	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 ```
 

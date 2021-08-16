@@ -110,17 +110,15 @@ func (msg MsgClaimUSDXMintingRewardVVesting) GetSigners() []sdk.AccAddress {
 
 // MsgClaimHardReward message type used to claim Hard liquidity provider rewards
 type MsgClaimHardReward struct {
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
-	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
+	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 
 // NewMsgClaimHardReward returns a new MsgClaimHardReward.
-func NewMsgClaimHardReward(sender sdk.AccAddress, multiplierName string, denomsToClaim []string) MsgClaimHardReward {
+func NewMsgClaimHardReward(sender sdk.AccAddress, denomsToClaim ...Selection) MsgClaimHardReward {
 	return MsgClaimHardReward{
-		Sender:         sender,
-		MultiplierName: multiplierName,
-		DenomsToClaim:  denomsToClaim,
+		Sender:        sender,
+		DenomsToClaim: denomsToClaim,
 	}
 }
 
@@ -137,16 +135,8 @@ func (msg MsgClaimHardReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
+	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
-	}
-	for i, d := range msg.DenomsToClaim {
-		if i >= MaxDenomsToClaim {
-			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
-		}
-		if err := sdk.ValidateDenom(d); err != nil {
-			return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
-		}
 	}
 	return nil
 }
@@ -164,19 +154,17 @@ func (msg MsgClaimHardReward) GetSigners() []sdk.AccAddress {
 
 // MsgClaimHardRewardVVesting message type used to claim Hard liquidity provider rewards for validator vesting accounts
 type MsgClaimHardRewardVVesting struct {
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	Receiver       sdk.AccAddress `json:"receiver" yaml:"receiver"`
-	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
-	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
+	Receiver      sdk.AccAddress `json:"receiver" yaml:"receiver"`
+	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 
 // NewMsgClaimHardRewardVVesting returns a new MsgClaimHardRewardVVesting.
-func NewMsgClaimHardRewardVVesting(sender, receiver sdk.AccAddress, multiplierName string, denomsToClaim []string) MsgClaimHardRewardVVesting {
+func NewMsgClaimHardRewardVVesting(sender, receiver sdk.AccAddress, denomsToClaim ...Selection) MsgClaimHardRewardVVesting {
 	return MsgClaimHardRewardVVesting{
-		Sender:         sender,
-		Receiver:       receiver,
-		MultiplierName: multiplierName,
-		DenomsToClaim:  denomsToClaim,
+		Sender:        sender,
+		Receiver:      receiver,
+		DenomsToClaim: denomsToClaim,
 	}
 }
 
@@ -196,16 +184,8 @@ func (msg MsgClaimHardRewardVVesting) ValidateBasic() error {
 	if msg.Receiver.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
-	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
+	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
-	}
-	for i, d := range msg.DenomsToClaim {
-		if i >= MaxDenomsToClaim {
-			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
-		}
-		if err := sdk.ValidateDenom(d); err != nil {
-			return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
-		}
 	}
 	return nil
 }
@@ -223,17 +203,15 @@ func (msg MsgClaimHardRewardVVesting) GetSigners() []sdk.AccAddress {
 
 // MsgClaimDelegatorReward message type used to claim delegator rewards
 type MsgClaimDelegatorReward struct {
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
-	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
+	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 
 // NewMsgClaimDelegatorReward returns a new MsgClaimDelegatorReward.
-func NewMsgClaimDelegatorReward(sender sdk.AccAddress, multiplierName string, denomsToClaim []string) MsgClaimDelegatorReward {
+func NewMsgClaimDelegatorReward(sender sdk.AccAddress, denomsToClaim ...Selection) MsgClaimDelegatorReward {
 	return MsgClaimDelegatorReward{
-		Sender:         sender,
-		MultiplierName: multiplierName,
-		DenomsToClaim:  denomsToClaim,
+		Sender:        sender,
+		DenomsToClaim: denomsToClaim,
 	}
 }
 
@@ -250,16 +228,8 @@ func (msg MsgClaimDelegatorReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
+	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
-	}
-	for i, d := range msg.DenomsToClaim {
-		if i >= MaxDenomsToClaim {
-			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
-		}
-		if err := sdk.ValidateDenom(d); err != nil {
-			return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
-		}
 	}
 	return nil
 }
@@ -277,19 +247,17 @@ func (msg MsgClaimDelegatorReward) GetSigners() []sdk.AccAddress {
 
 // MsgClaimDelegatorRewardVVesting message type used to claim delegator rewards for validator vesting accounts
 type MsgClaimDelegatorRewardVVesting struct {
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	Receiver       sdk.AccAddress `json:"receiver" yaml:"receiver"`
-	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
-	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
+	Receiver      sdk.AccAddress `json:"receiver" yaml:"receiver"`
+	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 
 // MsgClaimDelegatorRewardVVesting returns a new MsgClaimDelegatorRewardVVesting.
-func NewMsgClaimDelegatorRewardVVesting(sender, receiver sdk.AccAddress, multiplierName string, denomsToClaim []string) MsgClaimDelegatorRewardVVesting {
+func NewMsgClaimDelegatorRewardVVesting(sender, receiver sdk.AccAddress, denomsToClaim ...Selection) MsgClaimDelegatorRewardVVesting {
 	return MsgClaimDelegatorRewardVVesting{
-		Sender:         sender,
-		Receiver:       receiver,
-		MultiplierName: multiplierName,
-		DenomsToClaim:  denomsToClaim,
+		Sender:        sender,
+		Receiver:      receiver,
+		DenomsToClaim: denomsToClaim,
 	}
 }
 
@@ -309,16 +277,8 @@ func (msg MsgClaimDelegatorRewardVVesting) ValidateBasic() error {
 	if msg.Receiver.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
-	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
+	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
-	}
-	for i, d := range msg.DenomsToClaim {
-		if i >= MaxDenomsToClaim {
-			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
-		}
-		if err := sdk.ValidateDenom(d); err != nil {
-			return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
-		}
 	}
 	return nil
 }
@@ -336,17 +296,15 @@ func (msg MsgClaimDelegatorRewardVVesting) GetSigners() []sdk.AccAddress {
 
 // MsgClaimSwapReward message type used to claim delegator rewards
 type MsgClaimSwapReward struct {
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
-	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
+	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 
 // NewMsgClaimSwapReward returns a new MsgClaimSwapReward.
-func NewMsgClaimSwapReward(sender sdk.AccAddress, multiplierName string, denomsToClaim []string) MsgClaimSwapReward {
+func NewMsgClaimSwapReward(sender sdk.AccAddress, denomsToClaim ...Selection) MsgClaimSwapReward {
 	return MsgClaimSwapReward{
-		Sender:         sender,
-		MultiplierName: multiplierName,
-		DenomsToClaim:  denomsToClaim,
+		Sender:        sender,
+		DenomsToClaim: denomsToClaim,
 	}
 }
 
@@ -363,16 +321,8 @@ func (msg MsgClaimSwapReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
+	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
-	}
-	for i, d := range msg.DenomsToClaim {
-		if i >= MaxDenomsToClaim {
-			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
-		}
-		if err := sdk.ValidateDenom(d); err != nil {
-			return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
-		}
 	}
 	return nil
 }
@@ -390,19 +340,17 @@ func (msg MsgClaimSwapReward) GetSigners() []sdk.AccAddress {
 
 // MsgClaimSwapRewardVVesting message type used to claim delegator rewards for validator vesting accounts
 type MsgClaimSwapRewardVVesting struct {
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	Receiver       sdk.AccAddress `json:"receiver" yaml:"receiver"`
-	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
-	DenomsToClaim  []string       `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
+	Receiver      sdk.AccAddress `json:"receiver" yaml:"receiver"`
+	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
 }
 
 // MsgClaimSwapRewardVVesting returns a new MsgClaimSwapRewardVVesting.
-func NewMsgClaimSwapRewardVVesting(sender, receiver sdk.AccAddress, multiplierName string, denomsToClaim []string) MsgClaimSwapRewardVVesting {
+func NewMsgClaimSwapRewardVVesting(sender, receiver sdk.AccAddress, denomsToClaim ...Selection) MsgClaimSwapRewardVVesting {
 	return MsgClaimSwapRewardVVesting{
-		Sender:         sender,
-		Receiver:       receiver,
-		MultiplierName: multiplierName,
-		DenomsToClaim:  denomsToClaim,
+		Sender:        sender,
+		Receiver:      receiver,
+		DenomsToClaim: denomsToClaim,
 	}
 }
 
@@ -422,16 +370,8 @@ func (msg MsgClaimSwapRewardVVesting) ValidateBasic() error {
 	if msg.Receiver.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
-	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
+	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
-	}
-	for i, d := range msg.DenomsToClaim {
-		if i >= MaxDenomsToClaim {
-			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
-		}
-		if err := sdk.ValidateDenom(d); err != nil {
-			return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
-		}
 	}
 	return nil
 }

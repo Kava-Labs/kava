@@ -58,9 +58,10 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing(
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
-		WithMultipliers(types.Multipliers{
-			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")), // keep payout at 1.0 to make maths easier
-		}).
+		WithMultipliers(types.MultipliersPerDenom{{
+			Denom:       types.USDXMintingRewardDenom,
+			Multipliers: types.Multipliers{types.NewMultiplier(types.Large, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
+		}}).
 		WithSimpleUSDXRewardPeriod("bnb-a", c(types.USDXMintingRewardDenom, 1e6))
 
 	suite.StartChain(
@@ -116,9 +117,10 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncin
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
-		WithMultipliers(types.Multipliers{
-			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")), // keep payout at 1.0 to make maths easier
-		}).
+		WithMultipliers(types.MultipliersPerDenom{{
+			Denom:       types.USDXMintingRewardDenom,
+			Multipliers: types.Multipliers{types.NewMultiplier(types.Large, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
+		}}).
 		WithSimpleUSDXRewardPeriod(collateralType, c(types.USDXMintingRewardDenom, 1e6))
 
 	suite.StartChain(
@@ -162,9 +164,10 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
-		WithMultipliers(types.Multipliers{
-			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")), // keep payout at 1.0 to make maths easier
-		}).
+		WithMultipliers(types.MultipliersPerDenom{{
+			Denom:       types.USDXMintingRewardDenom,
+			Multipliers: types.Multipliers{types.NewMultiplier(types.Large, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
+		}}).
 		WithSimpleUSDXRewardPeriod("bnb-a", c(types.USDXMintingRewardDenom, 1e6))
 
 	suite.StartChain(

@@ -7,18 +7,10 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	kavadistTypes "github.com/kava-labs/kava/x/kavadist/types"
-)
-
-// Valid reward multipliers
-const (
-	Small  MultiplierName = "small"
-	Medium MultiplierName = "medium"
-	Large  MultiplierName = "large"
 )
 
 // Parameter keys and default values
@@ -34,7 +26,7 @@ var (
 	DefaultActive             = false
 	DefaultRewardPeriods      = RewardPeriods{}
 	DefaultMultiRewardPeriods = MultiRewardPeriods{}
-	DefaultMultipliers        = Multipliers{}
+	DefaultMultipliers        = MultipliersPerDenom{}
 	DefaultClaimEnd           = tmtime.Canonical(time.Unix(1, 0))
 
 	BondDenom              = "ukava"
@@ -45,18 +37,18 @@ var (
 
 // Params governance parameters for the incentive module
 type Params struct {
-	USDXMintingRewardPeriods RewardPeriods      `json:"usdx_minting_reward_periods" yaml:"usdx_minting_reward_periods"`
-	HardSupplyRewardPeriods  MultiRewardPeriods `json:"hard_supply_reward_periods" yaml:"hard_supply_reward_periods"`
-	HardBorrowRewardPeriods  MultiRewardPeriods `json:"hard_borrow_reward_periods" yaml:"hard_borrow_reward_periods"`
-	DelegatorRewardPeriods   MultiRewardPeriods `json:"delegator_reward_periods" yaml:"delegator_reward_periods"`
-	SwapRewardPeriods        MultiRewardPeriods `json:"swap_reward_periods" yaml:"swap_reward_periods"`
-	ClaimMultipliers         Multipliers        `json:"claim_multipliers" yaml:"claim_multipliers"`
-	ClaimEnd                 time.Time          `json:"claim_end" yaml:"claim_end"`
+	USDXMintingRewardPeriods RewardPeriods       `json:"usdx_minting_reward_periods" yaml:"usdx_minting_reward_periods"`
+	HardSupplyRewardPeriods  MultiRewardPeriods  `json:"hard_supply_reward_periods" yaml:"hard_supply_reward_periods"`
+	HardBorrowRewardPeriods  MultiRewardPeriods  `json:"hard_borrow_reward_periods" yaml:"hard_borrow_reward_periods"`
+	DelegatorRewardPeriods   MultiRewardPeriods  `json:"delegator_reward_periods" yaml:"delegator_reward_periods"`
+	SwapRewardPeriods        MultiRewardPeriods  `json:"swap_reward_periods" yaml:"swap_reward_periods"`
+	ClaimMultipliers         MultipliersPerDenom `json:"claim_multipliers" yaml:"claim_multipliers"`
+	ClaimEnd                 time.Time           `json:"claim_end" yaml:"claim_end"`
 }
 
 // NewParams returns a new params object
 func NewParams(usdxMinting RewardPeriods, hardSupply, hardBorrow, delegator, swap MultiRewardPeriods,
-	multipliers Multipliers, claimEnd time.Time) Params {
+	multipliers MultipliersPerDenom, claimEnd time.Time) Params {
 	return Params{
 		USDXMintingRewardPeriods: usdxMinting,
 		HardSupplyRewardPeriods:  hardSupply,
@@ -89,7 +81,7 @@ func (p Params) String() string {
 	Hard Borrow Reward Periods: %s
 	Delegator Reward Periods: %s
 	Swap Reward Periods: %s
-	Claim Multipliers :%s
+	Claim Multipliers: %s
 	Claim End Time: %s
 	`, p.USDXMintingRewardPeriods, p.HardSupplyRewardPeriods, p.HardBorrowRewardPeriods,
 		p.DelegatorRewardPeriods, p.SwapRewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
@@ -108,15 +100,15 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		params.NewParamSetPair(KeyHardBorrowRewardPeriods, &p.HardBorrowRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeyDelegatorRewardPeriods, &p.DelegatorRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeySwapRewardPeriods, &p.SwapRewardPeriods, validateMultiRewardPeriodsParam),
+		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersPerDenomParam),
 		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
-		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersParam),
 	}
 }
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
 
-	if err := validateMultipliersParam(p.ClaimMultipliers); err != nil {
+	if err := validateMultipliersPerDenomParam(p.ClaimMultipliers); err != nil {
 		return err
 	}
 
@@ -163,6 +155,14 @@ func validateMultiRewardPeriodsParam(i interface{}) error {
 
 func validateMultipliersParam(i interface{}) error {
 	multipliers, ok := i.(Multipliers)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	return multipliers.Validate()
+}
+
+func validateMultipliersPerDenomParam(i interface{}) error {
+	multipliers, ok := i.(MultipliersPerDenom)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -359,78 +359,4 @@ func (mrps MultiRewardPeriods) Validate() error {
 	}
 
 	return nil
-}
-
-// Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
-type Multiplier struct {
-	Name         MultiplierName `json:"name" yaml:"name"`
-	MonthsLockup int64          `json:"months_lockup" yaml:"months_lockup"`
-	Factor       sdk.Dec        `json:"factor" yaml:"factor"`
-}
-
-// NewMultiplier returns a new Multiplier
-func NewMultiplier(name MultiplierName, lockup int64, factor sdk.Dec) Multiplier {
-	return Multiplier{
-		Name:         name,
-		MonthsLockup: lockup,
-		Factor:       factor,
-	}
-}
-
-// Validate multiplier param
-func (m Multiplier) Validate() error {
-	if err := m.Name.IsValid(); err != nil {
-		return err
-	}
-	if m.MonthsLockup < 0 {
-		return fmt.Errorf("expected non-negative lockup, got %d", m.MonthsLockup)
-	}
-	if m.Factor.IsNegative() {
-		return fmt.Errorf("expected non-negative factor, got %s", m.Factor.String())
-	}
-
-	return nil
-}
-
-// String implements fmt.Stringer
-func (m Multiplier) String() string {
-	return fmt.Sprintf(`Claim Multiplier:
-	Name: %s
-	Months Lockup %d
-	Factor %s
-	`, m.Name, m.MonthsLockup, m.Factor)
-}
-
-// Multipliers slice of Multiplier
-type Multipliers []Multiplier
-
-// Validate validates each multiplier
-func (ms Multipliers) Validate() error {
-	for _, m := range ms {
-		if err := m.Validate(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// String implements fmt.Stringer
-func (ms Multipliers) String() string {
-	out := "Claim Multipliers\n"
-	for _, s := range ms {
-		out += fmt.Sprintf("%s\n", s)
-	}
-	return out
-}
-
-// MultiplierName name for valid multiplier
-type MultiplierName string
-
-// IsValid checks if the input is one of the expected strings
-func (mn MultiplierName) IsValid() error {
-	switch mn {
-	case Small, Medium, Large:
-		return nil
-	}
-	return sdkerrors.Wrapf(ErrInvalidMultiplier, "invalid multiplier name: %s", mn)
 }

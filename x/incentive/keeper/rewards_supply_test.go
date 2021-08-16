@@ -48,9 +48,10 @@ func (suite *SupplyIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
-		WithMultipliers(types.Multipliers{
-			types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0")), // keep payout at 1.0 to make maths easier
-		}).
+		WithMultipliers(types.MultipliersPerDenom{{
+			Denom:       "hard",
+			Multipliers: types.Multipliers{types.NewMultiplier(types.Large, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
+		}}).
 		WithSimpleSupplyRewardPeriod("bnb", cs(c("hard", 1e6))) // only borrow rewards
 
 	suite.StartChain(
@@ -79,7 +80,7 @@ func (suite *SupplyIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 	suite.NextBlockAfter(1e6 * time.Second) // about 12 days
 
 	// User claims all their rewards
-	suite.NoError(suite.DeliverIncentiveMsg(types.NewMsgClaimHardReward(userA, "large", nil)))
+	suite.NoError(suite.DeliverIncentiveMsg(types.NewMsgClaimHardReward(userA, types.NewSelection("hard", "large"))))
 
 	// The users has always had 100% of deposits, so they should receive all rewards for the previous two blocks.
 	// Total rewards for each block is block duration * rewards per second
@@ -222,7 +223,6 @@ func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 				},
 			},
 		},
-		// TODO test accumulate when there is a reward period with 0 rewardsPerSecond
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {

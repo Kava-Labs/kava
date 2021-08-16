@@ -6,9 +6,10 @@ order: 6
 
 This module implements the `Hooks` interface for the following modules:
 
-* cdp
-* hard
-* staking (defined in cosmos-sdk)
+- cdp
+- hard
+- swap
+- staking (defined in cosmos-sdk)
 
 CDP module hooks manage the creation and synchronization of USDX minting incentives.
 
@@ -108,5 +109,19 @@ func (h Hooks) BeforeValidatorModified(ctx sdk.Context, valAddr sdk.ValAddress) 
 
 // AfterValidatorRemoved runs after a validator is removed
 func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+}
+```
+
+Swap module hooks manage the creation and synchronization of Swap protocol liquidity provider rewards.
+
+```go
+// ------------------- Swap Module Hooks -------------------
+
+func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, _ sdk.Int) {
+	h.k.InitializeSwapReward(ctx, poolID, depositor)
+}
+
+func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharesOwned sdk.Int) {
+	h.k.SynchronizeSwapReward(ctx, poolID, depositor, sharesOwned)
 }
 ```
