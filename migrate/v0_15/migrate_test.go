@@ -104,6 +104,15 @@ func TestIncentive(t *testing.T) {
 	require.JSONEq(t, string(bz), string(appState[v0_15incentive.ModuleName]))
 }
 
+func TestSwap(t *testing.T) {
+	swapGS := Swap()
+	err := swapGS.Validate()
+	require.NoError(t, err)
+	require.Equal(t, 7, len(swapGS.Params.AllowedPools))
+	require.Equal(t, 0, len(swapGS.PoolRecords))
+	require.Equal(t, 0, len(swapGS.ShareRecords))
+}
+
 // Compare migration against auto-generated snapshot to catch regressions
 func TestAuth_Snapshot(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
