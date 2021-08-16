@@ -83,7 +83,7 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		var cdpGenState v0_15cdp.GenesisState
 		v0_15Codec.MustUnmarshalJSON(v0_14AppState[v0_15cdp.ModuleName], &cdpGenState)
 
-		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(incentiveGenState, cdpGenState.CDPs))
+		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(v0_15Codec, incentiveGenState, cdpGenState.CDPs))
 	}
 
 	// Migrate commmittee app state

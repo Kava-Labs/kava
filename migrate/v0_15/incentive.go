@@ -3,6 +3,7 @@ package v0_15
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
@@ -11,7 +12,7 @@ import (
 )
 
 // Incentive migrates from a v0.14 incentive genesis state to a v0.15 incentive genesis state
-func Incentive(incentiveGS v0_14incentive.GenesisState, cdps v0_15cdp.CDPs) v0_15incentive.GenesisState {
+func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v0_15cdp.CDPs) v0_15incentive.GenesisState {
 	// Migrate params
 	claimMultipliers := v0_15incentive.Multipliers{}
 	for _, m := range incentiveGS.Params.ClaimMultipliers {
@@ -74,6 +75,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState, cdps v0_15cdp.CDPs) v0_1
 	)
 
 	// Migrate accumulation times and reward indexes
+	// TODO set previous time to genesis for safety?
 	usdxGenesisRewardState := migrateGenesisRewardState(incentiveGS.USDXAccumulationTimes, incentiveGS.USDXRewardIndexes)
 	hardSupplyGenesisRewardState := migrateGenesisRewardState(incentiveGS.HardSupplyAccumulationTimes, incentiveGS.HardSupplyRewardIndexes)
 	hardBorrowGenesisRewardState := migrateGenesisRewardState(incentiveGS.HardBorrowAccumulationTimes, incentiveGS.HardBorrowRewardIndexes)
@@ -85,6 +87,9 @@ func Incentive(incentiveGS v0_14incentive.GenesisState, cdps v0_15cdp.CDPs) v0_1
 	usdxMintingFormattedIndexes := convertRewardIndexesToUSDXMintingIndexes(usdxGenesisRewardState.MultiRewardIndexes)
 	usdxMintingClaims = syncUSDXMintingClaims(usdxMintingClaims, usdxMintingFormattedIndexes)
 	usdxMintingClaims = addMissingClaims(usdxMintingClaims, cdps, usdxMintingFormattedIndexes)
+	var missedRewards map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(missedUSDXMintingRewards), &missedRewards)
+	usdxMintingClaims = addRewards(usdxMintingClaims, missedRewards)
 
 	// Migrate Hard protocol claims (includes creating new Delegator claims)
 	hardClaims := v0_15incentive.HardLiquidityProviderClaims{}
@@ -196,6 +201,21 @@ func addMissingClaims(newClaims v0_15incentive.USDXMintingClaims, cdps v0_15cdp.
 
 	}
 	return newClaims
+}
+
+// addRewards adds some coins to a list of claims according to a map of address: coin.
+// It panics if any coin denom doesn't match the denom in the claim.
+func addRewards(newClaims v0_15incentive.USDXMintingClaims, rewards map[string]sdk.Coin) v0_15incentive.USDXMintingClaims {
+
+	var amendedClaims v0_15incentive.USDXMintingClaims
+	for _, claim := range newClaims {
+		r, found := rewards[claim.Owner.String()]
+		if found {
+			claim.Reward = claim.Reward.Add(r)
+		}
+		amendedClaims = append(amendedClaims, claim)
+	}
+	return amendedClaims
 }
 
 func migrateMultiRewardPeriods(oldPeriods v0_14incentive.MultiRewardPeriods) v0_15incentive.MultiRewardPeriods {

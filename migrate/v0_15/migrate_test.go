@@ -84,7 +84,7 @@ func TestIncentive(t *testing.T) {
 	var oldCdpGenState v0_15cdp.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCdpGenState)
 
-	newGenState := Incentive(oldIncentiveGenState, oldCdpGenState.CDPs)
+	newGenState := Incentive(cdc, oldIncentiveGenState, oldCdpGenState.CDPs)
 
 	err = newGenState.Validate()
 	require.NoError(t, err)

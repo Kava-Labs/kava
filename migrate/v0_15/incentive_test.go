@@ -8,6 +8,7 @@ import (
 
 	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/incentive"
+	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 )
 
 // d parses a string into an sdk.Dec type.
@@ -123,4 +124,61 @@ func TestAddMissingClaims(t *testing.T) {
 	}
 
 	require.Equal(t, expectedClaims, addMissingClaims(claims, cdps, globalIndexes))
+}
+
+func TestAddRewards(t *testing.T) {
+	claims := v0_15incentive.USDXMintingClaims{
+		incentive.NewUSDXMintingClaim(
+			sdk.AccAddress("address1"),
+			sdk.NewInt64Coin(incentive.USDXMintingRewardDenom, 1e9),
+			incentive.RewardIndexes{
+				{CollateralType: "bnb-a", RewardFactor: d("0.1")},
+			},
+		),
+		incentive.NewUSDXMintingClaim(
+			sdk.AccAddress("address2"),
+			sdk.NewInt64Coin(incentive.USDXMintingRewardDenom, 0),
+			incentive.RewardIndexes{
+				{CollateralType: "bnb-a", RewardFactor: d("0")},
+				{CollateralType: "xrpb-a", RewardFactor: d("0.2")},
+			},
+		),
+		incentive.NewUSDXMintingClaim(
+			sdk.AccAddress("address3"),
+			sdk.NewInt64Coin(incentive.USDXMintingRewardDenom, 0),
+			incentive.RewardIndexes{},
+		),
+	}
+
+	rewards := map[string]sdk.Coin{
+		sdk.AccAddress("address1").String(): sdk.NewInt64Coin(v0_15incentive.USDXMintingRewardDenom, 1e9),
+		sdk.AccAddress("address3").String(): sdk.NewInt64Coin(v0_15incentive.USDXMintingRewardDenom, 3e9),
+		sdk.AccAddress("address4").String(): sdk.NewInt64Coin(v0_15incentive.USDXMintingRewardDenom, 1e6),
+	}
+
+	expectedClaims := v0_15incentive.USDXMintingClaims{
+		incentive.NewUSDXMintingClaim(
+			sdk.AccAddress("address1"),
+			sdk.NewInt64Coin(incentive.USDXMintingRewardDenom, 2e9),
+			incentive.RewardIndexes{
+				{CollateralType: "bnb-a", RewardFactor: d("0.1")},
+			},
+		),
+		incentive.NewUSDXMintingClaim(
+			sdk.AccAddress("address2"),
+			sdk.NewInt64Coin(incentive.USDXMintingRewardDenom, 0),
+			incentive.RewardIndexes{
+				{CollateralType: "bnb-a", RewardFactor: d("0")},
+				{CollateralType: "xrpb-a", RewardFactor: d("0.2")},
+			},
+		),
+		incentive.NewUSDXMintingClaim(
+			sdk.AccAddress("address3"),
+			sdk.NewInt64Coin(incentive.USDXMintingRewardDenom, 3e9),
+			incentive.RewardIndexes{},
+		),
+	}
+
+	amendedClaims := addRewards(claims, rewards)
+	require.Equal(t, expectedClaims, amendedClaims)
 }
