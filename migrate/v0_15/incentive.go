@@ -1,8 +1,6 @@
 package v0_15
 
 import (
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
@@ -39,7 +37,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 					MonthsLockup: 12,
 					Factor:       sdk.OneDec(),
 				},
-			}, // TODO set the correct multipliers
+			},
 		},
 	}
 
@@ -59,15 +57,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 	}
 
 	// TODO: finalize swap reward pool IDs, rewards per second, start/end times. Should swap rewards start active?
-	swapRewardPeriods := v0_15incentive.MultiRewardPeriods{
-		v0_15incentive.MultiRewardPeriod{
-			Active:           true,
-			CollateralType:   "ukava:usdx", // pool ID
-			Start:            GenesisTime,
-			End:              GenesisTime.Add(time.Hour * 24 * 365 * 1), // end time = 1 year
-			RewardsPerSecond: sdk.NewCoins(SwpLiquidityProviderRewardsPerSecond),
-		},
-	}
+	swapRewardPeriods := v0_15incentive.MultiRewardPeriods{}
 
 	// Build new params from migrated values
 	params := v0_15incentive.NewParams(
