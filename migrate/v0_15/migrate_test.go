@@ -245,9 +245,3 @@ func TestAuth_SwpSupply(t *testing.T) {
 	}
 	require.Equal(t, expectedSwpSupply, swpSupply)
 }
-
-// exportGenesisJSON is a utility testing method
-func exportGenesisJSON(genState v0_15committee.GenesisState) {
-	v15Cdc := app.MakeCodec()
-	ioutil.WriteFile(filepath.Join("testdata", "kava-8-committee-state.json"), v15Cdc.MustMarshalJSON(genState), 0644)
-}
