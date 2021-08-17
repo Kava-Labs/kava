@@ -108,25 +108,6 @@ func TestSwap(t *testing.T) {
 	require.Equal(t, 0, len(swapGS.ShareRecords))
 }
 
-// Compare migration against auto-generated snapshot to catch regressions
-func TestAuth_Snapshot(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
-	require.NoError(t, err)
-	appState := genutil.AppMap{auth.ModuleName: bz}
-
-	MigrateAppState(appState)
-
-	if _, err := os.Stat(filepath.Join("testdata", "kava-8-test-auth-state.json")); os.IsNotExist(err) {
-		err := ioutil.WriteFile(filepath.Join("testdata", "kava-8-test-auth-state.json"), appState[auth.ModuleName], 0644)
-		require.NoError(t, err)
-	}
-
-	snapshot, err := ioutil.ReadFile(filepath.Join("testdata", "kava-8-test-auth-state.json"))
-	require.NoError(t, err)
-
-	assert.JSONEq(t, string(snapshot), string(appState[auth.ModuleName]), "expected auth state snapshot to be equal")
-}
-
 func TestAuth_ParametersEqual(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
 	require.NoError(t, err)
