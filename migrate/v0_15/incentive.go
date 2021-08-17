@@ -1,6 +1,7 @@
 package v0_15
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
@@ -88,7 +89,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 	// Migrate Hard protocol claims (includes creating new Delegator claims)
 	hardClaims, delegatorClaims, err := migrateHardLiquidityProviderClaims(incentiveGS.HardLiquidityProviderClaims)
 	if err != nil {
-		panic(err.Error()) // TODO
+		panic(fmt.Sprintf("could not migrate hard claims: %v", err.Error()))
 	}
 
 	// Add Swap Claims
@@ -112,6 +113,7 @@ func migrateHardLiquidityProviderClaims(oldClaims v0_14incentive.HardLiquidityPr
 
 	hardClaims := v0_15incentive.HardLiquidityProviderClaims{}
 	delegatorClaims := v0_15incentive.DelegatorClaims{}
+
 	for _, claim := range oldClaims {
 		// Migrate supply multi reward indexes
 		supplyMultiRewardIndexes := migrateMultiRewardIndexes(claim.SupplyRewardIndexes)
@@ -120,20 +122,14 @@ func migrateHardLiquidityProviderClaims(oldClaims v0_14incentive.HardLiquidityPr
 		borrowMultiRewardIndexes := migrateMultiRewardIndexes(claim.BorrowRewardIndexes)
 
 		// Migrate delegator reward indexes to multi reward indexes inside DelegatorClaims
-		delegatorMultiRewardIndexes := v0_15incentive.MultiRewardIndexes{}
-		delegatorRewardIndexes := v0_15incentive.RewardIndexes{}
-		for _, ri := range claim.DelegatorRewardIndexes {
-			// TODO add checks to ensure old reward indexes are as expected
-			delegatorRewardIndex := v0_15incentive.NewRewardIndex(v0_14incentive.HardLiquidityRewardDenom, ri.RewardFactor)
-			delegatorRewardIndexes = append(delegatorRewardIndexes, delegatorRewardIndex)
+		delegatorMultiRewardIndexes, err := migrateDelegatorRewardIndexes(claim.DelegatorRewardIndexes)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid claim found '%s': %w", claim.Owner, err)
 		}
-		// TODO should this include indexes if none exist on the old claim?
-		delegatorMultiRewardIndex := v0_15incentive.NewMultiRewardIndex(v0_14incentive.BondDenom, delegatorRewardIndexes)
-		delegatorMultiRewardIndexes = append(delegatorMultiRewardIndexes, delegatorMultiRewardIndex)
 
-		// TODO: It's impossible to distinguish between rewards from delegation vs. liquidity providing
-		//		 as they're all combined inside claim.Reward, so I'm just putting them all inside
-		// 		 the hard claim to avoid duplicating rewards.
+		// It's impossible to distinguish between rewards from delegation vs. liquidity provisioning
+		// as they're all combined inside claim.Reward, so put them all inside the hard claim to
+		// avoid duplicating rewards.
 		delegatorClaim := v0_15incentive.NewDelegatorClaim(claim.Owner, sdk.NewCoins(), delegatorMultiRewardIndexes)
 		delegatorClaims = append(delegatorClaims, delegatorClaim)
 
@@ -141,7 +137,31 @@ func migrateHardLiquidityProviderClaims(oldClaims v0_14incentive.HardLiquidityPr
 			supplyMultiRewardIndexes, borrowMultiRewardIndexes)
 		hardClaims = append(hardClaims, hardClaim)
 	}
+
 	return hardClaims, delegatorClaims, nil
+}
+
+func migrateDelegatorRewardIndexes(oldIndexes v0_14incentive.RewardIndexes) (v0_15incentive.MultiRewardIndexes, error) {
+	newRIs := v0_15incentive.RewardIndexes{}
+
+	if len(oldIndexes) > 1 {
+		return nil, fmt.Errorf("delegator claims should not have more than one rewarded denom")
+	}
+
+	if len(oldIndexes) > 0 {
+		oldRI := oldIndexes[0]
+
+		if oldRI.CollateralType != v0_15incentive.BondDenom {
+			return nil, fmt.Errorf("delegator claims should only reward staked '%s', not '%s'", v0_15incentive.BondDenom, oldRI.CollateralType)
+		}
+		newRIs = newRIs.With(v0_14incentive.HardLiquidityRewardDenom, oldRI.RewardFactor)
+	}
+
+	newIndexes := v0_15incentive.MultiRewardIndexes{
+		v0_15incentive.NewMultiRewardIndex(v0_15incentive.BondDenom, newRIs),
+	}
+
+	return newIndexes, nil
 }
 
 func migrateMultiRewardPeriods(oldPeriods v0_14incentive.MultiRewardPeriods) v0_15incentive.MultiRewardPeriods {
