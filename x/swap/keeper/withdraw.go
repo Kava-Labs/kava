@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -35,12 +33,12 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, 
 
 	poolRecord, found := k.GetPool(ctx, poolID)
 	if !found {
-		panic(fmt.Sprintf("pool %s not found", poolID))
+		return sdkerrors.Wrap(types.ErrPoolNotFound, poolID)
 	}
 
 	pool, err := types.NewDenominatedPoolWithExistingShares(poolRecord.Reserves(), poolRecord.TotalShares)
 	if err != nil {
-		panic(fmt.Sprintf("invalid pool %s: %s", poolID, err))
+		return sdkerrors.Wrapf(types.ErrInvalidPool, "%s: %s", poolID, err)
 	}
 
 	withdrawnAmount := pool.RemoveLiquidity(shares)
@@ -57,7 +55,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, 
 
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawnAmount)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	ctx.EventManager().EmitEvent(

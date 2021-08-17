@@ -17,4 +17,5 @@ var (
 	ErrDepositNotFound       = sdkerrors.Register(ModuleName, 10, "deposit not found")
 	ErrInvalidCoin           = sdkerrors.Register(ModuleName, 11, "invalid coin")
 	ErrNotImplemented        = sdkerrors.Register(ModuleName, 12, "not implemented")
+	ErrPoolNotFound          = sdkerrors.Register(ModuleName, 13, "pool not found")
 )

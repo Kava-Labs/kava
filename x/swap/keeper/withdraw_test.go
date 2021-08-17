@@ -167,7 +167,7 @@ func (suite *keeperTestSuite) TestWithdraw_BelowMinimum() {
 	}
 }
 
-func (suite *keeperTestSuite) TestWithdraw_PanicOnMissingPool() {
+func (suite *keeperTestSuite) TestWithdraw_ErrOnMissingPool() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
@@ -178,12 +178,12 @@ func (suite *keeperTestSuite) TestWithdraw_PanicOnMissingPool() {
 
 	suite.Keeper.DeletePool(suite.Ctx, poolID)
 
-	suite.PanicsWithValue("pool ukava:usdx not found", func() {
-		_ = suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
-	}, "expected missing pool record to panic")
+	err := suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
+	suite.Error(err)
+	suite.Equal("pool not found: ukava:usdx", err.Error())
 }
 
-func (suite *keeperTestSuite) TestWithdraw_PanicOnInvalidPool() {
+func (suite *keeperTestSuite) TestWithdraw_ErrOnInvalidPool() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
@@ -198,12 +198,12 @@ func (suite *keeperTestSuite) TestWithdraw_PanicOnInvalidPool() {
 	poolRecord.TotalShares = sdk.ZeroInt()
 	suite.Keeper.SetPool_Raw(suite.Ctx, poolRecord)
 
-	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
-		_ = suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
-	}, "expected invalid pool record to panic")
+	err := suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
+	suite.Error(err)
+	suite.Equal("invalid pool: ukava:usdx: invalid pool: total shares must be greater than zero", err.Error())
 }
 
-func (suite *keeperTestSuite) TestWithdraw_PanicOnModuleInsufficientFunds() {
+func (suite *keeperTestSuite) TestWithdraw_ErrOnModuleInsufficientFunds() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
@@ -217,7 +217,6 @@ func (suite *keeperTestSuite) TestWithdraw_PanicOnModuleInsufficientFunds() {
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 	))
 
-	suite.Panics(func() {
-		_ = suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
-	}, "expected panic when module account does not have enough funds")
+	err := suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
+	suite.Error(err)
 }
