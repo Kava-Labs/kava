@@ -99,24 +99,33 @@ func TestIncentive(t *testing.T) {
 	require.JSONEq(t, string(bz), string(appState[v0_15incentive.ModuleName]))
 }
 
-// Compare migration against auto-generated snapshot to catch regressions
-func TestAuth_Snapshot(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
+func TestSwap(t *testing.T) {
+	swapGS := Swap()
+	err := swapGS.Validate()
 	require.NoError(t, err)
-	appState := genutil.AppMap{auth.ModuleName: bz}
-
-	MigrateAppState(appState)
-
-	if _, err := os.Stat(filepath.Join("testdata", "kava-8-test-auth-state.json")); os.IsNotExist(err) {
-		err := ioutil.WriteFile(filepath.Join("testdata", "kava-8-test-auth-state.json"), appState[auth.ModuleName], 0644)
-		require.NoError(t, err)
-	}
-
-	snapshot, err := ioutil.ReadFile(filepath.Join("testdata", "kava-8-test-auth-state.json"))
-	require.NoError(t, err)
-
-	assert.JSONEq(t, string(snapshot), string(appState[auth.ModuleName]), "expected auth state snapshot to be equal")
+	require.Equal(t, 7, len(swapGS.Params.AllowedPools))
+	require.Equal(t, 0, len(swapGS.PoolRecords))
+	require.Equal(t, 0, len(swapGS.ShareRecords))
 }
+
+// // Compare migration against auto-generated snapshot to catch regressions
+// func TestAuth_Snapshot(t *testing.T) {
+// 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
+// 	require.NoError(t, err)
+// 	appState := genutil.AppMap{auth.ModuleName: bz}
+
+// 	MigrateAppState(appState)
+
+// 	if _, err := os.Stat(filepath.Join("testdata", "kava-8-test-auth-state.json")); os.IsNotExist(err) {
+// 		err := ioutil.WriteFile(filepath.Join("testdata", "kava-8-test-auth-state.json"), appState[auth.ModuleName], 0644)
+// 		require.NoError(t, err)
+// 	}
+
+// 	snapshot, err := ioutil.ReadFile(filepath.Join("testdata", "kava-8-test-auth-state.json"))
+// 	require.NoError(t, err)
+
+// 	assert.JSONEq(t, string(snapshot), string(appState[auth.ModuleName]), "expected auth state snapshot to be equal")
+// }
 
 func TestAuth_ParametersEqual(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
@@ -135,17 +144,20 @@ func TestAuth_AccountConversion(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
 	require.NoError(t, err)
 
-	var genesisState auth.GenesisState
 	cdc := app.MakeCodec()
+
+	var genesisState auth.GenesisState
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
-	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
+	migratedGenesisState := MigrateAccounts(genesisState, GenesisTime)
+	var originalGenesisState auth.GenesisState
+	cdc.MustUnmarshalJSON(bz, &originalGenesisState)
 	require.Equal(t, len(genesisState.Accounts), len(migratedGenesisState.Accounts), "expected the number of accounts after migration to be equal")
 	err = auth.ValidateGenesis(migratedGenesisState)
 	require.NoError(t, err, "expected migrated genesis to be valid")
 
 	for i, acc := range migratedGenesisState.Accounts {
-		oldAcc := genesisState.Accounts[i]
+		oldAcc := originalGenesisState.Accounts[i]
 
 		// total owned coins does not change
 		require.Equal(t, oldAcc.GetCoins(), acc.GetCoins(), "expected base coins to not change")
@@ -163,6 +175,9 @@ func TestAuth_AccountConversion(t *testing.T) {
 		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
 		// check 365 days
 		futureDate = GenesisTime.Add(365 * 24 * time.Hour)
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
+		// check 2 years
+		futureDate = GenesisTime.Add(2 * 365 * 24 * time.Hour)
 		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
 
 		if vacc, ok := acc.(*vesting.PeriodicVestingAccount); ok {
@@ -186,6 +201,9 @@ func TestAuth_AccountConversion(t *testing.T) {
 
 			// new account as less than or equal
 			require.LessOrEqual(t, len(vacc.VestingPeriods), len(oldVacc.VestingPeriods), "expected vesting periods of new account to be less than or equal to old")
+
+			// end time should not change
+			require.Equal(t, oldVacc.EndTime, vacc.EndTime, "expected end time to not change")
 		}
 	}
 }
