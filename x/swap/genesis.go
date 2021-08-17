@@ -3,9 +3,9 @@ package swap
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/swap/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/swap/types"
 )
 
 // InitGenesis initializes story state from genesis file
