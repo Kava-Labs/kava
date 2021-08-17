@@ -69,7 +69,7 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		var authGenState auth.GenesisState
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[auth.ModuleName], &authGenState)
 		delete(v0_14AppState, auth.ModuleName)
-		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(authGenState, GenesisTime))
+		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(v0_15Codec, authGenState, GenesisTime))
 	}
 
 	// Migrate incentive app state
@@ -107,13 +107,14 @@ func makeV014Codec() *codec.Codec {
 }
 
 // Auth migrates the auth genesis state to a new state with pruned vesting periods
-func Auth(genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
+func Auth(cdc *codec.Codec, genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
 	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
 	migratedGenesisState := auth.NewGenesisState(genesisState.Params, accounts)
-	swpAirdropMap := MakeSwpAirdropMap("./data/hard-deposits-block-1543671.json", sdk.NewInt(1000000000000))
+	var swpAirdrop map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(swpAirdropMap), &swpAirdrop)
 	for i, acc := range genesisState.Accounts {
 		migratedAcc := MigrateAccount(acc, genesisTime)
-		if swpReward, ok := swpAirdropMap[migratedAcc.GetAddress().String()]; ok {
+		if swpReward, ok := swpAirdrop[migratedAcc.GetAddress().String()]; ok {
 			migratedAcc.SetCoins(migratedAcc.GetCoins().Add(swpReward))
 		}
 		accounts[i] = authexported.GenesisAccount(migratedAcc)

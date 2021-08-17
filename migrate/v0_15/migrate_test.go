@@ -126,7 +126,7 @@ func TestAuth_ParametersEqual(t *testing.T) {
 	cdc := app.MakeCodec()
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
-	migratedGenesisState := Auth(genesisState, GenesisTime)
+	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
 
 	assert.Equal(t, genesisState.Params, migratedGenesisState.Params, "expected auth parameters to not change")
 }
@@ -139,7 +139,7 @@ func TestAuth_AccountConversion(t *testing.T) {
 	cdc := app.MakeCodec()
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
-	migratedGenesisState := Auth(genesisState, GenesisTime)
+	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
 	require.Equal(t, len(genesisState.Accounts), len(migratedGenesisState.Accounts), "expected the number of accounts after migration to be equal")
 	err = auth.ValidateGenesis(migratedGenesisState)
 	require.NoError(t, err, "expected migrated genesis to be valid")
@@ -191,10 +191,12 @@ func TestAuth_AccountConversion(t *testing.T) {
 }
 
 func TestAuth_MakeAirdropMap(t *testing.T) {
+	cdc := app.MakeCodec()
 	aidropTokenAmount := sdk.NewInt(1000000000000)
-	swpAirdropMap := MakeSwpAirdropMap("./data/hard-deposits-block-1543671.json", aidropTokenAmount)
 	totalSwpTokens := sdk.ZeroInt()
-	for _, coin := range swpAirdropMap {
+	var loadedAirdropMap map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(swpAirdropMap), &loadedAirdropMap)
+	for _, coin := range loadedAirdropMap {
 		totalSwpTokens = totalSwpTokens.Add(coin.Amount)
 	}
 	require.Equal(t, aidropTokenAmount, totalSwpTokens)
@@ -215,9 +217,10 @@ func TestAuth_TestAllDepositorsIncluded(t *testing.T) {
 			depositorsInSnapShot++
 		}
 	}
-	swpAirdropMap := MakeSwpAirdropMap("./data/hard-deposits-block-1543671.json", sdk.NewInt(1000000000000))
-	keys := make([]string, 0, len(swpAirdropMap))
-	for k := range swpAirdropMap {
+	var loadedAirdropMap map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(swpAirdropMap), &loadedAirdropMap)
+	keys := make([]string, 0, len(loadedAirdropMap))
+	for k := range loadedAirdropMap {
 		keys = append(keys, k)
 	}
 	require.Equal(t, depositorsInSnapShot, len(keys))
@@ -234,7 +237,7 @@ func TestAuth_SwpSupply(t *testing.T) {
 	cdc := app.MakeCodec()
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
-	migratedGenesisState := Auth(genesisState, GenesisTime)
+	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
 
 	for _, acc := range migratedGenesisState.Accounts {
 		swpAmount := acc.GetCoins().AmountOf("swp")
