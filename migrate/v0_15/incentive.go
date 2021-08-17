@@ -86,9 +86,33 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 	}
 
 	// Migrate Hard protocol claims (includes creating new Delegator claims)
+	hardClaims, delegatorClaims, err := migrateHardLiquidityProviderClaims(incentiveGS.HardLiquidityProviderClaims)
+	if err != nil {
+		panic(err.Error()) // TODO
+	}
+
+	// Add Swap Claims
+	swapClaims := v0_15incentive.DefaultSwapClaims
+
+	return v0_15incentive.NewGenesisState(
+		params,
+		usdxGenesisRewardState,
+		hardSupplyGenesisRewardState,
+		hardBorrowGenesisRewardState,
+		delegatorGenesisRewardState,
+		swapGenesisRewardState,
+		usdxMintingClaims,
+		hardClaims,
+		delegatorClaims,
+		swapClaims,
+	)
+}
+
+func migrateHardLiquidityProviderClaims(oldClaims v0_14incentive.HardLiquidityProviderClaims) (v0_15incentive.HardLiquidityProviderClaims, v0_15incentive.DelegatorClaims, error) {
+
 	hardClaims := v0_15incentive.HardLiquidityProviderClaims{}
 	delegatorClaims := v0_15incentive.DelegatorClaims{}
-	for _, claim := range incentiveGS.HardLiquidityProviderClaims {
+	for _, claim := range oldClaims {
 		// Migrate supply multi reward indexes
 		supplyMultiRewardIndexes := migrateMultiRewardIndexes(claim.SupplyRewardIndexes)
 
@@ -117,22 +141,7 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 			supplyMultiRewardIndexes, borrowMultiRewardIndexes)
 		hardClaims = append(hardClaims, hardClaim)
 	}
-
-	// Add Swap Claims
-	swapClaims := v0_15incentive.DefaultSwapClaims
-
-	return v0_15incentive.NewGenesisState(
-		params,
-		usdxGenesisRewardState,
-		hardSupplyGenesisRewardState,
-		hardBorrowGenesisRewardState,
-		delegatorGenesisRewardState,
-		swapGenesisRewardState,
-		usdxMintingClaims,
-		hardClaims,
-		delegatorClaims,
-		swapClaims,
-	)
+	return hardClaims, delegatorClaims, nil
 }
 
 func migrateMultiRewardPeriods(oldPeriods v0_14incentive.MultiRewardPeriods) v0_15incentive.MultiRewardPeriods {
