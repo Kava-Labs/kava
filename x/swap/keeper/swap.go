@@ -103,7 +103,7 @@ func (k Keeper) commitSwap(
 	}
 
 	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, requester, sdk.NewCoins(swapOutput)); err != nil {
-		panic(err)
+		return err
 	}
 
 	ctx.EventManager().EmitEvent(
