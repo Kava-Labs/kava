@@ -295,27 +295,37 @@ func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.Genesis
 	params := v0_14incentive.NewParams(usdxMintingRewardPeriods, hardSupplyRewardPeriods, hardBorrowRewardPeriods, hardDelegatorRewardPeriods, v0_14incentive.Multipliers{v0_14incentive.NewMultiplier(v0_14incentive.Small, 1, sdk.MustNewDecFromStr("0.2")), v0_14incentive.NewMultiplier(v0_14incentive.Large, 12, sdk.MustNewDecFromStr("1.0"))}, ClaimEndTime)
 
 	usdxGenAccumulationTimes := v0_14incentive.GenesisAccumulationTimes{}
-
+	usdxGenRewardIndexes := v0_14incentive.GenesisRewardIndexesSlice{}
 	for _, rp := range params.USDXMintingRewardPeriods {
 		gat := v0_14incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		usdxGenAccumulationTimes = append(usdxGenAccumulationTimes, gat)
+		ris := v0_14incentive.NewGenesisRewardIndexes(rp.CollateralType, rewardsPerSecondToInitialIndexes(rp.RewardsPerSecond))
+		usdxGenRewardIndexes = append(usdxGenRewardIndexes, ris)
 	}
 	hardSupplyGenAccumulationTimes := v0_14incentive.GenesisAccumulationTimes{}
+	hardSupplyRewardIndexes := v0_14incentive.GenesisRewardIndexesSlice{}
 	for _, rp := range params.HardSupplyRewardPeriods {
 		gat := v0_14incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		hardSupplyGenAccumulationTimes = append(hardSupplyGenAccumulationTimes, gat)
+		ris := v0_14incentive.NewGenesisRewardIndexes(rp.CollateralType, rewardsPerSecondToInitialIndexes(rp.RewardsPerSecond...))
+		hardSupplyRewardIndexes = append(hardSupplyRewardIndexes, ris)
 	}
 	hardBorrowGenAccumulationTimes := v0_14incentive.GenesisAccumulationTimes{}
+	hardBorrowRewardIndexes := v0_14incentive.GenesisRewardIndexesSlice{}
 	for _, rp := range params.HardBorrowRewardPeriods {
 		gat := v0_14incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		hardBorrowGenAccumulationTimes = append(hardBorrowGenAccumulationTimes, gat)
+		ris := v0_14incentive.NewGenesisRewardIndexes(rp.CollateralType, rewardsPerSecondToInitialIndexes(rp.RewardsPerSecond...))
+		hardBorrowRewardIndexes = append(hardBorrowRewardIndexes, ris)
 	}
 
 	hardDelegatorGenAccumulationTimes := v0_14incentive.GenesisAccumulationTimes{}
-
+	hardDelegatorRewardIndexes := v0_14incentive.GenesisRewardIndexesSlice{}
 	for _, rp := range params.HardDelegatorRewardPeriods {
 		gat := v0_14incentive.NewGenesisAccumulationTime(rp.CollateralType, GenesisTime)
 		hardDelegatorGenAccumulationTimes = append(hardDelegatorGenAccumulationTimes, gat)
+		ris := v0_14incentive.NewGenesisRewardIndexes(rp.CollateralType, rewardsPerSecondToInitialIndexes(rp.RewardsPerSecond))
+		hardDelegatorRewardIndexes = append(hardDelegatorRewardIndexes, ris)
 	}
 
 	usdxClaims := v0_14incentive.USDXMintingClaims{}
@@ -394,9 +404,18 @@ func Incentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.Genesis
 		hardSupplyGenAccumulationTimes,
 		hardBorrowGenAccumulationTimes,
 		hardDelegatorGenAccumulationTimes,
+		usdxGenRewardIndexes, hardSupplyRewardIndexes, hardBorrowRewardIndexes, hardDelegatorRewardIndexes,
 		usdxClaims,
 		hardClaims,
 	)
+}
+
+func rewardsPerSecondToInitialIndexes(rewardsPerSecond ...sdk.Coin) v0_14incentive.RewardIndexes {
+	indexes := make(v0_14incentive.RewardIndexes, len(rewardsPerSecond))
+	for i, coin := range rewardsPerSecond {
+		indexes[i] = v0_14incentive.NewRewardIndex(coin.Denom, sdk.ZeroDec())
+	}
+	return indexes
 }
 
 // Auth migrates from a v0.11 auth genesis state to a v0.13

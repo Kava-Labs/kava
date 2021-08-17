@@ -1,7 +1,6 @@
 package types
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -10,13 +9,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 )
 
-func TestGenesisStateValidate(t *testing.T) {
-	type args struct {
-		params      Params
-		genAccTimes GenesisAccumulationTimes
-		claims      USDXMintingClaims
-	}
-
+func TestGenesisState_Validate(t *testing.T) {
 	type errArgs struct {
 		expectPass bool
 		contains   string
@@ -24,25 +17,20 @@ func TestGenesisStateValidate(t *testing.T) {
 
 	testCases := []struct {
 		name    string
-		args    args
+		genesis GenesisState
 		errArgs errArgs
 	}{
 		{
-			name: "default",
-			args: args{
-				params:      DefaultParams(),
-				genAccTimes: DefaultGenesisAccumulationTimes,
-				claims:      DefaultUSDXClaims,
-			},
+			name:    "default",
+			genesis: DefaultGenesisState(),
 			errArgs: errArgs{
 				expectPass: true,
-				contains:   "",
 			},
 		},
 		{
 			name: "valid",
-			args: args{
-				params: NewParams(
+			genesis: GenesisState{
+				Params: NewParams(
 					RewardPeriods{
 						NewRewardPeriod(
 							true,
@@ -60,11 +48,15 @@ func TestGenesisStateValidate(t *testing.T) {
 					},
 					time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 				),
-				genAccTimes: GenesisAccumulationTimes{GenesisAccumulationTime{
+				USDXAccumulationTimes: GenesisAccumulationTimes{{
 					CollateralType:           "bnb-a",
 					PreviousAccumulationTime: time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 				}},
-				claims: USDXMintingClaims{
+				USDXRewardIndexes: GenesisRewardIndexesSlice{{
+					CollateralType: "bnb-a",
+					RewardIndexes:  normalRewardIndexes[:1],
+				}},
+				USDXMintingClaims: USDXMintingClaims{
 					{
 						BaseClaim: BaseClaim{
 							Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
@@ -81,20 +73,19 @@ func TestGenesisStateValidate(t *testing.T) {
 			},
 			errArgs: errArgs{
 				expectPass: true,
-				contains:   "",
 			},
 		},
 		{
 			name: "invalid genesis accumulation time",
-			args: args{
-				params: DefaultParams(),
-				genAccTimes: GenesisAccumulationTimes{
+			genesis: GenesisState{
+				Params: DefaultParams(),
+				USDXAccumulationTimes: GenesisAccumulationTimes{
 					{
 						CollateralType:           "",
 						PreviousAccumulationTime: time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 					},
 				},
-				claims: DefaultUSDXClaims,
+				USDXMintingClaims: DefaultUSDXClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -103,10 +94,10 @@ func TestGenesisStateValidate(t *testing.T) {
 		},
 		{
 			name: "invalid claim",
-			args: args{
-				params:      DefaultParams(),
-				genAccTimes: DefaultGenesisAccumulationTimes,
-				claims: USDXMintingClaims{
+			genesis: GenesisState{
+				Params:                DefaultParams(),
+				USDXAccumulationTimes: DefaultGenesisAccumulationTimes,
+				USDXMintingClaims: USDXMintingClaims{
 					{
 						BaseClaim: BaseClaim{
 							Owner:  sdk.AccAddress{},
@@ -126,18 +117,154 @@ func TestGenesisStateValidate(t *testing.T) {
 				contains:   "claim owner cannot be empty",
 			},
 		},
+		{
+			name: "too many USDX reward factors is invalid",
+			genesis: GenesisState{
+				USDXRewardIndexes: GenesisRewardIndexesSlice{{
+					CollateralType: "bnb-a",
+					RewardIndexes: RewardIndexes{
+						{
+							CollateralType: "ukava",
+							RewardFactor:   sdk.ZeroDec(),
+						},
+						{
+							CollateralType: "hard",
+							RewardFactor:   sdk.ZeroDec(),
+						},
+					},
+				}},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "USDX reward indexes cannot have more than one reward denom",
+			},
+		},
+		{
+			name: "too many Delegator reward factors is invalid",
+			genesis: GenesisState{
+				HardDelegatorRewardIndexes: GenesisRewardIndexesSlice{{
+					CollateralType: "ukava",
+					RewardIndexes: RewardIndexes{
+						{
+							CollateralType: "ukava",
+							RewardFactor:   sdk.ZeroDec(),
+						},
+						{
+							CollateralType: "hard",
+							RewardFactor:   sdk.ZeroDec(),
+						},
+					},
+				}},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "Delegator reward indexes cannot have more than one reward denom",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			gs := NewGenesisState(tc.args.params, tc.args.genAccTimes, tc.args.genAccTimes, tc.args.genAccTimes, tc.args.genAccTimes, tc.args.claims, DefaultHardClaims)
-			err := gs.Validate()
+			err := tc.genesis.Validate()
 			if tc.errArgs.expectPass {
 				require.NoError(t, err, tc.name)
 			} else {
 				require.Error(t, err, tc.name)
-				require.True(t, strings.Contains(err.Error(), tc.errArgs.contains))
+				require.Contains(t, err.Error(), tc.errArgs.contains)
 			}
 		})
 	}
 }
+
+func TestGenesisRewardIndexeses_Validate(t *testing.T) {
+
+	testCases := []struct {
+		name    string
+		indexes GenesisRewardIndexesSlice
+		wantErr bool
+	}{
+		{
+			name: "normal case",
+			indexes: GenesisRewardIndexesSlice{
+				{CollateralType: "btcb", RewardIndexes: normalRewardIndexes},
+				{CollateralType: "bnb", RewardIndexes: normalRewardIndexes},
+			},
+			wantErr: false,
+		},
+		{
+			name:    "empty",
+			indexes: nil,
+			wantErr: false,
+		},
+		{
+			name:    "empty collateral type",
+			indexes: GenesisRewardIndexesSlice{{RewardIndexes: normalRewardIndexes}},
+			wantErr: true,
+		},
+		{
+			name:    "invalid reward index",
+			indexes: GenesisRewardIndexesSlice{{CollateralType: "btcb", RewardIndexes: invalidRewardIndexes}},
+			wantErr: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.indexes.Validate()
+			if tc.wantErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}
+func TestGenesisAccumulationTimes_Validate(t *testing.T) {
+
+	testCases := []struct {
+		name    string
+		gats    GenesisAccumulationTimes
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			gats: GenesisAccumulationTimes{
+				{CollateralType: "btcb", PreviousAccumulationTime: normalAccumulationtime},
+				{CollateralType: "bnb", PreviousAccumulationTime: normalAccumulationtime},
+			},
+			wantErr: false,
+		},
+		{
+			name:    "empty",
+			gats:    nil,
+			wantErr: false,
+		},
+		{
+			name: "empty collateral type",
+			gats: GenesisAccumulationTimes{
+				{PreviousAccumulationTime: normalAccumulationtime},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.gats.Validate()
+			if tc.wantErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}
+
+var normalRewardIndexes = RewardIndexes{
+	NewRewardIndex("hard", sdk.MustNewDecFromStr("0.000001")),
+	NewRewardIndex("ukava", sdk.MustNewDecFromStr("0.1")),
+}
+
+var invalidRewardIndexes = RewardIndexes{
+	RewardIndex{"hard", sdk.MustNewDecFromStr("-0.01")},
+}
+
+var normalAccumulationtime = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)

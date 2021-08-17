@@ -55,6 +55,10 @@ func (suite *HandlerTestSuite) SetupTest() {
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultGenesisAccumulationTimes,
+		incentive.DefaultGenesisRewardIndexes,
+		incentive.DefaultGenesisRewardIndexes,
+		incentive.DefaultGenesisRewardIndexes,
+		incentive.DefaultGenesisRewardIndexes,
 		incentive.DefaultUSDXClaims,
 		incentive.DefaultHardClaims,
 	)
