@@ -1,6 +1,8 @@
 package v0_15
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
@@ -56,8 +58,15 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		delegatorRewardPeriods = append(delegatorRewardPeriods, delegatorRewardPeriod)
 	}
 
-	// TODO: finalize swap reward pool IDs, rewards per second, start/end times. Should swap rewards start active?
-	swapRewardPeriods := v0_15incentive.MultiRewardPeriods{}
+	swapRewardPeriods := v0_15incentive.MultiRewardPeriods{
+		v0_15incentive.NewMultiRewardPeriod(true, "bnb:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "btcb:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "busd:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(158549)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "hard:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "swp:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(190259)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "ukava:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(221969)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "usdx:xrpb", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
+	}
 
 	// Build new params from migrated values
 	params := v0_15incentive.NewParams(

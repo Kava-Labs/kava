@@ -86,17 +86,21 @@ func TestIncentive_MainnetState(t *testing.T) {
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
 }
 
-func TestIncentive(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "v0_14-incentive-state.json"))
+func TestIncentive_Snapshot(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-incentive-state.json"))
 	require.NoError(t, err)
 	appState := genutil.AppMap{v0_14incentive.ModuleName: bz}
 
 	MigrateAppState(appState)
 
-	bz, err = ioutil.ReadFile(filepath.Join("testdata", "v0_15-incentive-state.json"))
+	if _, err := os.Stat(filepath.Join("testdata", "kava-8-incentive-state.json")); os.IsNotExist(err) {
+		err = ioutil.WriteFile(filepath.Join("testdata", "kava-8-incentive-state.json"), appState[v0_15incentive.ModuleName], 0644)
+		require.NoError(t, err)
+	}
+	snapshot, err := ioutil.ReadFile(filepath.Join("testdata", "kava-8-incentive-state.json"))
 	require.NoError(t, err)
 
-	require.JSONEq(t, string(bz), string(appState[v0_15incentive.ModuleName]))
+	assert.JSONEq(t, string(snapshot), string(appState[v0_15incentive.ModuleName]), "expected incentive state snapshot to be equal")
 }
 
 func TestSwap(t *testing.T) {
