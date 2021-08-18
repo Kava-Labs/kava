@@ -24,11 +24,9 @@ import (
 )
 
 var (
-	// TODO: update GenesisTime and chain-id for kava-8 launch
 	GenesisTime = time.Date(2021, 8, 30, 15, 0, 0, 0, time.UTC) // 1630335600
 	ChainID     = "kava-8"
 	// TODO: update SWP reward per second amount before production
-	// TODO: add swap tokens to kavadist module account
 	// TODO: update SWP reward per second amount before production
 	SwpDelegatorRewardsPerSecond         = sdk.NewCoin("swp", sdk.OneInt())
 	SwpLiquidityProviderRewardsPerSecond = sdk.NewCoin("swp", sdk.OneInt())
@@ -154,9 +152,10 @@ func DistributeSwpTokens(genesisState auth.GenesisState) auth.GenesisState {
 	migratedGenesisState := auth.NewGenesisState(genesisState.Params, accounts)
 	// add SWP incentives (LP, Kava stakers) to kavadist module account
 	kavaDistAddr := supply.NewModuleAddress(kavadist.KavaDistMacc)
+	kavaDistSwpAmount := sdk.NewCoin("swp", sdk.NewInt(137500000e6))
 	for i, acc := range genesisState.Accounts {
 		if acc.GetAddress().Equals(kavaDistAddr) {
-			err := acc.SetCoins(acc.GetCoins().Add(sdk.NewCoin("swp", sdk.NewInt(137500000e6))))
+			err := acc.SetCoins(acc.GetCoins().Add(kavaDistSwpAmount))
 			if err != nil {
 				panic(err)
 			}
