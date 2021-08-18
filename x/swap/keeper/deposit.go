@@ -79,9 +79,9 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 	k.updatePool(ctx, poolID, pool)
 	if shareRecord, hasExistingShares := k.GetDepositorShares(ctx, depositor, poolID); hasExistingShares {
 		k.BeforePoolDepositModified(ctx, poolID, depositor, shareRecord.SharesOwned)
-		k.updateShares(ctx, depositor, poolID, shareRecord.SharesOwned.Add(shares))
+		k.updateDepositorShares(ctx, depositor, poolID, shareRecord.SharesOwned.Add(shares))
 	} else {
-		k.updateShares(ctx, depositor, poolID, shares)
+		k.updateDepositorShares(ctx, depositor, poolID, shares)
 		k.AfterPoolDepositCreated(ctx, poolID, depositor, shares)
 	}
 
