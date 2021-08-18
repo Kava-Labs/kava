@@ -67,6 +67,7 @@ jobs:
             - go-mod-v2-{{ checksum "go.sum" }}
       - run:
           name: Run tests
+          no_output_timeout: 30m
           command: |
             export VERSION="$(git describe --tags --long | sed 's/v\(.*\)/\1/')"
             export GO111MODULE=on
