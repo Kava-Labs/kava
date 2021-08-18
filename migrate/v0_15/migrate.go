@@ -72,7 +72,7 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		var authGenState auth.GenesisState
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[auth.ModuleName], &authGenState)
 		delete(v0_14AppState, auth.ModuleName)
-		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(authGenState, GenesisTime))
+		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(v0_15Codec, authGenState, GenesisTime))
 	}
 
 	// Migrate incentive app state
@@ -114,14 +114,35 @@ func makeV014Codec() *codec.Codec {
 }
 
 // Auth migrates the auth genesis state to a new state with pruned vesting periods
-func Auth(genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
+func Auth(cdc *codec.Codec, genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
+	genesisStateWithAccountsMigrated := MigrateAccounts(genesisState, genesisTime)
+	genesisStateWithSwpAirdrop := ApplySwpAirdrop(cdc, genesisStateWithAccountsMigrated)
+
+	return genesisStateWithSwpAirdrop
+}
+
+func ApplySwpAirdrop(cdc *codec.Codec, genesisState auth.GenesisState) auth.GenesisState {
 	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
 	migratedGenesisState := auth.NewGenesisState(genesisState.Params, accounts)
-
+	var swpAirdrop map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(swpAirdropMap), &swpAirdrop)
 	for i, acc := range genesisState.Accounts {
-		accounts[i] = authexported.GenesisAccount(MigrateAccount(acc, genesisTime))
+		if swpReward, ok := swpAirdrop[acc.GetAddress().String()]; ok {
+			acc.SetCoins(acc.GetCoins().Add(swpReward))
+		}
+		accounts[i] = authexported.GenesisAccount(acc)
 	}
+	return migratedGenesisState
+}
 
+func MigrateAccounts(genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
+	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
+	migratedGenesisState := auth.NewGenesisState(genesisState.Params, accounts)
+	for i, acc := range genesisState.Accounts {
+		migratedAcc := MigrateAccount(acc, genesisTime)
+
+		accounts[i] = authexported.GenesisAccount(migratedAcc)
+	}
 	return migratedGenesisState
 }
 
