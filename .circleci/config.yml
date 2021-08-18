@@ -73,7 +73,7 @@ jobs:
             mkdir -p /tmp/logs /tmp/workspace/profiles
             for pkg in $(go list ./... | grep -v -P 'simulation|migrate(?!\/v0_15)|contrib' | circleci tests split); do
               id=$(echo "$pkg" | sed 's|[/.]|_|g')
-              go test -mod=readonly -timeout 8m -race -coverprofile=/tmp/workspace/profiles/$id.out -covermode=atomic -tags='ledger test_ledger_mock' "$pkg" | tee "/tmp/logs/$id-$RANDOM.log"
+              go test -mod=readonly -timeout 20m -race -coverprofile=/tmp/workspace/profiles/$id.out -covermode=atomic -tags='ledger test_ledger_mock' "$pkg" | tee "/tmp/logs/$id-$RANDOM.log"
             done
       - persist_to_workspace:
           root: /tmp/workspace
