@@ -146,16 +146,28 @@ func MigrateAccounts(genesisState auth.GenesisState, genesisTime time.Time) auth
 	return migratedGenesisState
 }
 
+// global variables for swp distribution
+var (
+	SwpEcoSystemAddr           = mustAccAddressFromBech32("kava174crgzk006lj39s258gjxkh0p9tmmq8ugdcg0n")
+	SwpTreasuryAddr            = mustAccAddressFromBech32("kava1w56wrusdnrv4tvn86eyam65wwhqatmsqg9fxjm")
+	SwpTeamAddr                = mustAccAddressFromBech32("kava129eqnykzkc5ceyq9sv7ltxev22y8qwm94kr0ew")
+	KavaDistAddr               = supply.NewModuleAddress(kavadist.KavaDistMacc)
+	SwpTreasuryCoins           = sdk.NewCoin("swp", sdk.NewInt(62500000000000))
+	SwpTreasuryOriginalVesting = sdk.NewCoin("swp", sdk.NewInt(46875000000000))
+	KavaDistCoins              = sdk.NewCoin("swp", sdk.NewInt(137500000e6))
+	EcoSystemCoins             = sdk.NewCoin("swp", sdk.NewInt(11500000000000))
+	SwpTeamCoins               = sdk.NewCoin("swp", sdk.NewInt(37500000000000))
+)
+
 // DistributeSwpTokens sets the initial distribution of swp tokens according to the proposed token supply schedule in prop 59
 func DistributeSwpTokens(genesisState auth.GenesisState) auth.GenesisState {
 	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
 	migratedGenesisState := auth.NewGenesisState(genesisState.Params, accounts)
 	// add SWP incentives (LP, Kava stakers) to kavadist module account
-	kavaDistAddr := supply.NewModuleAddress(kavadist.KavaDistMacc)
-	kavaDistSwpAmount := sdk.NewCoin("swp", sdk.NewInt(137500000e6))
+
 	for i, acc := range genesisState.Accounts {
-		if acc.GetAddress().Equals(kavaDistAddr) {
-			err := acc.SetCoins(acc.GetCoins().Add(kavaDistSwpAmount))
+		if acc.GetAddress().Equals(KavaDistAddr) {
+			err := acc.SetCoins(acc.GetCoins().Add(KavaDistCoins))
 			if err != nil {
 				panic(err)
 			}
@@ -165,24 +177,20 @@ func DistributeSwpTokens(genesisState auth.GenesisState) auth.GenesisState {
 	}
 
 	// Add ecosystem account
-	swpEcosystemAddr := mustAccAddressFromBech32("kava174crgzk006lj39s258gjxkh0p9tmmq8ugdcg0n")
-	swpEcosystemBacc := auth.NewBaseAccountWithAddress(swpEcosystemAddr)
+	swpEcosystemBacc := auth.NewBaseAccountWithAddress(SwpEcoSystemAddr)
 	// 11.5M because 1M has already been airdropped
-	ecoSystemCoins := sdk.NewCoin("swp", sdk.NewInt(11500000000000))
-	err := swpEcosystemBacc.SetCoins(sdk.NewCoins(ecoSystemCoins))
+	err := swpEcosystemBacc.SetCoins(sdk.NewCoins(EcoSystemCoins))
 	if err != nil {
 		panic(err)
 	}
 
 	// Add team vesting account
-	swpTeamAddr := mustAccAddressFromBech32("kava129eqnykzkc5ceyq9sv7ltxev22y8qwm94kr0ew")
-	swpTeamBacc := auth.NewBaseAccountWithAddress(swpTeamAddr)
-	teamCoins := sdk.NewCoin("swp", sdk.NewInt(37500000000000))
-	err = swpTeamBacc.SetCoins(sdk.NewCoins(teamCoins))
+	swpTeamBacc := auth.NewBaseAccountWithAddress(SwpTeamAddr)
+	err = swpTeamBacc.SetCoins(sdk.NewCoins(SwpTeamCoins))
 	if err != nil {
 		panic(err)
 	}
-	swpTeamBva, err := vesting.NewBaseVestingAccount(&swpTeamBacc, sdk.NewCoins(teamCoins), 1693407600)
+	swpTeamBva, err := vesting.NewBaseVestingAccount(&swpTeamBacc, sdk.NewCoins(SwpTeamCoins), 1693407600)
 	if err != nil {
 		panic(err)
 	}
@@ -203,15 +211,14 @@ func DistributeSwpTokens(genesisState auth.GenesisState) auth.GenesisState {
 	swpTeamVestingAccount := vesting.NewPeriodicVestingAccountRaw(swpTeamBva, GenesisTime.Unix(), swpTeamVestingPeriods)
 
 	// Add treasury vesting account
-	swpTreasuryAddr := mustAccAddressFromBech32("kava1w56wrusdnrv4tvn86eyam65wwhqatmsqg9fxjm")
-	swpTreasuryBacc := auth.NewBaseAccountWithAddress(swpTreasuryAddr)
-	swpTreasuryCoins := sdk.NewCoin("swp", sdk.NewInt(62500000000000))
-	err = swpTreasuryBacc.SetCoins(sdk.NewCoins(swpTreasuryCoins))
+	swpTreasuryBacc := auth.NewBaseAccountWithAddress(SwpTreasuryAddr)
+
+	err = swpTreasuryBacc.SetCoins(sdk.NewCoins(SwpTreasuryCoins))
 	if err != nil {
 		panic(err)
 	}
-	swpTreasuryOriginalVesting := sdk.NewCoin("swp", sdk.NewInt(46875000000000))
-	swpTreasuryBva, err := vesting.NewBaseVestingAccount(&swpTreasuryBacc, sdk.NewCoins(swpTreasuryOriginalVesting), 1693407600)
+
+	swpTreasuryBva, err := vesting.NewBaseVestingAccount(&swpTreasuryBacc, sdk.NewCoins(SwpTreasuryOriginalVesting), 1693407600)
 	if err != nil {
 		panic(err)
 	}
@@ -477,6 +484,7 @@ func Swap() v0_15swap.GenesisState {
 }
 
 func mustAccAddressFromBech32(bech32Addr string) sdk.AccAddress {
+	app.SetBech32AddressPrefixes(sdk.GetConfig())
 	addr, err := sdk.AccAddressFromBech32(bech32Addr)
 	if err != nil {
 		panic(err)

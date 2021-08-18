@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +23,6 @@ import (
 	"github.com/kava-labs/kava/x/hard"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
-	"github.com/kava-labs/kava/x/kavadist"
 )
 
 func TestMain(m *testing.M) {
@@ -279,45 +277,50 @@ func TestAuth_SwpSupply_SpendableCoins(t *testing.T) {
 	cdc := app.MakeCodec()
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
-	swpTreasuryAddr := mustAccAddressFromBech32("kava1w56wrusdnrv4tvn86eyam65wwhqatmsqg9fxjm")
-	swpTreasuryExpectedSpendableCoins := sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(15625000e6)))
+	swpTreasuryExpectedSpendableCoins := sdk.NewCoins(SwpTreasuryCoins.Sub(SwpTreasuryOriginalVesting))
 	foundTreasury := false
 
-	swpTeamAddr := mustAccAddressFromBech32("kava129eqnykzkc5ceyq9sv7ltxev22y8qwm94kr0ew")
 	swpTeamExpectedSpendableCoins := sdk.Coins(nil)
 	foundTeam := false
 
-	kavaDistAddr := supply.NewModuleAddress(kavadist.KavaDistMacc)
-	kavaDistExpectedSpendableCoins := sdk.NewCoin("swp", sdk.NewInt(137500000e6))
+	kavaDistExpectedSpendableCoins := KavaDistCoins
 	foundKavadist := false
+
+	swpEcosystemExpectedSpendableCoins := sdk.NewCoins(EcoSystemCoins)
+	foundEcosystem := false
 
 	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
 
 	for _, acc := range migratedGenesisState.Accounts {
-		if acc.GetAddress().Equals(swpTreasuryAddr) {
+		if acc.GetAddress().Equals(SwpTreasuryAddr) {
 			foundTreasury = true
 			pva, ok := acc.(*vesting.PeriodicVestingAccount)
 			require.True(t, ok)
 			spendableCoins := pva.SpendableCoins(GenesisTime)
 			require.Equal(t, swpTreasuryExpectedSpendableCoins, spendableCoins)
 		}
-		if acc.GetAddress().Equals(swpTeamAddr) {
+		if acc.GetAddress().Equals(SwpTeamAddr) {
 			foundTeam = true
 			pva, ok := acc.(*vesting.PeriodicVestingAccount)
 			require.True(t, ok)
 			spendableCoins := pva.SpendableCoins(GenesisTime)
 			require.Equal(t, swpTeamExpectedSpendableCoins, spendableCoins)
 		}
-		if acc.GetAddress().Equals(kavaDistAddr) {
+		if acc.GetAddress().Equals(KavaDistAddr) {
 			foundKavadist = true
 			spendableCoins := acc.SpendableCoins(GenesisTime)
 			spendableSwp := sdk.NewCoin("swp", spendableCoins.AmountOf("swp"))
 			require.Equal(t, kavaDistExpectedSpendableCoins, spendableSwp)
-
+		}
+		if acc.GetAddress().Equals(SwpEcoSystemAddr) {
+			foundEcosystem = true
+			spendableCoins := acc.SpendableCoins(GenesisTime)
+			require.Equal(t, swpEcosystemExpectedSpendableCoins, spendableCoins)
 		}
 	}
 	require.True(t, foundTreasury)
 	require.True(t, foundTeam)
 	require.True(t, foundKavadist)
+	require.True(t, foundEcosystem)
 
 }
