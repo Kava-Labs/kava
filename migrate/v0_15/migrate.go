@@ -261,8 +261,8 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 
 	// ---------------------------- Initialize hard governance committee ----------------------------
 	hardGovDuration := time.Duration(time.Hour * 24 * 7)
-	hardGovThreshold := sdk.MustNewDecFromStr("0.5")
-	hardGovQuorum := sdk.MustNewDecFromStr("0.33")
+	hardGovThreshold := sdk.MustNewDecFromStr("0.5") // 50%
+	hardGovQuorum := sdk.MustNewDecFromStr("0.1")    // 10%
 
 	hardGovCom := v0_15committee.NewTokenCommittee(3, "Hard Governance Committee", stabilityComMembers,
 		[]v0_15committee.Permission{}, hardGovThreshold, hardGovDuration, v0_15committee.Deadline,
@@ -301,8 +301,8 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 
 	// ---------------------------- Initialize swp governance committee ----------------------------
 	swpGovDuration := time.Duration(time.Hour * 24 * 7)
-	swpGovThreshold := sdk.MustNewDecFromStr("0.5")
-	swpGovQuorum := sdk.MustNewDecFromStr("0.33")
+	swpGovThreshold := sdk.MustNewDecFromStr("0.5") // 50%
+	swpGovQuorum := sdk.MustNewDecFromStr("0.1")    // 10%
 
 	swpGovCom := v0_15committee.NewTokenCommittee(4, "Swp Governance Committee", stabilityComMembers,
 		[]v0_15committee.Permission{}, swpGovThreshold, swpGovDuration, v0_15committee.Deadline,
