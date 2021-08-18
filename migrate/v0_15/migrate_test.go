@@ -1,6 +1,7 @@
 package v0_15
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,13 +13,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
+	v0_15hard "github.com/kava-labs/kava/x/hard/types"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 )
@@ -68,40 +70,132 @@ func exportGenesisJSON(genState v0_15committee.GenesisState) {
 	ioutil.WriteFile(filepath.Join("testdata", "kava-8-committee-state.json"), v15Cdc.MustMarshalJSON(genState), 0644)
 }
 
-func TestIncentive_MainnetState(t *testing.T) {
-	// TODO add copy of mainnet state to json
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-incentive-state.json"))
-	require.NoError(t, err)
-	var oldIncentiveGenState v0_14incentive.GenesisState
-	cdc := app.MakeCodec()
-	require.NotPanics(t, func() {
-		cdc.MustUnmarshalJSON(bz, &oldIncentiveGenState)
-	})
+func TestIncentive_Full(t *testing.T) {
+	t.Skip() // skip to avoid having to commit a large genesis file to the repo
 
-	newGenState := v0_15incentive.GenesisState{}
-	require.NotPanics(t, func() {
-		newGenState = Incentive(oldIncentiveGenState)
-	})
-	err = newGenState.Validate()
+	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
 	require.NoError(t, err)
+
+	cdc := makeV014Codec()
+
+	var oldState genutil.AppMap
+	cdc.MustUnmarshalJSON(genDoc.AppState, &oldState)
+
+	var oldIncentiveGenState v0_14incentive.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_14incentive.ModuleName], &oldIncentiveGenState)
+
+	var oldHardGenState v0_15hard.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15hard.ModuleName], &oldHardGenState)
+
+	newGenState := Incentive(oldIncentiveGenState, oldHardGenState)
+	require.NoError(t, newGenState.Validate())
+
+	// TODO check params, indexes, and accumulation times
+
+	// ensure every hard deposit has a claim with correct indexes
+	for _, deposit := range oldHardGenState.Deposits {
+		foundClaim := false
+		for _, claim := range newGenState.HardLiquidityProviderClaims {
+			if claim.Owner.Equals(deposit.Depositor) {
+				foundClaim = true
+				// check indexes are valid
+				err := collateralTypesMatch(deposit.Amount, claim.SupplyRewardIndexes)
+				require.NoErrorf(t, err, "invalid claim %s, %s", claim, deposit)
+				break
+			}
+		}
+		require.True(t, foundClaim, "missing claim for hard deposit")
+
+		// also ensure hard deposit indexes are valid
+		for _, i := range deposit.Index {
+			require.Truef(t, i.Value.GTE(sdk.OneDec()), "found invalid hard deposit index %s", deposit)
+		}
+	}
+
+	// ensure every hard borrow has a claim with correct indexes
+	for _, borrow := range oldHardGenState.Borrows {
+		foundClaim := false
+		for _, claim := range newGenState.HardLiquidityProviderClaims {
+			if claim.Owner.Equals(borrow.Borrower) {
+				foundClaim = true
+				// check indexes are valid
+				err := collateralTypesMatch(borrow.Amount, claim.BorrowRewardIndexes)
+				require.NoErrorf(t, err, "invalid claim %s, %s", claim, borrow)
+				break
+			}
+		}
+		require.True(t, foundClaim, "missing claim for hard borrow")
+
+		// also ensure hard borrow indexes are valid
+		for _, i := range borrow.Index {
+			require.Truef(t, i.Value.GTE(sdk.OneDec()), "found invalid hard borrow index %s", borrow)
+		}
+	}
+
+	// ensure all claim indexes are ≤ global values
+	for _, claim := range newGenState.HardLiquidityProviderClaims {
+
+		for _, ri := range claim.BorrowRewardIndexes {
+			global, found := newGenState.HardBorrowRewardState.MultiRewardIndexes.Get(ri.CollateralType)
+			if !found {
+				global = v0_15incentive.RewardIndexes{}
+			}
+			require.Truef(t, indexesAllLessThanOrEqual(ri.RewardIndexes, global), "invalid claim supply indexes %s %s", ri.RewardIndexes, global)
+		}
+
+		for _, ri := range claim.SupplyRewardIndexes {
+			global, found := newGenState.HardSupplyRewardState.MultiRewardIndexes.Get(ri.CollateralType)
+			if !found {
+				global = v0_15incentive.RewardIndexes{}
+			}
+			require.Truef(t, indexesAllLessThanOrEqual(ri.RewardIndexes, global), "invalid claim borrow indexes %s %s", ri.RewardIndexes, global)
+		}
+	}
+
+	// ensure (synced) reward amounts are unchanged
+	for _, claim := range newGenState.HardLiquidityProviderClaims {
+		for _, oldClaim := range oldIncentiveGenState.HardLiquidityProviderClaims {
+			if oldClaim.Owner.Equals(claim.Owner) {
+				require.Equal(t, claim.Reward, oldClaim.Reward)
+			}
+		}
+	}
 
 	require.Equal(t, len(oldIncentiveGenState.USDXMintingClaims), len(newGenState.USDXMintingClaims))
-	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.HardLiquidityProviderClaims))
+
 	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
 }
 
-func TestIncentive(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "v0_14-incentive-state.json"))
-	require.NoError(t, err)
-	appState := genutil.AppMap{v0_14incentive.ModuleName: bz}
+// collateralTypesMatch checks if the set of coin denoms is equal to the set of CollateralTypes in the indexes.
+func collateralTypesMatch(coins sdk.Coins, indexes v0_15incentive.MultiRewardIndexes) error {
+	for _, index := range indexes {
+		if coins.AmountOf(index.CollateralType).Equal(sdk.ZeroInt()) {
+			return fmt.Errorf("index contains denom not found in coins")
+		}
+	}
+	for _, coin := range coins {
+		_, found := indexes.Get(coin.Denom)
+		if !found {
+			return fmt.Errorf("coins contain denom not found in indexes")
+		}
+	}
+	return nil
+}
 
-	MigrateAppState(appState)
-
-	bz, err = ioutil.ReadFile(filepath.Join("testdata", "v0_15-incentive-state.json"))
-	require.NoError(t, err)
-
-	require.JSONEq(t, string(bz), string(appState[v0_15incentive.ModuleName]))
+// indexesAllLessThanOrEqual computes if all factors in A are ≤ factors in B.
+// Missing indexes are taken to be zero.
+func indexesAllLessThanOrEqual(indexesA, indexesB v0_15incentive.RewardIndexes) bool {
+	allLT := true
+	for _, ri := range indexesA {
+		factor, found := indexesB.Get(ri.CollateralType)
+		if !found {
+			// value not found is same as it being zero
+			factor = sdk.ZeroDec()
+		}
+		allLT = allLT && ri.RewardFactor.LTE(factor)
+	}
+	return allLT
 }
 
 func TestSwap(t *testing.T) {

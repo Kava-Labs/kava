@@ -16,6 +16,7 @@ import (
 	"github.com/kava-labs/kava/app"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
+	v0_15hard "github.com/kava-labs/kava/x/hard/types"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 	v0_15swap "github.com/kava-labs/kava/x/swap/types"
@@ -79,7 +80,11 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		var incentiveGenState v0_14incentive.GenesisState
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[v0_14incentive.ModuleName], &incentiveGenState)
 		delete(v0_14AppState, v0_14incentive.ModuleName)
-		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(incentiveGenState))
+
+		var hardGenState v0_15hard.GenesisState // v0_14 hard genesis state is the same as v0_15
+		v0_15Codec.MustUnmarshalJSON(v0_14AppState[v0_15hard.ModuleName], &hardGenState)
+
+		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(incentiveGenState, hardGenState))
 	}
 
 	// Migrate commmittee app state
