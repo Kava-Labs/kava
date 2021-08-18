@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,6 +24,7 @@ import (
 	"github.com/kava-labs/kava/x/hard"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
+	"github.com/kava-labs/kava/x/kavadist"
 )
 
 func TestMain(m *testing.M) {
@@ -225,10 +227,31 @@ func TestAuth_TestAllDepositorsIncluded(t *testing.T) {
 	require.Equal(t, depositorsInSnapShot, len(keys))
 }
 
-func TestAuth_SwpSupply(t *testing.T) {
+func TestAuth_SwpSupply_AfterAirdrop(t *testing.T) {
 	swpSupply := sdk.NewCoin("swp", sdk.ZeroInt())
-	// TODO update when additional swp are added to migration, final supply should be 250M at genesis
 	expectedSwpSupply := sdk.NewCoin("swp", sdk.NewInt(1000000000000))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
+	require.NoError(t, err)
+
+	var genesisState auth.GenesisState
+	cdc := app.MakeCodec()
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	migratedGenesisState := ApplySwpAirdrop(cdc, genesisState)
+
+	for _, acc := range migratedGenesisState.Accounts {
+		swpAmount := acc.GetCoins().AmountOf("swp")
+		if swpAmount.IsPositive() {
+			swpCoin := sdk.NewCoin("swp", swpAmount)
+			swpSupply = swpSupply.Add(swpCoin)
+		}
+	}
+	require.Equal(t, expectedSwpSupply, swpSupply)
+}
+
+func TestAuth_SwpSupply_TotalSupply(t *testing.T) {
+	swpSupply := sdk.NewCoin("swp", sdk.ZeroInt())
+	expectedSwpSupply := sdk.NewCoin("swp", sdk.NewInt(250000000e6))
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
 	require.NoError(t, err)
 
@@ -246,4 +269,55 @@ func TestAuth_SwpSupply(t *testing.T) {
 		}
 	}
 	require.Equal(t, expectedSwpSupply, swpSupply)
+}
+
+func TestAuth_SwpSupply_SpendableCoins(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
+	require.NoError(t, err)
+
+	var genesisState auth.GenesisState
+	cdc := app.MakeCodec()
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	swpTreasuryAddr := mustAccAddressFromBech32("kava1w56wrusdnrv4tvn86eyam65wwhqatmsqg9fxjm")
+	swpTreasuryExpectedSpendableCoins := sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(15625000e6)))
+	foundTreasury := false
+
+	swpTeamAddr := mustAccAddressFromBech32("kava129eqnykzkc5ceyq9sv7ltxev22y8qwm94kr0ew")
+	swpTeamExpectedSpendableCoins := sdk.Coins(nil)
+	foundTeam := false
+
+	kavaDistAddr := supply.NewModuleAddress(kavadist.KavaDistMacc)
+	kavaDistExpectedSpendableCoins := sdk.NewCoin("swp", sdk.NewInt(137500000e6))
+	foundKavadist := false
+
+	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
+
+	for _, acc := range migratedGenesisState.Accounts {
+		if acc.GetAddress().Equals(swpTreasuryAddr) {
+			foundTreasury = true
+			pva, ok := acc.(*vesting.PeriodicVestingAccount)
+			require.True(t, ok)
+			spendableCoins := pva.SpendableCoins(GenesisTime)
+			require.Equal(t, swpTreasuryExpectedSpendableCoins, spendableCoins)
+		}
+		if acc.GetAddress().Equals(swpTeamAddr) {
+			foundTeam = true
+			pva, ok := acc.(*vesting.PeriodicVestingAccount)
+			require.True(t, ok)
+			spendableCoins := pva.SpendableCoins(GenesisTime)
+			require.Equal(t, swpTeamExpectedSpendableCoins, spendableCoins)
+		}
+		if acc.GetAddress().Equals(kavaDistAddr) {
+			foundKavadist = true
+			spendableCoins := acc.SpendableCoins(GenesisTime)
+			spendableSwp := sdk.NewCoin("swp", spendableCoins.AmountOf("swp"))
+			require.Equal(t, kavaDistExpectedSpendableCoins, spendableSwp)
+
+		}
+	}
+	require.True(t, foundTreasury)
+	require.True(t, foundTeam)
+	require.True(t, foundKavadist)
+
 }
