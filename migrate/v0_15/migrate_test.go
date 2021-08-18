@@ -13,9 +13,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-
+	v0_15staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
@@ -63,40 +64,73 @@ func TestCommittee(t *testing.T) {
 	require.Equal(t, len(oldSPCP.AllowedMarkets), len(newSPCP.AllowedMarkets))
 	require.Equal(t, len(oldSPCP.AllowedMoneyMarkets), len(newSPCP.AllowedMoneyMarkets))
 }
-func TestIncentive_MainnetState(t *testing.T) {
-	// TODO add copy of mainnet state to json
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-incentive-state.json"))
+
+func TestIncentive_Full(t *testing.T) {
+	t.Skip() // skip to avoid having to commit a large genesis file to the repo
+
+	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
 	require.NoError(t, err)
+
+	cdc := makeV014Codec()
+
+	var oldState genutil.AppMap
+	cdc.MustUnmarshalJSON(genDoc.AppState, &oldState)
+
 	var oldIncentiveGenState v0_14incentive.GenesisState
-	cdc := app.MakeCodec()
-	require.NotPanics(t, func() {
-		cdc.MustUnmarshalJSON(bz, &oldIncentiveGenState)
-	})
 
-	newGenState := v0_15incentive.GenesisState{}
-	require.NotPanics(t, func() {
-		newGenState = Incentive(oldIncentiveGenState)
-	})
-	err = newGenState.Validate()
-	require.NoError(t, err)
+	cdc.MustUnmarshalJSON(oldState[v0_14incentive.ModuleName], &oldIncentiveGenState)
 
-	require.Equal(t, len(oldIncentiveGenState.USDXMintingClaims), len(newGenState.USDXMintingClaims))
-	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.HardLiquidityProviderClaims))
-	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
-	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
+	var oldStakingGenState v0_15staking.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15staking.ModuleName], &oldStakingGenState)
+
+	newGenState := Incentive(oldIncentiveGenState, oldStakingGenState.Delegations)
+	require.NoError(t, newGenState.Validate())
+
+	// TODO check params, indexes, and accumulation times
+
+	// Ensure every delegation has a claim
+	for _, delegation := range oldStakingGenState.Delegations {
+		numClaims := 0
+		for _, claim := range newGenState.DelegatorClaims {
+			if delegation.DelegatorAddress.Equals(claim.Owner) {
+				numClaims++
+			}
+		}
+		require.Equal(t, 1, numClaims, "delegation '%s' has invalid number of claims '%d'", delegation.DelegatorAddress, numClaims)
+	}
+
+	// Ensure all delegation indexes are ≤ global values
+	for _, claim := range newGenState.DelegatorClaims {
+		for _, ri := range claim.RewardIndexes {
+			require.Equal(t, v0_15incentive.BondDenom, ri.CollateralType)
+
+			global, found := newGenState.DelegatorRewardState.MultiRewardIndexes.Get(ri.CollateralType)
+			if !found {
+				global = v0_15incentive.RewardIndexes{}
+			}
+			require.Truef(t, indexesAllLessThanOrEqual(ri.RewardIndexes, global), "invalid delegator claim indexes %s %s", ri.RewardIndexes, global)
+		}
+	}
+
+	// Ensure delegator rewards are all initialized at 0
+	for _, claim := range newGenState.DelegatorClaims {
+		require.Equal(t, sdk.NewCoins(), claim.Reward)
+	}
 }
 
-func TestIncentive(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "v0_14-incentive-state.json"))
-	require.NoError(t, err)
-	appState := genutil.AppMap{v0_14incentive.ModuleName: bz}
-
-	MigrateAppState(appState)
-
-	bz, err = ioutil.ReadFile(filepath.Join("testdata", "v0_15-incentive-state.json"))
-	require.NoError(t, err)
-
-	require.JSONEq(t, string(bz), string(appState[v0_15incentive.ModuleName]))
+// indexesAllLessThanOrEqual computes if all factors in A are ≤ factors in B.
+// Missing indexes are taken to be zero.
+func indexesAllLessThanOrEqual(indexesA, indexesB v0_15incentive.RewardIndexes) bool {
+	allLT := true
+	for _, ri := range indexesA {
+		factor, found := indexesB.Get(ri.CollateralType)
+		if !found {
+			// value not found is same as it being zero
+			factor = sdk.ZeroDec()
+		}
+		allLT = allLT && ri.RewardFactor.LTE(factor)
+	}
+	return allLT
 }
 
 func TestSwap(t *testing.T) {

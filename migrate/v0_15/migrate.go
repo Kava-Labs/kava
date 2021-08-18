@@ -9,6 +9,7 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	v0_15staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -79,7 +80,11 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		var incentiveGenState v0_14incentive.GenesisState
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[v0_14incentive.ModuleName], &incentiveGenState)
 		delete(v0_14AppState, v0_14incentive.ModuleName)
-		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(incentiveGenState))
+
+		var stakingGenState v0_15staking.GenesisState // staking unchanged between v0_14 and v0_15
+		v0_14Codec.MustUnmarshalJSON(v0_14AppState[v0_15staking.ModuleName], &stakingGenState)
+
+		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(incentiveGenState, stakingGenState.Delegations))
 	}
 
 	// Migrate commmittee app state

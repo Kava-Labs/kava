@@ -2,13 +2,14 @@ package v0_15
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	v0_15staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 )
 
 // Incentive migrates from a v0.14 incentive genesis state to a v0.15 incentive genesis state
-func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisState {
+func Incentive(incentiveGS v0_14incentive.GenesisState, delegations v0_15staking.Delegations) v0_15incentive.GenesisState {
 	// Migrate params
 	claimMultipliers := v0_15incentive.Multipliers{}
 	for _, m := range incentiveGS.Params.ClaimMultipliers {
@@ -118,6 +119,8 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		hardClaims = append(hardClaims, hardClaim)
 	}
 
+	delegatorClaims = addMissingDelegatorClaims(delegatorClaims, delegations, delegatorGenesisRewardState.MultiRewardIndexes)
+
 	// Add Swap Claims
 	swapClaims := v0_15incentive.DefaultSwapClaims
 
@@ -186,4 +189,34 @@ func migrateRewardIndexes(oldIndexes v0_14incentive.RewardIndexes) v0_15incentiv
 		newIndexes = append(newIndexes, rewardIndex)
 	}
 	return newIndexes
+}
+
+// getDelegatorClaimByOwner picks out the first delegator claim matching an address.
+func getDelegatorClaimByOwner(claims v0_15incentive.DelegatorClaims, owner sdk.AccAddress) (v0_15incentive.DelegatorClaim, bool) {
+	for _, claim := range claims {
+		if claim.Owner.Equals(owner) {
+			return claim, true
+		}
+	}
+	return v0_15incentive.DelegatorClaim{}, false
+}
+
+// addMissingDelegatorClaims checks if there are delegations without claims, and if so creates new claims for them.
+func addMissingDelegatorClaims(claims v0_15incentive.DelegatorClaims, delegations v0_15staking.Delegations, globalIndexes v0_15incentive.MultiRewardIndexes) v0_15incentive.DelegatorClaims {
+
+	for _, delegation := range delegations {
+
+		_, found := getDelegatorClaimByOwner(claims, delegation.DelegatorAddress)
+		if !found {
+
+			claim := v0_15incentive.NewDelegatorClaim(
+				delegation.DelegatorAddress,
+				sdk.NewCoins(),
+				globalIndexes, // indexes are set to current so rewards start accumulating from genesis
+			)
+			claims = append(claims, claim)
+
+		}
+	}
+	return claims
 }
