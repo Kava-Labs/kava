@@ -28,7 +28,7 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ### Before the upgrade
 
-Kava Labs will submit a `SoftwareUpgradeProposal` that specifies the exact block _height_ at which the chain should shut down. This height will correspond to approximately 13:00 UTG on August 30th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators. 
+Kava Labs will submit a `SoftwareUpgradeProposal` that specifies the exact block _height_ at which the chain should shut down. This height will correspond to approximately 13:00 UTC on August 30th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators. 
 
 ### On the day of the upgrade
 

@@ -29,7 +29,9 @@ var (
 	ChainID     = "kava-8"
 	// TODO: update SWP reward per second amount before production
 	// TODO: add swap tokens to kavadist module account
-	SwpRewardsPerSecond = sdk.NewCoin("swp", sdk.OneInt())
+	// TODO: update SWP reward per second amount before production
+	SwpDelegatorRewardsPerSecond         = sdk.NewCoin("swp", sdk.OneInt())
+	SwpLiquidityProviderRewardsPerSecond = sdk.NewCoin("swp", sdk.OneInt())
 )
 
 // Migrate translates a genesis file from kava v0.14 format to kava v0.15 format
@@ -70,7 +72,7 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		var authGenState auth.GenesisState
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[auth.ModuleName], &authGenState)
 		delete(v0_14AppState, auth.ModuleName)
-		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(authGenState, GenesisTime))
+		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(v0_15Codec, authGenState, GenesisTime))
 	}
 
 	// Migrate incentive app state
@@ -113,14 +115,35 @@ func makeV014Codec() *codec.Codec {
 }
 
 // Auth migrates the auth genesis state to a new state with pruned vesting periods
-func Auth(genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
+func Auth(cdc *codec.Codec, genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
+	genesisStateWithAccountsMigrated := MigrateAccounts(genesisState, genesisTime)
+	genesisStateWithSwpAirdrop := ApplySwpAirdrop(cdc, genesisStateWithAccountsMigrated)
+
+	return genesisStateWithSwpAirdrop
+}
+
+func ApplySwpAirdrop(cdc *codec.Codec, genesisState auth.GenesisState) auth.GenesisState {
 	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
 	migratedGenesisState := auth.NewGenesisState(genesisState.Params, accounts)
-
+	var swpAirdrop map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(swpAirdropMap), &swpAirdrop)
 	for i, acc := range genesisState.Accounts {
-		accounts[i] = authexported.GenesisAccount(MigrateAccount(acc, genesisTime))
+		if swpReward, ok := swpAirdrop[acc.GetAddress().String()]; ok {
+			acc.SetCoins(acc.GetCoins().Add(swpReward))
+		}
+		accounts[i] = authexported.GenesisAccount(acc)
 	}
+	return migratedGenesisState
+}
 
+func MigrateAccounts(genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
+	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
+	migratedGenesisState := auth.NewGenesisState(genesisState.Params, accounts)
+	for i, acc := range genesisState.Accounts {
+		migratedAcc := MigrateAccount(acc, genesisTime)
+
+		accounts[i] = authexported.GenesisAccount(migratedAcc)
+	}
 	return migratedGenesisState
 }
 
@@ -244,8 +267,8 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 
 	// ---------------------------- Initialize hard governance committee ----------------------------
 	hardGovDuration := time.Duration(time.Hour * 24 * 7)
-	hardGovThreshold := sdk.MustNewDecFromStr("0.5")
-	hardGovQuorum := sdk.MustNewDecFromStr("0.33")
+	hardGovThreshold := sdk.MustNewDecFromStr("0.5") // 50%
+	hardGovQuorum := sdk.MustNewDecFromStr("0.1")    // 10%
 
 	hardGovCom := v0_15committee.NewTokenCommittee(3, "Hard Governance Committee", stabilityComMembers,
 		[]v0_15committee.Permission{}, hardGovThreshold, hardGovDuration, v0_15committee.Deadline,
@@ -275,20 +298,23 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 	newHardSubParamPermissions.AllowedMoneyMarkets = newMoneyMarketParams
 	newHardCommitteePermissions = append(newHardCommitteePermissions, newHardSubParamPermissions)
 
+	// Text permissions
+	newHardCommitteePermissions = append(newHardCommitteePermissions, v0_15committee.TextPermission{})
+
 	// Set hard governance committee permissions
 	permissionedHardGovCom := hardGovCom.SetPermissions(newHardCommitteePermissions)
 	committees = append(committees, permissionedHardGovCom)
 
 	// ---------------------------- Initialize swp governance committee ----------------------------
 	swpGovDuration := time.Duration(time.Hour * 24 * 7)
-	swpGovThreshold := sdk.MustNewDecFromStr("0.5")
-	swpGovQuorum := sdk.MustNewDecFromStr("0.33")
+	swpGovThreshold := sdk.MustNewDecFromStr("0.5") // 50%
+	swpGovQuorum := sdk.MustNewDecFromStr("0.1")    // 10%
 
 	swpGovCom := v0_15committee.NewTokenCommittee(4, "Swp Governance Committee", stabilityComMembers,
 		[]v0_15committee.Permission{}, swpGovThreshold, swpGovDuration, v0_15committee.Deadline,
 		swpGovQuorum, "swp")
 
-	// Add swap money market committee permissions
+	// Add swap committee permissions
 	var newSwapCommitteePermissions []v0_15committee.Permission
 	var newSwapSubParamPermissions v0_15committee.SubParamChangePermission
 
@@ -300,8 +326,12 @@ func Committee(genesisState v0_14committee.GenesisState) v0_15committee.GenesisS
 		v0_15committee.AllowedParam{Subspace: "incentive", Key: "SwapRewardPeriods"},
 	}
 	newSwapSubParamPermissions.AllowedParams = swpAllowedParams
-
 	newSwpCommitteePermissions := append(newSwapCommitteePermissions, newSwapSubParamPermissions)
+
+	// Text permissions
+	newSwpCommitteePermissions = append(newSwpCommitteePermissions, v0_15committee.TextPermission{})
+
+	// Set swap governance committee permissions
 	permissionedSwapGovCom := swpGovCom.SetPermissions(newSwpCommitteePermissions)
 	committees = append(committees, permissionedSwapGovCom)
 
@@ -342,6 +372,16 @@ func loadStabilityComMembers() ([]sdk.AccAddress, error) {
 
 // Swap introduces new v0.15 swap genesis state
 func Swap() v0_15swap.GenesisState {
-	// TODO add swap genesis state
-	return v0_15swap.DefaultGenesisState()
+	pools := v0_15swap.AllowedPools{
+		v0_15swap.NewAllowedPool("bnb", "usdx"),
+		v0_15swap.NewAllowedPool("btcb", "usdx"),
+		v0_15swap.NewAllowedPool("busd", "usdx"),
+		v0_15swap.NewAllowedPool("hard", "usdx"),
+		v0_15swap.NewAllowedPool("swp", "usdx"),
+		v0_15swap.NewAllowedPool("ukava", "usdx"),
+		v0_15swap.NewAllowedPool("usdx", "xrpb"),
+	}
+	fee := sdk.MustNewDecFromStr("0.0015")
+	params := v0_15swap.NewParams(pools, fee)
+	return v0_15swap.NewGenesisState(params, v0_15swap.DefaultPoolRecords, v0_15swap.DefaultShareRecords)
 }

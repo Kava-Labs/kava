@@ -58,7 +58,7 @@ func TestMigrateAccount_PeriodicVestingAccount_Vesting(t *testing.T) {
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 45 * 24 * 60 * 60, // +15 days - vesting
+			Length: 30 * 24 * 60 * 60, // +15 days - vesting
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))),
 		},
 	}
@@ -186,7 +186,7 @@ func TestResetPeriodVestingAccount_SingleVestingPeriod_ExactStartTime(t *testing
 }
 
 func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
-	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(3e6)))
+	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(4e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
 	periods := vesting.Periods{
@@ -195,11 +195,15 @@ func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 30 * 24 * 60 * 60, // 0 days - exact on the start time
+			Length: 15 * 24 * 60 * 60, // 0 days - exact on the start time
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 45 * 24 * 60 * 60, // +15 days - vesting
+			Length: 15 * 24 * 60 * 60, // +15 days - vesting
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+		},
+		vesting.Period{
+			Length: 15 * 24 * 60 * 60, // +30 days - vesting
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 	}
@@ -212,11 +216,11 @@ func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
 	ResetPeriodicVestingAccount(vacc, newVestingStartTime)
 
 	// new period length 15 days
-	expectedEndtime := newVestingStartTime.Add(15 * 24 * time.Hour).Unix()
+	expectedEndtime := newVestingStartTime.Add(30 * 24 * time.Hour).Unix()
 	// new period length changed, amount unchanged
 	expectedPeriods := vesting.Periods{
 		vesting.Period{
-			Length: 0, // 0 days
+			Length: 15 * 24 * 60 * 60, // 15 days
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
@@ -242,11 +246,11 @@ func TestResetPeriodVestingAccount_DelegatedVesting_GreaterThanVesting(t *testin
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 30 * 24 * 60 * 60, // 0 days - exact on the start time
+			Length: 15 * 24 * 60 * 60, // 0 days - exact on the start time
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 45 * 24 * 60 * 60, // +15 days - vesting
+			Length: 15 * 24 * 60 * 60, // +15 days - vesting
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 	}
@@ -257,8 +261,8 @@ func TestResetPeriodVestingAccount_DelegatedVesting_GreaterThanVesting(t *testin
 	newVestingStartTime := vestingStartTime.Add(30 * 24 * time.Hour)
 	ResetPeriodicVestingAccount(vacc, newVestingStartTime)
 
-	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))), vacc.DelegatedFree, "expected delegated free to be updated")
-	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))), vacc.DelegatedVesting, "expected delegated vesting to be updated")
+	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))), vacc.DelegatedFree, "expected delegated free to be updated")
+	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))), vacc.DelegatedVesting, "expected delegated vesting to be updated")
 }
 
 func TestResetPeriodVestingAccount_DelegatedVesting_LessThanVested(t *testing.T) {
@@ -271,11 +275,11 @@ func TestResetPeriodVestingAccount_DelegatedVesting_LessThanVested(t *testing.T)
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 30 * 24 * 60 * 60, // 0 days - exact on the start time
+			Length: 15 * 24 * 60 * 60, // 0 days - exact on the start time
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 		vesting.Period{
-			Length: 45 * 24 * 60 * 60, // +15 days - vesting
+			Length: 15 * 24 * 60 * 60, // +15 days - vesting
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
 	}

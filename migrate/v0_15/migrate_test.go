@@ -1,6 +1,7 @@
 package v0_15
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -20,6 +21,7 @@ import (
 	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
+	"github.com/kava-labs/kava/x/hard"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 )
@@ -61,12 +63,6 @@ func TestCommittee(t *testing.T) {
 	require.Equal(t, len(oldSPCP.AllowedCollateralParams), len(newSPCP.AllowedCollateralParams))
 	require.Equal(t, len(oldSPCP.AllowedMarkets), len(newSPCP.AllowedMarkets))
 	require.Equal(t, len(oldSPCP.AllowedMoneyMarkets), len(newSPCP.AllowedMoneyMarkets))
-}
-
-// exportGenesisJSON is a utility testing method
-func exportGenesisJSON(genState v0_15committee.GenesisState) {
-	v15Cdc := app.MakeCodec()
-	ioutil.WriteFile(filepath.Join("testdata", "kava-8-committee-state.json"), v15Cdc.MustMarshalJSON(genState), 0644)
 }
 
 func TestIncentive_Full(t *testing.T) {
@@ -160,23 +156,13 @@ func TestIncentive_Full(t *testing.T) {
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
 }
 
-// Compare migration against auto-generated snapshot to catch regressions
-func TestAuth_Snapshot(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
+func TestSwap(t *testing.T) {
+	swapGS := Swap()
+	err := swapGS.Validate()
 	require.NoError(t, err)
-	appState := genutil.AppMap{auth.ModuleName: bz}
-
-	MigrateAppState(appState)
-
-	if _, err := os.Stat(filepath.Join("testdata", "kava-8-test-auth-state.json")); os.IsNotExist(err) {
-		err := ioutil.WriteFile(filepath.Join("testdata", "kava-8-test-auth-state.json"), appState[auth.ModuleName], 0644)
-		require.NoError(t, err)
-	}
-
-	snapshot, err := ioutil.ReadFile(filepath.Join("testdata", "kava-8-test-auth-state.json"))
-	require.NoError(t, err)
-
-	assert.JSONEq(t, string(snapshot), string(appState[auth.ModuleName]), "expected auth state snapshot to be equal")
+	require.Equal(t, 7, len(swapGS.Params.AllowedPools))
+	require.Equal(t, 0, len(swapGS.PoolRecords))
+	require.Equal(t, 0, len(swapGS.ShareRecords))
 }
 
 func TestAuth_ParametersEqual(t *testing.T) {
@@ -187,7 +173,7 @@ func TestAuth_ParametersEqual(t *testing.T) {
 	cdc := app.MakeCodec()
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
-	migratedGenesisState := Auth(genesisState, GenesisTime)
+	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
 
 	assert.Equal(t, genesisState.Params, migratedGenesisState.Params, "expected auth parameters to not change")
 }
@@ -196,17 +182,20 @@ func TestAuth_AccountConversion(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-auth-state.json"))
 	require.NoError(t, err)
 
-	var genesisState auth.GenesisState
 	cdc := app.MakeCodec()
+
+	var genesisState auth.GenesisState
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
-	migratedGenesisState := Auth(genesisState, GenesisTime)
+	migratedGenesisState := MigrateAccounts(genesisState, GenesisTime)
+	var originalGenesisState auth.GenesisState
+	cdc.MustUnmarshalJSON(bz, &originalGenesisState)
 	require.Equal(t, len(genesisState.Accounts), len(migratedGenesisState.Accounts), "expected the number of accounts after migration to be equal")
 	err = auth.ValidateGenesis(migratedGenesisState)
 	require.NoError(t, err, "expected migrated genesis to be valid")
 
 	for i, acc := range migratedGenesisState.Accounts {
-		oldAcc := genesisState.Accounts[i]
+		oldAcc := originalGenesisState.Accounts[i]
 
 		// total owned coins does not change
 		require.Equal(t, oldAcc.GetCoins(), acc.GetCoins(), "expected base coins to not change")
@@ -224,6 +213,9 @@ func TestAuth_AccountConversion(t *testing.T) {
 		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
 		// check 365 days
 		futureDate = GenesisTime.Add(365 * 24 * time.Hour)
+		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
+		// check 2 years
+		futureDate = GenesisTime.Add(2 * 365 * 24 * time.Hour)
 		require.Equal(t, oldAcc.SpendableCoins(futureDate), acc.SpendableCoins(futureDate), "expected spendable coins to not change")
 
 		if vacc, ok := acc.(*vesting.PeriodicVestingAccount); ok {
@@ -247,6 +239,68 @@ func TestAuth_AccountConversion(t *testing.T) {
 
 			// new account as less than or equal
 			require.LessOrEqual(t, len(vacc.VestingPeriods), len(oldVacc.VestingPeriods), "expected vesting periods of new account to be less than or equal to old")
+
+			// end time should not change
+			require.Equal(t, oldVacc.EndTime, vacc.EndTime, "expected end time to not change")
 		}
 	}
+}
+
+func TestAuth_MakeAirdropMap(t *testing.T) {
+	cdc := app.MakeCodec()
+	aidropTokenAmount := sdk.NewInt(1000000000000)
+	totalSwpTokens := sdk.ZeroInt()
+	var loadedAirdropMap map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(swpAirdropMap), &loadedAirdropMap)
+	for _, coin := range loadedAirdropMap {
+		totalSwpTokens = totalSwpTokens.Add(coin.Amount)
+	}
+	require.Equal(t, aidropTokenAmount, totalSwpTokens)
+}
+
+func TestAuth_TestAllDepositorsIncluded(t *testing.T) {
+	var deposits hard.Deposits
+	cdc := app.MakeCodec()
+	bz, err := ioutil.ReadFile("./data/hard-deposits-block-1543671.json")
+	if err != nil {
+		panic(fmt.Sprintf("Couldn't open hard deposit snapshot file: %v", err))
+	}
+	cdc.MustUnmarshalJSON(bz, &deposits)
+
+	depositorsInSnapShot := 0
+	for _, dep := range deposits {
+		if dep.Amount.AmountOf("usdx").IsPositive() {
+			depositorsInSnapShot++
+		}
+	}
+	var loadedAirdropMap map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(swpAirdropMap), &loadedAirdropMap)
+	keys := make([]string, 0, len(loadedAirdropMap))
+	for k := range loadedAirdropMap {
+		keys = append(keys, k)
+	}
+	require.Equal(t, depositorsInSnapShot, len(keys))
+}
+
+func TestAuth_SwpSupply(t *testing.T) {
+	swpSupply := sdk.NewCoin("swp", sdk.ZeroInt())
+	// TODO update when additional swp are added to migration, final supply should be 250M at genesis
+	expectedSwpSupply := sdk.NewCoin("swp", sdk.NewInt(1000000000000))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
+	require.NoError(t, err)
+
+	var genesisState auth.GenesisState
+	cdc := app.MakeCodec()
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
+
+	for _, acc := range migratedGenesisState.Accounts {
+		swpAmount := acc.GetCoins().AmountOf("swp")
+		if swpAmount.IsPositive() {
+			swpCoin := sdk.NewCoin("swp", swpAmount)
+			swpSupply = swpSupply.Add(swpCoin)
+		}
+	}
+	require.Equal(t, expectedSwpSupply, swpSupply)
 }
