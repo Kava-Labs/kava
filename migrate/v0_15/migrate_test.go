@@ -189,6 +189,33 @@ func TestAuth_AccountConversion(t *testing.T) {
 	}
 }
 
+func TestAuth_Regression_BalancesEqual(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
+	require.NoError(t, err)
+
+	cdc := app.MakeCodec()
+
+	var originalGenesisState auth.GenesisState
+	cdc.MustUnmarshalJSON(bz, &originalGenesisState)
+
+	var genesisState auth.GenesisState
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	genesisState = Auth(cdc, genesisState, GenesisTime)
+
+	for i, oldAcc := range originalGenesisState.Accounts {
+		acc := genesisState.Accounts[i]
+
+		// total owned coins does not change, despite additional swp tokens
+		swpBalance := sdk.NewCoins(sdk.NewCoin("swp", acc.GetCoins().AmountOf("swp")))
+		require.Equal(t, oldAcc.GetCoins(), acc.GetCoins().Sub(swpBalance), "expected base coins to not change")
+
+		// ensure spendable coins at genesis time is equal, despite additional swp tokens
+		swpBalance = sdk.NewCoins(sdk.NewCoin("swp", acc.SpendableCoins(GenesisTime).AmountOf("swp")))
+		require.Equal(t, oldAcc.SpendableCoins(GenesisTime), acc.SpendableCoins(GenesisTime).Sub(swpBalance), "expected spendable coins to not change")
+	}
+}
+
 func TestAuth_MakeAirdropMap(t *testing.T) {
 	cdc := app.MakeCodec()
 	aidropTokenAmount := sdk.NewInt(1000000000000)

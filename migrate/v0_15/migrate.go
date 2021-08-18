@@ -161,18 +161,17 @@ var (
 
 // DistributeSwpTokens sets the initial distribution of swp tokens according to the proposed token supply schedule in prop 59
 func DistributeSwpTokens(genesisState auth.GenesisState) auth.GenesisState {
-	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
-	migratedGenesisState := auth.NewGenesisState(genesisState.Params, accounts)
-	// add SWP incentives (LP, Kava stakers) to kavadist module account
 
+	// add SWP incentives (LP, Kava stakers) to kavadist module account
+	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
 	for i, acc := range genesisState.Accounts {
 		if acc.GetAddress().Equals(KavaDistAddr) {
 			err := acc.SetCoins(acc.GetCoins().Add(KavaDistCoins))
 			if err != nil {
 				panic(err)
 			}
-			accounts[i] = authexported.GenesisAccount(acc)
 		}
+		accounts[i] = authexported.GenesisAccount(acc)
 
 	}
 
@@ -240,8 +239,9 @@ func DistributeSwpTokens(genesisState auth.GenesisState) auth.GenesisState {
 	}
 	swpTreasuryVestingAccount := vesting.NewPeriodicVestingAccountRaw(swpTreasuryBva, GenesisTime.Unix(), swpTreasuryVestingPeriods)
 
-	migratedGenesisState.Accounts = append(genesisState.Accounts, &swpEcosystemBacc, swpTeamVestingAccount, swpTreasuryVestingAccount)
-	return migratedGenesisState
+	accounts = append(accounts, &swpEcosystemBacc, swpTeamVestingAccount, swpTreasuryVestingAccount)
+
+	return auth.NewGenesisState(genesisState.Params, accounts)
 }
 
 // Committee migrates from a v0.14 committee genesis state to a v0.15 committee genesis state
