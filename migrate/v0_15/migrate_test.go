@@ -189,6 +189,33 @@ func TestAuth_AccountConversion(t *testing.T) {
 	}
 }
 
+func TestAuth_Regression_BalancesEqual(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
+	require.NoError(t, err)
+
+	cdc := app.MakeCodec()
+
+	var originalGenesisState auth.GenesisState
+	cdc.MustUnmarshalJSON(bz, &originalGenesisState)
+
+	var genesisState auth.GenesisState
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	genesisState = Auth(cdc, genesisState, GenesisTime)
+
+	for i, oldAcc := range originalGenesisState.Accounts {
+		acc := genesisState.Accounts[i]
+
+		// total owned coins does not change, despite additional swp tokens
+		swpBalance := sdk.NewCoins(sdk.NewCoin("swp", acc.GetCoins().AmountOf("swp")))
+		require.Equal(t, oldAcc.GetCoins(), acc.GetCoins().Sub(swpBalance), "expected base coins to not change")
+
+		// ensure spendable coins at genesis time is equal, despite additional swp tokens
+		swpBalance = sdk.NewCoins(sdk.NewCoin("swp", acc.SpendableCoins(GenesisTime).AmountOf("swp")))
+		require.Equal(t, oldAcc.SpendableCoins(GenesisTime), acc.SpendableCoins(GenesisTime).Sub(swpBalance), "expected spendable coins to not change")
+	}
+}
+
 func TestAuth_MakeAirdropMap(t *testing.T) {
 	cdc := app.MakeCodec()
 	aidropTokenAmount := sdk.NewInt(1000000000000)
@@ -225,10 +252,31 @@ func TestAuth_TestAllDepositorsIncluded(t *testing.T) {
 	require.Equal(t, depositorsInSnapShot, len(keys))
 }
 
-func TestAuth_SwpSupply(t *testing.T) {
+func TestAuth_SwpSupply_AfterAirdrop(t *testing.T) {
 	swpSupply := sdk.NewCoin("swp", sdk.ZeroInt())
-	// TODO update when additional swp are added to migration, final supply should be 250M at genesis
 	expectedSwpSupply := sdk.NewCoin("swp", sdk.NewInt(1000000000000))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
+	require.NoError(t, err)
+
+	var genesisState auth.GenesisState
+	cdc := app.MakeCodec()
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	migratedGenesisState := ApplySwpAirdrop(cdc, genesisState)
+
+	for _, acc := range migratedGenesisState.Accounts {
+		swpAmount := acc.GetCoins().AmountOf("swp")
+		if swpAmount.IsPositive() {
+			swpCoin := sdk.NewCoin("swp", swpAmount)
+			swpSupply = swpSupply.Add(swpCoin)
+		}
+	}
+	require.Equal(t, expectedSwpSupply, swpSupply)
+}
+
+func TestAuth_SwpSupply_TotalSupply(t *testing.T) {
+	swpSupply := sdk.NewCoin("swp", sdk.ZeroInt())
+	expectedSwpSupply := sdk.NewCoin("swp", sdk.NewInt(250000000e6))
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
 	require.NoError(t, err)
 
@@ -246,4 +294,60 @@ func TestAuth_SwpSupply(t *testing.T) {
 		}
 	}
 	require.Equal(t, expectedSwpSupply, swpSupply)
+}
+
+func TestAuth_SwpSupply_SpendableCoins(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
+	require.NoError(t, err)
+
+	var genesisState auth.GenesisState
+	cdc := app.MakeCodec()
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	swpTreasuryExpectedSpendableCoins := sdk.NewCoins(SwpTreasuryCoins.Sub(SwpTreasuryOriginalVesting))
+	foundTreasury := false
+
+	swpTeamExpectedSpendableCoins := sdk.Coins(nil)
+	foundTeam := false
+
+	kavaDistExpectedSpendableCoins := KavaDistCoins
+	foundKavadist := false
+
+	swpEcosystemExpectedSpendableCoins := sdk.NewCoins(EcoSystemCoins)
+	foundEcosystem := false
+
+	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
+
+	for _, acc := range migratedGenesisState.Accounts {
+		if acc.GetAddress().Equals(SwpTreasuryAddr) {
+			foundTreasury = true
+			pva, ok := acc.(*vesting.PeriodicVestingAccount)
+			require.True(t, ok)
+			spendableCoins := pva.SpendableCoins(GenesisTime)
+			require.Equal(t, swpTreasuryExpectedSpendableCoins, spendableCoins)
+		}
+		if acc.GetAddress().Equals(SwpTeamAddr) {
+			foundTeam = true
+			pva, ok := acc.(*vesting.PeriodicVestingAccount)
+			require.True(t, ok)
+			spendableCoins := pva.SpendableCoins(GenesisTime)
+			require.Equal(t, swpTeamExpectedSpendableCoins, spendableCoins)
+		}
+		if acc.GetAddress().Equals(KavaDistAddr) {
+			foundKavadist = true
+			spendableCoins := acc.SpendableCoins(GenesisTime)
+			spendableSwp := sdk.NewCoin("swp", spendableCoins.AmountOf("swp"))
+			require.Equal(t, kavaDistExpectedSpendableCoins, spendableSwp)
+		}
+		if acc.GetAddress().Equals(SwpEcoSystemAddr) {
+			foundEcosystem = true
+			spendableCoins := acc.SpendableCoins(GenesisTime)
+			require.Equal(t, swpEcosystemExpectedSpendableCoins, spendableCoins)
+		}
+	}
+	require.True(t, foundTreasury)
+	require.True(t, foundTeam)
+	require.True(t, foundKavadist)
+	require.True(t, foundEcosystem)
+
 }
