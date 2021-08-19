@@ -156,6 +156,54 @@ func TestIncentive_Full(t *testing.T) {
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
 }
 
+func TestIncentive_Full_TotalRewards(t *testing.T) {
+	t.Skip() // skip to avoid having to commit a large genesis file to the repo
+
+	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
+	require.NoError(t, err)
+
+	cdc := makeV014Codec()
+
+	var oldState genutil.AppMap
+	cdc.MustUnmarshalJSON(genDoc.AppState, &oldState)
+
+	var oldIncentiveGenState v0_14incentive.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_14incentive.ModuleName], &oldIncentiveGenState)
+
+	var oldCDPGenState v0_15cdp.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
+
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs)
+
+	// total previous rewards
+	oldTotalRewards := sdk.NewCoins() // total synced unclaimed rewards
+	for _, claim := range oldIncentiveGenState.HardLiquidityProviderClaims {
+		oldTotalRewards = oldTotalRewards.Add(claim.Reward...)
+	}
+	for _, claim := range oldIncentiveGenState.USDXMintingClaims {
+		oldTotalRewards = oldTotalRewards.Add(claim.Reward)
+	}
+
+	// total new rewards
+	newTotalRewards := sdk.NewCoins() // total synced unclaimed rewards
+	for _, claim := range newGenState.USDXMintingClaims {
+		newTotalRewards = newTotalRewards.Add(claim.Reward)
+	}
+	for _, claim := range newGenState.HardLiquidityProviderClaims {
+		newTotalRewards = newTotalRewards.Add(claim.Reward...)
+	}
+
+	// rewards added in migration
+	additionalRewards := sdk.NewCoins()
+	var missedRewards map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(missedUSDXMintingRewards), &missedRewards)
+	for _, c := range missedRewards {
+		additionalRewards = additionalRewards.Add(c)
+	}
+
+	require.Equal(t, oldTotalRewards.Add(additionalRewards...), newTotalRewards)
+}
+
 func TestSwap(t *testing.T) {
 	swapGS := Swap()
 	err := swapGS.Validate()
