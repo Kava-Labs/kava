@@ -200,10 +200,7 @@ func SimulateMsgWithdraw(ak types.AccountKeeper, k keeper.Keeper) simulation.Ope
 		// Find an account-pool pair for which withdraw is possible
 		withdrawer, poolRecord, found := findValidAccountPoolRecordPair(accs, poolRecords, func(acc simulation.Account, poolRecord types.PoolRecord) bool {
 			_, found := k.GetDepositorShares(ctx, acc.Address, poolRecord.PoolID)
-			if !found {
-				return false // keep searching
-			}
-			return true
+			return found
 		})
 		if !found {
 			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid pool record and withdrawer)", "", false, nil), nil, nil

@@ -53,7 +53,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, 
 
 	k.updatePool(ctx, poolID, pool)
 	k.BeforePoolDepositModified(ctx, poolID, owner, shareRecord.SharesOwned)
-	k.updateShares(ctx, owner, poolID, shareRecord.SharesOwned.Sub(shares))
+	k.updateDepositorShares(ctx, owner, poolID, shareRecord.SharesOwned.Sub(shares))
 
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawnAmount)
 	if err != nil {

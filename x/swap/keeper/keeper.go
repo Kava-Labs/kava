@@ -240,8 +240,8 @@ func (k Keeper) updatePool(ctx sdk.Context, poolID string, pool *types.Denominat
 	}
 }
 
-// updateShares updates a depositor shares records for a pool, deleting the record if the new shares are zero
-func (k Keeper) updateShares(ctx sdk.Context, owner sdk.AccAddress, poolID string, shares sdk.Int) {
+// updateDepositorShares updates a depositor share records for a pool, deleting the record if the new shares are zero
+func (k Keeper) updateDepositorShares(ctx sdk.Context, owner sdk.AccAddress, poolID string, shares sdk.Int) {
 	if shares.IsZero() {
 		k.DeleteDepositorShares(ctx, owner, poolID)
 	} else {

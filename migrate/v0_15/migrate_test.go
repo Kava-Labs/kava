@@ -18,6 +18,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
+	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
 	v0_15hard "github.com/kava-labs/kava/x/hard/types"
@@ -65,7 +66,7 @@ func TestCommittee(t *testing.T) {
 }
 
 func TestIncentive_Full(t *testing.T) {
-	t.Skip() // skip to avoid having to commit a large genesis file to the repo
+	// t.Skip() // skip to avoid having to commit a large genesis file to the repo
 
 	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
 	require.NoError(t, err)
@@ -81,7 +82,10 @@ func TestIncentive_Full(t *testing.T) {
 	var oldHardGenState v0_15hard.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_15hard.ModuleName], &oldHardGenState)
 
-	newGenState := Incentive(oldIncentiveGenState, oldHardGenState)
+	var oldCDPGenState v0_15cdp.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
+
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState)
 	require.NoError(t, newGenState.Validate())
 
 	// TODO check params, indexes, and accumulation times
@@ -155,7 +159,69 @@ func TestIncentive_Full(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, len(oldIncentiveGenState.USDXMintingClaims), len(newGenState.USDXMintingClaims))
+	// Ensure the usdx claim indexes match global
+	globalIndexes := newGenState.USDXRewardState.MultiRewardIndexes
+	for _, claim := range newGenState.USDXMintingClaims {
+
+		for _, globalIndex := range globalIndexes {
+			expectedFactor, found := globalIndex.RewardIndexes.Get(v0_15incentive.USDXMintingRewardDenom)
+			require.True(t, found)
+
+			factor, found := claim.RewardIndexes.Get(globalIndex.CollateralType)
+			require.True(t, found)
+
+			require.Equal(t, expectedFactor, factor)
+		}
+	}
+
+	// Ensure there is a usdx claim for every cdp
+	for _, cdp := range oldCDPGenState.CDPs {
+		numClaims := 0
+		for _, claim := range newGenState.USDXMintingClaims {
+			if cdp.Owner.Equals(claim.Owner) {
+				numClaims++
+			}
+		}
+		require.Equal(t, 1, numClaims, "cdp '%s' has invalid number of claims '%d'", cdp.Owner, numClaims)
+
+		// also check cdp indexes are valid
+		require.True(t, cdp.InterestFactor.GTE(sdk.OneDec()), "found cdp with interest factor < 1")
+	}
+
+	// Check reward amounts
+	for _, claim := range newGenState.USDXMintingClaims {
+
+		// check a few high value accounts
+		switch claim.Owner.String() {
+		// check reward is: additional reward + existing unclaimed reward
+		// note, non zero unclaimed rewards could change if the user submits a claim tx before launch
+		case "kava1k8lymw58tduy9gm6jkt04ddkjd83nf7sm8xthl":
+			require.Equal(t, sdk.NewInt(370982556999+0), claim.Reward.Amount)
+		case "kava1p3ucd3ptpw902fluyjzhq3ffgq4ntddaysyq8h":
+			require.Equal(t, sdk.NewInt(77550672285+16960713469), claim.Reward.Amount)
+		case "kava1qe6ahdnhnfugle29054d8uqg7fa44ryx934yc6":
+			require.Equal(t, sdk.NewInt(40874651319+0), claim.Reward.Amount)
+		case "kava12h6pq2xqzgtxttrzg7q2rplsyxtv2dc5gwh8rl":
+			require.Equal(t, sdk.NewInt(30867752254+0), claim.Reward.Amount)
+		case "kava10hczxv0p3eadcwgt5u79yhahsyuw98u26qan50":
+			require.Equal(t, sdk.NewInt(22429344254+0), claim.Reward.Amount)
+		case "kava15wyjwhj6zh79m7adm69pwl3nsq9z8gs9ezs4k7":
+			require.Equal(t, sdk.NewInt(10252596901+0), claim.Reward.Amount)
+		case "kava1yg4840l77dfs5zqflldhut27en2mhvvc8vj93x":
+			require.Equal(t, sdk.NewInt(9898765520+0), claim.Reward.Amount)
+		case "kava1x242qk6jf2rv23ruvk6fmxp97gg2y75a9r2caq":
+			require.Equal(t, sdk.NewInt(7761701231+0), claim.Reward.Amount)
+		case "kava1tstf3u4cw7u4xyu7wxdrnmrpvvmfamq3twcj7f":
+			require.Equal(t, sdk.NewInt(2466900572+0), claim.Reward.Amount)
+		}
+
+		// check no rewards have been reduced
+		for _, oldClaim := range oldIncentiveGenState.USDXMintingClaims {
+			if oldClaim.Owner.Equals(claim.Owner) {
+				require.Truef(t, claim.Reward.IsGTE(oldClaim.Reward), "found claim with reduced rewards, old %s, new %s", oldClaim, claim)
+			}
+		}
+	}
 
 	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
@@ -190,6 +256,57 @@ func indexesAllLessThanOrEqual(indexesA, indexesB v0_15incentive.RewardIndexes) 
 		allLT = allLT && ri.RewardFactor.LTE(factor)
 	}
 	return allLT
+}
+
+func TestIncentive_Full_TotalRewards(t *testing.T) {
+	// t.Skip() // skip to avoid having to commit a large genesis file to the repo
+
+	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
+	require.NoError(t, err)
+
+	cdc := makeV014Codec()
+
+	var oldState genutil.AppMap
+	cdc.MustUnmarshalJSON(genDoc.AppState, &oldState)
+
+	var oldIncentiveGenState v0_14incentive.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_14incentive.ModuleName], &oldIncentiveGenState)
+
+	var oldHardGenState v0_15hard.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15hard.ModuleName], &oldHardGenState)
+
+	var oldCDPGenState v0_15cdp.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
+
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState)
+
+	// total previous rewards
+	oldTotalRewards := sdk.NewCoins() // total synced unclaimed rewards
+	for _, claim := range oldIncentiveGenState.HardLiquidityProviderClaims {
+		oldTotalRewards = oldTotalRewards.Add(claim.Reward...)
+	}
+	for _, claim := range oldIncentiveGenState.USDXMintingClaims {
+		oldTotalRewards = oldTotalRewards.Add(claim.Reward)
+	}
+
+	// total new rewards
+	newTotalRewards := sdk.NewCoins() // total synced unclaimed rewards
+	for _, claim := range newGenState.USDXMintingClaims {
+		newTotalRewards = newTotalRewards.Add(claim.Reward)
+	}
+	for _, claim := range newGenState.HardLiquidityProviderClaims {
+		newTotalRewards = newTotalRewards.Add(claim.Reward...)
+	}
+
+	// rewards added in migration
+	additionalRewards := sdk.NewCoins()
+	var missedRewards map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(missedUSDXMintingRewards), &missedRewards)
+	for _, c := range missedRewards {
+		additionalRewards = additionalRewards.Add(c)
+	}
+
+	require.Equal(t, oldTotalRewards.Add(additionalRewards...), newTotalRewards)
 }
 
 func TestSwap(t *testing.T) {
@@ -282,6 +399,33 @@ func TestAuth_AccountConversion(t *testing.T) {
 	}
 }
 
+func TestAuth_Regression_BalancesEqual(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
+	require.NoError(t, err)
+
+	cdc := app.MakeCodec()
+
+	var originalGenesisState auth.GenesisState
+	cdc.MustUnmarshalJSON(bz, &originalGenesisState)
+
+	var genesisState auth.GenesisState
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	genesisState = Auth(cdc, genesisState, GenesisTime)
+
+	for i, oldAcc := range originalGenesisState.Accounts {
+		acc := genesisState.Accounts[i]
+
+		// total owned coins does not change, despite additional swp tokens
+		swpBalance := sdk.NewCoins(sdk.NewCoin("swp", acc.GetCoins().AmountOf("swp")))
+		require.Equal(t, oldAcc.GetCoins(), acc.GetCoins().Sub(swpBalance), "expected base coins to not change")
+
+		// ensure spendable coins at genesis time is equal, despite additional swp tokens
+		swpBalance = sdk.NewCoins(sdk.NewCoin("swp", acc.SpendableCoins(GenesisTime).AmountOf("swp")))
+		require.Equal(t, oldAcc.SpendableCoins(GenesisTime), acc.SpendableCoins(GenesisTime).Sub(swpBalance), "expected spendable coins to not change")
+	}
+}
+
 func TestAuth_MakeAirdropMap(t *testing.T) {
 	cdc := app.MakeCodec()
 	aidropTokenAmount := sdk.NewInt(1000000000000)
@@ -318,10 +462,31 @@ func TestAuth_TestAllDepositorsIncluded(t *testing.T) {
 	require.Equal(t, depositorsInSnapShot, len(keys))
 }
 
-func TestAuth_SwpSupply(t *testing.T) {
+func TestAuth_SwpSupply_AfterAirdrop(t *testing.T) {
 	swpSupply := sdk.NewCoin("swp", sdk.ZeroInt())
-	// TODO update when additional swp are added to migration, final supply should be 250M at genesis
 	expectedSwpSupply := sdk.NewCoin("swp", sdk.NewInt(1000000000000))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
+	require.NoError(t, err)
+
+	var genesisState auth.GenesisState
+	cdc := app.MakeCodec()
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	migratedGenesisState := ApplySwpAirdrop(cdc, genesisState)
+
+	for _, acc := range migratedGenesisState.Accounts {
+		swpAmount := acc.GetCoins().AmountOf("swp")
+		if swpAmount.IsPositive() {
+			swpCoin := sdk.NewCoin("swp", swpAmount)
+			swpSupply = swpSupply.Add(swpCoin)
+		}
+	}
+	require.Equal(t, expectedSwpSupply, swpSupply)
+}
+
+func TestAuth_SwpSupply_TotalSupply(t *testing.T) {
+	swpSupply := sdk.NewCoin("swp", sdk.ZeroInt())
+	expectedSwpSupply := sdk.NewCoin("swp", sdk.NewInt(250000000e6))
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
 	require.NoError(t, err)
 
@@ -339,4 +504,60 @@ func TestAuth_SwpSupply(t *testing.T) {
 		}
 	}
 	require.Equal(t, expectedSwpSupply, swpSupply)
+}
+
+func TestAuth_SwpSupply_SpendableCoins(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "block-1543671-auth-state.json"))
+	require.NoError(t, err)
+
+	var genesisState auth.GenesisState
+	cdc := app.MakeCodec()
+	cdc.MustUnmarshalJSON(bz, &genesisState)
+
+	swpTreasuryExpectedSpendableCoins := sdk.NewCoins(SwpTreasuryCoins.Sub(SwpTreasuryOriginalVesting))
+	foundTreasury := false
+
+	swpTeamExpectedSpendableCoins := sdk.Coins(nil)
+	foundTeam := false
+
+	kavaDistExpectedSpendableCoins := KavaDistCoins
+	foundKavadist := false
+
+	swpEcosystemExpectedSpendableCoins := sdk.NewCoins(EcoSystemCoins)
+	foundEcosystem := false
+
+	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
+
+	for _, acc := range migratedGenesisState.Accounts {
+		if acc.GetAddress().Equals(SwpTreasuryAddr) {
+			foundTreasury = true
+			pva, ok := acc.(*vesting.PeriodicVestingAccount)
+			require.True(t, ok)
+			spendableCoins := pva.SpendableCoins(GenesisTime)
+			require.Equal(t, swpTreasuryExpectedSpendableCoins, spendableCoins)
+		}
+		if acc.GetAddress().Equals(SwpTeamAddr) {
+			foundTeam = true
+			pva, ok := acc.(*vesting.PeriodicVestingAccount)
+			require.True(t, ok)
+			spendableCoins := pva.SpendableCoins(GenesisTime)
+			require.Equal(t, swpTeamExpectedSpendableCoins, spendableCoins)
+		}
+		if acc.GetAddress().Equals(KavaDistAddr) {
+			foundKavadist = true
+			spendableCoins := acc.SpendableCoins(GenesisTime)
+			spendableSwp := sdk.NewCoin("swp", spendableCoins.AmountOf("swp"))
+			require.Equal(t, kavaDistExpectedSpendableCoins, spendableSwp)
+		}
+		if acc.GetAddress().Equals(SwpEcoSystemAddr) {
+			foundEcosystem = true
+			spendableCoins := acc.SpendableCoins(GenesisTime)
+			require.Equal(t, swpEcosystemExpectedSpendableCoins, spendableCoins)
+		}
+	}
+	require.True(t, foundTreasury)
+	require.True(t, foundTeam)
+	require.True(t, foundKavadist)
+	require.True(t, foundEcosystem)
+
 }

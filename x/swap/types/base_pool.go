@@ -119,7 +119,7 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	// then we use (desiredA, optimalB) as the deposit.
 	//
 	// If the optimalB is greater than the desiredB, we calculate the optimalA
-	// from the desiredB and use (optimalA, optimalB) as the deposit.
+	// from the desiredB and use (optimalA, desiredB) as the deposit.
 	//
 	// These optimal values are calculated as:
 	//
