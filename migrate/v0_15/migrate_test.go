@@ -205,7 +205,7 @@ func TestIncentive_Full_TotalRewards(t *testing.T) {
 	require.Equal(t, oldTotalRewards.Add(additionalRewards...), newTotalRewards)
 }
 
-func TestIncentive_SwpRewards(t *testing.T) {
+func TestIncentive_SwpLPRewards(t *testing.T) {
 	expectedAnnualRewards := sdk.NewCoin("swp", sdk.NewInt(24000000e6))
 	expectedAnnualRewardsMap := map[string]sdk.Coin{
 		"ukava:usdx": sdk.NewCoin("swp", sdk.NewInt(7000000e6)),
@@ -249,6 +249,31 @@ func TestIncentive_SwpRewards(t *testing.T) {
 	}
 	inRange := assertRewardsWithinRange(expectedAnnualRewards, actualAnnualRewards, sdk.MustNewDecFromStr("0.001"))
 	require.True(t, inRange, fmt.Sprintf("expected annual rewards: %s, actual %s", expectedAnnualRewards, actualAnnualRewards))
+}
+
+func TestIncentive_SwpDelegatorRewards(t *testing.T) {
+	expectedAnnualRewards := sdk.NewCoin("swp", sdk.NewInt(6250000e6))
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-incentive-state.json"))
+	require.NoError(t, err)
+	var oldIncentiveGenState v0_14incentive.GenesisState
+	cdc := app.MakeCodec()
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldIncentiveGenState)
+	})
+	secondsPerYear := sdk.NewInt(31536000)
+
+	newGenState := v0_15incentive.GenesisState{}
+	require.NotPanics(t, func() {
+		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{})
+	})
+
+	for _, rp := range newGenState.Params.DelegatorRewardPeriods {
+		swpRewardsPerSecondDelegators := sdk.NewCoin("swp", rp.RewardsPerSecond.AmountOf("swp"))
+		annualRewardsAmount := swpRewardsPerSecondDelegators.Amount.ToDec().Mul(secondsPerYear.ToDec()).RoundInt()
+		annualRewardsCoin := sdk.NewCoin("swp", annualRewardsAmount)
+		inRange := assertRewardsWithinRange(expectedAnnualRewards, annualRewardsCoin, sdk.MustNewDecFromStr("0.001"))
+		require.True(t, inRange, fmt.Sprintf("expected annual rewards: %s, actual %s", expectedAnnualRewards, annualRewardsCoin))
+	}
 }
 
 func TestIncentive_SwpPoolsValid(t *testing.T) {
