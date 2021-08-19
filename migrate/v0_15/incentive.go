@@ -75,7 +75,6 @@ func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v
 	)
 
 	// Migrate accumulation times and reward indexes
-	// TODO set previous time to genesis for safety?
 	usdxGenesisRewardState := migrateGenesisRewardState(incentiveGS.USDXAccumulationTimes, incentiveGS.USDXRewardIndexes)
 	hardSupplyGenesisRewardState := migrateGenesisRewardState(incentiveGS.HardSupplyAccumulationTimes, incentiveGS.HardSupplyRewardIndexes)
 	hardBorrowGenesisRewardState := migrateGenesisRewardState(incentiveGS.HardBorrowAccumulationTimes, incentiveGS.HardBorrowRewardIndexes)
