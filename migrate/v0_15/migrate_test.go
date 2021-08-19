@@ -13,11 +13,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
+	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/hard"
@@ -63,40 +64,144 @@ func TestCommittee(t *testing.T) {
 	require.Equal(t, len(oldSPCP.AllowedMarkets), len(newSPCP.AllowedMarkets))
 	require.Equal(t, len(oldSPCP.AllowedMoneyMarkets), len(newSPCP.AllowedMoneyMarkets))
 }
-func TestIncentive_MainnetState(t *testing.T) {
-	// TODO add copy of mainnet state to json
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-incentive-state.json"))
+
+func TestIncentive_Full(t *testing.T) {
+	t.Skip() // skip to avoid having to commit a large genesis file to the repo
+
+	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
 	require.NoError(t, err)
+
+	cdc := makeV014Codec()
+
+	var oldState genutil.AppMap
+	cdc.MustUnmarshalJSON(genDoc.AppState, &oldState)
+
 	var oldIncentiveGenState v0_14incentive.GenesisState
-	cdc := app.MakeCodec()
-	require.NotPanics(t, func() {
-		cdc.MustUnmarshalJSON(bz, &oldIncentiveGenState)
-	})
+	cdc.MustUnmarshalJSON(oldState[v0_14incentive.ModuleName], &oldIncentiveGenState)
 
-	newGenState := v0_15incentive.GenesisState{}
-	require.NotPanics(t, func() {
-		newGenState = Incentive(oldIncentiveGenState)
-	})
-	err = newGenState.Validate()
-	require.NoError(t, err)
+	var oldCDPGenState v0_15cdp.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
 
-	require.Equal(t, len(oldIncentiveGenState.USDXMintingClaims), len(newGenState.USDXMintingClaims))
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs)
+	require.NoError(t, newGenState.Validate())
+
+	// TODO check params, indexes, and accumulation times
+
+	// Ensure the usdx claim indexes match global
+	globalIndexes := newGenState.USDXRewardState.MultiRewardIndexes
+	for _, claim := range newGenState.USDXMintingClaims {
+
+		for _, globalIndex := range globalIndexes {
+			expectedFactor, found := globalIndex.RewardIndexes.Get(v0_15incentive.USDXMintingRewardDenom)
+			require.True(t, found)
+
+			factor, found := claim.RewardIndexes.Get(globalIndex.CollateralType)
+			require.True(t, found)
+
+			require.Equal(t, expectedFactor, factor)
+		}
+	}
+
+	// Ensure there is a usdx claim for every cdp
+	for _, cdp := range oldCDPGenState.CDPs {
+		numClaims := 0
+		for _, claim := range newGenState.USDXMintingClaims {
+			if cdp.Owner.Equals(claim.Owner) {
+				numClaims++
+			}
+		}
+		require.Equal(t, 1, numClaims, "cdp '%s' has invalid number of claims '%d'", cdp.Owner, numClaims)
+
+		// also check cdp indexes are valid
+		require.True(t, cdp.InterestFactor.GTE(sdk.OneDec()), "found cdp with interest factor < 1")
+	}
+
+	// Check reward amounts
+	for _, claim := range newGenState.USDXMintingClaims {
+
+		// check a few high value accounts
+		switch claim.Owner.String() {
+		// check reward is: additional reward + existing unclaimed reward
+		// note, non zero unclaimed rewards could change if the user submits a claim tx before launch
+		case "kava1k8lymw58tduy9gm6jkt04ddkjd83nf7sm8xthl":
+			require.Equal(t, sdk.NewInt(370982556999+0), claim.Reward.Amount)
+		case "kava1p3ucd3ptpw902fluyjzhq3ffgq4ntddaysyq8h":
+			require.Equal(t, sdk.NewInt(77550672285+16960713469), claim.Reward.Amount)
+		case "kava1qe6ahdnhnfugle29054d8uqg7fa44ryx934yc6":
+			require.Equal(t, sdk.NewInt(40874651319+0), claim.Reward.Amount)
+		case "kava12h6pq2xqzgtxttrzg7q2rplsyxtv2dc5gwh8rl":
+			require.Equal(t, sdk.NewInt(30867752254+0), claim.Reward.Amount)
+		case "kava10hczxv0p3eadcwgt5u79yhahsyuw98u26qan50":
+			require.Equal(t, sdk.NewInt(22429344254+0), claim.Reward.Amount)
+		case "kava15wyjwhj6zh79m7adm69pwl3nsq9z8gs9ezs4k7":
+			require.Equal(t, sdk.NewInt(10252596901+0), claim.Reward.Amount)
+		case "kava1yg4840l77dfs5zqflldhut27en2mhvvc8vj93x":
+			require.Equal(t, sdk.NewInt(9898765520+0), claim.Reward.Amount)
+		case "kava1x242qk6jf2rv23ruvk6fmxp97gg2y75a9r2caq":
+			require.Equal(t, sdk.NewInt(7761701231+0), claim.Reward.Amount)
+		case "kava1tstf3u4cw7u4xyu7wxdrnmrpvvmfamq3twcj7f":
+			require.Equal(t, sdk.NewInt(2466900572+0), claim.Reward.Amount)
+		}
+
+		// check no rewards have been reduced
+		for _, oldClaim := range oldIncentiveGenState.USDXMintingClaims {
+			if oldClaim.Owner.Equals(claim.Owner) {
+				require.Truef(t, claim.Reward.IsGTE(oldClaim.Reward), "found claim with reduced rewards, old %s, new %s", oldClaim, claim)
+			}
+		}
+	}
+
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.HardLiquidityProviderClaims))
 	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
 }
 
-func TestIncentive(t *testing.T) {
-	bz, err := ioutil.ReadFile(filepath.Join("testdata", "v0_14-incentive-state.json"))
-	require.NoError(t, err)
-	appState := genutil.AppMap{v0_14incentive.ModuleName: bz}
+func TestIncentive_Full_TotalRewards(t *testing.T) {
+	t.Skip() // skip to avoid having to commit a large genesis file to the repo
 
-	MigrateAppState(appState)
-
-	bz, err = ioutil.ReadFile(filepath.Join("testdata", "v0_15-incentive-state.json"))
+	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
 	require.NoError(t, err)
 
-	require.JSONEq(t, string(bz), string(appState[v0_15incentive.ModuleName]))
+	cdc := makeV014Codec()
+
+	var oldState genutil.AppMap
+	cdc.MustUnmarshalJSON(genDoc.AppState, &oldState)
+
+	var oldIncentiveGenState v0_14incentive.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_14incentive.ModuleName], &oldIncentiveGenState)
+
+	var oldCDPGenState v0_15cdp.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
+
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs)
+
+	// total previous rewards
+	oldTotalRewards := sdk.NewCoins() // total synced unclaimed rewards
+	for _, claim := range oldIncentiveGenState.HardLiquidityProviderClaims {
+		oldTotalRewards = oldTotalRewards.Add(claim.Reward...)
+	}
+	for _, claim := range oldIncentiveGenState.USDXMintingClaims {
+		oldTotalRewards = oldTotalRewards.Add(claim.Reward)
+	}
+
+	// total new rewards
+	newTotalRewards := sdk.NewCoins() // total synced unclaimed rewards
+	for _, claim := range newGenState.USDXMintingClaims {
+		newTotalRewards = newTotalRewards.Add(claim.Reward)
+	}
+	for _, claim := range newGenState.HardLiquidityProviderClaims {
+		newTotalRewards = newTotalRewards.Add(claim.Reward...)
+	}
+
+	// rewards added in migration
+	additionalRewards := sdk.NewCoins()
+	var missedRewards map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(missedUSDXMintingRewards), &missedRewards)
+	for _, c := range missedRewards {
+		additionalRewards = additionalRewards.Add(c)
+	}
+
+	require.Equal(t, oldTotalRewards.Add(additionalRewards...), newTotalRewards)
 }
 
 func TestSwap(t *testing.T) {

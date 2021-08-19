@@ -1,14 +1,18 @@
 package v0_15
 
 import (
+	"fmt"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 )
 
 // Incentive migrates from a v0.14 incentive genesis state to a v0.15 incentive genesis state
-func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisState {
+func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v0_15cdp.CDPs) v0_15incentive.GenesisState {
 	// Migrate params
 	claimMultipliers := v0_15incentive.Multipliers{}
 	for _, m := range incentiveGS.Params.ClaimMultipliers {
@@ -78,12 +82,13 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 	swapGenesisRewardState := v0_15incentive.DefaultGenesisRewardState // There is no previous swap rewards so accumulation starts at genesis time.
 
 	// Migrate USDX minting claims
-	usdxMintingClaims := v0_15incentive.USDXMintingClaims{}
-	for _, claim := range incentiveGS.USDXMintingClaims {
-		rewardIndexes := migrateRewardIndexes(claim.RewardIndexes)
-		usdxMintingClaim := v0_15incentive.NewUSDXMintingClaim(claim.Owner, claim.Reward, rewardIndexes)
-		usdxMintingClaims = append(usdxMintingClaims, usdxMintingClaim)
-	}
+	usdxMintingClaims := migrateUSDXMintingClaims(incentiveGS.USDXMintingClaims)
+	usdxMintingFormattedIndexes := convertRewardIndexesToUSDXMintingIndexes(usdxGenesisRewardState.MultiRewardIndexes)
+	usdxMintingClaims = replaceUSDXClaimIndexes(usdxMintingClaims, usdxMintingFormattedIndexes)
+	usdxMintingClaims = ensureAllCDPsHaveClaims(usdxMintingClaims, cdps, usdxMintingFormattedIndexes)
+	var missedRewards map[string]sdk.Coin
+	cdc.MustUnmarshalJSON([]byte(missedUSDXMintingRewards), &missedRewards)
+	usdxMintingClaims = addRewards(usdxMintingClaims, missedRewards)
 
 	// Migrate Hard protocol claims (includes creating new Delegator claims)
 	hardClaims := v0_15incentive.HardLiquidityProviderClaims{}
@@ -133,6 +138,83 @@ func Incentive(incentiveGS v0_14incentive.GenesisState) v0_15incentive.GenesisSt
 		delegatorClaims,
 		swapClaims,
 	)
+}
+
+// migrateUSDXMintingClaims converts the a slice of v0.14 USDX minting claims into v0.15 USDX minting claims.
+// As both types are the same underneath, this just converts types and does no other modification.
+func migrateUSDXMintingClaims(oldClaims v0_14incentive.USDXMintingClaims) v0_15incentive.USDXMintingClaims {
+	newClaims := v0_15incentive.USDXMintingClaims{}
+	for _, oldClaim := range oldClaims {
+		rewardIndexes := migrateRewardIndexes(oldClaim.RewardIndexes)
+		usdxMintingClaim := v0_15incentive.NewUSDXMintingClaim(oldClaim.Owner, oldClaim.Reward, rewardIndexes)
+		newClaims = append(newClaims, usdxMintingClaim)
+	}
+	return newClaims
+}
+
+// replaceUSDXClaimIndexes overwrites the reward indexes in all the claims with the current global indexes.
+func replaceUSDXClaimIndexes(claims v0_15incentive.USDXMintingClaims, globalIndexes v0_15incentive.RewardIndexes) v0_15incentive.USDXMintingClaims {
+	var amendedClaims v0_15incentive.USDXMintingClaims
+	for _, claim := range claims {
+		claim.RewardIndexes = globalIndexes
+		amendedClaims = append(amendedClaims, claim)
+	}
+	return amendedClaims
+}
+
+// convertRewardIndexesToUSDXMintingIndexes converts a genesis reward indexes into the format used within usdx minting claims.
+func convertRewardIndexesToUSDXMintingIndexes(mris v0_15incentive.MultiRewardIndexes) v0_15incentive.RewardIndexes {
+	var newIndexes v0_15incentive.RewardIndexes
+	for _, mri := range mris {
+		factor, found := mri.RewardIndexes.Get(v0_15incentive.USDXMintingRewardDenom)
+		if !found {
+			panic(fmt.Sprintf("found global usdx minting reward index without denom '%s': %s", v0_15incentive.USDXMintingRewardDenom, mri))
+		}
+		newIndexes = newIndexes.With(mri.CollateralType, factor)
+	}
+	return newIndexes
+}
+
+// ensureAllCDPsHaveClaims ensures that there is a claim for every cdp in the provided list.
+// It uses the provided global indexes as the indexes for any added claim.
+func ensureAllCDPsHaveClaims(newClaims v0_15incentive.USDXMintingClaims, cdps v0_15cdp.CDPs, globalIndexes v0_15incentive.RewardIndexes) v0_15incentive.USDXMintingClaims {
+	for _, cdp := range cdps {
+
+		claimFound := false
+		for _, claim := range newClaims {
+			if claim.Owner.Equals(cdp.Owner) {
+				claimFound = true
+				break
+			}
+		}
+
+		if !claimFound {
+
+			claim := v0_15incentive.NewUSDXMintingClaim(
+				cdp.Owner,
+				sdk.NewCoin(v0_15incentive.USDXMintingRewardDenom, sdk.ZeroInt()),
+				globalIndexes,
+			)
+			newClaims = append(newClaims, claim)
+		}
+
+	}
+	return newClaims
+}
+
+// addRewards adds some coins to a list of claims according to a map of address: coin.
+// It panics if any coin denom doesn't match the denom in the claim.
+func addRewards(newClaims v0_15incentive.USDXMintingClaims, rewards map[string]sdk.Coin) v0_15incentive.USDXMintingClaims {
+
+	var amendedClaims v0_15incentive.USDXMintingClaims
+	for _, claim := range newClaims {
+		r, found := rewards[claim.Owner.String()]
+		if found {
+			claim.Reward = claim.Reward.Add(r)
+		}
+		amendedClaims = append(amendedClaims, claim)
+	}
+	return amendedClaims
 }
 
 func migrateMultiRewardPeriods(oldPeriods v0_14incentive.MultiRewardPeriods) v0_15incentive.MultiRewardPeriods {
