@@ -23,6 +23,7 @@ import (
 	"github.com/kava-labs/kava/x/hard"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
+	"github.com/kava-labs/kava/x/swap"
 )
 
 func TestMain(m *testing.M) {
@@ -101,6 +102,85 @@ func TestIncentive_Snapshot(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.JSONEq(t, string(snapshot), string(appState[v0_15incentive.ModuleName]), "expected incentive state snapshot to be equal")
+}
+
+func TestIncentive_SwpRewards(t *testing.T) {
+	expectedAnnualRewards := sdk.NewCoin("swp", sdk.NewInt(24000000e6))
+	expectedAnnualRewardsMap := map[string]sdk.Coin{
+		"ukava:usdx": sdk.NewCoin("swp", sdk.NewInt(7000000e6)),
+		"swp:usdx":   sdk.NewCoin("swp", sdk.NewInt(6000000e6)),
+		"busd:usdx":  sdk.NewCoin("swp", sdk.NewInt(5000000e6)),
+		"bnb:usdx":   sdk.NewCoin("swp", sdk.NewInt(1500000e6)),
+		"btcb:usdx":  sdk.NewCoin("swp", sdk.NewInt(1500000e6)),
+		"hard:usdx":  sdk.NewCoin("swp", sdk.NewInt(1500000e6)),
+		"usdx:xrpb":  sdk.NewCoin("swp", sdk.NewInt(1500000e6)),
+	}
+
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-incentive-state.json"))
+	require.NoError(t, err)
+	var oldIncentiveGenState v0_14incentive.GenesisState
+	cdc := app.MakeCodec()
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldIncentiveGenState)
+	})
+	secondsPerYear := sdk.NewInt(31536000)
+
+	newGenState := v0_15incentive.GenesisState{}
+	require.NotPanics(t, func() {
+		newGenState = Incentive(oldIncentiveGenState)
+	})
+	err = newGenState.Validate()
+	require.NoError(t, err)
+
+	actualAnnualRewards := sdk.NewCoin("swp", sdk.ZeroInt())
+
+	for _, rp := range newGenState.Params.SwapRewardPeriods {
+		expected, found := expectedAnnualRewardsMap[rp.CollateralType]
+		require.True(t, found)
+		require.True(t, len(rp.RewardsPerSecond) == 1)
+		require.True(t, rp.RewardsPerSecond[0].Denom == "swp")
+		annualRewardsAmount := rp.RewardsPerSecond[0].Amount.ToDec().Mul(secondsPerYear.ToDec()).RoundInt()
+		annualRewardsCoin := sdk.NewCoin("swp", annualRewardsAmount)
+		actualAnnualRewards = actualAnnualRewards.Add(annualRewardsCoin)
+		// allow for +- 0.1% deviation for targeted annual rewards
+		inRange := assertRewardsWithinRange(expected, annualRewardsCoin, sdk.MustNewDecFromStr("0.001"))
+		require.True(t, inRange, fmt.Sprintf("expected annual rewards: %s, actual %s", expected, annualRewardsCoin))
+	}
+	inRange := assertRewardsWithinRange(expectedAnnualRewards, actualAnnualRewards, sdk.MustNewDecFromStr("0.001"))
+	require.True(t, inRange, fmt.Sprintf("expected annual rewards: %s, actual %s", expectedAnnualRewards, actualAnnualRewards))
+}
+
+func TestIncentive_SwpPoolsValid(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-incentive-state.json"))
+	require.NoError(t, err)
+	appState := genutil.AppMap{v0_14incentive.ModuleName: bz}
+
+	MigrateAppState(appState)
+	cdc := app.MakeCodec()
+	var swapGS swap.GenesisState
+	cdc.MustUnmarshalJSON(appState[swap.ModuleName], &swapGS)
+	var incentiveGS v0_15incentive.GenesisState
+	cdc.MustUnmarshalJSON(appState[v0_15incentive.ModuleName], &incentiveGS)
+
+	for _, rp := range incentiveGS.Params.SwapRewardPeriods {
+		found := false
+		for _, pool := range swapGS.Params.AllowedPools {
+			if pool.Name() == rp.CollateralType {
+				found = true
+			}
+		}
+		require.True(t, found, fmt.Sprintf("incentivized pool %s not found in swap genesis state", rp.CollateralType))
+	}
+
+}
+
+func assertRewardsWithinRange(expected, actual sdk.Coin, tolerance sdk.Dec) bool {
+	upper := expected.Amount.ToDec().Mul(sdk.OneDec().Add(tolerance))
+	lower := expected.Amount.ToDec().Mul(sdk.OneDec().Sub(tolerance))
+	if actual.Amount.ToDec().GTE(lower) && actual.Amount.ToDec().LTE(upper) {
+		return true
+	}
+	return false
 }
 
 func TestSwap(t *testing.T) {
