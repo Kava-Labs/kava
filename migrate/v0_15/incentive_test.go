@@ -15,7 +15,7 @@ import (
 // It is an alias for sdk.MustNewDecFromStr.
 var d = sdk.MustNewDecFromStr
 
-func TestSyncUSDXMintingClaims(t *testing.T) {
+func TestReplaceUSDXClaimIndexes(t *testing.T) {
 	claims := incentive.USDXMintingClaims{
 		incentive.NewUSDXMintingClaim(
 			sdk.AccAddress("address1"),
@@ -44,7 +44,7 @@ func TestSyncUSDXMintingClaims(t *testing.T) {
 		{CollateralType: "xrpb-a", RewardFactor: d("0.8")},
 	}
 
-	syncedClaims := syncUSDXMintingClaims(claims, globalIndexes)
+	syncedClaims := replaceUSDXClaimIndexes(claims, globalIndexes)
 
 	for i, claim := range syncedClaims {
 		// check fields are unchanged
@@ -55,7 +55,7 @@ func TestSyncUSDXMintingClaims(t *testing.T) {
 	}
 }
 
-func TestAddMissingClaims(t *testing.T) {
+func TestEnsureAllCDPsHaveClaims(t *testing.T) {
 	claims := incentive.USDXMintingClaims{
 		incentive.NewUSDXMintingClaim(
 			sdk.AccAddress("address1"),
@@ -123,7 +123,7 @@ func TestAddMissingClaims(t *testing.T) {
 		),
 	}
 
-	require.Equal(t, expectedClaims, addMissingClaims(claims, cdps, globalIndexes))
+	require.Equal(t, expectedClaims, ensureAllCDPsHaveClaims(claims, cdps, globalIndexes))
 }
 
 func TestAddRewards(t *testing.T) {

@@ -85,8 +85,8 @@ func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v
 	// Migrate USDX minting claims
 	usdxMintingClaims := migrateUSDXMintingClaims(incentiveGS.USDXMintingClaims)
 	usdxMintingFormattedIndexes := convertRewardIndexesToUSDXMintingIndexes(usdxGenesisRewardState.MultiRewardIndexes)
-	usdxMintingClaims = syncUSDXMintingClaims(usdxMintingClaims, usdxMintingFormattedIndexes)
-	usdxMintingClaims = addMissingClaims(usdxMintingClaims, cdps, usdxMintingFormattedIndexes)
+	usdxMintingClaims = replaceUSDXClaimIndexes(usdxMintingClaims, usdxMintingFormattedIndexes)
+	usdxMintingClaims = ensureAllCDPsHaveClaims(usdxMintingClaims, cdps, usdxMintingFormattedIndexes)
 	var missedRewards map[string]sdk.Coin
 	cdc.MustUnmarshalJSON([]byte(missedUSDXMintingRewards), &missedRewards)
 	usdxMintingClaims = addRewards(usdxMintingClaims, missedRewards)
@@ -141,7 +141,7 @@ func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v
 	)
 }
 
-// migrateUSDXMintingClaims converts the a slice of v0.14 USDX minting claims into v0.15 USDX minting claims
+// migrateUSDXMintingClaims converts the a slice of v0.14 USDX minting claims into v0.15 USDX minting claims.
 // As both types are the same underneath, this just converts types and does no other modification.
 func migrateUSDXMintingClaims(oldClaims v0_14incentive.USDXMintingClaims) v0_15incentive.USDXMintingClaims {
 	newClaims := v0_15incentive.USDXMintingClaims{}
@@ -153,14 +153,14 @@ func migrateUSDXMintingClaims(oldClaims v0_14incentive.USDXMintingClaims) v0_15i
 	return newClaims
 }
 
-// syncUSDXMintingClaims overwrites the reward indexes in all the claims with the current global indexes.
-func syncUSDXMintingClaims(newClaims v0_15incentive.USDXMintingClaims, globalIndexes v0_15incentive.RewardIndexes) v0_15incentive.USDXMintingClaims {
-	var syncedClaims v0_15incentive.USDXMintingClaims
-	for _, claim := range newClaims {
+// replaceUSDXClaimIndexes overwrites the reward indexes in all the claims with the current global indexes.
+func replaceUSDXClaimIndexes(claims v0_15incentive.USDXMintingClaims, globalIndexes v0_15incentive.RewardIndexes) v0_15incentive.USDXMintingClaims {
+	var amendedClaims v0_15incentive.USDXMintingClaims
+	for _, claim := range claims {
 		claim.RewardIndexes = globalIndexes
-		syncedClaims = append(syncedClaims, claim)
+		amendedClaims = append(amendedClaims, claim)
 	}
-	return syncedClaims
+	return amendedClaims
 }
 
 // convertRewardIndexesToUSDXMintingIndexes converts a genesis reward indexes into the format used within usdx minting claims.
@@ -176,9 +176,9 @@ func convertRewardIndexesToUSDXMintingIndexes(mris v0_15incentive.MultiRewardInd
 	return newIndexes
 }
 
-// addMissingClaims ensures that there is a claim for every cdp in the provided list.
+// ensureAllCDPsHaveClaims ensures that there is a claim for every cdp in the provided list.
 // It uses the provided global indexes as the indexes for any added claim.
-func addMissingClaims(newClaims v0_15incentive.USDXMintingClaims, cdps v0_15cdp.CDPs, globalIndexes v0_15incentive.RewardIndexes) v0_15incentive.USDXMintingClaims {
+func ensureAllCDPsHaveClaims(newClaims v0_15incentive.USDXMintingClaims, cdps v0_15cdp.CDPs, globalIndexes v0_15incentive.RewardIndexes) v0_15incentive.USDXMintingClaims {
 	for _, cdp := range cdps {
 
 		claimFound := false
