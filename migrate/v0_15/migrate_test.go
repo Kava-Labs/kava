@@ -21,7 +21,7 @@ import (
 	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
-	"github.com/kava-labs/kava/x/hard"
+	v0_15hard "github.com/kava-labs/kava/x/hard/types"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/swap"
@@ -80,13 +80,85 @@ func TestIncentive_Full(t *testing.T) {
 	var oldIncentiveGenState v0_14incentive.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_14incentive.ModuleName], &oldIncentiveGenState)
 
+	var oldHardGenState v0_15hard.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15hard.ModuleName], &oldHardGenState)
+
 	var oldCDPGenState v0_15cdp.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
 
-	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs)
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState)
 	require.NoError(t, newGenState.Validate())
 
 	// TODO check params, indexes, and accumulation times
+
+	// ensure every hard deposit has a claim with correct indexes
+	for _, deposit := range oldHardGenState.Deposits {
+		foundClaim := false
+		for _, claim := range newGenState.HardLiquidityProviderClaims {
+			if claim.Owner.Equals(deposit.Depositor) {
+				foundClaim = true
+				// check indexes are valid
+				err := collateralTypesMatch(deposit.Amount, claim.SupplyRewardIndexes)
+				require.NoErrorf(t, err, "invalid claim %s, %s", claim, deposit)
+				break
+			}
+		}
+		require.True(t, foundClaim, "missing claim for hard deposit")
+
+		// also ensure hard deposit indexes are valid
+		for _, i := range deposit.Index {
+			require.Truef(t, i.Value.GTE(sdk.OneDec()), "found invalid hard deposit index %s", deposit)
+		}
+	}
+
+	// ensure every hard borrow has a claim with correct indexes
+	for _, borrow := range oldHardGenState.Borrows {
+		foundClaim := false
+		for _, claim := range newGenState.HardLiquidityProviderClaims {
+			if claim.Owner.Equals(borrow.Borrower) {
+				foundClaim = true
+				// check indexes are valid
+				err := collateralTypesMatch(borrow.Amount, claim.BorrowRewardIndexes)
+				require.NoErrorf(t, err, "invalid claim %s, %s", claim, borrow)
+				break
+			}
+		}
+		require.True(t, foundClaim, "missing claim for hard borrow")
+
+		// also ensure hard borrow indexes are valid
+		for _, i := range borrow.Index {
+			require.Truef(t, i.Value.GTE(sdk.OneDec()), "found invalid hard borrow index %s", borrow)
+		}
+	}
+
+	// ensure all claim indexes are ≤ global values
+	for _, claim := range newGenState.HardLiquidityProviderClaims {
+
+		for _, ri := range claim.BorrowRewardIndexes {
+			global, found := newGenState.HardBorrowRewardState.MultiRewardIndexes.Get(ri.CollateralType)
+			if !found {
+				global = v0_15incentive.RewardIndexes{}
+			}
+			require.Truef(t, indexesAllLessThanOrEqual(ri.RewardIndexes, global), "invalid claim supply indexes %s %s", ri.RewardIndexes, global)
+		}
+
+		for _, ri := range claim.SupplyRewardIndexes {
+			global, found := newGenState.HardSupplyRewardState.MultiRewardIndexes.Get(ri.CollateralType)
+			if !found {
+				global = v0_15incentive.RewardIndexes{}
+			}
+			require.Truef(t, indexesAllLessThanOrEqual(ri.RewardIndexes, global), "invalid claim borrow indexes %s %s", ri.RewardIndexes, global)
+		}
+	}
+
+	// ensure (synced) reward amounts are unchanged
+	for _, claim := range newGenState.HardLiquidityProviderClaims {
+		for _, oldClaim := range oldIncentiveGenState.HardLiquidityProviderClaims {
+			if oldClaim.Owner.Equals(claim.Owner) {
+				require.Equal(t, claim.Reward, oldClaim.Reward)
+			}
+		}
+	}
 
 	// Ensure the usdx claim indexes match global
 	globalIndexes := newGenState.USDXRewardState.MultiRewardIndexes
@@ -152,9 +224,39 @@ func TestIncentive_Full(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.HardLiquidityProviderClaims))
 	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
 	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
+}
+
+// collateralTypesMatch checks if the set of coin denoms is equal to the set of CollateralTypes in the indexes.
+func collateralTypesMatch(coins sdk.Coins, indexes v0_15incentive.MultiRewardIndexes) error {
+	for _, index := range indexes {
+		if coins.AmountOf(index.CollateralType).Equal(sdk.ZeroInt()) {
+			return fmt.Errorf("index contains denom not found in coins")
+		}
+	}
+	for _, coin := range coins {
+		_, found := indexes.Get(coin.Denom)
+		if !found {
+			return fmt.Errorf("coins contain denom not found in indexes")
+		}
+	}
+	return nil
+}
+
+// indexesAllLessThanOrEqual computes if all factors in A are ≤ factors in B.
+// Missing indexes are taken to be zero.
+func indexesAllLessThanOrEqual(indexesA, indexesB v0_15incentive.RewardIndexes) bool {
+	allLT := true
+	for _, ri := range indexesA {
+		factor, found := indexesB.Get(ri.CollateralType)
+		if !found {
+			// value not found is same as it being zero
+			factor = sdk.ZeroDec()
+		}
+		allLT = allLT && ri.RewardFactor.LTE(factor)
+	}
+	return allLT
 }
 
 func TestIncentive_Full_TotalRewards(t *testing.T) {
@@ -171,10 +273,13 @@ func TestIncentive_Full_TotalRewards(t *testing.T) {
 	var oldIncentiveGenState v0_14incentive.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_14incentive.ModuleName], &oldIncentiveGenState)
 
+	var oldHardGenState v0_15hard.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15hard.ModuleName], &oldHardGenState)
+
 	var oldCDPGenState v0_15cdp.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
 
-	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs)
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState)
 
 	// total previous rewards
 	oldTotalRewards := sdk.NewCoins() // total synced unclaimed rewards
@@ -228,7 +333,7 @@ func TestIncentive_SwpLPRewards(t *testing.T) {
 
 	newGenState := v0_15incentive.GenesisState{}
 	require.NotPanics(t, func() {
-		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{})
+		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState())
 	})
 	err = newGenState.Validate()
 	require.NoError(t, err)
@@ -264,7 +369,7 @@ func TestIncentive_SwpDelegatorRewards(t *testing.T) {
 
 	newGenState := v0_15incentive.GenesisState{}
 	require.NotPanics(t, func() {
-		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{})
+		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState())
 	})
 
 	for _, rp := range newGenState.Params.DelegatorRewardPeriods {
@@ -279,7 +384,12 @@ func TestIncentive_SwpDelegatorRewards(t *testing.T) {
 func TestIncentive_SwpPoolsValid(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-incentive-state.json"))
 	require.NoError(t, err)
-	appState := genutil.AppMap{v0_14incentive.ModuleName: bz, v0_15cdp.ModuleName: app.MakeCodec().MustMarshalJSON(v0_15cdp.DefaultGenesisState())}
+
+	appState := genutil.AppMap{
+		v0_14incentive.ModuleName: bz,
+		v0_15cdp.ModuleName:       app.MakeCodec().MustMarshalJSON(v0_15cdp.DefaultGenesisState()),
+		v0_15hard.ModuleName:      app.MakeCodec().MustMarshalJSON(v0_15hard.DefaultGenesisState()),
+	}
 
 	MigrateAppState(appState)
 	cdc := app.MakeCodec()
@@ -439,7 +549,7 @@ func TestAuth_MakeAirdropMap(t *testing.T) {
 }
 
 func TestAuth_TestAllDepositorsIncluded(t *testing.T) {
-	var deposits hard.Deposits
+	var deposits v0_15hard.Deposits
 	cdc := app.MakeCodec()
 	bz, err := ioutil.ReadFile("./data/hard-deposits-block-1543671.json")
 	if err != nil {

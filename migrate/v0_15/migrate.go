@@ -17,6 +17,7 @@ import (
 	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
+	v0_15hard "github.com/kava-labs/kava/x/hard/types"
 	v0_14incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_14"
 	v0_15incentive "github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/kavadist"
@@ -78,11 +79,14 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[v0_14incentive.ModuleName], &incentiveGenState)
 		delete(v0_14AppState, v0_14incentive.ModuleName)
 
+		var hardGenState v0_15hard.GenesisState // v0_14 hard genesis state is the same as v0_15
+		v0_15Codec.MustUnmarshalJSON(v0_14AppState[v0_15hard.ModuleName], &hardGenState)
+
 		// unmarshal all cdps using v0_15 types as there has been no changes since v0_14
 		var cdpGenState v0_15cdp.GenesisState
 		v0_15Codec.MustUnmarshalJSON(v0_14AppState[v0_15cdp.ModuleName], &cdpGenState)
 
-		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(v0_15Codec, incentiveGenState, cdpGenState.CDPs))
+		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(Incentive(v0_15Codec, incentiveGenState, cdpGenState.CDPs, hardGenState))
 	}
 
 	// Migrate commmittee app state
