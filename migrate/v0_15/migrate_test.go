@@ -256,9 +256,6 @@ func TestIncentive_Full(t *testing.T) {
 	for _, claim := range newGenState.DelegatorClaims {
 		require.Equal(t, sdk.NewCoins(), claim.Reward)
 	}
-
-	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
-	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
 }
 
 // collateralTypesMatch checks if the set of coin denoms is equal to the set of CollateralTypes in the indexes.
@@ -425,6 +422,7 @@ func TestIncentive_SwpPoolsValid(t *testing.T) {
 		v0_14incentive.ModuleName: bz,
 		v0_15cdp.ModuleName:       app.MakeCodec().MustMarshalJSON(v0_15cdp.DefaultGenesisState()),
 		v0_15hard.ModuleName:      app.MakeCodec().MustMarshalJSON(v0_15hard.DefaultGenesisState()),
+		v0_15staking.ModuleName:   app.MakeCodec().MustMarshalJSON(v0_15staking.DefaultGenesisState()),
 	}
 
 	MigrateAppState(appState)
