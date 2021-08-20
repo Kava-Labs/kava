@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	v0_15staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -83,10 +84,13 @@ func TestIncentive_Full(t *testing.T) {
 	var oldHardGenState v0_15hard.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_15hard.ModuleName], &oldHardGenState)
 
+	var oldStakingGenState v0_15staking.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15staking.ModuleName], &oldStakingGenState)
+
 	var oldCDPGenState v0_15cdp.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
 
-	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState)
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState, oldStakingGenState.Delegations)
 	require.NoError(t, newGenState.Validate())
 
 	// TODO check params, indexes, and accumulation times
@@ -224,8 +228,34 @@ func TestIncentive_Full(t *testing.T) {
 		}
 	}
 
-	// 1 new DelegatorClaim should have been created for each existing HardLiquidityProviderClaim
-	require.Equal(t, len(oldIncentiveGenState.HardLiquidityProviderClaims), len(newGenState.DelegatorClaims))
+	// Ensure every delegation has a claim
+	for _, delegation := range oldStakingGenState.Delegations {
+		numClaims := 0
+		for _, claim := range newGenState.DelegatorClaims {
+			if delegation.DelegatorAddress.Equals(claim.Owner) {
+				numClaims++
+			}
+		}
+		require.Equal(t, 1, numClaims, "delegation '%s' has invalid number of claims '%d'", delegation.DelegatorAddress, numClaims)
+	}
+
+	// Ensure all delegation indexes are ≤ global values
+	for _, claim := range newGenState.DelegatorClaims {
+		for _, ri := range claim.RewardIndexes {
+			require.Equal(t, v0_15incentive.BondDenom, ri.CollateralType)
+
+			global, found := newGenState.DelegatorRewardState.MultiRewardIndexes.Get(ri.CollateralType)
+			if !found {
+				global = v0_15incentive.RewardIndexes{}
+			}
+			require.Truef(t, indexesAllLessThanOrEqual(ri.RewardIndexes, global), "invalid delegator claim indexes %s %s", ri.RewardIndexes, global)
+		}
+	}
+
+	// Ensure delegator rewards are all initialized at 0
+	for _, claim := range newGenState.DelegatorClaims {
+		require.Equal(t, sdk.NewCoins(), claim.Reward)
+	}
 }
 
 // collateralTypesMatch checks if the set of coin denoms is equal to the set of CollateralTypes in the indexes.
@@ -276,10 +306,13 @@ func TestIncentive_Full_TotalRewards(t *testing.T) {
 	var oldHardGenState v0_15hard.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_15hard.ModuleName], &oldHardGenState)
 
+	var oldStakingGenState v0_15staking.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15staking.ModuleName], &oldStakingGenState)
+
 	var oldCDPGenState v0_15cdp.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
 
-	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState)
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState, oldStakingGenState.Delegations)
 
 	// total previous rewards
 	oldTotalRewards := sdk.NewCoins() // total synced unclaimed rewards
@@ -333,7 +366,7 @@ func TestIncentive_SwpLPRewards(t *testing.T) {
 
 	newGenState := v0_15incentive.GenesisState{}
 	require.NotPanics(t, func() {
-		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState())
+		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState(), v0_15staking.Delegations{})
 	})
 	err = newGenState.Validate()
 	require.NoError(t, err)
@@ -369,7 +402,7 @@ func TestIncentive_SwpDelegatorRewards(t *testing.T) {
 
 	newGenState := v0_15incentive.GenesisState{}
 	require.NotPanics(t, func() {
-		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState())
+		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState(), v0_15staking.Delegations{})
 	})
 
 	for _, rp := range newGenState.Params.DelegatorRewardPeriods {
@@ -389,6 +422,7 @@ func TestIncentive_SwpPoolsValid(t *testing.T) {
 		v0_14incentive.ModuleName: bz,
 		v0_15cdp.ModuleName:       app.MakeCodec().MustMarshalJSON(v0_15cdp.DefaultGenesisState()),
 		v0_15hard.ModuleName:      app.MakeCodec().MustMarshalJSON(v0_15hard.DefaultGenesisState()),
+		v0_15staking.ModuleName:   app.MakeCodec().MustMarshalJSON(v0_15staking.DefaultGenesisState()),
 	}
 
 	MigrateAppState(appState)

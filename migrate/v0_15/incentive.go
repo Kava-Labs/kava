@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	v0_15staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	v0_15hard "github.com/kava-labs/kava/x/hard/types"
 
@@ -16,7 +17,7 @@ import (
 )
 
 // Incentive migrates from a v0.14 incentive genesis state to a v0.15 incentive genesis state
-func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v0_15cdp.CDPs, hardGS v0_15hard.GenesisState) v0_15incentive.GenesisState {
+func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v0_15cdp.CDPs, hardGS v0_15hard.GenesisState, delegations v0_15staking.Delegations) v0_15incentive.GenesisState {
 	// Migrate params
 	claimMultipliers := v0_15incentive.Multipliers{}
 	for _, m := range incentiveGS.Params.ClaimMultipliers {
@@ -116,6 +117,8 @@ func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v
 		hardGS.Deposits, hardGS.Borrows,
 		hardSupplyGenesisRewardState.MultiRewardIndexes, hardBorrowGenesisRewardState.MultiRewardIndexes,
 	)
+
+	delegatorClaims = addMissingDelegatorClaims(delegatorClaims, delegations, delegatorGenesisRewardState.MultiRewardIndexes)
 
 	// Add Swap Claims
 	swapClaims := v0_15incentive.DefaultSwapClaims
@@ -393,6 +396,36 @@ func getHardClaimByOwner(claims v0_15incentive.HardLiquidityProviderClaims, owne
 		}
 	}
 	return v0_15incentive.HardLiquidityProviderClaim{}, false
+}
+
+// getDelegatorClaimByOwner picks out the first delegator claim matching an address.
+func getDelegatorClaimByOwner(claims v0_15incentive.DelegatorClaims, owner sdk.AccAddress) (v0_15incentive.DelegatorClaim, bool) {
+	for _, claim := range claims {
+		if claim.Owner.Equals(owner) {
+			return claim, true
+		}
+	}
+	return v0_15incentive.DelegatorClaim{}, false
+}
+
+// addMissingDelegatorClaims checks if there are delegations without claims, and if so creates new claims for them.
+func addMissingDelegatorClaims(claims v0_15incentive.DelegatorClaims, delegations v0_15staking.Delegations, globalIndexes v0_15incentive.MultiRewardIndexes) v0_15incentive.DelegatorClaims {
+
+	for _, delegation := range delegations {
+
+		_, found := getDelegatorClaimByOwner(claims, delegation.DelegatorAddress)
+		if !found {
+
+			claim := v0_15incentive.NewDelegatorClaim(
+				delegation.DelegatorAddress,
+				sdk.NewCoins(),
+				globalIndexes, // indexes are set to current so rewards start accumulating from genesis
+			)
+			claims = append(claims, claim)
+
+		}
+	}
+	return claims
 }
 
 // getHardDepositByOwner picks out the first deposit matching an address.
