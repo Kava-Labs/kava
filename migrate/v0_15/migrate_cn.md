@@ -7,9 +7,10 @@
 
 - We will be upgrading from chain-id "kava-7" to chain-id "kava-8".
   - 将升级 chain-id 从"kava-7"到"kava-8"。
-- The version of Kava for kava-8 is [TODO: version]
-- The kava-7 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at approximately 13:00 UTC on August, 30 2021.
-  - kava-7 链将通过 `SoftwareUpgradeProposal` 关闭，该 `SoftwareUpgradeProposal` 在 2021 年 8 月 30 日大约 13:00 UTC 激活。
+- The version of Kava for kava-8 is v0.15.0
+  - kava-8 使用 Kava 最新版本 v0.15.0
+- The kava-7 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height 1878509, which is approximately 13:00 UTC on August, 30 2021.
+  - kava-7 链将通过 `SoftwareUpgradeProposal` 关闭，该 `SoftwareUpgradeProposal` 在区块高度 1878509，2021 年 8 月 30 日，大约 13:00 UTC 激活。
 - kava-8 genesis time is set to August 30th, 2021 at 15:00 UTC.
   - kava-8 创世块设置为 2021 年 8 月 30 日 15:00 UTC。
 - The version of cosmos-sdk for kava-8 is v0.39.3.
@@ -58,7 +59,17 @@ Kava 开发人员将在达到最终区块编号时更新此文件。 **确保在
    导出状态（这个**必须**使用**v0.14.3**完成，以前的 v0.14.x 版本不会产生相同的创世哈希！）
 
 ```sh
-kvd export --for-zero-height --height PLACEHOLDER > export-genesis.json
+# verify version before export 导出之前，确保版本：
+kvd version --long
+# name: kava
+# server_name: kvd
+# client_name: kvcli
+# version: 0.14.3
+# commit: 19c4926078be89730b336edf5bb3873f3c396e43
+# build_tags: netgo,ledger
+# go: go version go1.15.8 linux/amd64
+#  export genesis using v0.14.3 使用 v0.14.3 导出创世区块
+kvd export --for-zero-height --height 1878509 > export-genesis.json
 ```
 
 **Note:** This can take a while!
@@ -68,17 +79,17 @@ kvd export --for-zero-height --height PLACEHOLDER > export-genesis.json
 
 ```sh
   # in the `kava` folder 在kava文件夹中
-    git pull
-    git checkout [TODO: version]
-    make install
+  git pull
+  git checkout v0.15.0
+  make install
 
   # verify versions 确保版本无错
   kvd version --long
   # name: kava
   # server_name: kvd
   # client_name: kvcli
-  # version: [TODO: version]
-  # commit: PLACEHOLDER
+  # version: v0.15.0
+  # commit: 19c4926078be89730b336edf5bb3873f3c396e43
   # build_tags: netgo,ledger
   # go: go version go1.15.8 linux/amd64
 
