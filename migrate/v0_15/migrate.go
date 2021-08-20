@@ -26,12 +26,10 @@ import (
 )
 
 var (
-	GenesisTime = time.Date(2021, 8, 30, 15, 0, 0, 0, time.UTC) // 1630335600
-	ChainID     = "kava-8"
-	// TODO: update SWP reward per second amount before production
-	// TODO: update SWP reward per second amount before production
-	SwpDelegatorRewardsPerSecond         = sdk.NewCoin("swp", sdk.OneInt())
-	SwpLiquidityProviderRewardsPerSecond = sdk.NewCoin("swp", sdk.OneInt())
+	// TODO: update GenesisTime and chain-id for kava-8 launch
+	GenesisTime                  = time.Date(2021, 8, 30, 15, 0, 0, 0, time.UTC)
+	ChainID                      = "kava-8"
+	SwpDelegatorRewardsPerSecond = sdk.NewCoin("swp", sdk.NewInt(198186))
 )
 
 // Migrate translates a genesis file from kava v0.14 format to kava v0.15 format
