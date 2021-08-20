@@ -22,7 +22,7 @@ Prior to exporting kava-7 state, validators are encouraged to take a full data s
 
 It is critically important to back-up the .kvd/data/priv_validator_state.json file after stopping your kvd process. This file is updated every block as your validator participates in consensus rounds. It is a critical file needed to prevent double-signing, in case the upgrade fails and the previous chain needs to be restarted.
 
-In the event that the upgrade does not succeed, validators and operators must downgrade back to v0.14.2 of the Kava software and restore to their latest snapshot before restarting their nodes.
+In the event that the upgrade does not succeed, validators and operators must downgrade back to v0.14.3 of the Kava software and restore to their latest snapshot before restarting their nodes.
 
 ## Upgrade Procedure
 
