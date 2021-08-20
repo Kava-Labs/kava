@@ -333,7 +333,7 @@ func TestIncentive_SwpLPRewards(t *testing.T) {
 
 	newGenState := v0_15incentive.GenesisState{}
 	require.NotPanics(t, func() {
-		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{})
+		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState())
 	})
 	err = newGenState.Validate()
 	require.NoError(t, err)
@@ -369,7 +369,7 @@ func TestIncentive_SwpDelegatorRewards(t *testing.T) {
 
 	newGenState := v0_15incentive.GenesisState{}
 	require.NotPanics(t, func() {
-		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{})
+		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState())
 	})
 
 	for _, rp := range newGenState.Params.DelegatorRewardPeriods {
@@ -384,7 +384,12 @@ func TestIncentive_SwpDelegatorRewards(t *testing.T) {
 func TestIncentive_SwpPoolsValid(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-test-incentive-state.json"))
 	require.NoError(t, err)
-	appState := genutil.AppMap{v0_14incentive.ModuleName: bz, v0_15cdp.ModuleName: app.MakeCodec().MustMarshalJSON(v0_15cdp.DefaultGenesisState())}
+
+	appState := genutil.AppMap{
+		v0_14incentive.ModuleName: bz,
+		v0_15cdp.ModuleName:       app.MakeCodec().MustMarshalJSON(v0_15cdp.DefaultGenesisState()),
+		v0_15hard.ModuleName:      app.MakeCodec().MustMarshalJSON(v0_15hard.DefaultGenesisState()),
+	}
 
 	MigrateAppState(appState)
 	cdc := app.MakeCodec()
