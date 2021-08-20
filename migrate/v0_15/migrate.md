@@ -28,13 +28,13 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ### Before the upgrade
 
-Kava Labs will submit a `SoftwareUpgradeProposal` that specifies the exact block _height_ at which the chain should shut down. This height will correspond to approximately 13:00 UTC on August 30th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators. 
+Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height __1878509__ as the final block height for kava-7. This height corresponds to approximately 13:00 UTC on August 30th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators. 
 
 ### On the day of the upgrade
 
-**The kava chain is expected to halt at 13:00 UTC, and restart with new software at 15:00 UTC August 30th. Do not stop your node and begin the upgrade before 13:00UTC on August 30th, or you may go offline and be unable to recover until after the upgrade!**
+**The kava chain is expected to halt at block height 1878509, at approximately 13:00 UTC, and restart with new software at 15:00 UTC August 30th. Do not stop your node and begin the upgrade before 13:00UTC on August 30th, or you may go offline and be unable to recover until after the upgrade!**
 
-Kava developers will update this PR with the final block number when it is reached. **Make sure the kvd process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
+**Make sure the kvd process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
 1. Export State (this **MUST** be done using **v0.14.3**, previous v0.14.x versions will not produce the same genesis hash!)
 
