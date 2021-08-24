@@ -17,7 +17,7 @@ import (
 )
 
 // Incentive migrates from a v0.14 incentive genesis state to a v0.15 incentive genesis state
-func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v0_15cdp.CDPs, hardGS v0_15hard.GenesisState, delegations v0_15staking.Delegations) v0_15incentive.GenesisState {
+func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v0_15cdp.CDPs, hardGS v0_15hard.GenesisState, delegations v0_15staking.Delegations, genesisTime time.Time) v0_15incentive.GenesisState {
 	// Migrate params
 	claimMultipliers := v0_15incentive.Multipliers{}
 	for _, m := range incentiveGS.Params.ClaimMultipliers {
@@ -66,13 +66,13 @@ func Incentive(cdc *codec.Codec, incentiveGS v0_14incentive.GenesisState, cdps v
 	}
 
 	swapRewardPeriods := v0_15incentive.MultiRewardPeriods{
-		v0_15incentive.NewMultiRewardPeriod(true, "bnb:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
-		v0_15incentive.NewMultiRewardPeriod(true, "btcb:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
-		v0_15incentive.NewMultiRewardPeriod(true, "busd:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(158549)))),
-		v0_15incentive.NewMultiRewardPeriod(true, "hard:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
-		v0_15incentive.NewMultiRewardPeriod(true, "swp:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(190259)))),
-		v0_15incentive.NewMultiRewardPeriod(true, "ukava:usdx", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(221969)))),
-		v0_15incentive.NewMultiRewardPeriod(true, "usdx:xrpb", GenesisTime, GenesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "bnb:usdx", genesisTime, genesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "btcb:usdx", genesisTime, genesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "busd:usdx", genesisTime, genesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(158549)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "hard:usdx", genesisTime, genesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "swp:usdx", genesisTime, genesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(190259)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "ukava:usdx", genesisTime, genesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(221969)))),
+		v0_15incentive.NewMultiRewardPeriod(true, "usdx:xrpb", genesisTime, genesisTime.Add(time.Hour*24*365*4), sdk.NewCoins(sdk.NewCoin("swp", sdk.NewInt(47565)))),
 	}
 
 	// Build new params from migrated values

@@ -36,6 +36,28 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func TestMigrateFull(t *testing.T) {
+	oldGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
+	require.NoError(t, err)
+
+	// 2) migrate
+	newGenDoc := Migrate(*oldGenDoc)
+	tApp := app.NewTestApp()
+	cdc := app.MakeCodec()
+	var newAppState genutil.AppMap
+	require.NoError(t,
+		cdc.UnmarshalJSON(newGenDoc.AppState, &newAppState),
+	)
+	err = app.ModuleBasics.ValidateGenesis(newAppState)
+	if err != nil {
+		require.NoError(t, err)
+	}
+	require.NotPanics(t, func() {
+		// this runs both InitGenesis for all modules (which panic on errors) and runs all invariants
+		tApp.InitializeFromGenesisStatesWithTime(newGenDoc.GenesisTime, app.GenesisState(newAppState))
+	})
+}
+
 func TestCommittee(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-committee-state.json"))
 	require.NoError(t, err)
@@ -90,7 +112,7 @@ func TestIncentive_Full(t *testing.T) {
 	var oldCDPGenState v0_15cdp.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
 
-	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState, oldStakingGenState.Delegations)
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState, oldStakingGenState.Delegations, GenesisTime)
 	require.NoError(t, newGenState.Validate())
 
 	// TODO check params, indexes, and accumulation times
@@ -312,7 +334,7 @@ func TestIncentive_Full_TotalRewards(t *testing.T) {
 	var oldCDPGenState v0_15cdp.GenesisState
 	cdc.MustUnmarshalJSON(oldState[v0_15cdp.ModuleName], &oldCDPGenState)
 
-	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState, oldStakingGenState.Delegations)
+	newGenState := Incentive(app.MakeCodec(), oldIncentiveGenState, oldCDPGenState.CDPs, oldHardGenState, oldStakingGenState.Delegations, GenesisTime)
 
 	// total previous rewards
 	oldTotalRewards := sdk.NewCoins() // total synced unclaimed rewards
@@ -366,7 +388,7 @@ func TestIncentive_SwpLPRewards(t *testing.T) {
 
 	newGenState := v0_15incentive.GenesisState{}
 	require.NotPanics(t, func() {
-		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState(), v0_15staking.Delegations{})
+		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState(), v0_15staking.Delegations{}, GenesisTime)
 	})
 	err = newGenState.Validate()
 	require.NoError(t, err)
@@ -402,7 +424,7 @@ func TestIncentive_SwpDelegatorRewards(t *testing.T) {
 
 	newGenState := v0_15incentive.GenesisState{}
 	require.NotPanics(t, func() {
-		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState(), v0_15staking.Delegations{})
+		newGenState = Incentive(app.MakeCodec(), oldIncentiveGenState, v0_15cdp.CDPs{}, v0_15hard.DefaultGenesisState(), v0_15staking.Delegations{}, GenesisTime)
 	})
 
 	for _, rp := range newGenState.Params.DelegatorRewardPeriods {
@@ -425,7 +447,7 @@ func TestIncentive_SwpPoolsValid(t *testing.T) {
 		v0_15staking.ModuleName:   app.MakeCodec().MustMarshalJSON(v0_15staking.DefaultGenesisState()),
 	}
 
-	MigrateAppState(appState)
+	MigrateAppState(appState, GenesisTime)
 	cdc := app.MakeCodec()
 	var swapGS swap.GenesisState
 	cdc.MustUnmarshalJSON(appState[swap.ModuleName], &swapGS)

@@ -47,7 +47,7 @@ func Migrate(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 		panic(err)
 	}
 
-	MigrateAppState(appStateMap)
+	MigrateAppState(appStateMap, GenesisTime)
 
 	v0_15Codec := app.MakeCodec()
 	marshaledNewAppState, err := v0_15Codec.MarshalJSON(appStateMap)
@@ -62,7 +62,7 @@ func Migrate(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 
 // MigrateAppState migrates application state from v0.14 format to a kava v0.15 format
 // It modifies the provided genesis state in place.
-func MigrateAppState(v0_14AppState genutil.AppMap) {
+func MigrateAppState(v0_14AppState genutil.AppMap, genesisTime time.Time) {
 	v0_14Codec := makeV014Codec()
 	v0_15Codec := app.MakeCodec()
 
@@ -71,7 +71,7 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		var authGenState auth.GenesisState
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[auth.ModuleName], &authGenState)
 		delete(v0_14AppState, auth.ModuleName)
-		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(v0_15Codec, authGenState, GenesisTime))
+		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(v0_15Codec, authGenState, genesisTime))
 	}
 
 	// Migrate incentive app state
@@ -91,7 +91,7 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		v0_15Codec.MustUnmarshalJSON(v0_14AppState[v0_15cdp.ModuleName], &cdpGenState)
 
 		v0_14AppState[v0_15incentive.ModuleName] = v0_15Codec.MustMarshalJSON(
-			Incentive(v0_15Codec, incentiveGenState, cdpGenState.CDPs, hardGenState, stakingGenState.Delegations),
+			Incentive(v0_15Codec, incentiveGenState, cdpGenState.CDPs, hardGenState, stakingGenState.Delegations, genesisTime),
 		)
 	}
 
@@ -125,7 +125,7 @@ func makeV014Codec() *codec.Codec {
 func Auth(cdc *codec.Codec, genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
 	genesisStateWithAccountsMigrated := MigrateAccounts(genesisState, genesisTime)
 	genesisStateWithSwpAirdrop := ApplySwpAirdrop(cdc, genesisStateWithAccountsMigrated)
-	genesisStateWithSwpDistribution := DistributeSwpTokens(genesisStateWithSwpAirdrop)
+	genesisStateWithSwpDistribution := DistributeSwpTokens(genesisStateWithSwpAirdrop, genesisTime)
 
 	return genesisStateWithSwpDistribution
 }
@@ -174,7 +174,7 @@ var (
 )
 
 // DistributeSwpTokens sets the initial distribution of swp tokens according to the proposed token supply schedule in prop 59
-func DistributeSwpTokens(genesisState auth.GenesisState) auth.GenesisState {
+func DistributeSwpTokens(genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
 
 	// add SWP incentives (LP, Kava stakers) to kavadist module account
 	accounts := make([]authexported.GenesisAccount, len(genesisState.Accounts))
@@ -221,7 +221,7 @@ func DistributeSwpTokens(genesisState auth.GenesisState) auth.GenesisState {
 		period := vesting.Period{Length: swpTeamVestingLengths[i], Amount: sdk.NewCoins(vestingCoin)}
 		swpTeamVestingPeriods = append(swpTeamVestingPeriods, period)
 	}
-	swpTeamVestingAccount := vesting.NewPeriodicVestingAccountRaw(swpTeamBva, GenesisTime.Unix(), swpTeamVestingPeriods)
+	swpTeamVestingAccount := vesting.NewPeriodicVestingAccountRaw(swpTeamBva, genesisTime.Unix(), swpTeamVestingPeriods)
 
 	// Add treasury vesting account
 	swpTreasuryBacc := auth.NewBaseAccountWithAddress(SwpTreasuryAddr)
@@ -251,7 +251,7 @@ func DistributeSwpTokens(genesisState auth.GenesisState) auth.GenesisState {
 		period := vesting.Period{Length: swpTreasuryVestingLengths[i], Amount: sdk.NewCoins(vestingCoin)}
 		swpTreasuryVestingPeriods = append(swpTreasuryVestingPeriods, period)
 	}
-	swpTreasuryVestingAccount := vesting.NewPeriodicVestingAccountRaw(swpTreasuryBva, GenesisTime.Unix(), swpTreasuryVestingPeriods)
+	swpTreasuryVestingAccount := vesting.NewPeriodicVestingAccountRaw(swpTreasuryBva, genesisTime.Unix(), swpTreasuryVestingPeriods)
 
 	accounts = append(accounts, &swpEcosystemBacc, swpTeamVestingAccount, swpTreasuryVestingAccount)
 
