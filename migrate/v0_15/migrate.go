@@ -74,6 +74,14 @@ func MigrateAppState(v0_14AppState genutil.AppMap, genesisTime time.Time) {
 		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(v0_15Codec, authGenState, genesisTime))
 	}
 
+	// Migrate supply app state
+	if v0_14AppState[supply.ModuleName] != nil {
+		var supplyGenState supply.GenesisState
+		v0_14Codec.MustUnmarshalJSON(v0_14AppState[supply.ModuleName], &supplyGenState)
+		delete(v0_14AppState, supply.ModuleName)
+		v0_14AppState[supply.ModuleName] = v0_15Codec.MustMarshalJSON(Supply(supplyGenState, sdk.NewCoin("swp", sdk.NewInt(250000000e6))))
+	}
+
 	// Migrate incentive app state
 	if v0_14AppState[v0_14incentive.ModuleName] != nil {
 		var incentiveGenState v0_14incentive.GenesisState
@@ -256,6 +264,14 @@ func DistributeSwpTokens(genesisState auth.GenesisState, genesisTime time.Time) 
 	accounts = append(accounts, &swpEcosystemBacc, swpTeamVestingAccount, swpTreasuryVestingAccount)
 
 	return auth.NewGenesisState(genesisState.Params, accounts)
+}
+
+// MigrateSupply reconciles supply from kava-3 to kava-4
+// deputy balance of bnb coins is removed (deputy now mints coins)
+// hard token supply is added
+func Supply(supplyGenesisState supply.GenesisState, swpBalance sdk.Coin) supply.GenesisState {
+	supplyGenesisState.Supply = supplyGenesisState.Supply.Add(swpBalance)
+	return supplyGenesisState
 }
 
 // Committee migrates from a v0.14 committee genesis state to a v0.15 committee genesis state
