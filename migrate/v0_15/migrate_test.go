@@ -55,7 +55,7 @@ func TestMigrateFull(t *testing.T) {
 	}
 	require.NotPanics(t, func() {
 		// this runs both InitGenesis for all modules (which panic on errors) and runs all invariants
-		tApp.InitializeFromGenesisStatesWithTime(newGenDoc.GenesisTime, app.GenesisState(newAppState))
+		tApp.InitializeFromGenesisStatesWithTimeAndChainID(newGenDoc.GenesisTime, newGenDoc.ChainID, app.GenesisState(newAppState))
 	})
 }
 
