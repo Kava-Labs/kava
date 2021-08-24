@@ -36,6 +36,29 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func TestMigrateFull(t *testing.T) {
+	t.Skip() // skip to avoid having to commit a large genesis file to the repo
+	oldGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
+	require.NoError(t, err)
+
+	// 2) migrate
+	newGenDoc := Migrate(*oldGenDoc)
+	tApp := app.NewTestApp()
+	cdc := app.MakeCodec()
+	var newAppState genutil.AppMap
+	require.NoError(t,
+		cdc.UnmarshalJSON(newGenDoc.AppState, &newAppState),
+	)
+	err = app.ModuleBasics.ValidateGenesis(newAppState)
+	if err != nil {
+		require.NoError(t, err)
+	}
+	require.NotPanics(t, func() {
+		// this runs both InitGenesis for all modules (which panic on errors) and runs all invariants
+		tApp.InitializeFromGenesisStatesWithTime(newGenDoc.GenesisTime, app.GenesisState(newAppState))
+	})
+}
+
 func TestCommittee(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-7-committee-state.json"))
 	require.NoError(t, err)
