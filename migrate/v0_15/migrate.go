@@ -31,6 +31,7 @@ var (
 	GenesisTime                  = time.Date(2021, 8, 30, 15, 0, 0, 0, time.UTC)
 	ChainID                      = "kava-8"
 	SwpDelegatorRewardsPerSecond = sdk.NewCoin("swp", sdk.NewInt(198186))
+	SwpTotalSupply               = sdk.NewCoin("swp", sdk.NewInt(250000000e6))
 )
 
 // Migrate translates a genesis file from kava v0.14 format to kava v0.15 format
@@ -72,6 +73,14 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[auth.ModuleName], &authGenState)
 		delete(v0_14AppState, auth.ModuleName)
 		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(v0_15Codec, authGenState, GenesisTime))
+	}
+
+	// Migrate supply app state
+	if v0_14AppState[supply.ModuleName] != nil {
+		var supplyGenState supply.GenesisState
+		v0_14Codec.MustUnmarshalJSON(v0_14AppState[supply.ModuleName], &supplyGenState)
+		delete(v0_14AppState, supply.ModuleName)
+		v0_14AppState[supply.ModuleName] = v0_15Codec.MustMarshalJSON(Supply(supplyGenState, SwpTotalSupply))
 	}
 
 	// Migrate incentive app state
@@ -256,6 +265,12 @@ func DistributeSwpTokens(genesisState auth.GenesisState) auth.GenesisState {
 	accounts = append(accounts, &swpEcosystemBacc, swpTeamVestingAccount, swpTreasuryVestingAccount)
 
 	return auth.NewGenesisState(genesisState.Params, accounts)
+}
+
+// Supply adds SWP token to total supply
+func Supply(supplyGenesisState supply.GenesisState, swpBalance sdk.Coin) supply.GenesisState {
+	supplyGenesisState.Supply = supplyGenesisState.Supply.Add(swpBalance)
+	return supplyGenesisState
 }
 
 // Committee migrates from a v0.14 committee genesis state to a v0.15 committee genesis state
