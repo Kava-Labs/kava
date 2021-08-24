@@ -54,7 +54,29 @@ func TestMigrateFull(t *testing.T) {
 	}
 	require.NotPanics(t, func() {
 		// this runs both InitGenesis for all modules (which panic on errors) and runs all invariants
-		tApp.InitializeFromGenesisStatesWithTime(newGenDoc.GenesisTime, app.GenesisState(newAppState))
+		tApp.InitializeFromGenesisStatesWithTimeAndChainID(newGenDoc.GenesisTime, newGenDoc.ChainID, app.GenesisState(newAppState))
+	})
+}
+
+func TestMigratePreviewFull(t *testing.T) {
+	oldGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
+	require.NoError(t, err)
+
+	// 2) migrate
+	newGenDoc := MigratePreview(*oldGenDoc)
+	tApp := app.NewTestApp()
+	cdc := app.MakeCodec()
+	var newAppState genutil.AppMap
+	require.NoError(t,
+		cdc.UnmarshalJSON(newGenDoc.AppState, &newAppState),
+	)
+	err = app.ModuleBasics.ValidateGenesis(newAppState)
+	if err != nil {
+		require.NoError(t, err)
+	}
+	require.NotPanics(t, func() {
+		// this runs both InitGenesis for all modules (which panic on errors) and runs all invariants
+		tApp.InitializeFromGenesisStatesWithTimeAndChainID(newGenDoc.GenesisTime, newGenDoc.ChainID, app.GenesisState(newAppState))
 	})
 }
 
@@ -492,7 +514,7 @@ func TestAuth_ParametersEqual(t *testing.T) {
 	cdc := app.MakeCodec()
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
-	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
+	migratedGenesisState := Auth(cdc, genesisState)
 
 	assert.Equal(t, genesisState.Params, migratedGenesisState.Params, "expected auth parameters to not change")
 }
@@ -577,7 +599,7 @@ func TestAuth_Regression_BalancesEqual(t *testing.T) {
 	var genesisState auth.GenesisState
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
-	genesisState = Auth(cdc, genesisState, GenesisTime)
+	genesisState = Auth(cdc, genesisState)
 
 	for i, oldAcc := range originalGenesisState.Accounts {
 		acc := genesisState.Accounts[i]
@@ -660,7 +682,7 @@ func TestAuth_SwpSupply_TotalSupply(t *testing.T) {
 	cdc := app.MakeCodec()
 	cdc.MustUnmarshalJSON(bz, &genesisState)
 
-	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
+	migratedGenesisState := Auth(cdc, genesisState)
 
 	for _, acc := range migratedGenesisState.Accounts {
 		swpAmount := acc.GetCoins().AmountOf("swp")
@@ -692,7 +714,7 @@ func TestAuth_SwpSupply_SpendableCoins(t *testing.T) {
 	swpEcosystemExpectedSpendableCoins := sdk.NewCoins(EcoSystemCoins)
 	foundEcosystem := false
 
-	migratedGenesisState := Auth(cdc, genesisState, GenesisTime)
+	migratedGenesisState := Auth(cdc, genesisState)
 
 	for _, acc := range migratedGenesisState.Accounts {
 		if acc.GetAddress().Equals(SwpTreasuryAddr) {

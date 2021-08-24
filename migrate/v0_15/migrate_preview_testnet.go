@@ -13,7 +13,7 @@ import (
 
 // MigratePreview translates a genesis file from kava v0.14 format to kava v0.15 format for use in preview testnets, setting genesis time to 1 hour in the future.
 func MigratePreview(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
-	GenesisTime = tmtime.Now().Add(time.Hour)
+	genesisTime := tmtime.Now().Add(time.Hour).Truncate(time.Minute)
 	// migrate app state
 	var appStateMap genutil.AppMap
 	cdc := codec.New()
@@ -26,7 +26,8 @@ func MigratePreview(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 		panic(err)
 	}
 
-	MigrateAppState(appStateMap, GenesisTime)
+	MigrateAppState(appStateMap, genesisTime)
+	MigrateStaking(appStateMap, &genDoc.Validators)
 
 	v0_15Codec := app.MakeCodec()
 	marshaledNewAppState, err := v0_15Codec.MarshalJSON(appStateMap)
@@ -34,7 +35,7 @@ func MigratePreview(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 		panic(err)
 	}
 	genDoc.AppState = marshaledNewAppState
-	genDoc.GenesisTime = GenesisTime
-	genDoc.ChainID = ChainID
+	genDoc.GenesisTime = genesisTime
+	genDoc.ChainID = "kava-8-preview"
 	return genDoc
 }

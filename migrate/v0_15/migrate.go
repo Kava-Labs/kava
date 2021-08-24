@@ -71,7 +71,7 @@ func MigrateAppState(v0_14AppState genutil.AppMap, genesisTime time.Time) {
 		var authGenState auth.GenesisState
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[auth.ModuleName], &authGenState)
 		delete(v0_14AppState, auth.ModuleName)
-		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(v0_15Codec, authGenState, genesisTime))
+		v0_14AppState[auth.ModuleName] = v0_15Codec.MustMarshalJSON(Auth(v0_15Codec, authGenState))
 	}
 
 	// Migrate supply app state
@@ -130,10 +130,10 @@ func makeV014Codec() *codec.Codec {
 }
 
 // Auth migrates the auth genesis state to a new state with pruned vesting periods
-func Auth(cdc *codec.Codec, genesisState auth.GenesisState, genesisTime time.Time) auth.GenesisState {
-	genesisStateWithAccountsMigrated := MigrateAccounts(genesisState, genesisTime)
+func Auth(cdc *codec.Codec, genesisState auth.GenesisState) auth.GenesisState {
+	genesisStateWithAccountsMigrated := MigrateAccounts(genesisState, GenesisTime)
 	genesisStateWithSwpAirdrop := ApplySwpAirdrop(cdc, genesisStateWithAccountsMigrated)
-	genesisStateWithSwpDistribution := DistributeSwpTokens(genesisStateWithSwpAirdrop, genesisTime)
+	genesisStateWithSwpDistribution := DistributeSwpTokens(genesisStateWithSwpAirdrop, GenesisTime)
 
 	return genesisStateWithSwpDistribution
 }
