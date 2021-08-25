@@ -26,9 +26,13 @@ func MigratePreview(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
 		panic(err)
 	}
 
-	MigrateAppState(appStateMap, genesisTime)
-	MigrateStaking(appStateMap, &genDoc.Validators)
+	validatorInfos, err := LoadValidatorInfo(cdc, ValidatorKeysDir)
+	if err != nil {
+		panic(err)
+	}
 
+	MigrateAppState(appStateMap, genesisTime)
+	MigrateStaking(appStateMap, genDoc.Validators, validatorInfos)
 	v0_15Codec := app.MakeCodec()
 	marshaledNewAppState, err := v0_15Codec.MarshalJSON(appStateMap)
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 	"github.com/kava-labs/kava/app"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/libs/bytes"
 	"github.com/tendermint/tendermint/privval"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -132,6 +133,7 @@ func MigrateStaking(v0_14AppState genutil.AppMap, validators []tmtypes.GenesisVa
 		pubKeyReplacement, found := validatorPubkeyMapping[sdk.GetConsAddress(validator.PubKey).String()]
 		if found {
 			validators[idx].PubKey = pubKeyReplacement
+			validators[idx].Address = bytes.HexBytes{}
 		}
 	}
 }
