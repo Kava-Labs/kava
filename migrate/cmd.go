@@ -78,7 +78,7 @@ func AssertInvariantsCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 			}
 			tApp.InitializeFromGenesisStatesWithTimeAndChainID(genDoc.GenesisTime, genDoc.ChainID, app.GenesisState(newAppState))
 
-			fmt.Printf("asserted all invariants for %s\n", importGenesis)
+			fmt.Printf("successfully asserted all invariants for %s\n", importGenesis)
 			return nil
 		},
 	}

@@ -79,6 +79,7 @@ kvd export --for-zero-height --height 1878509 > export-genesis.json
 
   # Verify output of genesis migration
   kvd validate-genesis genesis.json # should say it's valid
+  kvd assert-invariants genesis.json # should say invariants pass
   jq -S -c -M '' genesis.json | shasum -a 256
   # PLACEHOLDER
 
