@@ -2125,7 +2125,7 @@ paths:
           description: Server internal error
   /hard/interest-rate:
     get:
-      summary: Get total hard reserve coins
+      summary: Get the hard module interest rates
       tags:
         - Hard
       produces:
