@@ -1,7 +1,6 @@
 package v0_15
 
 import (
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"sort"
@@ -14,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/kava-labs/kava/app"
 
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/privval"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -30,33 +30,81 @@ func Staking(
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%s\n", validatorInfos[0].Address)
 	// sort validators by delegator share so that when we access them by index, we are accessing the validators with the most delegations first
 	sort.Slice(stakingGenState.Validators, func(i, j int) bool {
-		return stakingGenState.Validators[i].Tokens.GT(stakingGenState.Validators[j].Tokens)
+		return stakingGenState.Validators[i].DelegatorShares.GT(stakingGenState.Validators[j].DelegatorShares)
 	})
-	fmt.Printf("%s\n", stakingGenState.Validators[0])
 
 	updatedStakingGenState := ReplaceValidatorsInStakingState(stakingGenState, validatorInfos)
-	fmt.Printf("%s\n", updatedStakingGenState.Validators[0])
-	return updatedStakingGenState, distGenState, slashingGenState
+	updatedDistributionGenState := ReplacePreviousProposerInDistributionState(stakingGenState, distGenState, validatorInfos)
+	updatedSlashingGenState := ReplaceConsAddressesInSlashingState(stakingGenState, slashingGenState, validatorInfos)
+	return updatedStakingGenState, updatedDistributionGenState, updatedSlashingGenState
 }
 
 func ReplaceValidatorsInStakingState(stakingGenesisState staking.GenesisState, validatorInfos ValidatorInfos) staking.GenesisState {
+	newValidators := make(staking.Validators, len(stakingGenesisState.Validators))
+	copy(newValidators, stakingGenesisState.Validators)
+	updatedStakingGenesisState := staking.GenesisState(stakingGenesisState)
+	updatedStakingGenesisState.Validators = newValidators
+	sort.Slice(updatedStakingGenesisState.Validators, func(i, j int) bool {
+		return updatedStakingGenesisState.Validators[i].DelegatorShares.GT(updatedStakingGenesisState.Validators[j].DelegatorShares)
+	})
 	for idx, vi := range validatorInfos {
 		newConsPub := vi.KeyInfo.PubKey
-		stakingGenesisState.Validators[idx].ConsPubKey = newConsPub
+		updatedStakingGenesisState.Validators[idx].ConsPubKey = newConsPub
 	}
-	return stakingGenesisState
+	return updatedStakingGenesisState
 }
 
-func MigrateStaking(v0_14AppState genutil.AppMap, validators *[]tmtypes.GenesisValidator) {
+func ReplacePreviousProposerInDistributionState(stakingGenesisState staking.GenesisState, distributionGenesisState distribution.GenesisState, validatorInfos ValidatorInfos) distribution.GenesisState {
+	validatorConsAddrMapping := make(map[string]string)
+	for idx, vi := range validatorInfos {
+		validatorConsAddrMapping[sdk.GetConsAddress(stakingGenesisState.Validators[idx].ConsPubKey).String()] = vi.Address.String()
+	}
+	prevProposer, found := validatorConsAddrMapping[distributionGenesisState.PreviousProposer.String()]
+	if found {
+		prevProposerReplacementAddr, err := sdk.ConsAddressFromBech32(prevProposer)
+		if err != nil {
+			panic(err)
+		}
+		distributionGenesisState.PreviousProposer = prevProposerReplacementAddr
+	}
+	return distributionGenesisState
+
+}
+
+func ReplaceConsAddressesInSlashingState(stakingGenesisState staking.GenesisState, slashingGenesisState slashing.GenesisState, validatorInfos ValidatorInfos) slashing.GenesisState {
+	validatorConsAddrMapping := make(map[string]string)
+	for idx, vi := range validatorInfos {
+		validatorConsAddrMapping[sdk.GetConsAddress(stakingGenesisState.Validators[idx].ConsPubKey).String()] = vi.Address.String()
+	}
+	updatedMissedBlocks := make(map[string][]slashing.MissedBlock)
+	updatedSigningInfos := make(map[string]slashing.ValidatorSigningInfo)
+	for consAddrString, mb := range slashingGenesisState.MissedBlocks {
+		consAddrReplacementAddr, found := validatorConsAddrMapping[consAddrString]
+		if found {
+			updatedMissedBlocks[consAddrReplacementAddr] = mb
+		} else {
+			updatedMissedBlocks[consAddrString] = mb
+		}
+	}
+	for consAddrString, vsi := range slashingGenesisState.SigningInfos {
+		consAddrReplacementAddr, found := validatorConsAddrMapping[consAddrString]
+		if found {
+			updatedSigningInfos[consAddrReplacementAddr] = vsi
+		} else {
+			updatedSigningInfos[consAddrString] = vsi
+		}
+	}
+	return slashing.NewGenesisState(slashingGenesisState.Params, updatedSigningInfos, updatedMissedBlocks)
+}
+
+func MigrateStaking(v0_14AppState genutil.AppMap, validators []tmtypes.GenesisValidator, validatorInfos ValidatorInfos) {
 	v0_14Codec := makeV014Codec()
 	v0_15Codec := app.MakeCodec()
 	if v0_14AppState[staking.ModuleName] != nil {
 		var stakingGenState staking.GenesisState
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[staking.ModuleName], &stakingGenState)
-		delete(v0_14AppState, staking.ModuleName)
 
 		var slashingGenState slashing.GenesisState
 		v0_14Codec.MustUnmarshalJSON(v0_14AppState[slashing.ModuleName], &slashingGenState)
@@ -65,9 +113,26 @@ func MigrateStaking(v0_14AppState genutil.AppMap, validators *[]tmtypes.GenesisV
 		v0_15Codec.MustUnmarshalJSON(v0_14AppState[distribution.ModuleName], &distributionGenState)
 
 		newStakingGenState, newDistributionGenState, newSlashingGenState := Staking(v0_15Codec, stakingGenState, distributionGenState, slashingGenState, ValidatorKeysDir)
+		delete(v0_14AppState, staking.ModuleName)
+		delete(v0_14AppState, distribution.ModuleName)
+		delete(v0_14AppState, slashing.ModuleName)
+
 		v0_14AppState[staking.ModuleName] = v0_15Codec.MustMarshalJSON(newStakingGenState)
 		v0_14AppState[distribution.ModuleName] = v0_15Codec.MustMarshalJSON(newDistributionGenState)
 		v0_14AppState[slashing.ModuleName] = v0_15Codec.MustMarshalJSON(newSlashingGenState)
+	}
+	validatorPubkeyMapping := make(map[string]crypto.PubKey)
+	sort.Slice(validators, func(i, j int) bool {
+		return validators[i].Power > validators[j].Power
+	})
+	for idx, vi := range validatorInfos {
+		validatorPubkeyMapping[sdk.GetConsAddress(validators[idx].PubKey).String()] = vi.KeyInfo.PubKey
+	}
+	for idx, validator := range validators {
+		pubKeyReplacement, found := validatorPubkeyMapping[sdk.GetConsAddress(validator.PubKey).String()]
+		if found {
+			validators[idx].PubKey = pubKeyReplacement
+		}
 	}
 }
 
@@ -96,7 +161,7 @@ func LoadValidatorInfo(cdc *codec.Codec, fp string) (ValidatorInfos, error) {
 			return validatorInfos, err
 		}
 		vi := ValidatorInfo{
-			Address: sdk.ConsAddress(pv.Address),
+			Address: sdk.GetConsAddress(pv.PubKey),
 			KeyInfo: pv,
 		}
 		validatorInfos = append(validatorInfos, vi)
