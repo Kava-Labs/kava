@@ -14,7 +14,7 @@ import (
 )
 
 func TestStaking_Full(t *testing.T) {
-	// t.Skip() // skip to avoid having to commit a large genesis file to the repo
+	t.Skip() // skip to avoid having to commit a large genesis file to the repo
 
 	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
 	require.NoError(t, err)

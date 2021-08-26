@@ -37,6 +37,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestMigrateFull(t *testing.T) {
+	t.Skip()
 	oldGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
 	require.NoError(t, err)
 
@@ -59,6 +60,7 @@ func TestMigrateFull(t *testing.T) {
 }
 
 func TestMigratePreviewFull(t *testing.T) {
+	t.Skip()
 	oldGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
 	require.NoError(t, err)
 
