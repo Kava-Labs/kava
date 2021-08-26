@@ -82,12 +82,12 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 	}
 
 	supplyInterestFactor := sdk.MustNewDecFromStr("1.0001")
-	borrowInterestFactor := sdk.NewDec(1)
+	borrowInterestFactor := sdk.MustNewDecFromStr("1.1234")
 	accuralTimes := hard.GenesisAccumulationTimes{
 		hard.NewGenesisAccumulationTime("ukava", suite.genTime, supplyInterestFactor, borrowInterestFactor),
 	}
 
-	hardGS := hard.NewGenesisState(
+	hardGenesis := hard.NewGenesisState(
 		params,
 		accuralTimes,
 		deposits,
@@ -102,18 +102,55 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 			func() {
 				suite.app.InitializeFromGenesisStatesWithTime(
 					suite.genTime,
-					app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGS)},
+					app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGenesis)},
 				)
 			},
 		),
 	)
 
-	// TODO: expected borrows, expected deposits (post sync)
-	//		 put together expected export state for the comparison below
+	var expectedDeposits hard.Deposits
+	for _, deposit := range deposits {
+		// Calculate expected coin amount post sync
+		var depositAmount sdk.Coins
+		for _, coin := range deposit.Amount {
+			expectedAmt := supplyInterestFactor.MulInt(coin.Amount).RoundInt()
+			depositAmount = depositAmount.Add(sdk.NewCoin(coin.Denom, expectedAmt))
+		}
+		deposit.Amount = depositAmount
+		// Calculate expected indexes post sync
+		var indexes hard.SupplyInterestFactors
+		for _, index := range deposit.Index {
+			index.Value = supplyInterestFactor.Mul(index.Value)
+			indexes = append(indexes, index)
+		}
+		deposit.Index = indexes
+		expectedDeposits = append(expectedDeposits, deposit)
+	}
 
+	var expectedBorrows hard.Borrows
+	for _, borrow := range borrows {
+		// Calculate expected coin amount post sync
+		var borrowAmount sdk.Coins
+		for _, coin := range borrow.Amount {
+			expectedAmt := borrowInterestFactor.MulInt(coin.Amount).RoundInt()
+			borrowAmount = borrowAmount.Add(sdk.NewCoin(coin.Denom, expectedAmt))
+		}
+		borrow.Amount = borrowAmount
+		// Calculate expected indexes post sync
+		var indexes hard.BorrowInterestFactors
+		for _, index := range borrow.Index {
+			index.Value = borrowInterestFactor.Mul(index.Value)
+			indexes = append(indexes, index)
+		}
+		borrow.Index = indexes
+		expectedBorrows = append(expectedBorrows, borrow)
+	}
+
+	expectedGenesis := hardGenesis
+	expectedGenesis.Deposits = expectedDeposits
+	expectedGenesis.Borrows = expectedBorrows
 	exportedGenesis := hard.ExportGenesis(suite.ctx, suite.keeper)
-	suite.Equal(hardGS, exportedGenesis)
-
+	suite.Equal(expectedGenesis, exportedGenesis)
 }
 
 func TestGenesisTestSuite(t *testing.T) {
