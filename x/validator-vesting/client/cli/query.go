@@ -195,7 +195,7 @@ func querySpendableBalance(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Use:   "spendable-balance [address]",
 		Short: "get the spendable balance for the input address",
 		Long:  "Get the current spendable balance for the input address, defined as the coins in the account which are not currently vesting or delegated (staked).",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			bech32Address := args[0]
