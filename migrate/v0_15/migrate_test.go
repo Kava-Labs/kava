@@ -19,6 +19,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
+	v0_15bep3 "github.com/kava-labs/kava/x/bep3/types"
 	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
@@ -727,4 +728,46 @@ func TestAuth_SwpSupply_SpendableCoins(t *testing.T) {
 	require.True(t, foundKavadist)
 	require.True(t, foundEcosystem)
 
+}
+
+func TestBep3_Full(t *testing.T) {
+	t.Skip() // skip to avoid having to commit a large genesis file to the repo
+
+	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis.json"))
+	require.NoError(t, err)
+
+	cdc := makeV014Codec()
+
+	var oldState genutil.AppMap
+	cdc.MustUnmarshalJSON(genDoc.AppState, &oldState)
+
+	var oldGenState v0_15bep3.GenesisState
+	cdc.MustUnmarshalJSON(oldState[v0_15bep3.ModuleName], &oldGenState)
+
+	newGenState := Bep3(oldGenState)
+
+	require.NoError(t, newGenState.Validate())
+
+	require.Equal(t, oldGenState.Params, newGenState.Params)
+	require.Equal(t, oldGenState.Supplies, newGenState.Supplies)
+	require.Equal(t, oldGenState.PreviousBlockTime, newGenState.PreviousBlockTime)
+
+	require.Equal(t, len(oldGenState.AtomicSwaps), len(newGenState.AtomicSwaps))
+
+	for i, swap := range oldGenState.AtomicSwaps {
+		newSwap := newGenState.AtomicSwaps[i]
+
+		require.Equal(t, swap.Amount, newSwap.Amount)
+		require.Equal(t, swap.GetSwapID(), newSwap.GetSwapID())
+
+		// check heights were reset
+		switch newSwap.Status {
+		case v0_15bep3.Completed:
+			require.Equal(t, int64(1), newSwap.ClosedBlock)
+		case v0_15bep3.Expired:
+			require.Equal(t, uint64(1), newSwap.ExpireHeight)
+		default:
+			t.Fatalf(fmt.Sprintf("found swap with unexpected state '%s'", newSwap.Status))
+		}
+	}
 }

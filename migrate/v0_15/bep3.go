@@ -18,7 +18,7 @@ func Bep3(genesisState v0_15bep3.GenesisState) v0_15bep3.GenesisState {
 			swap.ClosedBlock = 1
 
 		case v0_15bep3.Open, v0_15bep3.Expired:
-			swap.Status = v0_15bep3.Expired // set open swaps to expired so they can be refunded after chain start
+			swap.Status = v0_15bep3.Expired // set open swaps to expired so they can be refunded (by tx) after chain start
 			swap.ExpireHeight = 1           // set expire on first block as well to be safe
 
 		default:
