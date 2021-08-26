@@ -72,6 +72,12 @@ func NewTestApp() TestApp {
 	return TestApp{App: *app}
 }
 
+func NewTestAppFromSealed() TestApp {
+	db := tmdb.NewMemDB()
+	app := NewApp(log.NewNopLogger(), db, nil, AppOptions{})
+	return TestApp{App: *app}
+}
+
 // nolint
 func (tApp TestApp) GetAccountKeeper() auth.AccountKeeper { return tApp.accountKeeper }
 func (tApp TestApp) GetBankKeeper() bank.Keeper           { return tApp.bankKeeper }

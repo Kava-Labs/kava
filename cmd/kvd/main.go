@@ -57,6 +57,7 @@ func main() {
 		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome),
 		migrate.MigrateGenesisCmd(ctx, cdc),
+		migrate.AssertInvariantsCmd(ctx, cdc),
 		genutilcli.GenTxCmd(
 			ctx,
 			cdc,
