@@ -97,15 +97,13 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		nil,
 	)
 
-	suite.True(
-		suite.NotPanics(
-			func() {
-				suite.app.InitializeFromGenesisStatesWithTime(
-					suite.genTime,
-					app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGenesis)},
-				)
-			},
-		),
+	suite.NotPanics(
+		func() {
+			suite.app.InitializeFromGenesisStatesWithTime(
+				suite.genTime,
+				app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGenesis)},
+			)
+		},
 	)
 
 	var expectedDeposits hard.Deposits
