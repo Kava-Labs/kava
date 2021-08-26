@@ -1,5 +1,7 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 // Querier routes for the validator vesting module
 const (
 	QueryCirculatingSupply     = "circulating-supply"
@@ -8,6 +10,7 @@ const (
 	QueryCirculatingSupplyUSDX = "circulating-supply-usdx"
 	QueryTotalSupplyHARD       = "total-supply-hard"
 	QueryTotalSupplyUSDX       = "total-supply-usdx"
+	QuerySpendableBalance      = "spendable-balance"
 )
 
 // BaseQueryParams defines the parameters necessary for querying for all Evidence.
@@ -22,4 +25,13 @@ func NewBaseQueryParams(page, limit int) BaseQueryParams {
 		Page:  page,
 		Limit: limit,
 	}
+}
+
+type SpendableBalanceParams struct {
+	Address sdk.AccAddress `json:"address" yaml:"address"`
+}
+
+// NewSpendableBalanceParams creates a new instance of SpendableBalanceParams.
+func NewSpendableBalanceParams(addr sdk.AccAddress) SpendableBalanceParams {
+	return SpendableBalanceParams{Address: addr}
 }

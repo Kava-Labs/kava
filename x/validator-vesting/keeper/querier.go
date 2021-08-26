@@ -3,6 +3,7 @@ package keeper
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -29,6 +30,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return getTotalSupplyHARD(ctx, req, keeper)
 		case types.QueryTotalSupplyUSDX:
 			return getCirculatingSupplyUSDX(ctx, req, keeper) // Intentional - USDX total supply is the circulating supply
+		case types.QuerySpendableBalance:
+			return getSpendableBalance(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -287,4 +290,19 @@ func getTotalSupplyHARD(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
+}
+
+func getSpendableBalance(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var params types.SpendableBalanceParams
+	if err := keeper.cdc.UnmarshalJSON(req.Data, &params); err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	acc := keeper.ak.GetAccount(ctx, params.Address)
+	spendable := acc.SpendableCoins(ctx.BlockTime())
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, spendable)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
@@ -26,6 +27,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryCirculatingSupplyUSDX(queryRoute, cdc),
 		queryTotalSupplyHARD(queryRoute, cdc),
 		queryTotalSupplyUSDX(queryRoute, cdc),
+		querySpendableBalance(queryRoute, cdc),
 	)...)
 
 	return valVestingQueryCmd
@@ -182,6 +184,41 @@ func queryTotalSupplyUSDX(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			var out int64
 			if err := cdc.UnmarshalJSON(res, &out); err != nil {
 				return fmt.Errorf("failed to unmarshal supply: %w", err)
+			}
+			return cliCtx.PrintOutput(out)
+		},
+	}
+}
+
+func querySpendableBalance(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "spendable-balance [address]",
+		Short: "get the spendable balance for the input address",
+		Long:  "Get the current spendable balance for the input address, defined as the coins in the account which are not currently vesting or delegated (staked).",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			bech32Address := args[0]
+			addr, err := sdk.AccAddressFromBech32(bech32Address)
+			if err != nil {
+				return err
+			}
+			params := types.NewSpendableBalanceParams(addr)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+			// Query
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QuerySpendableBalance), bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var out sdk.Coins
+			if err := cdc.UnmarshalJSON(res, &out); err != nil {
+				return fmt.Errorf("failed to unmarshal spendable balance: %w", err)
 			}
 			return cliCtx.PrintOutput(out)
 		},
