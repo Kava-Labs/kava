@@ -1,6 +1,7 @@
 package hard_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -108,17 +109,25 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 
 	var expectedDeposits hard.Deposits
 	for _, deposit := range deposits {
-		// Calculate expected coin amount post sync
+		// Deposit coin amounts
 		var depositAmount sdk.Coins
 		for _, coin := range deposit.Amount {
-			expectedAmt := supplyInterestFactor.MulInt(coin.Amount).RoundInt()
+			accrualTime, found := getGenesisAccumulationTime(coin.Denom, accuralTimes)
+			if !found {
+				panic(fmt.Sprintf("accrual time not found %s", coin.Denom))
+			}
+			expectedAmt := accrualTime.SupplyInterestFactor.MulInt(coin.Amount).RoundInt()
 			depositAmount = depositAmount.Add(sdk.NewCoin(coin.Denom, expectedAmt))
 		}
 		deposit.Amount = depositAmount
-		// Calculate expected indexes post sync
+		// Deposit interest factor indexes
 		var indexes hard.SupplyInterestFactors
 		for _, index := range deposit.Index {
-			index.Value = supplyInterestFactor.Mul(index.Value)
+			accrualTime, found := getGenesisAccumulationTime(index.Denom, accuralTimes)
+			if !found {
+				panic(fmt.Sprintf("accrual time not found %s", index.Denom))
+			}
+			index.Value = accrualTime.SupplyInterestFactor
 			indexes = append(indexes, index)
 		}
 		deposit.Index = indexes
@@ -127,17 +136,26 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 
 	var expectedBorrows hard.Borrows
 	for _, borrow := range borrows {
-		// Calculate expected coin amount post sync
+		// Borrow coin amounts
 		var borrowAmount sdk.Coins
 		for _, coin := range borrow.Amount {
-			expectedAmt := borrowInterestFactor.MulInt(coin.Amount).RoundInt()
+			accrualTime, found := getGenesisAccumulationTime(coin.Denom, accuralTimes)
+			if !found {
+				panic(fmt.Sprintf("accrual time not found %s", coin.Denom))
+			}
+			expectedAmt := accrualTime.BorrowInterestFactor.MulInt(coin.Amount).RoundInt()
 			borrowAmount = borrowAmount.Add(sdk.NewCoin(coin.Denom, expectedAmt))
+
 		}
 		borrow.Amount = borrowAmount
-		// Calculate expected indexes post sync
+		// Borrow interest factor indexes
 		var indexes hard.BorrowInterestFactors
 		for _, index := range borrow.Index {
-			index.Value = borrowInterestFactor.Mul(index.Value)
+			accrualTime, found := getGenesisAccumulationTime(index.Denom, accuralTimes)
+			if !found {
+				panic(fmt.Sprintf("accrual time not found %s", index.Denom))
+			}
+			index.Value = accrualTime.BorrowInterestFactor
 			indexes = append(indexes, index)
 		}
 		borrow.Index = indexes
@@ -149,6 +167,15 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 	expectedGenesis.Borrows = expectedBorrows
 	exportedGenesis := hard.ExportGenesis(suite.ctx, suite.keeper)
 	suite.Equal(expectedGenesis, exportedGenesis)
+}
+
+func getGenesisAccumulationTime(denom string, ts hard.GenesisAccumulationTimes) (hard.GenesisAccumulationTime, bool) {
+	for _, t := range ts {
+		if t.CollateralType == denom {
+			return t, true
+		}
+	}
+	return hard.GenesisAccumulationTime{}, false
 }
 
 func TestGenesisTestSuite(t *testing.T) {
