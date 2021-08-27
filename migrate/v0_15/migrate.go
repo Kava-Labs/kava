@@ -15,6 +15,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
+	v0_15bep3 "github.com/kava-labs/kava/x/bep3/types"
 	v0_15cdp "github.com/kava-labs/kava/x/cdp/types"
 	v0_14committee "github.com/kava-labs/kava/x/committee/legacy/v0_14"
 	v0_15committee "github.com/kava-labs/kava/x/committee/types"
@@ -27,7 +28,6 @@ import (
 )
 
 var (
-	// TODO: update GenesisTime and chain-id for kava-8 launch
 	GenesisTime                  = time.Date(2021, 8, 30, 15, 0, 0, 0, time.UTC)
 	ChainID                      = "kava-8"
 	SwpDelegatorRewardsPerSecond = sdk.NewCoin("swp", sdk.NewInt(198186))
@@ -114,6 +114,16 @@ func MigrateAppState(v0_14AppState genutil.AppMap) {
 		v0_14AppState[v0_15committee.ModuleName] = v0_15Codec.MustMarshalJSON(Committee(committeeGS))
 	}
 
+	// Migrate bep3 app state
+	if v0_14AppState[v0_15bep3.ModuleName] != nil {
+		// Unmarshal genesis state and delete it. The genesis format was not changed between v0.14 and v0.15.
+		var bep3GenState v0_15bep3.GenesisState
+		v0_14Codec.MustUnmarshalJSON(v0_14AppState[v0_15bep3.ModuleName], &bep3GenState)
+		delete(v0_14AppState, v0_15bep3.ModuleName)
+
+		v0_14AppState[v0_15bep3.ModuleName] = v0_15Codec.MustMarshalJSON(Bep3(bep3GenState))
+	}
+
 	v0_14AppState[v0_15swap.ModuleName] = v0_15Codec.MustMarshalJSON(Swap())
 }
 
@@ -127,6 +137,7 @@ func makeV014Codec() *codec.Codec {
 	v0_14validator_vesting.RegisterCodec(cdc)
 	v0_14committee.RegisterCodec(cdc)
 	v0_14incentive.RegisterCodec(cdc)
+	// TODO bep3?
 	return cdc
 }
 
