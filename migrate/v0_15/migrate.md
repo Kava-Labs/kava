@@ -69,7 +69,7 @@ kvd export --for-zero-height --height 1878508 > export-genesis.json
   # server_name: kvd
   # client_name: kvcli
   # version: v0.15.0
-  # commit: PLACEHOLDER
+  # commit: 8691ac44ed0e65db7ebc4a2fe85c58c717f63c39
   # build_tags: netgo,ledger
   # go: go version go1.15.8 linux/amd64
 
@@ -81,7 +81,7 @@ kvd export --for-zero-height --height 1878508 > export-genesis.json
   kvd validate-genesis genesis.json # should say it's valid
   kvd assert-invariants genesis.json # should say invariants pass
   jq -S -c -M '' genesis.json | shasum -a 256
-  # PLACEHOLDER
+  # f0c90f0cbf96d230a83cd2309b8fd032e52d7fb933881541472df1bf2703a939
 
   # Restart node with migrated genesis state
   cp genesis.json ~/.kvd/config/genesis.json
