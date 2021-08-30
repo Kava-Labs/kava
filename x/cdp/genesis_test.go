@@ -1,6 +1,7 @@
 package cdp_test
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 	"testing"
@@ -166,6 +167,40 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 
 func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 
+	cdps := cdp.CDPs{
+		{
+			ID:              2,
+			Owner:           suite.addrs[0],
+			Type:            "xrp-a",
+			Collateral:      c("xrp", 200000000),
+			Principal:       c("usdx", 10000000),
+			AccumulatedFees: c("usdx", 0),
+			FeesUpdated:     suite.genTime,
+			InterestFactor:  sdk.NewDec(1),
+		},
+	}
+
+	genTotalPrincipals := cdp.GenesisTotalPrincipals{
+		cdp.NewGenesisTotalPrincipal("btc-a", sdk.ZeroInt()),
+		cdp.NewGenesisTotalPrincipal("xrp-a", sdk.ZeroInt()),
+	}
+
+	var deposits cdp.Deposits
+	for _, c := range cdps {
+		deposit := cdp.Deposit{
+			CdpID:     c.ID,
+			Depositor: c.Owner,
+			Amount:    c.Collateral,
+		}
+		deposits = append(deposits, deposit)
+
+		for i, p := range genTotalPrincipals {
+			if p.CollateralType == c.Type {
+				genTotalPrincipals[i].TotalPrincipal = genTotalPrincipals[i].TotalPrincipal.Add(c.Principal.Amount)
+			}
+		}
+	}
+
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
 			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
@@ -215,16 +250,13 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		StartingCdpID: cdp.DefaultCdpStartingID,
 		DebtDenom:     cdp.DefaultDebtDenom,
 		GovDenom:      cdp.DefaultGovDenom,
-		CDPs:          cdp.CDPs{},
-		Deposits:      cdp.Deposits{},
+		CDPs:          cdps,
+		Deposits:      deposits,
 		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
-			cdp.NewGenesisAccumulationTime("btc-a", time.Time{}, sdk.OneDec()),
-			cdp.NewGenesisAccumulationTime("xrp-a", time.Time{}, sdk.OneDec()),
+			cdp.NewGenesisAccumulationTime("btc-a", suite.genTime, sdk.OneDec()),
+			cdp.NewGenesisAccumulationTime("xrp-a", suite.genTime, sdk.OneDec()),
 		},
-		TotalPrincipals: cdp.GenesisTotalPrincipals{
-			cdp.NewGenesisTotalPrincipal("btc-a", sdk.ZeroInt()),
-			cdp.NewGenesisTotalPrincipal("xrp-a", sdk.ZeroInt()),
-		},
+		TotalPrincipals: genTotalPrincipals,
 	}
 
 	suite.NotPanics(func() {
@@ -235,17 +267,43 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		)
 	})
 
+	// We run the BeginBlocker at time.Now() to accumulate interest
+	suite.ctx = suite.ctx.WithBlockTime(time.Now())
+	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}, suite.keeper)
+
 	expectedGenesis := cdpGenesis
 
+	// Update previous accrual times in expected genesis
 	var expectedPrevAccTimes cdp.GenesisAccumulationTimes
 	for _, prevAccTime := range cdpGenesis.PreviousAccumulationTimes {
-		prevAccTime.PreviousAccumulationTime = suite.genTime
+		time, found := suite.keeper.GetPreviousAccrualTime(suite.ctx, prevAccTime.CollateralType)
+		if !found {
+			panic(fmt.Sprintf("couldn't find previous accrual time for %s", prevAccTime.CollateralType))
+		}
+		prevAccTime.PreviousAccumulationTime = time
+
+		interestFactor, found := suite.keeper.GetInterestFactor(suite.ctx, prevAccTime.CollateralType)
+		if !found {
+			panic(fmt.Sprintf("couldn't find interest factor for %s", prevAccTime.CollateralType))
+		}
+		prevAccTime.InterestFactor = interestFactor
+
 		expectedPrevAccTimes = append(expectedPrevAccTimes, prevAccTime)
 	}
 	expectedGenesis.PreviousAccumulationTimes = expectedPrevAccTimes
 
-	// TODO: export panics unless BeginBlocker is run at least once because previous accrual times are not set in state
-	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}, suite.keeper)
+	// Update total principals
+	var totalPrincipals cdp.GenesisTotalPrincipals
+	for _, p := range expectedGenesis.TotalPrincipals {
+		totalPrincipal := suite.keeper.GetTotalPrincipal(suite.ctx, p.CollateralType, "usdx")
+		p.TotalPrincipal = totalPrincipal
+		totalPrincipals = append(totalPrincipals, p)
+	}
+	expectedGenesis.TotalPrincipals = totalPrincipals
+
+	// Update CDPs
+	expectedGenesis.CDPs = suite.keeper.GetAllCdps(suite.ctx)
+
 	exportedGenesis := cdp.ExportGenesis(suite.ctx, suite.keeper)
 
 	// Sort TotalPrincipals in both genesis files so slice order matches
