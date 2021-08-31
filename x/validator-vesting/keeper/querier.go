@@ -309,7 +309,7 @@ func getCirculatingSupplySWP(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 	}
 
 	// Repeated tokens released
-	teamSwp := int64(5_859_375)
+	teamSwp := int64(4_687_500)
 	treasurySwp := int64(5_859_375)
 	monthlyStakersSwp := int64(520_833)
 	monthlyLPIncentivesSwp := int64(2_343_750)
