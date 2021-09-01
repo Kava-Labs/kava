@@ -75,9 +75,9 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "get liquidity provider deposits",
 		Long: strings.TrimSpace(`get liquidity provider deposits:
 		Example:
-		$ kvcli q swap deposits --pool bnb/usdx
+		$ kvcli q swap deposits --pool bnb:usdx
 		$ kvcli q swap deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
-		$ kvcli q swap deposits --pool bnb/usdx --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
+		$ kvcli q swap deposits --pool bnb:usdx --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
 		$ kvcli q swap deposits --page=2 --limit=100
 		`,
 		),
@@ -132,7 +132,7 @@ func queryPoolCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "get pool statistics",
 		Long: strings.TrimSpace(`get statistics about a given liquidity pool:
 		Example:
-		$ kvcli q swap pool ukava/usdx`,
+		$ kvcli q swap pool ukava:usdx`,
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
