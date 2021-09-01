@@ -25,6 +25,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return getCirculatingSupplyHARD(ctx, req, keeper)
 		case types.QueryCirculatingSupplyUSDX:
 			return getCirculatingSupplyUSDX(ctx, req, keeper)
+		case types.QueryCirculatingSupplySWP:
+			return getCirculatingSupplySWP(ctx, req, keeper)
 		case types.QueryTotalSupplyHARD:
 			return getTotalSupplyHARD(ctx, req, keeper)
 		case types.QueryTotalSupplyUSDX:
@@ -273,6 +275,97 @@ func getCirculatingSupplyUSDX(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("usdx")
 	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
 	bz, err := types.ModuleCdc.MarshalJSON(supplyInt)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func getCirculatingSupplySWP(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	// Start values
+	year := 2021
+	month := 8
+
+	var supplyIncreaseDates []time.Time
+
+	// Add month times for 4 years
+	for i := 0; i < 12*4; i++ {
+		// Always day 30 unless it's Feb
+		day := 30
+		if month == 2 {
+			day = 28
+		}
+
+		date := time.Date(year, time.Month(month), day, 15 /* hour */, 0, 0, 0, time.UTC)
+		supplyIncreaseDates = append(supplyIncreaseDates, date)
+
+		// Update year and month
+		if month == 12 {
+			month = 1
+			year += 1
+		} else {
+			month += 1
+		}
+	}
+
+	// Repeated tokens released
+	teamSwp := int64(4_687_500)
+	treasurySwp := int64(5_859_375)
+	monthlyStakersSwp := int64(520_833)
+	monthlyLPIncentivesSwp := int64(2_343_750)
+
+	// []{Ecosystem, Team, Treasury, Kava Stakers, LP Incentives}
+	scheduleAmounts := [][]int64{
+		{12_500_000, 0, 15_625_000, monthlyStakersSwp, monthlyLPIncentivesSwp},  // *** Year ONE ***
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 1
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 2
+		{0, 0, treasurySwp, monthlyStakersSwp, monthlyLPIncentivesSwp},          // 3
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 4
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 5
+		{0, 0, treasurySwp, monthlyStakersSwp, monthlyLPIncentivesSwp},          // 6
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 7
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 8
+		{0, 0, treasurySwp, monthlyStakersSwp, monthlyLPIncentivesSwp},          // 9
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 10
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 11
+		{0, 18_750_000, treasurySwp, monthlyStakersSwp, monthlyLPIncentivesSwp}, // *** Year TWO ***
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 13
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 14
+		{0, teamSwp, treasurySwp, monthlyStakersSwp, monthlyLPIncentivesSwp},    // 15
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 16
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 17
+		{0, teamSwp, treasurySwp, monthlyStakersSwp, monthlyLPIncentivesSwp},    // 18
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 19
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 20
+		{0, teamSwp, treasurySwp, monthlyStakersSwp, monthlyLPIncentivesSwp},    // 21
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 22
+		{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp},                    // 23
+		{0, teamSwp, treasurySwp, monthlyStakersSwp, monthlyLPIncentivesSwp},    // *** Year THREE ***
+	}
+
+	// Months 25-47 are the same
+	for i := 0; i < 23; i++ {
+		scheduleAmounts = append(scheduleAmounts, []int64{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp})
+	}
+
+	circSupply := sdk.ZeroInt()
+	blockTime := ctx.BlockTime()
+
+	for i := 0; i < len(scheduleAmounts); i++ {
+		if blockTime.Before(supplyIncreaseDates[i]) {
+			break
+		}
+
+		// Sum up each category of token release
+		monthTotal := int64(0)
+		for _, val := range scheduleAmounts[i] {
+			monthTotal += val
+		}
+
+		circSupply = circSupply.Add(sdk.NewInt(monthTotal))
+	}
+
+	bz, err := keeper.cdc.MarshalJSON(circSupply)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
