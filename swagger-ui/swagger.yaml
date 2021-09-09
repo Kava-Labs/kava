@@ -45,6 +45,8 @@ tags:
     description: Kavadist module APIs
   - name: Issuance
     description: Issuance module APIs
+  - name: Vesting
+    description: Validator vesting module APIs
   - name: Misc
     description: Query app version
 schemes:
@@ -1591,6 +1593,139 @@ paths:
                 x-nullable: true
                 items:
                   $ref: "#/definitions/IncentiveParams"
+        500:
+          description: Server internal error
+  /vesting/circulatingsupply:
+    get:
+      summary: Get the current circulating supply of KAVA
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        200:
+          description: KAVA circulating supply
+          properties:
+            height:
+              type: string
+              example: "100"
+            result:
+              type: string
+              example: "81443180"
+        500:
+          description: Server internal error
+  /vesting/totalsupply:
+    get:
+      summary: Get the total supply of KAVA
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        200:
+          description: KAVA total supply
+          properties:
+            height:
+              type: string
+              example: "100"
+            result:
+              type: string
+              example: "120000000"
+        500:
+          description: Server internal error
+  /vesting/circulatingsupplyhard:
+    get:
+      summary: Get the current circulating supply of HARD
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        200:
+          description: HARD circulating supply
+          properties:
+            height:
+              type: string
+              example: "100"
+            result:
+              type: string
+              example: "63750000"
+        500:
+          description: Server internal error
+  /vesting/totalsupplyhard:
+    get:
+      summary: Get the total supply of HARD
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        200:
+          description: HARD total supply
+          properties:
+            height:
+              type: string
+              example: "100"
+            result:
+              type: string
+              example: "200000000"
+        500:
+          description: Server internal error
+  /vesting/circulatingsupplyswp:
+    get:
+      summary: Get the current circulating supply of SWP
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        200:
+          description: SWP circulating supply
+          properties:
+            height:
+              type: string
+              example: "100"
+            result:
+              type: string
+              example: "63750000"
+        500:
+          description: Server internal error
+  /vesting/circulatingsupplyusdx:
+    get:
+      summary: Get the current circulating supply of USDX
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        200:
+          description: USDX circulating supply
+          properties:
+            height:
+              type: string
+              example: "100"
+            result:
+              type: string
+              example: "63750000"
+        500:
+          description: Server internal error
+  /vesting/totalsupplyusdx:
+    get:
+      summary: Get the total supply of USDX
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        200:
+          description: USDX total supply
+          properties:
+            height:
+              type: string
+              example: "100"
+            result:
+              type: string
+              example: "200000000"
         500:
           description: Server internal error
   /committee/committees/{committee-id}/proposals:
