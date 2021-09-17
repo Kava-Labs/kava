@@ -737,7 +737,7 @@ func addressesEqual(addrs1, addrs2 []sdk.AccAddress) bool {
 	return areEqual
 }
 
-// DefaultNextProposalID is the starting poiint for proposal IDs.
+// DefaultNextProposalID is the starting point for proposal IDs.
 const DefaultNextProposalID uint64 = 1
 
 // GenesisState is state that must be provided at chain genesis.

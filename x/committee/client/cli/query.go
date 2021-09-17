@@ -31,6 +31,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdQueryCommittee(queryRoute, cdc),
 		GetCmdQueryCommittees(queryRoute, cdc),
 		// proposals
+		GetCmdQueryNextProposalID(queryRoute, cdc),
 		GetCmdQueryProposal(queryRoute, cdc),
 		GetCmdQueryProposals(queryRoute, cdc),
 		// votes
@@ -114,6 +115,35 @@ func GetCmdQueryCommittees(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // ------------------------------------------
 //				Proposals
 // ------------------------------------------
+
+// GetCmdQueryNextProposalID implements a query next proposal ID command.
+func GetCmdQueryNextProposalID(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "next-proposal-id",
+		Short:   "Query the next proposal ID",
+		Args:    cobra.ExactArgs(0),
+		Example: fmt.Sprintf("%s query %s next-proposal-id", version.ClientName, types.ModuleName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryNextProposalID), nil)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var nextProposalID uint64
+			err = cdc.UnmarshalJSON(res, &nextProposalID)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(nextProposalID)
+		},
+	}
+	return cmd
+}
 
 // GetCmdQueryProposal implements the query proposal command.
 func GetCmdQueryProposal(queryRoute string, cdc *codec.Codec) *cobra.Command {
