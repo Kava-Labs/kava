@@ -14,26 +14,26 @@ Reference implementation of Kava, a blockchain for cross-chain DeFi. Built using
 
 ## Mainnet
 
-The current recommended version of the software for mainnet is [v0.14.1](https://github.com/Kava-Labs/kava/releases/tag/v0.14.1). The master branch of this repository often contains considerable development work since the last mainnet release and is __not__ runnable on mainnet.
+The current recommended version of the software for mainnet is [v0.15.1](https://github.com/Kava-Labs/kava/releases/tag/v0.15.1). The master branch of this repository often contains considerable development work since the last mainnet release and is __not__ runnable on mainnet.
 
 ### Installation
 
 ```bash
-git checkout v0.14.1
+git checkout v0.15.1
 make install
 ```
 
 ### Upgrade
 
-The scheduled mainnet upgrade to `kava-7` took place on April 8th, 2021 at 15:00 UTC. The current version of Kava for `kava-7` is [__v0.14.1__](https://github.com/Kava-Labs/kava/releases/tag/v0.14.1).
+The scheduled mainnet upgrade to `kava-8` took place on August 30th, 2021 at 15:00 UTC. The current version of Kava for `kava-8` is [__v0.15.1__](https://github.com/Kava-Labs/kava/releases/tag/v0.15.1).
 
-The canonical genesis file can be found [here](https://github.com/Kava-Labs/launch/tree/master/kava-4)
+The canonical genesis file can be found [here](https://github.com/Kava-Labs/launch/tree/master/kava-8)
 
 The canonical genesis file hash is
 
 ```
 jq -S -c -M '' genesis.json | shasum -a 256
-9dbff5a0fb1a7aa20247f73e974bfd4a11090252768869ef8ccb23a515a01c51  -
+f0c90f0cbf96d230a83cd2309b8fd032e52d7fb933881541472df1bf2703a939  -
 ```
 
 ## Testnet
