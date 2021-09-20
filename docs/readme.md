@@ -38,7 +38,7 @@ f0c90f0cbf96d230a83cd2309b8fd032e52d7fb933881541472df1bf2703a939  -
 
 ### Validator Guide
 
-Use this [ guide](https://github.com/Kava-Labs/kava/blob/master/docs/validatorguide.md) to set up a mainnet validator. Note that this is a minimal guide and does not cover more advanced topics like [sentry node architecture](https://github.com/stakefish/cosmos-validator-design) and [double signing protection](https://github.com/tendermint/tmkms). It is strongly recommended that any parties considering validating do additional research.  If you have questions, please join the active conversation in the #validators thread of the [__Kava Discord Channel__](https://discord.com/invite/kQzh3Uv).
+Use this [guide](https://github.com/Kava-Labs/kava/blob/master/docs/validatorguide.md) to set up a mainnet validator. Note that this is a minimal guide and does not cover more advanced topics like [sentry node architecture](https://github.com/stakefish/cosmos-validator-design) and [double signing protection](https://github.com/tendermint/tmkms). It is strongly recommended that any parties considering validating do additional research.  If you have questions, please join the active conversation in the #validators thread of the [__Kava Discord Channel__](https://discord.com/invite/kQzh3Uv).
 
 ## Testnet
 
