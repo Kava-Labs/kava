@@ -1,4 +1,4 @@
-# kava-8 Update Guide
+# kava-8 Validator Update Guide
 The kava-8 update includes new features. This document contains important information about the new functionality and breaking changes.
 
 kava-8 will use the same major version of the cosmos-sdk (v0.39.x).  kava-8 will have the same golang compatibility as kava-7, requiring v1.13+. Golang v1.15 has been tested and is suitable for use on kava-8 mainnet.
@@ -22,7 +22,7 @@ Voting in the `x/committee` module has been updated to support Yes, No, and Abst
 - **MsgVote** takes three arguments: Proposal ID (uint64), Voter (sdk.AccAddress), and Vote Type (VoteType). Valid Vote Types are “yes”, “y,” “no”, “n”, “abstain”, and “a”.
 
 ## New Features
-### SWAP Protocol
+#### SWAP Protocol
 Kava-8 introduces SWAP protocol, a decentralized exchange that enables users to swap tokens against liquidity pools. SWAP protocol has several new messages:
 
 
@@ -52,7 +52,7 @@ The **SWP Governance Committee** will have permissions to change the following p
     - *Delegator reward periods*: SWP token rewards for KAVA delegators.
 
 ## Kava REST API
-Kava’s REST API supports all Kava-7 changes and features. To minimize compatibility issues, commonly used endpoints are still supported and have not been deprecated. API documentation can be found here.
+Kava’s REST API supports all Kava-8 changes and features. To minimize compatibility issues, commonly used endpoints are still supported and have not been deprecated. API documentation can be found here.
 Testing
 
 Kava-testnet-13000 is a publicly available testnet (http://app.swap-testnet.kava.io/) to test validation and external integrations. Publicly available REST and RPC endpoints are:
