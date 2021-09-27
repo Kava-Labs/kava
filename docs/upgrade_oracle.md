@@ -6,7 +6,7 @@ The Kava blockchain is upgrading and minor updates are needed for oracles
 2. In your `.env` configuration file, add an entry for `FEE`. This will set the default fee (in ukava) for each oracle transaction (can be 0).
    - `FEE=”10000”`
 3. In your `.env` configuration file, update the MARKET_IDS entry to include the latest markets for kava-5:
-   - `MARKET_IDS="bnb:usd,bnb:usd:30,btc:usd,btc:usd:30,xrp:usd,xrp:usd:30,busd:usd,busd:usd:30,kava:usd,kava:usd:30,hard:usd,hard:usd:30,usdx:usd"`
+   - `MARKET_IDS="bnb:usd,bnb:usd:30,btc:usd,btc:usd:30,xrp:usd,xrp:usd:30,busd:usd,busd:usd:30,kava:usd,kava:usd:30,hard:usd,hard:usd:30,usdx:usd,usdx:usd:30"`
 4. Restart your oracle process
 
 ## Update Guide For Chainlink Oracle Operators
