@@ -38,9 +38,9 @@ f0c90f0cbf96d230a83cd2309b8fd032e52d7fb933881541472df1bf2703a939  -
 
 For additional information about upgrades:
 
-- Upgrading a [Validator](https://github.com/Kava-Labs/kava/blob/master/docs/upgrade_validator.md)
-- Upgrading a [Wallet](https://github.com/Kava-Labs/kava/blob/master/docs/upgrade_wallet.md)
-- Upgrading an [Oracle](https://github.com/Kava-Labs/kava/blob/master/docs/upgrade_oracle.md)
+- Upgrading a [Validator](https://github.com/Kava-Labs/kava/blob/master/docs/kava-8/upgrade_validator.md)
+- Upgrading a [Wallet](https://github.com/Kava-Labs/kava/blob/master/docs//kava-8/upgrade_wallet.md)
+- Upgrading an [Oracle](https://github.com/Kava-Labs/kava/blob/master/docs//kava-8/upgrade_oracle.md)
 
 ### Validator Guide
 
