@@ -41,7 +41,7 @@ source ~/.profile
 To verify that Go is installed:
 ```bash
 go version
-# Should return go version go1.15.14 linux/amd64
+# Should return go version go1.17.1 linux/amd64
 ```
 
 ## Install Kava
