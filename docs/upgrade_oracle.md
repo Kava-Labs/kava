@@ -31,5 +31,6 @@ The Kava blockchain is upgrading and minor updates are needed for oracles
    - kava:usd:30
    - hard:usd
    - hard:usd:30
-   - usdx:usd
+   - usdx:usd 
+   - usdx:usd:30
 
