@@ -188,12 +188,12 @@ func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 	case types.MemberCommittee:
 		currVotes := keeper.TallyMemberCommitteeVotes(ctx, params.ProposalID)
 		possibleVotes := sdk.NewDec(int64(len(com.Members)))
-		memberPollingStatus := types.NewProposalPollingStatus(params.ProposalID, currVotes,
+		memberPollingStatus := types.NewProposalPollingStatus(params.ProposalID, currVotes, sdk.ZeroDec(),
 			currVotes, possibleVotes, com.VoteThreshold, sdk.Dec{Int: nil})
 		pollingStatus = memberPollingStatus
 	case types.TokenCommittee:
-		yesVotes, _, currVotes, possibleVotes := keeper.TallyTokenCommitteeVotes(ctx, params.ProposalID, com.TallyDenom)
-		tokenPollingStatus := types.NewProposalPollingStatus(params.ProposalID, yesVotes,
+		yesVotes, noVotes, currVotes, possibleVotes := keeper.TallyTokenCommitteeVotes(ctx, params.ProposalID, com.TallyDenom)
+		tokenPollingStatus := types.NewProposalPollingStatus(params.ProposalID, yesVotes, noVotes,
 			currVotes, possibleVotes, com.VoteThreshold, com.Quorum)
 		pollingStatus = tokenPollingStatus
 	}
