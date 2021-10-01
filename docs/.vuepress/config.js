@@ -73,7 +73,7 @@ module.exports = {
       services: [
         {
           service: "twitter",
-          url: "https://twitter.com/kava_labs"
+          url: "https://twitter.com/kava_platform"
         },
         {
           service: "medium",
