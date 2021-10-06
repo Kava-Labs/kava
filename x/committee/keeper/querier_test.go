@@ -245,6 +245,7 @@ func (suite *QuerierTestSuite) TestQueryTally() {
 	expectedPollingStatus := types.ProposalPollingStatus{
 		ProposalID:    1,
 		YesVotes:      sdk.NewDec(int64(len(suite.votes[propID]))),
+		NoVotes:       sdk.ZeroDec(),
 		CurrentVotes:  sdk.NewDec(int64(len(suite.votes[propID]))),
 		PossibleVotes: d("3.0"),
 		VoteThreshold: d("0.667"),
