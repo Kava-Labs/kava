@@ -66,17 +66,19 @@ func NewQueryRawParamsParams(subspace, key string) QueryRawParamsParams {
 type ProposalPollingStatus struct {
 	ProposalID    uint64  `json:"proposal_id" yaml:"proposal_id"`
 	YesVotes      sdk.Dec `json:"yes_votes" yaml:"yes_votes"`
+	NoVotes       sdk.Dec `json:"no_votes" yaml:"no_votes"`
 	CurrentVotes  sdk.Dec `json:"current_votes" yaml:"current_votes"`
 	PossibleVotes sdk.Dec `json:"possible_votes" yaml:"possible_votes"`
 	VoteThreshold sdk.Dec `json:"vote_threshold" yaml:"vote_threshold"`
 	Quorum        sdk.Dec `json:"quorum" yaml:"quorum"`
 }
 
-func NewProposalPollingStatus(proposalID uint64, yesVotes, currentVotes, possibleVotes,
+func NewProposalPollingStatus(proposalID uint64, yesVotes, noVotes, currentVotes, possibleVotes,
 	voteThreshold, quorum sdk.Dec) ProposalPollingStatus {
 	return ProposalPollingStatus{
 		ProposalID:    proposalID,
 		YesVotes:      yesVotes,
+		NoVotes:       noVotes,
 		CurrentVotes:  currentVotes,
 		PossibleVotes: possibleVotes,
 		VoteThreshold: voteThreshold,
@@ -88,11 +90,12 @@ func NewProposalPollingStatus(proposalID uint64, yesVotes, currentVotes, possibl
 func (p ProposalPollingStatus) String() string {
 	return fmt.Sprintf(`Proposal ID: %d
 	Yes votes:         %d
+	No votes:          %d
 	Current votes:     %d
   	Possible votes:    %d
   	Vote threshold:    %d
 	Quorum:        	   %d`,
-		p.ProposalID, p.YesVotes, p.CurrentVotes,
+		p.ProposalID, p.YesVotes, p.NoVotes, p.CurrentVotes,
 		p.PossibleVotes, p.VoteThreshold, p.Quorum,
 	)
 }

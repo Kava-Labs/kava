@@ -258,12 +258,12 @@ func (k Keeper) CloseProposal(ctx sdk.Context, proposal types.Proposal, outcome 
 		case types.MemberCommittee:
 			currVotes := k.TallyMemberCommitteeVotes(ctx, proposal.ID)
 			possibleVotes := sdk.NewDec(int64(len(com.Members)))
-			memberPollingStatus := types.NewProposalPollingStatus(proposal.ID, currVotes,
+			memberPollingStatus := types.NewProposalPollingStatus(proposal.ID, currVotes, sdk.ZeroDec(),
 				currVotes, possibleVotes, com.VoteThreshold, sdk.Dec{Int: nil})
 			proposalTally = memberPollingStatus
 		case types.TokenCommittee:
-			yesVotes, _, currVotes, possibleVotes := k.TallyTokenCommitteeVotes(ctx, proposal.ID, com.TallyDenom)
-			tokenPollingStatus := types.NewProposalPollingStatus(proposal.ID, yesVotes,
+			yesVotes, noVotes, currVotes, possibleVotes := k.TallyTokenCommitteeVotes(ctx, proposal.ID, com.TallyDenom)
+			tokenPollingStatus := types.NewProposalPollingStatus(proposal.ID, yesVotes, noVotes,
 				currVotes, possibleVotes, com.VoteThreshold, com.Quorum)
 			proposalTally = tokenPollingStatus
 		}
