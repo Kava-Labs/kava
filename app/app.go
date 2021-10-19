@@ -34,7 +34,6 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 
 	"github.com/kava-labs/kava/app/ante"
-	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 const (
@@ -52,7 +51,6 @@ var (
 	ModuleBasics = module.NewBasicManager(
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
-		validatorvesting.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
@@ -73,13 +71,12 @@ var (
 	// if these are changed, then the permissions
 	// must also be migrated during a chain upgrade
 	mAccPerms = map[string][]string{
-		auth.FeeCollectorName:       nil,
-		distr.ModuleName:            nil,
-		mint.ModuleName:             {supply.Minter},
-		staking.BondedPoolName:      {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName:   {supply.Burner, supply.Staking},
-		gov.ModuleName:              {supply.Burner},
-		validatorvesting.ModuleName: {supply.Burner},
+		auth.FeeCollectorName:     nil,
+		distr.ModuleName:          nil,
+		mint.ModuleName:           {supply.Minter},
+		staking.BondedPoolName:    {supply.Burner, supply.Staking},
+		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+		gov.ModuleName:            {supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -125,7 +122,6 @@ type App struct {
 	upgradeKeeper  upgrade.Keeper
 	paramsKeeper   params.Keeper
 	evidenceKeeper evidence.Keeper
-	vvKeeper       validatorvesting.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -147,7 +143,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
-		validatorvesting.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -259,15 +254,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		govRouter,
 	)
 
-	app.vvKeeper = validatorvesting.NewKeeper(
-		app.cdc,
-		keys[validatorvesting.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
-		app.supplyKeeper,
-		&stakingKeeper,
-	)
-
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
 	app.stakingKeeper = *stakingKeeper.SetHooks(
@@ -288,7 +274,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
-		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -298,14 +283,13 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		validatorvesting.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName)
 
 	app.mm.SetOrderInitGenesis(
 		auth.ModuleName, // loads all accounts - should run before any module with a module account
-		validatorvesting.ModuleName, distr.ModuleName,
+		distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
@@ -322,7 +306,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// transactions.
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(app.accountKeeper),
-		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),

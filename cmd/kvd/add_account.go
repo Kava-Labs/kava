@@ -22,8 +22,6 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-
-	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 const (
@@ -93,10 +91,6 @@ func AddGenesisAccountCmd(
 				return fmt.Errorf("failed to parse vesting amount: %w", err)
 			}
 			vestingPeriodsFile := viper.GetString(flagVestingPeriodsFile)
-			validatorVestingFile := viper.GetString(flagValidatorVestingFile)
-			if vestingPeriodsFile != "" && validatorVestingFile != "" {
-				return errors.New("Cannot specify both vesting-periods-file and validator-vesting-file")
-			}
 
 			// create concrete account type based on input parameters
 			var genAccount authexported.GenesisAccount
@@ -117,16 +111,6 @@ func AddGenesisAccountCmd(
 						return fmt.Errorf("failed to parse periodic vesting account json file: %w", err)
 					}
 					genAccount = vesting.NewPeriodicVestingAccountRaw(baseVestingAccount, vestingStart, vestingPeriodsJSON.Periods)
-				case validatorVestingFile != "":
-					validatorVestingJSON, err := ParseValidatorVestingJSON(cdc, validatorVestingFile)
-					if err != nil {
-						return fmt.Errorf("failed to parse validator vesting account json file: %w", err)
-					}
-					consAddr, err := sdk.ConsAddressFromHex(validatorVestingJSON.ValidatorAddress)
-					if err != nil {
-						return fmt.Errorf("failed to convert validator address to bytes: %w", err)
-					}
-					genAccount = validatorvesting.NewValidatorVestingAccountRaw(baseVestingAccount, vestingStart, validatorVestingJSON.Periods, consAddr, validatorVestingJSON.ReturnAddress, validatorVestingJSON.SigningThreshold)
 				case vestingStart != 0 && vestingEnd != 0:
 					genAccount = vesting.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart)
 

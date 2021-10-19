@@ -29,8 +29,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
-
-	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 var (
@@ -80,7 +78,6 @@ func (tApp TestApp) GetGovKeeper() gov.Keeper             { return tApp.govKeepe
 func (tApp TestApp) GetCrisisKeeper() crisis.Keeper       { return tApp.crisisKeeper }
 func (tApp TestApp) GetUpgradeKeeper() upgrade.Keeper     { return tApp.upgradeKeeper }
 func (tApp TestApp) GetParamsKeeper() params.Keeper       { return tApp.paramsKeeper }
-func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
 
 // InitializeFromGenesisStates calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
@@ -228,16 +225,4 @@ func (builder AuthGenesisBuilder) WithSimplePeriodicVestingAccount(address sdk.A
 	periodicVestingAccount := vesting.NewPeriodicVestingAccountRaw(baseVestingAccount, firstPeriodStartTimestamp, periods)
 
 	return builder.WithAccounts(periodicVestingAccount)
-}
-
-// WithEmptyValidatorVestingAccount adds a stub validator vesting account to the genesis state.
-func (builder AuthGenesisBuilder) WithEmptyValidatorVestingAccount(address sdk.AccAddress) AuthGenesisBuilder {
-	// TODO create a validator vesting account builder and remove this method
-	bacc := auth.NewBaseAccount(address, nil, nil, 0, 0)
-	bva, err := vesting.NewBaseVestingAccount(bacc, nil, 1)
-	if err != nil {
-		panic(err.Error())
-	}
-	account := validatorvesting.NewValidatorVestingAccountRaw(bva, 0, nil, sdk.ConsAddress{}, nil, 90)
-	return builder.WithAccounts(account)
 }
