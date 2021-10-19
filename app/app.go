@@ -1,26 +1,24 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"os"
 
-	dbm "github.com/tendermint/tm-db"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/server/api"
+	"github.com/cosmos/cosmos-sdk/server/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -28,12 +26,14 @@ import (
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -44,6 +44,7 @@ import (
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -51,11 +52,13 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
-	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmjson "github.com/tendermint/tendermint/libs/json"
+	"github.com/tendermint/tendermint/libs/log"
+	tmos "github.com/tendermint/tendermint/libs/os"
+	dbm "github.com/tendermint/tm-db"
 
-	"github.com/kava-labs/kava/app/ante"
+	kavaappparams "github.com/kava-labs/kava/app/params"
 )
 
 const (
@@ -79,8 +82,7 @@ var (
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler,
-			distr.ProposalHandler,
-			upgradeclient.ProposalHandler, // TODO remove upgrade
+			distrclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -109,7 +111,8 @@ var (
 )
 
 // Verify app interface at compile time
-var _ simapp.App = (*App)(nil)
+// var _ simapp.App = (*App)(nil) // TODO
+var _ servertypes.Application = (*App)(nil)
 
 // AppOptions bundles several configuration params for an App.
 // The zero value can be used as a sensible default.
@@ -135,7 +138,7 @@ type App struct {
 	tkeys map[string]*sdk.TransientStoreKey
 
 	// keepers from all the modules
-	accountKeeper  auth.AccountKeeper
+	accountKeeper  authkeeper.AccountKeeper
 	bankKeeper     bankkeeper.Keeper
 	stakingKeeper  stakingkeeper.Keeper
 	slashingKeeper slashingkeeper.Keeper
@@ -143,7 +146,6 @@ type App struct {
 	distrKeeper    distrkeeper.Keeper
 	govKeeper      govkeeper.Keeper
 	crisisKeeper   crisiskeeper.Keeper
-	upgradeKeeper  upgradekeeper.Keeper
 	paramsKeeper   paramskeeper.Keeper
 	evidenceKeeper evidencekeeper.Keeper
 
@@ -151,7 +153,8 @@ type App struct {
 	mm *module.Manager
 
 	// simulation manager
-	sm *module.SimulationManager
+	sm           *module.SimulationManager
+	configurator module.Configurator // TODO what is this?
 }
 
 // NewApp returns a reference to an initialized App.
@@ -163,13 +166,13 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 
 	bApp := baseapp.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
-	bApp.SetAppVersion(version.Version)
+	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
 	keys := sdk.NewKVStoreKeys( // TODO
-		baseapp.MainStoreKey, authtypes.StoreKey, stakingtypes.StoreKey,
+		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, paramstypes.StoreKey, upgradetypes.StoreKey, evidencetypes.StoreKey,
+		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -184,46 +187,44 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	}
 
 	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(
+	app.paramsKeeper = paramskeeper.NewKeeper(
 		appCodec,
 		legacyAmino,
 		keys[paramstypes.StoreKey],
 		tkeys[paramstypes.TStoreKey],
 	)
-	// TODO
-	// authSubspace := app.paramsKeeper.Subspace(authtypes.DefaultParamspace)
-	// bankSubspace := app.paramsKeeper.Subspace(banktypes.DefaultParamspace)
-	// stakingSubspace := app.paramsKeeper.Subspace(stakingtypes.DefaultParamspace)
-	// mintSubspace := app.paramsKeeper.Subspace(minttypes.DefaultParamspace)
-	// distrSubspace := app.paramsKeeper.Subspace(distrtypes.DefaultParamspace)
-	// slashingSubspace := app.paramsKeeper.Subspace(slashingtypes.DefaultParamspace)
-	// govSubspace := app.paramsKeeper.Subspace(govtypes.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
-	// evidenceSubspace := app.paramsKeeper.Subspace(evidencetypes.DefaultParamspace)
-	// crisisSubspace := app.paramsKeeper.Subspace(crisistypes.DefaultParamspace)
+	authSubspace := app.paramsKeeper.Subspace(authtypes.ModuleName)
+	bankSubspace := app.paramsKeeper.Subspace(banktypes.ModuleName)
+	stakingSubspace := app.paramsKeeper.Subspace(stakingtypes.ModuleName)
+	mintSubspace := app.paramsKeeper.Subspace(minttypes.ModuleName)
+	distrSubspace := app.paramsKeeper.Subspace(distrtypes.ModuleName)
+	slashingSubspace := app.paramsKeeper.Subspace(slashingtypes.ModuleName)
+	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.ModuleName)
 
 	// add keepers
-	app.accountKeeper = auth.NewAccountKeeper(
-		appCdc,
+	app.accountKeeper = authkeeper.NewAccountKeeper(
+		appCodec,
 		keys[authtypes.StoreKey],
 		authSubspace,
 		authtypes.ProtoBaseAccount,
-		maccPerms,
+		mAccPerms,
 	)
-	app.bankKeeper = bank.NewBaseKeeper(
+	app.bankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec,
 		keys[banktypes.StoreKey],
 		app.accountKeeper,
 		bankSubspace,
 		app.ModuleAccountAddrs(), // TODO this was black listed addresses previously, are they still the same?
 	)
-	stakingKeeper := staking.NewKeeper(
+	stakingKeeper := stakingkeeper.NewKeeper(
 		appCodec,
 		keys[stakingtypes.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
 		stakingSubspace,
 	)
-	app.mintKeeper = mint.NewKeeper(
+	app.mintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		keys[minttypes.StoreKey],
 		mintSubspace,
@@ -232,36 +233,31 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
 	)
-	app.distrKeeper = distr.NewKeeper(
+	app.distrKeeper = distrkeeper.NewKeeper(
 		appCodec,
 		keys[distrtypes.StoreKey],
 		distrSubspace,
-		&stakingKeeper,
 		app.accountKeeper,
 		app.bankKeeper,
+		&stakingKeeper,
 		authtypes.FeeCollectorName,
 		app.ModuleAccountAddrs(),
 	)
-	app.slashingKeeper = slashing.NewKeeper(
+	app.slashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		keys[slashingtypes.StoreKey],
 		&stakingKeeper,
 		slashingSubspace,
 	)
-	app.crisisKeeper = crisis.NewKeeper(
+	app.crisisKeeper = crisiskeeper.NewKeeper(
 		crisisSubspace,
 		app.invCheckPeriod, // TODO is this field still on the app?
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
 	)
-	app.upgradeKeeper = upgrade.NewKeeper(
-		appOpts.SkipUpgradeHeights,
-		keys[upgradetypes.StoreKey],
-		appCodec,
-	)
 
 	// create evidence keeper with router
-	app.evidenceKeeper = evidence.NewKeeper(
+	app.evidenceKeeper = *evidencekeeper.NewKeeper(
 		appCodec,
 		keys[evidencetypes.StoreKey],
 		&app.stakingKeeper,
@@ -276,10 +272,9 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	govRouter := govtypes.NewRouter()
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
-		AddRoute(paramstypes.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
-	app.govKeeper = gov.NewKeeper(
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[govtypes.StoreKey],
 		govSubspace,
@@ -292,22 +287,21 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
 	app.stakingKeeper = *stakingKeeper.SetHooks(
-		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
+		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
-		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx encodingConfig.TxConfig,),
-		auth.NewAppModule(app.accountKeeper),
+		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
+		auth.NewAppModule(appCodec, app.accountKeeper, nil), // TODO what's the nil for?
 		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		crisis.NewAppModule(&app.crisisKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
-		mint.NewAppModule(app.mintKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
-		upgrade.NewAppModule(app.upgradeKeeper),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+		crisis.NewAppModule(&app.crisisKeeper, false), // TODO read skip gen invarients arg from somewhere
+		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 	)
 
@@ -316,8 +310,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// CanWithdrawInvariant invariant.
 	// Auction.BeginBlocker will close out expired auctions and pay debt back to cdp.
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
-	app.mm.SetOrderBeginBlockers(
-		upgradetypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
+	app.mm.SetOrderBeginBlockers( // TODO
+		minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName)
@@ -379,18 +373,19 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	return app
 }
 
-// custom tx codec
-func MakeCodec() *codec.Codec {
-	var cdc = codec.New()
+// TODO
+// // custom tx codec
+// func MakeCodec() *codec.Codec {
+// 	var cdc = codec.New()
 
-	ModuleBasics.RegisterCodec(cdc)
-	vestingtypes.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	codec.RegisterEvidences(cdc)
+// 	ModuleBasics.RegisterCodec(cdc)
+// 	vestingtypes.RegisterCodec(cdc)
+// 	sdk.RegisterCodec(cdc)
+// 	codec.RegisterCrypto(cdc)
+// 	codec.RegisterEvidences(cdc)
 
-	return cdc.Seal()
-}
+// 	return cdc.Seal()
+// }
 
 // SetBech32AddressPrefixes sets the global prefix to be used when serializing addresses to bech32 strings.
 func SetBech32AddressPrefixes(config *sdk.Config) {
@@ -426,9 +421,10 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
+// TODO remove?
 // load a particular height
 func (app *App) LoadHeight(height int64) error {
-	return app.LoadVersion(height, app.keys[baseapp.MainStoreKey])
+	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
@@ -456,7 +452,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types. // TODO is this true?
-func (app *GaiaApp) LegacyAmino() *codec.LegacyAmino {
+func (app *App) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
 }
 
@@ -464,18 +460,34 @@ func (app *GaiaApp) LegacyAmino() *codec.LegacyAmino {
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types. // TODO is this true?
-func (app *GaiaApp) AppCodec() codec.Codec {
+func (app *App) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
 // InterfaceRegistry returns the app's InterfaceRegistry
-func (app *GaiaApp) InterfaceRegistry() types.InterfaceRegistry {
+func (app *App) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
 // SimulationManager implements the SimulationApp interface
 func (app *App) SimulationManager() *module.SimulationManager {
 	return app.sm
+}
+
+// RegisterAPIRoutes registers all application module routes with the provided
+// API server.
+func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+	panic("TODO")
+}
+
+// RegisterTxService implements the Application.RegisterTxService method.
+func (app *App) RegisterTxService(clientCtx client.Context) {
+	panic("TODO")
+}
+
+// RegisterTendermintService implements the Application.RegisterTendermintService method.
+func (app *App) RegisterTendermintService(clientCtx client.Context) {
+	panic("TODO")
 }
 
 // GetMaccPerms returns a mapping of the application's module account permissions.
