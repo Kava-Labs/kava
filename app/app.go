@@ -10,8 +10,9 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 
-	bam "github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -122,8 +123,10 @@ type AppOptions struct {
 
 // App represents an extended ABCI application
 type App struct {
-	*bam.BaseApp
-	cdc *codec.Codec
+	*baseapp.BaseApp
+	legacyAmino       *codec.LegacyAmino
+	appCodec          codec.Codec
+	interfaceRegistry types.InterfaceRegistry
 
 	invCheckPeriod uint
 
@@ -152,63 +155,76 @@ type App struct {
 }
 
 // NewApp returns a reference to an initialized App.
-func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptions, baseAppOptions ...func(*bam.BaseApp)) *App {
+func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptions, encodingConfig kavaappparams.EncodingConfig, baseAppOptions ...func(*baseapp.BaseApp)) *App {
 
-	cdc := MakeCodec()
+	appCodec := encodingConfig.Marshaler
+	legacyAmino := encodingConfig.Amino
+	interfaceRegistry := encodingConfig.InterfaceRegistry
 
-	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
+	bApp := baseapp.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
+	bApp.SetInterfaceRegistry(interfaceRegistry)
 
-	keys := sdk.NewKVStoreKeys(
-		bam.MainStoreKey, authtypes.StoreKey, stakingtypes.StoreKey,
+	keys := sdk.NewKVStoreKeys( // TODO
+		baseapp.MainStoreKey, authtypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, upgradetypes.StoreKey, evidencetypes.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
 	var app = &App{
-		BaseApp:        bApp,
-		cdc:            cdc,
-		invCheckPeriod: appOpts.InvariantCheckPeriod,
-		keys:           keys,
-		tkeys:          tkeys,
+		BaseApp:           bApp,
+		legacyAmino:       legacyAmino,
+		appCodec:          appCodec,
+		interfaceRegistry: interfaceRegistry,
+		invCheckPeriod:    appOpts.InvariantCheckPeriod,
+		keys:              keys,
+		tkeys:             tkeys,
 	}
 
 	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, keys[paramstypes.StoreKey], tkeys[params.TStoreKey])
-	authSubspace := app.paramsKeeper.Subspace(authtypes.DefaultParamspace)
-	bankSubspace := app.paramsKeeper.Subspace(banktypes.DefaultParamspace)
-	stakingSubspace := app.paramsKeeper.Subspace(stakingtypes.DefaultParamspace)
-	mintSubspace := app.paramsKeeper.Subspace(minttypes.DefaultParamspace)
-	distrSubspace := app.paramsKeeper.Subspace(distrtypes.DefaultParamspace)
-	slashingSubspace := app.paramsKeeper.Subspace(slashingtypes.DefaultParamspace)
-	govSubspace := app.paramsKeeper.Subspace(govtypes.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
-	evidenceSubspace := app.paramsKeeper.Subspace(evidencetypes.DefaultParamspace)
-	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.DefaultParamspace)
+	app.paramsKeeper = params.NewKeeper(
+		appCodec,
+		legacyAmino,
+		keys[paramstypes.StoreKey],
+		tkeys[paramstypes.TStoreKey],
+	)
+	// TODO
+	// authSubspace := app.paramsKeeper.Subspace(authtypes.DefaultParamspace)
+	// bankSubspace := app.paramsKeeper.Subspace(banktypes.DefaultParamspace)
+	// stakingSubspace := app.paramsKeeper.Subspace(stakingtypes.DefaultParamspace)
+	// mintSubspace := app.paramsKeeper.Subspace(minttypes.DefaultParamspace)
+	// distrSubspace := app.paramsKeeper.Subspace(distrtypes.DefaultParamspace)
+	// slashingSubspace := app.paramsKeeper.Subspace(slashingtypes.DefaultParamspace)
+	// govSubspace := app.paramsKeeper.Subspace(govtypes.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+	// evidenceSubspace := app.paramsKeeper.Subspace(evidencetypes.DefaultParamspace)
+	// crisisSubspace := app.paramsKeeper.Subspace(crisistypes.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
-		app.cdc,
+		appCdc,
 		keys[authtypes.StoreKey],
 		authSubspace,
 		authtypes.ProtoBaseAccount,
 		maccPerms,
 	)
 	app.bankKeeper = bank.NewBaseKeeper(
+		appCodec,
+		keys[banktypes.StoreKey],
 		app.accountKeeper,
 		bankSubspace,
-		app.BlacklistedAccAddrs(),
+		app.ModuleAccountAddrs(), // TODO this was black listed addresses previously, are they still the same?
 	)
 	stakingKeeper := staking.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[stakingtypes.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
 		stakingSubspace,
 	)
 	app.mintKeeper = mint.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[minttypes.StoreKey],
 		mintSubspace,
 		&stakingKeeper,
@@ -217,7 +233,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		authtypes.FeeCollectorName,
 	)
 	app.distrKeeper = distr.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[distrtypes.StoreKey],
 		distrSubspace,
 		&stakingKeeper,
@@ -227,34 +243,34 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.ModuleAccountAddrs(),
 	)
 	app.slashingKeeper = slashing.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[slashingtypes.StoreKey],
 		&stakingKeeper,
 		slashingSubspace,
 	)
 	app.crisisKeeper = crisis.NewKeeper(
 		crisisSubspace,
-		app.invCheckPeriod,
+		app.invCheckPeriod, // TODO is this field still on the app?
 		app.bankKeeper,
-		auth.FeeCollectorName,
+		authtypes.FeeCollectorName,
 	)
 	app.upgradeKeeper = upgrade.NewKeeper(
 		appOpts.SkipUpgradeHeights,
 		keys[upgradetypes.StoreKey],
-		app.cdc,
+		appCodec,
 	)
 
 	// create evidence keeper with router
-	evidenceKeeper := evidence.NewKeeper(
-		app.cdc,
+	app.evidenceKeeper = evidence.NewKeeper(
+		appCodec,
 		keys[evidencetypes.StoreKey],
-		evidenceSubspace,
 		&app.stakingKeeper,
 		app.slashingKeeper,
 	)
-	evidenceRouter := evidencetypes.NewRouter()
-	evidenceKeeper.SetRouter(evidenceRouter)
-	app.evidenceKeeper = *evidenceKeeper
+	// TODO
+	// evidenceRouter := evidencetypes.NewRouter()
+	// evidenceKeeper.SetRouter(evidenceRouter)
+	// app.evidenceKeeper = *evidenceKeeper
 
 	// create gov keeper with router
 	govRouter := govtypes.NewRouter()
@@ -264,7 +280,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
 	app.govKeeper = gov.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[govtypes.StoreKey],
 		govSubspace,
 		app.accountKeeper,
@@ -281,7 +297,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
-		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
+		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx encodingConfig.TxConfig,),
 		auth.NewAppModule(app.accountKeeper),
 		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
@@ -316,21 +332,22 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
-	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
+	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//
 	// NOTE: This is not required for apps that don't use the simulator for fuzz testing
 	// transactions.
-	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(app.accountKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
-		mint.NewAppModule(app.mintKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-	)
+	// TODO
+	// app.sm = module.NewSimulationManager(
+	// 	auth.NewAppModule(app.accountKeeper),
+	// 	bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+	// 	gov.NewAppModule(app.govKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
+	// 	mint.NewAppModule(app.mintKeeper),
+	// 	distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+	// 	staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
+	// 	slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
+	// )
 
 	app.sm.RegisterStoreDecoders()
 
@@ -341,21 +358,21 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// initialize the app
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	var antehandler sdk.AnteHandler
-	if appOpts.MempoolEnableAuth {
-		var getAuthorizedAddresses ante.AddressFetcher = func(sdk.Context) []sdk.AccAddress { return appOpts.MempoolAuthAddresses }
-		antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer, getAuthorizedAddresses)
-	} else {
-		antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer)
-	}
-	app.SetAnteHandler(antehandler)
+	// TODO antehandler
+	// var antehandler sdk.AnteHandler
+	// if appOpts.MempoolEnableAuth {
+	// 	var getAuthorizedAddresses ante.AddressFetcher = func(sdk.Context) []sdk.AccAddress { return appOpts.MempoolAuthAddresses }
+	// 	antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer, getAuthorizedAddresses)
+	// } else {
+	// 	antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer)
+	// }
+	// app.SetAnteHandler(antehandler)
 	app.SetEndBlocker(app.EndBlocker)
 
 	// load store
 	if !appOpts.SkipLoadLatest {
-		err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
-		if err != nil {
-			tmos.Exit(err.Error())
+		if err := app.LoadLatestVersion(); err != nil {
+			tmos.Exit(fmt.Sprintf("failed to load latest version: %s", err)) // TODO replace with panic
 		}
 	}
 
@@ -400,13 +417,18 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 // custom logic for app initialization
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
-	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
-	return app.mm.InitGenesis(ctx, genesisState)
+	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+		panic(err)
+	}
+
+	// TODO upgrade thing
+
+	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
 // load a particular height
 func (app *App) LoadHeight(height int64) error {
-	return app.LoadVersion(height, app.keys[bam.MainStoreKey])
+	return app.LoadVersion(height, app.keys[baseapp.MainStoreKey])
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
@@ -430,9 +452,25 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 // 	return blacklistedAddrs
 // }
 
-// Codec returns the application's sealed codec.
-func (app *App) Codec() *codec.Codec {
-	return app.cdc
+// LegacyAmino returns the app's amino codec.
+//
+// NOTE: This is solely to be used for testing purposes as it may be desirable
+// for modules to register their own custom testing types. // TODO is this true?
+func (app *GaiaApp) LegacyAmino() *codec.LegacyAmino {
+	return app.legacyAmino
+}
+
+// AppCodec returns the app's app codec.
+//
+// NOTE: This is solely to be used for testing purposes as it may be desirable
+// for modules to register their own custom testing types. // TODO is this true?
+func (app *GaiaApp) AppCodec() codec.Codec {
+	return app.appCodec
+}
+
+// InterfaceRegistry returns the app's InterfaceRegistry
+func (app *GaiaApp) InterfaceRegistry() types.InterfaceRegistry {
+	return app.interfaceRegistry
 }
 
 // SimulationManager implements the SimulationApp interface
