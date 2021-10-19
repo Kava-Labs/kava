@@ -207,21 +207,27 @@ func (augcdps AugmentedCDPs) String() string {
 // AggregatedCDP provides basic fields for multiple CDPs summed up
 type AggregatedCDP struct {
 	Type                string   `json:"type" yaml:"type"`                         // string representing the unique collateral type of the CDP
-	PrincipalTotal      sdk.Coin `json:"principal" yaml:"principal"`               // Amount of debt drawn using the CDP
-	AccumulatedFeeTotal sdk.Coin `json:"accumulated_fees" yaml:"accumulated_fees"` // Fees accumulated since the CDP was opened or debt was last repaid
+	TotalCollateral     sdk.Coin `json:"collateral" yaml:"collateral"`             // Amount of collateral stored in this CDP
+	TotalPrincipal      sdk.Coin `json:"principal" yaml:"principal"`               // Amount of debt drawn using the CDP
+	TotalAccumulatedFee sdk.Coin `json:"accumulated_fees" yaml:"accumulated_fees"` // Fees accumulated since the CDP was opened or debt was last repaid
 }
 
+// NewAggregatedCDP returns a new AggregatedCDP with the collateral, principal,
+// fee information from a given CDP.
 func NewAggregatedCDP(cdp CDP) AggregatedCDP {
 	return AggregatedCDP{
 		Type:                cdp.Type,
-		PrincipalTotal:      cdp.Principal,
-		AccumulatedFeeTotal: cdp.AccumulatedFees,
+		TotalCollateral:     cdp.Collateral,
+		TotalPrincipal:      cdp.Principal,
+		TotalAccumulatedFee: cdp.AccumulatedFees,
 	}
 }
 
+// Add returns an AggregatedCDP with a given CDP's collateral, principal, and fees added.
 func (a AggregatedCDP) Add(cdp CDP) AggregatedCDP {
-	a.PrincipalTotal = a.PrincipalTotal.Add(cdp.Principal)
-	a.AccumulatedFeeTotal = a.AccumulatedFeeTotal.Add(cdp.AccumulatedFees)
+	a.TotalCollateral = a.TotalCollateral.Add(cdp.Collateral)
+	a.TotalPrincipal = a.TotalPrincipal.Add(cdp.Principal)
+	a.TotalAccumulatedFee = a.TotalAccumulatedFee.Add(cdp.AccumulatedFees)
 
 	return a
 }
