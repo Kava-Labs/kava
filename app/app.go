@@ -17,21 +17,44 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
+	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
+	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
+	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	supplykeeper "github.com/cosmos/cosmos-sdk/x/supply/keeper"
+	supplytypes "github.com/cosmos/cosmos-sdk/x/supply/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/kava-labs/kava/app/ante"
 )
@@ -71,17 +94,17 @@ var (
 	// if these are changed, then the permissions
 	// must also be migrated during a chain upgrade
 	mAccPerms = map[string][]string{
-		auth.FeeCollectorName:     nil,
-		distr.ModuleName:          nil,
-		mint.ModuleName:           {supply.Minter},
-		staking.BondedPoolName:    {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
-		gov.ModuleName:            {supply.Burner},
+		authtypes.FeeCollectorName:     nil,
+		distrtypes.ModuleName:          nil,
+		minttypes.ModuleName:           {supplytypes.Minter},
+		stakingtypes.BondedPoolName:    {supplytypes.Burner, supplytypes.Staking},
+		stakingtypes.NotBondedPoolName: {supplytypes.Burner, supplytypes.Staking},
+		govtypes.ModuleName:            {supplytypes.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
 	allowedReceivingModAcc = map[string]bool{
-		distr.ModuleName: true,
+		distrtypes.ModuleName: true,
 	}
 )
 
@@ -111,17 +134,17 @@ type App struct {
 
 	// keepers from all the modules
 	accountKeeper  auth.AccountKeeper
-	bankKeeper     bank.Keeper
-	supplyKeeper   supply.Keeper
-	stakingKeeper  staking.Keeper
-	slashingKeeper slashing.Keeper
-	mintKeeper     mint.Keeper
-	distrKeeper    distr.Keeper
-	govKeeper      gov.Keeper
-	crisisKeeper   crisis.Keeper
-	upgradeKeeper  upgrade.Keeper
-	paramsKeeper   params.Keeper
-	evidenceKeeper evidence.Keeper
+	bankKeeper     bankkeeper.Keeper
+	supplyKeeper   supplykeeper.Keeper
+	stakingKeeper  stakingkeeper.Keeper
+	slashingKeeper slashingkeeper.Keeper
+	mintKeeper     mintkeeper.Keeper
+	distrKeeper    distrkeeper.Keeper
+	govKeeper      govkeeper.Keeper
+	crisisKeeper   crisiskeeper.Keeper
+	upgradeKeeper  upgradekeeper.Keeper
+	paramsKeeper   paramskeeper.Keeper
+	evidenceKeeper evidencekeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -140,9 +163,9 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	bApp.SetAppVersion(version.Version)
 
 	keys := sdk.NewKVStoreKeys(
-		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
+		bam.MainStoreKey, authtypes.StoreKey, stakingtypes.StoreKey,
+		supplytypes.StoreKey, minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
+		govtypes.StoreKey, paramstypes.StoreKey, upgradetypes.StoreKey, evidencetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -155,23 +178,23 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	}
 
 	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey])
-	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
-	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
-	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
-	mintSubspace := app.paramsKeeper.Subspace(mint.DefaultParamspace)
-	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
-	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
-	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
-	evidenceSubspace := app.paramsKeeper.Subspace(evidence.DefaultParamspace)
-	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
+	app.paramsKeeper = params.NewKeeper(app.cdc, keys[paramstypes.StoreKey], tkeys[params.TStoreKey])
+	authSubspace := app.paramsKeeper.Subspace(authtypes.DefaultParamspace)
+	bankSubspace := app.paramsKeeper.Subspace(banktypes.DefaultParamspace)
+	stakingSubspace := app.paramsKeeper.Subspace(stakingtypes.DefaultParamspace)
+	mintSubspace := app.paramsKeeper.Subspace(minttypes.DefaultParamspace)
+	distrSubspace := app.paramsKeeper.Subspace(distrtypes.DefaultParamspace)
+	slashingSubspace := app.paramsKeeper.Subspace(slashingtypes.DefaultParamspace)
+	govSubspace := app.paramsKeeper.Subspace(govtypes.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+	evidenceSubspace := app.paramsKeeper.Subspace(evidencetypes.DefaultParamspace)
+	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
 		app.cdc,
-		keys[auth.StoreKey],
+		keys[authtypes.StoreKey],
 		authSubspace,
-		auth.ProtoBaseAccount,
+		authtypes.ProtoBaseAccount,
 	)
 	app.bankKeeper = bank.NewBaseKeeper(
 		app.accountKeeper,
@@ -180,37 +203,37 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	)
 	app.supplyKeeper = supply.NewKeeper(
 		app.cdc,
-		keys[supply.StoreKey],
+		keys[supplytypes.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
 		mAccPerms,
 	)
 	stakingKeeper := staking.NewKeeper(
 		app.cdc,
-		keys[staking.StoreKey],
+		keys[stakingtypes.StoreKey],
 		app.supplyKeeper,
 		stakingSubspace,
 	)
 	app.mintKeeper = mint.NewKeeper(
 		app.cdc,
-		keys[mint.StoreKey],
+		keys[minttypes.StoreKey],
 		mintSubspace,
 		&stakingKeeper,
 		app.supplyKeeper,
-		auth.FeeCollectorName,
+		authtypes.FeeCollectorName,
 	)
 	app.distrKeeper = distr.NewKeeper(
 		app.cdc,
-		keys[distr.StoreKey],
+		keys[distrtypes.StoreKey],
 		distrSubspace,
 		&stakingKeeper,
 		app.supplyKeeper,
-		auth.FeeCollectorName,
+		authtypes.FeeCollectorName,
 		app.ModuleAccountAddrs(),
 	)
 	app.slashingKeeper = slashing.NewKeeper(
 		app.cdc,
-		keys[slashing.StoreKey],
+		keys[slashingtypes.StoreKey],
 		&stakingKeeper,
 		slashingSubspace,
 	)
@@ -222,32 +245,32 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	)
 	app.upgradeKeeper = upgrade.NewKeeper(
 		appOpts.SkipUpgradeHeights,
-		keys[upgrade.StoreKey],
+		keys[upgradetypes.StoreKey],
 		app.cdc,
 	)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidence.NewKeeper(
 		app.cdc,
-		keys[evidence.StoreKey],
+		keys[evidencetypes.StoreKey],
 		evidenceSubspace,
 		&app.stakingKeeper,
 		app.slashingKeeper,
 	)
-	evidenceRouter := evidence.NewRouter()
+	evidenceRouter := evidencetypes.NewRouter()
 	evidenceKeeper.SetRouter(evidenceRouter)
 	app.evidenceKeeper = *evidenceKeeper
 
 	// create gov keeper with router
-	govRouter := gov.NewRouter()
+	govRouter := govtypes.NewRouter()
 	govRouter.
-		AddRoute(gov.RouterKey, gov.ProposalHandler).
-		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
+		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(paramstypes.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
-		keys[gov.StoreKey],
+		keys[govtypes.StoreKey],
 		govSubspace,
 		app.supplyKeeper,
 		&stakingKeeper,
@@ -282,19 +305,19 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// Auction.BeginBlocker will close out expired auctions and pay debt back to cdp.
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
 	app.mm.SetOrderBeginBlockers(
-		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
+		upgradetypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 	)
 
-	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName)
+	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName)
 
 	app.mm.SetOrderInitGenesis(
-		auth.ModuleName, // loads all accounts - should run before any module with a module account
-		distr.ModuleName,
-		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
-		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
-		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
-		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
-		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
+		authtypes.ModuleName, // loads all accounts - should run before any module with a module account
+		distrtypes.ModuleName,
+		stakingtypes.ModuleName, banktypes.ModuleName, slashingtypes.ModuleName,
+		govtypes.ModuleName, minttypes.ModuleName, evidencetypes.ModuleName,
+		supplytypes.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
+		crisistypes.ModuleName,  // runs the invariants at genesis - should run after other modules
+		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -350,7 +373,7 @@ func MakeCodec() *codec.Codec {
 	var cdc = codec.New()
 
 	ModuleBasics.RegisterCodec(cdc)
-	vesting.RegisterCodec(cdc)
+	vestingtypes.RegisterCodec(cdc)
 	sdk.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 	codec.RegisterEvidences(cdc)
