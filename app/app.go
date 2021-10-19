@@ -39,7 +39,6 @@ import (
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/hard"
-	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/issuance"
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
@@ -83,7 +82,6 @@ var (
 		committee.AppModuleBasic{},
 		bep3.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
-		incentive.AppModuleBasic{},
 		issuance.AppModuleBasic{},
 		hard.AppModuleBasic{},
 		swap.AppModuleBasic{},
@@ -160,7 +158,6 @@ type App struct {
 	committeeKeeper committee.Keeper
 	bep3Keeper      bep3.Keeper
 	kavadistKeeper  kavadist.Keeper
-	incentiveKeeper incentive.Keeper
 	issuanceKeeper  issuance.Keeper
 	hardKeeper      hard.Keeper
 	swapKeeper      swap.Keeper
@@ -186,7 +183,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
 		validatorvesting.StoreKey, auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
-		bep3.StoreKey, kavadist.StoreKey, incentive.StoreKey, issuance.StoreKey, committee.StoreKey,
+		bep3.StoreKey, kavadist.StoreKey, issuance.StoreKey, committee.StoreKey,
 		hard.StoreKey, swap.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
@@ -215,7 +212,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
 	bep3Subspace := app.paramsKeeper.Subspace(bep3.DefaultParamspace)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadist.DefaultParamspace)
-	incentiveSubspace := app.paramsKeeper.Subspace(incentive.DefaultParamspace)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuance.DefaultParamspace)
 	hardSubspace := app.paramsKeeper.Subspace(hard.DefaultParamspace)
 	swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
@@ -355,7 +351,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.supplyKeeper,
 		auctionSubspace,
 	)
-	cdpKeeper := cdp.NewKeeper(
+	app.cdpKeeper = cdp.NewKeeper(
 		app.cdc,
 		keys[cdp.StoreKey],
 		cdpSubspace,
@@ -373,7 +369,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		bep3Subspace,
 		app.ModuleAccountAddrs(),
 	)
-	hardKeeper := hard.NewKeeper(
+	app.hardKeeper = hard.NewKeeper(
 		app.cdc,
 		keys[hard.StoreKey],
 		hardSubspace,
@@ -390,35 +386,18 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.accountKeeper,
 		app.supplyKeeper,
 	)
-	swapKeeper := swap.NewKeeper(
+	app.swapKeeper = swap.NewKeeper(
 		app.cdc,
 		keys[swap.StoreKey],
 		swapSubspace,
 		app.accountKeeper,
 		app.supplyKeeper,
 	)
-	app.incentiveKeeper = incentive.NewKeeper(
-		app.cdc,
-		keys[incentive.StoreKey],
-		incentiveSubspace,
-		app.supplyKeeper,
-		&cdpKeeper,
-		&hardKeeper,
-		app.accountKeeper,
-		&stakingKeeper,
-		&swapKeeper,
-	)
 
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
 	app.stakingKeeper = *stakingKeeper.SetHooks(
-		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks(), app.incentiveKeeper.Hooks()))
-
-	app.cdpKeeper = *cdpKeeper.SetHooks(cdp.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
-
-	app.hardKeeper = *hardKeeper.SetHooks(hard.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
-
-	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
+		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
@@ -441,7 +420,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
-		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper, app.cdpKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),
@@ -456,7 +434,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
 		validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, committee.ModuleName, cdp.ModuleName,
-		bep3.ModuleName, hard.ModuleName, issuance.ModuleName, incentive.ModuleName,
+		bep3.ModuleName, hard.ModuleName, issuance.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
@@ -467,7 +445,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
 		pricefeed.ModuleName, cdp.ModuleName, hard.ModuleName, auction.ModuleName, swap.ModuleName,
-		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, committee.ModuleName, issuance.ModuleName,
+		bep3.ModuleName, kavadist.ModuleName, committee.ModuleName, issuance.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
@@ -495,7 +473,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
-		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper, app.cdpKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),

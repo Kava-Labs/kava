@@ -35,7 +35,6 @@ import (
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/hard"
-	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/issuance"
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
@@ -96,7 +95,6 @@ func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeepe
 func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper { return tApp.pricefeedKeeper }
 func (tApp TestApp) GetBep3Keeper() bep3.Keeper           { return tApp.bep3Keeper }
 func (tApp TestApp) GetKavadistKeeper() kavadist.Keeper   { return tApp.kavadistKeeper }
-func (tApp TestApp) GetIncentiveKeeper() incentive.Keeper { return tApp.incentiveKeeper }
 func (tApp TestApp) GetHardKeeper() hard.Keeper           { return tApp.hardKeeper }
 func (tApp TestApp) GetCommitteeKeeper() committee.Keeper { return tApp.committeeKeeper }
 func (tApp TestApp) GetIssuanceKeeper() issuance.Keeper   { return tApp.issuanceKeeper }
