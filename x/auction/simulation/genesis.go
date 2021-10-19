@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/auction/types"
-	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
 const (
@@ -73,7 +72,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	// Add auctions
 	auctions := types.GenesisAuctions{
 		types.NewDebtAuction(
-			cdptypes.LiquidatorMacc, // using cdp account rather than generic test one to avoid having to set permissions on the supply keeper
+			"liquidator", // cdptypes.LiquidatorMacc, // using cdp account rather than generic test one to avoid having to set permissions on the supply keeper
 			sdk.NewInt64Coin("usdx", 100),
 			sdk.NewInt64Coin("ukava", 1000000000000),
 			simState.GenTimestamp.Add(time.Hour*5),

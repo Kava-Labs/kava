@@ -35,7 +35,6 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	"github.com/kava-labs/kava/x/auction"
-	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/issuance"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
@@ -72,7 +71,6 @@ var (
 		supply.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		auction.AppModuleBasic{},
-		cdp.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 		issuance.AppModuleBasic{},
 	)
@@ -89,8 +87,6 @@ var (
 		gov.ModuleName:              {supply.Burner},
 		validatorvesting.ModuleName: {supply.Burner},
 		auction.ModuleName:          nil,
-		cdp.ModuleName:              {supply.Minter, supply.Burner},
-		cdp.LiquidatorMacc:          {supply.Minter, supply.Burner},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
 	}
 
@@ -139,7 +135,6 @@ type App struct {
 	evidenceKeeper  evidence.Keeper
 	vvKeeper        validatorvesting.Keeper
 	auctionKeeper   auction.Keeper
-	cdpKeeper       cdp.Keeper
 	pricefeedKeeper pricefeed.Keeper
 	issuanceKeeper  issuance.Keeper
 
@@ -163,7 +158,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
-		validatorvesting.StoreKey, auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
+		validatorvesting.StoreKey, auction.StoreKey, pricefeed.StoreKey,
 		issuance.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
@@ -188,7 +183,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	evidenceSubspace := app.paramsKeeper.Subspace(evidence.DefaultParamspace)
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 	auctionSubspace := app.paramsKeeper.Subspace(auction.DefaultParamspace)
-	cdpSubspace := app.paramsKeeper.Subspace(cdp.DefaultParamspace)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuance.DefaultParamspace)
 
@@ -299,16 +293,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.supplyKeeper,
 		auctionSubspace,
 	)
-	app.cdpKeeper = cdp.NewKeeper(
-		app.cdc,
-		keys[cdp.StoreKey],
-		cdpSubspace,
-		app.pricefeedKeeper,
-		app.auctionKeeper,
-		app.supplyKeeper,
-		app.accountKeeper,
-		mAccPerms,
-	)
 	app.issuanceKeeper = issuance.NewKeeper(
 		app.cdc,
 		keys[issuance.StoreKey],
@@ -339,7 +323,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		evidence.NewAppModule(app.evidenceKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.supplyKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 	)
@@ -351,7 +334,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		validatorvesting.ModuleName, auction.ModuleName, cdp.ModuleName,
+		validatorvesting.ModuleName, auction.ModuleName,
 		issuance.ModuleName,
 	)
 
@@ -362,7 +345,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName,
+		pricefeed.ModuleName, auction.ModuleName,
 		issuance.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
@@ -387,7 +370,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.supplyKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 	)
