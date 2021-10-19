@@ -38,7 +38,6 @@ import (
 	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
-	"github.com/kava-labs/kava/x/swap"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
@@ -184,7 +183,6 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[pricefeed.StoreKey], newApp.keys[pricefeed.StoreKey], [][]byte{}},
 		{app.keys[validatorvesting.StoreKey], newApp.keys[validatorvesting.StoreKey], [][]byte{}},
 		{app.keys[committee.StoreKey], newApp.keys[committee.StoreKey], [][]byte{}},
-		{app.keys[swap.StoreKey], newApp.keys[swap.StoreKey], [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {

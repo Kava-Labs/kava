@@ -38,7 +38,6 @@ import (
 	"github.com/kava-labs/kava/x/issuance"
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
-	"github.com/kava-labs/kava/x/swap"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
@@ -98,7 +97,6 @@ func (tApp TestApp) GetKavadistKeeper() kavadist.Keeper   { return tApp.kavadist
 func (tApp TestApp) GetHardKeeper() hard.Keeper           { return tApp.hardKeeper }
 func (tApp TestApp) GetCommitteeKeeper() committee.Keeper { return tApp.committeeKeeper }
 func (tApp TestApp) GetIssuanceKeeper() issuance.Keeper   { return tApp.issuanceKeeper }
-func (tApp TestApp) GetSwapKeeper() swap.Keeper           { return tApp.swapKeeper }
 
 // InitializeFromGenesisStates calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
