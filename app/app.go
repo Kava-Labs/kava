@@ -37,7 +37,6 @@ import (
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/cdp"
-	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/issuance"
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
@@ -80,7 +79,6 @@ var (
 		bep3.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		issuance.AppModuleBasic{},
-		hard.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -100,7 +98,6 @@ var (
 		bep3.ModuleName:             {supply.Minter, supply.Burner},
 		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
-		hard.ModuleAccountName:      {supply.Minter},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -153,7 +150,6 @@ type App struct {
 	bep3Keeper      bep3.Keeper
 	kavadistKeeper  kavadist.Keeper
 	issuanceKeeper  issuance.Keeper
-	hardKeeper      hard.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -177,7 +173,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
 		validatorvesting.StoreKey, auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
 		bep3.StoreKey, kavadist.StoreKey, issuance.StoreKey,
-		hard.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -206,7 +201,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	bep3Subspace := app.paramsKeeper.Subspace(bep3.DefaultParamspace)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadist.DefaultParamspace)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuance.DefaultParamspace)
-	hardSubspace := app.paramsKeeper.Subspace(hard.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -343,16 +337,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		bep3Subspace,
 		app.ModuleAccountAddrs(),
 	)
-	app.hardKeeper = hard.NewKeeper(
-		app.cdc,
-		keys[hard.StoreKey],
-		hardSubspace,
-		app.accountKeeper,
-		app.supplyKeeper,
-		&stakingKeeper,
-		app.pricefeedKeeper,
-		app.auctionKeeper,
-	)
 	app.issuanceKeeper = issuance.NewKeeper(
 		app.cdc,
 		keys[issuance.StoreKey],
@@ -388,7 +372,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
-		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -399,7 +382,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
 		validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, cdp.ModuleName,
-		bep3.ModuleName, hard.ModuleName, issuance.ModuleName,
+		bep3.ModuleName, issuance.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
@@ -409,7 +392,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, hard.ModuleName, auction.ModuleName,
+		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName,
 		bep3.ModuleName, kavadist.ModuleName, issuance.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
@@ -439,7 +422,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
-		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
