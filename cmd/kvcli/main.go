@@ -24,7 +24,6 @@ import (
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/migrate/rest_v0_3"
 )
 
 func main() {
@@ -142,8 +141,6 @@ func registerRoutes(rs *lcd.RestServer) {
 	authrest.RegisterTxRoutes(rs.CliCtx, rs.Mux)
 	app.ModuleBasics.RegisterRESTRoutes(rs.CliCtx, rs.Mux)
 	app.RegisterSimulateRoutes(rs.CliCtx, rs.Mux)
-	// register legacy endpoints compatible with v0.3.x of kava
-	rest_v0_3.RegisterRoutes(rs.CliCtx, rs.Mux)
 }
 
 // initConfig reads in and sets options from a config file (if one exists)

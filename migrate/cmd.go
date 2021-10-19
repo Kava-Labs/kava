@@ -12,7 +12,6 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/migrate/v0_15"
 )
 
 // MigrateGenesisCmd returns a command to execute genesis state migration.
@@ -31,7 +30,7 @@ func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("failed to read genesis document from file %s: %w", importGenesis, err)
 			}
 
-			newGenDoc := v0_15.Migrate(*genDoc)
+			newGenDoc := Migrate(*genDoc)
 
 			bz, err := cdc.MarshalJSONIndent(newGenDoc, "", "  ")
 			if err != nil {
