@@ -18,7 +18,7 @@ import (
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp/accounts", getAccountsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/parameters", getParamsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/cdp/totals", queryTotalUsdxMintedHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc("/cdp/totalPrincipal", getTotalPrinciple(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/cdps", queryCdpsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/{%s}/{%s}", types.RestOwner, types.RestCollateralType), queryCdpHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/collateralType/{%s}", types.RestCollateralType), queryCdpsByCollateralTypeHandlerFn(cliCtx)).Methods("GET")     // legacy
@@ -268,7 +268,7 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryTotalUsdxMintedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func getTotalPrinciple(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -276,59 +276,30 @@ func queryTotalUsdxMintedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		page := 1
-		pageLimit := 5000
+		var cdpCollateralType string
 
-		totals := make(types.AggregatedCDPs)
-
-		for {
-			params := types.NewQueryCdpsParams(page, pageLimit, "", nil, 0, sdk.ZeroDec())
-			bz, err := cliCtx.Codec.MarshalJSON(params)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-				return
-			}
-
-			route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetCdps)
-			res, height, err := cliCtx.QueryWithData(route, bz)
-
-			if height > 0 {
-				cliCtx = cliCtx.WithHeight(height)
-			}
-
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-				return
-			}
-
-			// Deserialize CDPs in order to aggregate them
-			var matchingCDPs types.AugmentedCDPs
-			err = cliCtx.Codec.UnmarshalJSON(res, &matchingCDPs)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-				return
-			}
-
-			for _, aCdp := range matchingCDPs {
-				entry, ok := totals[aCdp.Type]
-				if !ok {
-					// NewAggregatedCDP the total to the cdp value so we don't need to add it again
-					totals[aCdp.Type] = types.NewAggregatedCDP(aCdp.CDP)
-					continue
-				}
-
-				totals[aCdp.Type] = entry.Add(aCdp.CDP)
-			}
-
-			// No more pages
-			if len(matchingCDPs) < pageLimit {
-				break
-			}
-
-			// Next loop for next page
-			page += 1
+		if x := r.URL.Query().Get(RestCollateralType); len(x) != 0 {
+			cdpCollateralType = strings.TrimSpace(x)
+		} else {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("%s query parameter must be provided", RestCollateralType))
+			return
 		}
 
-		rest.PostProcessResponse(w, cliCtx, totals)
+		params := types.NewQueryGetTotalPrincipalParams(cdpCollateralType)
+		bz, err := cliCtx.Codec.MarshalJSON(params)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetTotalPrincipal)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		cliCtx = cliCtx.WithHeight(height)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }

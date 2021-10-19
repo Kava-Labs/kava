@@ -30,6 +30,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryGetParams(ctx, req, keeper)
 		case types.QueryGetAccounts:
 			return queryGetAccounts(ctx, req, keeper)
+		case types.QueryGetTotalPrincipal:
+			return queryGetTotalPrincipal(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
 		}
@@ -192,6 +194,25 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 	filteredCDPs := FilterCDPs(ctx, keeper, params)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, filteredCDPs)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+// query total principal
+func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var params types.QueryGetTotalPrincipalParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	// Hardcoded to default USDX
+	total := keeper.GetTotalPrincipal(ctx, params.CollateralType, types.DefaultStableDenom)
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, total)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
