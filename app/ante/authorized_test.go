@@ -10,8 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
-
-	"github.com/kava-labs/kava/x/bep3"
 )
 
 var (
@@ -38,10 +36,10 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_NotCheckTx(t *testing.T) {
 	decorator := NewAuthenticatedMempoolDecorator(fetcher)
 	tx := helpers.GenTx(
 		[]sdk.Msg{
-			bep3.NewMsgClaimAtomicSwap(
+			bank.NewMsgSend(
 				testAddresses[0],
-				[]byte{},
-				[]byte{},
+				testAddresses[1],
+				sdk.NewCoins(sdk.NewInt64Coin("ukava", 100_000_000)),
 			),
 		},
 		sdk.NewCoins(), // no fee
@@ -73,10 +71,10 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_Pass(t *testing.T) {
 				testAddresses[1],
 				sdk.NewCoins(sdk.NewInt64Coin("ukava", 100_000_000)),
 			),
-			bep3.NewMsgClaimAtomicSwap(
+			bank.NewMsgSend(
 				testAddresses[2],
-				nil,
-				nil,
+				testAddresses[1],
+				sdk.NewCoins(sdk.NewInt64Coin("ukava", 100_000_000)),
 			),
 		},
 		sdk.NewCoins(), // no fee
