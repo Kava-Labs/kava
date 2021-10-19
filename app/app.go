@@ -34,7 +34,6 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 
 	"github.com/kava-labs/kava/app/ante"
-	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
@@ -69,7 +68,6 @@ var (
 		upgrade.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		evidence.AppModuleBasic{},
-		auction.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 	)
 
@@ -84,7 +82,6 @@ var (
 		staking.NotBondedPoolName:   {supply.Burner, supply.Staking},
 		gov.ModuleName:              {supply.Burner},
 		validatorvesting.ModuleName: {supply.Burner},
-		auction.ModuleName:          nil,
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -131,7 +128,6 @@ type App struct {
 	paramsKeeper    params.Keeper
 	evidenceKeeper  evidence.Keeper
 	vvKeeper        validatorvesting.Keeper
-	auctionKeeper   auction.Keeper
 	pricefeedKeeper pricefeed.Keeper
 
 	// the module manager
@@ -154,7 +150,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
-		validatorvesting.StoreKey, auction.StoreKey, pricefeed.StoreKey,
+		validatorvesting.StoreKey, pricefeed.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -177,7 +173,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 	evidenceSubspace := app.paramsKeeper.Subspace(evidence.DefaultParamspace)
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
-	auctionSubspace := app.paramsKeeper.Subspace(auction.DefaultParamspace)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
 
 	// add keepers
@@ -281,12 +276,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		keys[pricefeed.StoreKey],
 		pricefeedSubspace,
 	)
-	app.auctionKeeper = auction.NewKeeper(
-		app.cdc,
-		keys[auction.StoreKey],
-		app.supplyKeeper,
-		auctionSubspace,
-	)
 
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
@@ -309,7 +298,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
-		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 	)
 
@@ -320,7 +308,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		validatorvesting.ModuleName, auction.ModuleName,
+		validatorvesting.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
@@ -330,7 +318,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
-		pricefeed.ModuleName, auction.ModuleName,
+		pricefeed.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
@@ -354,7 +342,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
-		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

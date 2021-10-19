@@ -30,7 +30,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
-	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
@@ -83,7 +82,6 @@ func (tApp TestApp) GetCrisisKeeper() crisis.Keeper       { return tApp.crisisKe
 func (tApp TestApp) GetUpgradeKeeper() upgrade.Keeper     { return tApp.upgradeKeeper }
 func (tApp TestApp) GetParamsKeeper() params.Keeper       { return tApp.paramsKeeper }
 func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
-func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
 func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper { return tApp.pricefeedKeeper }
 
 // InitializeFromGenesisStates calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
