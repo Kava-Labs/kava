@@ -48,9 +48,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-	supplykeeper "github.com/cosmos/cosmos-sdk/x/supply/keeper"
-	supplytypes "github.com/cosmos/cosmos-sdk/x/supply/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
@@ -67,7 +64,7 @@ const (
 
 var (
 	// default home directories for expected binaries
-	DefaultCLIHome  = os.ExpandEnv("$HOME/.kvcli")
+	DefaultCLIHome  = os.ExpandEnv("$HOME/.kvcli") // TODO
 	DefaultNodeHome = os.ExpandEnv("$HOME/.kvd")
 
 	// ModuleBasics manages simple versions of full app modules. It's used for things such as codec registration and genesis file verification.
@@ -79,14 +76,14 @@ var (
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
-			paramsclient.ProposalHandler, distr.ProposalHandler,
-			upgradeclient.ProposalHandler,
+			paramsclient.ProposalHandler,
+			distr.ProposalHandler,
+			upgradeclient.ProposalHandler, // TODO remove upgrade
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
-		supply.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 	)
 
@@ -96,10 +93,10 @@ var (
 	mAccPerms = map[string][]string{
 		authtypes.FeeCollectorName:     nil,
 		distrtypes.ModuleName:          nil,
-		minttypes.ModuleName:           {supplytypes.Minter},
-		stakingtypes.BondedPoolName:    {supplytypes.Burner, supplytypes.Staking},
-		stakingtypes.NotBondedPoolName: {supplytypes.Burner, supplytypes.Staking},
-		govtypes.ModuleName:            {supplytypes.Burner},
+		minttypes.ModuleName:           {authtypes.Minter},
+		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:            {authtypes.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -135,7 +132,6 @@ type App struct {
 	// keepers from all the modules
 	accountKeeper  auth.AccountKeeper
 	bankKeeper     bankkeeper.Keeper
-	supplyKeeper   supplykeeper.Keeper
 	stakingKeeper  stakingkeeper.Keeper
 	slashingKeeper slashingkeeper.Keeper
 	mintKeeper     mintkeeper.Keeper
@@ -164,7 +160,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, authtypes.StoreKey, stakingtypes.StoreKey,
-		supplytypes.StoreKey, minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
+		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, upgradetypes.StoreKey, evidencetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
@@ -195,23 +191,18 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		keys[authtypes.StoreKey],
 		authSubspace,
 		authtypes.ProtoBaseAccount,
+		maccPerms,
 	)
 	app.bankKeeper = bank.NewBaseKeeper(
 		app.accountKeeper,
 		bankSubspace,
 		app.BlacklistedAccAddrs(),
 	)
-	app.supplyKeeper = supply.NewKeeper(
-		app.cdc,
-		keys[supplytypes.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
-		mAccPerms,
-	)
 	stakingKeeper := staking.NewKeeper(
 		app.cdc,
 		keys[stakingtypes.StoreKey],
-		app.supplyKeeper,
+		app.accountKeeper,
+		app.bankKeeper,
 		stakingSubspace,
 	)
 	app.mintKeeper = mint.NewKeeper(
@@ -219,7 +210,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		keys[minttypes.StoreKey],
 		mintSubspace,
 		&stakingKeeper,
-		app.supplyKeeper,
+		app.accountKeeper,
+		app.bankKeeper,
 		authtypes.FeeCollectorName,
 	)
 	app.distrKeeper = distr.NewKeeper(
@@ -227,7 +219,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		keys[distrtypes.StoreKey],
 		distrSubspace,
 		&stakingKeeper,
-		app.supplyKeeper,
+		app.accountKeeper,
+		app.bankKeeper,
 		authtypes.FeeCollectorName,
 		app.ModuleAccountAddrs(),
 	)
@@ -240,7 +233,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	app.crisisKeeper = crisis.NewKeeper(
 		crisisSubspace,
 		app.invCheckPeriod,
-		app.supplyKeeper,
+		app.bankKeeper,
 		auth.FeeCollectorName,
 	)
 	app.upgradeKeeper = upgrade.NewKeeper(
@@ -272,7 +265,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.cdc,
 		keys[govtypes.StoreKey],
 		govSubspace,
-		app.supplyKeeper,
+		app.accountKeeper,
+		app.bankKeeper,
 		&stakingKeeper,
 		govRouter,
 	)
@@ -289,12 +283,11 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
 		mint.NewAppModule(app.mintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 	)
@@ -315,7 +308,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName, banktypes.ModuleName, slashingtypes.ModuleName,
 		govtypes.ModuleName, minttypes.ModuleName, evidencetypes.ModuleName,
-		supplytypes.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisistypes.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 	)
@@ -330,11 +322,10 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
 		mint.NewAppModule(app.mintKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
 	)
 
@@ -350,9 +341,9 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	var antehandler sdk.AnteHandler
 	if appOpts.MempoolEnableAuth {
 		var getAuthorizedAddresses ante.AddressFetcher = func(sdk.Context) []sdk.AccAddress { return appOpts.MempoolAuthAddresses }
-		antehandler = ante.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer, getAuthorizedAddresses)
+		antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer, getAuthorizedAddresses)
 	} else {
-		antehandler = ante.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer)
+		antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer)
 	}
 	app.SetAnteHandler(antehandler)
 	app.SetEndBlocker(app.EndBlocker)
@@ -419,21 +410,22 @@ func (app *App) LoadHeight(height int64) error {
 func (app *App) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range mAccPerms {
-		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
+		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
 	return modAccAddrs
 }
 
-// BlacklistedAccAddrs returns all the app's module account addresses black listed for receiving tokens.
-func (app *App) BlacklistedAccAddrs() map[string]bool {
-	blacklistedAddrs := make(map[string]bool)
-	for acc := range mAccPerms {
-		blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
-	}
+// TODO
+// // BlacklistedAccAddrs returns all the app's module account addresses black listed for receiving tokens.
+// func (app *App) BlacklistedAccAddrs() map[string]bool {
+// 	blacklistedAddrs := make(map[string]bool)
+// 	for acc := range mAccPerms {
+// 		blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+// 	}
 
-	return blacklistedAddrs
-}
+// 	return blacklistedAddrs
+// }
 
 // Codec returns the application's sealed codec.
 func (app *App) Codec() *codec.Codec {
