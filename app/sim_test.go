@@ -34,7 +34,6 @@ import (
 
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/cdp"
-	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
@@ -176,7 +175,6 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[gov.StoreKey], newApp.keys[gov.StoreKey], [][]byte{}},
 		{app.keys[auction.StoreKey], newApp.keys[auction.StoreKey], [][]byte{}},
 		{app.keys[cdp.StoreKey], newApp.keys[cdp.StoreKey], [][]byte{}},
-		{app.keys[kavadist.StoreKey], newApp.keys[kavadist.StoreKey], [][]byte{}},
 		{app.keys[pricefeed.StoreKey], newApp.keys[pricefeed.StoreKey], [][]byte{}},
 		{app.keys[validatorvesting.StoreKey], newApp.keys[validatorvesting.StoreKey], [][]byte{}},
 	}

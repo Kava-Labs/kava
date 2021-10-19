@@ -37,7 +37,6 @@ import (
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/issuance"
-	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
@@ -64,7 +63,7 @@ var (
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler, distr.ProposalHandler,
-			upgradeclient.ProposalHandler, kavadist.ProposalHandler,
+			upgradeclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -75,7 +74,6 @@ var (
 		auction.AppModuleBasic{},
 		cdp.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
-		kavadist.AppModuleBasic{},
 		issuance.AppModuleBasic{},
 	)
 
@@ -93,7 +91,6 @@ var (
 		auction.ModuleName:          nil,
 		cdp.ModuleName:              {supply.Minter, supply.Burner},
 		cdp.LiquidatorMacc:          {supply.Minter, supply.Burner},
-		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
 	}
 
@@ -144,7 +141,6 @@ type App struct {
 	auctionKeeper   auction.Keeper
 	cdpKeeper       cdp.Keeper
 	pricefeedKeeper pricefeed.Keeper
-	kavadistKeeper  kavadist.Keeper
 	issuanceKeeper  issuance.Keeper
 
 	// the module manager
@@ -168,7 +164,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
 		validatorvesting.StoreKey, auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
-		kavadist.StoreKey, issuance.StoreKey,
+		issuance.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -194,7 +190,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	auctionSubspace := app.paramsKeeper.Subspace(auction.DefaultParamspace)
 	cdpSubspace := app.paramsKeeper.Subspace(cdp.DefaultParamspace)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
-	kavadistSubspace := app.paramsKeeper.Subspace(kavadist.DefaultParamspace)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuance.DefaultParamspace)
 
 	// add keepers
@@ -269,23 +264,13 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	evidenceKeeper.SetRouter(evidenceRouter)
 	app.evidenceKeeper = *evidenceKeeper
 
-	app.kavadistKeeper = kavadist.NewKeeper(
-		app.cdc,
-		keys[kavadist.StoreKey],
-		kavadistSubspace,
-		app.supplyKeeper,
-		app.distrKeeper,
-		app.ModuleAccountAddrs(),
-	)
-
 	// create gov keeper with router
 	govRouter := gov.NewRouter()
 	govRouter.
 		AddRoute(gov.RouterKey, gov.ProposalHandler).
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
-		AddRoute(kavadist.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper))
+		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
 		keys[gov.StoreKey],
@@ -356,7 +341,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.supplyKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
-		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
@@ -367,7 +351,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, cdp.ModuleName,
+		validatorvesting.ModuleName, auction.ModuleName, cdp.ModuleName,
 		issuance.ModuleName,
 	)
 
@@ -379,7 +363,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
 		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName,
-		kavadist.ModuleName, issuance.ModuleName,
+		issuance.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
@@ -405,7 +389,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.supplyKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
-		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
