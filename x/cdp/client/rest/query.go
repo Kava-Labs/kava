@@ -18,8 +18,9 @@ import (
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp/accounts", getAccountsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/parameters", getParamsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc("/cdp/totals", queryTotalUsdxMintedHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc("/cdp/cdps", queryCdpsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/{%s}/{%s}", types.RestOwner, types.RestCollateralType), queryCdpHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/cdp/cdps"), queryCdpsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/collateralType/{%s}", types.RestCollateralType), queryCdpsByCollateralTypeHandlerFn(cliCtx)).Methods("GET")     // legacy
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/ratio/{%s}/{%s}", types.RestCollateralType, types.RestRatio), queryCdpsByRatioHandlerFn(cliCtx)).Methods("GET") // legacy
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/deposits/{%s}/{%s}", types.RestOwner, types.RestCollateralType), queryCdpDepositsHandlerFn(cliCtx)).Methods("GET")
@@ -264,5 +265,56 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryTotalUsdxMintedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		page := 1
+		limit := 5000
+
+		params := types.NewQueryCdpsParams(page, limit, "", nil, 0, sdk.ZeroDec())
+		bz, err := cliCtx.Codec.MarshalJSON(params)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetCdps)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		// Deserialize CDPs in order to aggregate them
+		var matchingCDPs types.AugmentedCDPs
+		err = cliCtx.Codec.UnmarshalJSON(res, &matchingCDPs)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		totals := make(types.AggregatedCDPs)
+
+		for _, aCdp := range matchingCDPs {
+			entry, ok := totals[aCdp.Type]
+			if !ok {
+				// NewAggregatedCDP the total to the cdp value so we don't need to add it again
+				totals[aCdp.Type] = types.NewAggregatedCDP(aCdp.CDP)
+				continue
+			}
+
+			totals[aCdp.Type] = entry.Add(aCdp.CDP)
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, totals)
 	}
 }

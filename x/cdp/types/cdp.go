@@ -203,3 +203,28 @@ func (augcdps AugmentedCDPs) String() string {
 	}
 	return out
 }
+
+// AggregatedCDP provides basic fields for multiple CDPs summed up
+type AggregatedCDP struct {
+	Type                string   `json:"type" yaml:"type"`                         // string representing the unique collateral type of the CDP
+	PrincipalTotal      sdk.Coin `json:"principal" yaml:"principal"`               // Amount of debt drawn using the CDP
+	AccumulatedFeeTotal sdk.Coin `json:"accumulated_fees" yaml:"accumulated_fees"` // Fees accumulated since the CDP was opened or debt was last repaid
+}
+
+func NewAggregatedCDP(cdp CDP) AggregatedCDP {
+	return AggregatedCDP{
+		Type:                cdp.Type,
+		PrincipalTotal:      cdp.Principal,
+		AccumulatedFeeTotal: cdp.AccumulatedFees,
+	}
+}
+
+func (a AggregatedCDP) Add(cdp CDP) AggregatedCDP {
+	a.PrincipalTotal = a.PrincipalTotal.Add(cdp.Principal)
+	a.AccumulatedFeeTotal = a.AccumulatedFeeTotal.Add(cdp.AccumulatedFees)
+
+	return a
+}
+
+// AggregatedCDPs is a map of collateral type to AggregatedCDP
+type AggregatedCDPs map[string]AggregatedCDP
