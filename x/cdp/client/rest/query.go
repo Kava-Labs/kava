@@ -277,44 +277,58 @@ func queryTotalUsdxMintedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		page := 1
-		limit := 5000
-
-		params := types.NewQueryCdpsParams(page, limit, "", nil, 0, sdk.ZeroDec())
-		bz, err := cliCtx.Codec.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetCdps)
-		res, height, err := cliCtx.QueryWithData(route, bz)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Deserialize CDPs in order to aggregate them
-		var matchingCDPs types.AugmentedCDPs
-		err = cliCtx.Codec.UnmarshalJSON(res, &matchingCDPs)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
+		pageLimit := 5000
 
 		totals := make(types.AggregatedCDPs)
 
-		for _, aCdp := range matchingCDPs {
-			entry, ok := totals[aCdp.Type]
-			if !ok {
-				// NewAggregatedCDP the total to the cdp value so we don't need to add it again
-				totals[aCdp.Type] = types.NewAggregatedCDP(aCdp.CDP)
-				continue
+		for {
+			params := types.NewQueryCdpsParams(page, pageLimit, "", nil, 0, sdk.ZeroDec())
+			bz, err := cliCtx.Codec.MarshalJSON(params)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
 			}
 
-			totals[aCdp.Type] = entry.Add(aCdp.CDP)
+			route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetCdps)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+
+			if height > 0 {
+				cliCtx = cliCtx.WithHeight(height)
+			}
+
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			// Deserialize CDPs in order to aggregate them
+			var matchingCDPs types.AugmentedCDPs
+			err = cliCtx.Codec.UnmarshalJSON(res, &matchingCDPs)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			for _, aCdp := range matchingCDPs {
+				entry, ok := totals[aCdp.Type]
+				if !ok {
+					// NewAggregatedCDP the total to the cdp value so we don't need to add it again
+					totals[aCdp.Type] = types.NewAggregatedCDP(aCdp.CDP)
+					continue
+				}
+
+				totals[aCdp.Type] = entry.Add(aCdp.CDP)
+			}
+
+			// No more pages
+			if len(matchingCDPs) < pageLimit {
+				break
+			}
+
+			// Next loop for next page
+			page += 1
 		}
 
-		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, totals)
 	}
 }
