@@ -10,6 +10,7 @@ import (
 	"github.com/kava-labs/kava/app"
 )
 
+// newQueryCmd creates all the commands for querying blockchain state.
 func newQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",

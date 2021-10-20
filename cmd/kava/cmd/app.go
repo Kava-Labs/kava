@@ -27,6 +27,8 @@ const (
 	flagMempoolAuthAddresses = "mempool.authorized-addresses"
 )
 
+// appCreator holds functions used by the sdk server to control the kava app.
+// The methods implement types in cosmos-sdk/server/types
 type appCreator struct {
 	encodingConfig params.EncodingConfig
 }
@@ -54,7 +56,7 @@ func (ac appCreator) newApp(
 		panic(err)
 	}
 
-	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots") // TODO can this not be hard coded
+	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots") // TODO can these directory names be imported from somewhere?
 	snapshotDB, err := sdk.NewLevelDB("metadata", snapshotDir)
 	if err != nil {
 		panic(err)
@@ -75,13 +77,12 @@ func (ac appCreator) newApp(
 	return app.NewApp(
 		logger, db, traceStore, ac.encodingConfig,
 		app.Options{
-			// TODO home dir - needed for upgrade keeper
-			// TODO crisis.FlagSkipGenesisInvariants - needed for crisis module
-			SkipLoadLatest:       false,
-			SkipUpgradeHeights:   skipUpgradeHeights,
-			InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
-			MempoolEnableAuth:    mempoolEnableAuth,
-			MempoolAuthAddresses: mempoolAuthAddresses,
+			SkipLoadLatest:        false,
+			SkipUpgradeHeights:    skipUpgradeHeights,
+			SkipGenesisInvariants: cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants)),
+			InvariantCheckPeriod:  cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
+			MempoolEnableAuth:     mempoolEnableAuth,
+			MempoolAuthAddresses:  mempoolAuthAddresses,
 		},
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
@@ -107,15 +108,18 @@ func (ac appCreator) appExport(
 	jailAllowedAddrs []string,
 	appOpts servertypes.AppOptions,
 ) (servertypes.ExportedApp, error) {
+
 	panic("TODO") // TODO
+
 	return servertypes.ExportedApp{}, nil
 }
 
+// addStartCmdFlags adds flags to the server start command.
 func (ac appCreator) addStartCmdFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
 }
 
-// accAddressesFromBech32 converts a slice of bech32 encoded addresses into a slice of address tyeps
+// accAddressesFromBech32 converts a slice of bech32 encoded addresses into a slice of address types.
 func accAddressesFromBech32(addresses ...string) ([]sdk.AccAddress, error) {
 	var decodedAddresses []sdk.AccAddress
 	for _, s := range addresses {

@@ -20,7 +20,7 @@ import (
 	"github.com/kava-labs/kava/app/params"
 )
 
-// NewRootCmd creates a new root command for kava.
+// NewRootCmd creates a new root command for the kava blockchain.
 func NewRootCmd() *cobra.Command {
 	app.SetSDKConfig().Seal()
 
@@ -59,16 +59,18 @@ func NewRootCmd() *cobra.Command {
 	return rootCmd
 }
 
+// addSubCmds registers all the sub commands used by kava.
 func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
-		// app.MigrateGenesisCmd(), // TODO
+		// app.MigrateGenesisCmd(), // TODO add
+		// TODO add assert-invariants cmd
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		simdcmd.AddGenesisAccountCmd(app.DefaultNodeHome), // TODO use own version with vesting accounts
-		tmcli.NewCompletionCmd(rootCmd, true),             // TODO add other shells
-		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}), // TODO
+		simdcmd.AddGenesisAccountCmd(app.DefaultNodeHome), // TODO use kava version with vesting accounts
+		tmcli.NewCompletionCmd(rootCmd, true),             // TODO add other shells, drop tmcli dependency, unhide?
+		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}), // TODO add
 		debug.Cmd(),
 		config.Cmd(),
 	)

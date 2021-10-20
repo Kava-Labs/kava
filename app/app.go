@@ -53,26 +53,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmlog "github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	kavaappparams "github.com/kava-labs/kava/app/params"
+	kavaparams "github.com/kava-labs/kava/app/params"
 )
 
 const (
-	appName = "kava" // TODO what is this used for?
-
+	appName = "kava"
 )
 
 var (
-	// default home directories for expected binaries
-	DefaultNodeHome string
 
-	// ModuleBasics manages simple versions of full app modules. It's used for things such as codec registration and genesis file verification.
+	// ModuleBasics manages simple versions of full app modules.
+	// It's used for things such as codec registration and genesis file verification.
 	ModuleBasics = module.NewBasicManager(
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
@@ -87,14 +83,13 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
-		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 	)
 
 	// module account permissions
-	// if these are changed, then the permissions
-	// must also be migrated during a chain upgrade
+	// If these are changed, the permissions stored in accounts
+	// must also be migrated during a chain upgrade.
 	mAccPerms = map[string][]string{
 		authtypes.FeeCollectorName:     nil,
 		distrtypes.ModuleName:          nil,
@@ -104,18 +99,16 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 	}
 
-	// module accounts that are allowed to receive tokens
-	allowedReceivingModAcc = map[string]bool{
-		distrtypes.ModuleName: true,
-	}
+	// DefaultNodeHome is the default home directory for the app binary // TODO would this be better located in cmd?
+	DefaultNodeHome string
 )
 
-func init() { // TODO why is this in app?
+func init() {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
-		log.Println("Failed to get home dir %2", err) // TODO bug?
+		log.Printf("Failed to get home dir %s", err)
 	}
-	DefaultNodeHome = filepath.Join(userHomeDir, ".kava") // TODO use appName, or version.AppName?
+	DefaultNodeHome = filepath.Join(userHomeDir, ".kava")
 }
 
 // Verify app interface at compile time
@@ -125,21 +118,22 @@ var _ servertypes.Application = (*App)(nil)
 // Options bundles several configuration params for an App.
 // The zero value can be used as a sensible default.
 type Options struct {
-	SkipLoadLatest       bool
-	SkipUpgradeHeights   map[int64]bool
-	InvariantCheckPeriod uint
-	MempoolEnableAuth    bool
-	MempoolAuthAddresses []sdk.AccAddress
+	SkipLoadLatest        bool
+	SkipUpgradeHeights    map[int64]bool
+	SkipGenesisInvariants bool
+	InvariantCheckPeriod  uint
+	MempoolEnableAuth     bool
+	MempoolAuthAddresses  []sdk.AccAddress
 }
 
-// App represents an extended ABCI application
+// App is the Kava ABCI application.
 type App struct {
 	*baseapp.BaseApp
+
+	// codec
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
-
-	invCheckPeriod uint
 
 	// keys to access the substores
 	keys  map[string]*sdk.KVStoreKey
@@ -161,12 +155,14 @@ type App struct {
 	mm *module.Manager
 
 	// simulation manager
-	sm           *module.SimulationManager
-	configurator module.Configurator // TODO what is this?
+	sm *module.SimulationManager
+
+	// configurator
+	configurator module.Configurator
 }
 
 // NewApp returns a reference to an initialized App.
-func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig kavaappparams.EncodingConfig, options Options, baseAppOptions ...func(*baseapp.BaseApp)) *App {
+func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig kavaparams.EncodingConfig, options Options, baseAppOptions ...func(*baseapp.BaseApp)) *App {
 
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
@@ -177,7 +173,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
-	keys := sdk.NewKVStoreKeys( // TODO
+	keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
@@ -189,7 +185,6 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
-		invCheckPeriod:    options.InvariantCheckPeriod,
 		keys:              keys,
 		tkeys:             tkeys,
 	}
@@ -227,9 +222,9 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		keys[banktypes.StoreKey],
 		app.accountKeeper,
 		bankSubspace,
-		app.ModuleAccountAddrs(), // TODO this was black listed addresses previously, are they still the same?
+		app.ModuleAccountAddrs(), // TODO this no longer allows funds to be sent to the distribution module account for use in the community pool. Is this a problem?
 	)
-	stakingKeeper := stakingkeeper.NewKeeper(
+	app.stakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
 		keys[stakingtypes.StoreKey],
 		app.accountKeeper,
@@ -240,7 +235,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		appCodec,
 		keys[minttypes.StoreKey],
 		mintSubspace,
-		&stakingKeeper,
+		&app.stakingKeeper,
 		app.accountKeeper,
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
@@ -251,36 +246,29 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		distrSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		&stakingKeeper,
+		&app.stakingKeeper,
 		authtypes.FeeCollectorName,
 		app.ModuleAccountAddrs(),
 	)
 	app.slashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		keys[slashingtypes.StoreKey],
-		&stakingKeeper,
+		&app.stakingKeeper,
 		slashingSubspace,
 	)
 	app.crisisKeeper = crisiskeeper.NewKeeper(
 		crisisSubspace,
-		app.invCheckPeriod, // TODO is this field still on the app?
+		options.InvariantCheckPeriod,
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
 	)
-
-	// create evidence keeper with router
 	app.evidenceKeeper = *evidencekeeper.NewKeeper(
 		appCodec,
 		keys[evidencetypes.StoreKey],
 		&app.stakingKeeper,
 		app.slashingKeeper,
 	)
-	// TODO
-	// evidenceRouter := evidencetypes.NewRouter()
-	// evidenceKeeper.SetRouter(evidenceRouter)
-	// app.evidenceKeeper = *evidenceKeeper
-
-	// create gov keeper with router
+	// TODO No evidence router is added so all submit evidence msgs will fail. Should there be a router added?
 	govRouter := govtypes.NewRouter()
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
@@ -292,29 +280,30 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		govSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		&stakingKeeper,
+		&app.stakingKeeper,
 		govRouter,
 	)
 
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
-	app.stakingKeeper = *stakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
+	app.stakingKeeper = *(app.stakingKeeper.SetHooks(
+		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks())))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
-		auth.NewAppModule(appCodec, app.accountKeeper, nil), // TODO what's the nil for?
+		auth.NewAppModule(appCodec, app.accountKeeper, nil),
 		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
-		crisis.NewAppModule(&app.crisisKeeper, false), // TODO read skip gen invarients arg from somewhere
+		crisis.NewAppModule(&app.crisisKeeper, options.SkipGenesisInvariants),
 		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
 		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
+		params.NewAppModule(app.paramsKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -322,23 +311,38 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	// CanWithdrawInvariant invariant.
 	// Auction.BeginBlocker will close out expired auctions and pay debt back to cdp.
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
-	app.mm.SetOrderBeginBlockers( // TODO
-		minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
+	app.mm.SetOrderBeginBlockers(
+		minttypes.ModuleName,
+		distrtypes.ModuleName,
+		slashingtypes.ModuleName,
+		evidencetypes.ModuleName, // TODO why new evidence and staking begin blockers?
+		stakingtypes.ModuleName,
 	)
 
-	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName)
+	app.mm.SetOrderEndBlockers(
+		crisistypes.ModuleName,
+		govtypes.ModuleName,
+		stakingtypes.ModuleName,
+	)
 
-	app.mm.SetOrderInitGenesis(
+	app.mm.SetOrderInitGenesis( // TODO why the different order?
 		authtypes.ModuleName, // loads all accounts - should run before any module with a module account
+		banktypes.ModuleName,
 		distrtypes.ModuleName,
-		stakingtypes.ModuleName, banktypes.ModuleName, slashingtypes.ModuleName,
-		govtypes.ModuleName, minttypes.ModuleName, evidencetypes.ModuleName,
+		stakingtypes.ModuleName,
+		slashingtypes.ModuleName,
+		govtypes.ModuleName,
+		minttypes.ModuleName,
 		crisistypes.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
+		evidencetypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
+
+	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
+	app.mm.RegisterServices(app.configurator)
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//
@@ -359,10 +363,10 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	// initialize stores
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
+	// TODO mount memory stores
 
 	// initialize the app
-	app.SetInitChainer(app.InitChainer)
-	app.SetBeginBlocker(app.BeginBlocker)
+
 	// TODO antehandler
 	// var antehandler sdk.AnteHandler
 	// if options.MempoolEnableAuth {
@@ -372,56 +376,41 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	// 	antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer)
 	// }
 	// app.SetAnteHandler(antehandler)
+	app.SetInitChainer(app.InitChainer)
+	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
 	// load store
 	if !options.SkipLoadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
-			tmos.Exit(fmt.Sprintf("failed to load latest version: %s", err)) // TODO replace with panic
+			panic(fmt.Sprintf("failed to load latest version: %s", err))
 		}
 	}
 
 	return app
 }
 
-// TODO
-// // custom tx codec
-// func MakeCodec() *codec.Codec {
-// 	var cdc = codec.New()
-
-// 	ModuleBasics.RegisterCodec(cdc)
-// 	vestingtypes.RegisterCodec(cdc)
-// 	sdk.RegisterCodec(cdc)
-// 	codec.RegisterCrypto(cdc)
-// 	codec.RegisterEvidences(cdc)
-
-// 	return cdc.Seal()
-// }
-
-// application updates every end block
+// BeginBlocker contains app specific logic for the BeginBlock abci call.
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	return app.mm.BeginBlock(ctx, req)
 }
 
-// application updates every end block
+// EndBlocker contains app specific logic for the EndBlock abci call.
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	return app.mm.EndBlock(ctx, req)
 }
 
-// custom logic for app initialization
+// InitChainer contains app specific logic for the InitChain abci call.
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
 
-	// TODO upgrade thing
-
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
-// TODO remove?
-// load a particular height
+// LoadHeight loads the app state for a particular height.
 func (app *App) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
 }
@@ -436,21 +425,10 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 	return modAccAddrs
 }
 
-// TODO
-// // BlacklistedAccAddrs returns all the app's module account addresses black listed for receiving tokens.
-// func (app *App) BlacklistedAccAddrs() map[string]bool {
-// 	blacklistedAddrs := make(map[string]bool)
-// 	for acc := range mAccPerms {
-// 		blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
-// 	}
-
-// 	return blacklistedAddrs
-// }
-
 // LegacyAmino returns the app's amino codec.
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types. // TODO is this true?
+// for modules to register their own custom testing types. // TODO move to TestApp
 func (app *App) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
 }
@@ -458,17 +436,17 @@ func (app *App) LegacyAmino() *codec.LegacyAmino {
 // AppCodec returns the app's app codec.
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types. // TODO is this true?
+// for modules to register their own custom testing types. // TODO move to TestApp
 func (app *App) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
-// InterfaceRegistry returns the app's InterfaceRegistry
+// InterfaceRegistry returns the app's InterfaceRegistry.
 func (app *App) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
-// SimulationManager implements the SimulationApp interface
+// SimulationManager implements the SimulationApp interface.
 func (app *App) SimulationManager() *module.SimulationManager {
 	return app.sm
 }

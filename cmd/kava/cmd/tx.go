@@ -9,6 +9,7 @@ import (
 	"github.com/kava-labs/kava/app"
 )
 
+// newTxCmd creates all commands for submitting blockchain transactions.
 func newTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",

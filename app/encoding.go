@@ -6,9 +6,9 @@ import (
 	"github.com/kava-labs/kava/app/params"
 )
 
-// TOOD why is this separate from params?
+// TODO why is this separate from params?
 
-// MakeEncodingConfig creates an EncodingConfig for testing
+// MakeEncodingConfig creates an EncodingConfig and registers the app's types on it.
 func MakeEncodingConfig() params.EncodingConfig {
 	encodingConfig := params.MakeEncodingConfig()
 	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
