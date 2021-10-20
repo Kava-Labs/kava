@@ -45,8 +45,7 @@ build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 # process linker flags
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=kava \
-		  -X github.com/cosmos/cosmos-sdk/version.ServerName=kvd \
-		  -X github.com/cosmos/cosmos-sdk/version.ClientName=kvcli \
+		  -X github.com/cosmos/cosmos-sdk/version.AppName=kava \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
@@ -75,8 +74,7 @@ build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
 install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvd
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvcli
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kava
 
 ########################################
 ### Tools & dependencies
