@@ -14,8 +14,8 @@ func TestNewApp(t *testing.T) {
 		log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
 		db.NewMemDB(),
 		nil,
-		AppOptions{},
 		MakeEncodingConfig(),
+		Options{},
 	)
 }
 

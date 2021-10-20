@@ -114,9 +114,9 @@ var (
 // var _ simapp.App = (*App)(nil) // TODO
 var _ servertypes.Application = (*App)(nil)
 
-// AppOptions bundles several configuration params for an App.
+// Options bundles several configuration params for an App.
 // The zero value can be used as a sensible default.
-type AppOptions struct {
+type Options struct {
 	SkipLoadLatest       bool
 	SkipUpgradeHeights   map[int64]bool
 	InvariantCheckPeriod uint
@@ -158,7 +158,7 @@ type App struct {
 }
 
 // NewApp returns a reference to an initialized App.
-func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptions, encodingConfig kavaappparams.EncodingConfig, baseAppOptions ...func(*baseapp.BaseApp)) *App {
+func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, encodingConfig kavaappparams.EncodingConfig, options Options, baseAppOptions ...func(*baseapp.BaseApp)) *App {
 
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
@@ -181,7 +181,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
-		invCheckPeriod:    appOpts.InvariantCheckPeriod,
+		invCheckPeriod:    options.InvariantCheckPeriod,
 		keys:              keys,
 		tkeys:             tkeys,
 	}
@@ -353,8 +353,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	app.SetBeginBlocker(app.BeginBlocker)
 	// TODO antehandler
 	// var antehandler sdk.AnteHandler
-	// if appOpts.MempoolEnableAuth {
-	// 	var getAuthorizedAddresses ante.AddressFetcher = func(sdk.Context) []sdk.AccAddress { return appOpts.MempoolAuthAddresses }
+	// if options.MempoolEnableAuth {
+	// 	var getAuthorizedAddresses ante.AddressFetcher = func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses }
 	// 	antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer, getAuthorizedAddresses)
 	// } else {
 	// 	antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer)
@@ -363,7 +363,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	app.SetEndBlocker(app.EndBlocker)
 
 	// load store
-	if !appOpts.SkipLoadLatest {
+	if !options.SkipLoadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(fmt.Sprintf("failed to load latest version: %s", err)) // TODO replace with panic
 		}

@@ -19,6 +19,8 @@ import (
 	"github.com/kava-labs/kava/app/params"
 )
 
+// TODO set sdk config somewhere
+
 // NewRootCmd creates a new root command for kava.
 func NewRootCmd() *cobra.Command {
 	encodingConfig := app.MakeEncodingConfig()
