@@ -3,7 +3,9 @@ package app
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -54,7 +56,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
+	tmlog "github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
@@ -62,15 +64,13 @@ import (
 )
 
 const (
-	appName          = "kava"
-	Bech32MainPrefix = "kava"
-	Bip44CoinType    = 459 // see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+	appName = "kava" // TODO what is this used for?
+
 )
 
 var (
 	// default home directories for expected binaries
-	DefaultCLIHome  = os.ExpandEnv("$HOME/.kvcli") // TODO
-	DefaultNodeHome = os.ExpandEnv("$HOME/.kvd")
+	DefaultNodeHome string
 
 	// ModuleBasics manages simple versions of full app modules. It's used for things such as codec registration and genesis file verification.
 	ModuleBasics = module.NewBasicManager(
@@ -109,6 +109,14 @@ var (
 		distrtypes.ModuleName: true,
 	}
 )
+
+func init() { // TODO why is this in app?
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Println("Failed to get home dir %2", err) // TODO bug?
+	}
+	DefaultNodeHome = filepath.Join(userHomeDir, ".kava") // TODO use appName, or version.AppName?
+}
 
 // Verify app interface at compile time
 // var _ simapp.App = (*App)(nil) // TODO
@@ -158,7 +166,7 @@ type App struct {
 }
 
 // NewApp returns a reference to an initialized App.
-func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, encodingConfig kavaappparams.EncodingConfig, options Options, baseAppOptions ...func(*baseapp.BaseApp)) *App {
+func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig kavaappparams.EncodingConfig, options Options, baseAppOptions ...func(*baseapp.BaseApp)) *App {
 
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
@@ -201,6 +209,10 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, encodingConfig k
 	slashingSubspace := app.paramsKeeper.Subspace(slashingtypes.ModuleName)
 	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.ModuleName)
+
+	bApp.SetParamStore(
+		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
+	)
 
 	// add keepers
 	app.accountKeeper = authkeeper.NewAccountKeeper(
@@ -386,18 +398,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, encodingConfig k
 // 	return cdc.Seal()
 // }
 
-// SetBech32AddressPrefixes sets the global prefix to be used when serializing addresses to bech32 strings.
-func SetBech32AddressPrefixes(config *sdk.Config) {
-	config.SetBech32PrefixForAccount(Bech32MainPrefix, Bech32MainPrefix+sdk.PrefixPublic)
-	config.SetBech32PrefixForValidator(Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixOperator, Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixOperator+sdk.PrefixPublic)
-	config.SetBech32PrefixForConsensusNode(Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixConsensus, Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixConsensus+sdk.PrefixPublic)
-}
-
-// SetBip44CoinType sets the global coin type to be used in hierarchical deterministic wallets.
-func SetBip44CoinType(config *sdk.Config) {
-	config.SetCoinType(Bip44CoinType)
-}
-
 // application updates every end block
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	return app.mm.BeginBlock(ctx, req)
@@ -476,17 +476,17 @@ func (app *App) SimulationManager() *module.SimulationManager {
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
-	panic("TODO")
+	// TODO
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *App) RegisterTxService(clientCtx client.Context) {
-	panic("TODO")
+	// TODO
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *App) RegisterTendermintService(clientCtx client.Context) {
-	panic("TODO")
+	// TODO
 }
 
 // GetMaccPerms returns a mapping of the application's module account permissions.

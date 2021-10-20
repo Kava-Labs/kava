@@ -63,7 +63,7 @@ all: install
 
 build: go.sum
 ifeq ($(OS), Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd.exe ./cmd/kvd
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd.exe ./cmd/kvd 
 	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvcli.exe ./cmd/kvcli
 else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd ./cmd/kvd
@@ -130,6 +130,11 @@ localnet-start: build-linux localnet-stop
 
 localnet-stop:
 	docker-compose down
+
+# Launch a new single validator chain
+start:
+	./contrib/devnet/init-new-chain.sh
+	kava start
 
 ########################################
 ### Testing

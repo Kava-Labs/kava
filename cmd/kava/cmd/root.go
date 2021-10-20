@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
+	simdcmd "github.com/cosmos/cosmos-sdk/simapp/simd/cmd"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
@@ -19,10 +20,10 @@ import (
 	"github.com/kava-labs/kava/app/params"
 )
 
-// TODO set sdk config somewhere
-
 // NewRootCmd creates a new root command for kava.
 func NewRootCmd() *cobra.Command {
+	app.SetSDKConfig().Seal()
+
 	encodingConfig := app.MakeEncodingConfig()
 
 	initClientCtx := client.Context{}.
@@ -65,8 +66,8 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		// app.MigrateGenesisCmd(), // TODO
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		// AddGenesisAccountCmd(app.DefaultNodeHome), // TODO
-		tmcli.NewCompletionCmd(rootCmd, true), // TODO add other shells
+		simdcmd.AddGenesisAccountCmd(app.DefaultNodeHome), // TODO use own version with vesting accounts
+		tmcli.NewCompletionCmd(rootCmd, true),             // TODO add other shells
 		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}), // TODO
 		debug.Cmd(),
 		config.Cmd(),
