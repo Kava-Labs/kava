@@ -1,0 +1,157 @@
+{
+  "committees": [
+    {
+      "description": "Kava Stability Committee",
+      "id": "1",
+      "members": [
+        "kava1gru35up50ql2wxhegr880qy6ynl63ujlv8gum2",
+        "kava1sc3mh3pkas5e7xd269am4xm5mp6zweyzmhjagj",
+        "kava1c9ye54e3pzwm3e0zpdlel6pnavrj9qqv6e8r4h",
+        "kava1m7p6sjqrz6mylz776ct48wj6lpnpcd0z82209d",
+        "kava1a9pmkzk570egv3sflu3uwdf3gejl7qfy9hghzl"
+      ],
+      "permissions": [
+        {
+          "type": "kava/SubParamChangePermission",
+          "value": {
+            "allowed_asset_params": [
+              {
+                "active": true,
+                "coin_id": false,
+                "denom": "bnb",
+                "limit": true
+              }
+            ],
+            "allowed_collateral_params": [
+              {
+                "auction_size": true,
+                "conversion_factor": false,
+                "debt_limit": true,
+                "denom": "bnb",
+                "liquidation_market_id": false,
+                "liquidation_penalty": false,
+                "liquidation_ratio": false,
+                "prefix": false,
+                "spot_market_id": false,
+                "stability_fee": true
+              }
+            ],
+            "allowed_debt_param": {
+              "conversion_factor": false,
+              "debt_floor": true,
+              "denom": false,
+              "reference_asset": false,
+              "savings_rate": true
+            },
+            "allowed_markets": [
+              {
+                "active": true,
+                "base_asset": false,
+                "market_id": "bnb:usd",
+                "oracles": false,
+                "quote_asset": false
+              },
+              {
+                "active": true,
+                "base_asset": false,
+                "market_id": "bnb:usd:30",
+                "oracles": false,
+                "quote_asset": false
+              }
+            ],
+            "allowed_params": [
+              {
+                "key": "BidDuration",
+                "subspace": "auction"
+              },
+              {
+                "key": "IncrementSurplus",
+                "subspace": "auction"
+              },
+              {
+                "key": "IncrementDebt",
+                "subspace": "auction"
+              },
+              {
+                "key": "IncrementCollateral",
+                "subspace": "auction"
+              },
+              {
+                "key": "SupportedAssets",
+                "subspace": "bep3"
+              },
+              {
+                "key": "GlobalDebtLimit",
+                "subspace": "cdp"
+              },
+              {
+                "key": "SurplusThreshold",
+                "subspace": "cdp"
+              },
+              {
+                "key": "SurplusLot",
+                "subspace": "cdp"
+              },
+              {
+                "key": "DebtThreshold",
+                "subspace": "cdp"
+              },
+              {
+                "key": "DebtLot",
+                "subspace": "cdp"
+              },
+              {
+                "key": "DistributionFrequency",
+                "subspace": "cdp"
+              },
+              {
+                "key": "CollateralParams",
+                "subspace": "cdp"
+              },
+              {
+                "key": "DebtParam",
+                "subspace": "cdp"
+              },
+              {
+                "key": "Active",
+                "subspace": "incentive"
+              },
+              {
+                "key": "Active",
+                "subspace": "kavadist"
+              },
+              {
+                "key": "Markets",
+                "subspace": "pricefeed"
+              }
+            ]
+          }
+        },
+        {
+          "type": "kava/TextPermission",
+          "value": {}
+        }
+      ],
+      "proposal_duration": "604800000000000",
+      "vote_threshold": "0.500000000000000000"
+    },
+    {
+      "description": "Kava Safety Committee",
+      "id": "2",
+      "members": [
+        "kava1e0agyg6eug9r62fly9sls77ycjgw8ax6xk73es"
+      ],
+      "permissions": [
+        {
+          "type": "kava/SoftwareUpgradePermission",
+          "value": {}
+        }
+      ],
+      "proposal_duration": "604800000000000",
+      "vote_threshold": "0.500000000000000000"
+    }
+  ],
+  "next_proposal_id": "27",
+  "proposals": [],
+  "votes": []
+}

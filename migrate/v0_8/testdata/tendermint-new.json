@@ -1,0 +1,33 @@
+{
+  "app_hash": "",
+  "app_state": {},
+  "chain_id": "kava-2",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "200000",
+      "max_gas": "2000000",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age_num_blocks": "1000000",
+      "max_age_duration": "6000000000000000"
+    },
+    "validator": {
+      "pub_key_types": [
+        "ed25519"
+      ]
+    }
+  },
+  "genesis_time": "2019-11-15T14:00:00Z",
+  "validators": [
+    {
+      "address": "",
+      "name": "val",
+      "power": "100",
+      "pub_key": {
+          "type": "tendermint/PubKeyEd25519",
+          "value": "Dg91loCPZ8RCmp5SL2LEVzTG3Q51HdEdgELRFC51b3M="
+      }
+  }
+  ]
+}

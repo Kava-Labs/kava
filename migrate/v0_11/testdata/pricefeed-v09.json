@@ -1,0 +1,152 @@
+{
+  "params": {
+    "markets": [
+      {
+        "active": true,
+        "base_asset": "bnb",
+        "market_id": "bnb:usd",
+        "oracles": [
+          "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+          "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+          "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+          "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+          "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+          "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+          "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+          "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+          "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+          "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+        ],
+        "quote_asset": "usd"
+      },
+      {
+        "active": true,
+        "base_asset": "bnb",
+        "market_id": "bnb:usd:30",
+        "oracles": [
+          "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+          "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+          "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+          "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+          "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+          "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+          "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+          "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+          "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+          "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+        ],
+        "quote_asset": "usd"
+      }
+    ]
+  },
+  "posted_prices": [
+    {
+      "expiry": "2020-08-19T06:14:00Z",
+      "market_id": "bnb:usd",
+      "oracle_address": "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+      "price": "22.925799999999998846"
+    },
+    {
+      "expiry": "2020-08-19T06:14:00Z",
+      "market_id": "bnb:usd",
+      "oracle_address": "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+      "price": "22.932800000000000296"
+    },
+    {
+      "expiry": "2020-07-28T07:30:00Z",
+      "market_id": "bnb:usd",
+      "oracle_address": "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+      "price": "20.084499999999998465"
+    },
+    {
+      "expiry": "2020-08-19T06:14:00Z",
+      "market_id": "bnb:usd",
+      "oracle_address": "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+      "price": "22.932800000000000296"
+    },
+    {
+      "expiry": "2020-08-19T06:22:00Z",
+      "market_id": "bnb:usd",
+      "oracle_address": "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+      "price": "22.866299999999998960"
+    },
+    {
+      "expiry": "2020-08-19T06:14:01Z",
+      "market_id": "bnb:usd",
+      "oracle_address": "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+      "price": "22.932800000000000296"
+    },
+    {
+      "expiry": "2020-08-19T06:14:00Z",
+      "market_id": "bnb:usd",
+      "oracle_address": "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+      "price": "22.932800000000000296"
+    },
+    {
+      "expiry": "2020-08-19T06:28:00Z",
+      "market_id": "bnb:usd",
+      "oracle_address": "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh",
+      "price": "22.836200000000001609"
+    },
+    {
+      "expiry": "2020-08-19T06:29:31Z",
+      "market_id": "bnb:usd",
+      "oracle_address": "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+      "price": "22.834499999999998465"
+    },
+    {
+      "expiry": "2020-08-19T06:25:00Z",
+      "market_id": "bnb:usd:30",
+      "oracle_address": "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+      "price": "22.967586666666665707"
+    },
+    {
+      "expiry": "2020-08-19T06:24:00Z",
+      "market_id": "bnb:usd:30",
+      "oracle_address": "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+      "price": "22.972826666666666284"
+    },
+    {
+      "expiry": "2020-08-19T06:22:30Z",
+      "market_id": "bnb:usd:30",
+      "oracle_address": "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+      "price": "22.980756666666668053"
+    },
+    {
+      "expiry": "2020-07-28T08:30:00Z",
+      "market_id": "bnb:usd:30",
+      "oracle_address": "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+      "price": "20.056519999999995463"
+    },
+    {
+      "expiry": "2020-08-19T06:25:00Z",
+      "market_id": "bnb:usd:30",
+      "oracle_address": "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+      "price": "22.967586666666665707"
+    },
+    {
+      "expiry": "2020-08-19T06:25:00Z",
+      "market_id": "bnb:usd:30",
+      "oracle_address": "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+      "price": "22.967586666666665707"
+    },
+    {
+      "expiry": "2020-08-19T06:25:00Z",
+      "market_id": "bnb:usd:30",
+      "oracle_address": "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+      "price": "22.967586666666665707"
+    },
+    {
+      "expiry": "2020-08-19T06:22:00Z",
+      "market_id": "bnb:usd:30",
+      "oracle_address": "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh",
+      "price": "22.972629999999998773"
+    },
+    {
+      "expiry": "2020-08-19T06:24:31Z",
+      "market_id": "bnb:usd:30",
+      "oracle_address": "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+      "price": "22.967533333333335577"
+    }
+  ]
+}

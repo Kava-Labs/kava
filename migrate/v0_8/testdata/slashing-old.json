@@ -1,0 +1,70 @@
+{
+      "missed_blocks": {
+        "kavavalcons1029jhm4lz26q78ftrmazf8hw7lmrt08l2vq3cs": [
+          {
+            "index": "66",
+            "missed": false
+          },
+          {
+            "index": "67",
+            "missed": false
+          },
+          {
+            "index": "68",
+            "missed": false
+          },
+          {
+            "index": "76",
+            "missed": false
+          },
+          {
+            "index": "1241",
+            "missed": false
+          }
+        ],
+        "kavavalcons1030yrl85a6vskx5xn0fyt4446grfk9zy4uxssy": [
+          {
+            "index": "0",
+            "missed": false
+          },
+          {
+            "index": "1",
+            "missed": false
+          },
+          {
+            "index": "2",
+            "missed": false
+          },
+          {
+            "index": "4",
+            "missed": false
+          }
+        ]
+      },
+      "params": {
+        "downtime_jail_duration": "600000000000",
+        "max_evidence_age": "1814400000000000",
+        "min_signed_per_window": "0.050000000000000000",
+        "signed_blocks_window": "10000",
+        "slash_fraction_double_sign": "0.050000000000000000",
+        "slash_fraction_downtime": "0.000100000000000000"
+      },
+      "signing_infos": {
+        "kavavalcons1029jhm4lz26q78ftrmazf8hw7lmrt08l2vq3cs": {
+          "address": "kavavalcons1029jhm4lz26q78ftrmazf8hw7lmrt08l2vq3cs",
+          "index_offset": "2345571",
+          "jailed_until": "1970-01-01T00:00:00Z",
+          "missed_blocks_counter": "0",
+          "start_height": "5",
+          "tombstoned": false
+        },
+        "kavavalcons1030yrl85a6vskx5xn0fyt4446grfk9zy4uxssy": {
+          "address": "kavavalcons1030yrl85a6vskx5xn0fyt4446grfk9zy4uxssy",
+          "index_offset": "1222230",
+          "jailed_until": "2020-02-12T19:09:03.214161979Z",
+          "missed_blocks_counter": "147",
+          "start_height": "5",
+          "tombstoned": false
+        }
+      }
+}

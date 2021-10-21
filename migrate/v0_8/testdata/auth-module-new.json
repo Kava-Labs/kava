@@ -1,0 +1,31 @@
+{
+    "params": {
+        "max_memo_characters": "256",
+        "sig_verify_cost_ed25519": "590",
+        "sig_verify_cost_secp256k1": "1000",
+        "tx_sig_limit": "7",
+        "tx_size_cost_per_byte": "10"
+    },
+    "accounts": [
+        {
+            "type": "cosmos-sdk/ModuleAccount",
+            "value": {
+                "account_number": 168,
+                "address": "kava1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3fwaj0s",
+                "coins": [
+                    {
+                        "amount": "87921781313382",
+                        "denom": "ukava"
+                    }
+                ],
+                "public_key": "",
+                "sequence": 0,
+                "name": "bonded_tokens_pool",
+                "permissions": [
+                    "burner",
+                    "staking"
+                ]
+            }
+        }
+    ]
+}

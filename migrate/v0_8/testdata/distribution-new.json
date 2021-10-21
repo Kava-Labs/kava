@@ -1,0 +1,251 @@
+{
+  "params": {
+    "base_proposer_reward": "0.010000000000000000",
+    "bonus_proposer_reward": "0.040000000000000000",
+    "community_tax": "0.000000000000000000",
+    "withdraw_addr_enabled": false
+  },
+  "delegator_starting_infos": [
+    {
+      "delegator_address": "kava1qyc2cfl0nw8r95dsdw534x99wq0xcj9rksmhx4",
+      "starting_info": {
+        "creation_height": "252",
+        "previous_period": "1",
+        "stake": "3000000000.000000000000000000"
+      },
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    },
+    {
+      "delegator_address": "kava1qvsus5qg8yhre7k2c78xkkw4nvqqgev7ezrja8",
+      "starting_info": {
+        "creation_height": "1064509",
+        "previous_period": "82",
+        "stake": "20000000000.000000000000000000"
+      },
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    },
+    {
+      "delegator_address": "kava1fhj7pkuvwflr7z7ngp2v9tj7g58aq2tjh2q84j",
+      "starting_info": {
+        "creation_height": "2082995",
+        "previous_period": "87",
+        "stake": "0.002955339603289120"
+      },
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    },
+    {
+      "delegator_address": "kava12xprvq28w06ylkq45vnwkwpxtmv03fd5t4r70n",
+      "starting_info": {
+        "creation_height": "580421",
+        "previous_period": "3",
+        "stake": "9000000.000000000000000000"
+      },
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    }
+  ],
+  "delegator_withdraw_infos": [],
+  "fee_pool": {
+    "community_pool": [
+      {
+        "amount": "4273.406019327669990744",
+        "denom": "ukava"
+      }
+    ]
+  },
+  "outstanding_rewards": [
+    {
+      "outstanding_rewards": [
+        {
+          "amount": "407746339.697585794084260309",
+          "denom": "ukava"
+        }
+      ],
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    },
+    {
+      "outstanding_rewards": [
+        {
+          "amount": "270577067.008799337336325953",
+          "denom": "ukava"
+        }
+      ],
+      "validator_address": "kavavaloper1qfy0e2w62g6j4jg5djcqd4py3zsaeqexjplj2d"
+    },
+    {
+      "outstanding_rewards": [
+        {
+          "amount": "393922320.552371198553884301",
+          "denom": "ukava"
+        }
+      ],
+      "validator_address": "kavavaloper1q3y9qga5hf360dmzta67vp54qz25tmv4hhkk4t"
+    },
+    {
+      "outstanding_rewards": [
+        {
+          "amount": "6319216.166548663982974419",
+          "denom": "ukava"
+        }
+      ],
+      "validator_address": "kavavaloper1qk0pta4ga5t8p5vv7me8dz32lvcrv2rp098cas"
+    }
+  ],
+  "previous_proposer": "kavavalcons1l78wcdl4lygm38l39jcq5sep2l7ku7z8m9mxwg",
+  "validator_accumulated_commissions": [
+    {
+      "accumulated": [
+        {
+          "amount": "191541157.919101533286771494",
+          "denom": "ukava"
+        }
+      ],
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    },
+    {
+      "accumulated": [
+        {
+          "amount": "270577067.008799223260139456",
+          "denom": "ukava"
+        }
+      ],
+      "validator_address": "kavavaloper1qfy0e2w62g6j4jg5djcqd4py3zsaeqexjplj2d"
+    },
+    {
+      "accumulated": [
+        {
+          "amount": "76703922.531362561792462166",
+          "denom": "ukava"
+        }
+      ],
+      "validator_address": "kavavaloper1q3y9qga5hf360dmzta67vp54qz25tmv4hhkk4t"
+    },
+    {
+      "accumulated": [
+        {
+          "amount": "1846231.214029771840277834",
+          "denom": "ukava"
+        }
+      ],
+      "validator_address": "kavavaloper1qk0pta4ga5t8p5vv7me8dz32lvcrv2rp098cas"
+    }
+  ],
+  "validator_current_rewards": [
+    {
+      "rewards": {
+        "period": "88",
+        "rewards": [
+          {
+            "amount": "41505563.459999591766155596",
+            "denom": "ukava"
+          }
+        ]
+      },
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    },
+    {
+      "rewards": {
+        "period": "76",
+        "rewards": null
+      },
+      "validator_address": "kavavaloper1qfy0e2w62g6j4jg5djcqd4py3zsaeqexjplj2d"
+    },
+    {
+      "rewards": {
+        "period": "22",
+        "rewards": [
+          {
+            "amount": "178497730.995723717812777164",
+            "denom": "ukava"
+          }
+        ]
+      },
+      "validator_address": "kavavaloper1q3y9qga5hf360dmzta67vp54qz25tmv4hhkk4t"
+    },
+    {
+      "rewards": {
+        "period": "20",
+        "rewards": [
+          {
+            "amount": "4248603.711022474381844829",
+            "denom": "ukava"
+          }
+        ]
+      },
+      "validator_address": "kavavaloper1qk0pta4ga5t8p5vv7me8dz32lvcrv2rp098cas"
+    }
+  ],
+  "validator_historical_rewards": [
+    {
+      "period": "1",
+      "rewards": {
+        "cumulative_reward_ratio": null,
+        "reference_count": 1
+      },
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    },
+    {
+      "period": "82",
+      "rewards": {
+        "cumulative_reward_ratio": [
+          {
+            "amount": "0.017163087196561731",
+            "denom": "ukava"
+          }
+        ],
+        "reference_count": 1
+      },
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    },
+    {
+      "period": "87",
+      "rewards": {
+        "cumulative_reward_ratio": [
+          {
+            "amount": "0.022515630092578764",
+            "denom": "ukava"
+          }
+        ],
+        "reference_count": 2
+      },
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    }
+  ],
+  "validator_slash_events": [
+    {
+      "height": "1415519",
+      "period": "85",
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z",
+      "validator_slash_event": {
+        "fraction": "0.000099999130782470",
+        "validator_period": "85"
+      }
+    },
+    {
+      "height": "1971549",
+      "period": "86",
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z",
+      "validator_slash_event": {
+        "fraction": "0.000099996092041800",
+        "validator_period": "86"
+      }
+    },
+    {
+      "height": "1433843",
+      "period": "9",
+      "validator_address": "kavavaloper18cf35l7req0k6ulqapeyv830mrrucn9xj87plr",
+      "validator_slash_event": {
+        "fraction": "0.000100000000000000",
+        "validator_period": "9"
+      }
+    },
+    {
+      "height": "2200561",
+      "period": "12",
+      "validator_address": "kavavaloper1fw7vjc3fphahqxpdjypddlulnltxws8g0mrds7",
+      "validator_slash_event": {
+        "fraction": "0.000100000000000000",
+        "validator_period": "12"
+      }
+    }
+  ]
+}

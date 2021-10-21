@@ -1,0 +1,392 @@
+{
+  "params": {
+    "max_memo_characters": "512",
+    "sig_verify_cost_ed25519": "590",
+    "sig_verify_cost_secp256k1": "1000",
+    "tx_sig_limit": "7",
+    "tx_size_cost_per_byte": "10"
+  },
+  "accounts": [
+    {
+      "type": "cosmos-sdk/Account",
+      "value": {
+        "account_number": 10145,
+        "address": "kava1llungtpe0aku8c2gqpm23jvs4r0caqdwjzq078",
+        "coins": [
+          {
+            "amount": "92810900",
+            "denom": "ukava"
+          }
+        ],
+        "public_key": "",
+        "sequence": 0
+      }
+    },
+    {
+      "type": "cosmos-sdk/Account",
+      "value": {
+        "account_number": 96,
+        "address": "kava1ceun2qqw65qce5la33j8zv8ltyyaqqfcxftutz",
+        "coins": [
+          {
+            "amount": "1095029582",
+            "denom": "ukava"
+          }
+        ],
+        "public_key": "kavapub1ytql0csgqgfzd666axrjzqc4p3rlrz4ryut2v4r7m29hx6gx0h8pr52pvfzmw7r4dnurt9kctgfzd666axrjzqel670atjnfm8al2jjq7y69ttrjnw96uyqe83342g537mwvej67dqfzd666axrjzqkw686lp4ylpv29fv8t6hxxef5ln33a286a7507utmlc03hgyejsqfzd666axrjzqaa8j22fy52lpjgql0864qm9lqftadj3859z4q205d7xedn974suvfzd666axrjzq4ckxdsxywc0gqhfrxk39z058v3f3yuvmljsagdp2ggx89z5hru9gx07cnh",
+        "sequence": 8
+      }
+    },
+    {
+      "type": "cosmos-sdk/ValidatorVestingAccount",
+      "value": {
+        "account_number": 4,
+        "address": "kava1qzvq736hxfwdqgxwek3229z7ec4rfmc6s4kdc2",
+        "coins": [
+          {
+            "amount": "1829450",
+            "denom": "ukava"
+          }
+        ],
+        "current_period_progress": {
+          "missed_blocks": 1540,
+          "total_blocks": 3468891
+        },
+        "debt_after_failed_vesting": [],
+        "delegated_free": [
+          {
+            "amount": "9990000",
+            "denom": "ukava"
+          }
+        ],
+        "delegated_vesting": [
+          {
+            "amount": "333317710000",
+            "denom": "ukava"
+          }
+        ],
+        "end_time": 1636120800,
+        "original_vesting": [
+          {
+            "amount": "333317710000",
+            "denom": "ukava"
+          }
+        ],
+        "public_key": "kavapub1addwnpepq0v8zuz27x84jkjtpfaj9x840gsg8de23gd47vtq203ey7su6frcv5edh9v",
+        "return_address": "kava1qvsus5qg8yhre7k2c78xkkw4nvqqgev7ezrja8",
+        "sequence": 24,
+        "signing_threshold": 90,
+        "start_time": 1572962400,
+        "validator_address": "kavavalcons16mkm6ggf280kjtsxnvzur7tnqttgavj4mzr4zf",
+        "vesting_period_progress": [
+          {
+            "period_complete": false,
+            "vesting_successful": false
+          },
+          {
+            "period_complete": false,
+            "vesting_successful": false
+          },
+          {
+            "period_complete": false,
+            "vesting_successful": false
+          },
+          {
+            "period_complete": false,
+            "vesting_successful": false
+          },
+          {
+            "period_complete": false,
+            "vesting_successful": false
+          }
+        ],
+        "vesting_periods": [
+          {
+            "amount": [
+              {
+                "amount": "92588250185",
+                "denom": "ukava"
+              }
+            ],
+            "length": 31622400
+          },
+          {
+            "amount": [
+              {
+                "amount": "60182345788",
+                "denom": "ukava"
+              }
+            ],
+            "length": 7948800
+          },
+          {
+            "amount": [
+              {
+                "amount": "60182345788",
+                "denom": "ukava"
+              }
+            ],
+            "length": 7689600
+          },
+          {
+            "amount": [
+              {
+                "amount": "60182345788",
+                "denom": "ukava"
+              }
+            ],
+            "length": 7948800
+          },
+          {
+            "amount": [
+              {
+                "amount": "60182422451",
+                "denom": "ukava"
+              }
+            ],
+            "length": 7948800
+          }
+        ]
+      }
+    },
+    {
+      "type": "cosmos-sdk/PeriodicVestingAccount",
+      "value": {
+        "account_number": 159,
+        "address": "kava1qvsus5qg8yhre7k2c78xkkw4nvqqgev7ezrja8",
+        "coins": [
+          {
+            "amount": "899999001",
+            "denom": "bnb"
+          },
+          {
+            "amount": "2200212895",
+            "denom": "ukava"
+          },
+          {
+            "amount": "1004240",
+            "denom": "usdx"
+          }
+        ],
+        "delegated_free": [],
+        "delegated_vesting": [
+          {
+            "amount": "4147313000000",
+            "denom": "ukava"
+          }
+        ],
+        "end_time": 1636120800,
+        "original_vesting": [
+          {
+            "amount": "5177909376500",
+            "denom": "ukava"
+          }
+        ],
+        "public_key": "kavapub1addwnpepqwg7wp0es6pg0vjgn4hkt8hdfa2yepfqdmp62aja76e3zd6lh22p6f9jte2",
+        "sequence": 184,
+        "start_time": 1572962400,
+        "vesting_periods": [
+          {
+            "amount": [
+              {
+                "amount": "247437068100",
+                "denom": "ukava"
+              }
+            ],
+            "length": 7948800
+          },
+          {
+            "amount": [
+              {
+                "amount": "484707541700",
+                "denom": "ukava"
+              }
+            ],
+            "length": 7776000
+          },
+          {
+            "amount": [
+              {
+                "amount": "19235194400",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          },
+          {
+            "amount": [
+              {
+                "amount": "19235194400",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2592000
+          },
+          {
+            "amount": [
+              {
+                "amount": "606688729200",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          },
+          {
+            "amount": [
+              {
+                "amount": "19235194400",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          },
+          {
+            "amount": [
+              {
+                "amount": "19235194400",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2592000
+          },
+          {
+            "amount": [
+              {
+                "amount": "760072166700",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          },
+          {
+            "amount": [
+              {
+                "amount": "19235194400",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2592000
+          },
+          {
+            "amount": [
+              {
+                "amount": "19235194400",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          },
+          {
+            "amount": [
+              {
+                "amount": "910727972900",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          },
+          {
+            "amount": [
+              {
+                "amount": "20971305600",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2419200
+          },
+          {
+            "amount": [
+              {
+                "amount": "20971305600",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          },
+          {
+            "amount": [
+              {
+                "amount": "912464084000",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2592000
+          },
+          {
+            "amount": [
+              {
+                "amount": "20971305600",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          },
+          {
+            "amount": [
+              {
+                "amount": "20971305600",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2592000
+          },
+          {
+            "amount": [
+              {
+                "amount": "818755417400",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          },
+          {
+            "amount": [
+              {
+                "amount": "21492138900",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          },
+          {
+            "amount": [
+              {
+                "amount": "21492138900",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2592000
+          },
+          {
+            "amount": [
+              {
+                "amount": "194775729900",
+                "denom": "ukava"
+              }
+            ],
+            "length": 2678400
+          }
+        ]
+      }
+    },
+    {
+      "type": "cosmos-sdk/Account",
+      "value": {
+        "account_number": 3,
+        "address": "kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6",
+        "coins": [
+          {
+            "amount": "100200300",
+            "denom": "bnb"
+          },
+          {
+            "amount": "9900",
+            "denom": "ukava"
+          }
+        ],
+        "public_key": "",
+        "sequence": 1234
+      }
+    }
+  ]
+}

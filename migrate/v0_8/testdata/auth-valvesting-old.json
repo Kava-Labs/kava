@@ -1,0 +1,153 @@
+{
+    "params": {
+        "max_memo_characters": "256",
+        "sig_verify_cost_ed25519": "590",
+        "sig_verify_cost_secp256k1": "1000",
+        "tx_sig_limit": "7",
+        "tx_size_cost_per_byte": "10"
+    },
+    "accounts": [
+        {
+            "type": "cosmos-sdk/ValidatorVestingAccount",
+            "value": {
+                "PeriodicVestingAccount": {
+                    "BaseVestingAccount": {
+                        "BaseAccount": {
+                            "account_number": "104",
+                            "address": "kava1pjm84k90qnmcexv6704cxe243j52vww572j78u",
+                            "coins": [
+                                {
+                                    "amount": "410694803",
+                                    "denom": "ukava"
+                                }
+                            ],
+                            "public_key": {
+                                "type": "tendermint/PubKeySecp256k1",
+                                "value": "A1dLIMH2gbFq6WhsnOc0aXicwjXva/8QZLQxeLcUxGTk"
+                            },
+                            "sequence": "10"
+                        },
+                        "delegated_free": [],
+                        "delegated_vesting": [
+                            {
+                                "amount": "699980000000",
+                                "denom": "ukava"
+                            }
+                        ],
+                        "end_time": "1636120800",
+                        "original_vesting": [
+                            {
+                                "amount": "699990000000",
+                                "denom": "ukava"
+                            }
+                        ]
+                    },
+                    "start_time": "1572962400",
+                    "vesting_periods": [
+                        {
+                            "amount": [
+                                {
+                                    "amount": "349995000000",
+                                    "denom": "ukava"
+                                }
+                            ],
+                            "length": "15724800"
+                        },
+                        {
+                            "amount": [
+                                {
+                                    "amount": "58332500000",
+                                    "denom": "ukava"
+                                }
+                            ],
+                            "length": "7948800"
+                        },
+                        {
+                            "amount": [
+                                {
+                                    "amount": "58332500000",
+                                    "denom": "ukava"
+                                }
+                            ],
+                            "length": "7948800"
+                        },
+                        {
+                            "amount": [
+                                {
+                                    "amount": "58332500000",
+                                    "denom": "ukava"
+                                }
+                            ],
+                            "length": "7948800"
+                        },
+                        {
+                            "amount": [
+                                {
+                                    "amount": "58332500000",
+                                    "denom": "ukava"
+                                }
+                            ],
+                            "length": "7689600"
+                        },
+                        {
+                            "amount": [
+                                {
+                                    "amount": "58332500000",
+                                    "denom": "ukava"
+                                }
+                            ],
+                            "length": "7948800"
+                        },
+                        {
+                            "amount": [
+                                {
+                                    "amount": "58332500000",
+                                    "denom": "ukava"
+                                }
+                            ],
+                            "length": "7948800"
+                        }
+                    ]
+                },
+                "current_period_progress": {
+                    "missed_blocks": "9",
+                    "total_blocks": "190565"
+                },
+                "debt_after_failed_vesting": [],
+                "return_address": "kava1qvsus5qg8yhre7k2c78xkkw4nvqqgev7ezrja8",
+                "signing_threshold": "90",
+                "validator_address": "kavavalcons1rcgcrswwvunnfrx73ksc5ks8t9jtcnpaehf726",
+                "vesting_period_progress": [
+                    {
+                        "period_complete": true,
+                        "vesting_successful": true
+                    },
+                    {
+                        "period_complete": false,
+                        "vesting_successful": false
+                    },
+                    {
+                        "period_complete": false,
+                        "vesting_successful": false
+                    },
+                    {
+                        "period_complete": false,
+                        "vesting_successful": false
+                    },
+                    {
+                        "period_complete": false,
+                        "vesting_successful": false
+                    },
+                    {
+                        "period_complete": false,
+                        "vesting_successful": false
+                    },
+                    {
+                        "period_complete": false,
+                        "vesting_successful": false
+                    }
+                ]
+            }
+        }
+    ]
+}

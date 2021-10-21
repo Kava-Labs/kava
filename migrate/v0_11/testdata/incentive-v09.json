@@ -1,0 +1,4144 @@
+{
+  "claim_periods": [
+    {
+      "denom": "bnb",
+      "end": "2020-08-19T14:00:14.333506701Z",
+      "id": "1",
+      "time_lock": "31536000000000000"
+    },
+    {
+      "denom": "bnb",
+      "end": "2020-08-26T14:00:21.148983045Z",
+      "id": "2",
+      "time_lock": "31536000000000000"
+    }
+  ],
+  "claims": [
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1qm8z7cw32pfc43dhnef9j48ketfd23vx8j32v7",
+      "reward": {
+        "amount": "158757",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1q7sgezf9uvgdn38hv5w00tm9737c0jsuzh7m4l",
+      "reward": {
+        "amount": "3604854",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1zyupq6ueyzexdc0qyspax9x3qg0tpkuqzv0l4w",
+      "reward": {
+        "amount": "158763",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1ztgycvjv9vqjtvn9qp54l7mcczmvr22y4zvspe",
+      "reward": {
+        "amount": "158760",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1x8cy4tfcxzywqwenttjswlv6x8swhc6hz2xfxq",
+      "reward": {
+        "amount": "56536",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1xjqgqjx0qty6usulkl5qs9fphtysjx3zkmz0aj",
+      "reward": {
+        "amount": "30954451",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1xjtc2yk7v8tr7ulw85s7x04z255h70h8rp49hq",
+      "reward": {
+        "amount": "158753",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1xjh3cd48kgpgmgc7n3tp08v5d3xqp6vck3drcx",
+      "reward": {
+        "amount": "180437",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1x6vr5x2ln3t8p0v75d25j2levjzjs26rvzfm69",
+      "reward": {
+        "amount": "178358",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1gm6j9qklsmmgftj89hdd8lml3xgghqz7hmg40c",
+      "reward": {
+        "amount": "6059253",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1fewhhjak24u0s54jw9s7pdluw2aqw4cra2el42",
+      "reward": {
+        "amount": "159719",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava12aazneqltthrxwkc3g4njhwgg9prjylst4m5uh",
+      "reward": {
+        "amount": "664230242",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1twq0lv44v9hl3zl2v2799pnndr60w6g348ayxd",
+      "reward": {
+        "amount": "177434",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1duq6rvum4qesvv8z6dv0kfe4ljq0utwlm3szva",
+      "reward": {
+        "amount": "95422",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1wg6awxhucnrp7672vcrxq88uwas7gdlsljxfne",
+      "reward": {
+        "amount": "158761",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1w34k53py5v5xyluazqpq65agyajavep2lutavs",
+      "reward": {
+        "amount": "158769",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1wcjs6ww0acg7cmts7ptm7wewju08p5wqgf9xpp",
+      "reward": {
+        "amount": "216313",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava13rnmeev43pnlpx2xs0v26ynjumymm6dfz9jgn3",
+      "reward": {
+        "amount": "2799827",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1n33qh4rugp7ujhmrv5jdq3evdhzpjj9j03sgnp",
+      "reward": {
+        "amount": "158758",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava15hz5fv6qmtjgukej5yc5axgzaklrwz32h5h96g",
+      "reward": {
+        "amount": "1507869",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava14n35k79dd8v0uvnrv78mlyu9z7ms3xvvxmgqp9",
+      "reward": {
+        "amount": "158760",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1k4p64mj6mumgqtj69h632qyhhy3ycx0hd9rmcn",
+      "reward": {
+        "amount": "158761",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1hrhn3kpm3euny5u7ua783enyzjm27mf2l6l9rh",
+      "reward": {
+        "amount": "158758",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava1cpcs7j777fk2lmqkchz7d36d4k4upx0fjnsgpq",
+      "reward": {
+        "amount": "158763",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "1",
+      "denom": "bnb",
+      "owner": "kava16h4qwf5gjuvhnaj4hn943gc6z5smvg07y3p4g0",
+      "reward": {
+        "amount": "2732299",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1qm8z7cw32pfc43dhnef9j48ketfd23vx8j32v7",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1q7sgezf9uvgdn38hv5w00tm9737c0jsuzh7m4l",
+      "reward": {
+        "amount": "2578892",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1zyupq6ueyzexdc0qyspax9x3qg0tpkuqzv0l4w",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1ztgycvjv9vqjtvn9qp54l7mcczmvr22y4zvspe",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1ztd3642gv3vjefz57zet604ffcsqwe9vvf92nh",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1xjqgqjx0qty6usulkl5qs9fphtysjx3zkmz0aj",
+      "reward": {
+        "amount": "22405424",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1xjtc2yk7v8tr7ulw85s7x04z255h70h8rp49hq",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1xjh3cd48kgpgmgc7n3tp08v5d3xqp6vck3drcx",
+      "reward": {
+        "amount": "132051",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1x6vr5x2ln3t8p0v75d25j2levjzjs26rvzfm69",
+      "reward": {
+        "amount": "132034",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1gm6j9qklsmmgftj89hdd8lml3xgghqz7hmg40c",
+      "reward": {
+        "amount": "4363800",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1fewhhjak24u0s54jw9s7pdluw2aqw4cra2el42",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava12aw587tn9nmmlvnq920hj9ykxewazhszjjrvtj",
+      "reward": {
+        "amount": "1312234",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava12aazneqltthrxwkc3g4njhwgg9prjylst4m5uh",
+      "reward": {
+        "amount": "132144",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1twq0lv44v9hl3zl2v2799pnndr60w6g348ayxd",
+      "reward": {
+        "amount": "92889",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1tl2prafjdaxdq7y7rk9820r0xp0merzud4ttkn",
+      "reward": {
+        "amount": "220078",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1d6rxxma8uvneyda9fne4qzp7wxdd88vqu4x8qd",
+      "reward": {
+        "amount": "753022",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1dmhhw04s4mlrsu35rn5y5xuyxx5zumuxg4pptw",
+      "reward": {
+        "amount": "158284",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1wg6awxhucnrp7672vcrxq88uwas7gdlsljxfne",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1w34k53py5v5xyluazqpq65agyajavep2lutavs",
+      "reward": {
+        "amount": "67233",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1wcjs6ww0acg7cmts7ptm7wewju08p5wqgf9xpp",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava10qzu70ezk0rajhj6wrztt8y4lc556sqxmlc6mz",
+      "reward": {
+        "amount": "442641",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava10aan0klyyxuvv5tdgrghf85agzq76uy0n2a7l5",
+      "reward": {
+        "amount": "219617",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava13rnmeev43pnlpx2xs0v26ynjumymm6dfz9jgn3",
+      "reward": {
+        "amount": "2010368",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1n33qh4rugp7ujhmrv5jdq3evdhzpjj9j03sgnp",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava15hz5fv6qmtjgukej5yc5axgzaklrwz32h5h96g",
+      "reward": {
+        "amount": "393318",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava14n35k79dd8v0uvnrv78mlyu9z7ms3xvvxmgqp9",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava14702q7mchqfnnhgmqwrhrpj6lcnu4ahz43rg4l",
+      "reward": {
+        "amount": "132039",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1k4p64mj6mumgqtj69h632qyhhy3ycx0hd9rmcn",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1hrhn3kpm3euny5u7ua783enyzjm27mf2l6l9rh",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1htlex570h6jy97g7dt6t254gt8g8p06s6re6rx",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1hm3ug3ztauh9j9j4gchktwm08cd2tq8wax4vdp",
+      "reward": {
+        "amount": "831344",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1cpcs7j777fk2lmqkchz7d36d4k4upx0fjnsgpq",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1e8xjfylam4nvugcmkxwvuxh22uvvad5vknu4yh",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava16h4qwf5gjuvhnaj4hn943gc6z5smvg07y3p4g0",
+      "reward": {
+        "amount": "1958530",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava16mhvkn30xnpxxegcf5354udj3h6qqj8n4889sg",
+      "reward": {
+        "amount": "92735",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "2",
+      "denom": "bnb",
+      "owner": "kava1uw6dj6dmrzp0rw02sy7rk9yqqncu7flf28ku0u",
+      "reward": {
+        "amount": "175261",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1qzsu6v4w3g9a8vwu67mcze7myjrnd75lwyk457",
+      "reward": {
+        "amount": "73991240",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1qxhh4g05dckdzjhe592kv82t50dh9l4ds4ljlm",
+      "reward": {
+        "amount": "754642523",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1qg53ggjzzz8e9x9kh9fsk8a4z2dldczrp6j00l",
+      "reward": {
+        "amount": "244423",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1q2hpn8wjvgygwf8uvtlm99x7jr4az87gu0und9",
+      "reward": {
+        "amount": "1085742",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1qj2tk7dwnngr2rauk6dz00d5jsly6ll2rxnlsv",
+      "reward": {
+        "amount": "347778713",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1q56vft29tyu64lr24mj9rehxgdvrskj8puyjx5",
+      "reward": {
+        "amount": "3670692",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1q6l5a3ar2la208ekmj6cknk4k787l3anz8r9n0",
+      "reward": {
+        "amount": "4455176",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1qm8z7cw32pfc43dhnef9j48ketfd23vx8j32v7",
+      "reward": {
+        "amount": "233209",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1qa5tpxdy9r636nt2ze76g8k5h6zce807z4tksg",
+      "reward": {
+        "amount": "294604",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1q7sgezf9uvgdn38hv5w00tm9737c0jsuzh7m4l",
+      "reward": {
+        "amount": "1446637",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1pqdfq0c8ul2ud570fkgurv0e0kkyun4njcu908",
+      "reward": {
+        "amount": "4951",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1p9plfdwvmzzdsjpukpmvvfh59n94nawzc83jlc",
+      "reward": {
+        "amount": "20207207",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1p9fswn29klzkp5vws0mje2g4f4xdln55krv5vt",
+      "reward": {
+        "amount": "2279919",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1p8nd9vexkqhcenzj3cuju640q4zt35tdf0hk4g",
+      "reward": {
+        "amount": "13391878",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1p2d5tqngkf0xmmaut5t3lvnwxk8r3jkesq4nav",
+      "reward": {
+        "amount": "4797911",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1pnh2qs7zfm46chg6k3yy8pad0wuf3rw75rk075",
+      "reward": {
+        "amount": "76862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1pkdl3w5jlwx4dzwak2nvx7qxsj2mzcn95kezmm",
+      "reward": {
+        "amount": "195410",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1pmqrsde4l4t0pyxyn28uquk9e0ea83u0fa3t3r",
+      "reward": {
+        "amount": "5422813",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1pmxcrgrrp86rqdaane93s3659ulc8qqn2pe933",
+      "reward": {
+        "amount": "295150",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1pmevzvgte6ktrr6lrpmqhd99gwd56dldcshlcs",
+      "reward": {
+        "amount": "12297170",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zqrpq7jaw9agqhh5e00gf28twfpc2ex05w8sec",
+      "reward": {
+        "amount": "38555",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zpxyy68uxylkdf25ap3cp0jc398xlxg0yj23kr",
+      "reward": {
+        "amount": "96950",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zpcj88j42nyfj4xett8lwdmvxwnlhljny9wcl8",
+      "reward": {
+        "amount": "374591",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zyupq6ueyzexdc0qyspax9x3qg0tpkuqzv0l4w",
+      "reward": {
+        "amount": "80714",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1z9v59sdu65z4hssvhhhpnw0pz9p8y3kfgh0h3p",
+      "reward": {
+        "amount": "156975049",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ztgycvjv9vqjtvn9qp54l7mcczmvr22y4zvspe",
+      "reward": {
+        "amount": "76862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ztd3642gv3vjefz57zet604ffcsqwe9vvf92nh",
+      "reward": {
+        "amount": "76851",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zdlmh3s8wea9xsjk59n3fuy73lw4wn435dw80j",
+      "reward": {
+        "amount": "4089360",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zwkkhamrvr8fhr3e6cq7e9w56zm2g6d9qljqr7",
+      "reward": {
+        "amount": "919643",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1z0u0efzn8llallan08kenpuj262etz9392phf4",
+      "reward": {
+        "amount": "6463896",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zsl0c9jyejv984ajhsu43n75ck4alku8x5hn0j",
+      "reward": {
+        "amount": "6142818",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zjw5ndqh6qkrld5f48w9l74ylftapfwudz5a3m",
+      "reward": {
+        "amount": "776669",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1znzhpt3v2eu3qmmt8r2ynn4qxnuwtdp20pc0nr",
+      "reward": {
+        "amount": "5697500958",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1z4p9d06dr0vf79ss3xs0almx4jxfll5xj20dn4",
+      "reward": {
+        "amount": "5983283",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zhr3064hw54j6stahywlwvfjh8qjtljdff7gy9",
+      "reward": {
+        "amount": "8049560",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zuslhtgj5r8n95k833w5lttnjzuxcpjy7ql3c5",
+      "reward": {
+        "amount": "3199",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1zax5vgs3u9tn64puy7jg0a9tt4h7l652p2qjjn",
+      "reward": {
+        "amount": "19664567",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1rytcgddazyzeytaumugwtmldfz7dzym3w8fuls",
+      "reward": {
+        "amount": "42503386",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1r8jvmxp6hgu4qh3wevs6c06vyfy5gx0eh2amx8",
+      "reward": {
+        "amount": "605970",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1r24w3dl5jxke3lt5x5jc2cvjlp97ynmhve8x8e",
+      "reward": {
+        "amount": "307796",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1rtjrjjxq4ql77gjf9tqd4a33a9ys3g67evumrl",
+      "reward": {
+        "amount": "2662785",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1rdzc5h94tjfsg38se9zre672z9ccux06ywdlme",
+      "reward": {
+        "amount": "7942451",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1rsmsfmjuzywp55aw50vf0u9tah0758z5z509e2",
+      "reward": {
+        "amount": "1935858",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1rsan6tsut8upy9m4xq3jjprkg5g7td7d5n7t9a",
+      "reward": {
+        "amount": "185440",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1rsla7s992jeyyaqzaszyljllrvnu6usssp802d",
+      "reward": {
+        "amount": "39125055",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1resk3zjgyv9298u2ckkpdz38gekh9myqr6tk4a",
+      "reward": {
+        "amount": "313141",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1rea6zxqq78klh7uhf78juqp9nmtl53j7hsnquk",
+      "reward": {
+        "amount": "23908062",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1rarw03sfdryry89pl8t44x8cy307eqcql8rj37",
+      "reward": {
+        "amount": "9655093",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1rlr7nzssxt2ls2nnldey272alalsnf6svn4vyj",
+      "reward": {
+        "amount": "58613",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1rldss49zjtc94a7nwn9y2pf7lnqr0c0lg8vhzr",
+      "reward": {
+        "amount": "206794",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1yp870cqtd52augmyqqnnzyn43p20jvtz0jttj9",
+      "reward": {
+        "amount": "215077",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1yp45n64cj059m55cpl5et3vl46h993a60g5jds",
+      "reward": {
+        "amount": "27883",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1yzmdt6hgpcs8q2tmasls5fksrx8fl78ddj3nzn",
+      "reward": {
+        "amount": "39212622",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1yf9v769mra8aqyhsfr0u44klvgv7de85lqn3xr",
+      "reward": {
+        "amount": "26408957",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1yw26hjjy88k4ym5ntu2h6e55pgm2xp8sqy72sw",
+      "reward": {
+        "amount": "390368",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1yjy9vjm7p6cwtcefm7haf0czawrz0x8tajswt4",
+      "reward": {
+        "amount": "17147",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1yj79c8l6rmrnd9kwga9ruetaseh2yxv2f6xe7y",
+      "reward": {
+        "amount": "290202",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ynemgmzp3mfevzj5e6zcg97z2dmjgvuysgzyyx",
+      "reward": {
+        "amount": "2466442",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1y583ktryh4hy5mctrceacuhe4a54qw9ndsd3ks",
+      "reward": {
+        "amount": "168472070",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1y56rm72h5nm6psg2k7mxx2gjtldyme2wyt2nds",
+      "reward": {
+        "amount": "20936425",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ym6nku4uur3vz0lp3ur54dkhpll8uhehgfnz8k",
+      "reward": {
+        "amount": "202223",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava19q9us9uav8e2ua7zwlltmvgrhvr29nxttner5y",
+      "reward": {
+        "amount": "3606021",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava19qd98v0twgum4eqln8gcwru8wccv2syu7rcygk",
+      "reward": {
+        "amount": "255737",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava19pxh5fkqntckfp6ap5sl0tssrpzeqa2q5rpkvs",
+      "reward": {
+        "amount": "32409192",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava19r2a7ewaknnp60nvz78f60xqlszlw3msgscg8f",
+      "reward": {
+        "amount": "164426",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava19gc406d2qyvghmputjl9rfhd4ha6nyznpefc60",
+      "reward": {
+        "amount": "2615",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava19ftkymerpmf2lq427da377ypednatj467lc7wy",
+      "reward": {
+        "amount": "89609",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava19txnej5reyyun4cadgq3kt7ynwpew364kuvfuu",
+      "reward": {
+        "amount": "1028940131",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava190qjfrpwwvtkhmj4tefz86y2mx94yqgezkpdkx",
+      "reward": {
+        "amount": "317430",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava193zlfqknqhsxsvwerghyhaak57vqxc85c4an75",
+      "reward": {
+        "amount": "22256",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1932gg48nkx0m5294gswdru76rvwwxfuj2s2cxx",
+      "reward": {
+        "amount": "1080466",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava19jygxtwjal2eu3jmffaftvzwmflgq3gvusm5zl",
+      "reward": {
+        "amount": "6034070",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava195ry5xrsyysnfz6c803f2fd58tkmksnlh4pjs2",
+      "reward": {
+        "amount": "629023",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1942dmaf9g8x3s9m6p64d5hsy49pdfa2ux9h205",
+      "reward": {
+        "amount": "4148017",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava19kncpd7la86z27snj6996u3ds5mtcmc5n864vx",
+      "reward": {
+        "amount": "79063",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava19c3nfs44hnvj79nhlgnejc72l3rehetjdeg22u",
+      "reward": {
+        "amount": "79354",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1x9mmnhc7rutx9jjqgv79sv7vr6xpqjymqepzlq",
+      "reward": {
+        "amount": "56618243",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1xxntzlrgekrk7nt9xdh5fk52c2kds2r0al5lmq",
+      "reward": {
+        "amount": "95547",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1xg0ktvzyqq7z6nx57e4yhfzsxxwh9nft5xyh8j",
+      "reward": {
+        "amount": "57949",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1x0rpv6jgfk6yyrvjxp93wq2usjyy9pvl90yppz",
+      "reward": {
+        "amount": "156620",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1xspqeczcwpcj7ts3udyxstt33dhc28s0c9ekkx",
+      "reward": {
+        "amount": "23030900",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1xjqgqjx0qty6usulkl5qs9fphtysjx3zkmz0aj",
+      "reward": {
+        "amount": "12364059",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1xjtc2yk7v8tr7ulw85s7x04z255h70h8rp49hq",
+      "reward": {
+        "amount": "76851",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1xjh3cd48kgpgmgc7n3tp08v5d3xqp6vck3drcx",
+      "reward": {
+        "amount": "80930",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1x6vr5x2ln3t8p0v75d25j2levjzjs26rvzfm69",
+      "reward": {
+        "amount": "80820",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1xm5h5v6kwydahmrst577fj3s7u3e5gjwecy5zg",
+      "reward": {
+        "amount": "2152436",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1xuvmax95llcw5lx34xmpg9mwa9q359w807ywl5",
+      "reward": {
+        "amount": "76851",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1x7zvs79jzdyhr4h69vtkms2p7k8he4g3u43mym",
+      "reward": {
+        "amount": "12241517",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava18rw5u0m98vlwgqy6glhhqezrnecamtkvz6w2uw",
+      "reward": {
+        "amount": "17909851",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava18remxg0pxfvrrfkez5lzjtaj6ldlq6hz0g9hy4",
+      "reward": {
+        "amount": "41124",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava18tt04xwqw38tcxplseymz8hyrgtd7tdpmlnt86",
+      "reward": {
+        "amount": "32507786",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava18dh0mkakhgfp434vnpfl3cumd8ezgj7d8d5thj",
+      "reward": {
+        "amount": "67685",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava18smvkrmxz6hz9ue9x37jke3ygkmzsmfvcq7wsk",
+      "reward": {
+        "amount": "12772",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava183c3dft0zj5kqnvdxke4cdlt5qa8j47wxt0qd2",
+      "reward": {
+        "amount": "802468",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava18jsynppwggcy6pde2t43ntsx45rh7e6a5dppc2",
+      "reward": {
+        "amount": "4218778",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava18nxq2x82cecuqfx7htjucywzdmjve35cy8gddx",
+      "reward": {
+        "amount": "76851",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava184jc94y8canrz64cqwa8qpfgtjfkgasng4lfkc",
+      "reward": {
+        "amount": "263915",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava184kqpjfpycyza900d7q3gx8nhxt5e0syqmg49w",
+      "reward": {
+        "amount": "1637159",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava18khx7upj3m2wx5csg974saseneg0yhdljz58e4",
+      "reward": {
+        "amount": "461",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava18utzytkj0unzevcm4jzxncu95prc8x5wqcnt9n",
+      "reward": {
+        "amount": "4632899",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gqgnuyzz5w03wjul2cmsk4lgh7ysz300rtyqv2",
+      "reward": {
+        "amount": "12504",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gqfh80j9fe95hczvew62d527agntsp7je4ddrw",
+      "reward": {
+        "amount": "2068556",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gzc54u4p67hh9r4m9vcml3ke9fc29tplvvaev3",
+      "reward": {
+        "amount": "236291",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gf3lj7q8vr6myms0pgct8nrlma4a6e3sk2cfu7",
+      "reward": {
+        "amount": "2281623",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gtk0jkrhkah3v89tyl4uju9pfxaqf6x7k37jx2",
+      "reward": {
+        "amount": "2170",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gwjt5vxekyxfdgrmyewwkr6uyvj87tfa0mzx2v",
+      "reward": {
+        "amount": "16056322",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gjxu07sy6cmdxd8gwpqv4ry3epeuszvpkl9p82",
+      "reward": {
+        "amount": "800266",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gnnxpwfht60gvttrs0kfh7qru49nqtyqnudnqw",
+      "reward": {
+        "amount": "627553",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gk6qxzmgmerc7ggyrttj2jvzjt60004guks3kz",
+      "reward": {
+        "amount": "12838",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gm6j9qklsmmgftj89hdd8lml3xgghqz7hmg40c",
+      "reward": {
+        "amount": "2422238",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1gupd5xrnzsaln387044z39lrclxnrjxg2s0rza",
+      "reward": {
+        "amount": "18999514",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1f98urpz5jj0tfhm0dy6dguk8qp4fq8yr7g0fyq",
+      "reward": {
+        "amount": "48690582",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1fxxdrdrwaqlvatxc6ah2vg6dug72fmvcc4lz44",
+      "reward": {
+        "amount": "13176549",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1fts25suh92la0hal4qlsh2799xg43phrnyrle4",
+      "reward": {
+        "amount": "1691783",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ftc84gde38ar4n94qw27hqngmfjgnhkz7vcue2",
+      "reward": {
+        "amount": "2258184",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1fvneevl8tpxe4pfeule9l3sawyjqljncm4q7kn",
+      "reward": {
+        "amount": "528812",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1f00asq9t4fmvmy3n5p950t8njq3vptdgmfg62v",
+      "reward": {
+        "amount": "324663",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1fj8454k6sm4rjr78u45ls6xyc2hwpt9qmcx70d",
+      "reward": {
+        "amount": "1031649",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1f46llpx6gna2erh3572krdlsugpxdpxa4mxwrs",
+      "reward": {
+        "amount": "36803368",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1fcfus4u2zt8nr4srvm0g9xzh39r6m6qvp2kde3",
+      "reward": {
+        "amount": "83296",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1fewhhjak24u0s54jw9s7pdluw2aqw4cra2el42",
+      "reward": {
+        "amount": "76851",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1fuwnpvv6heued9mmhlphpwgyu4fu0tzvcan9u9",
+      "reward": {
+        "amount": "1971347",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1fu6w9xrfk0a9w3sgraln2mfvk3h6h05tfenr2w",
+      "reward": {
+        "amount": "79349",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava12qgnr0f8v9q3uuzhpjudlw90v6map4pdu5cfdc",
+      "reward": {
+        "amount": "79349",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava12qjltp2vkqmpp29s97l3esk2ek5zjsl9lnlfj4",
+      "reward": {
+        "amount": "26561001",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava12yakv78pyls0axh5lnhaha6sk6azt29jj7jg46",
+      "reward": {
+        "amount": "348012",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava12g2hjsf6wgxv72jepy7n6vv7t30jqy0ev798ys",
+      "reward": {
+        "amount": "92678230",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava12dh2n57a0yq5tp4neux9zk9w62z6hg58gwuta2",
+      "reward": {
+        "amount": "274848",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava120hwpwxj22v4p4ehav96dkvl3sn5fcaqy04n2k",
+      "reward": {
+        "amount": "707880",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava126fy66c0pnh76xlq54tw043u0hchacpeu0ytwy",
+      "reward": {
+        "amount": "1453373",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1267c4ask3llkjny5876hc8qc4aasvxqxuje0kl",
+      "reward": {
+        "amount": "627732",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava12uq64q7k0fvwvly7latfvxgf4t09mpkfm6tg37",
+      "reward": {
+        "amount": "74283",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava12aw587tn9nmmlvnq920hj9ykxewazhszjjrvtj",
+      "reward": {
+        "amount": "732410",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava12aazneqltthrxwkc3g4njhwgg9prjylst4m5uh",
+      "reward": {
+        "amount": "83154",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava12lsjquv3xrzyu27gyzuxtsmydk8akufznj8qsc",
+      "reward": {
+        "amount": "55001283293",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1tpgwq3lzjn0fcs7lexx675pya4s6al5wvhcl8x",
+      "reward": {
+        "amount": "838879",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1tpwv2a3uqg44axz0wue20ym6wzu2ku256q4wwy",
+      "reward": {
+        "amount": "31426",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1tzxxf6575nmvlwpqvshlad5uqv59arcs65us4a",
+      "reward": {
+        "amount": "25197539",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1txgtjvm8nvrmtxvvwrasuer54d4urxplvt49fd",
+      "reward": {
+        "amount": "8208375",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1twq0lv44v9hl3zl2v2799pnndr60w6g348ayxd",
+      "reward": {
+        "amount": "80588",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1tss7dhwa533u8h3v8z43w8656uaxk3fvzhrwzj",
+      "reward": {
+        "amount": "499297",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1tkz0j7v8x3qe6u8tvfda8kz00747ntgxlglzl4",
+      "reward": {
+        "amount": "80585",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1tmz4v86u8j8cq8yxgh6lensugkzxpql4c7mpxy",
+      "reward": {
+        "amount": "1260747",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1tuulhc6twgdtvzd6685ltqgh2adjcuyaxzkyvk",
+      "reward": {
+        "amount": "1357720",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ta5r404ddf3eg469feyp3vufvjrjzrwl32tztm",
+      "reward": {
+        "amount": "6128545",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1tl2prafjdaxdq7y7rk9820r0xp0merzud4ttkn",
+      "reward": {
+        "amount": "119309",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1vqcufyyah03sntzgsz6rfykjtrsfguht2hgw6d",
+      "reward": {
+        "amount": "2047794",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1vpvj0w7spgzx4rkhkv4j4y0tj58dc8endq99s6",
+      "reward": {
+        "amount": "238179",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1vp35dt2p5y8tsnptdqdcyypzrmsnjgaq3k3e8g",
+      "reward": {
+        "amount": "30823",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1v8gav5da9mnunsqz5gz6h6877ykzwh2yf3xgkd",
+      "reward": {
+        "amount": "11236245",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1vg6q5k7q6s89lk852dgle8c5fr3rmrrr3jsvhy",
+      "reward": {
+        "amount": "8450906",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1vdnqddartdwjexhddpmxtv5exc74gnsk56qp48",
+      "reward": {
+        "amount": "4393",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1vd5fqxnnc0e7p0jr8sggwd4sfcz78ahtswu2ve",
+      "reward": {
+        "amount": "76851",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1v3atcfl7hmesuwdp8s7rshveuynqkx0vdqvs2l",
+      "reward": {
+        "amount": "16805042",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1vn75l627k2p97wzu2sl3mhsxj285lvyrp4z866",
+      "reward": {
+        "amount": "11639221",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1vc4jkya3ngzr8nm9g0pqjq245zyedtdns2wgjl",
+      "reward": {
+        "amount": "2177386489",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1v6dnz6206d38s729jjewekfz8kyk08m702gr4r",
+      "reward": {
+        "amount": "798478",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1vmgk2zex6wm73hkuna9p9rm343e57xyznszfj7",
+      "reward": {
+        "amount": "163660",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1dpcgtp7hjvspg7nxpj7c7j25lnyyrau0g72jkd",
+      "reward": {
+        "amount": "23277667",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1d97kdegww49urs6cnuteuew5wlg4njjs74uu02",
+      "reward": {
+        "amount": "17515024",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1d2u28azje7rhqyjtxc2ex8q0cxxpw7dfm7ltq5",
+      "reward": {
+        "amount": "27006444",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1dv0zgqn33sjyyx7jhxt3s9c2ug239t8fnph42q",
+      "reward": {
+        "amount": "384544",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1dwlzzy9c4ge26xh95556pjp6lsg2e66wc64unl",
+      "reward": {
+        "amount": "54536",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1djun9vdmqhay9llr3pl60pg8rfxamr2z4xlu68",
+      "reward": {
+        "amount": "30346",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1dn23hf3h0ysfh8j6t7f6vp95unvfet7qlgrkv4",
+      "reward": {
+        "amount": "578687",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1d5axvgqqx92af7pmmakc7x9z3whjrzaakqdmr3",
+      "reward": {
+        "amount": "2525020",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1d4053k27uwemf05wjzd8jwgce872jadk24g6zc",
+      "reward": {
+        "amount": "1008126",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1d6zryvkfx9ee8l8xtjxq3l084zjunygjahj5a6",
+      "reward": {
+        "amount": "2615851",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1d6rxxma8uvneyda9fne4qzp7wxdd88vqu4x8qd",
+      "reward": {
+        "amount": "427719",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1d6c4pv4f6vzp5egmxarese8kma8h8q4vh6edy9",
+      "reward": {
+        "amount": "4132572",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1dmhhw04s4mlrsu35rn5y5xuyxx5zumuxg4pptw",
+      "reward": {
+        "amount": "83207",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1daexlmcw6ef6v350pj65wgwd6d2s04t9krzhh6",
+      "reward": {
+        "amount": "36207",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wqr28ayja6pzq8v7qywmencrpkd5ccg58ydm2w",
+      "reward": {
+        "amount": "911245",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wzqa96jrwda3szysudfsu7dzm64rcad2wj4z6w",
+      "reward": {
+        "amount": "278338",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wyqhajn6mshcmx0j5qqzdmd87c7a83c5f4c587",
+      "reward": {
+        "amount": "69919790",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wxvryaw030wwmp3a588wnehwqp9wlv0zn460ek",
+      "reward": {
+        "amount": "57512",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wxu07mhyazmmdqut8rh9kpfn6reydvwptncxlf",
+      "reward": {
+        "amount": "40115",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1w8lks5mcdvhvjjje9clhysel0j56qjfaudsvjk",
+      "reward": {
+        "amount": "644348",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wgtny83g504gxpfj0f36cx6ztrfqlk0wj4pese",
+      "reward": {
+        "amount": "80912",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wgsaae4xsxwxwt6tdzlrecfh4ryv7pgg8sq62c",
+      "reward": {
+        "amount": "47606",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wg6awxhucnrp7672vcrxq88uwas7gdlsljxfne",
+      "reward": {
+        "amount": "76862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1w20u97emzxc257hdyaywdxnyxs0mx586a5nxe2",
+      "reward": {
+        "amount": "247141",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wdxsukxg0h2x7sgjcw23ahcn34sesv9k0m225u",
+      "reward": {
+        "amount": "62563778",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wwne8dzzdz4jjcjp2cmr4vwdqyhanqptrwm5lc",
+      "reward": {
+        "amount": "154852",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wwalendqyqytsv2w6gqhpqu0hl4ewlxhadvl58",
+      "reward": {
+        "amount": "3778440",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1w0yg5qrrxg8s0ruxyw9e3qhxqtm5l3fk7pn3d9",
+      "reward": {
+        "amount": "100315",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1w05lzr3tj72n33vam3v0qddq05hf605a6k92u5",
+      "reward": {
+        "amount": "2165294",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1w0ukaj52gcqeyudwrt0842c36syjzp79fza4wy",
+      "reward": {
+        "amount": "317826",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wszz0ym34kstc66cn23jkpp5d27v64y0hjep05",
+      "reward": {
+        "amount": "46000",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ws3mcma3qfyq83ddg75p4e8h5xry7wufs5wt5r",
+      "reward": {
+        "amount": "347111",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1w5f7v8wa8jxg9f2c6scufgs7r9gl7npsh570n7",
+      "reward": {
+        "amount": "1156461",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wkn6z4xjrl2esflpdvxemn0m8hkv34ygh6xeaf",
+      "reward": {
+        "amount": "1075639",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wctsq30txfu5sn8x4vrcyd92fn9js0tn63kfnc",
+      "reward": {
+        "amount": "831546",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wcjs6ww0acg7cmts7ptm7wewju08p5wqgf9xpp",
+      "reward": {
+        "amount": "76851",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wc4pmp258ns0rk2vvknjz5rwnpju378k82hhwd",
+      "reward": {
+        "amount": "477693",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wmj6w4rtwdw3zw55gfld5xhw7rjyss36wqjqz0",
+      "reward": {
+        "amount": "30101115",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wuvxx8zeft7g88nazgjd4800fzuxhrm2rqs55x",
+      "reward": {
+        "amount": "96725",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1wuuudjcxx7vzfjtujvhffjk7hfau38q9tqg9xw",
+      "reward": {
+        "amount": "1245984",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava10qzu70ezk0rajhj6wrztt8y4lc556sqxmlc6mz",
+      "reward": {
+        "amount": "630941",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava10p3l4e2263sc5q0gepperxzdyxxdfdyenncn38",
+      "reward": {
+        "amount": "895710780",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava10zwxdhtwnagvx0lmj8jjzswrtuvutmap9gpsts",
+      "reward": {
+        "amount": "25290897",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1094f93evptxeg9nl82pn5wv2yrhqglqpq4wyvf",
+      "reward": {
+        "amount": "1873070",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava109a56s0epqwe3emg9786kt7n5urnrscstk04ms",
+      "reward": {
+        "amount": "2029950",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava10f52vl8ga9map8pjlyeypglcrd9yxnn503gfuh",
+      "reward": {
+        "amount": "31676586",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava10fu8zc5qtw2wa50z244cnlxxa3pjs8el0hc8p0",
+      "reward": {
+        "amount": "931150",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava10tejts3kusudtpqfpv9rsxhealyfqs3q25zqk9",
+      "reward": {
+        "amount": "535349",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava10t7kkk8llf70v358carsc47fgc4ruucyseutmj",
+      "reward": {
+        "amount": "1270677",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava10n3a8y2nkjvd6vt4h6fe9dv97kxesfjapervre",
+      "reward": {
+        "amount": "75357",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava104x0yq94d7dvv0fz65tpf2smkxk2nc5ef6cg9m",
+      "reward": {
+        "amount": "76863",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava10ucdtdqqnkhh26z4zqk6ewwp2ld03etkzeskcz",
+      "reward": {
+        "amount": "80741",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava10aan0klyyxuvv5tdgrghf85agzq76uy0n2a7l5",
+      "reward": {
+        "amount": "109935",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1szqdxulk2n8gy0wcf5k0gpxv6g9xfw7hq8gatx",
+      "reward": {
+        "amount": "2196526",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1syhk5r2wrm8vtf6q4dtlu7eag2x74zp3zag0mj",
+      "reward": {
+        "amount": "6913922",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1sxhs7nrnmz5ypxjjx809wk92wy3uwz0x456r8w",
+      "reward": {
+        "amount": "4217340",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1sgvd0sd4889amztl3twqz2nasagajsq2tudttx",
+      "reward": {
+        "amount": "1869026",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1sfqjrqce7emfya3wazkg42tfa9gwehv7pw29nh",
+      "reward": {
+        "amount": "431186",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1sfj08ymeqfevqk8w3fmhrm8fmdc9dqa8ew0egu",
+      "reward": {
+        "amount": "76745",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1s5le5df46lk8tehuqhyqj9tka5a9jpx0ym3f7l",
+      "reward": {
+        "amount": "76862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1shqd7vdz4v056ppgwuu2uh4f86qpepmnu5a0s4",
+      "reward": {
+        "amount": "119992094",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1scecy0k0d7rda0muu0cgy693fwl39zdsh2jsts",
+      "reward": {
+        "amount": "135299",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1smm4h4uynsdq7ymahr7h4c89hdll8fpry742kp",
+      "reward": {
+        "amount": "5245265",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1suwfsdc09uxee23jhh5mjs6x2pvfqcwunmg9zh",
+      "reward": {
+        "amount": "2178",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava13rnmeev43pnlpx2xs0v26ynjumymm6dfz9jgn3",
+      "reward": {
+        "amount": "3808089",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava13ys8w4q8equ2fc83fnm7q3dqsqdd982c9tpefv",
+      "reward": {
+        "amount": "15510060",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava138kzn55zekj6hydq5sqt53m2p2u479p6een8pd",
+      "reward": {
+        "amount": "764955",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava13g63wevgyyvrgyjsuwqj3274aejh6kxruz50qg",
+      "reward": {
+        "amount": "89004201",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava13tzqh4zcdu8t87zhc9dz9jvre788mv53h9kcgr",
+      "reward": {
+        "amount": "80942",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava13sljazg7hetghz33gsr9dmf5x90aj8qt3k7zdn",
+      "reward": {
+        "amount": "1775900",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava13jsjaj9mgu8ld9795udsmwtq2z6w880la8pjgk",
+      "reward": {
+        "amount": "23483",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1346xxrjlgks6k4985h56h8nz4g00ywx9sy2fmx",
+      "reward": {
+        "amount": "15503308",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava13k96ynsuarayemtu5ls5tetl9wa4m2krp8tjpu",
+      "reward": {
+        "amount": "36397",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1jzfled0eeaalypkzj6p5dmesav2va3tfzaa8cl",
+      "reward": {
+        "amount": "142926",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1jr68259ur9fk0rpsjqgdc2yu92ktxjznkhkzkp",
+      "reward": {
+        "amount": "670267",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1j8ecw7df2t57d0s5qpk8ke2f6d6m7rhuf4mkva",
+      "reward": {
+        "amount": "200484",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1j25le44ttjsrvt5h6k56ytmcn7n50mltw6muxd",
+      "reward": {
+        "amount": "303605",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1jvggf4u68jvlm4dk3auh4ns2fuuph2w2yr7utf",
+      "reward": {
+        "amount": "2854912",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1jdf8d4s0zcwtg5le0qkya0xsfl85xm4zpv4802",
+      "reward": {
+        "amount": "118439",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1jdvt0v2l5mcpmasd2zjk8zpxwkk78a8rfkds0p",
+      "reward": {
+        "amount": "148659",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1j46re9mh9y63jldgy5g66e3jc0sk0wq6ze9ajl",
+      "reward": {
+        "amount": "276648",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1jhjr5gef5dg3cyualy3um2rvn7594r3frtm39l",
+      "reward": {
+        "amount": "620024",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1jl2cf6u0q0g6a64qtsyr340kntysq6v8yrzpk8",
+      "reward": {
+        "amount": "1509001",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1nz9u5rrfnx65pka2wdk8ql3gzumy0fvusztrx4",
+      "reward": {
+        "amount": "2876214",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1n3wyrlf89nh0r8ckfum3xa9gjtvpus3ffeh9mw",
+      "reward": {
+        "amount": "9557523",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1n33qh4rugp7ujhmrv5jdq3evdhzpjj9j03sgnp",
+      "reward": {
+        "amount": "80652",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1njys2va5d4th3h6vfrspj7c2plmu8k7r7mc4kt",
+      "reward": {
+        "amount": "1988311",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1nmvvhte2j225kvt0gssranmtzhcz50qyzecgsm",
+      "reward": {
+        "amount": "79306",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1nu2zf0pe9g4wenmfwtwf735ecm7y8rucnmu48e",
+      "reward": {
+        "amount": "296749",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1n7tqawsk5fsc85cx74s96f9gpvhjklmp2rd35t",
+      "reward": {
+        "amount": "83021",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1n7mfen688q8yy3ppwpl2maymtfrh5u2a8c7e33",
+      "reward": {
+        "amount": "584655",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava15svc2dzuqc4js8yd5cajn0vu0h34kae3q0gv99",
+      "reward": {
+        "amount": "108824",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava15j9e4gffh6r98vsukd9zt5q2w8wtynfm3qx7qr",
+      "reward": {
+        "amount": "122505",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava15njsc4lap2h94xum2xatf9xmex4088u9wd0u6z",
+      "reward": {
+        "amount": "7004",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava15hz5fv6qmtjgukej5yc5axgzaklrwz32h5h96g",
+      "reward": {
+        "amount": "79349",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava15m5rxv4fut3766luadmxsrxljcs9fvy4afml3f",
+      "reward": {
+        "amount": "4138802",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava15aemgl7ymdqc80wczqynms2wz0efvsf4hs0dhj",
+      "reward": {
+        "amount": "19868486",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14qv83m9csmul9qdgqyafqhhwha8z464s5ppjta",
+      "reward": {
+        "amount": "2313678",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14qnun8tflu708cqcaxr7jul5x52fft4d5j2vhm",
+      "reward": {
+        "amount": "644645",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14pxuw9zzug0yvmevfzqas792mtnlmtqkc3uups",
+      "reward": {
+        "amount": "6952180",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14p5fs6wrqvm0sf908e4f439m3fn54v78em4fl2",
+      "reward": {
+        "amount": "15782101",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14ph5s2dvgvjvdlce5mdcae8zhp4y6h2xfqrued",
+      "reward": {
+        "amount": "295074",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14rqd8755g83xhteqqzgr6ul0dmm72756cat3yq",
+      "reward": {
+        "amount": "176089",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14n3j3lk8qv9l7qaezhk9tvxaxxenv8fe5ljkjq",
+      "reward": {
+        "amount": "1307",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14n35k79dd8v0uvnrv78mlyu9z7ms3xvvxmgqp9",
+      "reward": {
+        "amount": "76862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14cu4p23z8hmdaxgsf4kw5umdwavlag0e575rqw",
+      "reward": {
+        "amount": "627937",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14m0dtdvs9pqeqg74g7jnxcr9tkpl4maa7r5mkv",
+      "reward": {
+        "amount": "109383107",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava14702q7mchqfnnhgmqwrhrpj6lcnu4ahz43rg4l",
+      "reward": {
+        "amount": "80919",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1kpdtvxkzmrlhjnkrrlz546pwlu5yp6q7l0wg9v",
+      "reward": {
+        "amount": "105180",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1kr7cckmy23tlj4d5urnsclsvxsagusn7kzqs3p",
+      "reward": {
+        "amount": "1457803",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1kx2r6tpg6k5qax8rdcvuyfj2qdz58wdt0clad5",
+      "reward": {
+        "amount": "305337",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1kttpakv8zy8h3q8fc2665rk5k0jj0v4g3d3tsy",
+      "reward": {
+        "amount": "98973",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ks9u07zl4h3h3q6mlu4t2v7xflwvk332rz8m33",
+      "reward": {
+        "amount": "240239966",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1k33pgvv8fs875ht5erf4qvqpdrhtlckt2twd93",
+      "reward": {
+        "amount": "13043078",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1k3njlxztcptmr8g9s3hasw9r6ljje3z2jmg5e0",
+      "reward": {
+        "amount": "1660",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1knu3dygrpnfy92kxqwh0mv3pzylfug6nwk68pd",
+      "reward": {
+        "amount": "360235",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1k4pn04d5cecys34whqxu0aqa5hxndmzy9jnkv6",
+      "reward": {
+        "amount": "83315",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1k4p64mj6mumgqtj69h632qyhhy3ycx0hd9rmcn",
+      "reward": {
+        "amount": "76862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1k49w39pxcea4kw5p6kkcs32lr7dtlcn7g3taul",
+      "reward": {
+        "amount": "336410",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1kajy6ha74la3t7z8xhketrgd5a6jvlu7lhdw2f",
+      "reward": {
+        "amount": "4562077",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hqdfp6zsq0j5gge44h89fah22epvwnkfnax60m",
+      "reward": {
+        "amount": "2588932",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hqwlepgc9z8taf3hmxsfg840st6r7ptazhljme",
+      "reward": {
+        "amount": "611762",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hrgp4sumhxcav5gs3xepa9h2pxg0lm74af88pa",
+      "reward": {
+        "amount": "688669",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hrhn3kpm3euny5u7ua783enyzjm27mf2l6l9rh",
+      "reward": {
+        "amount": "76852",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hygfqqs5wjq66kp7fjklxu0skmlfm6r9s4790c",
+      "reward": {
+        "amount": "10941491",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1h9twsfy5k6z2a2z78y3t9sjv2fr6l3wun8tug8",
+      "reward": {
+        "amount": "182143",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hxku2c2g4ngum33ewpgyk58wl9he9ces97nw3q",
+      "reward": {
+        "amount": "64504",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hfqe298wulu4uhqgj0h8sggc3akrgyelavzszv",
+      "reward": {
+        "amount": "3514789",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hfmx6fngjmjuwvs3tmaev85dduq69w2jkchv8x",
+      "reward": {
+        "amount": "1530385",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hfu4mnakfzprg67rzflcjunwcngy7aulejdjcv",
+      "reward": {
+        "amount": "1544849",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1htrxzxfyek3n62d0jxcygeqflwkmvwslacrr74",
+      "reward": {
+        "amount": "6169079",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1htlex570h6jy97g7dt6t254gt8g8p06s6re6rx",
+      "reward": {
+        "amount": "76851",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hwf9g5ffng96qmgr0lxzuyljgrc5ne7e0gk780",
+      "reward": {
+        "amount": "41914",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hwww870p9wdhxs6kzv0x9eqdcp3p75wyqvmn7j",
+      "reward": {
+        "amount": "6716932",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1h0yxhwphf3p3w2496j8uy97tdq4nfyc0uw9upz",
+      "reward": {
+        "amount": "378048",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hsf53nfvxng5sd77hgkt0kam0t5e33xucs3apx",
+      "reward": {
+        "amount": "22514679",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hndh9pwsaz5arhtryh8zedtr4kdvdtvcfnvc3d",
+      "reward": {
+        "amount": "1199465",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hnugk43fax68hp6csqymsjc9fpdvl6fn8mgr4y",
+      "reward": {
+        "amount": "22748912",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1h4lqesatgp6mjngsjzs5qtkykcxvm3uzjvzfpa",
+      "reward": {
+        "amount": "58204",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hezl6xwva28xt0hk204dllalagenmfsn32w82d",
+      "reward": {
+        "amount": "8292443",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1hm3ug3ztauh9j9j4gchktwm08cd2tq8wax4vdp",
+      "reward": {
+        "amount": "458468",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1cpcs7j777fk2lmqkchz7d36d4k4upx0fjnsgpq",
+      "reward": {
+        "amount": "76862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1cxemt79nuwgsmx6lem49dk2l4tpqgtnzngvsw8",
+      "reward": {
+        "amount": "43682",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1cfyddlz92xuk73kp5du820eu4h92fy3rs85k4w",
+      "reward": {
+        "amount": "1853930",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1cf0ukvyjljkwld5gdx0gc6e3wf9wmyyundw8xa",
+      "reward": {
+        "amount": "30986629",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1cfar3lg0dps4wxht0eemvf5l7p47qprac997qm",
+      "reward": {
+        "amount": "10383028",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1cvg39q0es6npwwaazzvd3hwme8suf0zj2zjft8",
+      "reward": {
+        "amount": "455485",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1c3jfsc06s05mj37vx8nlk6xlx758m2qejtgaem",
+      "reward": {
+        "amount": "29973",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1c5he6km22u7upezmuj3yzvwu6a3u2vmnaunp8d",
+      "reward": {
+        "amount": "201727",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1cheyls7y2uj7yzmdjeeaaevz463n66ar5lrq8l",
+      "reward": {
+        "amount": "1755465",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1cerh3sw0m2mpnwdz3a930qd5d7n5nz8s8f4p6w",
+      "reward": {
+        "amount": "906258",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1c6843g480zwfl262hxaly583c2d7m9qqdra920",
+      "reward": {
+        "amount": "83647",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1e8xjfylam4nvugcmkxwvuxh22uvvad5vknu4yh",
+      "reward": {
+        "amount": "76862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1egg63hrypuyt2lt9a4n5djd9pm6map27rwwfze",
+      "reward": {
+        "amount": "27254",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1egcn53hpwr73yqrl927gjrrxmjsu3nz74km58n",
+      "reward": {
+        "amount": "609181",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1e228zg7qfcqed5c78z96rne0fee4f0xdkfhwjq",
+      "reward": {
+        "amount": "156363",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1evptartvf3mza08d3782wfdd24l8jzukrsuf44",
+      "reward": {
+        "amount": "268626",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1evdwws5s3mujnsmcvh7ualmm8g73ehu24n3v6p",
+      "reward": {
+        "amount": "4498288",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1e0xvdw3s86q7ae5sym9srqa93djfqfy76rtkts",
+      "reward": {
+        "amount": "10590",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1en7rx4gygys7ah237vt2tq8wwph40mx9ulwu0s",
+      "reward": {
+        "amount": "2832929",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1eaxz6psx2lkvq74z9kx0r2d2fxe9zug8z4r43f",
+      "reward": {
+        "amount": "128630",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1e7eaayk208yn8grtr7aw7xg376h4qpums7fgg8",
+      "reward": {
+        "amount": "90603",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava16p8lcgmjh6edz622935uvd7rufrl3jtafwdgg5",
+      "reward": {
+        "amount": "37213",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava169jj3upa0cedkgu95xcczft065qsrz4safxf0r",
+      "reward": {
+        "amount": "236329",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava16v8kqpw58lmh6pl2wggyheh3pxe7uenzm478ye",
+      "reward": {
+        "amount": "14502591",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava16jug37mdmzmntrza48z6munagftushdncmx0ll",
+      "reward": {
+        "amount": "1149082",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava16hgzsqyuyf3zd3atewlz7h03pgs836x5qghxz4",
+      "reward": {
+        "amount": "72805",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava16h4qwf5gjuvhnaj4hn943gc6z5smvg07y3p4g0",
+      "reward": {
+        "amount": "1095257",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1660dmceh9x8rur2f0xs7vlkcd69xuuc4jhj2xq",
+      "reward": {
+        "amount": "2229421",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1667fn3eu2r57uj6w8t4zpz7rak73kawxqtujpm",
+      "reward": {
+        "amount": "83169",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava16mhvkn30xnpxxegcf5354udj3h6qqj8n4889sg",
+      "reward": {
+        "amount": "76862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava16ug360rgcgd460046x97udcd9k0n39rze5qtp9",
+      "reward": {
+        "amount": "20905984",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1mz2vfw29fzkg4yj9wfh99nkgx46unhrxtyxqhc",
+      "reward": {
+        "amount": "44075928",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1mzt56dpf2d0gdrzarf7p6kd8nnjkpc25fuc3r5",
+      "reward": {
+        "amount": "720761",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1myy3lkcshgmg5ke7gj07mmsyuxf3wyazastnpl",
+      "reward": {
+        "amount": "1481750",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1mxu3lnm80ynhs2gavu2w2um29pcvkgvceh29ks",
+      "reward": {
+        "amount": "1109028",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1mf3n0ym4eavgkcmazjx7v64a3a8x6nv3hrymdy",
+      "reward": {
+        "amount": "2014569",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1mfc7p3yt6r33qsee677wlwa4zr5u09sdex8txt",
+      "reward": {
+        "amount": "1316450",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1mdm5595gw7n2yrfa6fjdrk2xwzn4njkj2akvq4",
+      "reward": {
+        "amount": "31763542",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1m33vlnaxcrpn43vrsdwa0er6gljek75297g0c6",
+      "reward": {
+        "amount": "4305225",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1m37v42df7s50lh9l7rfa8wr6wffply4kzluvr0",
+      "reward": {
+        "amount": "5119532",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1m520r5q3t9qug3ssc52wc9s0876c7v9dde5d6k",
+      "reward": {
+        "amount": "10541494",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1mkqjs4q5udknncq0804npdl6ft0955faf6dlkw",
+      "reward": {
+        "amount": "1649",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1mka7zvjmznra0wn67f6tfppj0g07ddwznqnefm",
+      "reward": {
+        "amount": "43012",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1mmk5cms47rwr3dhmc5c5glquhzqphl4tz0k2ch",
+      "reward": {
+        "amount": "137823",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1mazzh08dgdqrn8y6khq7snr9jgun3vtlzdhq7c",
+      "reward": {
+        "amount": "23987428",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1uq6rjqgse6n965hk4u8rqraytc6n846avxz20a",
+      "reward": {
+        "amount": "57384",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1uywh7xykpca22jqwpx2y04a6gvf8xkc7slggrj",
+      "reward": {
+        "amount": "2195",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1u9qr2h0adllk9k0hfuu62vhcwe3qdq74whghwy",
+      "reward": {
+        "amount": "185832",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1u205gp2kxm7kj2ta2yhtpazdyc97xgy8e3re7k",
+      "reward": {
+        "amount": "6495754",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1uwwcahz5wxd5hyu2xpgxxpselkr6wmzf0q06lk",
+      "reward": {
+        "amount": "57354071",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1uw6dj6dmrzp0rw02sy7rk9yqqncu7flf28ku0u",
+      "reward": {
+        "amount": "95910",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1u30dpd3h8mdwudrhlfj5uhwhpzlzq4z9k28e4a",
+      "reward": {
+        "amount": "42819605",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ujpxleqcqugjdulwne6z0du8f5mej55c545pfz",
+      "reward": {
+        "amount": "4610395",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1u5qymm9e7hlarv9g3lud68dtnay5nc0z29cwq6",
+      "reward": {
+        "amount": "1245455",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1u4p6a2yse66ewfndw4j7ppsa777vdcex3m4n9s",
+      "reward": {
+        "amount": "14917661",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1u4tq2p5yfzp4v6y68awz2wgua2tp9mtf6dgdxz",
+      "reward": {
+        "amount": "79053",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1u4s3m4s848xlcp4c0fm0ltekagqxa3a68wuwhv",
+      "reward": {
+        "amount": "794645",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1umpnjpmarpf0zhplq2lmfvfftzzc9n5j8dl5wr",
+      "reward": {
+        "amount": "157549862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1uaz20kn9qnf23kcj9tne2glfs4d7vtwt0c66ws",
+      "reward": {
+        "amount": "56557",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1a97dqz7ptwv2pxrgcrp8a2e6vap6utj83av20k",
+      "reward": {
+        "amount": "5193957",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1a33hz0z6wr728gfy9mf80lhgngdqm28l94n9ej",
+      "reward": {
+        "amount": "68403",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ajxngqkmc05js4m7v54sv3z0ajxn2rxx20vecm",
+      "reward": {
+        "amount": "113963",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ajd3v4u8548mp5ffakhm523hr8auz5ztwqd9mm",
+      "reward": {
+        "amount": "158409",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1a50y5udh2knhktmxyczl349a96zpngjvzqrkzu",
+      "reward": {
+        "amount": "58018",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1a5s9spedfgcskr8cvf45w00m4exw066tjjg6sx",
+      "reward": {
+        "amount": "28350",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1acqutt8qfe66c0nnhlzl7rmadfnuxnuaetehfh",
+      "reward": {
+        "amount": "3789664",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ac6rmjtm8fy5du7twerkltwn20u6augkkuqngh",
+      "reward": {
+        "amount": "5697395",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1acmwmx66s0htudhn43jgdym0xdphyvnhez6jky",
+      "reward": {
+        "amount": "197794",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1au4duea0pe6a5dyzt5gfx6x449k6emqz0nczhl",
+      "reward": {
+        "amount": "2720942",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1aapc5hqfpmc5hx47ny09jf6avkn9pfupgxe6zg",
+      "reward": {
+        "amount": "18635554",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1a7vmnk0qfwuxq0jsek3hr798xutu24ga78s3ys",
+      "reward": {
+        "amount": "1179694",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ale4t96dya5cvcrgheyezv0mrdl4uk647x0cs7",
+      "reward": {
+        "amount": "246075",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava17qau97j220xw0ssptvh7vnl4wqak6e2pgtne35",
+      "reward": {
+        "amount": "182143",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava17p6klf9l6m326ewrax8qyje78ztr6pc8auqjhj",
+      "reward": {
+        "amount": "419591",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava179ahnk902wgm7qzr66t5ga0a8euc28ce703jy3",
+      "reward": {
+        "amount": "1390521",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava17xg8s04tmy57rzhfyfe5ec5xgypeqlpyeekc20",
+      "reward": {
+        "amount": "5562016",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava17fq8qzpm258znwjp4emq6eurjxjuvs8rrknc8v",
+      "reward": {
+        "amount": "7894406",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava17n2afhpwfr8avv47ga07sdfw7vl46r2y5fz5zj",
+      "reward": {
+        "amount": "14658",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava175mrr57z7t3kr7mgxc5rut244nsl4y69ynaak2",
+      "reward": {
+        "amount": "1202915",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava17kwqz4r3fnh4cderhza8lnq63su4drfzeqra7m",
+      "reward": {
+        "amount": "76862",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava17cptmd6cs2h032pg4jnjdlfjgvhnkcl32evqy3",
+      "reward": {
+        "amount": "994755",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava17mr4tfdx9j6us9efl09esrcmw5tcg2d6ttjk6s",
+      "reward": {
+        "amount": "2082610",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava17uqdj6p04mmmjpg4jq3kev3ddy48djsxehulfc",
+      "reward": {
+        "amount": "55929",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava17lgpxr5mug8hsmftzlklqyqtlu7mwpzwgqc0aq",
+      "reward": {
+        "amount": "2914761",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1lq0aggmkh3nk5zuzwsv5g2pph9cp0xl4vuh4t7",
+      "reward": {
+        "amount": "3018718",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1l9s2nrrtak60jq0rylepc84lefmw03ccenqxxz",
+      "reward": {
+        "amount": "55442",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1l8txdnmj888kr9xjzyqrcpwns8wvser6wq63q0",
+      "reward": {
+        "amount": "178542",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ltctafhsemwxvdkeygn5dxcwumjg85vj5skrha",
+      "reward": {
+        "amount": "2744575",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1lwqsm6rlctyy4kyy46k9637zdmuscpr8p7faz5",
+      "reward": {
+        "amount": "6804955",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1lwzgye6h3kdd3hr6xk8kmgm5eedeqeg5p8l2hm",
+      "reward": {
+        "amount": "59504",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1ljex7663xnw98455y4fgtref0znkt2u0yglh6k",
+      "reward": {
+        "amount": "102580",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1lmdqakjz5p7gjw3q7333kkgc2xje4d6zzu544k",
+      "reward": {
+        "amount": "2058305",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1la226f3y75shcn7ath84h3wqft3az4qqf9sd2m",
+      "reward": {
+        "amount": "1750112",
+        "denom": "ukava"
+      }
+    },
+    {
+      "claim_period_id": "3",
+      "denom": "bnb",
+      "owner": "kava1lat5vnu7qj6wlhlqcvevd2q8euy6z5kwqqhk33",
+      "reward": {
+        "amount": "2499193",
+        "denom": "ukava"
+      }
+    }
+  ],
+  "next_claim_period_ids": [
+    {
+      "denom": "bnb",
+      "id": "3"
+    },
+    {
+      "denom": "ukava",
+      "id": "1"
+    }
+  ],
+  "params": {
+    "active": true,
+    "rewards": [
+      {
+        "active": true,
+        "available_rewards": {
+          "amount": "74000000000",
+          "denom": "ukava"
+        },
+        "claim_duration": "1209600000000000",
+        "denom": "bnb",
+        "duration": "604800000000000",
+        "time_lock": "31536000000000000"
+      }
+    ]
+  },
+  "previous_block_time": "2020-08-19T02:31:40.177007686Z",
+  "reward_periods": [
+    {
+      "claim_end": "2020-09-02T14:00:23.643077823Z",
+      "claim_time_lock": "31536000000000000",
+      "denom": "bnb",
+      "end": "2020-08-19T14:00:23.643077823Z",
+      "reward": {
+        "amount": "122354",
+        "denom": "ukava"
+      },
+      "start": "2020-08-12T14:00:23.643077823Z"
+    }
+  ]
+}

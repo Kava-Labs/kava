@@ -1,0 +1,26 @@
+{
+    "params": {
+        "max_memo_characters": "256",
+        "sig_verify_cost_ed25519": "590",
+        "sig_verify_cost_secp256k1": "1000",
+        "tx_sig_limit": "7",
+        "tx_size_cost_per_byte": "10"
+    },
+    "accounts": [
+        {
+            "type": "cosmos-sdk/Account",
+            "value": {
+                "account_number": 95,
+                "address": "kava1ceun2qqw65qce5la33j8zv8ltyyaqqfcxftutz",
+                "coins": [
+                    {
+                        "amount": "9950000",
+                        "denom": "ukava"
+                    }
+                ],
+                "public_key": "kavapub1ytql0csgqgfzd666axrjzqc4p3rlrz4ryut2v4r7m29hx6gx0h8pr52pvfzmw7r4dnurt9kctgfzd666axrjzqel670atjnfm8al2jjq7y69ttrjnw96uyqe83342g537mwvej67dqfzd666axrjzqkw686lp4ylpv29fv8t6hxxef5ln33a286a7507utmlc03hgyejsqfzd666axrjzqaa8j22fy52lpjgql0864qm9lqftadj3859z4q205d7xedn974suvfzd666axrjzq4ckxdsxywc0gqhfrxk39z058v3f3yuvmljsagdp2ggx89z5hru9gx07cnh",
+                "sequence": 3
+            }
+        }
+    ]
+}
