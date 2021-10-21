@@ -201,7 +201,7 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 	return bz, nil
 }
 
-// query total principal
+// query total amount of principal (ie. usdx) that has been minted with a particular collateral type
 func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var params types.QueryGetTotalPrincipalParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
