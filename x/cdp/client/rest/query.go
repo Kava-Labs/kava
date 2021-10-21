@@ -280,9 +280,6 @@ func getTotalPrinciple(cliCtx context.CLIContext) http.HandlerFunc {
 
 		if x := r.URL.Query().Get(RestCollateralType); len(x) != 0 {
 			cdpCollateralType = strings.TrimSpace(x)
-		} else {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("%s query parameter must be provided", RestCollateralType))
-			return
 		}
 
 		params := types.NewQueryGetTotalPrincipalParams(cdpCollateralType)

@@ -209,10 +209,33 @@ func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keepe
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	// Hardcoded to default USDX
-	total := keeper.GetTotalPrincipal(ctx, params.CollateralType, types.DefaultStableDenom)
+	var queryCollateralTypes []string
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, total)
+	if params.CollateralType != "" {
+		// Single collateralType provided
+		queryCollateralTypes = append(queryCollateralTypes, params.CollateralType)
+	} else {
+		// No collateralType provided, respond with all of them
+		keeperParams := keeper.GetParams(ctx)
+
+		for _, collateral := range keeperParams.CollateralParams {
+			queryCollateralTypes = append(queryCollateralTypes, collateral.Type)
+		}
+	}
+
+	var collateralPrincipals []types.TotalCDPPrincipal
+
+	for _, queryType := range queryCollateralTypes {
+		// Hardcoded to default USDX
+		principalAmount := keeper.GetTotalPrincipal(ctx, queryType, types.DefaultStableDenom)
+		// Wrap it in an sdk.Coin
+		totalAmountCoin := sdk.NewCoin(types.DefaultStableDenom, principalAmount)
+
+		totalPrincipal := types.NewTotalCDPPrincipal(queryType, totalAmountCoin)
+		collateralPrincipals = append(collateralPrincipals, totalPrincipal)
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, collateralPrincipals)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

@@ -203,3 +203,17 @@ func (augcdps AugmentedCDPs) String() string {
 	}
 	return out
 }
+
+// TotalCDPPrincipal is a total principal of a given collateral type
+type TotalCDPPrincipal struct {
+	CollateralType string   `json:"collateral_type" yaml:"collateral_type"` // string representing the unique collateral type of the CDP
+	Amount         sdk.Coin `json:"amount" yaml:"amount"`                   // Amount of collateral stored in this CDP
+}
+
+// TotalCDPPrincipal returns a new TotalCDPPrincipal
+func NewTotalCDPPrincipal(collateralType string, amount sdk.Coin) TotalCDPPrincipal {
+	return TotalCDPPrincipal{
+		CollateralType: collateralType,
+		Amount:         amount,
+	}
+}
