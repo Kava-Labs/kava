@@ -11,7 +11,10 @@ require (
 )
 
 replace (
-	// patch bech32 decoding to enable larger string lengths // TODO is this needed in sdk v0.44?
-	github.com/btcsuite/btcutil => github.com/kava-labs/btcutil v0.0.0-20200522184203-886d33430f06
+	github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
+
+// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
+replace github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
