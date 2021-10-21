@@ -165,9 +165,6 @@ test-basic: test
 test:
 	@go test $$(go list ./... | grep -v 'migrate\|contrib')
 
-test-rest:
-	rest_test/run_all_tests_from_make.sh
-
 # Run cli integration tests
 # `-p 4` to use 4 cores, `-tags cli_test` to tell go not to ignore the cli package
 # These tests use the `kvd` or `kvcli` binaries in the build dir, or in `$BUILDDIR` if that env var is set.
