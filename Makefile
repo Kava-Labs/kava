@@ -63,11 +63,9 @@ all: install
 
 build: go.sum
 ifeq ($(OS), Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd.exe ./cmd/kvd 
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvcli.exe ./cmd/kvcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kava.exe ./cmd/kava
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd ./cmd/kvd
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvcli ./cmd/kvcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kava ./cmd/kava
 endif
 
 build-linux: go.sum
