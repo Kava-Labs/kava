@@ -11,7 +11,7 @@ require (
 )
 
 replace (
-	// patch bech32 decoding to enable larger string lengths
+	// patch bech32 decoding to enable larger string lengths // TODO is this needed in sdk v0.44?
 	github.com/btcsuite/btcutil => github.com/kava-labs/btcutil v0.0.0-20200522184203-886d33430f06
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 )
