@@ -20,6 +20,10 @@ const (
 	KavaDistMacc = ModuleName
 )
 
+func KeyPrefix(p string) []byte {
+	return []byte(p)
+}
+
 var (
 	CurrentDistPeriodKey = []byte{0x00}
 	PreviousBlockTimeKey = []byte{0x01}

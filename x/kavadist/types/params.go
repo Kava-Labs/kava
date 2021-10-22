@@ -5,11 +5,10 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
-
-	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	// cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
 // Parameter keys and default values
@@ -17,23 +16,10 @@ var (
 	KeyActive                = []byte("Active")
 	KeyPeriods               = []byte("Periods")
 	DefaultActive            = false
-	DefaultPeriods           = Periods{}
+	DefaultPeriods           = []Period{}
 	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(1, 0))
-	GovDenom                 = cdptypes.DefaultGovDenom
+	// GovDenom                 = cdptypes.DefaultGovDenom
 )
-
-// Params governance parameters for kavadist module
-type Params struct {
-	Active  bool    `json:"active" yaml:"active"`
-	Periods Periods `json:"periods" yaml:"periods"`
-}
-
-// Period stores the specified start and end dates, and the inflation, expressed as a decimal representing the yearly APR of KAVA tokens that will be minted during that period
-type Period struct {
-	Start     time.Time `json:"start" yaml:"start"`         // example "2020-03-01T15:20:00Z"
-	End       time.Time `json:"end" yaml:"end"`             // example "2020-06-01T15:20:00Z"
-	Inflation sdk.Dec   `json:"inflation" yaml:"inflation"` // example "1.000000003022265980"  - 10% inflation
-}
 
 // NewPeriod returns a new instance of Period
 func NewPeriod(start time.Time, end time.Time, inflation sdk.Dec) Period {
@@ -52,48 +38,55 @@ func (pr Period) String() string {
 	Inflation: %s`, pr.Start, pr.End, pr.Inflation)
 }
 
-// Periods array of Period
-type Periods []Period
-
-// String implements fmt.Stringer
-func (prs Periods) String() string {
-	out := "Periods\n"
-	for _, pr := range prs {
-		out += fmt.Sprintf("%s\n", pr)
-	}
-	return out
-}
-
-// NewParams returns a new params object
-func NewParams(active bool, periods Periods) Params {
+func NewParams(active bool, periods []Period) Params {
 	return Params{
 		Active:  active,
 		Periods: periods,
 	}
 }
 
-// DefaultParams returns default params for kavadist module
 func DefaultParams() Params {
 	return NewParams(DefaultActive, DefaultPeriods)
 }
 
-// String implements fmt.Stringer
 func (p Params) String() string {
+	periods := "Periods\n"
+	for _, pr := range p.Periods {
+		periods += fmt.Sprintf("%s\n", pr)
+	}
 	return fmt.Sprintf(`Params:
 	Active: %t
-	Periods %s`, p.Active, p.Periods)
+	Periods %s`, p.Active, periods)
+}
+
+func (p Params) Equal(other Params) bool {
+	if p.Active != other.Active {
+		return false
+	}
+
+	if len(p.Periods) != len(other.Periods) {
+		return false
+	}
+
+	for i, period := range p.Periods {
+		if !period.Equal(other.Periods[i]) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // ParamKeyTable Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
-		params.NewParamSetPair(KeyPeriods, &p.Periods, validatePeriodsParams),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
+		paramtypes.NewParamSetPair(KeyPeriods, &p.Periods, validatePeriodsParams),
 	}
 }
 
@@ -116,7 +109,7 @@ func validateActiveParam(i interface{}) error {
 }
 
 func validatePeriodsParams(i interface{}) error {
-	periods, ok := i.(Periods)
+	periods, ok := i.([]Period)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
