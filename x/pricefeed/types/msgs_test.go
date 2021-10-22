@@ -21,10 +21,10 @@ func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
 		msg        MsgPostPrice
 		expectPass bool
 	}{
-		{"normal", MsgPostPrice{addr, "xrp", price, expiry}, true},
-		{"emptyAddr", MsgPostPrice{sdk.AccAddress{}, "xrp", price, expiry}, false},
-		{"emptyAsset", MsgPostPrice{addr, "", price, expiry}, false},
-		{"negativePrice", MsgPostPrice{addr, "xrp", negativePrice, expiry}, false},
+		{"normal", MsgPostPrice{addr.String(), "xrp", price, expiry}, true},
+		{"emptyAddr", MsgPostPrice{"", "xrp", price, expiry}, false},
+		{"emptyAsset", MsgPostPrice{addr.String(), "", price, expiry}, false},
+		{"negativePrice", MsgPostPrice{addr.String(), "xrp", negativePrice, expiry}, false},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

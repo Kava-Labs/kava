@@ -26,11 +26,11 @@ var (
 )
 
 // CurrentPriceKey returns the prefix for the current price
-func CurrentPriceKey(marketID string) []byte {
-	return append(CurrentPricePrefix, []byte(marketID)...)
+func CurrentPriceKey(marketId string) []byte {
+	return append(CurrentPricePrefix, []byte(marketId)...)
 }
 
 // RawPriceKey returns the prefix for the raw price
-func RawPriceKey(marketID string) []byte {
-	return append(RawPriceFeedPrefix, []byte(marketID)...)
+func RawPriceKey(marketId string, oracleAddr string) []byte {
+	return append(append(RawPriceFeedPrefix, []byte(marketId)...), []byte(oracleAddr)...)
 }

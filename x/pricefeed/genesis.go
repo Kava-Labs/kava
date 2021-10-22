@@ -2,37 +2,37 @@ package pricefeed
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/pricefeed/keeper"
+	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // InitGenesis sets distribution information for genesis.
-func InitGenesis(ctx sdk.Context, keeper Keeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	// Set the markets and oracles from params
-	keeper.SetParams(ctx, gs.Params)
+	k.SetParams(ctx, gs.Params)
 
 	// Iterate through the posted prices and set them in the store if they are not expired
 	for _, pp := range gs.PostedPrices {
 		if pp.Expiry.After(ctx.BlockTime()) {
-			_, err := keeper.SetPrice(ctx, pp.OracleAddress, pp.MarketID, pp.Price, pp.Expiry)
+			_, err := k.SetPrice(ctx, pp.OracleAddress, pp.MarketId, pp.Price, pp.Expiry)
 			if err != nil {
 				panic(err)
 			}
 		}
 	}
-	params := keeper.GetParams(ctx)
+	params := k.GetParams(ctx)
 
 	// Set the current price (if any) based on what's now in the store
 	for _, market := range params.Markets {
 		if !market.Active {
 			continue
 		}
-		rps, err := keeper.GetRawPrices(ctx, market.MarketID)
-		if err != nil {
-			panic(err)
-		}
+		rps := k.GetRawPrices(ctx, market.MarketId)
+
 		if len(rps) == 0 {
 			continue
 		}
-		err = keeper.SetCurrentPrices(ctx, market.MarketID)
+		err := k.SetCurrentPrices(ctx, market.MarketId)
 		if err != nil {
 			panic(err)
 		}
@@ -40,19 +40,16 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, gs GenesisState) {
 }
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
-func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 
 	// Get the params for markets and oracles
-	params := keeper.GetParams(ctx)
+	params := k.GetParams(ctx)
 
-	var postedPrices []PostedPrice
-	for _, market := range keeper.GetMarkets(ctx) {
-		pp, err := keeper.GetRawPrices(ctx, market.MarketID)
-		if err != nil {
-			panic(err)
-		}
+	var postedPrices []types.PostedPrice
+	for _, market := range k.GetMarkets(ctx) {
+		pp := k.GetRawPrices(ctx, market.MarketId)
 		postedPrices = append(postedPrices, pp...)
 	}
 
-	return NewGenesisState(params, postedPrices)
+	return types.NewGenesisState(params, postedPrices)
 }

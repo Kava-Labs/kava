@@ -25,10 +25,10 @@ func TestMarketValidate(t *testing.T) {
 		{
 			"valid market",
 			Market{
-				MarketID:   "market",
+				MarketId:   "market",
 				BaseAsset:  "xrp",
 				QuoteAsset: "bnb",
-				Oracles:    []sdk.AccAddress{addr},
+				Oracles:    []string{addr.String()},
 				Active:     true,
 			},
 			true,
@@ -36,14 +36,14 @@ func TestMarketValidate(t *testing.T) {
 		{
 			"invalid id",
 			Market{
-				MarketID: " ",
+				MarketId: " ",
 			},
 			false,
 		},
 		{
 			"invalid base asset",
 			Market{
-				MarketID:  "market",
+				MarketId:  "market",
 				BaseAsset: "XRP",
 			},
 			false,
@@ -51,41 +51,44 @@ func TestMarketValidate(t *testing.T) {
 		{
 			"invalid market",
 			Market{
-				MarketID:   "market",
-				BaseAsset:  "xrp",
-				QuoteAsset: "BNB",
+				MarketId:  "market",
+				BaseAsset: "xrp",
+				// Denoms can be uppercase in v0.44
+				QuoteAsset: "BNB.",
 			},
 			false,
 		},
 		{
 			"empty oracle address ",
 			Market{
-				MarketID:   "market",
+				MarketId:   "market",
 				BaseAsset:  "xrp",
 				QuoteAsset: "bnb",
-				Oracles:    []sdk.AccAddress{nil},
+				Oracles:    []string{""},
 			},
 			false,
 		},
 		{
 			"empty oracle address ",
 			Market{
-				MarketID:   "market",
+				MarketId:   "market",
 				BaseAsset:  "xrp",
 				QuoteAsset: "bnb",
-				Oracles:    []sdk.AccAddress{addr, addr},
+				Oracles:    []string{addr.String(), addr.String()},
 			},
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := tc.market.Validate()
-		if tc.expPass {
-			require.NoError(t, err)
-		} else {
-			require.Error(t, err)
-		}
+		t.Run(tc.msg, func(t *testing.T) {
+			err := tc.market.Validate()
+			if tc.expPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }
 
@@ -104,8 +107,8 @@ func TestPostedPriceValidate(t *testing.T) {
 		{
 			"valid posted price",
 			PostedPrice{
-				MarketID:      "market",
-				OracleAddress: addr,
+				MarketId:      "market",
+				OracleAddress: addr.String(),
 				Price:         sdk.OneDec(),
 				Expiry:        now,
 			},
@@ -114,23 +117,23 @@ func TestPostedPriceValidate(t *testing.T) {
 		{
 			"invalid id",
 			PostedPrice{
-				MarketID: " ",
+				MarketId: " ",
 			},
 			false,
 		},
 		{
 			"invalid oracle",
 			PostedPrice{
-				MarketID:      "market",
-				OracleAddress: nil,
+				MarketId:      "market",
+				OracleAddress: "",
 			},
 			false,
 		},
 		{
 			"invalid price",
 			PostedPrice{
-				MarketID:      "market",
-				OracleAddress: addr,
+				MarketId:      "market",
+				OracleAddress: addr.String(),
 				Price:         sdk.NewDec(-1),
 			},
 			false,
@@ -138,8 +141,8 @@ func TestPostedPriceValidate(t *testing.T) {
 		{
 			"zero expiry time ",
 			PostedPrice{
-				MarketID:      "market",
-				OracleAddress: addr,
+				MarketId:      "market",
+				OracleAddress: addr.String(),
 				Price:         sdk.OneDec(),
 				Expiry:        time.Time{},
 			},
@@ -148,11 +151,13 @@ func TestPostedPriceValidate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := tc.postedPrice.Validate()
-		if tc.expPass {
-			require.NoError(t, err)
-		} else {
-			require.Error(t, err)
-		}
+		t.Run(tc.msg, func(t *testing.T) {
+			err := tc.postedPrice.Validate()
+			if tc.expPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }

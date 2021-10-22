@@ -6,31 +6,31 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/pricefeed"
+	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 func NewPricefeedGenStateMulti() app.GenesisState {
-	pfGenesis := pricefeed.GenesisState{
-		Params: pricefeed.Params{
-			Markets: []pricefeed.Market{
-				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
-				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+	pfGenesis := types.GenesisState{
+		Params: types.Params{
+			Markets: []types.Market{
+				{MarketId: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+				{MarketId: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 			},
 		},
-		PostedPrices: []pricefeed.PostedPrice{
+		PostedPrices: []types.PostedPrice{
 			{
-				MarketID:      "btc:usd",
-				OracleAddress: sdk.AccAddress{},
+				MarketId:      "btc:usd",
+				OracleAddress: "",
 				Price:         sdk.MustNewDecFromStr("8000.00"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
-				MarketID:      "xrp:usd",
-				OracleAddress: sdk.AccAddress{},
+				MarketId:      "xrp:usd",
+				OracleAddress: "",
 				Price:         sdk.MustNewDecFromStr("0.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 		},
 	}
-	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
+	return app.GenesisState{types.ModuleName: types.ModuleCdc.LegacyAmino.MustMarshalJSON(pfGenesis)}
 }

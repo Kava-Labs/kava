@@ -6,14 +6,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // define routes that get registered by the main application
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/markets", types.ModuleName), queryMarketsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/oracles/{%s}", types.ModuleName, RestMarketID), queryOraclesHandlerFn(cliCtx)).Methods("GET")
@@ -22,7 +22,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/prices", types.ModuleName), queryPricesHandlerFn(cliCtx)).Methods("GET")
 }
 
-func queryRawPricesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryRawPricesHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -33,7 +33,7 @@ func queryRawPricesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		paramMarketID := vars[RestMarketID]
 		queryRawPricesParams := types.NewQueryWithMarketIDParams(paramMarketID)
 
-		bz, err := cliCtx.Codec.MarshalJSON(queryRawPricesParams)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(queryRawPricesParams)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -50,7 +50,7 @@ func queryRawPricesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryPriceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPriceHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -61,7 +61,7 @@ func queryPriceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		paramMarketID := vars[RestMarketID]
 		queryPriceParams := types.NewQueryWithMarketIDParams(paramMarketID)
 
-		bz, err := cliCtx.Codec.MarshalJSON(queryPriceParams)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(queryPriceParams)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -78,7 +78,7 @@ func queryPriceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryPricesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPricesHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -96,7 +96,7 @@ func queryPricesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryMarketsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryMarketsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -114,7 +114,7 @@ func queryMarketsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryOraclesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryOraclesHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -125,7 +125,7 @@ func queryOraclesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		paramMarketID := vars[RestMarketID]
 		queryOraclesParams := types.NewQueryWithMarketIDParams(paramMarketID)
 
-		bz, err := cliCtx.Codec.MarshalJSON(queryOraclesParams)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(queryOraclesParams)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -142,7 +142,7 @@ func queryOraclesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryParamsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
