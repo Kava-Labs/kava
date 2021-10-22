@@ -1,25 +1,21 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // GetCmdSubmitProposal implements the command to submit a community-pool multi-spend proposal
-func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
+func GetCmdSubmitProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "community-pool-multi-spend [proposal-file]",
 		Args:  cobra.ExactArgs(1),
@@ -64,28 +60,30 @@ Where proposal.json contains:
 	]
 }
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-
-			proposal, err := ParseCommunityPoolMultiSpendProposalJSON(cdc, args[0])
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			proposal, err := ParseCommunityPoolMultiSpendProposalJSON(clientCtx.Codec, args[0])
 			if err != nil {
 				return err
 			}
 
-			from := cliCtx.GetFromAddress()
+			from := clientCtx.GetFromAddress()
 			content := types.NewCommunityPoolMultiSpendProposal(proposal.Title, proposal.Description, proposal.RecipientList)
-
-			msg := gov.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			if err != nil {
+				return err
+			}
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 

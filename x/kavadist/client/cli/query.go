@@ -1,82 +1,81 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
-// GetQueryCmd returns the cli query commands for the kavadist module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	kavadistQueryCmd := &cobra.Command{
-		Use:   types.ModuleName,
-		Short: "Querying commands for the kavadist module",
+// GetQueryCmd returns the cli query commands for this module
+func GetQueryCmd() *cobra.Command {
+	// Group kavadist queries under a subcommand
+	cmd := &cobra.Command{
+		Use:                        types.ModuleName,
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
 	}
 
-	kavadistQueryCmd.AddCommand(flags.GetCommands(
-		queryParamsCmd(queryRoute, cdc),
-		queryBalanceCmd(queryRoute, cdc),
-	)...)
+	cmd.AddCommand(
+		queryParamsCmd(),
+		queryBalanceCmd(),
+	)
 
-	return kavadistQueryCmd
-
+	return cmd
 }
 
-func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+func queryParamsCmd() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "params",
 		Short: "get the kavadist module parameters",
 		Long:  "Get the current global kavadist module parameters.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetParams)
-			res, height, err := cliCtx.QueryWithData(route, nil)
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
 
-			// Decode and print results
-			var params types.Params
-			if err := cdc.UnmarshalJSON(res, &params); err != nil {
-				return fmt.Errorf("failed to unmarshal params: %w", err)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
 			}
-			return cliCtx.PrintOutput(params)
+			return cliCtx.PrintProto(res)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
-func queryBalanceCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+func queryBalanceCmd() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "balance",
 		Short: "get the kavadist module balance",
 		Long:  "Get the current kavadist module account balance.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetBalance)
-			res, height, err := cliCtx.QueryWithData(route, nil)
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
 
-			var coins sdk.Coins
-			if err := cdc.UnmarshalJSON(res, &coins); err != nil {
-				return fmt.Errorf("failed to unmarshal coin balance: %w", err)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.Balance(context.Background(), &types.QueryBalanceRequest{})
+			if err != nil {
+				return err
 			}
-			return cliCtx.PrintOutput(coins)
+			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
