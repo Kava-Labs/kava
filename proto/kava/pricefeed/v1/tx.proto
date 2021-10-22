@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/kava-labs/kava-upgrade-spike/x/pricefeed/types";
+option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
 
 // Msg defines the pricefeed Msg service.
 service Msg {
