@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
-	"github.com/Kava-Labs/draco-test/x/kavadist/types"
+	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
 type (
