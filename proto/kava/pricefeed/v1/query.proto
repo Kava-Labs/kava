@@ -1,0 +1,117 @@
+syntax = "proto3";
+package kava.pricefeed;
+
+import "kava/pricefeed/v1/genesis.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/kava-labs/kava-upgrade-spike/x/pricefeed/types";
+
+// Query defines the gRPC querier service for pricefeed module
+service Query {
+  // Params queries all parameters of the pricefeed module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1/params";
+  }
+
+  // Price queries price details based on a market
+  rpc Price(QueryPriceRequest) returns (CurrentPrice) {
+    option (google.api.http).get = "/kava/pricefeed/v1/price/{market_id}";
+  }
+
+  rpc Prices(QueryPricesRequest) returns (QueryPricesResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1/prices";
+  }
+
+  rpc RawPrices(QueryRawPricesRequest) returns (QueryRawPricesResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1/rawprices/{market_id}";
+  }
+
+  rpc Oracles(QueryOraclesRequest) returns (QueryOraclesResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1/oracles/{market_id}";
+  }
+
+  rpc Markets(QueryMarketsRequest) returns (QueryMarketsResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1/markets";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/pricefeed
+// parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/pricefeed
+// parameters.
+message QueryParamsResponse {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryPriceRequest is the request type for the Query/PriceRequest RPC method.
+message QueryPriceRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string market_id = 1;
+}
+
+// QueryPricesRequest is the request type for the Query/Prices RPC method.
+message QueryPricesRequest {}
+
+// QueryPricesResponse is the response type for the Query/Prices RPC method.
+message QueryPricesResponse {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  repeated CurrentPrice prices = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryRawPricesRequest is the request type for the Query/RawPrices RPC method.
+message QueryRawPricesRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string market_id = 1;
+}
+
+// QueryRawPricesResponse is the response type for the Query/RawPrices RPC
+// method.
+message QueryRawPricesResponse {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  repeated PostedPrice raw_prices = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryOraclesRequest is the request type for the Query/Oracles RPC method.
+message QueryOraclesRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string market_id = 1;
+}
+
+// QueryOraclesResponse is the response type for the Query/Oracles RPC method.
+message QueryOraclesResponse {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // List of oracle addresses
+  repeated string oracles = 1;
+}
+
+// QueryMarketsRequest is the request type for the Query/Markets RPC method.
+message QueryMarketsRequest {}
+
+// QueryMarketsResponse is the response type for the Query/Markets RPC method.
+message QueryMarketsResponse {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // List of markets
+  repeated Market markets = 1 [ (gogoproto.nullable) = false ];
+}
