@@ -1,5 +1,5 @@
 syntax = "proto3";
-package KavaLabs.dracotest.kavadist;
+package kava.kavadist.v1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
