@@ -1,13 +1,13 @@
 syntax = "proto3";
-package KavaLabs.dracotest.kavadist;
+package kava.kavadist.v1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "kavadist/params.proto";
+import "kava/kavadist/v1/params.proto";
 
-option go_package = "github.com/Kava-Labs/draco-test/x/kavadist/types";
+option go_package = "github.com/kava-labs/kava/x/kavadist/types";
 
 // Query defines the gRPC querier service.
 service Query {

@@ -1,15 +1,13 @@
 syntax = "proto3";
-package KavaLabs.dracotest.kavadist;
-
-// this line is used by starport scaffolding # genesis/proto/import
+package kava.kavadist.v1;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
-import "kavadist/params.proto";
+import "kava/kavadist/v1/params.proto";
 
-option go_package = "github.com/Kava-Labs/draco-test/x/kavadist/types";
+option go_package = "github.com/kava-labs/kava/x/kavadist/types";
 
-// GenesisState defines the dracotest module's genesis state.
+// GenesisState defines the kavadist module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"params\""];
 
@@ -18,5 +16,4 @@ message GenesisState {
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"params\""
   ];
-  // this line is used by starport scaffolding # genesis/proto/state
 }

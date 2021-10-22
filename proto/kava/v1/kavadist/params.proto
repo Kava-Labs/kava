@@ -1,14 +1,15 @@
 syntax = "proto3";
-package KavaLabs.dracotest.kavadist;
+package kava.kavadist.v1;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/Kava-Labs/draco-test/x/kavadist/types";
+option go_package = "github.com/kava-labs/kava/x/kavadist/types";
 
 option (gogoproto.goproto_stringer_all) = false;
 option (gogoproto.goproto_getters_all)  = false;
 
+// Params governance parameters for kavadist module
 message Params {
   bool            active  = 1 [(gogoproto.moretags) = "yaml:\"active\""];
   repeated Period periods = 3
