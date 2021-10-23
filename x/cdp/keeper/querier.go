@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"sort"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -30,6 +32,10 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryGetParams(ctx, req, keeper)
 		case types.QueryGetAccounts:
 			return queryGetAccounts(ctx, req, keeper)
+		case types.QueryGetTotalPrincipal:
+			return queryGetTotalPrincipal(ctx, req, keeper)
+		case types.QueryGetTotalCollateral:
+			return queryGetTotalCollateral(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
 		}
@@ -192,6 +198,138 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 	filteredCDPs := FilterCDPs(ctx, keeper, params)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, filteredCDPs)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+// query total amount of principal (ie. usdx) that has been minted with a particular collateral type
+func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var params types.QueryGetTotalPrincipalParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	var queryCollateralTypes []string
+
+	if params.CollateralType != "" {
+		// Single collateralType provided
+		queryCollateralTypes = append(queryCollateralTypes, params.CollateralType)
+	} else {
+		// No collateralType provided, respond with all of them
+		keeperParams := keeper.GetParams(ctx)
+
+		for _, collateral := range keeperParams.CollateralParams {
+			queryCollateralTypes = append(queryCollateralTypes, collateral.Type)
+		}
+	}
+
+	var collateralPrincipals []types.TotalCDPPrincipal
+
+	for _, queryType := range queryCollateralTypes {
+		// Hardcoded to default USDX
+		principalAmount := keeper.GetTotalPrincipal(ctx, queryType, types.DefaultStableDenom)
+		// Wrap it in an sdk.Coin
+		totalAmountCoin := sdk.NewCoin(types.DefaultStableDenom, principalAmount)
+
+		totalPrincipal := types.NewTotalCDPPrincipal(queryType, totalAmountCoin)
+		collateralPrincipals = append(collateralPrincipals, totalPrincipal)
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, collateralPrincipals)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+// query total amount of collateral (ie. btcb) that has been deposited with a particular collateral type
+func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var request types.QueryGetTotalCollateralParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &request)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	params := keeper.GetParams(ctx)
+	denomCollateralTypes := make(map[string][]string)
+
+	// collect collateral types for each denom
+	for _, collateralParam := range params.CollateralParams {
+		denomCollateralTypes[collateralParam.Denom] =
+			append(denomCollateralTypes[collateralParam.Denom], collateralParam.Type)
+	}
+
+	// sort collateral types alphabetically
+	for _, collateralTypes := range denomCollateralTypes {
+		sort.Slice(collateralTypes, func(i int, j int) bool {
+			return collateralTypes[i] < collateralTypes[j]
+		})
+	}
+
+	// get total collateral in all cdps
+	cdpAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
+	totalCdpCollateral := cdpAccount.GetCoins()
+
+	var response []types.TotalCDPCollateral
+
+	for denom, collateralTypes := range denomCollateralTypes {
+		// skip any denoms that do not match the requested collateral type
+		if request.CollateralType != "" {
+			match := false
+			for _, ctype := range collateralTypes {
+				if ctype == request.CollateralType {
+					match = true
+				}
+			}
+
+			if !match {
+				continue
+			}
+		}
+
+		totalCollateral := totalCdpCollateral.AmountOf(denom)
+
+		// we need to query individual cdps for denoms with more than one collateral type
+		for i := len(collateralTypes) - 1; i > 0; i-- {
+			cdps := keeper.GetAllCdpsByCollateralType(ctx, collateralTypes[i])
+
+			collateral := sdk.ZeroInt()
+
+			for _, cdp := range cdps {
+				collateral = collateral.Add(cdp.Collateral.Amount)
+			}
+
+			totalCollateral = totalCollateral.Sub(collateral)
+
+			// if we have no collateralType filter, or the filter matches, include it in the response
+			if request.CollateralType == "" || collateralTypes[i] == request.CollateralType {
+				response = append(response, types.NewTotalCDPCollateral(collateralTypes[i], sdk.NewCoin(denom, collateral)))
+			}
+
+			// skip the rest of the cdp queries if we have a matching filter
+			if collateralTypes[i] == request.CollateralType {
+				break
+			}
+		}
+
+		if request.CollateralType == "" || collateralTypes[0] == request.CollateralType {
+			// all leftover total collateral belongs to the first collateral type
+			response = append(response, types.NewTotalCDPCollateral(collateralTypes[0], sdk.NewCoin(denom, totalCollateral)))
+		}
+	}
+
+	// sort to ensure deterministic response
+	sort.Slice(response, func(i int, j int) bool {
+		return response[i].CollateralType < response[j].CollateralType
+	})
+
+	// encode response
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, response)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

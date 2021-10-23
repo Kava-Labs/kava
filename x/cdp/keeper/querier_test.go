@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"math/rand"
 	"sort"
 	"strings"
@@ -372,6 +373,96 @@ func (suite *QuerierTestSuite) TestQueryCdps() {
 	output := types.AugmentedCDPs{}
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
 	suite.Equal(50, len(output))
+}
+
+func (suite *QuerierTestSuite) TestQueryTotalPrincipal() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	params := types.NewQueryGetTotalPrincipalParams("btc-a")
+
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetTotalPrincipal}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(params),
+	}
+
+	bz, err := suite.querier(ctx, []string{types.QueryGetTotalPrincipal}, query)
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	output := []types.TotalCDPPrincipal{}
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
+	fmt.Printf("%s", output)
+	suite.Equal(1, len(output))
+	suite.Equal("btc-a", output[0].CollateralType)
+}
+
+func (suite *QuerierTestSuite) TestQueryTotalPrincipalAll() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	params := types.NewQueryGetTotalPrincipalParams("")
+
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetTotalPrincipal}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(params),
+	}
+
+	bz, err := suite.querier(ctx, []string{types.QueryGetTotalPrincipal}, query)
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	output := []types.TotalCDPPrincipal{}
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
+
+	var outputTypes []string
+	for _, c := range output {
+		outputTypes = append(outputTypes, c.CollateralType)
+	}
+
+	suite.Greater(len(output), 0)
+	suite.Subset(outputTypes, []string{"btc-a", "xrp-a"})
+}
+
+func (suite *QuerierTestSuite) TestQueryTotalCollateral() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	params := types.NewQueryGetTotalCollateralParams("btc-a")
+
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetTotalCollateral}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(params),
+	}
+
+	bz, err := suite.querier(ctx, []string{types.QueryGetTotalCollateral}, query)
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	output := []types.TotalCDPCollateral{}
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
+	fmt.Printf("%s", output)
+	suite.Equal(1, len(output))
+	suite.Equal("btc-a", output[0].CollateralType)
+}
+
+func (suite *QuerierTestSuite) TestQueryTotalCollateralAll() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	params := types.NewQueryGetTotalCollateralParams("")
+
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetTotalCollateral}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(params),
+	}
+
+	bz, err := suite.querier(ctx, []string{types.QueryGetTotalCollateral}, query)
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	output := []types.TotalCDPCollateral{}
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
+
+	var outputTypes []string
+	for _, c := range output {
+		outputTypes = append(outputTypes, c.CollateralType)
+	}
+
+	suite.Greater(len(output), 0)
+	suite.Subset(outputTypes, []string{"btc-a", "xrp-a"})
 }
 
 func TestQuerierTestSuite(t *testing.T) {
