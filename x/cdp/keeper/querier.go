@@ -260,10 +260,6 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 
 	// collect collateral types for each denom
 	for _, collateralParam := range params.CollateralParams {
-		if request.CollateralType != "" && request.CollateralType != collateralParam.Type {
-			continue
-		}
-
 		denomCollateralTypes[collateralParam.Denom] =
 			append(denomCollateralTypes[collateralParam.Denom], collateralParam.Type)
 	}
@@ -282,6 +278,20 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 	var response []types.TotalCDPCollateral
 
 	for denom, collateralTypes := range denomCollateralTypes {
+		// skip any denoms that do not match the requested collateral type
+		if request.CollateralType != "" {
+			match := false
+			for _, ctype := range collateralTypes {
+				if ctype == request.CollateralType {
+					match = true
+				}
+			}
+
+			if !match {
+				continue
+			}
+		}
+
 		totalCollateral := totalCdpCollateral.AmountOf(denom)
 
 		// we need to query individual cdps for denoms with more than one collateral type
@@ -295,11 +305,22 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 			}
 
 			totalCollateral = totalCollateral.Sub(collateral)
-			response = append(response, types.NewTotalCDPCollateral(collateralTypes[i], sdk.NewCoin(denom, collateral)))
+
+			// if we have no collateralType filter, or the filter matches, include it in the response
+			if request.CollateralType == "" || collateralTypes[i] == request.CollateralType {
+				response = append(response, types.NewTotalCDPCollateral(collateralTypes[i], sdk.NewCoin(denom, collateral)))
+			}
+
+			// skip the rest of the cdp queries if we have a matching filter
+			if collateralTypes[i] == request.CollateralType {
+				break
+			}
 		}
 
-		// all leftover total collateral belongs to the first collateral type
-		response = append(response, types.NewTotalCDPCollateral(collateralTypes[0], sdk.NewCoin(denom, totalCollateral)))
+		if request.CollateralType == "" || collateralTypes[0] == request.CollateralType {
+			// all leftover total collateral belongs to the first collateral type
+			response = append(response, types.NewTotalCDPCollateral(collateralTypes[0], sdk.NewCoin(denom, totalCollateral)))
+		}
 	}
 
 	// sort to ensure deterministic response
