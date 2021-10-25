@@ -1,0 +1,9 @@
+version: v1
+lint:
+  # ignore all linting stuff from third party proto files
+  ignore:
+    - cosmos
+    - cosmos_proto
+    - gogoproto
+    - google
+    - tendermint
