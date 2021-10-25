@@ -18,6 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
@@ -58,6 +59,7 @@ import (
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
 )
 
@@ -366,16 +368,25 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	// TODO mount memory stores
 
 	// initialize the app
+	var fetchers []ante.AddressFetcher // TODO add bep3 and pricefeed authorized addresses
+	if options.MempoolEnableAuth {
+		fetchers = append(fetchers,
+			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
+		)
+	}
+	antehandler, err := ante.NewAnteHandler(
+		app.accountKeeper,
+		app.bankKeeper,
+		nil,
+		encodingConfig.TxConfig.SignModeHandler(),
+		authante.DefaultSigVerificationGasConsumer,
+		fetchers...,
+	)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create antehandler: %s", err))
+	}
 
-	// TODO antehandler
-	// var antehandler sdk.AnteHandler
-	// if options.MempoolEnableAuth {
-	// 	var getAuthorizedAddresses ante.AddressFetcher = func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses }
-	// 	antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer, getAuthorizedAddresses)
-	// } else {
-	// 	antehandler = ante.NewAnteHandler(app.accountKeeper, app.accountKeeper, auth.DefaultSigVerificationGasConsumer)
-	// }
-	// app.SetAnteHandler(antehandler)
+	app.SetAnteHandler(antehandler)
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
