@@ -25,7 +25,7 @@ func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
-func (k Keeper) Price(c context.Context, req *types.QueryPriceRequest) (*types.CurrentPrice, error) {
+func (k Keeper) Price(c context.Context, req *types.QueryPriceRequest) (*types.QueryPriceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	_, found := k.GetMarket(ctx, req.MarketId)
@@ -37,10 +37,12 @@ func (k Keeper) Price(c context.Context, req *types.QueryPriceRequest) (*types.C
 		return nil, sdkErr
 	}
 
-	return &types.CurrentPrice{
-		MarketId: currentPrice.MarketId,
-		Price:    currentPrice.Price,
-	}, nil
+	return &types.QueryPriceResponse{
+		Price: types.CurrentPrice{
+			MarketId: currentPrice.MarketId,
+			Price:    currentPrice.Price,
+		}}, nil
+
 }
 func (k Keeper) Prices(c context.Context, req *types.QueryPricesRequest) (*types.QueryPricesResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)

@@ -1,8 +1,7 @@
 syntax = "proto3";
-package kava.pricefeed.v1;
+package kava.pricefeed.v1beta1;
 
 import "gogoproto/gogo.proto";
-import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
@@ -19,15 +18,21 @@ message MsgPostPrice {
   option (gogoproto.goproto_getters) = false;
 
   // address of client
-  string from = 1;
-  string market_id = 2;
+  string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+  string market_id = 2 [
+
+    (gogoproto.moretags) = "yaml:\"market_id\""
+  ];
   string price = 3 [
     (gogoproto.moretags) = "yaml:\"price\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
-  google.protobuf.Timestamp expiry = 4
-      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  google.protobuf.Timestamp expiry = 4 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"expiry\""
+  ];
 }
 
 // MsgPostPriceResponse defines the Msg/PostPrice response type.

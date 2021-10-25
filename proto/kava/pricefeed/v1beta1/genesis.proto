@@ -1,8 +1,8 @@
 syntax = "proto3";
-package kava.pricefeed.v1;
+package kava.pricefeed.v1beta1;
 
+import "kava/pricefeed/v1beta1/pricefeed.proto";
 import "gogoproto/gogo.proto";
-import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
 

@@ -1,11 +1,10 @@
 syntax = "proto3";
-package kava.pricefeed;
+package kava.pricefeed.v1beta1;
 
-import "kava/pricefeed/v1/genesis.proto";
+import "kava/pricefeed/v1beta1/genesis.proto";
+import "kava/pricefeed/v1beta1/pricefeed.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
-import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
 
@@ -17,22 +16,26 @@ service Query {
   }
 
   // Price queries price details based on a market
-  rpc Price(QueryPriceRequest) returns (CurrentPrice) {
+  rpc Price(QueryPriceRequest) returns (QueryPriceResponse) {
     option (google.api.http).get = "/kava/pricefeed/v1/price/{market_id}";
   }
 
+  // Prices queries all prices
   rpc Prices(QueryPricesRequest) returns (QueryPricesResponse) {
     option (google.api.http).get = "/kava/pricefeed/v1/prices";
   }
 
+  // RawPrices queries all raw prices based on a market
   rpc RawPrices(QueryRawPricesRequest) returns (QueryRawPricesResponse) {
     option (google.api.http).get = "/kava/pricefeed/v1/rawprices/{market_id}";
   }
 
+  // Oracles queries all oracles based on a market
   rpc Oracles(QueryOraclesRequest) returns (QueryOraclesResponse) {
     option (google.api.http).get = "/kava/pricefeed/v1/oracles/{market_id}";
   }
 
+  // Markets queries all markets
   rpc Markets(QueryMarketsRequest) returns (QueryMarketsResponse) {
     option (google.api.http).get = "/kava/pricefeed/v1/markets";
   }
@@ -48,7 +51,11 @@ message QueryParamsResponse {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+
+    (gogoproto.moretags) = "yaml:\"params\""
+  ];
 }
 
 // QueryPriceRequest is the request type for the Query/PriceRequest RPC method.
@@ -56,7 +63,19 @@ message QueryPriceRequest {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string market_id = 1;
+  string market_id = 1 [
+
+    (gogoproto.moretags) = "yaml:\"market_id\""
+  ];
+}
+
+// QueryPriceResponse is the response type for the Query/Prices RPC method.
+message QueryPriceResponse {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  CurrentPrice price = 1
+      [ (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"price\"" ];
 }
 
 // QueryPricesRequest is the request type for the Query/Prices RPC method.
@@ -67,7 +86,10 @@ message QueryPricesResponse {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  repeated CurrentPrice prices = 1 [ (gogoproto.nullable) = false ];
+  repeated CurrentPrice prices = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"prices\""
+  ];
 }
 
 // QueryRawPricesRequest is the request type for the Query/RawPrices RPC method.
@@ -75,7 +97,7 @@ message QueryRawPricesRequest {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string market_id = 1;
+  string market_id = 1 [ (gogoproto.moretags) = "yaml:\"market_id\"" ];
 }
 
 // QueryRawPricesResponse is the response type for the Query/RawPrices RPC
@@ -84,7 +106,10 @@ message QueryRawPricesResponse {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  repeated PostedPrice raw_prices = 1 [ (gogoproto.nullable) = false ];
+  repeated PostedPrice raw_prices = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"raw_prices\""
+  ];
 }
 
 // QueryOraclesRequest is the request type for the Query/Oracles RPC method.
@@ -92,7 +117,7 @@ message QueryOraclesRequest {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string market_id = 1;
+  string market_id = 1 [ (gogoproto.moretags) = "yaml:\"market_id\"" ];
 }
 
 // QueryOraclesResponse is the response type for the Query/Oracles RPC method.
@@ -101,7 +126,11 @@ message QueryOraclesResponse {
   option (gogoproto.goproto_getters) = false;
 
   // List of oracle addresses
-  repeated string oracles = 1;
+  repeated string oracles = 1 [
+
+    (gogoproto.moretags) = "yaml:\"oracles\""
+
+  ];
 }
 
 // QueryMarketsRequest is the request type for the Query/Markets RPC method.
@@ -113,5 +142,8 @@ message QueryMarketsResponse {
   option (gogoproto.goproto_getters) = false;
 
   // List of markets
-  repeated Market markets = 1 [ (gogoproto.nullable) = false ];
+  repeated Market markets = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"markets\""
+  ];
 }
