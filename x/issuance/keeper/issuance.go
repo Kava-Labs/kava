@@ -2,10 +2,11 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/kava-labs/kava/x/issuance/types"
 )
 
@@ -28,7 +29,7 @@ func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sd
 		}
 	}
 	acc := k.accountKeeper.GetAccount(ctx, receiver)
-	_, ok := acc.(supplyexported.ModuleAccountI)
+	_, ok := acc.(authtypes.ModuleAccountI)
 	if ok {
 		return sdkerrors.Wrapf(types.ErrIssueToModuleAccount, "address: %s", receiver)
 	}
@@ -42,12 +43,12 @@ func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sd
 	}
 
 	// mint new tokens
-	err := k.supplyKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(tokens))
+	err := k.bankKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(tokens))
 	if err != nil {
 		return err
 	}
 	// send to receiver
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, receiver, sdk.NewCoins(tokens))
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, receiver, sdk.NewCoins(tokens))
 	if err != nil {
 		return err
 	}
@@ -73,11 +74,11 @@ func (k Keeper) RedeemTokens(ctx sdk.Context, tokens sdk.Coin, owner sdk.AccAddr
 		return sdkerrors.Wrapf(types.ErrAssetPaused, "denom: %s", tokens.Denom)
 	}
 	coins := sdk.NewCoins(tokens)
-	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleAccountName, coins)
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleAccountName, coins)
 	if err != nil {
 		return err
 	}
-	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleAccountName, coins)
+	err = k.bankKeeper.BurnCoins(ctx, types.ModuleAccountName, coins)
 	if err != nil {
 		return err
 	}
@@ -208,11 +209,11 @@ func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) er
 			continue
 		}
 		coins := sdk.NewCoins(sdk.NewCoin(denom, coinsAmount))
-		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleAccountName, coins)
+		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleAccountName, coins)
 		if err != nil {
 			return err
 		}
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, asset.Owner, coins)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, asset.Owner, coins)
 		if err != nil {
 			return err
 		}
@@ -220,7 +221,7 @@ func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) er
 			sdk.NewEvent(
 				types.EventTypeSeize,
 				sdk.NewAttribute(sdk.AttributeKeyAmount, coins.String()),
-				sdk.NewAttribute(types.AttributeKeyAddress, address.String()),
+				sdk.NewAttribute(types.AttributeKeyAddress, address),
 			),
 		)
 	}
@@ -229,7 +230,7 @@ func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) er
 
 func (k Keeper) checkBlockedAddress(asset types.Asset, checkAddress sdk.AccAddress) (bool, int) {
 	for i, address := range asset.BlockedAddresses {
-		if address.Equals(checkAddress) {
+		if strings.Compare(address, checkAddress.String()) == 0 {
 			return true, i
 		}
 	}

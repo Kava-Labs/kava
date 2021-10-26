@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/issuance/types"
 )
@@ -14,14 +14,14 @@ import (
 // Keeper keeper for the issuance module
 type Keeper struct {
 	key           sdk.StoreKey
-	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
+	cdc           codec.BinaryMarshaler // new codec interface
+	paramSubspace paramtypes.Subspace
 	accountKeeper types.AccountKeeper
-	supplyKeeper  types.SupplyKeeper
+	bankKeeper    types.BankKeeper
 }
 
 // NewKeeper returns a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, ak types.AccountKeeper, sk types.SupplyKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace, ak types.AccountKeeper, bk types.BankKeeper) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -31,7 +31,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 		cdc:           cdc,
 		paramSubspace: paramstore,
 		accountKeeper: ak,
-		supplyKeeper:  sk,
+		bankKeeper:    bk,
 	}
 }
 
@@ -69,7 +69,7 @@ func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.Asset
 }
 
 // GetAllAssetSupplies returns all asset supplies from the store
-func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies types.AssetSupplies) {
+func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies []types.AssetSupply) {
 	k.IterateAssetSupplies(ctx, func(supply types.AssetSupply) bool {
 		supplies = append(supplies, supply)
 		return false
