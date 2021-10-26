@@ -55,8 +55,8 @@ func (k Keeper) SynchronizeBlockList(ctx sdk.Context) {
 	params := k.GetParams(ctx)
 	for _, asset := range params.Assets {
 		if !asset.Blockable && len(asset.BlockedAddresses) > 0 {
-			asset.BlockedAddresses = []sdk.AccAddress{}
-			k.SetAsset(ctx, asset)
+			asset.BlockedAddresses = []string{}
+			k.SetAsset(ctx, *asset)
 		}
 	}
 }

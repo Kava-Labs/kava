@@ -14,14 +14,14 @@ import (
 // Keeper keeper for the issuance module
 type Keeper struct {
 	key           sdk.StoreKey
-	cdc           codec.BinaryMarshaler // new codec interface
+	cdc           codec.Codec
 	paramSubspace paramtypes.Subspace
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 }
 
 // NewKeeper returns a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace, ak types.AccountKeeper, bk types.BankKeeper) Keeper {
+func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace, ak types.AccountKeeper, bk types.BankKeeper) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -43,14 +43,14 @@ func (k Keeper) GetAssetSupply(ctx sdk.Context, denom string) (types.AssetSupply
 	if bz == nil {
 		return types.AssetSupply{}, false
 	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &assetSupply)
+	k.cdc.UnmarshalLengthPrefixed(bz, &assetSupply)
 	return assetSupply, true
 }
 
 // SetAssetSupply updates an asset's supply
 func (k Keeper) SetAssetSupply(ctx sdk.Context, supply types.AssetSupply, denom string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyPrefix)
-	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(supply))
+	store.Set([]byte(denom), k.cdc.MustMarshalLengthPrefixed(&supply))
 }
 
 // IterateAssetSupplies provides an iterator over all stored AssetSupplies.
@@ -60,7 +60,7 @@ func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.Asset
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var supply types.AssetSupply
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &supply)
+		k.cdc.UnmarshalLengthPrefixed(iterator.Value(), &supply)
 
 		if cb(supply) {
 			break
@@ -84,12 +84,18 @@ func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, foun
 	if b == nil {
 		return time.Time{}, false
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &blockTime)
+	if err := blockTime.UnmarshalBinary(b); err != nil {
+		panic(err)
+	}
 	return blockTime, true
 }
 
 // SetPreviousBlockTime set the time of the previous block
 func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(blockTime))
+	b, err := blockTime.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
+	store.Set([]byte{}, b)
 }

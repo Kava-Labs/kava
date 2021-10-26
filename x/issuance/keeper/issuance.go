@@ -16,14 +16,14 @@ func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sd
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", tokens.Denom)
 	}
-	if !owner.Equals(asset.Owner) {
+	if strings.Compare(owner.String(), asset.Owner) != 0 {
 		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
 	if asset.Paused {
 		return sdkerrors.Wrapf(types.ErrAssetPaused, "denom: %s", tokens.Denom)
 	}
 	if asset.Blockable {
-		blocked, _ := k.checkBlockedAddress(asset, receiver)
+		blocked, _ := k.checkBlockedAddress(asset, receiver.String())
 		if blocked {
 			return sdkerrors.Wrapf(types.ErrAccountBlocked, "address: %s", receiver)
 		}
@@ -67,7 +67,7 @@ func (k Keeper) RedeemTokens(ctx sdk.Context, tokens sdk.Coin, owner sdk.AccAddr
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", tokens.Denom)
 	}
-	if !owner.Equals(asset.Owner) {
+	if strings.Compare(owner.String(), asset.Owner) != 0 {
 		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
 	if asset.Paused {
@@ -100,10 +100,10 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 	if !asset.Blockable {
 		return sdkerrors.Wrap(types.ErrAssetUnblockable, denom)
 	}
-	if !owner.Equals(asset.Owner) {
+	if strings.Compare(owner.String(), asset.Owner) != 0 {
 		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
-	blocked, _ := k.checkBlockedAddress(asset, blockedAddress)
+	blocked, _ := k.checkBlockedAddress(asset, blockedAddress.String())
 	if blocked {
 		return sdkerrors.Wrapf(types.ErrAccountAlreadyBlocked, "address: %s", blockedAddress)
 	}
@@ -111,8 +111,8 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 	if account == nil {
 		return sdkerrors.Wrapf(types.ErrAccountNotFound, "address: %s", blockedAddress)
 	}
-	asset.BlockedAddresses = append(asset.BlockedAddresses, blockedAddress)
-	k.SetAsset(ctx, asset)
+	asset.BlockedAddresses = append(asset.BlockedAddresses, blockedAddress.String())
+	k.SetAsset(ctx, *asset)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeBlock,
@@ -132,17 +132,17 @@ func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.Ac
 	if !asset.Blockable {
 		return sdkerrors.Wrap(types.ErrAssetUnblockable, denom)
 	}
-	if !owner.Equals(asset.Owner) {
+	if strings.Compare(owner.String(), asset.Owner) != 0 {
 		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
-	blocked, i := k.checkBlockedAddress(asset, addr)
+	blocked, i := k.checkBlockedAddress(asset, addr.String())
 	if !blocked {
 		return sdkerrors.Wrapf(types.ErrAccountAlreadyUnblocked, "address: %s", addr)
 	}
 
 	blockedAddrs := k.removeBlockedAddress(asset.BlockedAddresses, i)
 	asset.BlockedAddresses = blockedAddrs
-	k.SetAsset(ctx, asset)
+	k.SetAsset(ctx, *asset)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeUnblock,
@@ -159,14 +159,14 @@ func (k Keeper) SetPauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
 	}
-	if !owner.Equals(asset.Owner) {
+	if strings.Compare(owner.String(), asset.Owner) != 0 {
 		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
 	if asset.Paused == status {
 		return nil
 	}
 	asset.Paused = !asset.Paused
-	k.SetAsset(ctx, asset)
+	k.SetAsset(ctx, *asset)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypePause,
@@ -198,22 +198,32 @@ func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) er
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
 	}
 	for _, address := range asset.BlockedAddresses {
-		account := k.accountKeeper.GetAccount(ctx, address)
+		addrBech32, err := sdk.AccAddressFromBech32(address)
+		if err != nil {
+			return err
+		}
+
+		account := k.accountKeeper.GetAccount(ctx, addrBech32)
 		if account == nil {
 			// avoids a potential panic
 			// this could happen if, for example, an account was pruned from state but remained in the block list,
 			continue
 		}
-		coinsAmount := account.GetCoins().AmountOf(denom)
+
+		coinsAmount := k.bankKeeper.GetAllBalances(ctx, addrBech32).AmountOf(denom)
 		if !coinsAmount.IsPositive() {
 			continue
 		}
 		coins := sdk.NewCoins(sdk.NewCoin(denom, coinsAmount))
-		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleAccountName, coins)
+		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, addrBech32, types.ModuleAccountName, coins)
 		if err != nil {
 			return err
 		}
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, asset.Owner, coins)
+		ownerBech32, err := sdk.AccAddressFromBech32(asset.Owner)
+		if err != nil {
+			return err
+		}
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, ownerBech32, coins)
 		if err != nil {
 			return err
 		}
@@ -228,16 +238,16 @@ func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) er
 	return nil
 }
 
-func (k Keeper) checkBlockedAddress(asset types.Asset, checkAddress sdk.AccAddress) (bool, int) {
+func (k Keeper) checkBlockedAddress(asset *types.Asset, checkAddress string) (bool, int) {
 	for i, address := range asset.BlockedAddresses {
-		if strings.Compare(address, checkAddress.String()) == 0 {
+		if strings.Compare(address, checkAddress) == 0 {
 			return true, i
 		}
 	}
 	return false, 0
 }
 
-func (k Keeper) removeBlockedAddress(blockedAddrs []sdk.AccAddress, i int) []sdk.AccAddress {
+func (k Keeper) removeBlockedAddress(blockedAddrs []string, i int) []string {
 	blockedAddrs[len(blockedAddrs)-1], blockedAddrs[i] = blockedAddrs[i], blockedAddrs[len(blockedAddrs)-1]
 	return blockedAddrs[:len(blockedAddrs)-1]
 }
