@@ -183,7 +183,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
-		issuance.StoreKey,
+		issuancetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -276,12 +276,12 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		&app.stakingKeeper,
 		app.slashingKeeper,
 	)
-	app.issuanceKeeper = issuancekeeper.NewAccountKeeper(
+	app.issuanceKeeper = issuancekeeper.NewKeeper(
 		appCodec,
 		keys[issuancetypes.StoreKey],
 		issuanceSubspace,
-		issuancetypes.ProtoBaseAccount,
-		mAccPerms,
+		app.accountKeeper,
+		app.bankKeeper,
 	)
 
 	// TODO No evidence router is added so all submit evidence msgs will fail. Should there be a router added?
@@ -320,7 +320,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		params.NewAppModule(app.paramsKeeper),
-		params.NewAppModule(app.issuanceKeeper),
+		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
