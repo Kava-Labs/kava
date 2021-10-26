@@ -32,10 +32,10 @@ func TestDenominatedPool_NewDenominatedPool_Validation(t *testing.T) {
 		reservesB   sdk.Coin
 		expectedErr string
 	}{
-		{ukava(0), usdx(1e6), "invalid pool: reserves must have two denominations"},
-		{ukava(1e6), usdx(0), "invalid pool: reserves must have two denominations"},
-		{usdx(0), ukava(1e6), "invalid pool: reserves must have two denominations"},
-		{usdx(0), ukava(1e6), "invalid pool: reserves must have two denominations"},
+		{ukava(0), usdx(1e6), "reserves must have two denominations: invalid pool"},
+		{ukava(1e6), usdx(0), "reserves must have two denominations: invalid pool"},
+		{usdx(0), ukava(1e6), "reserves must have two denominations: invalid pool"},
+		{usdx(0), ukava(1e6), "reserves must have two denominations: invalid pool"},
 	}
 
 	for _, tc := range testCases {
@@ -54,10 +54,10 @@ func TestDenominatedPool_NewDenominatedPoolWithExistingShares_Validation(t *test
 		totalShares sdk.Int
 		expectedErr string
 	}{
-		{ukava(0), usdx(1e6), i(1), "invalid pool: reserves must have two denominations"},
-		{usdx(0), ukava(1e6), i(1), "invalid pool: reserves must have two denominations"},
-		{ukava(1e6), usdx(1e6), i(0), "invalid pool: total shares must be greater than zero"},
-		{usdx(1e6), ukava(1e6), i(-1), "invalid pool: total shares must be greater than zero"},
+		{ukava(0), usdx(1e6), i(1), "reserves must have two denominations: invalid pool"},
+		{usdx(0), ukava(1e6), i(1), "reserves must have two denominations: invalid pool"},
+		{ukava(1e6), usdx(1e6), i(0), "total shares must be greater than zero: invalid pool"},
+		{usdx(1e6), ukava(1e6), i(-1), "total shares must be greater than zero: invalid pool"},
 	}
 
 	for _, tc := range testCases {

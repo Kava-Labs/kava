@@ -75,7 +75,7 @@ func PoolReservesInvariant(k Keeper) sdk.Invariant {
 	message := sdk.FormatInvariant(types.ModuleName, "pool reserves broken", "pool reserves do not match module account")
 
 	return func(ctx sdk.Context) (string, bool) {
-		mAcc := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
+		balance := k.bankKeeper.GetAllBalances(ctx, k.GetSwapModuleAccount(ctx).GetAddress())
 
 		reserves := sdk.Coins{}
 		k.IteratePools(ctx, func(record types.PoolRecord) bool {
@@ -85,7 +85,7 @@ func PoolReservesInvariant(k Keeper) sdk.Invariant {
 			return false
 		})
 
-		broken := !reserves.IsEqual(mAcc.GetCoins())
+		broken := !reserves.IsEqual(balance)
 		return message, broken
 	}
 }
@@ -104,7 +104,7 @@ func PoolSharesInvariant(k Keeper) sdk.Invariant {
 		totalShares := make(map[string]poolShares)
 
 		k.IteratePools(ctx, func(pr types.PoolRecord) bool {
-			totalShares[pr.PoolID] = poolShares{
+			totalShares[pr.PoolId] = poolShares{
 				totalShares:      pr.TotalShares,
 				totalSharesOwned: sdk.ZeroInt(),
 			}
@@ -113,11 +113,11 @@ func PoolSharesInvariant(k Keeper) sdk.Invariant {
 		})
 
 		k.IterateDepositorShares(ctx, func(sr types.ShareRecord) bool {
-			if shares, found := totalShares[sr.PoolID]; found {
+			if shares, found := totalShares[sr.PoolId]; found {
 				shares.totalSharesOwned = shares.totalSharesOwned.Add(sr.SharesOwned)
-				totalShares[sr.PoolID] = shares
+				totalShares[sr.PoolId] = shares
 			} else {
-				totalShares[sr.PoolID] = poolShares{
+				totalShares[sr.PoolId] = poolShares{
 					totalShares:      sdk.ZeroInt(),
 					totalSharesOwned: sr.SharesOwned,
 				}

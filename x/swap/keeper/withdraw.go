@@ -21,7 +21,7 @@ import (
 //
 // In addition, if the withdrawn liquidity for each reserve is below the provided minimum, a slippage exceeded
 // error is returned.
-func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, minCoinA, minCoinB sdk.Coin) error {
+func (k Keeper) WithdrawLiquidity(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, minCoinA, minCoinB sdk.Coin) error {
 	poolID := types.PoolID(minCoinA.Denom, minCoinB.Denom)
 
 	shareRecord, found := k.GetDepositorShares(ctx, owner, poolID)
@@ -55,7 +55,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, 
 	k.BeforePoolDepositModified(ctx, poolID, owner, shareRecord.SharesOwned)
 	k.updateDepositorShares(ctx, owner, poolID, shareRecord.SharesOwned.Sub(shares))
 
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawnAmount)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawnAmount)
 	if err != nil {
 		panic(err)
 	}

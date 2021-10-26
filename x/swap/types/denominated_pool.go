@@ -10,10 +10,10 @@ import (
 // DenominatedPool implements a denominated constant-product liquidity pool
 type DenominatedPool struct {
 	// all pool operations are implemented in a unitless base pool
-	pool *BasePool
+	*BasePool
 	// track units of the reserveA and reserveB in base pool
-	denomA string
-	denomB string
+	DenomA string
+	DenomB string // TODO fields do not need to be exported
 }
 
 // NewDenominatedPool creates a new denominated pool from reserve coins
@@ -33,9 +33,9 @@ func NewDenominatedPool(reserves sdk.Coins) (*DenominatedPool, error) {
 	}
 
 	return &DenominatedPool{
-		pool:   pool,
-		denomA: reservesA.Denom,
-		denomB: reservesB.Denom,
+		BasePool: pool,
+		DenomA:   reservesA.Denom,
+		DenomB:   reservesB.Denom,
 	}, nil
 }
 
@@ -56,47 +56,47 @@ func NewDenominatedPoolWithExistingShares(reserves sdk.Coins, totalShares sdk.In
 	}
 
 	return &DenominatedPool{
-		pool:   pool,
-		denomA: reservesA.Denom,
-		denomB: reservesB.Denom,
+		BasePool: pool,
+		DenomA:   reservesA.Denom,
+		DenomB:   reservesB.Denom,
 	}, nil
 }
 
 // Reserves returns the reserves held in the pool
 func (p *DenominatedPool) Reserves() sdk.Coins {
-	return p.coins(p.pool.ReservesA(), p.pool.ReservesB())
+	return p.coins(p.BasePool.ReservesA, p.BasePool.ReservesB)
 }
 
 // TotalShares returns the total shares for the pool
 func (p *DenominatedPool) TotalShares() sdk.Int {
-	return p.pool.TotalShares()
+	return p.BasePool.TotalShares
 }
 
 // IsEmpty returns true if the pool is empty
 func (p *DenominatedPool) IsEmpty() bool {
-	return p.pool.IsEmpty()
+	return p.BasePool.IsEmpty()
 }
 
 // AddLiquidity adds liquidity to the reserves and returns the added amount and shares created
 func (p *DenominatedPool) AddLiquidity(deposit sdk.Coins) (sdk.Coins, sdk.Int) {
-	desiredA := deposit.AmountOf(p.denomA)
-	desiredB := deposit.AmountOf(p.denomB)
+	desiredA := deposit.AmountOf(p.DenomA)
+	desiredB := deposit.AmountOf(p.DenomB)
 
-	actualA, actualB, shares := p.pool.AddLiquidity(desiredA, desiredB)
+	actualA, actualB, shares := p.BasePool.AddLiquidity(desiredA, desiredB)
 
 	return p.coins(actualA, actualB), shares
 }
 
 // RemoveLiquidity removes liquidity from the pool
 func (p *DenominatedPool) RemoveLiquidity(shares sdk.Int) sdk.Coins {
-	withdrawnA, withdrawnB := p.pool.RemoveLiquidity(shares)
+	withdrawnA, withdrawnB := p.BasePool.RemoveLiquidity(shares)
 
 	return p.coins(withdrawnA, withdrawnB)
 }
 
 // ShareValue returns the value of the provided shares
 func (p *DenominatedPool) ShareValue(shares sdk.Int) sdk.Coins {
-	valueA, valueB := p.pool.ShareValue(shares)
+	valueA, valueB := p.BasePool.ShareValue(shares)
 
 	return p.coins(valueA, valueB)
 }
@@ -111,11 +111,11 @@ func (p *DenominatedPool) SwapWithExactInput(swapInput sdk.Coin, fee sdk.Dec) (s
 	)
 
 	switch swapInput.Denom {
-	case p.denomA:
-		swapOutput, feePaid = p.pool.SwapExactAForB(swapInput.Amount, fee)
+	case p.DenomA:
+		swapOutput, feePaid = p.BasePool.SwapExactAForB(swapInput.Amount, fee)
 		return p.coinB(swapOutput), p.coinA(feePaid)
-	case p.denomB:
-		swapOutput, feePaid = p.pool.SwapExactBForA(swapInput.Amount, fee)
+	case p.DenomB:
+		swapOutput, feePaid = p.BasePool.SwapExactBForA(swapInput.Amount, fee)
 		return p.coinA(swapOutput), p.coinB(feePaid)
 	default:
 		panic(fmt.Sprintf("invalid denomination: denom '%s' does not match pool reserves", swapInput.Denom))
@@ -132,11 +132,11 @@ func (p *DenominatedPool) SwapWithExactOutput(swapOutput sdk.Coin, fee sdk.Dec) 
 	)
 
 	switch swapOutput.Denom {
-	case p.denomA:
-		swapInput, feePaid = p.pool.SwapBForExactA(swapOutput.Amount, fee)
+	case p.DenomA:
+		swapInput, feePaid = p.BasePool.SwapBForExactA(swapOutput.Amount, fee)
 		return p.coinB(swapInput), p.coinB(feePaid)
-	case p.denomB:
-		swapInput, feePaid = p.pool.SwapAForExactB(swapOutput.Amount, fee)
+	case p.DenomB:
+		swapInput, feePaid = p.BasePool.SwapAForExactB(swapOutput.Amount, fee)
 		return p.coinA(swapInput), p.coinA(feePaid)
 	default:
 		panic(fmt.Sprintf("invalid denomination: denom '%s' does not match pool reserves", swapOutput.Denom))
@@ -150,10 +150,10 @@ func (p *DenominatedPool) coins(amountA, amountB sdk.Int) sdk.Coins {
 
 // coinA returns a new coin denominated in denomA
 func (p *DenominatedPool) coinA(amount sdk.Int) sdk.Coin {
-	return sdk.NewCoin(p.denomA, amount)
+	return sdk.NewCoin(p.DenomA, amount)
 }
 
 // coinA returns a new coin denominated in denomB
 func (p *DenominatedPool) coinB(amount sdk.Int) sdk.Coin {
-	return sdk.NewCoin(p.denomB, amount)
+	return sdk.NewCoin(p.DenomB, amount)
 }

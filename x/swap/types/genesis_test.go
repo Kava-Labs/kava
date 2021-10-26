@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/kava-labs/kava/x/swap/types"
+	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
 )
 
 func TestGenesis_Default(t *testing.T) {
@@ -34,7 +34,7 @@ func TestGenesis_Empty(t *testing.T) {
 func TestGenesis_NotEmpty(t *testing.T) {
 	nonEmptyGenesis := types.GenesisState{
 		Params: types.Params{
-			AllowedPools: types.NewAllowedPools(types.NewAllowedPool("ukava", "hard")),
+			AllowedPools: []*types.AllowedPool{types.NewAllowedPool("ukava", "hard")},
 			SwapFee:      sdk.ZeroDec(),
 		},
 	}
@@ -88,7 +88,7 @@ func TestGenesis_Validate_SwapFee(t *testing.T) {
 func TestGenesis_Validate_AllowedPools(t *testing.T) {
 	type args struct {
 		name      string
-		pairs     types.AllowedPools
+		pairs     []*types.AllowedPool
 		expectErr bool
 	}
 	// More comprehensive pair validation tests are in pair_test.go, params_test.go
@@ -100,7 +100,7 @@ func TestGenesis_Validate_AllowedPools(t *testing.T) {
 		},
 		{
 			"invalid",
-			types.AllowedPools{
+			[]*types.AllowedPool{
 				{
 					TokenA: "same",
 					TokenB: "same",
@@ -131,7 +131,9 @@ func TestGenesis_Validate_AllowedPools(t *testing.T) {
 
 func TestGenesis_Equal(t *testing.T) {
 	params := types.Params{
-		types.NewAllowedPools(types.NewAllowedPool("ukava", "usdx")),
+		[]*types.AllowedPool{
+			types.NewAllowedPool("ukava", "usdx"),
+		},
 		sdk.MustNewDecFromStr("0.85"),
 	}
 
@@ -143,7 +145,7 @@ func TestGenesis_Equal(t *testing.T) {
 
 func TestGenesis_NotEqual(t *testing.T) {
 	baseParams := types.Params{
-		types.NewAllowedPools(types.NewAllowedPool("ukava", "usdx")),
+		[]*types.AllowedPool{types.NewAllowedPool("ukava", "usdx")},
 		sdk.MustNewDecFromStr("0.85"),
 	}
 
@@ -158,7 +160,7 @@ func TestGenesis_NotEqual(t *testing.T) {
 
 	// Different pairs
 	genesisCParams := baseParams
-	genesisCParams.AllowedPools = types.NewAllowedPools(types.NewAllowedPool("ukava", "hard"))
+	genesisCParams.AllowedPools = []*types.AllowedPool{types.NewAllowedPool("ukava", "hard")}
 	genesisC := types.GenesisState{genesisCParams, types.DefaultPoolRecords, types.DefaultShareRecords}
 
 	// A and B have different swap fees
@@ -263,17 +265,17 @@ share_records:
 
 	state := types.NewGenesisState(
 		types.NewParams(
-			types.NewAllowedPools(
+			[]*types.AllowedPool{
 				types.NewAllowedPool("ukava", "usdx"),
 				types.NewAllowedPool("hard", "busd"),
-			),
+			},
 			sdk.MustNewDecFromStr("0.003"),
 		),
-		types.PoolRecords{
+		[]types.PoolRecord{
 			types.NewPoolRecord(sdk.NewCoins(ukava(1e6), usdx(5e6)), i(3e6)),
 			types.NewPoolRecord(sdk.NewCoins(hard(1e6), usdx(2e6)), i(15e5)),
 		},
-		types.ShareRecords{
+		[]types.ShareRecord{
 			types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), i(1e5)),
 			types.NewShareRecord(depositor_2, types.PoolID("hard", "usdx"), i(2e5)),
 		},
@@ -290,8 +292,8 @@ func TestGenesis_ValidatePoolRecords(t *testing.T) {
 
 	state := types.NewGenesisState(
 		types.DefaultParams(),
-		types.PoolRecords{invalidPoolRecord},
-		types.ShareRecords{},
+		[]types.PoolRecord{invalidPoolRecord},
+		[]types.ShareRecord{},
 	)
 
 	assert.Error(t, state.Validate())
@@ -305,8 +307,8 @@ func TestGenesis_ValidateShareRecords(t *testing.T) {
 
 	state := types.NewGenesisState(
 		types.DefaultParams(),
-		types.PoolRecords{},
-		types.ShareRecords{invalidShareRecord},
+		[]types.PoolRecord{},
+		[]types.ShareRecord{invalidShareRecord},
 	)
 
 	assert.Error(t, state.Validate())
@@ -320,43 +322,43 @@ func TestGenesis_Validate_PoolShareIntegration(t *testing.T) {
 
 	testCases := []struct {
 		name         string
-		poolRecords  types.PoolRecords
-		shareRecords types.ShareRecords
+		poolRecords  []types.PoolRecord
+		shareRecords []types.ShareRecord
 		expectedErr  string
 	}{
 		{
 			name: "single pool record, zero share records",
-			poolRecords: types.PoolRecords{
+			poolRecords: []types.PoolRecord{
 				types.NewPoolRecord(sdk.NewCoins(ukava(1e6), usdx(5e6)), i(3e6)),
 			},
-			shareRecords: types.ShareRecords{},
+			shareRecords: []types.ShareRecord{},
 			expectedErr:  "total depositor shares 0 not equal to pool 'ukava:usdx' total shares 3000000",
 		},
 		{
 			name:        "zero pool records, one share record",
-			poolRecords: types.PoolRecords{},
-			shareRecords: types.ShareRecords{
+			poolRecords: []types.PoolRecord{},
+			shareRecords: []types.ShareRecord{
 				types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), i(5e6)),
 			},
 			expectedErr: "total depositor shares 5000000 not equal to pool 'ukava:usdx' total shares 0",
 		},
 		{
 			name: "one pool record, one share record",
-			poolRecords: types.PoolRecords{
+			poolRecords: []types.PoolRecord{
 				types.NewPoolRecord(sdk.NewCoins(ukava(1e6), usdx(5e6)), i(3e6)),
 			},
-			shareRecords: types.ShareRecords{
+			shareRecords: []types.ShareRecord{
 				types.NewShareRecord(depositor_1, "ukava:usdx", i(15e5)),
 			},
 			expectedErr: "total depositor shares 1500000 not equal to pool 'ukava:usdx' total shares 3000000",
 		},
 		{
 			name: "more than one pool records, more than one share record",
-			poolRecords: types.PoolRecords{
+			poolRecords: []types.PoolRecord{
 				types.NewPoolRecord(sdk.NewCoins(ukava(1e6), usdx(5e6)), i(3e6)),
 				types.NewPoolRecord(sdk.NewCoins(hard(1e6), usdx(2e6)), i(2e6)),
 			},
-			shareRecords: types.ShareRecords{
+			shareRecords: []types.ShareRecord{
 				types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), i(15e5)),
 				types.NewShareRecord(depositor_2, types.PoolID("ukava", "usdx"), i(15e5)),
 				types.NewShareRecord(depositor_1, types.PoolID("hard", "usdx"), i(1e6)),
@@ -365,12 +367,12 @@ func TestGenesis_Validate_PoolShareIntegration(t *testing.T) {
 		},
 		{
 			name: "valid case with many pool records and share records",
-			poolRecords: types.PoolRecords{
+			poolRecords: []types.PoolRecord{
 				types.NewPoolRecord(sdk.NewCoins(ukava(1e6), usdx(5e6)), i(3e6)),
 				types.NewPoolRecord(sdk.NewCoins(hard(1e6), usdx(2e6)), i(2e6)),
 				types.NewPoolRecord(sdk.NewCoins(hard(7e6), ukava(10e6)), i(8e6)),
 			},
-			shareRecords: types.ShareRecords{
+			shareRecords: []types.ShareRecord{
 				types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), i(15e5)),
 				types.NewShareRecord(depositor_2, types.PoolID("ukava", "usdx"), i(15e5)),
 				types.NewShareRecord(depositor_1, types.PoolID("hard", "usdx"), i(2e6)),

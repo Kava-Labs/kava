@@ -16,13 +16,13 @@ func (suite *keeperTestSuite) TestWithdraw_AllShares() {
 	totalShares := sdk.NewInt(30e6)
 	poolID := suite.setupPool(reserves, totalShares, owner.GetAddress())
 
-	err := suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
+	err := suite.Keeper.WithdrawLiquidity(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
 	suite.Require().NoError(err)
 
 	suite.PoolDeleted(reserves[0].Denom, reserves[1].Denom)
 	suite.PoolSharesDeleted(owner.GetAddress(), reserves[0].Denom, reserves[1].Denom)
-	suite.AccountBalanceEqual(owner, reserves)
-	suite.ModuleAccountBalanceEqual(sdk.Coins(nil))
+	suite.AccountBalanceEqual(owner.GetAddress(), reserves)
+	suite.ModuleAccountBalanceEqual(sdk.Coins{})
 
 	suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 		types.EventTypeSwapWithdraw,
@@ -46,7 +46,7 @@ func (suite *keeperTestSuite) TestWithdraw_PartialShares() {
 	minCoinA := sdk.NewCoin("usdx", sdk.NewInt(25e6))
 	minCoinB := sdk.NewCoin("ukava", sdk.NewInt(5e6))
 
-	err := suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), sharesToWithdraw, minCoinA, minCoinB)
+	err := suite.Keeper.WithdrawLiquidity(suite.Ctx, owner.GetAddress(), sharesToWithdraw, minCoinA, minCoinB)
 	suite.Require().NoError(err)
 
 	sharesLeft := totalShares.Sub(sharesToWithdraw)
@@ -55,7 +55,7 @@ func (suite *keeperTestSuite) TestWithdraw_PartialShares() {
 	suite.PoolShareTotalEqual(poolID, sharesLeft)
 	suite.PoolDepositorSharesEqual(owner.GetAddress(), poolID, sharesLeft)
 	suite.PoolReservesEqual(poolID, reservesLeft)
-	suite.AccountBalanceEqual(owner, sdk.NewCoins(minCoinA, minCoinB))
+	suite.AccountBalanceEqual(owner.GetAddress(), sdk.NewCoins(minCoinA, minCoinB))
 	suite.ModuleAccountBalanceEqual(reservesLeft)
 
 	suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
@@ -78,8 +78,8 @@ func (suite *keeperTestSuite) TestWithdraw_NoSharesOwned() {
 
 	accWithNoDeposit := sdk.AccAddress("some account")
 
-	err := suite.Keeper.Withdraw(suite.Ctx, accWithNoDeposit, totalShares, reserves[0], reserves[1])
-	suite.EqualError(err, fmt.Sprintf("deposit not found: no deposit for account %s and pool %s", accWithNoDeposit.String(), poolID))
+	err := suite.Keeper.WithdrawLiquidity(suite.Ctx, accWithNoDeposit, totalShares, reserves[0], reserves[1])
+	suite.EqualError(err, fmt.Sprintf("no deposit for account %s and pool %s: deposit not found", accWithNoDeposit.String(), poolID))
 }
 
 func (suite *keeperTestSuite) TestWithdraw_GreaterThanSharesOwned() {
@@ -92,8 +92,8 @@ func (suite *keeperTestSuite) TestWithdraw_GreaterThanSharesOwned() {
 	suite.setupPool(reserves, totalShares, owner.GetAddress())
 
 	sharesToWithdraw := totalShares.Add(sdk.OneInt())
-	err := suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), sharesToWithdraw, reserves[0], reserves[1])
-	suite.EqualError(err, fmt.Sprintf("invalid shares: withdraw of %s shares greater than %s shares owned", sharesToWithdraw, totalShares))
+	err := suite.Keeper.WithdrawLiquidity(suite.Ctx, owner.GetAddress(), sharesToWithdraw, reserves[0], reserves[1])
+	suite.EqualError(err, fmt.Sprintf("withdraw of %s shares greater than %s shares owned: invalid shares", sharesToWithdraw, totalShares))
 }
 
 func (suite *keeperTestSuite) TestWithdraw_MinWithdraw() {
@@ -125,9 +125,9 @@ func (suite *keeperTestSuite) TestWithdraw_MinWithdraw() {
 			suite.SetupTest()
 			suite.setupPool(reserves, totalShares, owner.GetAddress())
 
-			err := suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), tc.shares, tc.minCoinA, tc.minCoinB)
+			err := suite.Keeper.WithdrawLiquidity(suite.Ctx, owner.GetAddress(), tc.shares, tc.minCoinA, tc.minCoinB)
 			if tc.shouldFail {
-				suite.EqualError(err, "insufficient liquidity: shares must be increased")
+				suite.EqualError(err, "shares must be increased: insufficient liquidity")
 			} else {
 				suite.NoError(err, "expected no liquidity error")
 			}
@@ -157,9 +157,9 @@ func (suite *keeperTestSuite) TestWithdraw_BelowMinimum() {
 			suite.SetupTest()
 			suite.setupPool(reserves, totalShares, owner.GetAddress())
 
-			err := suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), tc.shares, tc.minCoinA, tc.minCoinB)
+			err := suite.Keeper.WithdrawLiquidity(suite.Ctx, owner.GetAddress(), tc.shares, tc.minCoinA, tc.minCoinB)
 			if tc.shouldFail {
-				suite.EqualError(err, "slippage exceeded: minimum withdraw not met")
+				suite.EqualError(err, "minimum withdraw not met: slippage exceeded")
 			} else {
 				suite.NoError(err, "expected no slippage error")
 			}
@@ -179,7 +179,7 @@ func (suite *keeperTestSuite) TestWithdraw_PanicOnMissingPool() {
 	suite.Keeper.DeletePool(suite.Ctx, poolID)
 
 	suite.PanicsWithValue("pool ukava:usdx not found", func() {
-		_ = suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
+		_ = suite.Keeper.WithdrawLiquidity(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
 	}, "expected missing pool record to panic")
 }
 
@@ -198,8 +198,8 @@ func (suite *keeperTestSuite) TestWithdraw_PanicOnInvalidPool() {
 	poolRecord.TotalShares = sdk.ZeroInt()
 	suite.Keeper.SetPool_Raw(suite.Ctx, poolRecord)
 
-	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
-		_ = suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
+	suite.PanicsWithValue("invalid pool ukava:usdx: total shares must be greater than zero: invalid pool", func() {
+		_ = suite.Keeper.WithdrawLiquidity(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
 	}, "expected invalid pool record to panic")
 }
 
@@ -218,6 +218,6 @@ func (suite *keeperTestSuite) TestWithdraw_PanicOnModuleInsufficientFunds() {
 	))
 
 	suite.Panics(func() {
-		_ = suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
+		_ = suite.Keeper.WithdrawLiquidity(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])
 	}, "expected panic when module account does not have enough funds")
 }

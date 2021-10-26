@@ -20,8 +20,8 @@ func (suite *genesisTestSuite) Test_InitGenesis_ValidationPanic() {
 		types.Params{
 			SwapFee: sdk.NewDec(-1),
 		},
-		types.PoolRecords{},
-		types.ShareRecords{},
+		[]types.PoolRecord{},
+		[]types.ShareRecord{},
 	)
 
 	suite.Panics(func() {
@@ -38,14 +38,14 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 	// slices are sorted by key as stored in the data store, so init and export can be compared with equal
 	state := types.NewGenesisState(
 		types.Params{
-			AllowedPools: swap.AllowedPools{swap.NewAllowedPool("ukava", "usdx")},
+			AllowedPools: []*types.AllowedPool{types.NewAllowedPool("ukava", "usdx")},
 			SwapFee:      sdk.MustNewDecFromStr("0.00255"),
 		},
-		types.PoolRecords{
-			swap.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(2e6))), sdk.NewInt(1e6)),
-			swap.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6))), sdk.NewInt(3e6)),
+		[]types.PoolRecord{
+			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(2e6))), sdk.NewInt(1e6)),
+			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6))), sdk.NewInt(3e6)),
 		},
-		types.ShareRecords{
+		[]types.ShareRecord{
 			types.NewShareRecord(depositor_2, types.PoolID("hard", "usdx"), sdk.NewInt(1e6)),
 			types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), sdk.NewInt(3e6)),
 		},

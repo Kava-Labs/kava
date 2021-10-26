@@ -4,26 +4,20 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Parameter keys and default values
 var (
 	KeyAllowedPools     = []byte("AllowedPools")
 	KeySwapFee          = []byte("SwapFee")
-	DefaultAllowedPools = AllowedPools{}
+	DefaultAllowedPools = []*AllowedPool{}
 	DefaultSwapFee      = sdk.ZeroDec()
 	MaxSwapFee          = sdk.OneDec()
 )
 
-// Params are governance parameters for the swap module
-type Params struct {
-	AllowedPools AllowedPools `json:"allowed_pools" yaml:"allowed_pools"`
-	SwapFee      sdk.Dec      `json:"swap_fee" yaml:"swap_fee"`
-}
-
 // NewParams returns a new params object
-func NewParams(pairs AllowedPools, swapFee sdk.Dec) Params {
+func NewParams(pairs []*AllowedPool, swapFee sdk.Dec) Params {
 	return Params{
 		AllowedPools: pairs,
 		SwapFee:      swapFee,
@@ -46,16 +40,16 @@ func (p Params) String() string {
 		p.AllowedPools, p.SwapFee)
 }
 
-// ParamKeyTable Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+// ParamKeyTable for swap module.
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyAllowedPools, &p.AllowedPools, validateAllowedPoolsParams),
-		params.NewParamSetPair(KeySwapFee, &p.SwapFee, validateSwapFee),
+// ParamSetPairs implements params.ParamSet
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyAllowedPools, &p.AllowedPools, validateAllowedPoolsParams),
+		paramtypes.NewParamSetPair(KeySwapFee, &p.SwapFee, validateSwapFee),
 	}
 }
 
@@ -69,12 +63,12 @@ func (p Params) Validate() error {
 }
 
 func validateAllowedPoolsParams(i interface{}) error {
-	p, ok := i.(AllowedPools)
+	p, ok := i.([]*AllowedPool)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	return p.Validate()
+	return ValidateAllowedPools(p)
 }
 
 func validateSwapFee(i interface{}) error {
@@ -90,15 +84,9 @@ func validateSwapFee(i interface{}) error {
 	return nil
 }
 
-// AllowedPool defines a tradable pool
-type AllowedPool struct {
-	TokenA string `json:"token_a" yaml:"token_a"`
-	TokenB string `json:"token_b" yaml:"token_b"`
-}
-
 // NewAllowedPool returns a new AllowedPool object
-func NewAllowedPool(tokenA, tokenB string) AllowedPool {
-	return AllowedPool{
+func NewAllowedPool(tokenA, tokenB string) *AllowedPool {
+	return &AllowedPool{
 		TokenA: tokenA,
 		TokenB: tokenB,
 	}
@@ -147,16 +135,7 @@ func (p AllowedPool) String() string {
 `, p.Name(), p.TokenA, p.TokenB)
 }
 
-// AllowedPools is a slice of AllowedPool
-type AllowedPools []AllowedPool
-
-// NewAllowedPools returns AllowedPools from the provided values
-func NewAllowedPools(allowedPools ...AllowedPool) AllowedPools {
-	return AllowedPools(allowedPools)
-}
-
-// Validate validates each allowedPool and returns an error if there are any duplicates
-func (p AllowedPools) Validate() error {
+func ValidateAllowedPools(p []*AllowedPool) error {
 	seenAllowedPools := make(map[string]bool)
 	for _, allowedPool := range p {
 		err := allowedPool.Validate()
@@ -172,3 +151,12 @@ func (p AllowedPools) Validate() error {
 
 	return nil
 }
+
+// // String implements stringer
+// func (p AllowedPools) String() string {
+// 	out := ""
+// 	for _, pool := range p.Content {
+// 		out += pool.String() + "\n"
+// 	}
+// 	return out
+// }

@@ -3,31 +3,34 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/swap/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	// "github.com/cosmos/cosmos-sdk/x/params/subspace" // replaced with cosmos-sdk/x/params/types
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/kava-labs/kava/x/swap/types"
 )
 
 // Keeper keeper for the swap module
 type Keeper struct {
 	key           sdk.StoreKey
-	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
+	cdc           codec.Codec // new codec interface
+	paramSubspace paramtypes.Subspace
 	hooks         types.SwapHooks
 	accountKeeper types.AccountKeeper
-	supplyKeeper  types.SupplyKeeper
+	bankKeeper    types.BankKeeper // supply module has been removed
 }
 
 // NewKeeper creates a new keeper
 func NewKeeper(
-	cdc *codec.Codec,
+	cdc codec.Codec,
 	key sdk.StoreKey,
-	paramstore subspace.Subspace,
+	paramstore paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
-	supplyKeeper types.SupplyKeeper,
+	bankKeeper types.BankKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -38,7 +41,7 @@ func NewKeeper(
 		cdc:           cdc,
 		paramSubspace: paramstore,
 		accountKeeper: accountKeeper,
-		supplyKeeper:  supplyKeeper,
+		bankKeeper:    bankKeeper,
 	}
 }
 
@@ -61,7 +64,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	var p types.Params
 	k.paramSubspace.GetParamSet(ctx, &p)
 	return p
-}
+} // TODO do params still work the same?
 
 // SetParams sets params on the store
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
@@ -71,6 +74,11 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 // GetSwapFee returns the swap fee set in the module parameters
 func (k Keeper) GetSwapFee(ctx sdk.Context) sdk.Dec {
 	return k.GetParams(ctx).SwapFee
+}
+
+// GetSwapModuleAccount returns the swap ModuleAccount
+func (k Keeper) GetSwapModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	return k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 }
 
 // GetPool retrieves a pool record from the store
@@ -83,7 +91,7 @@ func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool)
 	}
 
 	var record types.PoolRecord
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &record)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &record)
 
 	return record, true
 }
@@ -91,8 +99,8 @@ func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool)
 // SetPool_Raw saves a pool record to the store without any validation
 func (k Keeper) SetPool_Raw(ctx sdk.Context, record types.PoolRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(record)
-	store.Set(types.PoolKey(record.PoolID), bz)
+	bz := k.cdc.MustMarshalLengthPrefixed(&record)
+	store.Set(types.PoolKey(record.PoolId), bz) // PoolID was renamed to PoolId as thats the name the generated proto type has
 }
 
 // SetPool saves a pool to the store and panics if the record is invalid
@@ -117,7 +125,7 @@ func (k Keeper) IteratePools(ctx sdk.Context, cb func(record types.PoolRecord) (
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.PoolRecord
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &record)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &record)
 		if cb(record) {
 			break
 		}
@@ -125,7 +133,7 @@ func (k Keeper) IteratePools(ctx sdk.Context, cb func(record types.PoolRecord) (
 }
 
 // GetAllPools returns all pool records from the store
-func (k Keeper) GetAllPools(ctx sdk.Context) (records types.PoolRecords) {
+func (k Keeper) GetAllPools(ctx sdk.Context) (records []types.PoolRecord) {
 	k.IteratePools(ctx, func(record types.PoolRecord) bool {
 		records = append(records, record)
 		return false
@@ -150,15 +158,19 @@ func (k Keeper) GetDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, po
 		return types.ShareRecord{}, false
 	}
 	var record types.ShareRecord
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &record)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &record)
 	return record, true
 }
 
 // SetDepositorShares_Raw saves a share record to the store without validation
 func (k Keeper) SetDepositorShares_Raw(ctx sdk.Context, record types.ShareRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(record)
-	store.Set(types.DepositorPoolSharesKey(record.Depositor, record.PoolID), bz)
+	bz := k.cdc.MustMarshalLengthPrefixed(&record)
+	depositor, err := sdk.AccAddressFromBech32(record.Depositor) // copying the way gov converts from string addresses to byte addresses
+	if err != nil {
+		panic(err)
+	}
+	store.Set(types.DepositorPoolSharesKey(depositor, record.PoolId), bz)
 }
 
 // SetDepositorShares saves a share record to the store and panics if the record is invalid
@@ -183,7 +195,7 @@ func (k Keeper) IterateDepositorShares(ctx sdk.Context, cb func(record types.Sha
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.ShareRecord
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &record)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &record)
 		if cb(record) {
 			break
 		}
@@ -191,7 +203,7 @@ func (k Keeper) IterateDepositorShares(ctx sdk.Context, cb func(record types.Sha
 }
 
 // GetAllDepositorShares returns all depositor share records from the store
-func (k Keeper) GetAllDepositorShares(ctx sdk.Context) (records types.ShareRecords) {
+func (k Keeper) GetAllDepositorShares(ctx sdk.Context) (records []types.ShareRecord) {
 	k.IterateDepositorShares(ctx, func(record types.ShareRecord) bool {
 		records = append(records, record)
 		return false
@@ -206,7 +218,7 @@ func (k Keeper) IterateDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddr
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.ShareRecord
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &record)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &record)
 		if cb(record) {
 			break
 		}
@@ -214,7 +226,7 @@ func (k Keeper) IterateDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddr
 }
 
 // GetAllDepositorSharesByOwner returns all depositor share records from the store for a specific address
-func (k Keeper) GetAllDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddress) (records types.ShareRecords) {
+func (k Keeper) GetAllDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddress) (records []types.ShareRecord) {
 	k.IterateDepositorSharesByOwner(ctx, owner, func(record types.ShareRecord) bool {
 		records = append(records, record)
 		return false
@@ -245,7 +257,7 @@ func (k Keeper) updateDepositorShares(ctx sdk.Context, owner sdk.AccAddress, poo
 	if shares.IsZero() {
 		k.DeleteDepositorShares(ctx, owner, poolID)
 	} else {
-		shareRecord := types.NewShareRecord(owner, poolID, shares)
+		shareRecord := types.NewShareRecord(owner, poolID, shares) // TODO should NewX methods return pointers? cosmos modules seem to return non pointers
 		k.SetDepositorShares(ctx, shareRecord)
 	}
 }

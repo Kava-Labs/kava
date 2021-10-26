@@ -25,16 +25,6 @@ func PoolID(denomA string, denomB string) string {
 	return fmt.Sprintf("%s%s%s", denomA, PoolIDSep, denomB)
 }
 
-// PoolRecord represents the state of a liquidity pool
-// and is used to store the state of a denominated pool
-type PoolRecord struct {
-	// primary key
-	PoolID      string   `json:"pool_id" yaml:"pool_id"`
-	ReservesA   sdk.Coin `json:"reserves_a" yaml:"reserves_a"`
-	ReservesB   sdk.Coin `json:"reserves_b" yaml:"reserves_b"`
-	TotalShares sdk.Int  `json:"total_shares" yaml:"total_shares"`
-}
-
 // NewPoolRecord takes reserve coins and total shares, returning
 // a new pool record with a id
 func NewPoolRecord(reserves sdk.Coins, totalShares sdk.Int) PoolRecord {
@@ -45,7 +35,7 @@ func NewPoolRecord(reserves sdk.Coins, totalShares sdk.Int) PoolRecord {
 	poolID := PoolIDFromCoins(reserves)
 
 	return PoolRecord{
-		PoolID:      poolID,
+		PoolId:      poolID,
 		ReservesA:   reserves[0],
 		ReservesB:   reserves[1],
 		TotalShares: totalShares,
@@ -59,7 +49,7 @@ func NewPoolRecordFromPool(pool *DenominatedPool) PoolRecord {
 	poolID := PoolIDFromCoins(reserves)
 
 	return PoolRecord{
-		PoolID:      poolID,
+		PoolId:      poolID,
 		ReservesA:   reserves[0],
 		ReservesB:   reserves[1],
 		TotalShares: pool.TotalShares(),
@@ -68,31 +58,31 @@ func NewPoolRecordFromPool(pool *DenominatedPool) PoolRecord {
 
 // Validate performs basic validation checks of the record data
 func (p PoolRecord) Validate() error {
-	if p.PoolID == "" {
+	if p.PoolId == "" {
 		return errors.New("poolID must be set")
 	}
 
-	tokens := strings.Split(p.PoolID, PoolIDSep)
+	tokens := strings.Split(p.PoolId, PoolIDSep)
 	if len(tokens) != 2 || tokens[0] == "" || tokens[1] == "" || tokens[1] < tokens[0] || tokens[0] == tokens[1] {
-		return fmt.Errorf("poolID '%s' is invalid", p.PoolID)
+		return fmt.Errorf("poolID '%s' is invalid", p.PoolId)
 	}
 	if sdk.ValidateDenom(tokens[0]) != nil || sdk.ValidateDenom(tokens[1]) != nil {
-		return fmt.Errorf("poolID '%s' is invalid", p.PoolID)
+		return fmt.Errorf("poolID '%s' is invalid", p.PoolId)
 	}
 	if tokens[0] != p.ReservesA.Denom || tokens[1] != p.ReservesB.Denom {
-		return fmt.Errorf("poolID '%s' does not match reserves", p.PoolID)
+		return fmt.Errorf("poolID '%s' does not match reserves", p.PoolId)
 	}
 
 	if !p.ReservesA.IsPositive() {
-		return fmt.Errorf("pool '%s' has invalid reserves: %s", p.PoolID, p.ReservesA)
+		return fmt.Errorf("pool '%s' has invalid reserves: %s", p.PoolId, p.ReservesA)
 	}
 
 	if !p.ReservesB.IsPositive() {
-		return fmt.Errorf("pool '%s' has invalid reserves: %s", p.PoolID, p.ReservesB)
+		return fmt.Errorf("pool '%s' has invalid reserves: %s", p.PoolId, p.ReservesB)
 	}
 
 	if !p.TotalShares.IsPositive() {
-		return fmt.Errorf("pool '%s' has invalid total shares: %s", p.PoolID, p.TotalShares)
+		return fmt.Errorf("pool '%s' has invalid total shares: %s", p.PoolId, p.TotalShares)
 	}
 
 	return nil
@@ -103,11 +93,8 @@ func (p PoolRecord) Reserves() sdk.Coins {
 	return sdk.NewCoins(p.ReservesA, p.ReservesB)
 }
 
-// PoolRecords is a slice of PoolRecord
-type PoolRecords []PoolRecord
-
-// Validate performs basic validation checks on all records in the slice
-func (prs PoolRecords) Validate() error {
+// ValidatePoolRecords performs basic validation checks on all records in the slice
+func ValidatePoolRecords(prs []PoolRecord) error {
 	seenPoolIDs := make(map[string]bool)
 
 	for _, p := range prs {
@@ -115,65 +102,53 @@ func (prs PoolRecords) Validate() error {
 			return err
 		}
 
-		if seenPoolIDs[p.PoolID] {
-			return fmt.Errorf("duplicate poolID '%s'", p.PoolID)
+		if seenPoolIDs[p.PoolId] {
+			return fmt.Errorf("duplicate poolID '%s'", p.PoolId)
 		}
 
-		seenPoolIDs[p.PoolID] = true
+		seenPoolIDs[p.PoolId] = true
 	}
 
 	return nil
-}
-
-// ShareRecord stores the shares owned for a depositor and pool
-type ShareRecord struct {
-	// primary key
-	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
-	// secondary / sort key
-	PoolID      string  `json:"pool_id" yaml:"pool_id"`
-	SharesOwned sdk.Int `json:"shares_owned" yaml:"shares_owned"`
 }
 
 // NewShareRecord takes a depositor, poolID, and shares and returns
 // a new share record for storage in state.
 func NewShareRecord(depositor sdk.AccAddress, poolID string, sharesOwned sdk.Int) ShareRecord {
 	return ShareRecord{
-		Depositor:   depositor,
-		PoolID:      poolID,
+		Depositor:   depositor.String(),
+		PoolId:      poolID,
 		SharesOwned: sharesOwned,
 	}
 }
 
 // Validate performs basic validation checks of the record data
 func (sr ShareRecord) Validate() error {
-	if sr.PoolID == "" {
+	if sr.PoolId == "" {
 		return errors.New("poolID must be set")
 	}
 
-	tokens := strings.Split(sr.PoolID, PoolIDSep)
+	tokens := strings.Split(sr.PoolId, PoolIDSep)
 	if len(tokens) != 2 || tokens[0] == "" || tokens[1] == "" || tokens[1] < tokens[0] || tokens[0] == tokens[1] {
-		return fmt.Errorf("poolID '%s' is invalid", sr.PoolID)
+		return fmt.Errorf("poolID '%s' is invalid", sr.PoolId)
 	}
 	if sdk.ValidateDenom(tokens[0]) != nil || sdk.ValidateDenom(tokens[1]) != nil {
-		return fmt.Errorf("poolID '%s' is invalid", sr.PoolID)
+		return fmt.Errorf("poolID '%s' is invalid", sr.PoolId)
 	}
 
-	if sr.Depositor.Empty() {
+	if len(sr.Depositor) == 0 {
 		return fmt.Errorf("share record cannot have empty depositor address")
 	}
 
 	if !sr.SharesOwned.IsPositive() {
-		return fmt.Errorf("depositor '%s' and pool '%s' has invalid total shares: %s", sr.Depositor.String(), sr.PoolID, sr.SharesOwned.String())
+		return fmt.Errorf("depositor '%s' and pool '%s' has invalid total shares: %s", sr.Depositor, sr.PoolId, sr.SharesOwned.String())
 	}
 
 	return nil
 }
 
-// ShareRecords is a slice of ShareRecord
-type ShareRecords []ShareRecord
-
-// Validate performs basic validation checks on all records in the slice
-func (srs ShareRecords) Validate() error {
+// ValidateShareRecords performs basic validation checks on all records in the slice
+func ValidateShareRecords(srs []ShareRecord) error {
 	seenDepositors := make(map[string]map[string]bool)
 
 	for _, sr := range srs {
@@ -181,15 +156,15 @@ func (srs ShareRecords) Validate() error {
 			return err
 		}
 
-		if seenPools, found := seenDepositors[sr.Depositor.String()]; found {
-			if seenPools[sr.PoolID] {
-				return fmt.Errorf("duplicate depositor '%s' and poolID '%s'", sr.Depositor.String(), sr.PoolID)
+		if seenPools, found := seenDepositors[sr.Depositor]; found {
+			if seenPools[sr.PoolId] {
+				return fmt.Errorf("duplicate depositor '%s' and poolID '%s'", sr.Depositor, sr.PoolId)
 			}
-			seenPools[sr.PoolID] = true
+			seenPools[sr.PoolId] = true
 		} else {
 			seenPools := make(map[string]bool)
-			seenPools[sr.PoolID] = true
-			seenDepositors[sr.Depositor.String()] = seenPools
+			seenPools[sr.PoolId] = true
+			seenDepositors[sr.Depositor] = seenPools
 		}
 	}
 

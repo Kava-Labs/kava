@@ -7,11 +7,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/x/swap/types"
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-func (suite *keeperTestSuite) TestSwapExactForTokens() {
+func (suite *keeperTestSuite) TestExecuteSwapExactForTokens() {
 	suite.Keeper.SetParams(suite.Ctx, types.Params{
 		SwapFee: sdk.MustNewDecFromStr("0.0025"),
 	})
@@ -26,16 +26,16 @@ func (suite *keeperTestSuite) TestSwapExactForTokens() {
 	balance := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 	)
-	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
-	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	err := suite.Keeper.ExecuteSwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
 	suite.Require().NoError(err)
 
 	expectedOutput := sdk.NewCoin("usdx", sdk.NewInt(4982529))
 
-	suite.AccountBalanceEqual(requester, balance.Sub(sdk.NewCoins(coinA)).Add(expectedOutput))
+	suite.AccountBalanceEqual(requester.GetAddress(), balance.Sub(sdk.NewCoins(coinA)).Add(expectedOutput))
 	suite.ModuleAccountBalanceEqual(reserves.Add(coinA).Sub(sdk.NewCoins(expectedOutput)))
 	suite.PoolLiquidityEqual(reserves.Add(coinA).Sub(sdk.NewCoins(expectedOutput)))
 
@@ -50,7 +50,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens() {
 	))
 }
 
-func (suite *keeperTestSuite) TestSwapExactForTokens_OutputGreaterThanZero() {
+func (suite *keeperTestSuite) TestExecuteSwapExactForTokens_OutputGreaterThanZero() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
@@ -62,15 +62,15 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_OutputGreaterThanZero() {
 	balance := sdk.NewCoins(
 		sdk.NewCoin("usdx", sdk.NewInt(10e6)),
 	)
-	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("usdx", sdk.NewInt(5))
 	coinB := sdk.NewCoin("ukava", sdk.NewInt(1))
 
-	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("1"))
-	suite.EqualError(err, "insufficient liquidity: swap output rounds to zero, increase input amount")
+	err := suite.Keeper.ExecuteSwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("1"))
+	suite.EqualError(err, "swap output rounds to zero, increase input amount: insufficient liquidity")
 }
 
-func (suite *keeperTestSuite) TestSwapExactForTokens_Slippage() {
+func (suite *keeperTestSuite) TestExecuteSwapExactForTokens_Slippage() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(100e6)),
@@ -143,10 +143,10 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_Slippage() {
 				sdk.NewCoin("ukava", sdk.NewInt(100e6)),
 				sdk.NewCoin("usdx", sdk.NewInt(100e6)),
 			)
-			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 
-			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, tc.slippage)
+			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			err := suite.Keeper.ExecuteSwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, tc.slippage)
 
 			if tc.shouldFail {
 				suite.Require().Error(err)
@@ -158,7 +158,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_Slippage() {
 	}
 }
 
-func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds() {
+func (suite *keeperTestSuite) TestExecuteSwapExactForTokens_InsufficientFunds() {
 	testCases := []struct {
 		name     string
 		balanceA sdk.Coin
@@ -184,16 +184,16 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds() {
 			totalShares := sdk.NewInt(30000e6)
 			suite.setupPool(reserves, totalShares, owner.GetAddress())
 			balance := sdk.NewCoins(tc.balanceA)
-			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 
-			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			err := suite.Keeper.ExecuteSwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
 	}
 }
 
-func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds_Vesting() {
+func (suite *keeperTestSuite) TestExecuteSwapExactForTokens_InsufficientFunds_Vesting() {
 	testCases := []struct {
 		name     string
 		balanceA sdk.Coin
@@ -223,14 +223,14 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds_Vesting()
 			vesting := sdk.NewCoins(tc.vestingA)
 			requester := suite.CreateVestingAccount(balance, vesting)
 
-			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			err := suite.Keeper.ExecuteSwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
 	}
 }
 
-func (suite *keeperTestSuite) TestSwapExactForTokens_PoolNotFound() {
+func (suite *keeperTestSuite) TestExecuteSwapExactForTokens_PoolNotFound() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
@@ -244,18 +244,18 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PoolNotFound() {
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(10e6)),
 	)
-	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
-	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
-	suite.EqualError(err, "invalid pool: pool ukava:usdx not found")
+	err := suite.Keeper.ExecuteSwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	suite.EqualError(err, "pool ukava:usdx not found: invalid pool")
 
-	err = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
-	suite.EqualError(err, "invalid pool: pool ukava:usdx not found")
+	err = suite.Keeper.ExecuteSwapExactForTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
+	suite.EqualError(err, "pool ukava:usdx not found: invalid pool")
 }
 
-func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInvalidPool() {
+func (suite *keeperTestSuite) TestExecuteSwapExactForTokens_PanicOnInvalidPool() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
@@ -274,20 +274,20 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInvalidPool() {
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(10e6)),
 	)
-	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
-	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
-		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	suite.PanicsWithValue("invalid pool ukava:usdx: total shares must be greater than zero: invalid pool", func() {
+		_ = suite.Keeper.ExecuteSwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 
-	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
-		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
+	suite.PanicsWithValue("invalid pool ukava:usdx: total shares must be greater than zero: invalid pool", func() {
+		_ = suite.Keeper.ExecuteSwapExactForTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 }
 
-func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInsufficientModuleAccFunds() {
+func (suite *keeperTestSuite) TestExecuteSwapExactForTokens_PanicOnInsufficientModuleAccFunds() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
@@ -305,20 +305,20 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInsufficientModuleAc
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(10e6)),
 	)
-	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
 	suite.Panics(func() {
-		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.ExecuteSwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
 	}, "expected panic when module account does not have enough funds")
 
 	suite.Panics(func() {
-		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.ExecuteSwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
 	}, "expected panic when module account does not have enough funds")
 }
 
-func (suite *keeperTestSuite) TestSwapForExactTokens() {
+func (suite *keeperTestSuite) TestExecuteSwapForExactTokens() {
 	suite.Keeper.SetParams(suite.Ctx, types.Params{
 		SwapFee: sdk.MustNewDecFromStr("0.0025"),
 	})
@@ -333,16 +333,16 @@ func (suite *keeperTestSuite) TestSwapForExactTokens() {
 	balance := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 	)
-	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
-	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	err := suite.Keeper.ExecuteSwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
 	suite.Require().NoError(err)
 
 	expectedInput := sdk.NewCoin("ukava", sdk.NewInt(1003511))
 
-	suite.AccountBalanceEqual(requester, balance.Sub(sdk.NewCoins(expectedInput)).Add(coinB))
+	suite.AccountBalanceEqual(requester.GetAddress(), balance.Sub(sdk.NewCoins(expectedInput)).Add(coinB))
 	suite.ModuleAccountBalanceEqual(reserves.Add(expectedInput).Sub(sdk.NewCoins(coinB)))
 	suite.PoolLiquidityEqual(reserves.Add(expectedInput).Sub(sdk.NewCoins(coinB)))
 
@@ -357,7 +357,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens() {
 	))
 }
 
-func (suite *keeperTestSuite) TestSwapForExactTokens_OutputLessThanPoolReserves() {
+func (suite *keeperTestSuite) TestExecuteSwapForExactTokens_OutputLessThanPoolReserves() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(100e6)),
@@ -369,19 +369,19 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_OutputLessThanPoolReserves(
 	balance := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
 	)
-	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(500e6).Add(sdk.OneInt()))
-	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
-	suite.EqualError(err, "insufficient liquidity: output 500000001 >= pool reserves 500000000")
+	err := suite.Keeper.ExecuteSwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	suite.EqualError(err, "output 500000001 >= pool reserves 500000000: insufficient liquidity")
 
 	coinB = sdk.NewCoin("usdx", sdk.NewInt(500e6))
-	err = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
-	suite.EqualError(err, "insufficient liquidity: output 500000000 >= pool reserves 500000000")
+	err = suite.Keeper.ExecuteSwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	suite.EqualError(err, "output 500000000 >= pool reserves 500000000: insufficient liquidity")
 }
 
-func (suite *keeperTestSuite) TestSwapForExactTokens_Slippage() {
+func (suite *keeperTestSuite) TestExecuteSwapForExactTokens_Slippage() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(100e6)),
@@ -454,10 +454,10 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_Slippage() {
 				sdk.NewCoin("ukava", sdk.NewInt(100e6)),
 				sdk.NewCoin("usdx", sdk.NewInt(100e6)),
 			)
-			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 
-			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, tc.slippage)
+			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			err := suite.Keeper.ExecuteSwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, tc.slippage)
 
 			if tc.shouldFail {
 				suite.Require().Error(err)
@@ -469,7 +469,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_Slippage() {
 	}
 }
 
-func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds() {
+func (suite *keeperTestSuite) TestExecuteSwapForExactTokens_InsufficientFunds() {
 	testCases := []struct {
 		name     string
 		balanceA sdk.Coin
@@ -495,16 +495,16 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds() {
 			totalShares := sdk.NewInt(30000e6)
 			suite.setupPool(reserves, totalShares, owner.GetAddress())
 			balance := sdk.NewCoins(tc.balanceA)
-			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 
-			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			err := suite.Keeper.ExecuteSwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
 	}
 }
 
-func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds_Vesting() {
+func (suite *keeperTestSuite) TestExecuteSwapForExactTokens_InsufficientFunds_Vesting() {
 	testCases := []struct {
 		name     string
 		balanceA sdk.Coin
@@ -534,14 +534,14 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds_Vesting()
 			vesting := sdk.NewCoins(tc.vestingA)
 			requester := suite.CreateVestingAccount(balance, vesting)
 
-			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			err := suite.Keeper.ExecuteSwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
 	}
 }
 
-func (suite *keeperTestSuite) TestSwapForExactTokens_PoolNotFound() {
+func (suite *keeperTestSuite) TestExecuteSwapForExactTokens_PoolNotFound() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
@@ -555,18 +555,18 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PoolNotFound() {
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(10e6)),
 	)
-	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
-	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
-	suite.EqualError(err, "invalid pool: pool ukava:usdx not found")
+	err := suite.Keeper.ExecuteSwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	suite.EqualError(err, "pool ukava:usdx not found: invalid pool")
 
-	err = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
-	suite.EqualError(err, "invalid pool: pool ukava:usdx not found")
+	err = suite.Keeper.ExecuteSwapForExactTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
+	suite.EqualError(err, "pool ukava:usdx not found: invalid pool")
 }
 
-func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInvalidPool() {
+func (suite *keeperTestSuite) TestExecuteSwapForExactTokens_PanicOnInvalidPool() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
@@ -585,20 +585,20 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInvalidPool() {
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(10e6)),
 	)
-	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
-	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
-		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	suite.PanicsWithValue("invalid pool ukava:usdx: total shares must be greater than zero: invalid pool", func() {
+		_ = suite.Keeper.ExecuteSwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 
-	suite.PanicsWithValue("invalid pool ukava:usdx: invalid pool: total shares must be greater than zero", func() {
-		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
+	suite.PanicsWithValue("invalid pool ukava:usdx: total shares must be greater than zero: invalid pool", func() {
+		_ = suite.Keeper.ExecuteSwapForExactTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 }
 
-func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInsufficientModuleAccFunds() {
+func (suite *keeperTestSuite) TestExecuteSwapForExactTokens_PanicOnInsufficientModuleAccFunds() {
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
@@ -616,15 +616,15 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInsufficientModuleAc
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(10e6)),
 	)
-	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester"), balance)
+	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("ukava", sdk.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdk.NewInt(5e6))
 
 	suite.Panics(func() {
-		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.ExecuteSwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
 	}, "expected panic when module account does not have enough funds")
 
 	suite.Panics(func() {
-		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.ExecuteSwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
 	}, "expected panic when module account does not have enough funds")
 }

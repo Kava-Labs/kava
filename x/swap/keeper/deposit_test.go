@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
@@ -17,38 +17,38 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool_PoolNotAllowed() {
 	amountA := sdk.NewCoin("ukava", sdk.NewInt(10e6))
 	amountB := sdk.NewCoin("usdx", sdk.NewInt(50e6))
 
-	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), amountA, amountB, sdk.MustNewDecFromStr("0.01"))
-	suite.Require().EqualError(err, "not allowed: can not create pool 'ukava:usdx'")
+	err := suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), amountA, amountB, sdk.MustNewDecFromStr("0.01"))
+	suite.Require().EqualError(err, "can not create pool 'ukava:usdx': not allowed")
 }
 
 func (suite *keeperTestSuite) TestDeposit_InsufficientFunds() {
 	testCases := []struct {
-		name     string
-		balanceA sdk.Coin
-		balanceB sdk.Coin
-		depositA sdk.Coin
-		depositB sdk.Coin
+		name              string
+		balanceA          sdk.Coin
+		balanceB          sdk.Coin
+		DepositLiquidityA sdk.Coin
+		DepositLiquidityB sdk.Coin
 	}{
 		{
-			name:     "no balance",
-			balanceA: sdk.Coin{},
-			balanceB: sdk.Coin{},
-			depositA: sdk.NewCoin("ukava", sdk.NewInt(100)),
-			depositB: sdk.NewCoin("usdx", sdk.NewInt(100)),
+			name:              "no balance",
+			balanceA:          sdk.NewCoin("unuseddenom", sdk.ZeroInt()), // TODO find nicer way to represent no balance, sdk.Coins{} is invalid
+			balanceB:          sdk.NewCoin("unuseddenom", sdk.ZeroInt()),
+			DepositLiquidityA: sdk.NewCoin("ukava", sdk.NewInt(100)),
+			DepositLiquidityB: sdk.NewCoin("usdx", sdk.NewInt(100)),
 		},
 		{
-			name:     "low balance",
-			balanceA: sdk.NewCoin("ukava", sdk.NewInt(1000000)),
-			balanceB: sdk.NewCoin("usdx", sdk.NewInt(1000000)),
-			depositA: sdk.NewCoin("ukava", sdk.NewInt(1000001)),
-			depositB: sdk.NewCoin("usdx", sdk.NewInt(10000001)),
+			name:              "low balance",
+			balanceA:          sdk.NewCoin("ukava", sdk.NewInt(1000000)),
+			balanceB:          sdk.NewCoin("usdx", sdk.NewInt(1000000)),
+			DepositLiquidityA: sdk.NewCoin("ukava", sdk.NewInt(1000001)),
+			DepositLiquidityB: sdk.NewCoin("usdx", sdk.NewInt(10000001)),
 		},
 		{
-			name:     "large balance difference",
-			balanceA: sdk.NewCoin("ukava", sdk.NewInt(100e6)),
-			balanceB: sdk.NewCoin("usdx", sdk.NewInt(500e6)),
-			depositA: sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
-			depositB: sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+			name:              "large balance difference",
+			balanceA:          sdk.NewCoin("ukava", sdk.NewInt(100e6)),
+			balanceB:          sdk.NewCoin("usdx", sdk.NewInt(500e6)),
+			DepositLiquidityA: sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+			DepositLiquidityB: sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
 		},
 	}
 
@@ -56,15 +56,15 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			pool := types.NewAllowedPool(tc.depositA.Denom, tc.depositB.Denom)
+			pool := types.NewAllowedPool(tc.DepositLiquidityA.Denom, tc.DepositLiquidityB.Denom)
 			suite.Require().NoError(pool.Validate())
-			suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.NewAllowedPools(pool), types.DefaultSwapFee))
+			suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
 
-			balance := sdk.Coins{tc.balanceA, tc.balanceB}
-			balance.Sort()
+			balance := sdk.NewCoins(tc.balanceA, tc.balanceB)
+			// balance.Sort() // TODO was this important?
 			depositor := suite.CreateAccount(balance)
 
-			err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB, sdk.MustNewDecFromStr("0"))
+			err := suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), tc.DepositLiquidityA, tc.DepositLiquidityB, sdk.MustNewDecFromStr("0"))
 			// TODO: wrap in module specific error?
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 
@@ -72,7 +72,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds() {
 			// test deposit to existing pool insuffient funds
 			err = suite.CreatePool(sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10e6)), sdk.NewCoin("usdx", sdk.NewInt(50e6))))
 			suite.Require().NoError(err)
-			err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB, sdk.MustNewDecFromStr("10"))
+			err = suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), tc.DepositLiquidityA, tc.DepositLiquidityB, sdk.MustNewDecFromStr("10"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds))
 		})
 	}
@@ -80,40 +80,40 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds() {
 
 func (suite *keeperTestSuite) TestDeposit_InsufficientFunds_Vesting() {
 	testCases := []struct {
-		name     string
-		balanceA sdk.Coin
-		balanceB sdk.Coin
-		vestingA sdk.Coin
-		vestingB sdk.Coin
-		depositA sdk.Coin
-		depositB sdk.Coin
+		name              string
+		balanceA          sdk.Coin
+		balanceB          sdk.Coin
+		vestingA          sdk.Coin
+		vestingB          sdk.Coin
+		DepositLiquidityA sdk.Coin
+		DepositLiquidityB sdk.Coin
 	}{
 		{
-			name:     "no balance, vesting only",
-			balanceA: sdk.Coin{},
-			balanceB: sdk.Coin{},
-			vestingA: sdk.NewCoin("ukava", sdk.NewInt(100)),
-			vestingB: sdk.NewCoin("ukava", sdk.NewInt(100)),
-			depositA: sdk.NewCoin("ukava", sdk.NewInt(100)),
-			depositB: sdk.NewCoin("usdx", sdk.NewInt(100)),
+			name:              "no balance, vesting only",
+			balanceA:          sdk.NewCoin("ukava", sdk.ZeroInt()),
+			balanceB:          sdk.NewCoin("usdx", sdk.ZeroInt()),
+			vestingA:          sdk.NewCoin("ukava", sdk.NewInt(100)),
+			vestingB:          sdk.NewCoin("usdx", sdk.NewInt(100)),
+			DepositLiquidityA: sdk.NewCoin("ukava", sdk.NewInt(100)),
+			DepositLiquidityB: sdk.NewCoin("usdx", sdk.NewInt(100)),
 		},
 		{
-			name:     "vesting matches balance exactly",
-			balanceA: sdk.NewCoin("ukava", sdk.NewInt(1000000)),
-			balanceB: sdk.NewCoin("usdx", sdk.NewInt(1000000)),
-			vestingA: sdk.NewCoin("ukava", sdk.NewInt(1)),
-			vestingB: sdk.NewCoin("usdx", sdk.NewInt(1)),
-			depositA: sdk.NewCoin("ukava", sdk.NewInt(1000001)),
-			depositB: sdk.NewCoin("usdx", sdk.NewInt(10000001)),
+			name:              "vesting matches balance exactly",
+			balanceA:          sdk.NewCoin("ukava", sdk.NewInt(1000000)),
+			balanceB:          sdk.NewCoin("usdx", sdk.NewInt(1000000)),
+			vestingA:          sdk.NewCoin("ukava", sdk.NewInt(1)),
+			vestingB:          sdk.NewCoin("usdx", sdk.NewInt(1)),
+			DepositLiquidityA: sdk.NewCoin("ukava", sdk.NewInt(1000001)),
+			DepositLiquidityB: sdk.NewCoin("usdx", sdk.NewInt(10000001)),
 		},
 		{
-			name:     "large balance difference, vesting covers difference",
-			balanceA: sdk.NewCoin("ukava", sdk.NewInt(100e6)),
-			balanceB: sdk.NewCoin("usdx", sdk.NewInt(500e6)),
-			vestingA: sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
-			vestingB: sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
-			depositA: sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
-			depositB: sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+			name:              "large balance difference, vesting covers difference",
+			balanceA:          sdk.NewCoin("ukava", sdk.NewInt(100e6)),
+			balanceB:          sdk.NewCoin("usdx", sdk.NewInt(500e6)),
+			vestingA:          sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+			vestingB:          sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
+			DepositLiquidityA: sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
+			DepositLiquidityB: sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
 		},
 	}
 
@@ -121,18 +121,18 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds_Vesting() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			pool := types.NewAllowedPool(tc.depositA.Denom, tc.depositB.Denom)
+			pool := types.NewAllowedPool(tc.DepositLiquidityA.Denom, tc.DepositLiquidityB.Denom)
 			suite.Require().NoError(pool.Validate())
-			suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.NewAllowedPools(pool), types.DefaultSwapFee))
+			suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
 
-			balance := sdk.Coins{tc.balanceA, tc.balanceB}
+			balance := sdk.NewCoins(tc.balanceA, tc.balanceB)
 			balance.Sort()
-			vesting := sdk.Coins{tc.vestingA, tc.vestingB}
+			vesting := sdk.NewCoins(tc.vestingA, tc.vestingB)
 			vesting.Sort()
 			depositor := suite.CreateVestingAccount(balance, vesting)
 
 			// test create pool insuffient funds
-			err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB, sdk.MustNewDecFromStr("0"))
+			err := suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), tc.DepositLiquidityA, tc.DepositLiquidityB, sdk.MustNewDecFromStr("0"))
 			// TODO: wrap in module specific error?
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds))
 
@@ -140,7 +140,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds_Vesting() {
 			// test deposit to existing pool insuffient funds
 			err = suite.CreatePool(sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10e6)), sdk.NewCoin("usdx", sdk.NewInt(50e6))))
 			suite.Require().NoError(err)
-			err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB, sdk.MustNewDecFromStr("4"))
+			err = suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), tc.DepositLiquidityA, tc.DepositLiquidityB, sdk.MustNewDecFromStr("4"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds))
 		})
 	}
@@ -149,7 +149,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds_Vesting() {
 func (suite *keeperTestSuite) TestDeposit_CreatePool() {
 	pool := types.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.NewAllowedPools(pool), types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
 
 	amountA := sdk.NewCoin(pool.TokenA, sdk.NewInt(11e6))
 	amountB := sdk.NewCoin(pool.TokenB, sdk.NewInt(51e6))
@@ -160,12 +160,12 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool() {
 	depositB := sdk.NewCoin(pool.TokenB, sdk.NewInt(50e6))
 	deposit := sdk.NewCoins(depositA, depositB)
 
-	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0"))
+	err := suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0"))
 	suite.Require().NoError(err)
-	suite.AccountBalanceEqual(depositor, sdk.NewCoins(amountA.Sub(depositA), amountB.Sub(depositB)))
+	suite.AccountBalanceEqual(depositor.GetAddress(), sdk.NewCoins(amountA.Sub(depositA), amountB.Sub(depositB)))
 	suite.ModuleAccountBalanceEqual(sdk.NewCoins(depositA, depositB))
 	suite.PoolLiquidityEqual(deposit)
-	suite.PoolShareValueEqual(depositor, pool, deposit)
+	suite.PoolShareValueEqual(depositor, *pool, deposit)
 
 	suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 		types.EventTypeSwapDeposit,
@@ -189,13 +189,14 @@ func (suite *keeperTestSuite) TestDeposit_PoolExists() {
 		sdk.NewCoin("ukava", sdk.NewInt(5e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 	)
-	depositor := suite.NewAccountFromAddr(sdk.AccAddress("new depositor"), balance)
+	depositor := suite.NewAccountFromAddr(sdk.AccAddress("new depositor-------"), balance) // TODO this is padded to the correct length, find a nicer way of creating test addresses
 
-	depositA := sdk.NewCoin("usdx", depositor.GetCoins().AmountOf("usdx"))
-	depositB := sdk.NewCoin("ukava", depositor.GetCoins().AmountOf("ukava"))
+	depositA := sdk.NewCoin("usdx", balance.AmountOf("usdx"))
+	depositB := sdk.NewCoin("ukava", balance.AmountOf("ukava"))
 
-	ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-	err = suite.Keeper.Deposit(ctx, depositor.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("4"))
+	ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+
+	err = suite.Keeper.DepositLiquidity(ctx, depositor.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("4"))
 	suite.Require().NoError(err)
 
 	expectedDeposit := sdk.NewCoins(
@@ -208,10 +209,10 @@ func (suite *keeperTestSuite) TestDeposit_PoolExists() {
 		sdk.NewCoin("usdx", sdk.NewInt(4999998)),
 	)
 
-	suite.AccountBalanceEqual(depositor, balance.Sub(expectedDeposit))
+	suite.AccountBalanceEqual(depositor.GetAddress(), balance.Sub(expectedDeposit))
 	suite.ModuleAccountBalanceEqual(reserves.Add(expectedDeposit...))
 	suite.PoolLiquidityEqual(reserves.Add(expectedDeposit...))
-	suite.PoolShareValueEqual(depositor, pool, expectedShareValue)
+	suite.PoolShareValueEqual(depositor, *pool, expectedShareValue)
 
 	suite.EventsContains(ctx.EventManager().Events(), sdk.NewEvent(
 		types.EventTypeSwapDeposit,
@@ -235,16 +236,16 @@ func (suite *keeperTestSuite) TestDeposit_MultipleDeposit() {
 	initialShares := sdk.NewInt(30e6)
 	poolID := suite.setupPool(reserves, initialShares, owner.GetAddress())
 
-	depositA := sdk.NewCoin("usdx", owner.GetCoins().AmountOf("usdx"))
-	depositB := sdk.NewCoin("ukava", owner.GetCoins().AmountOf("ukava"))
+	depositA := sdk.NewCoin("usdx", fundsToDeposit.AmountOf("usdx"))
+	depositB := sdk.NewCoin("ukava", fundsToDeposit.AmountOf("ukava"))
 
-	err := suite.Keeper.Deposit(suite.Ctx, owner.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("4"))
+	err := suite.Keeper.DepositLiquidity(suite.Ctx, owner.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("4"))
 	suite.Require().NoError(err)
 
 	totalDeposit := reserves.Add(fundsToDeposit...)
 	totalShares := initialShares.Add(sdk.NewInt(15e6))
 
-	suite.AccountBalanceEqual(owner, sdk.Coins(nil))
+	suite.AccountBalanceEqual(owner.GetAddress(), sdk.Coins{})
 	suite.ModuleAccountBalanceEqual(totalDeposit)
 	suite.PoolLiquidityEqual(totalDeposit)
 	suite.PoolDepositorSharesEqual(owner.GetAddress(), poolID, totalShares)
@@ -265,10 +266,10 @@ func (suite *keeperTestSuite) TestDeposit_Slippage() {
 	)
 
 	testCases := []struct {
-		depositA   sdk.Coin
-		depositB   sdk.Coin
-		slippage   sdk.Dec
-		shouldFail bool
+		DepositLiquidityA sdk.Coin
+		DepositLiquidityB sdk.Coin
+		slippage          sdk.Dec
+		shouldFail        bool
 	}{
 		{sdk.NewCoin("usdx", sdk.NewInt(5e6)), sdk.NewCoin("ukava", sdk.NewInt(5e6)), sdk.MustNewDecFromStr("0.7"), true},
 		{sdk.NewCoin("usdx", sdk.NewInt(5e6)), sdk.NewCoin("ukava", sdk.NewInt(5e6)), sdk.MustNewDecFromStr("0.8"), true},
@@ -280,7 +281,7 @@ func (suite *keeperTestSuite) TestDeposit_Slippage() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("depositA=%s depositB=%s slippage=%s", tc.depositA, tc.depositB, tc.slippage), func() {
+		suite.Run(fmt.Sprintf("depositA=%s depositB=%s slippage=%s", tc.DepositLiquidityA, tc.DepositLiquidityB, tc.slippage), func() {
 			suite.SetupTest()
 
 			err := suite.CreatePool(reserves)
@@ -292,9 +293,9 @@ func (suite *keeperTestSuite) TestDeposit_Slippage() {
 			)
 			depositor := suite.CreateAccount(balance)
 
-			ctx := suite.App.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
-			err = suite.Keeper.Deposit(ctx, depositor.GetAddress(), tc.depositA, tc.depositB, tc.slippage)
+			err = suite.Keeper.DepositLiquidity(ctx, depositor.GetAddress(), tc.DepositLiquidityA, tc.DepositLiquidityB, tc.slippage)
 			if tc.shouldFail {
 				suite.Require().Error(err)
 				suite.Contains(err.Error(), "slippage exceeded")
@@ -307,11 +308,11 @@ func (suite *keeperTestSuite) TestDeposit_Slippage() {
 
 func (suite *keeperTestSuite) TestDeposit_InsufficientLiquidity() {
 	testCases := []struct {
-		poolA      sdk.Coin
-		poolB      sdk.Coin
-		poolShares sdk.Int
-		depositA   sdk.Coin
-		depositB   sdk.Coin
+		poolA             sdk.Coin
+		poolB             sdk.Coin
+		poolShares        sdk.Int
+		DepositLiquidityA sdk.Coin
+		DepositLiquidityB sdk.Coin
 	}{
 		// test deposit amount truncating to zero
 		{sdk.NewCoin("ukava", sdk.NewInt(10e6)), sdk.NewCoin("usdx", sdk.NewInt(50e6)), sdk.NewInt(40e6), sdk.NewCoin("ukava", sdk.NewInt(1)), sdk.NewCoin("usdx", sdk.NewInt(1))},
@@ -320,11 +321,11 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientLiquidity() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("depositA=%s depositB=%s", tc.depositA, tc.depositB), func() {
+		suite.Run(fmt.Sprintf("depositA=%s depositB=%s", tc.DepositLiquidityA, tc.DepositLiquidityB), func() {
 			suite.SetupTest()
 
 			record := types.PoolRecord{
-				PoolID:      types.PoolID("ukava", "usdx"),
+				PoolId:      types.PoolID("ukava", "usdx"),
 				ReservesA:   tc.poolA,
 				ReservesB:   tc.poolB,
 				TotalShares: tc.poolShares,
@@ -332,12 +333,12 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientLiquidity() {
 
 			suite.Keeper.SetPool(suite.Ctx, record)
 
-			balance := sdk.Coins{tc.depositA, tc.depositB}
+			balance := sdk.Coins{tc.DepositLiquidityA, tc.DepositLiquidityB}
 			balance.Sort()
 			depositor := suite.CreateAccount(balance)
 
-			err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), tc.depositA, tc.depositB, sdk.MustNewDecFromStr("10"))
-			suite.EqualError(err, "insufficient liquidity: deposit must be increased")
+			err := suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), tc.DepositLiquidityA, tc.DepositLiquidityB, sdk.MustNewDecFromStr("10"))
+			suite.EqualError(err, "deposit must be increased: insufficient liquidity")
 		})
 	}
 }

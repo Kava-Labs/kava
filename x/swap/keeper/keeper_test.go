@@ -1,8 +1,10 @@
 package keeper_test
 
 import (
+	"os"
 	"testing"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/swap/testutil"
 	"github.com/kava-labs/kava/x/swap/types"
 	"github.com/kava-labs/kava/x/swap/types/mocks"
@@ -10,6 +12,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 )
+
+func TestMain(m *testing.M) {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
+	os.Exit(m.Run())
+}
 
 type keeperTestSuite struct {
 	testutil.Suite
@@ -29,7 +38,7 @@ func (suite *keeperTestSuite) setupPool(reserves sdk.Coins, totalShares sdk.Int,
 	suite.AddCoinsToModule(reserves)
 
 	poolRecord := types.PoolRecord{
-		PoolID:      poolID,
+		PoolId:      poolID,
 		ReservesA:   reserves[0],
 		ReservesB:   reserves[1],
 		TotalShares: totalShares,
@@ -37,8 +46,8 @@ func (suite *keeperTestSuite) setupPool(reserves sdk.Coins, totalShares sdk.Int,
 	suite.Keeper.SetPool(suite.Ctx, poolRecord)
 
 	shareRecord := types.ShareRecord{
-		Depositor:   depositor,
-		PoolID:      poolID,
+		Depositor:   depositor.String(),
+		PoolId:      poolID,
 		SharesOwned: totalShares,
 	}
 	suite.Keeper.SetDepositorShares(suite.Ctx, shareRecord)
@@ -50,7 +59,7 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 	keeper := suite.Keeper
 
 	params := types.Params{
-		AllowedPools: types.AllowedPools{
+		AllowedPools: []*types.AllowedPool{
 			types.NewAllowedPool("ukava", "usdx"),
 		},
 		SwapFee: sdk.MustNewDecFromStr("0.03"),
@@ -60,7 +69,7 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 
 	oldParams := params
 	params = types.Params{
-		AllowedPools: types.AllowedPools{
+		AllowedPools: []*types.AllowedPool{
 			types.NewAllowedPool("hard", "ukava"),
 		},
 		SwapFee: sdk.MustNewDecFromStr("0.01"),
@@ -93,16 +102,16 @@ func (suite *keeperTestSuite) TestPool_Persistance() {
 
 	suite.Keeper.SetPool(suite.Ctx, record)
 
-	savedRecord, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolID)
+	savedRecord, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolId)
 	suite.True(ok)
 	suite.Equal(record, savedRecord)
 
-	savedShares, ok := suite.Keeper.GetPoolShares(suite.Ctx, record.PoolID)
+	savedShares, ok := suite.Keeper.GetPoolShares(suite.Ctx, record.PoolId)
 	suite.True(ok)
 	suite.Equal(record.TotalShares, savedShares)
 
-	suite.Keeper.DeletePool(suite.Ctx, record.PoolID)
-	deletedPool, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolID)
+	suite.Keeper.DeletePool(suite.Ctx, record.PoolId)
+	deletedPool, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolId)
 	suite.False(ok)
 	suite.Equal(deletedPool, types.PoolRecord{})
 }
@@ -120,7 +129,8 @@ func (suite *keeperTestSuite) TestPool_PanicsWhenInvalid() {
 
 func (suite *keeperTestSuite) TestShare_Persistance() {
 	poolID := types.PoolID("ukava", "usdx")
-	depositor := sdk.AccAddress("testAddress1")
+	depositor, err := sdk.AccAddressFromBech32("kava1skpsgk5cnrarn69ql2tfun47fyjssataz0g07l")
+	suite.NoError(err)
 	shares := sdk.NewInt(3126432331)
 
 	record := types.NewShareRecord(depositor, poolID, shares)

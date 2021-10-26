@@ -1,6 +1,8 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 // Querier routes for the swap module
 const (
@@ -38,9 +40,13 @@ type DepositsQueryResult struct {
 
 // NewDepositsQueryResult creates a new DepositsQueryResult
 func NewDepositsQueryResult(shareRecord ShareRecord, sharesValue sdk.Coins) DepositsQueryResult {
+	depositor, err := sdk.AccAddressFromBech32(shareRecord.Depositor)
+	if err != nil {
+		panic(err.Error())
+	}
 	return DepositsQueryResult{
-		Depositor:   shareRecord.Depositor,
-		PoolID:      shareRecord.PoolID,
+		Depositor:   depositor,
+		PoolID:      shareRecord.PoolId,
 		SharesOwned: shareRecord.SharesOwned,
 		SharesValue: sharesValue,
 	}

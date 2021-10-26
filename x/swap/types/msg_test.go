@@ -24,14 +24,17 @@ func TestMsgDeposit_Signing(t *testing.T) {
 	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
 	require.NoError(t, err)
 
-	msg := types.NewMsgDeposit(addr, sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), 1623606299)
+	msg := types.NewMsgDeposit(addr.String(), sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), 1623606299)
 	assert.Equal(t, []sdk.AccAddress{addr}, msg.GetSigners())
 	assert.Equal(t, signBytes, msg.GetSignBytes())
 }
 
 func TestMsgDeposit_Validation(t *testing.T) {
+	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
+	require.NoError(t, err)
+
 	validMsg := types.NewMsgDeposit(
-		sdk.AccAddress("test1"),
+		addr.String(),
 		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 		sdk.MustNewDecFromStr("0.01"),
@@ -41,7 +44,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 
 	testCases := []struct {
 		name        string
-		depositor   sdk.AccAddress
+		depositor   string
 		tokenA      sdk.Coin
 		tokenB      sdk.Coin
 		slippage    sdk.Dec
@@ -50,12 +53,12 @@ func TestMsgDeposit_Validation(t *testing.T) {
 	}{
 		{
 			name:        "empty address",
-			depositor:   sdk.AccAddress(""),
+			depositor:   "",
 			tokenA:      validMsg.TokenA,
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid address: depositor address cannot be empty",
+			expectedErr: "depositor address cannot be empty: invalid address",
 		},
 		{
 			name:        "negative token a",
@@ -64,7 +67,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token a deposit amount -1ukava",
+			expectedErr: "token a deposit amount -1ukava: invalid coins",
 		},
 		{
 			name:        "zero token a",
@@ -73,17 +76,18 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token a deposit amount 0ukava",
+			expectedErr: "token a deposit amount 0ukava: invalid coins",
 		},
-		{
-			name:        "invalid denom token a",
-			depositor:   validMsg.Depositor,
-			tokenA:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-			tokenB:      validMsg.TokenB,
-			slippage:    validMsg.Slippage,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token a deposit amount 1000000UKAVA",
-		},
+		// TODO: denom can now be uppercase
+		// {
+		// 	name:        "invalid denom token a",
+		// 	depositor:   validMsg.Depositor,
+		// 	tokenA:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
+		// 	tokenB:      validMsg.TokenB,
+		// 	slippage:    validMsg.Slippage,
+		// 	deadline:    validMsg.Deadline,
+		// 	expectedErr: "token a deposit amount 1000000UKAVA: invalid coins",
+		// },
 		{
 			name:        "negative token b",
 			depositor:   validMsg.Depositor,
@@ -91,7 +95,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			tokenB:      sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)},
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token b deposit amount -1ukava",
+			expectedErr: "token b deposit amount -1ukava: invalid coins",
 		},
 		{
 			name:        "zero token b",
@@ -100,17 +104,18 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			tokenB:      sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(0)},
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token b deposit amount 0ukava",
+			expectedErr: "token b deposit amount 0ukava: invalid coins",
 		},
-		{
-			name:        "invalid denom token b",
-			depositor:   validMsg.Depositor,
-			tokenA:      validMsg.TokenA,
-			tokenB:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-			slippage:    validMsg.Slippage,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token b deposit amount 1000000UKAVA",
-		},
+		// TODO: denom can now be uppercase
+		// {
+		// 	name:        "invalid denom token b",
+		// 	depositor:   validMsg.Depositor,
+		// 	tokenA:      validMsg.TokenA,
+		// 	tokenB:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
+		// 	slippage:    validMsg.Slippage,
+		// 	deadline:    validMsg.Deadline,
+		// 	expectedErr: "token b deposit amount 1000000UKAVA: invalid coins",
+		// },
 		{
 			name:        "denoms can not be the same",
 			depositor:   validMsg.Depositor,
@@ -118,7 +123,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			tokenB:      sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(1e6)},
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: denominations can not be equal",
+			expectedErr: "denominations can not be equal: invalid coins",
 		},
 		{
 			name:        "zero deadline",
@@ -127,7 +132,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    0,
-			expectedErr: "invalid deadline: deadline 0",
+			expectedErr: "deadline 0: invalid deadline",
 		},
 		{
 			name:        "negative deadline",
@@ -136,7 +141,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    -1,
-			expectedErr: "invalid deadline: deadline -1",
+			expectedErr: "deadline -1: invalid deadline",
 		},
 		{
 			name:        "negative slippage",
@@ -145,7 +150,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    sdk.MustNewDecFromStr("-0.01"),
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid slippage: slippage can not be negative",
+			expectedErr: "slippage can not be negative: invalid slippage",
 		},
 		{
 			name:        "nil slippage",
@@ -154,7 +159,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    sdk.Dec{},
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid slippage: slippage must be set",
+			expectedErr: "slippage must be set: invalid slippage",
 		},
 	}
 
@@ -194,7 +199,7 @@ func TestMsgDeposit_Deadline(t *testing.T) {
 
 	for _, tc := range testCases {
 		msg := types.NewMsgDeposit(
-			sdk.AccAddress("test1"),
+			sdk.AccAddress("test1").String(),
 			sdk.NewCoin("ukava", sdk.NewInt(1e6)),
 			sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 			sdk.MustNewDecFromStr("0.01"),
@@ -220,7 +225,7 @@ func TestMsgWithdraw_Signing(t *testing.T) {
 	require.NoError(t, err)
 
 	msg := types.NewMsgWithdraw(
-		addr,
+		addr.String(),
 		sdk.NewInt(1500000),
 		sdk.NewCoin("ukava", sdk.NewInt(1000000)),
 		sdk.NewCoin("usdx", sdk.NewInt(2000000)),
@@ -232,7 +237,7 @@ func TestMsgWithdraw_Signing(t *testing.T) {
 
 func TestMsgWithdraw_Validation(t *testing.T) {
 	validMsg := types.NewMsgWithdraw(
-		sdk.AccAddress("test1"),
+		sdk.AccAddress("test1").String(),
 		sdk.NewInt(1500000),
 		sdk.NewCoin("ukava", sdk.NewInt(1000000)),
 		sdk.NewCoin("usdx", sdk.NewInt(2000000)),
@@ -242,7 +247,7 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 
 	testCases := []struct {
 		name        string
-		from        sdk.AccAddress
+		from        string
 		shares      sdk.Int
 		minTokenA   sdk.Coin
 		minTokenB   sdk.Coin
@@ -251,12 +256,12 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 	}{
 		{
 			name:        "empty address",
-			from:        sdk.AccAddress(""),
+			from:        "",
 			shares:      validMsg.Shares,
 			minTokenA:   validMsg.MinTokenA,
 			minTokenB:   validMsg.MinTokenB,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid address: from address cannot be empty",
+			expectedErr: "from address cannot be empty: invalid address",
 		},
 		{
 			name:        "zero token a",
@@ -265,17 +270,18 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			minTokenA:   sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(0)},
 			minTokenB:   validMsg.MinTokenB,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: min token a amount 0ukava",
+			expectedErr: "min token a amount 0ukava: invalid coins",
 		},
-		{
-			name:        "invalid denom token a",
-			from:        validMsg.From,
-			shares:      validMsg.Shares,
-			minTokenA:   sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-			minTokenB:   validMsg.MinTokenB,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: min token a amount 1000000UKAVA",
-		},
+		// TODO: Uppercase denoms allowed
+		// {
+		// 	name:        "invalid denom token a",
+		// 	from:        validMsg.From,
+		// 	shares:      validMsg.Shares,
+		// 	minTokenA:   sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
+		// 	minTokenB:   validMsg.MinTokenB,
+		// 	deadline:    validMsg.Deadline,
+		// 	expectedErr: "min token a amount 1000000UKAVA: invalid coins",
+		// },
 		{
 			name:        "negative token b",
 			from:        validMsg.From,
@@ -283,7 +289,7 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			minTokenA:   validMsg.MinTokenA,
 			minTokenB:   sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)},
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: min token b amount -1ukava",
+			expectedErr: "min token b amount -1ukava: invalid coins",
 		},
 		{
 			name:        "zero token b",
@@ -292,17 +298,18 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			minTokenA:   validMsg.MinTokenA,
 			minTokenB:   sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(0)},
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: min token b amount 0ukava",
+			expectedErr: "min token b amount 0ukava: invalid coins",
 		},
-		{
-			name:        "invalid denom token b",
-			from:        validMsg.From,
-			shares:      validMsg.Shares,
-			minTokenA:   validMsg.MinTokenA,
-			minTokenB:   sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: min token b amount 1000000UKAVA",
-		},
+		// TODO: Uppercase denoms allowed
+		// {
+		// 	name:        "invalid denom token b",
+		// 	from:        validMsg.From,
+		// 	shares:      validMsg.Shares,
+		// 	minTokenA:   validMsg.MinTokenA,
+		// 	minTokenB:   sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
+		// 	deadline:    validMsg.Deadline,
+		// 	expectedErr: "min token b amount 1000000UKAVA: invalid coins",
+		// },
 		{
 			name:        "denoms can not be the same",
 			from:        validMsg.From,
@@ -310,7 +317,7 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			minTokenA:   sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(1e6)},
 			minTokenB:   sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(1e6)},
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: denominations can not be equal",
+			expectedErr: "denominations can not be equal: invalid coins",
 		},
 		{
 			name:        "zero shares",
@@ -319,7 +326,7 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			minTokenA:   validMsg.MinTokenA,
 			minTokenB:   validMsg.MinTokenB,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid shares: 0",
+			expectedErr: "0: invalid shares",
 		},
 		{
 			name:        "negative shares",
@@ -328,7 +335,7 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			minTokenA:   validMsg.MinTokenA,
 			minTokenB:   validMsg.MinTokenB,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid shares: -1",
+			expectedErr: "-1: invalid shares",
 		},
 		{
 			name:        "nil shares",
@@ -337,7 +344,7 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			minTokenA:   validMsg.MinTokenA,
 			minTokenB:   validMsg.MinTokenB,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid shares: shares must be set",
+			expectedErr: "shares must be set: invalid shares",
 		},
 		{
 			name:        "zero deadline",
@@ -346,7 +353,7 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			minTokenA:   validMsg.MinTokenA,
 			minTokenB:   validMsg.MinTokenB,
 			deadline:    0,
-			expectedErr: "invalid deadline: deadline 0",
+			expectedErr: "deadline 0: invalid deadline",
 		},
 		{
 			name:        "negative deadline",
@@ -355,7 +362,7 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			minTokenA:   validMsg.MinTokenA,
 			minTokenB:   validMsg.MinTokenB,
 			deadline:    -1,
-			expectedErr: "invalid deadline: deadline -1",
+			expectedErr: "deadline -1: invalid deadline",
 		},
 	}
 
@@ -395,7 +402,7 @@ func TestMsgWithdraw_Deadline(t *testing.T) {
 
 	for _, tc := range testCases {
 		msg := types.NewMsgWithdraw(
-			sdk.AccAddress("test1"),
+			sdk.AccAddress("test1").String(),
 			sdk.NewInt(1500000),
 			sdk.NewCoin("ukava", sdk.NewInt(1000000)),
 			sdk.NewCoin("usdx", sdk.NewInt(2000000)),
@@ -420,14 +427,14 @@ func TestMsgSwapExactForTokens_Signing(t *testing.T) {
 	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
 	require.NoError(t, err)
 
-	msg := types.NewMsgSwapExactForTokens(addr, sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), 1623606299)
+	msg := types.NewMsgSwapExactForTokens(addr.String(), sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), 1623606299)
 	assert.Equal(t, []sdk.AccAddress{addr}, msg.GetSigners())
 	assert.Equal(t, signBytes, msg.GetSignBytes())
 }
 
 func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 	validMsg := types.NewMsgSwapExactForTokens(
-		sdk.AccAddress("test1"),
+		sdk.AccAddress("test1").String(),
 		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 		sdk.MustNewDecFromStr("0.01"),
@@ -437,7 +444,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 
 	testCases := []struct {
 		name        string
-		requester   sdk.AccAddress
+		requester   string
 		exactTokenA sdk.Coin
 		tokenB      sdk.Coin
 		slippage    sdk.Dec
@@ -446,12 +453,12 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 	}{
 		{
 			name:        "empty address",
-			requester:   sdk.AccAddress(""),
+			requester:   sdk.AccAddress("").String(),
 			exactTokenA: validMsg.ExactTokenA,
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid address: requester address cannot be empty",
+			expectedErr: "requester address cannot be empty: invalid address",
 		},
 		{
 			name:        "negative token a",
@@ -460,7 +467,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: exact token a deposit amount -1ukava",
+			expectedErr: "exact token a deposit amount -1ukava: invalid coins",
 		},
 		{
 			name:        "zero token a",
@@ -469,17 +476,18 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: exact token a deposit amount 0ukava",
+			expectedErr: "exact token a deposit amount 0ukava: invalid coins",
 		},
-		{
-			name:        "invalid denom token a",
-			requester:   validMsg.Requester,
-			exactTokenA: sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-			tokenB:      validMsg.TokenB,
-			slippage:    validMsg.Slippage,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: exact token a deposit amount 1000000UKAVA",
-		},
+		// TODO:
+		// {
+		// 	name:        "invalid denom token a",
+		// 	requester:   validMsg.Requester,
+		// 	exactTokenA: sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
+		// 	tokenB:      validMsg.TokenB,
+		// 	slippage:    validMsg.Slippage,
+		// 	deadline:    validMsg.Deadline,
+		// 	expectedErr: "exact token a deposit amount 1000000UKAVA: invalid coins",
+		// },
 		{
 			name:        "negative token b",
 			requester:   validMsg.Requester,
@@ -487,7 +495,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			tokenB:      sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)},
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token b deposit amount -1ukava",
+			expectedErr: "token b deposit amount -1ukava: invalid coins",
 		},
 		{
 			name:        "zero token b",
@@ -496,17 +504,18 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			tokenB:      sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(0)},
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token b deposit amount 0ukava",
+			expectedErr: "token b deposit amount 0ukava: invalid coins",
 		},
-		{
-			name:        "invalid denom token b",
-			requester:   validMsg.Requester,
-			exactTokenA: validMsg.ExactTokenA,
-			tokenB:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-			slippage:    validMsg.Slippage,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token b deposit amount 1000000UKAVA",
-		},
+		// TODO:
+		// {
+		// 	name:        "invalid denom token b",
+		// 	requester:   validMsg.Requester,
+		// 	exactTokenA: validMsg.ExactTokenA,
+		// 	tokenB:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
+		// 	slippage:    validMsg.Slippage,
+		// 	deadline:    validMsg.Deadline,
+		// 	expectedErr: "token b deposit amount 1000000UKAVA: invalid coins",
+		// },
 		{
 			name:        "denoms can not be the same",
 			requester:   validMsg.Requester,
@@ -514,7 +523,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			tokenB:      sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(1e6)},
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: denominations can not be equal",
+			expectedErr: "denominations can not be equal: invalid coins",
 		},
 		{
 			name:        "zero deadline",
@@ -523,7 +532,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    0,
-			expectedErr: "invalid deadline: deadline 0",
+			expectedErr: "deadline 0: invalid deadline",
 		},
 		{
 			name:        "negative deadline",
@@ -532,7 +541,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    -1,
-			expectedErr: "invalid deadline: deadline -1",
+			expectedErr: "deadline -1: invalid deadline",
 		},
 		{
 			name:        "negative slippage",
@@ -541,7 +550,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    sdk.MustNewDecFromStr("-0.01"),
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid slippage: slippage can not be negative",
+			expectedErr: "slippage can not be negative: invalid slippage",
 		},
 		{
 			name:        "nil slippage",
@@ -550,7 +559,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    sdk.Dec{},
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid slippage: slippage must be set",
+			expectedErr: "slippage must be set: invalid slippage",
 		},
 	}
 
@@ -590,7 +599,7 @@ func TestMsgSwapExactForTokens_Deadline(t *testing.T) {
 
 	for _, tc := range testCases {
 		msg := types.NewMsgSwapExactForTokens(
-			sdk.AccAddress("test1"),
+			sdk.AccAddress("test1").String(),
 			sdk.NewCoin("ukava", sdk.NewInt(1000000)),
 			sdk.NewCoin("usdx", sdk.NewInt(2000000)),
 			sdk.MustNewDecFromStr("0.01"),
@@ -615,14 +624,14 @@ func TestMsgSwapForExactTokens_Signing(t *testing.T) {
 	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
 	require.NoError(t, err)
 
-	msg := types.NewMsgSwapForExactTokens(addr, sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), 1623606299)
+	msg := types.NewMsgSwapForExactTokens(addr.String(), sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), 1623606299)
 	assert.Equal(t, []sdk.AccAddress{addr}, msg.GetSigners())
 	assert.Equal(t, signBytes, msg.GetSignBytes())
 }
 
 func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 	validMsg := types.NewMsgSwapForExactTokens(
-		sdk.AccAddress("test1"),
+		sdk.AccAddress("test1").String(),
 		sdk.NewCoin("ukava", sdk.NewInt(1e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5e6)),
 		sdk.MustNewDecFromStr("0.01"),
@@ -632,7 +641,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 
 	testCases := []struct {
 		name        string
-		requester   sdk.AccAddress
+		requester   string
 		tokenA      sdk.Coin
 		exactTokenB sdk.Coin
 		slippage    sdk.Dec
@@ -641,12 +650,12 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 	}{
 		{
 			name:        "empty address",
-			requester:   sdk.AccAddress(""),
+			requester:   sdk.AccAddress("").String(),
 			tokenA:      validMsg.TokenA,
 			exactTokenB: validMsg.ExactTokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid address: requester address cannot be empty",
+			expectedErr: "requester address cannot be empty: invalid address",
 		},
 		{
 			name:        "negative token a",
@@ -655,7 +664,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			exactTokenB: validMsg.ExactTokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token a deposit amount -1ukava",
+			expectedErr: "token a deposit amount -1ukava: invalid coins",
 		},
 		{
 			name:        "zero token a",
@@ -664,17 +673,18 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			exactTokenB: validMsg.ExactTokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token a deposit amount 0ukava",
+			expectedErr: "token a deposit amount 0ukava: invalid coins",
 		},
-		{
-			name:        "invalid denom token a",
-			requester:   validMsg.Requester,
-			tokenA:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-			exactTokenB: validMsg.ExactTokenB,
-			slippage:    validMsg.Slippage,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: token a deposit amount 1000000UKAVA",
-		},
+		// TODO:
+		// {
+		// 	name:        "invalid denom token a",
+		// 	requester:   validMsg.Requester,
+		// 	tokenA:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
+		// 	exactTokenB: validMsg.ExactTokenB,
+		// 	slippage:    validMsg.Slippage,
+		// 	deadline:    validMsg.Deadline,
+		// 	expectedErr: "token a deposit amount 1000000UKAVA: invalid coins",
+		// },
 		{
 			name:        "negative token b",
 			requester:   validMsg.Requester,
@@ -682,7 +692,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			exactTokenB: sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)},
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: exact token b deposit amount -1ukava",
+			expectedErr: "exact token b deposit amount -1ukava: invalid coins",
 		},
 		{
 			name:        "zero token b",
@@ -691,17 +701,18 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			exactTokenB: sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(0)},
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: exact token b deposit amount 0ukava",
+			expectedErr: "exact token b deposit amount 0ukava: invalid coins",
 		},
-		{
-			name:        "invalid denom token b",
-			requester:   validMsg.Requester,
-			tokenA:      validMsg.TokenA,
-			exactTokenB: sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-			slippage:    validMsg.Slippage,
-			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: exact token b deposit amount 1000000UKAVA",
-		},
+		// TODO:
+		// {
+		// 	name:        "invalid denom token b",
+		// 	requester:   validMsg.Requester,
+		// 	tokenA:      validMsg.TokenA,
+		// 	exactTokenB: sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
+		// 	slippage:    validMsg.Slippage,
+		// 	deadline:    validMsg.Deadline,
+		// 	expectedErr: "exact token b deposit amount 1000000UKAVA: invalid coins",
+		// },
 		{
 			name:        "denoms can not be the same",
 			requester:   validMsg.Requester,
@@ -709,7 +720,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			exactTokenB: sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(1e6)},
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid coins: denominations can not be equal",
+			expectedErr: "denominations can not be equal: invalid coins",
 		},
 		{
 			name:        "zero deadline",
@@ -718,7 +729,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			exactTokenB: validMsg.ExactTokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    0,
-			expectedErr: "invalid deadline: deadline 0",
+			expectedErr: "deadline 0: invalid deadline",
 		},
 		{
 			name:        "negative deadline",
@@ -727,7 +738,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			exactTokenB: validMsg.ExactTokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    -1,
-			expectedErr: "invalid deadline: deadline -1",
+			expectedErr: "deadline -1: invalid deadline",
 		},
 		{
 			name:        "negative slippage",
@@ -736,7 +747,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			exactTokenB: validMsg.ExactTokenB,
 			slippage:    sdk.MustNewDecFromStr("-0.01"),
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid slippage: slippage can not be negative",
+			expectedErr: "slippage can not be negative: invalid slippage",
 		},
 		{
 			name:        "nil slippage",
@@ -745,7 +756,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			exactTokenB: validMsg.ExactTokenB,
 			slippage:    sdk.Dec{},
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid slippage: slippage must be set",
+			expectedErr: "slippage must be set: invalid slippage",
 		},
 	}
 
@@ -785,7 +796,7 @@ func TestMsgSwapForExactTokens_Deadline(t *testing.T) {
 
 	for _, tc := range testCases {
 		msg := types.NewMsgSwapForExactTokens(
-			sdk.AccAddress("test1"),
+			sdk.AccAddress("test1").String(),
 			sdk.NewCoin("ukava", sdk.NewInt(1000000)),
 			sdk.NewCoin("usdx", sdk.NewInt(2000000)),
 			sdk.MustNewDecFromStr("0.01"),
