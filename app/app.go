@@ -388,10 +388,11 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	// TODO mount memory stores
 
 	// initialize the app
-	var fetchers []ante.AddressFetcher // TODO add bep3 and pricefeed authorized addresses
+	var fetchers []ante.AddressFetcher // TODO add bep3 authorized addresses
 	if options.MempoolEnableAuth {
 		fetchers = append(fetchers,
 			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
+			app.pricefeedKeeper.GetAuthorizedAddresses,
 		)
 	}
 	antehandler, err := ante.NewAnteHandler(
