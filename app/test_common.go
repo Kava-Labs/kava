@@ -46,18 +46,16 @@ type TestApp struct {
 	App
 }
 
+// NewTestApp creates a new TestApp
+//
+// Note, it also sets the sdk config with the app's address prefix, coin type, etc.
 func NewTestApp() TestApp {
-	config := sdk.GetConfig()
-	SetBech32AddressPrefixes(config)
-	SetBip44CoinType(config)
+	SetSDKConfig()
 
-	encCfg := MakeEncodingConfig()
-
-	db := tmdb.NewMemDB()
-	app := NewApp(log.NewNopLogger(), db, nil, encCfg, Options{})
-	return TestApp{App: *app}
+	return NewTestAppFromSealed()
 }
 
+// NewTestAppFromSealed creates a TestApp without first setting sdk config.
 func NewTestAppFromSealed() TestApp {
 	db := tmdb.NewMemDB()
 
