@@ -2,32 +2,31 @@ package types
 
 import "bytes"
 
-// GenesisState is the state that must be provided at genesis for the issuance module
-type GenesisState struct {
-	Params   Params        `json:"params" yaml:"params"`
-	Supplies AssetSupplies `json:"supplies" yaml:"supplies"`
-}
+var (
+	// DefaultAssetSupplies is used to set default asset supplies in default genesis state
+	DefaultAssetSupplies = []AssetSupply{}
+)
 
 // NewGenesisState returns a new GenesisState
-func NewGenesisState(params Params, supplies AssetSupplies) GenesisState {
+func NewGenesisState(params Params, assetSupplies []AssetSupply) GenesisState {
 	return GenesisState{
-		Params:   params,
-		Supplies: supplies,
+		Params:        params,
+		AssetSupplies: assetSupplies,
 	}
 }
 
 // DefaultGenesisState returns the default GenesisState for the issuance module
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params:   DefaultParams(),
-		Supplies: AssetSupplies{},
+		Params:        DefaultParams(),
+		AssetSupplies: DefaultAssetSupplies,
 	}
 }
 
 // Validate performs basic validation of genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
-	for _, supply := range gs.Supplies {
+	for _, supply := range gs.AssetSupplies {
 		err := supply.Validate()
 		if err != nil {
 			return err
@@ -38,8 +37,8 @@ func (gs GenesisState) Validate() error {
 
 // Equal checks whether two GenesisState structs are equivalent
 func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	b1 := ModuleCdc.MustMarshalBinaryBare(gs)
-	b2 := ModuleCdc.MustMarshalBinaryBare(gs2)
+	b1 := ModuleCdc.MustMarshal(&gs)
+	b2 := ModuleCdc.MustMarshal(&gs2)
 	return bytes.Equal(b1, b2)
 }
 

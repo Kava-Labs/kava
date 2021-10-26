@@ -8,29 +8,28 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/issuance/types"
 )
 
 type MsgTestSuite struct {
 	suite.Suite
 
-	addrs []sdk.AccAddress
+	addrs []string
 }
 
 func (suite *MsgTestSuite) SetupTest() {
-	config := sdk.GetConfig()
-	app.SetBech32AddressPrefixes(config)
+	// TODO:
+	// _, addrs := app.GeneratePrivKeyAddressPairs(2)
+	// suite.addrs = addrs
 
-	_, addrs := app.GeneratePrivKeyAddressPairs(2)
-	suite.addrs = addrs
+	suite.addrs = []string{}
 }
 
 func (suite *MsgTestSuite) TestMsgIssueTokens() {
 	type args struct {
-		sender   sdk.AccAddress
+		sender   string
 		tokens   sdk.Coin
-		receiver sdk.AccAddress
+		receiver string
 	}
 	type errArgs struct {
 		expectPass bool
@@ -56,7 +55,7 @@ func (suite *MsgTestSuite) TestMsgIssueTokens() {
 		{
 			"invalid sender",
 			args{
-				sender:   sdk.AccAddress{},
+				sender:   "",
 				tokens:   sdk.NewCoin("valid", sdk.NewInt(100)),
 				receiver: suite.addrs[1],
 			},
@@ -70,7 +69,7 @@ func (suite *MsgTestSuite) TestMsgIssueTokens() {
 			args{
 				sender:   suite.addrs[0],
 				tokens:   sdk.NewCoin("valid", sdk.NewInt(100)),
-				receiver: sdk.AccAddress{},
+				receiver: "",
 			},
 			errArgs{
 				expectPass: false,
@@ -106,7 +105,7 @@ func (suite *MsgTestSuite) TestMsgIssueTokens() {
 
 func (suite *MsgTestSuite) TestMsgRedeemTokens() {
 	type args struct {
-		sender sdk.AccAddress
+		sender string
 		tokens sdk.Coin
 	}
 	type errArgs struct {
@@ -132,7 +131,7 @@ func (suite *MsgTestSuite) TestMsgRedeemTokens() {
 		{
 			"invalid sender",
 			args{
-				sender: sdk.AccAddress{},
+				sender: "",
 				tokens: sdk.NewCoin("valid", sdk.NewInt(100)),
 			},
 			errArgs{
@@ -168,9 +167,9 @@ func (suite *MsgTestSuite) TestMsgRedeemTokens() {
 
 func (suite *MsgTestSuite) TestMsgBlockAddress() {
 	type args struct {
-		sender  sdk.AccAddress
+		sender  string
 		denom   string
-		address sdk.AccAddress
+		address string
 	}
 	type errArgs struct {
 		expectPass bool
@@ -196,7 +195,7 @@ func (suite *MsgTestSuite) TestMsgBlockAddress() {
 		{
 			"invalid sender",
 			args{
-				sender:  sdk.AccAddress{},
+				sender:  "",
 				denom:   "valid",
 				address: suite.addrs[1],
 			},
@@ -210,7 +209,7 @@ func (suite *MsgTestSuite) TestMsgBlockAddress() {
 			args{
 				sender:  suite.addrs[0],
 				denom:   "valid",
-				address: sdk.AccAddress{},
+				address: "",
 			},
 			errArgs{
 				expectPass: false,
@@ -246,9 +245,9 @@ func (suite *MsgTestSuite) TestMsgBlockAddress() {
 
 func (suite *MsgTestSuite) TestMsgUnblockAddress() {
 	type args struct {
-		sender  sdk.AccAddress
+		sender  string
 		denom   string
-		address sdk.AccAddress
+		address string
 	}
 	type errArgs struct {
 		expectPass bool
@@ -274,7 +273,7 @@ func (suite *MsgTestSuite) TestMsgUnblockAddress() {
 		{
 			"invalid sender",
 			args{
-				sender:  sdk.AccAddress{},
+				sender:  "",
 				denom:   "valid",
 				address: suite.addrs[1],
 			},
@@ -288,7 +287,7 @@ func (suite *MsgTestSuite) TestMsgUnblockAddress() {
 			args{
 				sender:  suite.addrs[0],
 				denom:   "valid",
-				address: sdk.AccAddress{},
+				address: "",
 			},
 			errArgs{
 				expectPass: false,
@@ -324,7 +323,7 @@ func (suite *MsgTestSuite) TestMsgUnblockAddress() {
 
 func (suite *MsgTestSuite) TestMsgSetPauseStatus() {
 	type args struct {
-		sender sdk.AccAddress
+		sender string
 		denom  string
 		status bool
 	}
@@ -352,7 +351,7 @@ func (suite *MsgTestSuite) TestMsgSetPauseStatus() {
 		{
 			"invalid sender",
 			args{
-				sender: sdk.AccAddress{},
+				sender: "",
 				denom:  "valid",
 				status: true,
 			},
