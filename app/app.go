@@ -228,7 +228,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		keys[banktypes.StoreKey],
 		app.accountKeeper,
 		bankSubspace,
-		app.ModuleAccountAddrs(), // TODO this no longer allows funds to be sent to the distribution module account for use in the community pool. Is this a problem?
+		app.ModuleAccountAddrs(),
 	)
 	app.stakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
