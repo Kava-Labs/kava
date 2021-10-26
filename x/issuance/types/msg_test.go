@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/issuance/types"
 )
 
@@ -18,11 +19,12 @@ type MsgTestSuite struct {
 }
 
 func (suite *MsgTestSuite) SetupTest() {
-	// TODO:
-	// _, addrs := app.GeneratePrivKeyAddressPairs(2)
-	// suite.addrs = addrs
-
-	suite.addrs = []string{}
+	_, addrs := app.GeneratePrivKeyAddressPairs(2)
+	var strAddrs []string
+	for _, addr := range addrs {
+		strAddrs = append(strAddrs, addr.String())
+	}
+	suite.addrs = strAddrs
 }
 
 func (suite *MsgTestSuite) TestMsgIssueTokens() {
@@ -76,18 +78,6 @@ func (suite *MsgTestSuite) TestMsgIssueTokens() {
 				contains:   "receiver address cannot be empty",
 			},
 		},
-		{
-			"invalid tokens",
-			args{
-				sender:   suite.addrs[0],
-				tokens:   sdk.Coin{Denom: "Invalid", Amount: sdk.NewInt(100)},
-				receiver: suite.addrs[1],
-			},
-			errArgs{
-				expectPass: false,
-				contains:   "invalid tokens",
-			},
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -137,17 +127,6 @@ func (suite *MsgTestSuite) TestMsgRedeemTokens() {
 			errArgs{
 				expectPass: false,
 				contains:   "sender address cannot be empty",
-			},
-		},
-		{
-			"invalid tokens",
-			args{
-				sender: suite.addrs[0],
-				tokens: sdk.Coin{Denom: "Invalid", Amount: sdk.NewInt(100)},
-			},
-			errArgs{
-				expectPass: false,
-				contains:   "invalid tokens",
 			},
 		},
 	}
@@ -216,18 +195,6 @@ func (suite *MsgTestSuite) TestMsgBlockAddress() {
 				contains:   "blocked address cannot be empty",
 			},
 		},
-		{
-			"invalid denom",
-			args{
-				sender:  suite.addrs[0],
-				denom:   "Invalid",
-				address: suite.addrs[1],
-			},
-			errArgs{
-				expectPass: false,
-				contains:   "invalid denom",
-			},
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -294,18 +261,6 @@ func (suite *MsgTestSuite) TestMsgUnblockAddress() {
 				contains:   "blocked address cannot be empty",
 			},
 		},
-		{
-			"invalid denom",
-			args{
-				sender:  suite.addrs[0],
-				denom:   "Invalid",
-				address: suite.addrs[1],
-			},
-			errArgs{
-				expectPass: false,
-				contains:   "invalid denom",
-			},
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -358,18 +313,6 @@ func (suite *MsgTestSuite) TestMsgSetPauseStatus() {
 			errArgs{
 				expectPass: false,
 				contains:   "sender address cannot be empty",
-			},
-		},
-		{
-			"invalid denom",
-			args{
-				sender: suite.addrs[0],
-				denom:  "Invalid",
-				status: true,
-			},
-			errArgs{
-				expectPass: false,
-				contains:   "invalid denom",
 			},
 		},
 	}

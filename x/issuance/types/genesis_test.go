@@ -9,6 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/issuance/types"
 )
 
@@ -19,11 +20,12 @@ type GenesisTestSuite struct {
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
-	// TODO:
-	// _, addrs := app.GeneratePrivKeyAddressPairs(2)
-	// suite.addrs = addrs
-
-	suite.addrs = []string{}
+	_, addrs := app.GeneratePrivKeyAddressPairs(2)
+	var strAddrs []string
+	for _, addr := range addrs {
+		strAddrs = append(strAddrs, addr.String())
+	}
+	suite.addrs = strAddrs
 }
 
 func (suite *GenesisTestSuite) TestValidate() {
