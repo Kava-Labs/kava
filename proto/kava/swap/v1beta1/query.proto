@@ -33,17 +33,17 @@ message QueryParamsRequest {}
 
 // QueryParamsResponse defines the response type for querying x/swap parameters.
 message QueryParamsResponse {
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
 // QueryDepositsRequest is the request type for the Query/Deposits RPC method.
 message QueryDepositsRequest {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string owner = 1 [(gogoproto.moretags) = "yaml:\"owner,omitempty\""];
+  string owner = 1 [ (gogoproto.moretags) = "yaml:\"owner,omitempty\"" ];
 
-  string pool_id = 2 [(gogoproto.moretags) = "yaml:\"pool_id,omitempty\""];
+  string pool_id = 2 [ (gogoproto.moretags) = "yaml:\"pool_id,omitempty\"" ];
 
   // pagination defines an optional pagination for the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
@@ -51,7 +51,7 @@ message QueryDepositsRequest {
 
 // QueryDepositsResponse is the response type for the Query/Deposits RPC method.
 message QueryDepositsResponse {
-  repeated DepositResponse deposits = 1 [(gogoproto.nullable) = false];
+  repeated DepositResponse deposits = 1 [ (gogoproto.nullable) = false ];
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -60,55 +60,55 @@ message QueryDepositsResponse {
 // DepositResponse defines a single deposit query response type.
 message DepositResponse {
   option (gogoproto.goproto_getters) = false;
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
 
   string depositor = 1;
 
-  string pool_id = 2 [(gogoproto.moretags) = "yaml:\"pool_id,omitempty\""];
+  string pool_id = 2 [ (gogoproto.moretags) = "yaml:\"pool_id,omitempty\"" ];
 
   bytes shares_owned = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "shares_owned,omitempty",
-    (gogoproto.moretags)   = "yaml:\"shares_owned\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "shares_owned,omitempty",
+    (gogoproto.moretags) = "yaml:\"shares_owned\""
   ];
 
   repeated cosmos.base.v1beta1.Coin shares_value = 4 [
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
-    (gogoproto.nullable)     = false,
-    (gogoproto.jsontag)      = "shares_value,omitempty",
-    (gogoproto.moretags)     = "yaml:\"shares_value\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "shares_value,omitempty",
+    (gogoproto.moretags) = "yaml:\"shares_value\""
   ];
 }
 
 // PoolStatsQueryResponse defines the coins and shares of a pool
 message PoolResponse {
   option (gogoproto.goproto_getters) = false;
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
 
   string name = 1;
 
   repeated cosmos.base.v1beta1.Coin coins = 2 [
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
-    (gogoproto.nullable)     = false,
-    (gogoproto.jsontag)      = "coins,omitempty",
-    (gogoproto.moretags)     = "yaml:\"coins\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "coins,omitempty",
+    (gogoproto.moretags) = "yaml:\"coins\""
   ];
 
   bytes total_shares = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "total_shares,omitempty",
-    (gogoproto.moretags)   = "yaml:\"total_shares\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "total_shares,omitempty",
+    (gogoproto.moretags) = "yaml:\"total_shares\""
   ];
 }
 
 // QueryPoolsRequest is the request type for the Query/Pools RPC method.
 message QueryPoolsRequest {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string pool_id = 1 [(gogoproto.moretags) = "yaml:\"pool_id,omitempty\""];
+  string pool_id = 1 [ (gogoproto.moretags) = "yaml:\"pool_id,omitempty\"" ];
 
   // pagination defines an optional pagination for the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
@@ -116,7 +116,7 @@ message QueryPoolsRequest {
 
 // QueryPoolsResponse is the response type for the Query/Pools RPC method.
 message QueryPoolsResponse {
-  repeated PoolResponse pools = 1 [(gogoproto.nullable) = false];
+  repeated PoolResponse pools = 1 [ (gogoproto.nullable) = false ];
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;

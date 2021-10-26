@@ -14,16 +14,18 @@ service Msg {
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 
   // SwapExactForTokens represents a message for trading exact coinA for coinB
-  rpc SwapExactForTokens(MsgSwapExactForTokens) returns (MsgSwapExactForTokensResponse);
+  rpc SwapExactForTokens(MsgSwapExactForTokens)
+      returns (MsgSwapExactForTokensResponse);
 
   // SwapForExactTokens represents a message for trading coinA for an exact
   // coinB
-  rpc SwapForExactTokens(MsgSwapForExactTokens) returns (MsgSwapForExactTokensResponse);
+  rpc SwapForExactTokens(MsgSwapForExactTokens)
+      returns (MsgSwapForExactTokensResponse);
 }
 
 // MsgDeposit represents a message for depositing liquidity into a pool
 message MsgDeposit {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   string depositor = 1;
@@ -35,23 +37,23 @@ message MsgDeposit {
 
   bytes token_a = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "token_a,omitempty",
-    (gogoproto.moretags)   = "yaml:\"token_a\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "token_a,omitempty",
+    (gogoproto.moretags) = "yaml:\"token_a\""
   ];
 
   bytes token_b = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "token_b,omitempty",
-    (gogoproto.moretags)   = "yaml:\"token_b\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "token_b,omitempty",
+    (gogoproto.moretags) = "yaml:\"token_b\""
   ];
 
   bytes slippage = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "slippage,omitempty",
-    (gogoproto.moretags)   = "yaml:\"slippage\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "slippage,omitempty",
+    (gogoproto.moretags) = "yaml:\"slippage\""
   ];
 
   int64 deadline = 5;
@@ -62,30 +64,30 @@ message MsgDepositResponse {}
 
 // MsgWithdraw represents a message for withdrawing liquidity from a pool
 message MsgWithdraw {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   string from = 1;
 
   bytes shares = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "shares,omitempty",
-    (gogoproto.moretags)   = "yaml:\"shares\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "shares,omitempty",
+    (gogoproto.moretags) = "yaml:\"shares\""
   ];
 
   bytes min_token_a = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "min_token_a,omitempty",
-    (gogoproto.moretags)   = "yaml:\"min_token_a\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "min_token_a,omitempty",
+    (gogoproto.moretags) = "yaml:\"min_token_a\""
   ];
 
   bytes min_token_b = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "min_token_b,omitempty",
-    (gogoproto.moretags)   = "yaml:\"min_token_b\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "min_token_b,omitempty",
+    (gogoproto.moretags) = "yaml:\"min_token_b\""
   ];
 
   int64 deadline = 5;
@@ -96,30 +98,30 @@ message MsgWithdrawResponse {}
 
 // MsgSwapExactForTokens represents a message for trading exact coinA for coinB
 message MsgSwapExactForTokens {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   string requester = 1;
 
   bytes exact_token_a = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "exact_token_a,omitempty",
-    (gogoproto.moretags)   = "yaml:\"exact_token_a\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "exact_token_a,omitempty",
+    (gogoproto.moretags) = "yaml:\"exact_token_a\""
   ];
 
   bytes token_b = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "token_b,omitempty",
-    (gogoproto.moretags)   = "yaml:\"token_b\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "token_b,omitempty",
+    (gogoproto.moretags) = "yaml:\"token_b\""
   ];
 
   bytes slippage = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "slippage,omitempty",
-    (gogoproto.moretags)   = "yaml:\"slippage\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "slippage,omitempty",
+    (gogoproto.moretags) = "yaml:\"slippage\""
   ];
 
   int64 deadline = 5;
@@ -132,30 +134,30 @@ message MsgSwapExactForTokensResponse {}
 // MsgSwapForExactTokens represents a message for trading coinA for an exact
 // coinB
 message MsgSwapForExactTokens {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   string requester = 1;
 
   bytes token_a = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "token_a,omitempty",
-    (gogoproto.moretags)   = "yaml:\"token_a\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "token_a,omitempty",
+    (gogoproto.moretags) = "yaml:\"token_a\""
   ];
 
   bytes exact_token_b = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "exact_token_b,omitempty",
-    (gogoproto.moretags)   = "yaml:\"exact_token_b\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "exact_token_b,omitempty",
+    (gogoproto.moretags) = "yaml:\"exact_token_b\""
   ];
 
   bytes slippage = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "slippage,omitempty",
-    (gogoproto.moretags)   = "yaml:\"slippage\""
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "slippage,omitempty",
+    (gogoproto.moretags) = "yaml:\"slippage\""
   ];
 
   int64 deadline = 5;
