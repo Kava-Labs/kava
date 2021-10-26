@@ -10,8 +10,8 @@ import (
 	"github.com/kava-labs/kava/x/issuance/types"
 )
 
-// IssueTokens mints new tokens and sends them to the receiver address
-func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sdk.AccAddress) error {
+// IssueTokensInternal mints new tokens and sends them to the receiver address
+func (k Keeper) IssueTokensInternal(ctx sdk.Context, tokens sdk.Coin, owner, receiver sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, tokens.Denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", tokens.Denom)
@@ -61,8 +61,8 @@ func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sd
 	return nil
 }
 
-// RedeemTokens sends tokens from the owner address to the module account and burns them
-func (k Keeper) RedeemTokens(ctx sdk.Context, tokens sdk.Coin, owner sdk.AccAddress) error {
+// RedeemTokensInternal sends tokens from the owner address to the module account and burns them
+func (k Keeper) RedeemTokensInternal(ctx sdk.Context, tokens sdk.Coin, owner sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, tokens.Denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", tokens.Denom)
@@ -91,8 +91,8 @@ func (k Keeper) RedeemTokens(ctx sdk.Context, tokens sdk.Coin, owner sdk.AccAddr
 	return nil
 }
 
-// BlockAddress adds an address to the blocked list
-func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddress sdk.AccAddress) error {
+// BlockAddressInternal adds an address to the blocked list
+func (k Keeper) BlockAddressInternal(ctx sdk.Context, denom string, owner, blockedAddress sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
@@ -123,8 +123,8 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 	return nil
 }
 
-// UnblockAddress removes an address from the blocked list
-func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.AccAddress) error {
+// UnblockAddressInternal removes an address from the blocked list
+func (k Keeper) UnblockAddressInternal(ctx sdk.Context, denom string, owner, addr sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
@@ -153,8 +153,8 @@ func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.Ac
 	return nil
 }
 
-// SetPauseStatus pauses/un-pauses an asset
-func (k Keeper) SetPauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom string, status bool) error {
+// SetPauseStatusInternal pauses/un-pauses an asset
+func (k Keeper) SetPauseStatusInternal(ctx sdk.Context, owner sdk.AccAddress, denom string, status bool) error {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
