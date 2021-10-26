@@ -91,6 +91,16 @@ func (tApp TestApp) GetParamsKeeper() paramskeeper.Keeper       { return tApp.pa
 // func (tApp TestApp) GetIssuanceKeeper() issuance.Keeper   { return tApp.issuanceKeeper }
 // func (tApp TestApp) GetSwapKeeper() swap.Keeper           { return tApp.swapKeeper }
 
+// LegacyAmino returns the app's amino codec.
+func (app *App) LegacyAmino() *codec.LegacyAmino {
+	return app.legacyAmino
+}
+
+// AppCodec returns the app's app codec.
+func (app *App) AppCodec() codec.Codec {
+	return app.appCodec
+}
+
 // InitializeFromGenesisStates calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
 	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(emptyTime, emptyChainID, genesisStates...)
