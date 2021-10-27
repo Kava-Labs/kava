@@ -1,0 +1,71 @@
+syntax = "proto3";
+package kava.bep3.v1beta1;
+
+import "kava/bep3/v1beta1/bep3.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/bep3/types";
+
+// GenesisState defines the pricefeed module's genesis state.
+message GenesisState {
+  // params defines all the paramaters of the module.
+  Params params = 1 [(gogoproto.moretags) = "yaml:\"params\"", (gogoproto.nullable) = false];
+
+  repeated AtomicSwap atomic_swaps = 2
+      [(gogoproto.moretags) = "yaml:\"atomic_swaps,omitempty\"", (gogoproto.nullable) = false];
+
+  repeated AssetSupply supplies = 3
+      [(gogoproto.moretags) = "yaml:\"supplies,omitempty\"", (gogoproto.nullable) = false];
+
+  google.protobuf.Timestamp previous_block_time = 4
+      [(gogoproto.stdtime) = true, (gogoproto.moretags) = "yaml:\"previous_block_time\"", (gogoproto.nullable) = false];
+}
+
+message AssetParam {
+  string denom   = 1 ["yaml:\"denom\""];
+  bytes  coin_id = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"coin_id\"",
+    (gogoproto.customname) = "CoinID"
+  ];
+  SupplyLimit supply_limit   = 3 [(gogoproto.moretags) = "yaml:\"supply_limit\""];
+  bool        active         = 4 [(gogoproto.moretags) = "yaml:\"active\""];
+  string      deputy_address = 5 [(gogoproto.moretags) = "yaml:\"deputy_address\""];
+  bytes       fixed_fee      = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"fixed_fee\""
+  ];
+  bytes min_swap_amount = 7 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"min_swap_amount\""
+  ];
+  bytes max_swap_amount = 8 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"max_swap_amount\""
+  ];
+  uint64 min_block_lock = 9 ["yaml:\"min_block_lock\""];
+  uint64 max_block_lock = 10 ["yaml:\"max_block_lock\""];
+}
+
+message SupplyLimit {
+  bytes limit = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"limit\""
+  ];
+  bool                     time_limited = 2 [(gogoproto.moretags) = "yaml:\"time_limited\""];
+  google.protobuf.Duration time_period  = 3 [
+    (gogoproto.nullable)    = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags)    = "yaml:\"time_period,omitempty\""
+  ];
+  bytes time_based_limit = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"time_based_limit\""
+  ];
+}

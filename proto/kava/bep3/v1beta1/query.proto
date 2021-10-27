@@ -1,0 +1,118 @@
+syntax = "proto3";
+package kava.bep3.v1beta1;
+
+import "kava/bep3/v1beta1/bep3.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/kava-labs/kava/x/bep3/types";
+
+// Query defines the gRPC querier service for bep3 module
+service Query {
+  // Params queries module params
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/bep3/v1beta1/params";
+  }
+
+  // AssetSupply queries info about an asset's supply
+  rpc AssetSupply(QueryAssetSupplyRequest) returns (QueryAssetSupplyResponse) {
+    option (google.api.http).get = "/kava/bep3/v1beta1/assetsupply/{denom}";
+  }
+
+  // AssetSupplies queries a list of asset supplies
+  rpc AssetSupplies(QueryAssetSuppliesRequest) returns (QueryAssetSuppliesResponse) {
+    option (google.api.http).get = "/kava/bep3/v1beta1/assetsupplies";
+  }
+
+  // AtomicSwap queries info about an atomic swap
+  rpc AtomicSwap(QueryAtomicSwapRequest) returns (QueryAtomicSwapResponse) {
+    option (google.api.http).get = "/kava/bep3/v1beta1/atomicswap/{swap_id}";
+  }
+
+  // AtomicSwaps queries a list of atomic swaps
+  rpc AtomicSwaps(QueryAtomicSwapsRequest) returns (QueryAtomicSwapsResponse) {
+    option (google.api.http).get = "/kava/bep3/v1beta1/atomicswaps";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/bep3 parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/bep3 parameters.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+message QueryAssetSupplyRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string denom = 1 [(gogoproto.moretags) = "yaml:\"denom\""];
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+message QueryAssetSupplyResponse {
+  AssetSupply asset_supply = 1 [(gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryAssetSuppliesRequest is the request type for the Query/Deposits RPC method.
+message QueryAssetSuppliesRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+message QueryAssetSuppliesResponse {
+  repeated AssetSupply asset_supplies = 1 [(gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+message QueryAtomicSwapRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // TODO: Do we need to cast to custom type tmbytes.HexBytes
+  bytes swap_id = 1 [(gogoproto.moretags) = "yaml:\"swap_id\"", (gogoproto.customname) = "SwapID"];
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+message QueryAtomicSwapResponse {
+  string     id          = 1 [(gogoproto.moretags) = "yaml:\"id\"", (gogoproto.customname) = "ID"];
+  AtomicSwap atomic_swap = 1 [(gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+message QueryAtomicSwapsRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string        involve    = 1 [(gogoproto.moretags) = "yaml:\"involve\""];
+  uint64        expiration = 2 [(gogoproto.moretags) = "yaml:\"expiration\""];
+  SwapStatus    status     = 2 [(gogoproto.moretags) = "yaml:\"status\""];
+  SwapDirection direction  = 2 [(gogoproto.moretags) = "yaml:\"direction\""];
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+message QueryAtomicSwapsResponse {
+  string              id          = 1 [(gogoproto.moretags) = "yaml\"id\"", (gogoproto.customname) = "ID"];
+  repeated AtomicSwap atomic_swap = 1 [(gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
