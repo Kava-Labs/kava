@@ -35,7 +35,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	}
 
 	for _, cmd := range cmds {
-		flags.AddTxFlagsToCmd(cmd)
+		flags.AddQueryFlagsToCmd(cmd)
 	}
 
 	swapQueryCmd.AddCommand(cmds...)
