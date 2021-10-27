@@ -21,3 +21,7 @@ build
 node_modules
 docs/node_modules
 docs/.vuepress/dist
+
+# Local example chain data
+contrib/devnet/home/config/addrbook.json
+contrib/devnet/home/data/*
