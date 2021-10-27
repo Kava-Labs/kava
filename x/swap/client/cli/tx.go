@@ -77,8 +77,7 @@ func getCmdDeposit() *cobra.Command {
 			}
 
 			signer := clientCtx.GetFromAddress()
-			// TODO: Remove string cast if NewMsgDeposit accepts sdk.AccAddress
-			msg := types.NewMsgDeposit(string(signer), tokenA, tokenB, slippage, deadline)
+			msg := types.NewMsgDeposit(signer.String(), tokenA, tokenB, slippage, deadline)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -125,8 +124,7 @@ func getCmdWithdraw() *cobra.Command {
 			}
 
 			fromAddr := clientCtx.GetFromAddress()
-			// TODO: Remove string cast if NewMsgWithdraw accepts sdk.AccAddress
-			msg := types.NewMsgWithdraw(string(fromAddr), shares, minTokenA, minTokenB, deadline)
+			msg := types.NewMsgWithdraw(fromAddr.String(), shares, minTokenA, minTokenB, deadline)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -172,8 +170,7 @@ func getCmdSwapExactForTokens() *cobra.Command {
 			}
 
 			fromAddr := clientCtx.GetFromAddress()
-			// TODO: Remove string cast if NewMsgSwapExactForTokens accepts sdk.AccAddress
-			msg := types.NewMsgSwapExactForTokens(string(fromAddr), exactTokenA, tokenB, slippage, deadline)
+			msg := types.NewMsgSwapExactForTokens(fromAddr.String(), exactTokenA, tokenB, slippage, deadline)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -219,8 +216,7 @@ func getCmdSwapForExactTokens() *cobra.Command {
 			}
 
 			fromAddr := clientCtx.GetFromAddress()
-			// TODO: Remove string cast if NewMsgSwapExactForTokens accepts sdk.AccAddress
-			msg := types.NewMsgSwapForExactTokens(string(fromAddr), tokenA, exactTokenB, slippage, deadline)
+			msg := types.NewMsgSwapForExactTokens(fromAddr.String(), tokenA, exactTokenB, slippage, deadline)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

@@ -32,7 +32,7 @@ func postDepositHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgDeposit(string(req.From), req.TokenA, req.TokenB, req.Slippage, req.Deadline)
+		msg := types.NewMsgDeposit(req.From.String(), req.TokenA, req.TokenB, req.Slippage, req.Deadline)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -54,7 +54,7 @@ func postWithdrawHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgWithdraw(string(req.From), req.Shares, req.MinTokenA, req.MinTokenA, req.Deadline)
+		msg := types.NewMsgWithdraw(req.From.String(), req.Shares, req.MinTokenA, req.MinTokenA, req.Deadline)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -75,7 +75,7 @@ func postSwapExactForTokensHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgSwapExactForTokens(string(req.Requester), req.ExactTokenA, req.TokenB, req.Slippage, req.Deadline)
+		msg := types.NewMsgSwapExactForTokens(req.Requester.String(), req.ExactTokenA, req.TokenB, req.Slippage, req.Deadline)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -96,7 +96,7 @@ func postSwapForExactTokensHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgSwapForExactTokens(string(req.Requester), req.TokenA, req.ExactTokenB, req.Slippage, req.Deadline)
+		msg := types.NewMsgSwapForExactTokens(req.Requester.String(), req.TokenA, req.ExactTokenB, req.Slippage, req.Deadline)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
