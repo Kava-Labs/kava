@@ -3,6 +3,9 @@ package app
 import (
 	"fmt"
 	"io"
+	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -55,9 +58,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/kava-labs/kava/x/swap"
-	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
-	swaptypes "github.com/kava-labs/kava/x/swap/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -65,6 +65,9 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/x/swap"
+	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
+	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
 const (
@@ -91,6 +94,7 @@ var (
 		slashing.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
+		swap.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -104,7 +108,18 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 	}
+
+	// DefaultNodeHome is the default home directory for the app binary // TODO would this be better located in cmd?
+	DefaultNodeHome string
 )
+
+func init() {
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Printf("Failed to get home dir %s", err)
+	}
+	DefaultNodeHome = filepath.Join(userHomeDir, ".kava")
+}
 
 // Verify app interface at compile time
 // var _ simapp.App = (*App)(nil) // TODO
@@ -220,7 +235,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		keys[banktypes.StoreKey],
 		app.accountKeeper,
 		bankSubspace,
-		app.ModuleAccountAddrs(),
+		app.ModuleAccountAddrs(), // TODO this no longer allows funds to be sent to the distribution module account for use in the community pool. Is this a problem?
 	)
 	app.stakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
@@ -376,7 +391,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	// TODO mount memory stores
 
 	// initialize the app
-	var fetchers []ante.AddressFetcher // TODO add bep3 and pricefeed authorized addresses
+	var fetchers []ante.AddressFetcher // TODO add bep3 authorized addresses
 	if options.MempoolEnableAuth {
 		fetchers = append(fetchers,
 			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
