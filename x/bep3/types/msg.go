@@ -37,20 +37,8 @@ var (
 	// tkava prefix address: [INSERT BEP3-DEPUTY ADDRESS]
 )
 
-// MsgCreateAtomicSwap contains an AtomicSwap struct
-type MsgCreateAtomicSwap struct {
-	From                sdk.AccAddress   `json:"from"  yaml:"from"`
-	To                  sdk.AccAddress   `json:"to"  yaml:"to"`
-	RecipientOtherChain string           `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
-	SenderOtherChain    string           `json:"sender_other_chain"  yaml:"sender_other_chain"`
-	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
-	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
-	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
-	HeightSpan          uint64           `json:"height_span"  yaml:"height_span"`
-}
-
 // NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
-func NewMsgCreateAtomicSwap(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
+func NewMsgCreateAtomicSwap(from, to string, recipientOtherChain,
 	senderOtherChain string, randomNumberHash tmbytes.HexBytes, timestamp int64,
 	amount sdk.Coins, heightSpan uint64) MsgCreateAtomicSwap {
 	return MsgCreateAtomicSwap{
@@ -90,13 +78,13 @@ func (msg MsgCreateAtomicSwap) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) ValidateBasic() error {
-	if msg.From.Empty() {
+	if len(msg.From) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if len(msg.From) != AddrByteCount {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From))
 	}
-	if msg.To.Empty() {
+	if len(msg.To) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient address cannot be empty")
 	}
 	if len(msg.To) != AddrByteCount {
@@ -135,15 +123,8 @@ func (msg MsgCreateAtomicSwap) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-// MsgClaimAtomicSwap defines a AtomicSwap claim
-type MsgClaimAtomicSwap struct {
-	From         sdk.AccAddress   `json:"from"  yaml:"from"`
-	SwapID       tmbytes.HexBytes `json:"swap_id"  yaml:"swap_id"`
-	RandomNumber tmbytes.HexBytes `json:"random_number"  yaml:"random_number"`
-}
-
 // NewMsgClaimAtomicSwap initializes a new MsgClaimAtomicSwap
-func NewMsgClaimAtomicSwap(from sdk.AccAddress, swapID, randomNumber []byte) MsgClaimAtomicSwap {
+func NewMsgClaimAtomicSwap(from string, swapID, randomNumber []byte) MsgClaimAtomicSwap {
 	return MsgClaimAtomicSwap{
 		From:         from,
 		SwapID:       swapID,
@@ -195,14 +176,8 @@ func (msg MsgClaimAtomicSwap) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-// MsgRefundAtomicSwap defines a refund msg
-type MsgRefundAtomicSwap struct {
-	From   sdk.AccAddress   `json:"from" yaml:"from"`
-	SwapID tmbytes.HexBytes `json:"swap_id" yaml:"swap_id"`
-}
-
 // NewMsgRefundAtomicSwap initializes a new MsgRefundAtomicSwap
-func NewMsgRefundAtomicSwap(from sdk.AccAddress, swapID []byte) MsgRefundAtomicSwap {
+func NewMsgRefundAtomicSwap(from string, swapID []byte) MsgRefundAtomicSwap {
 	return MsgRefundAtomicSwap{
 		From:   from,
 		SwapID: swapID,
@@ -232,7 +207,7 @@ func (msg MsgRefundAtomicSwap) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) ValidateBasic() error {
-	if msg.From.Empty() {
+	if len(msg.From) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if len(msg.From) != AddrByteCount {

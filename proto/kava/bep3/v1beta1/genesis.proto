@@ -9,6 +9,8 @@ option go_package = "github.com/kava-labs/kava/x/bep3/types";
 
 // GenesisState defines the pricefeed module's genesis state.
 message GenesisState {
+  option (gogoproto.goproto_stringer) = false;
+
   // params defines all the paramaters of the module.
   Params params = 1 [(gogoproto.moretags) = "yaml:\"params\"", (gogoproto.nullable) = false];
 

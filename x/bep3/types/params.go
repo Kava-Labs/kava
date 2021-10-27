@@ -26,11 +26,6 @@ var (
 	DefaultPreviousBlockTime         = tmtime.Canonical(time.Unix(1, 0))
 )
 
-// Params governance parameters for bep3 module
-type Params struct {
-	AssetParams AssetParams `json:"asset_params" yaml:"asset_params"`
-}
-
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
@@ -39,8 +34,7 @@ func (p Params) String() string {
 }
 
 // NewParams returns a new params object
-func NewParams(ap AssetParams,
-) Params {
+func NewParams(ap []AssetParam) Params {
 	return Params{
 		AssetParams: ap,
 	}
@@ -48,27 +42,13 @@ func NewParams(ap AssetParams,
 
 // DefaultParams returns default params for bep3 module
 func DefaultParams() Params {
-	return NewParams(AssetParams{})
-}
-
-// AssetParam parameters that must be specified for each bep3 asset
-type AssetParam struct {
-	Denom         string         `json:"denom" yaml:"denom"`                     // name of the asset
-	CoinID        int            `json:"coin_id" yaml:"coin_id"`                 // SLIP-0044 registered coin type - see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-	SupplyLimit   SupplyLimit    `json:"supply_limit" yaml:"supply_limit"`       // asset supply limit
-	Active        bool           `json:"active" yaml:"active"`                   // denotes if asset is available or paused
-	DeputyAddress sdk.AccAddress `json:"deputy_address" yaml:"deputy_address"`   // the address of the relayer process
-	FixedFee      sdk.Int        `json:"fixed_fee" yaml:"fixed_fee"`             // the fixed fee charged by the relayer process for outgoing swaps
-	MinSwapAmount sdk.Int        `json:"min_swap_amount" yaml:"min_swap_amount"` // Minimum swap amount
-	MaxSwapAmount sdk.Int        `json:"max_swap_amount" yaml:"max_swap_amount"` // Maximum swap amount
-	MinBlockLock  uint64         `json:"min_block_lock" yaml:"min_block_lock"`   // Minimum swap block lock
-	MaxBlockLock  uint64         `json:"max_block_lock" yaml:"max_block_lock"`   // Maximum swap block lock
+	return NewParams([]AssetParam{})
 }
 
 // NewAssetParam returns a new AssetParam
 func NewAssetParam(
 	denom string, coinID int, limit SupplyLimit, active bool,
-	deputyAddr sdk.AccAddress, fixedFee sdk.Int, minSwapAmount sdk.Int,
+	deputyAddr string, fixedFee sdk.Int, minSwapAmount sdk.Int,
 	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
 ) AssetParam {
 	return AssetParam{
@@ -100,26 +80,6 @@ func (ap AssetParam) String() string {
 	Max Block Lock: %d`,
 		ap.Denom, ap.CoinID, ap.SupplyLimit, ap.Active, ap.DeputyAddress, ap.FixedFee,
 		ap.MinSwapAmount, ap.MaxSwapAmount, ap.MinBlockLock, ap.MaxBlockLock)
-}
-
-// AssetParams array of AssetParam
-type AssetParams []AssetParam
-
-// String implements fmt.Stringer
-func (aps AssetParams) String() string {
-	out := "Asset Params\n"
-	for _, ap := range aps {
-		out += fmt.Sprintf("%s\n", ap)
-	}
-	return out
-}
-
-// SupplyLimit parameters that control the absolute and time-based limits for an assets's supply
-type SupplyLimit struct {
-	Limit          sdk.Int       `json:"limit" yaml:"limit"`                       // the absolute supply limit for an asset
-	TimeLimited    bool          `json:"time_limited" yaml:"time_limited"`         // boolean for if the supply is also limited by time
-	TimePeriod     time.Duration `json:"time_period" yaml:"time_period"`           // the duration for which the supply time limit applies
-	TimeBasedLimit sdk.Int       `json:"time_based_limit" yaml:"time_based_limit"` // the supply limit for an asset for each time period
 }
 
 // String implements fmt.Stringer

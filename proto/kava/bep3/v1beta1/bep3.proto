@@ -9,19 +9,18 @@ option go_package = "github.com/kava-labs/kava/x/bep3/types";
 
 // Params defines the parameters for the bep3 module.
 message Params {
+  option (gogoproto.goproto_stringer) = false;
+
   repeated AssetParam asset_params = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"asset_params\""];
 }
 
 // AssetParam defines parameters for each bep3 asset.
 message AssetParam {
-  string denom   = 1 [(gogoproto.moretags) = "yaml:\"denom\""];
-  bytes  coin_id = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false,
-    (gogoproto.moretags)   = "yaml:\"coin_id\"",
-    (gogoproto.customname) = "CoinID"
-  ];
-  SupplyLimit supply_limit   = 3 [(gogoproto.moretags) = "yaml:\"supply_limit\""];
+  option (gogoproto.goproto_stringer) = false;
+
+  string      denom          = 1 [(gogoproto.moretags) = "yaml:\"denom\""];
+  int         coin_id        = 2 [(gogoproto.customname) = "CoinID"];
+  SupplyLimit supply_limit   = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"supply_limit\""];
   bool        active         = 4 [(gogoproto.moretags) = "yaml:\"active\""];
   string      deputy_address = 5 [(gogoproto.moretags) = "yaml:\"deputy_address\""];
   bytes       fixed_fee      = 6 [
@@ -45,6 +44,8 @@ message AssetParam {
 
 // SupplyLimit define the absolute and time-based limits for an assets's supply.
 message SupplyLimit {
+  option (gogoproto.goproto_stringer) = false;
+
   bytes limit = 1 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable)   = false,
@@ -109,6 +110,8 @@ message AtomicSwap {
 
 // AssetSupply defines information about an asset's supply.
 message AssetSupply {
+  option (gogoproto.goproto_stringer) = false;
+
   cosmos.base.v1beta1.Coin incoming_supply = 1 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
     (gogoproto.nullable)   = false,

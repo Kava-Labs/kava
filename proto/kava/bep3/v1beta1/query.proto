@@ -82,7 +82,9 @@ message QueryAtomicSwapRequest {
   option (gogoproto.goproto_getters) = false;
 
   // TODO: Do we need to cast to custom type tmbytes.HexBytes
-  bytes swap_id = 1 [(gogoproto.moretags) = "yaml:\"swap_id\"", (gogoproto.customname) = "SwapID"];
+  // We can't use customname here since grpc-gateway will use the original generated field name
+  // https://github.com/gogo/protobuf/issues/331
+  bytes swap_id = 1 [(gogoproto.moretags) = "yaml:\"swap_id\""];
 
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }

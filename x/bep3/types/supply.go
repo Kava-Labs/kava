@@ -8,15 +8,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// AssetSupply contains information about an asset's supply
-type AssetSupply struct {
-	IncomingSupply           sdk.Coin      `json:"incoming_supply"  yaml:"incoming_supply"`
-	OutgoingSupply           sdk.Coin      `json:"outgoing_supply"  yaml:"outgoing_supply"`
-	CurrentSupply            sdk.Coin      `json:"current_supply"  yaml:"current_supply"`
-	TimeLimitedCurrentSupply sdk.Coin      `json:"time_limited_current_supply" yaml:"time_limited_current_supply"`
-	TimeElapsed              time.Duration `json:"time_elapsed" yaml:"time_elapsed"`
-}
-
 // NewAssetSupply initializes a new AssetSupply
 func NewAssetSupply(incomingSupply, outgoingSupply, currentSupply, timeLimitedSupply sdk.Coin, timeElapsed time.Duration) AssetSupply {
 	return AssetSupply{
