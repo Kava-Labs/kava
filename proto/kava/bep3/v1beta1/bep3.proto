@@ -2,20 +2,87 @@ syntax = "proto3";
 package kava.bep3.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/duration.proto";
 
 option go_package = "github.com/kava-labs/kava/x/bep3/types";
 
-enum SwapStatus {
-  NULL      = 0x00;
-  OPEN      = 0x01;
-  COMPLETED = 0x02;
-  EXPIRED   = 0x03;
+// Params defines the parameters for the bep3 module.
+message Params {
+  repeated AssetParam asset_params = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"asset_params\""];
 }
 
+// AssetParam defines parameters for each bep3 asset.
+message AssetParam {
+  string denom   = 1 [(gogoproto.moretags) = "yaml:\"denom\""];
+  bytes  coin_id = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"coin_id\"",
+    (gogoproto.customname) = "CoinID"
+  ];
+  SupplyLimit supply_limit   = 3 [(gogoproto.moretags) = "yaml:\"supply_limit\""];
+  bool        active         = 4 [(gogoproto.moretags) = "yaml:\"active\""];
+  string      deputy_address = 5 [(gogoproto.moretags) = "yaml:\"deputy_address\""];
+  bytes       fixed_fee      = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"fixed_fee\""
+  ];
+  bytes min_swap_amount = 7 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"min_swap_amount\""
+  ];
+  bytes max_swap_amount = 8 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"max_swap_amount\""
+  ];
+  uint64 min_block_lock = 9 [(gogoproto.moretags) = "yaml:\"min_block_lock\""];
+  uint64 max_block_lock = 10 [(gogoproto.moretags) = "yaml:\"max_block_lock\""];
+}
+
+// SupplyLimit define the absolute and time-based limits for an assets's supply.
+message SupplyLimit {
+  bytes limit = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"limit\""
+  ];
+  bool                     time_limited = 2 [(gogoproto.moretags) = "yaml:\"time_limited\""];
+  google.protobuf.Duration time_period  = 3 [
+    (gogoproto.nullable)    = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags)    = "yaml:\"time_period,omitempty\""
+  ];
+  bytes time_based_limit = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"time_based_limit\""
+  ];
+}
+
+// SwapStatus is the status of an AtomicSwap
+enum SwapStatus {
+  // AtomicSwap is unspecified
+  SWAP_STATUS_UNSPECIFIED = 0x00;
+  // AtomicSwap is open
+  SWAP_STATUS_OPEN = 0x01;
+  // AtomicSwap is completed
+  SWAP_STATUS_COMPLETED = 0x02;
+  // AtomicSwap is expired
+  SWAP_STATUS_EXPIRED = 0x03;
+}
+
+// SwapDirection is the direction of an AtomicSwap
 enum SwapDirection {
-  INVALID  = 0x00;
-  INCOMING = 0x01;
-  OUTGOING = 0x02;
+  // SwapDirection is unspecified or invalid
+  SWAP_DIRECTION_UNSPECIFIED = 0x00;
+  // SwapDirection is incoming
+  SWAP_DIRECTION_INCOMING = 0x01;
+  // SwapDirection is outgoing
+  SWAP_DIRECTION_OUTGOING = 0x02;
 }
 
 // Params defines the parameters for the pricefeed module.
@@ -27,19 +94,20 @@ message AtomicSwap {
     (gogoproto.nullable)     = false,
     (gogoproto.moretags)     = "yaml:\"amount\""
   ];
-  bytes      random_number_hash    = 2 [(gogoproto.moretags) = "yaml:\"random_number_hash\""];
-  uint64     expire_height         = 3 [(gogoproto.moretags) = "yaml:\"expire_height\""];
-  int64      timestamp             = 4 [(gogoproto.moretags) = "yaml:\"timestamp\""];
-  string     sender                = 5 [(gogoproto.moretags) = "yaml:\"sender\""];
-  string     recipient             = 6 [(gogoproto.moretags) = "yaml:\"recipient\""];
-  string     sender_other_chain    = 7 [(gogoproto.moretags) = "yaml:\"sender_other_chain\""];
-  string     recipient_other_chain = 8 [(gogoproto.moretags) = "yaml:\"recipient_other_chain\""];
-  int64      closed_block          = 9 [(gogoproto.moretags) = "yaml:\"closed_block\""];
-  SwapStatus status                = 10 [(gogoproto.moretags) = "yaml:\"status\""];
-  bool       cross_chain           = 11 [(gogoproto.moretags) = "yaml:\"cross_chain\""];
-  SwapDirection direction = 12 [(gogoproto.moretags) = "yaml:\"direction\""];
+  bytes         random_number_hash    = 2 [(gogoproto.moretags) = "yaml:\"random_number_hash\""];
+  uint64        expire_height         = 3 [(gogoproto.moretags) = "yaml:\"expire_height\""];
+  int64         timestamp             = 4 [(gogoproto.moretags) = "yaml:\"timestamp\""];
+  string        sender                = 5 [(gogoproto.moretags) = "yaml:\"sender\""];
+  string        recipient             = 6 [(gogoproto.moretags) = "yaml:\"recipient\""];
+  string        sender_other_chain    = 7 [(gogoproto.moretags) = "yaml:\"sender_other_chain\""];
+  string        recipient_other_chain = 8 [(gogoproto.moretags) = "yaml:\"recipient_other_chain\""];
+  int64         closed_block          = 9 [(gogoproto.moretags) = "yaml:\"closed_block\""];
+  SwapStatus    status                = 10 [(gogoproto.moretags) = "yaml:\"status\""];
+  bool          cross_chain           = 11 [(gogoproto.moretags) = "yaml:\"cross_chain\""];
+  SwapDirection direction             = 12 [(gogoproto.moretags) = "yaml:\"direction\""];
 }
 
+// AssetSupply defines information about an asset's supply.
 message AssetSupply {
   cosmos.base.v1beta1.Coin incoming_supply = 1 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",

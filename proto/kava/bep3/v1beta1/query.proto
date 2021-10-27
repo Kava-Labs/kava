@@ -5,7 +5,6 @@ import "kava/bep3/v1beta1/bep3.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/kava-labs/kava/x/bep3/types";
 
@@ -91,9 +90,9 @@ message QueryAtomicSwapRequest {
 // QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 message QueryAtomicSwapResponse {
   string     id          = 1 [(gogoproto.moretags) = "yaml:\"id\"", (gogoproto.customname) = "ID"];
-  AtomicSwap atomic_swap = 1 [(gogoproto.nullable) = false];
+  AtomicSwap atomic_swap = 2 [(gogoproto.nullable) = false];
 
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }
 
 // QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
@@ -103,16 +102,16 @@ message QueryAtomicSwapsRequest {
 
   string        involve    = 1 [(gogoproto.moretags) = "yaml:\"involve\""];
   uint64        expiration = 2 [(gogoproto.moretags) = "yaml:\"expiration\""];
-  SwapStatus    status     = 2 [(gogoproto.moretags) = "yaml:\"status\""];
-  SwapDirection direction  = 2 [(gogoproto.moretags) = "yaml:\"direction\""];
+  SwapStatus    status     = 3 [(gogoproto.moretags) = "yaml:\"status\""];
+  SwapDirection direction  = 4 [(gogoproto.moretags) = "yaml:\"direction\""];
 
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 5;
 }
 
 // QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 message QueryAtomicSwapsResponse {
   string              id          = 1 [(gogoproto.moretags) = "yaml\"id\"", (gogoproto.customname) = "ID"];
-  repeated AtomicSwap atomic_swap = 1 [(gogoproto.nullable) = false];
+  repeated AtomicSwap atomic_swap = 2 [(gogoproto.nullable) = false];
 
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }
