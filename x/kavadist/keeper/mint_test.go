@@ -41,8 +41,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-	coins := []sdk.Coins{sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000000000000)))}
-	authGS := app.NewAuthGenState(tApp.AppCodec(), addrs)
+	coins := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000000000000)))
+	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
@@ -52,9 +52,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 		authGS,
 		gs,
 	)
-	for i := range addrs {
-		tApp.FundAccount(ctx, addrs[i], coins[i])
-	}
 	suite.app = tApp
 	suite.ctx = ctx
 	suite.keeper = tApp.GetKavadistKeeper()

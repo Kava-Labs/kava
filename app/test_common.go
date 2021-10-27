@@ -149,8 +149,7 @@ func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAdd
 }
 
 // FundAccount is a utility function that funds an account by minting and
-// sending the coins to the address. This should be used for testing purposes
-// only!
+// sending the coins to the address.
 func (tApp TestApp) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
 	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
 		return err
