@@ -13,6 +13,8 @@ const (
 	QueryGetCdpsByCollateralType    = "collateralType" // legacy query, maintained for REST API
 	QueryGetParams                  = "params"
 	QueryGetAccounts                = "accounts"
+	QueryGetTotalPrincipal          = "totalPrincipal"
+	QueryGetTotalCollateral         = "totalCollateral"
 	RestOwner                       = "owner"
 	RestCollateralType              = "collateral-type"
 	RestRatio                       = "ratio"
@@ -91,5 +93,29 @@ func NewQueryCdpsByRatioParams(collateralType string, ratio sdk.Dec) QueryCdpsBy
 	return QueryCdpsByRatioParams{
 		CollateralType: collateralType,
 		Ratio:          ratio,
+	}
+}
+
+// QueryGetTotalPrincipalParams params for query /cdp/totalPrincipal
+type QueryGetTotalPrincipalParams struct {
+	CollateralType string
+}
+
+// NewQueryGetTotalPrincipalParams returns QueryGetTotalPrincipalParams
+func NewQueryGetTotalPrincipalParams(collateralType string) QueryGetTotalPrincipalParams {
+	return QueryGetTotalPrincipalParams{
+		CollateralType: collateralType,
+	}
+}
+
+// QueryGetTotalCollateralParams params for query /cdp/totalCollateral
+type QueryGetTotalCollateralParams struct {
+	CollateralType string
+}
+
+// NewQueryGetTotalCollateralParams returns QueryGetTotalCollateralParams
+func NewQueryGetTotalCollateralParams(collateralType string) QueryGetTotalCollateralParams {
+	return QueryGetTotalCollateralParams{
+		CollateralType: collateralType,
 	}
 }
