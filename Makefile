@@ -2,6 +2,7 @@
 
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 TM_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
+COSMOS_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
 PROJECT_NAME = kava
@@ -170,32 +171,30 @@ proto-lint:
 proto-check-breaking:
 	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=upgrade-v44
 
-COSMOS_SDK_VERSION = v0.44.2
-
-TM_URL           = https://raw.githubusercontent.com/tendermint/tendermint/v0.34.0/proto/tendermint
-GOGO_PROTO_URL   = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
+TM_URL = https://raw.githubusercontent.com/tendermint/tendermint/$(TM_VERSION)/proto/tendermint
+GOGO_PROTO_URL = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
 COSMOS_PROTO_URL = https://raw.githubusercontent.com/regen-network/cosmos-proto/master
-COSMOS_SDK_PROTO_URL = https://raw.githubusercontent.com/cosmos/cosmos-sdk/${COSMOS_SDK_VERSION}/proto/cosmos
+COSMOS_SDK_PROTO_URL = https://raw.githubusercontent.com/cosmos/cosmos-sdk/${COSMOS_VERSION}/proto/cosmos
 COSMOS_SDK_BASE_PROTO_URL = ${COSMOS_SDK_PROTO_URL}/base
-GOOGLE_PROTO_URL   = https://raw.githubusercontent.com/googleapis/googleapis/master/google/api
+GOOGLE_PROTO_URL = https://raw.githubusercontent.com/googleapis/googleapis/master/google/api
 PROTOBUF_GOOGLE_URL = https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf
 
-TM_CRYPTO_TYPES     = third_party/proto/tendermint/crypto
-TM_ABCI_TYPES       = third_party/proto/tendermint/abci
-TM_TYPES     	    = third_party/proto/tendermint/types
-TM_VERSION 			= third_party/proto/tendermint/version
-TM_LIBS				= third_party/proto/tendermint/libs/bits
+TM_CRYPTO_TYPES = third_party/proto/tendermint/crypto
+TM_ABCI_TYPES = third_party/proto/tendermint/abci
+TM_TYPES = third_party/proto/tendermint/types
+TM_VERSION = third_party/proto/tendermint/version
+TM_LIBS = third_party/proto/tendermint/libs/bits
 
-GOGO_PROTO_TYPES    = third_party/proto/gogoproto
-COSMOS_PROTO_TYPES  = third_party/proto/cosmos_proto
-GOOGLE_PROTO_TYPES  = third_party/proto/google/api
+GOGO_PROTO_TYPES = third_party/proto/gogoproto
+COSMOS_PROTO_TYPES = third_party/proto/cosmos_proto
+GOOGLE_PROTO_TYPES = third_party/proto/google/api
 PROTOBUF_GOOGLE_TYPES = third_party/proto/google/protobuf
 
-SDK_ABCI_TYPES  	= third_party/proto/cosmos/base/abci/v1beta1
-SDK_QUERY_TYPES  	= third_party/proto/cosmos/base/query/v1beta1
-SDK_VESTING_TYPES  	= third_party/proto/cosmos/vesting/v1beta1
-SDK_AUTH_TYPES  	= third_party/proto/cosmos/auth/v1beta1
-SDK_COIN_TYPES  	= third_party/proto/cosmos/base/v1beta1
+SDK_ABCI_TYPES = third_party/proto/cosmos/base/abci/v1beta1
+SDK_QUERY_TYPES = third_party/proto/cosmos/base/query/v1beta1
+SDK_VESTING_TYPES = third_party/proto/cosmos/vesting/v1beta1
+SDK_AUTH_TYPES = third_party/proto/cosmos/auth/v1beta1
+SDK_COIN_TYPES = third_party/proto/cosmos/base/v1beta1
 
 proto-update-deps:
 	mkdir -p $(GOGO_PROTO_TYPES)
