@@ -139,8 +139,7 @@ localnet-stop:
 
 # Launch a new single validator chain
 start:
-	./contrib/devnet/init-new-chain.sh
-	kava start
+	kava --home ./contrib/devnet/home start
 
 ###############################################################################
 ###                                Protobuf                                 ###
