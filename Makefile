@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
+TM_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
 export GO111MODULE = on
@@ -45,11 +46,11 @@ build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 # process linker flags
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=kava \
-		  -X github.com/cosmos/cosmos-sdk/version.ServerName=kvd \
-		  -X github.com/cosmos/cosmos-sdk/version.ClientName=kvcli \
+		  -X github.com/cosmos/cosmos-sdk/version.AppName=kava \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
+		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
+		  -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_VERSION)
 
 ifeq ($(WITH_CLEVELDB),yes)
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
@@ -64,19 +65,16 @@ all: install
 
 build: go.sum
 ifeq ($(OS), Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd.exe ./cmd/kvd
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvcli.exe ./cmd/kvcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kava.exe ./cmd/kava
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd ./cmd/kvd
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvcli ./cmd/kvcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kava ./cmd/kava
 endif
 
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
 install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvd
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvcli
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kava
 
 ########################################
 ### Tools & dependencies
@@ -133,6 +131,11 @@ localnet-start: build-linux localnet-stop
 localnet-stop:
 	docker-compose down
 
+# Launch a new single validator chain
+start:
+	./contrib/devnet/init-new-chain.sh
+	kava start
+
 ########################################
 ### Testing
 
@@ -161,9 +164,6 @@ test-basic: test
 
 test:
 	@go test $$(go list ./... | grep -v 'migrate\|contrib')
-
-test-rest:
-	rest_test/run_all_tests_from_make.sh
 
 # Run cli integration tests
 # `-p 4` to use 4 cores, `-tags cli_test` to tell go not to ignore the cli package

@@ -1,5 +1,7 @@
 package params
 
+// TODO this has not been updated for v0.44
+
 // Simulation parameter constants
 const (
 	StakePerAccount           = "stake_per_account"
