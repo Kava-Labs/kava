@@ -46,28 +46,28 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, supplyKeeper types.Suppl
 		// Add swap to block index or longterm storage based on swap.Status
 		// Increment incoming or outgoing supply based on swap.Direction
 		switch swap.Direction {
-		case types.SwapDirection_SWAP_DIRECTION_INCOMING:
+		case types.SWAP_DIRECTION_INCOMING:
 			switch swap.Status {
-			case types.SwapStatus_SWAP_STATUS_OPEN:
+			case types.SWAP_STATUS_OPEN:
 				// This index expires unclaimed swaps
 				keeper.InsertIntoByBlockIndex(ctx, swap)
 				incomingSupplies = incomingSupplies.Add(swap.Amount...)
-			case types.SwapStatus_SWAP_STATUS_EXPIRED:
+			case types.SWAP_STATUS_EXPIRED:
 				incomingSupplies = incomingSupplies.Add(swap.Amount...)
-			case types.SwapStatus_SWAP_STATUS_COMPLETED:
+			case types.SWAP_STATUS_COMPLETED:
 				// This index stores swaps until deletion
 				keeper.InsertIntoLongtermStorage(ctx, swap)
 			default:
 				panic(fmt.Sprintf("swap %s has invalid status %s", swap.GetSwapID(), swap.Status.String()))
 			}
-		case types.SwapDirection_SWAP_DIRECTION_OUTGOING:
+		case types.SWAP_DIRECTION_OUTGOING:
 			switch swap.Status {
-			case types.SwapStatus_SWAP_STATUS_OPEN:
+			case types.SWAP_STATUS_OPEN:
 				keeper.InsertIntoByBlockIndex(ctx, swap)
 				outgoingSupplies = outgoingSupplies.Add(swap.Amount...)
-			case types.SwapStatus_SWAP_STATUS_EXPIRED:
+			case types.SWAP_STATUS_EXPIRED:
 				outgoingSupplies = outgoingSupplies.Add(swap.Amount...)
-			case types.SwapStatus_SWAP_STATUS_COMPLETED:
+			case types.SWAP_STATUS_COMPLETED:
 				keeper.InsertIntoLongtermStorage(ctx, swap)
 			default:
 				panic(fmt.Sprintf("swap %s has invalid status %s", swap.GetSwapID(), swap.Status.String()))

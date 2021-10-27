@@ -78,13 +78,13 @@ func (a AtomicSwap) Validate() error {
 	if strings.TrimSpace(a.RecipientOtherChain) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient other chain cannot be blank")
 	}
-	if a.Status == SwapStatus_SWAP_STATUS_COMPLETED && a.ClosedBlock == 0 {
+	if a.Status == SWAP_STATUS_COMPLETED && a.ClosedBlock == 0 {
 		return errors.New("closed block cannot be 0")
 	}
-	if a.Status == SwapStatus_SWAP_STATUS_UNSPECIFIED || a.Status > 3 {
+	if a.Status == SWAP_STATUS_UNSPECIFIED || a.Status > 3 {
 		return errors.New("invalid swap status")
 	}
-	if a.Direction == SwapDirection_SWAP_DIRECTION_UNSPECIFIED || a.Direction > 2 {
+	if a.Direction == SWAP_DIRECTION_UNSPECIFIED || a.Direction > 2 {
 		return errors.New("invalid swap direction")
 	}
 	return nil
@@ -115,9 +115,9 @@ func (a AtomicSwap) String() string {
 
 // IsValid returns true if the swap status is valid and false otherwise.
 func (status SwapStatus) IsValid() bool {
-	if status == SwapStatus_SWAP_STATUS_OPEN ||
-		status == SwapStatus_SWAP_STATUS_COMPLETED ||
-		status == SwapStatus_SWAP_STATUS_EXPIRED {
+	if status == SWAP_STATUS_OPEN ||
+		status == SWAP_STATUS_COMPLETED ||
+		status == SWAP_STATUS_EXPIRED {
 		return true
 	}
 	return false
@@ -125,8 +125,8 @@ func (status SwapStatus) IsValid() bool {
 
 // IsValid returns true if the swap direction is valid and false otherwise.
 func (direction SwapDirection) IsValid() bool {
-	if direction == SwapDirection_SWAP_DIRECTION_INCOMING ||
-		direction == SwapDirection_SWAP_DIRECTION_OUTGOING {
+	if direction == SWAP_DIRECTION_INCOMING ||
+		direction == SWAP_DIRECTION_OUTGOING {
 		return true
 	}
 	return false

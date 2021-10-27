@@ -62,6 +62,7 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 )
 
 const (
@@ -142,6 +143,7 @@ type App struct {
 	crisisKeeper   crisiskeeper.Keeper
 	paramsKeeper   paramskeeper.Keeper
 	evidenceKeeper evidencekeeper.Keeper
+	bep3Keeper     bep3keeper.Keeper
 
 	// the module manager
 	mm *module.Manager

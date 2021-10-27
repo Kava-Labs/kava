@@ -66,6 +66,8 @@ message SupplyLimit {
 
 // SwapStatus is the status of an AtomicSwap
 enum SwapStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
   // AtomicSwap is unspecified
   SWAP_STATUS_UNSPECIFIED = 0x00;
   // AtomicSwap is open
@@ -78,6 +80,8 @@ enum SwapStatus {
 
 // SwapDirection is the direction of an AtomicSwap
 enum SwapDirection {
+  option (gogoproto.goproto_enum_prefix) = false;
+
   // SwapDirection is unspecified or invalid
   SWAP_DIRECTION_UNSPECIFIED = 0x00;
   // SwapDirection is incoming

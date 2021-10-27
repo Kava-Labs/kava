@@ -21,6 +21,7 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -82,7 +83,8 @@ func (tApp TestApp) GetParamsKeeper() paramskeeper.Keeper       { return tApp.pa
 // func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
 // func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeeper }
 // func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper { return tApp.pricefeedKeeper }
-// func (tApp TestApp) GetBep3Keeper() bep3.Keeper           { return tApp.bep3Keeper }
+func (tApp TestApp) GetBep3Keeper() bep3keeper.Keeper { return tApp.bep3Keeper }
+
 // func (tApp TestApp) GetKavadistKeeper() kavadist.Keeper   { return tApp.kavadistKeeper }
 // func (tApp TestApp) GetIncentiveKeeper() incentive.Keeper { return tApp.incentiveKeeper }
 // func (tApp TestApp) GetHardKeeper() hard.Keeper           { return tApp.hardKeeper }
