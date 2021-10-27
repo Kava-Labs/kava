@@ -110,9 +110,9 @@ func TestBasePool_InitialState(t *testing.T) {
 		t.Run(fmt.Sprintf("reservesA=%s reservesB=%s", tc.reservesA, tc.reservesB), func(t *testing.T) {
 			pool, err := types.NewBasePool(tc.reservesA, tc.reservesB)
 			require.Nil(t, err)
-			assert.Equal(t, tc.reservesA, pool.ReservesA)
-			assert.Equal(t, tc.reservesB, pool.ReservesB)
-			assert.Equal(t, tc.expectedShares, pool.TotalShares)
+			assert.Equal(t, tc.reservesA, pool.ReservesA())
+			assert.Equal(t, tc.reservesB, pool.ReservesB())
+			assert.Equal(t, tc.expectedShares, pool.TotalShares())
 		})
 	}
 }
@@ -135,9 +135,9 @@ func TestBasePool_ExistingState(t *testing.T) {
 		t.Run(fmt.Sprintf("reservesA=%s reservesB=%s shares=%s", tc.reservesA, tc.reservesB, tc.totalShares), func(t *testing.T) {
 			pool, err := types.NewBasePoolWithExistingShares(tc.reservesA, tc.reservesB, tc.totalShares)
 			require.Nil(t, err)
-			assert.Equal(t, tc.reservesA, pool.ReservesA)
-			assert.Equal(t, tc.reservesB, pool.ReservesB)
-			assert.Equal(t, tc.totalShares, pool.TotalShares)
+			assert.Equal(t, tc.reservesA, pool.ReservesA())
+			assert.Equal(t, tc.reservesB, pool.ReservesB())
+			assert.Equal(t, tc.totalShares, pool.TotalShares())
 		})
 	}
 }
@@ -163,7 +163,7 @@ func TestBasePool_ShareValue_PoolCreator(t *testing.T) {
 			pool, err := types.NewBasePool(tc.reservesA, tc.reservesB)
 			assert.NoError(t, err)
 
-			a, b := pool.ShareValue(pool.TotalShares)
+			a, b := pool.ShareValue(pool.TotalShares())
 			// pool creators experience zero truncation error and always
 			// and always receive their original balance on a 100% withdraw
 			// when there are no other deposits that result in a fractional share ownership
@@ -212,7 +212,7 @@ func TestBasePool_AddLiquidity(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			pool, err := types.NewBasePool(tc.initialA, tc.initialB)
 			require.NoError(t, err)
-			initialShares := pool.TotalShares
+			initialShares := pool.TotalShares()
 
 			actualA, actualB, actualShares := pool.AddLiquidity(tc.desiredA, tc.desiredB)
 
@@ -222,9 +222,9 @@ func TestBasePool_AddLiquidity(t *testing.T) {
 			assert.Equal(t, tc.expectedShares, actualShares, "calculated shares not equal")
 
 			// assert pool liquidity and shares are updated
-			assert.Equal(t, tc.initialA.Add(actualA), pool.ReservesA, "total reserves A not equal")
-			assert.Equal(t, tc.initialB.Add(actualB), pool.ReservesB, "total reserves B not equal")
-			assert.Equal(t, initialShares.Add(actualShares), pool.TotalShares, "total shares not equal")
+			assert.Equal(t, tc.initialA.Add(actualA), pool.ReservesA(), "total reserves A not equal")
+			assert.Equal(t, tc.initialB.Add(actualB), pool.ReservesB(), "total reserves B not equal")
+			assert.Equal(t, initialShares.Add(actualShares), pool.TotalShares(), "total shares not equal")
 
 			leftA := actualShares.BigInt()
 			leftA.Mul(leftA, tc.initialA.BigInt())
@@ -272,7 +272,7 @@ func TestBasePool_RemoveLiquidity(t *testing.T) {
 		t.Run(fmt.Sprintf("reservesA=%s reservesB=%s shares=%s", tc.reservesA, tc.reservesB, tc.shares), func(t *testing.T) {
 			pool, err := types.NewBasePool(tc.reservesA, tc.reservesB)
 			assert.NoError(t, err)
-			initialShares := pool.TotalShares
+			initialShares := pool.TotalShares()
 
 			a, b := pool.RemoveLiquidity(tc.shares)
 
@@ -283,9 +283,9 @@ func TestBasePool_RemoveLiquidity(t *testing.T) {
 			assert.Equal(t, tc.expectedB, b, "withdrawn B not equal")
 
 			// asset that pool state is updated
-			assert.Equal(t, tc.reservesA.Sub(a), pool.ReservesA, "reserves A after withdraw not equal")
-			assert.Equal(t, tc.reservesB.Sub(b), pool.ReservesB, "reserves B after withdraw not equal")
-			assert.Equal(t, initialShares.Sub(tc.shares), pool.TotalShares, "total shares after withdraw not equal")
+			assert.Equal(t, tc.reservesA.Sub(a), pool.ReservesA(), "reserves A after withdraw not equal")
+			assert.Equal(t, tc.reservesB.Sub(b), pool.ReservesB(), "reserves B after withdraw not equal")
+			assert.Equal(t, initialShares.Sub(tc.shares), pool.TotalShares(), "total shares after withdraw not equal")
 		})
 	}
 }
@@ -294,8 +294,8 @@ func TestBasePool_Panic_OutOfBounds(t *testing.T) {
 	pool, err := types.NewBasePool(sdk.NewInt(100), sdk.NewInt(100))
 	require.NoError(t, err)
 
-	assert.Panics(t, func() { pool.ShareValue(pool.TotalShares.Add(sdk.NewInt(1))) }, "ShareValue did not panic when shares > totalShares")
-	assert.Panics(t, func() { pool.RemoveLiquidity(pool.TotalShares.Add(sdk.NewInt(1))) }, "RemoveLiquidity did not panic when shares > totalShares")
+	assert.Panics(t, func() { pool.ShareValue(pool.TotalShares().Add(sdk.NewInt(1))) }, "ShareValue did not panic when shares > totalShares")
+	assert.Panics(t, func() { pool.RemoveLiquidity(pool.TotalShares().Add(sdk.NewInt(1))) }, "RemoveLiquidity did not panic when shares > totalShares")
 }
 
 func TestBasePool_EmptyAndRefill(t *testing.T) {
@@ -321,14 +321,14 @@ func TestBasePool_EmptyAndRefill(t *testing.T) {
 			pool, err := types.NewBasePool(tc.reservesA, tc.reservesB)
 			require.NoError(t, err)
 
-			initialShares := pool.TotalShares
+			initialShares := pool.TotalShares()
 			pool.RemoveLiquidity(initialShares)
 
 			assert.True(t, pool.IsEmpty())
-			assert.True(t, pool.TotalShares.IsZero(), "total shares are not depleted")
+			assert.True(t, pool.TotalShares().IsZero(), "total shares are not depleted")
 
 			pool.AddLiquidity(tc.reservesA, tc.reservesB)
-			assert.Equal(t, initialShares, pool.TotalShares, "total shares not equal")
+			assert.Equal(t, initialShares, pool.TotalShares(), "total shares not equal")
 		})
 	}
 }
@@ -401,11 +401,11 @@ func TestBasePool_ReservesOnlyDepletedWithLastShare(t *testing.T) {
 			pool, err := types.NewBasePool(tc.reservesA, tc.reservesB)
 			require.NoError(t, err)
 
-			initialShares := pool.TotalShares
+			initialShares := pool.TotalShares()
 			pool.RemoveLiquidity(initialShares.Sub(i(1)))
 
-			assert.False(t, pool.ReservesA.IsZero(), "reserves A equal to zero")
-			assert.False(t, pool.ReservesB.IsZero(), "reserves B equal to zero")
+			assert.False(t, pool.ReservesA().IsZero(), "reserves A equal to zero")
+			assert.False(t, pool.ReservesB().IsZero(), "reserves B equal to zero")
 
 			pool.RemoveLiquidity(i(1))
 			assert.True(t, pool.IsEmpty())
@@ -456,8 +456,8 @@ func TestBasePool_Swap_ExactInput(t *testing.T) {
 			// then the results should be equal
 			require.Equal(t, swapA, swapB, "expected swap methods to have equal swap results")
 			require.Equal(t, feeA, feeB, "expected swap methods to have equal fee results")
-			require.Equal(t, poolA.ReservesA, poolB.ReservesB, "expected reserves A to be equal")
-			require.Equal(t, poolA.ReservesB, poolB.ReservesA, "expected reserves B to be equal")
+			require.Equal(t, poolA.ReservesA(), poolB.ReservesB(), "expected reserves A to be equal")
+			require.Equal(t, poolA.ReservesB(), poolB.ReservesA(), "expected reserves B to be equal")
 
 			assert.Equal(t, tc.expectedOutput, swapA, "returned swap not equal")
 			assert.Equal(t, tc.expectedFee, feeA, "returned fee not equal")
@@ -465,8 +465,8 @@ func TestBasePool_Swap_ExactInput(t *testing.T) {
 			expectedReservesA := tc.reservesA.Add(tc.exactInput)
 			expectedReservesB := tc.reservesB.Sub(tc.expectedOutput)
 
-			assert.Equal(t, expectedReservesA, poolA.ReservesA, "expected new reserves A not equal")
-			assert.Equal(t, expectedReservesB, poolA.ReservesB, "expected new reserves B not equal")
+			assert.Equal(t, expectedReservesA, poolA.ReservesA(), "expected new reserves A not equal")
+			assert.Equal(t, expectedReservesB, poolA.ReservesB(), "expected new reserves B not equal")
 		})
 	}
 }
@@ -512,8 +512,8 @@ func TestBasePool_Swap_ExactOutput(t *testing.T) {
 			// then the results should be equal
 			require.Equal(t, swapA, swapB, "expected swap methods to have equal swap results")
 			require.Equal(t, feeA, feeB, "expected swap methods to have equal fee results")
-			require.Equal(t, poolA.ReservesA, poolB.ReservesB, "expected reserves A to be equal")
-			require.Equal(t, poolA.ReservesB, poolB.ReservesA, "expected reserves B to be equal")
+			require.Equal(t, poolA.ReservesA(), poolB.ReservesB(), "expected reserves A to be equal")
+			require.Equal(t, poolA.ReservesB(), poolB.ReservesA(), "expected reserves B to be equal")
 
 			assert.Equal(t, tc.expectedInput.String(), swapA.String(), "returned swap not equal")
 			assert.Equal(t, tc.expectedFee, feeA, "returned fee not equal")
@@ -521,8 +521,8 @@ func TestBasePool_Swap_ExactOutput(t *testing.T) {
 			expectedReservesA := tc.reservesA.Add(tc.expectedInput)
 			expectedReservesB := tc.reservesB.Sub(tc.exactOutput)
 
-			assert.Equal(t, expectedReservesA, poolA.ReservesA, "expected new reserves A not equal")
-			assert.Equal(t, expectedReservesB, poolA.ReservesB, "expected new reserves B not equal")
+			assert.Equal(t, expectedReservesA, poolA.ReservesA(), "expected new reserves A not equal")
+			assert.Equal(t, expectedReservesB, poolA.ReservesB(), "expected new reserves B not equal")
 		})
 	}
 }
