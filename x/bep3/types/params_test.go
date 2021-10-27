@@ -36,7 +36,6 @@ func (suite *ParamsTestSuite) SetupTest() {
 		TimePeriod:     time.Hour * 24,
 	}
 	suite.supply = append(suite.supply, supply1, supply2)
-	return
 }
 
 func (suite *ParamsTestSuite) TestParamValidation() {

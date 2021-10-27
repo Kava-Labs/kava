@@ -32,7 +32,6 @@ func (suite *HashTestSuite) SetupTest() {
 
 	suite.addrs = strAddrs
 	suite.timestamps = timestamps
-	return
 }
 
 func (suite *HashTestSuite) TestGenerateSecureRandomNumber() {

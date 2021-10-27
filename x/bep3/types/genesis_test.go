@@ -69,7 +69,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"invalid supply",
 			args{
 				swaps:             []types.AtomicSwap{},
-				supplies:          types.AssetSupplies{types.AssetSupply{IncomingSupply: sdk.Coin{"Invalid", sdk.ZeroInt()}}},
+				supplies:          types.AssetSupplies{types.AssetSupply{IncomingSupply: sdk.Coin{Denom: "Invalid", Amount: sdk.ZeroInt()}}},
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,
@@ -85,7 +85,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"invalid swap",
 			args{
-				swaps:             []types.AtomicSwap{types.AtomicSwap{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}}}},
+				swaps:             []types.AtomicSwap{{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}}}},
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,

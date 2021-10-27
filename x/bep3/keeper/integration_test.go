@@ -39,7 +39,7 @@ func NewBep3GenStateMulti(deputyAddress string) app.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
 			AssetParams: []types.AssetParam{
-				types.AssetParam{
+				{
 					Denom:  "bnb",
 					CoinID: 714,
 					SupplyLimit: types.SupplyLimit{
@@ -56,7 +56,7 @@ func NewBep3GenStateMulti(deputyAddress string) app.GenesisState {
 					MinBlockLock:  types.DefaultMinBlockLock,
 					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},
-				types.AssetParam{
+				{
 					Denom:  "inc",
 					CoinID: 9999,
 					SupplyLimit: types.SupplyLimit{
@@ -75,7 +75,7 @@ func NewBep3GenStateMulti(deputyAddress string) app.GenesisState {
 				},
 			},
 		},
-		Supplies: types.AssetSupplies{
+		Supplies: []types.AssetSupply{
 			types.NewAssetSupply(
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
@@ -117,12 +117,12 @@ func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
 		types.SWAP_DIRECTION_INCOMING)
 }
 
-func assetSupplies(count int) types.AssetSupplies {
+func assetSupplies(count int) []types.AssetSupply {
 	if count > 5 { // Max 5 asset supplies
-		return types.AssetSupplies{}
+		return []types.AssetSupply{}
 	}
 
-	var supplies types.AssetSupplies
+	var supplies []types.AssetSupply
 
 	for i := 0; i < count; i++ {
 		supply := assetSupply(DenomMap[i])

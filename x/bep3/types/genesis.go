@@ -8,7 +8,7 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, swaps []AtomicSwap, supplies AssetSupplies, previousBlockTime time.Time) GenesisState {
+func NewGenesisState(params Params, swaps []AtomicSwap, supplies []AssetSupply, previousBlockTime time.Time) GenesisState {
 	return GenesisState{
 		Params:            params,
 		AtomicSwaps:       swaps,
@@ -22,7 +22,7 @@ func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
 		DefaultParams(),
 		[]AtomicSwap{},
-		AssetSupplies{},
+		[]AssetSupply{},
 		DefaultPreviousBlockTime,
 	)
 }

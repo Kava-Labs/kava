@@ -45,7 +45,6 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	suite.addrs = strAddrs
 	suite.timestamps = timestamps
 	suite.randomNumberHashes = randomNumberHashes
-	return
 }
 
 func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
