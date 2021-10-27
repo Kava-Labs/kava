@@ -8,7 +8,7 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, swaps AtomicSwaps, supplies AssetSupplies, previousBlockTime time.Time) GenesisState {
+func NewGenesisState(params Params, swaps []AtomicSwap, supplies AssetSupplies, previousBlockTime time.Time) GenesisState {
 	return GenesisState{
 		Params:            params,
 		AtomicSwaps:       swaps,
@@ -21,7 +21,7 @@ func NewGenesisState(params Params, swaps AtomicSwaps, supplies AssetSupplies, p
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
 		DefaultParams(),
-		AtomicSwaps{},
+		[]AtomicSwap{},
 		AssetSupplies{},
 		DefaultPreviousBlockTime,
 	)
@@ -29,8 +29,8 @@ func DefaultGenesisState() GenesisState {
 
 // Equal checks whether two GenesisState structs are equivalent.
 func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	b1 := ModuleCdc.MustMarshalBinaryBare(gs)
-	b2 := ModuleCdc.MustMarshalBinaryBare(gs2)
+	b1 := ModuleCdc.Amino.MustMarshalBinaryBare(gs)
+	b2 := ModuleCdc.Amino.MustMarshalBinaryBare(gs2)
 	return bytes.Equal(b1, b2)
 }
 

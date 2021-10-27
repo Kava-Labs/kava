@@ -112,7 +112,7 @@ message QueryAtomicSwapsRequest {
 
 // QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 message QueryAtomicSwapsResponse {
-  string              id          = 1 [(gogoproto.moretags) = "yaml\"id\"", (gogoproto.customname) = "ID"];
+  string              id          = 1 [(gogoproto.moretags) = "yaml:\"id\"", (gogoproto.customname) = "ID"];
   repeated AtomicSwap atomic_swap = 2 [(gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 3;

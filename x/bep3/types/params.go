@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
@@ -47,7 +47,7 @@ func DefaultParams() Params {
 
 // NewAssetParam returns a new AssetParam
 func NewAssetParam(
-	denom string, coinID int, limit SupplyLimit, active bool,
+	denom string, coinID int64, limit SupplyLimit, active bool,
 	deputyAddr string, fixedFee sdk.Int, minSwapAmount sdk.Int,
 	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
 ) AssetParam {
@@ -97,16 +97,16 @@ func (sl SupplyLimit) Equals(sl2 SupplyLimit) bool {
 }
 
 // ParamKeyTable Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 // pairs of bep3 module's parameters.
 // nolint
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyAssetParams, &p.AssetParams, validateAssetParams),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyAssetParams, &p.AssetParams, validateAssetParams),
 	}
 }
 
@@ -116,7 +116,7 @@ func (p Params) Validate() error {
 }
 
 func validateAssetParams(i interface{}) error {
-	assetParams, ok := i.(AssetParams)
+	assetParams, ok := i.([]AssetParam)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -150,12 +150,13 @@ func validateAssetParams(i interface{}) error {
 
 		coinDenoms[asset.Denom] = true
 
-		if asset.DeputyAddress.Empty() {
+		if len(asset.DeputyAddress) == 0 {
 			return fmt.Errorf("deputy address cannot be empty for %s", asset.Denom)
 		}
 
-		if len(asset.DeputyAddress.Bytes()) != sdk.AddrLen {
-			return fmt.Errorf("%s deputy address invalid bytes length got %d, want %d", asset.Denom, len(asset.DeputyAddress.Bytes()), sdk.AddrLen)
+		// Verify address format
+		if _, err := sdk.AccAddressFromBech32(asset.DeputyAddress); err != nil {
+			return fmt.Errorf("%s deputy address invalid %w", asset.Denom, err)
 		}
 
 		if asset.FixedFee.IsNegative() {

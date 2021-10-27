@@ -73,7 +73,8 @@ func (msg MsgCreateAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	from, _ := sdk.AccAddressFromBech32(msg.From)
+	return []sdk.AccAddress{from}
 }
 
 // ValidateBasic validates the MsgCreateAtomicSwap
@@ -119,7 +120,7 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 
 // GetSignBytes gets the sign bytes of a MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
@@ -150,12 +151,13 @@ func (msg MsgClaimAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	from, _ := sdk.AccAddressFromBech32(msg.From)
+	return []sdk.AccAddress{from}
 }
 
 // ValidateBasic validates the MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) ValidateBasic() error {
-	if msg.From.Empty() {
+	if len(msg.From) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if len(msg.From) != AddrByteCount {
@@ -172,7 +174,7 @@ func (msg MsgClaimAtomicSwap) ValidateBasic() error {
 
 // GetSignBytes gets the sign bytes of a MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
@@ -202,7 +204,8 @@ func (msg MsgRefundAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	from, _ := sdk.AccAddressFromBech32(msg.From)
+	return []sdk.AccAddress{from}
 }
 
 // ValidateBasic validates the MsgRefundAtomicSwap
@@ -221,6 +224,6 @@ func (msg MsgRefundAtomicSwap) ValidateBasic() error {
 
 // GetSignBytes gets the sign bytes of a MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
