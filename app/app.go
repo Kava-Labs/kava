@@ -107,6 +107,7 @@ var (
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
+		swaptypes.ModuleName:           nil,
 	}
 
 	// DefaultNodeHome is the default home directory for the app binary // TODO would this be better located in cmd?
