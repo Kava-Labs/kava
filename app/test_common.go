@@ -47,16 +47,18 @@ type TestApp struct {
 	App
 }
 
-// NewTestApp creates a new TestApp
-//
-// Note, it also sets the sdk config with the app's address prefix, coin type, etc.
 func NewTestApp() TestApp {
-	SetSDKConfig()
+	config := sdk.GetConfig()
+	SetBech32AddressPrefixes(config)
+	SetBip44CoinType(config)
 
-	return NewTestAppFromSealed()
+	encCfg := MakeEncodingConfig()
+
+	db := tmdb.NewMemDB()
+	app := NewApp(log.NewNopLogger(), db, nil, encCfg, Options{})
+	return TestApp{App: *app}
 }
 
-// NewTestAppFromSealed creates a TestApp without first setting sdk config.
 func NewTestAppFromSealed() TestApp {
 	db := tmdb.NewMemDB()
 
@@ -81,7 +83,7 @@ func (tApp TestApp) GetParamsKeeper() paramskeeper.Keeper       { return tApp.pa
 // func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
 // func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
 // func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeeper }
-// func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper { return tApp.pricefeedKeeper }
+// func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
 // func (tApp TestApp) GetBep3Keeper() bep3.Keeper           { return tApp.bep3Keeper }
 // func (tApp TestApp) GetKavadistKeeper() kavadist.Keeper   { return tApp.kavadistKeeper }
 // func (tApp TestApp) GetIncentiveKeeper() incentive.Keeper { return tApp.incentiveKeeper }
@@ -89,16 +91,6 @@ func (tApp TestApp) GetParamsKeeper() paramskeeper.Keeper       { return tApp.pa
 // func (tApp TestApp) GetCommitteeKeeper() committee.Keeper { return tApp.committeeKeeper }
 // func (tApp TestApp) GetIssuanceKeeper() issuance.Keeper   { return tApp.issuanceKeeper }
 func (tApp TestApp) GetSwapKeeper() swapkeeper.Keeper { return tApp.swapKeeper }
-
-// LegacyAmino returns the app's amino codec.
-func (app *App) LegacyAmino() *codec.LegacyAmino {
-	return app.legacyAmino
-}
-
-// AppCodec returns the app's app codec.
-func (app *App) AppCodec() codec.Codec {
-	return app.appCodec
-}
 
 // InitializeFromGenesisStates calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
