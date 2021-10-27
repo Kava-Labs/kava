@@ -24,8 +24,8 @@ func TestAppAnteHandler(t *testing.T) {
 	unauthedKeys := testPrivKeys[0:2]
 	// deputy := testAddresses[2]
 	// deputyKey := testPrivKeys[2]
-	// oracles := testAddresses[3:6]
-	// oraclesKeys := testPrivKeys[3:6]
+	oracles := testAddresses[3:6]
+	oraclesKeys := testPrivKeys[3:6]
 	manual := testAddresses[6:]
 	manualKeys := testPrivKeys[6:]
 
@@ -69,13 +69,13 @@ func TestAppAnteHandler(t *testing.T) {
 			privKey:    unauthedKeys[1],
 			expectPass: false,
 		},
-		// TODO add back when the pricefeed and bep3 modules are reinstantiated
-		// {
-		// 	name:       "oracle",
-		// 	address:    oracles[1],
-		// 	privKey:    oraclesKeys[1],
-		// 	expectPass: true,
-		// },
+		{
+			name:       "oracle",
+			address:    oracles[1],
+			privKey:    oraclesKeys[1],
+			expectPass: true,
+		},
+		// TODO add back when the bep3 module is reinstantiated
 		// {
 		// 	name:       "deputy",
 		// 	address:    deputy,
