@@ -96,6 +96,6 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	}
 }
 
-func TestGenesisTestSuite(t *testing.T) {
+func TestParamsTestSuite(t *testing.T) {
 	suite.Run(t, new(ParamTestSuite))
 }

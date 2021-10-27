@@ -19,5 +19,6 @@ func (k Keeper) Balance(ctx context.Context, req *types.QueryBalanceRequest) (*t
 func (k Keeper) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	params := k.GetParams(sdkCtx)
+
 	return &types.QueryParamsResponse{Params: params}, nil
 }
