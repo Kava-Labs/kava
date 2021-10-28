@@ -116,9 +116,7 @@ func (am AppModule) Name() string {
 }
 
 // Route returns kavadist module's message route.
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
-}
+func (am AppModule) Route() sdk.Route { return sdk.Route{} }
 
 // QuerierRoute returns kavadist module's query routing key.
 func (AppModule) QuerierRoute() string { return types.QuerierRoute }

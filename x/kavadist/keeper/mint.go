@@ -3,7 +3,6 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/pkg/math"
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -67,10 +66,12 @@ func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdk.Dec, ti
 	// used to scale accumulator calculations by 10^18
 	scalar := sdk.NewInt(1000000000000000000)
 	// convert inflation rate to integer
-	inflationInt := inflationRate.Mul(sdk.NewDecFromInt(scalar)).TruncateInt()
+	inflationInt := sdk.NewUintFromBigInt(inflationRate.Mul(sdk.NewDecFromInt(scalar)).TruncateInt().BigInt())
+	timePeriodsUint := sdk.NewUintFromBigInt(timePeriods.BigInt())
+	scalarUint := sdk.NewUintFromBigInt(scalar.BigInt())
 	// calculate the multiplier (amount to multiply the total supply by to achieve the desired inflation)
 	// multiply the result by 10^-18 because RelativePow returns the result scaled by 10^18
-	accumulator := sdk.NewDecFromInt(math.RelativePow(inflationInt, timePeriods, scalar)).Mul(sdk.SmallestDec())
+	accumulator := sdk.NewDecFromBigInt(sdk.RelativePow(inflationInt, timePeriodsUint, scalarUint).BigInt()).Mul(sdk.SmallestDec())
 	// calculate the number of coins to mint
 	amountToMint := (sdk.NewDecFromInt(totalSupply.Amount).Mul(accumulator)).Sub(sdk.NewDecFromInt(totalSupply.Amount)).TruncateInt()
 	if amountToMint.IsZero() {
