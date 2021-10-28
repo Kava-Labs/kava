@@ -288,7 +288,6 @@ QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  |  |
-| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
 
 
 
@@ -304,7 +303,6 @@ QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `asset_supply` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) |  |  |
-| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
 
@@ -320,7 +318,6 @@ QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `swap_id` | [bytes](#bytes) |  | TODO: Do we need to cast to custom type tmbytes.HexBytes We can't use customname here since grpc-gateway will use the original generated field name https://github.com/gogo/protobuf/issues/331 |
-| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
 
 
 
@@ -337,7 +334,6 @@ QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 | ----- | ---- | ----- | ----------- |
 | `id` | [string](#string) |  |  |
 | `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) |  |  |
-| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
 
