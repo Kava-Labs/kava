@@ -4,102 +4,183 @@
 
 ## Table of Contents
 
-- [kava/pricefeed/v1beta1/pricefeed.proto](#kava/pricefeed/v1beta1/pricefeed.proto)
-    - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
-    - [Market](#kava.pricefeed.v1beta1.Market)
-    - [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice)
+- [kava/bep3/v1beta1/bep3.proto](#kava/bep3/v1beta1/bep3.proto)
+    - [AssetParam](#kava.bep3.v1beta1.AssetParam)
+    - [AssetSupply](#kava.bep3.v1beta1.AssetSupply)
+    - [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap)
+    - [Params](#kava.bep3.v1beta1.Params)
+    - [SupplyLimit](#kava.bep3.v1beta1.SupplyLimit)
   
-- [kava/pricefeed/v1beta1/genesis.proto](#kava/pricefeed/v1beta1/genesis.proto)
-    - [GenesisState](#kava.pricefeed.v1beta1.GenesisState)
-    - [Params](#kava.pricefeed.v1beta1.Params)
+    - [SwapDirection](#kava.bep3.v1beta1.SwapDirection)
+    - [SwapStatus](#kava.bep3.v1beta1.SwapStatus)
   
-- [kava/pricefeed/v1beta1/query.proto](#kava/pricefeed/v1beta1/query.proto)
-    - [QueryMarketsRequest](#kava.pricefeed.v1beta1.QueryMarketsRequest)
-    - [QueryMarketsResponse](#kava.pricefeed.v1beta1.QueryMarketsResponse)
-    - [QueryOraclesRequest](#kava.pricefeed.v1beta1.QueryOraclesRequest)
-    - [QueryOraclesResponse](#kava.pricefeed.v1beta1.QueryOraclesResponse)
-    - [QueryParamsRequest](#kava.pricefeed.v1beta1.QueryParamsRequest)
-    - [QueryParamsResponse](#kava.pricefeed.v1beta1.QueryParamsResponse)
-    - [QueryPriceRequest](#kava.pricefeed.v1beta1.QueryPriceRequest)
-    - [QueryPriceResponse](#kava.pricefeed.v1beta1.QueryPriceResponse)
-    - [QueryPricesRequest](#kava.pricefeed.v1beta1.QueryPricesRequest)
-    - [QueryPricesResponse](#kava.pricefeed.v1beta1.QueryPricesResponse)
-    - [QueryRawPricesRequest](#kava.pricefeed.v1beta1.QueryRawPricesRequest)
-    - [QueryRawPricesResponse](#kava.pricefeed.v1beta1.QueryRawPricesResponse)
+- [kava/bep3/v1beta1/genesis.proto](#kava/bep3/v1beta1/genesis.proto)
+    - [GenesisState](#kava.bep3.v1beta1.GenesisState)
   
-    - [Query](#kava.pricefeed.v1beta1.Query)
+- [kava/bep3/v1beta1/query.proto](#kava/bep3/v1beta1/query.proto)
+    - [QueryAssetSuppliesRequest](#kava.bep3.v1beta1.QueryAssetSuppliesRequest)
+    - [QueryAssetSuppliesResponse](#kava.bep3.v1beta1.QueryAssetSuppliesResponse)
+    - [QueryAssetSupplyRequest](#kava.bep3.v1beta1.QueryAssetSupplyRequest)
+    - [QueryAssetSupplyResponse](#kava.bep3.v1beta1.QueryAssetSupplyResponse)
+    - [QueryAtomicSwapRequest](#kava.bep3.v1beta1.QueryAtomicSwapRequest)
+    - [QueryAtomicSwapResponse](#kava.bep3.v1beta1.QueryAtomicSwapResponse)
+    - [QueryAtomicSwapsRequest](#kava.bep3.v1beta1.QueryAtomicSwapsRequest)
+    - [QueryAtomicSwapsResponse](#kava.bep3.v1beta1.QueryAtomicSwapsResponse)
+    - [QueryParamsRequest](#kava.bep3.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.bep3.v1beta1.QueryParamsResponse)
   
-- [kava/pricefeed/v1beta1/tx.proto](#kava/pricefeed/v1beta1/tx.proto)
-    - [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice)
-    - [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse)
+    - [Query](#kava.bep3.v1beta1.Query)
   
-    - [Msg](#kava.pricefeed.v1beta1.Msg)
+- [kava/bep3/v1beta1/tx.proto](#kava/bep3/v1beta1/tx.proto)
+    - [MsgClaimAtomicSwap](#kava.bep3.v1beta1.MsgClaimAtomicSwap)
+    - [MsgClaimAtomicSwapResponse](#kava.bep3.v1beta1.MsgClaimAtomicSwapResponse)
+    - [MsgCreateAtomicSwap](#kava.bep3.v1beta1.MsgCreateAtomicSwap)
+    - [MsgCreateAtomicSwapResponse](#kava.bep3.v1beta1.MsgCreateAtomicSwapResponse)
+    - [MsgRefundAtomicSwap](#kava.bep3.v1beta1.MsgRefundAtomicSwap)
+    - [MsgRefundAtomicSwapResponse](#kava.bep3.v1beta1.MsgRefundAtomicSwapResponse)
+  
+    - [Msg](#kava.bep3.v1beta1.Msg)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="kava/pricefeed/v1beta1/pricefeed.proto"></a>
+<a name="kava/bep3/v1beta1/bep3.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/pricefeed/v1beta1/pricefeed.proto
+## kava/bep3/v1beta1/bep3.proto
 
 
 
-<a name="kava.pricefeed.v1beta1.CurrentPrice"></a>
+<a name="kava.bep3.v1beta1.AssetParam"></a>
 
-### CurrentPrice
-CurrentPrice defines a current price for a particular market in the pricefeed
-module.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-| `price` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.Market"></a>
-
-### Market
-Market defines an asset in the pricefeed.
+### AssetParam
+AssetParam defines parameters for each bep3 asset.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-| `base_asset` | [string](#string) |  |  |
-| `quote_asset` | [string](#string) |  |  |
-| `oracles` | [string](#string) | repeated |  |
+| `denom` | [string](#string) |  |  |
+| `coin_id` | [int64](#int64) |  |  |
+| `supply_limit` | [SupplyLimit](#kava.bep3.v1beta1.SupplyLimit) |  |  |
 | `active` | [bool](#bool) |  |  |
+| `deputy_address` | [string](#string) |  |  |
+| `fixed_fee` | [bytes](#bytes) |  |  |
+| `min_swap_amount` | [bytes](#bytes) |  |  |
+| `max_swap_amount` | [bytes](#bytes) |  |  |
+| `min_block_lock` | [uint64](#uint64) |  |  |
+| `max_block_lock` | [uint64](#uint64) |  |  |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.PostedPrice"></a>
+<a name="kava.bep3.v1beta1.AssetSupply"></a>
 
-### PostedPrice
-PostedPrice defines a price for market posted by a specific oracle.
+### AssetSupply
+AssetSupply defines information about an asset's supply.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-| `oracle_address` | [string](#string) |  |  |
-| `price` | [string](#string) |  |  |
-| `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `incoming_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `outgoing_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `time_limited_current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `time_elapsed` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.AtomicSwap"></a>
+
+### AtomicSwap
+Params defines the parameters for the pricefeed module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `random_number_hash` | [bytes](#bytes) |  |  |
+| `expire_height` | [uint64](#uint64) |  |  |
+| `timestamp` | [int64](#int64) |  |  |
+| `sender` | [string](#string) |  |  |
+| `recipient` | [string](#string) |  |  |
+| `sender_other_chain` | [string](#string) |  |  |
+| `recipient_other_chain` | [string](#string) |  |  |
+| `closed_block` | [int64](#int64) |  |  |
+| `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  |  |
+| `cross_chain` | [bool](#bool) |  |  |
+| `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the bep3 module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `asset_params` | [AssetParam](#kava.bep3.v1beta1.AssetParam) | repeated |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.SupplyLimit"></a>
+
+### SupplyLimit
+SupplyLimit define the absolute and time-based limits for an assets's supply.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `limit` | [bytes](#bytes) |  |  |
+| `time_limited` | [bool](#bool) |  |  |
+| `time_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `time_based_limit` | [bytes](#bytes) |  |  |
 
 
 
 
 
  <!-- end messages -->
+
+
+<a name="kava.bep3.v1beta1.SwapDirection"></a>
+
+### SwapDirection
+SwapDirection is the direction of an AtomicSwap
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| SWAP_DIRECTION_UNSPECIFIED | 0 | SwapDirection is unspecified or invalid |
+| SWAP_DIRECTION_INCOMING | 1 | SwapDirection is incoming |
+| SWAP_DIRECTION_OUTGOING | 2 | SwapDirection is outgoing |
+
+
+
+<a name="kava.bep3.v1beta1.SwapStatus"></a>
+
+### SwapStatus
+SwapStatus is the status of an AtomicSwap
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| SWAP_STATUS_UNSPECIFIED | 0 | AtomicSwap is unspecified |
+| SWAP_STATUS_OPEN | 1 | AtomicSwap is open |
+| SWAP_STATUS_COMPLETED | 2 | AtomicSwap is completed |
+| SWAP_STATUS_EXPIRED | 3 | AtomicSwap is expired |
+
 
  <!-- end enums -->
 
@@ -109,14 +190,14 @@ PostedPrice defines a price for market posted by a specific oracle.
 
 
 
-<a name="kava/pricefeed/v1beta1/genesis.proto"></a>
+<a name="kava/bep3/v1beta1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/pricefeed/v1beta1/genesis.proto
+## kava/bep3/v1beta1/genesis.proto
 
 
 
-<a name="kava.pricefeed.v1beta1.GenesisState"></a>
+<a name="kava.bep3.v1beta1.GenesisState"></a>
 
 ### GenesisState
 GenesisState defines the pricefeed module's genesis state.
@@ -124,23 +205,10 @@ GenesisState defines the pricefeed module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.pricefeed.v1beta1.Params) |  | params defines all the paramaters of the module. |
-| `posted_prices` | [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice) | repeated |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.Params"></a>
-
-### Params
-Params defines the parameters for the pricefeed module.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated |  |
+| `params` | [Params](#kava.bep3.v1beta1.Params) |  | params defines all the paramaters of the module. |
+| `atomic_swaps` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) | repeated |  |
+| `supplies` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) | repeated |  |
+| `previous_block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 
 
 
@@ -156,175 +224,164 @@ Params defines the parameters for the pricefeed module.
 
 
 
-<a name="kava/pricefeed/v1beta1/query.proto"></a>
+<a name="kava/bep3/v1beta1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/pricefeed/v1beta1/query.proto
+## kava/bep3/v1beta1/query.proto
 
 
 
-<a name="kava.pricefeed.v1beta1.QueryMarketsRequest"></a>
+<a name="kava.bep3.v1beta1.QueryAssetSuppliesRequest"></a>
 
-### QueryMarketsRequest
-QueryMarketsRequest is the request type for the Query/Markets RPC method.
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryMarketsResponse"></a>
-
-### QueryMarketsResponse
-QueryMarketsResponse is the response type for the Query/Markets RPC method.
+### QueryAssetSuppliesRequest
+QueryAssetSuppliesRequest is the request type for the Query/Deposits RPC method.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated | List of markets |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.QueryOraclesRequest"></a>
+<a name="kava.bep3.v1beta1.QueryAssetSuppliesResponse"></a>
 
-### QueryOraclesRequest
-QueryOraclesRequest is the request type for the Query/Oracles RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryOraclesResponse"></a>
-
-### QueryOraclesResponse
-QueryOraclesResponse is the response type for the Query/Oracles RPC method.
+### QueryAssetSuppliesResponse
+QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `oracles` | [string](#string) | repeated | List of oracle addresses |
+| `asset_supplies` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.QueryParamsRequest"></a>
+<a name="kava.bep3.v1beta1.QueryAssetSupplyRequest"></a>
+
+### QueryAssetSupplyRequest
+QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAssetSupplyResponse"></a>
+
+### QueryAssetSupplyResponse
+QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `asset_supply` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAtomicSwapRequest"></a>
+
+### QueryAtomicSwapRequest
+QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `swap_id` | [bytes](#bytes) |  | TODO: Do we need to cast to custom type tmbytes.HexBytes We can't use customname here since grpc-gateway will use the original generated field name https://github.com/gogo/protobuf/issues/331 |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAtomicSwapResponse"></a>
+
+### QueryAtomicSwapResponse
+QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  |  |
+| `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAtomicSwapsRequest"></a>
+
+### QueryAtomicSwapsRequest
+QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `involve` | [string](#string) |  |  |
+| `expiration` | [uint64](#uint64) |  |  |
+| `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  |  |
+| `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAtomicSwapsResponse"></a>
+
+### QueryAtomicSwapsResponse
+QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  |  |
+| `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
-QueryParamsRequest defines the request type for querying x/pricefeed
-parameters.
+QueryParamsRequest defines the request type for querying x/bep3 parameters.
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.QueryParamsResponse"></a>
+<a name="kava.bep3.v1beta1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
-QueryParamsResponse defines the response type for querying x/pricefeed
-parameters.
+QueryParamsResponse defines the response type for querying x/bep3 parameters.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.pricefeed.v1beta1.Params) |  |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryPriceRequest"></a>
-
-### QueryPriceRequest
-QueryPriceRequest is the request type for the Query/PriceRequest RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryPriceResponse"></a>
-
-### QueryPriceResponse
-QueryPriceResponse is the response type for the Query/Prices RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `price` | [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice) |  |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryPricesRequest"></a>
-
-### QueryPricesRequest
-QueryPricesRequest is the request type for the Query/Prices RPC method.
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryPricesResponse"></a>
-
-### QueryPricesResponse
-QueryPricesResponse is the response type for the Query/Prices RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `prices` | [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice) | repeated |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryRawPricesRequest"></a>
-
-### QueryRawPricesRequest
-QueryRawPricesRequest is the request type for the Query/RawPrices RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryRawPricesResponse"></a>
-
-### QueryRawPricesResponse
-QueryRawPricesResponse is the response type for the Query/RawPrices RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `raw_prices` | [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice) | repeated |  |
+| `params` | [Params](#kava.bep3.v1beta1.Params) |  |  |
 
 
 
@@ -337,53 +394,109 @@ method.
  <!-- end HasExtensions -->
 
 
-<a name="kava.pricefeed.v1beta1.Query"></a>
+<a name="kava.bep3.v1beta1.Query"></a>
 
 ### Query
-Query defines the gRPC querier service for pricefeed module
+Query defines the gRPC querier service for bep3 module
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#kava.pricefeed.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.pricefeed.v1beta1.QueryParamsResponse) | Params queries all parameters of the pricefeed module. | GET|/kava/pricefeed/v1/params|
-| `Price` | [QueryPriceRequest](#kava.pricefeed.v1beta1.QueryPriceRequest) | [QueryPriceResponse](#kava.pricefeed.v1beta1.QueryPriceResponse) | Price queries price details based on a market | GET|/kava/pricefeed/v1/price/{market_id}|
-| `Prices` | [QueryPricesRequest](#kava.pricefeed.v1beta1.QueryPricesRequest) | [QueryPricesResponse](#kava.pricefeed.v1beta1.QueryPricesResponse) | Prices queries all prices | GET|/kava/pricefeed/v1/prices|
-| `RawPrices` | [QueryRawPricesRequest](#kava.pricefeed.v1beta1.QueryRawPricesRequest) | [QueryRawPricesResponse](#kava.pricefeed.v1beta1.QueryRawPricesResponse) | RawPrices queries all raw prices based on a market | GET|/kava/pricefeed/v1/rawprices/{market_id}|
-| `Oracles` | [QueryOraclesRequest](#kava.pricefeed.v1beta1.QueryOraclesRequest) | [QueryOraclesResponse](#kava.pricefeed.v1beta1.QueryOraclesResponse) | Oracles queries all oracles based on a market | GET|/kava/pricefeed/v1/oracles/{market_id}|
-| `Markets` | [QueryMarketsRequest](#kava.pricefeed.v1beta1.QueryMarketsRequest) | [QueryMarketsResponse](#kava.pricefeed.v1beta1.QueryMarketsResponse) | Markets queries all markets | GET|/kava/pricefeed/v1/markets|
+| `Params` | [QueryParamsRequest](#kava.bep3.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.bep3.v1beta1.QueryParamsResponse) | Params queries module params | GET|/kava/bep3/v1beta1/params|
+| `AssetSupply` | [QueryAssetSupplyRequest](#kava.bep3.v1beta1.QueryAssetSupplyRequest) | [QueryAssetSupplyResponse](#kava.bep3.v1beta1.QueryAssetSupplyResponse) | AssetSupply queries info about an asset's supply | GET|/kava/bep3/v1beta1/assetsupply/{denom}|
+| `AssetSupplies` | [QueryAssetSuppliesRequest](#kava.bep3.v1beta1.QueryAssetSuppliesRequest) | [QueryAssetSuppliesResponse](#kava.bep3.v1beta1.QueryAssetSuppliesResponse) | AssetSupplies queries a list of asset supplies | GET|/kava/bep3/v1beta1/assetsupplies|
+| `AtomicSwap` | [QueryAtomicSwapRequest](#kava.bep3.v1beta1.QueryAtomicSwapRequest) | [QueryAtomicSwapResponse](#kava.bep3.v1beta1.QueryAtomicSwapResponse) | AtomicSwap queries info about an atomic swap | GET|/kava/bep3/v1beta1/atomicswap/{swap_id}|
+| `AtomicSwaps` | [QueryAtomicSwapsRequest](#kava.bep3.v1beta1.QueryAtomicSwapsRequest) | [QueryAtomicSwapsResponse](#kava.bep3.v1beta1.QueryAtomicSwapsResponse) | AtomicSwaps queries a list of atomic swaps | GET|/kava/bep3/v1beta1/atomicswaps|
 
  <!-- end services -->
 
 
 
-<a name="kava/pricefeed/v1beta1/tx.proto"></a>
+<a name="kava/bep3/v1beta1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/pricefeed/v1beta1/tx.proto
+## kava/bep3/v1beta1/tx.proto
 
 
 
-<a name="kava.pricefeed.v1beta1.MsgPostPrice"></a>
+<a name="kava.bep3.v1beta1.MsgClaimAtomicSwap"></a>
 
-### MsgPostPrice
-MsgPostPrice represents a method for creating a new post price
+### MsgClaimAtomicSwap
+MsgClaimAtomicSwap defines the Msg/Deposit request type.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `from` | [string](#string) |  | address of client |
-| `market_id` | [string](#string) |  |  |
-| `price` | [string](#string) |  |  |
-| `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `from` | [string](#string) |  |  |
+| `swap_id` | [bytes](#bytes) |  |  |
+| `random_number` | [bytes](#bytes) |  |  |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.MsgPostPriceResponse"></a>
+<a name="kava.bep3.v1beta1.MsgClaimAtomicSwapResponse"></a>
 
-### MsgPostPriceResponse
-MsgPostPriceResponse defines the Msg/PostPrice response type.
+### MsgClaimAtomicSwapResponse
+MsgClaimAtomicSwapResponse defines the Msg/Deposit response type.
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.MsgCreateAtomicSwap"></a>
+
+### MsgCreateAtomicSwap
+MsgCreateAtomicSwap defines the Msg/Deposit request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  |  |
+| `to` | [string](#string) |  |  |
+| `recipient_other_chain` | [string](#string) |  |  |
+| `sender_other_chain` | [string](#string) |  |  |
+| `random_number_hash` | [bytes](#bytes) |  |  |
+| `timestamp` | [int64](#int64) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `height_span` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.MsgCreateAtomicSwapResponse"></a>
+
+### MsgCreateAtomicSwapResponse
+MsgCreateAtomicSwapResponse defines the Msg/Deposit response type.
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.MsgRefundAtomicSwap"></a>
+
+### MsgRefundAtomicSwap
+MsgRefundAtomicSwap defines the Msg/Deposit request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  |  |
+| `swap_id` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.MsgRefundAtomicSwapResponse"></a>
+
+### MsgRefundAtomicSwapResponse
+MsgRefundAtomicSwapResponse defines the Msg/Deposit response type.
 
 
 
@@ -396,14 +509,16 @@ MsgPostPriceResponse defines the Msg/PostPrice response type.
  <!-- end HasExtensions -->
 
 
-<a name="kava.pricefeed.v1beta1.Msg"></a>
+<a name="kava.bep3.v1beta1.Msg"></a>
 
 ### Msg
-Msg defines the pricefeed Msg service.
+Msg defines the bep3 Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `PostPrice` | [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice) | [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse) | PostPrice defines a method for creating a new post price | |
+| `CreateAtomicSwap` | [MsgCreateAtomicSwap](#kava.bep3.v1beta1.MsgCreateAtomicSwap) | [MsgCreateAtomicSwapResponse](#kava.bep3.v1beta1.MsgCreateAtomicSwapResponse) | CreateAtomicSwap defines a method for creating an atomic swap | |
+| `ClaimAtomicSwap` | [MsgClaimAtomicSwap](#kava.bep3.v1beta1.MsgClaimAtomicSwap) | [MsgClaimAtomicSwapResponse](#kava.bep3.v1beta1.MsgClaimAtomicSwapResponse) | ClaimAtomicSwap defines a method for claiming an atomic swap | |
+| `RefundAtomicSwap` | [MsgRefundAtomicSwap](#kava.bep3.v1beta1.MsgRefundAtomicSwap) | [MsgRefundAtomicSwapResponse](#kava.bep3.v1beta1.MsgRefundAtomicSwapResponse) | RefundAtomicSwap defines a method for refunding an atomic swap | |
 
  <!-- end services -->
 
