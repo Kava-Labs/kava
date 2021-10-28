@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/kava-labs/kava/x/kavadist/testutil"
 	"github.com/kava-labs/kava/x/kavadist/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type keeperTestSuite struct {
