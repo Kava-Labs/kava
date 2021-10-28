@@ -4,143 +4,127 @@
 
 ## Table of Contents
 
-- [kava/pricefeed/v1beta1/pricefeed.proto](#kava/pricefeed/v1beta1/pricefeed.proto)
-    - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
-    - [Market](#kava.pricefeed.v1beta1.Market)
-    - [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice)
+- [kava/swap/v1beta1/genesis.proto](#kava/swap/v1beta1/genesis.proto)
+    - [AllowedPool](#kava.swap.v1beta1.AllowedPool)
+    - [GenesisState](#kava.swap.v1beta1.GenesisState)
+    - [Params](#kava.swap.v1beta1.Params)
+    - [PoolRecord](#kava.swap.v1beta1.PoolRecord)
+    - [ShareRecord](#kava.swap.v1beta1.ShareRecord)
   
-- [kava/pricefeed/v1beta1/genesis.proto](#kava/pricefeed/v1beta1/genesis.proto)
-    - [GenesisState](#kava.pricefeed.v1beta1.GenesisState)
-    - [Params](#kava.pricefeed.v1beta1.Params)
+- [kava/swap/v1beta1/query.proto](#kava/swap/v1beta1/query.proto)
+    - [DepositResponse](#kava.swap.v1beta1.DepositResponse)
+    - [PoolResponse](#kava.swap.v1beta1.PoolResponse)
+    - [QueryDepositsRequest](#kava.swap.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.swap.v1beta1.QueryDepositsResponse)
+    - [QueryParamsRequest](#kava.swap.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.swap.v1beta1.QueryParamsResponse)
+    - [QueryPoolsRequest](#kava.swap.v1beta1.QueryPoolsRequest)
+    - [QueryPoolsResponse](#kava.swap.v1beta1.QueryPoolsResponse)
   
-- [kava/pricefeed/v1beta1/query.proto](#kava/pricefeed/v1beta1/query.proto)
-    - [QueryMarketsRequest](#kava.pricefeed.v1beta1.QueryMarketsRequest)
-    - [QueryMarketsResponse](#kava.pricefeed.v1beta1.QueryMarketsResponse)
-    - [QueryOraclesRequest](#kava.pricefeed.v1beta1.QueryOraclesRequest)
-    - [QueryOraclesResponse](#kava.pricefeed.v1beta1.QueryOraclesResponse)
-    - [QueryParamsRequest](#kava.pricefeed.v1beta1.QueryParamsRequest)
-    - [QueryParamsResponse](#kava.pricefeed.v1beta1.QueryParamsResponse)
-    - [QueryPriceRequest](#kava.pricefeed.v1beta1.QueryPriceRequest)
-    - [QueryPriceResponse](#kava.pricefeed.v1beta1.QueryPriceResponse)
-    - [QueryPricesRequest](#kava.pricefeed.v1beta1.QueryPricesRequest)
-    - [QueryPricesResponse](#kava.pricefeed.v1beta1.QueryPricesResponse)
-    - [QueryRawPricesRequest](#kava.pricefeed.v1beta1.QueryRawPricesRequest)
-    - [QueryRawPricesResponse](#kava.pricefeed.v1beta1.QueryRawPricesResponse)
+    - [Query](#kava.swap.v1beta1.Query)
   
-    - [Query](#kava.pricefeed.v1beta1.Query)
+- [kava/swap/v1beta1/tx.proto](#kava/swap/v1beta1/tx.proto)
+    - [MsgDeposit](#kava.swap.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.swap.v1beta1.MsgDepositResponse)
+    - [MsgSwapExactForTokens](#kava.swap.v1beta1.MsgSwapExactForTokens)
+    - [MsgSwapExactForTokensResponse](#kava.swap.v1beta1.MsgSwapExactForTokensResponse)
+    - [MsgSwapForExactTokens](#kava.swap.v1beta1.MsgSwapForExactTokens)
+    - [MsgSwapForExactTokensResponse](#kava.swap.v1beta1.MsgSwapForExactTokensResponse)
+    - [MsgWithdraw](#kava.swap.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.swap.v1beta1.MsgWithdrawResponse)
   
-- [kava/pricefeed/v1beta1/tx.proto](#kava/pricefeed/v1beta1/tx.proto)
-    - [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice)
-    - [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse)
-  
-    - [Msg](#kava.pricefeed.v1beta1.Msg)
+    - [Msg](#kava.swap.v1beta1.Msg)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="kava/pricefeed/v1beta1/pricefeed.proto"></a>
+<a name="kava/swap/v1beta1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/pricefeed/v1beta1/pricefeed.proto
+## kava/swap/v1beta1/genesis.proto
 
 
 
-<a name="kava.pricefeed.v1beta1.CurrentPrice"></a>
+<a name="kava.swap.v1beta1.AllowedPool"></a>
 
-### CurrentPrice
-CurrentPrice defines a current price for a particular market in the pricefeed
-module.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-| `price` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.Market"></a>
-
-### Market
-Market defines an asset in the pricefeed.
+### AllowedPool
+AllowedPool defines a tradable pool.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-| `base_asset` | [string](#string) |  |  |
-| `quote_asset` | [string](#string) |  |  |
-| `oracles` | [string](#string) | repeated |  |
-| `active` | [bool](#bool) |  |  |
+| `token_a` | [string](#string) |  |  |
+| `token_b` | [string](#string) |  |  |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.PostedPrice"></a>
-
-### PostedPrice
-PostedPrice defines a price for market posted by a specific oracle.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-| `oracle_address` | [string](#string) |  |  |
-| `price` | [string](#string) |  |  |
-| `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="kava/pricefeed/v1beta1/genesis.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## kava/pricefeed/v1beta1/genesis.proto
-
-
-
-<a name="kava.pricefeed.v1beta1.GenesisState"></a>
+<a name="kava.swap.v1beta1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the pricefeed module's genesis state.
+GenesisState defines the swap module's genesis state.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.pricefeed.v1beta1.Params) |  | params defines all the paramaters of the module. |
-| `posted_prices` | [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice) | repeated |  |
+| `params` | [Params](#kava.swap.v1beta1.Params) |  | params defines all the paramaters of the module. |
+| `pool_records` | [PoolRecord](#kava.swap.v1beta1.PoolRecord) | repeated |  |
+| `share_records` | [ShareRecord](#kava.swap.v1beta1.ShareRecord) | repeated |  |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.Params"></a>
+<a name="kava.swap.v1beta1.Params"></a>
 
 ### Params
-Params defines the parameters for the pricefeed module.
+Params defines the parameters for the swap module.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated |  |
+| `allowed_pools` | [AllowedPool](#kava.swap.v1beta1.AllowedPool) | repeated |  |
+| `swap_fee` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.PoolRecord"></a>
+
+### PoolRecord
+PoolRecord represents the state of a liquidity pool
+and is used to store the state of a denominated pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pool_id` | [string](#string) |  |  |
+| `reserves_a` | [bytes](#bytes) |  |  |
+| `reserves_b` | [bytes](#bytes) |  |  |
+| `total_shares` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.ShareRecord"></a>
+
+### ShareRecord
+ShareRecord stores the shares owned for a depositor and pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `pool_id` | [string](#string) |  |  |
+| `shares_owned` | [bytes](#bytes) |  |  |
 
 
 
@@ -156,175 +140,132 @@ Params defines the parameters for the pricefeed module.
 
 
 
-<a name="kava/pricefeed/v1beta1/query.proto"></a>
+<a name="kava/swap/v1beta1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/pricefeed/v1beta1/query.proto
+## kava/swap/v1beta1/query.proto
 
 
 
-<a name="kava.pricefeed.v1beta1.QueryMarketsRequest"></a>
+<a name="kava.swap.v1beta1.DepositResponse"></a>
 
-### QueryMarketsRequest
-QueryMarketsRequest is the request type for the Query/Markets RPC method.
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryMarketsResponse"></a>
-
-### QueryMarketsResponse
-QueryMarketsResponse is the response type for the Query/Markets RPC method.
+### DepositResponse
+DepositResponse defines a single deposit query response type.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated | List of markets |
+| `depositor` | [string](#string) |  |  |
+| `pool_id` | [string](#string) |  |  |
+| `shares_owned` | [bytes](#bytes) |  |  |
+| `shares_value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.QueryOraclesRequest"></a>
+<a name="kava.swap.v1beta1.PoolResponse"></a>
 
-### QueryOraclesRequest
-QueryOraclesRequest is the request type for the Query/Oracles RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryOraclesResponse"></a>
-
-### QueryOraclesResponse
-QueryOraclesResponse is the response type for the Query/Oracles RPC method.
+### PoolResponse
+PoolStatsQueryResponse defines the coins and shares of a pool
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `oracles` | [string](#string) | repeated | List of oracle addresses |
+| `name` | [string](#string) |  |  |
+| `coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `total_shares` | [bytes](#bytes) |  |  |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.QueryParamsRequest"></a>
+<a name="kava.swap.v1beta1.QueryDepositsRequest"></a>
+
+### QueryDepositsRequest
+QueryDepositsRequest is the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  |  |
+| `pool_id` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.QueryDepositsResponse"></a>
+
+### QueryDepositsResponse
+QueryDepositsResponse is the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [DepositResponse](#kava.swap.v1beta1.DepositResponse) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
-QueryParamsRequest defines the request type for querying x/pricefeed
-parameters.
+QueryParamsRequest defines the request type for querying x/swap parameters.
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.QueryParamsResponse"></a>
+<a name="kava.swap.v1beta1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
-QueryParamsResponse defines the response type for querying x/pricefeed
-parameters.
+QueryParamsResponse defines the response type for querying x/swap parameters.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.pricefeed.v1beta1.Params) |  |  |
+| `params` | [Params](#kava.swap.v1beta1.Params) |  |  |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.QueryPriceRequest"></a>
+<a name="kava.swap.v1beta1.QueryPoolsRequest"></a>
 
-### QueryPriceRequest
-QueryPriceRequest is the request type for the Query/PriceRequest RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryPriceResponse"></a>
-
-### QueryPriceResponse
-QueryPriceResponse is the response type for the Query/Prices RPC method.
+### QueryPoolsRequest
+QueryPoolsRequest is the request type for the Query/Pools RPC method.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `price` | [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice) |  |  |
+| `pool_id` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.QueryPricesRequest"></a>
+<a name="kava.swap.v1beta1.QueryPoolsResponse"></a>
 
-### QueryPricesRequest
-QueryPricesRequest is the request type for the Query/Prices RPC method.
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryPricesResponse"></a>
-
-### QueryPricesResponse
-QueryPricesResponse is the response type for the Query/Prices RPC method.
+### QueryPoolsResponse
+QueryPoolsResponse is the response type for the Query/Pools RPC method.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `prices` | [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice) | repeated |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryRawPricesRequest"></a>
-
-### QueryRawPricesRequest
-QueryRawPricesRequest is the request type for the Query/RawPrices RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `market_id` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.pricefeed.v1beta1.QueryRawPricesResponse"></a>
-
-### QueryRawPricesResponse
-QueryRawPricesResponse is the response type for the Query/RawPrices RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `raw_prices` | [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice) | repeated |  |
+| `pools` | [PoolResponse](#kava.swap.v1beta1.PoolResponse) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
 
 
 
@@ -337,53 +278,141 @@ method.
  <!-- end HasExtensions -->
 
 
-<a name="kava.pricefeed.v1beta1.Query"></a>
+<a name="kava.swap.v1beta1.Query"></a>
 
 ### Query
-Query defines the gRPC querier service for pricefeed module
+Query defines the gRPC querier service for swap module
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#kava.pricefeed.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.pricefeed.v1beta1.QueryParamsResponse) | Params queries all parameters of the pricefeed module. | GET|/kava/pricefeed/v1/params|
-| `Price` | [QueryPriceRequest](#kava.pricefeed.v1beta1.QueryPriceRequest) | [QueryPriceResponse](#kava.pricefeed.v1beta1.QueryPriceResponse) | Price queries price details based on a market | GET|/kava/pricefeed/v1/price/{market_id}|
-| `Prices` | [QueryPricesRequest](#kava.pricefeed.v1beta1.QueryPricesRequest) | [QueryPricesResponse](#kava.pricefeed.v1beta1.QueryPricesResponse) | Prices queries all prices | GET|/kava/pricefeed/v1/prices|
-| `RawPrices` | [QueryRawPricesRequest](#kava.pricefeed.v1beta1.QueryRawPricesRequest) | [QueryRawPricesResponse](#kava.pricefeed.v1beta1.QueryRawPricesResponse) | RawPrices queries all raw prices based on a market | GET|/kava/pricefeed/v1/rawprices/{market_id}|
-| `Oracles` | [QueryOraclesRequest](#kava.pricefeed.v1beta1.QueryOraclesRequest) | [QueryOraclesResponse](#kava.pricefeed.v1beta1.QueryOraclesResponse) | Oracles queries all oracles based on a market | GET|/kava/pricefeed/v1/oracles/{market_id}|
-| `Markets` | [QueryMarketsRequest](#kava.pricefeed.v1beta1.QueryMarketsRequest) | [QueryMarketsResponse](#kava.pricefeed.v1beta1.QueryMarketsResponse) | Markets queries all markets | GET|/kava/pricefeed/v1/markets|
+| `Params` | [QueryParamsRequest](#kava.swap.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.swap.v1beta1.QueryParamsResponse) | Params queries all parameters of the swap module. | GET|/kava/swap/v1beta1/params|
+| `Deposits` | [QueryDepositsRequest](#kava.swap.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.swap.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on owner address and pool | GET|/kava/swap/v1beta1/deposits|
+| `Pools` | [QueryPoolsRequest](#kava.swap.v1beta1.QueryPoolsRequest) | [QueryPoolsResponse](#kava.swap.v1beta1.QueryPoolsResponse) | Pools queries pools based on pool ID | GET|/kava/swap/v1beta1/pools|
 
  <!-- end services -->
 
 
 
-<a name="kava/pricefeed/v1beta1/tx.proto"></a>
+<a name="kava/swap/v1beta1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/pricefeed/v1beta1/tx.proto
+## kava/swap/v1beta1/tx.proto
 
 
 
-<a name="kava.pricefeed.v1beta1.MsgPostPrice"></a>
+<a name="kava.swap.v1beta1.MsgDeposit"></a>
 
-### MsgPostPrice
-MsgPostPrice represents a method for creating a new post price
+### MsgDeposit
+MsgDeposit represents a message for depositing liquidity into a pool
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `from` | [string](#string) |  | address of client |
-| `market_id` | [string](#string) |  |  |
-| `price` | [string](#string) |  |  |
-| `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `depositor` | [string](#string) |  |  |
+| `token_a` | [bytes](#bytes) |  |  |
+| `token_b` | [bytes](#bytes) |  |  |
+| `slippage` | [bytes](#bytes) |  |  |
+| `deadline` | [int64](#int64) |  |  |
 
 
 
 
 
 
-<a name="kava.pricefeed.v1beta1.MsgPostPriceResponse"></a>
+<a name="kava.swap.v1beta1.MsgDepositResponse"></a>
 
-### MsgPostPriceResponse
-MsgPostPriceResponse defines the Msg/PostPrice response type.
+### MsgDepositResponse
+MsgDepositResponse defines the Msg/Deposit response type.
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgSwapExactForTokens"></a>
+
+### MsgSwapExactForTokens
+MsgSwapExactForTokens represents a message for trading exact coinA for coinB
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `requester` | [string](#string) |  |  |
+| `exact_token_a` | [bytes](#bytes) |  |  |
+| `token_b` | [bytes](#bytes) |  |  |
+| `slippage` | [bytes](#bytes) |  |  |
+| `deadline` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgSwapExactForTokensResponse"></a>
+
+### MsgSwapExactForTokensResponse
+MsgSwapExactForTokensResponse defines the Msg/SwapExactForTokens response
+type.
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgSwapForExactTokens"></a>
+
+### MsgSwapForExactTokens
+MsgSwapForExactTokens represents a message for trading coinA for an exact
+coinB
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `requester` | [string](#string) |  |  |
+| `token_a` | [bytes](#bytes) |  |  |
+| `exact_token_b` | [bytes](#bytes) |  |  |
+| `slippage` | [bytes](#bytes) |  |  |
+| `deadline` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgSwapForExactTokensResponse"></a>
+
+### MsgSwapForExactTokensResponse
+MsgSwapForExactTokensResponse defines the Msg/SwapForExactTokensResponse
+response type.
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgWithdraw"></a>
+
+### MsgWithdraw
+MsgWithdraw represents a message for withdrawing liquidity from a pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  |  |
+| `shares` | [bytes](#bytes) |  |  |
+| `min_token_a` | [bytes](#bytes) |  |  |
+| `min_token_b` | [bytes](#bytes) |  |  |
+| `deadline` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgWithdrawResponse"></a>
+
+### MsgWithdrawResponse
+MsgWithdrawResponse defines the Msg/Withdraw response type.
 
 
 
@@ -396,14 +425,17 @@ MsgPostPriceResponse defines the Msg/PostPrice response type.
  <!-- end HasExtensions -->
 
 
-<a name="kava.pricefeed.v1beta1.Msg"></a>
+<a name="kava.swap.v1beta1.Msg"></a>
 
 ### Msg
-Msg defines the pricefeed Msg service.
+Msg defines the swap Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `PostPrice` | [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice) | [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse) | PostPrice defines a method for creating a new post price | |
+| `Deposit` | [MsgDeposit](#kava.swap.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.swap.v1beta1.MsgDepositResponse) | Deposit defines a method for depositing liquidity into a pool | |
+| `Withdraw` | [MsgWithdraw](#kava.swap.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.swap.v1beta1.MsgWithdrawResponse) | Withdraw defines a method for withdrawing liquidity into a pool | |
+| `SwapExactForTokens` | [MsgSwapExactForTokens](#kava.swap.v1beta1.MsgSwapExactForTokens) | [MsgSwapExactForTokensResponse](#kava.swap.v1beta1.MsgSwapExactForTokensResponse) | SwapExactForTokens represents a message for trading exact coinA for coinB | |
+| `SwapForExactTokens` | [MsgSwapForExactTokens](#kava.swap.v1beta1.MsgSwapForExactTokens) | [MsgSwapForExactTokensResponse](#kava.swap.v1beta1.MsgSwapForExactTokensResponse) | SwapForExactTokens represents a message for trading coinA for an exact coinB | |
 
  <!-- end services -->
 
