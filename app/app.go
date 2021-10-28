@@ -91,6 +91,7 @@ var (
 		slashing.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
+		bep3.AppModuleBasic{},
 	)
 
 	// module account permissions
