@@ -3,9 +3,6 @@ package app
 import (
 	"fmt"
 	"io"
-	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -109,18 +106,7 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		swaptypes.ModuleName:           nil,
 	}
-
-	// DefaultNodeHome is the default home directory for the app binary // TODO would this be better located in cmd?
-	DefaultNodeHome string
 )
-
-func init() {
-	userHomeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Printf("Failed to get home dir %s", err)
-	}
-	DefaultNodeHome = filepath.Join(userHomeDir, ".kava")
-}
 
 // Verify app interface at compile time
 // var _ simapp.App = (*App)(nil) // TODO
