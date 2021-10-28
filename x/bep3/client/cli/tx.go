@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
@@ -21,7 +20,7 @@ import (
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func GetTxCmd() *cobra.Command {
 	bep3TxCmd := &cobra.Command{
 		Use:                        "bep3",
 		Short:                      "bep3 transactions subcommands",
@@ -31,9 +30,9 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	cmds := []*cobra.Command{
-		GetCmdCreateAtomicSwap(cdc),
-		GetCmdClaimAtomicSwap(cdc),
-		GetCmdRefundAtomicSwap(cdc),
+		GetCmdCreateAtomicSwap(),
+		GetCmdClaimAtomicSwap(),
+		GetCmdRefundAtomicSwap(),
 	}
 
 	for _, cmd := range cmds {
@@ -46,7 +45,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdCreateAtomicSwap cli command for creating atomic swaps
-func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
+func GetCmdCreateAtomicSwap() *cobra.Command {
 	return &cobra.Command{
 		Use:   "create [to] [recipient-other-chain] [sender-other-chain] [timestamp] [coins] [height-span]",
 		Short: "create a new atomic swap",
@@ -118,7 +117,7 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdClaimAtomicSwap cli command for claiming an atomic swap
-func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
+func GetCmdClaimAtomicSwap() *cobra.Command {
 	return &cobra.Command{
 		Use:   "claim [swap-id] [random-number]",
 		Short: "claim coins in an atomic swap using the secret number",
@@ -161,7 +160,7 @@ func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdRefundAtomicSwap cli command for claiming an atomic swap
-func GetCmdRefundAtomicSwap(cdc *codec.Codec) *cobra.Command {
+func GetCmdRefundAtomicSwap() *cobra.Command {
 	return &cobra.Command{
 		Use:   "refund [swap-id]",
 		Short: "refund the coins in an atomic swap",

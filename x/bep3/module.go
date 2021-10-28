@@ -16,6 +16,7 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/kava-labs/kava/x/bep3/client/cli"
 	"github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/kava-labs/kava/x/bep3/types"
 )
@@ -85,16 +86,12 @@ func (AppModule) ConsensusVersion() uint64 {
 
 // GetTxCmd returns the root tx command for the bep3 module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
-	//TODO:
-	// return cli.GetTxCmd()
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the bep3 module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
-	//TODO:
-	// return cli.GetQueryCmd(types.StoreKey)
+	return cli.GetQueryCmd(types.StoreKey)
 }
 
 //____________________________________________________________________________
