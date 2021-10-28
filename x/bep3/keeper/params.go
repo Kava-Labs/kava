@@ -151,14 +151,18 @@ func (k Keeper) GetAuthorizedAddresses(ctx sdk.Context) []sdk.AccAddress {
 		// no assets params is a valid genesis state
 		return nil
 	}
-	var addresses []string
+	var addresses []sdk.AccAddress
 	uniqueAddresses := map[string]bool{}
 
 	for _, ap := range assetParams {
 		a := ap.DeputyAddress
 		// de-dup addresses
 		if _, found := uniqueAddresses[a]; !found {
-			addresses = append(addresses, a)
+			addr, err := sdk.AccAddressFromBech32(a)
+			if err != nil {
+				panic(err)
+			}
+			addresses = append(addresses, addr)
 		}
 		uniqueAddresses[a] = true
 	}

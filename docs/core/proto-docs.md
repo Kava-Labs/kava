@@ -8,6 +8,7 @@
     - [AssetParam](#kava.bep3.v1beta1.AssetParam)
     - [AssetSupply](#kava.bep3.v1beta1.AssetSupply)
     - [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap)
+    - [AugmentedAtomicSwap](#kava.bep3.v1beta1.AugmentedAtomicSwap)
     - [Params](#kava.bep3.v1beta1.Params)
     - [SupplyLimit](#kava.bep3.v1beta1.SupplyLimit)
   
@@ -98,7 +99,7 @@ AssetSupply defines information about an asset's supply.
 <a name="kava.bep3.v1beta1.AtomicSwap"></a>
 
 ### AtomicSwap
-Params defines the parameters for the pricefeed module.
+AtomicSwap defines an atomic swap between chains for the pricefeed module.
 
 
 | Field | Type | Label | Description |
@@ -115,6 +116,22 @@ Params defines the parameters for the pricefeed module.
 | `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  |  |
 | `cross_chain` | [bool](#bool) |  |  |
 | `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.AugmentedAtomicSwap"></a>
+
+### AugmentedAtomicSwap
+AugmentedAtomicSwap defines an AtomicSwap with an ID.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  |  |
+| `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) |  |  |
 
 
 
@@ -354,8 +371,7 @@ QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `id` | [string](#string) |  |  |
-| `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) | repeated |  |
+| `atomic_swap` | [AugmentedAtomicSwap](#kava.bep3.v1beta1.AugmentedAtomicSwap) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 

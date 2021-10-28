@@ -90,7 +90,7 @@ enum SwapDirection {
   SWAP_DIRECTION_OUTGOING = 0x02;
 }
 
-// Params defines the parameters for the pricefeed module.
+// AtomicSwap defines an atomic swap between chains for the pricefeed module.
 message AtomicSwap {
   option (gogoproto.goproto_stringer) = false;
 
@@ -110,6 +110,14 @@ message AtomicSwap {
   SwapStatus    status                = 10 [(gogoproto.moretags) = "yaml:\"status\""];
   bool          cross_chain           = 11 [(gogoproto.moretags) = "yaml:\"cross_chain\""];
   SwapDirection direction             = 12 [(gogoproto.moretags) = "yaml:\"direction\""];
+}
+
+// AugmentedAtomicSwap defines an AtomicSwap with an ID.
+message AugmentedAtomicSwap {
+  option (gogoproto.goproto_stringer) = false;
+
+  string     id          = 1 [(gogoproto.moretags) = "yaml:\"id\"", (gogoproto.customname) = "ID"];
+  AtomicSwap atomic_swap = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"atomic_swap\""];
 }
 
 // AssetSupply defines information about an asset's supply.
