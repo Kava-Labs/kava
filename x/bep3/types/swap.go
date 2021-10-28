@@ -123,23 +123,43 @@ func (a AtomicSwap) String() string {
 		a.CrossChain, a.Direction)
 }
 
+// NewSwapStatusFromString converts string to SwapStatus type
+func NewSwapStatusFromString(str string) SwapStatus {
+	switch str {
+	case "Open", "open":
+		return SWAP_STATUS_OPEN
+	case "Completed", "completed":
+		return SWAP_STATUS_COMPLETED
+	case "Expired", "expired":
+		return SWAP_STATUS_EXPIRED
+	default:
+		return SWAP_STATUS_UNSPECIFIED
+	}
+}
+
 // IsValid returns true if the swap status is valid and false otherwise.
 func (status SwapStatus) IsValid() bool {
-	if status == SWAP_STATUS_OPEN ||
+	return status == SWAP_STATUS_OPEN ||
 		status == SWAP_STATUS_COMPLETED ||
-		status == SWAP_STATUS_EXPIRED {
-		return true
+		status == SWAP_STATUS_EXPIRED
+}
+
+// NewSwapDirectionFromString converts string to SwapDirection type
+func NewSwapDirectionFromString(str string) SwapDirection {
+	switch str {
+	case "Incoming", "incoming", "inc", "I", "i":
+		return SWAP_DIRECTION_INCOMING
+	case "Outgoing", "outgoing", "out", "O", "o":
+		return SWAP_DIRECTION_OUTGOING
+	default:
+		return SWAP_DIRECTION_UNSPECIFIED
 	}
-	return false
 }
 
 // IsValid returns true if the swap direction is valid and false otherwise.
 func (direction SwapDirection) IsValid() bool {
-	if direction == SWAP_DIRECTION_INCOMING ||
-		direction == SWAP_DIRECTION_OUTGOING {
-		return true
-	}
-	return false
+	return direction == SWAP_DIRECTION_INCOMING ||
+		direction == SWAP_DIRECTION_OUTGOING
 }
 
 func NewAugmentedAtomicSwap(swap AtomicSwap) AugmentedAtomicSwap {
