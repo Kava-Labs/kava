@@ -25,6 +25,9 @@ type GenesisTestSuite struct {
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
 	tApp := app.NewTestApp()
 	suite.ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	suite.keeper = tApp.GetBep3Keeper()

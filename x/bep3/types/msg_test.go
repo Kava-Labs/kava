@@ -1,15 +1,14 @@
 package types_test
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/tendermint/tendermint/crypto"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
@@ -29,7 +28,16 @@ var (
 	randomNumberHash  = types.CalculateRandomHash(randomNumberBytes, timestampInt64)
 )
 
-func TestMsgCreateAtomicSwap(t *testing.T) {
+type MsgTestSuite struct {
+	suite.Suite
+}
+
+func (suite *MsgTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+}
+
+func (suite *MsgTestSuite) TestMsgCreateAtomicSwap() {
 	tests := []struct {
 		description         string
 		from                string
@@ -59,14 +67,14 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 			tc.heightSpan,
 		)
 		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+			suite.NoError(msg.ValidateBasic(), "test: %v", i)
 		} else {
-			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+			suite.Error(msg.ValidateBasic(), "test: %v", i)
 		}
 	}
 }
 
-func TestMsgClaimAtomicSwap(t *testing.T) {
+func (suite *MsgTestSuite) TestMsgClaimAtomicSwap() {
 	swapID := types.CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
@@ -86,14 +94,14 @@ func TestMsgClaimAtomicSwap(t *testing.T) {
 			tc.randomNumber,
 		)
 		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+			suite.NoError(msg.ValidateBasic(), "test: %v", i)
 		} else {
-			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+			suite.Error(msg.ValidateBasic(), "test: %v", i)
 		}
 	}
 }
 
-func TestMsgRefundAtomicSwap(t *testing.T) {
+func (suite *MsgTestSuite) TestMsgRefundAtomicSwap() {
 	swapID := types.CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
@@ -111,9 +119,9 @@ func TestMsgRefundAtomicSwap(t *testing.T) {
 			tc.swapID,
 		)
 		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+			suite.NoError(msg.ValidateBasic(), "test: %v", i)
 		} else {
-			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+			suite.Error(msg.ValidateBasic(), "test: %v", i)
 		}
 	}
 }

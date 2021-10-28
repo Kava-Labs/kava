@@ -166,10 +166,15 @@ func (msg MsgClaimAtomicSwap) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) ValidateBasic() error {
-	if len(msg.From) == 0 {
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	if len(from) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.From) != AddrByteCount {
+	if len(from) != AddrByteCount {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "actual address length ≠ expected length (%d ≠ %d)", len(msg.From), AddrByteCount)
 	}
 	if len(msg.SwapID) != SwapIDLength {
