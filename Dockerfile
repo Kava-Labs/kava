@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine3.14 AS build-env
+FROM golang:1.13-alpine AS build-env
 
 # Set up dependencies
 # bash, jq, curl for debugging
