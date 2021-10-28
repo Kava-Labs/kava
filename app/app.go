@@ -222,7 +222,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		keys[banktypes.StoreKey],
 		app.accountKeeper,
 		bankSubspace,
-		app.ModuleAccountAddrs(), // TODO this no longer allows funds to be sent to the distribution module account for use in the community pool. Is this a problem?
+		app.ModuleAccountAddrs(),
 	)
 	app.stakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
@@ -378,7 +378,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	// TODO mount memory stores
 
 	// initialize the app
-	var fetchers []ante.AddressFetcher // TODO add bep3 authorized addresses
+	var fetchers []ante.AddressFetcher // TODO add bep3 and pricefeed authorized addresses
 	if options.MempoolEnableAuth {
 		fetchers = append(fetchers,
 			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
