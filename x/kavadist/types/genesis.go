@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 )
@@ -33,9 +34,11 @@ func (gs GenesisState) Validate() error {
 	return nil
 }
 
-// Equal checks whether two gov GenesisState structs are equivalent
+// Equal checks whether two GenesisState structs are equivalent
 func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	return gs.PreviousBlockTime.Equal(gs2.PreviousBlockTime) && gs.Params.Equal(gs2.Params)
+	b1 := ModuleCdc.MustMarshal(&gs)
+	b2 := ModuleCdc.MustMarshal(&gs2)
+	return bytes.Equal(b1, b2)
 }
 
 // IsEmpty returns true if a GenesisState is empty
