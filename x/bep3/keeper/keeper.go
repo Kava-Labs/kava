@@ -19,13 +19,13 @@ type Keeper struct {
 	key           sdk.StoreKey
 	cdc           codec.Codec
 	paramSubspace paramtypes.Subspace
-	supplyKeeper  types.SupplyKeeper
+	bankKeeper    types.BankKeeper
 	accountKeeper types.AccountKeeper
 	Maccs         map[string]bool
 }
 
 // NewKeeper creates a bep3 keeper
-func NewKeeper(cdc codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, ak types.AccountKeeper,
+func NewKeeper(cdc codec.Codec, key sdk.StoreKey, sk types.BankKeeper, ak types.AccountKeeper,
 	paramstore paramtypes.Subspace, maccs map[string]bool) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -35,7 +35,7 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, ak type
 		key:           key,
 		cdc:           cdc,
 		paramSubspace: paramstore,
-		supplyKeeper:  sk,
+		bankKeeper:    sk,
 		accountKeeper: ak,
 		Maccs:         maccs,
 	}
@@ -49,14 +49,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // EnsureModuleAccountPermissions syncs the bep3 module account's permissions with those in the supply keeper.
 func (k Keeper) EnsureModuleAccountPermissions(ctx sdk.Context) error {
-	maccI := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
+	maccI := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	macc, ok := maccI.(*authtypes.ModuleAccount)
 	if !ok {
 		return fmt.Errorf("expected %s account to be a module account type", types.ModuleName)
 	}
-	_, perms := k.supplyKeeper.GetModuleAddressAndPermissions(types.ModuleName)
+	_, perms := k.accountKeeper.GetModuleAddressAndPermissions(types.ModuleName)
 	macc.Permissions = perms
-	k.supplyKeeper.SetModuleAccount(ctx, macc)
+	k.accountKeeper.SetModuleAccount(ctx, macc)
 	return nil
 }
 

@@ -138,29 +138,7 @@ func filterAtomicSwaps(ctx sdk.Context, swaps []types.AtomicSwap, params types.Q
 	filteredSwaps := make([]types.AtomicSwap, 0, len(swaps))
 
 	for _, s := range swaps {
-		matchInvolve, matchExpiration, matchStatus, matchDirection := true, true, true, true
-
-		// match involved address (if supplied)
-		if len(params.Involve) > 0 {
-			matchInvolve = s.Sender == params.Involve.String() || s.Recipient == params.Involve.String()
-		}
-
-		// match expiration block limit (if supplied)
-		if params.Expiration > 0 {
-			matchExpiration = s.ExpireHeight <= params.Expiration
-		}
-
-		// match status (if supplied/valid)
-		if params.Status.IsValid() {
-			matchStatus = s.Status == params.Status
-		}
-
-		// match direction (if supplied/valid)
-		if params.Direction.IsValid() {
-			matchDirection = s.Direction == params.Direction
-		}
-
-		if matchInvolve && matchExpiration && matchStatus && matchDirection {
+		if legacyAtomicSwapIsMatch(s, params) {
 			filteredSwaps = append(filteredSwaps, s)
 		}
 	}
@@ -173,4 +151,36 @@ func filterAtomicSwaps(ctx sdk.Context, swaps []types.AtomicSwap, params types.Q
 	}
 
 	return filteredSwaps
+}
+
+func legacyAtomicSwapIsMatch(swap types.AtomicSwap, params types.QueryAtomicSwaps) bool {
+	// match involved address (if supplied)
+	if len(params.Involve) > 0 {
+		if swap.Sender != params.Involve.String() && swap.Recipient != params.Involve.String() {
+			return false
+		}
+	}
+
+	// match expiration block limit (if supplied)
+	if params.Expiration > 0 {
+		if swap.ExpireHeight > params.Expiration {
+			return false
+		}
+	}
+
+	// match status (if supplied/valid)
+	if params.Status.IsValid() {
+		if swap.Status != params.Status {
+			return false
+		}
+	}
+
+	// match direction (if supplied/valid)
+	if params.Direction.IsValid() {
+		if swap.Direction != params.Direction {
+			return false
+		}
+	}
+
+	return true
 }

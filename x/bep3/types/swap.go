@@ -59,16 +59,26 @@ func (a AtomicSwap) Validate() error {
 	if a.Timestamp == 0 {
 		return errors.New("timestamp cannot be 0")
 	}
-	if len(a.Sender) == 0 {
+
+	sender, err := sdk.AccAddressFromBech32(a.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+	recipient, err := sdk.AccAddressFromBech32(a.Recipient)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	if len(sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender cannot be empty")
 	}
-	if len(a.Recipient) == 0 {
+	if len(recipient) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient cannot be empty")
 	}
-	if len(a.Sender) != AddrByteCount {
+	if len(sender) != AddrByteCount {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Sender))
 	}
-	if len(a.Recipient) != AddrByteCount {
+	if len(recipient) != AddrByteCount {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Recipient))
 	}
 	// NOTE: These adresses may not have a bech32 prefix.

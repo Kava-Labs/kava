@@ -50,15 +50,11 @@ message QueryAssetSupplyRequest {
   option (gogoproto.goproto_getters) = false;
 
   string denom = 1 [(gogoproto.moretags) = "yaml:\"denom\""];
-
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 message QueryAssetSupplyResponse {
   AssetSupply asset_supply = 1 [(gogoproto.nullable) = false];
-
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryAssetSuppliesRequest is the request type for the Query/Deposits RPC method.
@@ -85,16 +81,12 @@ message QueryAtomicSwapRequest {
   // We can't use customname here since grpc-gateway will use the original generated field name
   // https://github.com/gogo/protobuf/issues/331
   bytes swap_id = 1 [(gogoproto.moretags) = "yaml:\"swap_id\""];
-
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 message QueryAtomicSwapResponse {
   string     id          = 1 [(gogoproto.moretags) = "yaml:\"id\"", (gogoproto.customname) = "ID"];
   AtomicSwap atomic_swap = 2 [(gogoproto.nullable) = false];
-
-  cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }
 
 // QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.

@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -146,6 +147,22 @@ func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAdd
 	require.Equal(t, expectedCoins, coins)
 }
 
+// Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.
+func (tApp TestApp) NewAuthGenState(ctx sdk.Context, cdc codec.JSONCodec, addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
+	// Create GenAccounts
+	accounts := authtypes.GenesisAccounts{}
+	for i := range addresses {
+		accounts = append(accounts, authtypes.NewBaseAccount(addresses[i], nil, 0, 0))
+		// FundAccount moved to cosmos-sdk/x/bank/testutil in future release
+		if err := simapp.FundAccount(tApp.bankKeeper, ctx, addresses[i], coins[i]); err != nil {
+			panic(err)
+		}
+	}
+	// Create the auth genesis state
+	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
+	return GenesisState{authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis)}
+}
+
 // GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
 func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk.AccAddress) {
 	r := rand.New(rand.NewSource(12345)) // make the generation deterministic
@@ -161,6 +178,15 @@ func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk
 		addrs[i] = sdk.AccAddress(keys[i].PubKey().Address())
 	}
 	return
+}
+
+func AddressesToStrings(addrs []sdk.AccAddress) []string {
+	var strAddrs []string
+	for _, addr := range addrs {
+		strAddrs = append(strAddrs, addr.String())
+	}
+
+	return strAddrs
 }
 
 // NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.

@@ -79,16 +79,25 @@ func (msg MsgCreateAtomicSwap) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) ValidateBasic() error {
-	if len(msg.From) == 0 {
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+	to, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	if len(from) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.From) != AddrByteCount {
+	if len(from) != AddrByteCount {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From))
 	}
-	if len(msg.To) == 0 {
+	if len(to) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient address cannot be empty")
 	}
-	if len(msg.To) != AddrByteCount {
+	if len(to) != AddrByteCount {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.To))
 	}
 	if strings.TrimSpace(msg.RecipientOtherChain) == "" {
@@ -210,10 +219,15 @@ func (msg MsgRefundAtomicSwap) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) ValidateBasic() error {
-	if len(msg.From) == 0 {
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	if len(from) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.From) != AddrByteCount {
+	if len(from) != AddrByteCount {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From))
 	}
 	if len(msg.SwapID) != SwapIDLength {
