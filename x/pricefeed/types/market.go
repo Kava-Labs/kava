@@ -55,8 +55,8 @@ func (m Market) Validate() error {
 	return nil
 }
 
-// Validate checks if all the markets are valid and there are no duplicated
-// entries.
+// ValidateMarkets checks if all the markets are valid and there are no
+// duplicated entries.
 func ValidateMarkets(ms []Market) error {
 	seenMarkets := make(map[string]bool)
 	for _, m := range ms {
@@ -103,8 +103,8 @@ func (pp PostedPrice) Validate() error {
 	return nil
 }
 
-// Validate checks if all the posted prices are valid and there are no duplicated
-// entries.
+// ValidatePostedPrices checks if all the posted prices are valid and there are
+// no duplicated entries.
 func ValidatePostedPrices(pps []PostedPrice) error {
 	seenPrices := make(map[string]bool)
 	for _, pp := range pps {
@@ -121,13 +121,13 @@ func ValidatePostedPrices(pps []PostedPrice) error {
 	return nil
 }
 
-// implement fmt.Stringer
+// String implements fmt.Stringer
 func (cp CurrentPrice) String() string {
 	return strings.TrimSpace(fmt.Sprintf(`Market ID: %s
 Price: %s`, cp.MarketId, cp.Price))
 }
 
-// implement fmt.Stringer
+// String implements fmt.Stringer
 func (pp PostedPrice) String() string {
 	return strings.TrimSpace(fmt.Sprintf(`Market ID: %s
 Oracle Address: %s
