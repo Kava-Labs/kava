@@ -54,7 +54,6 @@ func (suite *AssetTestSuite) SetupTest() {
 	suite.app = tApp
 	suite.ctx = ctx
 	suite.keeper = keeper
-	return
 }
 
 func (suite *AssetTestSuite) TestIncrementCurrentAssetSupply() {
@@ -630,7 +629,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 		suite.Run(tc.name, func() {
 			newParams := types.Params{
 				AssetParams: []types.AssetParam{
-					types.AssetParam{
+					{
 						Denom:  "bnb",
 						CoinID: 714,
 						SupplyLimit: types.SupplyLimit{
@@ -647,7 +646,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 						MinBlockLock:  types.DefaultMinBlockLock,
 						MaxBlockLock:  types.DefaultMaxBlockLock,
 					},
-					types.AssetParam{
+					{
 						Denom:  "inc",
 						CoinID: 9999,
 						SupplyLimit: types.SupplyLimit{
@@ -664,7 +663,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 						MinBlockLock:  types.DefaultMinBlockLock,
 						MaxBlockLock:  types.DefaultMaxBlockLock,
 					},
-					types.AssetParam{
+					{
 						Denom:  "lol",
 						CoinID: 9999,
 						SupplyLimit: types.SupplyLimit{

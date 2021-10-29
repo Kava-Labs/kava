@@ -243,7 +243,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_UNSPECIFIED, true, types.SWAP_DIRECTION_INCOMING)
 
 				gs.AtomicSwaps = []types.AtomicSwap{swap}
-				return app.GenesisState{"bep3": types.ModuleCdc.MustMarshalJSON(&gs)}
+				return app.GenesisState{"bep3": types.ModuleCdc.LegacyAmino.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -253,7 +253,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0].String())
 				gs.Params.AssetParams[0].MinBlockLock = 201
 				gs.Params.AssetParams[0].MaxBlockLock = 200
-				return app.GenesisState{"bep3": types.ModuleCdc.MustMarshalJSON(&gs)}
+				return app.GenesisState{"bep3": types.ModuleCdc.LegacyAmino.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -262,7 +262,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0].String())
 				gs.Params.AssetParams[0].Denom = ""
-				return app.GenesisState{"bep3": types.ModuleCdc.MustMarshalJSON(&gs)}
+				return app.GenesisState{"bep3": types.ModuleCdc.LegacyAmino.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -271,7 +271,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0].String())
 				gs.Params.AssetParams[0].SupplyLimit.Limit = i(-100)
-				return app.GenesisState{"bep3": types.ModuleCdc.MustMarshalJSON(&gs)}
+				return app.GenesisState{"bep3": types.ModuleCdc.LegacyAmino.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -280,7 +280,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0].String())
 				gs.Params.AssetParams[1].Denom = "bnb"
-				return app.GenesisState{"bep3": types.ModuleCdc.MustMarshalJSON(&gs)}
+				return app.GenesisState{"bep3": types.ModuleCdc.LegacyAmino.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},

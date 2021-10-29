@@ -56,14 +56,10 @@ func (suite *KeeperTestSuite) TestEnsureModuleAccountPermissions() {
 	// This calls mint/burn instead of checking permissions as the supply module can report permissions incorrectly.
 	// Using a panic check because MintCoins panics when permissions are incorrect.
 	suite.Panics(func() {
-		err := bankKeeper.MintCoins(suite.ctx, types.ModuleName, testCoins)
-		if err != nil {
-			panic(err)
-		}
-		err = bankKeeper.BurnCoins(suite.ctx, types.ModuleName, testCoins)
-		if err != nil {
-			panic(err)
-		}
+		_ = bankKeeper.MintCoins(suite.ctx, types.ModuleName, testCoins)
+	})
+	suite.Panics(func() {
+		_ = bankKeeper.BurnCoins(suite.ctx, types.ModuleName, testCoins)
 	})
 
 	err := suite.keeper.EnsureModuleAccountPermissions(suite.ctx)

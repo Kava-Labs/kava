@@ -60,10 +60,10 @@ func (suite *ParamsTestSuite) TestGetSetDeputyAddress() {
 
 	asset, err = suite.keeper.GetAsset(suite.ctx, "bnb")
 	suite.Require().NoError(err)
-	suite.Equal(suite.addrs[1], asset.DeputyAddress)
+	suite.Equal(suite.addrs[1].String(), asset.DeputyAddress)
 	addr, err := suite.keeper.GetDeputyAddress(suite.ctx, "bnb")
 	suite.Require().NoError(err)
-	suite.Equal(suite.addrs[1], addr)
+	suite.Equal(suite.addrs[1].String(), addr)
 
 }
 

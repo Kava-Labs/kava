@@ -32,7 +32,7 @@ func ts(minOffset int) int64                { return tmtime.Now().Add(time.Durat
 
 func NewAuthGenStateFromAccs(accounts ...authtypes.GenesisAccount) app.GenesisState {
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
-	return app.GenesisState{authtypes.ModuleName: authtypes.ModuleCdc.MustMarshalJSON(authGenesis)}
+	return app.GenesisState{authtypes.ModuleName: types.ModuleCdc.MustMarshalJSON(authGenesis)}
 }
 
 func NewBep3GenStateMulti(deputyAddress string) app.GenesisState {

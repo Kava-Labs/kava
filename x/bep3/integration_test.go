@@ -35,7 +35,6 @@ func NewBep3GenStateMulti(deputy string) app.GenesisState {
 }
 
 func baseGenState(deputy string) types.GenesisState {
-
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
 			AssetParams: []types.AssetParam{
