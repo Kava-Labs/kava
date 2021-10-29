@@ -1,14 +1,14 @@
 package simulation
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
+	"github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
@@ -32,7 +32,11 @@ func RandomizedGenState(simState *module.SimulationState) {
 		panic(err)
 	}
 
-	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, kavadistGenesis))
+	bz, err := json.MarshalIndent(&kavadistGenesis, "", " ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, bz)
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(kavadistGenesis)
 }
 
@@ -42,8 +46,8 @@ func genRandomParams(simState *module.SimulationState) types.Params {
 	return params
 }
 
-func genRandomPeriods(r *rand.Rand, timestamp time.Time) types.Periods {
-	var periods types.Periods
+func genRandomPeriods(r *rand.Rand, timestamp time.Time) []types.Period {
+	var periods []types.Period
 	numPeriods := simulation.RandIntBetween(r, 1, 10)
 	periodStart := timestamp
 	for i := 0; i < numPeriods; i++ {

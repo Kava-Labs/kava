@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	cdptypes "github.com/kava-labs/kava/x/cdp/legacy/v0_13"
+	// cdptypes "github.com/kava-labs/kava/x/cdp/legacy/v0_13"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
@@ -17,7 +17,7 @@ var (
 	DefaultActive            = false
 	DefaultPeriods           = Periods{}
 	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
-	GovDenom                 = cdptypes.DefaultGovDenom
+	GovDenom                 = "ukava" // TODO: import from cdptypes.DefaultGovDenom
 )
 
 // GenesisState is the state that must be provided at genesis.
