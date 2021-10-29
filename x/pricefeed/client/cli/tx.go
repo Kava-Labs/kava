@@ -72,7 +72,7 @@ func GetCmdPostPrice() *cobra.Command {
 			expiry := tmtime.Canonical(time.Unix(expiryInt, 0))
 
 			from := clientCtx.GetFromAddress()
-			msg := types.NewMsgPostPrice(string(from), args[0], price, expiry)
+			msg := types.NewMsgPostPrice(from.String(), args[0], price, expiry)
 			if err = msg.ValidateBasic(); err != nil {
 				return err
 			}

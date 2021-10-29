@@ -64,7 +64,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 	keeper.SetParams(ctx, mp)
 	// Set price by oracle 1
 	_, err := keeper.SetPrice(
-		ctx, string(addrs[0]), "tstusd",
+		ctx, addrs[0].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.33"),
 		time.Now().Add(1*time.Hour))
 	require.NoError(t, err)
@@ -76,7 +76,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 	require.Equal(t, rawPrices[0].Price.Equal(sdk.MustNewDecFromStr("0.33")), true)
 	// Set price by oracle 2
 	_, err = keeper.SetPrice(
-		ctx, string(addrs[1]), "tstusd",
+		ctx, addrs[1].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.35"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
@@ -87,7 +87,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 
 	// Update Price by Oracle 1
 	_, err = keeper.SetPrice(
-		ctx, string(addrs[0]), "tstusd",
+		ctx, addrs[0].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.37"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
@@ -110,15 +110,15 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 	}
 	keeper.SetParams(ctx, mp)
 	keeper.SetPrice(
-		ctx, string(addrs[0]), "tstusd",
+		ctx, addrs[0].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.33"),
 		time.Now().Add(time.Hour*1))
 	keeper.SetPrice(
-		ctx, string(addrs[1]), "tstusd",
+		ctx, addrs[1].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.35"),
 		time.Now().Add(time.Hour*1))
 	keeper.SetPrice(
-		ctx, string(addrs[2]), "tstusd",
+		ctx, addrs[2].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.34"),
 		time.Now().Add(time.Hour*1))
 	// Set current price
@@ -131,7 +131,7 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 
 	// Even number of oracles
 	keeper.SetPrice(
-		ctx, string(addrs[3]), "tstusd",
+		ctx, addrs[3].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.36"),
 		time.Now().Add(time.Hour*1))
 	err = keeper.SetCurrentPrices(ctx, "tstusd")

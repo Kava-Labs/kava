@@ -60,7 +60,7 @@ func postPriceHandlerFn(cliCtx client.Context) http.HandlerFunc {
 
 		expiry := tmtime.Canonical(time.Unix(expiryInt, 0))
 
-		msg := types.NewMsgPostPrice(string(addr), req.MarketID, price, expiry)
+		msg := types.NewMsgPostPrice(addr.String(), req.MarketID, price, expiry)
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
