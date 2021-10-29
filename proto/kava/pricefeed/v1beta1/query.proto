@@ -17,7 +17,7 @@ service Query {
 
   // Price queries price details based on a market
   rpc Price(QueryPriceRequest) returns (QueryPriceResponse) {
-    option (google.api.http).get = "/kava/pricefeed/v1beta1/price/{market_id}";
+    option (google.api.http).get = "/kava/pricefeed/v1beta1/prices/{market_id}";
   }
 
   // Prices queries all prices
