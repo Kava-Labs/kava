@@ -241,7 +241,7 @@ func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies []types.AssetSupp
 // GetPreviousBlockTime get the blocktime for the previous block
 func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	b := store.Get([]byte{})
+	b := store.Get(types.PreviousBlockTimeKey)
 	if b == nil {
 		return time.Time{}, false
 	}
@@ -258,5 +258,5 @@ func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
 	if err != nil {
 		panic(err)
 	}
-	store.Set([]byte{}, b)
+	store.Set(types.PreviousBlockTimeKey, b)
 }
