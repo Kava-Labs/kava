@@ -209,7 +209,7 @@ func (k Keeper) GetCurrentPrices(ctx sdk.Context) []types.CurrentPrice {
 // GetRawPrices fetches the set of all prices posted by oracles for an asset
 func (k Keeper) GetRawPrices(ctx sdk.Context, marketId string) []types.PostedPrice {
 	var pps []types.PostedPrice
-	k.IterateRawPrices(ctx, func(pp types.PostedPrice) (stop bool) {
+	k.IterateRawPricesByMarket(ctx, marketId, func(pp types.PostedPrice) (stop bool) {
 		if pp.MarketId == marketId {
 			pps = append(pps, pp)
 		}
@@ -219,8 +219,8 @@ func (k Keeper) GetRawPrices(ctx sdk.Context, marketId string) []types.PostedPri
 }
 
 // IterateRawPrices iterates over all raw prices in the store and performs a callback function
-func (k Keeper) IterateRawPrices(ctx sdk.Context, cb func(record types.PostedPrice) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.RawPriceFeedPrefix)
+func (k Keeper) IterateRawPricesByMarket(ctx sdk.Context, marketId string, cb func(record types.PostedPrice) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.RawPriceMarketKey(marketId))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
