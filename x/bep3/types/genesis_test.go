@@ -19,8 +19,6 @@ type GenesisTestSuite struct {
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
-	app.SetSDKConfig()
-
 	coin := sdk.NewCoin("kava", sdk.OneInt())
 	suite.swaps = atomicSwaps(10)
 
