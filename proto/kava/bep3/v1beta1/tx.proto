@@ -24,18 +24,15 @@ message MsgCreateAtomicSwap {
   option (gogoproto.equal)            = false;
   option (gogoproto.goproto_getters)  = false;
 
-  string   from                            = 1 [(gogoproto.moretags) = "yaml:\"from\""];
-  string   to                              = 2 [(gogoproto.moretags) = "yaml:\"to\""];
-  string   recipient_other_chain           = 3 [(gogoproto.moretags) = "yaml:\"recipient_other_chain\""];
-  string   sender_other_chain              = 4 [(gogoproto.moretags) = "yaml:\"sender_other_chain\""];
-  bytes    random_number_hash              = 5 [(gogoproto.moretags) = "yaml:\"random_number_hash\""];
-  int64    timestamp                       = 6 [(gogoproto.moretags) = "yaml:\"timestamp\""];
-  repeated cosmos.base.v1beta1.Coin amount = 7 [
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
-    (gogoproto.nullable)     = false,
-    (gogoproto.moretags)     = "yaml:\"amount\""
-  ];
-  uint64 height_span = 8 [(gogoproto.moretags) = "yaml:\"height_span\""];
+  string   from                            = 1;
+  string   to                              = 2;
+  string   recipient_other_chain           = 3;
+  string   sender_other_chain              = 4;
+  bytes    random_number_hash              = 5;
+  int64    timestamp                       = 6;
+  repeated cosmos.base.v1beta1.Coin amount = 7
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  uint64 height_span = 8;
 }
 
 // MsgCreateAtomicSwapResponse defines the Msg/CreateAtomicSwap response type.
@@ -47,9 +44,9 @@ message MsgClaimAtomicSwap {
   option (gogoproto.equal)            = false;
   option (gogoproto.goproto_getters)  = false;
 
-  string from          = 1 [(gogoproto.moretags) = "yaml:\"from\""];
-  bytes  swap_id       = 2 [(gogoproto.moretags) = "yaml:\"swap_id\"", (gogoproto.customname) = "SwapID"];
-  bytes  random_number = 3 [(gogoproto.moretags) = "yaml:\"random_number\""];
+  string from          = 1;
+  bytes  swap_id       = 2 [(gogoproto.customname) = "SwapID"];
+  bytes  random_number = 3;
 }
 
 // MsgClaimAtomicSwapResponse defines the Msg/ClaimAtomicSwap response type.
@@ -61,8 +58,8 @@ message MsgRefundAtomicSwap {
   option (gogoproto.equal)            = false;
   option (gogoproto.goproto_getters)  = false;
 
-  string from    = 1 [(gogoproto.moretags) = "yaml:\"from\""];
-  bytes  swap_id = 2 [(gogoproto.moretags) = "yaml:\"swap_id\"", (gogoproto.customname) = "SwapID"];
+  string from    = 1;
+  bytes  swap_id = 2 [(gogoproto.customname) = "SwapID"];
 }
 
 // MsgRefundAtomicSwapResponse defines the Msg/RefundAtomicSwap response type.

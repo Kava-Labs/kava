@@ -10,14 +10,11 @@ option go_package = "github.com/kava-labs/kava/x/bep3/types";
 // GenesisState defines the pricefeed module's genesis state.
 message GenesisState {
   // params defines all the paramaters of the module.
-  Params params = 1 [(gogoproto.moretags) = "yaml:\"params\"", (gogoproto.nullable) = false];
+  Params params = 1 [(gogoproto.nullable) = false];
 
-  repeated AtomicSwap atomic_swaps = 2
-      [(gogoproto.moretags) = "yaml:\"atomic_swaps,omitempty\"", (gogoproto.nullable) = false];
+  repeated AtomicSwap atomic_swaps = 2 [(gogoproto.nullable) = false];
 
-  repeated AssetSupply supplies = 3
-      [(gogoproto.moretags) = "yaml:\"supplies,omitempty\"", (gogoproto.nullable) = false];
+  repeated AssetSupply supplies = 3 [(gogoproto.nullable) = false];
 
-  google.protobuf.Timestamp previous_block_time = 4
-      [(gogoproto.stdtime) = true, (gogoproto.moretags) = "yaml:\"previous_block_time\"", (gogoproto.nullable) = false];
+  google.protobuf.Timestamp previous_block_time = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 }

@@ -49,7 +49,7 @@ message QueryAssetSupplyRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string denom = 1 [(gogoproto.moretags) = "yaml:\"denom\""];
+  string denom = 1;
 }
 
 // QueryAssetSupplyResponse is the response type for the Query/AssetSupply RPC method.
@@ -77,12 +77,12 @@ message QueryAtomicSwapRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  bytes swap_id = 1 [(gogoproto.moretags) = "yaml:\"swap_id\""];
+  bytes swap_id = 1;
 }
 
 // QueryAtomicSwapResponse is the response type for the Query/AtomicSwap RPC method.
 message QueryAtomicSwapResponse {
-  string     id          = 1 [(gogoproto.moretags) = "yaml:\"id\"", (gogoproto.customname) = "ID"];
+  string     id          = 1 [(gogoproto.customname) = "ID"];
   AtomicSwap atomic_swap = 2 [(gogoproto.nullable) = false];
 }
 
@@ -91,10 +91,10 @@ message QueryAtomicSwapsRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string        involve    = 1 [(gogoproto.moretags) = "yaml:\"involve\""];
-  uint64        expiration = 2 [(gogoproto.moretags) = "yaml:\"expiration\""];
-  SwapStatus    status     = 3 [(gogoproto.moretags) = "yaml:\"status\""];
-  SwapDirection direction  = 4 [(gogoproto.moretags) = "yaml:\"direction\""];
+  string        involve    = 1;
+  uint64        expiration = 2;
+  SwapStatus    status     = 3;
+  SwapDirection direction  = 4;
 
   cosmos.base.query.v1beta1.PageRequest pagination = 5;
 }
