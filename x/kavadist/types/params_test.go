@@ -25,13 +25,13 @@ type ParamTestSuite struct {
 func (suite *ParamTestSuite) SetupTest() {
 	p1 := types.Params{
 		Active: true,
-		Periods: types.Periods{
-			types.Period{
+		Periods: []types.Period{
+			{
 				Start:     time.Date(2020, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
 				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
 			},
-			types.Period{
+			{
 				Start:     time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2022, time.March, 1, 1, 0, 0, 0, time.UTC),
 				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
@@ -40,13 +40,13 @@ func (suite *ParamTestSuite) SetupTest() {
 	}
 	p2 := types.Params{
 		Active: true,
-		Periods: types.Periods{
-			types.Period{
+		Periods: []types.Period{
+			{
 				Start:     time.Date(2022, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
 				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
 			},
-			types.Period{
+			{
 				Start:     time.Date(2023, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2024, time.March, 1, 1, 0, 0, 0, time.UTC),
 				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
@@ -55,13 +55,13 @@ func (suite *ParamTestSuite) SetupTest() {
 	}
 	p3 := types.Params{
 		Active: true,
-		Periods: types.Periods{
-			types.Period{
+		Periods: []types.Period{
+			{
 				Start:     time.Date(2020, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
 				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
 			},
-			types.Period{
+			{
 				Start:     time.Date(2020, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2022, time.March, 1, 1, 0, 0, 0, time.UTC),
 				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),

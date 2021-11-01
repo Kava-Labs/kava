@@ -5,32 +5,29 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kava-labs/kava/x/kavadist/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/libs/kv"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/kava-labs/kava/x/kavadist/types"
+	"github.com/cosmos/cosmos-sdk/types/kv"
 )
 
-func makeTestCodec() (cdc *codec.Codec) {
-	cdc = codec.New()
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	types.RegisterCodec(cdc)
-	return
-}
-
 func TestDecodeDistributionStore(t *testing.T) {
-	cdc := makeTestCodec()
-
 	prevBlockTime := time.Now().UTC()
-
+	bPrevBlockTime, err := prevBlockTime.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
 	kvPairs := kv.Pairs{
-		kv.Pair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevBlockTime)},
-		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
+		Pairs: []kv.Pair{
+			{
+				Key:   []byte(types.PreviousBlockTimeKey),
+				Value: bPrevBlockTime,
+			},
+			{
+				Key:   []byte{0x99},
+				Value: []byte{0x99},
+			},
+		},
 	}
 
 	tests := []struct {
@@ -45,9 +42,9 @@ func TestDecodeDistributionStore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			switch i {
 			case len(tests) - 1:
-				require.Panics(t, func() { DecodeStore(cdc, kvPairs[i], kvPairs[i]) }, tt.name)
+				require.Panics(t, func() { DecodeStore(kvPairs.GetPairs()[i], kvPairs.GetPairs()[i]) }, tt.name)
 			default:
-				require.Equal(t, tt.expectedLog, DecodeStore(cdc, kvPairs[i], kvPairs[i]), tt.name)
+				require.Equal(t, tt.expectedLog, DecodeStore(kvPairs.GetPairs()[i], kvPairs.GetPairs()[i]), tt.name)
 			}
 		})
 	}

@@ -8,7 +8,6 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -48,7 +47,7 @@ func TestAppAnteHandler(t *testing.T) {
 	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainID(
 		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
 		chainID,
-		NewFundedGenStateWithSameCoins(
+		app.NewFundedGenStateWithSameCoins(
 			tApp.AppCodec(),
 			sdk.NewCoins(sdk.NewInt64Coin("ukava", 1e9)),
 			testAddresses,
@@ -126,36 +125,6 @@ func TestAppAnteHandler(t *testing.T) {
 				require.NotZero(t, res.Code)
 			}
 		})
-	}
-}
-
-// NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
-func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) app.GenesisState {
-	balances := make([]banktypes.Balance, len(addresses))
-	for i, addr := range addresses {
-		balances[i] = banktypes.Balance{
-			Address: addr.String(),
-			Coins:   balance,
-		}
-	}
-
-	bankGenesis := banktypes.NewGenesisState(
-		banktypes.DefaultParams(),
-		balances,
-		nil,
-		[]banktypes.Metadata{}, // Metadata is not used in the antehandler to it is left out here
-	)
-
-	accounts := make(authtypes.GenesisAccounts, len(addresses))
-	for i := range addresses {
-		accounts[i] = authtypes.NewBaseAccount(addresses[i], nil, 0, 0)
-	}
-
-	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
-
-	return app.GenesisState{
-		authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis),
-		banktypes.ModuleName: cdc.MustMarshalJSON(bankGenesis),
 	}
 }
 

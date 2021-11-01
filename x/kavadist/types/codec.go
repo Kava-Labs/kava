@@ -1,18 +1,32 @@
 package types
 
-import "github.com/cosmos/cosmos-sdk/codec"
+import (
+	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+)
 
-// ModuleCdc generic sealed codec to be used throughout module
-var ModuleCdc *codec.Codec
-
-func init() {
-	cdc := codec.New()
-	RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	ModuleCdc = cdc.Seal()
+// RegisterLegacyAminoCodec registers the necessary kavadist interfaces and concrete types
+// on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal", nil)
 }
 
-// RegisterCodec registers the necessary types for cdp module
-func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal", nil)
+func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	registry.RegisterImplementations(
+		(*govtypes.Content)(nil),
+		&CommunityPoolMultiSpendProposal{},
+	)
+}
+
+var (
+	amino     = codec.NewLegacyAmino()
+	ModuleCdc = codec.NewAminoCodec(amino)
+)
+
+func init() {
+	RegisterLegacyAminoCodec(amino)
+	cryptocodec.RegisterCrypto(amino)
+	amino.Seal()
 }

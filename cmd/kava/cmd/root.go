@@ -21,7 +21,7 @@ import (
 )
 
 // NewRootCmd creates a new root command for the kava blockchain.
-func NewRootCmd() *cobra.Command {
+func NewRootCmd(defaultNodeHome string) *cobra.Command {
 	app.SetSDKConfig().Seal()
 
 	encodingConfig := app.MakeEncodingConfig()
@@ -33,15 +33,19 @@ func NewRootCmd() *cobra.Command {
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithHomeDir(app.DefaultNodeHome). // TODO why is this in app ?
-		WithViper("")                     // TODO this sets the env prefix
+		WithHomeDir(defaultNodeHome).
+		WithViper("") // TODO this sets the env prefix
 
 	rootCmd := &cobra.Command{
 		Use:   "kava",
 		Short: "Daemon and CLI for the Kava blockchain.",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			initClientCtx = client.ReadHomeFlag(initClientCtx, cmd)
-			initClientCtx, err := config.ReadFromClientConfig(initClientCtx)
+			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			initClientCtx, err = config.ReadFromClientConfig(initClientCtx)
 			if err != nil {
 				return err
 			}
@@ -54,22 +58,22 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	addSubCmds(rootCmd, encodingConfig)
+	addSubCmds(rootCmd, encodingConfig, defaultNodeHome)
 
 	return rootCmd
 }
 
 // addSubCmds registers all the sub commands used by kava.
-func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
+func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, defaultNodeHome string) {
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.InitCmd(app.ModuleBasics, defaultNodeHome),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		// app.MigrateGenesisCmd(), // TODO add
 		// TODO add assert-invariants cmd
-		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		simdcmd.AddGenesisAccountCmd(app.DefaultNodeHome), // TODO use kava version with vesting accounts
-		tmcli.NewCompletionCmd(rootCmd, true),             // TODO add other shells, drop tmcli dependency, unhide?
+		simdcmd.AddGenesisAccountCmd(defaultNodeHome), // TODO use kava version with vesting accounts
+		tmcli.NewCompletionCmd(rootCmd, true),         // TODO add other shells, drop tmcli dependency, unhide?
 		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}), // TODO add
 		debug.Cmd(),
 		config.Cmd(),
@@ -78,13 +82,13 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	ac := appCreator{
 		encodingConfig: encodingConfig,
 	}
-	server.AddCommands(rootCmd, app.DefaultNodeHome, ac.newApp, ac.appExport, ac.addStartCmdFlags)
+	server.AddCommands(rootCmd, defaultNodeHome, ac.newApp, ac.appExport, ac.addStartCmdFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
 		newQueryCmd(),
 		newTxCmd(),
-		keys.Commands(app.DefaultNodeHome),
+		keys.Commands(defaultNodeHome),
 	)
 }
