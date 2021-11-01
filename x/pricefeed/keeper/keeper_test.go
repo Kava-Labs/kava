@@ -62,38 +62,43 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 		},
 	}
 	keeper.SetParams(ctx, mp)
-	// Set price by oracle 1
-	_, err := keeper.SetPrice(
-		ctx, addrs[0].String(), "tstusd",
-		sdk.MustNewDecFromStr("0.33"),
-		time.Now().Add(1*time.Hour))
-	require.NoError(t, err)
 
-	// Get raw prices
-	rawPrices := keeper.GetRawPrices(ctx, "tstusd")
-	require.Greater(t, len(rawPrices), 0)
-	require.Equal(t, len(rawPrices), 1)
-	require.Equal(t, rawPrices[0].Price.Equal(sdk.MustNewDecFromStr("0.33")), true)
-	// Set price by oracle 2
-	_, err = keeper.SetPrice(
-		ctx, addrs[1].String(), "tstusd",
-		sdk.MustNewDecFromStr("0.35"),
-		time.Now().Add(time.Hour*1))
-	require.NoError(t, err)
+	prices := []struct {
+		oracle   string
+		marketID string
+		price    sdk.Dec
+		total    int
+	}{
+		{addrs[0].String(), "tstusd", sdk.MustNewDecFromStr("0.33"), 1},
+		{addrs[1].String(), "tstusd", sdk.MustNewDecFromStr("0.35"), 2},
+		{addrs[0].String(), "tstusd", sdk.MustNewDecFromStr("0.37"), 2},
+	}
 
-	rawPrices = keeper.GetRawPrices(ctx, "tstusd")
-	require.Equal(t, 2, len(rawPrices))
-	require.Equal(t, rawPrices[1].Price.Equal(sdk.MustNewDecFromStr("0.35")), true)
+	for _, p := range prices {
+		// Set price by oracle 1
+		pp, err := keeper.SetPrice(
+			ctx,
+			p.oracle,
+			p.marketID,
+			p.price,
+			time.Now().UTC().Add(1*time.Hour),
+		)
 
-	// Update Price by Oracle 1
-	_, err = keeper.SetPrice(
-		ctx, addrs[0].String(), "tstusd",
-		sdk.MustNewDecFromStr("0.37"),
-		time.Now().Add(time.Hour*1))
-	require.NoError(t, err)
-	rawPrices = keeper.GetRawPrices(ctx, "tstusd")
-	require.Greater(t, len(rawPrices), 0)
-	require.Equal(t, rawPrices[0].Price.Equal(sdk.MustNewDecFromStr("0.37")), true)
+		require.NoError(t, err)
+
+		// Get raw prices
+		rawPrices := keeper.GetRawPrices(ctx, "tstusd")
+
+		require.Equal(t, p.total, len(rawPrices))
+		require.Contains(t, rawPrices, pp)
+
+		// Find the oracle and require price to be same
+		for _, rp := range rawPrices {
+			if p.oracle == rp.OracleAddress {
+				require.Equal(t, p.price, rp.Price)
+			}
+		}
+	}
 }
 
 // TestKeeper_GetSetCurrentPrice Test Setting the median price of an Asset
