@@ -65,6 +65,11 @@ import (
 	"github.com/kava-labs/kava/x/bep3"
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
+
+	"github.com/kava-labs/kava/x/kavadist"
+	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
+	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 const (
@@ -85,6 +90,7 @@ var (
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler,
 			distrclient.ProposalHandler,
+			kavadistclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -92,6 +98,7 @@ var (
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		bep3.AppModuleBasic{},
+		kavadist.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -105,6 +112,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		bep3types.ModuleName:           {authtypes.Burner, authtypes.Minter},
+		kavadisttypes.KavaDistMacc:     {authtypes.Minter},
 	}
 )
 
@@ -148,6 +156,7 @@ type App struct {
 	paramsKeeper   paramskeeper.Keeper
 	evidenceKeeper evidencekeeper.Keeper
 	bep3Keeper     bep3keeper.Keeper
+	kavadistKeeper kavadistkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -176,6 +185,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
 		bep3types.StoreKey,
+		kavadisttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -204,6 +214,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.ModuleName)
 	bep3Subspace := app.paramsKeeper.Subspace(bep3types.ModuleName)
+	kavadistSubspace := app.paramsKeeper.Subspace(kavadisttypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -273,7 +284,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[govtypes.StoreKey],
@@ -290,6 +301,15 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		app.bankKeeper,
 		app.accountKeeper,
 		bep3Subspace,
+		app.ModuleAccountAddrs(),
+	)
+	app.kavadistKeeper = kavadistkeeper.NewKeeper(
+		appCodec,
+		keys[kavadisttypes.StoreKey],
+		kavadistSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+		app.distrKeeper,
 		app.ModuleAccountAddrs(),
 	)
 
@@ -314,6 +334,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		evidence.NewAppModule(app.evidenceKeeper),
 		params.NewAppModule(app.paramsKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
+		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -348,6 +369,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
 		bep3types.ModuleName,
+		kavadisttypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

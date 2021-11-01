@@ -1,8 +1,8 @@
 #!/usr/bin/make -f
 
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
-TM_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
-COSMOS_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
+TM_PKG_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
+COSMOS_PKG_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
 PROJECT_NAME = kava
@@ -56,7 +56,7 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=kava \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
-		  -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_VERSION)
+		  -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_PKG_VERSION)
 
 ifeq ($(WITH_CLEVELDB),yes)
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
@@ -171,11 +171,11 @@ proto-lint:
 proto-check-breaking:
 	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=upgrade-v44
 
-TM_URL = https://raw.githubusercontent.com/tendermint/tendermint/$(TM_VERSION)/proto/tendermint
+TM_URL = https://raw.githubusercontent.com/tendermint/tendermint/$(TM_PKG_VERSION)/proto/tendermint
 GOGO_PROTO_URL = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
 COSMOS_PROTO_URL = https://raw.githubusercontent.com/regen-network/cosmos-proto/master
-COSMOS_SDK_PROTO_URL = https://raw.githubusercontent.com/cosmos/cosmos-sdk/${COSMOS_VERSION}/proto/cosmos
-COSMOS_SDK_BASE_PROTO_URL = ${COSMOS_SDK_PROTO_URL}/base
+COSMOS_SDK_PROTO_URL = https://raw.githubusercontent.com/cosmos/cosmos-sdk/$(COSMOS_PKG_VERSION)/proto/cosmos
+COSMOS_SDK_BASE_PROTO_URL = $(COSMOS_SDK_PROTO_URL)/base
 GOOGLE_PROTO_URL = https://raw.githubusercontent.com/googleapis/googleapis/master/google/api
 PROTOBUF_GOOGLE_URL = https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf
 
