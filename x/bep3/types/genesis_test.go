@@ -19,8 +19,7 @@ type GenesisTestSuite struct {
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
-	config := sdk.GetConfig()
-	app.SetBech32AddressPrefixes(config)
+	app.SetSDKConfig()
 
 	coin := sdk.NewCoin("kava", sdk.OneInt())
 	suite.swaps = atomicSwaps(10)
@@ -101,6 +100,8 @@ func (suite *GenesisTestSuite) TestValidate() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			config := sdk.GetConfig()
+			app.SetBech32AddressPrefixes(config)
 			var gs types.GenesisState
 			if tc.name == "default" {
 				gs = types.DefaultGenesisState()

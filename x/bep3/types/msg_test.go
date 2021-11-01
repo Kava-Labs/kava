@@ -13,8 +13,19 @@ import (
 )
 
 var (
-	coinsSingle  = sdk.NewCoins(sdk.NewInt64Coin("bnb", int64(50000)))
-	coinsZero    = sdk.Coins{sdk.Coin{}}
+	coinsSingle       = sdk.NewCoins(sdk.NewInt64Coin("bnb", int64(50000)))
+	coinsZero         = sdk.Coins{sdk.Coin{}}
+	binanceAddrs      = []string{}
+	kavaAddrs         = []string{}
+	randomNumberBytes = []byte{15}
+	timestampInt64    = int64(100)
+	randomNumberHash  = types.CalculateRandomHash(randomNumberBytes, timestampInt64)
+)
+
+func init() {
+	app.SetSDKConfig()
+
+	// Must be set after SetSDKConfig to use kava Bech32 prefix instead of cosmos
 	binanceAddrs = []string{
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))).String(),
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))).String(),
@@ -23,10 +34,7 @@ var (
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String(),
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))).String(),
 	}
-	randomNumberBytes = []byte{15}
-	timestampInt64    = int64(100)
-	randomNumberHash  = types.CalculateRandomHash(randomNumberBytes, timestampInt64)
-)
+}
 
 type MsgTestSuite struct {
 	suite.Suite
