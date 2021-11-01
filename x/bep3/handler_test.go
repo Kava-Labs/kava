@@ -1,135 +1,140 @@
 package bep3_test
 
-// import (
-// 	"testing"
+import (
+	"testing"
 
-// 	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/suite"
 
-// 	abci "github.com/tendermint/tendermint/abci/types"
-// 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-// 	tmtime "github.com/tendermint/tendermint/types/time"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
-// 	sdk "github.com/cosmos/cosmos-sdk/types"
+	testdata "github.com/cosmos/cosmos-sdk/testutil/testdata"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
-// 	"github.com/kava-labs/kava/app"
-// 	"github.com/kava-labs/kava/x/bep3"
-// )
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/bep3"
+	"github.com/kava-labs/kava/x/bep3/keeper"
+	"github.com/kava-labs/kava/x/bep3/types"
+)
 
-// type HandlerTestSuite struct {
-// 	suite.Suite
+type HandlerTestSuite struct {
+	suite.Suite
 
-// 	ctx     sdk.Context
-// 	app     app.TestApp
-// 	handler sdk.Handler
-// 	keeper  bep3.Keeper
-// 	addrs   []sdk.AccAddress
-// }
+	ctx     sdk.Context
+	app     app.TestApp
+	handler sdk.Handler
+	keeper  keeper.Keeper
+	addrs   []sdk.AccAddress
+}
 
-// func (suite *HandlerTestSuite) SetupTest() {
-// 	tApp := app.NewTestApp()
-// 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-// 	keeper := tApp.GetBep3Keeper()
+func (suite *HandlerTestSuite) SetupTest() {
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	keeper := tApp.GetBep3Keeper()
 
-// 	// Set up genesis state and initialize
-// 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-// 	coins := []sdk.Coins{}
-// 	for j := 0; j < 3; j++ {
-// 		coins = append(coins, cs(c("bnb", 10000000000), c("ukava", 10000000000)))
-// 	}
-// 	authGS := app.NewAuthGenState(addrs, coins)
-// 	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(addrs[0]))
+	cdc := tApp.AppCodec()
 
-// 	suite.addrs = addrs
-// 	suite.handler = bep3.NewHandler(keeper)
-// 	suite.keeper = keeper
-// 	suite.app = tApp
-// 	suite.ctx = ctx
-// }
+	// Set up genesis state and initialize
+	_, addrs := app.GeneratePrivKeyAddressPairs(3)
+	coins := []sdk.Coins{}
+	for j := 0; j < 3; j++ {
+		coins = append(coins, cs(c("bnb", 10000000000), c("ukava", 10000000000)))
+	}
+	authGS := tApp.NewAuthGenState(ctx, cdc, addrs, coins)
+	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(cdc, addrs[0].String()))
 
-// func (suite *HandlerTestSuite) AddAtomicSwap() (tmbytes.HexBytes, tmbytes.HexBytes) {
-// 	expireHeight := bep3.DefaultMinBlockLock
-// 	amount := cs(c("bnb", int64(50000)))
-// 	timestamp := ts(0)
-// 	randomNumber, _ := bep3.GenerateSecureRandomNumber()
-// 	randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
+	suite.addrs = addrs
+	suite.handler = bep3.NewHandler(keeper)
+	suite.keeper = keeper
+	suite.app = tApp
+	suite.ctx = ctx
+}
 
-// 	// Create atomic swap and check err to confirm creation
-// 	err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
-// 		suite.addrs[0], suite.addrs[1], TestSenderOtherChain, TestRecipientOtherChain,
-// 		amount, true)
-// 	suite.Nil(err)
+func (suite *HandlerTestSuite) AddAtomicSwap() (tmbytes.HexBytes, tmbytes.HexBytes) {
+	expireHeight := types.DefaultMinBlockLock
+	amount := cs(c("bnb", int64(50000)))
+	timestamp := ts(0)
+	randomNumber, _ := types.GenerateSecureRandomNumber()
+	randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
-// 	swapID := bep3.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
-// 	return swapID, randomNumber[:]
-// }
+	// Create atomic swap and check err to confirm creation
+	err := suite.keeper.CreateNewAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
+		suite.addrs[0], suite.addrs[1], TestSenderOtherChain, TestRecipientOtherChain,
+		amount, true)
+	suite.Nil(err)
 
-// func (suite *HandlerTestSuite) TestMsgCreateAtomicSwap() {
-// 	amount := cs(c("bnb", int64(10000)))
-// 	timestamp := ts(0)
-// 	randomNumber, _ := bep3.GenerateSecureRandomNumber()
-// 	randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
+	swapID := types.CalculateSwapID(randomNumberHash, suite.addrs[0].String(), TestSenderOtherChain)
+	return swapID, randomNumber[:]
+}
 
-// 	msg := bep3.NewMsgCreateAtomicSwap(
-// 		suite.addrs[0], suite.addrs[2], TestRecipientOtherChain,
-// 		TestSenderOtherChain, randomNumberHash, timestamp, amount,
-// 		bep3.DefaultMinBlockLock)
+func (suite *HandlerTestSuite) TestMsgCreateAtomicSwap() {
+	amount := cs(c("bnb", int64(10000)))
+	timestamp := ts(0)
+	randomNumber, _ := types.GenerateSecureRandomNumber()
+	randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
-// 	res, err := suite.handler(suite.ctx, msg)
-// 	suite.Require().NoError(err)
-// 	suite.Require().NotNil(res)
-// }
+	msg := types.NewMsgCreateAtomicSwap(
+		suite.addrs[0].String(), suite.addrs[2].String(), TestRecipientOtherChain,
+		TestSenderOtherChain, randomNumberHash, timestamp, amount,
+		types.DefaultMinBlockLock)
 
-// func (suite *HandlerTestSuite) TestMsgClaimAtomicSwap() {
-// 	// Attempt claim msg on fake atomic swap
-// 	badRandomNumber, _ := bep3.GenerateSecureRandomNumber()
-// 	badRandomNumberHash := bep3.CalculateRandomHash(badRandomNumber[:], ts(0))
-// 	badSwapID := bep3.CalculateSwapID(badRandomNumberHash, suite.addrs[0], TestSenderOtherChain)
-// 	badMsg := bep3.NewMsgClaimAtomicSwap(suite.addrs[0], badSwapID, badRandomNumber[:])
-// 	badRes, err := suite.handler(suite.ctx, badMsg)
-// 	suite.Require().Error(err)
-// 	suite.Require().Nil(badRes)
+	res, err := suite.handler(suite.ctx, &msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
+}
 
-// 	// Add an atomic swap before attempting new claim msg
-// 	swapID, randomNumber := suite.AddAtomicSwap()
-// 	msg := bep3.NewMsgClaimAtomicSwap(suite.addrs[0], swapID, randomNumber)
-// 	res, err := suite.handler(suite.ctx, msg)
-// 	suite.Require().NoError(err)
-// 	suite.Require().NotNil(res)
-// }
+func (suite *HandlerTestSuite) TestMsgClaimAtomicSwap() {
+	// Attempt claim msg on fake atomic swap
+	badRandomNumber, _ := types.GenerateSecureRandomNumber()
+	badRandomNumberHash := types.CalculateRandomHash(badRandomNumber[:], ts(0))
+	badSwapID := types.CalculateSwapID(badRandomNumberHash, suite.addrs[0].String(), TestSenderOtherChain)
+	badMsg := types.NewMsgClaimAtomicSwap(suite.addrs[0].String(), badSwapID, badRandomNumber[:])
+	badRes, err := suite.handler(suite.ctx, &badMsg)
+	suite.Require().Error(err)
+	suite.Require().Nil(badRes)
 
-// func (suite *HandlerTestSuite) TestMsgRefundAtomicSwap() {
-// 	// Attempt refund msg on fake atomic swap
-// 	badRandomNumber, _ := bep3.GenerateSecureRandomNumber()
-// 	badRandomNumberHash := bep3.CalculateRandomHash(badRandomNumber[:], ts(0))
-// 	badSwapID := bep3.CalculateSwapID(badRandomNumberHash, suite.addrs[0], TestSenderOtherChain)
-// 	badMsg := bep3.NewMsgRefundAtomicSwap(suite.addrs[0], badSwapID)
-// 	badRes, err := suite.handler(suite.ctx, badMsg)
-// 	suite.Require().Error(err)
-// 	suite.Require().Nil(badRes)
+	// Add an atomic swap before attempting new claim msg
+	swapID, randomNumber := suite.AddAtomicSwap()
+	msg := types.NewMsgClaimAtomicSwap(suite.addrs[0].String(), swapID, randomNumber)
+	res, err := suite.handler(suite.ctx, &msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
+}
 
-// 	// Add an atomic swap and build refund msg
-// 	swapID, _ := suite.AddAtomicSwap()
-// 	msg := bep3.NewMsgRefundAtomicSwap(suite.addrs[0], swapID)
+func (suite *HandlerTestSuite) TestMsgRefundAtomicSwap() {
+	// Attempt refund msg on fake atomic swap
+	badRandomNumber, _ := types.GenerateSecureRandomNumber()
+	badRandomNumberHash := types.CalculateRandomHash(badRandomNumber[:], ts(0))
+	badSwapID := types.CalculateSwapID(badRandomNumberHash, suite.addrs[0].String(), TestSenderOtherChain)
+	badMsg := types.NewMsgRefundAtomicSwap(suite.addrs[0].String(), badSwapID)
+	badRes, err := suite.handler(suite.ctx, &badMsg)
+	suite.Require().Error(err)
+	suite.Require().Nil(badRes)
 
-// 	// Attempt to refund active atomic swap
-// 	res1, err := suite.handler(suite.ctx, msg)
-// 	suite.Require().Error(err)
-// 	suite.Require().Nil(res1)
+	// Add an atomic swap and build refund msg
+	swapID, _ := suite.AddAtomicSwap()
+	msg := types.NewMsgRefundAtomicSwap(suite.addrs[0].String(), swapID)
 
-// 	// Expire the atomic swap with begin blocker and attempt refund
-// 	laterCtx := suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400)
-// 	bep3.BeginBlocker(laterCtx, suite.keeper)
-// 	res2, err := suite.handler(laterCtx, msg)
-// 	suite.Require().NoError(err)
-// 	suite.Require().NotNil(res2)
-// }
+	// Attempt to refund active atomic swap
+	res1, err := suite.handler(suite.ctx, &msg)
+	suite.Require().Error(err)
+	suite.Require().Nil(res1)
 
-// func (suite *HandlerTestSuite) TestInvalidMsg() {
-// 	res, err := suite.handler(suite.ctx, sdk.NewTestMsg())
-// 	suite.Require().Error(err)
-// 	suite.Require().Nil(res)
-// }
+	// Expire the atomic swap with begin blocker and attempt refund
+	laterCtx := suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400)
+	bep3.BeginBlocker(laterCtx, suite.keeper)
+	res2, err := suite.handler(laterCtx, &msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res2)
+}
 
-// func TestHandlerTestSuite(t *testing.T) {
-// 	suite.Run(t, new(HandlerTestSuite))
-// }
+func (suite *HandlerTestSuite) TestInvalidMsg() {
+	res, err := suite.handler(suite.ctx, testdata.NewTestMsg())
+	suite.Require().Error(err)
+	suite.Require().Nil(res)
+}
+
+func TestHandlerTestSuite(t *testing.T) {
+	suite.Run(t, new(HandlerTestSuite))
+}
