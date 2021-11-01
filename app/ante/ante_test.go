@@ -16,6 +16,7 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 func TestAppAnteHandler(t *testing.T) {
@@ -54,7 +55,7 @@ func TestAppAnteHandler(t *testing.T) {
 		),
 		// TODO see below
 		// newBep3GenStateMulti(tApp.AppCodec(), deputy),
-		// newPricefeedGenStateMulti(tApp.AppCodec(), oracles),
+		newPricefeedGenStateMulti(tApp.AppCodec(), oracles),
 	)
 
 	testcases := []struct {
@@ -160,16 +161,21 @@ func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addr
 
 // TODO Test pricefeed oracles and bep3 deputy txs can always get into the mempool.
 
-// func newPricefeedGenStateMulti(cdc codec.JSONCodec, oracles []sdk.AccAddress) app.GenesisState {
-// 	pfGenesis := pricefeed.GenesisState{
-// 		Params: pricefeed.Params{
-// 			Markets: []pricefeed.Market{
-// 				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: oracles, Active: true},
-// 			},
-// 		},
-// 	}
-// 	return app.GenesisState{pricefeed.ModuleName: cdc.MustMarshalJSON(pfGenesis)}
-// }
+func newPricefeedGenStateMulti(cdc codec.JSONCodec, oracles []sdk.AccAddress) app.GenesisState {
+	var oracleStrs []string
+	for _, o := range oracles {
+		oracleStrs = append(oracleStrs, o.String())
+	}
+
+	pfGenesis := pricefeedtypes.GenesisState{
+		Params: pricefeedtypes.Params{
+			Markets: []pricefeedtypes.Market{
+				{MarketId: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: oracleStrs, Active: true},
+			},
+		},
+	}
+	return app.GenesisState{pricefeedtypes.ModuleName: cdc.MustMarshalJSON(&pfGenesis)}
+}
 
 // func newBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app.GenesisState {
 // 	bep3Genesis := bep3.GenesisState{
