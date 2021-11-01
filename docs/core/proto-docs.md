@@ -188,7 +188,7 @@ MultiSpendRecipient defines a recipient and the amount of coins they are receivi
 <a name="kava.kavadist.v1beta1.QueryBalanceRequest"></a>
 
 ### QueryBalanceRequest
-
+QueryBalanceRequest defines the request type for querying x/kavadist balance.
 
 
 
@@ -198,7 +198,7 @@ MultiSpendRecipient defines a recipient and the amount of coins they are receivi
 <a name="kava.kavadist.v1beta1.QueryBalanceResponse"></a>
 
 ### QueryBalanceResponse
-
+QueryBalanceResponse defines the response type for querying x/kavadist balance.
 
 
 | Field | Type | Label | Description |
@@ -213,7 +213,7 @@ MultiSpendRecipient defines a recipient and the amount of coins they are receivi
 <a name="kava.kavadist.v1beta1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
-
+QueryParamsRequest defines the request type for querying x/kavadist parameters.
 
 
 
@@ -223,7 +223,7 @@ MultiSpendRecipient defines a recipient and the amount of coins they are receivi
 <a name="kava.kavadist.v1beta1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
-
+QueryParamsResponse defines the response type for querying x/kavadist parameters.
 
 
 | Field | Type | Label | Description |
@@ -248,8 +248,8 @@ Query defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse) |  | GET|/kava/kavadist/v1beta1/parameters|
-| `Balance` | [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse) |  | GET|/kava/kavadist/v1beta1/balance|
+| `Params` | [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse) | Params queries the parameters of x/kavadist module. | GET|/kava/kavadist/v1beta1/parameters|
+| `Balance` | [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/kavadist module. | GET|/kava/kavadist/v1beta1/balance|
 
  <!-- end services -->
 
