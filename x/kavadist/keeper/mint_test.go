@@ -10,41 +10,41 @@ import (
 
 func (suite *keeperTestSuite) TestMintExpiredPeriod() {
 	initialSupply := suite.BankKeeper.GetSupply(suite.Ctx, types.GovDenom)
-	suite.NotPanics(func() { suite.Keeper.SetPreviousBlockTime(suite.Ctx, time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)) })
+	suite.Require().NotPanics(func() { suite.Keeper.SetPreviousBlockTime(suite.Ctx, time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)) })
 	ctx := suite.Ctx.WithBlockTime(time.Date(2022, 1, 1, 0, 7, 0, 0, time.UTC))
 	err := suite.Keeper.MintPeriodInflation(ctx)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	finalSupply := suite.BankKeeper.GetSupply(suite.Ctx, types.GovDenom)
-	suite.Equal(initialSupply, finalSupply)
+	suite.Require().Equal(initialSupply, finalSupply)
 }
 
 func (suite *keeperTestSuite) TestMintPeriodNotStarted() {
 	initialSupply := suite.BankKeeper.GetSupply(suite.Ctx, types.GovDenom)
-	suite.NotPanics(func() { suite.Keeper.SetPreviousBlockTime(suite.Ctx, time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)) })
+	suite.Require().NotPanics(func() { suite.Keeper.SetPreviousBlockTime(suite.Ctx, time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)) })
 	ctx := suite.Ctx.WithBlockTime(time.Date(2019, 1, 1, 0, 7, 0, 0, time.UTC))
 	err := suite.Keeper.MintPeriodInflation(ctx)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	finalSupply := suite.BankKeeper.GetSupply(suite.Ctx, types.GovDenom)
-	suite.Equal(initialSupply, finalSupply)
+	suite.Require().Equal(initialSupply, finalSupply)
 }
 
 func (suite *keeperTestSuite) TestMintOngoingPeriod() {
 	initialSupply := suite.BankKeeper.GetSupply(suite.Ctx, types.GovDenom)
-	suite.NotPanics(func() {
+	suite.Require().NotPanics(func() {
 		suite.Keeper.SetPreviousBlockTime(suite.Ctx, time.Date(2020, time.March, 1, 1, 0, 1, 0, time.UTC))
 	})
 	ctx := suite.Ctx.WithBlockTime(time.Date(2021, 2, 28, 23, 59, 59, 0, time.UTC))
 	err := suite.Keeper.MintPeriodInflation(ctx)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	finalSupply := suite.BankKeeper.GetSupply(suite.Ctx, types.GovDenom)
-	suite.True(finalSupply.Amount.GT(initialSupply.Amount))
+	suite.Require().True(finalSupply.Amount.GT(initialSupply.Amount))
 	mAcc := suite.AccountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	mAccSupply := suite.BankKeeper.GetAllBalances(ctx, mAcc.GetAddress()).AmountOf(types.GovDenom)
-	suite.True(mAccSupply.Equal(finalSupply.Amount.Sub(initialSupply.Amount)))
+	suite.Require().True(mAccSupply.Equal(finalSupply.Amount.Sub(initialSupply.Amount)))
 	// expect that inflation is ~10%
 	expectedSupply := sdk.NewDecFromInt(initialSupply.Amount).Mul(sdk.MustNewDecFromStr("1.1"))
 	supplyError := sdk.OneDec().Sub((sdk.NewDecFromInt(finalSupply.Amount).Quo(expectedSupply))).Abs()
-	suite.True(supplyError.LTE(sdk.MustNewDecFromStr("0.001")))
+	suite.Require().True(supplyError.LTE(sdk.MustNewDecFromStr("0.001")))
 }
 
 func (suite *keeperTestSuite) TestMintPeriodTransition() {
@@ -59,32 +59,32 @@ func (suite *keeperTestSuite) TestMintPeriodTransition() {
 		},
 	}
 	params.Periods = periods
-	suite.NotPanics(func() {
+	suite.Require().NotPanics(func() {
 		suite.Keeper.SetParams(suite.Ctx, params)
 	})
-	suite.NotPanics(func() {
+	suite.Require().NotPanics(func() {
 		suite.Keeper.SetPreviousBlockTime(suite.Ctx, time.Date(2020, time.March, 1, 1, 0, 1, 0, time.UTC))
 	})
 	ctx := suite.Ctx.WithBlockTime(time.Date(2021, 3, 10, 0, 0, 0, 0, time.UTC))
 	err := suite.Keeper.MintPeriodInflation(ctx)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	finalSupply := suite.BankKeeper.GetSupply(suite.Ctx, types.GovDenom)
-	suite.True(finalSupply.Amount.GT(initialSupply.Amount))
+	suite.Require().True(finalSupply.Amount.GT(initialSupply.Amount))
 }
 
 func (suite *keeperTestSuite) TestMintNotActive() {
 	initialSupply := suite.BankKeeper.GetSupply(suite.Ctx, types.GovDenom)
 	params := suite.Keeper.GetParams(suite.Ctx)
 	params.Active = false
-	suite.NotPanics(func() {
+	suite.Require().NotPanics(func() {
 		suite.Keeper.SetParams(suite.Ctx, params)
 	})
-	suite.NotPanics(func() {
+	suite.Require().NotPanics(func() {
 		suite.Keeper.SetPreviousBlockTime(suite.Ctx, time.Date(2020, time.March, 1, 1, 0, 1, 0, time.UTC))
 	})
 	ctx := suite.Ctx.WithBlockTime(time.Date(2021, 2, 28, 23, 59, 59, 0, time.UTC))
 	err := suite.Keeper.MintPeriodInflation(ctx)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	finalSupply := suite.BankKeeper.GetSupply(suite.Ctx, types.GovDenom)
-	suite.Equal(initialSupply, finalSupply)
+	suite.Require().Equal(initialSupply, finalSupply)
 }

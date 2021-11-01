@@ -149,8 +149,7 @@ func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAdd
 	require.Equal(t, expectedCoins, coins)
 }
 
-// FundAccount is a utility function that funds an account by minting and
-// sending the coins to the address.
+// FundAccount is a utility function that funds an account by minting and sending the coins to the address.
 func (tApp TestApp) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
 	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
 		return err
@@ -159,14 +158,12 @@ func (tApp TestApp) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sd
 	return tApp.bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
 }
 
-// NewQueryServerTestHelper creates a new QueryServiceTestHelper that wraps
-// the provided sdk.Context
+// NewQueryServerTestHelper creates a new QueryServiceTestHelper that wraps the provided sdk.Context.
 func (tApp TestApp) NewQueryServerTestHelper(ctx sdk.Context) *baseapp.QueryServiceTestHelper {
 	return baseapp.NewQueryServerTestHelper(ctx, tApp.interfaceRegistry)
 }
 
-// FundModuleAccount is a utility function that funds a module account by
-// minting and sending the coins to the address.
+// FundModuleAccount is a utility function that funds a module account by minting and sending the coins to the address.
 func (tApp TestApp) FundModuleAccount(ctx sdk.Context, recipientMod string, amounts sdk.Coins) error {
 	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
 		return err

@@ -34,7 +34,7 @@ func (suite *genesisTestSuite) TestInitGenesis_ValidationPanic() {
 		tmtime.Canonical(time.Unix(1, 0)),
 	)
 
-	suite.Panics(func() {
+	suite.Require().Panics(func() {
 		kavadist.InitGenesis(suite.Ctx, suite.Keeper, suite.AccountKeeper, invalidState)
 	}, "expected init genesis to panic with invalid state")
 }
@@ -55,10 +55,10 @@ func (suite *genesisTestSuite) TestInitAndExportGenesis() {
 	)
 
 	kavadist.InitGenesis(suite.Ctx, suite.Keeper, suite.AccountKeeper, state)
-	suite.Equal(state.Params, suite.Keeper.GetParams(suite.Ctx))
+	suite.Require().Equal(state.Params, suite.Keeper.GetParams(suite.Ctx))
 
 	exportedState := kavadist.ExportGenesis(suite.Ctx, suite.Keeper)
-	suite.Equal(state, exportedState)
+	suite.Require().Equal(state, exportedState)
 }
 
 func TestGenesisTestSuite(t *testing.T) {

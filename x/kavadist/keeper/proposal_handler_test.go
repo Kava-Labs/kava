@@ -14,7 +14,7 @@ func (suite *keeperTestSuite) TestHandleCommunityPoolMultiSpendProposal() {
 	// add coins to the module account and fund fee pool
 	macc := distrKeeper.GetDistributionAccount(ctx)
 	fundAmount := sdk.NewCoins(sdk.NewInt64Coin("ukava", 1000000))
-	suite.NoError(suite.App.FundModuleAccount(ctx, macc.GetName(), fundAmount))
+	suite.Require().NoError(suite.App.FundModuleAccount(ctx, macc.GetName(), fundAmount))
 	feePool := distrKeeper.GetFeePool(ctx)
 	feePool.CommunityPool = sdk.NewDecCoinsFromCoins(fundAmount...)
 	distrKeeper.SetFeePool(ctx, feePool)
@@ -32,9 +32,9 @@ func (suite *keeperTestSuite) TestHandleCommunityPoolMultiSpendProposal() {
 		},
 	})
 	err := keeper.HandleCommunityPoolMultiSpendProposal(ctx, suite.Keeper, proposal)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	balances := suite.BankKeeper.GetAllBalances(ctx, addr)
 	expected := initBalances.AmountOf("ukava").Add(sdk.NewInt(proposalAmount1 + proposalAmount2))
-	suite.Equal(expected, balances.AmountOf("ukava"))
+	suite.Require().Equal(expected, balances.AmountOf("ukava"))
 }
