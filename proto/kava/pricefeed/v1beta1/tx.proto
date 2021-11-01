@@ -20,8 +20,8 @@ message MsgPostPrice {
   // address of client
   string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
   string market_id = 2 [
-
-    (gogoproto.moretags) = "yaml:\"market_id\""
+    (gogoproto.moretags) = "yaml:\"market_id\"",
+    (gogoproto.customname) = "MarketID"
   ];
   string price = 3 [
     (gogoproto.moretags) = "yaml:\"price\"",

@@ -21,7 +21,7 @@ message Market {
 message PostedPrice {
   option (gogoproto.goproto_stringer) = false;
 
-  string market_id = 1 [ (gogoproto.moretags) = "yaml:\"market_id\"" ];
+  string market_id = 1 [ (gogoproto.moretags) = "yaml:\"market_id\"", (gogoproto.customname) = "MarketID" ];
   string oracle_address = 2
       [ (gogoproto.moretags) = "yaml:\"oracle_address\"" ];
   string price = 3 [
@@ -41,7 +41,7 @@ message PostedPrice {
 message CurrentPrice {
   option (gogoproto.goproto_stringer) = false;
 
-  string market_id = 1;
+  string market_id = 1 = [(gogoproto.customname) = "MarketID"];
   string price = 2 [
     (gogoproto.moretags) = "yaml:\"price\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",

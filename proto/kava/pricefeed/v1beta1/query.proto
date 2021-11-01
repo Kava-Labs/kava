@@ -53,7 +53,6 @@ message QueryParamsResponse {
 
   Params params = 1 [
     (gogoproto.nullable) = false,
-
     (gogoproto.moretags) = "yaml:\"params\""
   ];
 }
@@ -64,7 +63,6 @@ message QueryPriceRequest {
   option (gogoproto.goproto_getters) = false;
 
   string market_id = 1 [
-
     (gogoproto.moretags) = "yaml:\"market_id\""
   ];
 }
