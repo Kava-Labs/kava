@@ -1,5 +1,5 @@
 syntax = "proto3";
-package kavalabs.kava.issuance;
+package kava.issuance.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";

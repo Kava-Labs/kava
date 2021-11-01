@@ -1,5 +1,5 @@
 syntax = "proto3";
-package kavalabs.kava.issuance;
+package kava.issuance.v1beta1;
 
 import "issuance/genesis.proto";
 import "gogoproto/gogo.proto";
@@ -11,7 +11,7 @@ option go_package = "github.com/kava-labs/kava/x/issuance/types";
 service Query {
   // Params queries all parameters of the issuance module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/issuance/params";
+    option (google.api.http).get = "/kava/issuance/v1beta1/params";
   }
 }
 
