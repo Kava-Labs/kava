@@ -31,9 +31,9 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func ts(minOffset int) int64                { return tmtime.Now().Add(time.Duration(minOffset) * time.Minute).Unix() }
 
-func NewAuthGenStateFromAccs(accounts ...authtypes.GenesisAccount) app.GenesisState {
+func NewAuthGenStateFromAccs(cdc codec.JSONCodec, accounts ...authtypes.GenesisAccount) app.GenesisState {
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
-	return app.GenesisState{authtypes.ModuleName: types.ModuleCdc.MustMarshalJSON(authGenesis)}
+	return app.GenesisState{authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis)}
 }
 
 func NewBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress string) app.GenesisState {

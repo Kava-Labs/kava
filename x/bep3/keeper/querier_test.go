@@ -182,11 +182,13 @@ func (suite *QuerierTestSuite) TestQueryParams() {
 	suite.NotNil(bz)
 
 	var p types.Params
-	suite.Nil(types.ModuleCdc.LegacyAmino.UnmarshalJSON(bz, &p))
+	// Querier uses LegacyAmino
+	suite.Nil(suite.app.LegacyAmino().UnmarshalJSON(bz, &p))
 
 	bep3GenesisState := NewBep3GenStateMulti(suite.app.AppCodec(), suite.addrs[10].String())
 	gs := types.GenesisState{}
-	types.ModuleCdc.LegacyAmino.UnmarshalJSON(bep3GenesisState["bep3"], &gs)
+	// Genesis uses proto codec
+	suite.app.AppCodec().UnmarshalJSON(bep3GenesisState["bep3"], &gs)
 	// update asset supply to account for swaps that were created in setup
 	suite.Equal(gs.Params, p)
 }

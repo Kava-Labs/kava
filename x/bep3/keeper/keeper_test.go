@@ -46,6 +46,7 @@ func (suite *KeeperTestSuite) ResetChain() {
 func (suite *KeeperTestSuite) TestEnsureModuleAccountPermissions() {
 	suite.app.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(
+			suite.app.AppCodec(),
 			authtypes.NewEmptyModuleAccount(types.ModuleName), // no permisions
 		),
 	)
