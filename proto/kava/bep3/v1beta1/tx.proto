@@ -18,7 +18,7 @@ service Msg {
   rpc RefundAtomicSwap(MsgRefundAtomicSwap) returns (MsgRefundAtomicSwapResponse);
 }
 
-// MsgCreateAtomicSwap defines the Msg/Deposit request type.
+// MsgCreateAtomicSwap defines the Msg/CreateAtomicSwap request type.
 message MsgCreateAtomicSwap {
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.equal)            = false;
@@ -38,10 +38,10 @@ message MsgCreateAtomicSwap {
   uint64 height_span = 8 [(gogoproto.moretags) = "yaml:\"height_span\""];
 }
 
-// MsgCreateAtomicSwapResponse defines the Msg/Deposit response type.
+// MsgCreateAtomicSwapResponse defines the Msg/CreateAtomicSwap response type.
 message MsgCreateAtomicSwapResponse {}
 
-// MsgClaimAtomicSwap defines the Msg/Deposit request type.
+// MsgClaimAtomicSwap defines the Msg/ClaimAtomicSwap request type.
 message MsgClaimAtomicSwap {
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.equal)            = false;
@@ -52,10 +52,10 @@ message MsgClaimAtomicSwap {
   bytes  random_number = 3 [(gogoproto.moretags) = "yaml:\"random_number\""];
 }
 
-// MsgClaimAtomicSwapResponse defines the Msg/Deposit response type.
+// MsgClaimAtomicSwapResponse defines the Msg/ClaimAtomicSwap response type.
 message MsgClaimAtomicSwapResponse {}
 
-// MsgRefundAtomicSwap defines the Msg/Deposit request type.
+// MsgRefundAtomicSwap defines the Msg/RefundAtomicSwap request type.
 message MsgRefundAtomicSwap {
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.equal)            = false;
@@ -65,5 +65,5 @@ message MsgRefundAtomicSwap {
   bytes  swap_id = 2 [(gogoproto.moretags) = "yaml:\"swap_id\"", (gogoproto.customname) = "SwapID"];
 }
 
-// MsgRefundAtomicSwapResponse defines the Msg/Deposit response type.
+// MsgRefundAtomicSwapResponse defines the Msg/RefundAtomicSwap response type.
 message MsgRefundAtomicSwapResponse {}

@@ -112,7 +112,7 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
-// QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+// QueryAssetSupplyRequest is the request type for the Query/AssetSupply RPC method.
 type QueryAssetSupplyRequest struct {
 	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty" yaml:"denom"`
 }
@@ -150,7 +150,7 @@ func (m *QueryAssetSupplyRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAssetSupplyRequest proto.InternalMessageInfo
 
-// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+// QueryAssetSupplyResponse is the response type for the Query/AssetSupply RPC method.
 type QueryAssetSupplyResponse struct {
 	AssetSupply AssetSupply `protobuf:"bytes,1,opt,name=asset_supply,json=assetSupply,proto3" json:"asset_supply"`
 }
@@ -195,7 +195,7 @@ func (m *QueryAssetSupplyResponse) GetAssetSupply() AssetSupply {
 	return AssetSupply{}
 }
 
-// QueryAssetSuppliesRequest is the request type for the Query/Deposits RPC method.
+// QueryAssetSuppliesRequest is the request type for the Query/AssetSupplies RPC method.
 type QueryAssetSuppliesRequest struct {
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
@@ -233,7 +233,7 @@ func (m *QueryAssetSuppliesRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAssetSuppliesRequest proto.InternalMessageInfo
 
-// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+// QueryAssetSuppliesResponse is the response type for the Query/AssetSupplies RPC method.
 type QueryAssetSuppliesResponse struct {
 	AssetSupplies []AssetSupply       `protobuf:"bytes,1,rep,name=asset_supplies,json=assetSupplies,proto3" json:"asset_supplies"`
 	Pagination    *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -286,11 +286,8 @@ func (m *QueryAssetSuppliesResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-// QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+// QueryAtomicSwapRequest is the request type for the Query/AtomicSwap RPC method.
 type QueryAtomicSwapRequest struct {
-	// TODO: Do we need to cast to custom type tmbytes.HexBytes
-	// We can't use customname here since grpc-gateway will use the original generated field name
-	// https://github.com/gogo/protobuf/issues/331
 	SwapId []byte `protobuf:"bytes,1,opt,name=swap_id,json=swapId,proto3" json:"swap_id,omitempty" yaml:"swap_id"`
 }
 
@@ -327,7 +324,7 @@ func (m *QueryAtomicSwapRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAtomicSwapRequest proto.InternalMessageInfo
 
-// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+// QueryAtomicSwapResponse is the response type for the Query/AtomicSwap RPC method.
 type QueryAtomicSwapResponse struct {
 	ID         string     `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty" yaml:"id"`
 	AtomicSwap AtomicSwap `protobuf:"bytes,2,opt,name=atomic_swap,json=atomicSwap,proto3" json:"atomic_swap"`
@@ -380,7 +377,7 @@ func (m *QueryAtomicSwapResponse) GetAtomicSwap() AtomicSwap {
 	return AtomicSwap{}
 }
 
-// QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+// QueryAtomicSwapsRequest is the request type for the Query/AtomicSwaps RPC method.
 type QueryAtomicSwapsRequest struct {
 	Involve    string             `protobuf:"bytes,1,opt,name=involve,proto3" json:"involve,omitempty" yaml:"involve"`
 	Expiration uint64             `protobuf:"varint,2,opt,name=expiration,proto3" json:"expiration,omitempty" yaml:"expiration"`
@@ -422,7 +419,7 @@ func (m *QueryAtomicSwapsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAtomicSwapsRequest proto.InternalMessageInfo
 
-// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+// QueryAtomicSwapsResponse is the response type for the Query/AtomicSwaps RPC method.
 type QueryAtomicSwapsResponse struct {
 	AtomicSwap []AugmentedAtomicSwap `protobuf:"bytes,1,rep,name=atomic_swap,json=atomicSwap,proto3" json:"atomic_swap"`
 	Pagination *query.PageResponse   `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`

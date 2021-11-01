@@ -30,7 +30,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgCreateAtomicSwap defines the Msg/Deposit request type.
+// MsgCreateAtomicSwap defines the Msg/CreateAtomicSwap request type.
 type MsgCreateAtomicSwap struct {
 	From                string                                   `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty" yaml:"from"`
 	To                  string                                   `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty" yaml:"to"`
@@ -74,7 +74,7 @@ func (m *MsgCreateAtomicSwap) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateAtomicSwap proto.InternalMessageInfo
 
-// MsgCreateAtomicSwapResponse defines the Msg/Deposit response type.
+// MsgCreateAtomicSwapResponse defines the Msg/CreateAtomicSwap response type.
 type MsgCreateAtomicSwapResponse struct {
 }
 
@@ -111,7 +111,7 @@ func (m *MsgCreateAtomicSwapResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateAtomicSwapResponse proto.InternalMessageInfo
 
-// MsgClaimAtomicSwap defines the Msg/Deposit request type.
+// MsgClaimAtomicSwap defines the Msg/ClaimAtomicSwap request type.
 type MsgClaimAtomicSwap struct {
 	From         string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty" yaml:"from"`
 	SwapID       []byte `protobuf:"bytes,2,opt,name=swap_id,json=swapId,proto3" json:"swap_id,omitempty" yaml:"swap_id"`
@@ -150,7 +150,7 @@ func (m *MsgClaimAtomicSwap) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgClaimAtomicSwap proto.InternalMessageInfo
 
-// MsgClaimAtomicSwapResponse defines the Msg/Deposit response type.
+// MsgClaimAtomicSwapResponse defines the Msg/ClaimAtomicSwap response type.
 type MsgClaimAtomicSwapResponse struct {
 }
 
@@ -187,7 +187,7 @@ func (m *MsgClaimAtomicSwapResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgClaimAtomicSwapResponse proto.InternalMessageInfo
 
-// MsgRefundAtomicSwap defines the Msg/Deposit request type.
+// MsgRefundAtomicSwap defines the Msg/RefundAtomicSwap request type.
 type MsgRefundAtomicSwap struct {
 	From   string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty" yaml:"from"`
 	SwapID []byte `protobuf:"bytes,2,opt,name=swap_id,json=swapId,proto3" json:"swap_id,omitempty" yaml:"swap_id"`
@@ -225,7 +225,7 @@ func (m *MsgRefundAtomicSwap) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRefundAtomicSwap proto.InternalMessageInfo
 
-// MsgRefundAtomicSwapResponse defines the Msg/Deposit response type.
+// MsgRefundAtomicSwapResponse defines the Msg/RefundAtomicSwap response type.
 type MsgRefundAtomicSwapResponse struct {
 }
 

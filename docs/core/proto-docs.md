@@ -251,7 +251,7 @@ GenesisState defines the pricefeed module's genesis state.
 <a name="kava.bep3.v1beta1.QueryAssetSuppliesRequest"></a>
 
 ### QueryAssetSuppliesRequest
-QueryAssetSuppliesRequest is the request type for the Query/Deposits RPC method.
+QueryAssetSuppliesRequest is the request type for the Query/AssetSupplies RPC method.
 
 
 | Field | Type | Label | Description |
@@ -266,7 +266,7 @@ QueryAssetSuppliesRequest is the request type for the Query/Deposits RPC method.
 <a name="kava.bep3.v1beta1.QueryAssetSuppliesResponse"></a>
 
 ### QueryAssetSuppliesResponse
-QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+QueryAssetSuppliesResponse is the response type for the Query/AssetSupplies RPC method.
 
 
 | Field | Type | Label | Description |
@@ -282,7 +282,7 @@ QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 <a name="kava.bep3.v1beta1.QueryAssetSupplyRequest"></a>
 
 ### QueryAssetSupplyRequest
-QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+QueryAssetSupplyRequest is the request type for the Query/AssetSupply RPC method.
 
 
 | Field | Type | Label | Description |
@@ -297,7 +297,7 @@ QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
 <a name="kava.bep3.v1beta1.QueryAssetSupplyResponse"></a>
 
 ### QueryAssetSupplyResponse
-QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+QueryAssetSupplyResponse is the response type for the Query/AssetSupply RPC method.
 
 
 | Field | Type | Label | Description |
@@ -312,12 +312,12 @@ QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 <a name="kava.bep3.v1beta1.QueryAtomicSwapRequest"></a>
 
 ### QueryAtomicSwapRequest
-QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+QueryAtomicSwapRequest is the request type for the Query/AtomicSwap RPC method.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `swap_id` | [bytes](#bytes) |  | TODO: Do we need to cast to custom type tmbytes.HexBytes We can't use customname here since grpc-gateway will use the original generated field name https://github.com/gogo/protobuf/issues/331 |
+| `swap_id` | [bytes](#bytes) |  |  |
 
 
 
@@ -327,7 +327,7 @@ QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
 <a name="kava.bep3.v1beta1.QueryAtomicSwapResponse"></a>
 
 ### QueryAtomicSwapResponse
-QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+QueryAtomicSwapResponse is the response type for the Query/AtomicSwap RPC method.
 
 
 | Field | Type | Label | Description |
@@ -343,7 +343,7 @@ QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
 <a name="kava.bep3.v1beta1.QueryAtomicSwapsRequest"></a>
 
 ### QueryAtomicSwapsRequest
-QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+QueryAtomicSwapsRequest is the request type for the Query/AtomicSwaps RPC method.
 
 
 | Field | Type | Label | Description |
@@ -362,7 +362,7 @@ QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
 <a name="kava.bep3.v1beta1.QueryAtomicSwapsResponse"></a>
 
 ### QueryAtomicSwapsResponse
-QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+QueryAtomicSwapsResponse is the response type for the Query/AtomicSwaps RPC method.
 
 
 | Field | Type | Label | Description |
@@ -433,7 +433,7 @@ Query defines the gRPC querier service for bep3 module
 <a name="kava.bep3.v1beta1.MsgClaimAtomicSwap"></a>
 
 ### MsgClaimAtomicSwap
-MsgClaimAtomicSwap defines the Msg/Deposit request type.
+MsgClaimAtomicSwap defines the Msg/ClaimAtomicSwap request type.
 
 
 | Field | Type | Label | Description |
@@ -450,7 +450,7 @@ MsgClaimAtomicSwap defines the Msg/Deposit request type.
 <a name="kava.bep3.v1beta1.MsgClaimAtomicSwapResponse"></a>
 
 ### MsgClaimAtomicSwapResponse
-MsgClaimAtomicSwapResponse defines the Msg/Deposit response type.
+MsgClaimAtomicSwapResponse defines the Msg/ClaimAtomicSwap response type.
 
 
 
@@ -460,7 +460,7 @@ MsgClaimAtomicSwapResponse defines the Msg/Deposit response type.
 <a name="kava.bep3.v1beta1.MsgCreateAtomicSwap"></a>
 
 ### MsgCreateAtomicSwap
-MsgCreateAtomicSwap defines the Msg/Deposit request type.
+MsgCreateAtomicSwap defines the Msg/CreateAtomicSwap request type.
 
 
 | Field | Type | Label | Description |
@@ -482,7 +482,7 @@ MsgCreateAtomicSwap defines the Msg/Deposit request type.
 <a name="kava.bep3.v1beta1.MsgCreateAtomicSwapResponse"></a>
 
 ### MsgCreateAtomicSwapResponse
-MsgCreateAtomicSwapResponse defines the Msg/Deposit response type.
+MsgCreateAtomicSwapResponse defines the Msg/CreateAtomicSwap response type.
 
 
 
@@ -492,7 +492,7 @@ MsgCreateAtomicSwapResponse defines the Msg/Deposit response type.
 <a name="kava.bep3.v1beta1.MsgRefundAtomicSwap"></a>
 
 ### MsgRefundAtomicSwap
-MsgRefundAtomicSwap defines the Msg/Deposit request type.
+MsgRefundAtomicSwap defines the Msg/RefundAtomicSwap request type.
 
 
 | Field | Type | Label | Description |
@@ -508,7 +508,7 @@ MsgRefundAtomicSwap defines the Msg/Deposit request type.
 <a name="kava.bep3.v1beta1.MsgRefundAtomicSwapResponse"></a>
 
 ### MsgRefundAtomicSwapResponse
-MsgRefundAtomicSwapResponse defines the Msg/Deposit response type.
+MsgRefundAtomicSwapResponse defines the Msg/RefundAtomicSwap response type.
 
 
 

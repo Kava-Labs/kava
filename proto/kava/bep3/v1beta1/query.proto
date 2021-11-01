@@ -44,7 +44,7 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+// QueryAssetSupplyRequest is the request type for the Query/AssetSupply RPC method.
 message QueryAssetSupplyRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -52,12 +52,12 @@ message QueryAssetSupplyRequest {
   string denom = 1 [(gogoproto.moretags) = "yaml:\"denom\""];
 }
 
-// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+// QueryAssetSupplyResponse is the response type for the Query/AssetSupply RPC method.
 message QueryAssetSupplyResponse {
   AssetSupply asset_supply = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryAssetSuppliesRequest is the request type for the Query/Deposits RPC method.
+// QueryAssetSuppliesRequest is the request type for the Query/AssetSupplies RPC method.
 message QueryAssetSuppliesRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -65,31 +65,28 @@ message QueryAssetSuppliesRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
-// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+// QueryAssetSuppliesResponse is the response type for the Query/AssetSupplies RPC method.
 message QueryAssetSuppliesResponse {
   repeated AssetSupply asset_supplies = 1 [(gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-// QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+// QueryAtomicSwapRequest is the request type for the Query/AtomicSwap RPC method.
 message QueryAtomicSwapRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  // TODO: Do we need to cast to custom type tmbytes.HexBytes
-  // We can't use customname here since grpc-gateway will use the original generated field name
-  // https://github.com/gogo/protobuf/issues/331
   bytes swap_id = 1 [(gogoproto.moretags) = "yaml:\"swap_id\""];
 }
 
-// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+// QueryAtomicSwapResponse is the response type for the Query/AtomicSwap RPC method.
 message QueryAtomicSwapResponse {
   string     id          = 1 [(gogoproto.moretags) = "yaml:\"id\"", (gogoproto.customname) = "ID"];
   AtomicSwap atomic_swap = 2 [(gogoproto.nullable) = false];
 }
 
-// QueryAssetSupplyRequest is the request type for the Query/Deposits RPC method.
+// QueryAtomicSwapsRequest is the request type for the Query/AtomicSwaps RPC method.
 message QueryAtomicSwapsRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -102,7 +99,7 @@ message QueryAtomicSwapsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 5;
 }
 
-// QueryAssetSupplyResponse is the response type for the Query/Deposits RPC method.
+// QueryAtomicSwapsResponse is the response type for the Query/AtomicSwaps RPC method.
 message QueryAtomicSwapsResponse {
   repeated AugmentedAtomicSwap atomic_swap = 1 [(gogoproto.nullable) = false];
 
