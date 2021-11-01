@@ -1,0 +1,37 @@
+syntax = "proto3";
+package kava.kavadist.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/kava-labs/kava/x/kavadist/types";
+
+option (gogoproto.goproto_stringer_all) = false;
+option (gogoproto.goproto_getters_all)  = false;
+
+// Params governance parameters for kavadist module
+message Params {
+  bool            active  = 1 [(gogoproto.moretags) = "yaml:\"active\""];
+  repeated Period periods = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"periods\""];
+}
+
+// Period stores the specified start and end dates, and the inflation, expressed as a decimal
+// representing the yearly APR of KAVA tokens that will be minted during that period
+message Period {
+  option (gogoproto.equal) = true;
+
+  // example "2020-03-01T15:20:00Z"
+  google.protobuf.Timestamp start = 1
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"start\""];
+
+  // example "2020-06-01T15:20:00Z"
+  google.protobuf.Timestamp end = 2
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"end\""];
+
+  // example "1.000000003022265980"  - 10% inflation
+  bytes inflation = 3 [
+    (gogoproto.nullable)   = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags)   = "yaml:\"inflation\""
+  ];
+}
