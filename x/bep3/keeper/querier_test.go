@@ -26,15 +26,14 @@ const (
 
 type QuerierTestSuite struct {
 	suite.Suite
-	keeper        keeper.Keeper
-	app           app.TestApp
-	ctx           sdk.Context
-	querier       sdk.Querier
-	addrs         []sdk.AccAddress
-	strAddrs      []string
-	isSupplyDenom map[string]bool
-	swapIDs       []tmbytes.HexBytes
-	isSwapID      map[string]bool
+	keeper   keeper.Keeper
+	app      app.TestApp
+	ctx      sdk.Context
+	querier  sdk.Querier
+	addrs    []sdk.AccAddress
+	strAddrs []string
+	swapIDs  []tmbytes.HexBytes
+	isSwapID map[string]bool
 }
 
 func (suite *QuerierTestSuite) SetupTest() {

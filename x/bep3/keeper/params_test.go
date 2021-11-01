@@ -21,7 +21,6 @@ type ParamsTestSuite struct {
 
 	keeper keeper.Keeper
 	addrs  []sdk.AccAddress
-	app    app.TestApp
 	ctx    sdk.Context
 }
 

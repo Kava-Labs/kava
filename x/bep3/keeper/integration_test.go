@@ -26,7 +26,6 @@ var (
 	TestUser2 = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2"))).String()
 )
 
-func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func ts(minOffset int) int64                { return tmtime.Now().Add(time.Duration(minOffset) * time.Minute).Unix() }
@@ -116,22 +115,4 @@ func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
 		uint64(ctx.BlockHeight())+expireOffset, timestamp, TestUser1, TestUser2,
 		TestSenderOtherChain, TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true,
 		types.SWAP_DIRECTION_INCOMING)
-}
-
-func assetSupplies(count int) []types.AssetSupply {
-	if count > 5 { // Max 5 asset supplies
-		return []types.AssetSupply{}
-	}
-
-	var supplies []types.AssetSupply
-
-	for i := 0; i < count; i++ {
-		supply := assetSupply(DenomMap[i])
-		supplies = append(supplies, supply)
-	}
-	return supplies
-}
-
-func assetSupply(denom string) types.AssetSupply {
-	return types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 0), c(denom, 0), time.Duration(0))
 }

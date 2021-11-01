@@ -29,7 +29,6 @@ type AtomicSwapTestSuite struct {
 	addrs              []sdk.AccAddress
 	timestamps         []int64
 	randomNumberHashes []tmbytes.HexBytes
-	swapIDs            []tmbytes.HexBytes
 	randomNumbers      []tmbytes.HexBytes
 }
 
