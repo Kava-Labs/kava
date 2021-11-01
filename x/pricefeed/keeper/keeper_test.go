@@ -22,28 +22,28 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 
 	mp := types.Params{
 		Markets: []types.Market{
-			{MarketId: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
 	markets := keeper.GetMarkets(ctx)
 	require.Equal(t, len(markets), 1)
-	require.Equal(t, markets[0].MarketId, "tstusd")
+	require.Equal(t, markets[0].MarketID, "tstusd")
 
 	_, found := keeper.GetMarket(ctx, "tstusd")
 	require.Equal(t, found, true)
 
 	mp = types.Params{
 		Markets: []types.Market{
-			{MarketId: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
-			{MarketId: "tst2usd", BaseAsset: "tst2", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tst2usd", BaseAsset: "tst2", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
 	markets = keeper.GetMarkets(ctx)
 	require.Equal(t, len(markets), 2)
-	require.Equal(t, markets[0].MarketId, "tstusd")
-	require.Equal(t, markets[1].MarketId, "tst2usd")
+	require.Equal(t, markets[0].MarketID, "tstusd")
+	require.Equal(t, markets[1].MarketID, "tst2usd")
 
 	_, found = keeper.GetMarket(ctx, "nan")
 	require.Equal(t, found, false)
@@ -58,14 +58,14 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 
 	mp := types.Params{
 		Markets: []types.Market{
-			{MarketId: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
 
 	prices := []struct {
 		oracle   string
-		marketID string
+		MarketID string
 		price    sdk.Dec
 		total    int
 	}{
@@ -79,7 +79,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 		pp, err := keeper.SetPrice(
 			ctx,
 			p.oracle,
-			p.marketID,
+			p.MarketID,
 			p.price,
 			time.Now().UTC().Add(1*time.Hour),
 		)
@@ -110,7 +110,7 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 
 	mp := types.Params{
 		Markets: []types.Market{
-			{MarketId: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)

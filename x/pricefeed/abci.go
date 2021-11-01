@@ -16,7 +16,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 			continue
 		}
 
-		err := k.SetCurrentPrices(ctx, market.MarketId)
+		err := k.SetCurrentPrices(ctx, market.MarketID)
 		if err != nil && !errors.Is(err, types.ErrNoValidPrice) {
 			panic(err)
 		}

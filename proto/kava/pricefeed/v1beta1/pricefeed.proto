@@ -10,7 +10,7 @@ option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
 message Market {
   option (gogoproto.goproto_stringer) = false;
 
-  string          market_id   = 1;
+  string          market_id   = 1 [(gogoproto.customname) = "MarketID"];
   string          base_asset  = 2;
   string          quote_asset = 3;
   repeated string oracles     = 4;

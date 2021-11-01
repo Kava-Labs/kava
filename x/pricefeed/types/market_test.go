@@ -25,7 +25,7 @@ func TestMarketValidate(t *testing.T) {
 		{
 			"valid market",
 			Market{
-				MarketId:   "market",
+				MarketID:   "market",
 				BaseAsset:  "xrp",
 				QuoteAsset: "bnb",
 				Oracles:    []string{addr.String()},
@@ -36,14 +36,14 @@ func TestMarketValidate(t *testing.T) {
 		{
 			"invalid id",
 			Market{
-				MarketId: " ",
+				MarketID: " ",
 			},
 			false,
 		},
 		{
 			"invalid base asset",
 			Market{
-				MarketId:  "market",
+				MarketID:  "market",
 				BaseAsset: "XRP",
 			},
 			false,
@@ -51,7 +51,7 @@ func TestMarketValidate(t *testing.T) {
 		{
 			"invalid market",
 			Market{
-				MarketId:  "market",
+				MarketID:  "market",
 				BaseAsset: "xrp",
 				// Denoms can be uppercase in v0.44
 				QuoteAsset: "BNB.",
@@ -61,7 +61,7 @@ func TestMarketValidate(t *testing.T) {
 		{
 			"empty oracle address ",
 			Market{
-				MarketId:   "market",
+				MarketID:   "market",
 				BaseAsset:  "xrp",
 				QuoteAsset: "bnb",
 				Oracles:    []string{""},
@@ -71,7 +71,7 @@ func TestMarketValidate(t *testing.T) {
 		{
 			"empty oracle address ",
 			Market{
-				MarketId:   "market",
+				MarketID:   "market",
 				BaseAsset:  "xrp",
 				QuoteAsset: "bnb",
 				Oracles:    []string{addr.String(), addr.String()},
@@ -107,7 +107,7 @@ func TestPostedPriceValidate(t *testing.T) {
 		{
 			"valid posted price",
 			PostedPrice{
-				MarketId:      "market",
+				MarketID:      "market",
 				OracleAddress: addr.String(),
 				Price:         sdk.OneDec(),
 				Expiry:        now,
@@ -117,14 +117,14 @@ func TestPostedPriceValidate(t *testing.T) {
 		{
 			"invalid id",
 			PostedPrice{
-				MarketId: " ",
+				MarketID: " ",
 			},
 			false,
 		},
 		{
 			"invalid oracle",
 			PostedPrice{
-				MarketId:      "market",
+				MarketID:      "market",
 				OracleAddress: "",
 			},
 			false,
@@ -132,7 +132,7 @@ func TestPostedPriceValidate(t *testing.T) {
 		{
 			"invalid price",
 			PostedPrice{
-				MarketId:      "market",
+				MarketID:      "market",
 				OracleAddress: addr.String(),
 				Price:         sdk.NewDec(-1),
 			},
@@ -141,7 +141,7 @@ func TestPostedPriceValidate(t *testing.T) {
 		{
 			"zero expiry time ",
 			PostedPrice{
-				MarketId:      "market",
+				MarketID:      "market",
 				OracleAddress: addr.String(),
 				Price:         sdk.OneDec(),
 				Expiry:        time.Time{},

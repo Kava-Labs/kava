@@ -29,12 +29,12 @@ func (k msgServer) PostPrice(goCtx context.Context, msg *types.MsgPostPrice) (*t
 		return nil, err
 	}
 
-	_, err = k.GetOracle(ctx, msg.MarketId, msg.From)
+	_, err = k.GetOracle(ctx, msg.MarketID, msg.From)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = k.SetPrice(ctx, msg.From, msg.MarketId, msg.Price, msg.Expiry)
+	_, err = k.SetPrice(ctx, msg.From, msg.MarketID, msg.Price, msg.Expiry)
 	if err != nil {
 		return nil, err
 	}

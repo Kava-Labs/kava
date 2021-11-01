@@ -13,19 +13,19 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	pfGenesis := types.GenesisState{
 		Params: types.Params{
 			Markets: []types.Market{
-				{MarketId: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []string{}, Active: true},
-				{MarketId: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 			},
 		},
 		PostedPrices: []types.PostedPrice{
 			{
-				MarketId:      "btc:usd",
+				MarketID:      "btc:usd",
 				OracleAddress: "",
 				Price:         sdk.MustNewDecFromStr("8000.00"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
-				MarketId:      "xrp:usd",
+				MarketID:      "xrp:usd",
 				OracleAddress: "",
 				Price:         sdk.MustNewDecFromStr("0.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),

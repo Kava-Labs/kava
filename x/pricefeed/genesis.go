@@ -14,7 +14,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	// Iterate through the posted prices and set them in the store if they are not expired
 	for _, pp := range gs.PostedPrices {
 		if pp.Expiry.After(ctx.BlockTime()) {
-			_, err := k.SetPrice(ctx, pp.OracleAddress, pp.MarketId, pp.Price, pp.Expiry)
+			_, err := k.SetPrice(ctx, pp.OracleAddress, pp.MarketID, pp.Price, pp.Expiry)
 			if err != nil {
 				panic(err)
 			}
@@ -27,12 +27,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 		if !market.Active {
 			continue
 		}
-		rps := k.GetRawPrices(ctx, market.MarketId)
+		rps := k.GetRawPrices(ctx, market.MarketID)
 
 		if len(rps) == 0 {
 			continue
 		}
-		err := k.SetCurrentPrices(ctx, market.MarketId)
+		err := k.SetCurrentPrices(ctx, market.MarketID)
 		if err != nil {
 			panic(err)
 		}
@@ -47,7 +47,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 
 	var postedPrices []types.PostedPrice
 	for _, market := range k.GetMarkets(ctx) {
-		pp := k.GetRawPrices(ctx, market.MarketId)
+		pp := k.GetRawPrices(ctx, market.MarketID)
 		postedPrices = append(postedPrices, pp...)
 	}
 

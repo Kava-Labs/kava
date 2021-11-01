@@ -51,7 +51,7 @@ func (suite *KeeperTestSuite) TestGetSetOracles() {
 	params = suite.keeper.GetParams(suite.ctx)
 	suite.Equal(suite.addrs, params.Markets[0].Oracles)
 
-	addr, err := suite.keeper.GetOracle(suite.ctx, params.Markets[0].MarketId, suite.addrs[0])
+	addr, err := suite.keeper.GetOracle(suite.ctx, params.Markets[0].MarketID, suite.addrs[0])
 	suite.NoError(err)
 	suite.Equal(suite.addrs[0], addr)
 }
@@ -65,9 +65,9 @@ func (suite *KeeperTestSuite) TestGetAuthorizedAddresses() {
 
 	params := types.Params{
 		Markets: []types.Market{
-			{MarketId: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: strOracles[:3], Active: true},
-			{MarketId: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: strOracles[2:], Active: true},
-			{MarketId: "xrp:usd:30", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: nil, Active: true},
+			{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: strOracles[:3], Active: true},
+			{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: strOracles[2:], Active: true},
+			{MarketID: "xrp:usd:30", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: nil, Active: true},
 		},
 	}
 	suite.keeper.SetParams(suite.ctx, params)

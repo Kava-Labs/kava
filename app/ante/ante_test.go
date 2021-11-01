@@ -139,7 +139,7 @@ func newPricefeedGenStateMulti(cdc codec.JSONCodec, oracles []sdk.AccAddress) ap
 	pfGenesis := pricefeedtypes.GenesisState{
 		Params: pricefeedtypes.Params{
 			Markets: []pricefeedtypes.Market{
-				{MarketId: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: oracleStrs, Active: true},
+				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: oracleStrs, Active: true},
 			},
 		},
 	}

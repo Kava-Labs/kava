@@ -25,20 +25,20 @@ func (k Keeper) GetMarkets(ctx sdk.Context) []types.Market {
 }
 
 // GetOracles returns the oracles in the pricefeed store
-func (k Keeper) GetOracles(ctx sdk.Context, MarketId string) ([]string, error) {
+func (k Keeper) GetOracles(ctx sdk.Context, MarketID string) ([]string, error) {
 	for _, m := range k.GetMarkets(ctx) {
-		if MarketId == m.MarketId {
+		if MarketID == m.MarketID {
 			return m.Oracles, nil
 		}
 	}
-	return nil, sdkerrors.Wrap(types.ErrInvalidMarket, MarketId)
+	return nil, sdkerrors.Wrap(types.ErrInvalidMarket, MarketID)
 }
 
 // GetOracle returns the oracle from the store or an error if not found
-func (k Keeper) GetOracle(ctx sdk.Context, MarketId string, address string) (string, error) {
-	oracles, err := k.GetOracles(ctx, MarketId)
+func (k Keeper) GetOracle(ctx sdk.Context, MarketID string, address string) (string, error) {
+	oracles, err := k.GetOracles(ctx, MarketID)
 	if err != nil {
-		return "", sdkerrors.Wrap(types.ErrInvalidMarket, MarketId)
+		return "", sdkerrors.Wrap(types.ErrInvalidMarket, MarketID)
 	}
 	for _, addr := range oracles {
 		if addr == address {
@@ -49,11 +49,11 @@ func (k Keeper) GetOracle(ctx sdk.Context, MarketId string, address string) (str
 }
 
 // GetMarket returns the market if it is in the pricefeed system
-func (k Keeper) GetMarket(ctx sdk.Context, MarketId string) (types.Market, bool) {
+func (k Keeper) GetMarket(ctx sdk.Context, MarketID string) (types.Market, bool) {
 	markets := k.GetMarkets(ctx)
 
 	for i := range markets {
-		if markets[i].MarketId == MarketId {
+		if markets[i].MarketID == MarketID {
 			return markets[i], true
 		}
 	}

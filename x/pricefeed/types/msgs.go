@@ -22,10 +22,10 @@ const (
 var _ sdk.Msg = &MsgPostPrice{}
 
 // NewMsgPostPrice returns a new MsgPostPrice
-func NewMsgPostPrice(from string, marketId string, price sdk.Dec, expiry time.Time) *MsgPostPrice {
+func NewMsgPostPrice(from string, MarketID string, price sdk.Dec, expiry time.Time) *MsgPostPrice {
 	return &MsgPostPrice{
 		From:     from,
-		MarketId: marketId,
+		MarketID: MarketID,
 		Price:    price,
 		Expiry:   expiry,
 	}
@@ -57,7 +57,7 @@ func (msg MsgPostPrice) ValidateBasic() error {
 	if len(msg.From) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if strings.TrimSpace(msg.MarketId) == "" {
+	if strings.TrimSpace(msg.MarketID) == "" {
 		return errors.New("market id cannot be blank")
 	}
 	if msg.Price.IsNegative() {

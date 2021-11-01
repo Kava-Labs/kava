@@ -538,17 +538,17 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "pricefeed", "v1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "pricefeed", "v1beta1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Price_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"kava", "pricefeed", "v1", "price", "market_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Price_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"kava", "pricefeed", "v1beta1", "prices", "market_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Prices_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "pricefeed", "v1", "prices"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Prices_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "pricefeed", "v1beta1", "prices"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_RawPrices_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"kava", "pricefeed", "v1", "rawprices", "market_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_RawPrices_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"kava", "pricefeed", "v1beta1", "rawprices", "market_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Oracles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"kava", "pricefeed", "v1", "oracles", "market_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Oracles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"kava", "pricefeed", "v1beta1", "oracles", "market_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Markets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "pricefeed", "v1", "markets"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Markets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "pricefeed", "v1beta1", "markets"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

@@ -39,7 +39,7 @@ func (k Keeper) Price(c context.Context, req *types.QueryPriceRequest) (*types.Q
 
 	return &types.QueryPriceResponse{
 		Price: types.CurrentPrice{
-			MarketId: currentPrice.MarketId,
+			MarketID: currentPrice.MarketID,
 			Price:    currentPrice.Price,
 		}}, nil
 
