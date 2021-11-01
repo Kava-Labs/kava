@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -35,7 +36,7 @@ func NewAuthGenStateFromAccs(accounts ...authtypes.GenesisAccount) app.GenesisSt
 	return app.GenesisState{authtypes.ModuleName: types.ModuleCdc.MustMarshalJSON(authGenesis)}
 }
 
-func NewBep3GenStateMulti(deputyAddress string) app.GenesisState {
+func NewBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress string) app.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
 			AssetParams: []types.AssetParam{
@@ -93,7 +94,7 @@ func NewBep3GenStateMulti(deputyAddress string) app.GenesisState {
 		},
 		PreviousBlockTime: types.DefaultPreviousBlockTime,
 	}
-	return app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&bep3Genesis)}
+	return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&bep3Genesis)}
 }
 
 func atomicSwaps(ctx sdk.Context, count int) []types.AtomicSwap {

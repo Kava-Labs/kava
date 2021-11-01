@@ -29,7 +29,7 @@ func (suite *ParamsTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	_, addrs := app.GeneratePrivKeyAddressPairs(10)
-	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(addrs[0].String()))
+	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(tApp.AppCodec(), addrs[0].String()))
 	suite.keeper = tApp.GetBep3Keeper()
 	suite.ctx = ctx
 	suite.addrs = addrs

@@ -35,7 +35,7 @@ func (suite *AssetTestSuite) SetupTest() {
 
 	// Initialize genesis state
 	deputy, _ := sdk.AccAddressFromBech32(TestDeputy)
-	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(deputy.String()))
+	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(tApp.AppCodec(), deputy.String()))
 
 	keeper := tApp.GetBep3Keeper()
 	params := keeper.GetParams(ctx)

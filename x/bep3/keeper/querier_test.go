@@ -51,7 +51,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 
 	tApp.InitializeFromGenesisStates(
 		authGS,
-		NewBep3GenStateMulti(addrs[10].String()),
+		NewBep3GenStateMulti(tApp.AppCodec(), addrs[10].String()),
 	)
 
 	suite.ctx = ctx
@@ -184,7 +184,7 @@ func (suite *QuerierTestSuite) TestQueryParams() {
 	var p types.Params
 	suite.Nil(types.ModuleCdc.LegacyAmino.UnmarshalJSON(bz, &p))
 
-	bep3GenesisState := NewBep3GenStateMulti(suite.addrs[10].String())
+	bep3GenesisState := NewBep3GenStateMulti(suite.app.AppCodec(), suite.addrs[10].String())
 	gs := types.GenesisState{}
 	types.ModuleCdc.LegacyAmino.UnmarshalJSON(bep3GenesisState["bep3"], &gs)
 	// update asset supply to account for swaps that were created in setup

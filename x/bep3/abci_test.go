@@ -41,7 +41,7 @@ func (suite *ABCITestSuite) SetupTest() {
 	}
 	authGS := tApp.NewAuthGenState(ctx, tApp.AppCodec(), addrs, coins)
 	// Initialize test app
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(strAddrs[11]))
+	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(tApp.AppCodec(), strAddrs[11]))
 
 	suite.ctx = ctx
 	suite.app = tApp

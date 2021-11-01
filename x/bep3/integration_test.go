@@ -3,6 +3,7 @@ package bep3_test
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -29,9 +30,9 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func ts(minOffset int) int64                { return tmtime.Now().Add(time.Duration(minOffset) * time.Minute).Unix() }
 
-func NewBep3GenStateMulti(deputy string) app.GenesisState {
+func NewBep3GenStateMulti(cdc codec.JSONCodec, deputy string) app.GenesisState {
 	bep3Genesis := baseGenState(deputy)
-	return app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&bep3Genesis)}
+	return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&bep3Genesis)}
 }
 
 func baseGenState(deputy string) types.GenesisState {
