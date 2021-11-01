@@ -67,7 +67,7 @@ func (k Keeper) EnsureModuleAccountPermissions(ctx sdk.Context) error {
 // SetAtomicSwap puts the AtomicSwap into the store, and updates any indexes.
 func (k Keeper) SetAtomicSwap(ctx sdk.Context, atomicSwap types.AtomicSwap) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
-	bz := k.cdc.MustMarshalLengthPrefixed(&atomicSwap)
+	bz := k.cdc.MustMarshal(&atomicSwap)
 	store.Set(atomicSwap.GetSwapID(), bz)
 }
 
@@ -81,7 +81,7 @@ func (k Keeper) GetAtomicSwap(ctx sdk.Context, swapID []byte) (types.AtomicSwap,
 		return atomicSwap, false
 	}
 
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &atomicSwap)
+	k.cdc.MustUnmarshal(bz, &atomicSwap)
 	return atomicSwap, true
 }
 
@@ -99,7 +99,7 @@ func (k Keeper) IterateAtomicSwaps(ctx sdk.Context, cb func(atomicSwap types.Ato
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var atomicSwap types.AtomicSwap
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &atomicSwap)
+		k.cdc.MustUnmarshal(iterator.Value(), &atomicSwap)
 
 		if cb(atomicSwap) {
 			break
