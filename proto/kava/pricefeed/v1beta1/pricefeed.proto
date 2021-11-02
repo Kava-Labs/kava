@@ -21,15 +21,10 @@ message Market {
 message PostedPrice {
   option (gogoproto.goproto_stringer) = false;
 
-  string market_id      = 1 [(gogoproto.moretags) = "yaml:\"market_id\"", (gogoproto.customname) = "MarketID"];
-  string oracle_address = 2 [(gogoproto.moretags) = "yaml:\"oracle_address\""];
-  string price          = 3 [
-    (gogoproto.moretags)   = "yaml:\"price\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
-  ];
-  google.protobuf.Timestamp expiry = 4
-      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"expiry\""];
+  string market_id      = 1 [(gogoproto.customname) = "MarketID"];
+  string oracle_address = 2;
+  string price = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  google.protobuf.Timestamp expiry = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 }
 
 // CurrentPrice defines a current price for a particular market in the pricefeed
@@ -38,9 +33,5 @@ message CurrentPrice {
   option (gogoproto.goproto_stringer) = false;
 
   string market_id = 1 [(gogoproto.customname) = "MarketID"];
-  string price     = 2 [
-    (gogoproto.moretags)   = "yaml:\"price\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
-  ];
+  string price = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
