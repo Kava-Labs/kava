@@ -35,11 +35,8 @@ func (suite *ABCITestSuite) SetupTest() {
 	// Set up auth GenesisState
 	_, addrs := app.GeneratePrivKeyAddressPairs(12)
 	strAddrs := app.AddressesToStrings(addrs)
-	coins := []sdk.Coins{}
-	for j := 0; j < 12; j++ {
-		coins = append(coins, cs(c("bnb", 10000000000), c("ukava", 10000000000)))
-	}
-	authGS := tApp.NewAuthGenState(ctx, tApp.AppCodec(), addrs, coins)
+	coins := sdk.NewCoins(c("bnb", 10000000000), c("ukava", 10000000000))
+	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	// Initialize test app
 	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(tApp.AppCodec(), strAddrs[11]))
 

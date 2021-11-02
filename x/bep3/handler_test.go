@@ -37,11 +37,8 @@ func (suite *HandlerTestSuite) SetupTest() {
 
 	// Set up genesis state and initialize
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	coins := []sdk.Coins{}
-	for j := 0; j < 3; j++ {
-		coins = append(coins, cs(c("bnb", 10000000000), c("ukava", 10000000000)))
-	}
-	authGS := tApp.NewAuthGenState(ctx, cdc, addrs, coins)
+	coins := sdk.NewCoins(c("bnb", 10000000000), c("ukava", 10000000000))
+	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(cdc, addrs[0].String()))
 
 	suite.addrs = addrs

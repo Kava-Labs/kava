@@ -49,13 +49,10 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	cdc := tApp.AppCodec()
 
 	// Create and load 20 accounts with bnb tokens
-	coins := []sdk.Coins{}
-	for i := 0; i < 20; i++ {
-		coins = append(coins, cs(c(BNB_DENOM, STARING_BNB_BALANCE), c(OTHER_DENOM, STARING_OTHER_BALANCE)))
-	}
+	coins := sdk.NewCoins(c(BNB_DENOM, STARING_BNB_BALANCE), c(OTHER_DENOM, STARING_OTHER_BALANCE))
 	_, addrs := app.GeneratePrivKeyAddressPairs(20)
 	deputy := addrs[0]
-	authGS := tApp.NewAuthGenState(ctx, cdc, addrs, coins)
+	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 
 	// Initialize genesis state
 	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(cdc, deputy.String()))
