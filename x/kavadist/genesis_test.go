@@ -51,7 +51,7 @@ func (suite *genesisTestSuite) TestInitAndExportGenesis() {
 				},
 			},
 		},
-		tmtime.Canonical(time.Unix(1, 0)),
+		time.Date(2020, 1, 2, 1, 1, 1, 1, time.UTC),
 	)
 
 	kavadist.InitGenesis(suite.Ctx, suite.Keeper, suite.AccountKeeper, state)

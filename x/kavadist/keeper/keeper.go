@@ -48,10 +48,10 @@ func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, foun
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
 	b := store.Get(types.PreviousBlockTimeKey)
 	if b == nil {
-		return types.DefaultPreviousBlockTime, false
+		return time.Time{}, false
 	}
 	if err := blockTime.UnmarshalBinary(b); err != nil {
-		return types.DefaultPreviousBlockTime, false
+		return time.Time{}, false
 	}
 	return blockTime, true
 }
