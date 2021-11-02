@@ -73,7 +73,7 @@ func (k Keeper) Oracles(c context.Context, req *types.QueryOraclesRequest) (*typ
 
 	oracles, err := k.GetOracles(ctx, req.MarketId)
 	if err != nil {
-		return nil, status.Error(codes.NotFound, "invalid market ID")
+		return nil, status.Error(codes.InvalidArgument, "invalid market ID")
 	}
 
 	return &types.QueryOraclesResponse{
