@@ -415,16 +415,16 @@ func (m *MsgSetPauseStatusResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgSetPauseStatusResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgIssueTokens)(nil), "kavalabs.kava.issuance.MsgIssueTokens")
-	proto.RegisterType((*MsgIssueTokensResponse)(nil), "kavalabs.kava.issuance.MsgIssueTokensResponse")
-	proto.RegisterType((*MsgRedeemTokens)(nil), "kavalabs.kava.issuance.MsgRedeemTokens")
-	proto.RegisterType((*MsgRedeemTokensResponse)(nil), "kavalabs.kava.issuance.MsgRedeemTokensResponse")
-	proto.RegisterType((*MsgBlockAddress)(nil), "kavalabs.kava.issuance.MsgBlockAddress")
-	proto.RegisterType((*MsgBlockAddressResponse)(nil), "kavalabs.kava.issuance.MsgBlockAddressResponse")
-	proto.RegisterType((*MsgUnblockAddress)(nil), "kavalabs.kava.issuance.MsgUnblockAddress")
-	proto.RegisterType((*MsgUnblockAddressResponse)(nil), "kavalabs.kava.issuance.MsgUnblockAddressResponse")
-	proto.RegisterType((*MsgSetPauseStatus)(nil), "kavalabs.kava.issuance.MsgSetPauseStatus")
-	proto.RegisterType((*MsgSetPauseStatusResponse)(nil), "kavalabs.kava.issuance.MsgSetPauseStatusResponse")
+	proto.RegisterType((*MsgIssueTokens)(nil), "kava.issuance.v1beta1.MsgIssueTokens")
+	proto.RegisterType((*MsgIssueTokensResponse)(nil), "kava.issuance.v1beta1.MsgIssueTokensResponse")
+	proto.RegisterType((*MsgRedeemTokens)(nil), "kava.issuance.v1beta1.MsgRedeemTokens")
+	proto.RegisterType((*MsgRedeemTokensResponse)(nil), "kava.issuance.v1beta1.MsgRedeemTokensResponse")
+	proto.RegisterType((*MsgBlockAddress)(nil), "kava.issuance.v1beta1.MsgBlockAddress")
+	proto.RegisterType((*MsgBlockAddressResponse)(nil), "kava.issuance.v1beta1.MsgBlockAddressResponse")
+	proto.RegisterType((*MsgUnblockAddress)(nil), "kava.issuance.v1beta1.MsgUnblockAddress")
+	proto.RegisterType((*MsgUnblockAddressResponse)(nil), "kava.issuance.v1beta1.MsgUnblockAddressResponse")
+	proto.RegisterType((*MsgSetPauseStatus)(nil), "kava.issuance.v1beta1.MsgSetPauseStatus")
+	proto.RegisterType((*MsgSetPauseStatusResponse)(nil), "kava.issuance.v1beta1.MsgSetPauseStatusResponse")
 }
 
 func init() { proto.RegisterFile("issuance/tx.proto", fileDescriptor_faa2c5565e1f5a7c) }
@@ -502,7 +502,7 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 
 func (c *msgClient) IssueTokens(ctx context.Context, in *MsgIssueTokens, opts ...grpc.CallOption) (*MsgIssueTokensResponse, error) {
 	out := new(MsgIssueTokensResponse)
-	err := c.cc.Invoke(ctx, "/kavalabs.kava.issuance.Msg/IssueTokens", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/kava.issuance.v1beta1.Msg/IssueTokens", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -511,7 +511,7 @@ func (c *msgClient) IssueTokens(ctx context.Context, in *MsgIssueTokens, opts ..
 
 func (c *msgClient) RedeemTokens(ctx context.Context, in *MsgRedeemTokens, opts ...grpc.CallOption) (*MsgRedeemTokensResponse, error) {
 	out := new(MsgRedeemTokensResponse)
-	err := c.cc.Invoke(ctx, "/kavalabs.kava.issuance.Msg/RedeemTokens", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/kava.issuance.v1beta1.Msg/RedeemTokens", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -520,7 +520,7 @@ func (c *msgClient) RedeemTokens(ctx context.Context, in *MsgRedeemTokens, opts 
 
 func (c *msgClient) BlockAddress(ctx context.Context, in *MsgBlockAddress, opts ...grpc.CallOption) (*MsgBlockAddressResponse, error) {
 	out := new(MsgBlockAddressResponse)
-	err := c.cc.Invoke(ctx, "/kavalabs.kava.issuance.Msg/BlockAddress", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/kava.issuance.v1beta1.Msg/BlockAddress", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -529,7 +529,7 @@ func (c *msgClient) BlockAddress(ctx context.Context, in *MsgBlockAddress, opts 
 
 func (c *msgClient) UnblockAddress(ctx context.Context, in *MsgUnblockAddress, opts ...grpc.CallOption) (*MsgUnblockAddressResponse, error) {
 	out := new(MsgUnblockAddressResponse)
-	err := c.cc.Invoke(ctx, "/kavalabs.kava.issuance.Msg/UnblockAddress", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/kava.issuance.v1beta1.Msg/UnblockAddress", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -538,7 +538,7 @@ func (c *msgClient) UnblockAddress(ctx context.Context, in *MsgUnblockAddress, o
 
 func (c *msgClient) SetPauseStatus(ctx context.Context, in *MsgSetPauseStatus, opts ...grpc.CallOption) (*MsgSetPauseStatusResponse, error) {
 	out := new(MsgSetPauseStatusResponse)
-	err := c.cc.Invoke(ctx, "/kavalabs.kava.issuance.Msg/SetPauseStatus", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/kava.issuance.v1beta1.Msg/SetPauseStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -593,7 +593,7 @@ func _Msg_IssueTokens_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/kavalabs.kava.issuance.Msg/IssueTokens",
+		FullMethod: "/kava.issuance.v1beta1.Msg/IssueTokens",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).IssueTokens(ctx, req.(*MsgIssueTokens))
@@ -611,7 +611,7 @@ func _Msg_RedeemTokens_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/kavalabs.kava.issuance.Msg/RedeemTokens",
+		FullMethod: "/kava.issuance.v1beta1.Msg/RedeemTokens",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).RedeemTokens(ctx, req.(*MsgRedeemTokens))
@@ -629,7 +629,7 @@ func _Msg_BlockAddress_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/kavalabs.kava.issuance.Msg/BlockAddress",
+		FullMethod: "/kava.issuance.v1beta1.Msg/BlockAddress",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).BlockAddress(ctx, req.(*MsgBlockAddress))
@@ -647,7 +647,7 @@ func _Msg_UnblockAddress_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/kavalabs.kava.issuance.Msg/UnblockAddress",
+		FullMethod: "/kava.issuance.v1beta1.Msg/UnblockAddress",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).UnblockAddress(ctx, req.(*MsgUnblockAddress))
@@ -665,7 +665,7 @@ func _Msg_SetPauseStatus_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/kavalabs.kava.issuance.Msg/SetPauseStatus",
+		FullMethod: "/kava.issuance.v1beta1.Msg/SetPauseStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).SetPauseStatus(ctx, req.(*MsgSetPauseStatus))
@@ -674,7 +674,7 @@ func _Msg_SetPauseStatus_Handler(srv interface{}, ctx context.Context, dec func(
 }
 
 var _Msg_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "kavalabs.kava.issuance.Msg",
+	ServiceName: "kava.issuance.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

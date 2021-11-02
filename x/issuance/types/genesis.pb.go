@@ -311,11 +311,11 @@ func (m *AssetSupply) GetTimeElapsed() time.Duration {
 }
 
 func init() {
-	proto.RegisterType((*GenesisState)(nil), "kavalabs.kava.issuance.GenesisState")
-	proto.RegisterType((*Params)(nil), "kavalabs.kava.issuance.Params")
-	proto.RegisterType((*Asset)(nil), "kavalabs.kava.issuance.Asset")
-	proto.RegisterType((*RateLimit)(nil), "kavalabs.kava.issuance.RateLimit")
-	proto.RegisterType((*AssetSupply)(nil), "kavalabs.kava.issuance.AssetSupply")
+	proto.RegisterType((*GenesisState)(nil), "kava.issuance.v1beta1.GenesisState")
+	proto.RegisterType((*Params)(nil), "kava.issuance.v1beta1.Params")
+	proto.RegisterType((*Asset)(nil), "kava.issuance.v1beta1.Asset")
+	proto.RegisterType((*RateLimit)(nil), "kava.issuance.v1beta1.RateLimit")
+	proto.RegisterType((*AssetSupply)(nil), "kava.issuance.v1beta1.AssetSupply")
 }
 
 func init() { proto.RegisterFile("issuance/genesis.proto", fileDescriptor_ca5e22ff3414142c) }
