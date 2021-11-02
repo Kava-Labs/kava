@@ -42,17 +42,17 @@ func (gs GenesisState) Validate() error {
 
 	totalShares := make(map[string]poolShares)
 	for _, pr := range gs.PoolRecords {
-		totalShares[pr.PoolId] = poolShares{
+		totalShares[pr.PoolID] = poolShares{
 			totalShares:      pr.TotalShares,
 			totalSharesOwned: sdk.ZeroInt(),
 		}
 	}
 	for _, sr := range gs.ShareRecords {
-		if shares, found := totalShares[sr.PoolId]; found {
+		if shares, found := totalShares[sr.PoolID]; found {
 			shares.totalSharesOwned = shares.totalSharesOwned.Add(sr.SharesOwned)
-			totalShares[sr.PoolId] = shares
+			totalShares[sr.PoolID] = shares
 		} else {
-			totalShares[sr.PoolId] = poolShares{
+			totalShares[sr.PoolID] = poolShares{
 				totalShares:      sdk.ZeroInt(),
 				totalSharesOwned: sr.SharesOwned,
 			}

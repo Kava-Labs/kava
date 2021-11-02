@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
 func TestState_PoolID(t *testing.T) {
@@ -67,7 +67,7 @@ func TestState_NewPoolRecordFromPool(t *testing.T) {
 
 	record := types.NewPoolRecordFromPool(pool)
 
-	assert.Equal(t, types.PoolID("ukava", "usdx"), record.PoolId)
+	assert.Equal(t, types.PoolID("ukava", "usdx"), record.PoolID)
 	assert.Equal(t, ukava(10e6), record.ReservesA)
 	assert.Equal(t, record.ReservesB, usdx(50e6))
 	assert.Equal(t, pool.TotalShares(), record.TotalShares)
@@ -87,7 +87,7 @@ func TestState_PoolRecord_JSONEncoding(t *testing.T) {
 	err := json.Unmarshal([]byte(raw), &record)
 	require.NoError(t, err)
 
-	assert.Equal(t, types.PoolID("ukava", "usdx"), record.PoolId)
+	assert.Equal(t, types.PoolID("ukava", "usdx"), record.PoolID)
 	assert.Equal(t, ukava(1e6), record.ReservesA)
 	assert.Equal(t, usdx(5e6), record.ReservesB)
 	assert.Equal(t, i(3e6), record.TotalShares)
@@ -96,11 +96,11 @@ func TestState_PoolRecord_JSONEncoding(t *testing.T) {
 func TestState_PoolRecord_YamlEncoding(t *testing.T) {
 	expected := `pool_id: ukava:usdx
 reserves_a:
-  denom: ukava
   amount: "1000000"
+  denom: ukava
 reserves_b:
-  denom: usdx
   amount: "5000000"
+  denom: usdx
 total_shares: "3000000"
 `
 	record := types.NewPoolRecord(sdk.NewCoins(ukava(1e6), usdx(5e6)), i(3e6))
@@ -246,7 +246,7 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 		},
 		{
 			name:        "negative total shares",
-			poolID:      validRecord.PoolId,
+			poolID:      validRecord.PoolID,
 			reservesA:   validRecord.ReservesA,
 			reservesB:   validRecord.ReservesB,
 			totalShares: sdk.NewInt(-1),
@@ -254,7 +254,7 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 		},
 		{
 			name:        "zero total shares",
-			poolID:      validRecord.PoolId,
+			poolID:      validRecord.PoolID,
 			reservesA:   validRecord.ReservesA,
 			reservesB:   validRecord.ReservesB,
 			totalShares: sdk.ZeroInt(),
@@ -265,7 +265,7 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			record := types.PoolRecord{
-				PoolId:      tc.poolID,
+				PoolID:      tc.poolID,
 				ReservesA:   tc.reservesA,
 				ReservesB:   tc.reservesB,
 				TotalShares: tc.totalShares,
@@ -295,8 +295,8 @@ func TestState_PoolRecord_OrderedReserves(t *testing.T) {
 	record_2 := types.NewPoolRecord(sdk.NewCoins(ukava(100e6), usdx(500e6)), i(300e6))
 	// ensure no regresssions in NewCoins ordering
 	assert.Equal(t, record_1, record_2)
-	assert.Equal(t, types.PoolID("ukava", "usdx"), record_1.PoolId)
-	assert.Equal(t, types.PoolID("ukava", "usdx"), record_2.PoolId)
+	assert.Equal(t, types.PoolID("ukava", "usdx"), record_1.PoolID)
+	assert.Equal(t, types.PoolID("ukava", "usdx"), record_2.PoolID)
 }
 
 func TestState_PoolRecords_Validation(t *testing.T) {
@@ -352,7 +352,7 @@ func TestState_NewShareRecord(t *testing.T) {
 	record := types.NewShareRecord(depositor, poolID, shares)
 
 	assert.Equal(t, depositor.String(), record.Depositor)
-	assert.Equal(t, poolID, record.PoolId)
+	assert.Equal(t, poolID, record.PoolID)
 	assert.Equal(t, shares, record.SharesOwned)
 }
 
@@ -368,7 +368,7 @@ func TestState_ShareRecord_JSONEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w", record.Depositor)
-	assert.Equal(t, types.PoolID("ukava", "usdx"), record.PoolId)
+	assert.Equal(t, types.PoolID("ukava", "usdx"), record.PoolID)
 	assert.Equal(t, i(3e6), record.SharesOwned)
 }
 
@@ -390,7 +390,7 @@ shares_owned: "3000000"
 func TestState_InvalidShareRecordEmptyDepositor(t *testing.T) {
 	record := types.ShareRecord{
 		Depositor:   "",
-		PoolId:      types.PoolID("ukava", "usdx"),
+		PoolID:      types.PoolID("ukava", "usdx"),
 		SharesOwned: sdk.NewInt(1e6),
 	}
 	require.Error(t, record.Validate())
@@ -399,7 +399,7 @@ func TestState_InvalidShareRecordEmptyDepositor(t *testing.T) {
 func TestState_InvalidShareRecordNegativeShares(t *testing.T) {
 	record := types.ShareRecord{
 		Depositor:   "kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w",
-		PoolId:      types.PoolID("ukava", "usdx"),
+		PoolID:      types.PoolID("ukava", "usdx"),
 		SharesOwned: sdk.NewInt(-1e6),
 	}
 	require.Error(t, record.Validate())
@@ -487,14 +487,14 @@ func TestState_ShareRecord_Validations(t *testing.T) {
 		{
 			name:        "negative total shares",
 			depositor:   validRecord.Depositor,
-			poolID:      validRecord.PoolId,
+			poolID:      validRecord.PoolID,
 			sharesOwned: sdk.NewInt(-1),
 			expectedErr: "depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and pool 'ukava:usdx' has invalid total shares: -1",
 		},
 		{
 			name:        "zero total shares",
 			depositor:   validRecord.Depositor,
-			poolID:      validRecord.PoolId,
+			poolID:      validRecord.PoolID,
 			sharesOwned: sdk.ZeroInt(),
 			expectedErr: "depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and pool 'ukava:usdx' has invalid total shares: 0",
 		},
@@ -504,7 +504,7 @@ func TestState_ShareRecord_Validations(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			record := types.ShareRecord{
 				Depositor:   tc.depositor,
-				PoolId:      tc.poolID,
+				PoolID:      tc.poolID,
 				SharesOwned: tc.sharesOwned,
 			}
 			err := record.Validate()

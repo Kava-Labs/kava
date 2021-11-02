@@ -46,7 +46,7 @@ func NewDepositsQueryResult(shareRecord ShareRecord, sharesValue sdk.Coins) Depo
 	}
 	return DepositsQueryResult{
 		Depositor:   depositor,
-		PoolID:      shareRecord.PoolId,
+		PoolID:      shareRecord.PoolID,
 		SharesOwned: shareRecord.SharesOwned,
 		SharesValue: sharesValue,
 	}

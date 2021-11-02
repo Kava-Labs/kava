@@ -38,7 +38,7 @@ func (suite *keeperTestSuite) setupPool(reserves sdk.Coins, totalShares sdk.Int,
 	suite.AddCoinsToModule(reserves)
 
 	poolRecord := types.PoolRecord{
-		PoolId:      poolID,
+		PoolID:      poolID,
 		ReservesA:   reserves[0],
 		ReservesB:   reserves[1],
 		TotalShares: totalShares,
@@ -47,7 +47,7 @@ func (suite *keeperTestSuite) setupPool(reserves sdk.Coins, totalShares sdk.Int,
 
 	shareRecord := types.ShareRecord{
 		Depositor:   depositor.String(),
-		PoolId:      poolID,
+		PoolID:      poolID,
 		SharesOwned: totalShares,
 	}
 	suite.Keeper.SetDepositorShares(suite.Ctx, shareRecord)
@@ -59,7 +59,7 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 	keeper := suite.Keeper
 
 	params := types.Params{
-		AllowedPools: []*types.AllowedPool{
+		AllowedPools: []types.AllowedPool{
 			types.NewAllowedPool("ukava", "usdx"),
 		},
 		SwapFee: sdk.MustNewDecFromStr("0.03"),
@@ -69,7 +69,7 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 
 	oldParams := params
 	params = types.Params{
-		AllowedPools: []*types.AllowedPool{
+		AllowedPools: []types.AllowedPool{
 			types.NewAllowedPool("hard", "ukava"),
 		},
 		SwapFee: sdk.MustNewDecFromStr("0.01"),
@@ -102,16 +102,16 @@ func (suite *keeperTestSuite) TestPool_Persistance() {
 
 	suite.Keeper.SetPool(suite.Ctx, record)
 
-	savedRecord, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolId)
+	savedRecord, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolID)
 	suite.True(ok)
 	suite.Equal(record, savedRecord)
 
-	savedShares, ok := suite.Keeper.GetPoolShares(suite.Ctx, record.PoolId)
+	savedShares, ok := suite.Keeper.GetPoolShares(suite.Ctx, record.PoolID)
 	suite.True(ok)
 	suite.Equal(record.TotalShares, savedShares)
 
-	suite.Keeper.DeletePool(suite.Ctx, record.PoolId)
-	deletedPool, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolId)
+	suite.Keeper.DeletePool(suite.Ctx, record.PoolID)
+	deletedPool, ok := suite.Keeper.GetPool(suite.Ctx, record.PoolID)
 	suite.False(ok)
 	suite.Equal(deletedPool, types.PoolRecord{})
 }

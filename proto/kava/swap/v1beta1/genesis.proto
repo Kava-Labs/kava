@@ -1,79 +1,17 @@
 syntax = "proto3";
 package kava.swap.v1beta1;
 
-import "gogoproto/gogo.proto";
-
 option go_package = "github.com/kava-labs/kava/x/swap/types";
+
+import "gogoproto/gogo.proto";
+import "kava/swap/v1beta1/swap.proto";
 
 // GenesisState defines the swap module's genesis state.
 message GenesisState {
-  // params defines all the paramaters of the module.
+  // params defines all the paramaters related to swap
   Params params = 1 [(gogoproto.nullable) = false];
-
-  repeated PoolRecord pool_records = 2
-      [(gogoproto.moretags) = "yaml:\"pool_records,omitempty\"", (gogoproto.nullable) = false];
-
-  repeated ShareRecord share_records = 3
-      [(gogoproto.moretags) = "yaml:\"share_records,omitempty\"", (gogoproto.nullable) = false];
-}
-
-// Params defines the parameters for the swap module.
-message Params {
-  option (gogoproto.goproto_stringer) = false; // false here because we define Stringer method in params.go
-  repeated AllowedPool allowed_pools  = 1 [(gogoproto.moretags) = "yaml:\"allowed_pools,omitempty\""];
-
-  bytes swap_fee = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "swap_fee,omitempty",
-    (gogoproto.moretags)   = "yaml:\"swap_fee\""
-  ];
-}
-
-// AllowedPool defines a tradable pool.
-message AllowedPool {
-  option (gogoproto.goproto_stringer) = false; // false here because we define Stringer method in params.go
-
-  string token_a = 1 [(gogoproto.moretags) = "yaml:\"token_a,omitempty\""];
-  string token_b = 2 [(gogoproto.moretags) = "yaml:\"token_b,omitempty\""];
-}
-
-// PoolRecord represents the state of a liquidity pool
-// and is used to store the state of a denominated pool
-message PoolRecord {
-  string pool_id = 1 [(gogoproto.moretags) = "yaml:\"pool_id,omitempty\""];
-
-  bytes reserves_a = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "reserves_a,omitempty",
-    (gogoproto.moretags)   = "yaml:\"reserves_a\""
-  ];
-
-  bytes reserves_b = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "reserves_b,omitempty",
-    (gogoproto.moretags)   = "yaml:\"reserves_b\""
-  ];
-
-  bytes total_shares = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "total_shares,omitempty",
-    (gogoproto.moretags)   = "yaml:\"total_shares\""
-  ];
-}
-
-// ShareRecord stores the shares owned for a depositor and pool
-message ShareRecord {
-  string depositor = 1;
-  string pool_id   = 2 [(gogoproto.moretags) = "yaml:\"pool_id,omitempty\""];
-
-  bytes shares_owned = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "shares_owned,omitempty",
-    (gogoproto.moretags)   = "yaml:\"shares_owned\""
-  ];
+  // pool_records defines the available pools
+  repeated PoolRecord pool_records = 2 [(gogoproto.nullable) = false];
+  // share_records defines the owned shares of each pool
+  repeated ShareRecord share_records = 3 [(gogoproto.nullable) = false];
 }

@@ -100,7 +100,7 @@ func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool)
 func (k Keeper) SetPool_Raw(ctx sdk.Context, record types.PoolRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
 	bz := k.cdc.MustMarshalLengthPrefixed(&record)
-	store.Set(types.PoolKey(record.PoolId), bz) // PoolID was renamed to PoolId as thats the name the generated proto type has
+	store.Set(types.PoolKey(record.PoolID), bz) // PoolID was renamed to PoolID as thats the name the generated proto type has
 }
 
 // SetPool saves a pool to the store and panics if the record is invalid
@@ -170,7 +170,7 @@ func (k Keeper) SetDepositorShares_Raw(ctx sdk.Context, record types.ShareRecord
 	if err != nil {
 		panic(err)
 	}
-	store.Set(types.DepositorPoolSharesKey(depositor, record.PoolId), bz)
+	store.Set(types.DepositorPoolSharesKey(depositor, record.PoolID), bz)
 }
 
 // SetDepositorShares saves a share record to the store and panics if the record is invalid

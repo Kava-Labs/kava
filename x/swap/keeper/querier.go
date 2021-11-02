@@ -62,7 +62,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 	// Augment each deposit result with the actual share value of depositor's shares
 	var queryResults types.DepositsQueryResults
 	for _, record := range records {
-		pool, err := k.loadDenominatedPool(ctx, record.PoolId)
+		pool, err := k.loadDenominatedPool(ctx, record.PoolID)
 		if err != nil {
 			return nil, err
 		}
@@ -113,12 +113,12 @@ func queryGetPools(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQueri
 
 	var queryResults types.PoolStatsQueryResults
 	for _, pool := range pools {
-		denomPool, err := k.loadDenominatedPool(ctx, pool.PoolId)
+		denomPool, err := k.loadDenominatedPool(ctx, pool.PoolID)
 		if err != nil {
 			return nil, err
 		}
 		totalCoins := denomPool.ShareValue(denomPool.TotalShares())
-		queryResult := types.NewPoolStatsQueryResult(pool.PoolId, totalCoins, denomPool.TotalShares())
+		queryResult := types.NewPoolStatsQueryResult(pool.PoolID, totalCoins, denomPool.TotalShares())
 		queryResults = append(queryResults, queryResult)
 	}
 
@@ -146,7 +146,7 @@ func filterShareRecords(ctx sdk.Context, records []types.ShareRecord, params typ
 
 		// match pool ID (if supplied)
 		if len(params.Pool) > 0 {
-			matchPool = strings.Compare(s.PoolId, params.Pool) == 0
+			matchPool = strings.Compare(s.PoolID, params.Pool) == 0
 		}
 
 		if matchOwner && matchPool {

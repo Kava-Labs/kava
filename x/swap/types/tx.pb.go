@@ -6,7 +6,9 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
@@ -31,11 +33,16 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgDeposit represents a message for depositing liquidity into a pool
 type MsgDeposit struct {
-	Depositor string                                  `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
-	TokenA    github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,2,opt,name=token_a,json=tokenA,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"token_a,omitempty" yaml:"token_a"`
-	TokenB    github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,3,opt,name=token_b,json=tokenB,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"token_b,omitempty" yaml:"token_b"`
-	Slippage  github_com_cosmos_cosmos_sdk_types.Dec  `protobuf:"bytes,4,opt,name=slippage,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"slippage,omitempty" yaml:"slippage"`
-	Deadline  int64                                   `protobuf:"varint,5,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	// depositor represents the address to deposit funds from
+	Depositor string `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
+	// token_a represents one token of deposit pair
+	TokenA types.Coin `protobuf:"bytes,2,opt,name=token_a,json=tokenA,proto3" json:"token_a"`
+	// token_b represents one token of deposit pair
+	TokenB types.Coin `protobuf:"bytes,3,opt,name=token_b,json=tokenB,proto3" json:"token_b"`
+	// slippage represents the max decimal percentage price change
+	Slippage github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=slippage,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"slippage"`
+	// deadline represents the unix timestamp to complete the deposit by
+	Deadline int64 `protobuf:"varint,5,opt,name=deadline,proto3" json:"deadline,omitempty"`
 }
 
 func (m *MsgDeposit) Reset()         { *m = MsgDeposit{} }
@@ -110,11 +117,16 @@ var xxx_messageInfo_MsgDepositResponse proto.InternalMessageInfo
 
 // MsgWithdraw represents a message for withdrawing liquidity from a pool
 type MsgWithdraw struct {
-	From      string                                  `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
-	Shares    github_com_cosmos_cosmos_sdk_types.Int  `protobuf:"bytes,2,opt,name=shares,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"shares,omitempty" yaml:"shares"`
-	MinTokenA github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,3,opt,name=min_token_a,json=minTokenA,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"min_token_a,omitempty" yaml:"min_token_a"`
-	MinTokenB github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,4,opt,name=min_token_b,json=minTokenB,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"min_token_b,omitempty" yaml:"min_token_b"`
-	Deadline  int64                                   `protobuf:"varint,5,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	// from represents the address we are withdrawing for
+	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
+	// shares represents the amount of shares to withdraw
+	Shares github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=shares,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"shares"`
+	// min_token_a represents the minimum a token to withdraw
+	MinTokenA types.Coin `protobuf:"bytes,3,opt,name=min_token_a,json=minTokenA,proto3" json:"min_token_a"`
+	// min_token_a represents the minimum a token to withdraw
+	MinTokenB types.Coin `protobuf:"bytes,4,opt,name=min_token_b,json=minTokenB,proto3" json:"min_token_b"`
+	// deadline represents the unix timestamp to complete the withdraw by
+	Deadline int64 `protobuf:"varint,5,opt,name=deadline,proto3" json:"deadline,omitempty"`
 }
 
 func (m *MsgWithdraw) Reset()         { *m = MsgWithdraw{} }
@@ -189,11 +201,16 @@ var xxx_messageInfo_MsgWithdrawResponse proto.InternalMessageInfo
 
 // MsgSwapExactForTokens represents a message for trading exact coinA for coinB
 type MsgSwapExactForTokens struct {
-	Requester   string                                  `protobuf:"bytes,1,opt,name=requester,proto3" json:"requester,omitempty"`
-	ExactTokenA github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,2,opt,name=exact_token_a,json=exactTokenA,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"exact_token_a,omitempty" yaml:"exact_token_a"`
-	TokenB      github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,3,opt,name=token_b,json=tokenB,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"token_b,omitempty" yaml:"token_b"`
-	Slippage    github_com_cosmos_cosmos_sdk_types.Dec  `protobuf:"bytes,4,opt,name=slippage,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"slippage,omitempty" yaml:"slippage"`
-	Deadline    int64                                   `protobuf:"varint,5,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	// represents the address swaping the tokens
+	Requester string `protobuf:"bytes,1,opt,name=requester,proto3" json:"requester,omitempty"`
+	// exact_token_a represents the exact amount to swap for token_b
+	ExactTokenA types.Coin `protobuf:"bytes,2,opt,name=exact_token_a,json=exactTokenA,proto3" json:"exact_token_a"`
+	// token_b represents the desired token_b to swap for
+	TokenB types.Coin `protobuf:"bytes,3,opt,name=token_b,json=tokenB,proto3" json:"token_b"`
+	// slippage represents the maximum change in token_b allowed
+	Slippage github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=slippage,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"slippage"`
+	// deadline represents the unix timestamp to complete the swap by
+	Deadline int64 `protobuf:"varint,5,opt,name=deadline,proto3" json:"deadline,omitempty"`
 }
 
 func (m *MsgSwapExactForTokens) Reset()         { *m = MsgSwapExactForTokens{} }
@@ -270,11 +287,16 @@ var xxx_messageInfo_MsgSwapExactForTokensResponse proto.InternalMessageInfo
 // MsgSwapForExactTokens represents a message for trading coinA for an exact
 // coinB
 type MsgSwapForExactTokens struct {
-	Requester   string                                  `protobuf:"bytes,1,opt,name=requester,proto3" json:"requester,omitempty"`
-	TokenA      github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,2,opt,name=token_a,json=tokenA,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"token_a,omitempty" yaml:"token_a"`
-	ExactTokenB github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,3,opt,name=exact_token_b,json=exactTokenB,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"exact_token_b,omitempty" yaml:"exact_token_b"`
-	Slippage    github_com_cosmos_cosmos_sdk_types.Dec  `protobuf:"bytes,4,opt,name=slippage,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"slippage,omitempty" yaml:"slippage"`
-	Deadline    int64                                   `protobuf:"varint,5,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	// represents the address swaping the tokens
+	Requester string `protobuf:"bytes,1,opt,name=requester,proto3" json:"requester,omitempty"`
+	// token_a represents the desired token_a to swap for
+	TokenA types.Coin `protobuf:"bytes,2,opt,name=token_a,json=tokenA,proto3" json:"token_a"`
+	// exact_token_b represents the exact token b amount to swap for token a
+	ExactTokenB types.Coin `protobuf:"bytes,3,opt,name=exact_token_b,json=exactTokenB,proto3" json:"exact_token_b"`
+	// slippage represents the maximum change in token_a allowed
+	Slippage github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=slippage,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"slippage"`
+	// deadline represents the unix timestamp to complete the swap by
+	Deadline int64 `protobuf:"varint,5,opt,name=deadline,proto3" json:"deadline,omitempty"`
 }
 
 func (m *MsgSwapForExactTokens) Reset()         { *m = MsgSwapForExactTokens{} }
@@ -362,49 +384,46 @@ func init() {
 func init() { proto.RegisterFile("kava/swap/v1beta1/tx.proto", fileDescriptor_5b753029ccc8a1ef) }
 
 var fileDescriptor_5b753029ccc8a1ef = []byte{
-	// 665 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x96, 0xcd, 0x6e, 0xd3, 0x4c,
-	0x14, 0x86, 0xed, 0xcf, 0xfd, 0xda, 0x74, 0x4a, 0x81, 0x0e, 0xad, 0x88, 0x2c, 0x6a, 0x57, 0x96,
-	0x28, 0x59, 0x50, 0x9b, 0xc2, 0xae, 0x2b, 0x08, 0x6d, 0x25, 0x16, 0x11, 0x92, 0x5b, 0x51, 0x89,
-	0x05, 0xd5, 0x4c, 0x32, 0xb8, 0x56, 0x62, 0x8f, 0xf1, 0x4c, 0xff, 0x36, 0x2c, 0x11, 0x2b, 0xc4,
-	0x25, 0x74, 0xc7, 0x0d, 0x70, 0x11, 0x15, 0xab, 0x2e, 0x11, 0x0b, 0x0b, 0x25, 0x1b, 0x94, 0x25,
-	0x57, 0x80, 0xfc, 0x9b, 0x38, 0x35, 0x69, 0xa2, 0x48, 0x48, 0x48, 0xac, 0x32, 0xf6, 0x7b, 0xe6,
-	0x3c, 0x3a, 0x79, 0xcf, 0x19, 0x0f, 0x90, 0x9b, 0xe8, 0x08, 0x19, 0xec, 0x18, 0x79, 0xc6, 0xd1,
-	0x3a, 0x26, 0x1c, 0xad, 0x1b, 0xfc, 0x44, 0xf7, 0x7c, 0xca, 0x29, 0x5c, 0x08, 0x35, 0x3d, 0xd4,
-	0xf4, 0x44, 0x93, 0x17, 0x2d, 0x6a, 0xd1, 0x48, 0x35, 0xc2, 0x55, 0x1c, 0xa8, 0x7d, 0x92, 0x00,
-	0xa8, 0x31, 0x6b, 0x93, 0x78, 0x94, 0xd9, 0x1c, 0xde, 0x01, 0xb3, 0x8d, 0x78, 0x49, 0xfd, 0xb2,
-	0xb8, 0x22, 0x56, 0x66, 0xcd, 0xde, 0x0b, 0x48, 0xc1, 0x0c, 0xa7, 0x4d, 0xe2, 0xee, 0xa3, 0xf2,
-	0x7f, 0x2b, 0x62, 0xe5, 0x5a, 0xf5, 0xc5, 0x79, 0xa0, 0x0a, 0xdf, 0x02, 0xf5, 0x9e, 0x65, 0xf3,
-	0x83, 0x43, 0xac, 0xd7, 0xa9, 0x63, 0xd4, 0x29, 0x73, 0x28, 0x4b, 0x7e, 0xd6, 0x58, 0xa3, 0x69,
-	0xf0, 0x53, 0x8f, 0x30, 0xfd, 0x29, 0xb5, 0xdd, 0x6e, 0xa0, 0x2e, 0x24, 0x19, 0xee, 0x53, 0xc7,
-	0xe6, 0xc4, 0xf1, 0xf8, 0xe9, 0xcf, 0x40, 0xbd, 0x7e, 0x8a, 0x9c, 0xd6, 0x86, 0x96, 0x48, 0x9a,
-	0x39, 0x1d, 0xad, 0x9e, 0xf4, 0x80, 0xb8, 0x2c, 0x4d, 0x08, 0xc4, 0xbf, 0x07, 0xe2, 0x14, 0x58,
-	0x85, 0x0c, 0x94, 0x58, 0xcb, 0xf6, 0x3c, 0x64, 0x91, 0xf2, 0x54, 0x44, 0xdc, 0x4b, 0x88, 0xab,
-	0x23, 0x10, 0x37, 0x49, 0xbd, 0x1b, 0xa8, 0x30, 0xcd, 0x90, 0x23, 0xde, 0x88, 0x89, 0xa9, 0xa6,
-	0x99, 0x19, 0x08, 0xca, 0xa0, 0xd4, 0x20, 0xa8, 0xd1, 0xb2, 0x5d, 0x52, 0xfe, 0x7f, 0x45, 0xac,
-	0x48, 0x66, 0xf6, 0xbc, 0x51, 0x7a, 0x7f, 0xa6, 0x0a, 0x3f, 0xce, 0x54, 0x41, 0x5b, 0x04, 0xb0,
-	0x67, 0x94, 0x49, 0x98, 0x47, 0x5d, 0x46, 0xb4, 0xcf, 0x12, 0x98, 0xab, 0x31, 0x6b, 0xcf, 0xe6,
-	0x07, 0x0d, 0x1f, 0x1d, 0x43, 0x08, 0xa6, 0x5e, 0xfb, 0xd4, 0x49, 0xbc, 0x8b, 0xd6, 0xb0, 0x09,
-	0xa6, 0xd9, 0x01, 0xf2, 0x09, 0x4b, 0x5c, 0xdb, 0x19, 0xa3, 0xa4, 0x67, 0x2e, 0xef, 0x06, 0xea,
-	0xcd, 0x78, 0x7f, 0xae, 0xa0, 0xf9, 0xa4, 0xa0, 0x48, 0xd1, 0xcc, 0x04, 0x01, 0xdf, 0x82, 0x39,
-	0xc7, 0x76, 0xf7, 0xd3, 0x3e, 0x89, 0x6d, 0x7b, 0x35, 0xbe, 0x6d, 0x4b, 0x7d, 0x59, 0x72, 0x5c,
-	0x18, 0x73, 0xfb, 0x64, 0xcd, 0x9c, 0x75, 0x6c, 0x77, 0x37, 0x6e, 0x99, 0x1c, 0x1f, 0x27, 0x26,
-	0x4e, 0xc6, 0xc7, 0xc3, 0xf9, 0xb8, 0x8f, 0x5f, 0x1d, 0xd1, 0xcc, 0x25, 0x70, 0xab, 0xcf, 0xb5,
-	0xcc, 0xcd, 0x2f, 0x12, 0x58, 0xaa, 0x31, 0x6b, 0xe7, 0x18, 0x79, 0x5b, 0x27, 0xa8, 0xce, 0xb7,
-	0xa9, 0x1f, 0xa5, 0x65, 0xe1, 0x60, 0xfa, 0xe4, 0xcd, 0x21, 0x61, 0x9c, 0x64, 0x83, 0x99, 0xbd,
-	0x80, 0xef, 0x44, 0x30, 0x4f, 0xc2, 0x0d, 0xfb, 0xf9, 0xf9, 0xc4, 0xe3, 0xd7, 0x7d, 0x3b, 0x97,
-	0x27, 0x57, 0xf9, 0x62, 0x5c, 0x79, 0x2e, 0x40, 0x33, 0xe7, 0xa2, 0xe7, 0xdd, 0x7f, 0x03, 0x3b,
-	0xe8, 0xb1, 0x0a, 0x96, 0x0b, 0xbd, 0x2c, 0x72, 0x7b, 0x9b, 0xfa, 0x5b, 0xd9, 0xdf, 0x78, 0x95,
-	0xdb, 0x7f, 0xfc, 0x18, 0x1e, 0x6c, 0xaf, 0xd4, 0xdc, 0x49, 0xdb, 0x0b, 0x5f, 0xd5, 0x5e, 0x38,
-	0xd7, 0x5e, 0x7f, 0x89, 0xdb, 0x79, 0x2f, 0x53, 0xb7, 0x1f, 0x7e, 0x90, 0x80, 0x54, 0x63, 0x16,
-	0x7c, 0x0e, 0x66, 0xd2, 0xaf, 0xed, 0xb2, 0x7e, 0xe9, 0x33, 0xad, 0xf7, 0xce, 0x78, 0xf9, 0xee,
-	0x50, 0x39, 0x4d, 0x0c, 0x4d, 0x50, 0xca, 0x8e, 0x7f, 0xa5, 0x78, 0x4b, 0xaa, 0xcb, 0xab, 0xc3,
-	0xf5, 0x2c, 0xa7, 0x07, 0x60, 0xc1, 0x21, 0x54, 0x29, 0xde, 0x7d, 0x39, 0x52, 0x7e, 0x30, 0x6a,
-	0xe4, 0x20, 0x71, 0x60, 0x10, 0x86, 0x10, 0xf3, 0x91, 0xc3, 0x88, 0xc5, 0x86, 0x54, 0x1f, 0x9f,
-	0xb7, 0x15, 0xf1, 0xa2, 0xad, 0x88, 0xdf, 0xdb, 0x8a, 0xf8, 0xb1, 0xa3, 0x08, 0x17, 0x1d, 0x45,
-	0xf8, 0xda, 0x51, 0x84, 0x97, 0xfd, 0xcd, 0x14, 0x66, 0x5d, 0x6b, 0x21, 0xcc, 0xa2, 0x95, 0x71,
-	0x12, 0x5f, 0xb8, 0xa2, 0x86, 0xc2, 0xd3, 0xd1, 0x1d, 0xea, 0xd1, 0xaf, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x59, 0x45, 0x4d, 0xd0, 0x8a, 0x09, 0x00, 0x00,
+	// 612 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x95, 0xcd, 0x6a, 0xdb, 0x4c,
+	0x14, 0x86, 0x2d, 0xdb, 0x5f, 0x62, 0x8f, 0xf9, 0x16, 0x9d, 0x3a, 0xa0, 0x08, 0x22, 0x1b, 0x43,
+	0x83, 0x17, 0xb5, 0xd4, 0xa4, 0x50, 0x4a, 0x29, 0xb4, 0x51, 0x1c, 0x43, 0x17, 0xa6, 0xa0, 0x04,
+	0x5a, 0xba, 0x31, 0x23, 0x69, 0x2a, 0x0b, 0xdb, 0x1a, 0x55, 0x33, 0x89, 0xdd, 0x3b, 0xe8, 0xaa,
+	0xf4, 0x12, 0xba, 0xeb, 0x0d, 0xf8, 0x22, 0x42, 0x57, 0x21, 0xab, 0xd2, 0x45, 0x28, 0xf6, 0x8d,
+	0x14, 0x8d, 0x7e, 0xfc, 0x13, 0xe1, 0xda, 0x59, 0xb5, 0x2b, 0xcf, 0xf0, 0x9e, 0xf3, 0x1e, 0xe9,
+	0x39, 0xc7, 0x47, 0x40, 0xea, 0xa1, 0x0b, 0xa4, 0xd2, 0x21, 0xf2, 0xd4, 0x8b, 0x03, 0x03, 0x33,
+	0x74, 0xa0, 0xb2, 0x91, 0xe2, 0xf9, 0x84, 0x11, 0x78, 0x2f, 0xd0, 0x94, 0x40, 0x53, 0x22, 0x4d,
+	0x2a, 0xdb, 0xc4, 0x26, 0x5c, 0x55, 0x83, 0x53, 0x18, 0x28, 0xed, 0x9a, 0x84, 0x0e, 0x08, 0xed,
+	0x84, 0x42, 0x78, 0x89, 0x24, 0x39, 0xbc, 0xa9, 0x06, 0xa2, 0x38, 0xa9, 0x60, 0x12, 0xc7, 0x0d,
+	0xf5, 0xda, 0x38, 0x0b, 0x40, 0x9b, 0xda, 0x4d, 0xec, 0x11, 0xea, 0x30, 0xf8, 0x04, 0x14, 0xad,
+	0xf0, 0x48, 0x7c, 0x51, 0xa8, 0x0a, 0xf5, 0xa2, 0x26, 0x5e, 0x8f, 0x1b, 0xe5, 0xc8, 0xf3, 0xc8,
+	0xb2, 0x7c, 0x4c, 0xe9, 0x29, 0xf3, 0x1d, 0xd7, 0xd6, 0x67, 0xa1, 0xf0, 0x29, 0xd8, 0x66, 0xa4,
+	0x87, 0xdd, 0x0e, 0x12, 0xb3, 0x55, 0xa1, 0x5e, 0x3a, 0xdc, 0x55, 0xa2, 0x94, 0xa0, 0x70, 0xfc,
+	0xf8, 0xca, 0x31, 0x71, 0x5c, 0x2d, 0x7f, 0x79, 0x53, 0xc9, 0xe8, 0x5b, 0x3c, 0xfe, 0x68, 0x96,
+	0x69, 0x88, 0xb9, 0x4d, 0x32, 0x35, 0xf8, 0x16, 0x14, 0x68, 0xdf, 0xf1, 0x3c, 0x64, 0x63, 0x31,
+	0xcf, 0x1f, 0xf5, 0x79, 0xa0, 0xff, 0xbc, 0xa9, 0xec, 0xdb, 0x0e, 0xeb, 0x9e, 0x1b, 0x8a, 0x49,
+	0x06, 0x11, 0x8d, 0xe8, 0xa7, 0x41, 0xad, 0x9e, 0xca, 0x3e, 0x7a, 0x98, 0x2a, 0x4d, 0x6c, 0x5e,
+	0x8f, 0x1b, 0x20, 0xaa, 0xd5, 0xc4, 0xa6, 0x9e, 0xb8, 0x41, 0x09, 0x14, 0x2c, 0x8c, 0xac, 0xbe,
+	0xe3, 0x62, 0xf1, 0xbf, 0xaa, 0x50, 0xcf, 0xe9, 0xc9, 0xfd, 0x59, 0xfe, 0xd3, 0xd7, 0x4a, 0xa6,
+	0x56, 0x06, 0x70, 0x46, 0x4d, 0xc7, 0xd4, 0x23, 0x2e, 0xc5, 0xb5, 0x6f, 0x59, 0x50, 0x6a, 0x53,
+	0xfb, 0x8d, 0xc3, 0xba, 0x96, 0x8f, 0x86, 0xf0, 0x21, 0xc8, 0xbf, 0xf7, 0xc9, 0xe0, 0x8f, 0x20,
+	0x79, 0x14, 0x6c, 0x81, 0x2d, 0xda, 0x45, 0x3e, 0xa6, 0x1c, 0x61, 0x51, 0x53, 0x36, 0x78, 0x9b,
+	0x57, 0x2e, 0xd3, 0xa3, 0x6c, 0xf8, 0x02, 0x94, 0x06, 0x8e, 0xdb, 0x89, 0xfb, 0xb1, 0x26, 0xd5,
+	0xe2, 0xc0, 0x71, 0xcf, 0xc2, 0x96, 0x2c, 0x18, 0x18, 0x9c, 0xed, 0x26, 0x06, 0xda, 0x1a, 0xfc,
+	0x76, 0xc0, 0xfd, 0x39, 0x50, 0x09, 0xc0, 0xef, 0x59, 0xb0, 0xd3, 0xa6, 0xf6, 0xe9, 0x10, 0x79,
+	0x27, 0x23, 0x64, 0xb2, 0x16, 0xf1, 0xb9, 0x25, 0x0d, 0x06, 0xd3, 0xc7, 0x1f, 0xce, 0x31, 0x65,
+	0x78, 0x8d, 0xc1, 0x4c, 0x42, 0xe1, 0x31, 0xf8, 0x1f, 0x07, 0x4e, 0x9d, 0x0d, 0xc7, 0xb3, 0xc4,
+	0xb3, 0xce, 0xfe, 0xe5, 0x19, 0xad, 0x80, 0xbd, 0x54, 0x96, 0x69, 0xb4, 0x5b, 0xc4, 0x3f, 0x49,
+	0x5e, 0xf8, 0xee, 0xb4, 0xef, 0xbe, 0x06, 0x96, 0xfa, 0xb4, 0x36, 0xe8, 0xb9, 0x3e, 0xfd, 0x2d,
+	0xb4, 0x17, 0x59, 0xc6, 0xb4, 0x0f, 0x3f, 0xe7, 0x40, 0xae, 0x4d, 0x6d, 0xf8, 0x1a, 0x6c, 0xc7,
+	0xdb, 0x76, 0x4f, 0xb9, 0xb5, 0xe1, 0x95, 0xd9, 0x5a, 0x91, 0x1e, 0xac, 0x94, 0x63, 0x63, 0xa8,
+	0x83, 0x42, 0xb2, 0x71, 0xe4, 0xf4, 0x94, 0x58, 0x97, 0xf6, 0x57, 0xeb, 0x89, 0xa7, 0x07, 0x60,
+	0xca, 0x9f, 0xb0, 0x9e, 0x9e, 0x7d, 0x3b, 0x52, 0x7a, 0xb4, 0x6e, 0xe4, 0x72, 0xc5, 0xa5, 0x41,
+	0x5c, 0x51, 0x71, 0x31, 0x72, 0x55, 0xc5, 0xf4, 0x86, 0x68, 0x2f, 0x2f, 0x27, 0xb2, 0x70, 0x35,
+	0x91, 0x85, 0x5f, 0x13, 0x59, 0xf8, 0x32, 0x95, 0x33, 0x57, 0x53, 0x39, 0xf3, 0x63, 0x2a, 0x67,
+	0xde, 0xcd, 0x4f, 0x4b, 0xe0, 0xda, 0xe8, 0x23, 0x83, 0xf2, 0x93, 0x3a, 0x0a, 0xbf, 0xd5, 0x7c,
+	0x62, 0x8c, 0x2d, 0xfe, 0x0d, 0x7d, 0xfc, 0x3b, 0x00, 0x00, 0xff, 0xff, 0xd4, 0xc0, 0x0f, 0x32,
+	0xc5, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -425,8 +444,7 @@ type MsgClient interface {
 	Withdraw(ctx context.Context, in *MsgWithdraw, opts ...grpc.CallOption) (*MsgWithdrawResponse, error)
 	// SwapExactForTokens represents a message for trading exact coinA for coinB
 	SwapExactForTokens(ctx context.Context, in *MsgSwapExactForTokens, opts ...grpc.CallOption) (*MsgSwapExactForTokensResponse, error)
-	// SwapForExactTokens represents a message for trading coinA for an exact
-	// coinB
+	// SwapForExactTokens represents a message for trading coinA for an exact coinB
 	SwapForExactTokens(ctx context.Context, in *MsgSwapForExactTokens, opts ...grpc.CallOption) (*MsgSwapForExactTokensResponse, error)
 }
 
@@ -482,8 +500,7 @@ type MsgServer interface {
 	Withdraw(context.Context, *MsgWithdraw) (*MsgWithdrawResponse, error)
 	// SwapExactForTokens represents a message for trading exact coinA for coinB
 	SwapExactForTokens(context.Context, *MsgSwapExactForTokens) (*MsgSwapExactForTokensResponse, error)
-	// SwapForExactTokens represents a message for trading coinA for an exact
-	// coinB
+	// SwapForExactTokens represents a message for trading coinA for an exact coinB
 	SwapForExactTokens(context.Context, *MsgSwapForExactTokens) (*MsgSwapForExactTokensResponse, error)
 }
 
@@ -641,21 +658,21 @@ func (m *MsgDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i--
 	dAtA[i] = 0x22
 	{
-		size := m.TokenB.Size()
-		i -= size
-		if _, err := m.TokenB.MarshalTo(dAtA[i:]); err != nil {
+		size, err := m.TokenB.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
 			return 0, err
 		}
+		i -= size
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
 	dAtA[i] = 0x1a
 	{
-		size := m.TokenA.Size()
-		i -= size
-		if _, err := m.TokenA.MarshalTo(dAtA[i:]); err != nil {
+		size, err := m.TokenA.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
 			return 0, err
 		}
+		i -= size
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
@@ -719,21 +736,21 @@ func (m *MsgWithdraw) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x28
 	}
 	{
-		size := m.MinTokenB.Size()
-		i -= size
-		if _, err := m.MinTokenB.MarshalTo(dAtA[i:]); err != nil {
+		size, err := m.MinTokenB.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
 			return 0, err
 		}
+		i -= size
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
 	dAtA[i] = 0x22
 	{
-		size := m.MinTokenA.Size()
-		i -= size
-		if _, err := m.MinTokenA.MarshalTo(dAtA[i:]); err != nil {
+		size, err := m.MinTokenA.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
 			return 0, err
 		}
+		i -= size
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
@@ -817,21 +834,21 @@ func (m *MsgSwapExactForTokens) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i--
 	dAtA[i] = 0x22
 	{
-		size := m.TokenB.Size()
-		i -= size
-		if _, err := m.TokenB.MarshalTo(dAtA[i:]); err != nil {
+		size, err := m.TokenB.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
 			return 0, err
 		}
+		i -= size
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
 	dAtA[i] = 0x1a
 	{
-		size := m.ExactTokenA.Size()
-		i -= size
-		if _, err := m.ExactTokenA.MarshalTo(dAtA[i:]); err != nil {
+		size, err := m.ExactTokenA.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
 			return 0, err
 		}
+		i -= size
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
@@ -905,21 +922,21 @@ func (m *MsgSwapForExactTokens) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i--
 	dAtA[i] = 0x22
 	{
-		size := m.ExactTokenB.Size()
-		i -= size
-		if _, err := m.ExactTokenB.MarshalTo(dAtA[i:]); err != nil {
+		size, err := m.ExactTokenB.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
 			return 0, err
 		}
+		i -= size
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
 	dAtA[i] = 0x1a
 	{
-		size := m.TokenA.Size()
-		i -= size
-		if _, err := m.TokenA.MarshalTo(dAtA[i:]); err != nil {
+		size, err := m.TokenA.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
 			return 0, err
 		}
+		i -= size
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
@@ -1163,7 +1180,7 @@ func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TokenA", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1173,15 +1190,15 @@ func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1196,7 +1213,7 @@ func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TokenB", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1206,15 +1223,15 @@ func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1229,7 +1246,7 @@ func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Slippage", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1239,15 +1256,16 @@ func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1413,7 +1431,7 @@ func (m *MsgWithdraw) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Shares", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1423,15 +1441,16 @@ func (m *MsgWithdraw) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1446,7 +1465,7 @@ func (m *MsgWithdraw) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field MinTokenA", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1456,15 +1475,15 @@ func (m *MsgWithdraw) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1479,7 +1498,7 @@ func (m *MsgWithdraw) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field MinTokenB", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1489,15 +1508,15 @@ func (m *MsgWithdraw) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1663,7 +1682,7 @@ func (m *MsgSwapExactForTokens) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ExactTokenA", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1673,15 +1692,15 @@ func (m *MsgSwapExactForTokens) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1696,7 +1715,7 @@ func (m *MsgSwapExactForTokens) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TokenB", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1706,15 +1725,15 @@ func (m *MsgSwapExactForTokens) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1729,7 +1748,7 @@ func (m *MsgSwapExactForTokens) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Slippage", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1739,15 +1758,16 @@ func (m *MsgSwapExactForTokens) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1913,7 +1933,7 @@ func (m *MsgSwapForExactTokens) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TokenA", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1923,15 +1943,15 @@ func (m *MsgSwapForExactTokens) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1946,7 +1966,7 @@ func (m *MsgSwapForExactTokens) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ExactTokenB", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1956,15 +1976,15 @@ func (m *MsgSwapForExactTokens) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
@@ -1979,7 +1999,7 @@ func (m *MsgSwapForExactTokens) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Slippage", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1989,15 +2009,16 @@ func (m *MsgSwapForExactTokens) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}

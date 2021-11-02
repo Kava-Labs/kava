@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/kava-labs/kava/x/swap/types"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +34,7 @@ func TestGenesis_Empty(t *testing.T) {
 func TestGenesis_NotEmpty(t *testing.T) {
 	nonEmptyGenesis := types.GenesisState{
 		Params: types.Params{
-			AllowedPools: []*types.AllowedPool{types.NewAllowedPool("ukava", "hard")},
+			AllowedPools: []types.AllowedPool{types.NewAllowedPool("ukava", "hard")},
 			SwapFee:      sdk.ZeroDec(),
 		},
 	}
@@ -88,7 +88,7 @@ func TestGenesis_Validate_SwapFee(t *testing.T) {
 func TestGenesis_Validate_AllowedPools(t *testing.T) {
 	type args struct {
 		name      string
-		pairs     []*types.AllowedPool
+		pairs     []types.AllowedPool
 		expectErr bool
 	}
 	// More comprehensive pair validation tests are in pair_test.go, params_test.go
@@ -100,7 +100,7 @@ func TestGenesis_Validate_AllowedPools(t *testing.T) {
 		},
 		{
 			"invalid",
-			[]*types.AllowedPool{
+			[]types.AllowedPool{
 				{
 					TokenA: "same",
 					TokenB: "same",
@@ -131,7 +131,7 @@ func TestGenesis_Validate_AllowedPools(t *testing.T) {
 
 func TestGenesis_Equal(t *testing.T) {
 	params := types.Params{
-		[]*types.AllowedPool{
+		[]types.AllowedPool{
 			types.NewAllowedPool("ukava", "usdx"),
 		},
 		sdk.MustNewDecFromStr("0.85"),
@@ -145,7 +145,7 @@ func TestGenesis_Equal(t *testing.T) {
 
 func TestGenesis_NotEqual(t *testing.T) {
 	baseParams := types.Params{
-		[]*types.AllowedPool{types.NewAllowedPool("ukava", "usdx")},
+		[]types.AllowedPool{types.NewAllowedPool("ukava", "usdx")},
 		sdk.MustNewDecFromStr("0.85"),
 	}
 
@@ -160,7 +160,7 @@ func TestGenesis_NotEqual(t *testing.T) {
 
 	// Different pairs
 	genesisCParams := baseParams
-	genesisCParams.AllowedPools = []*types.AllowedPool{types.NewAllowedPool("ukava", "hard")}
+	genesisCParams.AllowedPools = []types.AllowedPool{types.NewAllowedPool("ukava", "hard")}
 	genesisC := types.GenesisState{genesisCParams, types.DefaultPoolRecords, types.DefaultShareRecords}
 
 	// A and B have different swap fees
@@ -235,19 +235,19 @@ func TestGenesis_YAMLEncoding(t *testing.T) {
 pool_records:
 - pool_id: ukava:usdx
   reserves_a:
-    denom: ukava
     amount: "1000000"
+    denom: ukava
   reserves_b:
-    denom: usdx
     amount: "5000000"
+    denom: usdx
   total_shares: "3000000"
 - pool_id: hard:usdx
   reserves_a:
-    denom: hard
     amount: "1000000"
+    denom: hard
   reserves_b:
-    denom: usdx
     amount: "2000000"
+    denom: usdx
   total_shares: "1500000"
 share_records:
 - depositor: kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w
@@ -265,7 +265,7 @@ share_records:
 
 	state := types.NewGenesisState(
 		types.NewParams(
-			[]*types.AllowedPool{
+			[]types.AllowedPool{
 				types.NewAllowedPool("ukava", "usdx"),
 				types.NewAllowedPool("hard", "busd"),
 			},

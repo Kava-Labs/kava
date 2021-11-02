@@ -104,7 +104,7 @@ func PoolSharesInvariant(k Keeper) sdk.Invariant {
 		totalShares := make(map[string]poolShares)
 
 		k.IteratePools(ctx, func(pr types.PoolRecord) bool {
-			totalShares[pr.PoolId] = poolShares{
+			totalShares[pr.PoolID] = poolShares{
 				totalShares:      pr.TotalShares,
 				totalSharesOwned: sdk.ZeroInt(),
 			}
@@ -113,11 +113,11 @@ func PoolSharesInvariant(k Keeper) sdk.Invariant {
 		})
 
 		k.IterateDepositorShares(ctx, func(sr types.ShareRecord) bool {
-			if shares, found := totalShares[sr.PoolId]; found {
+			if shares, found := totalShares[sr.PoolID]; found {
 				shares.totalSharesOwned = shares.totalSharesOwned.Add(sr.SharesOwned)
-				totalShares[sr.PoolId] = shares
+				totalShares[sr.PoolID] = shares
 			} else {
-				totalShares[sr.PoolId] = poolShares{
+				totalShares[sr.PoolID] = poolShares{
 					totalShares:      sdk.ZeroInt(),
 					totalSharesOwned: sr.SharesOwned,
 				}

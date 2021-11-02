@@ -2,6 +2,8 @@ syntax = "proto3";
 package kava.swap.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/kava-labs/kava/x/swap/types";
 
@@ -9,51 +11,31 @@ option go_package = "github.com/kava-labs/kava/x/swap/types";
 service Msg {
   // Deposit defines a method for depositing liquidity into a pool
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
-
   // Withdraw defines a method for withdrawing liquidity into a pool
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
-
   // SwapExactForTokens represents a message for trading exact coinA for coinB
   rpc SwapExactForTokens(MsgSwapExactForTokens) returns (MsgSwapExactForTokensResponse);
-
-  // SwapForExactTokens represents a message for trading coinA for an exact
-  // coinB
+  // SwapForExactTokens represents a message for trading coinA for an exact coinB
   rpc SwapForExactTokens(MsgSwapForExactTokens) returns (MsgSwapForExactTokensResponse);
 }
 
 // MsgDeposit represents a message for depositing liquidity into a pool
 message MsgDeposit {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string depositor = 1;
-
-  // TODO: define base types and use them
-  // repeated cosmos.base.v1beta1.Coin amount = 3
-  //     [(gogoproto.nullable) = false, (gogoproto.castrepeated) =
-  //     "github.com/cosmos/cosmos-sdk/types.Coins"];
-
-  bytes token_a = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "token_a,omitempty",
-    (gogoproto.moretags)   = "yaml:\"token_a\""
-  ];
-
-  bytes token_b = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "token_b,omitempty",
-    (gogoproto.moretags)   = "yaml:\"token_b\""
-  ];
-
-  bytes slippage = 4 [
+  // depositor represents the address to deposit funds from
+  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // token_a represents one token of deposit pair
+  cosmos.base.v1beta1.Coin token_a = 2 [(gogoproto.nullable) = false];
+  // token_b represents one token of deposit pair
+  cosmos.base.v1beta1.Coin token_b = 3 [(gogoproto.nullable) = false];
+  // slippage represents the max decimal percentage price change
+  string slippage = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "slippage,omitempty",
-    (gogoproto.moretags)   = "yaml:\"slippage\""
+    (gogoproto.nullable)   = false
   ];
-
+  // deadline represents the unix timestamp to complete the deposit by
   int64 deadline = 5;
 }
 
@@ -62,32 +44,17 @@ message MsgDepositResponse {}
 
 // MsgWithdraw represents a message for withdrawing liquidity from a pool
 message MsgWithdraw {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string from = 1;
-
-  bytes shares = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "shares,omitempty",
-    (gogoproto.moretags)   = "yaml:\"shares\""
-  ];
-
-  bytes min_token_a = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "min_token_a,omitempty",
-    (gogoproto.moretags)   = "yaml:\"min_token_a\""
-  ];
-
-  bytes min_token_b = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "min_token_b,omitempty",
-    (gogoproto.moretags)   = "yaml:\"min_token_b\""
-  ];
-
+  // from represents the address we are withdrawing for
+  string from = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // shares represents the amount of shares to withdraw
+  string shares = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  // min_token_a represents the minimum a token to withdraw
+  cosmos.base.v1beta1.Coin min_token_a = 3 [(gogoproto.nullable) = false];
+  // min_token_a represents the minimum a token to withdraw
+  cosmos.base.v1beta1.Coin min_token_b = 4 [(gogoproto.nullable) = false];
+  // deadline represents the unix timestamp to complete the withdraw by
   int64 deadline = 5;
 }
 
@@ -96,32 +63,21 @@ message MsgWithdrawResponse {}
 
 // MsgSwapExactForTokens represents a message for trading exact coinA for coinB
 message MsgSwapExactForTokens {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string requester = 1;
-
-  bytes exact_token_a = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "exact_token_a,omitempty",
-    (gogoproto.moretags)   = "yaml:\"exact_token_a\""
-  ];
-
-  bytes token_b = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "token_b,omitempty",
-    (gogoproto.moretags)   = "yaml:\"token_b\""
-  ];
-
-  bytes slippage = 4 [
+  // represents the address swaping the tokens
+  string requester = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // exact_token_a represents the exact amount to swap for token_b
+  cosmos.base.v1beta1.Coin exact_token_a = 2 [(gogoproto.nullable) = false];
+  // token_b represents the desired token_b to swap for
+  cosmos.base.v1beta1.Coin token_b = 3 [(gogoproto.nullable) = false];
+  // slippage represents the maximum change in token_b allowed
+  string slippage = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "slippage,omitempty",
-    (gogoproto.moretags)   = "yaml:\"slippage\""
+    (gogoproto.nullable)   = false
   ];
-
+  // deadline represents the unix timestamp to complete the swap by
   int64 deadline = 5;
 }
 
@@ -132,32 +88,21 @@ message MsgSwapExactForTokensResponse {}
 // MsgSwapForExactTokens represents a message for trading coinA for an exact
 // coinB
 message MsgSwapForExactTokens {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string requester = 1;
-
-  bytes token_a = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "token_a,omitempty",
-    (gogoproto.moretags)   = "yaml:\"token_a\""
-  ];
-
-  bytes exact_token_b = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "exact_token_b,omitempty",
-    (gogoproto.moretags)   = "yaml:\"exact_token_b\""
-  ];
-
-  bytes slippage = 4 [
+  // represents the address swaping the tokens
+  string requester = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // token_a represents the desired token_a to swap for
+  cosmos.base.v1beta1.Coin token_a = 2 [(gogoproto.nullable) = false];
+  // exact_token_b represents the exact token b amount to swap for token a
+  cosmos.base.v1beta1.Coin exact_token_b = 3 [(gogoproto.nullable) = false];
+  // slippage represents the maximum change in token_a allowed
+  string slippage = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "slippage,omitempty",
-    (gogoproto.moretags)   = "yaml:\"slippage\""
+    (gogoproto.nullable)   = false
   ];
-
+  // deadline represents the unix timestamp to complete the swap by
   int64 deadline = 5;
 }
 

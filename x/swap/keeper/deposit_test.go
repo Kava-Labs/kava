@@ -58,7 +58,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds() {
 
 			pool := types.NewAllowedPool(tc.DepositLiquidityA.Denom, tc.DepositLiquidityB.Denom)
 			suite.Require().NoError(pool.Validate())
-			suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
+			suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
 
 			balance := sdk.NewCoins(tc.balanceA, tc.balanceB)
 			// balance.Sort() // TODO was this important?
@@ -123,7 +123,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds_Vesting() {
 
 			pool := types.NewAllowedPool(tc.DepositLiquidityA.Denom, tc.DepositLiquidityB.Denom)
 			suite.Require().NoError(pool.Validate())
-			suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
+			suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
 
 			balance := sdk.NewCoins(tc.balanceA, tc.balanceB)
 			balance.Sort()
@@ -149,7 +149,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds_Vesting() {
 func (suite *keeperTestSuite) TestDeposit_CreatePool() {
 	pool := types.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
 
 	amountA := sdk.NewCoin(pool.TokenA, sdk.NewInt(11e6))
 	amountB := sdk.NewCoin(pool.TokenB, sdk.NewInt(51e6))
@@ -165,7 +165,7 @@ func (suite *keeperTestSuite) TestDeposit_CreatePool() {
 	suite.AccountBalanceEqual(depositor.GetAddress(), sdk.NewCoins(amountA.Sub(depositA), amountB.Sub(depositB)))
 	suite.ModuleAccountBalanceEqual(sdk.NewCoins(depositA, depositB))
 	suite.PoolLiquidityEqual(deposit)
-	suite.PoolShareValueEqual(depositor, *pool, deposit)
+	suite.PoolShareValueEqual(depositor, pool, deposit)
 
 	suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 		types.EventTypeSwapDeposit,
@@ -212,7 +212,7 @@ func (suite *keeperTestSuite) TestDeposit_PoolExists() {
 	suite.AccountBalanceEqual(depositor.GetAddress(), balance.Sub(expectedDeposit))
 	suite.ModuleAccountBalanceEqual(reserves.Add(expectedDeposit...))
 	suite.PoolLiquidityEqual(reserves.Add(expectedDeposit...))
-	suite.PoolShareValueEqual(depositor, *pool, expectedShareValue)
+	suite.PoolShareValueEqual(depositor, pool, expectedShareValue)
 
 	suite.EventsContains(ctx.EventManager().Events(), sdk.NewEvent(
 		types.EventTypeSwapDeposit,
@@ -325,7 +325,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientLiquidity() {
 			suite.SetupTest()
 
 			record := types.PoolRecord{
-				PoolId:      types.PoolID("ukava", "usdx"),
+				PoolID:      types.PoolID("ukava", "usdx"),
 				ReservesA:   tc.poolA,
 				ReservesB:   tc.poolB,
 				TotalShares: tc.poolShares,

@@ -35,7 +35,7 @@ func NewPoolRecord(reserves sdk.Coins, totalShares sdk.Int) PoolRecord {
 	poolID := PoolIDFromCoins(reserves)
 
 	return PoolRecord{
-		PoolId:      poolID,
+		PoolID:      poolID,
 		ReservesA:   reserves[0],
 		ReservesB:   reserves[1],
 		TotalShares: totalShares,
@@ -49,7 +49,7 @@ func NewPoolRecordFromPool(pool *DenominatedPool) PoolRecord {
 	poolID := PoolIDFromCoins(reserves)
 
 	return PoolRecord{
-		PoolId:      poolID,
+		PoolID:      poolID,
 		ReservesA:   reserves[0],
 		ReservesB:   reserves[1],
 		TotalShares: pool.TotalShares(),
@@ -58,31 +58,31 @@ func NewPoolRecordFromPool(pool *DenominatedPool) PoolRecord {
 
 // Validate performs basic validation checks of the record data
 func (p PoolRecord) Validate() error {
-	if p.PoolId == "" {
+	if p.PoolID == "" {
 		return errors.New("poolID must be set")
 	}
 
-	tokens := strings.Split(p.PoolId, PoolIDSep)
+	tokens := strings.Split(p.PoolID, PoolIDSep)
 	if len(tokens) != 2 || tokens[0] == "" || tokens[1] == "" || tokens[1] < tokens[0] || tokens[0] == tokens[1] {
-		return fmt.Errorf("poolID '%s' is invalid", p.PoolId)
+		return fmt.Errorf("poolID '%s' is invalid", p.PoolID)
 	}
 	if sdk.ValidateDenom(tokens[0]) != nil || sdk.ValidateDenom(tokens[1]) != nil {
-		return fmt.Errorf("poolID '%s' is invalid", p.PoolId)
+		return fmt.Errorf("poolID '%s' is invalid", p.PoolID)
 	}
 	if tokens[0] != p.ReservesA.Denom || tokens[1] != p.ReservesB.Denom {
-		return fmt.Errorf("poolID '%s' does not match reserves", p.PoolId)
+		return fmt.Errorf("poolID '%s' does not match reserves", p.PoolID)
 	}
 
 	if !p.ReservesA.IsPositive() {
-		return fmt.Errorf("pool '%s' has invalid reserves: %s", p.PoolId, p.ReservesA)
+		return fmt.Errorf("pool '%s' has invalid reserves: %s", p.PoolID, p.ReservesA)
 	}
 
 	if !p.ReservesB.IsPositive() {
-		return fmt.Errorf("pool '%s' has invalid reserves: %s", p.PoolId, p.ReservesB)
+		return fmt.Errorf("pool '%s' has invalid reserves: %s", p.PoolID, p.ReservesB)
 	}
 
 	if !p.TotalShares.IsPositive() {
-		return fmt.Errorf("pool '%s' has invalid total shares: %s", p.PoolId, p.TotalShares)
+		return fmt.Errorf("pool '%s' has invalid total shares: %s", p.PoolID, p.TotalShares)
 	}
 
 	return nil
@@ -102,11 +102,11 @@ func ValidatePoolRecords(prs []PoolRecord) error {
 			return err
 		}
 
-		if seenPoolIDs[p.PoolId] {
-			return fmt.Errorf("duplicate poolID '%s'", p.PoolId)
+		if seenPoolIDs[p.PoolID] {
+			return fmt.Errorf("duplicate poolID '%s'", p.PoolID)
 		}
 
-		seenPoolIDs[p.PoolId] = true
+		seenPoolIDs[p.PoolID] = true
 	}
 
 	return nil
@@ -117,23 +117,23 @@ func ValidatePoolRecords(prs []PoolRecord) error {
 func NewShareRecord(depositor sdk.AccAddress, poolID string, sharesOwned sdk.Int) ShareRecord {
 	return ShareRecord{
 		Depositor:   depositor.String(),
-		PoolId:      poolID,
+		PoolID:      poolID,
 		SharesOwned: sharesOwned,
 	}
 }
 
 // Validate performs basic validation checks of the record data
 func (sr ShareRecord) Validate() error {
-	if sr.PoolId == "" {
+	if sr.PoolID == "" {
 		return errors.New("poolID must be set")
 	}
 
-	tokens := strings.Split(sr.PoolId, PoolIDSep)
+	tokens := strings.Split(sr.PoolID, PoolIDSep)
 	if len(tokens) != 2 || tokens[0] == "" || tokens[1] == "" || tokens[1] < tokens[0] || tokens[0] == tokens[1] {
-		return fmt.Errorf("poolID '%s' is invalid", sr.PoolId)
+		return fmt.Errorf("poolID '%s' is invalid", sr.PoolID)
 	}
 	if sdk.ValidateDenom(tokens[0]) != nil || sdk.ValidateDenom(tokens[1]) != nil {
-		return fmt.Errorf("poolID '%s' is invalid", sr.PoolId)
+		return fmt.Errorf("poolID '%s' is invalid", sr.PoolID)
 	}
 
 	if len(sr.Depositor) == 0 {
@@ -141,7 +141,7 @@ func (sr ShareRecord) Validate() error {
 	}
 
 	if !sr.SharesOwned.IsPositive() {
-		return fmt.Errorf("depositor '%s' and pool '%s' has invalid total shares: %s", sr.Depositor, sr.PoolId, sr.SharesOwned.String())
+		return fmt.Errorf("depositor '%s' and pool '%s' has invalid total shares: %s", sr.Depositor, sr.PoolID, sr.SharesOwned.String())
 	}
 
 	return nil
@@ -157,13 +157,13 @@ func ValidateShareRecords(srs []ShareRecord) error {
 		}
 
 		if seenPools, found := seenDepositors[sr.Depositor]; found {
-			if seenPools[sr.PoolId] {
-				return fmt.Errorf("duplicate depositor '%s' and poolID '%s'", sr.Depositor, sr.PoolId)
+			if seenPools[sr.PoolID] {
+				return fmt.Errorf("duplicate depositor '%s' and poolID '%s'", sr.Depositor, sr.PoolID)
 			}
-			seenPools[sr.PoolId] = true
+			seenPools[sr.PoolID] = true
 		} else {
 			seenPools := make(map[string]bool)
-			seenPools[sr.PoolId] = true
+			seenPools[sr.PoolID] = true
 			seenDepositors[sr.Depositor] = seenPools
 		}
 	}

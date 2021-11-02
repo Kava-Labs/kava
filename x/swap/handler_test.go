@@ -33,7 +33,7 @@ func (suite *handlerTestSuite) SetupTest() {
 func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	pool := types.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
 
 	balance := sdk.NewCoins(
 		sdk.NewCoin(pool.TokenA, sdk.NewInt(10e6)),
@@ -55,7 +55,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	suite.AccountBalanceEqual(depositor.GetAddress(), sdk.Coins{})
 	suite.ModuleAccountBalanceEqual(balance)
 	suite.PoolLiquidityEqual(balance)
-	suite.PoolShareValueEqual(depositor, *pool, balance)
+	suite.PoolShareValueEqual(depositor, pool, balance)
 
 	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -82,7 +82,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 func (suite *handlerTestSuite) TestDeposit_DeadlineExceeded() {
 	pool := types.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
 
 	balance := sdk.NewCoins(
 		sdk.NewCoin(pool.TokenA, sdk.NewInt(10e6)),
@@ -143,7 +143,7 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 	suite.AccountBalanceEqual(depositor.GetAddress(), sdk.NewCoins(balance.Sub(expectedDeposit)...))
 	suite.ModuleAccountBalanceEqual(reserves.Add(expectedDeposit...))
 	suite.PoolLiquidityEqual(reserves.Add(expectedDeposit...))
-	suite.PoolShareValueEqual(depositor, *pool, expectedShareValue)
+	suite.PoolShareValueEqual(depositor, pool, expectedShareValue)
 
 	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -202,7 +202,7 @@ func (suite *handlerTestSuite) TestWithdraw_AllShares() {
 	depositor := suite.NewAccountFromAddr(sdk.AccAddress("new depositor-------"), reserves)
 	pool := types.NewAllowedPool(reserves[0].Denom, reserves[1].Denom)
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
 
 	err := suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdk.MustNewDecFromStr("1"))
 	suite.Require().NoError(err)
@@ -254,7 +254,7 @@ func (suite *handlerTestSuite) TestWithdraw_PartialShares() {
 	depositor := suite.NewAccountFromAddr(sdk.AccAddress("new depositor-------"), reserves)
 	pool := types.NewAllowedPool(reserves[0].Denom, reserves[1].Denom)
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
 
 	err := suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdk.MustNewDecFromStr("1"))
 	suite.Require().NoError(err)
@@ -279,7 +279,7 @@ func (suite *handlerTestSuite) TestWithdraw_PartialShares() {
 	suite.AccountBalanceEqual(depositor.GetAddress(), expectedCoinsReceived)
 	suite.ModuleAccountBalanceEqual(reserves.Sub(expectedCoinsReceived))
 	suite.PoolLiquidityEqual(reserves.Sub(expectedCoinsReceived))
-	suite.PoolShareValueEqual(depositor, *types.NewAllowedPool("ukava", "usdx"), reserves.Sub(expectedCoinsReceived))
+	suite.PoolShareValueEqual(depositor, types.NewAllowedPool("ukava", "usdx"), reserves.Sub(expectedCoinsReceived))
 
 	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -311,7 +311,7 @@ func (suite *handlerTestSuite) TestWithdraw_SlippageFailure() {
 	depositor := suite.NewAccountFromAddr(sdk.AccAddress("new depositor-------"), reserves)
 	pool := types.NewAllowedPool(reserves[0].Denom, reserves[1].Denom)
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
 
 	err := suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdk.MustNewDecFromStr("1"))
 	suite.Require().NoError(err)

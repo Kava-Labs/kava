@@ -4,12 +4,14 @@
 
 ## Table of Contents
 
-- [kava/swap/v1beta1/genesis.proto](#kava/swap/v1beta1/genesis.proto)
+- [kava/swap/v1beta1/swap.proto](#kava/swap/v1beta1/swap.proto)
     - [AllowedPool](#kava.swap.v1beta1.AllowedPool)
-    - [GenesisState](#kava.swap.v1beta1.GenesisState)
     - [Params](#kava.swap.v1beta1.Params)
     - [PoolRecord](#kava.swap.v1beta1.PoolRecord)
     - [ShareRecord](#kava.swap.v1beta1.ShareRecord)
+  
+- [kava/swap/v1beta1/genesis.proto](#kava/swap/v1beta1/genesis.proto)
+    - [GenesisState](#kava.swap.v1beta1.GenesisState)
   
 - [kava/swap/v1beta1/query.proto](#kava/swap/v1beta1/query.proto)
     - [DepositResponse](#kava.swap.v1beta1.DepositResponse)
@@ -39,40 +41,23 @@
 
 
 
-<a name="kava/swap/v1beta1/genesis.proto"></a>
+<a name="kava/swap/v1beta1/swap.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/swap/v1beta1/genesis.proto
+## kava/swap/v1beta1/swap.proto
 
 
 
 <a name="kava.swap.v1beta1.AllowedPool"></a>
 
 ### AllowedPool
-AllowedPool defines a tradable pool.
+AllowedPool defines a pool that is allowed to be created
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `token_a` | [string](#string) |  |  |
-| `token_b` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.swap.v1beta1.GenesisState"></a>
-
-### GenesisState
-GenesisState defines the swap module's genesis state.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.swap.v1beta1.Params) |  | params defines all the paramaters of the module. |
-| `pool_records` | [PoolRecord](#kava.swap.v1beta1.PoolRecord) | repeated |  |
-| `share_records` | [ShareRecord](#kava.swap.v1beta1.ShareRecord) | repeated |  |
+| `token_a` | [string](#string) |  | token_a represents the a token allowed |
+| `token_b` | [string](#string) |  | token_b represents the b token allowed |
 
 
 
@@ -87,8 +72,8 @@ Params defines the parameters for the swap module.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `allowed_pools` | [AllowedPool](#kava.swap.v1beta1.AllowedPool) | repeated |  |
-| `swap_fee` | [bytes](#bytes) |  |  |
+| `allowed_pools` | [AllowedPool](#kava.swap.v1beta1.AllowedPool) | repeated | allowed_pools defines that pools that are allowed to be created |
+| `swap_fee` | [string](#string) |  | swap_fee defines the swap fee for all pools |
 
 
 
@@ -104,10 +89,10 @@ and is used to store the state of a denominated pool
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `pool_id` | [string](#string) |  |  |
-| `reserves_a` | [bytes](#bytes) |  |  |
-| `reserves_b` | [bytes](#bytes) |  |  |
-| `total_shares` | [bytes](#bytes) |  |  |
+| `pool_id` | [string](#string) |  | pool_id represents the unique id of the pool |
+| `reserves_a` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | reserves_a is the a token coin reserves |
+| `reserves_b` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | reserves_b is the a token coin reserves |
+| `total_shares` | [string](#string) |  | total_shares is the total distrubuted shares of the pool |
 
 
 
@@ -122,9 +107,42 @@ ShareRecord stores the shares owned for a depositor and pool
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `depositor` | [string](#string) |  |  |
-| `pool_id` | [string](#string) |  |  |
-| `shares_owned` | [bytes](#bytes) |  |  |
+| `depositor` | [string](#string) |  | depositor represents the owner of the shares |
+| `pool_id` | [string](#string) |  | pool_id represents the pool the shares belong to |
+| `shares_owned` | [string](#string) |  | shares_owned represents the number of shares owned by depsoitor for the pool_id |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/swap/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/swap/v1beta1/genesis.proto
+
+
+
+<a name="kava.swap.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the swap module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.swap.v1beta1.Params) |  | params defines all the paramaters related to swap |
+| `pool_records` | [PoolRecord](#kava.swap.v1beta1.PoolRecord) | repeated | pool_records defines the available pools |
+| `share_records` | [ShareRecord](#kava.swap.v1beta1.ShareRecord) | repeated | share_records defines the owned shares of each pool |
 
 
 
@@ -155,10 +173,10 @@ DepositResponse defines a single deposit query response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `depositor` | [string](#string) |  |  |
-| `pool_id` | [string](#string) |  |  |
-| `shares_owned` | [bytes](#bytes) |  |  |
-| `shares_value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `depositor` | [string](#string) |  | depositor represents the owner of the deposit |
+| `pool_id` | [string](#string) |  | pool_id represents the pool the deposit is for |
+| `shares_owned` | [string](#string) |  | shares_owned presents the shares owned by the depositor for the pool |
+| `shares_value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | shares_value represents the coin value of the shares_owned |
 
 
 
@@ -168,14 +186,14 @@ DepositResponse defines a single deposit query response type.
 <a name="kava.swap.v1beta1.PoolResponse"></a>
 
 ### PoolResponse
-PoolStatsQueryResponse defines the coins and shares of a pool
+Pool represents the state of a single pool
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `name` | [string](#string) |  |  |
-| `coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-| `total_shares` | [bytes](#bytes) |  |  |
+| `name` | [string](#string) |  | name represents the name of the pool |
+| `coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | coins represents the total reserves of the pool |
+| `total_shares` | [string](#string) |  | total_shares represents the total shares of the pool |
 
 
 
@@ -190,8 +208,8 @@ QueryDepositsRequest is the request type for the Query/Deposits RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `owner` | [string](#string) |  |  |
-| `pool_id` | [string](#string) |  |  |
+| `owner` | [string](#string) |  | owner optionally filters deposits by owner |
+| `pool_id` | [string](#string) |  | pool_id optionally fitlers deposits by pool id |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
 
 
@@ -207,7 +225,7 @@ QueryDepositsResponse is the response type for the Query/Deposits RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `deposits` | [DepositResponse](#kava.swap.v1beta1.DepositResponse) | repeated |  |
+| `deposits` | [DepositResponse](#kava.swap.v1beta1.DepositResponse) | repeated | deposits returns the deposits matching the requested parameters |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
 
 
@@ -233,7 +251,7 @@ QueryParamsResponse defines the response type for querying x/swap parameters.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.swap.v1beta1.Params) |  |  |
+| `params` | [Params](#kava.swap.v1beta1.Params) |  | params represents the swap module parameters |
 
 
 
@@ -248,7 +266,7 @@ QueryPoolsRequest is the request type for the Query/Pools RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `pool_id` | [string](#string) |  |  |
+| `pool_id` | [string](#string) |  | pool_id filters pools by id |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
 
 
@@ -264,7 +282,7 @@ QueryPoolsResponse is the response type for the Query/Pools RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `pools` | [PoolResponse](#kava.swap.v1beta1.PoolResponse) | repeated |  |
+| `pools` | [PoolResponse](#kava.swap.v1beta1.PoolResponse) | repeated | pools represents returned pools |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
 
 
@@ -286,8 +304,8 @@ Query defines the gRPC querier service for swap module
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.swap.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.swap.v1beta1.QueryParamsResponse) | Params queries all parameters of the swap module. | GET|/kava/swap/v1beta1/params|
-| `Deposits` | [QueryDepositsRequest](#kava.swap.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.swap.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on owner address and pool | GET|/kava/swap/v1beta1/deposits|
 | `Pools` | [QueryPoolsRequest](#kava.swap.v1beta1.QueryPoolsRequest) | [QueryPoolsResponse](#kava.swap.v1beta1.QueryPoolsResponse) | Pools queries pools based on pool ID | GET|/kava/swap/v1beta1/pools|
+| `Deposits` | [QueryDepositsRequest](#kava.swap.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.swap.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on owner address and pool | GET|/kava/swap/v1beta1/deposits|
 
  <!-- end services -->
 
@@ -308,11 +326,11 @@ MsgDeposit represents a message for depositing liquidity into a pool
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `depositor` | [string](#string) |  |  |
-| `token_a` | [bytes](#bytes) |  |  |
-| `token_b` | [bytes](#bytes) |  |  |
-| `slippage` | [bytes](#bytes) |  |  |
-| `deadline` | [int64](#int64) |  |  |
+| `depositor` | [string](#string) |  | depositor represents the address to deposit funds from |
+| `token_a` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | token_a represents one token of deposit pair |
+| `token_b` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | token_b represents one token of deposit pair |
+| `slippage` | [string](#string) |  | slippage represents the max decimal percentage price change |
+| `deadline` | [int64](#int64) |  | deadline represents the unix timestamp to complete the deposit by |
 
 
 
@@ -337,11 +355,11 @@ MsgSwapExactForTokens represents a message for trading exact coinA for coinB
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `requester` | [string](#string) |  |  |
-| `exact_token_a` | [bytes](#bytes) |  |  |
-| `token_b` | [bytes](#bytes) |  |  |
-| `slippage` | [bytes](#bytes) |  |  |
-| `deadline` | [int64](#int64) |  |  |
+| `requester` | [string](#string) |  | represents the address swaping the tokens |
+| `exact_token_a` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | exact_token_a represents the exact amount to swap for token_b |
+| `token_b` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | token_b represents the desired token_b to swap for |
+| `slippage` | [string](#string) |  | slippage represents the maximum change in token_b allowed |
+| `deadline` | [int64](#int64) |  | deadline represents the unix timestamp to complete the swap by |
 
 
 
@@ -368,11 +386,11 @@ coinB
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `requester` | [string](#string) |  |  |
-| `token_a` | [bytes](#bytes) |  |  |
-| `exact_token_b` | [bytes](#bytes) |  |  |
-| `slippage` | [bytes](#bytes) |  |  |
-| `deadline` | [int64](#int64) |  |  |
+| `requester` | [string](#string) |  | represents the address swaping the tokens |
+| `token_a` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | token_a represents the desired token_a to swap for |
+| `exact_token_b` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | exact_token_b represents the exact token b amount to swap for token a |
+| `slippage` | [string](#string) |  | slippage represents the maximum change in token_a allowed |
+| `deadline` | [int64](#int64) |  | deadline represents the unix timestamp to complete the swap by |
 
 
 
@@ -398,11 +416,11 @@ MsgWithdraw represents a message for withdrawing liquidity from a pool
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `from` | [string](#string) |  |  |
-| `shares` | [bytes](#bytes) |  |  |
-| `min_token_a` | [bytes](#bytes) |  |  |
-| `min_token_b` | [bytes](#bytes) |  |  |
-| `deadline` | [int64](#int64) |  |  |
+| `from` | [string](#string) |  | from represents the address we are withdrawing for |
+| `shares` | [string](#string) |  | shares represents the amount of shares to withdraw |
+| `min_token_a` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | min_token_a represents the minimum a token to withdraw |
+| `min_token_b` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | min_token_a represents the minimum a token to withdraw |
+| `deadline` | [int64](#int64) |  | deadline represents the unix timestamp to complete the withdraw by |
 
 
 

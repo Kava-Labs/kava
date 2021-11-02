@@ -11,13 +11,13 @@ import (
 var (
 	KeyAllowedPools     = []byte("AllowedPools")
 	KeySwapFee          = []byte("SwapFee")
-	DefaultAllowedPools = []*AllowedPool{}
+	DefaultAllowedPools = []AllowedPool{}
 	DefaultSwapFee      = sdk.ZeroDec()
 	MaxSwapFee          = sdk.OneDec()
 )
 
 // NewParams returns a new params object
-func NewParams(pairs []*AllowedPool, swapFee sdk.Dec) Params {
+func NewParams(pairs []AllowedPool, swapFee sdk.Dec) Params {
 	return Params{
 		AllowedPools: pairs,
 		SwapFee:      swapFee,
@@ -63,7 +63,7 @@ func (p Params) Validate() error {
 }
 
 func validateAllowedPoolsParams(i interface{}) error {
-	p, ok := i.([]*AllowedPool)
+	p, ok := i.([]AllowedPool)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -85,8 +85,8 @@ func validateSwapFee(i interface{}) error {
 }
 
 // NewAllowedPool returns a new AllowedPool object
-func NewAllowedPool(tokenA, tokenB string) *AllowedPool {
-	return &AllowedPool{
+func NewAllowedPool(tokenA, tokenB string) AllowedPool {
+	return AllowedPool{
 		TokenA: tokenA,
 		TokenB: tokenB,
 	}
@@ -135,7 +135,7 @@ func (p AllowedPool) String() string {
 `, p.Name(), p.TokenA, p.TokenB)
 }
 
-func ValidateAllowedPools(p []*AllowedPool) error {
+func ValidateAllowedPools(p []AllowedPool) error {
 	seenAllowedPools := make(map[string]bool)
 	for _, allowedPool := range p {
 		err := allowedPool.Validate()

@@ -45,7 +45,7 @@ func (k Keeper) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.Q
 			return false, err
 		}
 
-		if (len(req.PoolId) > 0) && strings.Compare(poolRecord.PoolId, req.PoolId) != 0 {
+		if (len(req.PoolId) > 0) && strings.Compare(poolRecord.PoolID, req.PoolId) != 0 {
 			return false, nil
 		}
 
@@ -55,7 +55,7 @@ func (k Keeper) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.Q
 				return true, types.ErrInvalidPool
 			}
 			totalCoins := denominatedPool.ShareValue(denominatedPool.TotalShares())
-			queryResult := types.PoolResponse{poolRecord.PoolId, totalCoins, denominatedPool.TotalShares()}
+			queryResult := types.PoolResponse{poolRecord.PoolID, totalCoins, denominatedPool.TotalShares()}
 			queryResults = append(queryResults, queryResult)
 		}
 		return true, nil
@@ -97,7 +97,7 @@ func (k Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 				matchOwner = strings.Compare(record.Depositor, req.Owner) == 0
 			}
 			if len(req.PoolId) > 0 {
-				matchPool = strings.Compare(record.PoolId, req.PoolId) == 0
+				matchPool = strings.Compare(record.PoolID, req.PoolId) == 0
 			}
 			if !(matchOwner && matchPool) {
 				// inform paginate that there was no match on this key
@@ -117,12 +117,12 @@ func (k Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 
 	var queryResults []types.DepositResponse
 	for _, record := range records {
-		pool, err := k.loadDenominatedPool(ctx, record.PoolId)
+		pool, err := k.loadDenominatedPool(ctx, record.PoolID)
 		if err != nil {
 			return nil, err
 		}
 		shareValue := pool.ShareValue(record.SharesOwned)
-		queryResult := types.DepositResponse{record.Depositor, record.PoolId, record.SharesOwned, shareValue}
+		queryResult := types.DepositResponse{record.Depositor, record.PoolID, record.SharesOwned, shareValue}
 		queryResults = append(queryResults, queryResult)
 	}
 

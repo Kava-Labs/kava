@@ -116,7 +116,7 @@ func (suite *Suite) CreatePool(reserves sdk.Coins) error {
 	depositor := suite.CreateAccount(reserves)
 	pool := types.NewAllowedPool(reserves[0].Denom, reserves[1].Denom)
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]*types.AllowedPool{pool}, defaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, defaultSwapFee))
 
 	return suite.Keeper.DepositLiquidity(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdk.MustNewDecFromStr("1"))
 }
@@ -226,7 +226,7 @@ func (suite *Suite) PoolReservesEqual(poolID string, reserves sdk.Coins) {
 func (suite *Suite) PoolShareValueEqual(depositor authtypes.AccountI, pool types.AllowedPool, coins sdk.Coins) {
 	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
 	suite.Require().True(ok, fmt.Sprintf("expected pool %s to exist", pool.Name()))
-	shares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolRecord.PoolId)
+	shares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolRecord.PoolID)
 	suite.Require().True(ok, fmt.Sprintf("expected shares to exist for depositor %s", depositor.GetAddress()))
 
 	storedPool, err := types.NewDenominatedPoolWithExistingShares(sdk.NewCoins(poolRecord.ReservesA, poolRecord.ReservesB), poolRecord.TotalShares)
