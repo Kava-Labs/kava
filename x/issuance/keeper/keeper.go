@@ -97,5 +97,5 @@ func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
 	if err != nil {
 		panic(err)
 	}
-	store.Set([]byte{}, b)
+	store.Set(types.PreviousBlockTimeKey, b)
 }
