@@ -1,7 +1,7 @@
 syntax = "proto3";
 package kava.issuance.v1beta1;
 
-import "issuance/genesis.proto";
+import "kava/issuance/v1beta1/genesis.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
@@ -20,5 +20,5 @@ message QueryParamsRequest {}
 
 // QueryParamsResponse defines the response type for querying x/issuance parameters.
 message QueryParamsResponse {
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [(gogoproto.nullable) = false];
 }
