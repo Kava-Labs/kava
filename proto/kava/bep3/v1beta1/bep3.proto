@@ -49,13 +49,13 @@ enum SwapStatus {
   option (gogoproto.goproto_enum_prefix) = false;
 
   // AtomicSwap is unspecified
-  SWAP_STATUS_UNSPECIFIED = 0x00;
+  SWAP_STATUS_UNSPECIFIED = 0;
   // AtomicSwap is open
-  SWAP_STATUS_OPEN = 0x01;
+  SWAP_STATUS_OPEN = 1;
   // AtomicSwap is completed
-  SWAP_STATUS_COMPLETED = 0x02;
+  SWAP_STATUS_COMPLETED = 2;
   // AtomicSwap is expired
-  SWAP_STATUS_EXPIRED = 0x03;
+  SWAP_STATUS_EXPIRED = 3;
 }
 
 // SwapDirection is the direction of an AtomicSwap
@@ -63,11 +63,11 @@ enum SwapDirection {
   option (gogoproto.goproto_enum_prefix) = false;
 
   // SwapDirection is unspecified or invalid
-  SWAP_DIRECTION_UNSPECIFIED = 0x00;
+  SWAP_DIRECTION_UNSPECIFIED = 0;
   // SwapDirection is incoming
-  SWAP_DIRECTION_INCOMING = 0x01;
+  SWAP_DIRECTION_INCOMING = 1;
   // SwapDirection is outgoing
-  SWAP_DIRECTION_OUTGOING = 0x02;
+  SWAP_DIRECTION_OUTGOING = 2;
 }
 
 // AtomicSwap defines an atomic swap between chains for the pricefeed module.
