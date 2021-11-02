@@ -24,4 +24,5 @@ docs/.vuepress/dist
 
 # Local example chain data
 contrib/devnet/home/config/addrbook.json
+contrib/devnet/home/config/write-file-atomic-*
 contrib/devnet/home/data/*
