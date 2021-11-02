@@ -72,7 +72,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 		randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
 		// Create atomic swap and check err
-		err := suite.keeper.CreateNewAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
+		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
 			addrs[10], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain, amount, true)
 		suite.Nil(err)
 

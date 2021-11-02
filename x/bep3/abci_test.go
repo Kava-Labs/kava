@@ -64,7 +64,7 @@ func (suite *ABCITestSuite) ResetKeeper() {
 		randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
 		// Create atomic swap and check err to confirm creation
-		err := suite.keeper.CreateNewAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
+		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
 			suite.addrs[11], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain,
 			amount, true)
 		suite.Nil(err)
@@ -125,12 +125,12 @@ func (suite *ABCITestSuite) TestBeginBlocker_UpdateExpiredAtomicSwaps() {
 			switch tc.expectedStatus {
 			case types.SWAP_STATUS_COMPLETED:
 				for i, swapID := range suite.swapIDs {
-					err := suite.keeper.ClaimActiveAtomicSwap(tc.firstCtx, suite.addrs[5], swapID, suite.randomNumbers[i])
+					err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[5], swapID, suite.randomNumbers[i])
 					suite.Nil(err)
 				}
 			case types.SWAP_STATUS_UNSPECIFIED:
 				for _, swapID := range suite.swapIDs {
-					err := suite.keeper.RefundExpiredAtomicSwap(tc.firstCtx, suite.addrs[5], swapID)
+					err := suite.keeper.RefundAtomicSwap(tc.firstCtx, suite.addrs[5], swapID)
 					suite.Nil(err)
 				}
 			}
@@ -213,7 +213,7 @@ func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongterm
 			switch tc.action {
 			case Claim:
 				for i, swapID := range suite.swapIDs {
-					err := suite.keeper.ClaimActiveAtomicSwap(tc.firstCtx, suite.addrs[5], swapID, suite.randomNumbers[i])
+					err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[5], swapID, suite.randomNumbers[i])
 					suite.Nil(err)
 				}
 			case Refund:
@@ -221,7 +221,7 @@ func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongterm
 					swap, _ := suite.keeper.GetAtomicSwap(tc.firstCtx, swapID)
 					refundCtx := suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + int64(swap.ExpireHeight))
 					bep3.BeginBlocker(refundCtx, suite.keeper)
-					err := suite.keeper.RefundExpiredAtomicSwap(refundCtx, suite.addrs[5], swapID)
+					err := suite.keeper.RefundAtomicSwap(refundCtx, suite.addrs[5], swapID)
 					suite.Nil(err)
 					// Add expire height to second ctx block height
 					tc.secondCtx = tc.secondCtx.WithBlockHeight(tc.secondCtx.BlockHeight() + int64(swap.ExpireHeight))

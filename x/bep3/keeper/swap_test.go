@@ -424,7 +424,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			assetSupplyPre, _ := suite.keeper.GetAssetSupply(suite.ctx, swapAssetDenom)
 
 			// Create atomic swap
-			err := suite.keeper.CreateNewAtomicSwap(suite.ctx, tc.args.randomNumberHash, tc.args.timestamp,
+			err := suite.keeper.CreateAtomicSwap(suite.ctx, tc.args.randomNumberHash, tc.args.timestamp,
 				tc.args.heightSpan, tc.args.sender, tc.args.recipient, tc.args.senderOtherChain,
 				tc.args.recipientOtherChain, tc.args.coins, tc.args.crossChain)
 
@@ -598,7 +598,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			}
 
 			// Create atomic swap
-			err := suite.keeper.CreateNewAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
+			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
 				types.DefaultMinBlockLock, sender, expectedRecipient, TestSenderOtherChain, TestRecipientOtherChain,
 				tc.args.coins, true)
 			suite.NoError(err)
@@ -631,7 +631,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			assetSupplyPre, _ := suite.keeper.GetAssetSupply(tc.claimCtx, tc.args.coins[0].Denom)
 
 			// Attempt to claim atomic swap
-			err = suite.keeper.ClaimActiveAtomicSwap(tc.claimCtx, expectedRecipient, claimSwapID, claimRandomNumber)
+			err = suite.keeper.ClaimAtomicSwap(tc.claimCtx, expectedRecipient, claimSwapID, claimRandomNumber)
 
 			// Load expected recipient's account after the claim attempt
 			expectedRecipientBalancePost := bk.GetBalance(suite.ctx, expectedRecipient, tc.args.coins[0].Denom)
@@ -752,7 +752,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 				suite.Nil(err)
 			}
 
-			err := suite.keeper.CreateNewAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
+			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
 				types.DefaultMinBlockLock, sender, expectedRecipient, TestSenderOtherChain, TestRecipientOtherChain,
 				expectedRefundAmount, true)
 			suite.NoError(err)
@@ -777,7 +777,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 			assetSupplyPre, _ := suite.keeper.GetAssetSupply(tc.refundCtx, expectedRefundAmount[0].Denom)
 
 			// Attempt to refund atomic swap
-			err = suite.keeper.RefundExpiredAtomicSwap(tc.refundCtx, sender, refundSwapID)
+			err = suite.keeper.RefundAtomicSwap(tc.refundCtx, sender, refundSwapID)
 
 			// Load sender's account after refund
 			originalSenderBalancePost := bk.GetBalance(suite.ctx, sender, expectedRefundAmount[0].Denom)

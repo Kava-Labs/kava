@@ -12,8 +12,8 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
-// CreateNewAtomicSwap creates a new atomic swap.
-func (k Keeper) CreateNewAtomicSwap(ctx sdk.Context, randomNumberHash []byte, timestamp int64, heightSpan uint64,
+// CreateAtomicSwap creates a new atomic swap.
+func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, timestamp int64, heightSpan uint64,
 	sender, recipient sdk.AccAddress, senderOtherChain, recipientOtherChain string,
 	amount sdk.Coins, crossChain bool) error {
 	// Confirm that this is not a duplicate swap
@@ -128,8 +128,8 @@ func (k Keeper) CreateNewAtomicSwap(ctx sdk.Context, randomNumberHash []byte, ti
 	return nil
 }
 
-// ClaimActiveAtomicSwap validates a claim attempt, and if successful, sends the escrowed amount and closes the AtomicSwap.
-func (k Keeper) ClaimActiveAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) error {
+// ClaimAtomicSwap validates a claim attempt, and if successful, sends the escrowed amount and closes the AtomicSwap.
+func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%s", swapID)
@@ -216,8 +216,8 @@ func (k Keeper) ClaimActiveAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swap
 	return nil
 }
 
-// RefundExpiredAtomicSwap refunds an AtomicSwap, sending assets to the original sender and closing the AtomicSwap.
-func (k Keeper) RefundExpiredAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) error {
+// RefundAtomicSwap refunds an AtomicSwap, sending assets to the original sender and closing the AtomicSwap.
+func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%s", swapID)
