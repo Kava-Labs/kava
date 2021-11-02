@@ -2,21 +2,20 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 type ParamKeeper interface {
-	GetSubspace(string) (params.Subspace, bool)
+	GetSubspace(string) (paramstypes.Subspace, bool)
 }
 
-// AccountKeeper defines the expected account keeper (noalias)
+// AccountKeeper defines the expected account keeper
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
+	GetAccount(sdk.Context, sdk.AccAddress) authtypes.AccountI
 }
 
-// SupplyKeeper defines the expected supply keeper (noalias)
-type SupplyKeeper interface {
-	GetSupply(ctx sdk.Context) (supply supplyexported.SupplyI)
+// BankKeeper defines the expected bank keeper interface
+type BankKeeper interface {
+	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 }

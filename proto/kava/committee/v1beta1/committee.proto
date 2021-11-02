@@ -1,0 +1,105 @@
+syntax = "proto3";
+package kava.committee.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/kava-labs/kava/x/committee/types";
+
+option (gogoproto.goproto_stringer_all) = false;
+option (gogoproto.stringer_all)         = false;
+option (gogoproto.goproto_getters_all)  = false;
+
+// Vote is an internal record of a single governance vote.
+message Vote {
+  uint64   proposal_id = 1 [(gogoproto.moretags) = "yaml:\"proposal_id\""];
+  string   voter       = 2 [(gogoproto.moretags) = "yaml:\"voter\""];
+  VoteType vote_type   = 3 [(gogoproto.moretags) = "yaml:\"vote_type\""];
+}
+
+// Proposal is an internal record of a governance proposal submitted to a committee.
+message Proposal {
+  google.protobuf.Any pub_proposal = 1 [
+    (cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content",
+    (gogoproto.moretags)             = "yaml:\"vote_type\"",
+    (gogoproto.embed)                = true
+  ];
+  uint64                    id           = 2 [(gogoproto.moretags) = "yaml:\"id\""];
+  uint64                    committee_id = 3 [(gogoproto.moretags) = "yaml:\"committee_id\""];
+  google.protobuf.Timestamp deadline     = 4
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"deadline\""];
+}
+
+// VoteType enumerates the valid types of a vote.
+enum VoteType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // VOTE_TYPE_UNSPECIFIED defines a no-op vote option.
+  VOTE_TYPE_UNSPECIFIED = 0;
+  // VOTE_TYPE_YES defines a yes vote option.
+  VOTE_TYPE_YES = 1;
+  // VOTE_TYPE_NO defines a no vote option.
+  VOTE_TYPE_NO = 2;
+  // VOTE_TYPE_ABSTAIN defines an abstain vote option.
+  VOTE_TYPE_ABSTAIN = 3;
+}
+
+// BaseCommittee is a common type shared by all Committees
+message BaseCommittee {
+  option (cosmos_proto.implements_interface) = "Committee";
+
+  int64           id                       = 1 [(gogoproto.moretags) = "yaml:\"id\""];
+  string          description              = 2 [(gogoproto.moretags) = "yaml:\"description\""];
+  repeated string members                  = 3 [(gogoproto.moretags) = "yaml:\"members\""];
+  repeated google.protobuf.Any permissions = 4
+      [(cosmos_proto.accepts_interface) = "Permission", (gogoproto.moretags) = "yaml:\"permissions\""];
+  // Smallest percentage that must vote for a proposal to pass
+  bytes vote_threshold = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"vote_threshold\""
+  ];
+  // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
+  google.protobuf.Duration proposal_duration = 6 [
+    (gogoproto.nullable)    = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags)    = "yaml:\"proposal_duration\""
+  ];
+  TallyOption tally_option = 7 [(gogoproto.moretags) = "yaml:\"tally_option\""];
+}
+
+// MemberCommittee is an alias of BaseCommittee
+message MemberCommittee {
+  option (cosmos_proto.implements_interface) = "Committee";
+
+  BaseCommittee base_committee = 1 [(gogoproto.moretags) = "yaml:\"base_committee\"", (gogoproto.embed) = true];
+}
+
+// TokenCommittee supports voting on proposals by token holders
+message TokenCommittee {
+  option (cosmos_proto.implements_interface) = "Committee";
+
+  BaseCommittee base_committee = 1 [(gogoproto.moretags) = "yaml:\"base_committee\"", (gogoproto.embed) = true];
+  bytes         quorum         = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"quorum\""
+  ];
+  string tally_denom = 3 [(gogoproto.moretags) = "yaml:\"tally_denom\""];
+}
+
+// TallyOption enumerates the valid types of a tally.
+enum TallyOption {
+  option (gogoproto.goproto_enum_prefix)   = false;
+  option (gogoproto.goproto_enum_stringer) = false;
+
+  // TALLY_OPTION_UNSPECIFIED defines a null tally option.
+  TALLY_OPTION_UNSPECIFIED = 0;
+  // Votes are tallied each block and the proposal passes as soon as the vote threshold is reached
+  TALLY_OPTION_FIRST_PAST_THE_POST = 1;
+  // Votes are tallied exactly once, when the deadline time is reached
+  TALLY_OPTION_DEADLINE = 2;
+}

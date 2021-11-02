@@ -1,0 +1,18 @@
+syntax = "proto3";
+package kava.committee.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
+import "kava/committee/v1beta1/committee.proto";
+
+option go_package = "github.com/kava-labs/kava/x/committee/types";
+
+// GenesisState defines the committee module's genesis state.
+message GenesisState {
+  uint64   next_proposal_id               = 1 [(gogoproto.moretags) = "yaml:\"next_proposal_id\""];
+  repeated google.protobuf.Any committees = 2
+      [(cosmos_proto.accepts_interface) = "Committee", (gogoproto.moretags) = "yaml:\"committees\""];
+  repeated Proposal proposals = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"proposals\""];
+  repeated Vote     votes     = 4 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"votes\""];
+}

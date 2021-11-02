@@ -10,13 +10,13 @@
     - [GenesisState](#kava.issuance.v1beta1.GenesisState)
     - [Params](#kava.issuance.v1beta1.Params)
     - [RateLimit](#kava.issuance.v1beta1.RateLimit)
-  
+
 - [kava/issuance/v1beta1/query.proto](#kava/issuance/v1beta1/query.proto)
     - [QueryParamsRequest](#kava.issuance.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.issuance.v1beta1.QueryParamsResponse)
-  
+
     - [Query](#kava.issuance.v1beta1.Query)
-  
+
 - [kava/issuance/v1beta1/tx.proto](#kava/issuance/v1beta1/tx.proto)
     - [MsgBlockAddress](#kava.issuance.v1beta1.MsgBlockAddress)
     - [MsgBlockAddressResponse](#kava.issuance.v1beta1.MsgBlockAddressResponse)
@@ -28,38 +28,38 @@
     - [MsgSetPauseStatusResponse](#kava.issuance.v1beta1.MsgSetPauseStatusResponse)
     - [MsgUnblockAddress](#kava.issuance.v1beta1.MsgUnblockAddress)
     - [MsgUnblockAddressResponse](#kava.issuance.v1beta1.MsgUnblockAddressResponse)
-  
+
     - [Msg](#kava.issuance.v1beta1.Msg)
-  
+
 - [kava/kavadist/v1beta1/params.proto](#kava/kavadist/v1beta1/params.proto)
     - [Params](#kava.kavadist.v1beta1.Params)
     - [Period](#kava.kavadist.v1beta1.Period)
-  
+
 - [kava/kavadist/v1beta1/genesis.proto](#kava/kavadist/v1beta1/genesis.proto)
     - [GenesisState](#kava.kavadist.v1beta1.GenesisState)
-  
+
 - [kava/kavadist/v1beta1/proposal.proto](#kava/kavadist/v1beta1/proposal.proto)
     - [CommunityPoolMultiSpendProposal](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposal)
     - [CommunityPoolMultiSpendProposalJSON](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposalJSON)
     - [MultiSpendRecipient](#kava.kavadist.v1beta1.MultiSpendRecipient)
-  
+
 - [kava/kavadist/v1beta1/query.proto](#kava/kavadist/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse)
     - [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse)
-  
+
     - [Query](#kava.kavadist.v1beta1.Query)
-  
+
 - [kava/pricefeed/v1beta1/pricefeed.proto](#kava/pricefeed/v1beta1/pricefeed.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
     - [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice)
-  
+
 - [kava/pricefeed/v1beta1/genesis.proto](#kava/pricefeed/v1beta1/genesis.proto)
     - [GenesisState](#kava.pricefeed.v1beta1.GenesisState)
     - [Params](#kava.pricefeed.v1beta1.Params)
-  
+
 - [kava/pricefeed/v1beta1/query.proto](#kava/pricefeed/v1beta1/query.proto)
     - [QueryMarketsRequest](#kava.pricefeed.v1beta1.QueryMarketsRequest)
     - [QueryMarketsResponse](#kava.pricefeed.v1beta1.QueryMarketsResponse)
@@ -73,24 +73,24 @@
     - [QueryPricesResponse](#kava.pricefeed.v1beta1.QueryPricesResponse)
     - [QueryRawPricesRequest](#kava.pricefeed.v1beta1.QueryRawPricesRequest)
     - [QueryRawPricesResponse](#kava.pricefeed.v1beta1.QueryRawPricesResponse)
-  
+
     - [Query](#kava.pricefeed.v1beta1.Query)
-  
+
 - [kava/pricefeed/v1beta1/tx.proto](#kava/pricefeed/v1beta1/tx.proto)
     - [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice)
     - [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse)
-  
+
     - [Msg](#kava.pricefeed.v1beta1.Msg)
-  
+
 - [kava/swap/v1beta1/swap.proto](#kava/swap/v1beta1/swap.proto)
     - [AllowedPool](#kava.swap.v1beta1.AllowedPool)
     - [Params](#kava.swap.v1beta1.Params)
     - [PoolRecord](#kava.swap.v1beta1.PoolRecord)
     - [ShareRecord](#kava.swap.v1beta1.ShareRecord)
-  
+
 - [kava/swap/v1beta1/genesis.proto](#kava/swap/v1beta1/genesis.proto)
     - [GenesisState](#kava.swap.v1beta1.GenesisState)
-  
+
 - [kava/swap/v1beta1/query.proto](#kava/swap/v1beta1/query.proto)
     - [DepositResponse](#kava.swap.v1beta1.DepositResponse)
     - [PoolResponse](#kava.swap.v1beta1.PoolResponse)
@@ -100,9 +100,9 @@
     - [QueryParamsResponse](#kava.swap.v1beta1.QueryParamsResponse)
     - [QueryPoolsRequest](#kava.swap.v1beta1.QueryPoolsRequest)
     - [QueryPoolsResponse](#kava.swap.v1beta1.QueryPoolsResponse)
-  
+
     - [Query](#kava.swap.v1beta1.Query)
-  
+
 - [kava/swap/v1beta1/tx.proto](#kava/swap/v1beta1/tx.proto)
     - [MsgDeposit](#kava.swap.v1beta1.MsgDeposit)
     - [MsgDepositResponse](#kava.swap.v1beta1.MsgDepositResponse)
@@ -112,9 +112,9 @@
     - [MsgSwapForExactTokensResponse](#kava.swap.v1beta1.MsgSwapForExactTokensResponse)
     - [MsgWithdraw](#kava.swap.v1beta1.MsgWithdraw)
     - [MsgWithdrawResponse](#kava.swap.v1beta1.MsgWithdrawResponse)
-  
+
     - [Msg](#kava.swap.v1beta1.Msg)
-  
+
 - [Scalar Value Types](#scalar-value-types)
 
 

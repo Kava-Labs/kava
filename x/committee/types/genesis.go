@@ -1,58 +1,80 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
+
+	types "github.com/cosmos/cosmos-sdk/codec/types"
+	proto "github.com/gogo/protobuf/proto"
 )
 
 // DefaultNextProposalID is the starting poiint for proposal IDs.
 const DefaultNextProposalID uint64 = 1
 
-// GenesisState is state that must be provided at chain genesis.
-type GenesisState struct {
-	NextProposalID uint64     `json:"next_proposal_id" yaml:"next_proposal_id"`
-	Committees     Committees `json:"committees" yaml:"committees"`
-	Proposals      []Proposal `json:"proposals" yaml:"proposals"`
-	Votes          []Vote     `json:"votes" yaml:"votes"`
+// PackCommittees converts an committee slice to Any slice
+func PackCommittees(committees []Committee) ([]*types.Any, error) {
+	committeesAny := make([]*types.Any, len(committees))
+	for i, committee := range committees {
+		msg, ok := committee.(proto.Message)
+		if !ok {
+			return nil, fmt.Errorf("cannot proto marshal %T", committee)
+		}
+		any, err := types.NewAnyWithValue(msg)
+		if err != nil {
+			return nil, err
+		}
+		committeesAny[i] = any
+	}
+
+	return committeesAny, nil
+}
+
+// UnpackCommittees converts Any slice to Committee slice
+func UnpackCommittees(committeesAny []*types.Any) ([]Committee, error) {
+	committees := make([]Committee, len(committeesAny))
+	for i, any := range committeesAny {
+		committee, ok := any.GetCachedValue().(Committee)
+		if !ok {
+			return nil, fmt.Errorf("expected genesis committee")
+		}
+		committees[i] = committee
+	}
+
+	return committees, nil
 }
 
 // NewGenesisState returns a new genesis state object for the module.
-func NewGenesisState(nextProposalID uint64, committees Committees, proposals []Proposal, votes []Vote) GenesisState {
-	return GenesisState{
-		NextProposalID: nextProposalID,
-		Committees:     committees,
+func NewGenesisState(nextProposalID uint64, committees []Committee, proposals []Proposal, votes []Vote) *GenesisState {
+	packedCommittees, err := PackCommittees(committees)
+	if err != nil {
+		panic(err)
+	}
+	return &GenesisState{
+		NextProposalId: nextProposalID,
+		Committees:     packedCommittees,
 		Proposals:      proposals,
 		Votes:          votes,
 	}
 }
 
 // DefaultGenesisState returns the default genesis state for the module.
-func DefaultGenesisState() GenesisState {
+func DefaultGenesisState() *GenesisState {
 	return NewGenesisState(
 		DefaultNextProposalID,
-		Committees{},
+		[]Committee{},
 		[]Proposal{},
 		[]Vote{},
 	)
-}
-
-// Equal checks whether two gov GenesisState structs are equivalent
-func (data GenesisState) Equal(data2 GenesisState) bool {
-	b1 := ModuleCdc.MustMarshalBinaryBare(data)
-	b2 := ModuleCdc.MustMarshalBinaryBare(data2)
-	return bytes.Equal(b1, b2)
-}
-
-// IsEmpty returns true if a GenesisState is empty
-func (data GenesisState) IsEmpty() bool {
-	return data.Equal(GenesisState{})
 }
 
 // Validate performs basic validation of genesis data.
 func (gs GenesisState) Validate() error {
 	// validate committees
 	committeeMap := make(map[uint64]bool, len(gs.Committees))
-	for _, com := range gs.Committees {
+	committees, err := UnpackCommittees(gs.Committees)
+	if err != nil {
+		return err
+	}
+	for _, com := range committees {
 		// check there are no duplicate IDs
 		if _, ok := committeeMap[com.GetID()]; ok {
 			return fmt.Errorf("duplicate committee ID found in genesis state; id: %d", com.GetID())
@@ -69,23 +91,23 @@ func (gs GenesisState) Validate() error {
 	proposalMap := make(map[uint64]bool, len(gs.Proposals))
 	for _, p := range gs.Proposals {
 		// check there are no duplicate IDs
-		if _, ok := proposalMap[p.ID]; ok {
+		if _, ok := proposalMap[p.Id]; ok {
 			return fmt.Errorf("duplicate proposal ID found in genesis state; id: %d", p.ID)
 		}
-		proposalMap[p.ID] = true
+		proposalMap[p.Id] = true
 
 		// validate next proposal ID
-		if p.ID >= gs.NextProposalID {
+		if p.Id >= gs.NextProposalId {
 			return fmt.Errorf("NextProposalID is not greater than all proposal IDs; id: %d", p.ID)
 		}
 
 		// check committee exists
-		if !committeeMap[p.CommitteeID] {
+		if !committeeMap[p.CommitteeId] {
 			return fmt.Errorf("proposal refers to non existent committee; proposal: %+v", p)
 		}
 
 		// validate pubProposal
-		if err := p.PubProposal.ValidateBasic(); err != nil {
+		if err := p.GetPubProposal().ValidateBasic(); err != nil {
 			return fmt.Errorf("proposal %d invalid: %w", p.ID, err)
 		}
 	}
@@ -98,7 +120,7 @@ func (gs GenesisState) Validate() error {
 		}
 
 		// check proposal exists
-		if !proposalMap[v.ProposalID] {
+		if !proposalMap[v.ProposalId] {
 			return fmt.Errorf("vote refers to non existent proposal; vote: %+v", v)
 		}
 	}
