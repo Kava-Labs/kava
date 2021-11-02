@@ -64,12 +64,12 @@ func NewDenominatedPoolWithExistingShares(reserves sdk.Coins, totalShares sdk.In
 
 // Reserves returns the reserves held in the pool
 func (p *DenominatedPool) Reserves() sdk.Coins {
-	return p.coins(p.pool.reservesA, p.pool.reservesB)
+	return p.coins(p.pool.ReservesA(), p.pool.ReservesB())
 }
 
 // TotalShares returns the total shares for the pool
 func (p *DenominatedPool) TotalShares() sdk.Int {
-	return p.pool.totalShares
+	return p.pool.TotalShares()
 }
 
 // IsEmpty returns true if the pool is empty
