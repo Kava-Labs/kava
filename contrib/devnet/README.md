@@ -16,6 +16,8 @@ Add the home flag `--home <path to kava dir>/contrib/devnet/home` to any kava co
    - send some coins `dkava tx bank send whale kava1wuzhkn2f8nqe2aprnwt3jkjvvr9m7dlkpumtz2 1000000ukava`
    - show available commands `dkava --help`
 
+Note, any change to the genesis file requires the data dir to be reset before the chain will start again: `kava --home <path to kava dir>/contrib/devnet/home unsafe-reset-all`
+
 ## Developer Usage
 
 As new features are developed, the genesis file can be updated on the same branch.
