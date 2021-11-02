@@ -1,4 +1,4 @@
-package main
+package kvd
 
 import (
 	"encoding/json"
@@ -11,7 +11,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -37,7 +36,7 @@ const (
 
 var invCheckPeriod uint
 
-func main() {
+func GetRootCmd() *cobra.Command {
 	cdc := app.MakeCodec()
 
 	config := sdk.GetConfig()
@@ -75,7 +74,6 @@ func main() {
 	server.AddCommands(ctx, cdc, rootCmd, newApp, exportAppStateAndTMValidators)
 
 	// prepare and add flags
-	executor := cli.PrepareBaseCmd(rootCmd, "KA", app.DefaultNodeHome)
 	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 		0, "Assert registered invariants every N blocks")
 	startCmd, _, err := rootCmd.Find([]string{"start"})
@@ -93,11 +91,7 @@ func main() {
 		panic(fmt.Sprintf("failed to bind flag: %s", err))
 	}
 
-	// run main command
-	err = executor.Execute()
-	if err != nil {
-		panic(err)
-	}
+	return rootCmd
 }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {

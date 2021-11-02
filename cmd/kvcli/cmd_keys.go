@@ -1,4 +1,4 @@
-package main
+package kvcli
 
 import (
 	"fmt"

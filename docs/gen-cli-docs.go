@@ -11,13 +11,19 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/kava-labs/kava/cmd/kava/cmd"
+	"github.com/kava-labs/kava/cmd/kvcli"
+	"github.com/kava-labs/kava/cmd/kvd"
 )
 
 func main() {
-	root := cmd.NewRootCmd("")
+	cliRoot := kvcli.GetRootCmd()
+	println(cliRoot.Name())
+	if err := GenMarkdownTreeCustom(cliRoot, "./docs/cli"); err != nil {
+		log.Fatal(err)
+	}
 
-	if err := GenMarkdownTreeCustom(root, "./docs/cli"); err != nil {
+	dRoot := kvd.GetRootCmd()
+	if err := GenMarkdownTreeCustom(dRoot, "./docs/cli"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -36,6 +42,9 @@ func GenMarkdownTreeCustom(cmd *cobra.Command, dir string) error {
 	hasChildren := len(cmd.Commands()) > 0
 
 	cmdPath := strings.Split(cmd.CommandPath(), " ")
+	if cmdPath[len(cmdPath)-1] == "" {
+		return nil
+	}
 	if hasChildren {
 		cmdPath = append(cmdPath, "readme")
 	}

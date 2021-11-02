@@ -1,7 +1,6 @@
-package main
+package kvcli
 
 import (
-	"fmt"
 	"os"
 	"path"
 
@@ -27,7 +26,7 @@ import (
 	"github.com/kava-labs/kava/migrate/rest_v0_3"
 )
 
-func main() {
+func GetRootCmd() *cobra.Command {
 	// Configure cobra to sort commands
 	cobra.EnableCommandSorting = false
 
@@ -69,15 +68,7 @@ func main() {
 		version.Cmd,
 		flags.NewCompletionCmd(rootCmd, true),
 	)
-
-	// Add flags and prefix all env exposed with KA
-	executor := cli.PrepareMainCmd(rootCmd, "KA", app.DefaultCLIHome)
-
-	err := executor.Execute()
-	if err != nil {
-		fmt.Printf("Failed executing CLI command: %s, exiting...\n", err)
-		os.Exit(1)
-	}
+	return rootCmd
 }
 
 func queryCmd(cdc *codec.Codec) *cobra.Command {
