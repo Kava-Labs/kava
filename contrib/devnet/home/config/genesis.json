@@ -109,6 +109,19 @@
           "sequence": "0"
         },
         {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "account_number": "0",
+            "address": "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+            "pub_key": null,
+            "sequence": "0"
+          },
+          "name": "kavadist",
+          "permissions": [
+            "minter"
+          ]
+        },
+        {
           "@type": "/cosmos.vesting.v1beta1.PeriodicVestingAccount",
           "base_vesting_account": {
             "base_account": {
@@ -122,21 +135,21 @@
             "end_time": "1664632800",
             "original_vesting": [
               {
-                "denom": "ukava",
-                "amount": "560159828"
+                "amount": "560159828",
+                "denom": "ukava"
               }
             ]
           },
           "start_time": "1633096800",
           "vesting_periods": [
             {
-              "length": "31536000",
               "amount": [
                 {
-                  "denom": "ukava",
-                  "amount": "560159828"
+                  "amount": "560159828",
+                  "denom": "ukava"
                 }
-              ]
+              ],
+              "length": "31536000"
             }
           ]
         }
@@ -278,11 +291,28 @@
           ]
         },
         {
+          "address": "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "hard"
+            },
+            {
+              "amount": "1000000000000",
+              "denom": "swp"
+            },
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ]
+        },
+        {
           "address": "kava1fwfwmt6vupf3m9uvpdsuuc4dga8p5dtl4npcqz",
           "coins": [
             {
-              "denom": "ukava",
-              "amount": "565077579"
+              "amount": "565077579",
+              "denom": "ukava"
             }
           ]
         },
@@ -315,6 +345,10 @@
             },
             {
               "amount": "10000000000000000",
+              "denom": "usdx"
+            },
+            {
+              "amount": "10000000000000000",
               "denom": "xrpb"
             }
           ]
@@ -339,16 +373,20 @@
           "denom": "busd"
         },
         {
-          "amount": "1000000000000000000",
+          "amount": "1000001000000000000",
           "denom": "hard"
         },
         {
-          "amount": "1000000000000000000",
+          "amount": "1000001000000000000",
           "denom": "swp"
         },
         {
-          "amount": "10014000565077579",
+          "amount": "10015000565077579",
           "denom": "ukava"
+        },
+        {
+          "amount": "10000000000000000",
+          "denom": "usdx"
         },
         {
           "amount": "10000000000000000",
@@ -471,6 +509,19 @@
       "voting_params": {
         "voting_period": "600s"
       }
+    },
+    "kavadist": {
+      "params": {
+        "active": true,
+        "periods": [
+          {
+            "end": "2023-10-01T15:00:00Z",
+            "inflation": "1.000000003022265980",
+            "start": "2021-10-01T15:00:00Z"
+          }
+        ]
+      },
+      "previous_block_time": "2021-10-01T15:00:00Z"
     },
     "mint": {
       "minter": {
