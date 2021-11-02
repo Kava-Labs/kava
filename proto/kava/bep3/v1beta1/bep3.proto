@@ -3,6 +3,7 @@ package kava.bep3.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
 import "google/protobuf/duration.proto";
 
 option go_package = "github.com/kava-labs/kava/x/bep3/types";
@@ -22,7 +23,7 @@ message AssetParam {
   int64       coin_id        = 2 [(gogoproto.customname) = "CoinID"];
   SupplyLimit supply_limit   = 3 [(gogoproto.nullable) = false];
   bool        active         = 4;
-  string      deputy_address = 5;
+  string      deputy_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   bytes fixed_fee = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
   bytes min_swap_amount = 7
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
@@ -78,8 +79,8 @@ message AtomicSwap {
   bytes         random_number_hash    = 2;
   uint64        expire_height         = 3;
   int64         timestamp             = 4;
-  string        sender                = 5;
-  string        recipient             = 6;
+  string        sender                = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string        recipient             = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string        sender_other_chain    = 7;
   string        recipient_other_chain = 8;
   int64         closed_block          = 9;

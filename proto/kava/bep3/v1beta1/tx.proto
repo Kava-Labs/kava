@@ -2,6 +2,7 @@ syntax = "proto3";
 package kava.bep3.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/kava-labs/kava/x/bep3/types";
@@ -24,8 +25,8 @@ message MsgCreateAtomicSwap {
   option (gogoproto.equal)            = false;
   option (gogoproto.goproto_getters)  = false;
 
-  string   from                            = 1;
-  string   to                              = 2;
+  string   from                            = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string   to                              = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string   recipient_other_chain           = 3;
   string   sender_other_chain              = 4;
   bytes    random_number_hash              = 5;
@@ -44,7 +45,7 @@ message MsgClaimAtomicSwap {
   option (gogoproto.equal)            = false;
   option (gogoproto.goproto_getters)  = false;
 
-  string from          = 1;
+  string from          = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   bytes  swap_id       = 2 [(gogoproto.customname) = "SwapID"];
   bytes  random_number = 3;
 }
@@ -58,7 +59,7 @@ message MsgRefundAtomicSwap {
   option (gogoproto.equal)            = false;
   option (gogoproto.goproto_getters)  = false;
 
-  string from    = 1;
+  string from    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   bytes  swap_id = 2 [(gogoproto.customname) = "SwapID"];
 }
 
