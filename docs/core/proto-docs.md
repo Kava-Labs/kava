@@ -4,6 +4,25 @@
 
 ## Table of Contents
 
+- [kava/kavadist/v1beta1/params.proto](#kava/kavadist/v1beta1/params.proto)
+    - [Params](#kava.kavadist.v1beta1.Params)
+    - [Period](#kava.kavadist.v1beta1.Period)
+  
+- [kava/kavadist/v1beta1/genesis.proto](#kava/kavadist/v1beta1/genesis.proto)
+    - [GenesisState](#kava.kavadist.v1beta1.GenesisState)
+  
+- [kava/kavadist/v1beta1/proposal.proto](#kava/kavadist/v1beta1/proposal.proto)
+    - [CommunityPoolMultiSpendProposal](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposal)
+    - [CommunityPoolMultiSpendProposalJSON](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposalJSON)
+    - [MultiSpendRecipient](#kava.kavadist.v1beta1.MultiSpendRecipient)
+  
+- [kava/kavadist/v1beta1/query.proto](#kava/kavadist/v1beta1/query.proto)
+    - [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest)
+    - [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse)
+    - [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse)
+    - [Query](#kava.kavadist.v1beta1.Query)
+  
 - [kava/swap/v1beta1/swap.proto](#kava/swap/v1beta1/swap.proto)
     - [AllowedPool](#kava.swap.v1beta1.AllowedPool)
     - [Params](#kava.swap.v1beta1.Params)
@@ -42,6 +61,235 @@
 
 
 <a name="kava/swap/v1beta1/swap.proto"></a>
+=======
+<a name="kava/kavadist/v1beta1/params.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/kavadist/v1beta1/params.proto
+
+
+
+<a name="kava.kavadist.v1beta1.Params"></a>
+
+### Params
+Params governance parameters for kavadist module
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active` | [bool](#bool) |  |  |
+| `periods` | [Period](#kava.kavadist.v1beta1.Period) | repeated |  |
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.Period"></a>
+
+### Period
+Period stores the specified start and end dates, and the inflation, expressed as a decimal
+representing the yearly APR of KAVA tokens that will be minted during that period
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `start` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | example "2020-03-01T15:20:00Z" |
+| `end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | example "2020-06-01T15:20:00Z" |
+| `inflation` | [bytes](#bytes) |  | example "1.000000003022265980" - 10% inflation |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/kavadist/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/kavadist/v1beta1/genesis.proto
+
+
+
+<a name="kava.kavadist.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the kavadist module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.kavadist.v1beta1.Params) |  |  |
+| `previous_block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/kavadist/v1beta1/proposal.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/kavadist/v1beta1/proposal.proto
+
+
+
+<a name="kava.kavadist.v1beta1.CommunityPoolMultiSpendProposal"></a>
+
+### CommunityPoolMultiSpendProposal
+CommunityPoolMultiSpendProposal spends from the community pool by sending to one or more
+addresses
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `recipient_list` | [MultiSpendRecipient](#kava.kavadist.v1beta1.MultiSpendRecipient) | repeated |  |
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.CommunityPoolMultiSpendProposalJSON"></a>
+
+### CommunityPoolMultiSpendProposalJSON
+CommunityPoolMultiSpendProposalJSON defines a CommunityPoolMultiSpendProposal with a deposit
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `recipient_list` | [MultiSpendRecipient](#kava.kavadist.v1beta1.MultiSpendRecipient) | repeated |  |
+| `deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.MultiSpendRecipient"></a>
+
+### MultiSpendRecipient
+MultiSpendRecipient defines a recipient and the amount of coins they are receiving
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/kavadist/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/kavadist/v1beta1/query.proto
+
+
+
+<a name="kava.kavadist.v1beta1.QueryBalanceRequest"></a>
+
+### QueryBalanceRequest
+
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.QueryBalanceResponse"></a>
+
+### QueryBalanceResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.kavadist.v1beta1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.kavadist.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse) |  | GET|/kava/kavadist/v1beta1/parameters|
+| `Balance` | [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse) |  | GET|/kava/kavadist/v1beta1/balance|
+
+ <!-- end services -->
+
+
+
+<a name="kava/swap/v1beta1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## kava/swap/v1beta1/swap.proto

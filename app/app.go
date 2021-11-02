@@ -65,6 +65,11 @@ import (
 	"github.com/kava-labs/kava/x/swap"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
+
+	"github.com/kava-labs/kava/x/kavadist"
+	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
+	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 const (
@@ -85,6 +90,7 @@ var (
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler,
 			distrclient.ProposalHandler,
+			kavadistclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -92,6 +98,7 @@ var (
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		swap.AppModuleBasic{},
+		kavadist.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -105,6 +112,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		swaptypes.ModuleName:           nil,
+		kavadisttypes.KavaDistMacc:     {authtypes.Minter},
 	}
 )
 
@@ -148,6 +156,7 @@ type App struct {
 	paramsKeeper   paramskeeper.Keeper
 	evidenceKeeper evidencekeeper.Keeper
 	swapKeeper     swapkeeper.Keeper
+	kavadistKeeper kavadistkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -175,7 +184,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
-		swaptypes.StoreKey,
+		swaptypes.StoreKey, kavadisttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -204,6 +213,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.ModuleName)
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
+	kavadistSubspace := app.paramsKeeper.Subspace(kavadisttypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -273,7 +283,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[govtypes.StoreKey],
@@ -290,6 +300,15 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		swapSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
+	)
+	app.kavadistKeeper = kavadistkeeper.NewKeeper(
+		appCodec,
+		keys[kavadisttypes.StoreKey],
+		kavadistSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+		app.distrKeeper,
+		app.ModuleAccountAddrs(),
 	)
 
 	// register the staking hooks
@@ -315,6 +334,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		evidence.NewAppModule(app.evidenceKeeper),
 		params.NewAppModule(app.paramsKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
+		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -348,6 +368,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
 		swaptypes.ModuleName,
+		kavadisttypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
