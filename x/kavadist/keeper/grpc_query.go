@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -19,5 +20,6 @@ func (k Keeper) Balance(ctx context.Context, req *types.QueryBalanceRequest) (*t
 func (k Keeper) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	params := k.GetParams(sdkCtx)
+
 	return &types.QueryParamsResponse{Params: params}, nil
 }

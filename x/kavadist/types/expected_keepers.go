@@ -14,7 +14,7 @@ type DistKeeper interface {
 type AccountKeeper interface {
 	GetModuleAccount(ctx sdk.Context, moduleName string) authTypes.ModuleAccountI
 	SetModuleAccount(ctx sdk.Context, macc authTypes.ModuleAccountI)
-	NewAccount(sdk.Context, authTypes.AccountI) authTypes.AccountI
+	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authTypes.AccountI
 }
 
 // BankKeeper defines the expected bank keeper interface
