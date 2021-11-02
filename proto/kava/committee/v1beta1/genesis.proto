@@ -4,15 +4,47 @@ package kava.committee.v1beta1;
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/any.proto";
-import "kava/committee/v1beta1/committee.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/kava-labs/kava/x/committee/types";
 
+option (gogoproto.goproto_stringer_all) = false;
+option (gogoproto.stringer_all)         = false;
+
 // GenesisState defines the committee module's genesis state.
 message GenesisState {
-  uint64   next_proposal_id               = 1 [(gogoproto.moretags) = "yaml:\"next_proposal_id\""];
-  repeated google.protobuf.Any committees = 2
-      [(cosmos_proto.accepts_interface) = "Committee", (gogoproto.moretags) = "yaml:\"committees\""];
-  repeated Proposal proposals = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"proposals\""];
-  repeated Vote     votes     = 4 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"votes\""];
+  uint64   next_proposal_id               = 1;
+  repeated google.protobuf.Any committees = 2 [(cosmos_proto.accepts_interface) = "Committee"];
+  repeated Proposal            proposals  = 3 [(gogoproto.nullable) = false];
+  repeated Vote                votes      = 4 [(gogoproto.nullable) = false];
+}
+
+// Proposal is an internal record of a governance proposal submitted to a committee.
+message Proposal {
+  google.protobuf.Any pub_proposal = 1
+      [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content", (gogoproto.embed) = true];
+  uint64                    id           = 2;
+  uint64                    committee_id = 3;
+  google.protobuf.Timestamp deadline     = 4 [(gogoproto.nullable) = false];
+}
+
+// Vote is an internal record of a single governance vote.
+message Vote {
+  uint64   proposal_id = 1;
+  string   voter       = 2;
+  VoteType vote_type   = 3;
+}
+
+// VoteType enumerates the valid types of a vote.
+enum VoteType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // VOTE_TYPE_UNSPECIFIED defines a no-op vote option.
+  VOTE_TYPE_UNSPECIFIED = 0;
+  // VOTE_TYPE_YES defines a yes vote option.
+  VOTE_TYPE_YES = 1;
+  // VOTE_TYPE_NO defines a no vote option.
+  VOTE_TYPE_NO = 2;
+  // VOTE_TYPE_ABSTAIN defines an abstain vote option.
+  VOTE_TYPE_ABSTAIN = 3;
 }
