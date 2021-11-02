@@ -31,7 +31,10 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 	require.Equal(t, markets[0].MarketID, "tstusd")
 
 	_, found := keeper.GetMarket(ctx, "tstusd")
-	require.Equal(t, found, true)
+	require.True(t, found, "market should be found")
+
+	_, found = keeper.GetMarket(ctx, "invalidmarket")
+	require.False(t, found, "invalidmarket should not be found")
 
 	mp = types.Params{
 		Markets: []types.Market{
@@ -103,9 +106,10 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 
 // TestKeeper_GetSetCurrentPrice Test Setting the median price of an Asset
 func TestKeeper_GetSetCurrentPrice(t *testing.T) {
-	_, addrs := app.GeneratePrivKeyAddressPairs(4)
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmprototypes.Header{})
+	ctx := tApp.NewContext(true, tmprototypes.Header{}).
+		WithBlockTime(time.Now().UTC())
 	keeper := tApp.GetPriceFeedKeeper()
 
 	mp := types.Params{
@@ -114,37 +118,68 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 		},
 	}
 	keeper.SetParams(ctx, mp)
+
 	_, err := keeper.SetPrice(
 		ctx, addrs[0].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.33"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
+
 	_, err = keeper.SetPrice(
 		ctx, addrs[1].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.35"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
+
 	_, err = keeper.SetPrice(
 		ctx, addrs[2].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.34"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
+
+	// Add an expired one which should fail
+	_, err = keeper.SetPrice(
+		ctx, addrs[3].String(), "tstusd",
+		sdk.MustNewDecFromStr("0.9"),
+		ctx.BlockTime().Add(-time.Hour*1))
+	require.Error(t, err)
+
+	// Add a non-expired price, but will not be counted when BlockTime is changed
+	_, err = keeper.SetPrice(
+		ctx, addrs[3].String(), "tstusd",
+		sdk.MustNewDecFromStr("0.9"),
+		time.Now().Add(time.Minute*30))
+	require.NoError(t, err)
+
+	// Update block time such that first 3 prices valid but last one is expired
+	ctx = ctx.WithBlockTime(time.Now().Add(time.Minute * 45))
+
 	// Set current price
 	err = keeper.SetCurrentPrices(ctx, "tstusd")
 	require.NoError(t, err)
-	// Get Current price
+
+	// Get current price
 	price, err := keeper.GetCurrentPrice(ctx, "tstusd")
 	require.Nil(t, err)
-	require.Equal(t, price.Price.Equal(sdk.MustNewDecFromStr("0.34")), true)
+
+	expCurPrice := sdk.MustNewDecFromStr("0.34")
+	require.Truef(
+		t,
+		price.Price.Equal(expCurPrice),
+		"expected current price to equal %v, actual %v",
+		expCurPrice, price.Price,
+	)
 
 	// Even number of oracles
 	_, err = keeper.SetPrice(
-		ctx, addrs[3].String(), "tstusd",
+		ctx, addrs[4].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.36"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
+
 	err = keeper.SetCurrentPrices(ctx, "tstusd")
 	require.NoError(t, err)
+
 	price, err = keeper.GetCurrentPrice(ctx, "tstusd")
 	require.Nil(t, err)
 
@@ -154,4 +189,50 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 		price.Price.String(),
 		exp.String(),
 	)
+
+	prices := keeper.GetCurrentPrices(ctx)
+	require.Equal(t, 1, len(prices))
+	require.Equal(t, price, prices[0])
+}
+
+func TestKeeper_ExpiredSetCurrentPrices(t *testing.T) {
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, tmprototypes.Header{}).
+		WithBlockTime(time.Now().UTC())
+	keeper := tApp.GetPriceFeedKeeper()
+
+	mp := types.Params{
+		Markets: []types.Market{
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+		},
+	}
+	keeper.SetParams(ctx, mp)
+
+	_, err := keeper.SetPrice(
+		ctx, addrs[0].String(), "tstusd",
+		sdk.MustNewDecFromStr("0.33"),
+		time.Now().Add(time.Hour*1))
+	require.NoError(t, err)
+
+	_, err = keeper.SetPrice(
+		ctx, addrs[1].String(), "tstusd",
+		sdk.MustNewDecFromStr("0.35"),
+		time.Now().Add(time.Hour*1))
+	require.NoError(t, err)
+
+	_, err = keeper.SetPrice(
+		ctx, addrs[2].String(), "tstusd",
+		sdk.MustNewDecFromStr("0.34"),
+		time.Now().Add(time.Hour*1))
+	require.NoError(t, err)
+
+	// Update block time such that all prices expire
+	ctx = ctx.WithBlockTime(time.Now().UTC().Add(time.Hour * 2))
+
+	err = keeper.SetCurrentPrices(ctx, "tstusd")
+	require.ErrorIs(t, types.ErrNoValidPrice, err, "there should be no valid prices to be set")
+
+	_, err = keeper.GetCurrentPrice(ctx, "tstusd")
+	require.ErrorIs(t, types.ErrNoValidPrice, err, "current prices should be invalid")
 }

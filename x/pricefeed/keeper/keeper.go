@@ -74,7 +74,7 @@ func (k Keeper) SetPrice(
 	)
 
 	// Sets the raw price for a single oracle instead of an array of all oracle's raw prices
-	store.Set(types.RawPriceKey(MarketID, oracle), k.cdc.MustMarshalLengthPrefixed(&newRawPrice))
+	store.Set(types.RawPriceKey(MarketID, oracle), k.cdc.MustMarshal(&newRawPrice))
 	return newRawPrice, nil
 }
 
@@ -132,7 +132,7 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, MarketID string) error {
 
 func (k Keeper) setCurrentPrice(ctx sdk.Context, MarketID string, currentPrice types.CurrentPrice) {
 	store := ctx.KVStore(k.key)
-	store.Set(types.CurrentPriceKey(MarketID), k.cdc.MustMarshalLengthPrefixed(&currentPrice))
+	store.Set(types.CurrentPriceKey(MarketID), k.cdc.MustMarshal(&currentPrice))
 }
 
 // CalculateMedianPrice calculates the median prices for the input prices.
@@ -172,7 +172,7 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, MarketID string) (types.Current
 		return types.CurrentPrice{}, types.ErrNoValidPrice
 	}
 	var price types.CurrentPrice
-	err := k.cdc.UnmarshalLengthPrefixed(bz, &price)
+	err := k.cdc.Unmarshal(bz, &price)
 	if err != nil {
 		return types.CurrentPrice{}, err
 	}
@@ -189,7 +189,7 @@ func (k Keeper) IterateCurrentPrices(ctx sdk.Context, cb func(cp types.CurrentPr
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cp types.CurrentPrice
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &cp)
+		k.cdc.MustUnmarshal(iterator.Value(), &cp)
 		if cb(cp) {
 			break
 		}
@@ -225,7 +225,7 @@ func (k Keeper) IterateRawPricesByMarket(ctx sdk.Context, MarketID string, cb fu
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.PostedPrice
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &record)
+		k.cdc.MustUnmarshal(iterator.Value(), &record)
 		if cb(record) {
 			break
 		}
