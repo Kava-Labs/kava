@@ -13,19 +13,23 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+
+	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
+	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 )
 
 var (
@@ -47,18 +51,16 @@ type TestApp struct {
 	App
 }
 
+// NewTestApp creates a new TestApp
+//
+// Note, it also sets the sdk config with the app's address prefix, coin type, etc.
 func NewTestApp() TestApp {
-	config := sdk.GetConfig()
-	SetBech32AddressPrefixes(config)
-	SetBip44CoinType(config)
+	SetSDKConfig()
 
-	encCfg := MakeEncodingConfig()
-
-	db := tmdb.NewMemDB()
-	app := NewApp(log.NewNopLogger(), db, nil, encCfg, Options{})
-	return TestApp{App: *app}
+	return NewTestAppFromSealed()
 }
 
+// NewTestAppFromSealed creates a TestApp without first setting sdk config.
 func NewTestAppFromSealed() TestApp {
 	db := tmdb.NewMemDB()
 
@@ -78,20 +80,30 @@ func (tApp TestApp) GetDistrKeeper() distkeeper.Keeper          { return tApp.di
 func (tApp TestApp) GetGovKeeper() govkeeper.Keeper             { return tApp.govKeeper }
 func (tApp TestApp) GetCrisisKeeper() crisiskeeper.Keeper       { return tApp.crisisKeeper }
 func (tApp TestApp) GetParamsKeeper() paramskeeper.Keeper       { return tApp.paramsKeeper }
+func (tApp TestApp) GetKavadistKeeper() kavadistkeeper.Keeper   { return tApp.kavadistKeeper }
+func (tApp TestApp) GetIssuanceKeeper() issuancekeeper.Keeper   { return tApp.issuanceKeeper }
 
 // TODO add back with modules
 // func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
 // func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
 // func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeeper }
-// func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
+// func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper { return tApp.pricefeedKeeper }
 // func (tApp TestApp) GetBep3Keeper() bep3.Keeper           { return tApp.bep3Keeper }
 // func (tApp TestApp) GetKavadistKeeper() kavadist.Keeper   { return tApp.kavadistKeeper }
 // func (tApp TestApp) GetIncentiveKeeper() incentive.Keeper { return tApp.incentiveKeeper }
 // func (tApp TestApp) GetHardKeeper() hard.Keeper           { return tApp.hardKeeper }
 // func (tApp TestApp) GetCommitteeKeeper() committee.Keeper { return tApp.committeeKeeper }
-func (tApp TestApp) GetIssuanceKeeper() issuancekeeper.Keeper { return tApp.issuanceKeeper }
-
 // func (tApp TestApp) GetSwapKeeper() swap.Keeper           { return tApp.swapKeeper }
+
+// LegacyAmino returns the app's amino codec.
+func (app *App) LegacyAmino() *codec.LegacyAmino {
+	return app.legacyAmino
+}
+
+// AppCodec returns the app's app codec.
+func (app *App) AppCodec() codec.Codec {
+	return app.appCodec
+}
 
 // InitializeFromGenesisStates calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
@@ -137,6 +149,16 @@ func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAdd
 	require.Equal(t, expectedCoins, coins)
 }
 
+// FundAccount is a utility function that funds an account by minting and
+// sending the coins to the address.
+func (tApp TestApp) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
+	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
+		return err
+	}
+
+	return tApp.bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
+}
+
 // GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
 func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk.AccAddress) {
 	r := rand.New(rand.NewSource(12345)) // make the generation deterministic
@@ -154,16 +176,47 @@ func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk
 	return
 }
 
-// Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.
-func NewAuthGenState(cdc codec.JSONCodec, addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
-	// Create GenAccounts
-	accounts := authtypes.GenesisAccounts{}
-	for i := range addresses {
-		accounts = append(accounts, authtypes.NewBaseAccount(addresses[i], nil, 0, 0))
+// TODO:
+// // Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.
+// func NewAuthGenState(cdc codec.JSONCodec, addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
+// 	// Create GenAccounts
+// 	accounts := authtypes.GenesisAccounts{}
+// 	for i := range addresses {
+// 		accounts = append(accounts, authtypes.NewBaseAccount(addresses[i], nil, 0, 0))
+// 	}
+// 	// Create the auth genesis state
+// 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
+// 	return GenesisState{authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis)}
+// }
+
+// NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
+func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) GenesisState {
+	balances := make([]banktypes.Balance, len(addresses))
+	for i, addr := range addresses {
+		balances[i] = banktypes.Balance{
+			Address: addr.String(),
+			Coins:   balance,
+		}
 	}
-	// Create the auth genesis state
+
+	bankGenesis := banktypes.NewGenesisState(
+		banktypes.DefaultParams(),
+		balances,
+		nil,
+		[]banktypes.Metadata{}, // Metadata is not widely used in the sdk or kava
+	)
+
+	accounts := make(authtypes.GenesisAccounts, len(addresses))
+	for i := range addresses {
+		accounts[i] = authtypes.NewBaseAccount(addresses[i], nil, 0, 0)
+	}
+
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
-	return GenesisState{authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis)}
+
+	return GenesisState{
+		authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis),
+		banktypes.ModuleName: cdc.MustMarshalJSON(bankGenesis),
+	}
 }
 
 // TODO move auth builder to a new package
