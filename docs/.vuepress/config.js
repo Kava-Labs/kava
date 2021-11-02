@@ -17,6 +17,11 @@ module.exports = {
               path: "/Modules",
               directory: true
             },
+            {
+              title: "CLI",
+              path: "/cli",
+              directory: true,
+            }
           ]
         },
         {

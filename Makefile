@@ -191,6 +191,9 @@ start-remote-sims:
 ########################################
 ### Documentation
 
+docs-cli-gen:
+	go run $(BUILD_FLAGS) ./docs/gen-cli-docs.go
+
 # Start docs site at localhost:8080
 docs-develop:
 	@cd docs && \
