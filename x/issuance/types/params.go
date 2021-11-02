@@ -105,6 +105,9 @@ func (a Asset) String() string {
 func ValidateAssets(as []*Asset) error {
 	assetDenoms := make(map[string]bool)
 	for _, a := range as {
+		if a == nil {
+			return fmt.Errorf("cannot have nil asset")
+		}
 		if assetDenoms[a.Denom] {
 			return fmt.Errorf("cannot have duplicate asset denoms: %s", a.Denom)
 		}
