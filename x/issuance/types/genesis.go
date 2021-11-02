@@ -1,7 +1,5 @@
 package types
 
-import "bytes"
-
 var (
 	// DefaultSupplies is used to set default asset supplies in default genesis state
 	DefaultSupplies = []AssetSupply{}
@@ -33,16 +31,4 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 	return gs.Params.Validate()
-}
-
-// Equal checks whether two GenesisState structs are equivalent
-func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	b1 := ModuleCdc.MustMarshal(&gs)
-	b2 := ModuleCdc.MustMarshal(&gs2)
-	return bytes.Equal(b1, b2)
-}
-
-// IsEmpty returns true if a GenesisState is empty
-func (gs GenesisState) IsEmpty() bool {
-	return gs.Equal(GenesisState{})
 }

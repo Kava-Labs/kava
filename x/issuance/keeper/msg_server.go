@@ -9,13 +9,13 @@ import (
 )
 
 type msgServer struct {
-	Keeper
+	keeper Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the swap MsgServer interface
 // for the provided Keeper.
 func NewMsgServerImpl(keeper Keeper) types.MsgServer {
-	return &msgServer{Keeper: keeper}
+	return &msgServer{keeper: keeper}
 }
 
 var _ types.MsgServer = msgServer{}
@@ -33,7 +33,7 @@ func (k msgServer) IssueTokens(goCtx context.Context, msg *types.MsgIssueTokens)
 		return nil, err
 	}
 
-	err = k.IssueTokensInternal(ctx, msg.Tokens, sender, receiver)
+	err = k.keeper.IssueTokens(ctx, msg.Tokens, sender, receiver)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (k msgServer) RedeemTokens(goCtx context.Context, msg *types.MsgRedeemToken
 		return nil, err
 	}
 
-	err = k.RedeemTokensInternal(ctx, msg.Tokens, sender)
+	err = k.keeper.RedeemTokens(ctx, msg.Tokens, sender)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (k msgServer) BlockAddress(goCtx context.Context, msg *types.MsgBlockAddres
 		return nil, err
 	}
 
-	err = k.BlockAddressInternal(ctx, msg.Denom, sender, blockedAddress)
+	err = k.keeper.BlockAddress(ctx, msg.Denom, sender, blockedAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (k msgServer) UnblockAddress(goCtx context.Context, msg *types.MsgUnblockAd
 		return nil, err
 	}
 
-	err = k.UnblockAddressInternal(ctx, msg.Denom, sender, blockedAddress)
+	err = k.keeper.UnblockAddress(ctx, msg.Denom, sender, blockedAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (k msgServer) SetPauseStatus(goCtx context.Context, msg *types.MsgSetPauseS
 		return nil, err
 	}
 
-	err = k.SetPauseStatusInternal(ctx, sender, msg.Denom, msg.Status)
+	err = k.keeper.SetPauseStatus(ctx, sender, msg.Denom, msg.Status)
 	if err != nil {
 		return nil, err
 	}

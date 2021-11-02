@@ -73,8 +73,7 @@ import (
 )
 
 const (
-	appName              = "kava"
-	AccountAddressPrefix = "kava"
+	appName = "kava"
 )
 
 var (

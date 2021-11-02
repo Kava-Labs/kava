@@ -176,19 +176,6 @@ func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk
 	return
 }
 
-// TODO:
-// // Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.
-// func NewAuthGenState(cdc codec.JSONCodec, addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
-// 	// Create GenAccounts
-// 	accounts := authtypes.GenesisAccounts{}
-// 	for i := range addresses {
-// 		accounts = append(accounts, authtypes.NewBaseAccount(addresses[i], nil, 0, 0))
-// 	}
-// 	// Create the auth genesis state
-// 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
-// 	return GenesisState{authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis)}
-// }
-
 // NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
 func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) GenesisState {
 	balances := make([]banktypes.Balance, len(addresses))

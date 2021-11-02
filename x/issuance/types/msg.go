@@ -59,7 +59,10 @@ func (msg MsgIssueTokens) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgIssueTokens) GetSigners() []sdk.AccAddress {
-	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{sender}
 }
 
@@ -96,7 +99,10 @@ func (msg MsgRedeemTokens) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgRedeemTokens) GetSigners() []sdk.AccAddress {
-	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{sender}
 }
 
@@ -134,7 +140,10 @@ func (msg MsgBlockAddress) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgBlockAddress) GetSigners() []sdk.AccAddress {
-	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{sender}
 }
 
@@ -172,7 +181,10 @@ func (msg MsgUnblockAddress) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgUnblockAddress) GetSigners() []sdk.AccAddress {
-	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{sender}
 }
 
@@ -207,6 +219,9 @@ func (msg MsgSetPauseStatus) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgSetPauseStatus) GetSigners() []sdk.AccAddress {
-	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{sender}
 }

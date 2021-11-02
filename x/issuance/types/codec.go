@@ -16,7 +16,7 @@ var (
 	// ONLY be used in certain instances of tests and for JSON encoding as Amino is
 	// still used for that purpose.
 	//
-	// The actual codec used for serialization should be provided to x/gov and
+	// The actual codec used for serialization should be provided to x/issuance and
 	// defined at the application level.
 	ModuleCdc = codec.NewAminoCodec(amino)
 )
@@ -29,7 +29,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgBlockAddress{}, "issuance/MsgBlockAddress", nil)
 	cdc.RegisterConcrete(&MsgUnblockAddress{}, "issuance/MsgUnblockAddress", nil)
 	cdc.RegisterConcrete(&MsgSetPauseStatus{}, "issuance/MsgChangePauseStatus", nil)
-	cdc.RegisterConcrete(Asset{}, "issuance/Asset", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
