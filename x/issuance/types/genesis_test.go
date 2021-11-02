@@ -46,7 +46,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"default",
 			args{
 				assets:   types.DefaultAssets,
-				supplies: types.DefaultAssetSupplies,
+				supplies: types.DefaultSupplies,
 			},
 			errArgs{
 				expectPass: true,

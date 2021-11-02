@@ -108,7 +108,7 @@ GenesisState defines the issuance module's genesis state.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#kava.issuance.v1beta1.Params) |  | params defines all the paramaters of the module. |
-| `asset_supplies` | [AssetSupply](#kava.issuance.v1beta1.AssetSupply) | repeated |  |
+| `supplies` | [AssetSupply](#kava.issuance.v1beta1.AssetSupply) | repeated |  |
 
 
 

@@ -11,8 +11,8 @@ message GenesisState {
   // params defines all the paramaters of the module.
   Params params = 1 [(gogoproto.nullable) = false];
 
-  repeated AssetSupply asset_supplies = 2
-      [(gogoproto.moretags) = "yaml:\"asset_supplies,omitempty\"", (gogoproto.nullable) = false];
+  repeated AssetSupply supplies = 2
+      [(gogoproto.moretags) = "yaml:\"supplies,omitempty\"", (gogoproto.nullable) = false];
 }
 
 // Params defines the parameters for the issuance module.

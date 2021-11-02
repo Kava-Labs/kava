@@ -3,30 +3,30 @@ package types
 import "bytes"
 
 var (
-	// DefaultAssetSupplies is used to set default asset supplies in default genesis state
-	DefaultAssetSupplies = []AssetSupply{}
+	// DefaultSupplies is used to set default asset supplies in default genesis state
+	DefaultSupplies = []AssetSupply{}
 )
 
 // NewGenesisState returns a new GenesisState
-func NewGenesisState(params Params, assetSupplies []AssetSupply) GenesisState {
+func NewGenesisState(params Params, supplies []AssetSupply) GenesisState {
 	return GenesisState{
-		Params:        params,
-		AssetSupplies: assetSupplies,
+		Params:   params,
+		Supplies: supplies,
 	}
 }
 
 // DefaultGenesisState returns the default GenesisState for the issuance module
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params:        DefaultParams(),
-		AssetSupplies: DefaultAssetSupplies,
+		Params:   DefaultParams(),
+		Supplies: DefaultSupplies,
 	}
 }
 
 // Validate performs basic validation of genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
-	for _, supply := range gs.AssetSupplies {
+	for _, supply := range gs.Supplies {
 		err := supply.Validate()
 		if err != nil {
 			return err

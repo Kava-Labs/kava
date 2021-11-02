@@ -24,7 +24,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper types.AccountKe
 
 	k.SetParams(ctx, gs.Params)
 
-	for _, supply := range gs.AssetSupplies {
+	for _, supply := range gs.Supplies {
 		k.SetAssetSupply(ctx, supply, supply.GetDenom())
 	}
 
