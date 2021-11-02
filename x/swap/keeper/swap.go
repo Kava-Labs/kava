@@ -9,8 +9,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// ExecuteSwapExactForTokens swaps an exact coin a input for a coin b output
-func (k *Keeper) ExecuteSwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, exactCoinA, coinB sdk.Coin, slippageLimit sdk.Dec) error {
+// SwapExactForTokens swaps an exact coin a input for a coin b output
+func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, exactCoinA, coinB sdk.Coin, slippageLimit sdk.Dec) error {
 	poolID, pool, err := k.loadPool(ctx, exactCoinA.Denom, coinB.Denom)
 	if err != nil {
 		return err

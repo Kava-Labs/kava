@@ -10,18 +10,18 @@ import (
 )
 
 type msgServer struct {
-	Keeper
+	keeper Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the swap MsgServer interface
 // for the provided Keeper.
 func NewMsgServerImpl(keeper Keeper) types.MsgServer {
-	return &msgServer{Keeper: keeper}
+	return &msgServer{keeper: keeper}
 }
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
+func (m msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := checkDeadline(ctx, msg); err != nil {
@@ -33,7 +33,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return nil, err
 	}
 
-	if err := k.DepositLiquidity(ctx, depositor, msg.TokenA, msg.TokenB, msg.Slippage); err != nil {
+	if err := m.keeper.Deposit(ctx, depositor, msg.TokenA, msg.TokenB, msg.Slippage); err != nil {
 		return nil, err
 	}
 
@@ -48,7 +48,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	return &types.MsgDepositResponse{}, nil
 }
 
-func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
+func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := checkDeadline(ctx, msg); err != nil {
@@ -60,7 +60,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, err
 	}
 
-	if err := k.WithdrawLiquidity(ctx, from, msg.Shares, msg.MinTokenA, msg.MinTokenB); err != nil {
+	if err := m.keeper.Withdraw(ctx, from, msg.Shares, msg.MinTokenA, msg.MinTokenB); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +75,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	return &types.MsgWithdrawResponse{}, nil
 }
 
-func (k msgServer) SwapExactForTokens(goCtx context.Context, msg *types.MsgSwapExactForTokens) (*types.MsgSwapExactForTokensResponse, error) {
+func (m msgServer) SwapExactForTokens(goCtx context.Context, msg *types.MsgSwapExactForTokens) (*types.MsgSwapExactForTokensResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := checkDeadline(ctx, msg); err != nil {
@@ -87,7 +87,7 @@ func (k msgServer) SwapExactForTokens(goCtx context.Context, msg *types.MsgSwapE
 		return nil, err
 	}
 
-	if err := k.ExecuteSwapExactForTokens(ctx, requester, msg.ExactTokenA, msg.TokenB, msg.Slippage); err != nil {
+	if err := m.keeper.SwapExactForTokens(ctx, requester, msg.ExactTokenA, msg.TokenB, msg.Slippage); err != nil {
 		return nil, err
 	}
 
@@ -102,7 +102,7 @@ func (k msgServer) SwapExactForTokens(goCtx context.Context, msg *types.MsgSwapE
 	return &types.MsgSwapExactForTokensResponse{}, nil
 }
 
-func (k msgServer) SwapForExactTokens(goCtx context.Context, msg *types.MsgSwapForExactTokens) (*types.MsgSwapForExactTokensResponse, error) {
+func (m msgServer) SwapForExactTokens(goCtx context.Context, msg *types.MsgSwapForExactTokens) (*types.MsgSwapForExactTokensResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := checkDeadline(ctx, msg); err != nil {
@@ -114,7 +114,7 @@ func (k msgServer) SwapForExactTokens(goCtx context.Context, msg *types.MsgSwapF
 		return nil, err
 	}
 
-	if err := k.ExecuteSwapForExactTokens(ctx, requester, msg.TokenA, msg.ExactTokenB, msg.Slippage); err != nil {
+	if err := m.keeper.ExecuteSwapForExactTokens(ctx, requester, msg.TokenA, msg.ExactTokenB, msg.Slippage); err != nil {
 		return nil, err
 	}
 

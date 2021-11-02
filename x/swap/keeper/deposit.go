@@ -37,7 +37,7 @@ import (
 //
 // These slippages can be calculated by S_B = ((A/B')/(A/B) - 1) and S_A ((B/A')/(B/A) - 1), simplifying to
 // S_B = (A/A' - 1), and S_B = (B/B' - 1).  An error is returned when max(S_A, S_B) > slippageLimit.
-func (k Keeper) DepositLiquidity(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coin, coinB sdk.Coin, slippageLimit sdk.Dec) error {
+func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coin, coinB sdk.Coin, slippageLimit sdk.Dec) error {
 	desiredAmount := sdk.NewCoins(coinA, coinB)
 
 	poolID := types.PoolIDFromCoins(desiredAmount)
