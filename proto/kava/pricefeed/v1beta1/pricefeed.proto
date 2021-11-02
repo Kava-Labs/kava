@@ -5,6 +5,8 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
+option (gogoproto.equal_all) = true;
+option (gogoproto.verbose_equal_all) = true;
 
 // Market defines an asset in the pricefeed.
 message Market {
