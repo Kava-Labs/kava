@@ -1,4 +1,4 @@
-package keeper
+package swap
 
 import (
 	"context"
@@ -6,16 +6,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/kava-labs/kava/x/swap/keeper"
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
 type msgServer struct {
-	keeper Keeper
+	keeper keeper.Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the swap MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
+func NewMsgServerImpl(keeper keeper.Keeper) types.MsgServer {
 	return &msgServer{keeper: keeper}
 }
 
