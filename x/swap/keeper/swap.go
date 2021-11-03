@@ -33,8 +33,8 @@ func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, e
 	return nil
 }
 
-// ExecuteSwapForExactTokens swaps a coin a input for an exact coin b output
-func (k *Keeper) ExecuteSwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, coinA, exactCoinB sdk.Coin, slippageLimit sdk.Dec) error {
+// SwapForExactTokens swaps a coin a input for an exact coin b output
+func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, coinA, exactCoinB sdk.Coin, slippageLimit sdk.Dec) error {
 	poolID, pool, err := k.loadPool(ctx, coinA.Denom, exactCoinB.Denom)
 	if err != nil {
 		return err

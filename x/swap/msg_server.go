@@ -115,7 +115,7 @@ func (m msgServer) SwapForExactTokens(goCtx context.Context, msg *types.MsgSwapF
 		return nil, err
 	}
 
-	if err := m.keeper.ExecuteSwapForExactTokens(ctx, requester, msg.TokenA, msg.ExactTokenB, msg.Slippage); err != nil {
+	if err := m.keeper.SwapForExactTokens(ctx, requester, msg.TokenA, msg.ExactTokenB, msg.Slippage); err != nil {
 		return nil, err
 	}
 
