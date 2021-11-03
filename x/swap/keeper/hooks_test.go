@@ -15,7 +15,7 @@ func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
 
 	pool := types.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
 
 	balance := sdk.NewCoins(
 		sdk.NewCoin(pool.TokenA, sdk.NewInt(1000e6)),
@@ -121,7 +121,7 @@ func (suite *keeperTestSuite) TestHooks_NoPanicsOnNilHooks() {
 
 	pool := types.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
 
 	balance := sdk.NewCoins(
 		sdk.NewCoin(pool.TokenA, sdk.NewInt(1000e6)),
@@ -155,7 +155,7 @@ func (suite *keeperTestSuite) TestHooks_HookOrdering() {
 
 	pool := types.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
 
 	balance := sdk.NewCoins(
 		sdk.NewCoin(pool.TokenA, sdk.NewInt(1000e6)),

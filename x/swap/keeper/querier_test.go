@@ -110,7 +110,7 @@ package keeper_test
 // 	suite.Keeper.SetPool(suite.Ctx, poolRecordAC)
 
 // 	// Build a map of pools to compare to query results
-// 	pools := []types.PoolRecord{poolRecordAB, poolRecordAC}
+// 	pools := types.PoolRecords{poolRecordAB, poolRecordAC}
 // 	poolsMap := make(map[string]types.PoolRecord)
 // 	for _, pool := range pools {
 // 		poolsMap[pool.PoolID] = pool

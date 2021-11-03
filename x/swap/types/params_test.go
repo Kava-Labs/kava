@@ -18,7 +18,7 @@ import (
 )
 
 func TestParams_UnmarshalJSON(t *testing.T) {
-	pools := []types.AllowedPool{
+	pools := types.AllowedPools{
 		types.NewAllowedPool("hard", "ukava"),
 		types.NewAllowedPool("hard", "usdx"),
 	}
@@ -44,7 +44,7 @@ func TestParams_UnmarshalJSON(t *testing.T) {
 }
 
 func TestParams_MarshalYAML(t *testing.T) {
-	pools := []types.AllowedPool{
+	pools := types.AllowedPools{
 		types.NewAllowedPool("hard", "ukava"),
 		types.NewAllowedPool("hard", "usdx"),
 	}
@@ -94,7 +94,7 @@ func TestParams_ParamSetPairs_AllowedPools(t *testing.T) {
 	}
 	require.NotNil(t, paramSetPair)
 
-	pairs, _ := paramSetPair.Value.([]types.AllowedPool)
+	pairs, _ := paramSetPair.Value.(types.AllowedPools)
 	// TODO: validate type
 	// require.True(t, ok)
 	// assert.Equal(t, pairs, defaultParams.AllowedPools)
@@ -145,7 +145,7 @@ func TestParams_Validation(t *testing.T) {
 			name: "duplicate pools",
 			key:  types.KeyAllowedPools,
 			testFn: func(params *types.Params) {
-				params.AllowedPools = []types.AllowedPool{types.NewAllowedPool("ukava", "ukava")}
+				params.AllowedPools = types.AllowedPools{types.NewAllowedPool("ukava", "ukava")}
 			},
 			expectedErr: "pool cannot have two tokens of the same type, received 'ukava' and 'ukava'",
 		},
@@ -222,7 +222,7 @@ func TestParams_Validation(t *testing.T) {
 
 func TestParams_String(t *testing.T) {
 	params := types.NewParams(
-		[]types.AllowedPool{
+		types.AllowedPools{
 			types.NewAllowedPool("hard", "ukava"),
 			types.NewAllowedPool("ukava", "usdx"),
 		},
@@ -368,7 +368,7 @@ func TestAllowedPool_Name(t *testing.T) {
 func TestAllowedPools_Validate(t *testing.T) {
 	testCases := []struct {
 		name         string
-		allowedPools []types.AllowedPool
+		allowedPools types.AllowedPools
 		expectedErr  string
 	}{
 		// TODO: coin.Validate() has changed to allowed uppercase tokens
@@ -382,7 +382,7 @@ func TestAllowedPools_Validate(t *testing.T) {
 		// },
 		{
 			name: "duplicate pool",
-			allowedPools: []types.AllowedPool{
+			allowedPools: types.AllowedPools{
 				types.NewAllowedPool("hard", "ukava"),
 				types.NewAllowedPool("hard", "ukava"),
 			},
@@ -390,7 +390,7 @@ func TestAllowedPools_Validate(t *testing.T) {
 		},
 		{
 			name: "duplicate pools",
-			allowedPools: []types.AllowedPool{
+			allowedPools: types.AllowedPools{
 				types.NewAllowedPool("hard", "ukava"),
 				types.NewAllowedPool("bnb", "usdx"),
 				types.NewAllowedPool("btcb", "xrpb"),
@@ -402,7 +402,7 @@ func TestAllowedPools_Validate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := types.ValidateAllowedPools(tc.allowedPools)
+			err := tc.allowedPools.Validate()
 			assert.EqualError(t, err, tc.expectedErr)
 		})
 	}

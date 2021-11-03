@@ -51,7 +51,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	var records []types.ShareRecord
+	var records types.ShareRecords
 	if len(params.Owner) > 0 {
 		records = k.GetAllDepositorSharesByOwner(ctx, params.Owner)
 	} else {
@@ -133,8 +133,8 @@ func queryGetPools(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQueri
 
 // filterShareRecords retrieves share records filtered by a given set of params.
 // If no filters are provided, all share records will be returned in paginated form.
-func filterShareRecords(ctx sdk.Context, records []types.ShareRecord, params types.QueryDepositsParams) []types.ShareRecord {
-	filteredRecords := make([]types.ShareRecord, 0, len(records))
+func filterShareRecords(ctx sdk.Context, records types.ShareRecords, params types.QueryDepositsParams) types.ShareRecords {
+	filteredRecords := make(types.ShareRecords, 0, len(records))
 
 	for _, s := range records {
 		matchOwner, matchPool := true, true
@@ -156,7 +156,7 @@ func filterShareRecords(ctx sdk.Context, records []types.ShareRecord, params typ
 
 	start, end := client.Paginate(len(filteredRecords), params.Page, params.Limit, 100)
 	if start < 0 || end < 0 {
-		filteredRecords = []types.ShareRecord{}
+		filteredRecords = types.ShareRecords{}
 	} else {
 		filteredRecords = filteredRecords[start:end]
 	}

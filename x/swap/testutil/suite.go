@@ -116,7 +116,7 @@ func (suite *Suite) CreatePool(reserves sdk.Coins) error {
 	depositor := suite.CreateAccount(reserves)
 	pool := types.NewAllowedPool(reserves[0].Denom, reserves[1].Denom)
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, defaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, defaultSwapFee))
 
 	return suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdk.MustNewDecFromStr("1"))
 }

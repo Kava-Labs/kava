@@ -11,13 +11,13 @@ import (
 var (
 	KeyAllowedPools     = []byte("AllowedPools")
 	KeySwapFee          = []byte("SwapFee")
-	DefaultAllowedPools = []AllowedPool{}
+	DefaultAllowedPools = AllowedPools{}
 	DefaultSwapFee      = sdk.ZeroDec()
 	MaxSwapFee          = sdk.OneDec()
 )
 
 // NewParams returns a new params object
-func NewParams(pairs []AllowedPool, swapFee sdk.Dec) Params {
+func NewParams(pairs AllowedPools, swapFee sdk.Dec) Params {
 	return Params{
 		AllowedPools: pairs,
 		SwapFee:      swapFee,
@@ -63,12 +63,12 @@ func (p Params) Validate() error {
 }
 
 func validateAllowedPoolsParams(i interface{}) error {
-	p, ok := i.([]AllowedPool)
+	p, ok := i.(AllowedPools)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	return ValidateAllowedPools(p)
+	return p.Validate()
 }
 
 func validateSwapFee(i interface{}) error {
@@ -135,7 +135,16 @@ func (p AllowedPool) String() string {
 `, p.Name(), p.TokenA, p.TokenB)
 }
 
-func ValidateAllowedPools(p []AllowedPool) error {
+// AllowedPools is a slice of AllowedPool
+type AllowedPools []AllowedPool
+
+// NewAllowedPools returns AllowedPools from the provided values
+func NewAllowedPools(allowedPools ...AllowedPool) AllowedPools {
+	return AllowedPools(allowedPools)
+}
+
+// Validate validates each allowedPool and returns an error if there are any duplicates
+func (p AllowedPools) Validate() error {
 	seenAllowedPools := make(map[string]bool)
 	for _, allowedPool := range p {
 		err := allowedPool.Validate()
@@ -151,12 +160,3 @@ func ValidateAllowedPools(p []AllowedPool) error {
 
 	return nil
 }
-
-// // String implements stringer
-// func (p AllowedPools) String() string {
-// 	out := ""
-// 	for _, pool := range p.Content {
-// 		out += pool.String() + "\n"
-// 	}
-// 	return out
-// }

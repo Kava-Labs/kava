@@ -58,7 +58,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds() {
 
 			pool := types.NewAllowedPool(tc.depositA.Denom, tc.depositB.Denom)
 			suite.Require().NoError(pool.Validate())
-			suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
+			suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
 
 			balance := sdk.NewCoins(tc.balanceA, tc.balanceB)
 			// balance.Sort() // TODO was this important?
@@ -123,7 +123,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds_Vesting() {
 
 			pool := types.NewAllowedPool(tc.depositA.Denom, tc.depositB.Denom)
 			suite.Require().NoError(pool.Validate())
-			suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
+			suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
 
 			balance := sdk.NewCoins(tc.balanceA, tc.balanceB)
 			balance.Sort()
@@ -149,7 +149,7 @@ func (suite *keeperTestSuite) TestDeposit_InsufficientFunds_Vesting() {
 func (suite *keeperTestSuite) TestDeposit_CreatePool() {
 	pool := types.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
-	suite.Keeper.SetParams(suite.Ctx, types.NewParams([]types.AllowedPool{pool}, types.DefaultSwapFee))
+	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
 
 	amountA := sdk.NewCoin(pool.TokenA, sdk.NewInt(11e6))
 	amountB := sdk.NewCoin(pool.TokenB, sdk.NewInt(51e6))

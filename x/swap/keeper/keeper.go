@@ -133,7 +133,7 @@ func (k Keeper) IteratePools(ctx sdk.Context, cb func(record types.PoolRecord) (
 }
 
 // GetAllPools returns all pool records from the store
-func (k Keeper) GetAllPools(ctx sdk.Context) (records []types.PoolRecord) {
+func (k Keeper) GetAllPools(ctx sdk.Context) (records types.PoolRecords) {
 	k.IteratePools(ctx, func(record types.PoolRecord) bool {
 		records = append(records, record)
 		return false
@@ -203,7 +203,7 @@ func (k Keeper) IterateDepositorShares(ctx sdk.Context, cb func(record types.Sha
 }
 
 // GetAllDepositorShares returns all depositor share records from the store
-func (k Keeper) GetAllDepositorShares(ctx sdk.Context) (records []types.ShareRecord) {
+func (k Keeper) GetAllDepositorShares(ctx sdk.Context) (records types.ShareRecords) {
 	k.IterateDepositorShares(ctx, func(record types.ShareRecord) bool {
 		records = append(records, record)
 		return false
@@ -226,7 +226,7 @@ func (k Keeper) IterateDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddr
 }
 
 // GetAllDepositorSharesByOwner returns all depositor share records from the store for a specific address
-func (k Keeper) GetAllDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddress) (records []types.ShareRecord) {
+func (k Keeper) GetAllDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddress) (records types.ShareRecords) {
 	k.IterateDepositorSharesByOwner(ctx, owner, func(record types.ShareRecord) bool {
 		records = append(records, record)
 		return false

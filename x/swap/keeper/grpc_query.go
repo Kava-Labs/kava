@@ -79,7 +79,7 @@ func (k Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 	ctx := sdk.UnwrapSDKContext(c)
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
 
-	records := []types.ShareRecord{}
+	records := types.ShareRecords{}
 	pageRes, err := query.FilteredPaginate(
 		store,
 		req.Pagination,

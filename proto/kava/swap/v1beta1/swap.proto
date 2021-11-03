@@ -12,7 +12,7 @@ message Params {
   option (gogoproto.goproto_stringer) = false; // false here because we define Stringer method in params.go
 
   // allowed_pools defines that pools that are allowed to be created
-  repeated AllowedPool allowed_pools = 1 [(gogoproto.nullable) = false];
+  repeated AllowedPool allowed_pools = 1 [(gogoproto.castrepeated) = "AllowedPools", (gogoproto.nullable) = false];
   // swap_fee defines the swap fee for all pools
   string swap_fee = 2 [
     (cosmos_proto.scalar)  = "cosmos.Dec",

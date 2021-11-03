@@ -39,7 +39,7 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 	// slices are sorted by key as stored in the data store, so init and export can be compared with equal
 	state := types.NewGenesisState(
 		types.Params{
-			AllowedPools: []types.AllowedPool{types.NewAllowedPool("ukava", "usdx")},
+			AllowedPools: types.AllowedPools{types.NewAllowedPool("ukava", "usdx")},
 			SwapFee:      sdk.MustNewDecFromStr("0.00255"),
 		},
 		types.PoolRecords{
@@ -78,7 +78,7 @@ func (suite *genesisTestSuite) Test_Marshall() {
 	// slices are sorted by key as stored in the data store, so init and export can be compared with equal
 	state := types.NewGenesisState(
 		types.Params{
-			AllowedPools: []types.AllowedPool{types.NewAllowedPool("ukava", "usdx")},
+			AllowedPools: types.AllowedPools{types.NewAllowedPool("ukava", "usdx")},
 			SwapFee:      sdk.MustNewDecFromStr("0.00255"),
 		},
 		types.PoolRecords{
@@ -113,7 +113,7 @@ func (suite *genesisTestSuite) Test_LegacyJSONConversion() {
 	// slices are sorted by key as stored in the data store, so init and export can be compared with equal
 	state := types.NewGenesisState(
 		types.Params{
-			AllowedPools: []types.AllowedPool{types.NewAllowedPool("ukava", "usdx")},
+			AllowedPools: types.AllowedPools{types.NewAllowedPool("ukava", "usdx")},
 			SwapFee:      sdk.MustNewDecFromStr("0.00255"),
 		},
 		types.PoolRecords{

@@ -59,7 +59,7 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 	keeper := suite.Keeper
 
 	params := types.Params{
-		AllowedPools: []types.AllowedPool{
+		AllowedPools: types.AllowedPools{
 			types.NewAllowedPool("ukava", "usdx"),
 		},
 		SwapFee: sdk.MustNewDecFromStr("0.03"),
@@ -69,7 +69,7 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 
 	oldParams := params
 	params = types.Params{
-		AllowedPools: []types.AllowedPool{
+		AllowedPools: types.AllowedPools{
 			types.NewAllowedPool("hard", "ukava"),
 		},
 		SwapFee: sdk.MustNewDecFromStr("0.01"),
