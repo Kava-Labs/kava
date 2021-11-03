@@ -103,11 +103,11 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 		p.reservesA = desiredA
 		p.reservesB = desiredB
 		p.totalShares = calculateInitialShares(desiredA, desiredB)
-		return p.reservesA, p.reservesB, p.totalShares
+		return p.ReservesA(), p.ReservesB(), p.TotalShares()
 	}
 
 	// Panics if reserveA or reserveB is zero.
-	p.assertreservesArePositive()
+	p.assertReservesArePositive()
 
 	// In order to preserve the reserve ratio of the pool, we must deposit
 	// A and B in the same ratio of the existing reserves.  In addition,
@@ -212,7 +212,7 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 
 	// Panics if reserveA or reserveB are negative
 	// A zero value (100% withdraw) is OK and should not panic.
-	p.assertreservesAreNotNegative()
+	p.assertReservesAreNotNegative()
 
 	return withdrawA, withdrawB
 }
@@ -337,17 +337,17 @@ func (p *BasePool) ShareValue(shares sdk.Int) (sdk.Int, sdk.Int) {
 
 // assertInvariantAndUpdateRerserves asserts the constant product invariant is not violated, subtracting
 // any fees first, then updates the pool reserves.  Panics if invariant is violated.
-func (p *BasePool) assertInvariantAndUpdateReserves(newreservesA, feeA, newreservesB, feeB sdk.Int) {
+func (p *BasePool) assertInvariantAndUpdateReserves(newReservesA, feeA, newReservesB, feeB sdk.Int) {
 	var invariant big.Int
 	invariant.Mul(p.reservesA.BigInt(), p.reservesB.BigInt())
 
 	var newInvariant big.Int
-	newInvariant.Mul(newreservesA.Sub(feeA).BigInt(), newreservesB.Sub(feeB).BigInt())
+	newInvariant.Mul(newReservesA.Sub(feeA).BigInt(), newReservesB.Sub(feeB).BigInt())
 
 	p.assertInvariant(&invariant, &newInvariant)
 
-	p.reservesA = newreservesA
-	p.reservesB = newreservesB
+	p.reservesA = newReservesA
+	p.reservesB = newReservesB
 }
 
 // assertSwapInputIsValid checks if the provided swap input is positive
@@ -402,9 +402,9 @@ func (p *BasePool) assertDepositsArePositive(depositA, depositB sdk.Int) {
 	}
 }
 
-// assertreservesArePositive panics if any reserves are zero.  This is an invalid
+// assertReservesArePositive panics if any reserves are zero.  This is an invalid
 // state that should never happen.  If this panic is seen, it is a bug.
-func (p *BasePool) assertreservesArePositive() {
+func (p *BasePool) assertReservesArePositive() {
 	if !p.reservesA.IsPositive() {
 		panic("invalid state: reserves A must be positive")
 	}
@@ -414,9 +414,9 @@ func (p *BasePool) assertreservesArePositive() {
 	}
 }
 
-// assertreservesAreNotNegative panics if any reserves are negative.  This is an invalid
+// assertReservesAreNotNegative panics if any reserves are negative.  This is an invalid
 // state that should never happen.  If this panic is seen, it is a bug.
-func (p *BasePool) assertreservesAreNotNegative() {
+func (p *BasePool) assertReservesAreNotNegative() {
 	if p.reservesA.IsNegative() {
 		panic("invalid state: reserves A can not be negative")
 	}
