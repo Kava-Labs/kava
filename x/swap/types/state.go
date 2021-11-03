@@ -93,8 +93,11 @@ func (p PoolRecord) Reserves() sdk.Coins {
 	return sdk.NewCoins(p.ReservesA, p.ReservesB)
 }
 
-// ValidatePoolRecords performs basic validation checks on all records in the slice
-func ValidatePoolRecords(prs []PoolRecord) error {
+// PoolRecords is a slice of PoolRecord
+type PoolRecords []PoolRecord
+
+// Validate performs basic validation checks on all records in the slice
+func (prs PoolRecords) Validate() error {
 	seenPoolIDs := make(map[string]bool)
 
 	for _, p := range prs {
@@ -147,8 +150,11 @@ func (sr ShareRecord) Validate() error {
 	return nil
 }
 
-// ValidateShareRecords performs basic validation checks on all records in the slice
-func ValidateShareRecords(srs []ShareRecord) error {
+// ShareRecords is a slice of ShareRecord
+type ShareRecords []ShareRecord
+
+// Validate performs basic validation checks on all records in the slice
+func (srs ShareRecords) Validate() error {
 	seenDepositors := make(map[string]map[string]bool)
 
 	for _, sr := range srs {

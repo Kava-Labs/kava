@@ -33,10 +33,10 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	if err := ValidatePoolRecords(gs.PoolRecords); err != nil {
+	if err := gs.PoolRecords.Validate(); err != nil {
 		return err
 	}
-	if err := ValidateShareRecords(gs.ShareRecords); err != nil {
+	if err := gs.ShareRecords.Validate(); err != nil {
 		return err
 	}
 

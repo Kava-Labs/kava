@@ -310,13 +310,13 @@ func TestState_PoolRecords_Validation(t *testing.T) {
 		i(-1),
 	)
 
-	records := []types.PoolRecord{
+	records := types.PoolRecords{
 		validRecord,
 	}
-	assert.NoError(t, types.ValidatePoolRecords(records))
+	assert.NoError(t, records.Validate())
 
 	records = append(records, invalidRecord)
-	err := types.ValidatePoolRecords(records)
+	err := records.Validate()
 	assert.Error(t, err)
 	assert.EqualError(t, err, "pool 'ukava:usdx' has invalid total shares: -1")
 }
@@ -337,11 +337,11 @@ func TestState_PoolRecords_ValidateUniquePools(t *testing.T) {
 		i(3000e6),
 	)
 
-	validRecords := []types.PoolRecord{record_1, record_3}
-	assert.NoError(t, types.ValidatePoolRecords(validRecords))
+	validRecords := types.PoolRecords{record_1, record_3}
+	assert.NoError(t, validRecords.Validate())
 
-	invalidRecords := []types.PoolRecord{record_1, record_2}
-	assert.EqualError(t, types.ValidatePoolRecords(invalidRecords), "duplicate poolID 'ukava:usdx'")
+	invalidRecords := types.PoolRecords{record_1, record_2}
+	assert.EqualError(t, invalidRecords.Validate(), "duplicate poolID 'ukava:usdx'")
 }
 
 func TestState_NewShareRecord(t *testing.T) {
@@ -529,13 +529,13 @@ func TestState_ShareRecords_Validation(t *testing.T) {
 		i(-1),
 	)
 
-	records := []types.ShareRecord{
+	records := types.ShareRecords{
 		validRecord,
 	}
-	assert.NoError(t, types.ValidateShareRecords(records))
+	assert.NoError(t, records.Validate())
 
 	records = append(records, invalidRecord)
-	err = types.ValidateShareRecords(records)
+	err = records.Validate()
 	assert.Error(t, err)
 	assert.EqualError(t, err, "depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and pool 'hard:usdx' has invalid total shares: -1")
 }
@@ -552,9 +552,9 @@ func TestState_ShareRecords_ValidateUniqueShareRecords(t *testing.T) {
 	record_3 := types.NewShareRecord(depositor_1, "hard:usdx", i(20e6))
 	record_4 := types.NewShareRecord(depositor_2, "ukava:usdx", i(20e6))
 
-	validRecords := []types.ShareRecord{record_1, record_3, record_4}
-	assert.NoError(t, types.ValidateShareRecords(validRecords))
+	validRecords := types.ShareRecords{record_1, record_3, record_4}
+	assert.NoError(t, validRecords.Validate())
 
-	invalidRecords := []types.ShareRecord{record_1, record_3, record_2, record_4}
-	assert.EqualError(t, types.ValidateShareRecords(invalidRecords), "duplicate depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and poolID 'ukava:usdx'")
+	invalidRecords := types.ShareRecords{record_1, record_3, record_2, record_4}
+	assert.EqualError(t, invalidRecords.Validate(), "duplicate depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and poolID 'ukava:usdx'")
 }
