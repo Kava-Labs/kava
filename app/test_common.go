@@ -30,6 +30,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
+	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 )
 
@@ -86,7 +87,7 @@ func (tApp TestApp) GetKavadistKeeper() kavadistkeeper.Keeper   { return tApp.ka
 // TODO add back with modules
 // func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
 // func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
-// func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeeper }
+func (tApp TestApp) GetCDPKeeper() cdpkeeper.Keeper             { return tApp.cdpKeeper }
 func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
 
 // func (tApp TestApp) GetBep3Keeper() bep3.Keeper           { return tApp.bep3Keeper }
