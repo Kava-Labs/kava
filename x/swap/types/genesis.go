@@ -20,7 +20,7 @@ var (
 )
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState(params Params, poolRecords []PoolRecord, shareRecords []ShareRecord) GenesisState {
+func NewGenesisState(params Params, poolRecords PoolRecords, shareRecords ShareRecords) GenesisState {
 	return GenesisState{
 		Params:       params,
 		PoolRecords:  poolRecords,
