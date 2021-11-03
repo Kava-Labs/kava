@@ -34,7 +34,7 @@ func TestGenesis_Empty(t *testing.T) {
 func TestGenesis_NotEmpty(t *testing.T) {
 	nonEmptyGenesis := types.GenesisState{
 		Params: types.Params{
-			AllowedPools: types.AllowedPools{types.NewAllowedPool("ukava", "hard")},
+			AllowedPools: types.NewAllowedPools(types.NewAllowedPool("ukava", "hard")),
 			SwapFee:      sdk.ZeroDec(),
 		},
 	}
@@ -131,9 +131,9 @@ func TestGenesis_Validate_AllowedPools(t *testing.T) {
 
 func TestGenesis_Equal(t *testing.T) {
 	params := types.Params{
-		types.AllowedPools{
+		types.NewAllowedPools(
 			types.NewAllowedPool("ukava", "usdx"),
-		},
+		),
 		sdk.MustNewDecFromStr("0.85"),
 	}
 
@@ -145,7 +145,7 @@ func TestGenesis_Equal(t *testing.T) {
 
 func TestGenesis_NotEqual(t *testing.T) {
 	baseParams := types.Params{
-		types.AllowedPools{types.NewAllowedPool("ukava", "usdx")},
+		types.NewAllowedPools(types.NewAllowedPool("ukava", "usdx")),
 		sdk.MustNewDecFromStr("0.85"),
 	}
 
@@ -160,7 +160,7 @@ func TestGenesis_NotEqual(t *testing.T) {
 
 	// Different pairs
 	genesisCParams := baseParams
-	genesisCParams.AllowedPools = types.AllowedPools{types.NewAllowedPool("ukava", "hard")}
+	genesisCParams.AllowedPools = types.NewAllowedPools(types.NewAllowedPool("ukava", "hard"))
 	genesisC := types.GenesisState{genesisCParams, types.DefaultPoolRecords, types.DefaultShareRecords}
 
 	// A and B have different swap fees
@@ -265,10 +265,10 @@ share_records:
 
 	state := types.NewGenesisState(
 		types.NewParams(
-			types.AllowedPools{
+			types.NewAllowedPools(
 				types.NewAllowedPool("ukava", "usdx"),
 				types.NewAllowedPool("hard", "busd"),
-			},
+			),
 			sdk.MustNewDecFromStr("0.003"),
 		),
 		types.PoolRecords{
