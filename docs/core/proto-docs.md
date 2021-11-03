@@ -21,6 +21,7 @@
     - [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse)
     - [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse)
+  
     - [Query](#kava.kavadist.v1beta1.Query)
   
 - [kava/swap/v1beta1/swap.proto](#kava/swap/v1beta1/swap.proto)
@@ -60,8 +61,6 @@
 
 
 
-<a name="kava/swap/v1beta1/swap.proto"></a>
-=======
 <a name="kava/kavadist/v1beta1/params.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -289,7 +288,7 @@ Query defines the gRPC querier service.
 
 
 
-<a name="kava/swap/v1beta1/genesis.proto"></a>
+<a name="kava/swap/v1beta1/swap.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## kava/swap/v1beta1/swap.proto
