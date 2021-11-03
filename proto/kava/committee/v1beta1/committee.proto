@@ -8,8 +8,7 @@ import "google/protobuf/duration.proto";
 
 option go_package = "github.com/kava-labs/kava/x/committee/types";
 
-option (gogoproto.goproto_stringer_all) = false;
-option (gogoproto.goproto_getters_all)  = false;
+option (gogoproto.goproto_getters_all) = false;
 
 // BaseCommittee is a common type shared by all Committees
 message BaseCommittee {

@@ -10,38 +10,6 @@ import (
 // DefaultNextProposalID is the starting poiint for proposal IDs.
 const DefaultNextProposalID uint64 = 1
 
-// PackCommittees converts an committee slice to Any slice
-func PackCommittees(committees []Committee) ([]*types.Any, error) {
-	committeesAny := make([]*types.Any, len(committees))
-	for i, committee := range committees {
-		msg, ok := committee.(proto.Message)
-		if !ok {
-			return nil, fmt.Errorf("cannot proto marshal %T", committee)
-		}
-		any, err := types.NewAnyWithValue(msg)
-		if err != nil {
-			return nil, err
-		}
-		committeesAny[i] = any
-	}
-
-	return committeesAny, nil
-}
-
-// UnpackCommittees converts Any slice to Committee slice
-func UnpackCommittees(committeesAny []*types.Any) ([]Committee, error) {
-	committees := make([]Committee, len(committeesAny))
-	for i, any := range committeesAny {
-		committee, ok := any.GetCachedValue().(Committee)
-		if !ok {
-			return nil, fmt.Errorf("expected genesis committee")
-		}
-		committees[i] = committee
-	}
-
-	return committees, nil
-}
-
 // NewGenesisState returns a new genesis state object for the module.
 func NewGenesisState(nextProposalID uint64, committees []Committee, proposals []Proposal, votes []Vote) *GenesisState {
 	packedCommittees, err := PackCommittees(committees)
@@ -76,10 +44,10 @@ func (gs GenesisState) Validate() error {
 	}
 	for _, com := range committees {
 		// check there are no duplicate IDs
-		if _, ok := committeeMap[com.GetID()]; ok {
-			return fmt.Errorf("duplicate committee ID found in genesis state; id: %d", com.GetID())
+		if _, ok := committeeMap[com.GetId()]; ok {
+			return fmt.Errorf("duplicate committee ID found in genesis state; id: %d", com.GetId())
 		}
-		committeeMap[com.GetID()] = true
+		committeeMap[com.GetId()] = true
 
 		// validate committee
 		if err := com.Validate(); err != nil {
@@ -108,7 +76,7 @@ func (gs GenesisState) Validate() error {
 
 		// validate pubProposal
 		if err := p.GetPubProposal().ValidateBasic(); err != nil {
-			return fmt.Errorf("proposal %d invalid: %w", p.ID, err)
+			return fmt.Errorf("proposal %d invalid: %w", p.Id, err)
 		}
 	}
 
@@ -125,4 +93,54 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 	return nil
+}
+
+// PackCommittees converts a committee slice to Any slice
+func PackCommittees(committees []Committee) ([]*types.Any, error) {
+	committeesAny := make([]*types.Any, len(committees))
+	for i, committee := range committees {
+		any, err := PackCommittee(committee)
+		if err != nil {
+			return nil, err
+		}
+		committeesAny[i] = any
+	}
+
+	return committeesAny, nil
+}
+
+// PackCommittee converts a committee to Any
+func PackCommittee(committee Committee) (*types.Any, error) {
+	msg, ok := committee.(proto.Message)
+	if !ok {
+		return nil, fmt.Errorf("cannot proto marshal %T", committee)
+	}
+	any, err := types.NewAnyWithValue(msg)
+	if err != nil {
+		return nil, err
+	}
+	return any, nil
+}
+
+// UnpackCommittees converts Any slice to Committee slice
+func UnpackCommittees(committeesAny []*types.Any) ([]Committee, error) {
+	committees := make([]Committee, len(committeesAny))
+	for i, any := range committeesAny {
+		committee, err := UnpackCommittee(any)
+		if err != nil {
+			return nil, err
+		}
+		committees[i] = committee
+	}
+
+	return committees, nil
+}
+
+// UnpackCommittee converts Any to Committee
+func UnpackCommittee(committeeAny *types.Any) (Committee, error) {
+	committee, ok := committeeAny.GetCachedValue().(Committee)
+	if !ok {
+		return nil, fmt.Errorf("unexpected committee when unpacking")
+	}
+	return committee, nil
 }

@@ -178,6 +178,7 @@ GenesisState defines the issuance module's genesis state.
 
 
 
+ <!-- end messages -->
 
 <a name="kava.issuance.v1beta1.Params"></a>
 

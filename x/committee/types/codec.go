@@ -10,57 +10,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-// RegisterLegacyAminoCodec registers all the necessary types and interfaces for the module.
-func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	// Proposals
-	cdc.RegisterInterface((*PubProposal)(nil), nil)
-	cdc.RegisterConcrete(CommitteeChangeProposal{}, "kava/CommitteeChangeProposal", nil)
-	cdc.RegisterConcrete(CommitteeDeleteProposal{}, "kava/CommitteeDeleteProposal", nil)
-
-	// Committees
-	cdc.RegisterInterface((*Committee)(nil), nil)
-	cdc.RegisterConcrete(BaseCommittee{}, "kava/BaseCommittee", nil)
-	cdc.RegisterConcrete(MemberCommittee{}, "kava/MemberCommittee", nil)
-	cdc.RegisterConcrete(TokenCommittee{}, "kava/TokenCommittee", nil)
-
-	// Permissions
-	cdc.RegisterInterface((*Permission)(nil), nil)
-	// cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
-	// cdc.RegisterConcrete(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission", nil)
-	// cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
-	// cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
-	// cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
-
-	// Msgs
-	// cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
-	// cdc.RegisterConcrete(MsgVote{}, "kava/MsgVote", nil)
-}
-
-func RegisterInterfaces(registry types.InterfaceRegistry) {
-	registry.RegisterInterface(
-		"kava.committee.v1beta1.Committee",
-		(*Committee)(nil),
-		// TODO: Question: Might not need the base one since we just have token and member?
-		&BaseCommittee{},
-		&TokenCommittee{},
-		&MemberCommittee{},
-	)
-
-	// TODO: QUESTION: Is this needed?
-	registry.RegisterImplementations(
-		(*Committee)(nil),
-		&BaseCommittee{},
-		&TokenCommittee{},
-		&MemberCommittee{},
-	)
-}
-
-// RegisterProposalTypeCodec allows external modules to register their own pubproposal types on the
-// internal ModuleCdc. This allows the MsgSubmitProposal to be correctly Amino encoded and decoded.
-func RegisterProposalTypeCodec(o interface{}, name string) {
-	ModuleCdc.RegisterConcrete(o, name, nil)
-}
-
 var (
 	amino = codec.NewLegacyAmino()
 
@@ -85,4 +34,53 @@ func init() {
 	RegisterProposalTypeCodec(govtypes.TextProposal{}, "cosmos-sdk/TextProposal")
 	RegisterProposalTypeCodec(upgradetypes.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal")
 	RegisterProposalTypeCodec(upgradetypes.CancelSoftwareUpgradeProposal{}, "cosmos-sdk/CancelSoftwareUpgradeProposal")
+}
+
+// RegisterLegacyAminoCodec registers all the necessary types and interfaces for the module.
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	// Proposals
+	cdc.RegisterInterface((*PubProposal)(nil), nil)
+	cdc.RegisterConcrete(CommitteeChangeProposal{}, "kava/CommitteeChangeProposal", nil)
+	cdc.RegisterConcrete(CommitteeDeleteProposal{}, "kava/CommitteeDeleteProposal", nil)
+
+	// Committees
+	cdc.RegisterInterface((*Committee)(nil), nil)
+	cdc.RegisterConcrete(BaseCommittee{}, "kava/BaseCommittee", nil)
+	cdc.RegisterConcrete(MemberCommittee{}, "kava/MemberCommittee", nil)
+	cdc.RegisterConcrete(TokenCommittee{}, "kava/TokenCommittee", nil)
+
+	// Permissions
+	cdc.RegisterInterface((*Permission)(nil), nil)
+	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
+	// cdc.RegisterConcrete(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission", nil)
+	// cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
+	// cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
+	// cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
+
+	// Msgs
+	// cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
+	// cdc.RegisterConcrete(MsgVote{}, "kava/MsgVote", nil)
+}
+
+// RegisterProposalTypeCodec allows external modules to register their own pubproposal types on the
+// internal ModuleCdc. This allows the MsgSubmitProposal to be correctly Amino encoded and decoded.
+func RegisterProposalTypeCodec(o interface{}, name string) {
+	ModuleCdc.RegisterConcrete(o, name, nil)
+}
+
+func RegisterInterfaces(registry types.InterfaceRegistry) {
+	registry.RegisterInterface(
+		"kava.committee.v1beta1.Committee",
+		(*Committee)(nil),
+		// TODO: Question: Might not need the base one since we just use token and member?
+		&BaseCommittee{},
+		&TokenCommittee{},
+		&MemberCommittee{},
+	)
+
+	registry.RegisterInterface(
+		"kava.committee.v1beta1.Permission",
+		(*Permission)(nil),
+		&GodPermission{},
+	)
 }

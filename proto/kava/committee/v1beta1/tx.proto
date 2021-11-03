@@ -1,0 +1,22 @@
+syntax = "proto3";
+package kava.committee.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
+import "kava/committee/v1beta1/genesis.proto";
+
+option go_package = "github.com/kava-labs/kava/x/committee/types";
+
+message MsgSubmitProposal {
+  google.protobuf.Any pub_proposal = 1
+      [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content", (gogoproto.embed) = true];
+  string proposer     = 2;
+  uint64 committee_id = 3;
+}
+
+message MsgVote {
+  uint64   proposal_id = 1;
+  string   voter       = 2;
+  VoteType vote_type   = 3;
+}

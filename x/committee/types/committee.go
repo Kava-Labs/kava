@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	proto "github.com/gogo/protobuf/proto"
-	"gopkg.in/yaml.v2"
 )
 
 const MaxCommitteeDescriptionLength int = 512
@@ -21,6 +20,38 @@ const (
 	TokenCommitteeType  = "kava/TokenCommittee"  // Committee is composed of token holders with voting power determined by total token balance
 	BondDenom           = "ukava"
 )
+
+func init() {
+	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
+	// But since these proposals contain Committees, these types also need registering:
+	govtypes.ModuleCdc.RegisterInterface((*Committee)(nil), nil)
+	govtypes.RegisterProposalTypeCodec(BaseCommittee{}, "kava/BaseCommittee")
+	govtypes.RegisterProposalTypeCodec(MemberCommittee{}, "kava/MemberCommittee")
+	govtypes.RegisterProposalTypeCodec(TokenCommittee{}, "kava/TokenCommittee")
+}
+
+// Marshal needed for protobuf compatibility.
+func (t TallyOption) Marshal() ([]byte, error) {
+	return []byte{byte(t)}, nil
+}
+
+// Unmarshal needed for protobuf compatibility.
+func (t *TallyOption) Unmarshal(data []byte) error {
+	*t = TallyOption(data[0])
+	return nil
+}
+
+// String implements the Stringer interface.
+func (t TallyOption) String() string {
+	switch t {
+	case TALLY_OPTION_FIRST_PAST_THE_POST:
+		return "FirstPastThePost"
+	case TALLY_OPTION_DEADLINE:
+		return "Deadline"
+	default:
+		return ""
+	}
+}
 
 // Committee is an interface for handling common actions on committees
 type Committee interface {
@@ -96,21 +127,20 @@ func (c *BaseCommittee) HasMember(addr sdk.AccAddress) bool {
 
 // GetPermissions is a getter for committee permissions
 func (c *BaseCommittee) GetPermissions() []Permission {
-	permissions := make([]Permission, len(c.Permissions))
-	for i, any := range c.Permissions {
-		permission, ok := any.GetCachedValue().(Permission)
-		if !ok {
-			panic("expected base committee permission")
-		}
-		permissions[i] = permission
+	permissions, err := UnpackPermissions(c.Permissions)
+	if err != nil {
+		panic(err)
 	}
-
 	return permissions
 }
 
 // SetPermissions is a setter for committee permissions
 func (c *BaseCommittee) SetPermissions(permissions []Permission) {
-	c.Permissions = PackPermissions(permissions)
+	permissionsAny, err := PackPermissions(permissions)
+	if err != nil {
+		panic(err)
+	}
+	c.Permissions = permissionsAny
 }
 
 // HasPermissionsFor returns whether the committee is authorized to enact a proposal.
@@ -142,13 +172,6 @@ func (c *BaseCommittee) SetProposalDuration(proposalDuration time.Duration) {
 
 // GetTallyOption is a getter for committee TallyOption
 func (c BaseCommittee) GetTallyOption() TallyOption { return c.TallyOption }
-
-// String implements Stringer interface
-func (c BaseCommittee) String() string {
-	// TODO: Question, should we just use yaml to output or use our previous implementation?
-	out, _ := yaml.Marshal(c)
-	return string(out)
-}
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (c BaseCommittee) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
@@ -185,10 +208,14 @@ func (c BaseCommittee) Validate() error {
 		addressMap[m] = true
 	}
 
+	// validate permissions
 	for _, p := range c.Permissions {
 		if p == nil {
 			return fmt.Errorf("committee cannot have a nil permission")
 		}
+	}
+	if _, err := UnpackPermissions(c.Permissions); err != nil {
+		return err
 	}
 
 	if c.ProposalDuration < 0 {
@@ -210,7 +237,10 @@ func (c BaseCommittee) Validate() error {
 // NewMemberCommittee instantiates a new instance of MemberCommittee
 func NewMemberCommittee(id uint64, description string, members []string, permissions []Permission,
 	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) *MemberCommittee {
-	permissionsAny := PackPermissions(permissions)
+	permissionsAny, err := PackPermissions(permissions)
+	if err != nil {
+		panic(err)
+	}
 	return &MemberCommittee{
 		BaseCommittee: &BaseCommittee{
 			Id:               id,
@@ -227,6 +257,55 @@ func NewMemberCommittee(id uint64, description string, members []string, permiss
 // GetType is a getter for committee type
 func (c MemberCommittee) GetType() string { return MemberCommitteeType }
 
+// NewTokenCommittee instantiates a new instance of TokenCommittee
+func NewTokenCommittee(id uint64, description string, members []string, permissions []Permission,
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) *TokenCommittee {
+	permissionsAny, err := PackPermissions(permissions)
+	if err != nil {
+		panic(err)
+	}
+	return &TokenCommittee{
+		BaseCommittee: &BaseCommittee{
+			Id:               id,
+			Description:      description,
+			Members:          members,
+			Permissions:      permissionsAny,
+			VoteThreshold:    threshold,
+			ProposalDuration: duration,
+			TallyOption:      tallyOption,
+		},
+		Quorum:     quorum,
+		TallyDenom: tallyDenom,
+	}
+}
+
+// GetType is a getter for committee type
+func (c TokenCommittee) GetType() string { return TokenCommitteeType }
+
+// GetQuorum returns the quorum of the committee
+func (c TokenCommittee) GetQuorum() sdk.Dec { return c.Quorum }
+
+// GetTallyDenom returns the tally denom of the committee
+func (c TokenCommittee) GetTallyDenom() string { return c.TallyDenom }
+
+// Validate validates the committee's fields
+func (c TokenCommittee) Validate() error {
+	if c.TallyDenom == BondDenom {
+		return fmt.Errorf("invalid tally denom: %s", c.TallyDenom)
+	}
+
+	err := sdk.ValidateDenom(c.TallyDenom)
+	if err != nil {
+		return err
+	}
+
+	if c.Quorum.IsNil() || c.Quorum.IsNegative() || c.Quorum.GT(sdk.NewDec(1)) {
+		return fmt.Errorf("invalid quorum: %s", c.Quorum)
+	}
+
+	return c.BaseCommittee.Validate()
+}
+
 // ------------------------------------------
 //				Proposals
 // ------------------------------------------
@@ -236,32 +315,37 @@ func (c MemberCommittee) GetType() string { return MemberCommitteeType }
 // It is pinned to the equivalent type in the gov module to create compatibility between proposal types.
 type PubProposal govtypes.Content
 
-func NewProposal(pubProposal PubProposal, id uint64, committeeId uint64, deadline time.Time) Proposal {
+// NewProposal instantiates a new instance of Proposal
+func NewProposal(pubProposal PubProposal, id uint64, committeeId uint64, deadline time.Time) (Proposal, error) {
 	msg, ok := pubProposal.(proto.Message)
 	if !ok {
-		panic(fmt.Errorf("%T does not implement proto.Message", pubProposal))
+		return Proposal{}, fmt.Errorf("%T does not implement proto.Message", pubProposal)
 	}
-	pubProposalAny, err := types.NewAnyWithValue(msg)
+	proposalAny, err := types.NewAnyWithValue(msg)
 	if err != nil {
-		panic(err)
+		return Proposal{}, err
 	}
 	return Proposal{
-		Any:         pubProposalAny,
+		Any:         proposalAny,
 		Id:          id,
 		CommitteeId: committeeId,
 		Deadline:    deadline,
-	}
+	}, nil
 }
 
+// GetPubProposal returns the PubProposal (govtypes.Content)
 func (p Proposal) GetPubProposal() PubProposal {
-	if p.Any == nil {
-		return nil
-	}
-	pubProposal, ok := p.Any.GetCachedValue().(PubProposal)
+	content, ok := p.Any.GetCachedValue().(PubProposal)
 	if !ok {
 		return nil
 	}
-	return pubProposal
+	return content
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (p Proposal) UnpackInterfaces(unpacker types.AnyUnpacker) error {
+	var content PubProposal
+	return unpacker.UnpackAny(p.Any, &content)
 }
 
 // HasExpiredBy calculates if the proposal will have expired by a certain time.
@@ -270,12 +354,7 @@ func (p Proposal) HasExpiredBy(time time.Time) bool {
 	return !time.Before(p.Deadline)
 }
 
-// String implements the fmt.Stringer interface, and importantly overrides the String methods inherited from the embedded PubProposal type.
-func (p Proposal) String() string {
-	bz, _ := yaml.Marshal(p)
-	return string(bz)
-}
-
+// NewVote instantiates a new instance of Vote
 func NewVote(proposalId uint64, voter string, voteType VoteType) Vote {
 	return Vote{
 		ProposalId: proposalId,
@@ -284,13 +363,10 @@ func NewVote(proposalId uint64, voter string, voteType VoteType) Vote {
 	}
 }
 
+// Validates Vote fields
 func (v Vote) Validate() error {
-	if v.Voter == "" {
-		return fmt.Errorf("voter address cannot be empty")
-	}
 	if _, err := sdk.AccAddressFromBech32(v.Voter); err != nil {
 		return err
 	}
-
 	return v.VoteType.Validate()
 }

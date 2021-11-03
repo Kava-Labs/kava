@@ -7,14 +7,13 @@ import "google/protobuf/any.proto";
 
 option go_package = "github.com/kava-labs/kava/x/committee/types";
 
-option (gogoproto.goproto_stringer_all) = false;
-option (gogoproto.stringer_all)         = false;
+option (gogoproto.goproto_getters_all) = false;
 
 // CommitteeChangeProposal is a gov proposal for creating a new committee or modifying an existing one.
 message CommitteeChangeProposal {
-  string              title       = 1;
-  string              description = 2;
-  google.protobuf.Any committees  = 3 [(cosmos_proto.accepts_interface) = "Committee"];
+  string              title         = 1;
+  string              description   = 2;
+  google.protobuf.Any new_committee = 3 [(cosmos_proto.accepts_interface) = "Committee"];
 }
 
 // CommitteeDeleteProposal is a gov proposal for removing a committee.
