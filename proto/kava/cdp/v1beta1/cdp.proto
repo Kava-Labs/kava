@@ -1,0 +1,55 @@
+syntax = "proto3";
+package kava.cdp.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/kava-labs/kava/x/cdp/types";
+
+// CDP defines the state of a single collateralized debt position.
+message CDP {
+  uint64                    id               = 1;
+  string                    owner            = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string                    type             = 3;
+  cosmos.base.v1beta1.Coin  collateral       = 4 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin  principal        = 5 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin  accumulated_fees = 6 [(gogoproto.nullable) = false];
+  google.protobuf.Timestamp fees_updated     = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  string                    interest_factor  = 8 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// AugmentedCDP defines additional information about an active CDP
+message AugmentedCDP {
+  CDP                      cdp                     = 1 [(gogoproto.embed) = true];
+  cosmos.base.v1beta1.Coin collateral_value        = 2 [(gogoproto.nullable) = false];
+  string                   collateralization_ratio = 3 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// Deposit defines an amount of coins deposited by an account to a cdp
+message Deposit {
+  uint64                   cdp_id    = 1;
+  string                   depositor = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount    = 3 [(gogoproto.nullable) = false];
+}
+
+// TotalPrincipal defines the total principal of a given collateral type
+message TotalPrincipal {
+  string                   collateral_type = 1;
+  cosmos.base.v1beta1.Coin amount          = 2 [(gogoproto.nullable) = false];
+}
+
+// TotalCollateral defines the total collateral of a given collateral type
+message TotalCollateral {
+  string                   collateral_type = 1;
+  cosmos.base.v1beta1.Coin amount          = 2 [(gogoproto.nullable) = false];
+}
