@@ -4,20 +4,14 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-// SupplyKeeper defines the expected supply keeper for module accounts  (noalias)
-type SupplyKeeper interface {
-	GetModuleAddress(name string) sdk.AccAddress
-	GetModuleAccount(ctx sdk.Context, name string) supplyexported.ModuleAccountI
-
-	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
-	SetModuleAccount(sdk.Context, supplyexported.ModuleAccountI)
-
+// BankKeeper defines the expected bank keeper for module accounts  (noalias)
+type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
@@ -45,8 +39,13 @@ type AuctionKeeper interface {
 
 // AccountKeeper expected interface for the account keeper (noalias)
 type AccountKeeper interface {
-	IterateAccounts(ctx sdk.Context, cb func(account authexported.Account) (stop bool))
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
+	GetModuleAddress(name string) sdk.AccAddress
+	GetModuleAccount(ctx sdk.Context, name string) supplyexported.ModuleAccountI
+	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
+	SetModuleAccount(sdk.Context, supplyexported.ModuleAccountI)
+
+	IterateAccounts(ctx sdk.Context, cb func(account authtypes.AccountI) (stop bool))
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 }
 
 // CDPHooks event hooks for other keepers to run code in response to CDP modifications
