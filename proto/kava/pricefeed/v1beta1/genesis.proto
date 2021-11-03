@@ -1,0 +1,21 @@
+syntax = "proto3";
+package kava.pricefeed.v1beta1;
+
+import "kava/pricefeed/v1beta1/pricefeed.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
+
+// GenesisState defines the pricefeed module's genesis state.
+message GenesisState {
+  // params defines all the paramaters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  repeated PostedPrice posted_prices = 2 [(gogoproto.nullable) = false];
+}
+
+// Params defines the parameters for the pricefeed module.
+message Params {
+  option (gogoproto.goproto_stringer) = false; // false here because we define Stringer method in params.go
+  repeated Market markets             = 1 [(gogoproto.nullable) = false];
+}

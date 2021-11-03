@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
@@ -21,14 +21,14 @@ type Keeper struct {
 	// key used to access the stores from Context
 	key sdk.StoreKey
 	// Codec for binary encoding/decoding
-	cdc *codec.Codec
+	cdc codec.Codec
 	// The reference to the Paramstore to get and set pricefeed specific params
-	paramSubspace subspace.Subspace
+	paramSubspace paramtypes.Subspace
 }
 
 // NewKeeper returns a new keeper for the pricefeed module.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
+	cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -49,8 +49,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // SetPrice updates the posted price for a specific oracle
 func (k Keeper) SetPrice(
 	ctx sdk.Context,
-	oracle sdk.AccAddress,
-	marketID string,
+	oracle string,
+	MarketID string,
 	price sdk.Dec,
 	expiry time.Time) (types.PostedPrice, error) {
 	// If the expiry is less than or equal to the current blockheight, we consider the price valid
@@ -59,61 +59,41 @@ func (k Keeper) SetPrice(
 	}
 
 	store := ctx.KVStore(k.key)
-	prices, err := k.GetRawPrices(ctx, marketID)
-	if err != nil {
-		return types.PostedPrice{}, err
-	}
-	var index int
-	found := false
-	for i := range prices {
-		if prices[i].OracleAddress.Equals(oracle) {
-			index = i
-			found = true
-			break
-		}
-	}
 
-	// set the price for that particular oracle
-	if found {
-		prices[index] = types.NewPostedPrice(marketID, oracle, price, expiry)
-	} else {
-		prices = append(prices, types.NewPostedPrice(marketID, oracle, price, expiry))
-		index = len(prices) - 1
-	}
+	newRawPrice := types.NewPostedPrice(MarketID, oracle, price, expiry)
 
 	// Emit an event containing the oracle's new price
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeOracleUpdatedPrice,
-			sdk.NewAttribute(types.AttributeMarketID, marketID),
-			sdk.NewAttribute(types.AttributeOracle, oracle.String()),
+			sdk.NewAttribute(types.AttributeMarketID, MarketID),
+			sdk.NewAttribute(types.AttributeOracle, oracle),
 			sdk.NewAttribute(types.AttributeMarketPrice, price.String()),
 			sdk.NewAttribute(types.AttributeExpiry, expiry.UTC().String()),
 		),
 	)
 
-	store.Set(types.RawPriceKey(marketID), k.cdc.MustMarshalBinaryBare(prices))
-	return prices[index], nil
+	// Sets the raw price for a single oracle instead of an array of all oracle's raw prices
+	store.Set(types.RawPriceKey(MarketID, oracle), k.cdc.MustMarshalLengthPrefixed(&newRawPrice))
+	return newRawPrice, nil
 }
 
 // SetCurrentPrices updates the price of an asset to the median of all valid oracle inputs
-func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
-	_, ok := k.GetMarket(ctx, marketID)
+func (k Keeper) SetCurrentPrices(ctx sdk.Context, MarketID string) error {
+	_, ok := k.GetMarket(ctx, MarketID)
 	if !ok {
-		return sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
+		return sdkerrors.Wrap(types.ErrInvalidMarket, MarketID)
 	}
 	// store current price
 	validPrevPrice := true
-	prevPrice, err := k.GetCurrentPrice(ctx, marketID)
+	prevPrice, err := k.GetCurrentPrice(ctx, MarketID)
 	if err != nil {
 		validPrevPrice = false
 	}
 
-	prices, err := k.GetRawPrices(ctx, marketID)
-	if err != nil {
-		return err
-	}
-	var notExpiredPrices types.CurrentPrices
+	prices := k.GetRawPrices(ctx, MarketID)
+
+	var notExpiredPrices []types.CurrentPrice
 	// filter out expired prices
 	for _, v := range prices {
 		if v.Expiry.After(ctx.BlockTime()) {
@@ -126,7 +106,7 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
 		// price if this is not set.
 		// This zero's out the current price stored value for that market and ensures
 		// that CDP methods that GetCurrentPrice will return error.
-		k.setCurrentPrice(ctx, marketID, types.CurrentPrice{})
+		k.setCurrentPrice(ctx, MarketID, types.CurrentPrice{})
 		return types.ErrNoValidPrice
 	}
 
@@ -138,25 +118,25 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeMarketPriceUpdated,
-				sdk.NewAttribute(types.AttributeMarketID, marketID),
+				sdk.NewAttribute(types.AttributeMarketID, MarketID),
 				sdk.NewAttribute(types.AttributeMarketPrice, medianPrice.String()),
 			),
 		)
 	}
 
-	currentPrice := types.NewCurrentPrice(marketID, medianPrice)
-	k.setCurrentPrice(ctx, marketID, currentPrice)
+	currentPrice := types.NewCurrentPrice(MarketID, medianPrice)
+	k.setCurrentPrice(ctx, MarketID, currentPrice)
 
 	return nil
 }
 
-func (k Keeper) setCurrentPrice(ctx sdk.Context, marketID string, currentPrice types.CurrentPrice) {
+func (k Keeper) setCurrentPrice(ctx sdk.Context, MarketID string, currentPrice types.CurrentPrice) {
 	store := ctx.KVStore(k.key)
-	store.Set(types.CurrentPriceKey(marketID), k.cdc.MustMarshalBinaryBare(currentPrice))
+	store.Set(types.CurrentPriceKey(MarketID), k.cdc.MustMarshalLengthPrefixed(&currentPrice))
 }
 
 // CalculateMedianPrice calculates the median prices for the input prices.
-func (k Keeper) CalculateMedianPrice(ctx sdk.Context, prices types.CurrentPrices) sdk.Dec {
+func (k Keeper) CalculateMedianPrice(ctx sdk.Context, prices []types.CurrentPrice) sdk.Dec {
 	l := len(prices)
 
 	if l == 1 {
@@ -177,22 +157,22 @@ func (k Keeper) CalculateMedianPrice(ctx sdk.Context, prices types.CurrentPrices
 
 }
 
-func (k Keeper) calculateMeanPrice(ctx sdk.Context, prices types.CurrentPrices) sdk.Dec {
+func (k Keeper) calculateMeanPrice(ctx sdk.Context, prices []types.CurrentPrice) sdk.Dec {
 	sum := prices[0].Price.Add(prices[1].Price)
 	mean := sum.Quo(sdk.NewDec(2))
 	return mean
 }
 
 // GetCurrentPrice fetches the current median price of all oracles for a specific market
-func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.CurrentPrice, error) {
+func (k Keeper) GetCurrentPrice(ctx sdk.Context, MarketID string) (types.CurrentPrice, error) {
 	store := ctx.KVStore(k.key)
-	bz := store.Get(types.CurrentPriceKey(marketID))
+	bz := store.Get(types.CurrentPriceKey(MarketID))
 
 	if bz == nil {
 		return types.CurrentPrice{}, types.ErrNoValidPrice
 	}
 	var price types.CurrentPrice
-	err := k.cdc.UnmarshalBinaryBare(bz, &price)
+	err := k.cdc.UnmarshalLengthPrefixed(bz, &price)
 	if err != nil {
 		return types.CurrentPrice{}, err
 	}
@@ -209,7 +189,7 @@ func (k Keeper) IterateCurrentPrices(ctx sdk.Context, cb func(cp types.CurrentPr
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cp types.CurrentPrice
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &cp)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &cp)
 		if cb(cp) {
 			break
 		}
@@ -217,8 +197,8 @@ func (k Keeper) IterateCurrentPrices(ctx sdk.Context, cb func(cp types.CurrentPr
 }
 
 // GetCurrentPrices returns all current price objects from the store
-func (k Keeper) GetCurrentPrices(ctx sdk.Context) types.CurrentPrices {
-	cps := types.CurrentPrices{}
+func (k Keeper) GetCurrentPrices(ctx sdk.Context) []types.CurrentPrice {
+	var cps []types.CurrentPrice
 	k.IterateCurrentPrices(ctx, func(cp types.CurrentPrice) (stop bool) {
 		cps = append(cps, cp)
 		return false
@@ -227,16 +207,27 @@ func (k Keeper) GetCurrentPrices(ctx sdk.Context) types.CurrentPrices {
 }
 
 // GetRawPrices fetches the set of all prices posted by oracles for an asset
-func (k Keeper) GetRawPrices(ctx sdk.Context, marketID string) (types.PostedPrices, error) {
-	store := ctx.KVStore(k.key)
-	bz := store.Get(types.RawPriceKey(marketID))
-	if bz == nil {
-		return types.PostedPrices{}, nil
+func (k Keeper) GetRawPrices(ctx sdk.Context, MarketID string) []types.PostedPrice {
+	var pps []types.PostedPrice
+	k.IterateRawPricesByMarket(ctx, MarketID, func(pp types.PostedPrice) (stop bool) {
+		if pp.MarketID == MarketID {
+			pps = append(pps, pp)
+		}
+		return false
+	})
+	return pps
+}
+
+// IterateRawPrices iterates over all raw prices in the store and performs a callback function
+func (k Keeper) IterateRawPricesByMarket(ctx sdk.Context, MarketID string, cb func(record types.PostedPrice) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.RawPriceMarketKey(MarketID))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var record types.PostedPrice
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &record)
+		if cb(record) {
+			break
+		}
 	}
-	var prices types.PostedPrices
-	err := k.cdc.UnmarshalBinaryBare(bz, &prices)
-	if err != nil {
-		return types.PostedPrices{}, err
-	}
-	return prices, nil
 }
