@@ -8,7 +8,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -184,8 +183,7 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, MarketID string) (types.Current
 
 // IterateCurrentPrices iterates over all current price objects in the store and performs a callback function
 func (k Keeper) IterateCurrentPrices(ctx sdk.Context, cb func(cp types.CurrentPrice) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.CurrentPricePrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.CurrentPricePrefix)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cp types.CurrentPrice
@@ -207,21 +205,18 @@ func (k Keeper) GetCurrentPrices(ctx sdk.Context) []types.CurrentPrice {
 }
 
 // GetRawPrices fetches the set of all prices posted by oracles for an asset
-func (k Keeper) GetRawPrices(ctx sdk.Context, MarketID string) []types.PostedPrice {
+func (k Keeper) GetRawPrices(ctx sdk.Context, marketId string) []types.PostedPrice {
 	var pps []types.PostedPrice
-	k.IterateRawPricesByMarket(ctx, MarketID, func(pp types.PostedPrice) (stop bool) {
-		if pp.MarketID == MarketID {
-			pps = append(pps, pp)
-		}
+	k.IterateRawPricesByMarket(ctx, marketId, func(pp types.PostedPrice) (stop bool) {
+		pps = append(pps, pp)
 		return false
 	})
 	return pps
 }
 
 // IterateRawPrices iterates over all raw prices in the store and performs a callback function
-func (k Keeper) IterateRawPricesByMarket(ctx sdk.Context, MarketID string, cb func(record types.PostedPrice) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.RawPriceMarketKey(MarketID))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+func (k Keeper) IterateRawPricesByMarket(ctx sdk.Context, marketId string, cb func(record types.PostedPrice) (stop bool)) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.RawPriceIteratorKey((marketId)))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.PostedPrice

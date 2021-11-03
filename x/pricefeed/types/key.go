@@ -23,35 +23,40 @@ var (
 
 	// RawPriceFeedPrefix prefix for the raw pricefeed of an asset
 	RawPriceFeedPrefix = []byte{0x01}
-
-	// RawPriceFeedSuffix suffix for the rawpricefeed of an asset
-	RawPriceFeedSuffix = []byte{0x00}
 )
 
 // CurrentPriceKey returns the prefix for the current price
 func CurrentPriceKey(marketId string) []byte {
-	return append(CurrentPricePrefix, []byte(marketId)...)
+	return append(
+		CurrentPricePrefix,
+		lengthPrefixWithByte([]byte(marketId))...,
+	)
 }
 
-// RawPriceMarketKey returns the prefix for the raw price for a single market
-func RawPriceMarketKey(marketId string) []byte {
-	return append(append(RawPriceFeedPrefix, []byte(marketId)...), RawPriceFeedSuffix...)
+// RawPriceIteratorKey returns the prefix for the raw price for a single market
+func RawPriceIteratorKey(marketId string) []byte {
+	return append(
+		RawPriceFeedPrefix,
+		lengthPrefixWithByte([]byte(marketId))...,
+	)
 }
 
 // RawPriceKey returns the prefix for the raw price
 func RawPriceKey(marketId string, oracleAddr string) []byte {
-	parts := [][]byte{
-		RawPriceFeedPrefix,
-		[]byte(marketId),
-		RawPriceFeedSuffix,
-		[]byte(oracleAddr),
+	return append(
+		RawPriceIteratorKey(marketId),
+		lengthPrefixWithByte([]byte(oracleAddr))...,
+	)
+}
+
+// lengthPrefixWithByte returns the input bytes prefixes with one byte containing its length.
+// It panics if the input is greater than 255 in length.
+func lengthPrefixWithByte(bz []byte) []byte {
+	length := len(bz)
+
+	if length > 255 {
+		panic("cannot length prefix more than 255 bytes with single byte")
 	}
 
-	var key []byte
-
-	for _, part := range parts {
-		key = append(key, part...)
-	}
-
-	return key
+	return append([]byte{byte(length)}, bz...)
 }
