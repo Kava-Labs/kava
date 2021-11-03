@@ -8,16 +8,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// Deposit defines an amount of coins deposited by an account to a cdp
-type Deposit struct {
-	CdpID     uint64         `json:"cdp_id" yaml:"cdp_id"`       //  cdpID of the cdp
-	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"` //  Address of the depositor
-	Amount    sdk.Coin       `json:"amount" yaml:"amount"`       //  Deposit amount
-}
-
 // NewDeposit creates a new Deposit object
 func NewDeposit(cdpID uint64, depositor sdk.AccAddress, amount sdk.Coin) Deposit {
-	return Deposit{cdpID, depositor, amount}
+	return Deposit{cdpID, depositor.String(), amount}
 }
 
 // String implements fmt.Stringer
@@ -33,7 +26,7 @@ func (d Deposit) Validate() error {
 	if d.CdpID == 0 {
 		return errors.New("deposit's cdp id cannot be 0")
 	}
-	if d.Depositor.Empty() {
+	if d.Depositor == "" {
 		return errors.New("depositor cannot be empty")
 	}
 	if !d.Amount.IsValid() {
@@ -69,7 +62,7 @@ func (ds Deposits) Validate() error {
 
 // Equals returns whether two deposits are equal.
 func (d Deposit) Equals(comp Deposit) bool {
-	return d.Depositor.Equals(comp.Depositor) && d.CdpID == comp.CdpID && d.Amount.IsEqual(comp.Amount)
+	return d.Depositor == comp.Depositor && d.CdpID == comp.CdpID && d.Amount.IsEqual(comp.Amount)
 }
 
 // Empty returns whether a deposit is empty.

@@ -238,7 +238,7 @@ CollateralParam defines governance parameters for each collateral type within th
 | `stability_fee` | [string](#string) |  |  |
 | `auction_size` | [string](#string) |  |  |
 | `liquidation_penalty` | [string](#string) |  |  |
-| `prefix` | [bytes](#bytes) |  |  |
+| `prefix` | [uint32](#uint32) |  | No single byte type, use a uint32 |
 | `spot_market_id` | [string](#string) |  |  |
 | `liquidation_market_id` | [string](#string) |  |  |
 | `keeper_reward_percentage` | [string](#string) |  |  |
@@ -333,7 +333,7 @@ Params defines the parameters for the cdp module.
 | ----- | ---- | ----- | ----------- |
 | `collateral_params` | [CollateralParam](#kava.cdp.v1beta1.CollateralParam) | repeated |  |
 | `debt_param` | [DebtParam](#kava.cdp.v1beta1.DebtParam) |  |  |
-| `global_debt_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `global_debt_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 | `surplus_auction_threshold` | [string](#string) |  |  |
 | `surplus_auction_lot` | [string](#string) |  |  |
 | `debt_auction_threshold` | [string](#string) |  |  |

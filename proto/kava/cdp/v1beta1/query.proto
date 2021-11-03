@@ -97,7 +97,7 @@ message QueryCdpResponse {
 message QueryCdpsRequest {
   string collateral_type = 1;
   string owner           = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  uint64 id              = 3;
+  uint64 id              = 3 [(gogoproto.customname) = "ID"];
   string ratio           = 4 [
     (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
@@ -109,7 +109,7 @@ message QueryCdpsRequest {
 
 // QueryCdpsResponse defines the response type for the Query/Cdps RPC method.
 message QueryCdpsResponse {
-  repeated AugmentedCDP cdps = 1 [(gogoproto.castrepeated) = "AugmentedCDPs"];
+  repeated AugmentedCDP cdps = 1 [(gogoproto.castrepeated) = "AugmentedCDPs", (gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -122,7 +122,7 @@ message QueryDepositsRequest {
 
 // QueryDepositsResponse defines the response type for the Query/Deposits RPC method.
 message QueryDepositsResponse {
-  repeated Deposit deposits = 1 [(gogoproto.castrepeated) = "Deposits"];
+  repeated Deposit deposits = 1 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
 }
 
 // QueryCdpsByCollateralTypeRequest defines the request type for the Query/CdpsByCollateralType RPC method.
@@ -132,7 +132,7 @@ message QueryCdpsByCollateralTypeRequest {
 
 // QueryCdpsByCollateralTypeResponse defines the response type for the Query/CdpsByCollateralType RPC method.
 message QueryCdpsByCollateralTypeResponse {
-  repeated AugmentedCDP cdps = 1 [(gogoproto.castrepeated) = "AugmentedCDPs"];
+  repeated AugmentedCDP cdps = 1 [(gogoproto.castrepeated) = "AugmentedCDPs", (gogoproto.nullable) = false];
 }
 
 // QueryCdpsByCollateralTypeRequest defines the request type for the Query/CdpsByRatio RPC method.
@@ -147,7 +147,7 @@ message QueryCdpsByRatioRequest {
 
 // QueryCdpsByRatioResponse defines the response type for the Query/CdpsByRatio RPC method.
 message QueryCdpsByRatioResponse {
-  repeated AugmentedCDP cdps = 1 [(gogoproto.castrepeated) = "AugmentedCDPs"];
+  repeated AugmentedCDP cdps = 1 [(gogoproto.castrepeated) = "AugmentedCDPs", (gogoproto.nullable) = false];
 }
 
 // QueryTotalPrincipalRequest defines the request type for the Query/TotalPrincipal RPC method.
@@ -157,7 +157,8 @@ message QueryTotalPrincipalRequest {
 
 // QueryTotalPrincipalResponse defines the response type for the Query/TotalPrincipal RPC method.
 message QueryTotalPrincipalResponse {
-  repeated TotalPrincipal total_principal = 1 [(gogoproto.castrepeated) = "TotalPrincipals"];
+  repeated TotalPrincipal total_principal = 1
+      [(gogoproto.castrepeated) = "TotalPrincipals", (gogoproto.nullable) = false];
 }
 
 // QueryTotalCollateralRequest defines the request type for the Query/TotalCollateral RPC method.
@@ -167,5 +168,6 @@ message QueryTotalCollateralRequest {
 
 // QueryTotalCollateralResponse defines the response type for the Query/TotalCollateral RPC method.
 message QueryTotalCollateralResponse {
-  repeated TotalCollateral total_principal = 1 [(gogoproto.castrepeated) = "TotalCollaterals"];
+  repeated TotalCollateral total_principal = 1
+      [(gogoproto.castrepeated) = "TotalCollaterals", (gogoproto.nullable) = false];
 }

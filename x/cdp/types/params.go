@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Parameter keys
@@ -40,18 +40,6 @@ var (
 	maxCollateralPrefix     = 255
 	stabilityFeeMax         = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
 )
-
-// Params governance parameters for cdp module
-type Params struct {
-	CollateralParams        CollateralParams `json:"collateral_params" yaml:"collateral_params"`
-	DebtParam               DebtParam        `json:"debt_param" yaml:"debt_param"`
-	GlobalDebtLimit         sdk.Coin         `json:"global_debt_limit" yaml:"global_debt_limit"`
-	SurplusAuctionThreshold sdk.Int          `json:"surplus_auction_threshold" yaml:"surplus_auction_threshold"`
-	SurplusAuctionLot       sdk.Int          `json:"surplus_auction_lot" yaml:"surplus_auction_lot"`
-	DebtAuctionThreshold    sdk.Int          `json:"debt_auction_threshold" yaml:"debt_auction_threshold"`
-	DebtAuctionLot          sdk.Int          `json:"debt_auction_lot" yaml:"debt_auction_lot"`
-	CircuitBreaker          bool             `json:"circuit_breaker" yaml:"circuit_breaker"`
-}
 
 // String implements fmt.Stringer
 func (p Params) String() string {
@@ -95,23 +83,6 @@ func DefaultParams() Params {
 	)
 }
 
-// CollateralParam governance parameters for each collateral type within the cdp module
-type CollateralParam struct {
-	Denom                            string   `json:"denom" yaml:"denom"` // Coin name of collateral type
-	Type                             string   `json:"type" yaml:"type"`
-	LiquidationRatio                 sdk.Dec  `json:"liquidation_ratio" yaml:"liquidation_ratio"`     // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
-	DebtLimit                        sdk.Coin `json:"debt_limit" yaml:"debt_limit"`                   // Maximum amount of debt allowed to be drawn from this collateral type
-	StabilityFee                     sdk.Dec  `json:"stability_fee" yaml:"stability_fee"`             // per second stability fee for loans opened using this collateral
-	AuctionSize                      sdk.Int  `json:"auction_size" yaml:"auction_size"`               // Max amount of collateral to sell off in any one auction.
-	LiquidationPenalty               sdk.Dec  `json:"liquidation_penalty" yaml:"liquidation_penalty"` // percentage penalty (between [0, 1]) applied to a cdp if it is liquidated
-	Prefix                           byte     `json:"prefix" yaml:"prefix"`
-	SpotMarketID                     string   `json:"spot_market_id" yaml:"spot_market_id"`                                           // marketID of the spot price of the asset from the pricefeed - used for opening CDPs, depositing, withdrawing
-	LiquidationMarketID              string   `json:"liquidation_market_id" yaml:"liquidation_market_id"`                             // marketID of the pricefeed used for liquidation
-	KeeperRewardPercentage           sdk.Dec  `json:"keeper_reward_percentage" yaml:"keeper_reward_percentage"`                       // the percentage of a CDPs collateral that gets rewarded to a keeper that liquidates the position
-	CheckCollateralizationIndexCount sdk.Int  `json:"check_collateralization_index_count" yaml:"check_collateralization_index_count"` // the number of cdps that will be checked for liquidation in the begin blocker
-	ConversionFactor                 sdk.Int  `json:"conversion_factor" yaml:"conversion_factor"`                                     // factor for converting internal units to one base unit of collateral
-}
-
 // NewCollateralParam returns a new CollateralParam
 func NewCollateralParam(
 	denom, ctype string, liqRatio sdk.Dec, debtLimit sdk.Coin, stabilityFee sdk.Dec, auctionSize sdk.Int,
@@ -124,7 +95,7 @@ func NewCollateralParam(
 		StabilityFee:                     stabilityFee,
 		AuctionSize:                      auctionSize,
 		LiquidationPenalty:               liqPenalty,
-		Prefix:                           prefix,
+		Prefix:                           uint32(prefix),
 		SpotMarketID:                     spotMarketID,
 		LiquidationMarketID:              liquidationMarketID,
 		KeeperRewardPercentage:           keeperReward,
@@ -166,14 +137,6 @@ func (cps CollateralParams) String() string {
 	return out
 }
 
-// DebtParam governance params for debt assets
-type DebtParam struct {
-	Denom            string  `json:"denom" yaml:"denom"`
-	ReferenceAsset   string  `json:"reference_asset" yaml:"reference_asset"`
-	ConversionFactor sdk.Int `json:"conversion_factor" yaml:"conversion_factor"`
-	DebtFloor        sdk.Int `json:"debt_floor" yaml:"debt_floor"` // minimum active loan size, used to prevent dust
-}
-
 // NewDebtParam returns a new DebtParam
 func NewDebtParam(denom, refAsset string, conversionFactor, debtFloor sdk.Int) DebtParam {
 	return DebtParam{
@@ -206,23 +169,23 @@ func (dps DebtParams) String() string {
 }
 
 // ParamKeyTable Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 // pairs of auth module's parameters.
 // nolint
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyGlobalDebtLimit, &p.GlobalDebtLimit, validateGlobalDebtLimitParam),
-		params.NewParamSetPair(KeyCollateralParams, &p.CollateralParams, validateCollateralParams),
-		params.NewParamSetPair(KeyDebtParam, &p.DebtParam, validateDebtParam),
-		params.NewParamSetPair(KeyCircuitBreaker, &p.CircuitBreaker, validateCircuitBreakerParam),
-		params.NewParamSetPair(KeySurplusThreshold, &p.SurplusAuctionThreshold, validateSurplusAuctionThresholdParam),
-		params.NewParamSetPair(KeySurplusLot, &p.SurplusAuctionLot, validateSurplusAuctionLotParam),
-		params.NewParamSetPair(KeyDebtThreshold, &p.DebtAuctionThreshold, validateDebtAuctionThresholdParam),
-		params.NewParamSetPair(KeyDebtLot, &p.DebtAuctionLot, validateDebtAuctionLotParam),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyGlobalDebtLimit, &p.GlobalDebtLimit, validateGlobalDebtLimitParam),
+		paramtypes.NewParamSetPair(KeyCollateralParams, &p.CollateralParams, validateCollateralParams),
+		paramtypes.NewParamSetPair(KeyDebtParam, &p.DebtParam, validateDebtParam),
+		paramtypes.NewParamSetPair(KeyCircuitBreaker, &p.CircuitBreaker, validateCircuitBreakerParam),
+		paramtypes.NewParamSetPair(KeySurplusThreshold, &p.SurplusAuctionThreshold, validateSurplusAuctionThresholdParam),
+		paramtypes.NewParamSetPair(KeySurplusLot, &p.SurplusAuctionLot, validateSurplusAuctionLotParam),
+		paramtypes.NewParamSetPair(KeyDebtThreshold, &p.DebtAuctionThreshold, validateDebtAuctionThresholdParam),
+		paramtypes.NewParamSetPair(KeyDebtLot, &p.DebtAuctionLot, validateDebtAuctionLotParam),
 	}
 }
 
@@ -321,7 +284,7 @@ func validateCollateralParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	prefixDupMap := make(map[int]bool)
+	prefixDupMap := make(map[uint32]bool)
 	typeDupMap := make(map[string]bool)
 	for _, cp := range collateralParams {
 		if err := sdk.ValidateDenom(cp.Denom); err != nil {
@@ -340,17 +303,16 @@ func validateCollateralParams(i interface{}) error {
 			return fmt.Errorf("liquidation market id cannot be blank %s", cp)
 		}
 
-		prefix := int(cp.Prefix)
-		if prefix < minCollateralPrefix || prefix > maxCollateralPrefix {
+		if int(cp.Prefix) < minCollateralPrefix || int(cp.Prefix) > maxCollateralPrefix {
 			return fmt.Errorf("invalid prefix for collateral denom %s: %b", cp.Denom, cp.Prefix)
 		}
 
-		_, found := prefixDupMap[prefix]
+		_, found := prefixDupMap[cp.Prefix]
 		if found {
-			return fmt.Errorf("duplicate prefix for collateral denom %s: %v", cp.Denom, []byte{cp.Prefix})
+			return fmt.Errorf("duplicate prefix for collateral denom %s: %v", cp.Denom, []byte{byte(cp.Prefix)})
 		}
 
-		prefixDupMap[prefix] = true
+		prefixDupMap[cp.Prefix] = true
 
 		_, found = typeDupMap[cp.Type]
 		if found {

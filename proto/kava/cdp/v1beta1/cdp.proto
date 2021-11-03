@@ -6,11 +6,13 @@ import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package = "github.com/kava-labs/kava/x/cdp/types";
+option go_package                       = "github.com/kava-labs/kava/x/cdp/types";
+option (gogoproto.goproto_stringer_all) = false;
+option (gogoproto.goproto_getters_all)  = false;
 
 // CDP defines the state of a single collateralized debt position.
 message CDP {
-  uint64                    id               = 1;
+  uint64                    id               = 1 [(gogoproto.customname) = "ID"];
   string                    owner            = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string                    type             = 3;
   cosmos.base.v1beta1.Coin  collateral       = 4 [(gogoproto.nullable) = false];
@@ -26,7 +28,7 @@ message CDP {
 
 // AugmentedCDP defines additional information about an active CDP
 message AugmentedCDP {
-  CDP                      cdp                     = 1 [(gogoproto.embed) = true];
+  CDP                      cdp                     = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
   cosmos.base.v1beta1.Coin collateral_value        = 2 [(gogoproto.nullable) = false];
   string                   collateralization_ratio = 3 [
     (cosmos_proto.scalar)  = "cosmos.Dec",
@@ -37,7 +39,7 @@ message AugmentedCDP {
 
 // Deposit defines an amount of coins deposited by an account to a cdp
 message Deposit {
-  uint64                   cdp_id    = 1;
+  uint64                   cdp_id    = 1 [(gogoproto.customname) = "CdpID"];
   string                   depositor = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   cosmos.base.v1beta1.Coin amount    = 3 [(gogoproto.nullable) = false];
 }

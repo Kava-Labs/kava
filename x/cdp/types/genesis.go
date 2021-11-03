@@ -1,24 +1,11 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-// GenesisState is the state that must be provided at genesis.
-type GenesisState struct {
-	Params                    Params                   `json:"params" yaml:"params"`
-	CDPs                      CDPs                     `json:"cdps" yaml:"cdps"`
-	Deposits                  Deposits                 `json:"deposits" yaml:"deposits"`
-	StartingCdpID             uint64                   `json:"starting_cdp_id" yaml:"starting_cdp_id"`
-	DebtDenom                 string                   `json:"debt_denom" yaml:"debt_denom"`
-	GovDenom                  string                   `json:"gov_denom" yaml:"gov_denom"`
-	PreviousAccumulationTimes GenesisAccumulationTimes `json:"previous_accumulation_times" yaml:"previous_accumulation_times"`
-	TotalPrincipals           GenesisTotalPrincipals   `json:"total_principals" yaml:"total_principals"`
-}
 
 // NewGenesisState returns a new genesis state
 func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64,
@@ -98,24 +85,6 @@ func validateSavingsRateDistributed(i interface{}) error {
 	return nil
 }
 
-// Equal checks whether two gov GenesisState structs are equivalent
-func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	b1 := ModuleCdc.MustMarshalBinaryBare(gs)
-	b2 := ModuleCdc.MustMarshalBinaryBare(gs2)
-	return bytes.Equal(b1, b2)
-}
-
-// IsEmpty returns true if a GenesisState is empty
-func (gs GenesisState) IsEmpty() bool {
-	return gs.Equal(GenesisState{})
-}
-
-// GenesisTotalPrincipal stores the total principal and its corresponding collateral type
-type GenesisTotalPrincipal struct {
-	CollateralType string  `json:"collateral_type" yaml:"collateral_type"`
-	TotalPrincipal sdk.Int `json:"total_principal" yaml:"total_principal"`
-}
-
 // NewGenesisTotalPrincipal returns a new GenesisTotalPrincipal
 func NewGenesisTotalPrincipal(ctype string, principal sdk.Int) GenesisTotalPrincipal {
 	return GenesisTotalPrincipal{
@@ -143,13 +112,6 @@ func (gtps GenesisTotalPrincipals) Validate() error {
 		}
 	}
 	return nil
-}
-
-// GenesisAccumulationTime stores the previous distribution time and its corresponding denom
-type GenesisAccumulationTime struct {
-	CollateralType           string    `json:"collateral_type" yaml:"collateral_type"`
-	PreviousAccumulationTime time.Time `json:"previous_accumulation_time" yaml:"previous_accumulation_time"`
-	InterestFactor           sdk.Dec   `json:"interest_factor" yaml:"interest_factor"`
 }
 
 // NewGenesisAccumulationTime returns a new GenesisAccumulationTime
