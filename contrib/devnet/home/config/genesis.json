@@ -565,6 +565,269 @@
       "unbonding_delegations": [],
       "validators": []
     },
+    "pricefeed": {
+      "params": {
+        "markets": [
+          {
+            "active": true,
+            "base_asset": "bnb",
+            "market_id": "bnb:usd",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "bnb",
+            "market_id": "bnb:usd:30",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "btc",
+            "market_id": "btc:usd",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "btc",
+            "market_id": "btc:usd:30",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "xrp",
+            "market_id": "xrp:usd:30",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "xrp",
+            "market_id": "xrp:usd",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "busd",
+            "market_id": "busd:usd",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "busd",
+            "market_id": "busd:usd:30",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "kava",
+            "market_id": "kava:usd",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "kava",
+            "market_id": "kava:usd:30",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "hard",
+            "market_id": "hard:usd",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "hard",
+            "market_id": "hard:usd:30",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "usdx",
+            "market_id": "usdx:usd",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "usdx",
+            "market_id": "usdx:usd:30",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "usdx",
+            "market_id": "usdx:usd:720",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "swp",
+            "market_id": "swp:usd",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "swp",
+            "market_id": "swp:usd:30",
+            "oracles": [
+              "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"
+            ],
+            "quote_asset": "usd"
+          }
+        ]
+      },
+      "posted_prices": [
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "bnb:usd",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "215.962650000000001782"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "bnb:usd:30",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "217.962650000000001782"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "btc:usd",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "29500.962650000000001782"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "btc:usd:30",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "28500.962650000000001782"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "xrp:usd",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "0.552650000000001782"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "xrp:usd:30",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "0.552650000000001782"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "busd:usd",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "busd:usd:30",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "usdx:usd",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "usdx:usd:30",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "usdx:usd:720",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "kava:usd",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "3.000000000000000000"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "kava:usd:30",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "3.000000000000000000"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "hard:usd",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "0.500000000000000000"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "hard:usd:30",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "0.500000000000000000"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "swp:usd",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "2.150000000000000000"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "swp:usd:30",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "2.150000000000000000"
+        }
+      ]
+    },
     "vesting": {}
   },
   "chain_id": "kava-localnet",
