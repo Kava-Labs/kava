@@ -650,7 +650,7 @@ Query defines the gRPC querier service for cdp module
 | `Cdp` | [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest) | [QueryCdpResponse](#kava.cdp.v1beta1.QueryCdpResponse) | Cdp queries a CDP with the input owner address and collateral type. | GET|/kava/cdp/v1beta1/cdps/{owner}/{collateral_type}|
 | `Deposits` | [QueryDepositsRequest](#kava.cdp.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.cdp.v1beta1.QueryDepositsResponse) | Deposits queries deposits associated with the CDP owned by an address for a collateral type. | GET|/kava/cdp/v1beta1/cdps/deposits/{owner}/{collateral_type}|
 | `CdpsByCollateralType` | [QueryCdpsByCollateralTypeRequest](#kava.cdp.v1beta1.QueryCdpsByCollateralTypeRequest) | [QueryCdpsByCollateralTypeResponse](#kava.cdp.v1beta1.QueryCdpsByCollateralTypeResponse) | CdpsByCollateralType queries all CDPs with the collateral type equal to the input collateral type. | GET|/kava/cdp/v1beta1/cdps/collateralType/{collateral_type}|
-| `CdpsByRatio` | [QueryCdpsByRatioRequest](#kava.cdp.v1beta1.QueryCdpsByRatioRequest) | [QueryCdpsByRatioResponse](#kava.cdp.v1beta1.QueryCdpsByRatioResponse) | CdpsByRatio queries all CDPs with the collateral type equal to the input colalteral type and collateralization ratio strictly less than the input ratio. | GET|/kava/cdp/v1beta1/cdps/ratio/{collateral_type}/{ratio}|
+| `CdpsByRatio` | [QueryCdpsByRatioRequest](#kava.cdp.v1beta1.QueryCdpsByRatioRequest) | [QueryCdpsByRatioResponse](#kava.cdp.v1beta1.QueryCdpsByRatioResponse) | CdpsByRatio queries all CDPs with the collateral type equal to the input colalteral type and collateralization ratio strictly less than the input ratio. | GET|/kava/cdp/v1beta1/cdps/ratio/{collateral_type}|
 
  <!-- end services -->
 

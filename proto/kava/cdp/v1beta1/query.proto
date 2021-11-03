@@ -59,7 +59,8 @@ service Query {
   // colalteral type and collateralization ratio strictly less than the input
   // ratio.
   rpc CdpsByRatio(QueryCdpsByRatioRequest) returns (QueryCdpsByRatioResponse) {
-    option (google.api.http).get = "/kava/cdp/v1beta1/cdps/ratio/{collateral_type}/{ratio}";
+    // Does not contain {ratio} in the url path as grpc-gateway does not convert string to sdk.Dec
+    option (google.api.http).get = "/kava/cdp/v1beta1/cdps/ratio/{collateral_type}";
   };
 }
 
