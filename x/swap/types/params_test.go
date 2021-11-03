@@ -11,17 +11,17 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
 )
 
 func TestParams_UnmarshalJSON(t *testing.T) {
-	pools := types.AllowedPools{
+	pools := types.NewAllowedPools(
 		types.NewAllowedPool("hard", "ukava"),
 		types.NewAllowedPool("hard", "usdx"),
-	}
+	)
 	poolData, err := json.Marshal(pools)
 	require.NoError(t, err)
 
@@ -44,10 +44,10 @@ func TestParams_UnmarshalJSON(t *testing.T) {
 }
 
 func TestParams_MarshalYAML(t *testing.T) {
-	pools := types.AllowedPools{
+	pools := types.NewAllowedPools(
 		types.NewAllowedPool("hard", "ukava"),
 		types.NewAllowedPool("hard", "usdx"),
-	}
+	)
 	fee, err := sdk.NewDecFromStr("0.5")
 	require.NoError(t, err)
 
@@ -85,7 +85,7 @@ func TestParams_ParamSetPairs_AllowedPools(t *testing.T) {
 	assert.Equal(t, []byte("AllowedPools"), types.KeyAllowedPools)
 	defaultParams := types.DefaultParams()
 
-	var paramSetPair *paramtypes.ParamSetPair
+	var paramSetPair *paramstypes.ParamSetPair
 	for _, pair := range defaultParams.ParamSetPairs() {
 		if bytes.Equal(pair.Key, types.KeyAllowedPools) {
 			paramSetPair = &pair
@@ -107,7 +107,7 @@ func TestParams_ParamSetPairs_SwapFee(t *testing.T) {
 	assert.Equal(t, []byte("SwapFee"), types.KeySwapFee)
 	defaultParams := types.DefaultParams()
 
-	var paramSetPair *paramtypes.ParamSetPair
+	var paramSetPair *paramstypes.ParamSetPair
 	for _, pair := range defaultParams.ParamSetPairs() {
 		if bytes.Equal(pair.Key, types.KeySwapFee) {
 			paramSetPair = &pair
@@ -145,7 +145,7 @@ func TestParams_Validation(t *testing.T) {
 			name: "duplicate pools",
 			key:  types.KeyAllowedPools,
 			testFn: func(params *types.Params) {
-				params.AllowedPools = types.AllowedPools{types.NewAllowedPool("ukava", "ukava")}
+				params.AllowedPools = types.NewAllowedPools(types.NewAllowedPool("ukava", "ukava"))
 			},
 			expectedErr: "pool cannot have two tokens of the same type, received 'ukava' and 'ukava'",
 		},
@@ -204,7 +204,7 @@ func TestParams_Validation(t *testing.T) {
 				assert.EqualError(t, err, tc.expectedErr)
 			}
 
-			var paramSetPair *paramtypes.ParamSetPair
+			var paramSetPair *paramstypes.ParamSetPair
 			for _, pair := range params.ParamSetPairs() {
 				if bytes.Equal(pair.Key, tc.key) {
 					paramSetPair = &pair
@@ -222,10 +222,10 @@ func TestParams_Validation(t *testing.T) {
 
 func TestParams_String(t *testing.T) {
 	params := types.NewParams(
-		types.AllowedPools{
+		types.NewAllowedPools(
 			types.NewAllowedPool("hard", "ukava"),
 			types.NewAllowedPool("ukava", "usdx"),
-		},
+		),
 		sdk.MustNewDecFromStr("0.5"),
 	)
 
@@ -382,20 +382,20 @@ func TestAllowedPools_Validate(t *testing.T) {
 		// },
 		{
 			name: "duplicate pool",
-			allowedPools: types.AllowedPools{
+			allowedPools: types.NewAllowedPools(
 				types.NewAllowedPool("hard", "ukava"),
 				types.NewAllowedPool("hard", "ukava"),
-			},
+			),
 			expectedErr: "duplicate pool: hard:ukava",
 		},
 		{
 			name: "duplicate pools",
-			allowedPools: types.AllowedPools{
+			allowedPools: types.NewAllowedPools(
 				types.NewAllowedPool("hard", "ukava"),
 				types.NewAllowedPool("bnb", "usdx"),
 				types.NewAllowedPool("btcb", "xrpb"),
 				types.NewAllowedPool("bnb", "usdx"),
-			},
+			),
 			expectedErr: "duplicate pool: bnb:usdx",
 		},
 	}
