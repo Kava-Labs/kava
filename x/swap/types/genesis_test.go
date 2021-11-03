@@ -131,9 +131,7 @@ func TestGenesis_Validate_AllowedPools(t *testing.T) {
 
 func TestGenesis_Equal(t *testing.T) {
 	params := types.Params{
-		types.NewAllowedPools(
-			types.NewAllowedPool("ukava", "usdx"),
-		),
+		types.NewAllowedPools(types.NewAllowedPool("ukava", "usdx")),
 		sdk.MustNewDecFromStr("0.85"),
 	}
 
