@@ -34,6 +34,13 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.now = time.Now().UTC()
 }
 
+func (suite *grpcQueryTestSuite) setTestParams() {
+	params := types.NewParams([]types.Market{
+		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+	})
+	suite.keeper.SetParams(suite.ctx, params)
+}
+
 func (suite *grpcQueryTestSuite) TestGrpcParams() {
 	tests := []struct {
 		giveMsg      string
@@ -63,40 +70,38 @@ func (suite *grpcQueryTestSuite) TestGrpcParams() {
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcPrice() {
-	params := types.NewParams([]types.Market{
-		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
-	})
-	suite.keeper.SetParams(suite.ctx, params)
-
-	// No prices set yet, should error
-	_, err := suite.keeper.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "tstusd"})
-	suite.ErrorIs(types.ErrNoValidPrice, err)
-
+	suite.setTestParams()
 	suite.setTstPrice()
 
 	expectedPrice := types.NewCurrentPrice("tstusd", sdk.MustNewDecFromStr("0.34"))
 
 	res, err := suite.keeper.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "tstusd"})
 	suite.NoError(err)
-	// Price median of addTstPrices below
 	suite.Equal(expectedPrice, res.Price)
+}
 
-	_, err = suite.keeper.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "invalid"})
-	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
+func (suite *grpcQueryTestSuite) TestGrpcPrice_NoPriceSet() {
+	suite.setTestParams()
+
+	// No prices set yet, should error
+	_, err := suite.keeper.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "tstusd"})
+	suite.ErrorIs(types.ErrNoValidPrice, err)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcPrices() {
+	suite.setTestParams()
+	suite.setTstPrice()
+
+	expectedPrice := types.NewCurrentPrice("tstusd", sdk.MustNewDecFromStr("0.34"))
 
 	prices, err := suite.keeper.Prices(sdk.WrapSDKContext(suite.ctx), &types.QueryPricesRequest{})
 	suite.NoError(err)
 
-	// Includes previous same price
-	suite.Contains(prices.Prices, expectedPrice)
+	suite.Contains(prices.Prices, expectedPrice, "all prices should include the tstusd price")
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcRawPrices() {
-	params := types.NewParams([]types.Market{
-		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
-	})
-	suite.keeper.SetParams(suite.ctx, params)
-
+	suite.setTestParams()
 	suite.setTstPrice()
 
 	res, err := suite.keeper.RawPrices(sdk.WrapSDKContext(suite.ctx), &types.QueryRawPricesRequest{MarketId: "tstusd"})
