@@ -88,6 +88,14 @@ func (suite *grpcQueryTestSuite) TestGrpcPrice_NoPriceSet() {
 	suite.ErrorIs(types.ErrNoValidPrice, err)
 }
 
+func (suite *grpcQueryTestSuite) TestGrpcPrice_InvalidMarket() {
+	suite.setTestParams()
+	suite.setTstPrice()
+
+	_, err := suite.keeper.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "invalid"})
+	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
+}
+
 func (suite *grpcQueryTestSuite) TestGrpcPrices() {
 	suite.setTestParams()
 	suite.setTstPrice()
@@ -132,12 +140,17 @@ func (suite *grpcQueryTestSuite) TestGrpcRawPrices() {
 			),
 		},
 	)
+}
 
-	_, err = suite.keeper.RawPrices(sdk.WrapSDKContext(suite.ctx), &types.QueryRawPricesRequest{MarketId: "invalid"})
+func (suite *grpcQueryTestSuite) TestGrpcRawPrices_InvalidMarket() {
+	suite.setTestParams()
+	suite.setTstPrice()
+
+	_, err := suite.keeper.RawPrices(sdk.WrapSDKContext(suite.ctx), &types.QueryRawPricesRequest{MarketId: "invalid"})
 	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
 }
 
-func (suite *grpcQueryTestSuite) TestGrpcOracles() {
+func (suite *grpcQueryTestSuite) TestGrpcOracles_Empty() {
 	params := types.NewParams([]types.Market{
 		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 	})
@@ -162,6 +175,29 @@ func (suite *grpcQueryTestSuite) TestGrpcOracles() {
 	suite.ElementsMatch(res.Oracles, oracles)
 
 	_, err = suite.keeper.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "invalid"})
+	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcOracles() {
+	var oracles []string
+	for _, a := range suite.addrs {
+		oracles = append(oracles, a.String())
+	}
+
+	params := types.NewParams([]types.Market{
+		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: oracles, Active: true},
+	})
+	suite.keeper.SetParams(suite.ctx, params)
+
+	res, err := suite.keeper.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "tstusd"})
+	suite.NoError(err)
+	suite.ElementsMatch(res.Oracles, oracles)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcOracles_InvalidMarket() {
+	suite.setTestParams()
+
+	_, err := suite.keeper.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "invalid"})
 	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
 }
 
