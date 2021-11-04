@@ -38,7 +38,8 @@ func (k Keeper) GetOracles(ctx sdk.Context, MarketID string) ([]string, error) {
 func (k Keeper) GetOracle(ctx sdk.Context, MarketID string, address string) (string, error) {
 	oracles, err := k.GetOracles(ctx, MarketID)
 	if err != nil {
-		return "", sdkerrors.Wrap(types.ErrInvalidMarket, MarketID)
+		// Error already wrapped
+		return "", err
 	}
 	for _, addr := range oracles {
 		if addr == address {

@@ -82,7 +82,7 @@ func (suite *grpcQueryTestSuite) TestGrpcPrice() {
 	suite.Equal(expectedPrice, res.Price)
 
 	_, err = suite.keeper.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "invalid"})
-	suite.Equal("rpc error: code = InvalidArgument desc = invalid market ID", err.Error())
+	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
 
 	prices, err := suite.keeper.Prices(sdk.WrapSDKContext(suite.ctx), &types.QueryPricesRequest{})
 	suite.NoError(err)
@@ -129,7 +129,7 @@ func (suite *grpcQueryTestSuite) TestGrpcRawPrices() {
 	)
 
 	_, err = suite.keeper.RawPrices(sdk.WrapSDKContext(suite.ctx), &types.QueryRawPricesRequest{MarketId: "invalid"})
-	suite.Equal("rpc error: code = InvalidArgument desc = invalid market ID", err.Error())
+	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcOracles() {
@@ -157,7 +157,7 @@ func (suite *grpcQueryTestSuite) TestGrpcOracles() {
 	suite.ElementsMatch(res.Oracles, oracles)
 
 	_, err = suite.keeper.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "invalid"})
-	suite.Equal("rpc error: code = InvalidArgument desc = invalid market ID", err.Error())
+	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcMarkets() {
