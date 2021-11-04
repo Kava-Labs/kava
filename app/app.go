@@ -65,6 +65,9 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	pricefeed "github.com/kava-labs/kava/x/pricefeed"
+	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 
 	"github.com/kava-labs/kava/x/kavadist"
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
@@ -98,6 +101,7 @@ var (
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		issuance.AppModuleBasic{},
+		pricefeed.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 	)
 
@@ -145,18 +149,19 @@ type App struct {
 	tkeys map[string]*sdk.TransientStoreKey
 
 	// keepers from all the modules
-	accountKeeper  authkeeper.AccountKeeper
-	bankKeeper     bankkeeper.Keeper
-	stakingKeeper  stakingkeeper.Keeper
-	slashingKeeper slashingkeeper.Keeper
-	mintKeeper     mintkeeper.Keeper
-	distrKeeper    distrkeeper.Keeper
-	govKeeper      govkeeper.Keeper
-	crisisKeeper   crisiskeeper.Keeper
-	paramsKeeper   paramskeeper.Keeper
-	evidenceKeeper evidencekeeper.Keeper
-	issuanceKeeper issuancekeeper.Keeper
-	kavadistKeeper kavadistkeeper.Keeper
+	accountKeeper   authkeeper.AccountKeeper
+	bankKeeper      bankkeeper.Keeper
+	stakingKeeper   stakingkeeper.Keeper
+	slashingKeeper  slashingkeeper.Keeper
+	mintKeeper      mintkeeper.Keeper
+	distrKeeper     distrkeeper.Keeper
+	govKeeper       govkeeper.Keeper
+	crisisKeeper    crisiskeeper.Keeper
+	paramsKeeper    paramskeeper.Keeper
+	evidenceKeeper  evidencekeeper.Keeper
+	pricefeedKeeper pricefeedkeeper.Keeper
+	kavadistKeeper  kavadistkeeper.Keeper
+	issuanceKeeper  issuancekeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -184,7 +189,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
-		issuancetypes.StoreKey, kavadisttypes.StoreKey,
+		issuancetypes.StoreKey, pricefeedtypes.StoreKey, kavadisttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -213,6 +218,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.ModuleName)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuancetypes.ModuleName)
+	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadisttypes.ModuleName)
 
 	bApp.SetParamStore(
@@ -302,6 +308,11 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		govRouter,
 	)
 
+	app.pricefeedKeeper = pricefeedkeeper.NewKeeper(
+		appCodec,
+		keys[pricefeedtypes.StoreKey],
+		pricefeedSubspace,
+	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
 		keys[kavadisttypes.StoreKey],
@@ -333,6 +344,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		evidence.NewAppModule(app.evidenceKeeper),
 		params.NewAppModule(app.paramsKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
+		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 	)
 
@@ -355,6 +367,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
+		pricefeedtypes.ModuleName,
 	)
 
 	app.mm.SetOrderInitGenesis( // TODO why the different order?
@@ -369,6 +382,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
 		issuancetypes.ModuleName,
+		pricefeedtypes.ModuleName,
 		kavadisttypes.ModuleName,
 	)
 
@@ -400,10 +414,11 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	// TODO mount memory stores
 
 	// initialize the app
-	var fetchers []ante.AddressFetcher // TODO add bep3 and pricefeed authorized addresses
+	var fetchers []ante.AddressFetcher // TODO add bep3 authorized addresses
 	if options.MempoolEnableAuth {
 		fetchers = append(fetchers,
 			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
+			app.pricefeedKeeper.GetAuthorizedAddresses,
 		)
 	}
 	antehandler, err := ante.NewAnteHandler(
