@@ -49,7 +49,7 @@ func (suite *ABCITestSuite) SetupTest() {
 
 func (suite *ABCITestSuite) TestRateLimitingTimePassage() {
 	type args struct {
-		assets         []*types.Asset
+		assets         []types.Asset
 		supplies       []types.AssetSupply
 		blockTimes     []time.Duration
 		expectedSupply types.AssetSupply
@@ -61,7 +61,7 @@ func (suite *ABCITestSuite) TestRateLimitingTimePassage() {
 		{
 			"time passage same period",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0].String(), "usdtoken", []string{suite.addrs[1].String()}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
@@ -74,7 +74,7 @@ func (suite *ABCITestSuite) TestRateLimitingTimePassage() {
 		{
 			"time passage new period",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0].String(), "usdtoken", []string{suite.addrs[1].String()}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
