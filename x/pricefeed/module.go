@@ -117,7 +117,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // Route module message route name
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+	return sdk.Route{}
 }
 
 // QuerierRoute module querier route name
@@ -137,8 +137,8 @@ func (AppModule) ConsensusVersion() uint64 {
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
+	types.RegisterMsgServer(cfg.MsgServer(), NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), NewQueryServerImpl(am.keeper))
 }
 
 // InitGenesis module init-genesis

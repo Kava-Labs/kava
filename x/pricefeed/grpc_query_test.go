@@ -1,4 +1,4 @@
-package keeper_test
+package pricefeed_test
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/stretchr/testify/suite"
@@ -28,7 +29,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.ctx = suite.tApp.NewContext(true, tmprototypes.Header{}).
 		WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetPriceFeedKeeper()
-	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
+	suite.queryServer = pricefeed.NewQueryServerImpl(suite.keeper)
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	suite.addrs = addrs

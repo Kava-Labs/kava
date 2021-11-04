@@ -1,4 +1,4 @@
-package keeper_test
+package pricefeed_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/pricefeed/keeper"
+	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/stretchr/testify/require"
 	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -18,7 +18,7 @@ func TestKeeper_PostPrice(t *testing.T) {
 	ctx := tApp.NewContext(true, tmprototypes.Header{}).
 		WithBlockTime(time.Now().UTC())
 	k := tApp.GetPriceFeedKeeper()
-	msgSrv := keeper.NewMsgServerImpl(k)
+	msgSrv := pricefeed.NewMsgServerImpl(k)
 
 	var strAddrs []string
 	for _, a := range addrs {
