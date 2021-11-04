@@ -34,35 +34,34 @@ func TestKeeper_PostPrice(t *testing.T) {
 	}
 	k.SetParams(ctx, mp)
 
+	now := time.Now().UTC()
+
 	tests := []struct {
+		giveMsg      string
 		giveOracle   string
 		giveMarketId string
-		givePrice    sdk.Dec
 		giveExpiry   time.Time
 		wantAccepted bool
 		errorKind    error
 	}{
-		// Authorized
-		{authorizedOracles[0], "tstusd", sdk.MustNewDecFromStr("0.5"), time.Now().UTC().Add(time.Hour * 1), true, nil},
-		// Expired
-		{authorizedOracles[0], "tstusd", sdk.MustNewDecFromStr("0.5"), time.Now().UTC().Add(-time.Hour * 1), false, types.ErrExpired},
-		// Invalid market
-		{authorizedOracles[0], "invalid", sdk.MustNewDecFromStr("0.5"), time.Now().UTC().Add(time.Hour * 1), false, types.ErrInvalidMarket},
-
-		// Unauthorized
-		{unauthorizedAddrs[0], "tstusd", sdk.MustNewDecFromStr("0.5"), time.Now().UTC().Add(time.Hour * 1), false, types.ErrInvalidOracle},
+		{"authorized", authorizedOracles[0], "tstusd", now.Add(time.Hour * 1), true, nil},
+		{"expired", authorizedOracles[0], "tstusd", now.Add(-time.Hour * 1), false, types.ErrExpired},
+		{"invalid", authorizedOracles[0], "invalid", now.Add(time.Hour * 1), false, types.ErrInvalidMarket},
+		{"unauthorized", unauthorizedAddrs[0], "tstusd", now.Add(time.Hour * 1), false, types.ErrInvalidOracle},
 	}
 
 	for _, tt := range tests {
-		// Use MsgServer over keeper methods directly to tests against valid oracles
-		msg := types.NewMsgPostPrice(tt.giveOracle, tt.giveMarketId, tt.givePrice, tt.giveExpiry)
-		_, err := msgSrv.PostPrice(sdk.WrapSDKContext(ctx), msg)
+		t.Run(tt.giveMsg, func(t *testing.T) {
+			// Use MsgServer over keeper methods directly to tests against valid oracles
+			msg := types.NewMsgPostPrice(tt.giveOracle, tt.giveMarketId, sdk.MustNewDecFromStr("0.5"), tt.giveExpiry)
+			_, err := msgSrv.PostPrice(sdk.WrapSDKContext(ctx), msg)
 
-		if tt.wantAccepted {
-			require.NoError(t, err)
-		} else {
-			require.Error(t, err)
-			require.ErrorIs(t, tt.errorKind, err)
-		}
+			if tt.wantAccepted {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				require.ErrorIs(t, tt.errorKind, err)
+			}
+		})
 	}
 }
