@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
 
 	"github.com/kava-labs/kava/x/issuance/types"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/issue", types.ModuleName), postIssueTokensHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/redeem", types.ModuleName), postRedeemTokensHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/block", types.ModuleName), postBlockAddressHandlerFn(cliCtx)).Methods("POST")
@@ -21,15 +21,15 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/pause", types.ModuleName), postPauseHandlerFn(cliCtx)).Methods("POST")
 }
 
-func postIssueTokensHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postIssueTokensHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestBody PostIssueReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &requestBody) {
 			return
 		}
 
-		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
-		if !requestBody.BaseReq.ValidateBasic(w) {
+		baseReq := requestBody.BaseReq.Sanitize()
+		if !baseReq.ValidateBasic(w) {
 			return
 		}
 
@@ -40,28 +40,28 @@ func postIssueTokensHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgIssueTokens(
-			fromAddr,
+			fromAddr.String(),
 			requestBody.Tokens,
-			requestBody.Receiver,
+			requestBody.Receiver.String(),
 		)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func postRedeemTokensHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postRedeemTokensHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestBody PostRedeemReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &requestBody) {
 			return
 		}
 
-		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
-		if !requestBody.BaseReq.ValidateBasic(w) {
+		baseReq := requestBody.BaseReq.Sanitize()
+		if !baseReq.ValidateBasic(w) {
 			return
 		}
 
@@ -72,7 +72,7 @@ func postRedeemTokensHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgRedeemTokens(
-			fromAddr,
+			fromAddr.String(),
 			requestBody.Tokens,
 		)
 		if err := msg.ValidateBasic(); err != nil {
@@ -80,19 +80,19 @@ func postRedeemTokensHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func postBlockAddressHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postBlockAddressHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestBody PostBlockAddressReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &requestBody) {
 			return
 		}
 
-		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
-		if !requestBody.BaseReq.ValidateBasic(w) {
+		baseReq := requestBody.BaseReq.Sanitize()
+		if !baseReq.ValidateBasic(w) {
 			return
 		}
 
@@ -103,28 +103,28 @@ func postBlockAddressHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgBlockAddress(
-			fromAddr,
+			fromAddr.String(),
 			requestBody.Denom,
-			requestBody.Address,
+			requestBody.Address.String(),
 		)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func postUnblockAddressHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postUnblockAddressHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestBody PostUnblockAddressReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &requestBody) {
 			return
 		}
 
-		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
-		if !requestBody.BaseReq.ValidateBasic(w) {
+		baseReq := requestBody.BaseReq.Sanitize()
+		if !baseReq.ValidateBasic(w) {
 			return
 		}
 
@@ -135,28 +135,28 @@ func postUnblockAddressHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgUnblockAddress(
-			fromAddr,
+			fromAddr.String(),
 			requestBody.Denom,
-			requestBody.Address,
+			requestBody.Address.String(),
 		)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func postPauseHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postPauseHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestBody PostPauseReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &requestBody) {
 			return
 		}
 
-		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
-		if !requestBody.BaseReq.ValidateBasic(w) {
+		baseReq := requestBody.BaseReq.Sanitize()
+		if !baseReq.ValidateBasic(w) {
 			return
 		}
 
@@ -167,7 +167,7 @@ func postPauseHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgSetPauseStatus(
-			fromAddr,
+			fromAddr.String(),
 			requestBody.Denom,
 			requestBody.Status,
 		)
@@ -176,6 +176,6 @@ func postPauseHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }

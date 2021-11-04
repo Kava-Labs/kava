@@ -55,6 +55,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	issuance "github.com/kava-labs/kava/x/issuance"
+	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
+	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -97,6 +100,7 @@ var (
 		slashing.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
+		issuance.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 	)
@@ -105,13 +109,14 @@ var (
 	// If these are changed, the permissions stored in accounts
 	// must also be migrated during a chain upgrade.
 	mAccPerms = map[string][]string{
-		authtypes.FeeCollectorName:     nil,
-		distrtypes.ModuleName:          nil,
-		minttypes.ModuleName:           {authtypes.Minter},
-		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:            {authtypes.Burner},
-		kavadisttypes.KavaDistMacc:     {authtypes.Minter},
+		authtypes.FeeCollectorName:      nil,
+		distrtypes.ModuleName:           nil,
+		minttypes.ModuleName:            {authtypes.Minter},
+		stakingtypes.BondedPoolName:     {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:  {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:             {authtypes.Burner},
+		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
+		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -156,6 +161,7 @@ type App struct {
 	evidenceKeeper  evidencekeeper.Keeper
 	pricefeedKeeper pricefeedkeeper.Keeper
 	kavadistKeeper  kavadistkeeper.Keeper
+	issuanceKeeper  issuancekeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -183,7 +189,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
-		pricefeedtypes.StoreKey, kavadisttypes.StoreKey,
+		issuancetypes.StoreKey, pricefeedtypes.StoreKey, kavadisttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -211,6 +217,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	slashingSubspace := app.paramsKeeper.Subspace(slashingtypes.ModuleName)
 	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.ModuleName)
+	issuanceSubspace := app.paramsKeeper.Subspace(issuancetypes.ModuleName)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadisttypes.ModuleName)
 
@@ -277,6 +284,14 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		&app.stakingKeeper,
 		app.slashingKeeper,
 	)
+	app.issuanceKeeper = issuancekeeper.NewKeeper(
+		appCodec,
+		keys[issuancetypes.StoreKey],
+		issuanceSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+	)
+
 	// TODO No evidence router is added so all submit evidence msgs will fail. Should there be a router added?
 	govRouter := govtypes.NewRouter()
 	govRouter.
@@ -328,6 +343,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		params.NewAppModule(app.paramsKeeper),
+		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 	)
@@ -344,6 +360,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		evidencetypes.ModuleName, // TODO why new evidence and staking begin blockers?
 		stakingtypes.ModuleName,
 		kavadisttypes.ModuleName,
+		issuancetypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -364,6 +381,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		crisistypes.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
+		issuancetypes.ModuleName,
 		pricefeedtypes.ModuleName,
 		kavadisttypes.ModuleName,
 	)

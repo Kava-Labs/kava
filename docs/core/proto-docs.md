@@ -4,6 +4,33 @@
 
 ## Table of Contents
 
+- [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
+    - [Asset](#kava.issuance.v1beta1.Asset)
+    - [AssetSupply](#kava.issuance.v1beta1.AssetSupply)
+    - [GenesisState](#kava.issuance.v1beta1.GenesisState)
+    - [Params](#kava.issuance.v1beta1.Params)
+    - [RateLimit](#kava.issuance.v1beta1.RateLimit)
+  
+- [kava/issuance/v1beta1/query.proto](#kava/issuance/v1beta1/query.proto)
+    - [QueryParamsRequest](#kava.issuance.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.issuance.v1beta1.QueryParamsResponse)
+  
+    - [Query](#kava.issuance.v1beta1.Query)
+  
+- [kava/issuance/v1beta1/tx.proto](#kava/issuance/v1beta1/tx.proto)
+    - [MsgBlockAddress](#kava.issuance.v1beta1.MsgBlockAddress)
+    - [MsgBlockAddressResponse](#kava.issuance.v1beta1.MsgBlockAddressResponse)
+    - [MsgIssueTokens](#kava.issuance.v1beta1.MsgIssueTokens)
+    - [MsgIssueTokensResponse](#kava.issuance.v1beta1.MsgIssueTokensResponse)
+    - [MsgRedeemTokens](#kava.issuance.v1beta1.MsgRedeemTokens)
+    - [MsgRedeemTokensResponse](#kava.issuance.v1beta1.MsgRedeemTokensResponse)
+    - [MsgSetPauseStatus](#kava.issuance.v1beta1.MsgSetPauseStatus)
+    - [MsgSetPauseStatusResponse](#kava.issuance.v1beta1.MsgSetPauseStatusResponse)
+    - [MsgUnblockAddress](#kava.issuance.v1beta1.MsgUnblockAddress)
+    - [MsgUnblockAddressResponse](#kava.issuance.v1beta1.MsgUnblockAddressResponse)
+  
+    - [Msg](#kava.issuance.v1beta1.Msg)
+  
 - [kava/kavadist/v1beta1/params.proto](#kava/kavadist/v1beta1/params.proto)
     - [Params](#kava.kavadist.v1beta1.Params)
     - [Period](#kava.kavadist.v1beta1.Period)
@@ -56,6 +83,322 @@
     - [Msg](#kava.pricefeed.v1beta1.Msg)
   
 - [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="kava/issuance/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/issuance/v1beta1/genesis.proto
+
+
+
+<a name="kava.issuance.v1beta1.Asset"></a>
+
+### Asset
+Asset type for assets in the issuance module
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  |  |
+| `denom` | [string](#string) |  |  |
+| `blocked_addresses` | [string](#string) | repeated |  |
+| `paused` | [bool](#bool) |  |  |
+| `blockable` | [bool](#bool) |  |  |
+| `rate_limit` | [RateLimit](#kava.issuance.v1beta1.RateLimit) |  |  |
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.AssetSupply"></a>
+
+### AssetSupply
+AssetSupply contains information about an asset's rate-limited supply (the
+total supply of the asset is tracked in the top-level supply module)
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `current_supply` | [bytes](#bytes) |  |  |
+| `time_elapsed` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the issuance module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.issuance.v1beta1.Params) |  | params defines all the paramaters of the module. |
+| `supplies` | [AssetSupply](#kava.issuance.v1beta1.AssetSupply) | repeated |  |
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the issuance module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `assets` | [Asset](#kava.issuance.v1beta1.Asset) | repeated |  |
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.RateLimit"></a>
+
+### RateLimit
+RateLimit parameters for rate-limiting the supply of an issued asset
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active` | [bool](#bool) |  |  |
+| `limit` | [bytes](#bytes) |  |  |
+| `time_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/issuance/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/issuance/v1beta1/query.proto
+
+
+
+<a name="kava.issuance.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/issuance parameters.
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/issuance parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.issuance.v1beta1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.issuance.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for issuance module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.issuance.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.issuance.v1beta1.QueryParamsResponse) | Params queries all parameters of the issuance module. | GET|/kava/issuance/v1beta1/params|
+
+ <!-- end services -->
+
+
+
+<a name="kava/issuance/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/issuance/v1beta1/tx.proto
+
+
+
+<a name="kava.issuance.v1beta1.MsgBlockAddress"></a>
+
+### MsgBlockAddress
+MsgBlockAddress represents a message used by the issuer to block an address from holding or transferring tokens
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denom` | [string](#string) |  |  |
+| `blocked_address` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.MsgBlockAddressResponse"></a>
+
+### MsgBlockAddressResponse
+MsgBlockAddressResponse defines the Msg/BlockAddress response type.
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.MsgIssueTokens"></a>
+
+### MsgIssueTokens
+MsgIssueTokens represents a message used by the issuer to issue new tokens
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `tokens` | [bytes](#bytes) |  |  |
+| `receiver` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.MsgIssueTokensResponse"></a>
+
+### MsgIssueTokensResponse
+MsgIssueTokensResponse defines the Msg/IssueTokens response type.
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.MsgRedeemTokens"></a>
+
+### MsgRedeemTokens
+MsgRedeemTokens represents a message used by the issuer to redeem (burn) tokens
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `tokens` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.MsgRedeemTokensResponse"></a>
+
+### MsgRedeemTokensResponse
+MsgRedeemTokensResponse defines the Msg/RedeemTokens response type.
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.MsgSetPauseStatus"></a>
+
+### MsgSetPauseStatus
+MsgSetPauseStatus message type used by the issuer to pause or unpause status
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denom` | [string](#string) |  |  |
+| `status` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.MsgSetPauseStatusResponse"></a>
+
+### MsgSetPauseStatusResponse
+MsgSetPauseStatusResponse defines the Msg/SetPauseStatus response type.
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.MsgUnblockAddress"></a>
+
+### MsgUnblockAddress
+MsgUnblockAddress message type used by the issuer to unblock an address from holding or transferring tokens
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denom` | [string](#string) |  |  |
+| `blocked_address` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.issuance.v1beta1.MsgUnblockAddressResponse"></a>
+
+### MsgUnblockAddressResponse
+MsgUnblockAddressResponse defines the Msg/UnblockAddress response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.issuance.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the issuance Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `IssueTokens` | [MsgIssueTokens](#kava.issuance.v1beta1.MsgIssueTokens) | [MsgIssueTokensResponse](#kava.issuance.v1beta1.MsgIssueTokensResponse) | IssueTokens message type used by the issuer to issue new tokens | |
+| `RedeemTokens` | [MsgRedeemTokens](#kava.issuance.v1beta1.MsgRedeemTokens) | [MsgRedeemTokensResponse](#kava.issuance.v1beta1.MsgRedeemTokensResponse) | RedeemTokens message type used by the issuer to redeem (burn) tokens | |
+| `BlockAddress` | [MsgBlockAddress](#kava.issuance.v1beta1.MsgBlockAddress) | [MsgBlockAddressResponse](#kava.issuance.v1beta1.MsgBlockAddressResponse) | BlockAddress message type used by the issuer to block an address from holding or transferring tokens | |
+| `UnblockAddress` | [MsgUnblockAddress](#kava.issuance.v1beta1.MsgUnblockAddress) | [MsgUnblockAddressResponse](#kava.issuance.v1beta1.MsgUnblockAddressResponse) | UnblockAddress message type used by the issuer to unblock an address from holding or transferring tokens | |
+| `SetPauseStatus` | [MsgSetPauseStatus](#kava.issuance.v1beta1.MsgSetPauseStatus) | [MsgSetPauseStatusResponse](#kava.issuance.v1beta1.MsgSetPauseStatusResponse) | SetPauseStatus message type used to pause or unpause status | |
+
+ <!-- end services -->
 
 
 

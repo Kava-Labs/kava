@@ -1,29 +1,30 @@
 package types
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// ensure Msg interface compliance at compile time
-var _ sdk.Msg = &MsgIssueTokens{}
-var _ sdk.Msg = &MsgRedeemTokens{}
-var _ sdk.Msg = &MsgBlockAddress{}
-var _ sdk.Msg = &MsgUnblockAddress{}
-var _ sdk.Msg = &MsgSetPauseStatus{}
+const (
+	TypeMsgIssueTokens    = "issue_tokens"
+	TypeMsgRedeemTokens   = "redeem_tokens"
+	TypeMsgBlockAddress   = "block_address"
+	TypeMsgUnBlockAddress = "unblock_address"
+	TypeMsgSetPauseStatus = "change_pause_status"
+)
 
-// MsgIssueTokens message type used by the issuer to issue new tokens
-type MsgIssueTokens struct {
-	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`
-	Tokens   sdk.Coin       `json:"tokens" yaml:"tokens"`
-	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
-}
+// ensure Msg interface compliance at compile time
+var (
+	_ sdk.Msg = &MsgIssueTokens{}
+	_ sdk.Msg = &MsgRedeemTokens{}
+	_ sdk.Msg = &MsgBlockAddress{}
+	_ sdk.Msg = &MsgUnblockAddress{}
+	_ sdk.Msg = &MsgSetPauseStatus{}
+)
 
 // NewMsgIssueTokens returns a new MsgIssueTokens
-func NewMsgIssueTokens(sender sdk.AccAddress, tokens sdk.Coin, receiver sdk.AccAddress) MsgIssueTokens {
-	return MsgIssueTokens{
+func NewMsgIssueTokens(sender string, tokens sdk.Coin, receiver string) *MsgIssueTokens {
+	return &MsgIssueTokens{
 		Sender:   sender,
 		Tokens:   tokens,
 		Receiver: receiver,
@@ -34,52 +35,48 @@ func NewMsgIssueTokens(sender sdk.AccAddress, tokens sdk.Coin, receiver sdk.AccA
 func (msg MsgIssueTokens) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgIssueTokens) Type() string { return "issue_tokens" }
+func (msg MsgIssueTokens) Type() string { return TypeMsgIssueTokens }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgIssueTokens) ValidateBasic() error {
-	if msg.Sender.Empty() {
+	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
 	}
 	if msg.Tokens.IsZero() || !msg.Tokens.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid tokens %s", msg.Tokens)
 	}
-	if msg.Receiver.Empty() {
+	if len(msg.Receiver) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
+	}
+	_, err = sdk.AccAddressFromBech32(msg.Receiver)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid receiver bech32 address")
 	}
 	return nil
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg
 func (msg MsgIssueTokens) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgIssueTokens) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// String implements fmt.Stringer
-func (msg MsgIssueTokens) String() string {
-	return fmt.Sprintf(`Issue Tokens:
-	Sender %s
-	Tokens %s
-	Receiver %s
-	`, msg.Sender, msg.Tokens, msg.Receiver,
-	)
-}
-
-// MsgRedeemTokens message type used by the issuer to redeem (burn) tokens
-type MsgRedeemTokens struct {
-	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
-	Tokens sdk.Coin       `json:"tokens" yaml:"tokens"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // NewMsgRedeemTokens returns a new MsgRedeemTokens
-func NewMsgRedeemTokens(sender sdk.AccAddress, tokens sdk.Coin) MsgRedeemTokens {
-	return MsgRedeemTokens{
+func NewMsgRedeemTokens(sender string, tokens sdk.Coin) *MsgRedeemTokens {
+	return &MsgRedeemTokens{
 		Sender: sender,
 		Tokens: tokens,
 	}
@@ -89,12 +86,16 @@ func NewMsgRedeemTokens(sender sdk.AccAddress, tokens sdk.Coin) MsgRedeemTokens 
 func (msg MsgRedeemTokens) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgRedeemTokens) Type() string { return "redeem_tokens" }
+func (msg MsgRedeemTokens) Type() string { return TypeMsgRedeemTokens }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgRedeemTokens) ValidateBasic() error {
-	if msg.Sender.Empty() {
+	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
 	}
 	if msg.Tokens.IsZero() || !msg.Tokens.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid tokens %s", msg.Tokens)
@@ -104,37 +105,25 @@ func (msg MsgRedeemTokens) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg
 func (msg MsgRedeemTokens) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgRedeemTokens) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// String implements fmt.Stringer
-func (msg MsgRedeemTokens) String() string {
-	return fmt.Sprintf(`Redeem Tokens:
-	Sender %s
-	Tokens %s
-	`, msg.Sender, msg.Tokens,
-	)
-}
-
-// MsgBlockAddress message type used by the issuer to block an address from holding or transferring tokens
-type MsgBlockAddress struct {
-	Sender  sdk.AccAddress `json:"sender" yaml:"sender"`
-	Denom   string         `json:"denom" yaml:"denom"`
-	Address sdk.AccAddress `json:"blocked_address" yaml:"blocked_address"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // NewMsgBlockAddress returns a new MsgBlockAddress
-func NewMsgBlockAddress(sender sdk.AccAddress, denom string, addr sdk.AccAddress) MsgBlockAddress {
-	return MsgBlockAddress{
-		Sender:  sender,
-		Denom:   denom,
-		Address: addr,
+func NewMsgBlockAddress(sender string, denom string, addr string) *MsgBlockAddress {
+	return &MsgBlockAddress{
+		Sender:         sender,
+		Denom:          denom,
+		BlockedAddress: addr,
 	}
 }
 
@@ -142,14 +131,18 @@ func NewMsgBlockAddress(sender sdk.AccAddress, denom string, addr sdk.AccAddress
 func (msg MsgBlockAddress) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgBlockAddress) Type() string { return "block_address" }
+func (msg MsgBlockAddress) Type() string { return TypeMsgBlockAddress }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgBlockAddress) ValidateBasic() error {
-	if msg.Sender.Empty() {
+	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if msg.Address.Empty() {
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
+	}
+	if len(msg.BlockedAddress) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "blocked address cannot be empty")
 	}
 	return sdk.ValidateDenom(msg.Denom)
@@ -157,38 +150,25 @@ func (msg MsgBlockAddress) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg
 func (msg MsgBlockAddress) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgBlockAddress) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// String implements fmt.Stringer
-func (msg MsgBlockAddress) String() string {
-	return fmt.Sprintf(`Block Address:
-	Sender %s
-	Denom %s
-	Address %s
-	`, msg.Sender, msg.Denom, msg.Address,
-	)
-}
-
-// MsgUnblockAddress message type used by the issuer to unblock an address from holding or transferring tokens
-type MsgUnblockAddress struct {
-	Sender  sdk.AccAddress `json:"sender" yaml:"sender"`
-	Denom   string         `json:"denom" yaml:"denom"`
-	Address sdk.AccAddress `json:"address" yaml:"address"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // NewMsgUnblockAddress returns a new MsgUnblockAddress
-func NewMsgUnblockAddress(sender sdk.AccAddress, denom string, addr sdk.AccAddress) MsgUnblockAddress {
-	return MsgUnblockAddress{
-		Sender:  sender,
-		Denom:   denom,
-		Address: addr,
+func NewMsgUnblockAddress(sender string, denom string, addr string) *MsgUnblockAddress {
+	return &MsgUnblockAddress{
+		Sender:         sender,
+		Denom:          denom,
+		BlockedAddress: addr,
 	}
 }
 
@@ -196,14 +176,18 @@ func NewMsgUnblockAddress(sender sdk.AccAddress, denom string, addr sdk.AccAddre
 func (msg MsgUnblockAddress) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgUnblockAddress) Type() string { return "unblock_address" }
+func (msg MsgUnblockAddress) Type() string { return TypeMsgUnBlockAddress }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgUnblockAddress) ValidateBasic() error {
-	if msg.Sender.Empty() {
+	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if msg.Address.Empty() {
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
+	}
+	if len(msg.BlockedAddress) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "blocked address cannot be empty")
 	}
 	return sdk.ValidateDenom(msg.Denom)
@@ -211,35 +195,22 @@ func (msg MsgUnblockAddress) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg
 func (msg MsgUnblockAddress) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgUnblockAddress) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// String implements fmt.Stringer
-func (msg MsgUnblockAddress) String() string {
-	return fmt.Sprintf(`Unblock Address:
-	Sender %s
-	Denom %s
-	Address %s
-	`, msg.Sender, msg.Denom, msg.Address,
-	)
-}
-
-// MsgSetPauseStatus message type used by the issuer to issue new tokens
-type MsgSetPauseStatus struct {
-	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
-	Denom  string         `json:"denom" yaml:"denom"`
-	Status bool           `json:"status" yaml:"status"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // NewMsgSetPauseStatus returns a new MsgSetPauseStatus
-func NewMsgSetPauseStatus(sender sdk.AccAddress, denom string, status bool) MsgSetPauseStatus {
-	return MsgSetPauseStatus{
+func NewMsgSetPauseStatus(sender string, denom string, status bool) *MsgSetPauseStatus {
+	return &MsgSetPauseStatus{
 		Sender: sender,
 		Denom:  denom,
 		Status: status,
@@ -250,33 +221,31 @@ func NewMsgSetPauseStatus(sender sdk.AccAddress, denom string, status bool) MsgS
 func (msg MsgSetPauseStatus) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgSetPauseStatus) Type() string { return "change_pause_status" }
+func (msg MsgSetPauseStatus) Type() string { return TypeMsgSetPauseStatus }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgSetPauseStatus) ValidateBasic() error {
-	if msg.Sender.Empty() {
+	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
 	}
 	return sdk.ValidateDenom(msg.Denom)
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg
 func (msg MsgSetPauseStatus) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgSetPauseStatus) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// String implements fmt.Stringer
-func (msg MsgSetPauseStatus) String() string {
-	return fmt.Sprintf(`Set Pause Status:
-	Sender %s
-	Denom %s
-	Status %t
-	`, msg.Sender, msg.Denom, msg.Status,
-	)
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
