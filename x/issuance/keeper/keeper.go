@@ -43,14 +43,14 @@ func (k Keeper) GetAssetSupply(ctx sdk.Context, denom string) (types.AssetSupply
 	if bz == nil {
 		return types.AssetSupply{}, false
 	}
-	k.cdc.UnmarshalLengthPrefixed(bz, &assetSupply)
+	k.cdc.MustUnmarshal(bz, &assetSupply)
 	return assetSupply, true
 }
 
 // SetAssetSupply updates an asset's supply
 func (k Keeper) SetAssetSupply(ctx sdk.Context, supply types.AssetSupply, denom string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyPrefix)
-	store.Set([]byte(denom), k.cdc.MustMarshalLengthPrefixed(&supply))
+	store.Set([]byte(denom), k.cdc.MustMarshal(&supply))
 }
 
 // IterateAssetSupplies provides an iterator over all stored AssetSupplies.
@@ -60,8 +60,7 @@ func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.Asset
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var supply types.AssetSupply
-		k.cdc.UnmarshalLengthPrefixed(iterator.Value(), &supply)
-
+		k.cdc.MustUnmarshal(iterator.Value(), &supply)
 		if cb(supply) {
 			break
 		}

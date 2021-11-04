@@ -73,9 +73,9 @@ func (suite *KeeperTestSuite) getModuleAccount(name string) authtypes.ModuleAcco
 
 func (suite *KeeperTestSuite) TestGetSetParams() {
 	params := suite.keeper.GetParams(suite.ctx)
-	suite.Require().Equal(types.Params{Assets: []*types.Asset(nil)}, params)
+	suite.Require().Equal(types.Params{Assets: []types.Asset(nil)}, params)
 	asset := types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0)))
-	params = types.NewParams([]*types.Asset{asset})
+	params = types.NewParams([]types.Asset{asset})
 	suite.keeper.SetParams(suite.ctx, params)
 	newParams := suite.keeper.GetParams(suite.ctx)
 	suite.Require().Equal(params, newParams)
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestGetSetParams() {
 
 func (suite *KeeperTestSuite) TestIssueTokens() {
 	type args struct {
-		assets   []*types.Asset
+		assets   []types.Asset
 		sender   string
 		tokens   sdk.Coin
 		receiver string
@@ -100,7 +100,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 		{
 			"valid issuance",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[0],
@@ -115,7 +115,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 		{
 			"non-owner issuance",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[2],
@@ -130,7 +130,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 		{
 			"invalid denom",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[0],
@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 		{
 			"issue to blocked address",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[0],
@@ -160,7 +160,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 		{
 			"issue to module account",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[0],
@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 		{
 			"paused issuance",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, true, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[0],
@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 
 func (suite *KeeperTestSuite) TestIssueTokensRateLimited() {
 	type args struct {
-		assets    []*types.Asset
+		assets    []types.Asset
 		supplies  []types.AssetSupply
 		sender    string
 		tokens    sdk.Coin
@@ -228,7 +228,7 @@ func (suite *KeeperTestSuite) TestIssueTokensRateLimited() {
 		{
 			"valid issuance",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
@@ -247,7 +247,7 @@ func (suite *KeeperTestSuite) TestIssueTokensRateLimited() {
 		{
 			"over-limit issuance",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
@@ -289,7 +289,7 @@ func (suite *KeeperTestSuite) TestIssueTokensRateLimited() {
 
 func (suite *KeeperTestSuite) TestRedeemTokens() {
 	type args struct {
-		assets        []*types.Asset
+		assets        []types.Asset
 		sender        string
 		initialTokens sdk.Coin
 		redeemTokens  sdk.Coin
@@ -306,7 +306,7 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 		{
 			"valid redemption",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:        suite.addrs[0],
@@ -321,7 +321,7 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 		{
 			"invalid denom redemption",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:        suite.addrs[0],
@@ -336,7 +336,7 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 		{
 			"non-owner redemption",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:        suite.addrs[2],
@@ -351,7 +351,7 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 		{
 			"paused redemption",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, true, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:        suite.addrs[0],
@@ -366,7 +366,7 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 		{
 			"redeem amount greater than balance",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:        suite.addrs[0],
@@ -408,7 +408,7 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 
 func (suite *KeeperTestSuite) TestBlockAddress() {
 	type args struct {
-		assets      []*types.Asset
+		assets      []types.Asset
 		sender      string
 		blockedAddr string
 		denom       string
@@ -425,7 +425,7 @@ func (suite *KeeperTestSuite) TestBlockAddress() {
 		{
 			"valid block",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[0],
@@ -440,7 +440,7 @@ func (suite *KeeperTestSuite) TestBlockAddress() {
 		{
 			"unblockable token",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, false, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[0],
@@ -455,7 +455,7 @@ func (suite *KeeperTestSuite) TestBlockAddress() {
 		{
 			"non-owner block",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[2],
@@ -470,7 +470,7 @@ func (suite *KeeperTestSuite) TestBlockAddress() {
 		{
 			"invalid denom block",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[0],
@@ -485,7 +485,7 @@ func (suite *KeeperTestSuite) TestBlockAddress() {
 		{
 			"block non-existing account",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[0],
@@ -527,7 +527,7 @@ func (suite *KeeperTestSuite) TestBlockAddress() {
 
 func (suite *KeeperTestSuite) TestUnblockAddress() {
 	type args struct {
-		assets      []*types.Asset
+		assets      []types.Asset
 		sender      string
 		blockedAddr string
 		denom       string
@@ -544,7 +544,7 @@ func (suite *KeeperTestSuite) TestUnblockAddress() {
 		{
 			"valid unblock",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[0],
@@ -559,7 +559,7 @@ func (suite *KeeperTestSuite) TestUnblockAddress() {
 		{
 			"non-owner unblock",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[2],
@@ -574,7 +574,7 @@ func (suite *KeeperTestSuite) TestUnblockAddress() {
 		{
 			"invalid denom block",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[0],
@@ -616,7 +616,7 @@ func (suite *KeeperTestSuite) TestUnblockAddress() {
 
 func (suite *KeeperTestSuite) TestChangePauseStatus() {
 	type args struct {
-		assets      []*types.Asset
+		assets      []types.Asset
 		sender      string
 		startStatus bool
 		endStatus   bool
@@ -634,7 +634,7 @@ func (suite *KeeperTestSuite) TestChangePauseStatus() {
 		{
 			"valid pause",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[0],
@@ -650,7 +650,7 @@ func (suite *KeeperTestSuite) TestChangePauseStatus() {
 		{
 			"valid unpause",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, true, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[0],
@@ -666,7 +666,7 @@ func (suite *KeeperTestSuite) TestChangePauseStatus() {
 		{
 			"non-owner pause",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[2],
@@ -682,7 +682,7 @@ func (suite *KeeperTestSuite) TestChangePauseStatus() {
 		{
 			"invalid denom pause",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:      suite.addrs[0],
@@ -719,7 +719,7 @@ func (suite *KeeperTestSuite) TestChangePauseStatus() {
 
 func (suite *KeeperTestSuite) TestSeizeCoinsFromBlockedAddress() {
 	type args struct {
-		assets       []*types.Asset
+		assets       []types.Asset
 		initialCoins sdk.Coin
 		blockedAddrs []string
 		denom        string
@@ -736,7 +736,7 @@ func (suite *KeeperTestSuite) TestSeizeCoinsFromBlockedAddress() {
 		{
 			"valid seize",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				initialCoins: sdk.NewCoin("usdtoken", sdk.NewInt(100000000)),
@@ -751,7 +751,7 @@ func (suite *KeeperTestSuite) TestSeizeCoinsFromBlockedAddress() {
 		{
 			"invalid denom seize",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				initialCoins: sdk.NewCoin("usdtoken", sdk.NewInt(100000000)),
@@ -767,7 +767,7 @@ func (suite *KeeperTestSuite) TestSeizeCoinsFromBlockedAddress() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			assetsWithBlockedAddrs := []*types.Asset{}
+			assetsWithBlockedAddrs := []types.Asset{}
 			for _, asset := range tc.args.assets {
 				asset.BlockedAddresses = tc.args.blockedAddrs
 				assetsWithBlockedAddrs = append(assetsWithBlockedAddrs, asset)

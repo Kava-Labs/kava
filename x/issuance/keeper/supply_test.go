@@ -11,7 +11,7 @@ import (
 
 func (suite *KeeperTestSuite) TestIncrementCurrentAssetSupply() {
 	type args struct {
-		assets   []*types.Asset
+		assets   []types.Asset
 		supplies []types.AssetSupply
 		coin     sdk.Coin
 	}
@@ -27,7 +27,7 @@ func (suite *KeeperTestSuite) TestIncrementCurrentAssetSupply() {
 		{
 			"valid supply increase",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestIncrementCurrentAssetSupply() {
 		{
 			"over limit increase",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{

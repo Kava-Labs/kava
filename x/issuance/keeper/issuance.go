@@ -112,7 +112,7 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 		return sdkerrors.Wrapf(types.ErrAccountNotFound, "address: %s", blockedAddress)
 	}
 	asset.BlockedAddresses = append(asset.BlockedAddresses, blockedAddress.String())
-	k.SetAsset(ctx, *asset)
+	k.SetAsset(ctx, asset)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeBlock,
@@ -142,7 +142,7 @@ func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.Ac
 
 	blockedAddrs := k.removeBlockedAddress(asset.BlockedAddresses, i)
 	asset.BlockedAddresses = blockedAddrs
-	k.SetAsset(ctx, *asset)
+	k.SetAsset(ctx, asset)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeUnblock,
@@ -166,7 +166,7 @@ func (k Keeper) SetPauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom stri
 		return nil
 	}
 	asset.Paused = !asset.Paused
-	k.SetAsset(ctx, *asset)
+	k.SetAsset(ctx, asset)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypePause,
@@ -238,7 +238,7 @@ func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) er
 	return nil
 }
 
-func (k Keeper) checkBlockedAddress(asset *types.Asset, checkAddress string) (bool, int) {
+func (k Keeper) checkBlockedAddress(asset types.Asset, checkAddress string) (bool, int) {
 	for i, address := range asset.BlockedAddresses {
 		if strings.Compare(address, checkAddress) == 0 {
 			return true, i
