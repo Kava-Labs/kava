@@ -1,6 +1,7 @@
 package cdp
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/gorilla/mux"
@@ -8,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,8 +16,6 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/kava-labs/kava/x/cdp/client/cli"
-	"github.com/kava-labs/kava/x/cdp/client/rest"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -65,7 +63,8 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 
 // RegisterRESTRoutes registers REST routes for the swap module.
 func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterRoutes(clientCtx, rtr)
+	// TODO:
+	// rest.RegisterRoutes(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
@@ -85,12 +84,15 @@ func (AppModule) ConsensusVersion() uint64 {
 
 // GetTxCmd returns the root tx command for the cdp module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
+	return nil
+	// TODO:
+	// return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns the root query command for the auction module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd(StoreKey)
+	return nil
+	// TODO: return cli.GetQueryCmd(StoreKey)
 }
 
 //____________________________________________________________________________
@@ -142,7 +144,7 @@ func (AppModule) QuerierRoute() string {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 }
 
 // InitGenesis module init-genesis
