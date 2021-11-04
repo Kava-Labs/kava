@@ -164,8 +164,8 @@ func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom strin
 
 // BurnDebtCoins burns debt coins from the cdp module account
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coin) error {
-	macc := k.bankKeeper.GetModuleAccount(ctx, moduleAccount)
-	maxBurnableAmount := macc.GetCoins().AmountOf(denom)
+	macc := k.accountKeeper.GetModuleAccount(ctx, moduleAccount)
+	maxBurnableAmount := k.bankKeeper.GetBalance(ctx, macc.GetAddress(), denom).Amount
 	// check that the requested burn is not greater than the mod account balance
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.MinInt(paymentCoins.Amount, maxBurnableAmount)))
 	return k.bankKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
@@ -196,7 +196,7 @@ func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint6
 		return []uint64{}, false
 	}
 	var cdpIDs []uint64
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &cdpIDs)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &cdpIDs)
 	return cdpIDs, true
 }
 
