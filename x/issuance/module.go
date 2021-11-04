@@ -113,7 +113,7 @@ func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route module message route name
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+	return sdk.NewRoute(types.RouterKey, nil)
 }
 
 // QuerierRoute module querier route name
