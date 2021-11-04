@@ -34,6 +34,14 @@ func DefaultGenesisState() *GenesisState {
 	)
 }
 
+func (gs GenesisState) GetCommittees() []Committee {
+	committees, err := UnpackCommittees(gs.Committees)
+	if err != nil {
+		panic(err)
+	}
+	return committees
+}
+
 // Validate performs basic validation of genesis data.
 func (gs GenesisState) Validate() error {
 	// validate committees
@@ -60,13 +68,13 @@ func (gs GenesisState) Validate() error {
 	for _, p := range gs.Proposals {
 		// check there are no duplicate IDs
 		if _, ok := proposalMap[p.Id]; ok {
-			return fmt.Errorf("duplicate proposal ID found in genesis state; id: %d", p.ID)
+			return fmt.Errorf("duplicate proposal ID found in genesis state; id: %d", p.Id)
 		}
 		proposalMap[p.Id] = true
 
 		// validate next proposal ID
 		if p.Id >= gs.NextProposalId {
-			return fmt.Errorf("NextProposalID is not greater than all proposal IDs; id: %d", p.ID)
+			return fmt.Errorf("NextProposalID is not greater than all proposal IDs; id: %d", p.Id)
 		}
 
 		// check committee exists

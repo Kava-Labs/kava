@@ -35,7 +35,7 @@ func PackPermissions(permissions []Permission) ([]*types.Any, error) {
 		}
 		any, err := types.NewAnyWithValue(msg)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		permissionsAny[i] = any
 	}
@@ -61,7 +61,7 @@ var _ Permission = GodPermission{}
 func (GodPermission) Allows(sdk.Context, *codec.Codec, ParamKeeper, PubProposal) bool { return true }
 
 // MarshalYAML implement yaml marshalling
-func (GodPermission) MarshalYAML() (interface{}, error) {
+func (g GodPermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
 		Type string `yaml:"type"`
 	}{

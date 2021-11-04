@@ -4,13 +4,23 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto"
 
+	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
+func MustNewMsgSubmitProposal(pubProposal PubProposal, proposer sdk.AccAddress, committeeId uint64) MsgSubmitProposal {
+	proposal, err := NewMsgSubmitProposal(pubProposal, proposer, committeeId)
+	if err != nil {
+		panic(err)
+	}
+	return proposal
+}
+
 func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
-	addr := sdk.AccAddress([]byte("someName"))
+	addr := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1")))
 	tests := []struct {
 		name       string
 		msg        MsgSubmitProposal
@@ -18,17 +28,17 @@ func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:       "normal",
-			msg:        MsgSubmitProposal{govtypes.NewTextProposal("A Title", "A proposal description."), addr, 3},
+			msg:        MustNewMsgSubmitProposal(govtypes.NewTextProposal("A Title", "A proposal description."), addr, 3),
 			expectPass: true,
 		},
 		{
 			name:       "empty address",
-			msg:        MsgSubmitProposal{govtypes.NewTextProposal("A Title", "A proposal description."), nil, 3},
+			msg:        MustNewMsgSubmitProposal(govtypes.NewTextProposal("A Title", "A proposal description."), nil, 3),
 			expectPass: false,
 		},
 		{
 			name:       "invalid proposal",
-			msg:        MsgSubmitProposal{govtypes.TextProposal{}, addr, 3},
+			msg:        MsgSubmitProposal{Any: &types.Any{}, Proposer: addr.String(), CommitteeId: 3},
 			expectPass: false,
 		},
 	}
@@ -48,7 +58,7 @@ func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgVote_ValidateBasic(t *testing.T) {
-	addr := sdk.AccAddress([]byte("someName"))
+	addr := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String()
 	tests := []struct {
 		name       string
 		msg        MsgVote
@@ -56,27 +66,27 @@ func TestMsgVote_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:       "normal",
-			msg:        MsgVote{5, addr, Yes},
+			msg:        MsgVote{5, addr, VOTE_TYPE_YES},
 			expectPass: true,
 		},
 		{
 			name:       "No",
-			msg:        MsgVote{5, addr, No},
+			msg:        MsgVote{5, addr, VOTE_TYPE_NO},
 			expectPass: true,
 		},
 		{
 			name:       "Abstain",
-			msg:        MsgVote{5, addr, Abstain},
+			msg:        MsgVote{5, addr, VOTE_TYPE_ABSTAIN},
 			expectPass: true,
 		},
 		{
 			name:       "Null vote",
-			msg:        MsgVote{5, addr, NullVoteType},
+			msg:        MsgVote{5, addr, VOTE_TYPE_UNSPECIFIED},
 			expectPass: false,
 		},
 		{
 			name:       "empty address",
-			msg:        MsgVote{5, nil, Yes},
+			msg:        MsgVote{5, "", VOTE_TYPE_YES},
 			expectPass: false,
 		},
 		{

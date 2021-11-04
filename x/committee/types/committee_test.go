@@ -5,158 +5,177 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 )
 
 func TestBaseCommittee(t *testing.T) {
-	addresses := []sdk.AccAddress{
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
+	addresses := []string{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String(),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))).String(),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))).String(),
 	}
 
 	testCases := []struct {
-		name       string
-		committee  BaseCommittee
-		expectPass bool
+		name            string
+		createCommittee func() (*MemberCommittee, error)
+		expectPass      bool
 	}{
 		{
 			name: "normal",
-			committee: BaseCommittee{
-				ID:               1,
-				Description:      "This base committee is for testing.",
-				Members:          addresses[:3],
-				Permissions:      []Permission{GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      FirstPastThePost,
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					"This base committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+				)
 			},
 			expectPass: true,
 		},
 		{
 			name: "description length too long",
-			committee: BaseCommittee{
-				ID: 1,
-				Description: fmt.Sprintln("This base committee has a long description.",
-					"This base committee has a long description. This base committee has a long description.",
-					"This base committee has a long description. This base committee has a long description.",
-					"This base committee has a long description. This base committee has a long description.",
-					"This base committee has a long description. This base committee has a long description.",
-					"This base committee has a long description. This base committee has a long description.",
-					"This base committee has a long description. This base committee has a long description.",
-					"This base committee has a long description. This base committee has a long description."),
-				Members:          addresses[:3],
-				Permissions:      []Permission{GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      FirstPastThePost,
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					fmt.Sprintln("This base committee has a long description.",
+						"This base committee has a long description. This base committee has a long description.",
+						"This base committee has a long description. This base committee has a long description.",
+						"This base committee has a long description. This base committee has a long description.",
+						"This base committee has a long description. This base committee has a long description.",
+						"This base committee has a long description. This base committee has a long description.",
+						"This base committee has a long description. This base committee has a long description.",
+						"This base committee has a long description. This base committee has a long description."),
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "no members",
-			committee: BaseCommittee{
-				ID:               1,
-				Description:      "This base committee is for testing.",
-				Members:          []sdk.AccAddress{},
-				Permissions:      []Permission{GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      FirstPastThePost,
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					"This base committee is for testing.",
+					[]string{},
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "duplicate member",
-			committee: BaseCommittee{
-				ID:               1,
-				Description:      "This base committee is for testing.",
-				Members:          []sdk.AccAddress{addresses[2], addresses[2]},
-				Permissions:      []Permission{GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      FirstPastThePost,
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					"This base committee is for testing.",
+					[]string{addresses[2], addresses[2]},
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "nil permissions",
-			committee: BaseCommittee{
-				ID:               1,
-				Description:      "This base committee is for testing.",
-				Members:          addresses[:3],
-				Permissions:      []Permission{nil},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      FirstPastThePost,
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					"This base committee is for testing.",
+					addresses[:3],
+					[]Permission{nil},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "negative proposal duration",
-			committee: BaseCommittee{
-				ID:               1,
-				Description:      "This base committee is for testing.",
-				Members:          addresses[:3],
-				Permissions:      []Permission{GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * -7,
-				TallyOption:      FirstPastThePost,
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					"This base committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*-7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "vote threshold is nil",
-			committee: BaseCommittee{
-				ID:               1,
-				Description:      "This base committee is for testing.",
-				Members:          addresses[:3],
-				Permissions:      []Permission{GodPermission{}},
-				VoteThreshold:    sdk.Dec{Int: nil},
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      FirstPastThePost,
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					"This base committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					sdk.Dec{},
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "vote threshold is 0",
-			committee: BaseCommittee{
-				ID:               1,
-				Description:      "This base committee is for testing.",
-				Members:          addresses[:3],
-				Permissions:      []Permission{GodPermission{}},
-				VoteThreshold:    d("0"),
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      FirstPastThePost,
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					"This base committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "vote threshold above 1",
-			committee: BaseCommittee{
-				ID:               1,
-				Description:      "This base committee is for testing.",
-				Members:          addresses[:3],
-				Permissions:      []Permission{GodPermission{}},
-				VoteThreshold:    d("1.001"),
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      FirstPastThePost,
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					"This base committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("1.001"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "invalid tally option",
-			committee: BaseCommittee{
-				ID:               1,
-				Description:      "This base committee is for testing.",
-				Members:          addresses[:3],
-				Permissions:      []Permission{GodPermission{}},
-				VoteThreshold:    d("0.667"),
-				ProposalDuration: time.Hour * 24 * 7,
-				TallyOption:      NullTallyOption,
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					"This base committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_UNSPECIFIED,
+				)
 			},
 			expectPass: false,
 		},
@@ -164,13 +183,16 @@ func TestBaseCommittee(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-
-			err := tc.committee.Validate()
-
-			if tc.expectPass {
-				require.NoError(t, err)
+			committee, err := tc.createCommittee()
+			if err != nil {
+				require.False(t, tc.expectPass)
 			} else {
-				require.Error(t, err)
+				err = committee.BaseCommittee.Validate()
+				if tc.expectPass {
+					require.NoError(t, err)
+				} else {
+					require.Error(t, err)
+				}
 			}
 		})
 	}
@@ -178,29 +200,29 @@ func TestBaseCommittee(t *testing.T) {
 
 // TestMemberCommittee is an alias for BaseCommittee that has 'MemberCommittee' type
 func TestMemberCommittee(t *testing.T) {
-	addresses := []sdk.AccAddress{
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
+	addresses := []string{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String(),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))).String(),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))).String(),
 	}
 
 	testCases := []struct {
-		name       string
-		committee  MemberCommittee
-		expectPass bool
+		name            string
+		createCommittee func() (*MemberCommittee, error)
+		expectPass      bool
 	}{
 		{
 			name: "normal",
-			committee: MemberCommittee{
-				BaseCommittee: BaseCommittee{
-					ID:               1,
-					Description:      "This member committee is for testing.",
-					Members:          addresses[:3],
-					Permissions:      []Permission{GodPermission{}},
-					VoteThreshold:    d("0.667"),
-					ProposalDuration: time.Hour * 24 * 7,
-					TallyOption:      FirstPastThePost,
-				},
+			createCommittee: func() (*MemberCommittee, error) {
+				return NewMemberCommittee(
+					1,
+					"This member committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+				)
 			},
 			expectPass: true,
 		},
@@ -208,10 +230,11 @@ func TestMemberCommittee(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			committee, err := tc.createCommittee()
+			require.NoError(t, err)
+			require.Equal(t, MemberCommitteeType, committee.GetType())
 
-			require.Equal(t, MemberCommitteeType, tc.committee.GetType())
-
-			err := tc.committee.Validate()
+			err = committee.Validate()
 			if tc.expectPass {
 				require.NoError(t, err)
 			} else {
@@ -223,99 +246,99 @@ func TestMemberCommittee(t *testing.T) {
 
 // TestTokenCommittee tests unique TokenCommittee functionality
 func TestTokenCommittee(t *testing.T) {
-	addresses := []sdk.AccAddress{
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
+	addresses := []string{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String(),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))).String(),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))).String(),
 	}
 
 	testCases := []struct {
-		name       string
-		committee  TokenCommittee
-		expectPass bool
+		name            string
+		createCommittee func() (*TokenCommittee, error)
+		expectPass      bool
 	}{
 		{
 			name: "normal",
-			committee: TokenCommittee{
-				BaseCommittee: BaseCommittee{
-					ID:               1,
-					Description:      "This token committee is for testing.",
-					Members:          addresses[:3],
-					Permissions:      []Permission{GodPermission{}},
-					VoteThreshold:    d("0.667"),
-					ProposalDuration: time.Hour * 24 * 7,
-					TallyOption:      FirstPastThePost,
-				},
-				Quorum:     d("0.4"),
-				TallyDenom: "hard",
+			createCommittee: func() (*TokenCommittee, error) {
+				return NewTokenCommittee(
+					1,
+					"This token committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+					d("0.4"),
+					"hard",
+				)
 			},
 			expectPass: true,
 		},
 		{
 			name: "nil quorum",
-			committee: TokenCommittee{
-				BaseCommittee: BaseCommittee{
-					ID:               1,
-					Description:      "This token committee is for testing.",
-					Members:          addresses[:3],
-					Permissions:      []Permission{GodPermission{}},
-					VoteThreshold:    d("0.667"),
-					ProposalDuration: time.Hour * 24 * 7,
-					TallyOption:      FirstPastThePost,
-				},
-				Quorum:     sdk.Dec{Int: nil},
-				TallyDenom: "hard",
+			createCommittee: func() (*TokenCommittee, error) {
+				return NewTokenCommittee(
+					1,
+					"This token committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+					sdk.Dec{},
+					"hard",
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "negative quorum",
-			committee: TokenCommittee{
-				BaseCommittee: BaseCommittee{
-					ID:               1,
-					Description:      "This token committee is for testing.",
-					Members:          addresses[:3],
-					Permissions:      []Permission{GodPermission{}},
-					VoteThreshold:    d("0.667"),
-					ProposalDuration: time.Hour * 24 * 7,
-					TallyOption:      FirstPastThePost,
-				},
-				Quorum:     d("-0.1"),
-				TallyDenom: "hard",
+			createCommittee: func() (*TokenCommittee, error) {
+				return NewTokenCommittee(
+					1,
+					"This token committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+					d("-0.1"),
+					"hard",
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "quroum greater than 1",
-			committee: TokenCommittee{
-				BaseCommittee: BaseCommittee{
-					ID:               1,
-					Description:      "This token committee is for testing.",
-					Members:          addresses[:3],
-					Permissions:      []Permission{GodPermission{}},
-					VoteThreshold:    d("0.667"),
-					ProposalDuration: time.Hour * 24 * 7,
-					TallyOption:      FirstPastThePost,
-				},
-				Quorum:     d("1.001"),
-				TallyDenom: "hard",
+			createCommittee: func() (*TokenCommittee, error) {
+				return NewTokenCommittee(
+					1,
+					"This token committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+					d("1.001"),
+					"hard",
+				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "bond denom as tally denom",
-			committee: TokenCommittee{
-				BaseCommittee: BaseCommittee{
-					ID:               1,
-					Description:      "This token committee is for testing.",
-					Members:          addresses[:3],
-					Permissions:      []Permission{GodPermission{}},
-					VoteThreshold:    d("0.667"),
-					ProposalDuration: time.Hour * 24 * 7,
-					TallyOption:      FirstPastThePost,
-				},
-				Quorum:     d("0.4"),
-				TallyDenom: BondDenom,
+			createCommittee: func() (*TokenCommittee, error) {
+				return NewTokenCommittee(
+					1,
+					"This token committee is for testing.",
+					addresses[:3],
+					[]Permission{&GodPermission{}},
+					d("0.667"),
+					time.Hour*24*7,
+					TALLY_OPTION_FIRST_PAST_THE_POST,
+					d("0.4"),
+					BondDenom,
+				)
 			},
 			expectPass: false,
 		},
@@ -323,62 +346,16 @@ func TestTokenCommittee(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			committee, err := tc.createCommittee()
+			require.NoError(t, err)
+			require.Equal(t, TokenCommitteeType, committee.GetType())
 
-			require.Equal(t, TokenCommitteeType, tc.committee.GetType())
-
-			err := tc.committee.Validate()
+			err = committee.Validate()
 			if tc.expectPass {
 				require.NoError(t, err)
 			} else {
 				require.Error(t, err)
 			}
-		})
-	}
-}
-
-// TestTokenCommitteeMarshalJSON tests TokenCommittee JSON marshaling
-func TestTokenCommitteeMarshalJSON(t *testing.T) {
-	addresses := []sdk.AccAddress{
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
-	}
-
-	testCases := []struct {
-		name      string
-		committee TokenCommittee
-	}{
-		{
-			name: "normal",
-			committee: TokenCommittee{
-				BaseCommittee: BaseCommittee{
-					ID:               1,
-					Description:      "This token committee is for testing.",
-					Members:          addresses[:2],
-					Permissions:      []Permission{GodPermission{}},
-					VoteThreshold:    d("0.667"),
-					ProposalDuration: time.Hour * 24 * 7,
-					TallyOption:      Deadline,
-				},
-				Quorum:     d("0.4"),
-				TallyDenom: "hard",
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := tc.committee.Validate()
-			require.NoError(t, err)
-
-			// Marshal and unmarshal the TokenCommittee
-			cdc := codec.New()
-			RegisterCodec(cdc)
-			bz := cdc.MustMarshalJSON(tc.committee)
-
-			var com TokenCommittee
-			cdc.MustUnmarshalJSON(bz, &com)
-
-			require.Equal(t, tc.committee, com)
 		})
 	}
 }

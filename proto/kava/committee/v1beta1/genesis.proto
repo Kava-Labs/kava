@@ -8,10 +8,10 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/kava-labs/kava/x/committee/types";
 
-option (gogoproto.goproto_stringer_all) = false;
-
 // GenesisState defines the committee module's genesis state.
 message GenesisState {
+  option (gogoproto.goproto_getters) = false;
+
   uint64   next_proposal_id               = 1;
   repeated google.protobuf.Any committees = 2 [(cosmos_proto.accepts_interface) = "Committee"];
   repeated Proposal            proposals  = 3 [(gogoproto.nullable) = false];

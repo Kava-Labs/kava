@@ -209,13 +209,14 @@ func (c BaseCommittee) Validate() error {
 	}
 
 	// validate permissions
-	for _, p := range c.Permissions {
+	permissions, err := UnpackPermissions(c.Permissions)
+	if err != nil {
+		return err
+	}
+	for _, p := range permissions {
 		if p == nil {
 			return fmt.Errorf("committee cannot have a nil permission")
 		}
-	}
-	if _, err := UnpackPermissions(c.Permissions); err != nil {
-		return err
 	}
 
 	if c.ProposalDuration < 0 {
@@ -236,10 +237,10 @@ func (c BaseCommittee) Validate() error {
 
 // NewMemberCommittee instantiates a new instance of MemberCommittee
 func NewMemberCommittee(id uint64, description string, members []string, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) *MemberCommittee {
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) (*MemberCommittee, error) {
 	permissionsAny, err := PackPermissions(permissions)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return &MemberCommittee{
 		BaseCommittee: &BaseCommittee{
@@ -251,7 +252,7 @@ func NewMemberCommittee(id uint64, description string, members []string, permiss
 			ProposalDuration: duration,
 			TallyOption:      tallyOption,
 		},
-	}
+	}, nil
 }
 
 // GetType is a getter for committee type
@@ -259,10 +260,10 @@ func (c MemberCommittee) GetType() string { return MemberCommitteeType }
 
 // NewTokenCommittee instantiates a new instance of TokenCommittee
 func NewTokenCommittee(id uint64, description string, members []string, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) *TokenCommittee {
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) (*TokenCommittee, error) {
 	permissionsAny, err := PackPermissions(permissions)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return &TokenCommittee{
 		BaseCommittee: &BaseCommittee{
@@ -276,7 +277,7 @@ func NewTokenCommittee(id uint64, description string, members []string, permissi
 		},
 		Quorum:     quorum,
 		TallyDenom: tallyDenom,
-	}
+	}, nil
 }
 
 // GetType is a getter for committee type
