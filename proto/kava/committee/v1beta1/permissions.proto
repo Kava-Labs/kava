@@ -11,3 +11,13 @@ option go_package = "github.com/kava-labs/kava/x/committee/types";
 message GodPermission {
   option (cosmos_proto.implements_interface) = "Permission";
 }
+
+// SoftwareUpgradePermission permission type for software upgrade proposals
+message SoftwareUpgradePermission {
+  option (cosmos_proto.implements_interface) = "Permission";
+}
+
+// TextPermission allows any text governance proposal.
+message TextPermission {
+  option (cosmos_proto.implements_interface) = "Permission";
+}

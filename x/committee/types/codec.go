@@ -52,9 +52,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	// Permissions
 	cdc.RegisterInterface((*Permission)(nil), nil)
 	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
-	// cdc.RegisterConcrete(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission", nil)
-	// cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
-	// cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
+	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
+	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
 	// cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
 
 	// Msgs
