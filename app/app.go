@@ -347,7 +347,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName, // TODO why new evidence and staking begin blockers?
 		stakingtypes.ModuleName,
-    kavadisttypes.ModuleName,
+		kavadisttypes.ModuleName,
 		issuancetypes.ModuleName,
 	)
 
