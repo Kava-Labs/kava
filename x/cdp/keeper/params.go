@@ -55,7 +55,7 @@ func (k Keeper) GetCollateralTypePrefix(ctx sdk.Context, collateralType string) 
 	params := k.GetParams(ctx)
 	for _, cp := range params.CollateralParams {
 		if cp.Type == collateralType {
-			return cp.Prefix, true
+			return byte(cp.Prefix), true
 		}
 	}
 	return 0x00, false
@@ -65,7 +65,7 @@ func (k Keeper) GetCollateralTypePrefix(ctx sdk.Context, collateralType string) 
 func (k Keeper) getDenomFromByte(ctx sdk.Context, db byte) string {
 	params := k.GetParams(ctx)
 	for _, cp := range params.CollateralParams {
-		if cp.Prefix == db {
+		if byte(cp.Prefix) == db {
 			return cp.Denom
 		}
 	}

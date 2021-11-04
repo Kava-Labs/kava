@@ -4,14 +4,14 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/cdp/keeper"
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // saving the result to a module level variable ensures the compiler doesn't optimize the test away
@@ -43,15 +43,17 @@ func BenchmarkAccountIteration(b *testing.B) {
 	for _, bm := range benchmarks {
 		b.Run(bm.name, func(b *testing.B) {
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			ak := tApp.GetAccountKeeper()
+			bk := tApp.GetBankKeeper()
+
 			tApp.InitializeFromGenesisStates()
 			for i := 0; i < bm.numberAccounts; i++ {
 				arr := []byte{byte((i & 0xFF0000) >> 16), byte((i & 0xFF00) >> 8), byte(i & 0xFF)}
 				addr := sdk.AccAddress(arr)
 				acc := ak.NewAccountWithAddress(ctx, addr)
 				if bm.coins {
-					acc.SetCoins(coins)
+					tApp.FundAccount(ctx, acc.GetAddress(), coins)
 				}
 				ak.SetAccount(ctx, acc)
 			}
@@ -59,8 +61,8 @@ func BenchmarkAccountIteration(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				ak.IterateAccounts(ctx,
-					func(acc exported.Account) (stop bool) {
-						coins := acc.GetCoins()
+					func(acc authtypes.AccountI) (stop bool) {
+						coins := bk.GetAllBalances(ctx, acc.GetAddress())
 						coinsResult = coins
 						return false
 					})
@@ -71,14 +73,10 @@ func BenchmarkAccountIteration(b *testing.B) {
 
 func createCdps(n int) (app.TestApp, sdk.Context, keeper.Keeper) {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	_, addrs := app.GeneratePrivKeyAddressPairs(n)
-	coins := []sdk.Coins{}
-	for i := 0; i < n; i++ {
-		coins = append(coins, cs(c("btc", 100000000)))
-	}
-	authGS := app.NewAuthGenState(
-		addrs, coins)
+	coins := cs(c("btc", 100000000))
+	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	tApp.InitializeFromGenesisStates(
 		authGS,
 		NewPricefeedGenStateMulti(),
@@ -86,7 +84,7 @@ func createCdps(n int) (app.TestApp, sdk.Context, keeper.Keeper) {
 	)
 	cdpKeeper := tApp.GetCDPKeeper()
 	for i := 0; i < n; i++ {
-		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i][0], c("usdx", 100000000), "btc-a")
+		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[0], c("usdx", 100000000), "btc-a")
 		if err != nil {
 			panic("failed to create cdp")
 		}
@@ -108,7 +106,7 @@ func BenchmarkCdpIteration(b *testing.B) {
 			_, ctx, cdpKeeper := createCdps(bm.numberCdps)
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				cdpKeeper.IterateAllCdps(ctx, func(c cdp.CDP) (stop bool) {
+				cdpKeeper.IterateAllCdps(ctx, func(c types.CDP) (stop bool) {
 					coinResult = c.Principal
 					return false
 				})
@@ -122,14 +120,10 @@ var errResult error
 
 func BenchmarkCdpCreation(b *testing.B) {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	_, addrs := app.GeneratePrivKeyAddressPairs(b.N)
-	coins := []sdk.Coins{}
-	for i := 0; i < b.N; i++ {
-		coins = append(coins, cs(c("btc", 100000000)))
-	}
-	authGS := app.NewAuthGenState(
-		addrs, coins)
+	coins := cs(c("btc", 100000000))
+	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	tApp.InitializeFromGenesisStates(
 		authGS,
 		NewPricefeedGenStateMulti(),
@@ -138,7 +132,7 @@ func BenchmarkCdpCreation(b *testing.B) {
 	cdpKeeper := tApp.GetCDPKeeper()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i][0], c("usdx", 100000000), "btc-a")
+		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[0], c("usdx", 100000000), "btc-a")
 		if err != nil {
 			b.Error("unexpected error")
 		}

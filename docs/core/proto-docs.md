@@ -592,7 +592,7 @@ QueryTotalCollateralResponse defines the response type for the Query/TotalCollat
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `total_principal` | [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral) | repeated |  |
+| `total_collateral` | [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral) | repeated |  |
 
 
 

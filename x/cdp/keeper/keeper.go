@@ -18,8 +18,8 @@ type Keeper struct {
 	cdc             codec.Codec
 	paramSubspace   paramtypes.Subspace
 	pricefeedKeeper types.PricefeedKeeper
-	bankKeeper      types.BankKeeper
 	auctionKeeper   types.AuctionKeeper
+	bankKeeper      types.BankKeeper
 	accountKeeper   types.AccountKeeper
 	hooks           types.CDPHooks
 	maccPerms       map[string][]string
@@ -130,10 +130,7 @@ func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx sdk.Context, cutoffCount sdk.In
 	k.IterateCdpsByCollateralRatio(ctx, collateralType, targetRatio, func(cdp types.CDP) bool {
 		cdps = append(cdps, cdp)
 		count = count.Add(sdk.OneInt())
-		if count.GTE(cutoffCount) {
-			return true
-		}
-		return false
+		return count.GTE(cutoffCount)
 	})
 	return cdps
 }
@@ -228,21 +225,4 @@ func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDeno
 		panic(err)
 	}
 	store.Set([]byte(collateralType+principalDenom), bz)
-}
-
-// getModuleAccountCoins gets the total coin balance of this coin currently held by module accounts
-func (k Keeper) getModuleAccountCoins(ctx sdk.Context, denom string) sdk.Coins {
-	totalModCoinBalance := sdk.NewCoins(sdk.NewCoin(denom, sdk.ZeroInt()))
-	for macc := range k.maccPerms {
-		addr, err := sdk.AccAddressFromBech32(macc)
-		if err != nil {
-			panic(err)
-		}
-
-		modCoinBalance := k.bankKeeper.GetAllBalances(ctx, addr).AmountOf(denom)
-		if modCoinBalance.IsPositive() {
-			totalModCoinBalance = totalModCoinBalance.Add(sdk.NewCoin(denom, modCoinBalance))
-		}
-	}
-	return totalModCoinBalance
 }

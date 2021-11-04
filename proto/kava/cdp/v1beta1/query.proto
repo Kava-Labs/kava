@@ -91,7 +91,7 @@ message QueryCdpRequest {
 
 // QueryCdpResponse defines the response type for the Query/Cdp RPC method.
 message QueryCdpResponse {
-  AugmentedCDP cdp = 1;
+  AugmentedCDP cdp = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryCdpsRequest is the params for a filtered CDP query, the request type for the Query/Cdps RPC method.
@@ -169,6 +169,6 @@ message QueryTotalCollateralRequest {
 
 // QueryTotalCollateralResponse defines the response type for the Query/TotalCollateral RPC method.
 message QueryTotalCollateralResponse {
-  repeated TotalCollateral total_principal = 1
+  repeated TotalCollateral total_collateral = 1
       [(gogoproto.castrepeated) = "TotalCollaterals", (gogoproto.nullable) = false];
 }

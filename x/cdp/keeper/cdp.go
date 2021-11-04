@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	gogotypes "github.com/gogo/protobuf/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -195,8 +197,12 @@ func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint6
 	if bz == nil {
 		return []uint64{}, false
 	}
+
+	// TODO: Must match IndexCdpByOwner
 	var cdpIDs []uint64
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &cdpIDs)
+	if err := json.Unmarshal(bz, &cdpIDs); err != nil {
+		panic(err)
+	}
 	return cdpIDs, true
 }
 
@@ -314,13 +320,23 @@ func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
 	cdpIDs, found := k.GetCdpIdsByOwner(ctx, owner)
 
 	if !found {
-		idBytes := k.cdc.MustMarshalLengthPrefixed([]uint64{cdp.ID})
+		// TODO: Is using json.Marshal fine here? Have not found a good alternative
+		idBytes, err := json.Marshal([]uint64{cdp.ID})
+		if err != nil {
+			panic(err)
+		}
 		store.Set(owner, idBytes)
 		return
 	}
 	cdpIDs = append(cdpIDs, cdp.ID)
 	sort.Slice(cdpIDs, func(i, j int) bool { return cdpIDs[i] < cdpIDs[j] })
-	store.Set(owner, k.cdc.MustMarshalLengthPrefixed(cdpIDs))
+
+	cdpIDsBytes, err := json.Marshal(cdpIDs)
+	if err != nil {
+		panic(err)
+	}
+
+	store.Set(owner, cdpIDsBytes)
 }
 
 // RemoveCdpOwnerIndex deletes the cdp id from the store's index of cdps by owner
@@ -346,7 +362,12 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 		store.Delete(owner)
 		return
 	}
-	store.Set(owner, k.cdc.MustMarshalBinaryLengthPrefixed(updatedCdpIds))
+
+	updatedCdpIdsBytes, err := json.Marshal(updatedCdpIds)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(owner, updatedCdpIdsBytes)
 }
 
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
@@ -370,19 +391,23 @@ func (k Keeper) RemoveCdpCollateralRatioIndex(ctx sdk.Context, collateralType st
 }
 
 // GetDebtDenom returns the denom of debt in the system
-func (k Keeper) GetDebtDenom(ctx sdk.Context) (denom string) {
+func (k Keeper) GetDebtDenom(ctx sdk.Context) string {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
-	bz := store.Get([]byte{})
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
-	return
+	bz := store.Get(types.DebtDenomKey)
+
+	var debtDenom gogotypes.StringValue
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &debtDenom)
+	return debtDenom.Value
 }
 
 // GetGovDenom returns the denom of the governance token
-func (k Keeper) GetGovDenom(ctx sdk.Context) (denom string) {
+func (k Keeper) GetGovDenom(ctx sdk.Context) string {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
-	bz := store.Get([]byte{})
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
-	return
+	bz := store.Get(types.GovDenomKey)
+
+	var govDenom gogotypes.StringValue
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &govDenom)
+	return govDenom.Value
 }
 
 // SetDebtDenom set the denom of debt in the system
@@ -391,7 +416,9 @@ func (k Keeper) SetDebtDenom(ctx sdk.Context, denom string) {
 		panic("debt denom not set in genesis")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
-	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
+	store.Set(types.DebtDenomKey, k.cdc.MustMarshalLengthPrefixed(&gogotypes.StringValue{
+		Value: denom,
+	}))
 }
 
 // SetGovDenom set the denom of the governance token in the system
@@ -400,7 +427,9 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 		panic("gov denom not set in genesis")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
-	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
+	store.Set([]byte{}, k.cdc.MustMarshalLengthPrefixed(&gogotypes.StringValue{
+		Value: denom,
+	}))
 }
 
 // ValidateCollateral validates that a collateral is valid for use in cdps
@@ -484,7 +513,7 @@ func (k Keeper) ValidateBalance(ctx sdk.Context, amount sdk.Coin, sender sdk.Acc
 	if acc == nil {
 		return sdkerrors.Wrapf(types.ErrAccountNotFound, "address: %s", sender)
 	}
-	spendableBalance := acc.SpendableCoins(ctx.BlockTime()).AmountOf(amount.Denom)
+	spendableBalance := k.bankKeeper.SpendableCoins(ctx, acc.GetAddress()).AmountOf(amount.Denom)
 	if spendableBalance.LT(amount.Amount) {
 		return sdkerrors.Wrapf(types.ErrInsufficientBalance, "%s < %s", sdk.NewCoin(amount.Denom, spendableBalance), amount)
 	}
@@ -588,16 +617,17 @@ func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context
 // SetMarketStatus sets the status of the input market, true means the market is up and running, false means it is down
 func (k Keeper) SetMarketStatus(ctx sdk.Context, marketID string, up bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PricefeedStatusKeyPrefix)
-	store.Set([]byte(marketID), k.cdc.MustMarshalBinaryBare(up))
-	return
+	store.Set([]byte(marketID), k.cdc.MustMarshal(&gogotypes.BoolValue{Value: up}))
 }
 
 // GetMarketStatus returns true if the market has a price, otherwise false
-func (k Keeper) GetMarketStatus(ctx sdk.Context, marketID string) (up bool) {
+func (k Keeper) GetMarketStatus(ctx sdk.Context, marketID string) bool {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PricefeedStatusKeyPrefix)
 	bz := store.Get([]byte(marketID))
-	k.cdc.MustUnmarshalBinaryBare(bz, &up)
-	return up
+
+	var status gogotypes.BoolValue
+	k.cdc.MustUnmarshal(bz, &status)
+	return status.Value
 }
 
 // UpdatePricefeedStatus determines if the price of an asset is available and updates the global status of the market
