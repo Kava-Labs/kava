@@ -42,11 +42,19 @@ func (msg MsgIssueTokens) ValidateBasic() error {
 	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
+	}
 	if msg.Tokens.IsZero() || !msg.Tokens.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid tokens %s", msg.Tokens)
 	}
 	if len(msg.Receiver) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
+	}
+	_, err = sdk.AccAddressFromBech32(msg.Receiver)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid receiver bech32 address")
 	}
 	return nil
 }
@@ -84,6 +92,10 @@ func (msg MsgRedeemTokens) Type() string { return TypeMsgRedeemTokens }
 func (msg MsgRedeemTokens) ValidateBasic() error {
 	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
 	}
 	if msg.Tokens.IsZero() || !msg.Tokens.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid tokens %s", msg.Tokens)
@@ -126,6 +138,10 @@ func (msg MsgBlockAddress) ValidateBasic() error {
 	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
+	}
 	if len(msg.BlockedAddress) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "blocked address cannot be empty")
 	}
@@ -167,6 +183,10 @@ func (msg MsgUnblockAddress) ValidateBasic() error {
 	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
+	}
 	if len(msg.BlockedAddress) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "blocked address cannot be empty")
 	}
@@ -207,6 +227,10 @@ func (msg MsgSetPauseStatus) Type() string { return TypeMsgSetPauseStatus }
 func (msg MsgSetPauseStatus) ValidateBasic() error {
 	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
 	}
 	return sdk.ValidateDenom(msg.Denom)
 }

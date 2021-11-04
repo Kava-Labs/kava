@@ -30,7 +30,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 
 func (suite *GenesisTestSuite) TestValidate() {
 	type args struct {
-		assets   []*types.Asset
+		assets   []types.Asset
 		supplies []types.AssetSupply
 	}
 	type errArgs struct {
@@ -56,7 +56,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"with asset",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				supplies: []types.AssetSupply{types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.NewInt(1000000)), time.Hour)},
@@ -69,7 +69,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"with asset rate limit",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(1000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{},
@@ -82,7 +82,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"with multiple assets",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 					types.NewAsset(suite.addrs[0], "pegtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
@@ -96,7 +96,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"blocked owner",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[0]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				supplies: []types.AssetSupply{},
@@ -109,7 +109,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"empty owner",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset("", "usdtoken", []string{suite.addrs[0]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				supplies: []types.AssetSupply{},
@@ -122,7 +122,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"empty blocked address",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{""}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				supplies: []types.AssetSupply{},
@@ -135,7 +135,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"invalid denom",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "USD2T ", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				supplies: []types.AssetSupply{},
@@ -148,7 +148,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"duplicate denom",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 					types.NewAsset(suite.addrs[1], "usdtoken", []string{}, true, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
@@ -162,7 +162,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"duplicate asset",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
@@ -176,7 +176,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"invalid block list",
 			args{
-				assets: []*types.Asset{
+				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, false, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				supplies: []types.AssetSupply{types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour)},

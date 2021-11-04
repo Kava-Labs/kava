@@ -10,19 +10,12 @@ import (
 )
 
 var (
-	amino = codec.NewLegacyAmino()
-
-	// ModuleCdc references the global x/gov module codec. Note, the codec should
-	// ONLY be used in certain instances of tests and for JSON encoding as Amino is
-	// still used for that purpose.
-	//
-	// The actual codec used for serialization should be provided to x/issuance and
-	// defined at the application level.
+	amino     = codec.NewLegacyAmino()
 	ModuleCdc = codec.NewAminoCodec(amino)
 )
 
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
-// governance module.
+// issuance module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgIssueTokens{}, "issuance/MsgIssueTokens", nil)
 	cdc.RegisterConcrete(&MsgRedeemTokens{}, "issuance/MsgRedeemTokens", nil)

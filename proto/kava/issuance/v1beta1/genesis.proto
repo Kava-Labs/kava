@@ -19,7 +19,7 @@ message GenesisState {
 message Params {
   option (gogoproto.goproto_stringer) = false;
 
-  repeated Asset assets = 1 [(gogoproto.moretags) = "yaml:\"assets,omitempty\""];
+  repeated Asset assets = 1 [(gogoproto.moretags) = "yaml:\"assets,omitempty\"", (gogoproto.nullable) = false];
 }
 
 // Asset type for assets in the issuance module
@@ -31,7 +31,7 @@ message Asset {
   repeated string blocked_addresses = 3 [(gogoproto.moretags) = "yaml:\"blocked_addresses,omitempty\""];
   bool            paused            = 4 [(gogoproto.moretags) = "yaml:\"paused,omitempty\""];
   bool            blockable         = 5 [(gogoproto.moretags) = "yaml:\"blockable,omitempty\""];
-  RateLimit       rate_limit        = 6 [(gogoproto.moretags) = "yaml:\"rate_limit,omitempty\""];
+  RateLimit       rate_limit = 6 [(gogoproto.moretags) = "yaml:\"rate_limit,omitempty\"", (gogoproto.nullable) = false];
 }
 
 // RateLimit parameters for rate-limiting the supply of an issued asset

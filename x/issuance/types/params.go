@@ -11,12 +11,12 @@ import (
 // Parameter keys and default values
 var (
 	KeyAssets         = []byte("Assets")
-	DefaultAssets     = []*Asset{}
+	DefaultAssets     = []Asset{}
 	ModuleAccountName = ModuleName
 )
 
 // NewParams returns a new params object
-func NewParams(assets []*Asset) Params {
+func NewParams(assets []Asset) Params {
 	return Params{
 		Assets: assets,
 	}
@@ -45,7 +45,7 @@ func (p Params) Validate() error {
 }
 
 func validateAssetsParam(i interface{}) error {
-	assets, ok := i.([]*Asset)
+	assets, ok := i.([]Asset)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -60,8 +60,8 @@ func (p Params) String() string {
 }
 
 // NewAsset returns a new Asset
-func NewAsset(owner string, denom string, blockedAddresses []string, paused bool, blockable bool, limit *RateLimit) *Asset {
-	return &Asset{
+func NewAsset(owner string, denom string, blockedAddresses []string, paused bool, blockable bool, limit RateLimit) Asset {
+	return Asset{
 		Owner:            owner,
 		Denom:            denom,
 		BlockedAddresses: blockedAddresses,
@@ -98,16 +98,13 @@ func (a Asset) String() string {
 	Denom: %s
 	Blocked Addresses: %s
 	Rate limits: %s`,
-		a.Owner, a.Paused, a.Denom, a.BlockedAddresses, a.RateLimit)
+		a.Owner, a.Paused, a.Denom, a.BlockedAddresses, a.RateLimit.String())
 }
 
 // Validate checks if all assets are valid and there are no duplicate entries
-func ValidateAssets(as []*Asset) error {
+func ValidateAssets(as []Asset) error {
 	assetDenoms := make(map[string]bool)
 	for _, a := range as {
-		if a == nil {
-			return fmt.Errorf("cannot have nil asset")
-		}
 		if assetDenoms[a.Denom] {
 			return fmt.Errorf("cannot have duplicate asset denoms: %s", a.Denom)
 		}
@@ -120,8 +117,8 @@ func ValidateAssets(as []*Asset) error {
 }
 
 // NewRateLimit initializes a new RateLimit
-func NewRateLimit(active bool, limit sdk.Int, timePeriod time.Duration) *RateLimit {
-	return &RateLimit{
+func NewRateLimit(active bool, limit sdk.Int, timePeriod time.Duration) RateLimit {
+	return RateLimit{
 		Active:     active,
 		Limit:      limit,
 		TimePeriod: timePeriod,

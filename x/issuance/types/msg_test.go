@@ -78,6 +78,18 @@ func (suite *MsgTestSuite) TestMsgIssueTokens() {
 				contains:   "receiver address cannot be empty",
 			},
 		},
+		{
+			"invalid tokens",
+			args{
+				sender:   suite.addrs[0],
+				tokens:   sdk.Coin{Denom: "In:val:id", Amount: sdk.NewInt(100)},
+				receiver: suite.addrs[1],
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "invalid tokens",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -127,6 +139,17 @@ func (suite *MsgTestSuite) TestMsgRedeemTokens() {
 			errArgs{
 				expectPass: false,
 				contains:   "sender address cannot be empty",
+			},
+		},
+		{
+			"invalid tokens",
+			args{
+				sender: suite.addrs[0],
+				tokens: sdk.Coin{Denom: "In:val:id", Amount: sdk.NewInt(100)},
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "invalid tokens",
 			},
 		},
 	}
