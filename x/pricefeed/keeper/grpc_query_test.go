@@ -15,11 +15,12 @@ import (
 type grpcQueryTestSuite struct {
 	suite.Suite
 
-	tApp   app.TestApp
-	ctx    sdk.Context
-	keeper keeper.Keeper
-	addrs  []sdk.AccAddress
-	now    time.Time
+	tApp        app.TestApp
+	ctx         sdk.Context
+	keeper      keeper.Keeper
+	queryServer types.QueryServer
+	addrs       []sdk.AccAddress
+	now         time.Time
 }
 
 func (suite *grpcQueryTestSuite) SetupTest() {
@@ -27,6 +28,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.ctx = suite.tApp.NewContext(true, tmprototypes.Header{}).
 		WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetPriceFeedKeeper()
+	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	suite.addrs = addrs
@@ -57,7 +59,7 @@ func (suite *grpcQueryTestSuite) TestGrpcParams() {
 		suite.Run(tt.giveMsg, func() {
 			suite.keeper.SetParams(suite.ctx, tt.giveParams)
 
-			res, err := suite.keeper.Params(sdk.WrapSDKContext(suite.ctx), &types.QueryParamsRequest{})
+			res, err := suite.queryServer.Params(sdk.WrapSDKContext(suite.ctx), &types.QueryParamsRequest{})
 
 			if tt.wantAccepted {
 				suite.NoError(err)
@@ -75,7 +77,7 @@ func (suite *grpcQueryTestSuite) TestGrpcPrice() {
 
 	expectedPrice := types.NewCurrentPrice("tstusd", sdk.MustNewDecFromStr("0.34"))
 
-	res, err := suite.keeper.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "tstusd"})
+	res, err := suite.queryServer.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "tstusd"})
 	suite.NoError(err)
 	suite.Equal(expectedPrice, res.Price)
 }
@@ -84,7 +86,7 @@ func (suite *grpcQueryTestSuite) TestGrpcPrice_NoPriceSet() {
 	suite.setTestParams()
 
 	// No prices set yet, should error
-	_, err := suite.keeper.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "tstusd"})
+	_, err := suite.queryServer.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "tstusd"})
 	suite.ErrorIs(types.ErrNoValidPrice, err)
 }
 
@@ -92,7 +94,7 @@ func (suite *grpcQueryTestSuite) TestGrpcPrice_InvalidMarket() {
 	suite.setTestParams()
 	suite.setTstPrice()
 
-	_, err := suite.keeper.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "invalid"})
+	_, err := suite.queryServer.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "invalid"})
 	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
 }
 
@@ -102,7 +104,7 @@ func (suite *grpcQueryTestSuite) TestGrpcPrices() {
 
 	expectedPrice := types.NewCurrentPrice("tstusd", sdk.MustNewDecFromStr("0.34"))
 
-	prices, err := suite.keeper.Prices(sdk.WrapSDKContext(suite.ctx), &types.QueryPricesRequest{})
+	prices, err := suite.queryServer.Prices(sdk.WrapSDKContext(suite.ctx), &types.QueryPricesRequest{})
 	suite.NoError(err)
 
 	suite.Contains(prices.Prices, expectedPrice, "all prices should include the tstusd price")
@@ -112,7 +114,7 @@ func (suite *grpcQueryTestSuite) TestGrpcRawPrices() {
 	suite.setTestParams()
 	suite.setTstPrice()
 
-	res, err := suite.keeper.RawPrices(sdk.WrapSDKContext(suite.ctx), &types.QueryRawPricesRequest{MarketId: "tstusd"})
+	res, err := suite.queryServer.RawPrices(sdk.WrapSDKContext(suite.ctx), &types.QueryRawPricesRequest{MarketId: "tstusd"})
 	suite.NoError(err)
 
 	suite.Equal(3, len(res.RawPrices))
@@ -146,7 +148,7 @@ func (suite *grpcQueryTestSuite) TestGrpcRawPrices_InvalidMarket() {
 	suite.setTestParams()
 	suite.setTstPrice()
 
-	_, err := suite.keeper.RawPrices(sdk.WrapSDKContext(suite.ctx), &types.QueryRawPricesRequest{MarketId: "invalid"})
+	_, err := suite.queryServer.RawPrices(sdk.WrapSDKContext(suite.ctx), &types.QueryRawPricesRequest{MarketId: "invalid"})
 	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
 }
 
@@ -156,7 +158,7 @@ func (suite *grpcQueryTestSuite) TestGrpcOracles_Empty() {
 	})
 	suite.keeper.SetParams(suite.ctx, params)
 
-	res, err := suite.keeper.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "tstusd"})
+	res, err := suite.queryServer.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "tstusd"})
 	suite.NoError(err)
 	suite.Empty(res.Oracles)
 
@@ -170,11 +172,11 @@ func (suite *grpcQueryTestSuite) TestGrpcOracles_Empty() {
 	})
 	suite.keeper.SetParams(suite.ctx, params)
 
-	res, err = suite.keeper.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "tstusd"})
+	res, err = suite.queryServer.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "tstusd"})
 	suite.NoError(err)
 	suite.ElementsMatch(res.Oracles, oracles)
 
-	_, err = suite.keeper.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "invalid"})
+	_, err = suite.queryServer.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "invalid"})
 	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
 }
 
@@ -189,7 +191,7 @@ func (suite *grpcQueryTestSuite) TestGrpcOracles() {
 	})
 	suite.keeper.SetParams(suite.ctx, params)
 
-	res, err := suite.keeper.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "tstusd"})
+	res, err := suite.queryServer.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "tstusd"})
 	suite.NoError(err)
 	suite.ElementsMatch(res.Oracles, oracles)
 }
@@ -197,7 +199,7 @@ func (suite *grpcQueryTestSuite) TestGrpcOracles() {
 func (suite *grpcQueryTestSuite) TestGrpcOracles_InvalidMarket() {
 	suite.setTestParams()
 
-	_, err := suite.keeper.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "invalid"})
+	_, err := suite.queryServer.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "invalid"})
 	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
 }
 
@@ -207,7 +209,7 @@ func (suite *grpcQueryTestSuite) TestGrpcMarkets() {
 	})
 	suite.keeper.SetParams(suite.ctx, params)
 
-	res, err := suite.keeper.Markets(sdk.WrapSDKContext(suite.ctx), &types.QueryMarketsRequest{})
+	res, err := suite.queryServer.Markets(sdk.WrapSDKContext(suite.ctx), &types.QueryMarketsRequest{})
 	suite.NoError(err)
 	suite.Len(res.Markets, 1)
 	suite.Equal(len(res.Markets), len(params.Markets))

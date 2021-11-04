@@ -11,28 +11,38 @@ import (
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-var _ types.QueryServer = Keeper{}
+type QueryServer struct {
+	keeper Keeper
+}
 
-// Params implements the gRPC service handler for querying x/swap parameters.
-func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+// NewQueryServer returns an implementation of the pricefeed MsgServer interface
+// for the provided Keeper.
+func NewQueryServerImpl(keeper Keeper) types.QueryServer {
+	return &QueryServer{keeper: keeper}
+}
+
+var _ types.QueryServer = QueryServer{}
+
+// Params implements the gRPC service handler for querying x/pricefeed parameters.
+func (k QueryServer) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(c)
-	params := k.GetParams(sdkCtx)
+	params := k.keeper.GetParams(sdkCtx)
 
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
-func (k Keeper) Price(c context.Context, req *types.QueryPriceRequest) (*types.QueryPriceResponse, error) {
+func (k QueryServer) Price(c context.Context, req *types.QueryPriceRequest) (*types.QueryPriceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	_, found := k.GetMarket(ctx, req.MarketId)
+	_, found := k.keeper.GetMarket(ctx, req.MarketId)
 	if !found {
 		return nil, status.Error(codes.NotFound, "invalid market ID")
 	}
-	currentPrice, sdkErr := k.GetCurrentPrice(ctx, req.MarketId)
+	currentPrice, sdkErr := k.keeper.GetCurrentPrice(ctx, req.MarketId)
 	if sdkErr != nil {
 		return nil, sdkErr
 	}
@@ -44,34 +54,34 @@ func (k Keeper) Price(c context.Context, req *types.QueryPriceRequest) (*types.Q
 		}}, nil
 
 }
-func (k Keeper) Prices(c context.Context, req *types.QueryPricesRequest) (*types.QueryPricesResponse, error) {
+func (k QueryServer) Prices(c context.Context, req *types.QueryPricesRequest) (*types.QueryPricesResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	currentPrices := k.GetCurrentPrices(ctx)
+	currentPrices := k.keeper.GetCurrentPrices(ctx)
 
 	return &types.QueryPricesResponse{
 		Prices: currentPrices,
 	}, nil
 }
 
-func (k Keeper) RawPrices(c context.Context, req *types.QueryRawPricesRequest) (*types.QueryRawPricesResponse, error) {
+func (k QueryServer) RawPrices(c context.Context, req *types.QueryRawPricesRequest) (*types.QueryRawPricesResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	_, found := k.GetMarket(ctx, req.MarketId)
+	_, found := k.keeper.GetMarket(ctx, req.MarketId)
 	if !found {
 		return nil, status.Error(codes.NotFound, "invalid market ID")
 	}
-	rawPrices := k.GetRawPrices(ctx, req.MarketId)
+	rawPrices := k.keeper.GetRawPrices(ctx, req.MarketId)
 
 	return &types.QueryRawPricesResponse{
 		RawPrices: rawPrices,
 	}, nil
 }
 
-func (k Keeper) Oracles(c context.Context, req *types.QueryOraclesRequest) (*types.QueryOraclesResponse, error) {
+func (k QueryServer) Oracles(c context.Context, req *types.QueryOraclesRequest) (*types.QueryOraclesResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	oracles, err := k.GetOracles(ctx, req.MarketId)
+	oracles, err := k.keeper.GetOracles(ctx, req.MarketId)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "invalid market ID")
 	}
@@ -81,10 +91,10 @@ func (k Keeper) Oracles(c context.Context, req *types.QueryOraclesRequest) (*typ
 	}, nil
 }
 
-func (k Keeper) Markets(c context.Context, req *types.QueryMarketsRequest) (*types.QueryMarketsResponse, error) {
+func (k QueryServer) Markets(c context.Context, req *types.QueryMarketsRequest) (*types.QueryMarketsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	markets := k.GetMarkets(ctx)
+	markets := k.keeper.GetMarkets(ctx)
 
 	return &types.QueryMarketsResponse{
 		Markets: markets,
