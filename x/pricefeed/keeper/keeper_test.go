@@ -68,7 +68,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 
 	prices := []struct {
 		oracle   string
-		MarketID string
+		marketID string
 		price    sdk.Dec
 		total    int
 	}{
@@ -82,7 +82,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 		pp, err := keeper.SetPrice(
 			ctx,
 			p.oracle,
-			p.MarketID,
+			p.marketID,
 			p.price,
 			time.Now().UTC().Add(1*time.Hour),
 		)
