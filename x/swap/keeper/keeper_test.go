@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kava-labs/kava/app"
+	kavatypes "github.com/kava-labs/kava/types"
 	"github.com/kava-labs/kava/x/swap/testutil"
 	"github.com/kava-labs/kava/x/swap/types"
 	"github.com/kava-labs/kava/x/swap/types/mocks"
@@ -46,7 +47,7 @@ func (suite *keeperTestSuite) setupPool(reserves sdk.Coins, totalShares sdk.Int,
 	suite.Keeper.SetPool(suite.Ctx, poolRecord)
 
 	shareRecord := types.ShareRecord{
-		Depositor:   depositor.String(),
+		Depositor:   kavatypes.Address(depositor),
 		PoolID:      poolID,
 		SharesOwned: totalShares,
 	}
