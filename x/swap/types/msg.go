@@ -59,7 +59,7 @@ func (msg MsgDeposit) ValidateBasic() error {
 	}
 
 	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %s", err)
 	}
 
 	if !msg.TokenA.IsValid() || msg.TokenA.IsZero() {
@@ -135,7 +135,7 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	}
 
 	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address: %s", err)
 	}
 
 	if msg.Shares.IsNil() {
@@ -211,7 +211,7 @@ func (msg MsgSwapExactForTokens) ValidateBasic() error {
 	}
 
 	if _, err := sdk.AccAddressFromBech32(msg.Requester); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid requester address: %s", err)
 	}
 
 	if !msg.ExactTokenA.IsValid() || msg.ExactTokenA.IsZero() {
@@ -287,7 +287,7 @@ func (msg MsgSwapForExactTokens) ValidateBasic() error {
 	}
 
 	if _, err := sdk.AccAddressFromBech32(msg.Requester); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid requester address: %s", err)
 	}
 
 	if !msg.TokenA.IsValid() || msg.TokenA.IsZero() {
