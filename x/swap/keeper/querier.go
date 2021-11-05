@@ -141,7 +141,7 @@ func filterShareRecords(ctx sdk.Context, records types.ShareRecords, params type
 
 		// match owner address (if supplied)
 		if len(params.Owner) > 0 {
-			matchOwner = s.Depositor.String() == params.Owner.String()
+			matchOwner = s.Depositor.Equals(params.Owner)
 		}
 
 		// match pool ID (if supplied)
