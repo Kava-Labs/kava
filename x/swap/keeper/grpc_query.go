@@ -40,7 +40,7 @@ func (k Keeper) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.Q
 	var queryResults []types.PoolResponse
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, shouldAccumulate bool) (bool, error) {
 		var poolRecord types.PoolRecord
-		err := k.cdc.UnmarshalLengthPrefixed(value, &poolRecord)
+		err := k.cdc.Unmarshal(value, &poolRecord)
 		if err != nil {
 			return false, err
 		}
@@ -86,7 +86,7 @@ func (k Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 		func(key []byte, value []byte, accumulate bool) (bool, error) {
 
 			var record types.ShareRecord
-			err := k.cdc.UnmarshalLengthPrefixed(value, &record)
+			err := k.cdc.Unmarshal(value, &record)
 			if err != nil {
 				return false, err
 			}

@@ -90,7 +90,7 @@ func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool)
 	}
 
 	var record types.PoolRecord
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &record)
+	k.cdc.MustUnmarshal(bz, &record)
 
 	return record, true
 }
@@ -98,7 +98,7 @@ func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool)
 // SetPool_Raw saves a pool record to the store without any validation
 func (k Keeper) SetPool_Raw(ctx sdk.Context, record types.PoolRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
-	bz := k.cdc.MustMarshalLengthPrefixed(&record)
+	bz := k.cdc.MustMarshal(&record)
 	store.Set(types.PoolKey(record.PoolID), bz)
 }
 
@@ -124,7 +124,7 @@ func (k Keeper) IteratePools(ctx sdk.Context, cb func(record types.PoolRecord) (
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.PoolRecord
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &record)
+		k.cdc.MustUnmarshal(iterator.Value(), &record)
 		if cb(record) {
 			break
 		}
@@ -157,14 +157,14 @@ func (k Keeper) GetDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, po
 		return types.ShareRecord{}, false
 	}
 	var record types.ShareRecord
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &record)
+	k.cdc.MustUnmarshal(bz, &record)
 	return record, true
 }
 
 // SetDepositorShares_Raw saves a share record to the store without validation
 func (k Keeper) SetDepositorShares_Raw(ctx sdk.Context, record types.ShareRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
-	bz := k.cdc.MustMarshalLengthPrefixed(&record)
+	bz := k.cdc.MustMarshal(&record)
 	depositor, err := sdk.AccAddressFromBech32(record.Depositor) // copying the way gov converts from string addresses to byte addresses
 	if err != nil {
 		panic(err)
@@ -194,7 +194,7 @@ func (k Keeper) IterateDepositorShares(ctx sdk.Context, cb func(record types.Sha
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.ShareRecord
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &record)
+		k.cdc.MustUnmarshal(iterator.Value(), &record)
 		if cb(record) {
 			break
 		}
@@ -217,7 +217,7 @@ func (k Keeper) IterateDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddr
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.ShareRecord
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &record)
+		k.cdc.MustUnmarshal(iterator.Value(), &record)
 		if cb(record) {
 			break
 		}
