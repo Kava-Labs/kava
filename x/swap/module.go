@@ -67,8 +67,7 @@ func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Ro
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
-	if err != nil {
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
 		panic(err)
 	}
 }
