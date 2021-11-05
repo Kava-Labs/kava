@@ -11,20 +11,38 @@ import (
 var testCoin = sdk.NewInt64Coin("test", 20)
 
 func TestGenesisState_Validate(t *testing.T) {
+
+	defaultGenesisAuctions, err := UnpackGenesisAuctions(DefaultGenesisState().Auctions)
+	if err != nil {
+		panic(err)
+	}
+
 	testCases := []struct {
 		name       string
 		nextID     uint64
-		auctions   GenesisAuctions
+		auctions   []GenesisAuction
 		expectPass bool
 	}{
-		{"default", DefaultGenesisState().NextAuctionID, DefaultGenesisState().Auctions, true},
-		{"invalid next ID", 54, GenesisAuctions{SurplusAuction{BaseAuction{ID: 105}}}, false},
+		{
+			"default",
+			DefaultGenesisState().NextAuctionId,
+			defaultGenesisAuctions,
+			true,
+		},
+		{
+			"invalid next ID",
+			54,
+			[]GenesisAuction{
+				GenesisAuction(&SurplusAuction{BaseAuction{Id: 105}}),
+			},
+			false,
+		},
 		{
 			"repeated ID",
 			1000,
-			GenesisAuctions{
-				SurplusAuction{BaseAuction{ID: 105}},
-				DebtAuction{BaseAuction{ID: 105}, testCoin},
+			[]GenesisAuction{
+				GenesisAuction(&SurplusAuction{BaseAuction{Id: 105}}),
+				GenesisAuction(&DebtAuction{BaseAuction{Id: 106}, testCoin}),
 			},
 			false,
 		},
