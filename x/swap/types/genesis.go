@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -75,16 +74,4 @@ func DefaultGenesisState() GenesisState {
 		DefaultPoolRecords,
 		DefaultShareRecords,
 	)
-}
-
-// Equal checks whether two gov GenesisState structs are equivalent
-func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	b1 := ModuleCdc.MustMarshal(&gs)
-	b2 := ModuleCdc.MustMarshal(&gs2)
-	return bytes.Equal(b1, b2)
-}
-
-// IsEmpty returns true if a GenesisState is empty
-func (gs GenesisState) IsEmpty() bool {
-	return gs.Equal(GenesisState{})
 }
