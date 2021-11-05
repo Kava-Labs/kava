@@ -44,7 +44,7 @@ func RawPriceIteratorKey(marketID string) []byte {
 func RawPriceKey(marketID string, oracleAddr sdk.AccAddress) []byte {
 	return append(
 		RawPriceIteratorKey(marketID),
-		lengthPrefixWithByte([]byte(oracleAddr))...,
+		lengthPrefixWithByte(oracleAddr)...,
 	)
 }
 

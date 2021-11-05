@@ -87,8 +87,13 @@ func (k QueryServer) Oracles(c context.Context, req *types.QueryOraclesRequest) 
 		return nil, status.Error(codes.NotFound, "invalid market ID")
 	}
 
+	var strOracles []string
+	for _, oracle := range oracles {
+		strOracles = append(strOracles, oracle.String())
+	}
+
 	return &types.QueryOraclesResponse{
-		Oracles: oracles,
+		Oracles: strOracles,
 	}, nil
 }
 

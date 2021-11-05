@@ -69,14 +69,10 @@ func (k Keeper) GetAuthorizedAddresses(ctx sdk.Context) []sdk.AccAddress {
 	for _, m := range k.GetMarkets(ctx) {
 		for _, o := range m.Oracles {
 			// de-dup list of oracles
-			if _, found := uniqueOracles[o]; !found {
-				addr, err := sdk.AccAddressFromBech32(o)
-				if err != nil {
-					panic(err)
-				}
-				oracles = append(oracles, addr)
+			if _, found := uniqueOracles[o.String()]; !found {
+				oracles = append(oracles, o)
 			}
-			uniqueOracles[o] = true
+			uniqueOracles[o.String()] = true
 		}
 	}
 	return oracles

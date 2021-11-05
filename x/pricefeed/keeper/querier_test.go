@@ -16,8 +16,8 @@ func (suite *KeeperTestSuite) TestQuerierGetParams() {
 
 	expParams := types.Params{
 		Markets: []types.Market{
-			{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []string{}, Active: true},
-			{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+			{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 		},
 	}
 	var p types.Params
@@ -128,8 +128,8 @@ func (suite *KeeperTestSuite) TestQuerierGetMarkets() {
 	suite.NotNil(bz)
 
 	expMarkets := []types.Market{
-		types.NewMarket("btc:usd", "btc", "usd", []string(nil), true),
-		types.NewMarket("xrp:usd", "xrp", "usd", []string(nil), true),
+		types.NewMarket("btc:usd", "btc", "usd", []sdk.AccAddress(nil), true),
+		types.NewMarket("xrp:usd", "xrp", "usd", []sdk.AccAddress(nil), true),
 	}
 
 	var p []types.Market
