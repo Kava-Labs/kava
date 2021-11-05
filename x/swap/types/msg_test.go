@@ -87,16 +87,6 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			deadline:    validMsg.Deadline,
 			expectedErr: "token a deposit amount 0ukava: invalid coins",
 		},
-		// TODO: denom can now be uppercase
-		// {
-		// 	name:        "invalid denom token a",
-		// 	depositor:   validMsg.Depositor,
-		// 	tokenA:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-		// 	tokenB:      validMsg.TokenB,
-		// 	slippage:    validMsg.Slippage,
-		// 	deadline:    validMsg.Deadline,
-		// 	expectedErr: "token a deposit amount 1000000UKAVA: invalid coins",
-		// },
 		{
 			name:        "negative token b",
 			depositor:   validMsg.Depositor,
@@ -115,16 +105,6 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			deadline:    validMsg.Deadline,
 			expectedErr: "token b deposit amount 0ukava: invalid coins",
 		},
-		// TODO: denom can now be uppercase
-		// {
-		// 	name:        "invalid denom token b",
-		// 	depositor:   validMsg.Depositor,
-		// 	tokenA:      validMsg.TokenA,
-		// 	tokenB:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-		// 	slippage:    validMsg.Slippage,
-		// 	deadline:    validMsg.Deadline,
-		// 	expectedErr: "token b deposit amount 1000000UKAVA: invalid coins",
-		// },
 		{
 			name:        "denoms can not be the same",
 			depositor:   validMsg.Depositor,
@@ -290,16 +270,6 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			deadline:    validMsg.Deadline,
 			expectedErr: "min token a amount 0ukava: invalid coins",
 		},
-		// TODO: Uppercase denoms allowed
-		// {
-		// 	name:        "invalid denom token a",
-		// 	from:        validMsg.From,
-		// 	shares:      validMsg.Shares,
-		// 	minTokenA:   sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-		// 	minTokenB:   validMsg.MinTokenB,
-		// 	deadline:    validMsg.Deadline,
-		// 	expectedErr: "min token a amount 1000000UKAVA: invalid coins",
-		// },
 		{
 			name:        "negative token b",
 			from:        validMsg.From,
@@ -318,16 +288,6 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			deadline:    validMsg.Deadline,
 			expectedErr: "min token b amount 0ukava: invalid coins",
 		},
-		// TODO: Uppercase denoms allowed
-		// {
-		// 	name:        "invalid denom token b",
-		// 	from:        validMsg.From,
-		// 	shares:      validMsg.Shares,
-		// 	minTokenA:   validMsg.MinTokenA,
-		// 	minTokenB:   sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-		// 	deadline:    validMsg.Deadline,
-		// 	expectedErr: "min token b amount 1000000UKAVA: invalid coins",
-		// },
 		{
 			name:        "denoms can not be the same",
 			from:        validMsg.From,
@@ -505,16 +465,6 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			deadline:    validMsg.Deadline,
 			expectedErr: "exact token a deposit amount 0ukava: invalid coins",
 		},
-		// TODO:
-		// {
-		// 	name:        "invalid denom token a",
-		// 	requester:   validMsg.Requester,
-		// 	exactTokenA: sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-		// 	tokenB:      validMsg.TokenB,
-		// 	slippage:    validMsg.Slippage,
-		// 	deadline:    validMsg.Deadline,
-		// 	expectedErr: "exact token a deposit amount 1000000UKAVA: invalid coins",
-		// },
 		{
 			name:        "negative token b",
 			requester:   validMsg.Requester,
@@ -533,16 +483,6 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			deadline:    validMsg.Deadline,
 			expectedErr: "token b deposit amount 0ukava: invalid coins",
 		},
-		// TODO:
-		// {
-		// 	name:        "invalid denom token b",
-		// 	requester:   validMsg.Requester,
-		// 	exactTokenA: validMsg.ExactTokenA,
-		// 	tokenB:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-		// 	slippage:    validMsg.Slippage,
-		// 	deadline:    validMsg.Deadline,
-		// 	expectedErr: "token b deposit amount 1000000UKAVA: invalid coins",
-		// },
 		{
 			name:        "denoms can not be the same",
 			requester:   validMsg.Requester,
@@ -711,16 +651,6 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			deadline:    validMsg.Deadline,
 			expectedErr: "token a deposit amount 0ukava: invalid coins",
 		},
-		// TODO:
-		// {
-		// 	name:        "invalid denom token a",
-		// 	requester:   validMsg.Requester,
-		// 	tokenA:      sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-		// 	exactTokenB: validMsg.ExactTokenB,
-		// 	slippage:    validMsg.Slippage,
-		// 	deadline:    validMsg.Deadline,
-		// 	expectedErr: "token a deposit amount 1000000UKAVA: invalid coins",
-		// },
 		{
 			name:        "negative token b",
 			requester:   validMsg.Requester,
@@ -739,16 +669,6 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			deadline:    validMsg.Deadline,
 			expectedErr: "exact token b deposit amount 0ukava: invalid coins",
 		},
-		// TODO:
-		// {
-		// 	name:        "invalid denom token b",
-		// 	requester:   validMsg.Requester,
-		// 	tokenA:      validMsg.TokenA,
-		// 	exactTokenB: sdk.Coin{Denom: "UKAVA", Amount: sdk.NewInt(1e6)},
-		// 	slippage:    validMsg.Slippage,
-		// 	deadline:    validMsg.Deadline,
-		// 	expectedErr: "exact token b deposit amount 1000000UKAVA: invalid coins",
-		// },
 		{
 			name:        "denoms can not be the same",
 			requester:   validMsg.Requester,

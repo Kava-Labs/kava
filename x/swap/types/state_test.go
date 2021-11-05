@@ -26,6 +26,8 @@ func TestState_PoolID(t *testing.T) {
 		{"aaab", "aaaa", "aaaa:aaab"},
 		{"a001", "a002", "a001:a002"},
 		{"a002", "a001", "a001:a002"},
+		{"AAAA", "aaaa", "AAAA:aaaa"},
+		{"aaaa", "AAAA", "AAAA:aaaa"},
 	}
 
 	for _, tc := range testCases {
@@ -171,23 +173,6 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 			totalShares: validRecord.TotalShares,
 			expectedErr: "poolID 'usdx:ukava' is invalid",
 		},
-		// TODO: Resolve uppercase denoms
-		// {
-		// 	name:        "poolID has invalid denom a",
-		// 	poolID:      "UKAVA:usdx",
-		// 	reservesA:   validRecord.ReservesA,
-		// 	reservesB:   validRecord.ReservesB,
-		// 	totalShares: validRecord.TotalShares,
-		// 	expectedErr: "poolID 'UKAVA:usdx' is invalid",
-		// },
-		// {
-		// 	name:        "poolID has invalid denom b",
-		// 	poolID:      "ukava:USDX",
-		// 	reservesA:   validRecord.ReservesA,
-		// 	reservesB:   validRecord.ReservesB,
-		// 	totalShares: validRecord.TotalShares,
-		// 	expectedErr: "poolID 'ukava:USDX' is invalid",
-		// },
 		{
 			name:        "poolID has duplicate denoms",
 			poolID:      "ukava:ukava",
@@ -462,21 +447,6 @@ func TestState_ShareRecord_Validations(t *testing.T) {
 			sharesOwned: validRecord.SharesOwned,
 			expectedErr: "poolID 'usdx:ukava' is invalid",
 		},
-		// TODO: uppercase denoms are allowed
-		// {
-		// 	name:        "poolID has invalid denom a",
-		// 	depositor:   validRecord.Depositor,
-		// 	poolID:      "UKAVA:usdx",
-		// 	sharesOwned: validRecord.SharesOwned,
-		// 	expectedErr: "poolID 'UKAVA:usdx' is invalid",
-		// },
-		// {
-		// 	name:        "poolID has invalid denom b",
-		// 	depositor:   validRecord.Depositor,
-		// 	poolID:      "ukava:USDX",
-		// 	sharesOwned: validRecord.SharesOwned,
-		// 	expectedErr: "poolID 'ukava:USDX' is invalid",
-		// },
 		{
 			name:        "poolID has duplicate denoms",
 			depositor:   validRecord.Depositor,

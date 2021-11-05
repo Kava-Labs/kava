@@ -94,12 +94,11 @@ func TestParams_ParamSetPairs_AllowedPools(t *testing.T) {
 	}
 	require.NotNil(t, paramSetPair)
 
-	pairs, _ := paramSetPair.Value.(types.AllowedPools)
-	// TODO: validate type
-	// require.True(t, ok)
-	// assert.Equal(t, pairs, defaultParams.AllowedPools)
+	pairs, ok := paramSetPair.Value.(*types.AllowedPools)
+	require.True(t, ok)
+	assert.Equal(t, pairs, &defaultParams.AllowedPools)
 
-	assert.Nil(t, paramSetPair.ValidatorFn(pairs))
+	assert.Nil(t, paramSetPair.ValidatorFn(*pairs))
 	assert.EqualError(t, paramSetPair.ValidatorFn(struct{}{}), "invalid parameter type: struct {}")
 }
 
@@ -131,16 +130,6 @@ func TestParams_Validation(t *testing.T) {
 		testFn      func(params *types.Params)
 		expectedErr string
 	}{
-		// TODO: coin.Validate() has changed to allowed uppercase tokens, consider implications before updating this
-		// {
-		// 	name: "invalid denom",
-		// 	key:  types.KeyAllowedPools,
-		// 	testFn: func(params *types.Params) {
-		// 		allowedPools := types.NewAllowedPools(types.NewAllowedPool("UKAVA", "ukava"))
-		// 		params.AllowedPools = &allowedPools
-		// 	},
-		// 	expectedErr: "invalid denom: UKAVA",
-		// },
 		{
 			name: "duplicate pools",
 			key:  types.KeyAllowedPools,
@@ -288,22 +277,19 @@ func TestAllowedPool_Validation(t *testing.T) {
 	}
 }
 
-// TODO: coin.Validate() has changed to allowed uppercase tokens, consider implications before updating this
-// ensure no regression in case insentive token matching if
-// sdk.ValidateDenom ever allows upper case letters
-// func TestAllowedPool_TokenMatch(t *testing.T) {
-// 	allowedPool := types.NewAllowedPool("UKAVA", "ukava")
-// 	err := allowedPool.Validate()
-// 	assert.Error(t, err)
+func TestAllowedPool_TokenMatch_CaseSensitive(t *testing.T) {
+	allowedPool := types.NewAllowedPool("UKAVA", "ukava")
+	err := allowedPool.Validate()
+	assert.NoError(t, err)
 
-// 	allowedPool = types.NewAllowedPool("hard", "haRd")
-// 	err = allowedPool.Validate()
-// 	assert.Error(t, err)
+	allowedPool = types.NewAllowedPool("haRd", "hard")
+	err = allowedPool.Validate()
+	assert.NoError(t, err)
 
-// 	allowedPool = types.NewAllowedPool("Usdx", "uSdX")
-// 	err = allowedPool.Validate()
-// 	assert.Error(t, err)
-// }
+	allowedPool = types.NewAllowedPool("Usdx", "uSdX")
+	err = allowedPool.Validate()
+	assert.NoError(t, err)
+}
 
 func TestAllowedPool_String(t *testing.T) {
 	allowedPool := types.NewAllowedPool("hard", "ukava")
@@ -371,15 +357,6 @@ func TestAllowedPools_Validate(t *testing.T) {
 		allowedPools types.AllowedPools
 		expectedErr  string
 	}{
-		// TODO: coin.Validate() has changed to allowed uppercase tokens
-		// {
-		// 	name: "invalid pool",
-		// 	allowedPools: types.NewAllowedPools(
-		// 		types.NewAllowedPool("hard", "ukava"),
-		// 		types.NewAllowedPool("HARD", "UKAVA"),
-		// 	),
-		// 	expectedErr: "invalid denom: HARD",
-		// },
 		{
 			name: "duplicate pool",
 			allowedPools: types.NewAllowedPools(
