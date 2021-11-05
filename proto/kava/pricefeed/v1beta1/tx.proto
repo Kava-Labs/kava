@@ -5,6 +5,8 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
+option (gogoproto.equal_all) = true;
+option (gogoproto.verbose_equal_all) = true;
 
 // Msg defines the pricefeed Msg service.
 service Msg {
@@ -14,7 +16,6 @@ service Msg {
 
 // MsgPostPrice represents a method for creating a new post price
 message MsgPostPrice {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // address of client

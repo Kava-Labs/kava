@@ -1,21 +1,22 @@
-package keeper
+package pricefeed
 
 import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 type msgServer struct {
-	Keeper
+	keeper keeper.Keeper
 }
 
-// NewMsgServerImpl returns an implementation of the swap MsgServer interface
+// NewMsgServerImpl returns an implementation of the pricefeed MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
-	return &msgServer{Keeper: keeper}
+func NewMsgServerImpl(keeper keeper.Keeper) types.MsgServer {
+	return &msgServer{keeper: keeper}
 }
 
 var _ types.MsgServer = msgServer{}
@@ -28,12 +29,12 @@ func (k msgServer) PostPrice(goCtx context.Context, msg *types.MsgPostPrice) (*t
 		return nil, err
 	}
 
-	_, err = k.GetOracle(ctx, msg.MarketID, msg.From)
+	_, err = k.keeper.GetOracle(ctx, msg.MarketID, msg.From)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = k.SetPrice(ctx, from, msg.MarketID, msg.Price, msg.Expiry)
+	_, err = k.keeper.SetPrice(ctx, msg.From, msg.MarketID, msg.Price, msg.Expiry)
 	if err != nil {
 		return nil, err
 	}
