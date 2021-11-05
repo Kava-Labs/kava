@@ -8,9 +8,13 @@ import (
 )
 
 const (
-	TypeMsgDeposit         = "swap_deposit"
-	TypeMsgWithdraw        = "swap_withdraw"
+	// TypeMsgDeposit represents the type string for MsgDeposit
+	TypeMsgDeposit = "swap_deposit"
+	// TypeMsgWithdraw represents the type string for MsgWithdraw
+	TypeMsgWithdraw = "swap_withdraw"
+	// TypeSwapExactForTokens represents the type string for MsgSwapExactForTokens
 	TypeSwapExactForTokens = "swap_exact_for_tokens"
+	// TypeSwapForExactTokens represents the type string for MsgSwapForExactTokens
 	TypeSwapForExactTokens = "swap_for_exact_tokens"
 )
 

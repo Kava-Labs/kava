@@ -71,6 +71,7 @@ func NewBasePoolWithExistingShares(reservesA, reservesB, totalShares sdk.Int) (*
 	}, nil
 }
 
+// ReservesA returns the A reserves of the pool
 func (p *BasePool) ReservesA() sdk.Int {
 	return p.reservesA
 }

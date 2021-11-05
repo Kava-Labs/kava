@@ -18,6 +18,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgSwapForExactTokens{}, "swap/MsgSwapForExactTokens", nil)
 }
 
+// RegisterInterfaces registers proto messages under their interfaces for unmarshalling,
+// in addition to registerting the msg service for handling tx msgs
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgDeposit{},
@@ -31,13 +33,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 
 var (
 	amino = codec.NewLegacyAmino()
-
-	// ModuleCdc references the global x/gov module codec. Note, the codec should
-	// ONLY be used in certain instances of tests and for JSON encoding as Amino is
-	// still used for that purpose.
-	//
-	// The actual codec used for serialization should be provided to x/gov and
-	// defined at the application level.
+	// ModuleCdc represents the legacy amino codec for the module
 	ModuleCdc = codec.NewAminoCodec(amino)
 )
 

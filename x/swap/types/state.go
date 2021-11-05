@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// PoolIDSep represents the separator used in pool ids to separate two denominations
 const PoolIDSep = ":"
 
 // PoolIDFromCoins returns a poolID from a coins object
