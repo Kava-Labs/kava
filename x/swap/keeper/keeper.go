@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	// "github.com/cosmos/cosmos-sdk/x/params/subspace" // replaced with cosmos-sdk/x/params/types
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/swap/types"
@@ -17,11 +16,11 @@ import (
 // Keeper keeper for the swap module
 type Keeper struct {
 	key           sdk.StoreKey
-	cdc           codec.Codec // new codec interface
+	cdc           codec.Codec
 	paramSubspace paramtypes.Subspace
 	hooks         types.SwapHooks
 	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper // supply module has been removed
+	bankKeeper    types.BankKeeper
 }
 
 // NewKeeper creates a new keeper
@@ -64,7 +63,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	var p types.Params
 	k.paramSubspace.GetParamSet(ctx, &p)
 	return p
-} // TODO do params still work the same?
+}
 
 // SetParams sets params on the store
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
@@ -100,7 +99,7 @@ func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool)
 func (k Keeper) SetPool_Raw(ctx sdk.Context, record types.PoolRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
 	bz := k.cdc.MustMarshalLengthPrefixed(&record)
-	store.Set(types.PoolKey(record.PoolID), bz) // PoolID was renamed to PoolID as thats the name the generated proto type has
+	store.Set(types.PoolKey(record.PoolID), bz)
 }
 
 // SetPool saves a pool to the store and panics if the record is invalid
