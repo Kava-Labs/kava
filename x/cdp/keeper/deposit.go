@@ -34,7 +34,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 	} else {
 		deposit = types.NewDeposit(cdp.ID, depositor, collateral)
 	}
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleName, sdk.NewCoins(collateral))
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleName, sdk.NewCoins(collateral))
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "collateral %s, collateral ratio %s, liquidation ration %s", collateral.Denom, collateralizationRatio, liquidationRatio)
 	}
 
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, depositor, sdk.NewCoins(collateral))
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, depositor, sdk.NewCoins(collateral))
 	if err != nil {
 		panic(err)
 	}
@@ -99,12 +99,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 	deposit.Amount = deposit.Amount.Sub(collateral)
 	// delete deposits if amount is 0
 	if deposit.Amount.IsZero() {
-		depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
-		if err != nil {
-			panic(err)
-		}
-
-		k.DeleteDeposit(ctx, deposit.CdpID, depositor)
+		k.DeleteDeposit(ctx, deposit.CdpID, deposit.Depositor)
 	} else {
 		k.SetDeposit(ctx, deposit)
 	}
@@ -127,7 +122,7 @@ func (k Keeper) GetDeposit(ctx sdk.Context, cdpID uint64, depositor sdk.AccAddre
 	if bz == nil {
 		return deposit, false
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &deposit)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &deposit)
 	return deposit, true
 
 }
@@ -135,14 +130,8 @@ func (k Keeper) GetDeposit(ctx sdk.Context, cdpID uint64, depositor sdk.AccAddre
 // SetDeposit sets the deposit in the store
 func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
-	bz := k.cdc.MustMarshalLengthPrefixed(&deposit)
-
-	depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
-	if err != nil {
-		panic(err)
-	}
-
-	store.Set(types.DepositKey(deposit.CdpID, depositor), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(deposit)
+	store.Set(types.DepositKey(deposit.CdpID, deposit.Depositor), bz)
 
 }
 
@@ -160,7 +149,7 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, cdpID uint64, cb func(deposit t
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &deposit)
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &deposit)
 
 		if cb(deposit) {
 			break

@@ -69,7 +69,7 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 
 	// mint surplus coins to the liquidator module account.
 	if newFeesSurplus.IsPositive() {
-		err := k.bankKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
+		err := k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
 		if err != nil {
 			return err
 		}

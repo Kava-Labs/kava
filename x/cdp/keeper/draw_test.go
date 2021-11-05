@@ -9,7 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -28,9 +28,9 @@ type DrawTestSuite struct {
 
 func (suite *DrawTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	authGS := tApp.NewAuthGenState(
+	authGS := app.NewAuthGenState(
 		addrs,
 		[]sdk.Coins{
 			cs(c("xrp", 500000000), c("btc", 500000000), c("usdx", 10000000000)),
