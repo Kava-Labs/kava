@@ -10,7 +10,7 @@ import (
 
 // NewDeposit creates a new Deposit object
 func NewDeposit(cdpID uint64, depositor sdk.AccAddress, amount sdk.Coin) Deposit {
-	return Deposit{cdpID, depositor.String(), amount}
+	return Deposit{cdpID, depositor, amount}
 }
 
 // String implements fmt.Stringer
@@ -26,7 +26,7 @@ func (d Deposit) Validate() error {
 	if d.CdpID == 0 {
 		return errors.New("deposit's cdp id cannot be 0")
 	}
-	if d.Depositor == "" {
+	if d.Depositor.Empty() {
 		return errors.New("depositor cannot be empty")
 	}
 	if !d.Amount.IsValid() {
@@ -62,7 +62,7 @@ func (ds Deposits) Validate() error {
 
 // Equals returns whether two deposits are equal.
 func (d Deposit) Equals(comp Deposit) bool {
-	return d.Depositor == comp.Depositor && d.CdpID == comp.CdpID && d.Amount.IsEqual(comp.Amount)
+	return d.Depositor.Equals(comp.Depositor) && d.CdpID == comp.CdpID && d.Amount.IsEqual(comp.Amount)
 }
 
 // Empty returns whether a deposit is empty.

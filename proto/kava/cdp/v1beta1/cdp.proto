@@ -12,8 +12,11 @@ option (gogoproto.goproto_getters_all)  = false;
 
 // CDP defines the state of a single collateralized debt position.
 message CDP {
-  uint64                    id               = 1 [(gogoproto.customname) = "ID"];
-  string                    owner            = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  uint64 id    = 1 [(gogoproto.customname) = "ID"];
+  bytes  owner = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
   string                    type             = 3;
   cosmos.base.v1beta1.Coin  collateral       = 4 [(gogoproto.nullable) = false];
   cosmos.base.v1beta1.Coin  principal        = 5 [(gogoproto.nullable) = false];
@@ -39,9 +42,12 @@ message AugmentedCDP {
 
 // Deposit defines an amount of coins deposited by an account to a cdp
 message Deposit {
-  uint64                   cdp_id    = 1 [(gogoproto.customname) = "CdpID"];
-  string                   depositor = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  cosmos.base.v1beta1.Coin amount    = 3 [(gogoproto.nullable) = false];
+  uint64 cdp_id    = 1 [(gogoproto.customname) = "CdpID"];
+  string depositor = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
 
 // TotalPrincipal defines the total principal of a given collateral type
