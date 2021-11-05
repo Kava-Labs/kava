@@ -140,7 +140,7 @@ func (sr ShareRecord) Validate() error {
 		return fmt.Errorf("poolID '%s' is invalid", sr.PoolID)
 	}
 
-	if len(sr.Depositor) == 0 {
+	if sr.Depositor.Empty() {
 		return fmt.Errorf("share record cannot have empty depositor address")
 	}
 
