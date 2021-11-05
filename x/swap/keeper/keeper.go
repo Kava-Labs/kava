@@ -256,7 +256,7 @@ func (k Keeper) updateDepositorShares(ctx sdk.Context, owner sdk.AccAddress, poo
 	if shares.IsZero() {
 		k.DeleteDepositorShares(ctx, owner, poolID)
 	} else {
-		shareRecord := types.NewShareRecord(owner, poolID, shares) // TODO should NewX methods return pointers? cosmos modules seem to return non pointers
+		shareRecord := types.NewShareRecord(owner, poolID, shares)
 		k.SetDepositorShares(ctx, shareRecord)
 	}
 }
