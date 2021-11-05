@@ -12,7 +12,6 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
-	testdata "github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -20,17 +19,17 @@ import (
 
 var swapModuleAccountAddress = sdk.AccAddress(crypto.AddressHash([]byte(types.ModuleAccountName)))
 
-type handlerTestSuite struct {
+type msgServerTestSuite struct {
 	testutil.Suite
-	handler sdk.Handler
+	msgServer types.MsgServer
 }
 
-func (suite *handlerTestSuite) SetupTest() {
+func (suite *msgServerTestSuite) SetupTest() {
 	suite.Suite.SetupTest()
-	suite.handler = swap.NewHandler(suite.Keeper)
+	suite.msgServer = swap.NewMsgServerImpl(suite.Keeper)
 }
 
-func (suite *handlerTestSuite) TestDeposit_CreatePool() {
+func (suite *msgServerTestSuite) TestDeposit_CreatePool() {
 	pool := types.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
 	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
@@ -49,7 +48,8 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	res, err := suite.handler(suite.Ctx, deposit)
+	res, err := suite.msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), deposit)
+	suite.Require().Equal(&types.MsgDepositResponse{}, res)
 	suite.Require().NoError(err)
 
 	suite.AccountBalanceEqual(depositor.GetAddress(), sdk.Coins{})
@@ -57,20 +57,20 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	suite.PoolLiquidityEqual(balance)
 	suite.PoolShareValueEqual(depositor, pool, balance)
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		bank.EventTypeTransfer,
 		sdk.NewAttribute(bank.AttributeKeyRecipient, swapModuleAccountAddress.String()),
 		sdk.NewAttribute(bank.AttributeKeySender, depositor.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, balance.String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		types.EventTypeSwapDeposit,
 		sdk.NewAttribute(types.AttributeKeyPoolID, types.PoolID(pool.TokenA, pool.TokenB)),
 		sdk.NewAttribute(types.AttributeKeyDepositor, depositor.GetAddress().String()),
@@ -79,7 +79,7 @@ func (suite *handlerTestSuite) TestDeposit_CreatePool() {
 	))
 }
 
-func (suite *handlerTestSuite) TestDeposit_DeadlineExceeded() {
+func (suite *msgServerTestSuite) TestDeposit_DeadlineExceeded() {
 	pool := types.NewAllowedPool("ukava", "usdx")
 	suite.Require().NoError(pool.Validate())
 	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
@@ -98,12 +98,13 @@ func (suite *handlerTestSuite) TestDeposit_DeadlineExceeded() {
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 
-	res, err := suite.handler(suite.Ctx, deposit)
+	res, err := suite.msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), deposit)
+	suite.Require().Nil(res)
 	suite.EqualError(err, fmt.Sprintf("block time %d >= deadline %d: deadline exceeded", suite.Ctx.BlockTime().Unix(), deposit.GetDeadline().Unix()))
 	suite.Nil(res)
 }
 
-func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
+func (suite *msgServerTestSuite) TestDeposit_ExistingPool() {
 	pool := types.NewAllowedPool("ukava", "usdx")
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
@@ -126,7 +127,8 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	res, err := suite.handler(suite.Ctx, deposit)
+	res, err := suite.msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), deposit)
+	suite.Require().Equal(&types.MsgDepositResponse{}, res)
 	suite.Require().NoError(err)
 
 	expectedDeposit := sdk.NewCoins(
@@ -145,20 +147,20 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 	suite.PoolLiquidityEqual(reserves.Add(expectedDeposit...))
 	suite.PoolShareValueEqual(depositor, pool, expectedShareValue)
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		bank.EventTypeTransfer,
 		sdk.NewAttribute(bank.AttributeKeyRecipient, swapModuleAccountAddress.String()),
 		sdk.NewAttribute(bank.AttributeKeySender, depositor.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedDeposit.String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		types.EventTypeSwapDeposit,
 		sdk.NewAttribute(types.AttributeKeyPoolID, types.PoolID(pool.TokenA, pool.TokenB)),
 		sdk.NewAttribute(types.AttributeKeyDepositor, depositor.GetAddress().String()),
@@ -167,7 +169,7 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool() {
 	))
 }
 
-func (suite *handlerTestSuite) TestDeposit_ExistingPool_SlippageFailure() {
+func (suite *msgServerTestSuite) TestDeposit_ExistingPool_SlippageFailure() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
@@ -189,12 +191,13 @@ func (suite *handlerTestSuite) TestDeposit_ExistingPool_SlippageFailure() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	res, err := suite.handler(suite.Ctx, deposit)
+	res, err := suite.msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), deposit)
+	suite.Require().Nil(res)
 	suite.EqualError(err, "slippage 4.000000000000000000 > limit 0.010000000000000000: slippage exceeded")
 	suite.Nil(res)
 }
 
-func (suite *handlerTestSuite) TestWithdraw_AllShares() {
+func (suite *msgServerTestSuite) TestWithdraw_AllShares() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
@@ -215,8 +218,9 @@ func (suite *handlerTestSuite) TestWithdraw_AllShares() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	res, err := suite.handler(ctx, withdraw)
+	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), withdraw)
+	suite.Require().Equal(&types.MsgWithdrawResponse{}, res)
 	suite.Require().NoError(err)
 
 	suite.AccountBalanceEqual(depositor.GetAddress(), reserves)
@@ -224,20 +228,20 @@ func (suite *handlerTestSuite) TestWithdraw_AllShares() {
 	suite.PoolDeleted("ukava", "usdx")
 	suite.PoolSharesDeleted(depositor.GetAddress(), "ukava", "usdx")
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		bank.EventTypeTransfer,
 		sdk.NewAttribute(bank.AttributeKeyRecipient, depositor.GetAddress().String()),
 		sdk.NewAttribute(bank.AttributeKeySender, swapModuleAccountAddress.String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, reserves.String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		types.EventTypeSwapWithdraw,
 		sdk.NewAttribute(types.AttributeKeyPoolID, types.PoolID(pool.TokenA, pool.TokenB)),
 		sdk.NewAttribute(types.AttributeKeyOwner, depositor.GetAddress().String()),
@@ -246,7 +250,7 @@ func (suite *handlerTestSuite) TestWithdraw_AllShares() {
 	))
 }
 
-func (suite *handlerTestSuite) TestWithdraw_PartialShares() {
+func (suite *msgServerTestSuite) TestWithdraw_PartialShares() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
@@ -270,8 +274,9 @@ func (suite *handlerTestSuite) TestWithdraw_PartialShares() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	res, err := suite.handler(ctx, withdraw)
+	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), withdraw)
+	suite.Require().Equal(&types.MsgWithdrawResponse{}, res)
 	suite.Require().NoError(err)
 
 	expectedCoinsReceived := sdk.NewCoins(minTokenA, minTokenB)
@@ -281,20 +286,20 @@ func (suite *handlerTestSuite) TestWithdraw_PartialShares() {
 	suite.PoolLiquidityEqual(reserves.Sub(expectedCoinsReceived))
 	suite.PoolShareValueEqual(depositor, types.NewAllowedPool("ukava", "usdx"), reserves.Sub(expectedCoinsReceived))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, depositor.GetAddress().String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		bank.EventTypeTransfer,
 		sdk.NewAttribute(bank.AttributeKeyRecipient, depositor.GetAddress().String()),
 		sdk.NewAttribute(bank.AttributeKeySender, swapModuleAccountAddress.String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedCoinsReceived.String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		types.EventTypeSwapWithdraw,
 		sdk.NewAttribute(types.AttributeKeyPoolID, types.PoolID(pool.TokenA, pool.TokenB)),
 		sdk.NewAttribute(types.AttributeKeyOwner, depositor.GetAddress().String()),
@@ -303,7 +308,7 @@ func (suite *handlerTestSuite) TestWithdraw_PartialShares() {
 	))
 }
 
-func (suite *handlerTestSuite) TestWithdraw_SlippageFailure() {
+func (suite *msgServerTestSuite) TestWithdraw_SlippageFailure() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
@@ -327,12 +332,13 @@ func (suite *handlerTestSuite) TestWithdraw_SlippageFailure() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	res, err := suite.handler(suite.Ctx, withdraw)
+	res, err := suite.msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), withdraw)
+	suite.Require().Nil(res)
 	suite.EqualError(err, "minimum withdraw not met: slippage exceeded")
 	suite.Nil(res)
 }
 
-func (suite *handlerTestSuite) TestWithdraw_DeadlineExceeded() {
+func (suite *msgServerTestSuite) TestWithdraw_DeadlineExceeded() {
 	balance := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(50e6)),
@@ -347,12 +353,13 @@ func (suite *handlerTestSuite) TestWithdraw_DeadlineExceeded() {
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 
-	res, err := suite.handler(suite.Ctx, withdraw)
+	res, err := suite.msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), withdraw)
+	suite.Require().Nil(res)
 	suite.EqualError(err, fmt.Sprintf("block time %d >= deadline %d: deadline exceeded", suite.Ctx.BlockTime().Unix(), withdraw.GetDeadline().Unix()))
 	suite.Nil(res)
 }
 
-func (suite *handlerTestSuite) TestSwapExactForTokens() {
+func (suite *msgServerTestSuite) TestSwapExactForTokens() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
@@ -374,8 +381,9 @@ func (suite *handlerTestSuite) TestSwapExactForTokens() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	res, err := suite.handler(ctx, swapMsg)
+	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.msgServer.SwapExactForTokens(sdk.WrapSDKContext(suite.Ctx), swapMsg)
+	suite.Require().Equal(&types.MsgSwapExactForTokensResponse{}, res)
 	suite.Require().NoError(err)
 
 	expectedSwapOutput := sdk.NewCoin("usdx", sdk.NewInt(4980034))
@@ -384,27 +392,27 @@ func (suite *handlerTestSuite) TestSwapExactForTokens() {
 	suite.ModuleAccountBalanceEqual(reserves.Add(swapInput).Sub(sdk.NewCoins(expectedSwapOutput)))
 	suite.PoolLiquidityEqual(reserves.Add(swapInput).Sub(sdk.NewCoins(expectedSwapOutput)))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, requester.GetAddress().String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		bank.EventTypeTransfer,
 		sdk.NewAttribute(bank.AttributeKeyRecipient, swapModuleAccountAddress.String()),
 		sdk.NewAttribute(bank.AttributeKeySender, requester.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, swapInput.String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		bank.EventTypeTransfer,
 		sdk.NewAttribute(bank.AttributeKeyRecipient, requester.GetAddress().String()),
 		sdk.NewAttribute(bank.AttributeKeySender, swapModuleAccountAddress.String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedSwapOutput.String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		types.EventTypeSwapTrade,
 		sdk.NewAttribute(types.AttributeKeyPoolID, types.PoolID("ukava", "usdx")),
 		sdk.NewAttribute(types.AttributeKeyRequester, requester.GetAddress().String()),
@@ -415,7 +423,7 @@ func (suite *handlerTestSuite) TestSwapExactForTokens() {
 	))
 }
 
-func (suite *handlerTestSuite) TestSwapExactForTokens_SlippageFailure() {
+func (suite *msgServerTestSuite) TestSwapExactForTokens_SlippageFailure() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
@@ -437,13 +445,14 @@ func (suite *handlerTestSuite) TestSwapExactForTokens_SlippageFailure() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	res, err := suite.handler(ctx, swapMsg)
+	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.msgServer.SwapExactForTokens(sdk.WrapSDKContext(suite.Ctx), swapMsg)
+	suite.Require().Nil(res)
 	suite.EqualError(err, "slippage 0.010000123252155223 > limit 0.010000000000000000: slippage exceeded")
 	suite.Nil(res)
 }
 
-func (suite *handlerTestSuite) TestSwapExactForTokens_DeadlineExceeded() {
+func (suite *msgServerTestSuite) TestSwapExactForTokens_DeadlineExceeded() {
 	balance := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 	)
@@ -457,12 +466,13 @@ func (suite *handlerTestSuite) TestSwapExactForTokens_DeadlineExceeded() {
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 
-	res, err := suite.handler(suite.Ctx, swapMsg)
+	res, err := suite.msgServer.SwapExactForTokens(sdk.WrapSDKContext(suite.Ctx), swapMsg)
+	suite.Require().Nil(res)
 	suite.EqualError(err, fmt.Sprintf("block time %d >= deadline %d: deadline exceeded", suite.Ctx.BlockTime().Unix(), swapMsg.GetDeadline().Unix()))
 	suite.Nil(res)
 }
 
-func (suite *handlerTestSuite) TestSwapForExactTokens() {
+func (suite *msgServerTestSuite) TestSwapForExactTokens() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
@@ -484,8 +494,9 @@ func (suite *handlerTestSuite) TestSwapForExactTokens() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	res, err := suite.handler(ctx, swapMsg)
+	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.msgServer.SwapForExactTokens(sdk.WrapSDKContext(suite.Ctx), swapMsg)
+	suite.Require().Equal(&types.MsgSwapForExactTokensResponse{}, res)
 	suite.Require().NoError(err)
 
 	expectedSwapInput := sdk.NewCoin("ukava", sdk.NewInt(1004015))
@@ -494,27 +505,27 @@ func (suite *handlerTestSuite) TestSwapForExactTokens() {
 	suite.ModuleAccountBalanceEqual(reserves.Add(expectedSwapInput).Sub(sdk.NewCoins(swapOutput)))
 	suite.PoolLiquidityEqual(reserves.Add(expectedSwapInput).Sub(sdk.NewCoins(swapOutput)))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, requester.GetAddress().String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		bank.EventTypeTransfer,
 		sdk.NewAttribute(bank.AttributeKeyRecipient, swapModuleAccountAddress.String()),
 		sdk.NewAttribute(bank.AttributeKeySender, requester.GetAddress().String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, expectedSwapInput.String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		bank.EventTypeTransfer,
 		sdk.NewAttribute(bank.AttributeKeyRecipient, requester.GetAddress().String()),
 		sdk.NewAttribute(bank.AttributeKeySender, swapModuleAccountAddress.String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, swapOutput.String()),
 	))
 
-	suite.EventsContains(res.GetEvents(), sdk.NewEvent(
+	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		types.EventTypeSwapTrade,
 		sdk.NewAttribute(types.AttributeKeyPoolID, types.PoolID("ukava", "usdx")),
 		sdk.NewAttribute(types.AttributeKeyRequester, requester.GetAddress().String()),
@@ -525,7 +536,7 @@ func (suite *handlerTestSuite) TestSwapForExactTokens() {
 	))
 }
 
-func (suite *handlerTestSuite) TestSwapForExactTokens_SlippageFailure() {
+func (suite *msgServerTestSuite) TestSwapForExactTokens_SlippageFailure() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(1000e6)),
 		sdk.NewCoin("usdx", sdk.NewInt(5000e6)),
@@ -547,13 +558,14 @@ func (suite *handlerTestSuite) TestSwapForExactTokens_SlippageFailure() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	res, err := suite.handler(ctx, swapMsg)
+	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	res, err := suite.msgServer.SwapForExactTokens(sdk.WrapSDKContext(suite.Ctx), swapMsg)
+	suite.Require().Nil(res)
 	suite.EqualError(err, "slippage 0.010000979019022939 > limit 0.010000000000000000: slippage exceeded")
 	suite.Nil(res)
 }
 
-func (suite *handlerTestSuite) TestSwapForExactTokens_DeadlineExceeded() {
+func (suite *msgServerTestSuite) TestSwapForExactTokens_DeadlineExceeded() {
 	balance := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdk.NewInt(10e6)),
 	)
@@ -567,17 +579,12 @@ func (suite *handlerTestSuite) TestSwapForExactTokens_DeadlineExceeded() {
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 
-	res, err := suite.handler(suite.Ctx, swapMsg)
+	res, err := suite.msgServer.SwapForExactTokens(sdk.WrapSDKContext(suite.Ctx), swapMsg)
+	suite.Require().Nil(res)
 	suite.EqualError(err, fmt.Sprintf("block time %d >= deadline %d: deadline exceeded", suite.Ctx.BlockTime().Unix(), swapMsg.GetDeadline().Unix()))
 	suite.Nil(res)
 }
 
-func (suite *handlerTestSuite) TestInvalidMsg() {
-	res, err := suite.handler(suite.Ctx, testdata.NewTestMsg())
-	suite.Nil(res)
-	suite.EqualError(err, "unrecognized swap message type: *testdata.TestMsg: unknown request")
-}
-
-func TestHandlerTestSuite(t *testing.T) {
-	suite.Run(t, new(handlerTestSuite))
+func TestMsgServerTestSuite(t *testing.T) {
+	suite.Run(t, new(msgServerTestSuite))
 }

@@ -46,6 +46,11 @@ func (suite *Suite) SetupTest() {
 	suite.AccountKeeper = tApp.GetAccountKeeper()
 }
 
+// GetEvents returns emitted events on the sdk context
+func (suite *Suite) GetEvents() sdk.Events {
+	return suite.Ctx.EventManager().Events()
+}
+
 // AddCoinsToModule adds coins to the swap module account
 func (suite *Suite) AddCoinsToModule(amount sdk.Coins) {
 	// Does not use suite.BankKeeper.MintCoins as module account would not have permission to mint

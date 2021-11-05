@@ -22,6 +22,7 @@ func NewMsgServerImpl(keeper keeper.Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+// Deposit handles MsgDeposit messages
 func (m msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -49,6 +50,7 @@ func (m msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	return &types.MsgDepositResponse{}, nil
 }
 
+// Withdraw handles MsgWithdraw messages
 func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -76,6 +78,7 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	return &types.MsgWithdrawResponse{}, nil
 }
 
+// SwapExactForTokens handles MsgSwapExactForTokens messages
 func (m msgServer) SwapExactForTokens(goCtx context.Context, msg *types.MsgSwapExactForTokens) (*types.MsgSwapExactForTokensResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -103,6 +106,7 @@ func (m msgServer) SwapExactForTokens(goCtx context.Context, msg *types.MsgSwapE
 	return &types.MsgSwapExactForTokensResponse{}, nil
 }
 
+// SwapForExactTokens handles MsgSwapForExactTokens messages
 func (m msgServer) SwapForExactTokens(goCtx context.Context, msg *types.MsgSwapForExactTokens) (*types.MsgSwapForExactTokensResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
