@@ -11,23 +11,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/cdp"
-	"github.com/kava-labs/kava/x/cdp/keeper"
-	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 type ModuleTestSuite struct {
 	suite.Suite
 
-	keeper       keeper.Keeper
+	keeper       cdp.Keeper
 	addrs        []sdk.AccAddress
 	app          app.TestApp
-	cdps         types.CDPs
+	cdps         cdp.CDPs
 	ctx          sdk.Context
 	liquidations liquidationTracker
 }
@@ -40,7 +37,7 @@ type liquidationTracker struct {
 
 func (suite *ModuleTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	coins := []sdk.Coins{}
 	tracker := liquidationTracker{}
 
@@ -59,15 +56,15 @@ func (suite *ModuleTestSuite) SetupTest() {
 	suite.ctx = ctx
 	suite.app = tApp
 	suite.keeper = tApp.GetCDPKeeper()
-	suite.cdps = types.CDPs{}
+	suite.cdps = cdp.CDPs{}
 	suite.addrs = addrs
 	suite.liquidations = tracker
 }
 
 func (suite *ModuleTestSuite) createCdps() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	cdps := make(types.CDPs, 100)
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	cdps := make(cdp.CDPs, 100)
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
 	coins := []sdk.Coins{}
 	tracker := liquidationTracker{}
@@ -120,7 +117,7 @@ func (suite *ModuleTestSuite) createCdps() {
 func (suite *ModuleTestSuite) setPrice(price sdk.Dec, market string) {
 	pfKeeper := suite.app.GetPriceFeedKeeper()
 
-	pfKeeper.SetPrice(suite.ctx, "", market, price, suite.ctx.BlockTime().Add(time.Hour*3))
+	pfKeeper.SetPrice(suite.ctx, sdk.AccAddress{}, market, price, suite.ctx.BlockTime().Add(time.Hour*3))
 	err := pfKeeper.SetCurrentPrices(suite.ctx, market)
 	suite.NoError(err)
 	pp, err := pfKeeper.GetCurrentPrice(suite.ctx, market)
@@ -129,31 +126,29 @@ func (suite *ModuleTestSuite) setPrice(price sdk.Dec, market string) {
 }
 func (suite *ModuleTestSuite) TestBeginBlock() {
 	suite.createCdps()
-	ak := suite.app.GetAccountKeeper()
-	bk := suite.app.GetBankKeeper()
-
-	acc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
-	originalXrpCollateral := bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp").Amount
+	sk := suite.app.GetSupplyKeeper()
+	acc := sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
+	originalXrpCollateral := acc.GetCoins().AmountOf("xrp")
 	suite.setPrice(d("0.2"), "xrp:usd")
 	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
-	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
-	finalXrpCollateral := bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp").Amount
+	acc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
+	finalXrpCollateral := acc.GetCoins().AmountOf("xrp")
 	seizedXrpCollateral := originalXrpCollateral.Sub(finalXrpCollateral)
 	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000000000)).Int64())
 	suite.Equal(10, xrpLiquidations)
 
-	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
-	originalBtcCollateral := bk.GetBalance(suite.ctx, acc.GetAddress(), "btc").Amount
+	acc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
+	originalBtcCollateral := acc.GetCoins().AmountOf("btc")
 	suite.setPrice(d("6000"), "btc:usd")
 	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
-	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
-	finalBtcCollateral := bk.GetBalance(suite.ctx, acc.GetAddress(), "btc").Amount
+	acc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
+	finalBtcCollateral := acc.GetCoins().AmountOf("btc")
 	seizedBtcCollateral := originalBtcCollateral.Sub(finalBtcCollateral)
 	btcLiquidations := int(seizedBtcCollateral.Quo(i(100000000)).Int64())
 	suite.Equal(10, btcLiquidations)
 
-	acc = ak.GetModuleAccount(suite.ctx, auction.ModuleName)
-	suite.Equal(int64(71955653865), bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
+	acc = sk.GetModuleAccount(suite.ctx, auction.ModuleName)
+	suite.Equal(int64(71955653865), acc.GetCoins().AmountOf("debt").Int64())
 
 }
 
@@ -161,18 +156,16 @@ func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 	err := suite.keeper.AddCdp(suite.ctx, suite.addrs[0], c("xrp", 10000000000), c("usdx", 1000000000), "xrp-a")
 	suite.NoError(err)
 	suite.Equal(i(1000000000), suite.keeper.GetTotalPrincipal(suite.ctx, "xrp-a", "usdx"))
-	ak := suite.app.GetAccountKeeper()
-	bk := suite.app.GetBankKeeper()
-
-	cdpMacc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(i(1000000000), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount)
+	sk := suite.app.GetSupplyKeeper()
+	cdpMacc := sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
+	suite.Equal(i(1000000000), cdpMacc.GetCoins().AmountOf("debt"))
 	for i := 0; i < 100; i++ {
 		suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
 		cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
 	}
 
-	cdpMacc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(i(1000000891), (bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount))
+	cdpMacc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
+	suite.Equal(i(1000000891), (cdpMacc.GetCoins().AmountOf("debt")))
 	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp-a", 1)
 
 	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)
