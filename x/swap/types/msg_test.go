@@ -61,6 +61,15 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			expectedErr: "depositor address cannot be empty: invalid address",
 		},
 		{
+			name:        "invalid address",
+			depositor:   "kava1abcde",
+			tokenA:      validMsg.TokenA,
+			tokenB:      validMsg.TokenB,
+			slippage:    validMsg.Slippage,
+			deadline:    validMsg.Deadline,
+			expectedErr: "decoding bech32 failed: invalid index of 1: invalid address",
+		},
+		{
 			name:        "negative token a",
 			depositor:   validMsg.Depositor,
 			tokenA:      sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)},
@@ -264,6 +273,15 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			expectedErr: "from address cannot be empty: invalid address",
 		},
 		{
+			name:        "invalid address",
+			from:        "kava1abcde",
+			shares:      validMsg.Shares,
+			minTokenA:   validMsg.MinTokenA,
+			minTokenB:   validMsg.MinTokenB,
+			deadline:    validMsg.Deadline,
+			expectedErr: "decoding bech32 failed: invalid index of 1: invalid address",
+		},
+		{
 			name:        "zero token a",
 			from:        validMsg.From,
 			shares:      validMsg.Shares,
@@ -461,6 +479,15 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			expectedErr: "requester address cannot be empty: invalid address",
 		},
 		{
+			name:        "invalid address",
+			requester:   "kava1abcde",
+			exactTokenA: validMsg.ExactTokenA,
+			tokenB:      validMsg.TokenB,
+			slippage:    validMsg.Slippage,
+			deadline:    validMsg.Deadline,
+			expectedErr: "decoding bech32 failed: invalid index of 1: invalid address",
+		},
+		{
 			name:        "negative token a",
 			requester:   validMsg.Requester,
 			exactTokenA: sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)},
@@ -656,6 +683,15 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
 			expectedErr: "requester address cannot be empty: invalid address",
+		},
+		{
+			name:        "invalid address",
+			requester:   "kava1abcde",
+			tokenA:      validMsg.TokenA,
+			exactTokenB: validMsg.ExactTokenB,
+			slippage:    validMsg.Slippage,
+			deadline:    validMsg.Deadline,
+			expectedErr: "decoding bech32 failed: invalid index of 1: invalid address",
 		},
 		{
 			name:        "negative token a",

@@ -54,8 +54,12 @@ func (msg MsgDeposit) Type() string { return TypeMsgDeposit }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDeposit) ValidateBasic() error {
-	if len(msg.Depositor) == 0 {
+	if msg.Depositor == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "depositor address cannot be empty")
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if !msg.TokenA.IsValid() || msg.TokenA.IsZero() {
@@ -126,8 +130,12 @@ func (msg MsgWithdraw) Type() string { return TypeMsgWithdraw }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdraw) ValidateBasic() error {
-	if len(msg.From) == 0 {
+	if msg.From == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "from address cannot be empty")
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if msg.Shares.IsNil() {
@@ -198,8 +206,12 @@ func (msg MsgSwapExactForTokens) Type() string { return TypeSwapExactForTokens }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgSwapExactForTokens) ValidateBasic() error {
-	if len(msg.Requester) == 0 {
+	if msg.Requester == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "requester address cannot be empty")
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.Requester); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if !msg.ExactTokenA.IsValid() || msg.ExactTokenA.IsZero() {
@@ -270,8 +282,12 @@ func (msg MsgSwapForExactTokens) Type() string { return TypeSwapForExactTokens }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgSwapForExactTokens) ValidateBasic() error {
-	if len(msg.Requester) == 0 {
+	if msg.Requester == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "requester address cannot be empty")
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.Requester); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if !msg.TokenA.IsValid() || msg.TokenA.IsZero() {
