@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,6 +15,7 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 func TestAppAnteHandler(t *testing.T) {
@@ -22,8 +24,8 @@ func TestAppAnteHandler(t *testing.T) {
 	unauthedKeys := testPrivKeys[0:2]
 	// deputy := testAddresses[2]
 	// deputyKey := testPrivKeys[2]
-	// oracles := testAddresses[3:6]
-	// oraclesKeys := testPrivKeys[3:6]
+	oracles := testAddresses[3:6]
+	oraclesKeys := testPrivKeys[3:6]
 	manual := testAddresses[6:]
 	manualKeys := testPrivKeys[6:]
 
@@ -52,7 +54,7 @@ func TestAppAnteHandler(t *testing.T) {
 		),
 		// TODO see below
 		// newBep3GenStateMulti(tApp.AppCodec(), deputy),
-		// newPricefeedGenStateMulti(tApp.AppCodec(), oracles),
+		newPricefeedGenStateMulti(tApp.AppCodec(), oracles),
 	)
 
 	testcases := []struct {
@@ -67,13 +69,13 @@ func TestAppAnteHandler(t *testing.T) {
 			privKey:    unauthedKeys[1],
 			expectPass: false,
 		},
-		// TODO add back when the pricefeed and bep3 modules are reinstantiated
-		// {
-		// 	name:       "oracle",
-		// 	address:    oracles[1],
-		// 	privKey:    oraclesKeys[1],
-		// 	expectPass: true,
-		// },
+		{
+			name:       "oracle",
+			address:    oracles[1],
+			privKey:    oraclesKeys[1],
+			expectPass: true,
+		},
+		// TODO add back when the bep3 module is reinstantiated
 		// {
 		// 	name:       "deputy",
 		// 	address:    deputy,
@@ -128,16 +130,21 @@ func TestAppAnteHandler(t *testing.T) {
 
 // TODO Test pricefeed oracles and bep3 deputy txs can always get into the mempool.
 
-// func newPricefeedGenStateMulti(cdc codec.JSONCodec, oracles []sdk.AccAddress) app.GenesisState {
-// 	pfGenesis := pricefeed.GenesisState{
-// 		Params: pricefeed.Params{
-// 			Markets: []pricefeed.Market{
-// 				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: oracles, Active: true},
-// 			},
-// 		},
-// 	}
-// 	return app.GenesisState{pricefeed.ModuleName: cdc.MustMarshalJSON(pfGenesis)}
-// }
+func newPricefeedGenStateMulti(cdc codec.JSONCodec, oracles []sdk.AccAddress) app.GenesisState {
+	var oracleStrs []string
+	for _, o := range oracles {
+		oracleStrs = append(oracleStrs, o.String())
+	}
+
+	pfGenesis := pricefeedtypes.GenesisState{
+		Params: pricefeedtypes.Params{
+			Markets: []pricefeedtypes.Market{
+				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: oracleStrs, Active: true},
+			},
+		},
+	}
+	return app.GenesisState{pricefeedtypes.ModuleName: cdc.MustMarshalJSON(&pfGenesis)}
+}
 
 // func newBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app.GenesisState {
 // 	bep3Genesis := bep3.GenesisState{

@@ -11,8 +11,8 @@ import (
 
 func (suite *KeeperTestSuite) TestIncrementCurrentAssetSupply() {
 	type args struct {
-		assets   types.Assets
-		supplies types.AssetSupplies
+		assets   []types.Asset
+		supplies []types.AssetSupply
 		coin     sdk.Coin
 	}
 	type errArgs struct {
@@ -27,10 +27,10 @@ func (suite *KeeperTestSuite) TestIncrementCurrentAssetSupply() {
 		{
 			"valid supply increase",
 			args{
-				assets: types.Assets{
-					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+				assets: []types.Asset{
+					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
 				},
-				supplies: types.AssetSupplies{
+				supplies: []types.AssetSupply{
 					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
 				},
 				coin: sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
@@ -43,10 +43,10 @@ func (suite *KeeperTestSuite) TestIncrementCurrentAssetSupply() {
 		{
 			"over limit increase",
 			args{
-				assets: types.Assets{
-					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+				assets: []types.Asset{
+					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
 				},
-				supplies: types.AssetSupplies{
+				supplies: []types.AssetSupply{
 					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
 				},
 				coin: sdk.NewCoin("usdtoken", sdk.NewInt(10000000001)),

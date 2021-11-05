@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/pricefeed"
+	"github.com/kava-labs/kava/x/pricefeed/keeper"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -15,7 +15,7 @@ type GenesisTestSuite struct {
 	suite.Suite
 
 	ctx    sdk.Context
-	keeper pricefeed.Keeper
+	keeper keeper.Keeper
 }
 
 func (suite *GenesisTestSuite) TestValidGenState() {
@@ -28,9 +28,17 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 	})
 	_, addrs := app.GeneratePrivKeyAddressPairs(10)
 
+	var strAddrs []string
+
+	for _, addr := range addrs {
+		strAddrs = append(strAddrs, addr.String())
+	}
+
+	// Must create a new TestApp or InitChain will panic with index already set
+	tApp = app.NewTestApp()
 	suite.NotPanics(func() {
 		tApp.InitializeFromGenesisStates(
-			NewPricefeedGenStateWithOracles(addrs),
+			NewPricefeedGenStateWithOracles(strAddrs),
 		)
 	})
 }

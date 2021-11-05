@@ -4,11 +4,12 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // EndBlocker updates the current pricefeed
-func EndBlocker(ctx sdk.Context, k Keeper) {
+func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	// Update the current price of each asset.
 	for _, market := range k.GetMarkets(ctx) {
 		if !market.Active {

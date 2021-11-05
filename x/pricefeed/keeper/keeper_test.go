@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/pricefeed/types"
@@ -17,12 +17,12 @@ import (
 // TestKeeper_SetGetMarket tests adding markets to the pricefeed, getting markets from the store
 func TestKeeper_SetGetMarket(t *testing.T) {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{})
+	ctx := tApp.NewContext(true, tmprototypes.Header{})
 	keeper := tApp.GetPriceFeedKeeper()
 
 	mp := types.Params{
-		Markets: types.Markets{
-			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+		Markets: []types.Market{
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
@@ -34,9 +34,9 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 	require.Equal(t, found, true)
 
 	mp = types.Params{
-		Markets: types.Markets{
-			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
-			types.Market{MarketID: "tst2usd", BaseAsset: "tst2", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+		Markets: []types.Market{
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tst2usd", BaseAsset: "tst2", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
@@ -53,76 +53,84 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 func TestKeeper_GetSetPrice(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{})
+	ctx := tApp.NewContext(true, tmprototypes.Header{})
 	keeper := tApp.GetPriceFeedKeeper()
 
 	mp := types.Params{
-		Markets: types.Markets{
-			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+		Markets: []types.Market{
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
-	// Set price by oracle 1
-	_, err := keeper.SetPrice(
-		ctx, addrs[0], "tstusd",
-		sdk.MustNewDecFromStr("0.33"),
-		time.Now().Add(1*time.Hour))
-	require.NoError(t, err)
-	// Get raw prices
-	rawPrices, err := keeper.GetRawPrices(ctx, "tstusd")
-	require.NoError(t, err)
-	require.Equal(t, len(rawPrices), 1)
-	require.Equal(t, rawPrices[0].Price.Equal(sdk.MustNewDecFromStr("0.33")), true)
-	// Set price by oracle 2
-	_, err = keeper.SetPrice(
-		ctx, addrs[1], "tstusd",
-		sdk.MustNewDecFromStr("0.35"),
-		time.Now().Add(time.Hour*1))
-	require.NoError(t, err)
 
-	rawPrices, err = keeper.GetRawPrices(ctx, "tstusd")
-	require.NoError(t, err)
-	require.Equal(t, len(rawPrices), 2)
-	require.Equal(t, rawPrices[1].Price.Equal(sdk.MustNewDecFromStr("0.35")), true)
+	prices := []struct {
+		oracle   string
+		MarketID string
+		price    sdk.Dec
+		total    int
+	}{
+		{addrs[0].String(), "tstusd", sdk.MustNewDecFromStr("0.33"), 1},
+		{addrs[1].String(), "tstusd", sdk.MustNewDecFromStr("0.35"), 2},
+		{addrs[0].String(), "tstusd", sdk.MustNewDecFromStr("0.37"), 2},
+	}
 
-	// Update Price by Oracle 1
-	_, err = keeper.SetPrice(
-		ctx, addrs[0], "tstusd",
-		sdk.MustNewDecFromStr("0.37"),
-		time.Now().Add(time.Hour*1))
-	require.NoError(t, err)
-	rawPrices, err = keeper.GetRawPrices(ctx, "tstusd")
-	require.NoError(t, err)
-	require.Equal(t, rawPrices[0].Price.Equal(sdk.MustNewDecFromStr("0.37")), true)
+	for _, p := range prices {
+		// Set price by oracle 1
+		pp, err := keeper.SetPrice(
+			ctx,
+			p.oracle,
+			p.MarketID,
+			p.price,
+			time.Now().UTC().Add(1*time.Hour),
+		)
+
+		require.NoError(t, err)
+
+		// Get raw prices
+		rawPrices := keeper.GetRawPrices(ctx, "tstusd")
+
+		require.Equal(t, p.total, len(rawPrices))
+		require.Contains(t, rawPrices, pp)
+
+		// Find the oracle and require price to be same
+		for _, rp := range rawPrices {
+			if p.oracle == rp.OracleAddress {
+				require.Equal(t, p.price, rp.Price)
+			}
+		}
+	}
 }
 
 // TestKeeper_GetSetCurrentPrice Test Setting the median price of an Asset
 func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{})
+	ctx := tApp.NewContext(true, tmprototypes.Header{})
 	keeper := tApp.GetPriceFeedKeeper()
 
 	mp := types.Params{
-		Markets: types.Markets{
-			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+		Markets: []types.Market{
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
-	keeper.SetPrice(
-		ctx, addrs[0], "tstusd",
+	_, err := keeper.SetPrice(
+		ctx, addrs[0].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.33"),
 		time.Now().Add(time.Hour*1))
-	keeper.SetPrice(
-		ctx, addrs[1], "tstusd",
+	require.NoError(t, err)
+	_, err = keeper.SetPrice(
+		ctx, addrs[1].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.35"),
 		time.Now().Add(time.Hour*1))
-	keeper.SetPrice(
-		ctx, addrs[2], "tstusd",
+	require.NoError(t, err)
+	_, err = keeper.SetPrice(
+		ctx, addrs[2].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.34"),
 		time.Now().Add(time.Hour*1))
+	require.NoError(t, err)
 	// Set current price
-	err := keeper.SetCurrentPrices(ctx, "tstusd")
+	err = keeper.SetCurrentPrices(ctx, "tstusd")
 	require.NoError(t, err)
 	// Get Current price
 	price, err := keeper.GetCurrentPrice(ctx, "tstusd")
@@ -130,13 +138,20 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 	require.Equal(t, price.Price.Equal(sdk.MustNewDecFromStr("0.34")), true)
 
 	// Even number of oracles
-	keeper.SetPrice(
-		ctx, addrs[3], "tstusd",
+	_, err = keeper.SetPrice(
+		ctx, addrs[3].String(), "tstusd",
 		sdk.MustNewDecFromStr("0.36"),
 		time.Now().Add(time.Hour*1))
+	require.NoError(t, err)
 	err = keeper.SetCurrentPrices(ctx, "tstusd")
 	require.NoError(t, err)
 	price, err = keeper.GetCurrentPrice(ctx, "tstusd")
 	require.Nil(t, err)
-	require.Equal(t, price.Price.Equal(sdk.MustNewDecFromStr("0.345")), true)
+
+	exp := sdk.MustNewDecFromStr("0.345")
+	require.Truef(t, price.Price.Equal(exp),
+		"current price %s should be %s",
+		price.Price.String(),
+		exp.String(),
+	)
 }
