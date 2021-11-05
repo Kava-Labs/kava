@@ -51,7 +51,10 @@ message PoolRecord {
 // ShareRecord stores the shares owned for a depositor and pool
 message ShareRecord {
   // depositor represents the owner of the shares
-  bytes depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressBytes", (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"];
+  bytes depositor = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
   // pool_id represents the pool the shares belong to
   string pool_id = 2 [(gogoproto.customname) = "PoolID"];
   // shares_owned represents the number of shares owned by depsoitor for the pool_id
