@@ -9,7 +9,7 @@ import (
 )
 
 func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
-	addr, err := sdk.AccAddressFromBech32(testAccAddress1)
+	_, err := sdk.AccAddressFromBech32(testAccAddress1)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -19,32 +19,32 @@ func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
 	}{
 		{
 			"normal",
-			NewMsgPlaceBid(1, addr, c("token", 10)),
+			NewMsgPlaceBid(1, testAccAddress1, c("token", 10)),
 			true,
 		},
 		{
 			"zero id",
-			NewMsgPlaceBid(0, addr, c("token", 10)),
+			NewMsgPlaceBid(0, testAccAddress1, c("token", 10)),
 			false,
 		},
 		{
 			"empty address ",
-			NewMsgPlaceBid(1, nil, c("token", 10)),
+			NewMsgPlaceBid(1, "", c("token", 10)),
 			false,
 		},
 		{
 			"invalid address",
-			NewMsgPlaceBid(1, addr[:10], c("token", 10)),
+			NewMsgPlaceBid(1, testAccAddress1[:10], c("token", 10)),
 			false,
 		},
 		{
 			"negative amount",
-			NewMsgPlaceBid(1, addr, sdk.Coin{Denom: "token", Amount: sdk.NewInt(-10)}),
+			NewMsgPlaceBid(1, testAccAddress1, sdk.Coin{Denom: "token", Amount: sdk.NewInt(-10)}),
 			false,
 		},
 		{
 			"zero amount",
-			NewMsgPlaceBid(1, addr, c("token", 0)),
+			NewMsgPlaceBid(1, testAccAddress1, c("token", 0)),
 			true,
 		},
 	}
