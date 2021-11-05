@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"math/rand"
-	"strings"
 	"testing"
 	"time"
 
@@ -61,15 +60,15 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 			cdp:  types.CDP{1, suite.addrs[0].String(), "bnb-a", sdk.Coin{"", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid coins: collateral",
+				contains:   "collateral 100: invalid coins",
 			},
 		},
 		{
-			name: "invalid prinicpal",
+			name: "invalid principal",
 			cdp:  types.CDP{1, suite.addrs[0].String(), "xrp-a", sdk.Coin{"xrp", sdk.NewInt(100)}, sdk.Coin{"", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid coins: principal",
+				contains:   "principal 100: invalid coins",
 			},
 		},
 		{
@@ -77,7 +76,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 			cdp:  types.CDP{1, suite.addrs[0].String(), "xrp-a", sdk.Coin{"xrp", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(100)}, sdk.Coin{"", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid coins: accumulated fees",
+				contains:   "accumulated fees 0: invalid coins",
 			},
 		},
 		{
@@ -105,7 +104,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 				suite.Require().NoError(err, tc.name)
 			} else {
 				suite.Require().Error(err, tc.name)
-				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+				suite.Require().Contains(err.Error(), tc.errArgs.contains)
 			}
 		})
 	}
@@ -150,7 +149,7 @@ func (suite *CdpValidationSuite) TestDepositValidation() {
 			deposit: types.NewDeposit(1, suite.addrs[0], sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(1000000)}),
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid coins: deposit",
+				contains:   "deposit 1000000Invalid Denom: invalid coins",
 			},
 		},
 	}
@@ -161,7 +160,7 @@ func (suite *CdpValidationSuite) TestDepositValidation() {
 				suite.Require().NoError(err, tc.name)
 			} else {
 				suite.Require().Error(err, tc.name)
-				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+				suite.Require().Contains(err.Error(), tc.errArgs.contains)
 			}
 		})
 	}
