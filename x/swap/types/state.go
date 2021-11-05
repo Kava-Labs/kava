@@ -120,7 +120,7 @@ func (prs PoolRecords) Validate() error {
 // a new share record for storage in state.
 func NewShareRecord(depositor sdk.AccAddress, poolID string, sharesOwned sdk.Int) ShareRecord {
 	return ShareRecord{
-		Depositor:   depositor.String(),
+		Depositor:   depositor,
 		PoolID:      poolID,
 		SharesOwned: sharesOwned,
 	}
@@ -163,7 +163,7 @@ func (srs ShareRecords) Validate() error {
 			return err
 		}
 
-		if seenPools, found := seenDepositors[sr.Depositor]; found {
+		if seenPools, found := seenDepositors[sr.Depositor.String()]; found {
 			if seenPools[sr.PoolID] {
 				return fmt.Errorf("duplicate depositor '%s' and poolID '%s'", sr.Depositor, sr.PoolID)
 			}
@@ -171,7 +171,7 @@ func (srs ShareRecords) Validate() error {
 		} else {
 			seenPools := make(map[string]bool)
 			seenPools[sr.PoolID] = true
-			seenDepositors[sr.Depositor] = seenPools
+			seenDepositors[sr.Depositor.String()] = seenPools
 		}
 	}
 

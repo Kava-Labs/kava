@@ -351,7 +351,7 @@ func TestState_NewShareRecord(t *testing.T) {
 
 	record := types.NewShareRecord(depositor, poolID, shares)
 
-	assert.Equal(t, depositor.String(), record.Depositor)
+	assert.Equal(t, depositor, record.Depositor)
 	assert.Equal(t, poolID, record.PoolID)
 	assert.Equal(t, shares, record.SharesOwned)
 }
@@ -367,7 +367,7 @@ func TestState_ShareRecord_JSONEncoding(t *testing.T) {
 	err := json.Unmarshal([]byte(raw), &record)
 	require.NoError(t, err)
 
-	assert.Equal(t, "kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w", record.Depositor)
+	assert.Equal(t, "kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w", record.Depositor.String())
 	assert.Equal(t, types.PoolID("ukava", "usdx"), record.PoolID)
 	assert.Equal(t, i(3e6), record.SharesOwned)
 }
@@ -389,7 +389,7 @@ shares_owned: "3000000"
 
 func TestState_InvalidShareRecordEmptyDepositor(t *testing.T) {
 	record := types.ShareRecord{
-		Depositor:   "",
+		Depositor:   sdk.AccAddress{},
 		PoolID:      types.PoolID("ukava", "usdx"),
 		SharesOwned: sdk.NewInt(1e6),
 	}
@@ -398,7 +398,7 @@ func TestState_InvalidShareRecordEmptyDepositor(t *testing.T) {
 
 func TestState_InvalidShareRecordNegativeShares(t *testing.T) {
 	record := types.ShareRecord{
-		Depositor:   "kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w",
+		Depositor:   sdk.AccAddress("some user ----------------"),
 		PoolID:      types.PoolID("ukava", "usdx"),
 		SharesOwned: sdk.NewInt(-1e6),
 	}
@@ -415,7 +415,7 @@ func TestState_ShareRecord_Validations(t *testing.T) {
 	)
 	testCases := []struct {
 		name        string
-		depositor   string
+		depositor   sdk.AccAddress
 		poolID      string
 		sharesOwned sdk.Int
 		expectedErr string

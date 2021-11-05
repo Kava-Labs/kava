@@ -165,11 +165,7 @@ func (k Keeper) GetDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, po
 func (k Keeper) SetDepositorShares_Raw(ctx sdk.Context, record types.ShareRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
 	bz := k.cdc.MustMarshal(&record)
-	depositor, err := sdk.AccAddressFromBech32(record.Depositor) // copying the way gov converts from string addresses to byte addresses
-	if err != nil {
-		panic(err)
-	}
-	store.Set(types.DepositorPoolSharesKey(depositor, record.PoolID), bz)
+	store.Set(types.DepositorPoolSharesKey(record.Depositor, record.PoolID), bz)
 }
 
 // SetDepositorShares saves a share record to the store and panics if the record is invalid

@@ -94,7 +94,7 @@ func (k Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 			// Filter for results match the request's pool ID/owner params if given
 			matchOwner, matchPool := true, true
 			if len(req.Owner) > 0 {
-				matchOwner = strings.Compare(record.Depositor, req.Owner) == 0
+				matchOwner = record.Depositor.String() == req.Owner
 			}
 			if len(req.PoolId) > 0 {
 				matchPool = strings.Compare(record.PoolID, req.PoolId) == 0
@@ -122,7 +122,7 @@ func (k Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 			return nil, err
 		}
 		shareValue := pool.ShareValue(record.SharesOwned)
-		queryResult := types.DepositResponse{record.Depositor, record.PoolID, record.SharesOwned, shareValue}
+		queryResult := types.DepositResponse{record.Depositor.String(), record.PoolID, record.SharesOwned, shareValue}
 		queryResults = append(queryResults, queryResult)
 	}
 

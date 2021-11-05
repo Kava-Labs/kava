@@ -40,12 +40,8 @@ type DepositsQueryResult struct {
 
 // NewDepositsQueryResult creates a new DepositsQueryResult
 func NewDepositsQueryResult(shareRecord ShareRecord, sharesValue sdk.Coins) DepositsQueryResult {
-	depositor, err := sdk.AccAddressFromBech32(shareRecord.Depositor)
-	if err != nil {
-		panic(err.Error())
-	}
 	return DepositsQueryResult{
-		Depositor:   depositor,
+		Depositor:   shareRecord.Depositor,
 		PoolID:      shareRecord.PoolID,
 		SharesOwned: shareRecord.SharesOwned,
 		SharesValue: sharesValue,

@@ -46,7 +46,7 @@ func (suite *keeperTestSuite) setupPool(reserves sdk.Coins, totalShares sdk.Int,
 	suite.Keeper.SetPool(suite.Ctx, poolRecord)
 
 	shareRecord := types.ShareRecord{
-		Depositor:   depositor.String(),
+		Depositor:   depositor,
 		PoolID:      poolID,
 		SharesOwned: totalShares,
 	}
