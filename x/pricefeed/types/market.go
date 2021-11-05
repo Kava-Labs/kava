@@ -77,7 +77,7 @@ func NewCurrentPrice(MarketID string, price sdk.Dec) CurrentPrice {
 }
 
 // NewPostedPrice returns a new PostedPrice
-func NewPostedPrice(MarketID string, oracle string, price sdk.Dec, expiry time.Time) PostedPrice {
+func NewPostedPrice(MarketID string, oracle sdk.AccAddress, price sdk.Dec, expiry time.Time) PostedPrice {
 	return PostedPrice{
 		MarketID:      MarketID,
 		OracleAddress: oracle,
@@ -108,14 +108,14 @@ func (pp PostedPrice) Validate() error {
 func ValidatePostedPrices(pps []PostedPrice) error {
 	seenPrices := make(map[string]bool)
 	for _, pp := range pps {
-		if pp.OracleAddress != "" && seenPrices[pp.MarketID+pp.OracleAddress] {
+		if !pp.OracleAddress.Empty() && seenPrices[pp.MarketID+pp.OracleAddress.String()] {
 			return fmt.Errorf("duplicated posted price for marked id %s and oracle address %s", pp.MarketID, pp.OracleAddress)
 		}
 
 		if err := pp.Validate(); err != nil {
 			return err
 		}
-		seenPrices[pp.MarketID+pp.OracleAddress] = true
+		seenPrices[pp.MarketID+pp.OracleAddress.String()] = true
 	}
 
 	return nil

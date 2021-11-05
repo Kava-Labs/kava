@@ -38,7 +38,7 @@ func (k Keeper) Price(c context.Context, req *types.QueryPriceRequest) (*types.Q
 	}
 
 	return &types.QueryPriceResponse{
-		Price: types.CurrentPrice{
+		Price: types.CurrentPriceResponse{
 			MarketID: currentPrice.MarketID,
 			Price:    currentPrice.Price,
 		}}, nil
@@ -47,7 +47,14 @@ func (k Keeper) Price(c context.Context, req *types.QueryPriceRequest) (*types.Q
 func (k Keeper) Prices(c context.Context, req *types.QueryPricesRequest) (*types.QueryPricesResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	currentPrices := k.GetCurrentPrices(ctx)
+	var currentPrices []types.CurrentPriceResponse
+
+	for _, cp := range k.GetCurrentPrices(ctx) {
+		currentPrices = append(currentPrices, types.CurrentPriceResponse{
+			MarketID: cp.MarketID,
+			Price:    cp.Price,
+		})
+	}
 
 	return &types.QueryPricesResponse{
 		Prices: currentPrices,
@@ -59,12 +66,21 @@ func (k Keeper) RawPrices(c context.Context, req *types.QueryRawPricesRequest) (
 
 	_, found := k.GetMarket(ctx, req.MarketId)
 	if !found {
-		return nil, status.Error(codes.InvalidArgument, "invalid market ID")
+		return nil, status.Error(codes.NotFound, "invalid market ID")
 	}
-	rawPrices := k.GetRawPrices(ctx, req.MarketId)
+
+	var prices []types.PostedPriceResponse
+	for _, rp := range k.GetRawPrices(ctx, req.MarketId) {
+		prices = append(prices, types.PostedPriceResponse{
+			MarketID:      rp.MarketID,
+			OracleAddress: rp.OracleAddress.String(),
+			Price:         rp.Price,
+			Expiry:        rp.Expiry,
+		})
+	}
 
 	return &types.QueryRawPricesResponse{
-		RawPrices: rawPrices,
+		RawPrices: prices,
 	}, nil
 }
 

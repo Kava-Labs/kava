@@ -20,13 +20,13 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 		PostedPrices: []types.PostedPrice{
 			{
 				MarketID:      "btc:usd",
-				OracleAddress: "",
+				OracleAddress: sdk.AccAddress("oracle1"),
 				Price:         sdk.MustNewDecFromStr("8000.00"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "xrp:usd",
-				OracleAddress: "",
+				OracleAddress: sdk.AccAddress("oracle2"),
 				Price:         sdk.MustNewDecFromStr("0.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
@@ -35,7 +35,7 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	return app.GenesisState{types.ModuleName: types.ModuleCdc.LegacyAmino.MustMarshalJSON(pfGenesis)}
 }
 
-func NewPricefeedGenStateWithOracles(addrs []string) app.GenesisState {
+func NewPricefeedGenStateWithOracles(addrs []sdk.AccAddress) app.GenesisState {
 	pfGenesis := types.GenesisState{
 		Params: types.Params{
 			Markets: []types.Market{

@@ -24,7 +24,7 @@ func (k msgServer) PostPrice(goCtx context.Context, msg *types.MsgPostPrice) (*t
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Just to validate, we still use string version later
-	_, err := sdk.AccAddressFromBech32(msg.From)
+	from, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (k msgServer) PostPrice(goCtx context.Context, msg *types.MsgPostPrice) (*t
 		return nil, err
 	}
 
-	_, err = k.SetPrice(ctx, msg.From, msg.MarketID, msg.Price, msg.Expiry)
+	_, err = k.SetPrice(ctx, from, msg.MarketID, msg.Price, msg.Expiry)
 	if err != nil {
 		return nil, err
 	}
