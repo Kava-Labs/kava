@@ -10,9 +10,10 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
+	"github.com/cosmos/cosmos-sdk/types/simulation"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -40,17 +41,12 @@ type liquidationTracker struct {
 
 func (suite *SeizeTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-	coins := []sdk.Coins{}
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	tracker := liquidationTracker{}
-
-	for j := 0; j < 100; j++ {
-		coins = append(coins, cs(c("btc", 100000000), c("xrp", 10000000000)))
-	}
+	coins := cs(c("btc", 100000000), c("xrp", 10000000000))
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
 
-	authGS := app.NewAuthGenState(
-		addrs, coins)
+	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	tApp.InitializeFromGenesisStates(
 		authGS,
 		NewPricefeedGenStateMulti(),
@@ -66,18 +62,13 @@ func (suite *SeizeTestSuite) SetupTest() {
 
 func (suite *SeizeTestSuite) createCdps() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdps := make(types.CDPs, 100)
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
-	coins := []sdk.Coins{}
 	tracker := liquidationTracker{}
+	coins := cs(c("btc", 100000000), c("xrp", 10000000000))
 
-	for j := 0; j < 100; j++ {
-		coins = append(coins, cs(c("btc", 100000000), c("xrp", 10000000000)))
-	}
-
-	authGS := app.NewAuthGenState(
-		addrs, coins)
+	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	tApp.InitializeFromGenesisStates(
 		authGS,
 		NewPricefeedGenStateMulti(),
@@ -121,7 +112,7 @@ func (suite *SeizeTestSuite) createCdps() {
 func (suite *SeizeTestSuite) setPrice(price sdk.Dec, market string) {
 	pfKeeper := suite.app.GetPriceFeedKeeper()
 
-	pfKeeper.SetPrice(suite.ctx, sdk.AccAddress{}, market, price, suite.ctx.BlockTime().Add(time.Hour*3))
+	pfKeeper.SetPrice(suite.ctx, "", market, price, suite.ctx.BlockTime().Add(time.Hour*3))
 	err := pfKeeper.SetCurrentPrices(suite.ctx, market)
 	suite.NoError(err)
 	pp, err := pfKeeper.GetCurrentPrice(suite.ctx, market)
@@ -131,66 +122,85 @@ func (suite *SeizeTestSuite) setPrice(price sdk.Dec, market string) {
 
 func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	suite.createCdps()
-	sk := suite.app.GetSupplyKeeper()
+	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
+
 	cdp, found := suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
 	suite.True(found)
+
 	p := cdp.Principal.Amount
 	cl := cdp.Collateral.Amount
+
 	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp-a", "usdx")
 	err := suite.keeper.SeizeCollateral(suite.ctx, cdp)
 	suite.NoError(err)
+
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp-a", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
+
 	auctionKeeper := suite.app.GetAuctionKeeper()
+
 	_, found = auctionKeeper.GetAuction(suite.ctx, auction.DefaultNextAuctionID)
 	suite.True(found)
-	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
-	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
-	ak := suite.app.GetAccountKeeper()
+
+	auctionMacc := ak.GetModuleAccount(suite.ctx, auction.ModuleName)
+	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), bk.GetAllBalances(suite.ctx, auctionMacc.GetAddress()))
+
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
-	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
+	suite.Equal(p.Int64(), bk.GetBalance(suite.ctx, acc.GetAddress(), "usdx").Amount.Int64())
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], c("xrp", 10), "xrp-a")
 	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 }
 
 func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	suite.createCdps()
-	sk := suite.app.GetSupplyKeeper()
+	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
+
 	cdp, found := suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
 	suite.True(found)
+
 	err := suite.keeper.DepositCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], c("xrp", 6999000000), "xrp-a")
 	suite.NoError(err)
+
 	cdp, found = suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
 	suite.True(found)
+
 	deposits := suite.keeper.GetDeposits(suite.ctx, cdp.ID)
 	suite.Equal(2, len(deposits))
+
 	p := cdp.Principal.Amount
 	cl := cdp.Collateral.Amount
 	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp-a", "usdx")
 	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)
 	suite.NoError(err)
+
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp-a", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
-	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
-	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
-	ak := suite.app.GetAccountKeeper()
+
+	auctionMacc := ak.GetModuleAccount(suite.ctx, auction.ModuleName)
+	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), bk.GetAllBalances(suite.ctx, auctionMacc.GetAddress()))
+
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
-	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
+	suite.Equal(p.Int64(), bk.GetBalance(suite.ctx, acc.GetAddress(), "usdx").Amount.Int64())
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], c("xrp", 10), "xrp-a")
 	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 }
 
 func (suite *SeizeTestSuite) TestLiquidateCdps() {
 	suite.createCdps()
-	sk := suite.app.GetSupplyKeeper()
-	acc := sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	originalXrpCollateral := acc.GetCoins().AmountOf("xrp")
+	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
+	acc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
+
+	originalXrpCollateral := bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp").Amount
 	suite.setPrice(d("0.2"), "xrp:usd")
 	p, found := suite.keeper.GetCollateral(suite.ctx, "xrp-a")
 	suite.True(found)
+
 	suite.keeper.LiquidateCdps(suite.ctx, "xrp:usd", "xrp-a", p.LiquidationRatio, p.CheckCollateralizationIndexCount)
-	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	finalXrpCollateral := acc.GetCoins().AmountOf("xrp")
+	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	finalXrpCollateral := bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp").Amount
 	seizedXrpCollateral := originalXrpCollateral.Sub(finalXrpCollateral)
 	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000000000)).Int64())
 	suite.Equal(10, xrpLiquidations)
@@ -293,7 +303,7 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 			suite.SetupTest()
 			// setup pricefeed
 			pk := suite.app.GetPriceFeedKeeper()
-			_, err := pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.initialPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			_, err := pk.SetPrice(suite.ctx, "", "btc:usd", tc.args.initialPrice, suite.ctx.BlockTime().Add(time.Hour*24))
 			suite.Require().NoError(err)
 			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
 			suite.Require().NoError(err)
@@ -305,7 +315,7 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 			suite.Require().NoError(err)
 
 			// update pricefeed
-			_, err = pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.finalPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			_, err = pk.SetPrice(suite.ctx, "", "btc:usd", tc.args.finalPrice, suite.ctx.BlockTime().Add(time.Hour*24))
 			suite.Require().NoError(err)
 			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
 			suite.Require().NoError(err)
@@ -326,8 +336,9 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 				suite.Require().Equal(tc.args.expectedAuctions, auctions)
 
 				ack := suite.app.GetAccountKeeper()
+				bk := suite.app.GetBankKeeper()
 				keeper := ack.GetAccount(suite.ctx, suite.addrs[1])
-				suite.Require().Equal(tc.args.expectedKeeperCoins, keeper.GetCoins())
+				suite.Require().Equal(tc.args.expectedKeeperCoins, bk.GetAllBalances(suite.ctx, keeper.GetAddress()))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
@@ -417,7 +428,7 @@ func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
 			suite.SetupTest()
 			// setup pricefeed
 			pk := suite.app.GetPriceFeedKeeper()
-			_, err := pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.initialPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			_, err := pk.SetPrice(suite.ctx, "", "btc:usd", tc.args.initialPrice, suite.ctx.BlockTime().Add(time.Hour*24))
 			suite.Require().NoError(err)
 			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
 			suite.Require().NoError(err)
@@ -432,7 +443,7 @@ func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
 			}
 
 			// update pricefeed
-			_, err = pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.finalPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			_, err = pk.SetPrice(suite.ctx, "", "btc:usd", tc.args.finalPrice, suite.ctx.BlockTime().Add(time.Hour*24))
 			suite.Require().NoError(err)
 			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
 			suite.Require().NoError(err)

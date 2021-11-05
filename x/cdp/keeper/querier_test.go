@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	supply "github.com/cosmos/cosmos-sdk/x/supply"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -282,8 +282,8 @@ func (suite *QuerierTestSuite) TestQueryAccounts() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(bz)
 
-	var accounts []supply.ModuleAccount
-	suite.Require().Nil(supply.ModuleCdc.UnmarshalJSON(bz, &accounts))
+	var accounts []authtypes.ModuleAccount
+	suite.Require().Nil(authtypes.ModuleCdc.UnmarshalJSON(bz, &accounts))
 	suite.Require().Equal(2, len(accounts))
 
 	findByName := func(name string) bool {

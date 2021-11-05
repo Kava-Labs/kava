@@ -61,17 +61,6 @@ func (k Keeper) GetCollateralTypePrefix(ctx sdk.Context, collateralType string) 
 	return 0x00, false
 }
 
-// private methods assume collateral has been validated, panic if the input is invalid
-func (k Keeper) getDenomFromByte(ctx sdk.Context, db byte) string {
-	params := k.GetParams(ctx)
-	for _, cp := range params.CollateralParams {
-		if byte(cp.Prefix) == db {
-			return cp.Denom
-		}
-	}
-	panic(fmt.Sprintf("no collateral denom with prefix %b", db))
-}
-
 func (k Keeper) getSpotMarketID(ctx sdk.Context, collateralType string) string {
 	cp, found := k.GetCollateral(ctx, collateralType)
 	if !found {
