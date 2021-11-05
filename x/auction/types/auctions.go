@@ -69,33 +69,6 @@ func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
 
 func (a BaseAuction) GetMaxEndTime() time.Time { return a.MaxEndTime }
 
-// ValidateBaseAuction verifies that the auction end time is before max end time
-func ValidateBaseAuction(a BaseAuction) error {
-	// ID can be 0 for surplus, debt and collateral auctions
-	if strings.TrimSpace(a.Initiator) == "" {
-		return errors.New("auction initiator cannot be blank")
-	}
-	if !a.Lot.IsValid() {
-		return fmt.Errorf("invalid lot: %s", a.Lot)
-	}
-	// NOTE: bidder can be empty for Surplus and Collateral auctions
-	_, err := sdk.AccAddressFromBech32(a.Bidder)
-	if a.Bidder != "" && err != nil {
-		return fmt.Errorf("invalid bidder address %s", a.Bidder)
-	}
-	if !a.Bid.IsValid() {
-		return fmt.Errorf("invalid bid: %s", a.Bid)
-	}
-	if a.EndTime.Unix() <= 0 || a.MaxEndTime.Unix() <= 0 {
-		return errors.New("end time cannot be zero")
-	}
-	if a.EndTime.After(a.MaxEndTime) {
-		return fmt.Errorf("MaxEndTime < EndTime (%s < %s)", a.MaxEndTime, a.EndTime)
-	}
-	return nil
-}
-
-// TODO: reconcile with ValidateBaseAuction
 // ValidateAuction verifies that the auction end time is before max end time
 func ValidateAuction(a Auction) error {
 	// ID can be 0 for surplus, debt and collateral auctions
