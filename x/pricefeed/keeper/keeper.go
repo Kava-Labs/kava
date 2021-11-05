@@ -49,7 +49,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // SetPrice updates the posted price for a specific oracle
 func (k Keeper) SetPrice(
 	ctx sdk.Context,
-	oracle string,
+	oracle sdk.AccAddress,
 	MarketID string,
 	price sdk.Dec,
 	expiry time.Time) (types.PostedPrice, error) {
@@ -67,7 +67,7 @@ func (k Keeper) SetPrice(
 		sdk.NewEvent(
 			types.EventTypeOracleUpdatedPrice,
 			sdk.NewAttribute(types.AttributeMarketID, MarketID),
-			sdk.NewAttribute(types.AttributeOracle, oracle),
+			sdk.NewAttribute(types.AttributeOracle, oracle.String()),
 			sdk.NewAttribute(types.AttributeMarketPrice, price.String()),
 			sdk.NewAttribute(types.AttributeExpiry, expiry.UTC().String()),
 		),

@@ -664,7 +664,7 @@ Market defines an asset in the pricefeed.
 | `market_id` | [string](#string) |  |  |
 | `base_asset` | [string](#string) |  |  |
 | `quote_asset` | [string](#string) |  |  |
-| `oracles` | [string](#string) | repeated |  |
+| `oracles` | [bytes](#bytes) | repeated |  |
 | `active` | [bool](#bool) |  |  |
 
 
@@ -681,7 +681,7 @@ PostedPrice defines a price for market posted by a specific oracle.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `market_id` | [string](#string) |  |  |
-| `oracle_address` | [string](#string) |  |  |
+| `oracle_address` | [bytes](#bytes) |  |  |
 | `price` | [string](#string) |  |  |
 | `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 
