@@ -1,0 +1,24 @@
+syntax = "proto3";
+package kava.issuance.v1beta1;
+
+import "kava/issuance/v1beta1/genesis.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/kava-labs/kava/x/issuance/types";
+
+// Query defines the gRPC querier service for issuance module
+service Query {
+  // Params queries all parameters of the issuance module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/issuance/v1beta1/params";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/issuance parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/issuance parameters.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
