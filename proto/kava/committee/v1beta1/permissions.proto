@@ -1,9 +1,7 @@
 syntax = "proto3";
 package kava.committee.v1beta1;
 
-import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
-import "google/protobuf/any.proto";
 
 option go_package = "github.com/kava-labs/kava/x/committee/types";
 

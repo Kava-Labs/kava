@@ -4,6 +4,33 @@
 
 ## Table of Contents
 
+- [kava/committee/v1beta1/committee.proto](#kava/committee/v1beta1/committee.proto)
+    - [BaseCommittee](#kava.committee.v1beta1.BaseCommittee)
+    - [MemberCommittee](#kava.committee.v1beta1.MemberCommittee)
+    - [TokenCommittee](#kava.committee.v1beta1.TokenCommittee)
+
+    - [TallyOption](#kava.committee.v1beta1.TallyOption)
+
+- [kava/committee/v1beta1/genesis.proto](#kava/committee/v1beta1/genesis.proto)
+    - [GenesisState](#kava.committee.v1beta1.GenesisState)
+    - [Proposal](#kava.committee.v1beta1.Proposal)
+    - [Vote](#kava.committee.v1beta1.Vote)
+
+    - [VoteType](#kava.committee.v1beta1.VoteType)
+
+- [kava/committee/v1beta1/permissions.proto](#kava/committee/v1beta1/permissions.proto)
+    - [GodPermission](#kava.committee.v1beta1.GodPermission)
+    - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
+    - [TextPermission](#kava.committee.v1beta1.TextPermission)
+
+- [kava/committee/v1beta1/proposal.proto](#kava/committee/v1beta1/proposal.proto)
+    - [CommitteeChangeProposal](#kava.committee.v1beta1.CommitteeChangeProposal)
+    - [CommitteeDeleteProposal](#kava.committee.v1beta1.CommitteeDeleteProposal)
+
+- [kava/committee/v1beta1/tx.proto](#kava/committee/v1beta1/tx.proto)
+    - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
+    - [MsgVote](#kava.committee.v1beta1.MsgVote)
+
 - [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
     - [Asset](#kava.issuance.v1beta1.Asset)
     - [AssetSupply](#kava.issuance.v1beta1.AssetSupply)
@@ -119,6 +146,317 @@
 
 
 
+<a name="kava/committee/v1beta1/committee.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/committee.proto
+
+
+
+<a name="kava.committee.v1beta1.BaseCommittee"></a>
+
+### BaseCommittee
+BaseCommittee is a common type shared by all Committees
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+| `description` | [string](#string) |  |  |
+| `members` | [string](#string) | repeated |  |
+| `permissions` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `vote_threshold` | [bytes](#bytes) |  | Smallest percentage that must vote for a proposal to pass |
+| `proposal_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  | The length of time a proposal remains active for. Proposals will close earlier if they get enough votes. |
+| `tally_option` | [TallyOption](#kava.committee.v1beta1.TallyOption) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.MemberCommittee"></a>
+
+### MemberCommittee
+MemberCommittee is an alias of BaseCommittee
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_committee` | [BaseCommittee](#kava.committee.v1beta1.BaseCommittee) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.TokenCommittee"></a>
+
+### TokenCommittee
+TokenCommittee supports voting on proposals by token holders
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_committee` | [BaseCommittee](#kava.committee.v1beta1.BaseCommittee) |  |  |
+| `quorum` | [bytes](#bytes) |  |  |
+| `tally_denom` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.committee.v1beta1.TallyOption"></a>
+
+### TallyOption
+TallyOption enumerates the valid types of a tally.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| TALLY_OPTION_UNSPECIFIED | 0 | TALLY_OPTION_UNSPECIFIED defines a null tally option. |
+| TALLY_OPTION_FIRST_PAST_THE_POST | 1 | Votes are tallied each block and the proposal passes as soon as the vote threshold is reached |
+| TALLY_OPTION_DEADLINE | 2 | Votes are tallied exactly once, when the deadline time is reached |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/genesis.proto
+
+
+
+<a name="kava.committee.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the committee module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `next_proposal_id` | [uint64](#uint64) |  |  |
+| `committees` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `proposals` | [Proposal](#kava.committee.v1beta1.Proposal) | repeated |  |
+| `votes` | [Vote](#kava.committee.v1beta1.Vote) | repeated |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.Proposal"></a>
+
+### Proposal
+Proposal is an internal record of a governance proposal submitted to a committee.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pub_proposal` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `id` | [uint64](#uint64) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+| `deadline` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.Vote"></a>
+
+### Vote
+Vote is an internal record of a single governance vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+| `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.committee.v1beta1.VoteType"></a>
+
+### VoteType
+VoteType enumerates the valid types of a vote.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| VOTE_TYPE_UNSPECIFIED | 0 | VOTE_TYPE_UNSPECIFIED defines a no-op vote option. |
+| VOTE_TYPE_YES | 1 | VOTE_TYPE_YES defines a yes vote option. |
+| VOTE_TYPE_NO | 2 | VOTE_TYPE_NO defines a no vote option. |
+| VOTE_TYPE_ABSTAIN | 3 | VOTE_TYPE_ABSTAIN defines an abstain vote option. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/permissions.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/permissions.proto
+
+
+
+<a name="kava.committee.v1beta1.GodPermission"></a>
+
+### GodPermission
+GodPermission allows any governance proposal. It is used mainly for testing.
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.SoftwareUpgradePermission"></a>
+
+### SoftwareUpgradePermission
+SoftwareUpgradePermission permission type for software upgrade proposals
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.TextPermission"></a>
+
+### TextPermission
+TextPermission allows any text governance proposal.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/proposal.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/proposal.proto
+
+
+
+<a name="kava.committee.v1beta1.CommitteeChangeProposal"></a>
+
+### CommitteeChangeProposal
+CommitteeChangeProposal is a gov proposal for creating a new committee or modifying an existing one.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `new_committee` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.CommitteeDeleteProposal"></a>
+
+### CommitteeDeleteProposal
+CommitteeDeleteProposal is a gov proposal for removing a committee.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/tx.proto
+
+
+
+<a name="kava.committee.v1beta1.MsgSubmitProposal"></a>
+
+### MsgSubmitProposal
+MsgSubmitProposal is used by committee members to create a new proposal that they can vote on.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pub_proposal` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `proposer` | [string](#string) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.MsgVote"></a>
+
+### MsgVote
+MsgVote is submitted by committee members to vote on proposals.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+| `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="kava/issuance/v1beta1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -178,7 +516,6 @@ GenesisState defines the issuance module's genesis state.
 
 
 
- <!-- end messages -->
 
 <a name="kava.issuance.v1beta1.Params"></a>
 

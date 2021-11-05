@@ -8,6 +8,7 @@ import "kava/committee/v1beta1/genesis.proto";
 
 option go_package = "github.com/kava-labs/kava/x/committee/types";
 
+// MsgSubmitProposal is used by committee members to create a new proposal that they can vote on.
 message MsgSubmitProposal {
   google.protobuf.Any pub_proposal = 1
       [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content", (gogoproto.embed) = true];
@@ -15,6 +16,7 @@ message MsgSubmitProposal {
   uint64 committee_id = 3;
 }
 
+// MsgVote is submitted by committee members to vote on proposals.
 message MsgVote {
   uint64   proposal_id = 1;
   string   voter       = 2;

@@ -25,6 +25,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// MsgSubmitProposal is used by committee members to create a new proposal that they can vote on.
 type MsgSubmitProposal struct {
 	*types.Any  `protobuf:"bytes,1,opt,name=pub_proposal,json=pubProposal,proto3,embedded=pub_proposal" json:"pub_proposal,omitempty"`
 	Proposer    string `protobuf:"bytes,2,opt,name=proposer,proto3" json:"proposer,omitempty"`
@@ -78,6 +79,7 @@ func (m *MsgSubmitProposal) GetCommitteeId() uint64 {
 	return 0
 }
 
+// MsgVote is submitted by committee members to vote on proposals.
 type MsgVote struct {
 	ProposalId uint64   `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
 	Voter      string   `protobuf:"bytes,2,opt,name=voter,proto3" json:"voter,omitempty"`
