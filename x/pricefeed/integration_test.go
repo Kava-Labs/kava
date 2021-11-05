@@ -20,13 +20,13 @@ func NewPricefeedGen() types.GenesisState {
 		PostedPrices: []types.PostedPrice{
 			{
 				MarketID:      "btc:usd",
-				OracleAddress: sdk.AccAddress{},
+				OracleAddress: sdk.AccAddress("oracle1"),
 				Price:         sdk.MustNewDecFromStr("8000.00"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "xrp:usd",
-				OracleAddress: sdk.AccAddress{},
+				OracleAddress: sdk.AccAddress("oracle2"),
 				Price:         sdk.MustNewDecFromStr("0.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
