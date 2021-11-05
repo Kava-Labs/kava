@@ -13,8 +13,8 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	pfGenesis := types.GenesisState{
 		Params: types.Params{
 			Markets: []types.Market{
-				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []string{}, Active: true},
-				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: nil, Active: true},
+				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: nil, Active: true},
 			},
 		},
 		PostedPrices: []types.PostedPrice{

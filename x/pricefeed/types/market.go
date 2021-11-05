@@ -10,7 +10,7 @@ import (
 )
 
 // NewMarket returns a new Market
-func NewMarket(id, base, quote string, oracles []string, active bool) Market {
+func NewMarket(id, base, quote string, oracles []sdk.AccAddress, active bool) Market {
 	return Market{
 		MarketID:   id,
 		BaseAsset:  base,
@@ -18,17 +18,6 @@ func NewMarket(id, base, quote string, oracles []string, active bool) Market {
 		Oracles:    oracles,
 		Active:     active,
 	}
-}
-
-// String implement fmt.Stringer
-func (m Market) String() string {
-	return fmt.Sprintf(`Asset:
-	Market ID: %s
-	Base Asset: %s
-	Quote Asset: %s
-	Oracles: %s
-	Active: %t`,
-		m.MarketID, m.BaseAsset, m.QuoteAsset, m.Oracles, m.Active)
 }
 
 // Validate performs a basic validation of the market params
@@ -44,13 +33,13 @@ func (m Market) Validate() error {
 	}
 	seenOracles := make(map[string]bool)
 	for i, oracle := range m.Oracles {
-		if len(oracle) == 0 {
+		if oracle.Empty() {
 			return fmt.Errorf("oracle %d is empty", i)
 		}
-		if seenOracles[oracle] {
+		if seenOracles[oracle.String()] {
 			return fmt.Errorf("duplicated oracle %s", oracle)
 		}
-		seenOracles[oracle] = true
+		seenOracles[oracle.String()] = true
 	}
 	return nil
 }
@@ -91,7 +80,7 @@ func (pp PostedPrice) Validate() error {
 	if strings.TrimSpace(pp.MarketID) == "" {
 		return errors.New("market id cannot be blank")
 	}
-	if len(pp.OracleAddress) == 0 {
+	if pp.OracleAddress.Empty() {
 		return errors.New("oracle address cannot be empty")
 	}
 	if pp.Price.IsNegative() {
@@ -119,20 +108,6 @@ func ValidatePostedPrices(pps []PostedPrice) error {
 	}
 
 	return nil
-}
-
-// String implements fmt.Stringer
-func (cp CurrentPrice) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`Market ID: %s
-Price: %s`, cp.MarketID, cp.Price))
-}
-
-// String implements fmt.Stringer
-func (pp PostedPrice) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`Market ID: %s
-Oracle Address: %s
-Price: %s
-Expiry: %s`, pp.MarketID, pp.OracleAddress, pp.Price, pp.Expiry))
 }
 
 // SortDecs provides the interface needed to sort sdk.Dec slices

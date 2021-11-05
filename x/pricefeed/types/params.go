@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"strings"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -36,15 +35,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyMarkets, &p.Markets, validateMarketParams),
 	}
-}
-
-// String implements fmt.stringer
-func (p Params) String() string {
-	out := "Params:\n"
-	for _, a := range p.Markets {
-		out += fmt.Sprintf("%s\n", a.String())
-	}
-	return strings.TrimSpace(out)
 }
 
 // Validate ensure that params have valid values

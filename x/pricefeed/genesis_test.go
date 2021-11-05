@@ -28,17 +28,11 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 	})
 	_, addrs := app.GeneratePrivKeyAddressPairs(10)
 
-	var strAddrs []string
-
-	for _, addr := range addrs {
-		strAddrs = append(strAddrs, addr.String())
-	}
-
 	// Must create a new TestApp or InitChain will panic with index already set
 	tApp = app.NewTestApp()
 	suite.NotPanics(func() {
 		tApp.InitializeFromGenesisStates(
-			NewPricefeedGenStateWithOracles(strAddrs),
+			NewPricefeedGenStateWithOracles(addrs),
 		)
 	})
 }

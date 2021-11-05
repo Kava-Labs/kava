@@ -22,7 +22,7 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 
 	mp := types.Params{
 		Markets: []types.Market{
-			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: nil, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
@@ -35,8 +35,8 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 
 	mp = types.Params{
 		Markets: []types.Market{
-			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
-			{MarketID: "tst2usd", BaseAsset: "tst2", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: nil, Active: true},
+			{MarketID: "tst2usd", BaseAsset: "tst2", QuoteAsset: "usd", Oracles: nil, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
@@ -58,20 +58,20 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 
 	mp := types.Params{
 		Markets: []types.Market{
-			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: nil, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
 
 	prices := []struct {
-		oracle   string
+		oracle   sdk.AccAddress
 		MarketID string
 		price    sdk.Dec
 		total    int
 	}{
-		{addrs[0].String(), "tstusd", sdk.MustNewDecFromStr("0.33"), 1},
-		{addrs[1].String(), "tstusd", sdk.MustNewDecFromStr("0.35"), 2},
-		{addrs[0].String(), "tstusd", sdk.MustNewDecFromStr("0.37"), 2},
+		{addrs[0], "tstusd", sdk.MustNewDecFromStr("0.33"), 1},
+		{addrs[1], "tstusd", sdk.MustNewDecFromStr("0.35"), 2},
+		{addrs[0], "tstusd", sdk.MustNewDecFromStr("0.37"), 2},
 	}
 
 	for _, p := range prices {
@@ -94,7 +94,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 
 		// Find the oracle and require price to be same
 		for _, rp := range rawPrices {
-			if p.oracle == rp.OracleAddress {
+			if p.oracle.Equals(rp.OracleAddress) {
 				require.Equal(t, p.price, rp.Price)
 			}
 		}
@@ -110,22 +110,22 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 
 	mp := types.Params{
 		Markets: []types.Market{
-			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: nil, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
 	_, err := keeper.SetPrice(
-		ctx, addrs[0].String(), "tstusd",
+		ctx, addrs[0], "tstusd",
 		sdk.MustNewDecFromStr("0.33"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
 	_, err = keeper.SetPrice(
-		ctx, addrs[1].String(), "tstusd",
+		ctx, addrs[1], "tstusd",
 		sdk.MustNewDecFromStr("0.35"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
 	_, err = keeper.SetPrice(
-		ctx, addrs[2].String(), "tstusd",
+		ctx, addrs[2], "tstusd",
 		sdk.MustNewDecFromStr("0.34"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
@@ -139,7 +139,7 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 
 	// Even number of oracles
 	_, err = keeper.SetPrice(
-		ctx, addrs[3].String(), "tstusd",
+		ctx, addrs[3], "tstusd",
 		sdk.MustNewDecFromStr("0.36"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)

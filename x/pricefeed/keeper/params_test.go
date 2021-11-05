@@ -19,7 +19,7 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	keeper keeper.Keeper
-	addrs  []string
+	addrs  []sdk.AccAddress
 	app    app.TestApp
 	ctx    sdk.Context
 }
@@ -33,18 +33,13 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.keeper = tApp.GetPriceFeedKeeper()
 	suite.ctx = ctx
 
-	_, addrs := app.GeneratePrivKeyAddressPairs(10)
-	var strAddrs []string
-	for _, addr := range addrs {
-		strAddrs = append(strAddrs, addr.String())
-	}
+	_, suite.addrs = app.GeneratePrivKeyAddressPairs(10)
 
-	suite.addrs = strAddrs
 }
 
 func (suite *KeeperTestSuite) TestGetSetOracles() {
 	params := suite.keeper.GetParams(suite.ctx)
-	suite.Equal([]string(nil), params.Markets[0].Oracles)
+	suite.Equal([]sdk.AccAddress(nil), params.Markets[0].Oracles)
 
 	params.Markets[0].Oracles = suite.addrs
 	suite.NotPanics(func() { suite.keeper.SetParams(suite.ctx, params) })
@@ -58,15 +53,11 @@ func (suite *KeeperTestSuite) TestGetSetOracles() {
 
 func (suite *KeeperTestSuite) TestGetAuthorizedAddresses() {
 	_, oracles := app.GeneratePrivKeyAddressPairs(5)
-	var strOracles []string
-	for _, addr := range oracles {
-		strOracles = append(strOracles, addr.String())
-	}
 
 	params := types.Params{
 		Markets: []types.Market{
-			{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: strOracles[:3], Active: true},
-			{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: strOracles[2:], Active: true},
+			{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: oracles[:3], Active: true},
+			{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: oracles[2:], Active: true},
 			{MarketID: "xrp:usd:30", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: nil, Active: true},
 		},
 	}

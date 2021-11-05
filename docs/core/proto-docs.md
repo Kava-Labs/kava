@@ -666,7 +666,7 @@ Market defines an asset in the pricefeed.
 | `market_id` | [string](#string) |  |  |
 | `base_asset` | [string](#string) |  |  |
 | `quote_asset` | [string](#string) |  |  |
-| `oracles` | [string](#string) | repeated |  |
+| `oracles` | [bytes](#bytes) | repeated |  |
 | `active` | [bool](#bool) |  |  |
 
 

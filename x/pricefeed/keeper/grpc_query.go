@@ -66,7 +66,7 @@ func (k Keeper) RawPrices(c context.Context, req *types.QueryRawPricesRequest) (
 
 	_, found := k.GetMarket(ctx, req.MarketId)
 	if !found {
-		return nil, status.Error(codes.NotFound, "invalid market ID")
+		return nil, status.Error(codes.NotFound, "market not found")
 	}
 
 	var prices []types.PostedPriceResponse
@@ -89,11 +89,15 @@ func (k Keeper) Oracles(c context.Context, req *types.QueryOraclesRequest) (*typ
 
 	oracles, err := k.GetOracles(ctx, req.MarketId)
 	if err != nil {
-		return nil, status.Error(codes.NotFound, "invalid market ID")
+		return nil, status.Error(codes.NotFound, "market ID not found")
+	}
+	oraclesString := make([]string, len(oracles))
+	for _, oracle := range oracles {
+		oraclesString = append(oraclesString, oracle.String())
 	}
 
 	return &types.QueryOraclesResponse{
-		Oracles: oracles,
+		Oracles: oraclesString,
 	}, nil
 }
 
