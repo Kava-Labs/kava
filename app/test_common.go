@@ -30,7 +30,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
-	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
+	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 )
 
@@ -83,11 +83,12 @@ func (tApp TestApp) GetGovKeeper() govkeeper.Keeper             { return tApp.go
 func (tApp TestApp) GetCrisisKeeper() crisiskeeper.Keeper       { return tApp.crisisKeeper }
 func (tApp TestApp) GetParamsKeeper() paramskeeper.Keeper       { return tApp.paramsKeeper }
 func (tApp TestApp) GetKavadistKeeper() kavadistkeeper.Keeper   { return tApp.kavadistKeeper }
+func (tApp TestApp) GetIssuanceKeeper() issuancekeeper.Keeper   { return tApp.issuanceKeeper }
 
 // TODO add back with modules
 // func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
 // func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
-func (tApp TestApp) GetCDPKeeper() cdpkeeper.Keeper             { return tApp.cdpKeeper }
+// func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeeper }
 func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
 
 // func (tApp TestApp) GetBep3Keeper() bep3.Keeper           { return tApp.bep3Keeper }
@@ -95,7 +96,6 @@ func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pr
 // func (tApp TestApp) GetIncentiveKeeper() incentive.Keeper { return tApp.incentiveKeeper }
 // func (tApp TestApp) GetHardKeeper() hard.Keeper           { return tApp.hardKeeper }
 // func (tApp TestApp) GetCommitteeKeeper() committee.Keeper { return tApp.committeeKeeper }
-// func (tApp TestApp) GetIssuanceKeeper() issuance.Keeper   { return tApp.issuanceKeeper }
 // func (tApp TestApp) GetSwapKeeper() swap.Keeper           { return tApp.swapKeeper }
 
 // LegacyAmino returns the app's amino codec.
