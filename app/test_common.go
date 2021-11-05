@@ -222,6 +222,36 @@ func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addr
 	}
 }
 
+// NewFundedGenStateWithUniqueCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
+func NewFundedGenStateWithUniqueCoins(cdc codec.JSONCodec, coins []sdk.Coins, addresses []sdk.AccAddress) GenesisState {
+	balances := make([]banktypes.Balance, len(addresses))
+	for i, addr := range addresses {
+		balances[i] = banktypes.Balance{
+			Address: addr.String(),
+			Coins:   coins[i],
+		}
+	}
+
+	bankGenesis := banktypes.NewGenesisState(
+		banktypes.DefaultParams(),
+		balances,
+		nil,
+		[]banktypes.Metadata{}, // Metadata is not widely used in the sdk or kava
+	)
+
+	accounts := make(authtypes.GenesisAccounts, len(addresses))
+	for i := range addresses {
+		accounts[i] = authtypes.NewBaseAccount(addresses[i], nil, 0, 0)
+	}
+
+	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
+
+	return GenesisState{
+		authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis),
+		banktypes.ModuleName: cdc.MustMarshalJSON(bankGenesis),
+	}
+}
+
 // TODO move auth builder to a new package
 
 // // AuthGenesisBuilder is a tool for creating an auth genesis state.

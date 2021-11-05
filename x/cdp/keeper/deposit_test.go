@@ -29,11 +29,13 @@ func (suite *DepositTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	_, addrs := app.GeneratePrivKeyAddressPairs(10)
-	authGS := app.NewAuthGenState(
-		addrs[0:2],
+	authGS := app.NewFundedGenStateWithUniqueCoins(
+		tApp.AppCodec(),
 		[]sdk.Coins{
 			cs(c("xrp", 500000000), c("btc", 500000000)),
-			cs(c("xrp", 200000000))})
+			cs(c("xrp", 200000000))},
+		addrs[0:2],
+	)
 	tApp.InitializeFromGenesisStates(
 		authGS,
 		NewPricefeedGenStateMulti(),
@@ -76,8 +78,10 @@ func (suite *DepositTestSuite) TestDepositCollateral() {
 	cd, _ := suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(1))
 	suite.Equal(c("xrp", 410000000), cd.Collateral)
 	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
+
 	acc := ak.GetAccount(suite.ctx, suite.addrs[0])
-	suite.Equal(i(90000000), acc.GetCoins().AmountOf("xrp"))
+	suite.Equal(i(90000000), bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp"))
 
 	err = suite.keeper.DepositCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], c("btc", 1), "btc-a")
 	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
@@ -116,9 +120,12 @@ func (suite *DepositTestSuite) TestWithdrawCollateral() {
 	dep, _ := suite.keeper.GetDeposit(suite.ctx, uint64(1), suite.addrs[0])
 	td := types.NewDeposit(uint64(1), suite.addrs[0], c("xrp", 390000000))
 	suite.True(dep.Equals(td))
+
 	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
+
 	acc := ak.GetAccount(suite.ctx, suite.addrs[0])
-	suite.Equal(i(110000000), acc.GetCoins().AmountOf("xrp"))
+	suite.Equal(i(110000000), bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp"))
 
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[1], c("xrp", 10000000), "xrp-a")
 	suite.Require().True(errors.Is(err, types.ErrDepositNotFound))
