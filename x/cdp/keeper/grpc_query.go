@@ -4,7 +4,6 @@ import (
 	"context"
 	"sort"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -176,7 +175,7 @@ func (s QueryServer) Cdps(c context.Context, req *types.QueryCdpsRequest) (*type
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// Filter CDPs
-	filteredCDPs, err := FilterCDPs(ctx, s.keeper, *req)
+	filteredCDPs, err := GrpcFilterCDPs(ctx, s.keeper, *req)
 	if err != nil {
 		status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -292,153 +291,19 @@ func (s QueryServer) CdpsByRatio(c context.Context, req *types.QueryCdpsByRatioR
 }
 
 // FilterCDPs queries the store for all CDPs that match query req
-func FilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (types.AugmentedCDPs, error) {
-	var matchCollateralType, matchOwner, matchID, matchRatio types.CDPs
-
-	owner, err := sdk.AccAddressFromBech32(req.Owner)
-	if err != nil {
-		return nil, err
-	}
-
-	// match cdp owner (if supplied)
-	if len(req.Owner) > 0 {
-		denoms := k.GetCollateralTypes(ctx)
-		for _, denom := range denoms {
-			cdp, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, denom)
-			if found {
-				matchOwner = append(matchOwner, cdp)
-			}
-		}
-	}
-
-	// match cdp collateral denom (if supplied)
-	if len(req.CollateralType) > 0 {
-		// if owner is specified only iterate over already matched cdps for efficiency
-		if len(req.Owner) > 0 {
-			for _, cdp := range matchOwner {
-				if cdp.Type == req.CollateralType {
-					matchCollateralType = append(matchCollateralType, cdp)
-				}
-			}
-		} else {
-			matchCollateralType = k.GetAllCdpsByCollateralType(ctx, req.CollateralType)
-		}
-	}
-
-	// match cdp ID (if supplied)
-	if req.ID != 0 {
-		denoms := k.GetCollateralTypes(ctx)
-		for _, denom := range denoms {
-			cdp, found := k.GetCDP(ctx, denom, req.ID)
-			if found {
-				matchID = append(matchID, cdp)
-			}
-		}
-	}
-
-	// match cdp ratio (if supplied)
-	if req.Ratio.GT(sdk.ZeroDec()) {
-		denoms := k.GetCollateralTypes(ctx)
-		for _, denom := range denoms {
-			ratio, err := k.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, denom, req.Ratio, "liquidation")
-			if err != nil {
-				continue
-			}
-			cdpsUnderRatio := k.GetAllCdpsByCollateralTypeAndRatio(ctx, denom, ratio)
-			matchRatio = append(matchRatio, cdpsUnderRatio...)
-		}
-	}
-
-	var commonCDPs types.CDPs
-	// If no params specified, fetch all CDPs
-	if len(req.CollateralType) == 0 && len(req.Owner) == 0 && req.ID == 0 && req.Ratio.Equal(sdk.ZeroDec()) {
-		commonCDPs = k.GetAllCdps(ctx)
-	}
-
-	// Find the intersection of any matched CDPs
-	if len(req.CollateralType) > 0 {
-		if len(matchCollateralType) > 0 {
-			commonCDPs = matchCollateralType
-		} else {
-			return types.AugmentedCDPs{}, nil
-		}
-	}
-
-	if len(req.Owner) > 0 {
-		if len(matchCollateralType) > 0 {
-			if len(commonCDPs) > 0 {
-				commonCDPs = FindIntersection(commonCDPs, matchOwner)
-			} else {
-				commonCDPs = matchOwner
-			}
-		} else {
-			commonCDPs = matchOwner
-		}
-	}
-	if req.ID != 0 {
-		if len(matchID) > 0 {
-			if len(commonCDPs) > 0 {
-				commonCDPs = FindIntersection(commonCDPs, matchID)
-			} else {
-				commonCDPs = matchID
-			}
-		} else {
-			return types.AugmentedCDPs{}, nil
-		}
-	}
-	if req.Ratio.GT(sdk.ZeroDec()) {
-		if len(matchRatio) > 0 {
-			if len(commonCDPs) > 0 {
-				commonCDPs = FindIntersection(commonCDPs, matchRatio)
-			} else {
-				commonCDPs = matchRatio
-			}
-		} else {
-			return types.AugmentedCDPs{}, nil
-		}
-	}
-	// Load augmented CDPs
-	var augmentedCDPs types.AugmentedCDPs
-	for _, cdp := range commonCDPs {
-		augmentedCDP := k.LoadAugmentedCDP(ctx, cdp)
-		augmentedCDPs = append(augmentedCDPs, augmentedCDP)
-	}
-
-	// Apply page and limit params
-	var paginatedCDPs types.AugmentedCDPs
-
+func GrpcFilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (types.AugmentedCDPs, error) {
 	// TODO: Use query.Paginate()? May be difficult to use special indexed keeper methods
 	page, limit, err := query.ParsePagination(req.Pagination)
 	if err != nil {
 		return nil, err
 	}
 
-	start, end := client.Paginate(len(augmentedCDPs), page, limit, 100)
-	if start < 0 || end < 0 {
-		paginatedCDPs = types.AugmentedCDPs{}
-	} else {
-		paginatedCDPs = augmentedCDPs[start:end]
+	owner, err := sdk.AccAddressFromBech32(req.Owner)
+	if err != nil {
+		return nil, err
 	}
 
-	return paginatedCDPs, nil
-}
+	legacyParams := types.NewQueryCdpsParams(page, limit, req.CollateralType, owner, req.ID, req.Ratio)
 
-// FindIntersection finds the intersection of two CDP arrays in linear time complexity O(n + n)
-func FindIntersection(x types.CDPs, y types.CDPs) types.CDPs {
-	cdpSet := make(types.CDPs, 0)
-	cdpMap := make(map[uint64]bool)
-
-	for i := 0; i < len(x); i++ {
-		cdp := x[i]
-		cdpMap[cdp.ID] = true
-	}
-
-	for i := 0; i < len(y); i++ {
-		cdp := y[i]
-		if _, found := cdpMap[cdp.ID]; found {
-			cdpSet = append(cdpSet, cdp)
-		}
-	}
-
-	return cdpSet
+	return FilterCDPs(ctx, k, legacyParams), nil
 }
