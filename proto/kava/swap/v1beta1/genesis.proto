@@ -1,0 +1,17 @@
+syntax = "proto3";
+package kava.swap.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/swap/types";
+
+import "gogoproto/gogo.proto";
+import "kava/swap/v1beta1/swap.proto";
+
+// GenesisState defines the swap module's genesis state.
+message GenesisState {
+  // params defines all the paramaters related to swap
+  Params params = 1 [(gogoproto.nullable) = false];
+  // pool_records defines the available pools
+  repeated PoolRecord pool_records = 2 [(gogoproto.castrepeated) = "PoolRecords", (gogoproto.nullable) = false];
+  // share_records defines the owned shares of each pool
+  repeated ShareRecord share_records = 3 [(gogoproto.castrepeated) = "ShareRecords", (gogoproto.nullable) = false];
+}
