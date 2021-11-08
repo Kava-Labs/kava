@@ -20,5 +20,5 @@ message CommitteeChangeProposal {
 message CommitteeDeleteProposal {
   string title        = 1;
   string description  = 2;
-  uint64 committee_id = 3;
+  uint64 committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
 }

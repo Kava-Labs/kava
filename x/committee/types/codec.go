@@ -82,4 +82,14 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		(*Permission)(nil),
 		&GodPermission{},
 	)
+
+	// Need to register PubProposal here since we use this as alias for the x/gov Content interface for all the proposal implementations used in this module.
+	// Note that all proposals supported by x/committee needed to be registered here, including the proposals from x/gov.
+	registry.RegisterInterface(
+		"kava.committee.v1beta1.PubProposal",
+		(*PubProposal)(nil),
+		&govtypes.TextProposal{},
+		&CommitteeChangeProposal{},
+		&CommitteeDeleteProposal{},
+	)
 }

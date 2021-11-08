@@ -28,7 +28,7 @@ func TestUnPackPermissions_Success(t *testing.T) {
 }
 
 func TestUnPackPermissions_Failure(t *testing.T) {
-	vote, err := types.NewAnyWithValue(&Vote{ProposalId: 1})
+	vote, err := types.NewAnyWithValue(&Vote{ProposalID: 1})
 	require.NoError(t, err)
 	_, err = UnpackPermissions([]*types.Any{vote})
 	require.Error(t, err)

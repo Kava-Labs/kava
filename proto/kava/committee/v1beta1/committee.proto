@@ -13,10 +13,14 @@ option (gogoproto.goproto_getters_all) = false;
 // BaseCommittee is a common type shared by all Committees
 message BaseCommittee {
   option (cosmos_proto.implements_interface) = "Committee";
+  option (gogoproto.goproto_stringer)        = false;
 
-  uint64          id                       = 1;
-  string          description              = 2;
-  repeated string members                  = 3;
+  uint64         id          = 1 [(gogoproto.customname) = "ID"];
+  string         description = 2;
+  repeated bytes members     = 3 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
   repeated google.protobuf.Any permissions = 4 [(cosmos_proto.accepts_interface) = "Permission"];
 
   // Smallest percentage that must vote for a proposal to pass
@@ -31,6 +35,7 @@ message BaseCommittee {
 // MemberCommittee is an alias of BaseCommittee
 message MemberCommittee {
   option (cosmos_proto.implements_interface) = "Committee";
+  option (gogoproto.goproto_stringer)        = false;
 
   BaseCommittee base_committee = 1 [(gogoproto.embed) = true];
 }
@@ -38,6 +43,7 @@ message MemberCommittee {
 // TokenCommittee supports voting on proposals by token holders
 message TokenCommittee {
   option (cosmos_proto.implements_interface) = "Committee";
+  option (gogoproto.goproto_stringer)        = false;
 
   BaseCommittee base_committee = 1 [(gogoproto.embed) = true];
   bytes  quorum = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];

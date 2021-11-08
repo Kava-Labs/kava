@@ -23,7 +23,7 @@ func init() {
 
 // Permission is anything with a method that validates whether a proposal is allowed by it or not.
 type Permission interface {
-	Allows(sdk.Context, *codec.Codec, ParamKeeper, PubProposal) bool
+	Allows(sdk.Context, codec.Codec, ParamKeeper, PubProposal) bool
 }
 
 func PackPermissions(permissions []Permission) ([]*types.Any, error) {
@@ -62,16 +62,16 @@ var (
 )
 
 // Allows implement permission interface for GodPermission
-func (GodPermission) Allows(sdk.Context, *codec.Codec, ParamKeeper, PubProposal) bool { return true }
+func (GodPermission) Allows(sdk.Context, codec.Codec, ParamKeeper, PubProposal) bool { return true }
 
 // Allows implement permission interface for TextPermission
-func (TextPermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
+func (TextPermission) Allows(_ sdk.Context, _ codec.Codec, _ ParamKeeper, p PubProposal) bool {
 	_, ok := p.(*govtypes.TextProposal)
 	return ok
 }
 
 // Allows implement permission interface for SoftwareUpgradePermission
-func (SoftwareUpgradePermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
+func (SoftwareUpgradePermission) Allows(_ sdk.Context, _ codec.Codec, _ ParamKeeper, p PubProposal) bool {
 	_, ok := p.(*upgradetypes.SoftwareUpgradeProposal)
 	return ok
 }

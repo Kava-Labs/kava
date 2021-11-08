@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -43,6 +42,8 @@ func (t *TallyOption) Unmarshal(data []byte) error {
 
 // String implements the Stringer interface.
 func (t TallyOption) String() string {
+	// TODO: QUESTION: Can we just use the protobuf generated string implementation?
+	// Is the frontend relying on these specific values?
 	switch t {
 	case TALLY_OPTION_FIRST_PAST_THE_POST:
 		return "FirstPastThePost"
@@ -55,9 +56,10 @@ func (t TallyOption) String() string {
 
 // Committee is an interface for handling common actions on committees
 type Committee interface {
-	proto.Message
+	codec.ProtoMarshaler
+	codectypes.UnpackInterfacesMessage
 
-	GetId() uint64
+	GetID() uint64
 	GetType() string
 	GetDescription() string
 
@@ -67,7 +69,7 @@ type Committee interface {
 
 	GetPermissions() []Permission
 	SetPermissions([]Permission)
-	HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, proposal PubProposal) bool
+	HasPermissionsFor(ctx sdk.Context, appCdc codec.Codec, pk ParamKeeper, proposal PubProposal) bool
 
 	GetProposalDuration() time.Duration
 	SetProposalDuration(time.Duration)
@@ -77,43 +79,26 @@ type Committee interface {
 
 	GetTallyOption() TallyOption
 	Validate() error
+
+	String() string
 }
 
-var (
-	_ Committee                          = &BaseCommittee{}
-	_ codectypes.UnpackInterfacesMessage = &BaseCommittee{}
-)
+var _ Committee = &BaseCommittee{}
 
 // GetType is a getter for committee type
 func (c *BaseCommittee) GetType() string { return BaseCommitteeType }
 
 // GetID is a getter for committee ID
-func (c *BaseCommittee) GetId() uint64 { return c.Id }
+func (c *BaseCommittee) GetID() uint64 { return c.ID }
 
 // GetDescription is a getter for committee description
 func (c *BaseCommittee) GetDescription() string { return c.Description }
 
 // GetMembers is a getter for committee members
-func (b BaseCommittee) GetMembers() []sdk.AccAddress {
-	addresses := make([]sdk.AccAddress, len(b.Members))
-	for _, m := range b.Members {
-		address, err := sdk.AccAddressFromBech32(m)
-		if err != nil {
-			panic(err)
-		}
-		addresses = append(addresses, address)
-	}
-	return addresses
-}
+func (c BaseCommittee) GetMembers() []sdk.AccAddress { return c.Members }
 
 // SetMembers is a setter for committee members
-func (c *BaseCommittee) SetMembers(addresses []sdk.AccAddress) {
-	members := make([]string, len(addresses))
-	for i, addr := range addresses {
-		members[i] = addr.String()
-	}
-	c.Members = members
-}
+func (c *BaseCommittee) SetMembers(members []sdk.AccAddress) { c.Members = members }
 
 // HasMember returns if a committee contains a given member address
 func (c *BaseCommittee) HasMember(addr sdk.AccAddress) bool {
@@ -145,13 +130,28 @@ func (c *BaseCommittee) SetPermissions(permissions []Permission) {
 
 // HasPermissionsFor returns whether the committee is authorized to enact a proposal.
 // As long as one permission allows the proposal then it goes through. Its the OR of all permissions.
-func (c BaseCommittee) HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, proposal PubProposal) bool {
+func (c BaseCommittee) HasPermissionsFor(ctx sdk.Context, appCdc codec.Codec, pk ParamKeeper, proposal PubProposal) bool {
 	for _, p := range c.GetPermissions() {
 		if p.Allows(ctx, appCdc, pk, proposal) {
 			return true
 		}
 	}
 	return false
+}
+
+// String implements fmt.Stringer
+func (c BaseCommittee) String() string {
+	return fmt.Sprintf(`Committee %d:
+	Description:              %s
+	Members:               %s
+  	Permissions:               			%s
+  	VoteThreshold:            		  %s
+	ProposalDuration:        						%s
+	TallyOption:   						%s`,
+		c.ID, c.Description, c.GetMembers(), c.Permissions,
+		c.VoteThreshold.String(), c.ProposalDuration.String(),
+		c.TallyOption.String(),
+	)
 }
 
 // GetVoteThreshold is a getter for committee VoteThreshold
@@ -176,7 +176,7 @@ func (c BaseCommittee) GetTallyOption() TallyOption { return c.TallyOption }
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (c BaseCommittee) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	for _, any := range c.Permissions {
-		var permission []Permission
+		var permission Permission
 		err := unpacker.UnpackAny(any, &permission)
 		if err != nil {
 			return err
@@ -198,14 +198,14 @@ func (c BaseCommittee) Validate() error {
 	addressMap := make(map[string]bool, len(c.Members))
 	for _, m := range c.Members {
 		// check there are no duplicate members
-		if _, ok := addressMap[m]; ok {
+		if _, ok := addressMap[m.String()]; ok {
 			return fmt.Errorf("committee cannot have duplicate members, %s", m)
 		}
 		// check for valid addresses
-		if _, err := sdk.AccAddressFromBech32(m); err != nil {
-			return err
+		if m.Empty() {
+			return fmt.Errorf("committee cannot have empty member address")
 		}
-		addressMap[m] = true
+		addressMap[m.String()] = true
 	}
 
 	// validate permissions
@@ -236,7 +236,7 @@ func (c BaseCommittee) Validate() error {
 }
 
 // NewMemberCommittee instantiates a new instance of MemberCommittee
-func NewMemberCommittee(id uint64, description string, members []string, permissions []Permission,
+func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
 	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) (*MemberCommittee, error) {
 	permissionsAny, err := PackPermissions(permissions)
 	if err != nil {
@@ -244,7 +244,7 @@ func NewMemberCommittee(id uint64, description string, members []string, permiss
 	}
 	return &MemberCommittee{
 		BaseCommittee: &BaseCommittee{
-			Id:               id,
+			ID:               id,
 			Description:      description,
 			Members:          members,
 			Permissions:      permissionsAny,
@@ -259,7 +259,7 @@ func NewMemberCommittee(id uint64, description string, members []string, permiss
 func (c MemberCommittee) GetType() string { return MemberCommitteeType }
 
 // NewTokenCommittee instantiates a new instance of TokenCommittee
-func NewTokenCommittee(id uint64, description string, members []string, permissions []Permission,
+func NewTokenCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
 	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) (*TokenCommittee, error) {
 	permissionsAny, err := PackPermissions(permissions)
 	if err != nil {
@@ -267,7 +267,7 @@ func NewTokenCommittee(id uint64, description string, members []string, permissi
 	}
 	return &TokenCommittee{
 		BaseCommittee: &BaseCommittee{
-			Id:               id,
+			ID:               id,
 			Description:      description,
 			Members:          members,
 			Permissions:      permissionsAny,
@@ -317,19 +317,19 @@ func (c TokenCommittee) Validate() error {
 type PubProposal govtypes.Content
 
 // NewProposal instantiates a new instance of Proposal
-func NewProposal(pubProposal PubProposal, id uint64, committeeId uint64, deadline time.Time) (Proposal, error) {
+func NewProposal(pubProposal PubProposal, id uint64, committeeID uint64, deadline time.Time) (Proposal, error) {
 	msg, ok := pubProposal.(proto.Message)
 	if !ok {
 		return Proposal{}, fmt.Errorf("%T does not implement proto.Message", pubProposal)
 	}
-	proposalAny, err := types.NewAnyWithValue(msg)
+	proposalAny, err := codectypes.NewAnyWithValue(msg)
 	if err != nil {
 		return Proposal{}, err
 	}
 	return Proposal{
 		Any:         proposalAny,
-		Id:          id,
-		CommitteeId: committeeId,
+		ID:          id,
+		CommitteeID: committeeID,
 		Deadline:    deadline,
 	}, nil
 }
@@ -344,7 +344,7 @@ func (p Proposal) GetPubProposal() PubProposal {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (p Proposal) UnpackInterfaces(unpacker types.AnyUnpacker) error {
+func (p Proposal) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var content PubProposal
 	return unpacker.UnpackAny(p.Any, &content)
 }
@@ -356,9 +356,9 @@ func (p Proposal) HasExpiredBy(time time.Time) bool {
 }
 
 // NewVote instantiates a new instance of Vote
-func NewVote(proposalId uint64, voter string, voteType VoteType) Vote {
+func NewVote(proposalID uint64, voter sdk.AccAddress, voteType VoteType) Vote {
 	return Vote{
-		ProposalId: proposalId,
+		ProposalID: proposalID,
 		Voter:      voter,
 		VoteType:   voteType,
 	}
@@ -366,8 +366,9 @@ func NewVote(proposalId uint64, voter string, voteType VoteType) Vote {
 
 // Validates Vote fields
 func (v Vote) Validate() error {
-	if _, err := sdk.AccAddressFromBech32(v.Voter); err != nil {
-		return err
+	if v.Voter.Empty() {
+		return fmt.Errorf("voter address cannot be empty")
 	}
+
 	return v.VoteType.Validate()
 }

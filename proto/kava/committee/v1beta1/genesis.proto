@@ -12,7 +12,7 @@ option go_package = "github.com/kava-labs/kava/x/committee/types";
 message GenesisState {
   option (gogoproto.goproto_getters) = false;
 
-  uint64   next_proposal_id               = 1;
+  uint64   next_proposal_id               = 1 [(gogoproto.customname) = "NextProposalID"];
   repeated google.protobuf.Any committees = 2 [(cosmos_proto.accepts_interface) = "Committee"];
   repeated Proposal            proposals  = 3 [(gogoproto.nullable) = false];
   repeated Vote                votes      = 4 [(gogoproto.nullable) = false];
@@ -20,20 +20,25 @@ message GenesisState {
 
 // Proposal is an internal record of a governance proposal submitted to a committee.
 message Proposal {
-  option (gogoproto.goproto_stringer) = true;
+  option (gogoproto.goproto_stringer) = false;
 
   google.protobuf.Any pub_proposal = 1
       [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content", (gogoproto.embed) = true];
-  uint64                    id           = 2;
-  uint64                    committee_id = 3;
+  uint64                    id           = 2 [(gogoproto.customname) = "ID"];
+  uint64                    committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
   google.protobuf.Timestamp deadline     = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
 
 // Vote is an internal record of a single governance vote.
 message Vote {
-  uint64   proposal_id = 1;
-  string   voter       = 2;
-  VoteType vote_type   = 3;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
+  bytes  voter       = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  VoteType vote_type = 3;
 }
 
 // VoteType enumerates the valid types of a vote.

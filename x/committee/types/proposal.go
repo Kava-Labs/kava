@@ -69,8 +69,12 @@ func (ccp CommitteeChangeProposal) ProposalRoute() string { return RouterKey }
 // ProposalType returns the type of the proposal.
 func (ccp CommitteeChangeProposal) ProposalType() string { return ProposalTypeCommitteeChange }
 
-func (ccp CommitteeChangeProposal) GetNewCommittee() (Committee, error) {
-	return UnpackCommittee(ccp.NewCommittee)
+func (ccp CommitteeChangeProposal) GetNewCommittee() Committee {
+	committee, err := UnpackCommittee(ccp.NewCommittee)
+	if err != nil {
+		panic(err)
+	}
+	return committee
 }
 
 // ValidateBasic runs basic stateless validity checks
@@ -78,7 +82,7 @@ func (ccp CommitteeChangeProposal) ValidateBasic() error {
 	if err := govtypes.ValidateAbstract(&ccp); err != nil {
 		return err
 	}
-	committee, err := ccp.GetNewCommittee()
+	committee, err := UnpackCommittee(ccp.NewCommittee)
 	if err != nil {
 		return sdkerrors.Wrap(ErrInvalidCommittee, err.Error())
 	}
@@ -88,11 +92,11 @@ func (ccp CommitteeChangeProposal) ValidateBasic() error {
 	return nil
 }
 
-func NewCommitteeDeleteProposal(title string, description string, committeeId uint64) CommitteeDeleteProposal {
+func NewCommitteeDeleteProposal(title string, description string, committeeID uint64) CommitteeDeleteProposal {
 	return CommitteeDeleteProposal{
 		Title:       title,
 		Description: description,
-		CommitteeId: committeeId,
+		CommitteeID: committeeID,
 	}
 }
 

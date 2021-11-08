@@ -11,10 +11,10 @@ import (
 )
 
 func TestBaseCommittee(t *testing.T) {
-	addresses := []string{
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))).String(),
+	addresses := []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
 	}
 
 	testCases := []struct {
@@ -65,7 +65,7 @@ func TestBaseCommittee(t *testing.T) {
 				return NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
-					[]string{},
+					[]sdk.AccAddress{},
 					[]Permission{&GodPermission{}},
 					d("0.667"),
 					time.Hour*24*7,
@@ -80,7 +80,7 @@ func TestBaseCommittee(t *testing.T) {
 				return NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
-					[]string{addresses[2], addresses[2]},
+					[]sdk.AccAddress{addresses[2], addresses[2]},
 					[]Permission{&GodPermission{}},
 					d("0.667"),
 					time.Hour*24*7,
@@ -200,10 +200,10 @@ func TestBaseCommittee(t *testing.T) {
 
 // TestMemberCommittee is an alias for BaseCommittee that has 'MemberCommittee' type
 func TestMemberCommittee(t *testing.T) {
-	addresses := []string{
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))).String(),
+	addresses := []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
 	}
 
 	testCases := []struct {
@@ -246,10 +246,10 @@ func TestMemberCommittee(t *testing.T) {
 
 // TestTokenCommittee tests unique TokenCommittee functionality
 func TestTokenCommittee(t *testing.T) {
-	addresses := []string{
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))).String(),
+	addresses := []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
 	}
 
 	testCases := []struct {

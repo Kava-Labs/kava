@@ -18,4 +18,5 @@ type AccountKeeper interface {
 // BankKeeper defines the expected bank keeper interface
 type BankKeeper interface {
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
+	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 }

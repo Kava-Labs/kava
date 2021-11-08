@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 )
 
-func MustNewMemberCommittee(id uint64, description string, members []string, permissions []Permission,
+func MustNewMemberCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
 	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) *MemberCommittee {
 	committee, err := NewMemberCommittee(id, description, members, permissions, threshold, duration, tallyOption)
 	if err != nil {
@@ -21,7 +22,7 @@ func MustNewMemberCommittee(id uint64, description string, members []string, per
 	return committee
 }
 
-func MustNewTokenCommitteeNewTokenCommittee(id uint64, description string, members []string, permissions []Permission,
+func MustNewTokenCommitteeNewTokenCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
 	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) *TokenCommittee {
 	committee, err := NewTokenCommittee(id, description, members, permissions, threshold, duration, tallyOption, quorum, tallyDenom)
 	if err != nil {
@@ -30,8 +31,8 @@ func MustNewTokenCommitteeNewTokenCommittee(id uint64, description string, membe
 	return committee
 }
 
-func MustNewProposal(pubProposal PubProposal, id uint64, committeeId uint64, deadline time.Time) Proposal {
-	proposal, err := NewProposal(pubProposal, id, committeeId, deadline)
+func MustNewProposal(pubProposal PubProposal, id uint64, committeeID uint64, deadline time.Time) Proposal {
+	proposal, err := NewProposal(pubProposal, id, committeeID, deadline)
 	if err != nil {
 		panic(err)
 	}
@@ -40,12 +41,12 @@ func MustNewProposal(pubProposal PubProposal, id uint64, committeeId uint64, dea
 
 func TestGenesisState_Validate(t *testing.T) {
 	testTime := time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
-	addresses := []string{
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest4"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest5"))).String(),
+	addresses := []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest4"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest5"))),
 	}
 
 	testGenesis := NewGenesisState(
@@ -85,8 +86,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			govtypes.NewTextProposal("A Title", "A description of this proposal."), 1, 1, testTime.Add(7*24*time.Hour)),
 		},
 		[]Vote{
-			{ProposalId: 1, Voter: addresses[0], VoteType: VOTE_TYPE_YES},
-			{ProposalId: 1, Voter: addresses[1], VoteType: VOTE_TYPE_YES},
+			{ProposalID: 1, Voter: addresses[0], VoteType: VOTE_TYPE_YES},
+			{ProposalID: 1, Voter: addresses[1], VoteType: VOTE_TYPE_YES},
 		},
 	)
 
@@ -108,7 +109,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			name: "duplicate committee IDs",
 			genState: NewGenesisState(
-				testGenesis.NextProposalId,
+				testGenesis.NextProposalID,
 				append(testGenesis.GetCommittees(), testGenesis.GetCommittees()[0]),
 				testGenesis.Proposals,
 				testGenesis.Votes,
@@ -118,7 +119,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			name: "invalid committee",
 			genState: NewGenesisState(
-				testGenesis.NextProposalId,
+				testGenesis.NextProposalID,
 				append(testGenesis.GetCommittees(), &MemberCommittee{BaseCommittee: &BaseCommittee{}}),
 				testGenesis.Proposals,
 				testGenesis.Votes,
@@ -128,7 +129,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			name: "duplicate proposal IDs",
 			genState: NewGenesisState(
-				testGenesis.NextProposalId,
+				testGenesis.NextProposalID,
 				testGenesis.GetCommittees(),
 				append(testGenesis.Proposals, testGenesis.Proposals[0]),
 				testGenesis.Votes,
@@ -136,7 +137,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			expectPass: false,
 		},
 		{
-			name: "invalid NextProposalId",
+			name: "invalid NextProposalID",
 			genState: NewGenesisState(
 				0,
 				testGenesis.GetCommittees(),
@@ -148,13 +149,13 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			name: "proposal without committee",
 			genState: NewGenesisState(
-				testGenesis.NextProposalId+1,
+				testGenesis.NextProposalID+1,
 				testGenesis.GetCommittees(),
 				append(
 					testGenesis.Proposals,
 					MustNewProposal(
 						govtypes.NewTextProposal("A Title", "A description of this proposal."),
-						testGenesis.NextProposalId,
+						testGenesis.NextProposalID,
 						47, // doesn't exist
 						testTime.Add(7*24*time.Hour),
 					),
@@ -166,7 +167,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			name: "invalid proposal",
 			genState: NewGenesisState(
-				testGenesis.NextProposalId,
+				testGenesis.NextProposalID,
 				testGenesis.GetCommittees(),
 				append(testGenesis.Proposals, Proposal{}),
 				testGenesis.Votes,
@@ -176,7 +177,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			name: "vote without proposal",
 			genState: NewGenesisState(
-				testGenesis.NextProposalId,
+				testGenesis.NextProposalID,
 				testGenesis.GetCommittees(),
 				nil,
 				testGenesis.Votes,
@@ -186,7 +187,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			name: "invalid vote",
 			genState: NewGenesisState(
-				testGenesis.NextProposalId,
+				testGenesis.NextProposalID,
 				testGenesis.GetCommittees(),
 				testGenesis.Proposals,
 				append(testGenesis.Votes, Vote{}),
@@ -197,7 +198,7 @@ func TestGenesisState_Validate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-
+			fmt.Println(tc.genState)
 			err := tc.genState.Validate()
 
 			if tc.expectPass {
