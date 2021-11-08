@@ -3,6 +3,9 @@ package app
 import (
 	"fmt"
 	"io"
+	stdlog "log"
+	"os"
+	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -55,6 +58,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -78,10 +85,13 @@ import (
 )
 
 const (
-	appName = "kava"
+	appName     = "kava"
+	upgradeName = "v44"
 )
 
 var (
+	// DefaultNodeHome default home directories for the application daemon
+	DefaultNodeHome string
 
 	// ModuleBasics manages simple versions of full app modules.
 	// It's used for things such as codec registration and genesis file verification.
@@ -95,11 +105,14 @@ var (
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler,
 			distrclient.ProposalHandler,
+			upgradeclient.ProposalHandler,
+			upgradeclient.CancelProposalHandler,
 			kavadistclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
@@ -161,6 +174,7 @@ type App struct {
 	distrKeeper     distrkeeper.Keeper
 	govKeeper       govkeeper.Keeper
 	crisisKeeper    crisiskeeper.Keeper
+	upgradeKeeper   upgradekeeper.Keeper
 	paramsKeeper    paramskeeper.Keeper
 	evidenceKeeper  evidencekeeper.Keeper
 	kavadistKeeper  kavadistkeeper.Keeper
@@ -178,8 +192,26 @@ type App struct {
 	configurator module.Configurator
 }
 
+func init() {
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		stdlog.Println("Failed to get home dir %2", err)
+	}
+
+	DefaultNodeHome = filepath.Join(userHomeDir, ".kava")
+}
+
 // NewApp returns a reference to an initialized App.
-func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig kavaparams.EncodingConfig, options Options, baseAppOptions ...func(*baseapp.BaseApp)) *App {
+func NewApp(
+	logger tmlog.Logger,
+	db dbm.DB,
+	skipUpgradeHeights map[int64]bool,
+	homePath string,
+	traceStore io.Writer,
+	encodingConfig kavaparams.EncodingConfig,
+	options Options,
+	baseAppOptions ...func(*baseapp.BaseApp),
+) *App {
 
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
@@ -193,7 +225,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
+		govtypes.StoreKey, paramstypes.StoreKey, upgradetypes.StoreKey, evidencetypes.StoreKey,
 		kavadisttypes.StoreKey, issuancetypes.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey,
 	)
@@ -285,6 +317,13 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
 	)
+	app.upgradeKeeper = upgradekeeper.NewKeeper(
+		skipUpgradeHeights,
+		keys[upgradetypes.StoreKey],
+		appCodec,
+		homePath,
+		app.BaseApp,
+	)
 	app.evidenceKeeper = *evidencekeeper.NewKeeper(
 		appCodec,
 		keys[evidencetypes.StoreKey],
@@ -296,6 +335,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -356,6 +396,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
+		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		params.NewAppModule(app.paramsKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
@@ -370,6 +411,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	// Auction.BeginBlocker will close out expired auctions and pay debt back to cdp.
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
 	app.mm.SetOrderBeginBlockers(
+		upgradetypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
