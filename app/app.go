@@ -318,10 +318,12 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		keys[cdptypes.StoreKey],
 		cdpSubspace,
 		app.pricefeedKeeper,
-		app.auctionKeeper,
+		// TODO: when auctions merged
+		// app.auctionKeeper,
+		nil,
 		app.bankKeeper,
 		app.accountKeeper,
-		app.ModuleAccountAddrs(),
+		mAccPerms,
 	)
 
 	// register the staking hooks
