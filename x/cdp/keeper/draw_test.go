@@ -29,9 +29,10 @@ type DrawTestSuite struct {
 func (suite *DrawTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	cdc := tApp.AppCodec()
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
 	authGS := app.NewFundedGenStateWithUniqueCoins(
-		tApp.AppCodec(),
+		cdc,
 		[]sdk.Coins{
 			cs(c("xrp", 500000000), c("btc", 500000000), c("usdx", 10000000000)),
 			cs(c("xrp", 200000000)),
@@ -40,8 +41,8 @@ func (suite *DrawTestSuite) SetupTest() {
 	)
 	tApp.InitializeFromGenesisStates(
 		authGS,
-		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMulti(cdc),
+		NewCDPGenStateMulti(cdc),
 	)
 	keeper := tApp.GetCDPKeeper()
 	suite.app = tApp

@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -26,10 +26,11 @@ type InterestTestSuite struct {
 
 func (suite *InterestTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	cdc := tApp.AppCodec()
 	tApp.InitializeFromGenesisStates(
-		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMulti(cdc),
+		NewCDPGenStateMulti(cdc),
 	)
 	keeper := tApp.GetCDPKeeper()
 	suite.app = tApp
@@ -45,12 +46,13 @@ func (suite *InterestTestSuite) createCdps() {
 	ak := suite.app.GetAccountKeeper()
 	// setup the first account
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
-	acc.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
+
+	suite.app.FundAccount(suite.ctx, acc.GetAddress(), cs(c("xrp", 200000000), c("btc", 500000000)))
 
 	ak.SetAccount(suite.ctx, acc)
 	// now setup the second account
 	acc2 := ak.NewAccountWithAddress(suite.ctx, addrs[1])
-	acc2.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
+	suite.app.FundAccount(suite.ctx, acc.GetAddress(), cs(c("xrp", 200000000), c("btc", 500000000)))
 	ak.SetAccount(suite.ctx, acc2)
 
 	// now create two cdps with the addresses we just created
@@ -382,10 +384,11 @@ func (suite *InterestTestSuite) TestSynchronizeInterest() {
 			// setup the first account
 			acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
 			ak.SetAccount(suite.ctx, acc)
-			sk := suite.app.GetSupplyKeeper()
-			err := sk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCollateral))
+			bk := suite.app.GetBankKeeper()
+
+			err := bk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCollateral))
 			suite.Require().NoError(err)
-			err = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addrs[0], cs(tc.args.initialCollateral))
+			err = bk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addrs[0], cs(tc.args.initialCollateral))
 			suite.Require().NoError(err)
 
 			// setup pricefeed
@@ -518,10 +521,10 @@ func (suite *InterestTestSuite) TestMultipleCDPInterest() {
 				// setup the first account
 				acc := ak.NewAccountWithAddress(suite.ctx, addrs[j])
 				ak.SetAccount(suite.ctx, acc)
-				sk := suite.app.GetSupplyKeeper()
-				err := sk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCDPCollateral))
+				bk := suite.app.GetBankKeeper()
+				err := bk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCDPCollateral))
 				suite.Require().NoError(err)
-				err = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addrs[j], cs(tc.args.initialCDPCollateral))
+				err = bk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addrs[j], cs(tc.args.initialCDPCollateral))
 				suite.Require().NoError(err)
 				err = suite.keeper.AddCdp(suite.ctx, addrs[j], tc.args.initialCDPCollateral, tc.args.initialCDPPrincipal, tc.args.ctype)
 				suite.Require().NoError(err)
@@ -535,10 +538,9 @@ func (suite *InterestTestSuite) TestMultipleCDPInterest() {
 				suite.Require().NoError(err)
 			}
 
-			sk := suite.app.GetSupplyKeeper()
-			supplyTotal := sk.GetSupply(suite.ctx).GetTotal()
-			debtSupply := supplyTotal.AmountOf(types.DefaultDebtDenom)
-			usdxSupply := supplyTotal.AmountOf(types.DefaultStableDenom)
+			bk := suite.app.GetBankKeeper()
+			debtSupply := bk.GetSupply(suite.ctx, types.DefaultDebtDenom)
+			usdxSupply := bk.GetSupply(suite.ctx, types.DefaultStableDenom)
 			totalPrincipal := suite.keeper.GetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom)
 
 			suite.Require().Equal(tc.args.expectedDebtBalance, debtSupply)
@@ -638,10 +640,10 @@ func (suite *InterestTestSuite) TestCalculateCDPInterest() {
 			// setup the first account
 			acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
 			ak.SetAccount(suite.ctx, acc)
-			sk := suite.app.GetSupplyKeeper()
-			err := sk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCollateral))
+			bk := suite.app.GetBankKeeper()
+			err := bk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCollateral))
 			suite.Require().NoError(err)
-			err = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addrs[0], cs(tc.args.initialCollateral))
+			err = bk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addrs[0], cs(tc.args.initialCollateral))
 			suite.Require().NoError(err)
 
 			// setup pricefeed
@@ -714,13 +716,13 @@ func (suite *InterestTestSuite) TestSyncInterestForRiskyCDPs() {
 			// setup account state
 			_, addrs := app.GeneratePrivKeyAddressPairs(tc.args.numberCdps)
 			ak := suite.app.GetAccountKeeper()
-			sk := suite.app.GetSupplyKeeper()
+			bk := suite.app.GetBankKeeper()
 			for _, addr := range addrs {
 				acc := ak.NewAccountWithAddress(suite.ctx, addr)
 				ak.SetAccount(suite.ctx, acc)
-				err := sk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCollateral))
+				err := bk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCollateral))
 				suite.Require().NoError(err)
-				err = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addr, cs(tc.args.initialCollateral))
+				err = bk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addr, cs(tc.args.initialCollateral))
 				suite.Require().NoError(err)
 			}
 			// setup pricefeed

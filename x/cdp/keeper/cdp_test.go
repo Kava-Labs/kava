@@ -31,8 +31,8 @@ func (suite *CdpTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates(
-		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMulti(tApp.AppCodec()),
+		NewCDPGenStateMulti(tApp.AppCodec()),
 	)
 	keeper := tApp.GetCDPKeeper()
 	suite.app = tApp

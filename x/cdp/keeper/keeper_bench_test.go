@@ -74,13 +74,15 @@ func BenchmarkAccountIteration(b *testing.B) {
 func createCdps(n int) (app.TestApp, sdk.Context, keeper.Keeper) {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	cdc := tApp.AppCodec()
+
 	_, addrs := app.GeneratePrivKeyAddressPairs(n)
 	coins := cs(c("btc", 100000000))
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	tApp.InitializeFromGenesisStates(
 		authGS,
-		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMulti(cdc),
+		NewCDPGenStateMulti(cdc),
 	)
 	cdpKeeper := tApp.GetCDPKeeper()
 	for i := 0; i < n; i++ {
@@ -121,13 +123,15 @@ var errResult error
 func BenchmarkCdpCreation(b *testing.B) {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	cdc := tApp.AppCodec()
+
 	_, addrs := app.GeneratePrivKeyAddressPairs(b.N)
 	coins := cs(c("btc", 100000000))
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	tApp.InitializeFromGenesisStates(
 		authGS,
-		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMulti(cdc),
+		NewCDPGenStateMulti(cdc),
 	)
 	cdpKeeper := tApp.GetCDPKeeper()
 	b.ResetTimer()
