@@ -99,12 +99,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 	deposit.Amount = deposit.Amount.Sub(collateral)
 	// delete deposits if amount is 0
 	if deposit.Amount.IsZero() {
-		depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
-		if err != nil {
-			panic(err)
-		}
-
-		k.DeleteDeposit(ctx, deposit.CdpID, depositor)
+		k.DeleteDeposit(ctx, deposit.CdpID, deposit.Depositor)
 	} else {
 		k.SetDeposit(ctx, deposit)
 	}
@@ -137,12 +132,7 @@ func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
 	bz := k.cdc.MustMarshalLengthPrefixed(&deposit)
 
-	depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
-	if err != nil {
-		panic(err)
-	}
-
-	store.Set(types.DepositKey(deposit.CdpID, depositor), bz)
+	store.Set(types.DepositKey(deposit.CdpID, deposit.Depositor), bz)
 
 }
 

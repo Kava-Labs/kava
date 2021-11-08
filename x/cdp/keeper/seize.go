@@ -55,17 +55,11 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 
 	// liquidate deposits and send collateral from cdp to liquidator
 	for _, dep := range deposits {
-		depositor, err := sdk.AccAddressFromBech32(dep.Depositor)
-		if err != nil {
+		if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(dep.Amount)); err != nil {
 			return err
 		}
 
-		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(dep.Amount))
-		if err != nil {
-			return err
-		}
-
-		k.DeleteDeposit(ctx, dep.CdpID, depositor)
+		k.DeleteDeposit(ctx, dep.CdpID, dep.Depositor)
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(

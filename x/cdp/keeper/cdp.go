@@ -312,12 +312,7 @@ func (k Keeper) GetNextCdpID(ctx sdk.Context) (id uint64) {
 func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKeyPrefix)
 
-	owner, err := sdk.AccAddressFromBech32(cdp.Owner)
-	if err != nil {
-		panic(err)
-	}
-
-	cdpIDs, found := k.GetCdpIdsByOwner(ctx, owner)
+	cdpIDs, found := k.GetCdpIdsByOwner(ctx, cdp.Owner)
 
 	if !found {
 		// TODO: Is using json.Marshal fine here? Have not found a good alternative
@@ -325,7 +320,7 @@ func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
 		if err != nil {
 			panic(err)
 		}
-		store.Set(owner, idBytes)
+		store.Set(cdp.Owner, idBytes)
 		return
 	}
 	cdpIDs = append(cdpIDs, cdp.ID)
@@ -336,19 +331,14 @@ func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
 		panic(err)
 	}
 
-	store.Set(owner, cdpIDsBytes)
+	store.Set(cdp.Owner, cdpIDsBytes)
 }
 
 // RemoveCdpOwnerIndex deletes the cdp id from the store's index of cdps by owner
 func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKeyPrefix)
 
-	owner, err := sdk.AccAddressFromBech32(cdp.Owner)
-	if err != nil {
-		panic(err)
-	}
-
-	cdpIDs, found := k.GetCdpIdsByOwner(ctx, owner)
+	cdpIDs, found := k.GetCdpIdsByOwner(ctx, cdp.Owner)
 	if !found {
 		return
 	}
@@ -359,7 +349,7 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 		}
 	}
 	if len(updatedCdpIds) == 0 {
-		store.Delete(owner)
+		store.Delete(cdp.Owner)
 		return
 	}
 
@@ -367,7 +357,7 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 	if err != nil {
 		panic(err)
 	}
-	store.Set(owner, updatedCdpIdsBytes)
+	store.Set(cdp.Owner, updatedCdpIdsBytes)
 }
 
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
