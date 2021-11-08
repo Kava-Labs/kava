@@ -98,11 +98,11 @@ func (k Keeper) commitSwap(
 ) error {
 	k.SetPool(ctx, types.NewPoolRecordFromPool(pool))
 
-	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, requester, types.ModuleAccountName, sdk.NewCoins(swapInput)); err != nil {
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, requester, types.ModuleAccountName, sdk.NewCoins(swapInput)); err != nil {
 		return err
 	}
 
-	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, requester, sdk.NewCoins(swapOutput)); err != nil {
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, requester, sdk.NewCoins(swapOutput)); err != nil {
 		panic(err)
 	}
 

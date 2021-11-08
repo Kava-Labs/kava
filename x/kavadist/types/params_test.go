@@ -89,13 +89,13 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	for _, t := range suite.tests {
 		err := t.params.Validate()
 		if t.expectPass {
-			suite.NoError(err)
+			suite.Require().NoError(err)
 		} else {
-			suite.Error(err)
+			suite.Require().Error(err)
 		}
 	}
 }
 
-func TestGenesisTestSuite(t *testing.T) {
+func TestParamsTestSuite(t *testing.T) {
 	suite.Run(t, new(ParamTestSuite))
 }

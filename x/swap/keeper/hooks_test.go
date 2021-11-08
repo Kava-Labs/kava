@@ -52,7 +52,7 @@ func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
 	suite.Require().NoError(err)
 
 	depositor_2 := suite.NewAccountFromAddr(
-		sdk.AccAddress("depositor 2"),
+		sdk.AccAddress("depositor 2---------"),
 		sdk.NewCoins(
 			sdk.NewCoin("ukava", sdk.NewInt(100e6)),
 			sdk.NewCoin("usdx", sdk.NewInt(100e6)),

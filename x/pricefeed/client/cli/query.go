@@ -1,21 +1,18 @@
 package cli
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group nameservice queries under a subcommand
 	pricefeedQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -25,171 +22,183 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	pricefeedQueryCmd.AddCommand(flags.GetCommands(
-		GetCmdPrice(queryRoute, cdc),
-		GetCmdQueryPrices(queryRoute, cdc),
-		GetCmdRawPrices(queryRoute, cdc),
-		GetCmdOracles(queryRoute, cdc),
-		GetCmdMarkets(queryRoute, cdc),
-		GetCmdQueryParams(queryRoute, cdc),
-	)...)
+	cmds := []*cobra.Command{
+		GetCmdPrice(),
+		GetCmdQueryPrices(),
+		GetCmdRawPrices(),
+		GetCmdOracles(),
+		GetCmdMarkets(),
+		GetCmdQueryParams(),
+	}
+
+	for _, cmd := range cmds {
+		flags.AddQueryFlagsToCmd(cmd)
+	}
+
+	pricefeedQueryCmd.AddCommand(cmds...)
 
 	return pricefeedQueryCmd
 }
 
 // GetCmdOracles queries the oracle set of an asset
-func GetCmdOracles(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdOracles() *cobra.Command {
 	return &cobra.Command{
 		Use:   "oracles [marketID]",
 		Short: "get the oracle set for a market",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
 			marketID := args[0]
 
-			bz, err := cdc.MarshalJSON(types.QueryWithMarketIDParams{
-				MarketID: marketID,
-			})
-			if err != nil {
-				return err
+			params := types.QueryOraclesRequest{
+				MarketId: marketID,
 			}
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryOracles)
 
-			res, _, err := cliCtx.QueryWithData(route, bz)
+			res, err := queryClient.Oracles(context.Background(), &params)
 			if err != nil {
 				return err
 			}
-			var oracles []sdk.AccAddress
-			cdc.MustUnmarshalJSON(res, &oracles)
-			return cliCtx.PrintOutput(oracles)
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 }
 
 // GetCmdPrice queries the current price of an asset
-func GetCmdPrice(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdPrice() *cobra.Command {
 	return &cobra.Command{
 		Use:   "price [marketID]",
 		Short: "get the current price for the input market",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
 			marketID := args[0]
 
-			bz, err := cdc.MarshalJSON(types.QueryWithMarketIDParams{
-				MarketID: marketID,
-			})
-			if err != nil {
-				return err
+			params := types.QueryPriceRequest{
+				MarketId: marketID,
 			}
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryPrice)
 
-			res, _, err := cliCtx.QueryWithData(route, bz)
+			res, err := queryClient.Price(context.Background(), &params)
 			if err != nil {
 				return err
 			}
-			var price types.CurrentPrice
-			cdc.MustUnmarshalJSON(res, &price)
-			return cliCtx.PrintOutput(price)
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 }
 
 // GetCmdQueryPrices queries the pricefeed module for current prices
-func GetCmdQueryPrices(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryPrices() *cobra.Command {
 	return &cobra.Command{
 		Use:   "prices",
 		Short: "get the current price of each market",
 		Long:  "Get the current prices of each market in the pricefeed module.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryPrices)
-			res, _, err := cliCtx.QueryWithData(route, nil)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// Decode and print results
-			var out types.CurrentPrices
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Prices(context.Background(), &types.QueryPricesRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 }
 
 // GetCmdRawPrices queries the current price of an asset
-func GetCmdRawPrices(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdRawPrices() *cobra.Command {
 	return &cobra.Command{
 		Use:   "rawprices [marketID]",
 		Short: "get the raw oracle prices for the input market",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
 			marketID := args[0]
 
-			bz, err := cdc.MarshalJSON(types.QueryWithMarketIDParams{
-				MarketID: marketID,
-			})
+			params := types.QueryRawPricesRequest{
+				MarketId: marketID,
+			}
+
+			res, err := queryClient.RawPrices(context.Background(), &params)
 			if err != nil {
 				return err
 			}
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryRawPrices)
 
-			res, _, err := cliCtx.QueryWithData(route, bz)
-
-			if err != nil {
-				return err
-			}
-			var prices []types.PostedPrice
-			cdc.MustUnmarshalJSON(res, &prices)
-			return cliCtx.PrintOutput(prices)
+			return clientCtx.PrintProto(res)
 		},
 	}
 }
 
 // GetCmdMarkets queries list of markets in the pricefeed
-func GetCmdMarkets(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdMarkets() *cobra.Command {
 	return &cobra.Command{
 		Use:   "markets",
 		Short: "get the markets in the pricefeed",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			route := fmt.Sprintf("custom/%s/markets", queryRoute)
-			res, _, err := cliCtx.QueryWithData(route, nil)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			var markets types.Markets
-			cdc.MustUnmarshalJSON(res, &markets)
-			return cliCtx.PrintOutput(markets)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Markets(context.Background(), &types.QueryMarketsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 }
 
 // GetCmdQueryParams queries the pricefeed module parameters
-func GetCmdQueryParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryParams() *cobra.Command {
 	return &cobra.Command{
 		Use:   "params",
 		Short: "get the pricefeed module parameters",
 		Long:  "Get the current global pricefeed module parameters.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetParams)
-			res, _, err := cliCtx.QueryWithData(route, nil)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// Decode and print results
-			var out types.Params
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -29,7 +30,10 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
+	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
+	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
+	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 )
 
 var (
@@ -80,21 +84,20 @@ func (tApp TestApp) GetDistrKeeper() distkeeper.Keeper          { return tApp.di
 func (tApp TestApp) GetGovKeeper() govkeeper.Keeper             { return tApp.govKeeper }
 func (tApp TestApp) GetCrisisKeeper() crisiskeeper.Keeper       { return tApp.crisisKeeper }
 func (tApp TestApp) GetParamsKeeper() paramskeeper.Keeper       { return tApp.paramsKeeper }
+
 func (tApp TestApp) GetKavadistKeeper() kavadistkeeper.Keeper   { return tApp.kavadistKeeper }
+func (tApp TestApp) GetIssuanceKeeper() issuancekeeper.Keeper   { return tApp.issuanceKeeper }
+func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
+func (tApp TestApp) GetBep3Keeper() bep3keeper.Keeper           { return tApp.bep3Keeper }
+func (tApp TestApp) GetSwapKeeper() swapkeeper.Keeper           { return tApp.swapKeeper }
 
 // TODO add back with modules
 // func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
 // func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
 // func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeeper }
-// func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper { return tApp.pricefeedKeeper }
-func (tApp TestApp) GetBep3Keeper() bep3keeper.Keeper { return tApp.bep3Keeper }
-
-// func (tApp TestApp) GetKavadistKeeper() kavadist.Keeper   { return tApp.kavadistKeeper }
 // func (tApp TestApp) GetIncentiveKeeper() incentive.Keeper { return tApp.incentiveKeeper }
 // func (tApp TestApp) GetHardKeeper() hard.Keeper           { return tApp.hardKeeper }
 // func (tApp TestApp) GetCommitteeKeeper() committee.Keeper { return tApp.committeeKeeper }
-// func (tApp TestApp) GetIssuanceKeeper() issuance.Keeper   { return tApp.issuanceKeeper }
-// func (tApp TestApp) GetSwapKeeper() swap.Keeper           { return tApp.swapKeeper }
 
 // LegacyAmino returns the app's amino codec.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
@@ -150,14 +153,27 @@ func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAdd
 	require.Equal(t, expectedCoins, coins)
 }
 
-// FundAccount is a utility function that funds an account by minting and
-// sending the coins to the address.
+// FundAccount is a utility function that funds an account by minting and sending the coins to the address.
 func (tApp TestApp) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
 	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
 		return err
 	}
 
 	return tApp.bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
+}
+
+// NewQueryServerTestHelper creates a new QueryServiceTestHelper that wraps the provided sdk.Context.
+func (tApp TestApp) NewQueryServerTestHelper(ctx sdk.Context) *baseapp.QueryServiceTestHelper {
+	return baseapp.NewQueryServerTestHelper(ctx, tApp.interfaceRegistry)
+}
+
+// FundModuleAccount is a utility function that funds a module account by minting and sending the coins to the address.
+func (tApp TestApp) FundModuleAccount(ctx sdk.Context, recipientMod string, amounts sdk.Coins) error {
+	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
+		return err
+	}
+
+	return tApp.bankKeeper.SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, recipientMod, amounts)
 }
 
 // GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.

@@ -11,21 +11,21 @@ import (
 )
 
 // NewQuerier is the module level router for state queries
-func NewQuerier(keeper Keeper) sdk.Querier {
+func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryPrice:
-			return queryPrice(ctx, req, keeper)
+			return queryPrice(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryPrices:
-			return queryPrices(ctx, req, keeper)
+			return queryPrices(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryRawPrices:
-			return queryRawPrices(ctx, req, keeper)
+			return queryRawPrices(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryOracles:
-			return queryOracles(ctx, req, keeper)
+			return queryOracles(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryMarkets:
-			return queryMarkets(ctx, req, keeper)
+			return queryMarkets(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetParams:
-			return queryGetParams(ctx, req, keeper)
+			return queryGetParams(ctx, req, keeper, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -33,9 +33,9 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 }
 
-func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
+func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, sdkErr error) {
 	var requestParams types.QueryWithMarketIDParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -47,7 +47,7 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []by
 	if sdkErr != nil {
 		return nil, sdkErr
 	}
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, currentPrice)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, currentPrice)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -55,18 +55,18 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []by
 	return bz, nil
 }
 
-func queryPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
+func queryPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, sdkErr error) {
 	currentPrices := keeper.GetCurrentPrices(ctx)
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, currentPrices)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, currentPrices)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
+func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, sdkErr error) {
 	var requestParams types.QueryWithMarketIDParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -75,12 +75,9 @@ func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res 
 		return nil, sdkerrors.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
 	}
 
-	rawPrices, err := keeper.GetRawPrices(ctx, requestParams.MarketID)
-	if err != nil {
-		return nil, err
-	}
+	rawPrices := keeper.GetRawPrices(ctx, requestParams.MarketID)
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, rawPrices)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, rawPrices)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -88,9 +85,9 @@ func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res 
 	return bz, nil
 }
 
-func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
+func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, sdkErr error) {
 	var requestParams types.QueryWithMarketIDParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -100,7 +97,7 @@ func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []
 		return nil, sdkerrors.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
 	}
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, oracles)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, oracles)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -108,10 +105,10 @@ func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []
 	return bz, nil
 }
 
-func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
+func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, sdkErr error) {
 	markets := keeper.GetMarkets(ctx)
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, markets)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, markets)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -120,11 +117,11 @@ func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []
 }
 
 // query params in the pricefeed store
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	params := keeper.GetParams(ctx)
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

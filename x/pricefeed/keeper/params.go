@@ -20,32 +20,33 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 }
 
 // GetMarkets returns the markets from params
-func (k Keeper) GetMarkets(ctx sdk.Context) types.Markets {
+func (k Keeper) GetMarkets(ctx sdk.Context) []types.Market {
 	return k.GetParams(ctx).Markets
 }
 
 // GetOracles returns the oracles in the pricefeed store
-func (k Keeper) GetOracles(ctx sdk.Context, marketID string) ([]sdk.AccAddress, error) {
+func (k Keeper) GetOracles(ctx sdk.Context, marketID string) ([]string, error) {
 	for _, m := range k.GetMarkets(ctx) {
 		if marketID == m.MarketID {
 			return m.Oracles, nil
 		}
 	}
-	return []sdk.AccAddress{}, sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
+	return nil, sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
 }
 
 // GetOracle returns the oracle from the store or an error if not found
-func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address sdk.AccAddress) (sdk.AccAddress, error) {
+func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address string) (string, error) {
 	oracles, err := k.GetOracles(ctx, marketID)
 	if err != nil {
-		return sdk.AccAddress{}, sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
+		// Error already wrapped
+		return "", err
 	}
 	for _, addr := range oracles {
-		if address.Equals(addr) {
+		if addr == address {
 			return addr, nil
 		}
 	}
-	return sdk.AccAddress{}, sdkerrors.Wrap(types.ErrInvalidOracle, address.String())
+	return "", sdkerrors.Wrap(types.ErrInvalidOracle, address)
 }
 
 // GetMarket returns the market if it is in the pricefeed system
@@ -62,16 +63,20 @@ func (k Keeper) GetMarket(ctx sdk.Context, marketID string) (types.Market, bool)
 
 // GetAuthorizedAddresses returns a list of addresses that have special authorization within this module, eg the oracles of all markets.
 func (k Keeper) GetAuthorizedAddresses(ctx sdk.Context) []sdk.AccAddress {
-	oracles := []sdk.AccAddress{}
+	var oracles []sdk.AccAddress
 	uniqueOracles := map[string]bool{}
 
 	for _, m := range k.GetMarkets(ctx) {
 		for _, o := range m.Oracles {
 			// de-dup list of oracles
-			if _, found := uniqueOracles[o.String()]; !found {
-				oracles = append(oracles, o)
+			if _, found := uniqueOracles[o]; !found {
+				addr, err := sdk.AccAddressFromBech32(o)
+				if err != nil {
+					panic(err)
+				}
+				oracles = append(oracles, addr)
 			}
-			uniqueOracles[o.String()] = true
+			uniqueOracles[o] = true
 		}
 	}
 	return oracles

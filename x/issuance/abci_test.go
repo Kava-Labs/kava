@@ -8,18 +8,20 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/issuance"
+	"github.com/kava-labs/kava/x/issuance/keeper"
+	"github.com/kava-labs/kava/x/issuance/types"
 )
 
 // Test suite used for all keeper tests
 type ABCITestSuite struct {
 	suite.Suite
 
-	keeper     issuance.Keeper
+	keeper     keeper.Keeper
 	app        app.TestApp
 	ctx        sdk.Context
 	addrs      []sdk.AccAddress
@@ -31,7 +33,7 @@ type ABCITestSuite struct {
 func (suite *ABCITestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	blockTime := tmtime.Now()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: blockTime})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: blockTime})
 	tApp.InitializeFromGenesisStates()
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	keeper := tApp.GetIssuanceKeeper()
@@ -47,10 +49,10 @@ func (suite *ABCITestSuite) SetupTest() {
 
 func (suite *ABCITestSuite) TestRateLimitingTimePassage() {
 	type args struct {
-		assets         issuance.Assets
-		supplies       issuance.AssetSupplies
+		assets         []types.Asset
+		supplies       []types.AssetSupply
 		blockTimes     []time.Duration
-		expectedSupply issuance.AssetSupply
+		expectedSupply types.AssetSupply
 	}
 	testCases := []struct {
 		name string
@@ -59,34 +61,34 @@ func (suite *ABCITestSuite) TestRateLimitingTimePassage() {
 		{
 			"time passage same period",
 			args{
-				assets: issuance.Assets{
-					issuance.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, issuance.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+				assets: []types.Asset{
+					types.NewAsset(suite.addrs[0].String(), "usdtoken", []string{suite.addrs[1].String()}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
 				},
-				supplies: issuance.AssetSupplies{
-					issuance.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
+				supplies: []types.AssetSupply{
+					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
 				},
 				blockTimes:     []time.Duration{time.Hour},
-				expectedSupply: issuance.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour*2),
+				expectedSupply: types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour*2),
 			},
 		},
 		{
 			"time passage new period",
 			args{
-				assets: issuance.Assets{
-					issuance.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, issuance.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+				assets: []types.Asset{
+					types.NewAsset(suite.addrs[0].String(), "usdtoken", []string{suite.addrs[1].String()}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
 				},
-				supplies: issuance.AssetSupplies{
-					issuance.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
+				supplies: []types.AssetSupply{
+					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
 				},
 				blockTimes:     []time.Duration{time.Hour * 12, time.Hour * 12},
-				expectedSupply: issuance.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Duration(0)),
+				expectedSupply: types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Duration(0)),
 			},
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			params := issuance.NewParams(tc.args.assets)
+			params := types.NewParams(tc.args.assets)
 			suite.keeper.SetParams(suite.ctx, params)
 			for _, supply := range tc.args.supplies {
 				suite.keeper.SetAssetSupply(suite.ctx, supply, supply.GetDenom())
