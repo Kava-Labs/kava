@@ -75,7 +75,7 @@ func (ac appCreator) newApp(
 	}
 
 	return app.NewApp(
-		logger, db, traceStore, ac.encodingConfig,
+		logger, db, map[int64]bool{}, app.DefaultNodeHome, traceStore, ac.encodingConfig,
 		app.Options{
 			SkipLoadLatest:        false,
 			SkipUpgradeHeights:    skipUpgradeHeights,
