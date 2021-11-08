@@ -62,7 +62,6 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
-	"github.com/kava-labs/kava/x/cdp"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -75,6 +74,7 @@ import (
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 
+	"github.com/kava-labs/kava/x/cdp"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 

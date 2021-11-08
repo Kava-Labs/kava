@@ -7,12 +7,11 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/kava-labs/kava/x/cdp/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // BeginBlocker compounds the debt in outstanding cdps and liquidates cdps that are below the required collateralization ratio
-func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {
+func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 	params := k.GetParams(ctx)
 
 	for _, cp := range params.CollateralParams {

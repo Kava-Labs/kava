@@ -5,25 +5,24 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // InitGenesis sets initial genesis state for cdp module
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, pk types.PricefeedKeeper, ak types.AccountKeeper, gs types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.SupplyKeeper, gs GenesisState) {
 
 	if err := gs.Validate(); err != nil {
-		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
+		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
 	}
 
 	// check if the module accounts exists
-	cdpModuleAcc := ak.GetModuleAccount(ctx, types.ModuleName)
+	cdpModuleAcc := sk.GetModuleAccount(ctx, ModuleName)
 	if cdpModuleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+		panic(fmt.Sprintf("%s module account has not been set", ModuleName))
 	}
-	liqModuleAcc := ak.GetModuleAccount(ctx, types.LiquidatorMacc)
+	liqModuleAcc := sk.GetModuleAccount(ctx, LiquidatorMacc)
 	if liqModuleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.LiquidatorMacc))
+		panic(fmt.Sprintf("%s module account has not been set", LiquidatorMacc))
 	}
 
 	// validate denoms - check that any collaterals in the params are in the pricefeed,
@@ -89,15 +88,15 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, pk types.PricefeedKeeper, ak 
 }
 
 // ExportGenesis export genesis state for cdp module
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	params := k.GetParams(ctx)
 
-	cdps := types.CDPs{}
-	deposits := types.Deposits{}
-	k.IterateAllCdps(ctx, func(cdp types.CDP) (stop bool) {
+	cdps := CDPs{}
+	deposits := Deposits{}
+	k.IterateAllCdps(ctx, func(cdp CDP) (stop bool) {
 		syncedCdp := k.SynchronizeInterest(ctx, cdp)
 		cdps = append(cdps, syncedCdp)
-		k.IterateDeposits(ctx, cdp.ID, func(deposit types.Deposit) (stop bool) {
+		k.IterateDeposits(ctx, cdp.ID, func(deposit Deposit) (stop bool) {
 			deposits = append(deposits, deposit)
 			return false
 		})
@@ -131,5 +130,5 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		totalPrincipals = append(totalPrincipals, genTotalPrincipal)
 	}
 
-	return types.NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousAccumTimes, totalPrincipals)
+	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousAccumTimes, totalPrincipals)
 }

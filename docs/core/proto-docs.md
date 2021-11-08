@@ -205,7 +205,7 @@ CDP defines the state of a single collateralized debt position.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `id` | [uint64](#uint64) |  |  |
-| `owner` | [string](#string) |  |  |
+| `owner` | [bytes](#bytes) |  |  |
 | `type` | [string](#string) |  |  |
 | `collateral` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 | `principal` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
