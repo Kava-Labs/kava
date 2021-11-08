@@ -11,8 +11,7 @@ func TestRawPriceKey_Iteration(t *testing.T) {
 	// An iterator key should only match price keys with the same market
 	iteratorKey := RawPriceIteratorKey("kava:usd")
 
-	addr, err := sdk.AccAddressFromBech32("kava17e8afwcxk0k72hhr7xapugtf5xhxth0a6d5jwz")
-	require.NoError(t, err)
+	addr := sdk.AccAddress("test addr")
 
 	testCases := []struct {
 		name      string

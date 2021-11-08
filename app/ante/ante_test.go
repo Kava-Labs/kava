@@ -131,15 +131,10 @@ func TestAppAnteHandler(t *testing.T) {
 // TODO Test pricefeed oracles and bep3 deputy txs can always get into the mempool.
 
 func newPricefeedGenStateMulti(cdc codec.JSONCodec, oracles []sdk.AccAddress) app.GenesisState {
-	var oracleStrs []string
-	for _, o := range oracles {
-		oracleStrs = append(oracleStrs, o.String())
-	}
-
 	pfGenesis := pricefeedtypes.GenesisState{
 		Params: pricefeedtypes.Params{
 			Markets: []pricefeedtypes.Market{
-				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: oracleStrs, Active: true},
+				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: oracles, Active: true},
 			},
 		},
 	}
