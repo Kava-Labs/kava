@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -72,19 +73,6 @@ func (gs GenesisState) Validate() error {
 	return nil
 }
 
-func validateSavingsRateDistributed(i interface{}) error {
-	savingsRateDist, ok := i.(sdk.Int)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if savingsRateDist.IsNegative() {
-		return fmt.Errorf("savings rate distributed should not be negative: %s", savingsRateDist)
-	}
-
-	return nil
-}
-
 // NewGenesisTotalPrincipal returns a new GenesisTotalPrincipal
 func NewGenesisTotalPrincipal(ctype string, principal sdk.Int) GenesisTotalPrincipal {
 	return GenesisTotalPrincipal{
@@ -98,6 +86,10 @@ type GenesisTotalPrincipals []GenesisTotalPrincipal
 
 // Validate performs validation of GenesisTotalPrincipal
 func (gtp GenesisTotalPrincipal) Validate() error {
+	if strings.TrimSpace(gtp.CollateralType) == "" {
+		return fmt.Errorf("collateral type cannot be empty")
+	}
+
 	if gtp.TotalPrincipal.IsNegative() {
 		return fmt.Errorf("total principal should be positive, is %s for %s", gtp.TotalPrincipal, gtp.CollateralType)
 	}
@@ -123,6 +115,14 @@ func NewGenesisAccumulationTime(ctype string, prevTime time.Time, factor sdk.Dec
 	}
 }
 
+// Validate performs validation of GenesisAccumulationTime
+func (gat GenesisAccumulationTime) Validate() error {
+	if gat.InterestFactor.LT(sdk.OneDec()) {
+		return fmt.Errorf("interest factor should be ≥ 1.0, is %s for %s", gat.InterestFactor, gat.CollateralType)
+	}
+	return nil
+}
+
 // GenesisAccumulationTimes slice of GenesisAccumulationTime
 type GenesisAccumulationTimes []GenesisAccumulationTime
 
@@ -132,14 +132,6 @@ func (gats GenesisAccumulationTimes) Validate() error {
 		if err := gat.Validate(); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-// Validate performs validation of GenesisAccumulationTime
-func (gat GenesisAccumulationTime) Validate() error {
-	if gat.InterestFactor.LT(sdk.OneDec()) {
-		return fmt.Errorf("interest factor should be ≥ 1.0, is %s for %s", gat.InterestFactor, gat.CollateralType)
 	}
 	return nil
 }

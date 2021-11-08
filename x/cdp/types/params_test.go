@@ -799,7 +799,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid coins: global debt limit",
+				contains:   "global debt limit <nil>: invalid coins",
 			},
 		},
 		{

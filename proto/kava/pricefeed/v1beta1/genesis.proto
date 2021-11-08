@@ -5,8 +5,6 @@ import "kava/pricefeed/v1beta1/pricefeed.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
-option (gogoproto.equal_all) = true;
-option (gogoproto.verbose_equal_all) = true;
 
 // GenesisState defines the pricefeed module's genesis state.
 message GenesisState {

@@ -36,12 +36,14 @@ func TestKeys(t *testing.T) {
 	collateralKey := CollateralRatioKey(0x01, 2, sdk.MustNewDecFromStr("1.50"))
 	db, id, ratio := SplitCollateralRatioKey(collateralKey)
 	require.Equal(t, byte(0x01), db)
-	require.Equal(t, int(id), 2)
+	require.Equal(t, 2, int(id))
 	require.Equal(t, ratio, sdk.MustNewDecFromStr("1.50"))
 
 	bigRatio := sdk.OneDec().Quo(sdk.SmallestDec()).Mul(sdk.OneDec().Add(sdk.OneDec()))
 	collateralKey = CollateralRatioKey(0x01, 2, bigRatio)
 	db, id, ratio = SplitCollateralRatioKey(collateralKey)
+	require.Equal(t, byte(0x01), db)
+	require.Equal(t, 2, int(id))
 	require.Equal(t, ratio, MaxSortableDec)
 
 	collateralIterKey := CollateralRatioIterKey(0x01, sdk.MustNewDecFromStr("1.50"))
