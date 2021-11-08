@@ -55,7 +55,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, 
 	k.BeforePoolDepositModified(ctx, poolID, owner, shareRecord.SharesOwned)
 	k.updateDepositorShares(ctx, owner, poolID, shareRecord.SharesOwned.Sub(shares))
 
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawnAmount)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, owner, withdrawnAmount)
 	if err != nil {
 		panic(err)
 	}

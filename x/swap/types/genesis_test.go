@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
 func TestGenesis_Default(t *testing.T) {
@@ -19,26 +19,6 @@ func TestGenesis_Default(t *testing.T) {
 
 	defaultParams := types.DefaultParams()
 	assert.Equal(t, defaultParams, defaultGenesis.Params)
-}
-
-func TestGenesis_Empty(t *testing.T) {
-	emptyGenesis := types.GenesisState{}
-	assert.True(t, emptyGenesis.IsEmpty())
-
-	emptyGenesis = types.GenesisState{
-		Params: types.Params{},
-	}
-	assert.True(t, emptyGenesis.IsEmpty())
-}
-
-func TestGenesis_NotEmpty(t *testing.T) {
-	nonEmptyGenesis := types.GenesisState{
-		Params: types.Params{
-			AllowedPools: types.NewAllowedPools(types.NewAllowedPool("ukava", "hard")),
-			SwapFee:      sdk.ZeroDec(),
-		},
-	}
-	assert.False(t, nonEmptyGenesis.IsEmpty())
 }
 
 func TestGenesis_Validate_SwapFee(t *testing.T) {
@@ -129,46 +109,6 @@ func TestGenesis_Validate_AllowedPools(t *testing.T) {
 	}
 }
 
-func TestGenesis_Equal(t *testing.T) {
-	params := types.Params{
-		types.NewAllowedPools(types.NewAllowedPool("ukava", "usdx")),
-		sdk.MustNewDecFromStr("0.85"),
-	}
-
-	genesisA := types.GenesisState{params, types.DefaultPoolRecords, types.DefaultShareRecords}
-	genesisB := types.GenesisState{params, types.DefaultPoolRecords, types.DefaultShareRecords}
-
-	assert.True(t, genesisA.Equal(genesisB))
-}
-
-func TestGenesis_NotEqual(t *testing.T) {
-	baseParams := types.Params{
-		types.NewAllowedPools(types.NewAllowedPool("ukava", "usdx")),
-		sdk.MustNewDecFromStr("0.85"),
-	}
-
-	// Base params
-	genesisAParams := baseParams
-	genesisA := types.GenesisState{genesisAParams, types.DefaultPoolRecords, types.DefaultShareRecords}
-
-	// Different swap fee
-	genesisBParams := baseParams
-	genesisBParams.SwapFee = sdk.MustNewDecFromStr("0.84")
-	genesisB := types.GenesisState{genesisBParams, types.DefaultPoolRecords, types.DefaultShareRecords}
-
-	// Different pairs
-	genesisCParams := baseParams
-	genesisCParams.AllowedPools = types.NewAllowedPools(types.NewAllowedPool("ukava", "hard"))
-	genesisC := types.GenesisState{genesisCParams, types.DefaultPoolRecords, types.DefaultShareRecords}
-
-	// A and B have different swap fees
-	assert.False(t, genesisA.Equal(genesisB))
-	// A and C have different pair token B denoms
-	assert.False(t, genesisA.Equal(genesisC))
-	// A and B and different swap fees and pair token B denoms
-	assert.False(t, genesisA.Equal(genesisB))
-}
-
 func TestGenesis_JSONEncoding(t *testing.T) {
 	raw := `{
     "params": {
@@ -233,19 +173,19 @@ func TestGenesis_YAMLEncoding(t *testing.T) {
 pool_records:
 - pool_id: ukava:usdx
   reserves_a:
-    denom: ukava
     amount: "1000000"
+    denom: ukava
   reserves_b:
-    denom: usdx
     amount: "5000000"
+    denom: usdx
   total_shares: "3000000"
 - pool_id: hard:usdx
   reserves_a:
-    denom: hard
     amount: "1000000"
+    denom: hard
   reserves_b:
-    denom: usdx
     amount: "2000000"
+    denom: usdx
   total_shares: "1500000"
 share_records:
 - depositor: kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w

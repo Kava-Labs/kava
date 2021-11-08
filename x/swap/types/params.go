@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Parameter keys and default values
@@ -15,12 +15,6 @@ var (
 	DefaultSwapFee      = sdk.ZeroDec()
 	MaxSwapFee          = sdk.OneDec()
 )
-
-// Params are governance parameters for the swap module
-type Params struct {
-	AllowedPools AllowedPools `json:"allowed_pools" yaml:"allowed_pools"`
-	SwapFee      sdk.Dec      `json:"swap_fee" yaml:"swap_fee"`
-}
 
 // NewParams returns a new params object
 func NewParams(pairs AllowedPools, swapFee sdk.Dec) Params {
@@ -46,16 +40,16 @@ func (p Params) String() string {
 		p.AllowedPools, p.SwapFee)
 }
 
-// ParamKeyTable Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+// ParamKeyTable for swap module.
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyAllowedPools, &p.AllowedPools, validateAllowedPoolsParams),
-		params.NewParamSetPair(KeySwapFee, &p.SwapFee, validateSwapFee),
+// ParamSetPairs implements params.ParamSet
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyAllowedPools, &p.AllowedPools, validateAllowedPoolsParams),
+		paramtypes.NewParamSetPair(KeySwapFee, &p.SwapFee, validateSwapFee),
 	}
 }
 
@@ -88,12 +82,6 @@ func validateSwapFee(i interface{}) error {
 	}
 
 	return nil
-}
-
-// AllowedPool defines a tradable pool
-type AllowedPool struct {
-	TokenA string `json:"token_a" yaml:"token_a"`
-	TokenB string `json:"token_b" yaml:"token_b"`
 }
 
 // NewAllowedPool returns a new AllowedPool object

@@ -85,7 +85,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 		k.AfterPoolDepositCreated(ctx, poolID, depositor, shares)
 	}
 
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, depositAmount)
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, depositAmount)
 	if err != nil {
 		return err
 	}

@@ -1,26 +1,22 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
 	"strconv"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func GetTxCmd() *cobra.Command {
 	swapTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
@@ -29,35 +25,43 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	swapTxCmd.AddCommand(flags.PostCommands(
-		getCmdDeposit(cdc),
-		getCmdWithdraw(cdc),
-		getCmdSwapExactForTokens(cdc),
-		getCmdSwapForExactTokens(cdc),
-	)...)
+	cmds := []*cobra.Command{
+		getCmdDeposit(),
+		getCmdWithdraw(),
+		getCmdSwapExactForTokens(),
+		getCmdSwapForExactTokens(),
+	}
+
+	for _, cmd := range cmds {
+		flags.AddTxFlagsToCmd(cmd)
+	}
+
+	swapTxCmd.AddCommand(cmds...)
 
 	return swapTxCmd
 }
 
-func getCmdDeposit(cdc *codec.Codec) *cobra.Command {
+func getCmdDeposit() *cobra.Command {
 	return &cobra.Command{
 		Use:   "deposit [tokenA] [tokenB] [slippage] [deadline]",
 		Short: "deposit coins to a swap liquidity pool",
 		Example: fmt.Sprintf(
-			`%s tx %s deposit 10000000ukava 10000000usdx 0.01 1624224736 --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s deposit 10000000ukava 10000000usdx 0.01 1624224736 --from <key>`,
+			version.AppName, types.ModuleName,
 		),
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			tokenA, err := sdk.ParseCoin(args[0])
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			tokenB, err := sdk.ParseCoin(args[1])
+			tokenA, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			tokenB, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -72,28 +76,31 @@ func getCmdDeposit(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgDeposit(cliCtx.GetFromAddress(), tokenA, tokenB, slippage, deadline)
+			signer := clientCtx.GetFromAddress()
+			msg := types.NewMsgDeposit(signer.String(), tokenA, tokenB, slippage, deadline)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 }
 
-func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
+func getCmdWithdraw() *cobra.Command {
 	return &cobra.Command{
 		Use:   "withdraw [shares] [minCoinA] [minCoinB] [deadline]",
 		Short: "withdraw coins from a swap liquidity pool",
 		Example: fmt.Sprintf(
-			`%s tx %s withdraw 153000 10000000ukava 20000000usdx 176293740 --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s withdraw 153000 10000000ukava 20000000usdx 176293740 --from <key>`,
+			version.AppName, types.ModuleName,
 		),
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			numShares, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
@@ -101,12 +108,12 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 			}
 			shares := sdk.NewInt(numShares)
 
-			minTokenA, err := sdk.ParseCoin(args[1])
+			minTokenA, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
 
-			minTokenB, err := sdk.ParseCoin(args[2])
+			minTokenB, err := sdk.ParseCoinNormalized(args[2])
 			if err != nil {
 				return err
 			}
@@ -116,35 +123,38 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgWithdraw(cliCtx.GetFromAddress(), shares, minTokenA, minTokenB, deadline)
+			fromAddr := clientCtx.GetFromAddress()
+			msg := types.NewMsgWithdraw(fromAddr.String(), shares, minTokenA, minTokenB, deadline)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 }
 
-func getCmdSwapExactForTokens(cdc *codec.Codec) *cobra.Command {
+func getCmdSwapExactForTokens() *cobra.Command {
 	return &cobra.Command{
 		Use:   "swap-exact-for-tokens [exactCoinA] [coinB] [slippage] [deadline]",
 		Short: "swap an exact amount of token a for token b",
 		Example: fmt.Sprintf(
-			`%s tx %s swap-exact-for-tokens 1000000ukava 5000000usdx 0.01 1624224736 --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s swap-exact-for-tokens 1000000ukava 5000000usdx 0.01 1624224736 --from <key>`,
+			version.AppName, types.ModuleName,
 		),
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			exactTokenA, err := sdk.ParseCoin(args[0])
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			tokenB, err := sdk.ParseCoin(args[1])
+			exactTokenA, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			tokenB, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -159,35 +169,38 @@ func getCmdSwapExactForTokens(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgSwapExactForTokens(cliCtx.GetFromAddress(), exactTokenA, tokenB, slippage, deadline)
+			fromAddr := clientCtx.GetFromAddress()
+			msg := types.NewMsgSwapExactForTokens(fromAddr.String(), exactTokenA, tokenB, slippage, deadline)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 }
 
-func getCmdSwapForExactTokens(cdc *codec.Codec) *cobra.Command {
+func getCmdSwapForExactTokens() *cobra.Command {
 	return &cobra.Command{
 		Use:   "swap-for-exact-tokens [coinA] [exactCoinB] [slippage] [deadline]",
 		Short: "swap token a for exact amount of token b",
 		Example: fmt.Sprintf(
-			`%s tx %s swap-for-exact-tokens 1000000ukava 5000000usdx 0.01 1624224736 --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s swap-for-exact-tokens 1000000ukava 5000000usdx 0.01 1624224736 --from <key>`,
+			version.AppName, types.ModuleName,
 		),
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			tokenA, err := sdk.ParseCoin(args[0])
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			exactTokenB, err := sdk.ParseCoin(args[1])
+			tokenA, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			exactTokenB, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -202,12 +215,13 @@ func getCmdSwapForExactTokens(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgSwapForExactTokens(cliCtx.GetFromAddress(), tokenA, exactTokenB, slippage, deadline)
+			fromAddr := clientCtx.GetFromAddress()
+			msg := types.NewMsgSwapForExactTokens(fromAddr.String(), tokenA, exactTokenB, slippage, deadline)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 }
