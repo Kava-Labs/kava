@@ -43,7 +43,6 @@ func (gs GenesisState) GetCommittees() []Committee {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-// TODO: Is this needed?
 func (data GenesisState) UnpackInterfaces(unpacker cdctypes.AnyUnpacker) error {
 	for _, c := range data.GetCommittees() {
 		err := c.UnpackInterfaces(unpacker)

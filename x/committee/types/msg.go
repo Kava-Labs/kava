@@ -28,7 +28,7 @@ func NewMsgSubmitProposal(pubProposal PubProposal, proposer sdk.AccAddress, comm
 	}
 	return MsgSubmitProposal{
 		Any:         any,
-		Proposer:    proposer.String(),
+		Proposer:    proposer,
 		CommitteeId: committeeId,
 	}, nil
 }
@@ -58,8 +58,8 @@ func (msg MsgSubmitProposal) ValidateBasic() error {
 	if msg.GetPubProposal() == nil {
 		return sdkerrors.Wrap(ErrInvalidPubProposal, "pub proposal cannot be nil")
 	}
-	if _, err := sdk.AccAddressFromBech32(msg.Proposer); err != nil {
-		return err
+	if msg.Proposer.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "proposer address cannot be empty")
 	}
 	return msg.GetPubProposal().ValidateBasic()
 }
@@ -72,11 +72,7 @@ func (msg MsgSubmitProposal) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgSubmitProposal) GetSigners() []sdk.AccAddress {
-	proposer, err := sdk.AccAddressFromBech32(msg.Proposer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{proposer}
+	return []sdk.AccAddress{msg.Proposer}
 }
 
 // Marshal needed for protobuf compatibility.
@@ -124,7 +120,7 @@ func (vo VoteType) Format(s fmt.State, verb rune) {
 }
 
 // NewMsgVote creates a message to cast a vote on an active proposal
-func NewMsgVote(voter string, proposalID uint64, voteType VoteType) MsgVote {
+func NewMsgVote(voter sdk.AccAddress, proposalID uint64, voteType VoteType) MsgVote {
 	return MsgVote{proposalID, voter, voteType}
 }
 
@@ -136,8 +132,8 @@ func (msg MsgVote) Type() string { return TypeMsgVote }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgVote) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Voter); err != nil {
-		return err
+	if msg.Voter.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "voter address cannot be empty")
 	}
 	return msg.VoteType.Validate()
 }
@@ -150,9 +146,5 @@ func (msg MsgVote) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgVote) GetSigners() []sdk.AccAddress {
-	voter, err := sdk.AccAddressFromBech32(msg.Voter)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{voter}
+	return []sdk.AccAddress{msg.Voter}
 }
