@@ -1,8 +1,10 @@
 package keeper_test
 
 import (
+	"os"
 	"testing"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/swap/testutil"
 	"github.com/kava-labs/kava/x/swap/types"
 	"github.com/kava-labs/kava/x/swap/types/mocks"
@@ -10,6 +12,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 )
+
+func TestMain(m *testing.M) {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
+	os.Exit(m.Run())
+}
 
 type keeperTestSuite struct {
 	testutil.Suite
@@ -120,7 +129,8 @@ func (suite *keeperTestSuite) TestPool_PanicsWhenInvalid() {
 
 func (suite *keeperTestSuite) TestShare_Persistance() {
 	poolID := types.PoolID("ukava", "usdx")
-	depositor := sdk.AccAddress("testAddress1")
+	depositor, err := sdk.AccAddressFromBech32("kava1skpsgk5cnrarn69ql2tfun47fyjssataz0g07l")
+	suite.NoError(err)
 	shares := sdk.NewInt(3126432331)
 
 	record := types.NewShareRecord(depositor, poolID, shares)

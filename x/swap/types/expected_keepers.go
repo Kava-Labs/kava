@@ -2,23 +2,26 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-// SupplyKeeper defines the expected supply keeper (noalias)
-type SupplyKeeper interface {
+// AccountKeeper defines the expected account keeper (noalias)
+type AccountKeeper interface {
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
+	SetModuleAccount(sdk.Context, types.ModuleAccountI)
+
+	// moved in from supply
 	GetModuleAddress(name string) sdk.AccAddress
-	GetModuleAccount(ctx sdk.Context, name string) exported.ModuleAccountI
-	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
-	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	GetModuleAccount(ctx sdk.Context, name string) types.ModuleAccountI
 }
 
-// AccountKeeper defines the expected keeper interface for interacting with account (noalias)
-type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
-	SetAccount(ctx sdk.Context, acc authexported.Account)
+// BankKeeper defines the expected interface needed to retrieve account balances.
+type BankKeeper interface {
+	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+
+	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 }
 
 // SwapHooks are event hooks called when a user's deposit to a swap pool changes.

@@ -14,17 +14,17 @@ import (
 )
 
 // NewQuerier is the module level router for state queries
-func NewQuerier(k Keeper) sdk.Querier {
+func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryGetParams:
-			return queryGetParams(ctx, req, k)
+			return queryGetParams(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetDeposits:
-			return queryGetDeposits(ctx, req, k)
+			return queryGetDeposits(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetPool:
-			return queryGetPool(ctx, req, k)
+			return queryGetPool(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetPools:
-			return queryGetPools(ctx, req, k)
+			return queryGetPools(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -32,21 +32,21 @@ func NewQuerier(k Keeper) sdk.Querier {
 }
 
 // query params in the swap store
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	// Get params
 	params := keeper.GetParams(ctx)
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryDepositsParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -72,17 +72,17 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	}
 
 	var bz []byte
-	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, queryResults)
+	bz, err = codec.MarshalJSONIndent(legacyQuerierCdc, queryResults)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryGetPool(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryGetPool(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 
 	var params types.QueryPoolParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -101,14 +101,14 @@ func queryGetPool(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, err
 	poolStats := types.NewPoolStatsQueryResult(params.Pool, totalCoins, pool.TotalShares())
 
 	var bz []byte
-	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, poolStats)
+	bz, err = codec.MarshalJSONIndent(legacyQuerierCdc, poolStats)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryGetPools(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryGetPools(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	pools := k.GetAllPools(ctx)
 
 	var queryResults types.PoolStatsQueryResults
@@ -123,7 +123,7 @@ func queryGetPools(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, er
 	}
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, queryResults)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, queryResults)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -162,16 +162,4 @@ func filterShareRecords(ctx sdk.Context, records types.ShareRecords, params type
 	}
 
 	return filteredRecords
-}
-
-func (k Keeper) loadDenominatedPool(ctx sdk.Context, poolID string) (*types.DenominatedPool, error) {
-	poolRecord, found := k.GetPool(ctx, poolID)
-	if !found {
-		return &types.DenominatedPool{}, types.ErrInvalidPool
-	}
-	denominatedPool, err := types.NewDenominatedPoolWithExistingShares(poolRecord.Reserves(), poolRecord.TotalShares)
-	if err != nil {
-		return &types.DenominatedPool{}, types.ErrInvalidPool
-	}
-	return denominatedPool, nil
 }

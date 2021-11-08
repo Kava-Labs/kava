@@ -75,7 +75,7 @@ func PoolReservesInvariant(k Keeper) sdk.Invariant {
 	message := sdk.FormatInvariant(types.ModuleName, "pool reserves broken", "pool reserves do not match module account")
 
 	return func(ctx sdk.Context) (string, bool) {
-		mAcc := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
+		balance := k.bankKeeper.GetAllBalances(ctx, k.GetSwapModuleAccount(ctx).GetAddress())
 
 		reserves := sdk.Coins{}
 		k.IteratePools(ctx, func(record types.PoolRecord) bool {
@@ -85,7 +85,7 @@ func PoolReservesInvariant(k Keeper) sdk.Invariant {
 			return false
 		})
 
-		broken := !reserves.IsEqual(mAcc.GetCoins())
+		broken := !reserves.IsEqual(balance)
 		return message, broken
 	}
 }

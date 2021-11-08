@@ -3,16 +3,16 @@ package swap_test
 import (
 	"testing"
 
-	"github.com/kava-labs/kava/x/swap"
 	"github.com/kava-labs/kava/x/swap/testutil"
+	"github.com/kava-labs/kava/x/swap/types"
 
-	"github.com/cosmos/cosmos-sdk/x/crisis"
+	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	"github.com/stretchr/testify/suite"
 )
 
 type moduleTestSuite struct {
 	testutil.Suite
-	crisisKeeper crisis.Keeper
+	crisisKeeper crisiskeeper.Keeper
 }
 
 func (suite *moduleTestSuite) SetupTest() {
@@ -24,7 +24,7 @@ func (suite *moduleTestSuite) TestRegisterInvariants() {
 	swapRoutes := []string{}
 
 	for _, route := range suite.crisisKeeper.Routes() {
-		if route.ModuleName == swap.ModuleName {
+		if route.ModuleName == types.ModuleName {
 			swapRoutes = append(swapRoutes, route.Route)
 		}
 	}
