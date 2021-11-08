@@ -40,20 +40,6 @@ func (t *TallyOption) Unmarshal(data []byte) error {
 	return nil
 }
 
-// String implements the Stringer interface.
-func (t TallyOption) String() string {
-	// TODO: QUESTION: Can we just use the protobuf generated string implementation?
-	// Is the frontend relying on these specific values?
-	switch t {
-	case TALLY_OPTION_FIRST_PAST_THE_POST:
-		return "FirstPastThePost"
-	case TALLY_OPTION_DEADLINE:
-		return "Deadline"
-	default:
-		return ""
-	}
-}
-
 // Committee is an interface for handling common actions on committees
 type Committee interface {
 	codec.ProtoMarshaler
@@ -121,6 +107,9 @@ func (c *BaseCommittee) GetPermissions() []Permission {
 
 // SetPermissions is a setter for committee permissions
 func (c *BaseCommittee) SetPermissions(permissions []Permission) {
+	if len(permissions) == 0 {
+		c.Permissions = nil
+	}
 	permissionsAny, err := PackPermissions(permissions)
 	if err != nil {
 		panic(err)

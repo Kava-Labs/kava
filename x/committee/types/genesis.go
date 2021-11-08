@@ -44,8 +44,14 @@ func (gs GenesisState) GetCommittees() []Committee {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (data GenesisState) UnpackInterfaces(unpacker cdctypes.AnyUnpacker) error {
-	for _, c := range data.GetCommittees() {
-		err := c.UnpackInterfaces(unpacker)
+	for _, any := range data.Committees {
+		var committee Committee
+		if err := unpacker.UnpackAny(any, &committee); err != nil {
+			return err
+		}
+	}
+	for _, p := range data.Proposals {
+		err := p.UnpackInterfaces(unpacker)
 		if err != nil {
 			return err
 		}

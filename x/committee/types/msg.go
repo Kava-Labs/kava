@@ -86,22 +86,6 @@ func (vt *VoteType) Unmarshal(data []byte) error {
 	return nil
 }
 
-// String implements the Stringer interface.
-func (vt VoteType) String() string {
-	// TODO: QUESTION: Can we just use the protobuf generated string implementation?
-	// Is the frontend relying on these specific values?
-	switch vt {
-	case VOTE_TYPE_YES:
-		return "Yes"
-	case VOTE_TYPE_ABSTAIN:
-		return "Abstain"
-	case VOTE_TYPE_NO:
-		return "No"
-	default:
-		return ""
-	}
-}
-
 func (vt VoteType) Validate() error {
 	if vt <= 0 || vt > 3 {
 		return fmt.Errorf("invalid vote type: %d", vt)
