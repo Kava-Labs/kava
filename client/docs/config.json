@@ -41,6 +41,23 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/kava/swap/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Swap"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Swap$1"
+          }
+        ]
+      }
+    },
+    {
       "url": "./client/docs/cosmos-swagger.yml",
       "dereference": {
         "circular": "ignore"

@@ -457,6 +457,378 @@ paths:
           type: string
       tags:
         - Pricefeed
+  /kava/swap/v1beta1/deposits:
+    get:
+      summary: Deposits queries deposit details based on owner address and pool
+      operationId: SwapDeposits
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              deposits:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    depositor:
+                      type: string
+                      title: depositor represents the owner of the deposit
+                    pool_id:
+                      type: string
+                      title: pool_id represents the pool the deposit is for
+                    shares_owned:
+                      type: string
+                      title: >-
+                        shares_owned presents the shares owned by the depositor
+                        for the pool
+                    shares_value:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          Coin defines a token with a denomination and an
+                          amount.
+
+
+                          NOTE: The amount field is an Int which implements the
+                          custom method
+
+                          signatures required by gogoproto.
+                      title: >-
+                        shares_value represents the coin value of the
+                        shares_owned
+                  description: >-
+                    DepositResponse defines a single deposit query response
+                    type.
+                title: >-
+                  deposits returns the deposits matching the requested
+                  parameters
+              pagination:
+                description: pagination defines the pagination in the response.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+            description: >-
+              QueryDepositsResponse is the response type for the Query/Deposits
+              RPC method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: owner
+          description: owner optionally filters deposits by owner.
+          in: query
+          required: false
+          type: string
+        - name: pool_id
+          description: pool_id optionally fitlers deposits by pool id.
+          in: query
+          required: false
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+      tags:
+        - Swap
+  /kava/swap/v1beta1/params:
+    get:
+      summary: Params queries all parameters of the swap module.
+      operationId: SwapParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                title: params represents the swap module parameters
+                type: object
+                properties:
+                  allowed_pools:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        token_a:
+                          type: string
+                          title: token_a represents the a token allowed
+                        token_b:
+                          type: string
+                          title: token_b represents the b token allowed
+                      title: AllowedPool defines a pool that is allowed to be created
+                    title: >-
+                      allowed_pools defines that pools that are allowed to be
+                      created
+                  swap_fee:
+                    type: string
+                    title: swap_fee defines the swap fee for all pools
+                description: Params defines the parameters for the swap module.
+            description: >-
+              QueryParamsResponse defines the response type for querying x/swap
+              parameters.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Swap
+  /kava/swap/v1beta1/pools:
+    get:
+      summary: Pools queries pools based on pool ID
+      operationId: SwapPools
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              pools:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      title: name represents the name of the pool
+                    coins:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          Coin defines a token with a denomination and an
+                          amount.
+
+
+                          NOTE: The amount field is an Int which implements the
+                          custom method
+
+                          signatures required by gogoproto.
+                      title: coins represents the total reserves of the pool
+                    total_shares:
+                      type: string
+                      title: total_shares represents the total shares of the pool
+                  title: Pool represents the state of a single pool
+                title: pools represents returned pools
+              pagination:
+                description: pagination defines the pagination in the response.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+            description: >-
+              QueryPoolsResponse is the response type for the Query/Pools RPC
+              method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pool_id
+          description: pool_id filters pools by id.
+          in: query
+          required: false
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+      tags:
+        - Swap
   /node_info:
     get:
       description: Information about the connected node
@@ -23345,6 +23717,304 @@ definitions:
     description: |-
       QueryRawPricesResponse is the response type for the Query/RawPrices RPC
       method.
+  cosmos.base.query.v1beta1.PageRequest:
+    type: object
+    properties:
+      key:
+        type: string
+        format: byte
+        description: |-
+          key is a value returned in PageResponse.next_key to begin
+          querying the next page most efficiently. Only one of offset or key
+          should be set.
+      offset:
+        type: string
+        format: uint64
+        description: |-
+          offset is a numeric offset that can be used when key is unavailable.
+          It is less efficient than using key. Only one of offset or key should
+          be set.
+      limit:
+        type: string
+        format: uint64
+        description: >-
+          limit is the total number of results to be returned in the result
+          page.
+
+          If left empty it will default to a value to be set by each app.
+      count_total:
+        type: boolean
+        format: boolean
+        description: >-
+          count_total is set to true  to indicate that the result set should
+          include
+
+          a count of the total number of items available for pagination in UIs.
+
+          count_total is only respected when offset is used. It is ignored when
+          key
+
+          is set.
+      reverse:
+        type: boolean
+        format: boolean
+        description: >-
+          reverse is set to true if results are to be returned in the descending
+          order.
+    description: |-
+      message SomeRequest {
+               Foo some_parameter = 1;
+               PageRequest pagination = 2;
+       }
+    title: |-
+      PageRequest is to be embedded in gRPC request messages for efficient
+      pagination. Ex:
+  cosmos.base.query.v1beta1.PageResponse:
+    type: object
+    properties:
+      next_key:
+        type: string
+        format: byte
+        title: |-
+          next_key is the key to be passed to PageRequest.key to
+          query the next page most efficiently
+      total:
+        type: string
+        format: uint64
+        title: |-
+          total is total number of results available if PageRequest.count_total
+          was set, its value is undefined otherwise
+    description: |-
+      PageResponse is to be embedded in gRPC response messages where the
+      corresponding request message has used PageRequest.
+
+       message SomeResponse {
+               repeated Bar results = 1;
+               PageResponse page = 2;
+       }
+  kava.swap.v1beta1.AllowedPool:
+    type: object
+    properties:
+      token_a:
+        type: string
+        title: token_a represents the a token allowed
+      token_b:
+        type: string
+        title: token_b represents the b token allowed
+    title: AllowedPool defines a pool that is allowed to be created
+  kava.swap.v1beta1.DepositResponse:
+    type: object
+    properties:
+      depositor:
+        type: string
+        title: depositor represents the owner of the deposit
+      pool_id:
+        type: string
+        title: pool_id represents the pool the deposit is for
+      shares_owned:
+        type: string
+        title: shares_owned presents the shares owned by the depositor for the pool
+      shares_value:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+        title: shares_value represents the coin value of the shares_owned
+    description: DepositResponse defines a single deposit query response type.
+  kava.swap.v1beta1.Params:
+    type: object
+    properties:
+      allowed_pools:
+        type: array
+        items:
+          type: object
+          properties:
+            token_a:
+              type: string
+              title: token_a represents the a token allowed
+            token_b:
+              type: string
+              title: token_b represents the b token allowed
+          title: AllowedPool defines a pool that is allowed to be created
+        title: allowed_pools defines that pools that are allowed to be created
+      swap_fee:
+        type: string
+        title: swap_fee defines the swap fee for all pools
+    description: Params defines the parameters for the swap module.
+  kava.swap.v1beta1.PoolResponse:
+    type: object
+    properties:
+      name:
+        type: string
+        title: name represents the name of the pool
+      coins:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+        title: coins represents the total reserves of the pool
+      total_shares:
+        type: string
+        title: total_shares represents the total shares of the pool
+    title: Pool represents the state of a single pool
+  kava.swap.v1beta1.QueryDepositsResponse:
+    type: object
+    properties:
+      deposits:
+        type: array
+        items:
+          type: object
+          properties:
+            depositor:
+              type: string
+              title: depositor represents the owner of the deposit
+            pool_id:
+              type: string
+              title: pool_id represents the pool the deposit is for
+            shares_owned:
+              type: string
+              title: >-
+                shares_owned presents the shares owned by the depositor for the
+                pool
+            shares_value:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+              title: shares_value represents the coin value of the shares_owned
+          description: DepositResponse defines a single deposit query response type.
+        title: deposits returns the deposits matching the requested parameters
+      pagination:
+        description: pagination defines the pagination in the response.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+    description: >-
+      QueryDepositsResponse is the response type for the Query/Deposits RPC
+      method.
+  kava.swap.v1beta1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        title: params represents the swap module parameters
+        type: object
+        properties:
+          allowed_pools:
+            type: array
+            items:
+              type: object
+              properties:
+                token_a:
+                  type: string
+                  title: token_a represents the a token allowed
+                token_b:
+                  type: string
+                  title: token_b represents the b token allowed
+              title: AllowedPool defines a pool that is allowed to be created
+            title: allowed_pools defines that pools that are allowed to be created
+          swap_fee:
+            type: string
+            title: swap_fee defines the swap fee for all pools
+        description: Params defines the parameters for the swap module.
+    description: >-
+      QueryParamsResponse defines the response type for querying x/swap
+      parameters.
+  kava.swap.v1beta1.QueryPoolsResponse:
+    type: object
+    properties:
+      pools:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              title: name represents the name of the pool
+            coins:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+              title: coins represents the total reserves of the pool
+            total_shares:
+              type: string
+              title: total_shares represents the total shares of the pool
+          title: Pool represents the state of a single pool
+        title: pools represents returned pools
+      pagination:
+        description: pagination defines the pagination in the response.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+    description: QueryPoolsResponse is the response type for the Query/Pools RPC method.
   CheckTxResult:
     type: object
     properties:
@@ -25018,81 +25688,6 @@ definitions:
             type: string
             format: uint64
     description: QueryParamsResponse is the response type for the Query/Params RPC method.
-  cosmos.base.query.v1beta1.PageRequest:
-    type: object
-    properties:
-      key:
-        type: string
-        format: byte
-        description: |-
-          key is a value returned in PageResponse.next_key to begin
-          querying the next page most efficiently. Only one of offset or key
-          should be set.
-      offset:
-        type: string
-        format: uint64
-        description: |-
-          offset is a numeric offset that can be used when key is unavailable.
-          It is less efficient than using key. Only one of offset or key should
-          be set.
-      limit:
-        type: string
-        format: uint64
-        description: >-
-          limit is the total number of results to be returned in the result
-          page.
-
-          If left empty it will default to a value to be set by each app.
-      count_total:
-        type: boolean
-        format: boolean
-        description: >-
-          count_total is set to true  to indicate that the result set should
-          include
-
-          a count of the total number of items available for pagination in UIs.
-
-          count_total is only respected when offset is used. It is ignored when
-          key
-
-          is set.
-      reverse:
-        type: boolean
-        format: boolean
-        description: >-
-          reverse is set to true if results are to be returned in the descending
-          order.
-    description: |-
-      message SomeRequest {
-               Foo some_parameter = 1;
-               PageRequest pagination = 2;
-       }
-    title: |-
-      PageRequest is to be embedded in gRPC request messages for efficient
-      pagination. Ex:
-  cosmos.base.query.v1beta1.PageResponse:
-    type: object
-    properties:
-      next_key:
-        type: string
-        format: byte
-        title: |-
-          next_key is the key to be passed to PageRequest.key to
-          query the next page most efficiently
-      total:
-        type: string
-        format: uint64
-        title: |-
-          total is total number of results available if PageRequest.count_total
-          was set, its value is undefined otherwise
-    description: |-
-      PageResponse is to be embedded in gRPC response messages where the
-      corresponding request message has used PageRequest.
-
-       message SomeResponse {
-               repeated Bar results = 1;
-               PageResponse page = 2;
-       }
   cosmos.bank.v1beta1.DenomOwner:
     type: object
     properties:
