@@ -9,7 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -29,7 +29,7 @@ func (suite *CdpTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates(
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
@@ -45,7 +45,8 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
-	acc.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
+	suite.app.FundAccount(suite.ctx, acc.GetAddress(), cs(c("xrp", 200000000), c("btc", 500000000)))
+
 	ak.SetAccount(suite.ctx, acc)
 	err := suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 10000000), "btc-a")
 	suite.Require().True(errors.Is(err, types.ErrInvalidCollateral))
@@ -57,7 +58,7 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Require().True(errors.Is(err, types.ErrDebtNotSupported))
 
 	acc2 := ak.NewAccountWithAddress(suite.ctx, addrs[1])
-	acc2.SetCoins(cs(c("btc", 500000000000)))
+	suite.app.FundAccount(suite.ctx, acc2.GetAddress(), cs(c("btc", 500000000000)))
 	ak.SetAccount(suite.ctx, acc2)
 	err = suite.keeper.AddCdp(suite.ctx, addrs[1], c("btc", 500000000000), c("usdx", 500000000001), "btc-a")
 	suite.Require().True(errors.Is(err, types.ErrExceedsDebtLimit))
@@ -81,11 +82,13 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Equal(uint64(2), id)
 	tp := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp-a", "usdx")
 	suite.Equal(i(10000000), tp)
-	sk := suite.app.GetSupplyKeeper()
-	macc := sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(cs(c("debt", 10000000), c("xrp", 100000000)), macc.GetCoins())
+
+	bk := suite.app.GetBankKeeper()
+
+	macc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(cs(c("debt", 10000000), c("xrp", 100000000)), bk.GetAllBalances(suite.ctx, macc.GetAddress()))
 	acc = ak.GetAccount(suite.ctx, addrs[0])
-	suite.Equal(cs(c("usdx", 10000000), c("xrp", 100000000), c("btc", 500000000)), acc.GetCoins())
+	suite.Equal(cs(c("usdx", 10000000), c("xrp", 100000000), c("btc", 500000000)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("btc", 500000000), c("usdx", 26667000000), "btc-a")
 	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
@@ -96,10 +99,10 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Equal(uint64(3), id)
 	tp = suite.keeper.GetTotalPrincipal(suite.ctx, "btc-a", "usdx")
 	suite.Equal(i(100000000), tp)
-	macc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(cs(c("debt", 110000000), c("xrp", 100000000), c("btc", 500000000)), macc.GetCoins())
+	macc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(cs(c("debt", 110000000), c("xrp", 100000000), c("btc", 500000000)), bk.GetAllBalances(suite.ctx, macc.GetAddress()))
 	acc = ak.GetAccount(suite.ctx, addrs[0])
-	suite.Equal(cs(c("usdx", 110000000), c("xrp", 100000000)), acc.GetCoins())
+	suite.Equal(cs(c("usdx", 110000000), c("xrp", 100000000)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("lol", 100), c("usdx", 10), "lol-a")
 	suite.Require().True(errors.Is(err, types.ErrCollateralNotSupported))
@@ -304,18 +307,19 @@ func (suite *CdpTestSuite) TestMintBurnDebtCoins() {
 		_ = suite.keeper.MintDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	})
 
-	sk := suite.app.GetSupplyKeeper()
-	acc := sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(cs(c("debt", 10000000)), acc.GetCoins())
+	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
+	acc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(cs(c("debt", 10000000)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 	err = suite.keeper.BurnDebtCoins(suite.ctx, types.ModuleName, suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	suite.NoError(err)
 	suite.Require().Panics(func() {
 		_ = suite.keeper.BurnDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	})
-	sk = suite.app.GetSupplyKeeper()
-	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(sdk.Coins(nil), acc.GetCoins())
+
+	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(sdk.Coins(nil), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 }
 
 func TestCdpTestSuite(t *testing.T) {
