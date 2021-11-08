@@ -201,9 +201,8 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
-		pricefeedtypes.StoreKey, kavadisttypes.StoreKey, cdptypes.StoreKey,
-		kavadisttypes.StoreKey, issuancetypes.StoreKey,
-		swaptypes.StoreKey,
+		pricefeedtypes.StoreKey, cdptypes.StoreKey, kavadisttypes.StoreKey,
+		issuancetypes.StoreKey, swaptypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
