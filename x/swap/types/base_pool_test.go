@@ -3,6 +3,7 @@ package types_test
 import (
 	"fmt"
 	"math/big"
+
 	"testing"
 
 	types "github.com/kava-labs/kava/x/swap/types"
@@ -45,10 +46,10 @@ func TestBasePool_NewPool_Validation(t *testing.T) {
 		reservesB   sdk.Int
 		expectedErr string
 	}{
-		{i(0), i(1e6), "invalid pool: reserves must be greater than zero"},
-		{i(0), i(0), "invalid pool: reserves must be greater than zero"},
-		{i(-1), i(1e6), "invalid pool: reserves must be greater than zero"},
-		{i(1e6), i(-1), "invalid pool: reserves must be greater than zero"},
+		{i(0), i(1e6), "reserves must be greater than zero: invalid pool"},
+		{i(0), i(0), "reserves must be greater than zero: invalid pool"},
+		{i(-1), i(1e6), "reserves must be greater than zero: invalid pool"},
+		{i(1e6), i(-1), "reserves must be greater than zero: invalid pool"},
 	}
 
 	for _, tc := range testCases {
@@ -67,13 +68,13 @@ func TestBasePool_NewPoolWithExistingShares_Validation(t *testing.T) {
 		totalShares sdk.Int
 		expectedErr string
 	}{
-		{i(0), i(1e6), i(1), "invalid pool: reserves must be greater than zero"},
-		{i(0), i(0), i(1), "invalid pool: reserves must be greater than zero"},
-		{i(-1), i(1e6), i(3), "invalid pool: reserves must be greater than zero"},
-		{i(1e6), i(-1), i(100), "invalid pool: reserves must be greater than zero"},
-		{i(1e6), i(-1), i(3), "invalid pool: reserves must be greater than zero"},
-		{i(1e6), i(1e6), i(0), "invalid pool: total shares must be greater than zero"},
-		{i(1e6), i(1e6), i(-1), "invalid pool: total shares must be greater than zero"},
+		{i(0), i(1e6), i(1), "reserves must be greater than zero: invalid pool"},
+		{i(0), i(0), i(1), "reserves must be greater than zero: invalid pool"},
+		{i(-1), i(1e6), i(3), "reserves must be greater than zero: invalid pool"},
+		{i(1e6), i(-1), i(100), "reserves must be greater than zero: invalid pool"},
+		{i(1e6), i(-1), i(3), "reserves must be greater than zero: invalid pool"},
+		{i(1e6), i(1e6), i(0), "total shares must be greater than zero: invalid pool"},
+		{i(1e6), i(1e6), i(-1), "total shares must be greater than zero: invalid pool"},
 	}
 
 	for _, tc := range testCases {

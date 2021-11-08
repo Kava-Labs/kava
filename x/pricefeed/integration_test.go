@@ -9,8 +9,8 @@ import (
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-func NewPricefeedGenStateMulti() app.GenesisState {
-	pfGenesis := types.GenesisState{
+func NewPricefeedGen() types.GenesisState {
+	return types.GenesisState{
 		Params: types.Params{
 			Markets: []types.Market{
 				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []string{}, Active: true},
@@ -32,6 +32,10 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 			},
 		},
 	}
+}
+
+func NewPricefeedGenStateMulti() app.GenesisState {
+	pfGenesis := NewPricefeedGen()
 	return app.GenesisState{types.ModuleName: types.ModuleCdc.LegacyAmino.MustMarshalJSON(pfGenesis)}
 }
 

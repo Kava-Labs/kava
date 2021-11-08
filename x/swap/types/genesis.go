@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,13 +17,6 @@ var (
 	// DefaultShareRecords is used to set default records in default genesis state
 	DefaultShareRecords = ShareRecords{}
 )
-
-// GenesisState is the state that must be provided at genesis.
-type GenesisState struct {
-	Params       Params `json:"params" yaml:"params"`
-	PoolRecords  `json:"pool_records" yaml:"pool_records"`
-	ShareRecords `json:"share_records" yaml:"share_records"`
-}
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(params Params, poolRecords PoolRecords, shareRecords ShareRecords) GenesisState {
@@ -82,16 +74,4 @@ func DefaultGenesisState() GenesisState {
 		DefaultPoolRecords,
 		DefaultShareRecords,
 	)
-}
-
-// Equal checks whether two gov GenesisState structs are equivalent
-func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	b1 := ModuleCdc.MustMarshalBinaryBare(gs)
-	b2 := ModuleCdc.MustMarshalBinaryBare(gs2)
-	return bytes.Equal(b1, b2)
-}
-
-// IsEmpty returns true if a GenesisState is empty
-func (gs GenesisState) IsEmpty() bool {
-	return gs.Equal(GenesisState{})
 }

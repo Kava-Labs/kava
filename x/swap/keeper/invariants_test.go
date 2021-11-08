@@ -37,12 +37,12 @@ func (suite *invariantTestSuite) SetupValidState() {
 		),
 	)
 	suite.Keeper.SetDepositorShares(suite.Ctx, types.NewShareRecord(
-		sdk.AccAddress("depositor 1"),
+		sdk.AccAddress("depositor 1---------"), // TODO these addresses are padded to get to the required length of 20 bytes. What is a nicer setup?
 		types.PoolID("ukava", "usdx"),
 		sdk.NewInt(2e6),
 	))
 	suite.Keeper.SetDepositorShares(suite.Ctx, types.NewShareRecord(
-		sdk.AccAddress("depositor 2"),
+		sdk.AccAddress("depositor 2---------"),
 		types.PoolID("ukava", "usdx"),
 		sdk.NewInt(1e6),
 	))
@@ -61,7 +61,7 @@ func (suite *invariantTestSuite) SetupValidState() {
 		),
 	)
 	suite.Keeper.SetDepositorShares(suite.Ctx, types.NewShareRecord(
-		sdk.AccAddress("depositor 1"),
+		sdk.AccAddress("depositor 1---------"),
 		types.PoolID("hard", "usdx"),
 		sdk.NewInt(1e6),
 	))
@@ -139,7 +139,7 @@ func (suite *invariantTestSuite) TestShareRecordsInvariant() {
 
 	// broken with invalid share record
 	suite.Keeper.SetDepositorShares_Raw(suite.Ctx, types.NewShareRecord(
-		sdk.AccAddress("depositor 1"),
+		sdk.AccAddress("depositor 1---------"),
 		types.PoolID("ukava", "usdx"),
 		sdk.NewInt(-1e6),
 	))

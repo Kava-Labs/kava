@@ -178,7 +178,7 @@ proto-check-breaking:
 
 TM_URL = https://raw.githubusercontent.com/tendermint/tendermint/$(TM_PKG_VERSION)/proto/tendermint
 GOGO_PROTO_URL = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
-COSMOS_PROTO_URL = https://raw.githubusercontent.com/regen-network/cosmos-proto/master
+COSMOS_PROTO_URL = https://raw.githubusercontent.com/cosmos/cosmos-proto/master
 COSMOS_SDK_URL = https://raw.githubusercontent.com/cosmos/cosmos-sdk/$(COSMOS_PKG_VERSION)
 COSMOS_SDK_PROTO_URL = https://raw.githubusercontent.com/cosmos/cosmos-sdk/$(COSMOS_PKG_VERSION)/proto/cosmos
 COSMOS_SDK_BASE_PROTO_URL = $(COSMOS_SDK_PROTO_URL)/base

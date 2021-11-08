@@ -72,14 +72,14 @@ func ValidateMarkets(ms []Market) error {
 }
 
 // NewCurrentPrice returns an instance of CurrentPrice
-func NewCurrentPrice(MarketID string, price sdk.Dec) CurrentPrice {
-	return CurrentPrice{MarketID: MarketID, Price: price}
+func NewCurrentPrice(marketID string, price sdk.Dec) CurrentPrice {
+	return CurrentPrice{MarketID: marketID, Price: price}
 }
 
 // NewPostedPrice returns a new PostedPrice
-func NewPostedPrice(MarketID string, oracle string, price sdk.Dec, expiry time.Time) PostedPrice {
+func NewPostedPrice(marketID string, oracle string, price sdk.Dec, expiry time.Time) PostedPrice {
 	return PostedPrice{
-		MarketID:      MarketID,
+		MarketID:      marketID,
 		OracleAddress: oracle,
 		Price:         price,
 		Expiry:        expiry,

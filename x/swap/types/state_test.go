@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
 func TestState_PoolID(t *testing.T) {
@@ -26,6 +26,8 @@ func TestState_PoolID(t *testing.T) {
 		{"aaab", "aaaa", "aaaa:aaab"},
 		{"a001", "a002", "a001:a002"},
 		{"a002", "a001", "a001:a002"},
+		{"AAAA", "aaaa", "AAAA:aaaa"},
+		{"aaaa", "AAAA", "AAAA:aaaa"},
 	}
 
 	for _, tc := range testCases {
@@ -96,11 +98,11 @@ func TestState_PoolRecord_JSONEncoding(t *testing.T) {
 func TestState_PoolRecord_YamlEncoding(t *testing.T) {
 	expected := `pool_id: ukava:usdx
 reserves_a:
-  denom: ukava
   amount: "1000000"
+  denom: ukava
 reserves_b:
-  denom: usdx
   amount: "5000000"
+  denom: usdx
 total_shares: "3000000"
 `
 	record := types.NewPoolRecord(sdk.NewCoins(ukava(1e6), usdx(5e6)), i(3e6))
@@ -170,22 +172,6 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 			reservesB:   validRecord.ReservesB,
 			totalShares: validRecord.TotalShares,
 			expectedErr: "poolID 'usdx:ukava' is invalid",
-		},
-		{
-			name:        "poolID has invalid denom a",
-			poolID:      "UKAVA:usdx",
-			reservesA:   validRecord.ReservesA,
-			reservesB:   validRecord.ReservesB,
-			totalShares: validRecord.TotalShares,
-			expectedErr: "poolID 'UKAVA:usdx' is invalid",
-		},
-		{
-			name:        "poolID has invalid denom b",
-			poolID:      "ukava:USDX",
-			reservesA:   validRecord.ReservesA,
-			reservesB:   validRecord.ReservesB,
-			totalShares: validRecord.TotalShares,
-			expectedErr: "poolID 'ukava:USDX' is invalid",
 		},
 		{
 			name:        "poolID has duplicate denoms",
@@ -397,7 +383,7 @@ func TestState_InvalidShareRecordEmptyDepositor(t *testing.T) {
 
 func TestState_InvalidShareRecordNegativeShares(t *testing.T) {
 	record := types.ShareRecord{
-		Depositor:   sdk.AccAddress("some user"),
+		Depositor:   sdk.AccAddress("some user ----------------"),
 		PoolID:      types.PoolID("ukava", "usdx"),
 		SharesOwned: sdk.NewInt(-1e6),
 	}
@@ -460,20 +446,6 @@ func TestState_ShareRecord_Validations(t *testing.T) {
 			poolID:      "usdx:ukava",
 			sharesOwned: validRecord.SharesOwned,
 			expectedErr: "poolID 'usdx:ukava' is invalid",
-		},
-		{
-			name:        "poolID has invalid denom a",
-			depositor:   validRecord.Depositor,
-			poolID:      "UKAVA:usdx",
-			sharesOwned: validRecord.SharesOwned,
-			expectedErr: "poolID 'UKAVA:usdx' is invalid",
-		},
-		{
-			name:        "poolID has invalid denom b",
-			depositor:   validRecord.Depositor,
-			poolID:      "ukava:USDX",
-			sharesOwned: validRecord.SharesOwned,
-			expectedErr: "poolID 'ukava:USDX' is invalid",
 		},
 		{
 			name:        "poolID has duplicate denoms",
