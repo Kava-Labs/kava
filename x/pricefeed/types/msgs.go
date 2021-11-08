@@ -22,10 +22,10 @@ const (
 var _ sdk.Msg = &MsgPostPrice{}
 
 // NewMsgPostPrice returns a new MsgPostPrice
-func NewMsgPostPrice(from string, MarketID string, price sdk.Dec, expiry time.Time) *MsgPostPrice {
+func NewMsgPostPrice(from string, marketID string, price sdk.Dec, expiry time.Time) *MsgPostPrice {
 	return &MsgPostPrice{
 		From:     from,
-		MarketID: MarketID,
+		MarketID: marketID,
 		Price:    price,
 		Expiry:   expiry,
 	}
