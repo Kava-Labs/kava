@@ -7,6 +7,8 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
 option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
+option (gogoproto.equal_all) = true;
+option (gogoproto.verbose_equal_all) = true;
 
 // Query defines the gRPC querier service for pricefeed module
 service Query {
@@ -48,7 +50,6 @@ message QueryParamsRequest {}
 // QueryParamsResponse defines the response type for querying x/pricefeed
 // parameters.
 message QueryParamsResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   Params params = 1 [(gogoproto.nullable) = false];
@@ -56,7 +57,6 @@ message QueryParamsResponse {
 
 // QueryPriceRequest is the request type for the Query/PriceRequest RPC method.
 message QueryPriceRequest {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string market_id = 1;
@@ -64,7 +64,6 @@ message QueryPriceRequest {
 
 // QueryPriceResponse is the response type for the Query/Prices RPC method.
 message QueryPriceResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   CurrentPrice price = 1 [(gogoproto.nullable) = false];
@@ -75,7 +74,6 @@ message QueryPricesRequest {}
 
 // QueryPricesResponse is the response type for the Query/Prices RPC method.
 message QueryPricesResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   repeated CurrentPrice prices = 1 [(gogoproto.nullable) = false];
@@ -83,7 +81,6 @@ message QueryPricesResponse {
 
 // QueryRawPricesRequest is the request type for the Query/RawPrices RPC method.
 message QueryRawPricesRequest {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string market_id = 1;
@@ -92,7 +89,6 @@ message QueryRawPricesRequest {
 // QueryRawPricesResponse is the response type for the Query/RawPrices RPC
 // method.
 message QueryRawPricesResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   repeated PostedPrice raw_prices = 1 [(gogoproto.nullable) = false];
@@ -100,7 +96,6 @@ message QueryRawPricesResponse {
 
 // QueryOraclesRequest is the request type for the Query/Oracles RPC method.
 message QueryOraclesRequest {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string market_id = 1;
@@ -108,7 +103,6 @@ message QueryOraclesRequest {
 
 // QueryOraclesResponse is the response type for the Query/Oracles RPC method.
 message QueryOraclesResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // List of oracle addresses
@@ -120,7 +114,6 @@ message QueryMarketsRequest {}
 
 // QueryMarketsResponse is the response type for the Query/Markets RPC method.
 message QueryMarketsResponse {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // List of markets

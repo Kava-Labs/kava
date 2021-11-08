@@ -7,6 +7,17 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const (
+	// TypeMsgDeposit represents the type string for MsgDeposit
+	TypeMsgDeposit = "swap_deposit"
+	// TypeMsgWithdraw represents the type string for MsgWithdraw
+	TypeMsgWithdraw = "swap_withdraw"
+	// TypeSwapExactForTokens represents the type string for MsgSwapExactForTokens
+	TypeSwapExactForTokens = "swap_exact_for_tokens"
+	// TypeSwapForExactTokens represents the type string for MsgSwapForExactTokens
+	TypeSwapForExactTokens = "swap_for_exact_tokens"
+)
+
 var (
 	_ sdk.Msg         = &MsgDeposit{}
 	_ MsgWithDeadline = &MsgDeposit{}
@@ -24,18 +35,9 @@ type MsgWithDeadline interface {
 	DeadlineExceeded(blockTime time.Time) bool
 }
 
-// MsgDeposit deposits liquidity into a pool
-type MsgDeposit struct {
-	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
-	TokenA    sdk.Coin       `json:"token_a" yaml:"token_a"`
-	TokenB    sdk.Coin       `json:"token_b" yaml:"token_b"`
-	Slippage  sdk.Dec        `json:"slippage" yaml:"slippage"`
-	Deadline  int64          `json:"deadline" yaml:"deadline"`
-}
-
 // NewMsgDeposit returns a new MsgDeposit
-func NewMsgDeposit(depositor sdk.AccAddress, tokenA sdk.Coin, tokenB sdk.Coin, slippage sdk.Dec, deadline int64) MsgDeposit {
-	return MsgDeposit{
+func NewMsgDeposit(depositor string, tokenA sdk.Coin, tokenB sdk.Coin, slippage sdk.Dec, deadline int64) *MsgDeposit {
+	return &MsgDeposit{
 		Depositor: depositor,
 		TokenA:    tokenA,
 		TokenB:    tokenB,
@@ -48,12 +50,16 @@ func NewMsgDeposit(depositor sdk.AccAddress, tokenA sdk.Coin, tokenB sdk.Coin, s
 func (msg MsgDeposit) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgDeposit) Type() string { return "swap_deposit" }
+func (msg MsgDeposit) Type() string { return TypeMsgDeposit }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDeposit) ValidateBasic() error {
-	if msg.Depositor.Empty() {
+	if msg.Depositor == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "depositor address cannot be empty")
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %s", err)
 	}
 
 	if !msg.TokenA.IsValid() || msg.TokenA.IsZero() {
@@ -85,13 +91,14 @@ func (msg MsgDeposit) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgDeposit) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Depositor}
+	depositor, _ := sdk.AccAddressFromBech32(msg.Depositor)
+	return []sdk.AccAddress{depositor}
 }
 
 // GetDeadline returns the time at which the msg is considered invalid
@@ -104,18 +111,9 @@ func (msg MsgDeposit) DeadlineExceeded(blockTime time.Time) bool {
 	return blockTime.Unix() >= msg.Deadline
 }
 
-// MsgWithdraw deposits liquidity into a pool
-type MsgWithdraw struct {
-	From      sdk.AccAddress `json:"from" yaml:"from"`
-	Shares    sdk.Int        `json:"shares" yaml:"shares"`
-	MinTokenA sdk.Coin       `json:"min_token_a" yaml:"min_token_a"`
-	MinTokenB sdk.Coin       `json:"min_token_b" yaml:"min_token_b"`
-	Deadline  int64          `json:"deadline" yaml:"deadline"`
-}
-
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(from sdk.AccAddress, shares sdk.Int, minTokenA, minTokenB sdk.Coin, deadline int64) MsgWithdraw {
-	return MsgWithdraw{
+func NewMsgWithdraw(from string, shares sdk.Int, minTokenA, minTokenB sdk.Coin, deadline int64) *MsgWithdraw {
+	return &MsgWithdraw{
 		From:      from,
 		Shares:    shares,
 		MinTokenA: minTokenA,
@@ -128,12 +126,16 @@ func NewMsgWithdraw(from sdk.AccAddress, shares sdk.Int, minTokenA, minTokenB sd
 func (msg MsgWithdraw) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgWithdraw) Type() string { return "swap_withdraw" }
+func (msg MsgWithdraw) Type() string { return TypeMsgWithdraw }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdraw) ValidateBasic() error {
-	if msg.From.Empty() {
+	if msg.From == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "from address cannot be empty")
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address: %s", err)
 	}
 
 	if msg.Shares.IsNil() {
@@ -165,13 +167,14 @@ func (msg MsgWithdraw) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgWithdraw) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	from, _ := sdk.AccAddressFromBech32(msg.From)
+	return []sdk.AccAddress{from}
 }
 
 // GetDeadline returns the time at which the msg is considered invalid
@@ -184,18 +187,9 @@ func (msg MsgWithdraw) DeadlineExceeded(blockTime time.Time) bool {
 	return blockTime.Unix() >= msg.Deadline
 }
 
-// MsgSwapExactForTokens trades an exact coinA for coinB
-type MsgSwapExactForTokens struct {
-	Requester   sdk.AccAddress `json:"requester" yaml:"requester"`
-	ExactTokenA sdk.Coin       `json:"exact_token_a" yaml:"exact_token_a"`
-	TokenB      sdk.Coin       `json:"token_b" yaml:"token_b"`
-	Slippage    sdk.Dec        `json:"slippage" yaml:"slippage"`
-	Deadline    int64          `json:"deadline" yaml:"deadline"`
-}
-
 // NewMsgSwapExactForTokens returns a new MsgSwapExactForTokens
-func NewMsgSwapExactForTokens(requester sdk.AccAddress, exactTokenA sdk.Coin, tokenB sdk.Coin, slippage sdk.Dec, deadline int64) MsgSwapExactForTokens {
-	return MsgSwapExactForTokens{
+func NewMsgSwapExactForTokens(requester string, exactTokenA sdk.Coin, tokenB sdk.Coin, slippage sdk.Dec, deadline int64) *MsgSwapExactForTokens {
+	return &MsgSwapExactForTokens{
 		Requester:   requester,
 		ExactTokenA: exactTokenA,
 		TokenB:      tokenB,
@@ -208,12 +202,16 @@ func NewMsgSwapExactForTokens(requester sdk.AccAddress, exactTokenA sdk.Coin, to
 func (msg MsgSwapExactForTokens) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgSwapExactForTokens) Type() string { return "swap_exact_for_tokens" }
+func (msg MsgSwapExactForTokens) Type() string { return TypeSwapExactForTokens }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgSwapExactForTokens) ValidateBasic() error {
-	if msg.Requester.Empty() {
+	if msg.Requester == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "requester address cannot be empty")
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.Requester); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid requester address: %s", err)
 	}
 
 	if !msg.ExactTokenA.IsValid() || msg.ExactTokenA.IsZero() {
@@ -245,13 +243,14 @@ func (msg MsgSwapExactForTokens) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgSwapExactForTokens) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgSwapExactForTokens) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Requester}
+	requester, _ := sdk.AccAddressFromBech32(msg.Requester)
+	return []sdk.AccAddress{requester}
 }
 
 // GetDeadline returns the time at which the msg is considered invalid
@@ -264,18 +263,9 @@ func (msg MsgSwapExactForTokens) DeadlineExceeded(blockTime time.Time) bool {
 	return blockTime.Unix() >= msg.Deadline
 }
 
-// MsgSwapForExactTokens trades coinA for an exact coinB
-type MsgSwapForExactTokens struct {
-	Requester   sdk.AccAddress `json:"requester" yaml:"requester"`
-	TokenA      sdk.Coin       `json:"token_a" yaml:"token_a"`
-	ExactTokenB sdk.Coin       `json:"exact_token_b" yaml:"exact_token_b"`
-	Slippage    sdk.Dec        `json:"slippage" yaml:"slippage"`
-	Deadline    int64          `json:"deadline" yaml:"deadline"`
-}
-
 // NewMsgSwapForExactTokens returns a new MsgSwapForExactTokens
-func NewMsgSwapForExactTokens(requester sdk.AccAddress, tokenA sdk.Coin, exactTokenB sdk.Coin, slippage sdk.Dec, deadline int64) MsgSwapForExactTokens {
-	return MsgSwapForExactTokens{
+func NewMsgSwapForExactTokens(requester string, tokenA sdk.Coin, exactTokenB sdk.Coin, slippage sdk.Dec, deadline int64) *MsgSwapForExactTokens {
+	return &MsgSwapForExactTokens{
 		Requester:   requester,
 		TokenA:      tokenA,
 		ExactTokenB: exactTokenB,
@@ -288,12 +278,16 @@ func NewMsgSwapForExactTokens(requester sdk.AccAddress, tokenA sdk.Coin, exactTo
 func (msg MsgSwapForExactTokens) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgSwapForExactTokens) Type() string { return "swap_for_exact_tokens" }
+func (msg MsgSwapForExactTokens) Type() string { return TypeSwapForExactTokens }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgSwapForExactTokens) ValidateBasic() error {
-	if msg.Requester.Empty() {
+	if msg.Requester == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "requester address cannot be empty")
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.Requester); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid requester address: %s", err)
 	}
 
 	if !msg.TokenA.IsValid() || msg.TokenA.IsZero() {
@@ -325,13 +319,14 @@ func (msg MsgSwapForExactTokens) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgSwapForExactTokens) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgSwapForExactTokens) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Requester}
+	requester, _ := sdk.AccAddressFromBech32(msg.Requester)
+	return []sdk.AccAddress{requester}
 }
 
 // GetDeadline returns the time at which the msg is considered invalid

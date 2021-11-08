@@ -8,12 +8,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// AssetSupply contains information about an asset's rate-limited supply (the total supply of the asset is tracked in the top-level supply module)
-type AssetSupply struct {
-	CurrentSupply sdk.Coin      `json:"current_supply"  yaml:"current_supply"`
-	TimeElapsed   time.Duration `json:"time_elapsed" yaml:"time_elapsed"`
-}
-
 // NewAssetSupply initializes a new AssetSupply
 func NewAssetSupply(currentSupply sdk.Coin, timeElapsed time.Duration) AssetSupply {
 	return AssetSupply{
@@ -44,8 +38,3 @@ func (a AssetSupply) String() string {
 func (a AssetSupply) GetDenom() string {
 	return a.CurrentSupply.Denom
 }
-
-// AssetSupplies is a slice of AssetSupply
-type AssetSupplies []AssetSupply
-
-// TODO copy over supply tests from bep3

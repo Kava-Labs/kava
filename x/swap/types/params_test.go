@@ -11,10 +11,10 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
 func TestParams_UnmarshalJSON(t *testing.T) {
@@ -131,14 +131,6 @@ func TestParams_Validation(t *testing.T) {
 		expectedErr string
 	}{
 		{
-			name: "invalid denom",
-			key:  types.KeyAllowedPools,
-			testFn: func(params *types.Params) {
-				params.AllowedPools = types.NewAllowedPools(types.NewAllowedPool("UKAVA", "ukava"))
-			},
-			expectedErr: "invalid denom: UKAVA",
-		},
-		{
 			name: "duplicate pools",
 			key:  types.KeyAllowedPools,
 			testFn: func(params *types.Params) {
@@ -225,6 +217,7 @@ func TestParams_String(t *testing.T) {
 		),
 		sdk.MustNewDecFromStr("0.5"),
 	)
+
 	require.NoError(t, params.Validate())
 
 	output := params.String()
@@ -260,16 +253,6 @@ func TestAllowedPool_Validation(t *testing.T) {
 			expectedErr: "invalid denom: 1ukava",
 		},
 		{
-			name:        "no uppercase letters token a",
-			allowedPool: types.NewAllowedPool("uKava", "ukava"),
-			expectedErr: "invalid denom: uKava",
-		},
-		{
-			name:        "no uppercase letters token b",
-			allowedPool: types.NewAllowedPool("ukava", "UKAVA"),
-			expectedErr: "invalid denom: UKAVA",
-		},
-		{
 			name:        "matching tokens",
 			allowedPool: types.NewAllowedPool("ukava", "ukava"),
 			expectedErr: "pool cannot have two tokens of the same type, received 'ukava' and 'ukava'",
@@ -278,6 +261,11 @@ func TestAllowedPool_Validation(t *testing.T) {
 			name:        "invalid token order",
 			allowedPool: types.NewAllowedPool("usdx", "ukava"),
 			expectedErr: "invalid token order: 'ukava' must come before 'usdx'",
+		},
+		{
+			name:        "invalid token order due to capitalization",
+			allowedPool: types.NewAllowedPool("ukava", "UKAVA"),
+			expectedErr: "invalid token order: 'UKAVA' must come before 'ukava'",
 		},
 	}
 
@@ -289,20 +277,18 @@ func TestAllowedPool_Validation(t *testing.T) {
 	}
 }
 
-// ensure no regression in case insentive token matching if
-// sdk.ValidateDenom ever allows upper case letters
-func TestAllowedPool_TokenMatch(t *testing.T) {
+func TestAllowedPool_TokenMatch_CaseSensitive(t *testing.T) {
 	allowedPool := types.NewAllowedPool("UKAVA", "ukava")
 	err := allowedPool.Validate()
-	assert.Error(t, err)
+	assert.NoError(t, err)
 
-	allowedPool = types.NewAllowedPool("hard", "haRd")
+	allowedPool = types.NewAllowedPool("haRd", "hard")
 	err = allowedPool.Validate()
-	assert.Error(t, err)
+	assert.NoError(t, err)
 
 	allowedPool = types.NewAllowedPool("Usdx", "uSdX")
 	err = allowedPool.Validate()
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 func TestAllowedPool_String(t *testing.T) {
@@ -371,14 +357,6 @@ func TestAllowedPools_Validate(t *testing.T) {
 		allowedPools types.AllowedPools
 		expectedErr  string
 	}{
-		{
-			name: "invalid pool",
-			allowedPools: types.NewAllowedPools(
-				types.NewAllowedPool("hard", "ukava"),
-				types.NewAllowedPool("HARD", "UKAVA"),
-			),
-			expectedErr: "invalid denom: HARD",
-		},
 		{
 			name: "duplicate pool",
 			allowedPools: types.NewAllowedPools(
