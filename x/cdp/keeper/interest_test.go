@@ -393,8 +393,8 @@ func (suite *InterestTestSuite) TestSynchronizeInterest() {
 
 			// setup pricefeed
 			pk := suite.app.GetPriceFeedKeeper()
-			pk.SetPrice(suite.ctx, sdk.AccAddress{}, "bnb:usd", d("17.25"), tc.args.expectedFeesUpdatedTime.Add(time.Second))
-			pk.SetPrice(suite.ctx, sdk.AccAddress{}, "busd:usd", d("1"), tc.args.expectedFeesUpdatedTime.Add(time.Second))
+			pk.SetPrice(suite.ctx, "", "bnb:usd", d("17.25"), tc.args.expectedFeesUpdatedTime.Add(time.Second))
+			pk.SetPrice(suite.ctx, "", "busd:usd", d("1"), tc.args.expectedFeesUpdatedTime.Add(time.Second))
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
@@ -508,7 +508,7 @@ func (suite *InterestTestSuite) TestMultipleCDPInterest() {
 
 			// setup pricefeed
 			pk := suite.app.GetPriceFeedKeeper()
-			pk.SetPrice(suite.ctx, sdk.AccAddress{}, "bnb:usd", d("17.25"), tc.args.expectedFeesUpdatedTime.Add(time.Second))
+			pk.SetPrice(suite.ctx, "", "bnb:usd", d("17.25"), tc.args.expectedFeesUpdatedTime.Add(time.Second))
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
@@ -648,7 +648,7 @@ func (suite *InterestTestSuite) TestCalculateCDPInterest() {
 
 			// setup pricefeed
 			pk := suite.app.GetPriceFeedKeeper()
-			pk.SetPrice(suite.ctx, sdk.AccAddress{}, "bnb:usd", d("17.25"), tc.args.initialTime.Add(time.Duration(int(time.Second)*tc.args.timeElapsed)))
+			pk.SetPrice(suite.ctx, "", "bnb:usd", d("17.25"), tc.args.initialTime.Add(time.Duration(int(time.Second)*tc.args.timeElapsed)))
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
@@ -727,7 +727,7 @@ func (suite *InterestTestSuite) TestSyncInterestForRiskyCDPs() {
 			}
 			// setup pricefeed
 			pk := suite.app.GetPriceFeedKeeper()
-			pk.SetPrice(suite.ctx, sdk.AccAddress{}, "bnb:usd", d("20.0"), tc.args.initialTime.Add(time.Duration(int(time.Second)*tc.args.timeElapsed)))
+			pk.SetPrice(suite.ctx, "", "bnb:usd", d("20.0"), tc.args.initialTime.Add(time.Duration(int(time.Second)*tc.args.timeElapsed)))
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())

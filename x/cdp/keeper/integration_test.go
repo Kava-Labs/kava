@@ -23,13 +23,13 @@ func NewPricefeedGenState(cdc codec.JSONCodec, asset string, price sdk.Dec) app.
 	pfGenesis := pricefeedtypes.GenesisState{
 		Params: pricefeedtypes.Params{
 			Markets: []pricefeedtypes.Market{
-				{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: []string{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeedtypes.PostedPrice{
 			{
 				MarketID:      asset + ":usd",
-				OracleAddress: sdk.AccAddress{},
+				OracleAddress: "",
 				Price:         price,
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
@@ -88,34 +88,34 @@ func NewPricefeedGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 	pfGenesis := pricefeedtypes.GenesisState{
 		Params: pricefeedtypes.Params{
 			Markets: []pricefeedtypes.Market{
-				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
-				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
-				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
-				{MarketID: "busd:usd", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+				{MarketID: "busd:usd", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []string{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeedtypes.PostedPrice{
 			{
 				MarketID:      "btc:usd",
-				OracleAddress: sdk.AccAddress{},
+				OracleAddress: "",
 				Price:         sdk.MustNewDecFromStr("8000.00"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "xrp:usd",
-				OracleAddress: sdk.AccAddress{},
+				OracleAddress: "",
 				Price:         sdk.MustNewDecFromStr("0.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "bnb:usd",
-				OracleAddress: sdk.AccAddress{},
+				OracleAddress: "",
 				Price:         sdk.MustNewDecFromStr("17.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "busd:usd",
-				OracleAddress: sdk.AccAddress{},
+				OracleAddress: "",
 				Price:         sdk.OneDec(),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},

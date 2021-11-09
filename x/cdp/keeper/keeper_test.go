@@ -19,10 +19,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	config := sdk.GetConfig()
-	app.SetBech32AddressPrefixes(config)
 	suite.ResetChain()
-	return
 }
 
 func (suite *KeeperTestSuite) ResetChain() {

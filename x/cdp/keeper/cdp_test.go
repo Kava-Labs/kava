@@ -26,8 +26,6 @@ type CdpTestSuite struct {
 }
 
 func (suite *CdpTestSuite) SetupTest() {
-	config := sdk.GetConfig()
-	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates(
@@ -38,7 +36,6 @@ func (suite *CdpTestSuite) SetupTest() {
 	suite.app = tApp
 	suite.ctx = ctx
 	suite.keeper = keeper
-	return
 }
 
 func (suite *CdpTestSuite) TestAddCdp() {
