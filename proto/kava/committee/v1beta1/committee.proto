@@ -52,8 +52,7 @@ message TokenCommittee {
 
 // TallyOption enumerates the valid types of a tally.
 enum TallyOption {
-  option (gogoproto.goproto_enum_prefix)   = false;
-  option (gogoproto.goproto_enum_stringer) = false;
+  option (gogoproto.goproto_enum_prefix) = false;
 
   // TALLY_OPTION_UNSPECIFIED defines a null tally option.
   TALLY_OPTION_UNSPECIFIED = 0;

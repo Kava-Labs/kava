@@ -12,13 +12,19 @@ option go_package = "github.com/kava-labs/kava/x/committee/types";
 message MsgSubmitProposal {
   google.protobuf.Any pub_proposal = 1
       [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content", (gogoproto.embed) = true];
-  string proposer     = 2;
+  bytes proposer = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
   uint64 committee_id = 3;
 }
 
 // MsgVote is submitted by committee members to vote on proposals.
 message MsgVote {
-  uint64   proposal_id = 1;
-  string   voter       = 2;
-  VoteType vote_type   = 3;
+  uint64 proposal_id = 1;
+  bytes  voter       = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  VoteType vote_type = 3;
 }

@@ -14,16 +14,16 @@ message GenesisState {
 
   uint64   next_proposal_id               = 1 [(gogoproto.customname) = "NextProposalID"];
   repeated google.protobuf.Any committees = 2 [(cosmos_proto.accepts_interface) = "Committee"];
-  repeated Proposal            proposals  = 3 [(gogoproto.nullable) = false];
+  repeated Proposal            proposals  = 3 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "Proposals"];
   repeated Vote                votes      = 4 [(gogoproto.nullable) = false];
 }
 
 // Proposal is an internal record of a governance proposal submitted to a committee.
 message Proposal {
+  option (gogoproto.goproto_getters)  = false;
   option (gogoproto.goproto_stringer) = false;
 
-  google.protobuf.Any pub_proposal = 1
-      [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content", (gogoproto.embed) = true];
+  google.protobuf.Any       Content      = 1 [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content"];
   uint64                    id           = 2 [(gogoproto.customname) = "ID"];
   uint64                    committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
   google.protobuf.Timestamp deadline     = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
@@ -43,8 +43,7 @@ message Vote {
 
 // VoteType enumerates the valid types of a vote.
 enum VoteType {
-  option (gogoproto.goproto_enum_prefix)   = false;
-  option (gogoproto.goproto_enum_stringer) = false;
+  option (gogoproto.goproto_enum_prefix) = false;
 
   // VOTE_TYPE_UNSPECIFIED defines a no-op vote option.
   VOTE_TYPE_UNSPECIFIED = 0;
