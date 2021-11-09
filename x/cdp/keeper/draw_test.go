@@ -31,14 +31,13 @@ func (suite *DrawTestSuite) SetupTest() {
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdc := tApp.AppCodec()
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	authGS := app.NewFundedGenStateWithUniqueCoins(
-		cdc,
-		[]sdk.Coins{
-			cs(c("xrp", 500000000), c("btc", 500000000), c("usdx", 10000000000)),
-			cs(c("xrp", 200000000)),
-			cs(c("xrp", 10000000000000), c("usdx", 100000000000))},
-		addrs,
-	)
+	coins := []sdk.Coins{
+		cs(c("xrp", 500000000), c("btc", 500000000), c("usdx", 10000000000)),
+		cs(c("xrp", 200000000)),
+		cs(c("xrp", 10000000000000), c("usdx", 100000000000)),
+	}
+
+	authGS := app.NewFundedGenStateWithUniqueCoins(cdc, coins, addrs)
 	tApp.InitializeFromGenesisStates(
 		authGS,
 		NewPricefeedGenStateMulti(cdc),
@@ -152,12 +151,13 @@ func (suite *DrawTestSuite) TestPricefeedFailure() {
 }
 
 func (suite *DrawTestSuite) TestModuleAccountFailure() {
-	suite.Panics(func() {
-		ctx := suite.ctx.WithBlockHeader(suite.ctx.BlockHeader())
-		ak := suite.app.GetAccountKeeper()
-		acc := ak.GetModuleAccount(ctx, types.ModuleName)
+	ctx := suite.ctx.WithBlockHeader(suite.ctx.BlockHeader())
+	ak := suite.app.GetAccountKeeper()
+	acc := ak.GetModuleAccount(ctx, types.ModuleName)
 
-		ak.RemoveAccount(ctx, acc)
+	ak.RemoveAccount(ctx, acc)
+
+	suite.Panics(func() {
 		suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
 	})
 }
