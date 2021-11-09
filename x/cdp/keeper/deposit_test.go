@@ -83,7 +83,7 @@ func (suite *DepositTestSuite) TestDepositCollateral() {
 	bk := suite.app.GetBankKeeper()
 
 	acc := ak.GetAccount(suite.ctx, suite.addrs[0])
-	suite.Equal(i(90000000), bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp"))
+	suite.Equal(i(90000000), bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp").Amount)
 
 	err = suite.keeper.DepositCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], c("btc", 1), "btc-a")
 	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
@@ -127,7 +127,7 @@ func (suite *DepositTestSuite) TestWithdrawCollateral() {
 	bk := suite.app.GetBankKeeper()
 
 	acc := ak.GetAccount(suite.ctx, suite.addrs[0])
-	suite.Equal(i(110000000), bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp"))
+	suite.Equal(i(110000000), bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp").Amount)
 
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[1], c("xrp", 10000000), "xrp-a")
 	suite.Require().True(errors.Is(err, types.ErrDepositNotFound))

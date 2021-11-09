@@ -543,8 +543,8 @@ func (suite *InterestTestSuite) TestMultipleCDPInterest() {
 			usdxSupply := bk.GetSupply(suite.ctx, types.DefaultStableDenom)
 			totalPrincipal := suite.keeper.GetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom)
 
-			suite.Require().Equal(tc.args.expectedDebtBalance, debtSupply)
-			suite.Require().Equal(tc.args.expectedStableBalance, usdxSupply)
+			suite.Require().Equal(tc.args.expectedDebtBalance, debtSupply.Amount)
+			suite.Require().Equal(tc.args.expectedStableBalance, usdxSupply.Amount)
 			suite.Require().Equal(tc.args.expectedTotalPrincipal, totalPrincipal)
 
 			sumOfCDPPrincipal := sdk.ZeroInt()

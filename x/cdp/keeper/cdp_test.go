@@ -316,7 +316,7 @@ func (suite *CdpTestSuite) TestMintBurnDebtCoins() {
 	})
 
 	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(sdk.Coins(nil), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
+	suite.Equal(sdk.Coins{}, bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 }
 
 func TestCdpTestSuite(t *testing.T) {

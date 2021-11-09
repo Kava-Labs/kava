@@ -294,13 +294,13 @@ func (k Keeper) GetAllCdpsByCollateralTypeAndRatio(ctx sdk.Context, collateralTy
 // SetNextCdpID sets the highest cdp id in the store
 func (k Keeper) SetNextCdpID(ctx sdk.Context, id uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKey)
-	store.Set([]byte{}, types.GetCdpIDBytes(id))
+	store.Set(types.CdpIDKey, types.GetCdpIDBytes(id))
 }
 
 // GetNextCdpID returns the highest cdp id from the store
 func (k Keeper) GetNextCdpID(ctx sdk.Context) (id uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKey)
-	bz := store.Get([]byte{})
+	bz := store.Get(types.CdpIDKey)
 	if bz == nil {
 		panic("starting cdp id not set in genesis")
 	}
@@ -417,7 +417,7 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 		panic("gov denom not set in genesis")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
-	store.Set([]byte{}, k.cdc.MustMarshalLengthPrefixed(&gogotypes.StringValue{
+	store.Set(types.GovDenomKey, k.cdc.MustMarshalLengthPrefixed(&gogotypes.StringValue{
 		Value: denom,
 	}))
 }
