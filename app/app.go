@@ -366,6 +366,9 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 
 	// TODO: Add swap hooks after incentive upgraded
 
+	// TODO: Add app.incentiveKeeper.Hooks() to cdptypes.NewMultiCDPHooks()
+	app.cdpKeeper = *(app.cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks()))
+
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
