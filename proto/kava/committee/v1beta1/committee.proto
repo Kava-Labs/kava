@@ -24,7 +24,7 @@ message BaseCommittee {
   repeated google.protobuf.Any permissions = 4 [(cosmos_proto.accepts_interface) = "Permission"];
 
   // Smallest percentage that must vote for a proposal to pass
-  bytes vote_threshold = 5
+  string vote_threshold = 5
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 
   // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
@@ -46,7 +46,7 @@ message TokenCommittee {
   option (gogoproto.goproto_stringer)        = false;
 
   BaseCommittee base_committee = 1 [(gogoproto.embed) = true];
-  bytes  quorum = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string quorum = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
   string tally_denom = 3;
 }
 

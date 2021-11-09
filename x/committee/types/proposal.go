@@ -1,6 +1,7 @@
 package types
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
@@ -36,6 +37,9 @@ func (p ProposalOutcome) String() string {
 var _, _ govtypes.Content = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
 var _, _ PubProposal = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
 
+// ensure CommitteeChangeProposal fulfill the codectypes.UnpackInterfacesMessage interface
+var _ codectypes.UnpackInterfacesMessage = &CommitteeChangeProposal{}
+
 func init() {
 	// Gov proposals need to be registered on gov's ModuleCdc so MsgSubmitProposal can be encoded.
 	govtypes.RegisterProposalType(ProposalTypeCommitteeChange)
@@ -69,12 +73,19 @@ func (ccp CommitteeChangeProposal) ProposalRoute() string { return RouterKey }
 // ProposalType returns the type of the proposal.
 func (ccp CommitteeChangeProposal) ProposalType() string { return ProposalTypeCommitteeChange }
 
+// GetNewCommittee returns the new committee of the proposal.
 func (ccp CommitteeChangeProposal) GetNewCommittee() Committee {
 	committee, err := UnpackCommittee(ccp.NewCommittee)
 	if err != nil {
 		panic(err)
 	}
 	return committee
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (ccp CommitteeChangeProposal) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var committee Committee
+	return unpacker.UnpackAny(ccp.NewCommittee, &committee)
 }
 
 // ValidateBasic runs basic stateless validity checks

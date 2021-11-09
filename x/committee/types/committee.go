@@ -77,6 +77,7 @@ var (
 
 type Committees []Committee
 
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (c Committees) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	for _, committee := range c {
 		if err := committee.UnpackInterfaces(unpacker); err != nil {
