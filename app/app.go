@@ -112,6 +112,7 @@ var (
 		issuance.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 		swap.AppModuleBasic{},
+		cdp.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -124,6 +125,8 @@ var (
 		stakingtypes.BondedPoolName:     {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName:  {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:             {authtypes.Burner},
+		cdptypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
+		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
 		swaptypes.ModuleName:            nil,
