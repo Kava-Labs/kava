@@ -423,9 +423,9 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
 		kavadisttypes.ModuleName,
+		pricefeedtypes.ModuleName,
 		cdptypes.ModuleName,
 		issuancetypes.ModuleName,
-		pricefeedtypes.ModuleName,
 		swaptypes.ModuleName,
 	)
 
