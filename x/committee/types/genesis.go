@@ -11,7 +11,7 @@ import (
 const DefaultNextProposalID uint64 = 1
 
 // NewGenesisState returns a new genesis state object for the module.
-func NewGenesisState(nextProposalID uint64, committees []Committee, proposals []Proposal, votes []Vote) *GenesisState {
+func NewGenesisState(nextProposalID uint64, committees []Committee, proposals Proposals, votes []Vote) *GenesisState {
 	packedCommittees, err := PackCommittees(committees)
 	if err != nil {
 		panic(err)
@@ -28,13 +28,13 @@ func NewGenesisState(nextProposalID uint64, committees []Committee, proposals []
 func DefaultGenesisState() *GenesisState {
 	return NewGenesisState(
 		DefaultNextProposalID,
-		[]Committee{},
-		[]Proposal{},
+		Committees{},
+		Proposals{},
 		[]Vote{},
 	)
 }
 
-func (gs GenesisState) GetCommittees() []Committee {
+func (gs GenesisState) GetCommittees() Committees {
 	committees, err := UnpackCommittees(gs.Committees)
 	if err != nil {
 		panic(err)
@@ -100,7 +100,7 @@ func (gs GenesisState) Validate() error {
 		}
 
 		// validate pubProposal
-		if err := p.GetPubProposal().ValidateBasic(); err != nil {
+		if err := p.ValidateBasic(); err != nil {
 			return fmt.Errorf("proposal %d invalid: %w", p.ID, err)
 		}
 	}
@@ -148,8 +148,8 @@ func PackCommittee(committee Committee) (*cdctypes.Any, error) {
 }
 
 // UnpackCommittees converts Any slice to Committee slice
-func UnpackCommittees(committeesAny []*cdctypes.Any) ([]Committee, error) {
-	committees := make([]Committee, len(committeesAny))
+func UnpackCommittees(committeesAny []*cdctypes.Any) (Committees, error) {
+	committees := make(Committees, len(committeesAny))
 	for i, any := range committeesAny {
 		committee, err := UnpackCommittee(any)
 		if err != nil {

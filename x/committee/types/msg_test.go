@@ -38,7 +38,7 @@ func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:       "invalid proposal",
-			msg:        MsgSubmitProposal{Any: &types.Any{}, Proposer: addr.String(), CommitteeId: 3},
+			msg:        MsgSubmitProposal{Any: &types.Any{}, Proposer: addr, CommitteeId: 3},
 			expectPass: false,
 		},
 	}
@@ -58,7 +58,7 @@ func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgVote_ValidateBasic(t *testing.T) {
-	addr := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String()
+	addr := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1")))
 	tests := []struct {
 		name       string
 		msg        MsgVote
@@ -86,7 +86,7 @@ func TestMsgVote_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:       "empty address",
-			msg:        MsgVote{5, "", VOTE_TYPE_YES},
+			msg:        MsgVote{5, sdk.AccAddress{}, VOTE_TYPE_YES},
 			expectPass: false,
 		},
 		{

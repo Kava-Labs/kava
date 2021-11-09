@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"fmt"
@@ -6,8 +6,13 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
+
+	"github.com/kava-labs/kava/x/committee/testutil"
+	"github.com/kava-labs/kava/x/committee/types"
 )
 
 func TestBaseCommittee(t *testing.T) {
@@ -19,28 +24,28 @@ func TestBaseCommittee(t *testing.T) {
 
 	testCases := []struct {
 		name            string
-		createCommittee func() (*MemberCommittee, error)
+		createCommittee func() (*types.MemberCommittee, error)
 		expectPass      bool
 	}{
 		{
 			name: "normal",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
 			},
 			expectPass: true,
 		},
 		{
 			name: "description length too long",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					fmt.Sprintln("This base committee has a long description.",
 						"This base committee has a long description. This base committee has a long description.",
@@ -51,130 +56,130 @@ func TestBaseCommittee(t *testing.T) {
 						"This base committee has a long description. This base committee has a long description.",
 						"This base committee has a long description. This base committee has a long description."),
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "no members",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
 					[]sdk.AccAddress{},
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "duplicate member",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
 					[]sdk.AccAddress{addresses[2], addresses[2]},
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "nil permissions",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
 					addresses[:3],
-					[]Permission{nil},
-					d("0.667"),
+					[]types.Permission{nil},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "negative proposal duration",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*-7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "vote threshold is nil",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
+					[]types.Permission{&types.GodPermission{}},
 					sdk.Dec{},
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "vote threshold is 0",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "vote threshold above 1",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("1.001"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("1.001"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
 			},
 			expectPass: false,
 		},
 		{
 			name: "invalid tally option",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					"This base committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_UNSPECIFIED,
+					types.TALLY_OPTION_UNSPECIFIED,
 				)
 			},
 			expectPass: false,
@@ -198,7 +203,6 @@ func TestBaseCommittee(t *testing.T) {
 	}
 }
 
-// TestMemberCommittee is an alias for BaseCommittee that has 'MemberCommittee' type
 func TestMemberCommittee(t *testing.T) {
 	addresses := []sdk.AccAddress{
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
@@ -208,20 +212,20 @@ func TestMemberCommittee(t *testing.T) {
 
 	testCases := []struct {
 		name            string
-		createCommittee func() (*MemberCommittee, error)
+		createCommittee func() (*types.MemberCommittee, error)
 		expectPass      bool
 	}{
 		{
 			name: "normal",
-			createCommittee: func() (*MemberCommittee, error) {
-				return NewMemberCommittee(
+			createCommittee: func() (*types.MemberCommittee, error) {
+				return types.NewMemberCommittee(
 					1,
 					"This member committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
 			},
 			expectPass: true,
@@ -232,7 +236,7 @@ func TestMemberCommittee(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			committee, err := tc.createCommittee()
 			require.NoError(t, err)
-			require.Equal(t, MemberCommitteeType, committee.GetType())
+			require.Equal(t, types.MemberCommitteeType, committee.GetType())
 
 			err = committee.Validate()
 			if tc.expectPass {
@@ -254,21 +258,21 @@ func TestTokenCommittee(t *testing.T) {
 
 	testCases := []struct {
 		name            string
-		createCommittee func() (*TokenCommittee, error)
+		createCommittee func() (*types.TokenCommittee, error)
 		expectPass      bool
 	}{
 		{
 			name: "normal",
-			createCommittee: func() (*TokenCommittee, error) {
-				return NewTokenCommittee(
+			createCommittee: func() (*types.TokenCommittee, error) {
+				return types.NewTokenCommittee(
 					1,
 					"This token committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
-					d("0.4"),
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
+					testutil.D("0.4"),
 					"hard",
 				)
 			},
@@ -276,15 +280,15 @@ func TestTokenCommittee(t *testing.T) {
 		},
 		{
 			name: "nil quorum",
-			createCommittee: func() (*TokenCommittee, error) {
-				return NewTokenCommittee(
+			createCommittee: func() (*types.TokenCommittee, error) {
+				return types.NewTokenCommittee(
 					1,
 					"This token committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 					sdk.Dec{},
 					"hard",
 				)
@@ -293,16 +297,16 @@ func TestTokenCommittee(t *testing.T) {
 		},
 		{
 			name: "negative quorum",
-			createCommittee: func() (*TokenCommittee, error) {
-				return NewTokenCommittee(
+			createCommittee: func() (*types.TokenCommittee, error) {
+				return types.NewTokenCommittee(
 					1,
 					"This token committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
-					d("-0.1"),
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
+					testutil.D("-0.1"),
 					"hard",
 				)
 			},
@@ -310,16 +314,16 @@ func TestTokenCommittee(t *testing.T) {
 		},
 		{
 			name: "quroum greater than 1",
-			createCommittee: func() (*TokenCommittee, error) {
-				return NewTokenCommittee(
+			createCommittee: func() (*types.TokenCommittee, error) {
+				return types.NewTokenCommittee(
 					1,
 					"This token committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
-					d("1.001"),
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
+					testutil.D("1.001"),
 					"hard",
 				)
 			},
@@ -327,17 +331,17 @@ func TestTokenCommittee(t *testing.T) {
 		},
 		{
 			name: "bond denom as tally denom",
-			createCommittee: func() (*TokenCommittee, error) {
-				return NewTokenCommittee(
+			createCommittee: func() (*types.TokenCommittee, error) {
+				return types.NewTokenCommittee(
 					1,
 					"This token committee is for testing.",
 					addresses[:3],
-					[]Permission{&GodPermission{}},
-					d("0.667"),
+					[]types.Permission{&types.GodPermission{}},
+					testutil.D("0.667"),
 					time.Hour*24*7,
-					TALLY_OPTION_FIRST_PAST_THE_POST,
-					d("0.4"),
-					BondDenom,
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
+					testutil.D("0.4"),
+					types.BondDenom,
 				)
 			},
 			expectPass: false,
@@ -347,15 +351,29 @@ func TestTokenCommittee(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			committee, err := tc.createCommittee()
-			require.NoError(t, err)
-			require.Equal(t, TokenCommitteeType, committee.GetType())
+			assert.NoError(t, err)
+			assert.Equal(t, types.TokenCommitteeType, committee.GetType())
 
 			err = committee.Validate()
 			if tc.expectPass {
-				require.NoError(t, err)
+				assert.NoError(t, err)
 			} else {
-				require.Error(t, err)
+				assert.Error(t, err)
 			}
 		})
 	}
+}
+
+func TestProposalGetContent(t *testing.T) {
+	mockTitle := "A Title"
+	mockDescription := "A Description"
+	proposal, err := types.NewProposal(
+		govtypes.NewTextProposal(mockTitle, mockDescription),
+		1, 1, time.Date(2010, time.January, 1, 0, 0, 0, 0, time.UTC),
+	)
+	assert.NoError(t, err)
+	content := proposal.GetContent()
+	assert.NotNil(t, content)
+	assert.Equal(t, mockTitle, content.GetTitle())
+	assert.Equal(t, mockDescription, content.GetDescription())
 }

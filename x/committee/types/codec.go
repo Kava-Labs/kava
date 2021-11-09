@@ -88,6 +88,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterInterface(
 		"kava.committee.v1beta1.PubProposal",
 		(*PubProposal)(nil),
+		&Proposal{},
 		&govtypes.TextProposal{},
 		&CommitteeChangeProposal{},
 		&CommitteeDeleteProposal{},

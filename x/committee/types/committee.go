@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	proto "github.com/gogo/protobuf/proto"
+	"sigs.k8s.io/yaml"
 )
 
 const MaxCommitteeDescriptionLength int = 512
@@ -69,7 +70,21 @@ type Committee interface {
 	String() string
 }
 
-var _ Committee = &BaseCommittee{}
+var (
+	_ Committee                          = &BaseCommittee{}
+	_ codectypes.UnpackInterfacesMessage = &Committees{}
+)
+
+type Committees []Committee
+
+func (c Committees) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	for _, committee := range c {
+		if err := committee.UnpackInterfaces(unpacker); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // GetType is a getter for committee type
 func (c *BaseCommittee) GetType() string { return BaseCommitteeType }
@@ -244,6 +259,16 @@ func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress,
 	}, nil
 }
 
+// MustNewMemberCommittee instantiates a new instance of MemberCommittee and panics on error
+func MustNewMemberCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) *MemberCommittee {
+	committee, err := NewMemberCommittee(id, description, members, permissions, threshold, duration, tallyOption)
+	if err != nil {
+		panic(err)
+	}
+	return committee
+}
+
 // GetType is a getter for committee type
 func (c MemberCommittee) GetType() string { return MemberCommitteeType }
 
@@ -267,6 +292,16 @@ func NewTokenCommittee(id uint64, description string, members []sdk.AccAddress, 
 		Quorum:     quorum,
 		TallyDenom: tallyDenom,
 	}, nil
+}
+
+// MustNewTokenCommittee instantiates a new instance of TokenCommittee and panics on error
+func MustNewTokenCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) *TokenCommittee {
+	committee, err := NewTokenCommittee(id, description, members, permissions, threshold, duration, tallyOption, quorum, tallyDenom)
+	if err != nil {
+		panic(err)
+	}
+	return committee
 }
 
 // GetType is a getter for committee type
@@ -305,6 +340,23 @@ func (c TokenCommittee) Validate() error {
 // It is pinned to the equivalent type in the gov module to create compatibility between proposal types.
 type PubProposal govtypes.Content
 
+var (
+	_ PubProposal                        = Proposal{}
+	_ codectypes.UnpackInterfacesMessage = Proposals{}
+)
+
+type Proposals []Proposal
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (p Proposals) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	for _, committee := range p {
+		if err := committee.UnpackInterfaces(unpacker); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // NewProposal instantiates a new instance of Proposal
 func NewProposal(pubProposal PubProposal, id uint64, committeeID uint64, deadline time.Time) (Proposal, error) {
 	msg, ok := pubProposal.(proto.Message)
@@ -316,26 +368,81 @@ func NewProposal(pubProposal PubProposal, id uint64, committeeID uint64, deadlin
 		return Proposal{}, err
 	}
 	return Proposal{
-		Any:         proposalAny,
+		Content:     proposalAny,
 		ID:          id,
 		CommitteeID: committeeID,
 		Deadline:    deadline,
 	}, nil
 }
 
+// MustNewProposal instantiates a new instance of Proposal and panics if there is an error
+func MustNewProposal(pubProposal PubProposal, id uint64, committeeID uint64, deadline time.Time) Proposal {
+	proposal, err := NewProposal(pubProposal, id, committeeID, deadline)
+	if err != nil {
+		panic(err)
+	}
+	return proposal
+}
+
 // GetPubProposal returns the PubProposal (govtypes.Content)
-func (p Proposal) GetPubProposal() PubProposal {
-	content, ok := p.Any.GetCachedValue().(PubProposal)
+func (p Proposal) GetContent() PubProposal {
+	content, ok := p.Content.GetCachedValue().(PubProposal)
 	if !ok {
 		return nil
 	}
 	return content
 }
 
+// String implements the fmt.Stringer interface.
+func (p Proposal) String() string {
+	bz, _ := yaml.Marshal(p)
+	return string(bz)
+}
+
+func (p Proposal) GetTitle() string {
+	content := p.GetContent()
+	if content == nil {
+		return ""
+	}
+	return content.GetTitle()
+}
+
+func (p Proposal) GetDescription() string {
+	content := p.GetContent()
+	if content == nil {
+		return ""
+	}
+	return content.GetDescription()
+}
+
+func (p Proposal) ProposalRoute() string {
+	content := p.GetContent()
+	if content == nil {
+		return ""
+	}
+	return content.ProposalRoute()
+}
+
+func (p Proposal) ProposalType() string {
+	content := p.GetContent()
+	if content == nil {
+		return ""
+	}
+	return content.ProposalType()
+}
+
+func (p Proposal) ValidateBasic() error {
+	content := p.GetContent()
+	if content == nil {
+		return nil
+	}
+	return content.ValidateBasic()
+}
+
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (p Proposal) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var content PubProposal
-	return unpacker.UnpackAny(p.Any, &content)
+	return unpacker.UnpackAny(p.Content, &content)
 }
 
 // HasExpiredBy calculates if the proposal will have expired by a certain time.

@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"fmt"
@@ -9,35 +9,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	"github.com/tendermint/tendermint/crypto"
+
+	"github.com/kava-labs/kava/x/committee/testutil"
+	"github.com/kava-labs/kava/x/committee/types"
 )
-
-func MustNewMemberCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) *MemberCommittee {
-	committee, err := NewMemberCommittee(id, description, members, permissions, threshold, duration, tallyOption)
-	if err != nil {
-		panic(err)
-	}
-	return committee
-}
-
-func MustNewTokenCommitteeNewTokenCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) *TokenCommittee {
-	committee, err := NewTokenCommittee(id, description, members, permissions, threshold, duration, tallyOption, quorum, tallyDenom)
-	if err != nil {
-		panic(err)
-	}
-	return committee
-}
-
-func MustNewProposal(pubProposal PubProposal, id uint64, committeeID uint64, deadline time.Time) Proposal {
-	proposal, err := NewProposal(pubProposal, id, committeeID, deadline)
-	if err != nil {
-		panic(err)
-	}
-	return proposal
-}
 
 func TestGenesisState_Validate(t *testing.T) {
 	testTime := time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -49,56 +25,56 @@ func TestGenesisState_Validate(t *testing.T) {
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest5"))),
 	}
 
-	testGenesis := NewGenesisState(
+	testGenesis := types.NewGenesisState(
 		2,
-		[]Committee{
-			MustNewMemberCommittee(
+		[]types.Committee{
+			types.MustNewMemberCommittee(
 				1,
 				"This members committee is for testing.",
 				addresses[:3],
-				[]Permission{&GodPermission{}},
-				d("0.667"),
+				nil,
+				testutil.D("0.667"),
 				time.Hour*24*7,
-				TALLY_OPTION_FIRST_PAST_THE_POST,
+				types.TALLY_OPTION_FIRST_PAST_THE_POST,
 			),
-			MustNewMemberCommittee(
+			types.MustNewMemberCommittee(
 				2,
 				"This members committee is also for testing.",
 				addresses[:3],
 				nil,
-				d("0.8"),
+				testutil.D("0.8"),
 				time.Hour*24*21,
-				TALLY_OPTION_FIRST_PAST_THE_POST,
+				types.TALLY_OPTION_FIRST_PAST_THE_POST,
 			),
-			MustNewTokenCommitteeNewTokenCommittee(
+			types.MustNewTokenCommittee(
 				3,
 				"This token committee is for testing.",
 				addresses[:3],
 				nil,
-				d("0.8"),
+				testutil.D("0.8"),
 				time.Hour*24*21,
-				TALLY_OPTION_DEADLINE,
+				types.TALLY_OPTION_DEADLINE,
 				sdk.MustNewDecFromStr("0.4"),
 				"hard",
 			),
 		},
-		[]Proposal{MustNewProposal(
+		types.Proposals{types.MustNewProposal(
 			govtypes.NewTextProposal("A Title", "A description of this proposal."), 1, 1, testTime.Add(7*24*time.Hour)),
 		},
-		[]Vote{
-			{ProposalID: 1, Voter: addresses[0], VoteType: VOTE_TYPE_YES},
-			{ProposalID: 1, Voter: addresses[1], VoteType: VOTE_TYPE_YES},
+		[]types.Vote{
+			{ProposalID: 1, Voter: addresses[0], VoteType: types.VOTE_TYPE_YES},
+			{ProposalID: 1, Voter: addresses[1], VoteType: types.VOTE_TYPE_YES},
 		},
 	)
 
 	testCases := []struct {
 		name       string
-		genState   *GenesisState
+		genState   *types.GenesisState
 		expectPass bool
 	}{
 		{
 			name:       "default",
-			genState:   DefaultGenesisState(),
+			genState:   types.DefaultGenesisState(),
 			expectPass: true,
 		},
 		{
@@ -108,7 +84,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		},
 		{
 			name: "duplicate committee IDs",
-			genState: NewGenesisState(
+			genState: types.NewGenesisState(
 				testGenesis.NextProposalID,
 				append(testGenesis.GetCommittees(), testGenesis.GetCommittees()[0]),
 				testGenesis.Proposals,
@@ -118,9 +94,9 @@ func TestGenesisState_Validate(t *testing.T) {
 		},
 		{
 			name: "invalid committee",
-			genState: NewGenesisState(
+			genState: types.NewGenesisState(
 				testGenesis.NextProposalID,
-				append(testGenesis.GetCommittees(), &MemberCommittee{BaseCommittee: &BaseCommittee{}}),
+				append(testGenesis.GetCommittees(), &types.MemberCommittee{BaseCommittee: &types.BaseCommittee{}}),
 				testGenesis.Proposals,
 				testGenesis.Votes,
 			),
@@ -128,7 +104,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		},
 		{
 			name: "duplicate proposal IDs",
-			genState: NewGenesisState(
+			genState: types.NewGenesisState(
 				testGenesis.NextProposalID,
 				testGenesis.GetCommittees(),
 				append(testGenesis.Proposals, testGenesis.Proposals[0]),
@@ -138,7 +114,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		},
 		{
 			name: "invalid NextProposalID",
-			genState: NewGenesisState(
+			genState: types.NewGenesisState(
 				0,
 				testGenesis.GetCommittees(),
 				testGenesis.Proposals,
@@ -148,12 +124,12 @@ func TestGenesisState_Validate(t *testing.T) {
 		},
 		{
 			name: "proposal without committee",
-			genState: NewGenesisState(
+			genState: types.NewGenesisState(
 				testGenesis.NextProposalID+1,
 				testGenesis.GetCommittees(),
 				append(
 					testGenesis.Proposals,
-					MustNewProposal(
+					types.MustNewProposal(
 						govtypes.NewTextProposal("A Title", "A description of this proposal."),
 						testGenesis.NextProposalID,
 						47, // doesn't exist
@@ -166,17 +142,17 @@ func TestGenesisState_Validate(t *testing.T) {
 		},
 		{
 			name: "invalid proposal",
-			genState: NewGenesisState(
+			genState: types.NewGenesisState(
 				testGenesis.NextProposalID,
 				testGenesis.GetCommittees(),
-				append(testGenesis.Proposals, Proposal{}),
+				append(testGenesis.Proposals, types.Proposal{}),
 				testGenesis.Votes,
 			),
 			expectPass: false,
 		},
 		{
 			name: "vote without proposal",
-			genState: NewGenesisState(
+			genState: types.NewGenesisState(
 				testGenesis.NextProposalID,
 				testGenesis.GetCommittees(),
 				nil,
@@ -186,11 +162,11 @@ func TestGenesisState_Validate(t *testing.T) {
 		},
 		{
 			name: "invalid vote",
-			genState: NewGenesisState(
+			genState: types.NewGenesisState(
 				testGenesis.NextProposalID,
 				testGenesis.GetCommittees(),
 				testGenesis.Proposals,
-				append(testGenesis.Votes, Vote{}),
+				append(testGenesis.Votes, types.Vote{}),
 			),
 			expectPass: false,
 		},
