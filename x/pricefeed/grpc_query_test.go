@@ -83,7 +83,7 @@ func (suite *grpcQueryTestSuite) TestGrpcPrice() {
 	suite.setTestParams()
 	suite.setTstPrice()
 
-	expectedPrice := types.NewCurrentPrice("tstusd", sdk.MustNewDecFromStr("0.34"))
+	expectedPrice := types.NewCurrentPriceResponse("tstusd", sdk.MustNewDecFromStr("0.34"))
 
 	res, err := suite.queryServer.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "tstusd"})
 	suite.NoError(err)
@@ -110,7 +110,7 @@ func (suite *grpcQueryTestSuite) TestGrpcPrices() {
 	suite.setTestParams()
 	suite.setTstPrice()
 
-	expectedPrice := types.NewCurrentPrice("tstusd", sdk.MustNewDecFromStr("0.34"))
+	expectedPrice := types.NewCurrentPriceResponse("tstusd", sdk.MustNewDecFromStr("0.34"))
 
 	prices, err := suite.queryServer.Prices(sdk.WrapSDKContext(suite.ctx), &types.QueryPricesRequest{})
 	suite.NoError(err)
@@ -129,20 +129,20 @@ func (suite *grpcQueryTestSuite) TestGrpcRawPrices() {
 
 	suite.ElementsMatch(
 		res.RawPrices,
-		[]types.PostedPrice{
-			types.NewPostedPrice(
+		[]types.PostedPriceResponse{
+			types.NewPostedPriceResponse(
 				"tstusd",
 				suite.addrs[0],
 				sdk.MustNewDecFromStr("0.33"),
 				suite.now.Add(time.Hour*1),
 			),
-			types.NewPostedPrice(
+			types.NewPostedPriceResponse(
 				"tstusd",
 				suite.addrs[1],
 				sdk.MustNewDecFromStr("0.35"),
 				suite.now.Add(time.Hour*1),
 			),
-			types.NewPostedPrice(
+			types.NewPostedPriceResponse(
 				"tstusd",
 				suite.addrs[2],
 				sdk.MustNewDecFromStr("0.34"),

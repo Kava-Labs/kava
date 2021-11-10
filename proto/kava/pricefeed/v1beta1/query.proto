@@ -6,8 +6,8 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/kava-labs/kava/x/pricefeed/types";
-option (gogoproto.equal_all) = true;
+option go_package                    = "github.com/kava-labs/kava/x/pricefeed/types";
+option (gogoproto.equal_all)         = true;
 option (gogoproto.verbose_equal_all) = true;
 
 // Query defines the gRPC querier service for pricefeed module
@@ -122,8 +122,6 @@ message QueryMarketsResponse {
 
 // PostedPriceResponse defines a price for market posted by a specific oracle.
 message PostedPriceResponse {
-  option (gogoproto.goproto_stringer) = false;
-
   string market_id      = 1 [(gogoproto.customname) = "MarketID"];
   string oracle_address = 2;
   string price = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
@@ -133,8 +131,6 @@ message PostedPriceResponse {
 // CurrentPriceResponse defines a current price for a particular market in the pricefeed
 // module.
 message CurrentPriceResponse {
-  option (gogoproto.goproto_stringer) = false;
-
   string market_id = 1 [(gogoproto.customname) = "MarketID"];
   string price = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }

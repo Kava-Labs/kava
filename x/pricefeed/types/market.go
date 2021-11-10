@@ -76,11 +76,26 @@ func NewCurrentPrice(marketID string, price sdk.Dec) CurrentPrice {
 	return CurrentPrice{MarketID: marketID, Price: price}
 }
 
+// NewCurrentPriceResponse returns an instance of CurrentPriceResponse
+func NewCurrentPriceResponse(marketID string, price sdk.Dec) CurrentPriceResponse {
+	return CurrentPriceResponse{MarketID: marketID, Price: price}
+}
+
 // NewPostedPrice returns a new PostedPrice
 func NewPostedPrice(marketID string, oracle sdk.AccAddress, price sdk.Dec, expiry time.Time) PostedPrice {
 	return PostedPrice{
 		MarketID:      marketID,
 		OracleAddress: oracle,
+		Price:         price,
+		Expiry:        expiry,
+	}
+}
+
+// NewPostedPrice returns a new PostedPrice
+func NewPostedPriceResponse(marketID string, oracle sdk.AccAddress, price sdk.Dec, expiry time.Time) PostedPriceResponse {
+	return PostedPriceResponse{
+		MarketID:      marketID,
+		OracleAddress: oracle.String(),
 		Price:         price,
 		Expiry:        expiry,
 	}
