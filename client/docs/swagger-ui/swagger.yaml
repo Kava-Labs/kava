@@ -125,6 +125,748 @@ paths:
                       format: byte
       tags:
         - KavaDist
+  /kava/bep3/v1beta1/assetsupplies:
+    get:
+      summary: AssetSupplies queries a list of asset supplies
+      operationId: Bep3AssetSupplies
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              asset_supplies:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    incoming_supply:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                    outgoing_supply:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                    current_supply:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                    time_limited_current_supply:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                    time_elapsed:
+                      type: string
+                  description: AssetSupply defines information about an asset's supply.
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+            description: >-
+              QueryAssetSuppliesResponse is the response type for the
+              Query/AssetSupplies RPC method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+      tags:
+        - Bep3
+  '/kava/bep3/v1beta1/assetsupply/{denom}':
+    get:
+      summary: AssetSupply queries info about an asset's supply
+      operationId: Bep3AssetSupply
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              asset_supply:
+                type: object
+                properties:
+                  incoming_supply:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                  outgoing_supply:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                  current_supply:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                  time_limited_current_supply:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                  time_elapsed:
+                    type: string
+                description: AssetSupply defines information about an asset's supply.
+            description: >-
+              QueryAssetSupplyResponse is the response type for the
+              Query/AssetSupply RPC method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: denom
+          in: path
+          required: true
+          type: string
+      tags:
+        - Bep3
+  '/kava/bep3/v1beta1/atomicswap/{swap_id}':
+    get:
+      summary: AtomicSwap queries info about an atomic swap
+      operationId: Bep3AtomicSwap
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+              atomic_swap:
+                type: object
+                properties:
+                  amount:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                  random_number_hash:
+                    type: string
+                    format: byte
+                  expire_height:
+                    type: string
+                    format: uint64
+                  timestamp:
+                    type: string
+                    format: int64
+                  sender:
+                    type: string
+                  recipient:
+                    type: string
+                  sender_other_chain:
+                    type: string
+                  recipient_other_chain:
+                    type: string
+                  closed_block:
+                    type: string
+                    format: int64
+                  status:
+                    type: string
+                    enum:
+                      - SWAP_STATUS_UNSPECIFIED
+                      - SWAP_STATUS_OPEN
+                      - SWAP_STATUS_COMPLETED
+                      - SWAP_STATUS_EXPIRED
+                    default: SWAP_STATUS_UNSPECIFIED
+                    description: |-
+                      - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
+                       - SWAP_STATUS_OPEN: AtomicSwap is open
+                       - SWAP_STATUS_COMPLETED: AtomicSwap is completed
+                       - SWAP_STATUS_EXPIRED: AtomicSwap is expired
+                    title: SwapStatus is the status of an AtomicSwap
+                  cross_chain:
+                    type: boolean
+                    format: boolean
+                  direction:
+                    type: string
+                    enum:
+                      - SWAP_DIRECTION_UNSPECIFIED
+                      - SWAP_DIRECTION_INCOMING
+                      - SWAP_DIRECTION_OUTGOING
+                    default: SWAP_DIRECTION_UNSPECIFIED
+                    description: >-
+                      - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified
+                      or invalid
+                       - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
+                       - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
+                    title: SwapDirection is the direction of an AtomicSwap
+                description: >-
+                  AtomicSwap defines an atomic swap between chains for the
+                  pricefeed module.
+            description: >-
+              QueryAtomicSwapResponse is the response type for the
+              Query/AtomicSwap RPC method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: swap_id
+          in: path
+          required: true
+          type: string
+          format: byte
+      tags:
+        - Bep3
+  /kava/bep3/v1beta1/atomicswaps:
+    get:
+      summary: AtomicSwaps queries a list of atomic swaps
+      operationId: Bep3AtomicSwaps
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              atomic_swap:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    atomic_swap:
+                      type: object
+                      properties:
+                        amount:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                        random_number_hash:
+                          type: string
+                          format: byte
+                        expire_height:
+                          type: string
+                          format: uint64
+                        timestamp:
+                          type: string
+                          format: int64
+                        sender:
+                          type: string
+                        recipient:
+                          type: string
+                        sender_other_chain:
+                          type: string
+                        recipient_other_chain:
+                          type: string
+                        closed_block:
+                          type: string
+                          format: int64
+                        status:
+                          type: string
+                          enum:
+                            - SWAP_STATUS_UNSPECIFIED
+                            - SWAP_STATUS_OPEN
+                            - SWAP_STATUS_COMPLETED
+                            - SWAP_STATUS_EXPIRED
+                          default: SWAP_STATUS_UNSPECIFIED
+                          description: |-
+                            - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
+                             - SWAP_STATUS_OPEN: AtomicSwap is open
+                             - SWAP_STATUS_COMPLETED: AtomicSwap is completed
+                             - SWAP_STATUS_EXPIRED: AtomicSwap is expired
+                          title: SwapStatus is the status of an AtomicSwap
+                        cross_chain:
+                          type: boolean
+                          format: boolean
+                        direction:
+                          type: string
+                          enum:
+                            - SWAP_DIRECTION_UNSPECIFIED
+                            - SWAP_DIRECTION_INCOMING
+                            - SWAP_DIRECTION_OUTGOING
+                          default: SWAP_DIRECTION_UNSPECIFIED
+                          description: >-
+                            - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is
+                            unspecified or invalid
+                             - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
+                             - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
+                          title: SwapDirection is the direction of an AtomicSwap
+                      description: >-
+                        AtomicSwap defines an atomic swap between chains for the
+                        pricefeed module.
+                  description: AugmentedAtomicSwap defines an AtomicSwap with an ID.
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+            description: >-
+              QueryAtomicSwapsResponse is the response type for the
+              Query/AtomicSwaps RPC method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: involve
+          in: query
+          required: false
+          type: string
+        - name: expiration
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: status
+          description: |2-
+             - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
+             - SWAP_STATUS_OPEN: AtomicSwap is open
+             - SWAP_STATUS_COMPLETED: AtomicSwap is completed
+             - SWAP_STATUS_EXPIRED: AtomicSwap is expired
+          in: query
+          required: false
+          type: string
+          enum:
+            - SWAP_STATUS_UNSPECIFIED
+            - SWAP_STATUS_OPEN
+            - SWAP_STATUS_COMPLETED
+            - SWAP_STATUS_EXPIRED
+          default: SWAP_STATUS_UNSPECIFIED
+        - name: direction
+          description: |2-
+             - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified or invalid
+             - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
+             - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
+          in: query
+          required: false
+          type: string
+          enum:
+            - SWAP_DIRECTION_UNSPECIFIED
+            - SWAP_DIRECTION_INCOMING
+            - SWAP_DIRECTION_OUTGOING
+          default: SWAP_DIRECTION_UNSPECIFIED
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+      tags:
+        - Bep3
+  /kava/bep3/v1beta1/params:
+    get:
+      summary: Params queries module params
+      operationId: Bep3Params
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                properties:
+                  asset_params:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        coin_id:
+                          type: string
+                          format: int64
+                        supply_limit:
+                          type: object
+                          properties:
+                            limit:
+                              type: string
+                              format: byte
+                            time_limited:
+                              type: boolean
+                              format: boolean
+                            time_period:
+                              type: string
+                            time_based_limit:
+                              type: string
+                              format: byte
+                          description: >-
+                            SupplyLimit define the absolute and time-based
+                            limits for an assets's supply.
+                        active:
+                          type: boolean
+                          format: boolean
+                        deputy_address:
+                          type: string
+                        fixed_fee:
+                          type: string
+                          format: byte
+                        min_swap_amount:
+                          type: string
+                          format: byte
+                        max_swap_amount:
+                          type: string
+                          format: byte
+                        min_block_lock:
+                          type: string
+                          format: uint64
+                        max_block_lock:
+                          type: string
+                          format: uint64
+                      description: AssetParam defines parameters for each bep3 asset.
+                description: Params defines the parameters for the bep3 module.
+            description: >-
+              QueryParamsResponse defines the response type for querying x/bep3
+              parameters.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Bep3
   /kava/pricefeed/v1beta1/markets:
     get:
       summary: Markets queries all markets
@@ -23531,6 +24273,844 @@ definitions:
     description: >-
       QueryParamsResponse defines the response type for querying x/kavadist
       parameters.
+  cosmos.base.query.v1beta1.PageRequest:
+    type: object
+    properties:
+      key:
+        type: string
+        format: byte
+        description: |-
+          key is a value returned in PageResponse.next_key to begin
+          querying the next page most efficiently. Only one of offset or key
+          should be set.
+      offset:
+        type: string
+        format: uint64
+        description: |-
+          offset is a numeric offset that can be used when key is unavailable.
+          It is less efficient than using key. Only one of offset or key should
+          be set.
+      limit:
+        type: string
+        format: uint64
+        description: >-
+          limit is the total number of results to be returned in the result
+          page.
+
+          If left empty it will default to a value to be set by each app.
+      count_total:
+        type: boolean
+        format: boolean
+        description: >-
+          count_total is set to true  to indicate that the result set should
+          include
+
+          a count of the total number of items available for pagination in UIs.
+
+          count_total is only respected when offset is used. It is ignored when
+          key
+
+          is set.
+      reverse:
+        type: boolean
+        format: boolean
+        description: >-
+          reverse is set to true if results are to be returned in the descending
+          order.
+    description: |-
+      message SomeRequest {
+               Foo some_parameter = 1;
+               PageRequest pagination = 2;
+       }
+    title: |-
+      PageRequest is to be embedded in gRPC request messages for efficient
+      pagination. Ex:
+  cosmos.base.query.v1beta1.PageResponse:
+    type: object
+    properties:
+      next_key:
+        type: string
+        format: byte
+        title: |-
+          next_key is the key to be passed to PageRequest.key to
+          query the next page most efficiently
+      total:
+        type: string
+        format: uint64
+        title: |-
+          total is total number of results available if PageRequest.count_total
+          was set, its value is undefined otherwise
+    description: |-
+      PageResponse is to be embedded in gRPC response messages where the
+      corresponding request message has used PageRequest.
+
+       message SomeResponse {
+               repeated Bar results = 1;
+               PageResponse page = 2;
+       }
+  kava.bep3.v1beta1.AssetParam:
+    type: object
+    properties:
+      denom:
+        type: string
+      coin_id:
+        type: string
+        format: int64
+      supply_limit:
+        type: object
+        properties:
+          limit:
+            type: string
+            format: byte
+          time_limited:
+            type: boolean
+            format: boolean
+          time_period:
+            type: string
+          time_based_limit:
+            type: string
+            format: byte
+        description: >-
+          SupplyLimit define the absolute and time-based limits for an assets's
+          supply.
+      active:
+        type: boolean
+        format: boolean
+      deputy_address:
+        type: string
+      fixed_fee:
+        type: string
+        format: byte
+      min_swap_amount:
+        type: string
+        format: byte
+      max_swap_amount:
+        type: string
+        format: byte
+      min_block_lock:
+        type: string
+        format: uint64
+      max_block_lock:
+        type: string
+        format: uint64
+    description: AssetParam defines parameters for each bep3 asset.
+  kava.bep3.v1beta1.AssetSupply:
+    type: object
+    properties:
+      incoming_supply:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      outgoing_supply:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      current_supply:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      time_limited_current_supply:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      time_elapsed:
+        type: string
+    description: AssetSupply defines information about an asset's supply.
+  kava.bep3.v1beta1.AtomicSwap:
+    type: object
+    properties:
+      amount:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+      random_number_hash:
+        type: string
+        format: byte
+      expire_height:
+        type: string
+        format: uint64
+      timestamp:
+        type: string
+        format: int64
+      sender:
+        type: string
+      recipient:
+        type: string
+      sender_other_chain:
+        type: string
+      recipient_other_chain:
+        type: string
+      closed_block:
+        type: string
+        format: int64
+      status:
+        type: string
+        enum:
+          - SWAP_STATUS_UNSPECIFIED
+          - SWAP_STATUS_OPEN
+          - SWAP_STATUS_COMPLETED
+          - SWAP_STATUS_EXPIRED
+        default: SWAP_STATUS_UNSPECIFIED
+        description: |-
+          - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
+           - SWAP_STATUS_OPEN: AtomicSwap is open
+           - SWAP_STATUS_COMPLETED: AtomicSwap is completed
+           - SWAP_STATUS_EXPIRED: AtomicSwap is expired
+        title: SwapStatus is the status of an AtomicSwap
+      cross_chain:
+        type: boolean
+        format: boolean
+      direction:
+        type: string
+        enum:
+          - SWAP_DIRECTION_UNSPECIFIED
+          - SWAP_DIRECTION_INCOMING
+          - SWAP_DIRECTION_OUTGOING
+        default: SWAP_DIRECTION_UNSPECIFIED
+        description: |-
+          - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified or invalid
+           - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
+           - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
+        title: SwapDirection is the direction of an AtomicSwap
+    description: AtomicSwap defines an atomic swap between chains for the pricefeed module.
+  kava.bep3.v1beta1.AugmentedAtomicSwap:
+    type: object
+    properties:
+      id:
+        type: string
+      atomic_swap:
+        type: object
+        properties:
+          amount:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+          random_number_hash:
+            type: string
+            format: byte
+          expire_height:
+            type: string
+            format: uint64
+          timestamp:
+            type: string
+            format: int64
+          sender:
+            type: string
+          recipient:
+            type: string
+          sender_other_chain:
+            type: string
+          recipient_other_chain:
+            type: string
+          closed_block:
+            type: string
+            format: int64
+          status:
+            type: string
+            enum:
+              - SWAP_STATUS_UNSPECIFIED
+              - SWAP_STATUS_OPEN
+              - SWAP_STATUS_COMPLETED
+              - SWAP_STATUS_EXPIRED
+            default: SWAP_STATUS_UNSPECIFIED
+            description: |-
+              - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
+               - SWAP_STATUS_OPEN: AtomicSwap is open
+               - SWAP_STATUS_COMPLETED: AtomicSwap is completed
+               - SWAP_STATUS_EXPIRED: AtomicSwap is expired
+            title: SwapStatus is the status of an AtomicSwap
+          cross_chain:
+            type: boolean
+            format: boolean
+          direction:
+            type: string
+            enum:
+              - SWAP_DIRECTION_UNSPECIFIED
+              - SWAP_DIRECTION_INCOMING
+              - SWAP_DIRECTION_OUTGOING
+            default: SWAP_DIRECTION_UNSPECIFIED
+            description: >-
+              - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified or
+              invalid
+               - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
+               - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
+            title: SwapDirection is the direction of an AtomicSwap
+        description: >-
+          AtomicSwap defines an atomic swap between chains for the pricefeed
+          module.
+    description: AugmentedAtomicSwap defines an AtomicSwap with an ID.
+  kava.bep3.v1beta1.Params:
+    type: object
+    properties:
+      asset_params:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            coin_id:
+              type: string
+              format: int64
+            supply_limit:
+              type: object
+              properties:
+                limit:
+                  type: string
+                  format: byte
+                time_limited:
+                  type: boolean
+                  format: boolean
+                time_period:
+                  type: string
+                time_based_limit:
+                  type: string
+                  format: byte
+              description: >-
+                SupplyLimit define the absolute and time-based limits for an
+                assets's supply.
+            active:
+              type: boolean
+              format: boolean
+            deputy_address:
+              type: string
+            fixed_fee:
+              type: string
+              format: byte
+            min_swap_amount:
+              type: string
+              format: byte
+            max_swap_amount:
+              type: string
+              format: byte
+            min_block_lock:
+              type: string
+              format: uint64
+            max_block_lock:
+              type: string
+              format: uint64
+          description: AssetParam defines parameters for each bep3 asset.
+    description: Params defines the parameters for the bep3 module.
+  kava.bep3.v1beta1.QueryAssetSuppliesResponse:
+    type: object
+    properties:
+      asset_supplies:
+        type: array
+        items:
+          type: object
+          properties:
+            incoming_supply:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+            outgoing_supply:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+            current_supply:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+            time_limited_current_supply:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+            time_elapsed:
+              type: string
+          description: AssetSupply defines information about an asset's supply.
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+    description: >-
+      QueryAssetSuppliesResponse is the response type for the
+      Query/AssetSupplies RPC method.
+  kava.bep3.v1beta1.QueryAssetSupplyResponse:
+    type: object
+    properties:
+      asset_supply:
+        type: object
+        properties:
+          incoming_supply:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          outgoing_supply:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          current_supply:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          time_limited_current_supply:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          time_elapsed:
+            type: string
+        description: AssetSupply defines information about an asset's supply.
+    description: >-
+      QueryAssetSupplyResponse is the response type for the Query/AssetSupply
+      RPC method.
+  kava.bep3.v1beta1.QueryAtomicSwapResponse:
+    type: object
+    properties:
+      id:
+        type: string
+      atomic_swap:
+        type: object
+        properties:
+          amount:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+          random_number_hash:
+            type: string
+            format: byte
+          expire_height:
+            type: string
+            format: uint64
+          timestamp:
+            type: string
+            format: int64
+          sender:
+            type: string
+          recipient:
+            type: string
+          sender_other_chain:
+            type: string
+          recipient_other_chain:
+            type: string
+          closed_block:
+            type: string
+            format: int64
+          status:
+            type: string
+            enum:
+              - SWAP_STATUS_UNSPECIFIED
+              - SWAP_STATUS_OPEN
+              - SWAP_STATUS_COMPLETED
+              - SWAP_STATUS_EXPIRED
+            default: SWAP_STATUS_UNSPECIFIED
+            description: |-
+              - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
+               - SWAP_STATUS_OPEN: AtomicSwap is open
+               - SWAP_STATUS_COMPLETED: AtomicSwap is completed
+               - SWAP_STATUS_EXPIRED: AtomicSwap is expired
+            title: SwapStatus is the status of an AtomicSwap
+          cross_chain:
+            type: boolean
+            format: boolean
+          direction:
+            type: string
+            enum:
+              - SWAP_DIRECTION_UNSPECIFIED
+              - SWAP_DIRECTION_INCOMING
+              - SWAP_DIRECTION_OUTGOING
+            default: SWAP_DIRECTION_UNSPECIFIED
+            description: >-
+              - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified or
+              invalid
+               - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
+               - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
+            title: SwapDirection is the direction of an AtomicSwap
+        description: >-
+          AtomicSwap defines an atomic swap between chains for the pricefeed
+          module.
+    description: >-
+      QueryAtomicSwapResponse is the response type for the Query/AtomicSwap RPC
+      method.
+  kava.bep3.v1beta1.QueryAtomicSwapsResponse:
+    type: object
+    properties:
+      atomic_swap:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            atomic_swap:
+              type: object
+              properties:
+                amount:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                random_number_hash:
+                  type: string
+                  format: byte
+                expire_height:
+                  type: string
+                  format: uint64
+                timestamp:
+                  type: string
+                  format: int64
+                sender:
+                  type: string
+                recipient:
+                  type: string
+                sender_other_chain:
+                  type: string
+                recipient_other_chain:
+                  type: string
+                closed_block:
+                  type: string
+                  format: int64
+                status:
+                  type: string
+                  enum:
+                    - SWAP_STATUS_UNSPECIFIED
+                    - SWAP_STATUS_OPEN
+                    - SWAP_STATUS_COMPLETED
+                    - SWAP_STATUS_EXPIRED
+                  default: SWAP_STATUS_UNSPECIFIED
+                  description: |-
+                    - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
+                     - SWAP_STATUS_OPEN: AtomicSwap is open
+                     - SWAP_STATUS_COMPLETED: AtomicSwap is completed
+                     - SWAP_STATUS_EXPIRED: AtomicSwap is expired
+                  title: SwapStatus is the status of an AtomicSwap
+                cross_chain:
+                  type: boolean
+                  format: boolean
+                direction:
+                  type: string
+                  enum:
+                    - SWAP_DIRECTION_UNSPECIFIED
+                    - SWAP_DIRECTION_INCOMING
+                    - SWAP_DIRECTION_OUTGOING
+                  default: SWAP_DIRECTION_UNSPECIFIED
+                  description: >-
+                    - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified
+                    or invalid
+                     - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
+                     - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
+                  title: SwapDirection is the direction of an AtomicSwap
+              description: >-
+                AtomicSwap defines an atomic swap between chains for the
+                pricefeed module.
+          description: AugmentedAtomicSwap defines an AtomicSwap with an ID.
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+    description: >-
+      QueryAtomicSwapsResponse is the response type for the Query/AtomicSwaps
+      RPC method.
+  kava.bep3.v1beta1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        properties:
+          asset_params:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                coin_id:
+                  type: string
+                  format: int64
+                supply_limit:
+                  type: object
+                  properties:
+                    limit:
+                      type: string
+                      format: byte
+                    time_limited:
+                      type: boolean
+                      format: boolean
+                    time_period:
+                      type: string
+                    time_based_limit:
+                      type: string
+                      format: byte
+                  description: >-
+                    SupplyLimit define the absolute and time-based limits for an
+                    assets's supply.
+                active:
+                  type: boolean
+                  format: boolean
+                deputy_address:
+                  type: string
+                fixed_fee:
+                  type: string
+                  format: byte
+                min_swap_amount:
+                  type: string
+                  format: byte
+                max_swap_amount:
+                  type: string
+                  format: byte
+                min_block_lock:
+                  type: string
+                  format: uint64
+                max_block_lock:
+                  type: string
+                  format: uint64
+              description: AssetParam defines parameters for each bep3 asset.
+        description: Params defines the parameters for the bep3 module.
+    description: >-
+      QueryParamsResponse defines the response type for querying x/bep3
+      parameters.
+  kava.bep3.v1beta1.SupplyLimit:
+    type: object
+    properties:
+      limit:
+        type: string
+        format: byte
+      time_limited:
+        type: boolean
+        format: boolean
+      time_period:
+        type: string
+      time_based_limit:
+        type: string
+        format: byte
+    description: >-
+      SupplyLimit define the absolute and time-based limits for an assets's
+      supply.
+  kava.bep3.v1beta1.SwapDirection:
+    type: string
+    enum:
+      - SWAP_DIRECTION_UNSPECIFIED
+      - SWAP_DIRECTION_INCOMING
+      - SWAP_DIRECTION_OUTGOING
+    default: SWAP_DIRECTION_UNSPECIFIED
+    description: |-
+      - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified or invalid
+       - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
+       - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
+    title: SwapDirection is the direction of an AtomicSwap
+  kava.bep3.v1beta1.SwapStatus:
+    type: string
+    enum:
+      - SWAP_STATUS_UNSPECIFIED
+      - SWAP_STATUS_OPEN
+      - SWAP_STATUS_COMPLETED
+      - SWAP_STATUS_EXPIRED
+    default: SWAP_STATUS_UNSPECIFIED
+    description: |-
+      - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
+       - SWAP_STATUS_OPEN: AtomicSwap is open
+       - SWAP_STATUS_COMPLETED: AtomicSwap is completed
+       - SWAP_STATUS_EXPIRED: AtomicSwap is expired
+    title: SwapStatus is the status of an AtomicSwap
   kava.pricefeed.v1beta1.CurrentPrice:
     type: object
     properties:
@@ -23717,81 +25297,6 @@ definitions:
     description: |-
       QueryRawPricesResponse is the response type for the Query/RawPrices RPC
       method.
-  cosmos.base.query.v1beta1.PageRequest:
-    type: object
-    properties:
-      key:
-        type: string
-        format: byte
-        description: |-
-          key is a value returned in PageResponse.next_key to begin
-          querying the next page most efficiently. Only one of offset or key
-          should be set.
-      offset:
-        type: string
-        format: uint64
-        description: |-
-          offset is a numeric offset that can be used when key is unavailable.
-          It is less efficient than using key. Only one of offset or key should
-          be set.
-      limit:
-        type: string
-        format: uint64
-        description: >-
-          limit is the total number of results to be returned in the result
-          page.
-
-          If left empty it will default to a value to be set by each app.
-      count_total:
-        type: boolean
-        format: boolean
-        description: >-
-          count_total is set to true  to indicate that the result set should
-          include
-
-          a count of the total number of items available for pagination in UIs.
-
-          count_total is only respected when offset is used. It is ignored when
-          key
-
-          is set.
-      reverse:
-        type: boolean
-        format: boolean
-        description: >-
-          reverse is set to true if results are to be returned in the descending
-          order.
-    description: |-
-      message SomeRequest {
-               Foo some_parameter = 1;
-               PageRequest pagination = 2;
-       }
-    title: |-
-      PageRequest is to be embedded in gRPC request messages for efficient
-      pagination. Ex:
-  cosmos.base.query.v1beta1.PageResponse:
-    type: object
-    properties:
-      next_key:
-        type: string
-        format: byte
-        title: |-
-          next_key is the key to be passed to PageRequest.key to
-          query the next page most efficiently
-      total:
-        type: string
-        format: uint64
-        title: |-
-          total is total number of results available if PageRequest.count_total
-          was set, its value is undefined otherwise
-    description: |-
-      PageResponse is to be embedded in gRPC response messages where the
-      corresponding request message has used PageRequest.
-
-       message SomeResponse {
-               repeated Bar results = 1;
-               PageResponse page = 2;
-       }
   kava.swap.v1beta1.AllowedPool:
     type: object
     properties:
