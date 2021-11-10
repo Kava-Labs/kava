@@ -23,7 +23,7 @@ message Proposal {
   option (gogoproto.goproto_getters)  = false;
   option (gogoproto.goproto_stringer) = false;
 
-  google.protobuf.Any       Content      = 1 [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content"];
+  google.protobuf.Any       content      = 1 [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content"];
   uint64                    id           = 2 [(gogoproto.customname) = "ID"];
   uint64                    committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
   google.protobuf.Timestamp deadline     = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
