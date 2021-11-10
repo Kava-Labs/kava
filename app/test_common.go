@@ -29,6 +29,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
@@ -88,6 +89,7 @@ func (tApp TestApp) GetKavadistKeeper() kavadistkeeper.Keeper   { return tApp.ka
 func (tApp TestApp) GetIssuanceKeeper() issuancekeeper.Keeper   { return tApp.issuanceKeeper }
 func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
 func (tApp TestApp) GetSwapKeeper() swapkeeper.Keeper           { return tApp.swapKeeper }
+func (tApp TestApp) GetCommitteeKeeper() committeekeeper.Keeper { return tApp.committeeKeeper }
 
 // TODO add back with modules
 // func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
@@ -194,11 +196,20 @@ func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk
 
 // NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
 func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) GenesisState {
+	balances := make([]sdk.Coins, len(addresses))
+	for i, _ := range addresses {
+		balances[i] = balance
+	}
+	return NewFundedGenStateWithCoins(cdc, balances, addresses)
+}
+
+// NewFundedGenStateWithCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and coins.
+func NewFundedGenStateWithCoins(cdc codec.JSONCodec, coins []sdk.Coins, addresses []sdk.AccAddress) GenesisState {
 	balances := make([]banktypes.Balance, len(addresses))
 	for i, addr := range addresses {
 		balances[i] = banktypes.Balance{
 			Address: addr.String(),
-			Coins:   balance,
+			Coins:   coins[i],
 		}
 	}
 
