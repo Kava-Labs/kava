@@ -493,7 +493,7 @@ func (m *QueryVotesResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryVotesResponse proto.InternalMessageInfo
 
-// QueryVoteRequest defines the request type for querying x/committee votes.
+// QueryVoteRequest defines the request type for querying x/committee vote.
 type QueryVoteRequest struct {
 	ProposalID uint64 `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
 	Voter      string `protobuf:"bytes,2,opt,name=voter,proto3" json:"voter,omitempty"`
@@ -532,7 +532,7 @@ func (m *QueryVoteRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryVoteRequest proto.InternalMessageInfo
 
-// QueryVoteResponse defines the response type for querying x/committee votes.
+// QueryVoteResponse defines the response type for querying x/committee vote.
 type QueryVoteResponse struct {
 	ProposalID uint64   `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
 	Voter      string   `protobuf:"bytes,2,opt,name=voter,proto3" json:"voter,omitempty"`
@@ -610,7 +610,7 @@ func (m *QueryTallyRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryTallyRequest proto.InternalMessageInfo
 
-// QueryTallyResponse defines the response type for querying x/committee votes.
+// QueryTallyResponse defines the response type for querying x/committee tally.
 type QueryTallyResponse struct {
 	ProposalID    uint64                                 `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
 	YesVotes      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=yes_votes,json=yesVotes,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"yes_votes"`

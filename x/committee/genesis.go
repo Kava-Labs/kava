@@ -30,7 +30,6 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, gs *types.GenesisState) 
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
-
 	nextID, err := keeper.GetNextProposalID(ctx)
 	if err != nil {
 		panic(err)
