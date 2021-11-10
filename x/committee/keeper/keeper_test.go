@@ -4,13 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-
-	abci "github.com/tendermint/tendermint/abci/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/stretchr/testify/suite"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee/keeper"
@@ -20,10 +18,10 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	keeper       keeper.Keeper
-	supplyKeeper supply.Keeper
-	app          app.TestApp
-	ctx          sdk.Context
+	keeper     keeper.Keeper
+	bankKeeper bankkeeper.Keeper
+	app        app.TestApp
+	ctx        sdk.Context
 
 	addresses []sdk.AccAddress
 }
@@ -31,49 +29,46 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = app.NewTestApp()
 	suite.keeper = suite.app.GetCommitteeKeeper()
-	suite.supplyKeeper = suite.app.GetSupplyKeeper()
-	suite.ctx = suite.app.NewContext(true, abci.Header{})
-	_, suite.addresses = app.GeneratePrivKeyAddressPairs(10)
+	suite.bankKeeper = suite.app.GetBankKeeper()
+	suite.ctx = suite.app.NewContext(true, tmproto.Header{})
+	_, accAddresses := app.GeneratePrivKeyAddressPairs(10)
+	suite.addresses = accAddresses
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteCommittee() {
 	// setup test
-	com := types.MemberCommittee{
-		BaseCommittee: types.BaseCommittee{
-			ID:               12,
-			Description:      "This committee is for testing.",
-			Members:          suite.addresses,
-			Permissions:      []types.Permission{types.GodPermission{}},
-			VoteThreshold:    d("0.667"),
-			ProposalDuration: time.Hour * 24 * 7,
-			TallyOption:      types.FirstPastThePost,
-		},
-	}
+	com := mustNewTestMemberCommittee(suite.addresses)
 
 	// write and read from store
 	suite.keeper.SetCommittee(suite.ctx, com)
 	readCommittee, found := suite.keeper.GetCommittee(suite.ctx, com.ID)
 
 	// check before and after match
-	suite.True(found)
-	suite.Equal(com, readCommittee)
+	suite.Require().True(found)
+	expectedJson, err := suite.app.AppCodec().MarshalJSON(com)
+	suite.Require().NoError(err)
+	actualJson, err := suite.app.AppCodec().MarshalJSON(readCommittee)
+	suite.Require().NoError(err)
+	suite.Equal(expectedJson, actualJson)
+	suite.Require().Equal(com.GetPermissions(), readCommittee.GetPermissions())
 
 	// delete from store
 	suite.keeper.DeleteCommittee(suite.ctx, com.ID)
 
 	// check does not exist
 	_, found = suite.keeper.GetCommittee(suite.ctx, com.ID)
-	suite.False(found)
+	suite.Require().False(found)
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteProposal() {
 	// test setup
-	prop := types.Proposal{
-		ID:          12,
-		CommitteeID: 0,
-		PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
-		Deadline:    time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC),
-	}
+	prop, err := types.NewProposal(
+		govtypes.NewTextProposal("A Title", "A description of this proposal."),
+		12,
+		0,
+		time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC),
+	)
+	suite.Require().NoError(err)
 
 	// write and read from store
 	suite.keeper.SetProposal(suite.ctx, prop)
@@ -112,6 +107,77 @@ func (suite *KeeperTestSuite) TestGetSetDeleteVote() {
 	// check does not exist
 	_, found = suite.keeper.GetVote(suite.ctx, vote.ProposalID, vote.Voter)
 	suite.False(found)
+}
+
+func (suite *KeeperTestSuite) TestGetCommittees() {
+	committeesCount := 10
+	for i := 0; i < committeesCount; i++ {
+		com := mustNewTestMemberCommittee(suite.addresses)
+		com.ID = uint64(i)
+		suite.keeper.SetCommittee(suite.ctx, com)
+	}
+	committees := suite.keeper.GetCommittees(suite.ctx)
+	suite.Require().Len(committees, committeesCount)
+}
+
+func (suite *KeeperTestSuite) TestGetAndSetProposal() {
+	proposal := mustNewTestProposal()
+
+	// Get no proposal
+	actualProposal, found := suite.keeper.GetProposal(suite.ctx, proposal.ID)
+	suite.Require().False(found)
+	suite.Require().Equal(types.Proposal{}, actualProposal)
+
+	// Set and get new proposal
+	suite.keeper.SetProposal(suite.ctx, proposal)
+	actualProposal, found = suite.keeper.GetProposal(suite.ctx, proposal.ID)
+	suite.Require().True(found)
+	suite.Require().Equal(proposal, actualProposal)
+}
+
+func (suite *KeeperTestSuite) TestGetProposalsByCommittee() {
+	committee := mustNewTestMemberCommittee(suite.addresses)
+	proposalsCount := 4
+	for i := 0; i < proposalsCount; i++ {
+		proposal := mustNewTestProposal()
+		proposal.ID = uint64(i)
+		proposal.CommitteeID = committee.ID
+		suite.keeper.SetProposal(suite.ctx, proposal)
+	}
+	proposal := mustNewTestProposal()
+	proposal.ID = uint64(proposalsCount)
+	proposal.CommitteeID = committee.ID + 1
+	suite.keeper.SetProposal(suite.ctx, proposal)
+
+	// No proposals
+	actualProposals := suite.keeper.GetProposalsByCommittee(suite.ctx, committee.ID+2)
+	suite.Require().Len(actualProposals, 0)
+
+	// Proposals for existing committees
+	actualProposals = suite.keeper.GetProposalsByCommittee(suite.ctx, committee.ID)
+	suite.Require().Len(actualProposals, proposalsCount)
+	actualProposals = suite.keeper.GetProposalsByCommittee(suite.ctx, committee.ID+1)
+	suite.Require().Len(actualProposals, 1)
+
+	// Make sure proposals have expected data
+	suite.Require().Equal(proposal, actualProposals[0])
+}
+
+func (suite *KeeperTestSuite) TestGetVotesByProposal() {
+	proposal := mustNewTestProposal()
+	suite.keeper.SetProposal(suite.ctx, proposal)
+	votes := []types.Vote{
+		types.NewVote(proposal.ID, suite.addresses[0], types.VOTE_TYPE_NO),
+		types.NewVote(proposal.ID, suite.addresses[1], types.VOTE_TYPE_ABSTAIN),
+		types.NewVote(proposal.ID, suite.addresses[1], types.VOTE_TYPE_YES),
+	}
+	expectedVotes := []types.Vote{votes[0], votes[2]}
+	for _, vote := range votes {
+		suite.keeper.SetVote(suite.ctx, vote)
+	}
+	actualVotes := suite.keeper.GetVotesByProposal(suite.ctx, proposal.ID)
+	suite.Require().Len(actualVotes, len(expectedVotes))
+	suite.Require().ElementsMatch(expectedVotes, actualVotes)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
