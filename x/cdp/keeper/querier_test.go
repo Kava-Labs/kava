@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"math/rand"
 	"sort"
 	"strings"
@@ -392,7 +391,6 @@ func (suite *QuerierTestSuite) TestQueryTotalPrincipal() {
 
 	var output types.TotalPrincipals
 	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &output))
-	fmt.Printf("%s", output)
 	suite.Equal(1, len(output))
 	suite.Equal("btc-a", output[0].CollateralType)
 }
@@ -437,7 +435,6 @@ func (suite *QuerierTestSuite) TestQueryTotalCollateral() {
 
 	var output types.TotalCollaterals
 	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &output))
-	fmt.Printf("%s", output)
 	suite.Equal(1, len(output))
 	suite.Equal("btc-a", output[0].CollateralType)
 }
