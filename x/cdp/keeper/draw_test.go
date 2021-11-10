@@ -153,9 +153,14 @@ func (suite *DrawTestSuite) TestPricefeedFailure() {
 func (suite *DrawTestSuite) TestModuleAccountFailure() {
 	ctx := suite.ctx.WithBlockHeader(suite.ctx.BlockHeader())
 	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
 	acc := ak.GetModuleAccount(ctx, types.ModuleName)
 
+	// Remove module account balance
 	ak.RemoveAccount(ctx, acc)
+	// Also need to burn coins as account keeper no longer stores balances
+	err := bk.BurnCoins(ctx, types.ModuleName, bk.GetAllBalances(ctx, acc.GetAddress()))
+	suite.Require().NoError(err)
 
 	suite.Panics(func() {
 		suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
