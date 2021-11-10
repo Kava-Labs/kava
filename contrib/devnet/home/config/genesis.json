@@ -122,6 +122,17 @@
           ]
         },
         {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "account_number": "0",
+            "address": "kava1mfru9azs5nua2wxcd4sq64g5nt7nn4n8s2w8cu",
+            "pub_key": null,
+            "sequence": "0"
+          },
+          "name": "swap",
+          "permissions": null
+        },
+        {
           "@type": "/cosmos.vesting.v1beta1.PeriodicVestingAccount",
           "base_vesting_account": {
             "base_account": {
@@ -306,6 +317,10 @@
               "denom": "ukava"
             }
           ]
+        },
+        {
+          "address": "kava1mfru9azs5nua2wxcd4sq64g5nt7nn4n8s2w8cu",
+          "coins": []
         },
         {
           "address": "kava1fwfwmt6vupf3m9uvpdsuuc4dga8p5dtl4npcqz",
@@ -828,7 +843,62 @@
         }
       ]
     },
-    "vesting": {}
+    "issuance": {
+      "params": {
+        "assets": [
+          {
+            "owner": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
+            "denom": "kpop",
+            "blocked_addresses": null,
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          }
+        ]
+      },
+      "supplies": []
+    },
+    "swap": {
+      "params": {
+        "allowed_pools": [
+          {
+            "token_a": "ukava",
+            "token_b": "usdx"
+          },
+          {
+            "token_a": "hard",
+            "token_b": "usdx"
+          },
+          {
+            "token_a": "swp",
+            "token_b": "usdx"
+          },
+          {
+            "token_a": "bnb",
+            "token_b": "usdx"
+          },
+          {
+            "token_a": "btcb",
+            "token_b": "usdx"
+          },
+          {
+            "token_a": "busd",
+            "token_b": "usdx"
+          },
+          {
+            "token_a": "usdx",
+            "token_b": "xrpb"
+          }
+        ],
+        "swap_fee": "0.001500000000000000"
+      },
+      "pool_records": [],
+      "share_records": []
+    }
   },
   "chain_id": "kava-localnet",
   "consensus_params": {
