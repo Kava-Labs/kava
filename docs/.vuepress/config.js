@@ -24,7 +24,7 @@ module.exports = {
                   "path": "/education/kava_dao_governance.html",
                 },
                 {
-                  "title": "Testnet", 
+                  "title": "Testnet",
                   "path": "/education/testnet.html",
                 },
                 {
@@ -82,14 +82,87 @@ module.exports = {
               "path": "/tools/community.html"
             },
             {
-              "title": "Module Specs", 
+              "title": "Module Specs",
               "path": "/Modules",
               "directory": true,
             },
             {
               "title": "CLI Docs",
-              "path": "/education/user_actions/",
-              "directory": true,
+              "children": [
+                {
+                  "title": "General",
+                  "children": [
+                    {
+                      "title": "Quick Guide",
+                      "path": "/education/user_actions/General/quick_guide.html"
+                    }
+                  ]
+                }
+                ,
+                {
+                  "title": "CDP",
+                  "children": [
+                    {
+                      "title": "Create",
+                      "path": "/education/user_actions/CDP/cdp_create.html",
+                    },
+                    {
+                      "title": "Deposit",
+                      "path": "/education/user_actions/CDP/cdp_deposit.html",
+                    },
+                    {
+                      "title": "Draw",
+                      "path": "/education/user_actions/CDP/cdp_draw.html",
+                    },
+                    {
+                      "title": "Repay",
+                      "path": "/education/user_actions/CDP/cdp_repay.html",
+                    },
+                    {
+                      "title": "Withdraw",
+                      "path": "/education/user_actions/CDP/cdp_withdraw.html",
+                    }
+                  ],
+                },
+                {
+                  "title": "HARD",
+                  "children": [
+                    {
+                      "title": "Deposit",
+                      "path": "/education/user_actions/HARD/hard_deposit.html",
+                    },
+                    {
+                      "title": "Borrow",
+                      "path": "/education/user_actions/HARD/hard_borrow.html",
+                    },
+                    {
+                      "title": "Repay",
+                      "path": "/education/user_actions/HARD/hard_repay.html",
+                    },
+                    {
+                      "title": "Withdraw",
+                      "path": "/education/user_actions/HARD/hard_withdraw.html",
+                    }
+                  ],
+                },
+                {
+                  "title": "SWAP",
+                  "children": [
+                    {
+                      "title": "Deposit",
+                      "path": "/education/user_actions/SWAP/swap_deposit.html",
+                    },
+                    {
+                      "title": "Swap Tokens",
+                      "path": "/education/user_actions/SWAP/swap_tokens.html",
+                    },
+                    {
+                      "title": "Withdraw",
+                      "path": "/education/user_actions/SWAP/swap_withdraw.html",
+                    }
+                  ],
+                },
+              ],
             },
             {
               "title": "REST API Spec",
