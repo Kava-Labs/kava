@@ -112,13 +112,13 @@ message QueryVotesResponse {
   repeated QueryVoteResponse votes = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryVoteRequest defines the request type for querying x/committee votes.
+// QueryVoteRequest defines the request type for querying x/committee vote.
 message QueryVoteRequest {
   uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
   string voter       = 2;
 }
 
-// QueryVoteResponse defines the response type for querying x/committee votes.
+// QueryVoteResponse defines the response type for querying x/committee vote.
 message QueryVoteResponse {
   uint64   proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
   string   voter       = 2;
@@ -130,7 +130,7 @@ message QueryTallyRequest {
   uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
 }
 
-// QueryTallyResponse defines the response type for querying x/committee votes.
+// QueryTallyResponse defines the response type for querying x/committee tally.
 message QueryTallyResponse {
   uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
   string yes_votes   = 2
