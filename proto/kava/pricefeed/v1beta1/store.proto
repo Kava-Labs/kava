@@ -11,15 +11,11 @@ option (gogoproto.verbose_equal_all) = true;
 
 // Params defines the parameters for the pricefeed module.
 message Params {
-  option (gogoproto.goproto_stringer) = false;
-
   repeated Market markets = 1 [(gogoproto.castrepeated) = "Markets", (gogoproto.nullable) = false];
 }
 
 // Market defines an asset in the pricefeed.
 message Market {
-  option (gogoproto.goproto_stringer) = false;
-
   string         market_id   = 1 [(gogoproto.customname) = "MarketID"];
   string         base_asset  = 2;
   string         quote_asset = 3;
@@ -32,8 +28,6 @@ message Market {
 
 // PostedPrice defines a price for market posted by a specific oracle.
 message PostedPrice {
-  option (gogoproto.goproto_stringer) = false;
-
   string market_id      = 1 [(gogoproto.customname) = "MarketID"];
   bytes  oracle_address = 2 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
@@ -46,8 +40,6 @@ message PostedPrice {
 // CurrentPrice defines a current price for a particular market in the pricefeed
 // module.
 message CurrentPrice {
-  option (gogoproto.goproto_stringer) = false;
-
   string market_id = 1 [(gogoproto.customname) = "MarketID"];
   string price = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }

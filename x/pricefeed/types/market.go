@@ -20,17 +20,6 @@ func NewMarket(id, base, quote string, oracles []sdk.AccAddress, active bool) Ma
 	}
 }
 
-// String implement fmt.Stringer
-func (m Market) String() string {
-	return fmt.Sprintf(`Asset:
-	Market ID: %s
-	Base Asset: %s
-	Quote Asset: %s
-	Oracles: %s
-	Active: %t`,
-		m.MarketID, m.BaseAsset, m.QuoteAsset, m.Oracles, m.Active)
-}
-
 // Validate performs a basic validation of the market params
 func (m Market) Validate() error {
 	if strings.TrimSpace(m.MarketID) == "" {
@@ -174,20 +163,6 @@ func NewPostedPriceResponse(marketID string, oracle sdk.AccAddress, price sdk.De
 
 // PostedPriceResponses is a slice of PostedPriceResponse
 type PostedPriceResponses []PostedPriceResponse
-
-// String implements fmt.Stringer
-func (cp CurrentPrice) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`Market ID: %s
-Price: %s`, cp.MarketID, cp.Price))
-}
-
-// String implements fmt.Stringer
-func (pp PostedPrice) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`Market ID: %s
-Oracle Address: %s
-Price: %s
-Expiry: %s`, pp.MarketID, pp.OracleAddress, pp.Price, pp.Expiry))
-}
 
 // SortDecs provides the interface needed to sort sdk.Dec slices
 type SortDecs []sdk.Dec

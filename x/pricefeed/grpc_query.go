@@ -57,7 +57,6 @@ func (k QueryServer) Prices(c context.Context, req *types.QueryPricesRequest) (*
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var currentPrices types.CurrentPriceResponses
-
 	for _, cp := range k.keeper.GetCurrentPrices(ctx) {
 		currentPrices = append(currentPrices, types.CurrentPriceResponse(cp))
 	}
