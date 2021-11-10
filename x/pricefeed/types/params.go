@@ -53,10 +53,10 @@ func (p Params) Validate() error {
 }
 
 func validateMarketParams(i interface{}) error {
-	markets, ok := i.([]Market)
+	markets, ok := i.(Markets)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	return ValidateMarkets(markets)
+	return markets.Validate()
 }

@@ -204,14 +204,16 @@ func (suite *grpcQueryTestSuite) TestGrpcOracles_InvalidMarket() {
 func (suite *grpcQueryTestSuite) TestGrpcMarkets() {
 	params := types.NewParams([]types.Market{
 		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+		{MarketID: "btcusd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 	})
 	suite.keeper.SetParams(suite.ctx, params)
 
 	res, err := suite.queryServer.Markets(sdk.WrapSDKContext(suite.ctx), &types.QueryMarketsRequest{})
 	suite.NoError(err)
-	suite.Len(res.Markets, 1)
+	suite.Len(res.Markets, 2)
 	suite.Equal(len(res.Markets), len(params.Markets))
-	suite.NoError(res.Markets[0].VerboseEqual(params.Markets[0]))
+	suite.NoError(res.Markets[0].VerboseEqual(params.Markets[0].ToMarketResponse()))
+	suite.NoError(res.Markets[1].VerboseEqual(params.Markets[1].ToMarketResponse()))
 }
 
 func (suite *grpcQueryTestSuite) setTstPrice() {

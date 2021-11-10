@@ -62,6 +62,7 @@
   
 - [kava/pricefeed/v1beta1/query.proto](#kava/pricefeed/v1beta1/query.proto)
     - [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse)
+    - [MarketResponse](#kava.pricefeed.v1beta1.MarketResponse)
     - [PostedPriceResponse](#kava.pricefeed.v1beta1.PostedPriceResponse)
     - [QueryMarketsRequest](#kava.pricefeed.v1beta1.QueryMarketsRequest)
     - [QueryMarketsResponse](#kava.pricefeed.v1beta1.QueryMarketsResponse)
@@ -805,6 +806,25 @@ module.
 
 
 
+<a name="kava.pricefeed.v1beta1.MarketResponse"></a>
+
+### MarketResponse
+MarketResponse defines an asset in the pricefeed.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `market_id` | [string](#string) |  |  |
+| `base_asset` | [string](#string) |  |  |
+| `quote_asset` | [string](#string) |  |  |
+| `oracles` | [string](#string) | repeated |  |
+| `active` | [bool](#bool) |  |  |
+
+
+
+
+
+
 <a name="kava.pricefeed.v1beta1.PostedPriceResponse"></a>
 
 ### PostedPriceResponse
@@ -841,7 +861,7 @@ QueryMarketsResponse is the response type for the Query/Markets RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated | List of markets |
+| `markets` | [MarketResponse](#kava.pricefeed.v1beta1.MarketResponse) | repeated | List of markets |
 
 
 

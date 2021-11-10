@@ -11,8 +11,9 @@ option (gogoproto.verbose_equal_all) = true;
 
 // Params defines the parameters for the pricefeed module.
 message Params {
-  option (gogoproto.goproto_stringer) = false; // false here because we define Stringer method in params.go
-  repeated Market markets             = 1 [(gogoproto.nullable) = false];
+  option (gogoproto.goproto_stringer) = false;
+
+  repeated Market markets = 1 [(gogoproto.castrepeated) = "Markets", (gogoproto.nullable) = false];
 }
 
 // Market defines an asset in the pricefeed.

@@ -76,7 +76,8 @@ message QueryPricesRequest {}
 message QueryPricesResponse {
   option (gogoproto.goproto_getters) = false;
 
-  repeated CurrentPriceResponse prices = 1 [(gogoproto.nullable) = false];
+  repeated CurrentPriceResponse prices = 1
+      [(gogoproto.castrepeated) = "CurrentPriceResponses", (gogoproto.nullable) = false];
 }
 
 // QueryRawPricesRequest is the request type for the Query/RawPrices RPC method.
@@ -91,7 +92,8 @@ message QueryRawPricesRequest {
 message QueryRawPricesResponse {
   option (gogoproto.goproto_getters) = false;
 
-  repeated PostedPriceResponse raw_prices = 1 [(gogoproto.nullable) = false];
+  repeated PostedPriceResponse raw_prices = 1
+      [(gogoproto.castrepeated) = "PostedPriceResponses", (gogoproto.nullable) = false];
 }
 
 // QueryOraclesRequest is the request type for the Query/Oracles RPC method.
@@ -117,7 +119,7 @@ message QueryMarketsResponse {
   option (gogoproto.goproto_getters) = false;
 
   // List of markets
-  repeated Market markets = 1 [(gogoproto.nullable) = false];
+  repeated MarketResponse markets = 1 [(gogoproto.castrepeated) = "MarketResponses", (gogoproto.nullable) = false];
 }
 
 // PostedPriceResponse defines a price for market posted by a specific oracle.
@@ -133,4 +135,13 @@ message PostedPriceResponse {
 message CurrentPriceResponse {
   string market_id = 1 [(gogoproto.customname) = "MarketID"];
   string price = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+
+// MarketResponse defines an asset in the pricefeed.
+message MarketResponse {
+  string          market_id   = 1 [(gogoproto.customname) = "MarketID"];
+  string          base_asset  = 2;
+  string          quote_asset = 3;
+  repeated string oracles     = 4;
+  bool            active      = 5;
 }

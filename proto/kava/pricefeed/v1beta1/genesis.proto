@@ -13,5 +13,5 @@ message GenesisState {
   // params defines all the paramaters of the module.
   Params params = 1 [(gogoproto.nullable) = false];
 
-  repeated PostedPrice posted_prices = 2 [(gogoproto.nullable) = false];
+  repeated PostedPrice posted_prices = 2 [(gogoproto.castrepeated) = "PostedPrices", (gogoproto.nullable) = false];
 }

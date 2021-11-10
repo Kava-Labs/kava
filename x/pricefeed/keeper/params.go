@@ -20,7 +20,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 }
 
 // GetMarkets returns the markets from params
-func (k Keeper) GetMarkets(ctx sdk.Context) []types.Market {
+func (k Keeper) GetMarkets(ctx sdk.Context) types.Markets {
 	return k.GetParams(ctx).Markets
 }
 
