@@ -122,9 +122,7 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 }
 
 func (k Keeper) ProcessProposals(ctx sdk.Context) {
-
 	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
-
 		committee, found := k.GetCommittee(ctx, proposal.CommitteeID)
 		if !found {
 			k.CloseProposal(ctx, proposal, types.Failed)

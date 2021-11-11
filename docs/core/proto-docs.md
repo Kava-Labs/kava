@@ -1894,7 +1894,7 @@ QueryTallyRequest defines the request type for querying x/committee tally.
 <a name="kava.committee.v1beta1.QueryTallyResponse"></a>
 
 ### QueryTallyResponse
-QueryTallyResponse defines the response type for querying x/committee votes.
+QueryTallyResponse defines the response type for querying x/committee tally.
 
 
 | Field | Type | Label | Description |
@@ -1915,7 +1915,7 @@ QueryTallyResponse defines the response type for querying x/committee votes.
 <a name="kava.committee.v1beta1.QueryVoteRequest"></a>
 
 ### QueryVoteRequest
-QueryVoteRequest defines the request type for querying x/committee votes.
+QueryVoteRequest defines the request type for querying x/committee vote.
 
 
 | Field | Type | Label | Description |
@@ -1931,7 +1931,7 @@ QueryVoteRequest defines the request type for querying x/committee votes.
 <a name="kava.committee.v1beta1.QueryVoteResponse"></a>
 
 ### QueryVoteResponse
-QueryVoteResponse defines the response type for querying x/committee votes.
+QueryVoteResponse defines the response type for querying x/committee vote.
 
 
 | Field | Type | Label | Description |
