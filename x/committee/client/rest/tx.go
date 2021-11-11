@@ -7,17 +7,17 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/committees/{%s}/proposals", types.ModuleName, RestCommitteeID), postProposalHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/proposals/{%s}/votes", types.ModuleName, RestProposalID), postVoteHandlerFn(cliCtx)).Methods("POST")
 }
@@ -29,7 +29,7 @@ type PostProposalReq struct {
 	Proposer    sdk.AccAddress    `json:"proposer" yaml:"proposer"`
 }
 
-func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// Parse and validate url params
@@ -45,7 +45,7 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// Parse and validate http request body
 		var req PostProposalReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 		req.BaseReq = req.BaseReq.Sanitize()
@@ -58,12 +58,14 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Create and return a StdTx
-		msg := types.NewMsgSubmitProposal(req.PubProposal, req.Proposer, committeeID)
-		if err := msg.ValidateBasic(); err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		msg, err := types.NewMsgSubmitProposal(req.PubProposal, req.Proposer, committeeID)
+		if rest.CheckBadRequestError(w, err) {
 			return
 		}
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		if rest.CheckBadRequestError(w, msg.ValidateBasic()) {
+			return
+		}
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
@@ -74,7 +76,7 @@ type PostVoteReq struct {
 	Vote    types.VoteType `json:"vote" yaml:"vote"`
 }
 
-func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postVoteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// Parse and validate url params
@@ -102,9 +104,9 @@ func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		var vote types.VoteType
 		switch rawVote {
 		case "yes", "y":
-			vote = types.Yes
+			vote = types.VOTE_TYPE_YES
 		case "no", "n":
-			vote = types.No
+			vote = types.VOTE_TYPE_NO
 		default:
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "must specify a valid vote type (\"yes\", \"y\"/\"no\" \"n\")")
 			return
@@ -112,7 +114,7 @@ func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// Parse and validate http request body
 		var req PostVoteReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 		req.BaseReq = req.BaseReq.Sanitize()
@@ -122,11 +124,10 @@ func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// Create and return a StdTx
 		msg := types.NewMsgVote(req.Voter, proposalID, vote)
-		if err := msg.ValidateBasic(); err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		if rest.CheckBadRequestError(w, msg.ValidateBasic()) {
 			return
 		}
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
@@ -138,19 +139,19 @@ type PostGovProposalReq struct {
 	Deposit  sdk.Coins        `json:"deposit" yaml:"deposit"`
 }
 
-func ProposalRESTHandler(cliCtx context.CLIContext) govrest.ProposalRESTHandler {
+func ProposalRESTHandler(cliCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{
 		SubRoute: "committee",
 		Handler:  postGovProposalHandlerFn(cliCtx),
 	}
 }
 
-func postGovProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postGovProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// Parse and validate http request body
 		var req PostGovProposalReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 		req.BaseReq = req.BaseReq.Sanitize()
@@ -163,11 +164,13 @@ func postGovProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Create and return a StdTx
-		msg := govtypes.NewMsgSubmitProposal(req.Content, req.Deposit, req.Proposer)
-		if err := msg.ValidateBasic(); err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		msg, err := govtypes.NewMsgSubmitProposal(req.Content, req.Deposit, req.Proposer)
+		if rest.CheckBadRequestError(w, err) {
 			return
 		}
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		if rest.CheckBadRequestError(w, msg.ValidateBasic()) {
+			return
+		}
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }

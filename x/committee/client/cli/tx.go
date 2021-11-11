@@ -1,7 +1,8 @@
 package cli
 
 import (
-	"bufio"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -9,24 +10,21 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
-
-	"github.com/tendermint/tendermint/crypto"
+	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
+func GetTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "committee governance transactions subcommands",
@@ -35,16 +33,22 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	txCmd.AddCommand(flags.PostCommands(
-		GetCmdVote(cdc),
-		GetCmdSubmitProposal(cdc),
-	)...)
+	cmds := []*cobra.Command{
+		getCmdVote(),
+		getCmdSubmitProposal(),
+	}
+
+	for _, cmd := range cmds {
+		flags.AddTxFlagsToCmd(cmd)
+	}
+
+	txCmd.AddCommand(cmds...)
 
 	return txCmd
 }
 
-// GetCmdSubmitProposal returns the command to submit a proposal to a committee
-func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
+// getCmdSubmitProposal returns the command to submit a proposal to a committee
+func getCmdSubmitProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "submit-proposal [committee-id] [proposal-file]",
 		Short: "Submit a governance proposal to a particular committee",
@@ -53,16 +57,17 @@ func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 The proposal file must be the json encoded forms of the proposal type you want to submit.
 For example:
 %s
-`, MustGetExampleParameterChangeProposal(cdc)),
+`, "[omitted]"), // TODO: Example json omitted for now because we don't have the codec to decode it. Need a better way to handle this.
 		Args:    cobra.ExactArgs(2),
-		Example: fmt.Sprintf("%s tx %s submit-proposal 1 your-proposal.json", version.ClientName, types.ModuleName),
+		Example: fmt.Sprintf("%s tx %s submit-proposal 1 your-proposal.json", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			// Get proposing address
-			proposer := cliCtx.GetFromAddress()
+			proposer := clientCtx.GetFromAddress()
 
 			// Get committee ID
 			committeeID, err := strconv.ParseUint(args[0], 10, 64)
@@ -70,13 +75,13 @@ For example:
 				return fmt.Errorf("committee-id %s not a valid int", args[0])
 			}
 
-			// Get the proposal
-			bz, err := ioutil.ReadFile(args[1])
+			// Get proposal content
+			var pubProposal types.PubProposal
+			contents, err := ioutil.ReadFile(args[1])
 			if err != nil {
 				return err
 			}
-			var pubProposal types.PubProposal
-			if err := cdc.UnmarshalJSON(bz, &pubProposal); err != nil {
+			if err := clientCtx.Codec.UnmarshalInterface(contents, &pubProposal); err != nil {
 				return err
 			}
 			if err = pubProposal.ValidateBasic(); err != nil {
@@ -84,35 +89,39 @@ For example:
 			}
 
 			// Build message and run basic validation
-			msg := types.NewMsgSubmitProposal(pubProposal, proposer, committeeID)
+			msg, err := types.NewMsgSubmitProposal(pubProposal, proposer, committeeID)
+			if err != nil {
+				return err
+			}
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
 
 			// Sign and broadcast message
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
 	return cmd
 }
 
-// GetCmdVote returns the command to vote on a proposal.
-func GetCmdVote(cdc *codec.Codec) *cobra.Command {
+// getCmdVote returns the command to vote on a proposal.
+func getCmdVote() *cobra.Command {
 	return &cobra.Command{
 		Use:     "vote [proposal-id] [vote]",
 		Args:    cobra.ExactArgs(2),
 		Short:   "Vote for an active proposal",
 		Long:    "Submit a [yes/no/abstain] vote for the proposal with id [proposal-id].",
-		Example: fmt.Sprintf("%s tx %s vote 2 yes", version.ClientName, types.ModuleName),
+		Example: fmt.Sprintf("%s tx %s vote 2 yes", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			// Get voting address
-			from := cliCtx.GetFromAddress()
+			from := clientCtx.GetFromAddress()
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -128,11 +137,11 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 			var vote types.VoteType
 			switch rawVote {
 			case "yes", "y":
-				vote = types.Yes
+				vote = types.VOTE_TYPE_YES
 			case "no", "n":
-				vote = types.No
+				vote = types.VOTE_TYPE_NO
 			case "abstain", "a":
-				vote = types.Abstain
+				vote = types.VOTE_TYPE_ABSTAIN
 			default:
 				return fmt.Errorf("must specify a valid vote type: (yes/y, no/n, abstain/a)")
 			}
@@ -144,13 +153,13 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 }
 
 // GetGovCmdSubmitProposal returns a command to submit a proposal to the gov module. It is passed to the gov module for use on its command subtree.
-func GetGovCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
+func GetGovCmdSubmitProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "committee [proposal-file] [deposit]",
 		Short: "Submit a governance proposal to change a committee.",
@@ -162,18 +171,19 @@ For example, to create or update a committee:
 
 and to delete a committee:
 %s
-`, MustGetExampleCommitteeChangeProposal(cdc), MustGetExampleCommitteeDeleteProposal(cdc)),
+`, "[omitted]", "[omitted]"), // TODO: Example json omitted for now because we don't have the codec to decode it. Need a better way to handle this.
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			// Get proposing address
-			proposer := cliCtx.GetFromAddress()
+			proposer := clientCtx.GetFromAddress()
 
 			// Get the deposit
-			deposit, err := sdk.ParseCoins(args[1])
+			deposit, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -184,7 +194,7 @@ and to delete a committee:
 				return err
 			}
 			var content govtypes.Content
-			if err := cdc.UnmarshalJSON(bz, &content); err != nil {
+			if err := clientCtx.Codec.UnmarshalInterface(bz, &content); err != nil {
 				return err
 			}
 			if err = content.ValidateBasic(); err != nil {
@@ -192,70 +202,86 @@ and to delete a committee:
 			}
 
 			// Build message and run basic validation
-			msg := govtypes.NewMsgSubmitProposal(content, deposit, proposer)
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, proposer)
+			if err != nil {
+				return err
+			}
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
 
 			// Sign and broadcast message
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 	return cmd
 }
 
 // MustGetExampleCommitteeChangeProposal is a helper function to return an example json proposal
-func MustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
-	exampleChangeProposal := types.NewCommitteeChangeProposal(
+func MustGetExampleCommitteeChangeProposal(cdc codec.Codec) string {
+	exampleChangeProposal, err := types.NewCommitteeChangeProposal(
 		"A Title",
 		"A description of this proposal.",
-		types.NewMemberCommittee(
+		types.MustNewMemberCommittee(
 			1,
 			"The description of this committee.",
 			[]sdk.AccAddress{sdk.AccAddress(crypto.AddressHash([]byte("exampleAddress")))},
 			[]types.Permission{
-				types.SimpleParamChangePermission{
-					AllowedParams: types.AllowedParams{{Subspace: "cdp", Key: "CircuitBreaker"}},
-				},
+				&types.GodPermission{},
 			},
 			sdk.MustNewDecFromStr("0.8"),
 			time.Hour*24*7,
-			types.FirstPastThePost,
+			types.TALLY_OPTION_FIRST_PAST_THE_POST,
 		),
 	)
-	exampleChangeProposalBz, err := cdc.MarshalJSONIndent(exampleChangeProposal, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	return string(exampleChangeProposalBz)
+	exampleChangeProposalBz, err := cdc.MarshalJSON(&exampleChangeProposal)
+	if err != nil {
+		panic(err)
+	}
+	var out bytes.Buffer
+	if err = json.Indent(&out, exampleChangeProposalBz, "", "  "); err != nil {
+		panic(err)
+	}
+	return out.String()
 }
 
 // MustGetExampleCommitteeDeleteProposal is a helper function to return an example json proposal
-func MustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
+func MustGetExampleCommitteeDeleteProposal(cdc codec.Codec) string {
 	exampleDeleteProposal := types.NewCommitteeDeleteProposal(
 		"A Title",
 		"A description of this proposal.",
 		1,
 	)
-	exampleDeleteProposalBz, err := cdc.MarshalJSONIndent(exampleDeleteProposal, "", "  ")
+	bz, err := cdc.MarshalJSON(&exampleDeleteProposal)
 	if err != nil {
 		panic(err)
 	}
-	return string(exampleDeleteProposalBz)
+	var out bytes.Buffer
+	if err = json.Indent(&out, bz, "", "  "); err != nil {
+		panic(err)
+	}
+	return out.String()
 }
 
 // MustGetExampleParameterChangeProposal is a helper function to return an example json proposal
-func MustGetExampleParameterChangeProposal(cdc *codec.Codec) string {
+func MustGetExampleParameterChangeProposal(cdc codec.Codec) string {
 	value := fmt.Sprintf("\"%d\"", 1000000000)
-	exampleParameterChangeProposal := params.NewParameterChangeProposal(
+	exampleParameterChangeProposal := paramsproposal.NewParameterChangeProposal(
 		"A Title",
 		"A description of this proposal.",
-		[]params.ParamChange{params.NewParamChange("cdp", "SurplusAuctionThreshold", value)},
+		[]paramsproposal.ParamChange{paramsproposal.NewParamChange("cdp", "SurplusAuctionThreshold", value)},
 	)
-	exampleParameterChangeProposalBz, err := cdc.MarshalJSONIndent(exampleParameterChangeProposal, "", "  ")
+	bz, err := cdc.MarshalJSON(exampleParameterChangeProposal)
 	if err != nil {
 		panic(err)
 	}
-	return string(exampleParameterChangeProposalBz)
+	var out bytes.Buffer
+	if err = json.Indent(&out, bz, "", "  "); err != nil {
+		panic(err)
+	}
+	return out.String()
 }

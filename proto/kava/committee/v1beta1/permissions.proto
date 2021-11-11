@@ -2,6 +2,7 @@ syntax = "proto3";
 package kava.committee.v1beta1;
 
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/committee/types";
 
@@ -19,3 +20,27 @@ message SoftwareUpgradePermission {
 message TextPermission {
   option (cosmos_proto.implements_interface) = "Permission";
 }
+
+// ParamsChangePermission allows any parameter or sub parameter change proposal.
+message ParamsChangePermission {
+  option (cosmos_proto.implements_interface)          = "Permission";
+  repeated AllowedParamsChange allowed_params_changes = 1
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "AllowedParamsChanges"];
+}
+
+// AllowedParamsChange contains data on the allowed parameter changes for subspace, key, and sub params attrs.
+message AllowedParamsChange {
+  string subspace = 1;
+  string key      = 2;
+
+  // TODO: Add supported for sub parameters and required param values
+  // for sub parameter changes.
+  // repeated string               allowed_param_attr_changes = 3;
+  // repeated RequiredSubParamAttr required_sub_param_attrs   = 4;
+}
+
+// TODO: RequiredSubParamAttr contains data on the required sub parameter data needed for param changes.
+// message RequiredSubParamAttr {
+//   string attr_key   = 1;
+//   string attr_value = 2;
+// }

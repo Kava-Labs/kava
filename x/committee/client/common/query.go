@@ -1,15 +1,16 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -37,7 +38,7 @@ func (p Proposer) String() string {
 }
 
 // QueryProposer will query for a proposer of a governance proposal by ID.
-func QueryProposer(cliCtx context.CLIContext, proposalID uint64) (Proposer, error) {
+func QueryProposer(cliCtx client.Context, proposalID uint64) (Proposer, error) {
 	events := []string{
 		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types.TypeMsgSubmitProposal),
 		fmt.Sprintf("%s.%s='%s'", types.EventTypeProposalSubmit, types.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", proposalID))),
@@ -45,16 +46,15 @@ func QueryProposer(cliCtx context.CLIContext, proposalID uint64) (Proposer, erro
 
 	// NOTE: SearchTxs is used to facilitate the txs query which does not currently
 	// support configurable pagination.
-	searchResult, err := utils.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit)
+	searchResult, err := authtx.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit, "")
 	if err != nil {
 		return Proposer{}, err
 	}
 
 	for _, info := range searchResult.Txs {
-		for _, msg := range info.Tx.GetMsgs() {
+		for _, msg := range info.GetTx().GetMsgs() {
 			// there should only be a single proposal under the given conditions
-			if msg.Type() == types.TypeMsgSubmitProposal {
-				subMsg := msg.(types.MsgSubmitProposal)
+			if subMsg, ok := msg.(*types.MsgSubmitProposal); ok {
 				return NewProposer(proposalID, subMsg.Proposer.String()), nil
 			}
 		}
@@ -64,7 +64,7 @@ func QueryProposer(cliCtx context.CLIContext, proposalID uint64) (Proposer, erro
 }
 
 // QueryProposalByID returns a proposal from state if present or fallbacks to searching old blocks
-func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute string, proposalID uint64) (*types.Proposal, int64, error) {
+func QueryProposalByID(cliCtx client.Context, cdc *codec.LegacyAmino, queryRoute string, proposalID uint64) (*types.Proposal, int64, error) {
 	bz, err := cdc.MarshalJSON(types.NewQueryProposalParams(proposalID))
 	if err != nil {
 		return nil, 0, err
@@ -101,27 +101,23 @@ func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 		fmt.Sprintf("%s.%s='%s'", types.EventTypeProposalSubmit, types.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", proposalID))),
 	}
 
-	searchResult, err := utils.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit)
+	searchResult, err := authtx.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit, "")
 	if err != nil {
 		return nil, 0, err
 	}
 
 	for _, info := range searchResult.Txs {
-		for _, msg := range info.Tx.GetMsgs() {
-			if msg.Type() == types.TypeMsgSubmitProposal {
-				subMsg := msg.(types.MsgSubmitProposal)
-
+		for _, msg := range info.GetTx().GetMsgs() {
+			if subMsg, ok := msg.(*types.MsgSubmitProposal); ok {
 				deadline, err := calculateDeadline(cliCtx, cdc, queryRoute, subMsg.CommitteeID, info.Height)
 				if err != nil {
 					return nil, 0, err
 				}
-
-				return &types.Proposal{
-					ID:          proposalID,
-					CommitteeID: subMsg.CommitteeID,
-					PubProposal: subMsg.PubProposal,
-					Deadline:    deadline,
-				}, height, nil
+				proposal, err := types.NewProposal(subMsg.GetPubProposal(), proposalID, subMsg.CommitteeID, deadline)
+				if err != nil {
+					return nil, 0, err
+				}
+				return &proposal, height, nil
 			}
 		}
 	}
@@ -130,7 +126,7 @@ func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 }
 
 // calculateDeadline returns the proposal deadline for a committee and block height
-func calculateDeadline(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute string, committeeID uint64, blockHeight int64) (time.Time, error) {
+func calculateDeadline(cliCtx client.Context, cdc *codec.LegacyAmino, queryRoute string, committeeID uint64, blockHeight int64) (time.Time, error) {
 	var deadline time.Time
 
 	bz, err := cdc.MarshalJSON(types.NewQueryCommitteeParams(committeeID))
@@ -154,7 +150,7 @@ func calculateDeadline(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 		return deadline, err
 	}
 
-	resultBlock, err := node.Block(&blockHeight)
+	resultBlock, err := node.Block(context.Background(), &blockHeight)
 	if err != nil {
 		return deadline, err
 	}
