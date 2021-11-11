@@ -24,10 +24,6 @@
     - [QueryAccountsResponse](#kava.cdp.v1beta1.QueryAccountsResponse)
     - [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest)
     - [QueryCdpResponse](#kava.cdp.v1beta1.QueryCdpResponse)
-    - [QueryCdpsByCollateralTypeRequest](#kava.cdp.v1beta1.QueryCdpsByCollateralTypeRequest)
-    - [QueryCdpsByCollateralTypeResponse](#kava.cdp.v1beta1.QueryCdpsByCollateralTypeResponse)
-    - [QueryCdpsByRatioRequest](#kava.cdp.v1beta1.QueryCdpsByRatioRequest)
-    - [QueryCdpsByRatioResponse](#kava.cdp.v1beta1.QueryCdpsByRatioResponse)
     - [QueryCdpsRequest](#kava.cdp.v1beta1.QueryCdpsRequest)
     - [QueryCdpsResponse](#kava.cdp.v1beta1.QueryCdpsResponse)
     - [QueryDepositsRequest](#kava.cdp.v1beta1.QueryDepositsRequest)
@@ -444,67 +440,6 @@ QueryCdpResponse defines the response type for the Query/Cdp RPC method.
 
 
 
-<a name="kava.cdp.v1beta1.QueryCdpsByCollateralTypeRequest"></a>
-
-### QueryCdpsByCollateralTypeRequest
-QueryCdpsByCollateralTypeRequest defines the request type for the Query/CdpsByCollateralType RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `collateral_type` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.cdp.v1beta1.QueryCdpsByCollateralTypeResponse"></a>
-
-### QueryCdpsByCollateralTypeResponse
-QueryCdpsByCollateralTypeResponse defines the response type for the Query/CdpsByCollateralType RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `cdps` | [AugmentedCDP](#kava.cdp.v1beta1.AugmentedCDP) | repeated |  |
-
-
-
-
-
-
-<a name="kava.cdp.v1beta1.QueryCdpsByRatioRequest"></a>
-
-### QueryCdpsByRatioRequest
-QueryCdpsByCollateralTypeRequest defines the request type for the Query/CdpsByRatio RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `collateral_type` | [string](#string) |  |  |
-| `ratio` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.cdp.v1beta1.QueryCdpsByRatioResponse"></a>
-
-### QueryCdpsByRatioResponse
-QueryCdpsByRatioResponse defines the response type for the Query/CdpsByRatio RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `cdps` | [AugmentedCDP](#kava.cdp.v1beta1.AugmentedCDP) | repeated |  |
-
-
-
-
-
-
 <a name="kava.cdp.v1beta1.QueryCdpsRequest"></a>
 
 ### QueryCdpsRequest
@@ -676,8 +611,6 @@ Query defines the gRPC querier service for cdp module
 | `Cdps` | [QueryCdpsRequest](#kava.cdp.v1beta1.QueryCdpsRequest) | [QueryCdpsResponse](#kava.cdp.v1beta1.QueryCdpsResponse) | Cdps queries all active CDPs. | GET|/kava/cdp/v1beta1/cdps|
 | `Cdp` | [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest) | [QueryCdpResponse](#kava.cdp.v1beta1.QueryCdpResponse) | Cdp queries a CDP with the input owner address and collateral type. | GET|/kava/cdp/v1beta1/cdps/{owner}/{collateral_type}|
 | `Deposits` | [QueryDepositsRequest](#kava.cdp.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.cdp.v1beta1.QueryDepositsResponse) | Deposits queries deposits associated with the CDP owned by an address for a collateral type. | GET|/kava/cdp/v1beta1/cdps/deposits/{owner}/{collateral_type}|
-| `CdpsByCollateralType` | [QueryCdpsByCollateralTypeRequest](#kava.cdp.v1beta1.QueryCdpsByCollateralTypeRequest) | [QueryCdpsByCollateralTypeResponse](#kava.cdp.v1beta1.QueryCdpsByCollateralTypeResponse) | CdpsByCollateralType queries all CDPs with the collateral type equal to the input collateral type. | GET|/kava/cdp/v1beta1/cdps/collateralType/{collateral_type}|
-| `CdpsByRatio` | [QueryCdpsByRatioRequest](#kava.cdp.v1beta1.QueryCdpsByRatioRequest) | [QueryCdpsByRatioResponse](#kava.cdp.v1beta1.QueryCdpsByRatioResponse) | CdpsByRatio queries all CDPs with the collateral type equal to the input colalteral type and collateralization ratio strictly less than the input ratio. | GET|/kava/cdp/v1beta1/cdps/ratio/{collateral_type}|
 
  <!-- end services -->
 

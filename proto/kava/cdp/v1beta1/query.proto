@@ -47,21 +47,6 @@ service Query {
   rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
     option (google.api.http).get = "/kava/cdp/v1beta1/cdps/deposits/{owner}/{collateral_type}";
   };
-
-  // TODO: Do we keep these last 2? Marked as "legacy, maintained for REST API"
-
-  // CdpsByCollateralType queries all CDPs with the collateral type equal to the input collateral type.
-  rpc CdpsByCollateralType(QueryCdpsByCollateralTypeRequest) returns (QueryCdpsByCollateralTypeResponse) {
-    option (google.api.http).get = "/kava/cdp/v1beta1/cdps/collateralType/{collateral_type}";
-  };
-
-  // CdpsByRatio queries all CDPs with the collateral type equal to the input
-  // colalteral type and collateralization ratio strictly less than the input
-  // ratio.
-  rpc CdpsByRatio(QueryCdpsByRatioRequest) returns (QueryCdpsByRatioResponse) {
-    // Does not contain {ratio} in the url path as grpc-gateway does not convert string to sdk.Dec
-    option (google.api.http).get = "/kava/cdp/v1beta1/cdps/ratio/{collateral_type}";
-  };
 }
 
 // QueryParamsRequest defines the request type for the Query/Params RPC method.
@@ -124,31 +109,6 @@ message QueryDepositsRequest {
 // QueryDepositsResponse defines the response type for the Query/Deposits RPC method.
 message QueryDepositsResponse {
   repeated Deposit deposits = 1 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
-}
-
-// QueryCdpsByCollateralTypeRequest defines the request type for the Query/CdpsByCollateralType RPC method.
-message QueryCdpsByCollateralTypeRequest {
-  string collateral_type = 1;
-}
-
-// QueryCdpsByCollateralTypeResponse defines the response type for the Query/CdpsByCollateralType RPC method.
-message QueryCdpsByCollateralTypeResponse {
-  repeated AugmentedCDP cdps = 1 [(gogoproto.castrepeated) = "AugmentedCDPs", (gogoproto.nullable) = false];
-}
-
-// QueryCdpsByCollateralTypeRequest defines the request type for the Query/CdpsByRatio RPC method.
-message QueryCdpsByRatioRequest {
-  string collateral_type = 1;
-  string ratio           = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
-  ];
-}
-
-// QueryCdpsByRatioResponse defines the response type for the Query/CdpsByRatio RPC method.
-message QueryCdpsByRatioResponse {
-  repeated AugmentedCDP cdps = 1 [(gogoproto.castrepeated) = "AugmentedCDPs", (gogoproto.nullable) = false];
 }
 
 // QueryTotalPrincipalRequest defines the request type for the Query/TotalPrincipal RPC method.
