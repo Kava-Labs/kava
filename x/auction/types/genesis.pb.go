@@ -5,12 +5,12 @@ package types
 
 import (
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
-	_ "github.com/regen-network/cosmos-proto"
 	_ "google.golang.org/protobuf/types/known/durationpb"
 	io "io"
 	math "math"
