@@ -31,7 +31,7 @@ type querierTestSuite struct {
 }
 
 func (suite *querierTestSuite) SetupTest() {
-	suite.Suite.SetupTest()
+	suite.Suite.SetupTest(10)
 	// Populate with auctions
 	for j := 0; j < TestAuctionCount; j++ {
 		var id uint64

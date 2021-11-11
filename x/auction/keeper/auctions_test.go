@@ -18,7 +18,7 @@ type auctionTestSuite struct {
 }
 
 func (suite *auctionTestSuite) SetupTest() {
-	suite.Suite.SetupTest()
+	suite.Suite.SetupTest(4)
 }
 
 func TestAuctionTestSuite(t *testing.T) {

@@ -526,7 +526,6 @@ func TestAuctionBidding(t *testing.T) {
 					require.Equal(t, newBidderOldCoins.Sub(cs(bidAmt)), bank.GetAllBalances(ctx, bidder)) // wrapping in cs() to avoid comparing nil and empty coins
 
 					// handle checking debt coins for case debt auction has had no bids placed yet TODO make this less confusing
-
 					if oldBidderStr == authtypes.NewModuleAddress(oldAuction.GetInitiator()).String() {
 						require.Equal(t, oldBidderOldCoins.Add(oldAuction.GetBid()).Add(c("debt", oldAuction.GetBid().Amount.Int64())), bank.GetAllBalances(ctx, oldBidder))
 					} else if oldBidderStr == "" {

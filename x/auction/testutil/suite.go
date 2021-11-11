@@ -38,7 +38,7 @@ func (suite *Suite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
 
-	_, addrs := app.GeneratePrivKeyAddressPairs(10)
+	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 
 	// Fund liquidator module account
 	coins := sdk.NewCoins(
@@ -69,13 +69,10 @@ func (suite *Suite) SetupTest() {
 	gs := app.GenesisState{types.ModuleName: moduleGs}
 	tApp.InitializeFromGenesisStates(authGS, gs)
 
-	auctionKeeper := tApp.GetAuctionKeeper()
-	auctionKeeper.SetParams(ctx, params)
-
 	suite.App = tApp
 	suite.Ctx = ctx
 	suite.Addrs = addrs
-	suite.Keeper = auctionKeeper
+	suite.Keeper = tApp.GetAuctionKeeper()
 	suite.BankKeeper = tApp.GetBankKeeper()
 	suite.AccountKeeper = tApp.GetAccountKeeper()
 
