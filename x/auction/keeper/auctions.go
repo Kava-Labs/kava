@@ -206,22 +206,12 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, auction *types.SurplusAuction, 
 		}
 	}
 
-	// Increase in bid is burned
-
-	// Current bid is $0
-	// New bid is $10
-	// New bid - Current bid = $10 - $0 = $10
-	// $10 is sent from bidder to initator account
-
-	fmt.Printf("\nsending %s from bidder to auction.Initiator", sdk.NewCoins(bid.Sub(auction.Bid)))
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, bidder, auction.Initiator, sdk.NewCoins(bid.Sub(auction.Bid)))
 	if err != nil {
 		return auction, err
 	}
 
 	// Received bid amount is burned from the module account
-	fmt.Printf("\nburning %s from auction.Initiator\n", sdk.NewCoins(bid.Sub(auction.Bid)))
-
 	err = k.bankKeeper.BurnCoins(ctx, auction.Initiator, sdk.NewCoins(bid.Sub(auction.Bid)))
 	if err != nil {
 		return auction, err
