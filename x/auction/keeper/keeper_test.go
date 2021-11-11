@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/auction/types"
@@ -16,10 +16,11 @@ func SetGetDeleteAuction(t *testing.T) {
 	// setup keeper, create auction
 	tApp := app.NewTestApp()
 	keeper := tApp.GetAuctionKeeper()
-	ctx := tApp.NewContext(true, abci.Header{})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+
 	someTime := time.Date(43, time.January, 1, 0, 0, 0, 0, time.UTC) // need to specify UTC as tz info is lost on unmarshal
 	var id uint64 = 5
-	auction := types.NewSurplusAuction("some_module", c("usdx", 100), "kava", someTime).WithID(id)
+	auction := types.NewSurplusAuction("some_module", c("usdx", 100), "kava", someTime).WithId(id)
 
 	// write and read from store
 	keeper.SetAuction(ctx, auction)
@@ -30,7 +31,7 @@ func SetGetDeleteAuction(t *testing.T) {
 	require.Equal(t, auction, readAuction)
 	// check auction is in the index
 	keeper.IterateAuctionsByTime(ctx, auction.GetEndTime(), func(readID uint64) bool {
-		require.Equal(t, auction.GetID(), readID)
+		require.Equal(t, auction.GetId(), readID)
 		return false
 	})
 
@@ -51,7 +52,7 @@ func TestIncrementNextAuctionID(t *testing.T) {
 	// setup keeper
 	tApp := app.NewTestApp()
 	keeper := tApp.GetAuctionKeeper()
-	ctx := tApp.NewContext(true, abci.Header{})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
 
 	// store id
 	var id uint64 = 123456
@@ -63,7 +64,6 @@ func TestIncrementNextAuctionID(t *testing.T) {
 	readID, err := keeper.GetNextAuctionID(ctx)
 	require.NoError(t, err)
 	require.Equal(t, id+1, readID)
-
 }
 
 func TestIterateAuctions(t *testing.T) {
@@ -71,12 +71,12 @@ func TestIterateAuctions(t *testing.T) {
 	tApp := app.NewTestApp()
 	tApp.InitializeFromGenesisStates()
 	keeper := tApp.GetAuctionKeeper()
-	ctx := tApp.NewContext(true, abci.Header{})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
 
 	auctions := []types.Auction{
-		types.NewSurplusAuction("sellerMod", c("denom", 12345678), "anotherdenom", time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithID(0),
-		types.NewDebtAuction("buyerMod", c("denom", 12345678), c("anotherdenom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC), c("debt", 12345678)).WithID(1),
-		types.NewCollateralAuction("sellerMod", c("denom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC), c("anotherdenom", 12345678), types.WeightedAddresses{}, c("debt", 12345678)).WithID(2),
+		types.NewSurplusAuction("sellerMod", c("denom", 12345678), "anotherdenom", time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithId(0),
+		types.NewDebtAuction("buyerMod", c("denom", 12345678), c("anotherdenom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC), c("debt", 12345678)).WithId(1),
+		types.NewCollateralAuction("sellerMod", c("denom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC), c("anotherdenom", 12345678), types.WeightedAddresses{}, c("debt", 12345678)).WithId(2),
 	}
 	for _, a := range auctions {
 		keeper.SetAuction(ctx, a)
@@ -97,7 +97,7 @@ func TestIterateAuctionsByTime(t *testing.T) {
 	// setup keeper
 	tApp := app.NewTestApp()
 	keeper := tApp.GetAuctionKeeper()
-	ctx := tApp.NewContext(true, abci.Header{})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
 
 	// setup byTime index
 	byTimeIndex := []struct {
