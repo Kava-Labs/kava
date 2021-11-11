@@ -52,6 +52,9 @@ func (msg MsgPlaceBid) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgPlaceBid) GetSigners() []sdk.AccAddress {
-	bidder, _ := sdk.AccAddressFromBech32(msg.Bidder)
+	bidder, err := sdk.AccAddressFromBech32(msg.Bidder)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{bidder}
 }

@@ -36,7 +36,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 
 	registry.RegisterInterface(
 		"kava.auction.v1beta1.GenesisAuction",
-		(*Auction)(nil),
+		(*GenesisAuction)(nil),
 		&SurplusAuction{},
 		&DebtAuction{},
 		&CollateralAuction{},
