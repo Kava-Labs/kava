@@ -73,16 +73,6 @@ func (msg MsgCreateCDP) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sender}
 }
 
-// String implements the Stringer interface
-func (msg MsgCreateCDP) String() string {
-	return fmt.Sprintf(`Create CDP Message:
-  Sender:         %s
-	Collateral: %s
-	Principal: %s
-	Collateral Type: %s
-`, msg.Sender, msg.Collateral, msg.Principal, msg.CollateralType)
-}
-
 // NewMsgDeposit returns a new MsgDeposit
 func NewMsgDeposit(owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coin, collateralType string) MsgDeposit {
 	return MsgDeposit{
@@ -129,16 +119,6 @@ func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{depositor}
-}
-
-// String implements the Stringer interface
-func (msg MsgDeposit) String() string {
-	return fmt.Sprintf(`Deposit to CDP Message:
-	Sender:         %s
-	Owner: %s
-	Collateral: %s
-	CollateralType: %s
-`, msg.Owner, msg.Owner, msg.Collateral, msg.CollateralType)
 }
 
 // NewMsgWithdraw returns a new MsgDeposit
@@ -189,15 +169,6 @@ func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{depositor}
 }
 
-// String implements the Stringer interface
-func (msg MsgWithdraw) String() string {
-	return fmt.Sprintf(`Withdraw from CDP Message:
-	Owner:         %s
-	Depositor: %s
-	Collateral: %s
-`, msg.Owner, msg.Depositor, msg.Collateral)
-}
-
 // NewMsgDrawDebt returns a new MsgDrawDebt
 func NewMsgDrawDebt(sender sdk.AccAddress, collateralType string, principal sdk.Coin) MsgDrawDebt {
 	return MsgDrawDebt{
@@ -240,15 +211,6 @@ func (msg MsgDrawDebt) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{sender}
-}
-
-// String implements the Stringer interface
-func (msg MsgDrawDebt) String() string {
-	return fmt.Sprintf(`Draw debt from CDP Message:
-	Sender:         %s
-	Collateral Type: %s
-	Principal: %s
-`, msg.Sender, msg.CollateralType, msg.Principal)
 }
 
 // NewMsgRepayDebt returns a new MsgRepayDebt
@@ -295,15 +257,6 @@ func (msg MsgRepayDebt) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sender}
 }
 
-// String implements the Stringer interface
-func (msg MsgRepayDebt) String() string {
-	return fmt.Sprintf(`Draw debt from CDP Message:
-	Sender:         %s
-	Collateral Type: %s
-	Payment: %s
-`, msg.Sender, msg.CollateralType, msg.Payment)
-}
-
 // NewMsgLiquidate returns a new MsgLiquidate
 func NewMsgLiquidate(keeper, borrower sdk.AccAddress, ctype string) MsgLiquidate {
 	return MsgLiquidate{
@@ -346,13 +299,4 @@ func (msg MsgLiquidate) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{keeper}
-}
-
-// String implements the Stringer interface
-func (msg MsgLiquidate) String() string {
-	return fmt.Sprintf(`Liquidate Message:
-	Keeper:           %s
-	Borrower:         %s
-	Collateral Type %s
-`, msg.Keeper, msg.Borrower, msg.CollateralType)
 }

@@ -39,28 +39,6 @@ func NewCDPWithFees(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collat
 	}
 }
 
-// String implements fmt.stringer
-func (cdp CDP) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`CDP:
-	Owner:      %s
-	ID: %d
-	Collateral Type: %s
-	Collateral: %s
-	Principal: %s
-	AccumulatedFees: %s
-	Fees Last Updated: %s
-	Interest Factor: %s`,
-		cdp.Owner,
-		cdp.ID,
-		cdp.Type,
-		cdp.Collateral,
-		cdp.Principal,
-		cdp.AccumulatedFees,
-		cdp.FeesUpdated,
-		cdp.InterestFactor,
-	))
-}
-
 // Validate performs a basic validation of the CDP fields.
 func (cdp CDP) Validate() error {
 	if cdp.ID == 0 {
@@ -109,15 +87,6 @@ func (cdp CDP) GetNormalizedPrincipal() (sdk.Dec, error) {
 // CDPs a collection of CDP objects
 type CDPs []CDP
 
-// String implements stringer
-func (cdps CDPs) String() string {
-	out := ""
-	for _, cdp := range cdps {
-		out += cdp.String() + "\n"
-	}
-	return out
-}
-
 // Validate validates each CDP
 func (cdps CDPs) Validate() error {
 	for _, cdp := range cdps {
@@ -147,55 +116,11 @@ func NewAugmentedCDP(cdp CDP, collateralValue sdk.Coin, collateralizationRatio s
 	return augmentedCDP
 }
 
-// String implements fmt.stringer
-func (augCDP AugmentedCDP) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`AugmentedCDP:
-	Owner:      %s
-	ID: %d
-	Collateral Type: %s
-	Collateral: %s
-	Collateral Value: %s
-	Principal: %s
-	Fees: %s
-	Fees Last Updated: %s
-	Interest Factor: %s
-	Collateralization ratio: %s`,
-		augCDP.Owner,
-		augCDP.ID,
-		augCDP.Type,
-		augCDP.Collateral,
-		augCDP.CollateralValue,
-		augCDP.Principal,
-		augCDP.AccumulatedFees,
-		augCDP.FeesUpdated,
-		augCDP.InterestFactor,
-		augCDP.CollateralizationRatio,
-	))
-}
-
 // AugmentedCDPs a collection of AugmentedCDP objects
 type AugmentedCDPs []AugmentedCDP
 
-// String implements stringer
-func (augcdps AugmentedCDPs) String() string {
-	out := ""
-	for _, augcdp := range augcdps {
-		out += augcdp.String() + "\n"
-	}
-	return out
-}
-
 // TotalPrincipals a collection of TotalPrincipal objects
 type TotalPrincipals []TotalPrincipal
-
-func (t *TotalPrincipal) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`TotalPrincipal:
-	CollateralType: %s
-	Amount: %s`,
-		t.CollateralType,
-		t.Amount,
-	))
-}
 
 // TotalPrincipal returns a new TotalPrincipal
 func NewTotalPrincipal(collateralType string, amount sdk.Coin) TotalPrincipal {
@@ -207,15 +132,6 @@ func NewTotalPrincipal(collateralType string, amount sdk.Coin) TotalPrincipal {
 
 // TotalCollaterals a collection of TotalCollateral objects
 type TotalCollaterals []TotalCollateral
-
-func (t *TotalCollateral) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`TotalCollateral:
-	CollateralType: %s
-	Amount: %s`,
-		t.CollateralType,
-		t.Amount,
-	))
-}
 
 // TotalCollateral returns a new TotalCollateral
 func NewTotalCollateral(collateralType string, amount sdk.Coin) TotalCollateral {

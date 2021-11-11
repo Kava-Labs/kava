@@ -28,8 +28,6 @@ message GenesisState {
 
 // Params defines the parameters for the cdp module.
 message Params {
-  option (gogoproto.goproto_stringer) = false;
-
   repeated CollateralParam collateral_params = 1
       [(gogoproto.castrepeated) = "CollateralParams", (gogoproto.nullable) = false];
   DebtParam debt_param = 2 [(gogoproto.nullable) = false];
@@ -60,8 +58,6 @@ message Params {
 
 // DebtParam defines governance params for debt assets
 message DebtParam {
-  option (gogoproto.goproto_stringer) = false;
-
   string denom             = 1;
   string reference_asset   = 2;
   string conversion_factor = 3 [
@@ -78,8 +74,6 @@ message DebtParam {
 
 // CollateralParam defines governance parameters for each collateral type within the cdp module
 message CollateralParam {
-  option (gogoproto.goproto_stringer) = false;
-
   string denom             = 1;
   string type              = 2;
   string liquidation_ratio = 3 [

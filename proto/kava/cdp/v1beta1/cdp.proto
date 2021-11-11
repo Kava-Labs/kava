@@ -6,9 +6,8 @@ import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package                       = "github.com/kava-labs/kava/x/cdp/types";
-option (gogoproto.goproto_stringer_all) = false;
-option (gogoproto.goproto_getters_all)  = false;
+option go_package                      = "github.com/kava-labs/kava/x/cdp/types";
+option (gogoproto.goproto_getters_all) = false;
 
 // CDP defines the state of a single collateralized debt position.
 message CDP {

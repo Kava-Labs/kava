@@ -41,22 +41,6 @@ var (
 	stabilityFeeMax         = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
 )
 
-// String implements fmt.Stringer
-func (p Params) String() string {
-	return fmt.Sprintf(`Params:
-	Global Debt Limit: %s
-	Collateral Params: %s
-	Debt Params: %s
-	Surplus Auction Threshold: %s
-	Surplus Auction Lot: %s
-	Debt Auction Threshold: %s
-	Debt Auction Lot: %s
-	Circuit Breaker: %t`,
-		p.GlobalDebtLimit, p.CollateralParams, p.DebtParam, p.SurplusAuctionThreshold, p.SurplusAuctionLot,
-		p.DebtAuctionThreshold, p.DebtAuctionLot, p.CircuitBreaker,
-	)
-}
-
 // NewParams returns a new params object
 func NewParams(
 	debtLimit sdk.Coin, collateralParams CollateralParams, debtParam DebtParam, surplusThreshold,
@@ -104,38 +88,8 @@ func NewCollateralParam(
 	}
 }
 
-// String implements fmt.Stringer
-func (cp CollateralParam) String() string {
-	return fmt.Sprintf(`Collateral:
-	Denom: %s
-	Type: %s
-	Liquidation Ratio: %s
-	Stability Fee: %s
-	Liquidation Penalty: %s
-	Debt Limit: %s
-	Auction Size: %s
-	Prefix: %b
-	Spot Market ID: %s
-	Liquidation Market ID: %s
-	Keeper Reward Percentage: %s
-	Check Collateralization Count: %s
-	Conversion Factor: %s`,
-		cp.Denom, cp.Type, cp.LiquidationRatio, cp.StabilityFee, cp.LiquidationPenalty,
-		cp.DebtLimit, cp.AuctionSize, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID,
-		cp.KeeperRewardPercentage, cp.CheckCollateralizationIndexCount, cp.ConversionFactor)
-}
-
 // CollateralParams array of CollateralParam
 type CollateralParams []CollateralParam
-
-// String implements fmt.Stringer
-func (cps CollateralParams) String() string {
-	out := "Collateral Params\n"
-	for _, cp := range cps {
-		out += fmt.Sprintf("%s\n", cp)
-	}
-	return out
-}
 
 // NewDebtParam returns a new DebtParam
 func NewDebtParam(denom, refAsset string, conversionFactor, debtFloor sdk.Int) DebtParam {
@@ -147,26 +101,8 @@ func NewDebtParam(denom, refAsset string, conversionFactor, debtFloor sdk.Int) D
 	}
 }
 
-func (dp DebtParam) String() string {
-	return fmt.Sprintf(`Debt:
-	Denom: %s
-	Reference Asset: %s
-	Conversion Factor: %s
-	Debt Floor %s
-	`, dp.Denom, dp.ReferenceAsset, dp.ConversionFactor, dp.DebtFloor)
-}
-
 // DebtParams array of DebtParam
 type DebtParams []DebtParam
-
-// String implements fmt.Stringer
-func (dps DebtParams) String() string {
-	out := "Debt Params\n"
-	for _, dp := range dps {
-		out += fmt.Sprintf("%s\n", dp)
-	}
-	return out
-}
 
 // ParamKeyTable Key declaration for parameters
 func ParamKeyTable() paramtypes.KeyTable {
@@ -292,15 +228,15 @@ func validateCollateralParams(i interface{}) error {
 		}
 
 		if strings.TrimSpace(cp.SpotMarketID) == "" {
-			return fmt.Errorf("spot market id cannot be blank %s", cp)
+			return fmt.Errorf("spot market id cannot be blank %v", cp)
 		}
 
 		if strings.TrimSpace(cp.Type) == "" {
-			return fmt.Errorf("collateral type cannot be blank %s", cp)
+			return fmt.Errorf("collateral type cannot be blank %v", cp)
 		}
 
 		if strings.TrimSpace(cp.LiquidationMarketID) == "" {
-			return fmt.Errorf("liquidation market id cannot be blank %s", cp)
+			return fmt.Errorf("liquidation market id cannot be blank %v", cp)
 		}
 
 		if int(cp.Prefix) < minCollateralPrefix || int(cp.Prefix) > maxCollateralPrefix {
