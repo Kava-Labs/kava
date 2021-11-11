@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -9,11 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-
-	abci "github.com/tendermint/tendermint/abci/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/auction/types"
@@ -29,10 +27,15 @@ const (
 )
 
 func TestAuctionBidding(t *testing.T) {
+
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
 	someTime := time.Date(0001, time.January, 1, 0, 0, 0, 0, time.UTC)
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	buyer := addrs[0]
+	fmt.Println(buyer.String())
 	secondBuyer := addrs[1]
 	modName := "liquidator"
 	collateralAddrs := addrs[2:]
@@ -49,7 +52,7 @@ func TestAuctionBidding(t *testing.T) {
 	}
 
 	type bidArgs struct {
-		bidder sdk.AccAddress
+		bidder string
 		amount sdk.Coin
 	}
 
@@ -69,7 +72,7 @@ func TestAuctionBidding(t *testing.T) {
 			"basic: auction doesn't exist",
 			auctionArgs{Surplus, "", c("token1", 1), c("token2", 1), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
-			bidArgs{buyer, c("token2", 10)},
+			bidArgs{buyer.String(), c("token2", 10)},
 			types.ErrAuctionNotFound,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -81,7 +84,7 @@ func TestAuctionBidding(t *testing.T) {
 			"basic: closed auction",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
-			bidArgs{buyer, c("token2", 10)},
+			bidArgs{buyer.String(), c("token2", 10)},
 			types.ErrAuctionHasExpired,
 			types.DistantFuture,
 			nil,
@@ -90,10 +93,11 @@ func TestAuctionBidding(t *testing.T) {
 			false,
 		},
 		{
+			// This is the first bid on an auction with NO bids
 			"surplus: normal",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
-			bidArgs{buyer, c("token2", 10)},
+			bidArgs{buyer.String(), c("token2", 10)},
 			nil,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -104,8 +108,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"surplus: second bidder",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
-			[]bidArgs{{buyer, c("token2", 10)}},
-			bidArgs{secondBuyer, c("token2", 11)},
+			[]bidArgs{{buyer.String(), c("token2", 10)}},
+			bidArgs{secondBuyer.String(), c("token2", 11)},
 			nil,
 			someTime.Add(types.DefaultBidDuration),
 			secondBuyer,
@@ -117,7 +121,7 @@ func TestAuctionBidding(t *testing.T) {
 			"surplus: invalid bid denom",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
-			bidArgs{buyer, c("badtoken", 10)},
+			bidArgs{buyer.String(), c("badtoken", 10)},
 			types.ErrInvalidBidDenom,
 			types.DistantFuture,
 			nil, // surplus auctions are created with initial bidder as a nil address
@@ -128,8 +132,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"surplus: invalid bid (less than)",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
-			[]bidArgs{{buyer, c("token2", 100)}},
-			bidArgs{buyer, c("token2", 99)},
+			[]bidArgs{{buyer.String(), c("token2", 100)}},
+			bidArgs{buyer.String(), c("token2", 99)},
 			types.ErrBidTooSmall,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -141,7 +145,7 @@ func TestAuctionBidding(t *testing.T) {
 			"surplus: invalid bid (equal)",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
-			bidArgs{buyer, c("token2", 0)}, // min bid is technically 0 at default 5%, but it's capped at 1
+			bidArgs{buyer.String(), c("token2", 0)}, // min bid is technically 0 at default 5%, but it's capped at 1
 			types.ErrBidTooSmall,
 			types.DistantFuture,
 			nil, // surplus auctions are created with initial bidder as a nil address
@@ -152,8 +156,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"surplus: invalid bid (less than min increment)",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
-			[]bidArgs{{buyer, c("token2", 100)}},
-			bidArgs{buyer, c("token2", 104)}, // min bid is 105 at default 5%
+			[]bidArgs{{buyer.String(), c("token2", 100)}},
+			bidArgs{buyer.String(), c("token2", 104)}, // min bid is 105 at default 5%
 			types.ErrBidTooSmall,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -165,7 +169,7 @@ func TestAuctionBidding(t *testing.T) {
 			"debt: normal",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
 			nil,
-			bidArgs{buyer, c("token1", 10)},
+			bidArgs{buyer.String(), c("token1", 10)},
 			nil,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -176,8 +180,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"debt: second bidder",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
-			[]bidArgs{{buyer, c("token1", 10)}},
-			bidArgs{secondBuyer, c("token1", 9)},
+			[]bidArgs{{buyer.String(), c("token1", 10)}},
+			bidArgs{secondBuyer.String(), c("token1", 9)},
 			nil,
 			someTime.Add(types.DefaultBidDuration),
 			secondBuyer,
@@ -189,10 +193,10 @@ func TestAuctionBidding(t *testing.T) {
 			"debt: invalid lot denom",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
 			nil,
-			bidArgs{buyer, c("badtoken", 10)},
+			bidArgs{buyer.String(), c("badtoken", 10)},
 			types.ErrInvalidLotDenom,
 			types.DistantFuture,
-			supply.NewModuleAddress(modName),
+			authtypes.NewModuleAddress(modName),
 			c("token2", 100),
 			false,
 			false,
@@ -201,10 +205,10 @@ func TestAuctionBidding(t *testing.T) {
 			"debt: invalid lot size (larger)",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
-			bidArgs{buyer, c("token1", 21)},
+			bidArgs{buyer.String(), c("token1", 21)},
 			types.ErrLotTooLarge,
 			types.DistantFuture,
-			supply.NewModuleAddress(modName),
+			authtypes.NewModuleAddress(modName),
 			c("token2", 100),
 			false,
 			false,
@@ -213,10 +217,10 @@ func TestAuctionBidding(t *testing.T) {
 			"debt: invalid lot size (equal)",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
-			bidArgs{buyer, c("token1", 20)},
+			bidArgs{buyer.String(), c("token1", 20)},
 			types.ErrLotTooLarge,
 			types.DistantFuture,
-			supply.NewModuleAddress(modName),
+			authtypes.NewModuleAddress(modName),
 			c("token2", 100),
 			false,
 			false,
@@ -225,10 +229,10 @@ func TestAuctionBidding(t *testing.T) {
 			"debt: invalid lot size (larger than min increment)",
 			auctionArgs{Debt, modName, c("token1", 60), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
-			bidArgs{buyer, c("token1", 58)}, // max lot at default 5% is 57
+			bidArgs{buyer.String(), c("token1", 58)}, // max lot at default 5% is 57
 			types.ErrLotTooLarge,
 			types.DistantFuture,
-			supply.NewModuleAddress(modName),
+			authtypes.NewModuleAddress(modName),
 			c("token2", 100),
 			false, false,
 		},
@@ -236,7 +240,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [forward]: normal",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			nil,
-			bidArgs{buyer, c("token2", 10)},
+			bidArgs{buyer.String(), c("token2", 10)},
 			nil,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -247,8 +251,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"collateral [forward]: second bidder",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 10)}},
-			bidArgs{secondBuyer, c("token2", 11)},
+			[]bidArgs{{buyer.String(), c("token2", 10)}},
+			bidArgs{secondBuyer.String(), c("token2", 11)},
 			nil,
 			someTime.Add(types.DefaultBidDuration),
 			secondBuyer,
@@ -260,7 +264,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [forward]: invalid bid denom",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			nil,
-			bidArgs{buyer, c("badtoken", 10)},
+			bidArgs{buyer.String(), c("badtoken", 10)},
 			types.ErrInvalidBidDenom,
 			types.DistantFuture,
 			nil,
@@ -271,8 +275,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"collateral [forward]: invalid bid size (smaller)",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 10)}},
-			bidArgs{buyer, c("token2", 9)},
+			[]bidArgs{{buyer.String(), c("token2", 10)}},
+			bidArgs{buyer.String(), c("token2", 9)},
 			types.ErrBidTooSmall,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -284,7 +288,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [forward]: invalid bid size (equal)",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			nil,
-			bidArgs{buyer, c("token2", 0)},
+			bidArgs{buyer.String(), c("token2", 0)},
 			types.ErrBidTooSmall,
 			types.DistantFuture,
 			nil,
@@ -295,8 +299,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"collateral [forward]: invalid bid size (less than min increment)",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 50)}},
-			bidArgs{buyer, c("token2", 51)},
+			[]bidArgs{{buyer.String(), c("token2", 50)}},
+			bidArgs{buyer.String(), c("token2", 51)},
 			types.ErrBidTooSmall,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -307,8 +311,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"collateral [forward]: less than min increment but equal to maxBid",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 99)}},
-			bidArgs{buyer, c("token2", 100)}, // min bid at default 5% is 104
+			[]bidArgs{{buyer.String(), c("token2", 99)}},
+			bidArgs{buyer.String(), c("token2", 100)}, // min bid at default 5% is 104
 			nil,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -320,7 +324,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [forward]: invalid bid size (greater than max)",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			nil,
-			bidArgs{buyer, c("token2", 101)},
+			bidArgs{buyer.String(), c("token2", 101)},
 			types.ErrBidTooLarge,
 			types.DistantFuture,
 			nil,
@@ -331,8 +335,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"collateral [reverse]: normal",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 50)}}, // put auction into reverse phase
-			bidArgs{buyer, c("token1", 15)},
+			[]bidArgs{{buyer.String(), c("token2", 50)}}, // put auction into reverse phase
+			bidArgs{buyer.String(), c("token1", 15)},
 			nil,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -343,8 +347,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"collateral [reverse]: second bidder",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 50)}, {buyer, c("token1", 15)}},                                                         // put auction into reverse phase, and add a reverse phase bid
-			bidArgs{secondBuyer, c("token1", 14)},
+			[]bidArgs{{buyer.String(), c("token2", 50)}, {buyer.String(), c("token1", 15)}},                                       // put auction into reverse phase, and add a reverse phase bid
+			bidArgs{secondBuyer.String(), c("token1", 14)},
 			nil,
 			someTime.Add(types.DefaultBidDuration),
 			secondBuyer,
@@ -355,8 +359,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"collateral [reverse]: invalid lot denom",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 50)}}, // put auction into reverse phase
-			bidArgs{buyer, c("badtoken", 15)},
+			[]bidArgs{{buyer.String(), c("token2", 50)}}, // put auction into reverse phase
+			bidArgs{buyer.String(), c("badtoken", 15)},
 			types.ErrInvalidLotDenom,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -367,8 +371,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"collateral [reverse]: invalid lot size (greater)",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 50)}},                                                                                   // put auction into reverse phase
-			bidArgs{buyer, c("token1", 21)},
+			[]bidArgs{{buyer.String(), c("token2", 50)}},                                                                          // put auction into reverse phase
+			bidArgs{buyer.String(), c("token1", 21)},
 			types.ErrLotTooLarge,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -379,8 +383,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"collateral [reverse]: invalid lot size (equal)",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 50)}},                                                                                   // put auction into reverse phase
-			bidArgs{buyer, c("token1", 20)},
+			[]bidArgs{{buyer.String(), c("token2", 50)}},                                                                          // put auction into reverse phase
+			bidArgs{buyer.String(), c("token1", 20)},
 			types.ErrLotTooLarge,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -391,8 +395,8 @@ func TestAuctionBidding(t *testing.T) {
 		{
 			"collateral [reverse]: invalid lot size (larger than min increment)",
 			auctionArgs{Collateral, modName, c("token1", 60), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 50)}}, // put auction into reverse phase
-			bidArgs{buyer, c("token1", 58)},     // max lot at default 5% is 57
+			[]bidArgs{{buyer.String(), c("token2", 50)}},                                                                          // put auction into reverse phase
+			bidArgs{buyer.String(), c("token1", 58)},                                                                              // max lot at default 5% is 57
 			types.ErrLotTooLarge,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
@@ -405,27 +409,41 @@ func TestAuctionBidding(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Setup test
 			tApp := app.NewTestApp()
-			// Set up seller account
-			sellerAcc := supply.NewEmptyModuleAccount(modName, supply.Minter, supply.Burner)
-			require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 1000), c("token2", 1000), c("debt", 1000))))
-			// Initialize genesis accounts
-			tApp.InitializeFromGenesisStates(
-				NewAuthGenStateFromAccs(authexported.GenesisAccounts{
-					auth.NewBaseAccount(buyer, cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-					auth.NewBaseAccount(secondBuyer, cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-					auth.NewBaseAccount(collateralAddrs[0], cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-					auth.NewBaseAccount(collateralAddrs[1], cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-					auth.NewBaseAccount(collateralAddrs[2], cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-					sellerAcc,
-				}),
+
+			// Set up module account
+			modName := "liquidator"
+			modBaseAcc := authtypes.NewBaseAccount(authtypes.NewModuleAddress(modName), nil, 0, 0)
+			modAcc := authtypes.NewModuleAccount(modBaseAcc, modName, []string{authtypes.Minter, authtypes.Burner}...)
+
+			// Set up normal accounts
+			coins := cs(c("token1", 1000), c("token2", 1000))
+			addrs := []sdk.AccAddress{buyer, secondBuyer, collateralAddrs[0], collateralAddrs[1], collateralAddrs[2]}
+
+			// Initialize app
+			authGS := app.NewFundedGenStateWithSameCoinsWithModuleAccount(tApp.AppCodec(), coins, addrs, modAcc)
+			params := types.NewParams(
+				types.DefaultMaxAuctionDuration,
+				types.DefaultBidDuration,
+				types.DefaultIncrement,
+				types.DefaultIncrement,
+				types.DefaultIncrement,
 			)
-			ctx := tApp.NewContext(false, abci.Header{})
+
+			moduleGs := tApp.AppCodec().MustMarshalJSON(
+				types.NewGenesisState(types.DefaultNextAuctionID, params, []types.GenesisAuction{}),
+			)
+			gs := app.GenesisState{types.ModuleName: moduleGs}
+			tApp.InitializeFromGenesisStates(authGS, gs)
+
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: someTime})
 			keeper := tApp.GetAuctionKeeper()
 			bank := tApp.GetBankKeeper()
 
+			err := tApp.FundModuleAccount(ctx, modName, cs(c("token1", 1000), c("token2", 1000), c("debt", 1000)))
+			require.NoError(t, err)
+
 			// Start Auction
 			var id uint64
-			var err error
 			switch tc.auctionArgs.auctionType {
 			case Surplus:
 				if tc.expectPanic {
@@ -438,7 +456,11 @@ func TestAuctionBidding(t *testing.T) {
 			case Debt:
 				id, err = keeper.StartDebtAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.bid, tc.auctionArgs.lot, tc.auctionArgs.debt)
 			case Collateral:
-				id, err = keeper.StartCollateralAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid, tc.auctionArgs.addresses, tc.auctionArgs.weights, tc.auctionArgs.debt) // seller, lot, maxBid, otherPerson
+				var lotReturnAddrs []string
+				for _, addr := range tc.auctionArgs.addresses {
+					lotReturnAddrs = append(lotReturnAddrs, addr.String())
+				}
+				id, err = keeper.StartCollateralAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid, lotReturnAddrs, tc.auctionArgs.weights, tc.auctionArgs.debt) // seller, lot, maxBid, otherPerson
 			default:
 				t.Fail()
 			}
@@ -447,7 +469,9 @@ func TestAuctionBidding(t *testing.T) {
 
 			// Place setup bids
 			for _, b := range tc.setupBids {
-				require.NoError(t, keeper.PlaceBid(ctx, id, b.bidder, b.amount))
+				bidder, err := sdk.AccAddressFromBech32(b.bidder)
+				require.NoError(t, err)
+				require.NoError(t, keeper.PlaceBid(ctx, id, bidder, b.amount))
 			}
 
 			// Close the auction early to test late bidding (if applicable)
@@ -457,15 +481,20 @@ func TestAuctionBidding(t *testing.T) {
 
 			// Store some state for use in checks
 			oldAuction, found := keeper.GetAuction(ctx, id)
-			var oldBidder sdk.AccAddress
+			oldBidderStr := ""
 			if found {
-				oldBidder = oldAuction.GetBidder()
+				oldBidderStr = oldAuction.GetBidder()
 			}
-			oldBidderOldCoins := bank.GetCoins(ctx, oldBidder)
-			newBidderOldCoins := bank.GetCoins(ctx, tc.bidArgs.bidder)
+			oldBidder, err := sdk.AccAddressFromBech32(oldBidderStr)
+
+			bidder, err := sdk.AccAddressFromBech32(tc.bidArgs.bidder)
+			require.NoError(t, err)
+
+			oldBidderOldCoins := bank.GetAllBalances(ctx, oldBidder)
+			newBidderOldCoins := bank.GetAllBalances(ctx, bidder)
 
 			// Place bid on auction
-			err = keeper.PlaceBid(ctx, id, tc.bidArgs.bidder, tc.bidArgs.amount)
+			err = keeper.PlaceBid(ctx, id, bidder, tc.bidArgs.amount)
 
 			// Check success/failure
 			if tc.expectPass {
@@ -475,7 +504,7 @@ func TestAuctionBidding(t *testing.T) {
 				require.True(t, found)
 				// Check auction values
 				require.Equal(t, modName, newAuction.GetInitiator())
-				require.Equal(t, tc.expectedBidder, newAuction.GetBidder())
+				require.Equal(t, tc.expectedBidder.String(), newAuction.GetBidder())
 				require.Equal(t, tc.expectedBid, newAuction.GetBid())
 				require.Equal(t, tc.expectedEndTime, newAuction.GetEndTime())
 
@@ -485,20 +514,25 @@ func TestAuctionBidding(t *testing.T) {
 				case Debt:
 					bidAmt = oldAuction.GetBid()
 				case Collateral:
-					collatAuction, ok := oldAuction.(types.CollateralAuction)
+					collatAuction, ok := oldAuction.(*types.CollateralAuction)
 					require.True(t, ok, tc.name)
 					if collatAuction.IsReversePhase() {
 						bidAmt = oldAuction.GetBid()
 					}
 				}
-				if oldBidder.Equals(tc.bidArgs.bidder) { // same bidder
-					require.Equal(t, newBidderOldCoins.Sub(cs(bidAmt.Sub(oldAuction.GetBid()))), bank.GetCoins(ctx, tc.bidArgs.bidder))
-				} else {
-					require.Equal(t, newBidderOldCoins.Sub(cs(bidAmt)), bank.GetCoins(ctx, tc.bidArgs.bidder)) // wrapping in cs() to avoid comparing nil and empty coins
-					if oldBidder.Equals(supply.NewModuleAddress(oldAuction.GetInitiator())) {                  // handle checking debt coins for case debt auction has had no bids placed yet TODO make this less confusing
-						require.Equal(t, oldBidderOldCoins.Add(oldAuction.GetBid()).Add(c("debt", oldAuction.GetBid().Amount.Int64())), bank.GetCoins(ctx, oldBidder))
+				if oldBidder.Equals(bidder) { // same bidder
+					require.Equal(t, newBidderOldCoins.Sub(cs(bidAmt.Sub(oldAuction.GetBid()))), bank.GetAllBalances(ctx, bidder))
+				} else { // different bidder
+					require.Equal(t, newBidderOldCoins.Sub(cs(bidAmt)), bank.GetAllBalances(ctx, bidder)) // wrapping in cs() to avoid comparing nil and empty coins
+
+					// handle checking debt coins for case debt auction has had no bids placed yet TODO make this less confusing
+
+					if oldBidderStr == authtypes.NewModuleAddress(oldAuction.GetInitiator()).String() {
+						require.Equal(t, oldBidderOldCoins.Add(oldAuction.GetBid()).Add(c("debt", oldAuction.GetBid().Amount.Int64())), bank.GetAllBalances(ctx, oldBidder))
+					} else if oldBidderStr == "" {
+						require.Equal(t, oldBidderOldCoins.Add(oldAuction.GetBid()).Add(c("debt", oldAuction.GetBid().Amount.Int64())), oldBidderOldCoins)
 					} else {
-						require.Equal(t, cs(oldBidderOldCoins.Add(oldAuction.GetBid())...), bank.GetCoins(ctx, oldBidder))
+						require.Equal(t, cs(oldBidderOldCoins.Add(oldAuction.GetBid())...), bank.GetAllBalances(ctx, oldBidder))
 					}
 				}
 
@@ -511,14 +545,14 @@ func TestAuctionBidding(t *testing.T) {
 				newAuction, found := keeper.GetAuction(ctx, id)
 				if found {
 					require.Equal(t, modName, newAuction.GetInitiator())
-					require.Equal(t, tc.expectedBidder, newAuction.GetBidder())
+					require.Equal(t, tc.expectedBidder.String(), newAuction.GetBidder())
 					require.Equal(t, tc.expectedBid, newAuction.GetBid())
 					require.Equal(t, tc.expectedEndTime, newAuction.GetEndTime())
 				}
 
 				// Check coins have not moved
-				require.Equal(t, newBidderOldCoins, bank.GetCoins(ctx, tc.bidArgs.bidder))
-				require.Equal(t, oldBidderOldCoins, bank.GetCoins(ctx, oldBidder))
+				require.Equal(t, newBidderOldCoins, bank.GetAllBalances(ctx, bidder))
+				require.Equal(t, oldBidderOldCoins, bank.GetAllBalances(ctx, oldBidder))
 			}
 		})
 	}
