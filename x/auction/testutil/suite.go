@@ -33,12 +33,12 @@ type Suite struct {
 }
 
 // SetupTest instantiates a new app, keepers, and sets suite state
-func (suite *Suite) SetupTest() {
+func (suite *Suite) SetupTest(numAddrs int) {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
 
-	_, addrs := app.GeneratePrivKeyAddressPairs(4)
+	_, addrs := app.GeneratePrivKeyAddressPairs(numAddrs)
 
 	// Fund liquidator module account
 	coins := sdk.NewCoins(
