@@ -193,7 +193,7 @@ func (s QueryServer) Cdp(c context.Context, req *types.QueryCdpRequest) (*types.
 
 	owner, err := sdk.AccAddressFromBech32(req.Owner)
 	if err != nil {
-		status.Errorf(codes.InvalidArgument, "invalid address")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid address")
 	}
 
 	_, valid := s.keeper.GetCollateralTypePrefix(ctx, req.CollateralType)
@@ -219,7 +219,7 @@ func (s QueryServer) Deposits(c context.Context, req *types.QueryDepositsRequest
 
 	owner, err := sdk.AccAddressFromBech32(req.Owner)
 	if err != nil {
-		status.Errorf(codes.InvalidArgument, "invalid address")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid address")
 	}
 
 	_, valid := s.keeper.GetCollateralTypePrefix(ctx, req.CollateralType)

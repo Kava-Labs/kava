@@ -166,7 +166,63 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryCdp_InvalidCollateralType() {
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
+	suite.addCdp()
 
+	tests := []struct {
+		giveName            string
+		giveRequest         *types.QueryDepositsRequest
+		wantContainsDeposit *types.Deposit
+		wantShouldErr       bool
+		wantErr             string
+	}{
+		{
+			"valid",
+			&types.QueryDepositsRequest{
+				CollateralType: "xrp-a",
+				Owner:          suite.addrs[0].String(),
+			},
+			&types.Deposit{
+				CdpID:     1,
+				Depositor: suite.addrs[0],
+				Amount:    sdk.NewCoin("xrp", sdk.NewInt(100000000)),
+			},
+			false,
+			"",
+		},
+		{
+			"invalid collateral type",
+			&types.QueryDepositsRequest{
+				CollateralType: "kava-a",
+				Owner:          suite.addrs[0].String(),
+			},
+			nil,
+			true,
+			"kava-a: invalid collateral for input collateral type",
+		},
+		{
+			"missing owner",
+			&types.QueryDepositsRequest{
+				CollateralType: "xrp-a",
+			},
+			nil,
+			true,
+			"rpc error: code = InvalidArgument desc = invalid address",
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.giveName, func() {
+			res, err := suite.queryServer.Deposits(sdk.WrapSDKContext(suite.ctx), tt.giveRequest)
+
+			if tt.wantShouldErr {
+				suite.Error(err)
+				suite.Equal(tt.wantErr, err.Error())
+			} else {
+				suite.NoError(err)
+				suite.Contains(res.Deposits, *tt.wantContainsDeposit)
+			}
+		})
+	}
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryCdpsByCollateralType() {
