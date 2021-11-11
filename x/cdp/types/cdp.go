@@ -97,27 +97,24 @@ func (cdps CDPs) Validate() error {
 	return nil
 }
 
-// NewAugmentedCDP creates a new AugmentedCDP object
-func NewAugmentedCDP(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sdk.Dec) AugmentedCDP {
-	augmentedCDP := AugmentedCDP{
-		CDP: CDP{
-			ID:              cdp.ID,
-			Owner:           cdp.Owner,
-			Type:            cdp.Type,
-			Collateral:      cdp.Collateral,
-			Principal:       cdp.Principal,
-			AccumulatedFees: cdp.AccumulatedFees,
-			FeesUpdated:     cdp.FeesUpdated,
-			InterestFactor:  cdp.InterestFactor,
-		},
+// NewCDPResponse creates a new CDPResponse object
+func NewCDPResponse(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sdk.Dec) CDPResponse {
+	return CDPResponse{
+		ID:                     cdp.ID,
+		Owner:                  cdp.Owner.String(),
+		Type:                   cdp.Type,
+		Collateral:             cdp.Collateral,
+		Principal:              cdp.Principal,
+		AccumulatedFees:        cdp.AccumulatedFees,
+		FeesUpdated:            cdp.FeesUpdated,
+		InterestFactor:         cdp.InterestFactor,
 		CollateralValue:        collateralValue,
 		CollateralizationRatio: collateralizationRatio,
 	}
-	return augmentedCDP
 }
 
-// AugmentedCDPs a collection of AugmentedCDP objects
-type AugmentedCDPs []AugmentedCDP
+// CDPResponses a collection of CDPResponse objects
+type CDPResponses []CDPResponse
 
 // TotalPrincipals a collection of TotalPrincipal objects
 type TotalPrincipals []TotalPrincipal

@@ -5,7 +5,6 @@
 ## Table of Contents
 
 - [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
-    - [AugmentedCDP](#kava.cdp.v1beta1.AugmentedCDP)
     - [CDP](#kava.cdp.v1beta1.CDP)
     - [Deposit](#kava.cdp.v1beta1.Deposit)
     - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
@@ -20,6 +19,7 @@
     - [Params](#kava.cdp.v1beta1.Params)
   
 - [kava/cdp/v1beta1/query.proto](#kava/cdp/v1beta1/query.proto)
+    - [CDPResponse](#kava.cdp.v1beta1.CDPResponse)
     - [QueryAccountsRequest](#kava.cdp.v1beta1.QueryAccountsRequest)
     - [QueryAccountsResponse](#kava.cdp.v1beta1.QueryAccountsResponse)
     - [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest)
@@ -139,23 +139,6 @@
 <p align="right"><a href="#top">Top</a></p>
 
 ## kava/cdp/v1beta1/cdp.proto
-
-
-
-<a name="kava.cdp.v1beta1.AugmentedCDP"></a>
-
-### AugmentedCDP
-AugmentedCDP defines additional information about an active CDP
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `cdp` | [CDP](#kava.cdp.v1beta1.CDP) |  |  |
-| `collateral_value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-| `collateralization_ratio` | [string](#string) |  |  |
-
-
-
 
 
 
@@ -384,6 +367,30 @@ Params defines the parameters for the cdp module.
 
 
 
+<a name="kava.cdp.v1beta1.CDPResponse"></a>
+
+### CDPResponse
+CDPResponse defines the state of a single collateralized debt position.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+| `owner` | [string](#string) |  |  |
+| `type` | [string](#string) |  |  |
+| `collateral` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `principal` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `accumulated_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `fees_updated` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `interest_factor` | [string](#string) |  |  |
+| `collateral_value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `collateralization_ratio` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="kava.cdp.v1beta1.QueryAccountsRequest"></a>
 
 ### QueryAccountsRequest
@@ -433,7 +440,7 @@ QueryCdpResponse defines the response type for the Query/Cdp RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `cdp` | [AugmentedCDP](#kava.cdp.v1beta1.AugmentedCDP) |  |  |
+| `cdp` | [CDPResponse](#kava.cdp.v1beta1.CDPResponse) |  |  |
 
 
 
@@ -467,7 +474,7 @@ QueryCdpsResponse defines the response type for the Query/Cdps RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `cdps` | [AugmentedCDP](#kava.cdp.v1beta1.AugmentedCDP) | repeated |  |
+| `cdps` | [CDPResponse](#kava.cdp.v1beta1.CDPResponse) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 

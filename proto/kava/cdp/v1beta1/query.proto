@@ -4,8 +4,10 @@ package kava.cdp.v1beta1;
 import "kava/cdp/v1beta1/genesis.proto";
 import "kava/cdp/v1beta1/cdp.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/auth/v1beta1/auth.proto";
 import "cosmos_proto/cosmos.proto";
 
@@ -76,7 +78,7 @@ message QueryCdpRequest {
 
 // QueryCdpResponse defines the response type for the Query/Cdp RPC method.
 message QueryCdpResponse {
-  AugmentedCDP cdp = 1 [(gogoproto.nullable) = false];
+  CDPResponse cdp = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryCdpsRequest is the params for a filtered CDP query, the request type for the Query/Cdps RPC method.
@@ -95,7 +97,7 @@ message QueryCdpsRequest {
 
 // QueryCdpsResponse defines the response type for the Query/Cdps RPC method.
 message QueryCdpsResponse {
-  repeated AugmentedCDP cdps = 1 [(gogoproto.castrepeated) = "AugmentedCDPs", (gogoproto.nullable) = false];
+  repeated CDPResponse cdps = 1 [(gogoproto.castrepeated) = "CDPResponses", (gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -131,4 +133,26 @@ message QueryTotalCollateralRequest {
 message QueryTotalCollateralResponse {
   repeated TotalCollateral total_collateral = 1
       [(gogoproto.castrepeated) = "TotalCollaterals", (gogoproto.nullable) = false];
+}
+
+// CDPResponse defines the state of a single collateralized debt position.
+message CDPResponse {
+  uint64                    id               = 1 [(gogoproto.customname) = "ID"];
+  string                    owner            = 2;
+  string                    type             = 3;
+  cosmos.base.v1beta1.Coin  collateral       = 4 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin  principal        = 5 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin  accumulated_fees = 6 [(gogoproto.nullable) = false];
+  google.protobuf.Timestamp fees_updated     = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  string                    interest_factor  = 8 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  cosmos.base.v1beta1.Coin collateral_value        = 9 [(gogoproto.nullable) = false];
+  string                   collateralization_ratio = 10 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
 }
