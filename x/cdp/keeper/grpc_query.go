@@ -177,7 +177,7 @@ func (s QueryServer) Cdps(c context.Context, req *types.QueryCdpsRequest) (*type
 	// Filter CDPs
 	filteredCDPs, err := GrpcFilterCDPs(ctx, s.keeper, *req)
 	if err != nil {
-		status.Errorf(codes.InvalidArgument, "empty request")
+		return nil, err
 	}
 
 	return &types.QueryCdpsResponse{
@@ -295,15 +295,25 @@ func GrpcFilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (type
 	// TODO: Use query.Paginate()? May be difficult to use special indexed keeper methods
 	page, limit, err := query.ParsePagination(req.Pagination)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	owner, err := sdk.AccAddressFromBech32(req.Owner)
-	if err != nil {
-		return nil, err
+	// Owner address is optional, only parse if it's provided otherwise it will
+	// respond with an error
+	var owner sdk.AccAddress
+	if req.Owner != "" {
+		owner, err = sdk.AccAddressFromBech32(req.Owner)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid owner address")
+		}
 	}
 
 	legacyParams := types.NewQueryCdpsParams(page, limit, req.CollateralType, owner, req.ID, req.Ratio)
 
-	return FilterCDPs(ctx, k, legacyParams), nil
+	cdps, err := FilterCDPs(ctx, k, legacyParams)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	return cdps, nil
 }

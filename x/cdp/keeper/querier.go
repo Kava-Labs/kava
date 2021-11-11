@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -195,7 +196,10 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQ
 	}
 
 	// Filter CDPs
-	filteredCDPs := FilterCDPs(ctx, keeper, params)
+	filteredCDPs, err := FilterCDPs(ctx, keeper, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, filteredCDPs)
 	if err != nil {
@@ -338,7 +342,7 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 }
 
 // FilterCDPs queries the store for all CDPs that match query params
-func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.AugmentedCDPs {
+func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.AugmentedCDPs, error) {
 	var matchCollateralType, matchOwner, matchID, matchRatio types.CDPs
 
 	// match cdp owner (if supplied)
@@ -362,6 +366,10 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 				}
 			}
 		} else {
+			_, found := k.GetCollateralTypePrefix(ctx, params.CollateralType)
+			if !found {
+				return nil, fmt.Errorf("invalid collateral type")
+			}
 			matchCollateralType = k.GetAllCdpsByCollateralType(ctx, params.CollateralType)
 		}
 	}
@@ -378,7 +386,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 	}
 
 	// match cdp ratio (if supplied)
-	if params.Ratio.GT(sdk.ZeroDec()) {
+	if !params.Ratio.IsNil() && params.Ratio.GT(sdk.ZeroDec()) {
 		denoms := k.GetCollateralTypes(ctx)
 		for _, denom := range denoms {
 			ratio, err := k.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, denom, params.Ratio, "liquidation")
@@ -401,7 +409,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 		if len(matchCollateralType) > 0 {
 			commonCDPs = matchCollateralType
 		} else {
-			return types.AugmentedCDPs{}
+			return types.AugmentedCDPs{}, nil
 		}
 	}
 
@@ -424,10 +432,10 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 				commonCDPs = matchID
 			}
 		} else {
-			return types.AugmentedCDPs{}
+			return types.AugmentedCDPs{}, nil
 		}
 	}
-	if params.Ratio.GT(sdk.ZeroDec()) {
+	if !params.Ratio.IsNil() && params.Ratio.GT(sdk.ZeroDec()) {
 		if len(matchRatio) > 0 {
 			if len(commonCDPs) > 0 {
 				commonCDPs = FindIntersection(commonCDPs, matchRatio)
@@ -435,7 +443,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 				commonCDPs = matchRatio
 			}
 		} else {
-			return types.AugmentedCDPs{}
+			return types.AugmentedCDPs{}, nil
 		}
 	}
 	// Load augmented CDPs
@@ -454,7 +462,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 		paginatedCDPs = augmentedCDPs[start:end]
 	}
 
-	return paginatedCDPs
+	return paginatedCDPs, nil
 }
 
 // FindIntersection finds the intersection of two CDP arrays in linear time complexity O(n + n)
