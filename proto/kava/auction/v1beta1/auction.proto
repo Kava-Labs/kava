@@ -4,6 +4,7 @@ package kava.auction.v1beta1;
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/kava-labs/kava/x/auction/types";
 
@@ -17,11 +18,11 @@ message BaseAuction {
 
   string initiator = 2;
 
-  bytes lot = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin lot = 3 [(gogoproto.nullable) = false];
 
   string bidder = 4;
 
-  bytes bid = 5 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin bid = 5 [(gogoproto.nullable) = false];
 
   bool has_received_bids = 6;
 
@@ -46,8 +47,7 @@ message DebtAuction {
 
   BaseAuction base_auction = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
 
-  bytes corresponding_debt = 2
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin corresponding_debt = 2 [(gogoproto.nullable) = false];
 }
 
 // CollateralAuction is a two phase auction.
@@ -60,10 +60,9 @@ message CollateralAuction {
 
   BaseAuction base_auction = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
 
-  bytes corresponding_debt = 2
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin corresponding_debt = 2 [(gogoproto.nullable) = false];
 
-  bytes max_bid = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin max_bid = 3 [(gogoproto.nullable) = false];
 
   WeightedAddresses lot_returns = 4 [(gogoproto.nullable) = false];
 }
