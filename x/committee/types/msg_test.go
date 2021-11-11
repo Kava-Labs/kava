@@ -11,7 +11,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
-func MustNewMsgSubmitProposal(pubProposal PubProposal, proposer sdk.AccAddress, committeeId uint64) MsgSubmitProposal {
+func MustNewMsgSubmitProposal(pubProposal PubProposal, proposer sdk.AccAddress, committeeId uint64) *MsgSubmitProposal {
 	proposal, err := NewMsgSubmitProposal(pubProposal, proposer, committeeId)
 	if err != nil {
 		panic(err)
@@ -23,7 +23,7 @@ func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
 	addr := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1")))
 	tests := []struct {
 		name       string
-		msg        MsgSubmitProposal
+		msg        *MsgSubmitProposal
 		expectPass bool
 	}{
 		{
@@ -38,7 +38,7 @@ func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:       "invalid proposal",
-			msg:        MsgSubmitProposal{Any: &types.Any{}, Proposer: addr, CommitteeId: 3},
+			msg:        &MsgSubmitProposal{PubProposal: &types.Any{}, Proposer: addr, CommitteeID: 3},
 			expectPass: false,
 		},
 	}

@@ -14,27 +14,30 @@ const (
 	TypeMsgVote           = "committee_vote"
 )
 
-var _, _ sdk.Msg = &MsgSubmitProposal{}, &MsgVote{}
+var (
+	_, _ sdk.Msg                       = &MsgSubmitProposal{}, &MsgVote{}
+	_    types.UnpackInterfacesMessage = &MsgSubmitProposal{}
+)
 
 // NewMsgSubmitProposal creates a new MsgSubmitProposal instance
-func NewMsgSubmitProposal(pubProposal PubProposal, proposer sdk.AccAddress, committeeId uint64) (MsgSubmitProposal, error) {
+func NewMsgSubmitProposal(pubProposal PubProposal, proposer sdk.AccAddress, committeeID uint64) (*MsgSubmitProposal, error) {
 	msg, ok := pubProposal.(proto.Message)
 	if !ok {
-		return MsgSubmitProposal{}, fmt.Errorf("can't proto marshal %T", msg)
+		return &MsgSubmitProposal{}, fmt.Errorf("can't proto marshal %T", msg)
 	}
 	any, err := types.NewAnyWithValue(msg)
 	if err != nil {
-		return MsgSubmitProposal{}, err
+		return &MsgSubmitProposal{}, err
 	}
-	return MsgSubmitProposal{
-		Any:         any,
+	return &MsgSubmitProposal{
+		PubProposal: any,
 		Proposer:    proposer,
-		CommitteeId: committeeId,
+		CommitteeID: committeeID,
 	}, nil
 }
 
 func (msg MsgSubmitProposal) GetPubProposal() PubProposal {
-	content, ok := msg.Any.GetCachedValue().(PubProposal)
+	content, ok := msg.PubProposal.GetCachedValue().(PubProposal)
 	if !ok {
 		return nil
 	}
@@ -44,7 +47,7 @@ func (msg MsgSubmitProposal) GetPubProposal() PubProposal {
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (m MsgSubmitProposal) UnpackInterfaces(unpacker types.AnyUnpacker) error {
 	var content PubProposal
-	return unpacker.UnpackAny(m.Any, &content)
+	return unpacker.UnpackAny(m.PubProposal, &content)
 }
 
 // Route return the message type used for routing the message.
@@ -104,8 +107,8 @@ func (vo VoteType) Format(s fmt.State, verb rune) {
 }
 
 // NewMsgVote creates a message to cast a vote on an active proposal
-func NewMsgVote(voter sdk.AccAddress, proposalID uint64, voteType VoteType) MsgVote {
-	return MsgVote{proposalID, voter, voteType}
+func NewMsgVote(voter sdk.AccAddress, proposalID uint64, voteType VoteType) *MsgVote {
+	return &MsgVote{proposalID, voter, voteType}
 }
 
 // Route return the message type used for routing the message.
