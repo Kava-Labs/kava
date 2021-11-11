@@ -1,11 +1,7 @@
 package types
 
 import (
-	"bytes"
-
-	yaml "gopkg.in/yaml.v2"
-
-	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
@@ -37,42 +33,12 @@ func (p ProposalOutcome) String() string {
 	return toString[p]
 }
 
-func (p ProposalOutcome) Marshal(cdc *codec.Codec) ([]byte, error) {
-	x, err := cdc.MarshalJSON(p.String())
-	if err != nil {
-		return []byte{}, err
-	}
-	return x[1 : len(x)-1], nil
-}
-
-func MatchMarshaledOutcome(value []byte, cdc *codec.Codec) (ProposalOutcome, error) {
-	passed, err := Passed.Marshal(cdc)
-	if err != nil {
-		return 0, err
-	}
-	if bytes.Compare(passed, value) == 0 {
-		return Passed, nil
-	}
-	failed, err := Failed.Marshal(cdc)
-	if err != nil {
-		return 0, err
-	}
-	if bytes.Compare(failed, value) == 0 {
-		return Failed, nil
-	}
-	invalid, err := Invalid.Marshal(cdc)
-	if err != nil {
-		return 0, err
-	}
-	if bytes.Compare(invalid, value) == 0 {
-		return Invalid, nil
-	}
-	return 0, nil
-}
-
 // ensure proposal types fulfill the PubProposal interface and the gov Content interface.
-var _, _ govtypes.Content = CommitteeChangeProposal{}, CommitteeDeleteProposal{}
-var _, _ PubProposal = CommitteeChangeProposal{}, CommitteeDeleteProposal{}
+var _, _ govtypes.Content = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
+var _, _ PubProposal = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
+
+// ensure CommitteeChangeProposal fulfill the codectypes.UnpackInterfacesMessage interface
+var _ codectypes.UnpackInterfacesMessage = &CommitteeChangeProposal{}
 
 func init() {
 	// Gov proposals need to be registered on gov's ModuleCdc so MsgSubmitProposal can be encoded.
@@ -83,19 +49,16 @@ func init() {
 	govtypes.RegisterProposalTypeCodec(CommitteeDeleteProposal{}, "kava/CommitteeDeleteProposal")
 }
 
-// CommitteeChangeProposal is a gov proposal for creating a new committee or modifying an existing one.
-type CommitteeChangeProposal struct {
-	Title        string    `json:"title" yaml:"title"`
-	Description  string    `json:"description" yaml:"description"`
-	NewCommittee Committee `json:"new_committee" yaml:"new_committee"`
-}
-
-func NewCommitteeChangeProposal(title string, description string, newCommittee Committee) CommitteeChangeProposal {
+func NewCommitteeChangeProposal(title string, description string, newCommittee Committee) (CommitteeChangeProposal, error) {
+	committeeAny, err := PackCommittee(newCommittee)
+	if err != nil {
+		return CommitteeChangeProposal{}, err
+	}
 	return CommitteeChangeProposal{
 		Title:        title,
 		Description:  description,
-		NewCommittee: newCommittee,
-	}
+		NewCommittee: committeeAny,
+	}, nil
 }
 
 // GetTitle returns the title of the proposal.
@@ -110,28 +73,34 @@ func (ccp CommitteeChangeProposal) ProposalRoute() string { return RouterKey }
 // ProposalType returns the type of the proposal.
 func (ccp CommitteeChangeProposal) ProposalType() string { return ProposalTypeCommitteeChange }
 
+// GetNewCommittee returns the new committee of the proposal.
+func (ccp CommitteeChangeProposal) GetNewCommittee() Committee {
+	committee, err := UnpackCommittee(ccp.NewCommittee)
+	if err != nil {
+		panic(err)
+	}
+	return committee
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (ccp CommitteeChangeProposal) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var committee Committee
+	return unpacker.UnpackAny(ccp.NewCommittee, &committee)
+}
+
 // ValidateBasic runs basic stateless validity checks
 func (ccp CommitteeChangeProposal) ValidateBasic() error {
-	if err := govtypes.ValidateAbstract(ccp); err != nil {
+	if err := govtypes.ValidateAbstract(&ccp); err != nil {
 		return err
 	}
-	if err := ccp.NewCommittee.Validate(); err != nil {
+	committee, err := UnpackCommittee(ccp.NewCommittee)
+	if err != nil {
+		return sdkerrors.Wrap(ErrInvalidCommittee, err.Error())
+	}
+	if err := committee.Validate(); err != nil {
 		return sdkerrors.Wrap(ErrInvalidCommittee, err.Error())
 	}
 	return nil
-}
-
-// String implements the Stringer interface.
-func (ccp CommitteeChangeProposal) String() string {
-	bz, _ := yaml.Marshal(ccp)
-	return string(bz)
-}
-
-// CommitteeDeleteProposal is a gov proposal for removing a committee.
-type CommitteeDeleteProposal struct {
-	Title       string `json:"title" yaml:"title"`
-	Description string `json:"description" yaml:"description"`
-	CommitteeID uint64 `json:"committee_id" yaml:"committee_id"`
 }
 
 func NewCommitteeDeleteProposal(title string, description string, committeeID uint64) CommitteeDeleteProposal {
@@ -156,11 +125,5 @@ func (cdp CommitteeDeleteProposal) ProposalType() string { return ProposalTypeCo
 
 // ValidateBasic runs basic stateless validity checks
 func (cdp CommitteeDeleteProposal) ValidateBasic() error {
-	return govtypes.ValidateAbstract(cdp)
-}
-
-// String implements the Stringer interface.
-func (cdp CommitteeDeleteProposal) String() string {
-	bz, _ := yaml.Marshal(cdp)
-	return string(bz)
+	return govtypes.ValidateAbstract(&cdp)
 }

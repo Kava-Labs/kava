@@ -1,0 +1,21 @@
+syntax = "proto3";
+package kava.committee.v1beta1;
+
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/kava-labs/kava/x/committee/types";
+
+// GodPermission allows any governance proposal. It is used mainly for testing.
+message GodPermission {
+  option (cosmos_proto.implements_interface) = "Permission";
+}
+
+// SoftwareUpgradePermission permission type for software upgrade proposals
+message SoftwareUpgradePermission {
+  option (cosmos_proto.implements_interface) = "Permission";
+}
+
+// TextPermission allows any text governance proposal.
+message TextPermission {
+  option (cosmos_proto.implements_interface) = "Permission";
+}
