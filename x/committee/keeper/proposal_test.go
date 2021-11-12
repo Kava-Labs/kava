@@ -55,12 +55,12 @@ import (
 // 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
 // }
 
-// func (suite *KeeperTestSuite) TestSubmitProposal() {
+// func (suite *keeperTestSuite) TestSubmitProposal() {
 // 	defaultCommitteeID := uint64(12)
 // 	normalCom := types.BaseCommittee{
 // 		ID:               defaultCommitteeID,
 // 		Description:      "This committee is for testing.",
-// 		Members:          suite.addresses[:2],
+// 		Members:          suite.Addresses[:2],
 // 		Permissions:      []types.Permission{&types.GodPermission{}},
 // 		VoteThreshold:    testutil.D("0.667"),
 // 		ProposalDuration: time.Hour * 24 * 7,
@@ -155,7 +155,7 @@ import (
 // 			name: "missing committee",
 // 			// no committee
 // 			pubProposal: govtypes.NewTextProposal("A Title", "A description of this proposal."),
-// 			proposer:    suite.addresses[0],
+// 			proposer:    suite.Addresses[0],
 // 			committeeID: 0,
 // 			expectErr:   true,
 // 		},
@@ -163,7 +163,7 @@ import (
 // 			name:        "not a member",
 // 			committee:   normalCom,
 // 			pubProposal: govtypes.NewTextProposal("A Title", "A description of this proposal."),
-// 			proposer:    suite.addresses[4],
+// 			proposer:    suite.Addresses[4],
 // 			committeeID: normalCom.ID,
 // 			expectErr:   true,
 // 		},
@@ -251,11 +251,11 @@ import (
 // 	}
 // }
 
-func (suite *KeeperTestSuite) TestAddVote() {
+func (suite *keeperTestSuite) TestAddVote() {
 	memberCom := types.MustNewMemberCommittee(
 		1,
 		"This member committee is for testing.",
-		suite.addresses[:2],
+		suite.Addresses[:2],
 		[]types.Permission{&types.GodPermission{}},
 		testutil.D("0.667"),
 		time.Hour*24*7,
@@ -264,7 +264,7 @@ func (suite *KeeperTestSuite) TestAddVote() {
 	tokenCom := types.MustNewTokenCommittee(
 		12,
 		"This token committee is for testing.",
-		suite.addresses[:2],
+		suite.Addresses[:2],
 		[]types.Permission{&types.GodPermission{}},
 		testutil.D("0.4"),
 		time.Hour*24*7,
@@ -272,7 +272,7 @@ func (suite *KeeperTestSuite) TestAddVote() {
 		sdk.Dec{},
 		"hard",
 	)
-	nonMemberAddr := suite.addresses[4]
+	nonMemberAddr := suite.Addresses[4]
 	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
 
 	testcases := []struct {
@@ -362,11 +362,11 @@ func (suite *KeeperTestSuite) TestAddVote() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestTallyMemberCommitteeVotes() {
+func (suite *keeperTestSuite) TestTallyMemberCommitteeVotes() {
 	memberCom := types.MustNewMemberCommittee(
 		12,
 		"This committee is for testing.",
-		suite.addresses[:5],
+		suite.Addresses[:5],
 		[]types.Permission{&types.GodPermission{}},
 		testutil.D("0.667"),
 		time.Hour*24*7,
@@ -388,17 +388,17 @@ func (suite *KeeperTestSuite) TestTallyMemberCommitteeVotes() {
 		{
 			name: "has 1 vote",
 			votes: []types.Vote{
-				{ProposalID: defaultProposalID, Voter: suite.addresses[0], VoteType: types.VOTE_TYPE_YES},
+				{ProposalID: defaultProposalID, Voter: suite.Addresses[0], VoteType: types.VOTE_TYPE_YES},
 			},
 			expectedVoteCount: testutil.D("1"),
 		},
 		{
 			name: "has multiple votes",
 			votes: []types.Vote{
-				{ProposalID: defaultProposalID, Voter: suite.addresses[0], VoteType: types.VOTE_TYPE_YES},
-				{ProposalID: defaultProposalID, Voter: suite.addresses[1], VoteType: types.VOTE_TYPE_YES},
-				{ProposalID: defaultProposalID, Voter: suite.addresses[2], VoteType: types.VOTE_TYPE_YES},
-				{ProposalID: defaultProposalID, Voter: suite.addresses[3], VoteType: types.VOTE_TYPE_YES},
+				{ProposalID: defaultProposalID, Voter: suite.Addresses[0], VoteType: types.VOTE_TYPE_YES},
+				{ProposalID: defaultProposalID, Voter: suite.Addresses[1], VoteType: types.VOTE_TYPE_YES},
+				{ProposalID: defaultProposalID, Voter: suite.Addresses[2], VoteType: types.VOTE_TYPE_YES},
+				{ProposalID: defaultProposalID, Voter: suite.Addresses[3], VoteType: types.VOTE_TYPE_YES},
 			},
 			expectedVoteCount: testutil.D("4"),
 		},
@@ -431,11 +431,11 @@ func (suite *KeeperTestSuite) TestTallyMemberCommitteeVotes() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
+func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 	tokenCom := types.MustNewTokenCommittee(
 		12,
 		"This committee is for testing.",
-		suite.addresses[:5],
+		suite.Addresses[:5],
 		[]types.Permission{&types.GodPermission{}},
 		testutil.D("0.667"),
 		time.Hour*24*7,
@@ -446,7 +446,7 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 	var defaultProposalID uint64 = 1
 	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
 
-	genAddrs := suite.addresses[:8]                       // Genesis accounts
+	genAddrs := suite.Addresses[:8]                       // Genesis accounts
 	genCoinCounts := []int64{0, 0, 0, 10, 20, 30, 40, 50} // Genesis token balances
 
 	testcases := []struct {
@@ -579,12 +579,12 @@ func (suite *KeeperTestSuite) TestTallyTokenCommitteeVotes() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetMemberCommitteeProposalResult() {
+func (suite *keeperTestSuite) TestGetMemberCommitteeProposalResult() {
 	memberCom := types.MustNewMemberCommittee(
 
 		12,
 		"This committee is for testing.",
-		suite.addresses[:5],
+		suite.Addresses[:5],
 		[]types.Permission{&types.GodPermission{}},
 		testutil.D("0.667"),
 		time.Hour*24*7,
@@ -603,10 +603,10 @@ func (suite *KeeperTestSuite) TestGetMemberCommitteeProposalResult() {
 			name:      "enough votes",
 			committee: memberCom,
 			votes: []types.Vote{
-				{ProposalID: defaultID, Voter: suite.addresses[0], VoteType: types.VOTE_TYPE_YES},
-				{ProposalID: defaultID, Voter: suite.addresses[1], VoteType: types.VOTE_TYPE_YES},
-				{ProposalID: defaultID, Voter: suite.addresses[2], VoteType: types.VOTE_TYPE_YES},
-				{ProposalID: defaultID, Voter: suite.addresses[3], VoteType: types.VOTE_TYPE_YES},
+				{ProposalID: defaultID, Voter: suite.Addresses[0], VoteType: types.VOTE_TYPE_YES},
+				{ProposalID: defaultID, Voter: suite.Addresses[1], VoteType: types.VOTE_TYPE_YES},
+				{ProposalID: defaultID, Voter: suite.Addresses[2], VoteType: types.VOTE_TYPE_YES},
+				{ProposalID: defaultID, Voter: suite.Addresses[3], VoteType: types.VOTE_TYPE_YES},
 			},
 			proposalPasses: true,
 		},
@@ -614,7 +614,7 @@ func (suite *KeeperTestSuite) TestGetMemberCommitteeProposalResult() {
 			name:      "not enough votes",
 			committee: memberCom,
 			votes: []types.Vote{
-				{ProposalID: defaultID, Voter: suite.addresses[0], VoteType: types.VOTE_TYPE_YES},
+				{ProposalID: defaultID, Voter: suite.Addresses[0], VoteType: types.VOTE_TYPE_YES},
 			},
 			proposalPasses: false,
 		},
@@ -647,11 +647,11 @@ func (suite *KeeperTestSuite) TestGetMemberCommitteeProposalResult() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetTokenCommitteeProposalResult() {
+func (suite *keeperTestSuite) TestGetTokenCommitteeProposalResult() {
 	tokenCom := types.MustNewTokenCommittee(
 		12,
 		"This committee is for testing.",
-		suite.addresses[:5],
+		suite.Addresses[:5],
 		[]types.Permission{&types.GodPermission{}},
 		testutil.D("0.667"),
 		time.Hour*24*7,
@@ -662,7 +662,7 @@ func (suite *KeeperTestSuite) TestGetTokenCommitteeProposalResult() {
 	var defaultID uint64 = 1
 	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
 
-	genAddrs := suite.addresses[:8]                       // Genesis accounts
+	genAddrs := suite.Addresses[:8]                       // Genesis accounts
 	genCoinCounts := []int64{0, 0, 0, 10, 20, 30, 40, 50} // Genesis token balances
 
 	// ---------------------- Polling information ----------------------
@@ -776,11 +776,11 @@ func (suite *KeeperTestSuite) TestGetTokenCommitteeProposalResult() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestCloseProposal() {
+func (suite *keeperTestSuite) TestCloseProposal() {
 	memberCom := types.MustNewMemberCommittee(
 		12,
 		"This committee is for testing.",
-		suite.addresses[:5],
+		suite.Addresses[:5],
 		[]types.Permission{&types.GodPermission{}},
 		testutil.D("0.667"),
 		time.Hour*24*7,
@@ -864,7 +864,7 @@ func (UnregisteredPubProposal) ProposalType() string  { return "unregistered" }
 
 var _ types.PubProposal = &UnregisteredPubProposal{}
 
-// func (suite *KeeperTestSuite) TestValidatePubProposal() {
+// func (suite *keeperTestSuite) TestValidatePubProposal() {
 
 // 	testcases := []struct {
 // 		name        string
@@ -957,11 +957,11 @@ var _ types.PubProposal = &UnregisteredPubProposal{}
 // 	}
 // }
 
-// func (suite *KeeperTestSuite) TestProcessProposals() {
+// func (suite *keeperTestSuite) TestProcessProposals() {
 
 // 	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
 
-// 	genAddrs := suite.addresses[:4]      // Genesis accounts
+// 	genAddrs := suite.Addresses[:4]      // Genesis accounts
 // 	genCoinCounts := []int64{1, 1, 1, 1} // Genesis token balances
 // 	// Convert accounts/token balances into format expected by genesis generation
 // 	var genCoins []sdk.Coins

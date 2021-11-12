@@ -49,19 +49,26 @@ func local_request_Query_Committees_0(ctx context.Context, marshaler runtime.Mar
 
 }
 
-var (
-	filter_Query_Committee_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_Query_Committee_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryCommitteeRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["committee_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "committee_id")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_Committee_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.CommitteeId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "committee_id", err)
 	}
 
 	msg, err := client.Committee(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -73,11 +80,22 @@ func local_request_Query_Committee_0(ctx context.Context, marshaler runtime.Mars
 	var protoReq QueryCommitteeRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["committee_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "committee_id")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_Committee_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.CommitteeId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "committee_id", err)
 	}
 
 	msg, err := server.Committee(ctx, &protoReq)
@@ -121,19 +139,26 @@ func local_request_Query_Proposals_0(ctx context.Context, marshaler runtime.Mars
 
 }
 
-var (
-	filter_Query_Proposal_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_Query_Proposal_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryProposalRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["proposal_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_Proposal_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.ProposalId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
 	}
 
 	msg, err := client.Proposal(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -145,11 +170,22 @@ func local_request_Query_Proposal_0(ctx context.Context, marshaler runtime.Marsh
 	var protoReq QueryProposalRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["proposal_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_Proposal_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.ProposalId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
 	}
 
 	msg, err := server.Proposal(ctx, &protoReq)
@@ -176,12 +212,30 @@ func local_request_Query_NextProposalID_0(ctx context.Context, marshaler runtime
 }
 
 var (
-	filter_Query_Votes_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Query_Votes_0 = &utilities.DoubleArray{Encoding: map[string]int{"proposal_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Query_Votes_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryVotesRequest
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["proposal_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
+	}
+
+	protoReq.ProposalId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -199,6 +253,24 @@ func local_request_Query_Votes_0(ctx context.Context, marshaler runtime.Marshale
 	var protoReq QueryVotesRequest
 	var metadata runtime.ServerMetadata
 
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["proposal_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
+	}
+
+	protoReq.ProposalId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
+	}
+
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -211,19 +283,37 @@ func local_request_Query_Votes_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-var (
-	filter_Query_Vote_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_Query_Vote_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryVoteRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["proposal_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_Vote_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.ProposalId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
+	}
+
+	val, ok = pathParams["voter"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "voter")
+	}
+
+	protoReq.Voter, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "voter", err)
 	}
 
 	msg, err := client.Vote(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -235,11 +325,33 @@ func local_request_Query_Vote_0(ctx context.Context, marshaler runtime.Marshaler
 	var protoReq QueryVoteRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["proposal_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_Vote_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.ProposalId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
+	}
+
+	val, ok = pathParams["voter"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "voter")
+	}
+
+	protoReq.Voter, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "voter", err)
 	}
 
 	msg, err := server.Vote(ctx, &protoReq)
@@ -247,19 +359,26 @@ func local_request_Query_Vote_0(ctx context.Context, marshaler runtime.Marshaler
 
 }
 
-var (
-	filter_Query_Tally_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_Query_Tally_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryTallyRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["proposal_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_Tally_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.ProposalId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
 	}
 
 	msg, err := client.Tally(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -271,11 +390,22 @@ func local_request_Query_Tally_0(ctx context.Context, marshaler runtime.Marshale
 	var protoReq QueryTallyRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["proposal_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_Tally_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.ProposalId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
 	}
 
 	msg, err := server.Tally(ctx, &protoReq)
@@ -732,19 +862,19 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 var (
 	pattern_Query_Committees_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "committee", "v1beta1", "committees"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Committee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 1}, []string{"kava", "committee", "v1beta1"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Committee_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"kava", "committee", "v1beta1", "committees", "committee_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_Proposals_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "committee", "v1beta1", "proposals"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Proposal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "committee", "v1beta1", "proposal"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Proposal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"kava", "committee", "v1beta1", "proposals", "proposal_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_NextProposalID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "committee", "v1beta1", "next-proposal-id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Votes_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "committee", "v1beta1", "votes"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Votes_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"kava", "committee", "v1beta1", "proposals", "proposal_id", "votes"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Vote_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "committee", "v1beta1", "vote"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Vote_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"kava", "committee", "v1beta1", "proposals", "proposal_id", "votes", "voter"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Tally_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "committee", "v1beta1", "tally"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Tally_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"kava", "committee", "v1beta1", "proposals", "proposal_id", "tally"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_RawParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "committee", "v1beta1", "raw-params"}, "", runtime.AssumeColonVerbOpt(false)))
 )

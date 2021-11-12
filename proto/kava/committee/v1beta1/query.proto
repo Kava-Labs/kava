@@ -8,6 +8,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
 import "cosmos_proto/cosmos.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "kava/committee/v1beta1/genesis.proto";
 
 option (gogoproto.goproto_getters_all) = false;
@@ -20,7 +21,7 @@ service Query {
   }
   // Committee queries a committee based on committee ID.
   rpc Committee(QueryCommitteeRequest) returns (QueryCommitteeResponse) {
-    option (google.api.http).get = "/kava/committee/v1beta1/committee";
+    option (google.api.http).get = "/kava/committee/v1beta1/committees/{committee_id}";
   }
   // Proposals queries proposals based on committee ID.
   rpc Proposals(QueryProposalsRequest) returns (QueryProposalsResponse) {
@@ -28,7 +29,7 @@ service Query {
   }
   // Deposits queries a proposal based on proposal ID.
   rpc Proposal(QueryProposalRequest) returns (QueryProposalResponse) {
-    option (google.api.http).get = "/kava/committee/v1beta1/proposal";
+    option (google.api.http).get = "/kava/committee/v1beta1/proposals/{proposal_id}";
   }
   // NextProposalID queries the next proposal ID of the committee module.
   rpc NextProposalID(QueryNextProposalIDRequest) returns (QueryNextProposalIDResponse) {
@@ -36,15 +37,15 @@ service Query {
   }
   // Votes queries all votes for a single proposal ID.
   rpc Votes(QueryVotesRequest) returns (QueryVotesResponse) {
-    option (google.api.http).get = "/kava/committee/v1beta1/votes";
+    option (google.api.http).get = "/kava/committee/v1beta1/proposals/{proposal_id}/votes";
   }
   // Vote queries the vote of a single voter for a single proposal ID.
   rpc Vote(QueryVoteRequest) returns (QueryVoteResponse) {
-    option (google.api.http).get = "/kava/committee/v1beta1/vote";
+    option (google.api.http).get = "/kava/committee/v1beta1/proposals/{proposal_id}/votes/{voter}";
   }
   // Tally queries the tally of a single proposal ID.
   rpc Tally(QueryTallyRequest) returns (QueryTallyResponse) {
-    option (google.api.http).get = "/kava/committee/v1beta1/tally";
+    option (google.api.http).get = "/kava/committee/v1beta1/proposals/{proposal_id}/tally";
   }
   // RawParams queries the raw params data of any subspace and key.
   rpc RawParams(QueryRawParamsRequest) returns (QueryRawParamsResponse) {
@@ -62,7 +63,7 @@ message QueryCommitteesResponse {
 
 // QueryCommitteeRequest defines the request type for querying x/committee committee.
 message QueryCommitteeRequest {
-  uint64 committee_id = 1 [(gogoproto.customname) = "CommitteeID"];
+  uint64 committee_id = 1;
 }
 
 // QueryCommitteeResponse defines the response type for querying x/committee committee.
@@ -72,7 +73,7 @@ message QueryCommitteeResponse {
 
 // QueryProposalsRequest defines the request type for querying x/committee proposals.
 message QueryProposalsRequest {
-  uint64 committee_id = 1 [(gogoproto.customname) = "CommitteeID"];
+  uint64 committee_id = 1;
 }
 
 // QueryProposalsResponse defines the response type for querying x/committee proposals.
@@ -82,7 +83,7 @@ message QueryProposalsResponse {
 
 // QueryProposalRequest defines the request type for querying x/committee proposal.
 message QueryProposalRequest {
-  uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
+  uint64 proposal_id = 1;
 }
 
 // QueryProposalResponse defines the response type for querying x/committee proposal.
@@ -104,17 +105,22 @@ message QueryNextProposalIDResponse {
 
 // QueryVotesRequest defines the request type for querying x/committee votes.
 message QueryVotesRequest {
-  uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
+  uint64                                proposal_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination  = 2;
 }
 
 // QueryVotesResponse defines the response type for querying x/committee votes.
 message QueryVotesResponse {
+  // votes defined the queried votes.
   repeated QueryVoteResponse votes = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryVoteRequest defines the request type for querying x/committee vote.
 message QueryVoteRequest {
-  uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
+  uint64 proposal_id = 1;
   string voter       = 2;
 }
 
@@ -127,7 +133,7 @@ message QueryVoteResponse {
 
 // QueryTallyRequest defines the request type for querying x/committee tally.
 message QueryTallyRequest {
-  uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
+  uint64 proposal_id = 1;
 }
 
 // QueryTallyResponse defines the response type for querying x/committee tally.

@@ -38,7 +38,7 @@ func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:       "invalid proposal",
-			msg:        &MsgSubmitProposal{PubProposal: &types.Any{}, Proposer: addr, CommitteeID: 3},
+			msg:        &MsgSubmitProposal{PubProposal: &types.Any{}, Proposer: addr.String(), CommitteeID: 3},
 			expectPass: false,
 		},
 	}
@@ -66,32 +66,32 @@ func TestMsgVote_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:       "normal",
-			msg:        MsgVote{5, addr, VOTE_TYPE_YES},
+			msg:        MsgVote{5, addr.String(), VOTE_TYPE_YES},
 			expectPass: true,
 		},
 		{
 			name:       "No",
-			msg:        MsgVote{5, addr, VOTE_TYPE_NO},
+			msg:        MsgVote{5, addr.String(), VOTE_TYPE_NO},
 			expectPass: true,
 		},
 		{
 			name:       "Abstain",
-			msg:        MsgVote{5, addr, VOTE_TYPE_ABSTAIN},
+			msg:        MsgVote{5, addr.String(), VOTE_TYPE_ABSTAIN},
 			expectPass: true,
 		},
 		{
 			name:       "Null vote",
-			msg:        MsgVote{5, addr, VOTE_TYPE_UNSPECIFIED},
+			msg:        MsgVote{5, addr.String(), VOTE_TYPE_UNSPECIFIED},
 			expectPass: false,
 		},
 		{
 			name:       "empty address",
-			msg:        MsgVote{5, sdk.AccAddress{}, VOTE_TYPE_YES},
+			msg:        MsgVote{5, "", VOTE_TYPE_YES},
 			expectPass: false,
 		},
 		{
 			name:       "invalid vote (greater)",
-			msg:        MsgVote{5, addr, 4},
+			msg:        MsgVote{5, addr.String(), 4},
 			expectPass: false,
 		},
 	}
