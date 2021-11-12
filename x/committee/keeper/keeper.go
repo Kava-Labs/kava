@@ -207,8 +207,8 @@ func (k Keeper) GetProposals(ctx sdk.Context) types.Proposals {
 	return results
 }
 
+// GetProposalsByCommittee returns all proposals for one committee.
 func (k Keeper) GetProposalsByCommittee(ctx sdk.Context, committeeID uint64) types.Proposals {
-	// GetProposalsByCommittee returns all proposals for one committee.
 	results := types.Proposals{}
 	k.IterateProposals(ctx, func(prop types.Proposal) bool {
 		if prop.CommitteeID == committeeID {

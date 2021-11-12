@@ -26,9 +26,9 @@ func getProposalVoteMap(k keeper.Keeper, ctx sdk.Context) map[uint64]([]types.Vo
 	return proposalVoteMap
 }
 
-func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
-	ak := suite.app.GetAccountKeeper()
-	return ak.GetAccount(suite.ctx, addr)
+func (suite *keeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
+	ak := suite.App.GetAccountKeeper()
+	return ak.GetAccount(suite.Ctx, addr)
 }
 
 func mustNewTestMemberCommittee(addresses []sdk.AccAddress) *types.MemberCommittee {
