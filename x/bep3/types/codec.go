@@ -9,7 +9,7 @@ import (
 )
 
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
-// governance module.
+// bep3 module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateAtomicSwap{}, "bep3/MsgCreateAtomicSwap", nil)
 	cdc.RegisterConcrete(&MsgRefundAtomicSwap{}, "bep3/MsgRefundAtomicSwap", nil)
@@ -29,11 +29,11 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 var (
 	amino = codec.NewLegacyAmino()
 
-	// ModuleCdc references the global x/gov module codec. Note, the codec should
+	// ModuleCdc references the global x/bep3 module codec. Note, the codec should
 	// ONLY be used in certain instances of tests and for JSON encoding as Amino is
 	// still used for that purpose.
 	//
-	// The actual codec used for serialization should be provided to x/gov and
+	// The actual codec used for serialization should be provided to x/bep3 and
 	// defined at the application level.
 	ModuleCdc = codec.NewAminoCodec(amino)
 )
