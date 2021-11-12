@@ -73,7 +73,7 @@ func getCmdQueryCommittee() *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.Committee(context.Background(), &types.QueryCommitteeRequest{CommitteeID: committeeID})
+			res, err := queryClient.Committee(context.Background(), &types.QueryCommitteeRequest{CommitteeId: committeeID})
 			if err != nil {
 				return err
 			}
@@ -151,7 +151,7 @@ func getCmdQueryProposal() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.Proposal(context.Background(), &types.QueryProposalRequest{
-				ProposalID: proposalID,
+				ProposalId: proposalID,
 			})
 			if err != nil {
 				return err
@@ -183,7 +183,7 @@ func getCmdQueryProposals() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.Proposals(context.Background(), &types.QueryProposalsRequest{
-				CommitteeID: committeeID,
+				CommitteeId: committeeID,
 			})
 			if err != nil {
 				return err
@@ -218,7 +218,7 @@ func getCmdQueryVotes() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.Votes(context.Background(), &types.QueryVotesRequest{
-				ProposalID: proposalID,
+				ProposalId: proposalID,
 			})
 			if err != nil {
 				return err
@@ -253,7 +253,7 @@ func getCmdQueryTally() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.Tally(context.Background(), &types.QueryTallyRequest{
-				ProposalID: proposalID,
+				ProposalId: proposalID,
 			})
 			if err != nil {
 				return err

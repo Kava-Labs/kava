@@ -55,7 +55,7 @@ func QueryProposer(cliCtx client.Context, proposalID uint64) (Proposer, error) {
 		for _, msg := range info.GetTx().GetMsgs() {
 			// there should only be a single proposal under the given conditions
 			if subMsg, ok := msg.(*types.MsgSubmitProposal); ok {
-				return NewProposer(proposalID, subMsg.Proposer.String()), nil
+				return NewProposer(proposalID, subMsg.Proposer), nil
 			}
 		}
 	}
