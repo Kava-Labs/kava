@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"time"
@@ -25,18 +24,6 @@ func DefaultGenesisState() GenesisState {
 		[]AssetSupply{},
 		DefaultPreviousBlockTime,
 	)
-}
-
-// Equal checks whether two GenesisState structs are equivalent.
-func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	b1 := ModuleCdc.Amino.MustMarshalBinaryBare(gs)
-	b2 := ModuleCdc.Amino.MustMarshalBinaryBare(gs2)
-	return bytes.Equal(b1, b2)
-}
-
-// IsEmpty returns true if a GenesisState is empty.
-func (gs GenesisState) IsEmpty() bool {
-	return gs.Equal(GenesisState{})
 }
 
 // Validate validates genesis inputs. It returns error if validation of any input fails.
