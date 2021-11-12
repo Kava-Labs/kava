@@ -84,29 +84,6 @@ func (a AtomicSwap) Validate() error {
 	return nil
 }
 
-// String implements stringer
-func (a AtomicSwap) String() string {
-	return fmt.Sprintf("Atomic Swap"+
-		"\n    ID:                       %s"+
-		"\n    Status:                   %s"+
-		"\n    Amount:                   %s"+
-		"\n    Random number hash:       %s"+
-		"\n    Expire height:            %d"+
-		"\n    Timestamp:                %d"+
-		"\n    Sender:                   %s"+
-		"\n    Recipient:                %s"+
-		"\n    Sender other chain:       %s"+
-		"\n    Recipient other chain:    %s"+
-		"\n    Closed block:             %d"+
-		"\n    Cross chain:              %t"+
-		"\n    Direction:                %s",
-		a.GetSwapID(), a.Status.String(), a.Amount.String(),
-		hex.EncodeToString(a.RandomNumberHash), a.ExpireHeight,
-		a.Timestamp, a.Sender.String(), a.Recipient.String(),
-		a.SenderOtherChain, a.RecipientOtherChain, a.ClosedBlock,
-		a.CrossChain, a.Direction)
-}
-
 // AtomicSwaps is a slice of AtomicSwap
 type AtomicSwaps []AtomicSwap
 
@@ -154,14 +131,6 @@ func NewAugmentedAtomicSwap(swap AtomicSwap) AugmentedAtomicSwap {
 		ID:         hex.EncodeToString(swap.GetSwapID()),
 		AtomicSwap: swap,
 	}
-}
-
-func (a *AugmentedAtomicSwap) String() string {
-	return fmt.Sprintf("Augmented Atomic Swap"+
-		"\n    ID:     %s"+
-		"\n%s",
-		a.ID,
-		a.AtomicSwap.String())
 }
 
 // LegacyAugmentedAtomicSwap defines an ID and AtomicSwap fields on the top level.

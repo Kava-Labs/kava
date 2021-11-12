@@ -54,19 +54,6 @@ func (a AssetSupply) Equal(b AssetSupply) bool {
 		a.TimeElapsed == b.TimeElapsed)
 }
 
-// String implements stringer
-func (a AssetSupply) String() string {
-	return fmt.Sprintf(`
-	asset supply:
-		Incoming supply:    %s
-		Outgoing supply:    %s
-		Current supply:     %s
-		Time-limited current cupply: %s
-		Time elapsed: %s
-		`,
-		a.IncomingSupply, a.OutgoingSupply, a.CurrentSupply, a.TimeLimitedCurrentSupply, a.TimeElapsed)
-}
-
 // GetDenom getter method for the denom of the asset supply
 func (a AssetSupply) GetDenom() string {
 	return a.CurrentSupply.Denom

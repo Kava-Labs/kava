@@ -10,16 +10,12 @@ option go_package = "github.com/kava-labs/kava/x/bep3/types";
 
 // Params defines the parameters for the bep3 module.
 message Params {
-  option (gogoproto.goproto_stringer) = false;
-
   // asset_params define the parameters for each bep3 asset
   repeated AssetParam asset_params = 1 [(gogoproto.castrepeated) = "AssetParams", (gogoproto.nullable) = false];
 }
 
 // AssetParam defines parameters for each bep3 asset.
 message AssetParam {
-  option (gogoproto.goproto_stringer) = false;
-
   // denom represents the denominatin for this asset
   string denom = 1;
   // coin_id represents the registered coin type to use (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
@@ -59,8 +55,6 @@ message AssetParam {
 
 // SupplyLimit define the absolute and time-based limits for an assets's supply.
 message SupplyLimit {
-  option (gogoproto.goproto_stringer) = false;
-
   // limit defines the total supply allowed
   string limit = 1 [
     (cosmos_proto.scalar)  = "cosmos.Int",
@@ -107,8 +101,6 @@ enum SwapDirection {
 
 // AtomicSwap defines an atomic swap between chains for the pricefeed module.
 message AtomicSwap {
-  option (gogoproto.goproto_stringer) = false;
-
   // amount represents the amount being swapped
   repeated cosmos.base.v1beta1.Coin amount = 1
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
@@ -144,8 +136,6 @@ message AtomicSwap {
 
 // AugmentedAtomicSwap defines an AtomicSwap with an ID.
 message AugmentedAtomicSwap {
-  option (gogoproto.goproto_stringer) = false;
-
   // id represents the identifier of the atomic swap
   string id = 1 [(gogoproto.customname) = "ID"];
   // atomic_swap defines the properties of the atomic swap
@@ -154,8 +144,6 @@ message AugmentedAtomicSwap {
 
 // AssetSupply defines information about an asset's supply.
 message AssetSupply {
-  option (gogoproto.goproto_stringer) = false;
-
   // incoming_supply represents the incoming supply of an asset
   cosmos.base.v1beta1.Coin incoming_supply = 1
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];

@@ -26,13 +26,6 @@ var (
 	DefaultPreviousBlockTime         = tmtime.Canonical(time.Unix(1, 0))
 )
 
-// String implements fmt.Stringer
-func (p Params) String() string {
-	return fmt.Sprintf(`Params:
-	AssetParams: %s`,
-		p.AssetParams)
-}
-
 // NewParams returns a new params object
 func NewParams(ap []AssetParam) Params {
 	return Params{
@@ -65,43 +58,8 @@ func NewAssetParam(
 	}
 }
 
-// String implements fmt.Stringer
-func (ap AssetParam) String() string {
-	return fmt.Sprintf(`Asset:
-	Denom: %s
-	Coin ID: %d
-	Limit: %s
-	Active: %t
-	Deputy Address: %s
-	Fixed Fee: %s
-	Min Swap Amount: %s
-	Max Swap Amount: %s
-	Min Block Lock: %d
-	Max Block Lock: %d`,
-		ap.Denom, ap.CoinID, ap.SupplyLimit, ap.Active, ap.DeputyAddress, ap.FixedFee,
-		ap.MinSwapAmount, ap.MaxSwapAmount, ap.MinBlockLock, ap.MaxBlockLock)
-}
-
 // AssetParams array of AssetParam
 type AssetParams []AssetParam
-
-// String implements fmt.Stringer
-func (aps AssetParams) String() string {
-	out := "Asset Params\n"
-	for _, ap := range aps {
-		out += fmt.Sprintf("%s\n", ap)
-	}
-	return out
-}
-
-// String implements fmt.Stringer
-func (sl SupplyLimit) String() string {
-	return fmt.Sprintf(`%s
-	%t
-	%s
-	%s
-	`, sl.Limit, sl.TimeLimited, sl.TimePeriod, sl.TimeBasedLimit)
-}
 
 // Equals returns true if two supply limits are equal
 func (sl SupplyLimit) Equals(sl2 SupplyLimit) bool {
