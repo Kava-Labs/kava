@@ -28,7 +28,7 @@ func (suite *ParamsTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	_, addrs := app.GeneratePrivKeyAddressPairs(10)
-	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(tApp.AppCodec(), addrs[0].String()))
+	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(tApp.AppCodec(), addrs[0]))
 	suite.keeper = tApp.GetBep3Keeper()
 	suite.ctx = ctx
 	suite.addrs = addrs
@@ -54,15 +54,15 @@ func (suite *ParamsTestSuite) TestGetAssets() {
 func (suite *ParamsTestSuite) TestGetSetDeputyAddress() {
 	asset, err := suite.keeper.GetAsset(suite.ctx, "bnb")
 	suite.Require().NoError(err)
-	asset.DeputyAddress = suite.addrs[1].String()
+	asset.DeputyAddress = suite.addrs[1]
 	suite.NotPanics(func() { suite.keeper.SetAsset(suite.ctx, asset) })
 
 	asset, err = suite.keeper.GetAsset(suite.ctx, "bnb")
 	suite.Require().NoError(err)
-	suite.Equal(suite.addrs[1].String(), asset.DeputyAddress)
+	suite.Equal(suite.addrs[1], asset.DeputyAddress)
 	addr, err := suite.keeper.GetDeputyAddress(suite.ctx, "bnb")
 	suite.Require().NoError(err)
-	suite.Equal(suite.addrs[1].String(), addr)
+	suite.Equal(suite.addrs[1], addr)
 
 }
 

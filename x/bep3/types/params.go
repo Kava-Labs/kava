@@ -48,7 +48,7 @@ func DefaultParams() Params {
 // NewAssetParam returns a new AssetParam
 func NewAssetParam(
 	denom string, coinID int64, limit SupplyLimit, active bool,
-	deputyAddr string, fixedFee sdk.Int, minSwapAmount sdk.Int,
+	deputyAddr sdk.AccAddress, fixedFee sdk.Int, minSwapAmount sdk.Int,
 	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
 ) AssetParam {
 	return AssetParam{
@@ -80,6 +80,18 @@ func (ap AssetParam) String() string {
 	Max Block Lock: %d`,
 		ap.Denom, ap.CoinID, ap.SupplyLimit, ap.Active, ap.DeputyAddress, ap.FixedFee,
 		ap.MinSwapAmount, ap.MaxSwapAmount, ap.MinBlockLock, ap.MaxBlockLock)
+}
+
+// AssetParams array of AssetParam
+type AssetParams []AssetParam
+
+// String implements fmt.Stringer
+func (aps AssetParams) String() string {
+	out := "Asset Params\n"
+	for _, ap := range aps {
+		out += fmt.Sprintf("%s\n", ap)
+	}
+	return out
 }
 
 // String implements fmt.Stringer
@@ -116,7 +128,7 @@ func (p Params) Validate() error {
 }
 
 func validateAssetParams(i interface{}) error {
-	assetParams, ok := i.([]AssetParam)
+	assetParams, ok := i.(AssetParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -152,11 +164,6 @@ func validateAssetParams(i interface{}) error {
 
 		if len(asset.DeputyAddress) == 0 {
 			return fmt.Errorf("deputy address cannot be empty for %s", asset.Denom)
-		}
-
-		// Verify address format
-		if _, err := sdk.AccAddressFromBech32(asset.DeputyAddress); err != nil {
-			return fmt.Errorf("%s deputy address invalid %w", asset.Denom, err)
 		}
 
 		if asset.FixedFee.IsNegative() {

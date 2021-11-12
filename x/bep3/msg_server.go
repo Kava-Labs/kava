@@ -2,6 +2,7 @@ package bep3
 
 import (
 	"context"
+	"encoding/hex"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -32,8 +33,12 @@ func (k msgServer) CreateAtomicSwap(goCtx context.Context, msg *types.MsgCreateA
 	if err != nil {
 		return nil, err
 	}
+	randomNumberHash, err := hex.DecodeString(msg.RandomNumberHash)
+	if err != nil {
+		return nil, err
+	}
 
-	if err = k.keeper.CreateAtomicSwap(ctx, msg.RandomNumberHash, msg.Timestamp, msg.HeightSpan,
+	if err = k.keeper.CreateAtomicSwap(ctx, randomNumberHash, msg.Timestamp, msg.HeightSpan,
 		from, to, msg.SenderOtherChain, msg.RecipientOtherChain, msg.Amount, true); err != nil {
 		return nil, err
 	}

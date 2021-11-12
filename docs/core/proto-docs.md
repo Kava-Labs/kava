@@ -172,16 +172,16 @@ AssetParam defines parameters for each bep3 asset.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `denom` | [string](#string) |  |  |
-| `coin_id` | [int64](#int64) |  |  |
-| `supply_limit` | [SupplyLimit](#kava.bep3.v1beta1.SupplyLimit) |  |  |
-| `active` | [bool](#bool) |  |  |
-| `deputy_address` | [string](#string) |  |  |
-| `fixed_fee` | [bytes](#bytes) |  |  |
-| `min_swap_amount` | [bytes](#bytes) |  |  |
-| `max_swap_amount` | [bytes](#bytes) |  |  |
-| `min_block_lock` | [uint64](#uint64) |  |  |
-| `max_block_lock` | [uint64](#uint64) |  |  |
+| `denom` | [string](#string) |  | denom represents the denominatin for this asset |
+| `coin_id` | [int64](#int64) |  | coin_id represents the registered coin type to use (https://github.com/satoshilabs/slips/blob/master/slip-0044.md) |
+| `supply_limit` | [SupplyLimit](#kava.bep3.v1beta1.SupplyLimit) |  | supply_limit defines the maximum supply allowed for the asset - a total or time based rate limit |
+| `active` | [bool](#bool) |  | active specifies if the asset is live or paused |
+| `deputy_address` | [bytes](#bytes) |  | deputy_address the kava address of the deputy |
+| `fixed_fee` | [string](#string) |  | fixed_fee defines the fee for incoming swaps |
+| `min_swap_amount` | [string](#string) |  | min_swap_amount defines the minimum amount able to be swapped in a single message |
+| `max_swap_amount` | [string](#string) |  | max_swap_amount defines the maximum amount able to be swapped in a single message |
+| `min_block_lock` | [uint64](#uint64) |  | min_block_lock defined the minimum blocks to lock |
+| `max_block_lock` | [uint64](#uint64) |  | min_block_lock defined the maximum blocks to lock |
 
 
 
@@ -196,11 +196,11 @@ AssetSupply defines information about an asset's supply.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `incoming_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-| `outgoing_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-| `current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-| `time_limited_current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-| `time_elapsed` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `incoming_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | incoming_supply represents the incoming supply of an asset |
+| `outgoing_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | outgoing_supply represents the outgoing supply of an asset |
+| `current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | current_supply represents the current on-chain supply of an asset |
+| `time_limited_current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | time_limited_current_supply represents the time limited current supply of an asset |
+| `time_elapsed` | [google.protobuf.Duration](#google.protobuf.Duration) |  | time_elapsed represents the time elapsed |
 
 
 
@@ -215,18 +215,18 @@ AtomicSwap defines an atomic swap between chains for the pricefeed module.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-| `random_number_hash` | [bytes](#bytes) |  |  |
-| `expire_height` | [uint64](#uint64) |  |  |
-| `timestamp` | [int64](#int64) |  |  |
-| `sender` | [string](#string) |  |  |
-| `recipient` | [string](#string) |  |  |
-| `sender_other_chain` | [string](#string) |  |  |
-| `recipient_other_chain` | [string](#string) |  |  |
-| `closed_block` | [int64](#int64) |  |  |
-| `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  |  |
-| `cross_chain` | [bool](#bool) |  |  |
-| `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | amount represents the amount being swapped |
+| `random_number_hash` | [bytes](#bytes) |  | random_number_hash represents the hash of the random number |
+| `expire_height` | [uint64](#uint64) |  | expire_height represents the height when the swap expires |
+| `timestamp` | [int64](#int64) |  | timestamp represents the timestamp of the swap |
+| `sender` | [bytes](#bytes) |  | sender is the kava chain sender of the swap |
+| `recipient` | [bytes](#bytes) |  | recipient is the kava chain recipient of the swap |
+| `sender_other_chain` | [string](#string) |  | sender_other_chain is the sender on the other chain |
+| `recipient_other_chain` | [string](#string) |  | recipient_other_chain is the recipient on the other chain |
+| `closed_block` | [int64](#int64) |  | closed_block is the block when the swap is closed |
+| `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  | status represents the current status of the swap |
+| `cross_chain` | [bool](#bool) |  | cross_chain identifies whether the atomic swap is cross chain |
+| `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  | direction identifies if the swap is incoming or outgoing |
 
 
 
@@ -241,8 +241,8 @@ AugmentedAtomicSwap defines an AtomicSwap with an ID.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `id` | [string](#string) |  |  |
-| `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) |  |  |
+| `id` | [string](#string) |  | id represents the identifier of the atomic swap |
+| `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) |  | atomic_swap defines the properties of the atomic swap |
 
 
 
@@ -257,7 +257,7 @@ Params defines the parameters for the bep3 module.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `asset_params` | [AssetParam](#kava.bep3.v1beta1.AssetParam) | repeated |  |
+| `asset_params` | [AssetParam](#kava.bep3.v1beta1.AssetParam) | repeated | asset_params define the parameters for each bep3 asset |
 
 
 
@@ -272,10 +272,10 @@ SupplyLimit define the absolute and time-based limits for an assets's supply.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `limit` | [bytes](#bytes) |  |  |
-| `time_limited` | [bool](#bool) |  |  |
-| `time_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
-| `time_based_limit` | [bytes](#bytes) |  |  |
+| `limit` | [string](#string) |  | limit defines the total supply allowed |
+| `time_limited` | [bool](#bool) |  | time_limited enables or disables time based supply limiting |
+| `time_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | time_period specifies the duration that time_based_limit is evalulated |
+| `time_based_limit` | [string](#string) |  | time_based_limit defines the maximum supply that can be swapped within time_period |
 
 
 
@@ -291,9 +291,9 @@ SwapDirection is the direction of an AtomicSwap
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| SWAP_DIRECTION_UNSPECIFIED | 0 | SwapDirection is unspecified or invalid |
-| SWAP_DIRECTION_INCOMING | 1 | SwapDirection is incoming |
-| SWAP_DIRECTION_OUTGOING | 2 | SwapDirection is outgoing |
+| SWAP_DIRECTION_UNSPECIFIED | 0 | SWAP_DIRECTION_UNSPECIFIED represents unspecified or invalid swap direcation |
+| SWAP_DIRECTION_INCOMING | 1 | SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain) |
+| SWAP_DIRECTION_OUTGOING | 2 | SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain) |
 
 
 
@@ -304,10 +304,10 @@ SwapStatus is the status of an AtomicSwap
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| SWAP_STATUS_UNSPECIFIED | 0 | AtomicSwap is unspecified |
-| SWAP_STATUS_OPEN | 1 | AtomicSwap is open |
-| SWAP_STATUS_COMPLETED | 2 | AtomicSwap is completed |
-| SWAP_STATUS_EXPIRED | 3 | AtomicSwap is expired |
+| SWAP_STATUS_UNSPECIFIED | 0 | SWAP_STATUS_UNSPECIFIED represents an unspecified status |
+| SWAP_STATUS_OPEN | 1 | SWAP_STATUS_OPEN represents an open swap |
+| SWAP_STATUS_COMPLETED | 2 | SWAP_STATUS_COMPLETED represents a completed swap |
+| SWAP_STATUS_EXPIRED | 3 | SWAP_STATUS_EXPIRED represents an expired swap |
 
 
  <!-- end enums -->
@@ -334,9 +334,9 @@ GenesisState defines the pricefeed module's genesis state.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#kava.bep3.v1beta1.Params) |  | params defines all the paramaters of the module. |
-| `atomic_swaps` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) | repeated |  |
-| `supplies` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) | repeated |  |
-| `previous_block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `atomic_swaps` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) | repeated | atomic_swaps represents the state of stored atomic swaps |
+| `supplies` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) | repeated | supplies represents the supply information of each atomic swap |
+| `previous_block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | previous_block_time represents the time of the previous block |
 
 
 
@@ -382,7 +382,7 @@ QueryAssetSuppliesResponse is the response type for the Query/AssetSupplies RPC 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `asset_supplies` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) | repeated |  |
+| `asset_supplies` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) | repeated | asset_supplies represents the supplies of returned assets |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
@@ -398,7 +398,7 @@ QueryAssetSupplyRequest is the request type for the Query/AssetSupply RPC method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `denom` | [string](#string) |  |  |
+| `denom` | [string](#string) |  | denom filters the asset response for the specified denom |
 
 
 
@@ -413,7 +413,7 @@ QueryAssetSupplyResponse is the response type for the Query/AssetSupply RPC meth
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `asset_supply` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) |  |  |
+| `asset_supply` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) |  | asset_supply represents the supply of the asset |
 
 
 
@@ -428,7 +428,7 @@ QueryAtomicSwapRequest is the request type for the Query/AtomicSwap RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `swap_id` | [bytes](#bytes) |  |  |
+| `swap_id` | [string](#string) |  | swap_id represents the id of the swap to query |
 
 
 
@@ -443,8 +443,8 @@ QueryAtomicSwapResponse is the response type for the Query/AtomicSwap RPC method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `id` | [string](#string) |  |  |
-| `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) |  |  |
+| `id` | [string](#string) |  | id is the identifier of the swap |
+| `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) |  | atomic_swap represents the attributes of the swap |
 
 
 
@@ -459,10 +459,10 @@ QueryAtomicSwapsRequest is the request type for the Query/AtomicSwaps RPC method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `involve` | [string](#string) |  |  |
-| `expiration` | [uint64](#uint64) |  |  |
-| `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  |  |
-| `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  |  |
+| `involve` | [string](#string) |  | involve filters by address |
+| `expiration` | [uint64](#uint64) |  | expiration filters by expiration block height |
+| `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  | status filters by swap status |
+| `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  | direction fitlers by swap direction |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
 
 
@@ -478,7 +478,7 @@ QueryAtomicSwapsResponse is the response type for the Query/AtomicSwaps RPC meth
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `atomic_swap` | [AugmentedAtomicSwap](#kava.bep3.v1beta1.AugmentedAtomicSwap) | repeated |  |
+| `atomic_swaps` | [AugmentedAtomicSwap](#kava.bep3.v1beta1.AugmentedAtomicSwap) | repeated | atomic_swap represents the returned atomic swaps for the request |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
@@ -504,7 +504,7 @@ QueryParamsResponse defines the response type for querying x/bep3 parameters.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.bep3.v1beta1.Params) |  |  |
+| `params` | [Params](#kava.bep3.v1beta1.Params) |  | params represents the parameters of the module |
 
 
 
@@ -580,7 +580,7 @@ MsgCreateAtomicSwap defines the Msg/CreateAtomicSwap request type.
 | `to` | [string](#string) |  |  |
 | `recipient_other_chain` | [string](#string) |  |  |
 | `sender_other_chain` | [string](#string) |  |  |
-| `random_number_hash` | [bytes](#bytes) |  |  |
+| `random_number_hash` | [string](#string) |  |  |
 | `timestamp` | [int64](#int64) |  |  |
 | `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 | `height_span` | [uint64](#uint64) |  |  |

@@ -30,12 +30,12 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func ts(minOffset int) int64                { return tmtime.Now().Add(time.Duration(minOffset) * time.Minute).Unix() }
 
-func NewBep3GenStateMulti(cdc codec.JSONCodec, deputy string) app.GenesisState {
+func NewBep3GenStateMulti(cdc codec.JSONCodec, deputy sdk.AccAddress) app.GenesisState {
 	bep3Genesis := baseGenState(deputy)
 	return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&bep3Genesis)}
 }
 
-func baseGenState(deputy string) types.GenesisState {
+func baseGenState(deputy sdk.AccAddress) types.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
 			AssetParams: []types.AssetParam{
@@ -96,7 +96,7 @@ func baseGenState(deputy string) types.GenesisState {
 	return bep3Genesis
 }
 
-func loadSwapAndSupply(addr string, index int) (types.AtomicSwap, types.AssetSupply) {
+func loadSwapAndSupply(addr sdk.AccAddress, index int) (types.AtomicSwap, types.AssetSupply) {
 	coin := c(DenomMap[index], 50000)
 	expireOffset := types.DefaultMinBlockLock // Default expire height + offet to match timestamp
 	timestamp := ts(index)                    // One minute apart

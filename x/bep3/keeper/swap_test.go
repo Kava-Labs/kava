@@ -55,7 +55,7 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 
 	// Initialize genesis state
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(cdc, deputy.String()))
+	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(cdc, deputy))
 
 	keeper := tApp.GetBep3Keeper()
 	params := keeper.GetParams(ctx)
@@ -430,7 +430,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			assetSupplyPost, _ := suite.keeper.GetAssetSupply(suite.ctx, swapAssetDenom)
 
 			// Load expected swap ID
-			expectedSwapID := types.CalculateSwapID(tc.args.randomNumberHash, tc.args.sender.String(), tc.args.senderOtherChain)
+			expectedSwapID := types.CalculateSwapID(tc.args.randomNumberHash, tc.args.sender, tc.args.senderOtherChain)
 
 			if tc.expectPass {
 				suite.NoError(err)
@@ -459,8 +459,8 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 						RandomNumberHash:    tc.args.randomNumberHash,
 						ExpireHeight:        uint64(suite.ctx.BlockHeight()) + tc.args.heightSpan,
 						Timestamp:           tc.args.timestamp,
-						Sender:              tc.args.sender.String(),
-						Recipient:           tc.args.recipient.String(),
+						Sender:              tc.args.sender,
+						Recipient:           tc.args.recipient,
 						SenderOtherChain:    tc.args.senderOtherChain,
 						RecipientOtherChain: tc.args.recipientOtherChain,
 						ClosedBlock:         0,
@@ -561,7 +561,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			suite.ctx,
 			args{
 				coins:        cs(c(BNB_DENOM, 50000)),
-				swapID:       types.CalculateSwapID(suite.randomNumberHashes[3], suite.addrs[6].String(), TestRecipientOtherChain),
+				swapID:       types.CalculateSwapID(suite.randomNumberHashes[3], suite.addrs[6], TestRecipientOtherChain),
 				randomNumber: []byte{},
 				direction:    types.SWAP_DIRECTION_OUTGOING,
 			},
@@ -600,7 +600,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 				tc.args.coins, true)
 			suite.NoError(err)
 
-			realSwapID := types.CalculateSwapID(suite.randomNumberHashes[i], sender.String(), TestSenderOtherChain)
+			realSwapID := types.CalculateSwapID(suite.randomNumberHashes[i], sender, TestSenderOtherChain)
 
 			// If args contains an invalid swap ID claim attempt will use it instead of the real swap ID
 			var claimSwapID []byte
@@ -726,7 +726,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 			"wrong swapID",
 			suite.ctx,
 			args{
-				swapID:    types.CalculateSwapID(suite.randomNumberHashes[6], suite.addrs[1].String(), TestRecipientOtherChain),
+				swapID:    types.CalculateSwapID(suite.randomNumberHashes[6], suite.addrs[1], TestRecipientOtherChain),
 				direction: types.SWAP_DIRECTION_INCOMING,
 			},
 			false,
@@ -754,7 +754,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 				expectedRefundAmount, true)
 			suite.NoError(err)
 
-			realSwapID := types.CalculateSwapID(suite.randomNumberHashes[i], sender.String(), TestSenderOtherChain)
+			realSwapID := types.CalculateSwapID(suite.randomNumberHashes[i], sender, TestSenderOtherChain)
 
 			// If args contains an invalid swap ID refund attempt will use it instead of the real swap ID
 			var refundSwapID []byte

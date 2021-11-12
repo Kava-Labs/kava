@@ -15,8 +15,8 @@ import (
 var (
 	coinsSingle       = sdk.NewCoins(sdk.NewInt64Coin("bnb", int64(50000)))
 	coinsZero         = sdk.Coins{sdk.Coin{}}
-	binanceAddrs      = []string{}
-	kavaAddrs         = []string{}
+	binanceAddrs      = []sdk.AccAddress{}
+	kavaAddrs         = []sdk.AccAddress{}
 	randomNumberBytes = []byte{15}
 	timestampInt64    = int64(100)
 	randomNumberHash  = types.CalculateRandomHash(randomNumberBytes, timestampInt64)
@@ -26,13 +26,13 @@ func init() {
 	app.SetSDKConfig()
 
 	// Must be set after SetSDKConfig to use kava Bech32 prefix instead of cosmos
-	binanceAddrs = []string{
-		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))).String(),
+	binanceAddrs = []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))),
 	}
-	kavaAddrs = []string{
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String(),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))).String(),
+	kavaAddrs = []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
 	}
 }
 
@@ -48,8 +48,8 @@ func (suite *MsgTestSuite) SetupTest() {
 func (suite *MsgTestSuite) TestMsgCreateAtomicSwap() {
 	tests := []struct {
 		description         string
-		from                string
-		to                  string
+		from                sdk.AccAddress
+		to                  sdk.AccAddress
 		recipientOtherChain string
 		senderOtherChain    string
 		randomNumberHash    tmbytes.HexBytes
@@ -58,15 +58,15 @@ func (suite *MsgTestSuite) TestMsgCreateAtomicSwap() {
 		heightSpan          uint64
 		expectPass          bool
 	}{
-		{"normal cross-chain", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0], binanceAddrs[0], randomNumberHash, timestampInt64, coinsSingle, 500, true},
+		{"normal cross-chain", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, 500, true},
 		{"without other chain fields", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, 500, false},
 		{"invalid amount", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsZero, 500, false},
 	}
 
 	for i, tc := range tests {
 		msg := types.NewMsgCreateAtomicSwap(
-			tc.from,
-			tc.to,
+			tc.from.String(),
+			tc.to.String(),
 			tc.recipientOtherChain,
 			tc.senderOtherChain,
 			tc.randomNumberHash,
@@ -87,7 +87,7 @@ func (suite *MsgTestSuite) TestMsgClaimAtomicSwap() {
 
 	tests := []struct {
 		description  string
-		from         string
+		from         sdk.AccAddress
 		swapID       tmbytes.HexBytes
 		randomNumber tmbytes.HexBytes
 		expectPass   bool
@@ -97,7 +97,7 @@ func (suite *MsgTestSuite) TestMsgClaimAtomicSwap() {
 
 	for i, tc := range tests {
 		msg := types.NewMsgClaimAtomicSwap(
-			tc.from,
+			tc.from.String(),
 			tc.swapID,
 			tc.randomNumber,
 		)
@@ -114,7 +114,7 @@ func (suite *MsgTestSuite) TestMsgRefundAtomicSwap() {
 
 	tests := []struct {
 		description string
-		from        string
+		from        sdk.AccAddress
 		swapID      tmbytes.HexBytes
 		expectPass  bool
 	}{
@@ -123,7 +123,7 @@ func (suite *MsgTestSuite) TestMsgRefundAtomicSwap() {
 
 	for i, tc := range tests {
 		msg := types.NewMsgRefundAtomicSwap(
-			tc.from,
+			tc.from.String(),
 			tc.swapID,
 		)
 		if tc.expectPass {

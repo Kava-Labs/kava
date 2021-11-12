@@ -38,7 +38,7 @@ func (suite *ABCITestSuite) SetupTest() {
 	coins := sdk.NewCoins(c("bnb", 10000000000), c("ukava", 10000000000))
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	// Initialize test app
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(tApp.AppCodec(), strAddrs[11]))
+	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(tApp.AppCodec(), addrs[11]))
 
 	suite.ctx = ctx
 	suite.app = tApp
@@ -67,7 +67,7 @@ func (suite *ABCITestSuite) ResetKeeper() {
 		suite.Nil(err)
 
 		// Store swap's calculated ID and secret random number
-		swapID := types.CalculateSwapID(randomNumberHash, suite.strAddrs[11], TestSenderOtherChain)
+		swapID := types.CalculateSwapID(randomNumberHash, suite.addrs[11], TestSenderOtherChain)
 		swapIDs = append(swapIDs, swapID)
 		randomNumbers = append(randomNumbers, randomNumber[:])
 	}

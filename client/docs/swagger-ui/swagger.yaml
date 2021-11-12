@@ -141,6 +141,9 @@ paths:
                   type: object
                   properties:
                     incoming_supply:
+                      title: >-
+                        incoming_supply represents the incoming supply of an
+                        asset
                       type: object
                       properties:
                         denom:
@@ -156,6 +159,9 @@ paths:
 
                         signatures required by gogoproto.
                     outgoing_supply:
+                      title: >-
+                        outgoing_supply represents the outgoing supply of an
+                        asset
                       type: object
                       properties:
                         denom:
@@ -171,6 +177,9 @@ paths:
 
                         signatures required by gogoproto.
                     current_supply:
+                      title: >-
+                        current_supply represents the current on-chain supply of
+                        an asset
                       type: object
                       properties:
                         denom:
@@ -186,6 +195,9 @@ paths:
 
                         signatures required by gogoproto.
                     time_limited_current_supply:
+                      title: >-
+                        time_limited_current_supply represents the time limited
+                        current supply of an asset
                       type: object
                       properties:
                         denom:
@@ -202,7 +214,9 @@ paths:
                         signatures required by gogoproto.
                     time_elapsed:
                       type: string
+                      title: time_elapsed represents the time elapsed
                   description: AssetSupply defines information about an asset's supply.
+                title: asset_supplies represents the supplies of returned assets
               pagination:
                 type: object
                 properties:
@@ -327,6 +341,7 @@ paths:
                 type: object
                 properties:
                   incoming_supply:
+                    title: incoming_supply represents the incoming supply of an asset
                     type: object
                     properties:
                       denom:
@@ -342,6 +357,7 @@ paths:
 
                       signatures required by gogoproto.
                   outgoing_supply:
+                    title: outgoing_supply represents the outgoing supply of an asset
                     type: object
                     properties:
                       denom:
@@ -357,6 +373,9 @@ paths:
 
                       signatures required by gogoproto.
                   current_supply:
+                    title: >-
+                      current_supply represents the current on-chain supply of
+                      an asset
                     type: object
                     properties:
                       denom:
@@ -372,6 +391,9 @@ paths:
 
                       signatures required by gogoproto.
                   time_limited_current_supply:
+                    title: >-
+                      time_limited_current_supply represents the time limited
+                      current supply of an asset
                     type: object
                     properties:
                       denom:
@@ -388,7 +410,9 @@ paths:
                       signatures required by gogoproto.
                   time_elapsed:
                     type: string
+                    title: time_elapsed represents the time elapsed
                 description: AssetSupply defines information about an asset's supply.
+                title: asset_supply represents the supply of the asset
             description: >-
               QueryAssetSupplyResponse is the response type for the
               Query/AssetSupply RPC method.
@@ -416,6 +440,7 @@ paths:
                       format: byte
       parameters:
         - name: denom
+          description: denom filters the asset response for the specified denom
           in: path
           required: true
           type: string
@@ -433,7 +458,9 @@ paths:
             properties:
               id:
                 type: string
+                title: id is the identifier of the swap
               atomic_swap:
+                title: atomic_swap represents the attributes of the swap
                 type: object
                 properties:
                   amount:
@@ -453,27 +480,41 @@ paths:
                         custom method
 
                         signatures required by gogoproto.
+                    title: amount represents the amount being swapped
                   random_number_hash:
                     type: string
                     format: byte
+                    title: >-
+                      random_number_hash represents the hash of the random
+                      number
                   expire_height:
                     type: string
                     format: uint64
+                    title: expire_height represents the height when the swap expires
                   timestamp:
                     type: string
                     format: int64
+                    title: timestamp represents the timestamp of the swap
                   sender:
                     type: string
+                    format: byte
+                    title: sender is the kava chain sender of the swap
                   recipient:
                     type: string
+                    format: byte
+                    title: recipient is the kava chain recipient of the swap
                   sender_other_chain:
                     type: string
+                    title: sender_other_chain is the sender on the other chain
                   recipient_other_chain:
                     type: string
+                    title: recipient_other_chain is the recipient on the other chain
                   closed_block:
                     type: string
                     format: int64
+                    title: closed_block is the block when the swap is closed
                   status:
+                    title: status represents the current status of the swap
                     type: string
                     enum:
                       - SWAP_STATUS_UNSPECIFIED
@@ -481,16 +522,20 @@ paths:
                       - SWAP_STATUS_COMPLETED
                       - SWAP_STATUS_EXPIRED
                     default: SWAP_STATUS_UNSPECIFIED
-                    description: |-
-                      - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
-                       - SWAP_STATUS_OPEN: AtomicSwap is open
-                       - SWAP_STATUS_COMPLETED: AtomicSwap is completed
-                       - SWAP_STATUS_EXPIRED: AtomicSwap is expired
-                    title: SwapStatus is the status of an AtomicSwap
+                    description: >-
+                      - SWAP_STATUS_UNSPECIFIED: SWAP_STATUS_UNSPECIFIED
+                      represents an unspecified status
+                       - SWAP_STATUS_OPEN: SWAP_STATUS_OPEN represents an open swap
+                       - SWAP_STATUS_COMPLETED: SWAP_STATUS_COMPLETED represents a completed swap
+                       - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
                   cross_chain:
                     type: boolean
                     format: boolean
+                    title: >-
+                      cross_chain identifies whether the atomic swap is cross
+                      chain
                   direction:
+                    title: direction identifies if the swap is incoming or outgoing
                     type: string
                     enum:
                       - SWAP_DIRECTION_UNSPECIFIED
@@ -498,11 +543,10 @@ paths:
                       - SWAP_DIRECTION_OUTGOING
                     default: SWAP_DIRECTION_UNSPECIFIED
                     description: >-
-                      - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified
-                      or invalid
-                       - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
-                       - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
-                    title: SwapDirection is the direction of an AtomicSwap
+                      - SWAP_DIRECTION_UNSPECIFIED: SWAP_DIRECTION_UNSPECIFIED
+                      represents unspecified or invalid swap direcation
+                       - SWAP_DIRECTION_INCOMING: SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain)
+                       - SWAP_DIRECTION_OUTGOING: SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain)
                 description: >-
                   AtomicSwap defines an atomic swap between chains for the
                   pricefeed module.
@@ -533,10 +577,10 @@ paths:
                       format: byte
       parameters:
         - name: swap_id
+          description: swap_id represents the id of the swap to query
           in: path
           required: true
           type: string
-          format: byte
       tags:
         - Bep3
   /kava/bep3/v1beta1/atomicswaps:
@@ -549,14 +593,16 @@ paths:
           schema:
             type: object
             properties:
-              atomic_swap:
+              atomic_swaps:
                 type: array
                 items:
                   type: object
                   properties:
                     id:
                       type: string
+                      title: id represents the identifier of the atomic swap
                     atomic_swap:
+                      title: atomic_swap defines the properties of the atomic swap
                       type: object
                       properties:
                         amount:
@@ -577,27 +623,45 @@ paths:
                               the custom method
 
                               signatures required by gogoproto.
+                          title: amount represents the amount being swapped
                         random_number_hash:
                           type: string
                           format: byte
+                          title: >-
+                            random_number_hash represents the hash of the random
+                            number
                         expire_height:
                           type: string
                           format: uint64
+                          title: >-
+                            expire_height represents the height when the swap
+                            expires
                         timestamp:
                           type: string
                           format: int64
+                          title: timestamp represents the timestamp of the swap
                         sender:
                           type: string
+                          format: byte
+                          title: sender is the kava chain sender of the swap
                         recipient:
                           type: string
+                          format: byte
+                          title: recipient is the kava chain recipient of the swap
                         sender_other_chain:
                           type: string
+                          title: sender_other_chain is the sender on the other chain
                         recipient_other_chain:
                           type: string
+                          title: >-
+                            recipient_other_chain is the recipient on the other
+                            chain
                         closed_block:
                           type: string
                           format: int64
+                          title: closed_block is the block when the swap is closed
                         status:
+                          title: status represents the current status of the swap
                           type: string
                           enum:
                             - SWAP_STATUS_UNSPECIFIED
@@ -605,16 +669,22 @@ paths:
                             - SWAP_STATUS_COMPLETED
                             - SWAP_STATUS_EXPIRED
                           default: SWAP_STATUS_UNSPECIFIED
-                          description: |-
-                            - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
-                             - SWAP_STATUS_OPEN: AtomicSwap is open
-                             - SWAP_STATUS_COMPLETED: AtomicSwap is completed
-                             - SWAP_STATUS_EXPIRED: AtomicSwap is expired
-                          title: SwapStatus is the status of an AtomicSwap
+                          description: >-
+                            - SWAP_STATUS_UNSPECIFIED: SWAP_STATUS_UNSPECIFIED
+                            represents an unspecified status
+                             - SWAP_STATUS_OPEN: SWAP_STATUS_OPEN represents an open swap
+                             - SWAP_STATUS_COMPLETED: SWAP_STATUS_COMPLETED represents a completed swap
+                             - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
                         cross_chain:
                           type: boolean
                           format: boolean
+                          title: >-
+                            cross_chain identifies whether the atomic swap is
+                            cross chain
                         direction:
+                          title: >-
+                            direction identifies if the swap is incoming or
+                            outgoing
                           type: string
                           enum:
                             - SWAP_DIRECTION_UNSPECIFIED
@@ -622,15 +692,18 @@ paths:
                             - SWAP_DIRECTION_OUTGOING
                           default: SWAP_DIRECTION_UNSPECIFIED
                           description: >-
-                            - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is
-                            unspecified or invalid
-                             - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
-                             - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
-                          title: SwapDirection is the direction of an AtomicSwap
+                            - SWAP_DIRECTION_UNSPECIFIED:
+                            SWAP_DIRECTION_UNSPECIFIED represents unspecified or
+                            invalid swap direcation
+                             - SWAP_DIRECTION_INCOMING: SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain)
+                             - SWAP_DIRECTION_OUTGOING: SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain)
                       description: >-
                         AtomicSwap defines an atomic swap between chains for the
                         pricefeed module.
                   description: AugmentedAtomicSwap defines an AtomicSwap with an ID.
+                title: >-
+                  atomic_swap represents the returned atomic swaps for the
+                  request
               pagination:
                 type: object
                 properties:
@@ -685,20 +758,24 @@ paths:
                       format: byte
       parameters:
         - name: involve
+          description: involve filters by address.
           in: query
           required: false
           type: string
         - name: expiration
+          description: expiration filters by expiration block height.
           in: query
           required: false
           type: string
           format: uint64
         - name: status
-          description: |2-
-             - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
-             - SWAP_STATUS_OPEN: AtomicSwap is open
-             - SWAP_STATUS_COMPLETED: AtomicSwap is completed
-             - SWAP_STATUS_EXPIRED: AtomicSwap is expired
+          description: |-
+            status filters by swap status.
+
+             - SWAP_STATUS_UNSPECIFIED: SWAP_STATUS_UNSPECIFIED represents an unspecified status
+             - SWAP_STATUS_OPEN: SWAP_STATUS_OPEN represents an open swap
+             - SWAP_STATUS_COMPLETED: SWAP_STATUS_COMPLETED represents a completed swap
+             - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
           in: query
           required: false
           type: string
@@ -709,10 +786,12 @@ paths:
             - SWAP_STATUS_EXPIRED
           default: SWAP_STATUS_UNSPECIFIED
         - name: direction
-          description: |2-
-             - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified or invalid
-             - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
-             - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
+          description: |-
+            direction fitlers by swap direction.
+
+             - SWAP_DIRECTION_UNSPECIFIED: SWAP_DIRECTION_UNSPECIFIED represents unspecified or invalid swap direcation
+             - SWAP_DIRECTION_INCOMING: SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain)
+             - SWAP_DIRECTION_OUTGOING: SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain)
           in: query
           required: false
           type: string
@@ -789,6 +868,7 @@ paths:
             type: object
             properties:
               params:
+                title: params represents the parameters of the module
                 type: object
                 properties:
                   asset_params:
@@ -798,47 +878,72 @@ paths:
                       properties:
                         denom:
                           type: string
+                          title: denom represents the denominatin for this asset
                         coin_id:
                           type: string
                           format: int64
+                          title: >-
+                            coin_id represents the registered coin type to use
+                            (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
                         supply_limit:
+                          title: >-
+                            supply_limit defines the maximum supply allowed for
+                            the asset - a total or time based rate limit
                           type: object
                           properties:
                             limit:
                               type: string
-                              format: byte
+                              title: limit defines the total supply allowed
                             time_limited:
                               type: boolean
                               format: boolean
+                              title: >-
+                                time_limited enables or disables time based
+                                supply limiting
                             time_period:
                               type: string
+                              title: >-
+                                time_period specifies the duration that
+                                time_based_limit is evalulated
                             time_based_limit:
                               type: string
-                              format: byte
+                              title: >-
+                                time_based_limit defines the maximum supply that
+                                can be swapped within time_period
                           description: >-
                             SupplyLimit define the absolute and time-based
                             limits for an assets's supply.
                         active:
                           type: boolean
                           format: boolean
+                          title: active specifies if the asset is live or paused
                         deputy_address:
                           type: string
+                          format: byte
+                          title: deputy_address the kava address of the deputy
                         fixed_fee:
                           type: string
-                          format: byte
+                          title: fixed_fee defines the fee for incoming swaps
                         min_swap_amount:
                           type: string
-                          format: byte
+                          title: >-
+                            min_swap_amount defines the minimum amount able to
+                            be swapped in a single message
                         max_swap_amount:
                           type: string
-                          format: byte
+                          title: >-
+                            max_swap_amount defines the maximum amount able to
+                            be swapped in a single message
                         min_block_lock:
                           type: string
                           format: uint64
+                          title: min_block_lock defined the minimum blocks to lock
                         max_block_lock:
                           type: string
                           format: uint64
+                          title: min_block_lock defined the maximum blocks to lock
                       description: AssetParam defines parameters for each bep3 asset.
+                    title: asset_params define the parameters for each bep3 asset
                 description: Params defines the parameters for the bep3 module.
             description: >-
               QueryParamsResponse defines the response type for querying x/bep3
@@ -24353,51 +24458,74 @@ definitions:
     properties:
       denom:
         type: string
+        title: denom represents the denominatin for this asset
       coin_id:
         type: string
         format: int64
+        title: >-
+          coin_id represents the registered coin type to use
+          (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
       supply_limit:
+        title: >-
+          supply_limit defines the maximum supply allowed for the asset - a
+          total or time based rate limit
         type: object
         properties:
           limit:
             type: string
-            format: byte
+            title: limit defines the total supply allowed
           time_limited:
             type: boolean
             format: boolean
+            title: time_limited enables or disables time based supply limiting
           time_period:
             type: string
+            title: >-
+              time_period specifies the duration that time_based_limit is
+              evalulated
           time_based_limit:
             type: string
-            format: byte
+            title: >-
+              time_based_limit defines the maximum supply that can be swapped
+              within time_period
         description: >-
           SupplyLimit define the absolute and time-based limits for an assets's
           supply.
       active:
         type: boolean
         format: boolean
+        title: active specifies if the asset is live or paused
       deputy_address:
         type: string
+        format: byte
+        title: deputy_address the kava address of the deputy
       fixed_fee:
         type: string
-        format: byte
+        title: fixed_fee defines the fee for incoming swaps
       min_swap_amount:
         type: string
-        format: byte
+        title: >-
+          min_swap_amount defines the minimum amount able to be swapped in a
+          single message
       max_swap_amount:
         type: string
-        format: byte
+        title: >-
+          max_swap_amount defines the maximum amount able to be swapped in a
+          single message
       min_block_lock:
         type: string
         format: uint64
+        title: min_block_lock defined the minimum blocks to lock
       max_block_lock:
         type: string
         format: uint64
+        title: min_block_lock defined the maximum blocks to lock
     description: AssetParam defines parameters for each bep3 asset.
   kava.bep3.v1beta1.AssetSupply:
     type: object
     properties:
       incoming_supply:
+        title: incoming_supply represents the incoming supply of an asset
         type: object
         properties:
           denom:
@@ -24410,6 +24538,7 @@ definitions:
           NOTE: The amount field is an Int which implements the custom method
           signatures required by gogoproto.
       outgoing_supply:
+        title: outgoing_supply represents the outgoing supply of an asset
         type: object
         properties:
           denom:
@@ -24422,6 +24551,7 @@ definitions:
           NOTE: The amount field is an Int which implements the custom method
           signatures required by gogoproto.
       current_supply:
+        title: current_supply represents the current on-chain supply of an asset
         type: object
         properties:
           denom:
@@ -24434,6 +24564,9 @@ definitions:
           NOTE: The amount field is an Int which implements the custom method
           signatures required by gogoproto.
       time_limited_current_supply:
+        title: >-
+          time_limited_current_supply represents the time limited current supply
+          of an asset
         type: object
         properties:
           denom:
@@ -24447,6 +24580,7 @@ definitions:
           signatures required by gogoproto.
       time_elapsed:
         type: string
+        title: time_elapsed represents the time elapsed
     description: AssetSupply defines information about an asset's supply.
   kava.bep3.v1beta1.AtomicSwap:
     type: object
@@ -24465,27 +24599,39 @@ definitions:
 
             NOTE: The amount field is an Int which implements the custom method
             signatures required by gogoproto.
+        title: amount represents the amount being swapped
       random_number_hash:
         type: string
         format: byte
+        title: random_number_hash represents the hash of the random number
       expire_height:
         type: string
         format: uint64
+        title: expire_height represents the height when the swap expires
       timestamp:
         type: string
         format: int64
+        title: timestamp represents the timestamp of the swap
       sender:
         type: string
+        format: byte
+        title: sender is the kava chain sender of the swap
       recipient:
         type: string
+        format: byte
+        title: recipient is the kava chain recipient of the swap
       sender_other_chain:
         type: string
+        title: sender_other_chain is the sender on the other chain
       recipient_other_chain:
         type: string
+        title: recipient_other_chain is the recipient on the other chain
       closed_block:
         type: string
         format: int64
+        title: closed_block is the block when the swap is closed
       status:
+        title: status represents the current status of the swap
         type: string
         enum:
           - SWAP_STATUS_UNSPECIFIED
@@ -24493,34 +24639,38 @@ definitions:
           - SWAP_STATUS_COMPLETED
           - SWAP_STATUS_EXPIRED
         default: SWAP_STATUS_UNSPECIFIED
-        description: |-
-          - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
-           - SWAP_STATUS_OPEN: AtomicSwap is open
-           - SWAP_STATUS_COMPLETED: AtomicSwap is completed
-           - SWAP_STATUS_EXPIRED: AtomicSwap is expired
-        title: SwapStatus is the status of an AtomicSwap
+        description: >-
+          - SWAP_STATUS_UNSPECIFIED: SWAP_STATUS_UNSPECIFIED represents an
+          unspecified status
+           - SWAP_STATUS_OPEN: SWAP_STATUS_OPEN represents an open swap
+           - SWAP_STATUS_COMPLETED: SWAP_STATUS_COMPLETED represents a completed swap
+           - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
       cross_chain:
         type: boolean
         format: boolean
+        title: cross_chain identifies whether the atomic swap is cross chain
       direction:
+        title: direction identifies if the swap is incoming or outgoing
         type: string
         enum:
           - SWAP_DIRECTION_UNSPECIFIED
           - SWAP_DIRECTION_INCOMING
           - SWAP_DIRECTION_OUTGOING
         default: SWAP_DIRECTION_UNSPECIFIED
-        description: |-
-          - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified or invalid
-           - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
-           - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
-        title: SwapDirection is the direction of an AtomicSwap
+        description: >-
+          - SWAP_DIRECTION_UNSPECIFIED: SWAP_DIRECTION_UNSPECIFIED represents
+          unspecified or invalid swap direcation
+           - SWAP_DIRECTION_INCOMING: SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain)
+           - SWAP_DIRECTION_OUTGOING: SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain)
     description: AtomicSwap defines an atomic swap between chains for the pricefeed module.
   kava.bep3.v1beta1.AugmentedAtomicSwap:
     type: object
     properties:
       id:
         type: string
+        title: id represents the identifier of the atomic swap
       atomic_swap:
+        title: atomic_swap defines the properties of the atomic swap
         type: object
         properties:
           amount:
@@ -24540,27 +24690,39 @@ definitions:
                 method
 
                 signatures required by gogoproto.
+            title: amount represents the amount being swapped
           random_number_hash:
             type: string
             format: byte
+            title: random_number_hash represents the hash of the random number
           expire_height:
             type: string
             format: uint64
+            title: expire_height represents the height when the swap expires
           timestamp:
             type: string
             format: int64
+            title: timestamp represents the timestamp of the swap
           sender:
             type: string
+            format: byte
+            title: sender is the kava chain sender of the swap
           recipient:
             type: string
+            format: byte
+            title: recipient is the kava chain recipient of the swap
           sender_other_chain:
             type: string
+            title: sender_other_chain is the sender on the other chain
           recipient_other_chain:
             type: string
+            title: recipient_other_chain is the recipient on the other chain
           closed_block:
             type: string
             format: int64
+            title: closed_block is the block when the swap is closed
           status:
+            title: status represents the current status of the swap
             type: string
             enum:
               - SWAP_STATUS_UNSPECIFIED
@@ -24568,16 +24730,18 @@ definitions:
               - SWAP_STATUS_COMPLETED
               - SWAP_STATUS_EXPIRED
             default: SWAP_STATUS_UNSPECIFIED
-            description: |-
-              - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
-               - SWAP_STATUS_OPEN: AtomicSwap is open
-               - SWAP_STATUS_COMPLETED: AtomicSwap is completed
-               - SWAP_STATUS_EXPIRED: AtomicSwap is expired
-            title: SwapStatus is the status of an AtomicSwap
+            description: >-
+              - SWAP_STATUS_UNSPECIFIED: SWAP_STATUS_UNSPECIFIED represents an
+              unspecified status
+               - SWAP_STATUS_OPEN: SWAP_STATUS_OPEN represents an open swap
+               - SWAP_STATUS_COMPLETED: SWAP_STATUS_COMPLETED represents a completed swap
+               - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
           cross_chain:
             type: boolean
             format: boolean
+            title: cross_chain identifies whether the atomic swap is cross chain
           direction:
+            title: direction identifies if the swap is incoming or outgoing
             type: string
             enum:
               - SWAP_DIRECTION_UNSPECIFIED
@@ -24585,11 +24749,10 @@ definitions:
               - SWAP_DIRECTION_OUTGOING
             default: SWAP_DIRECTION_UNSPECIFIED
             description: >-
-              - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified or
-              invalid
-               - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
-               - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
-            title: SwapDirection is the direction of an AtomicSwap
+              - SWAP_DIRECTION_UNSPECIFIED: SWAP_DIRECTION_UNSPECIFIED
+              represents unspecified or invalid swap direcation
+               - SWAP_DIRECTION_INCOMING: SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain)
+               - SWAP_DIRECTION_OUTGOING: SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain)
         description: >-
           AtomicSwap defines an atomic swap between chains for the pricefeed
           module.
@@ -24604,47 +24767,70 @@ definitions:
           properties:
             denom:
               type: string
+              title: denom represents the denominatin for this asset
             coin_id:
               type: string
               format: int64
+              title: >-
+                coin_id represents the registered coin type to use
+                (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
             supply_limit:
+              title: >-
+                supply_limit defines the maximum supply allowed for the asset -
+                a total or time based rate limit
               type: object
               properties:
                 limit:
                   type: string
-                  format: byte
+                  title: limit defines the total supply allowed
                 time_limited:
                   type: boolean
                   format: boolean
+                  title: time_limited enables or disables time based supply limiting
                 time_period:
                   type: string
+                  title: >-
+                    time_period specifies the duration that time_based_limit is
+                    evalulated
                 time_based_limit:
                   type: string
-                  format: byte
+                  title: >-
+                    time_based_limit defines the maximum supply that can be
+                    swapped within time_period
               description: >-
                 SupplyLimit define the absolute and time-based limits for an
                 assets's supply.
             active:
               type: boolean
               format: boolean
+              title: active specifies if the asset is live or paused
             deputy_address:
               type: string
+              format: byte
+              title: deputy_address the kava address of the deputy
             fixed_fee:
               type: string
-              format: byte
+              title: fixed_fee defines the fee for incoming swaps
             min_swap_amount:
               type: string
-              format: byte
+              title: >-
+                min_swap_amount defines the minimum amount able to be swapped in
+                a single message
             max_swap_amount:
               type: string
-              format: byte
+              title: >-
+                max_swap_amount defines the maximum amount able to be swapped in
+                a single message
             min_block_lock:
               type: string
               format: uint64
+              title: min_block_lock defined the minimum blocks to lock
             max_block_lock:
               type: string
               format: uint64
+              title: min_block_lock defined the maximum blocks to lock
           description: AssetParam defines parameters for each bep3 asset.
+        title: asset_params define the parameters for each bep3 asset
     description: Params defines the parameters for the bep3 module.
   kava.bep3.v1beta1.QueryAssetSuppliesResponse:
     type: object
@@ -24655,6 +24841,7 @@ definitions:
           type: object
           properties:
             incoming_supply:
+              title: incoming_supply represents the incoming supply of an asset
               type: object
               properties:
                 denom:
@@ -24670,6 +24857,7 @@ definitions:
 
                 signatures required by gogoproto.
             outgoing_supply:
+              title: outgoing_supply represents the outgoing supply of an asset
               type: object
               properties:
                 denom:
@@ -24685,6 +24873,9 @@ definitions:
 
                 signatures required by gogoproto.
             current_supply:
+              title: >-
+                current_supply represents the current on-chain supply of an
+                asset
               type: object
               properties:
                 denom:
@@ -24700,6 +24891,9 @@ definitions:
 
                 signatures required by gogoproto.
             time_limited_current_supply:
+              title: >-
+                time_limited_current_supply represents the time limited current
+                supply of an asset
               type: object
               properties:
                 denom:
@@ -24716,7 +24910,9 @@ definitions:
                 signatures required by gogoproto.
             time_elapsed:
               type: string
+              title: time_elapsed represents the time elapsed
           description: AssetSupply defines information about an asset's supply.
+        title: asset_supplies represents the supplies of returned assets
       pagination:
         type: object
         properties:
@@ -24752,6 +24948,7 @@ definitions:
         type: object
         properties:
           incoming_supply:
+            title: incoming_supply represents the incoming supply of an asset
             type: object
             properties:
               denom:
@@ -24767,6 +24964,7 @@ definitions:
 
               signatures required by gogoproto.
           outgoing_supply:
+            title: outgoing_supply represents the outgoing supply of an asset
             type: object
             properties:
               denom:
@@ -24782,6 +24980,7 @@ definitions:
 
               signatures required by gogoproto.
           current_supply:
+            title: current_supply represents the current on-chain supply of an asset
             type: object
             properties:
               denom:
@@ -24797,6 +24996,9 @@ definitions:
 
               signatures required by gogoproto.
           time_limited_current_supply:
+            title: >-
+              time_limited_current_supply represents the time limited current
+              supply of an asset
             type: object
             properties:
               denom:
@@ -24813,7 +25015,9 @@ definitions:
               signatures required by gogoproto.
           time_elapsed:
             type: string
+            title: time_elapsed represents the time elapsed
         description: AssetSupply defines information about an asset's supply.
+        title: asset_supply represents the supply of the asset
     description: >-
       QueryAssetSupplyResponse is the response type for the Query/AssetSupply
       RPC method.
@@ -24822,7 +25026,9 @@ definitions:
     properties:
       id:
         type: string
+        title: id is the identifier of the swap
       atomic_swap:
+        title: atomic_swap represents the attributes of the swap
         type: object
         properties:
           amount:
@@ -24842,27 +25048,39 @@ definitions:
                 method
 
                 signatures required by gogoproto.
+            title: amount represents the amount being swapped
           random_number_hash:
             type: string
             format: byte
+            title: random_number_hash represents the hash of the random number
           expire_height:
             type: string
             format: uint64
+            title: expire_height represents the height when the swap expires
           timestamp:
             type: string
             format: int64
+            title: timestamp represents the timestamp of the swap
           sender:
             type: string
+            format: byte
+            title: sender is the kava chain sender of the swap
           recipient:
             type: string
+            format: byte
+            title: recipient is the kava chain recipient of the swap
           sender_other_chain:
             type: string
+            title: sender_other_chain is the sender on the other chain
           recipient_other_chain:
             type: string
+            title: recipient_other_chain is the recipient on the other chain
           closed_block:
             type: string
             format: int64
+            title: closed_block is the block when the swap is closed
           status:
+            title: status represents the current status of the swap
             type: string
             enum:
               - SWAP_STATUS_UNSPECIFIED
@@ -24870,16 +25088,18 @@ definitions:
               - SWAP_STATUS_COMPLETED
               - SWAP_STATUS_EXPIRED
             default: SWAP_STATUS_UNSPECIFIED
-            description: |-
-              - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
-               - SWAP_STATUS_OPEN: AtomicSwap is open
-               - SWAP_STATUS_COMPLETED: AtomicSwap is completed
-               - SWAP_STATUS_EXPIRED: AtomicSwap is expired
-            title: SwapStatus is the status of an AtomicSwap
+            description: >-
+              - SWAP_STATUS_UNSPECIFIED: SWAP_STATUS_UNSPECIFIED represents an
+              unspecified status
+               - SWAP_STATUS_OPEN: SWAP_STATUS_OPEN represents an open swap
+               - SWAP_STATUS_COMPLETED: SWAP_STATUS_COMPLETED represents a completed swap
+               - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
           cross_chain:
             type: boolean
             format: boolean
+            title: cross_chain identifies whether the atomic swap is cross chain
           direction:
+            title: direction identifies if the swap is incoming or outgoing
             type: string
             enum:
               - SWAP_DIRECTION_UNSPECIFIED
@@ -24887,11 +25107,10 @@ definitions:
               - SWAP_DIRECTION_OUTGOING
             default: SWAP_DIRECTION_UNSPECIFIED
             description: >-
-              - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified or
-              invalid
-               - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
-               - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
-            title: SwapDirection is the direction of an AtomicSwap
+              - SWAP_DIRECTION_UNSPECIFIED: SWAP_DIRECTION_UNSPECIFIED
+              represents unspecified or invalid swap direcation
+               - SWAP_DIRECTION_INCOMING: SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain)
+               - SWAP_DIRECTION_OUTGOING: SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain)
         description: >-
           AtomicSwap defines an atomic swap between chains for the pricefeed
           module.
@@ -24901,14 +25120,16 @@ definitions:
   kava.bep3.v1beta1.QueryAtomicSwapsResponse:
     type: object
     properties:
-      atomic_swap:
+      atomic_swaps:
         type: array
         items:
           type: object
           properties:
             id:
               type: string
+              title: id represents the identifier of the atomic swap
             atomic_swap:
+              title: atomic_swap defines the properties of the atomic swap
               type: object
               properties:
                 amount:
@@ -24928,27 +25149,39 @@ definitions:
                       custom method
 
                       signatures required by gogoproto.
+                  title: amount represents the amount being swapped
                 random_number_hash:
                   type: string
                   format: byte
+                  title: random_number_hash represents the hash of the random number
                 expire_height:
                   type: string
                   format: uint64
+                  title: expire_height represents the height when the swap expires
                 timestamp:
                   type: string
                   format: int64
+                  title: timestamp represents the timestamp of the swap
                 sender:
                   type: string
+                  format: byte
+                  title: sender is the kava chain sender of the swap
                 recipient:
                   type: string
+                  format: byte
+                  title: recipient is the kava chain recipient of the swap
                 sender_other_chain:
                   type: string
+                  title: sender_other_chain is the sender on the other chain
                 recipient_other_chain:
                   type: string
+                  title: recipient_other_chain is the recipient on the other chain
                 closed_block:
                   type: string
                   format: int64
+                  title: closed_block is the block when the swap is closed
                 status:
+                  title: status represents the current status of the swap
                   type: string
                   enum:
                     - SWAP_STATUS_UNSPECIFIED
@@ -24956,16 +25189,20 @@ definitions:
                     - SWAP_STATUS_COMPLETED
                     - SWAP_STATUS_EXPIRED
                   default: SWAP_STATUS_UNSPECIFIED
-                  description: |-
-                    - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
-                     - SWAP_STATUS_OPEN: AtomicSwap is open
-                     - SWAP_STATUS_COMPLETED: AtomicSwap is completed
-                     - SWAP_STATUS_EXPIRED: AtomicSwap is expired
-                  title: SwapStatus is the status of an AtomicSwap
+                  description: >-
+                    - SWAP_STATUS_UNSPECIFIED: SWAP_STATUS_UNSPECIFIED
+                    represents an unspecified status
+                     - SWAP_STATUS_OPEN: SWAP_STATUS_OPEN represents an open swap
+                     - SWAP_STATUS_COMPLETED: SWAP_STATUS_COMPLETED represents a completed swap
+                     - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
                 cross_chain:
                   type: boolean
                   format: boolean
+                  title: >-
+                    cross_chain identifies whether the atomic swap is cross
+                    chain
                 direction:
+                  title: direction identifies if the swap is incoming or outgoing
                   type: string
                   enum:
                     - SWAP_DIRECTION_UNSPECIFIED
@@ -24973,15 +25210,15 @@ definitions:
                     - SWAP_DIRECTION_OUTGOING
                   default: SWAP_DIRECTION_UNSPECIFIED
                   description: >-
-                    - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified
-                    or invalid
-                     - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
-                     - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
-                  title: SwapDirection is the direction of an AtomicSwap
+                    - SWAP_DIRECTION_UNSPECIFIED: SWAP_DIRECTION_UNSPECIFIED
+                    represents unspecified or invalid swap direcation
+                     - SWAP_DIRECTION_INCOMING: SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain)
+                     - SWAP_DIRECTION_OUTGOING: SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain)
               description: >-
                 AtomicSwap defines an atomic swap between chains for the
                 pricefeed module.
           description: AugmentedAtomicSwap defines an AtomicSwap with an ID.
+        title: atomic_swap represents the returned atomic swaps for the request
       pagination:
         type: object
         properties:
@@ -25014,6 +25251,7 @@ definitions:
     type: object
     properties:
       params:
+        title: params represents the parameters of the module
         type: object
         properties:
           asset_params:
@@ -25023,47 +25261,72 @@ definitions:
               properties:
                 denom:
                   type: string
+                  title: denom represents the denominatin for this asset
                 coin_id:
                   type: string
                   format: int64
+                  title: >-
+                    coin_id represents the registered coin type to use
+                    (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
                 supply_limit:
+                  title: >-
+                    supply_limit defines the maximum supply allowed for the
+                    asset - a total or time based rate limit
                   type: object
                   properties:
                     limit:
                       type: string
-                      format: byte
+                      title: limit defines the total supply allowed
                     time_limited:
                       type: boolean
                       format: boolean
+                      title: >-
+                        time_limited enables or disables time based supply
+                        limiting
                     time_period:
                       type: string
+                      title: >-
+                        time_period specifies the duration that time_based_limit
+                        is evalulated
                     time_based_limit:
                       type: string
-                      format: byte
+                      title: >-
+                        time_based_limit defines the maximum supply that can be
+                        swapped within time_period
                   description: >-
                     SupplyLimit define the absolute and time-based limits for an
                     assets's supply.
                 active:
                   type: boolean
                   format: boolean
+                  title: active specifies if the asset is live or paused
                 deputy_address:
                   type: string
+                  format: byte
+                  title: deputy_address the kava address of the deputy
                 fixed_fee:
                   type: string
-                  format: byte
+                  title: fixed_fee defines the fee for incoming swaps
                 min_swap_amount:
                   type: string
-                  format: byte
+                  title: >-
+                    min_swap_amount defines the minimum amount able to be
+                    swapped in a single message
                 max_swap_amount:
                   type: string
-                  format: byte
+                  title: >-
+                    max_swap_amount defines the maximum amount able to be
+                    swapped in a single message
                 min_block_lock:
                   type: string
                   format: uint64
+                  title: min_block_lock defined the minimum blocks to lock
                 max_block_lock:
                   type: string
                   format: uint64
+                  title: min_block_lock defined the maximum blocks to lock
               description: AssetParam defines parameters for each bep3 asset.
+            title: asset_params define the parameters for each bep3 asset
         description: Params defines the parameters for the bep3 module.
     description: >-
       QueryParamsResponse defines the response type for querying x/bep3
@@ -25073,15 +25336,19 @@ definitions:
     properties:
       limit:
         type: string
-        format: byte
+        title: limit defines the total supply allowed
       time_limited:
         type: boolean
         format: boolean
+        title: time_limited enables or disables time based supply limiting
       time_period:
         type: string
+        title: time_period specifies the duration that time_based_limit is evalulated
       time_based_limit:
         type: string
-        format: byte
+        title: >-
+          time_based_limit defines the maximum supply that can be swapped within
+          time_period
     description: >-
       SupplyLimit define the absolute and time-based limits for an assets's
       supply.
@@ -25092,10 +25359,11 @@ definitions:
       - SWAP_DIRECTION_INCOMING
       - SWAP_DIRECTION_OUTGOING
     default: SWAP_DIRECTION_UNSPECIFIED
-    description: |-
-      - SWAP_DIRECTION_UNSPECIFIED: SwapDirection is unspecified or invalid
-       - SWAP_DIRECTION_INCOMING: SwapDirection is incoming
-       - SWAP_DIRECTION_OUTGOING: SwapDirection is outgoing
+    description: >-
+      - SWAP_DIRECTION_UNSPECIFIED: SWAP_DIRECTION_UNSPECIFIED represents
+      unspecified or invalid swap direcation
+       - SWAP_DIRECTION_INCOMING: SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain)
+       - SWAP_DIRECTION_OUTGOING: SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain)
     title: SwapDirection is the direction of an AtomicSwap
   kava.bep3.v1beta1.SwapStatus:
     type: string
@@ -25105,11 +25373,12 @@ definitions:
       - SWAP_STATUS_COMPLETED
       - SWAP_STATUS_EXPIRED
     default: SWAP_STATUS_UNSPECIFIED
-    description: |-
-      - SWAP_STATUS_UNSPECIFIED: AtomicSwap is unspecified
-       - SWAP_STATUS_OPEN: AtomicSwap is open
-       - SWAP_STATUS_COMPLETED: AtomicSwap is completed
-       - SWAP_STATUS_EXPIRED: AtomicSwap is expired
+    description: >-
+      - SWAP_STATUS_UNSPECIFIED: SWAP_STATUS_UNSPECIFIED represents an
+      unspecified status
+       - SWAP_STATUS_OPEN: SWAP_STATUS_OPEN represents an open swap
+       - SWAP_STATUS_COMPLETED: SWAP_STATUS_COMPLETED represents a completed swap
+       - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
     title: SwapStatus is the status of an AtomicSwap
   kava.pricefeed.v1beta1.CurrentPrice:
     type: object

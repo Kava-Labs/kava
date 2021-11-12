@@ -50,19 +50,19 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "default",
 			genState: func() app.GenesisState {
-				return NewBep3GenStateMulti(cdc, suite.addrs[0].String())
+				return NewBep3GenStateMulti(cdc, suite.addrs[0])
 			},
 			expectPass: true,
 		},
 		{
 			name: "import atomic swaps and asset supplies",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				var swaps []types.AtomicSwap
 				var supplies []types.AssetSupply
 				for i := 0; i < 2; i++ {
-					swap, supply := loadSwapAndSupply(addrs[i].String(), i)
+					swap, supply := loadSwapAndSupply(addrs[i], i)
 					swaps = append(swaps, swap)
 					supplies = append(supplies, supply)
 				}
@@ -75,7 +75,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "0 deputy fees",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				gs.Params.AssetParams[0].FixedFee = sdk.ZeroInt()
 				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
@@ -84,9 +84,9 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "incoming supply doesn't match amount in incoming atomic swaps",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(1)
-				swap, _ := loadSwapAndSupply(addrs[0].String(), 2)
+				swap, _ := loadSwapAndSupply(addrs[0], 2)
 				gs.AtomicSwaps = []types.AtomicSwap{swap}
 				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
@@ -95,7 +95,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "current supply above limit",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
 				gs.Supplies = []types.AssetSupply{
 					{
@@ -111,7 +111,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "incoming supply above limit",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				// Set up overlimit amount
 				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
 				overLimitAmount := assetParam.SupplyLimit.Limit.Add(i(1))
@@ -122,7 +122,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				randomNumber, _ := types.GenerateSecureRandomNumber()
 				randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 				swap := types.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
-					types.DefaultMinBlockLock, timestamp, suite.addrs[0].String(), addrs[1].String(), TestSenderOtherChain,
+					types.DefaultMinBlockLock, timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_INCOMING)
 				gs.AtomicSwaps = []types.AtomicSwap{swap}
 
@@ -141,7 +141,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "incoming supply + current supply above limit",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				// Set up overlimit amount
 				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
 				halfLimit := assetParam.SupplyLimit.Limit.Int64() / 2
@@ -153,7 +153,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				randomNumber, _ := types.GenerateSecureRandomNumber()
 				randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 				swap := types.NewAtomicSwap(cs(c("bnb", halfLimit)), randomNumberHash,
-					uint64(360), timestamp, suite.addrs[0].String(), addrs[1].String(), TestSenderOtherChain,
+					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_INCOMING)
 				gs.AtomicSwaps = []types.AtomicSwap{swap}
 
@@ -172,7 +172,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "outgoing supply above limit",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				// Set up overlimit amount
 				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
 				overLimitAmount := assetParam.SupplyLimit.Limit.Add(i(1))
@@ -183,7 +183,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				randomNumber, _ := types.GenerateSecureRandomNumber()
 				randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 				swap := types.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
-					types.DefaultMinBlockLock, timestamp, addrs[1].String(), suite.addrs[0].String(), TestSenderOtherChain,
+					types.DefaultMinBlockLock, timestamp, addrs[1], suite.addrs[0], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_OUTGOING)
 				gs.AtomicSwaps = []types.AtomicSwap{swap}
 
@@ -202,7 +202,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "asset supply denom is not a supported asset",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				gs.Supplies = []types.AssetSupply{
 					{
 						IncomingSupply: c("fake", 0),
@@ -217,13 +217,13 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "atomic swap asset type is unsupported",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
 				randomNumber, _ := types.GenerateSecureRandomNumber()
 				randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 				swap := types.NewAtomicSwap(cs(c("fake", 500000)), randomNumberHash,
-					uint64(360), timestamp, suite.addrs[0].String(), addrs[1].String(), TestSenderOtherChain,
+					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_INCOMING)
 
 				gs.AtomicSwaps = []types.AtomicSwap{swap}
@@ -234,13 +234,13 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "atomic swap status is invalid",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
 				randomNumber, _ := types.GenerateSecureRandomNumber()
 				randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 				swap := types.NewAtomicSwap(cs(c("bnb", 5000)), randomNumberHash,
-					uint64(360), timestamp, suite.addrs[0].String(), addrs[1].String(), TestSenderOtherChain,
+					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_UNSPECIFIED, true, types.SWAP_DIRECTION_INCOMING)
 
 				gs.AtomicSwaps = []types.AtomicSwap{swap}
@@ -251,7 +251,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "minimum block lock cannot be > maximum block lock",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				gs.Params.AssetParams[0].MinBlockLock = 201
 				gs.Params.AssetParams[0].MaxBlockLock = 200
 				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
@@ -261,7 +261,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "empty supported asset denom",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				gs.Params.AssetParams[0].Denom = ""
 				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
@@ -270,7 +270,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "negative supported asset limit",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				gs.Params.AssetParams[0].SupplyLimit.Limit = i(-100)
 				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
@@ -279,7 +279,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "duplicate supported asset denom",
 			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0].String())
+				gs := baseGenState(suite.addrs[0])
 				gs.Params.AssetParams[1].Denom = "bnb"
 				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},

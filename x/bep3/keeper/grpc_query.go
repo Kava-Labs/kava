@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -80,8 +81,13 @@ func (k Keeper) AtomicSwap(ctx context.Context, req *types.QueryAtomicSwapReques
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
+	swapId, err := hex.DecodeString(req.SwapId)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "invalid atomic swap id")
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	atomicSwap, ok := k.GetAtomicSwap(sdkCtx, req.SwapId)
+	atomicSwap, ok := k.GetAtomicSwap(sdkCtx, swapId)
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "invalid atomic swap")
 	}
@@ -110,7 +116,7 @@ func (k Keeper) AtomicSwaps(ctx context.Context, req *types.QueryAtomicSwapsRequ
 		}
 
 		if len(req.Involve) > 0 {
-			if atomicSwap.Sender != req.Involve && atomicSwap.Recipient != req.Involve {
+			if atomicSwap.Sender.String() != req.Involve && atomicSwap.Recipient.String() != req.Involve {
 				return false, nil
 			}
 		}
@@ -147,7 +153,7 @@ func (k Keeper) AtomicSwaps(ctx context.Context, req *types.QueryAtomicSwapsRequ
 	}
 
 	return &types.QueryAtomicSwapsResponse{
-		AtomicSwap: queryResults,
-		Pagination: pageRes,
+		AtomicSwaps: queryResults,
+		Pagination:  pageRes,
 	}, nil
 }

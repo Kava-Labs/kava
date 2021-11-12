@@ -14,7 +14,7 @@ import (
 
 // NewAtomicSwap returns a new AtomicSwap
 func NewAtomicSwap(amount sdk.Coins, randomNumberHash tmbytes.HexBytes, expireHeight uint64, timestamp int64,
-	sender, recipient string, senderOtherChain string, recipientOtherChain string, closedBlock int64,
+	sender, recipient sdk.AccAddress, senderOtherChain, recipientOtherChain string, closedBlock int64,
 	status SwapStatus, crossChain bool, direction SwapDirection) AtomicSwap {
 	return AtomicSwap{
 		Amount:              amount,
@@ -59,27 +59,11 @@ func (a AtomicSwap) Validate() error {
 	if a.Timestamp == 0 {
 		return errors.New("timestamp cannot be 0")
 	}
-
-	sender, err := sdk.AccAddressFromBech32(a.Sender)
-	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-	recipient, err := sdk.AccAddressFromBech32(a.Recipient)
-	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-
-	if len(sender) == 0 {
+	if a.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender cannot be empty")
 	}
-	if len(recipient) == 0 {
+	if a.Recipient.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient cannot be empty")
-	}
-	if len(sender) != AddrByteCount {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Sender))
-	}
-	if len(recipient) != AddrByteCount {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Recipient))
 	}
 	// NOTE: These adresses may not have a bech32 prefix.
 	if strings.TrimSpace(a.SenderOtherChain) == "" {
@@ -118,10 +102,13 @@ func (a AtomicSwap) String() string {
 		"\n    Direction:                %s",
 		a.GetSwapID(), a.Status.String(), a.Amount.String(),
 		hex.EncodeToString(a.RandomNumberHash), a.ExpireHeight,
-		a.Timestamp, a.Sender, a.Recipient,
+		a.Timestamp, a.Sender.String(), a.Recipient.String(),
 		a.SenderOtherChain, a.RecipientOtherChain, a.ClosedBlock,
 		a.CrossChain, a.Direction)
 }
+
+// AtomicSwaps is a slice of AtomicSwap
+type AtomicSwaps []AtomicSwap
 
 // NewSwapStatusFromString converts string to SwapStatus type
 func NewSwapStatusFromString(str string) SwapStatus {
@@ -188,8 +175,8 @@ type LegacyAugmentedAtomicSwap struct {
 	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
 	ExpireHeight        uint64           `json:"expire_height"  yaml:"expire_height"`
 	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
-	Sender              string           `json:"sender"  yaml:"sender"`
-	Recipient           string           `json:"recipient"  yaml:"recipient"`
+	Sender              sdk.AccAddress   `json:"sender"  yaml:"sender"`
+	Recipient           sdk.AccAddress   `json:"recipient"  yaml:"recipient"`
 	SenderOtherChain    string           `json:"sender_other_chain"  yaml:"sender_other_chain"`
 	RecipientOtherChain string           `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
 	ClosedBlock         int64            `json:"closed_block"  yaml:"closed_block"`
@@ -215,3 +202,5 @@ func NewLegacyAugmentedAtomicSwap(swap AtomicSwap) LegacyAugmentedAtomicSwap {
 		Direction:           swap.Direction,
 	}
 }
+
+type LegacyAugmentedAtomicSwaps []LegacyAugmentedAtomicSwap

@@ -39,7 +39,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
 	coins := sdk.NewCoins(c("bnb", 10000000000), c("ukava", 10000000000))
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(cdc, addrs[0].String()))
+	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(cdc, addrs[0]))
 
 	suite.addrs = addrs
 	suite.handler = bep3.NewHandler(keeper)
@@ -61,7 +61,7 @@ func (suite *HandlerTestSuite) AddAtomicSwap() (tmbytes.HexBytes, tmbytes.HexByt
 		amount, true)
 	suite.Nil(err)
 
-	swapID := types.CalculateSwapID(randomNumberHash, suite.addrs[0].String(), TestSenderOtherChain)
+	swapID := types.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
 	return swapID, randomNumber[:]
 }
 
@@ -85,7 +85,7 @@ func (suite *HandlerTestSuite) TestMsgClaimAtomicSwap() {
 	// Attempt claim msg on fake atomic swap
 	badRandomNumber, _ := types.GenerateSecureRandomNumber()
 	badRandomNumberHash := types.CalculateRandomHash(badRandomNumber[:], ts(0))
-	badSwapID := types.CalculateSwapID(badRandomNumberHash, suite.addrs[0].String(), TestSenderOtherChain)
+	badSwapID := types.CalculateSwapID(badRandomNumberHash, suite.addrs[0], TestSenderOtherChain)
 	badMsg := types.NewMsgClaimAtomicSwap(suite.addrs[0].String(), badSwapID, badRandomNumber[:])
 	badRes, err := suite.handler(suite.ctx, &badMsg)
 	suite.Require().Error(err)
@@ -103,7 +103,7 @@ func (suite *HandlerTestSuite) TestMsgRefundAtomicSwap() {
 	// Attempt refund msg on fake atomic swap
 	badRandomNumber, _ := types.GenerateSecureRandomNumber()
 	badRandomNumberHash := types.CalculateRandomHash(badRandomNumber[:], ts(0))
-	badSwapID := types.CalculateSwapID(badRandomNumberHash, suite.addrs[0].String(), TestSenderOtherChain)
+	badSwapID := types.CalculateSwapID(badRandomNumberHash, suite.addrs[0], TestSenderOtherChain)
 	badMsg := types.NewMsgRefundAtomicSwap(suite.addrs[0].String(), badSwapID)
 	badRes, err := suite.handler(suite.ctx, &badMsg)
 	suite.Require().Error(err)

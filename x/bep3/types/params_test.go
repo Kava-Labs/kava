@@ -14,7 +14,7 @@ import (
 
 type ParamsTestSuite struct {
 	suite.Suite
-	addr   string
+	addr   sdk.AccAddress
 	supply []types.SupplyLimit
 }
 
@@ -22,7 +22,7 @@ func (suite *ParamsTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-	suite.addr = addrs[0].String()
+	suite.addr = addrs[0]
 	supply1 := types.SupplyLimit{
 		Limit:          sdk.NewInt(10000000000000),
 		TimeLimited:    false,

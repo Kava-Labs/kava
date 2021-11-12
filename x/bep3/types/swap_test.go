@@ -15,7 +15,7 @@ import (
 
 type AtomicSwapTestSuite struct {
 	suite.Suite
-	addrs              []string
+	addrs              []sdk.AccAddress
 	timestamps         []int64
 	randomNumberHashes []tmbytes.HexBytes
 }
@@ -37,12 +37,7 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 		randomNumberHashes = append(randomNumberHashes, randomNumberHash)
 	}
 
-	var strAddrs []string
-	for _, a := range addrs {
-		strAddrs = append(strAddrs, a.String())
-	}
-
-	suite.addrs = strAddrs
+	suite.addrs = addrs
 	suite.timestamps = timestamps
 	suite.randomNumberHashes = randomNumberHashes
 }
@@ -119,7 +114,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 				RandomNumberHash: suite.randomNumberHashes[0],
 				ExpireHeight:     10,
 				Timestamp:        10,
-				Sender:           "",
+				Sender:           nil,
 			},
 			false,
 		},
@@ -131,7 +126,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 				ExpireHeight:     10,
 				Timestamp:        10,
 				Sender:           suite.addrs[0],
-				Recipient:        "",
+				Recipient:        nil,
 			},
 			false,
 		},

@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/app"
@@ -11,7 +12,7 @@ import (
 
 type HashTestSuite struct {
 	suite.Suite
-	addrs      []string
+	addrs      []sdk.AccAddress
 	timestamps []int64
 }
 
@@ -25,12 +26,7 @@ func (suite *HashTestSuite) SetupTest() {
 		timestamps = append(timestamps, ts(i))
 	}
 
-	var strAddrs []string
-	for _, a := range addrs {
-		strAddrs = append(strAddrs, a.String())
-	}
-
-	suite.addrs = strAddrs
+	suite.addrs = addrs
 	suite.timestamps = timestamps
 }
 
@@ -51,12 +47,12 @@ func (suite *HashTestSuite) TestCalculateRandomHash() {
 func (suite *HashTestSuite) TestCalculateSwapID() {
 	randomNumber, _ := types.GenerateSecureRandomNumber()
 	hash := types.CalculateRandomHash(randomNumber[:], suite.timestamps[3])
-	swapID := types.CalculateSwapID(hash, suite.addrs[3], suite.addrs[5])
+	swapID := types.CalculateSwapID(hash, suite.addrs[3], suite.addrs[5].String())
 	suite.NotNil(swapID)
 	suite.Equal(32, len(swapID))
 
 	diffHash := types.CalculateRandomHash(randomNumber[:], suite.timestamps[2])
-	diffSwapID := types.CalculateSwapID(diffHash, suite.addrs[3], suite.addrs[5])
+	diffSwapID := types.CalculateSwapID(diffHash, suite.addrs[3], suite.addrs[5].String())
 	suite.NotEqual(swapID, diffSwapID)
 }
 

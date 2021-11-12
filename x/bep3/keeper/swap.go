@@ -17,7 +17,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	sender, recipient sdk.AccAddress, senderOtherChain, recipientOtherChain string,
 	amount sdk.Coins, crossChain bool) error {
 	// Confirm that this is not a duplicate swap
-	swapID := types.CalculateSwapID(randomNumberHash, sender.String(), senderOtherChain)
+	swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 	_, found := k.GetAtomicSwap(ctx, swapID)
 	if found {
 		return sdkerrors.Wrap(types.ErrAtomicSwapAlreadyExists, hex.EncodeToString(swapID))
@@ -54,13 +54,13 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	}
 
 	var direction types.SwapDirection
-	if sender.String() == asset.DeputyAddress {
-		if recipient.String() == asset.DeputyAddress {
+	if sender.Equals(asset.DeputyAddress) {
+		if recipient.Equals(asset.DeputyAddress) {
 			return sdkerrors.Wrapf(types.ErrInvalidSwapAccount, "deputy cannot be both sender and receiver: %s", asset.DeputyAddress)
 		}
 		direction = types.SWAP_DIRECTION_INCOMING
 	} else {
-		if recipient.String() != asset.DeputyAddress {
+		if !recipient.Equals(asset.DeputyAddress) {
 			return sdkerrors.Wrapf(types.ErrInvalidSwapAccount, "deputy must be recipient for outgoing account: %s", recipient)
 		}
 		direction = types.SWAP_DIRECTION_OUTGOING
@@ -102,8 +102,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 
 	// Store the details of the swap
 	expireHeight := uint64(ctx.BlockHeight()) + heightSpan
-	atomicSwap := types.NewAtomicSwap(amount, randomNumberHash, expireHeight, timestamp, sender.String(),
-		recipient.String(), senderOtherChain, recipientOtherChain, 0, types.SWAP_STATUS_OPEN, crossChain, direction)
+	atomicSwap := types.NewAtomicSwap(amount, randomNumberHash, expireHeight, timestamp, sender,
+		recipient, senderOtherChain, recipientOtherChain, 0, types.SWAP_STATUS_OPEN, crossChain, direction)
 
 	// Insert the atomic swap under both keys
 	k.SetAtomicSwap(ctx, atomicSwap)
@@ -113,8 +113,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCreateAtomicSwap,
-			sdk.NewAttribute(types.AttributeKeySender, atomicSwap.Sender),
-			sdk.NewAttribute(types.AttributeKeyRecipient, atomicSwap.Recipient),
+			sdk.NewAttribute(types.AttributeKeySender, atomicSwap.Sender.String()),
+			sdk.NewAttribute(types.AttributeKeyRecipient, atomicSwap.Recipient.String()),
 			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, hex.EncodeToString(atomicSwap.GetSwapID())),
 			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, hex.EncodeToString(atomicSwap.RandomNumberHash)),
 			sdk.NewAttribute(types.AttributeKeyTimestamp, fmt.Sprintf("%d", atomicSwap.Timestamp)),
@@ -140,11 +140,6 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		return sdkerrors.Wrapf(types.ErrSwapNotClaimable, "status %s", atomicSwap.Status.String())
 	}
 
-	recipient, err := sdk.AccAddressFromBech32(atomicSwap.Recipient)
-	if err != nil {
-		return err
-	}
-
 	//  Calculate hashed secret using submitted number
 	hashedSubmittedNumber := types.CalculateRandomHash(randomNumber, atomicSwap.Timestamp)
 	hashedSecret := types.CalculateSwapID(hashedSubmittedNumber, atomicSwap.Sender, atomicSwap.SenderOtherChain)
@@ -154,6 +149,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		return sdkerrors.Wrapf(types.ErrInvalidClaimSecret, "the submitted random number is incorrect")
 	}
 
+	var err error
 	switch atomicSwap.Direction {
 	case types.SWAP_DIRECTION_INCOMING:
 		err = k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
@@ -170,7 +166,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 			return err
 		}
 		// Send intended recipient coins
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, atomicSwap.Amount)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Recipient, atomicSwap.Amount)
 		if err != nil {
 			return err
 		}
@@ -206,7 +202,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		sdk.NewEvent(
 			types.EventTypeClaimAtomicSwap,
 			sdk.NewAttribute(types.AttributeKeyClaimSender, from.String()),
-			sdk.NewAttribute(types.AttributeKeyRecipient, atomicSwap.Recipient),
+			sdk.NewAttribute(types.AttributeKeyRecipient, atomicSwap.Recipient.String()),
 			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, hex.EncodeToString(atomicSwap.GetSwapID())),
 			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, hex.EncodeToString(atomicSwap.RandomNumberHash)),
 			sdk.NewAttribute(types.AttributeKeyRandomNumber, hex.EncodeToString(randomNumber)),
@@ -227,11 +223,7 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		return sdkerrors.Wrapf(types.ErrSwapNotRefundable, "status %s", atomicSwap.Status.String())
 	}
 
-	sender, err := sdk.AccAddressFromBech32(atomicSwap.Sender)
-	if err != nil {
-		return err
-	}
-
+	var err error
 	switch atomicSwap.Direction {
 	case types.SWAP_DIRECTION_INCOMING:
 		err = k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
@@ -241,7 +233,7 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 			return err
 		}
 		// Refund coins to original swap sender for outgoing swaps
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, atomicSwap.Amount)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Sender, atomicSwap.Amount)
 	default:
 		err = fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
 	}
@@ -263,7 +255,7 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		sdk.NewEvent(
 			types.EventTypeRefundAtomicSwap,
 			sdk.NewAttribute(types.AttributeKeyRefundSender, from.String()),
-			sdk.NewAttribute(types.AttributeKeySender, atomicSwap.Sender),
+			sdk.NewAttribute(types.AttributeKeySender, atomicSwap.Sender.String()),
 			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, hex.EncodeToString(atomicSwap.GetSwapID())),
 			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, hex.EncodeToString(atomicSwap.RandomNumberHash)),
 		),

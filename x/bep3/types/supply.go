@@ -71,3 +71,6 @@ func (a AssetSupply) String() string {
 func (a AssetSupply) GetDenom() string {
 	return a.CurrentSupply.Denom
 }
+
+// AssetSupplies is a slice of AssetSupply
+type AssetSupplies []AssetSupply

@@ -47,7 +47,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 
 	tApp.InitializeFromGenesisStates(
 		authGS,
-		NewBep3GenStateMulti(tApp.AppCodec(), addrs[10].String()),
+		NewBep3GenStateMulti(tApp.AppCodec(), addrs[10]),
 	)
 
 	suite.ctx = ctx
@@ -74,7 +74,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 		suite.Nil(err)
 
 		// Calculate swap ID and save
-		swapID := types.CalculateSwapID(randomNumberHash, suite.strAddrs[10], TestSenderOtherChain)
+		swapID := types.CalculateSwapID(randomNumberHash, suite.addrs[10], TestSenderOtherChain)
 		swapIDs = append(swapIDs, swapID)
 		isSwapID[hex.EncodeToString(swapID)] = true
 	}
@@ -181,7 +181,7 @@ func (suite *QuerierTestSuite) TestQueryParams() {
 	// Querier uses LegacyAmino
 	suite.Nil(suite.app.LegacyAmino().UnmarshalJSON(bz, &p))
 
-	bep3GenesisState := NewBep3GenStateMulti(suite.app.AppCodec(), suite.addrs[10].String())
+	bep3GenesisState := NewBep3GenStateMulti(suite.app.AppCodec(), suite.addrs[10])
 	gs := types.GenesisState{}
 	// Genesis uses proto codec
 	suite.app.AppCodec().UnmarshalJSON(bep3GenesisState["bep3"], &gs)

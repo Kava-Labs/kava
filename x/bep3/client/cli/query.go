@@ -126,7 +126,7 @@ func QueryCalcSwapIDCmd(queryRoute string) *cobra.Command {
 			senderOtherChain := args[2]
 
 			// Calculate swap ID and convert to human-readable string
-			swapID := types.CalculateSwapID(randomNumberHash, sender.String(), senderOtherChain)
+			swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 			return clientCtx.PrintObjectLegacy(hex.EncodeToString(swapID))
 		},
 	}
@@ -201,14 +201,8 @@ func QueryGetAtomicSwapCmd(queryRoute string) *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// Decode swapID's hex encoded string to []byte
-			swapID, err := hex.DecodeString(args[0])
-			if err != nil {
-				return err
-			}
-
 			res, err := queryClient.AtomicSwap(context.Background(), &types.QueryAtomicSwapRequest{
-				SwapId: swapID,
+				SwapId: args[0],
 			})
 			if err != nil {
 				return err

@@ -22,8 +22,8 @@ const (
 
 var (
 	DenomMap  = map[int]string{0: "btc", 1: "eth", 2: "bnb", 3: "xrp", 4: "dai"}
-	TestUser1 = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))).String()
-	TestUser2 = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2"))).String()
+	TestUser1 = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
+	TestUser2 = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2")))
 )
 
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
@@ -35,7 +35,7 @@ func NewAuthGenStateFromAccs(cdc codec.JSONCodec, accounts ...authtypes.GenesisA
 	return app.GenesisState{authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis)}
 }
 
-func NewBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress string) app.GenesisState {
+func NewBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
 			AssetParams: []types.AssetParam{

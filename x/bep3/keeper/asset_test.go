@@ -35,7 +35,7 @@ func (suite *AssetTestSuite) SetupTest() {
 
 	// Initialize genesis state
 	deputy, _ := sdk.AccAddressFromBech32(TestDeputy)
-	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(tApp.AppCodec(), deputy.String()))
+	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(tApp.AppCodec(), deputy))
 
 	keeper := tApp.GetBep3Keeper()
 	params := keeper.GetParams(ctx)
@@ -627,6 +627,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
+			deputy, _ := sdk.AccAddressFromBech32(TestDeputy)
 			newParams := types.Params{
 				AssetParams: []types.AssetParam{
 					{
@@ -639,7 +640,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 							TimePeriod:     time.Hour,
 						},
 						Active:        true,
-						DeputyAddress: TestDeputy,
+						DeputyAddress: deputy,
 						FixedFee:      sdk.NewInt(1000),
 						MinSwapAmount: sdk.OneInt(),
 						MaxSwapAmount: sdk.NewInt(1000000000000),
@@ -656,7 +657,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 							TimePeriod:     time.Hour,
 						},
 						Active:        false,
-						DeputyAddress: TestDeputy,
+						DeputyAddress: deputy,
 						FixedFee:      sdk.NewInt(1000),
 						MinSwapAmount: sdk.OneInt(),
 						MaxSwapAmount: sdk.NewInt(1000000000000),
@@ -673,7 +674,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 							TimePeriod:     time.Hour,
 						},
 						Active:        false,
-						DeputyAddress: TestDeputy,
+						DeputyAddress: deputy,
 						FixedFee:      sdk.NewInt(1000),
 						MinSwapAmount: sdk.OneInt(),
 						MaxSwapAmount: sdk.NewInt(1000000000000),

@@ -156,7 +156,7 @@ func filterAtomicSwaps(ctx sdk.Context, swaps []types.AtomicSwap, params types.Q
 func legacyAtomicSwapIsMatch(swap types.AtomicSwap, params types.QueryAtomicSwaps) bool {
 	// match involved address (if supplied)
 	if len(params.Involve) > 0 {
-		if swap.Sender != params.Involve.String() && swap.Recipient != params.Involve.String() {
+		if !swap.Sender.Equals(params.Involve) && !swap.Recipient.Equals(params.Involve) {
 			return false
 		}
 	}

@@ -55,10 +55,10 @@ func (k Keeper) GetAssets(ctx sdk.Context) ([]types.AssetParam, bool) {
 // ------------------------------------------
 
 // GetDeputyAddress returns the deputy address for the input denom
-func (k Keeper) GetDeputyAddress(ctx sdk.Context, denom string) (string, error) {
+func (k Keeper) GetDeputyAddress(ctx sdk.Context, denom string) (sdk.AccAddress, error) {
 	asset, err := k.GetAsset(ctx, denom)
 	if err != nil {
-		return "", err
+		return sdk.AccAddress{}, err
 	}
 	return asset.DeputyAddress, nil
 }
@@ -157,14 +157,10 @@ func (k Keeper) GetAuthorizedAddresses(ctx sdk.Context) []sdk.AccAddress {
 	for _, ap := range assetParams {
 		a := ap.DeputyAddress
 		// de-dup addresses
-		if _, found := uniqueAddresses[a]; !found {
-			addr, err := sdk.AccAddressFromBech32(a)
-			if err != nil {
-				panic(err)
-			}
-			addresses = append(addresses, addr)
+		if _, found := uniqueAddresses[a.String()]; !found {
+			addresses = append(addresses, a)
 		}
-		uniqueAddresses[a] = true
+		uniqueAddresses[a.String()] = true
 	}
 	return addresses
 }
