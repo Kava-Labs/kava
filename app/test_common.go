@@ -193,15 +193,6 @@ func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk
 	return
 }
 
-func AddressesToStrings(addrs []sdk.AccAddress) []string {
-	var strAddrs []string
-	for _, addr := range addrs {
-		strAddrs = append(strAddrs, addr.String())
-	}
-
-	return strAddrs
-}
-
 // NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
 func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) GenesisState {
 	balances := make([]banktypes.Balance, len(addresses))

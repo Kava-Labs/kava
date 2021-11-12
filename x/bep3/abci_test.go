@@ -23,7 +23,6 @@ type ABCITestSuite struct {
 	app           app.TestApp
 	ctx           sdk.Context
 	addrs         []sdk.AccAddress
-	strAddrs      []string
 	swapIDs       []tmbytes.HexBytes
 	randomNumbers []tmbytes.HexBytes
 }
@@ -34,7 +33,6 @@ func (suite *ABCITestSuite) SetupTest() {
 
 	// Set up auth GenesisState
 	_, addrs := app.GeneratePrivKeyAddressPairs(12)
-	strAddrs := app.AddressesToStrings(addrs)
 	coins := sdk.NewCoins(c("bnb", 10000000000), c("ukava", 10000000000))
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	// Initialize test app
@@ -43,7 +41,6 @@ func (suite *ABCITestSuite) SetupTest() {
 	suite.ctx = ctx
 	suite.app = tApp
 	suite.addrs = addrs
-	suite.strAddrs = strAddrs
 	suite.ResetKeeper()
 }
 

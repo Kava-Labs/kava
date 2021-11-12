@@ -31,7 +31,6 @@ type QuerierTestSuite struct {
 	ctx      sdk.Context
 	querier  sdk.Querier
 	addrs    []sdk.AccAddress
-	strAddrs []string
 	swapIDs  []tmbytes.HexBytes
 	isSwapID map[string]bool
 }
@@ -55,7 +54,6 @@ func (suite *QuerierTestSuite) SetupTest() {
 	suite.keeper = tApp.GetBep3Keeper()
 	suite.querier = keeper.NewQuerier(suite.keeper, tApp.LegacyAmino())
 	suite.addrs = addrs
-	suite.strAddrs = app.AddressesToStrings(addrs)
 
 	// Create atomic swaps and save IDs
 	var swapIDs []tmbytes.HexBytes
