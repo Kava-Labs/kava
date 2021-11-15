@@ -107,18 +107,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			expectPass:  false,
 			expectedErr: "denom invalid",
 		},
-		// Uppercase now allowed
-		// {
-		// 	name: "invalid denom - bad format",
-		// 	args: args{
-		// 		assetParams: types.AssetParams{types.NewAssetParam(
-		// 			"BNB", 714, suite.supply[0], true,
-		// 			suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
-		// 			types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
-		// 	},
-		// 	expectPass:  false,
-		// 	expectedErr: "denom invalid",
-		// },
 		{
 			name: "min block lock equal max block lock",
 			args: args{

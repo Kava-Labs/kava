@@ -120,7 +120,7 @@ func validateAssetParams(i interface{}) error {
 
 		coinDenoms[asset.Denom] = true
 
-		if len(asset.DeputyAddress) == 0 {
+		if asset.DeputyAddress.Empty() {
 			return fmt.Errorf("deputy address cannot be empty for %s", asset.Denom)
 		}
 
