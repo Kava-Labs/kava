@@ -36,8 +36,6 @@ var (
 	DefaultDebtThreshold    = sdk.NewInt(100000000000)
 	DefaultSurplusLot       = sdk.NewInt(10000000000)
 	DefaultDebtLot          = sdk.NewInt(10000000000)
-	minCollateralPrefix     = 0
-	maxCollateralPrefix     = 255
 	stabilityFeeMax         = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
 )
 
@@ -70,7 +68,7 @@ func DefaultParams() Params {
 // NewCollateralParam returns a new CollateralParam
 func NewCollateralParam(
 	denom, ctype string, liqRatio sdk.Dec, debtLimit sdk.Coin, stabilityFee sdk.Dec, auctionSize sdk.Int,
-	liqPenalty sdk.Dec, prefix byte, spotMarketID, liquidationMarketID string, keeperReward sdk.Dec, checkIndexCount sdk.Int, conversionFactor sdk.Int) CollateralParam {
+	liqPenalty sdk.Dec, spotMarketID, liquidationMarketID string, keeperReward sdk.Dec, checkIndexCount sdk.Int, conversionFactor sdk.Int) CollateralParam {
 	return CollateralParam{
 		Denom:                            denom,
 		Type:                             ctype,
@@ -79,7 +77,6 @@ func NewCollateralParam(
 		StabilityFee:                     stabilityFee,
 		AuctionSize:                      auctionSize,
 		LiquidationPenalty:               liqPenalty,
-		Prefix:                           uint32(prefix),
 		SpotMarketID:                     spotMarketID,
 		LiquidationMarketID:              liquidationMarketID,
 		KeeperRewardPercentage:           keeperReward,
@@ -171,15 +168,17 @@ func (p Params) Validate() error {
 	}
 
 	// validate collateral params
-	collateralDupMap := make(map[string]int)
-	prefixDupMap := make(map[int]int)
+	collateralTypeDupMap := make(map[string]bool)
 	collateralParamsDebtLimit := sdk.ZeroInt()
 
 	for _, cp := range p.CollateralParams {
+		// Collateral type eg busd-a should be unique, but denom can be same eg busd
+		_, exists := collateralTypeDupMap[cp.Type]
+		if exists {
+			return fmt.Errorf("duplicate collateral type %s", cp.Denom)
+		}
 
-		prefix := int(cp.Prefix)
-		prefixDupMap[prefix] = 1
-		collateralDupMap[cp.Denom] = 1
+		collateralTypeDupMap[cp.Type] = true
 
 		if cp.DebtLimit.Denom != p.GlobalDebtLimit.Denom {
 			return fmt.Errorf("collateral debt limit denom %s does not match global debt limit denom %s",
@@ -220,7 +219,6 @@ func validateCollateralParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	prefixDupMap := make(map[uint32]bool)
 	typeDupMap := make(map[string]bool)
 	for _, cp := range collateralParams {
 		if err := sdk.ValidateDenom(cp.Denom); err != nil {
@@ -239,18 +237,7 @@ func validateCollateralParams(i interface{}) error {
 			return fmt.Errorf("liquidation market id cannot be blank %v", cp)
 		}
 
-		if int(cp.Prefix) < minCollateralPrefix || int(cp.Prefix) > maxCollateralPrefix {
-			return fmt.Errorf("invalid prefix for collateral denom %s: %b", cp.Denom, cp.Prefix)
-		}
-
-		_, found := prefixDupMap[cp.Prefix]
-		if found {
-			return fmt.Errorf("duplicate prefix for collateral denom %s: %v", cp.Denom, []byte{byte(cp.Prefix)})
-		}
-
-		prefixDupMap[cp.Prefix] = true
-
-		_, found = typeDupMap[cp.Type]
+		_, found := typeDupMap[cp.Type]
 		if found {
 			return fmt.Errorf("duplicate cdp collateral type: %s", cp.Type)
 		}

@@ -244,7 +244,6 @@ CollateralParam defines governance parameters for each collateral type within th
 | `stability_fee` | [string](#string) |  |  |
 | `auction_size` | [string](#string) |  |  |
 | `liquidation_penalty` | [string](#string) |  |  |
-| `prefix` | [uint32](#uint32) |  | No single byte type, use a uint32 |
 | `spot_market_id` | [string](#string) |  |  |
 | `liquidation_market_id` | [string](#string) |  |  |
 | `keeper_reward_percentage` | [string](#string) |  |  |

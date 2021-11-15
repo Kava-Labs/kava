@@ -97,21 +97,19 @@ message CollateralParam {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
   ];
-  // No single byte type, use a uint32
-  uint32 prefix                   = 8;
-  string spot_market_id           = 9 [(gogoproto.customname) = "SpotMarketID"];
-  string liquidation_market_id    = 10 [(gogoproto.customname) = "LiquidationMarketID"];
-  string keeper_reward_percentage = 11 [
+  string spot_market_id           = 8 [(gogoproto.customname) = "SpotMarketID"];
+  string liquidation_market_id    = 9 [(gogoproto.customname) = "LiquidationMarketID"];
+  string keeper_reward_percentage = 10 [
     (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
   ];
-  string check_collateralization_index_count = 12 [
+  string check_collateralization_index_count = 11 [
     (cosmos_proto.scalar)  = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable)   = false
   ];
-  string conversion_factor = 13 [
+  string conversion_factor = 12 [
     (cosmos_proto.scalar)  = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable)   = false
