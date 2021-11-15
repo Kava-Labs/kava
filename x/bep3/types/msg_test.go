@@ -60,7 +60,9 @@ func (suite *MsgTestSuite) TestMsgCreateAtomicSwap() {
 	}{
 		{"normal cross-chain", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, 500, true},
 		{"without other chain fields", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, 500, false},
-		{"invalid amount", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsZero, 500, false},
+		{"invalid amount", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, 500, false},
+		{"invalid from address", sdk.AccAddress{}, kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, 500, false},
+		{"invalid from address", binanceAddrs[0], sdk.AccAddress{}, kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, 500, false},
 	}
 
 	for i, tc := range tests {
@@ -93,6 +95,7 @@ func (suite *MsgTestSuite) TestMsgClaimAtomicSwap() {
 		expectPass   bool
 	}{
 		{"normal", binanceAddrs[0], swapID, randomNumberHash, true},
+		{"invalid from address", sdk.AccAddress{}, swapID, randomNumberHash, false},
 	}
 
 	for i, tc := range tests {
@@ -119,6 +122,7 @@ func (suite *MsgTestSuite) TestMsgRefundAtomicSwap() {
 		expectPass  bool
 	}{
 		{"normal", binanceAddrs[0], swapID, true},
+		{"invalid from address", sdk.AccAddress{}, swapID, false},
 	}
 
 	for i, tc := range tests {

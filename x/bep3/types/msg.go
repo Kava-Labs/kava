@@ -21,7 +21,6 @@ const (
 	Int64Size               = 8
 	RandomNumberHashLength  = 32
 	RandomNumberLength      = 32
-	AddrByteCount           = 20
 	MaxOtherChainAddrLength = 64
 	SwapIDLength            = 32
 	MaxExpectedIncomeLength = 64
@@ -83,22 +82,15 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
-	to, err := sdk.AccAddressFromBech32(msg.From)
+	to, err := sdk.AccAddressFromBech32(msg.To)
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
-
-	if len(from) == 0 {
+	if from.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(from) != AddrByteCount {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From))
-	}
-	if len(to) == 0 {
+	if to.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient address cannot be empty")
-	}
-	if len(to) != AddrByteCount {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.To))
 	}
 	if strings.TrimSpace(msg.RecipientOtherChain) == "" {
 		return errors.New("missing recipient address on other chain")
@@ -170,12 +162,8 @@ func (msg MsgClaimAtomicSwap) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
-
-	if len(from) == 0 {
+	if from.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
-	}
-	if len(from) != AddrByteCount {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "actual address length ≠ expected length (%d ≠ %d)", len(msg.From), AddrByteCount)
 	}
 	if len(msg.SwapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
@@ -228,12 +216,8 @@ func (msg MsgRefundAtomicSwap) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
-
-	if len(from) == 0 {
+	if from.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
-	}
-	if len(from) != AddrByteCount {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From))
 	}
 	if len(msg.SwapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
