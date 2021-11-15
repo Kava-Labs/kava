@@ -19,6 +19,8 @@
     - [GenesisState](#kava.bep3.v1beta1.GenesisState)
   
 - [kava/bep3/v1beta1/query.proto](#kava/bep3/v1beta1/query.proto)
+    - [AssetSupplyResponse](#kava.bep3.v1beta1.AssetSupplyResponse)
+    - [AtomicSwapResponse](#kava.bep3.v1beta1.AtomicSwapResponse)
     - [QueryAssetSuppliesRequest](#kava.bep3.v1beta1.QueryAssetSuppliesRequest)
     - [QueryAssetSuppliesResponse](#kava.bep3.v1beta1.QueryAssetSuppliesResponse)
     - [QueryAssetSupplyRequest](#kava.bep3.v1beta1.QueryAssetSupplyRequest)
@@ -359,6 +361,52 @@ GenesisState defines the pricefeed module's genesis state.
 
 
 
+<a name="kava.bep3.v1beta1.AssetSupplyResponse"></a>
+
+### AssetSupplyResponse
+AssetSupplyResponse defines information about an asset's supply.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `incoming_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | incoming_supply represents the incoming supply of an asset |
+| `outgoing_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | outgoing_supply represents the outgoing supply of an asset |
+| `current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | current_supply represents the current on-chain supply of an asset |
+| `time_limited_current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | time_limited_current_supply represents the time limited current supply of an asset |
+| `time_elapsed` | [google.protobuf.Duration](#google.protobuf.Duration) |  | time_elapsed represents the time elapsed |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.AtomicSwapResponse"></a>
+
+### AtomicSwapResponse
+AtomicSwapResponse represents the returned atomic swap properties
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  | id represents the id of the atomic swap |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | amount represents the amount being swapped |
+| `random_number_hash` | [string](#string) |  | random_number_hash represents the hash of the random number |
+| `expire_height` | [uint64](#uint64) |  | expire_height represents the height when the swap expires |
+| `timestamp` | [int64](#int64) |  | timestamp represents the timestamp of the swap |
+| `sender` | [string](#string) |  | sender is the kava chain sender of the swap |
+| `recipient` | [string](#string) |  | recipient is the kava chain recipient of the swap |
+| `sender_other_chain` | [string](#string) |  | sender_other_chain is the sender on the other chain |
+| `recipient_other_chain` | [string](#string) |  | recipient_other_chain is the recipient on the other chain |
+| `closed_block` | [int64](#int64) |  | closed_block is the block when the swap is closed |
+| `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  | status represents the current status of the swap |
+| `cross_chain` | [bool](#bool) |  | cross_chain identifies whether the atomic swap is cross chain |
+| `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  | direction identifies if the swap is incoming or outgoing |
+
+
+
+
+
+
 <a name="kava.bep3.v1beta1.QueryAssetSuppliesRequest"></a>
 
 ### QueryAssetSuppliesRequest
@@ -382,7 +430,7 @@ QueryAssetSuppliesResponse is the response type for the Query/AssetSupplies RPC 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `asset_supplies` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) | repeated | asset_supplies represents the supplies of returned assets |
+| `asset_supplies` | [AssetSupplyResponse](#kava.bep3.v1beta1.AssetSupplyResponse) | repeated | asset_supplies represents the supplies of returned assets |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
@@ -413,7 +461,7 @@ QueryAssetSupplyResponse is the response type for the Query/AssetSupply RPC meth
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `asset_supply` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) |  | asset_supply represents the supply of the asset |
+| `asset_supply` | [AssetSupplyResponse](#kava.bep3.v1beta1.AssetSupplyResponse) |  | asset_supply represents the supply of the asset |
 
 
 
@@ -443,8 +491,7 @@ QueryAtomicSwapResponse is the response type for the Query/AtomicSwap RPC method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `id` | [string](#string) |  | id is the identifier of the swap |
-| `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) |  | atomic_swap represents the attributes of the swap |
+| `atomic_swap` | [AtomicSwapResponse](#kava.bep3.v1beta1.AtomicSwapResponse) |  |  |
 
 
 
@@ -478,7 +525,7 @@ QueryAtomicSwapsResponse is the response type for the Query/AtomicSwaps RPC meth
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `atomic_swaps` | [AugmentedAtomicSwap](#kava.bep3.v1beta1.AugmentedAtomicSwap) | repeated | atomic_swap represents the returned atomic swaps for the request |
+| `atomic_swaps` | [AtomicSwapResponse](#kava.bep3.v1beta1.AtomicSwapResponse) | repeated | atomic_swap represents the returned atomic swaps for the request |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 

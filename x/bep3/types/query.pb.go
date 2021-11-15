@@ -7,23 +7,29 @@ import (
 	context "context"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	_ "google.golang.org/protobuf/types/known/durationpb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -153,17 +159,71 @@ func (m *QueryAssetSupplyRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAssetSupplyRequest proto.InternalMessageInfo
 
+// AssetSupplyResponse defines information about an asset's supply.
+type AssetSupplyResponse struct {
+	// incoming_supply represents the incoming supply of an asset
+	IncomingSupply github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,1,opt,name=incoming_supply,json=incomingSupply,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"incoming_supply"`
+	// outgoing_supply represents the outgoing supply of an asset
+	OutgoingSupply github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,2,opt,name=outgoing_supply,json=outgoingSupply,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"outgoing_supply"`
+	// current_supply represents the current on-chain supply of an asset
+	CurrentSupply github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,3,opt,name=current_supply,json=currentSupply,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"current_supply"`
+	// time_limited_current_supply represents the time limited current supply of an asset
+	TimeLimitedCurrentSupply github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,4,opt,name=time_limited_current_supply,json=timeLimitedCurrentSupply,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"time_limited_current_supply"`
+	// time_elapsed represents the time elapsed
+	TimeElapsed time.Duration `protobuf:"bytes,5,opt,name=time_elapsed,json=timeElapsed,proto3,stdduration" json:"time_elapsed"`
+}
+
+func (m *AssetSupplyResponse) Reset()         { *m = AssetSupplyResponse{} }
+func (m *AssetSupplyResponse) String() string { return proto.CompactTextString(m) }
+func (*AssetSupplyResponse) ProtoMessage()    {}
+func (*AssetSupplyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a5e4082d53c18bf6, []int{3}
+}
+func (m *AssetSupplyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *AssetSupplyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_AssetSupplyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *AssetSupplyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AssetSupplyResponse.Merge(m, src)
+}
+func (m *AssetSupplyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *AssetSupplyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_AssetSupplyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AssetSupplyResponse proto.InternalMessageInfo
+
+func (m *AssetSupplyResponse) GetTimeElapsed() time.Duration {
+	if m != nil {
+		return m.TimeElapsed
+	}
+	return 0
+}
+
 // QueryAssetSupplyResponse is the response type for the Query/AssetSupply RPC method.
 type QueryAssetSupplyResponse struct {
 	// asset_supply represents the supply of the asset
-	AssetSupply AssetSupply `protobuf:"bytes,1,opt,name=asset_supply,json=assetSupply,proto3" json:"asset_supply"`
+	AssetSupply AssetSupplyResponse `protobuf:"bytes,1,opt,name=asset_supply,json=assetSupply,proto3" json:"asset_supply"`
 }
 
 func (m *QueryAssetSupplyResponse) Reset()         { *m = QueryAssetSupplyResponse{} }
 func (m *QueryAssetSupplyResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAssetSupplyResponse) ProtoMessage()    {}
 func (*QueryAssetSupplyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a5e4082d53c18bf6, []int{3}
+	return fileDescriptor_a5e4082d53c18bf6, []int{4}
 }
 func (m *QueryAssetSupplyResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -192,11 +252,11 @@ func (m *QueryAssetSupplyResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAssetSupplyResponse proto.InternalMessageInfo
 
-func (m *QueryAssetSupplyResponse) GetAssetSupply() AssetSupply {
+func (m *QueryAssetSupplyResponse) GetAssetSupply() AssetSupplyResponse {
 	if m != nil {
 		return m.AssetSupply
 	}
-	return AssetSupply{}
+	return AssetSupplyResponse{}
 }
 
 // QueryAssetSuppliesRequest is the request type for the Query/AssetSupplies RPC method.
@@ -208,7 +268,7 @@ func (m *QueryAssetSuppliesRequest) Reset()         { *m = QueryAssetSuppliesReq
 func (m *QueryAssetSuppliesRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAssetSuppliesRequest) ProtoMessage()    {}
 func (*QueryAssetSuppliesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a5e4082d53c18bf6, []int{4}
+	return fileDescriptor_a5e4082d53c18bf6, []int{5}
 }
 func (m *QueryAssetSuppliesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -240,15 +300,15 @@ var xxx_messageInfo_QueryAssetSuppliesRequest proto.InternalMessageInfo
 // QueryAssetSuppliesResponse is the response type for the Query/AssetSupplies RPC method.
 type QueryAssetSuppliesResponse struct {
 	// asset_supplies represents the supplies of returned assets
-	AssetSupplies []AssetSupply       `protobuf:"bytes,1,rep,name=asset_supplies,json=assetSupplies,proto3" json:"asset_supplies"`
-	Pagination    *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	AssetSupplies []AssetSupplyResponse `protobuf:"bytes,1,rep,name=asset_supplies,json=assetSupplies,proto3" json:"asset_supplies"`
+	Pagination    *query.PageResponse   `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAssetSuppliesResponse) Reset()         { *m = QueryAssetSuppliesResponse{} }
 func (m *QueryAssetSuppliesResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAssetSuppliesResponse) ProtoMessage()    {}
 func (*QueryAssetSuppliesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a5e4082d53c18bf6, []int{5}
+	return fileDescriptor_a5e4082d53c18bf6, []int{6}
 }
 func (m *QueryAssetSuppliesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -277,7 +337,7 @@ func (m *QueryAssetSuppliesResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAssetSuppliesResponse proto.InternalMessageInfo
 
-func (m *QueryAssetSuppliesResponse) GetAssetSupplies() []AssetSupply {
+func (m *QueryAssetSuppliesResponse) GetAssetSupplies() []AssetSupplyResponse {
 	if m != nil {
 		return m.AssetSupplies
 	}
@@ -301,7 +361,7 @@ func (m *QueryAtomicSwapRequest) Reset()         { *m = QueryAtomicSwapRequest{}
 func (m *QueryAtomicSwapRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAtomicSwapRequest) ProtoMessage()    {}
 func (*QueryAtomicSwapRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a5e4082d53c18bf6, []int{6}
+	return fileDescriptor_a5e4082d53c18bf6, []int{7}
 }
 func (m *QueryAtomicSwapRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -332,17 +392,14 @@ var xxx_messageInfo_QueryAtomicSwapRequest proto.InternalMessageInfo
 
 // QueryAtomicSwapResponse is the response type for the Query/AtomicSwap RPC method.
 type QueryAtomicSwapResponse struct {
-	// id is the identifier of the swap
-	ID string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// atomic_swap represents the attributes of the swap
-	AtomicSwap AtomicSwap `protobuf:"bytes,2,opt,name=atomic_swap,json=atomicSwap,proto3" json:"atomic_swap"`
+	AtomicSwap AtomicSwapResponse `protobuf:"bytes,2,opt,name=atomic_swap,json=atomicSwap,proto3" json:"atomic_swap"`
 }
 
 func (m *QueryAtomicSwapResponse) Reset()         { *m = QueryAtomicSwapResponse{} }
 func (m *QueryAtomicSwapResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAtomicSwapResponse) ProtoMessage()    {}
 func (*QueryAtomicSwapResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a5e4082d53c18bf6, []int{7}
+	return fileDescriptor_a5e4082d53c18bf6, []int{8}
 }
 func (m *QueryAtomicSwapResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -371,18 +428,165 @@ func (m *QueryAtomicSwapResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAtomicSwapResponse proto.InternalMessageInfo
 
-func (m *QueryAtomicSwapResponse) GetID() string {
+func (m *QueryAtomicSwapResponse) GetAtomicSwap() AtomicSwapResponse {
 	if m != nil {
-		return m.ID
+		return m.AtomicSwap
+	}
+	return AtomicSwapResponse{}
+}
+
+// AtomicSwapResponse represents the returned atomic swap properties
+type AtomicSwapResponse struct {
+	// id represents the id of the atomic swap
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// amount represents the amount being swapped
+	Amount github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
+	// random_number_hash represents the hash of the random number
+	RandomNumberHash string `protobuf:"bytes,3,opt,name=random_number_hash,json=randomNumberHash,proto3" json:"random_number_hash,omitempty"`
+	// expire_height represents the height when the swap expires
+	ExpireHeight uint64 `protobuf:"varint,4,opt,name=expire_height,json=expireHeight,proto3" json:"expire_height,omitempty"`
+	// timestamp represents the timestamp of the swap
+	Timestamp int64 `protobuf:"varint,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// sender is the kava chain sender of the swap
+	Sender string `protobuf:"bytes,6,opt,name=sender,proto3" json:"sender,omitempty"`
+	// recipient is the kava chain recipient of the swap
+	Recipient string `protobuf:"bytes,7,opt,name=recipient,proto3" json:"recipient,omitempty"`
+	// sender_other_chain is the sender on the other chain
+	SenderOtherChain string `protobuf:"bytes,8,opt,name=sender_other_chain,json=senderOtherChain,proto3" json:"sender_other_chain,omitempty"`
+	// recipient_other_chain is the recipient on the other chain
+	RecipientOtherChain string `protobuf:"bytes,9,opt,name=recipient_other_chain,json=recipientOtherChain,proto3" json:"recipient_other_chain,omitempty"`
+	// closed_block is the block when the swap is closed
+	ClosedBlock int64 `protobuf:"varint,10,opt,name=closed_block,json=closedBlock,proto3" json:"closed_block,omitempty"`
+	// status represents the current status of the swap
+	Status SwapStatus `protobuf:"varint,11,opt,name=status,proto3,enum=kava.bep3.v1beta1.SwapStatus" json:"status,omitempty"`
+	// cross_chain identifies whether the atomic swap is cross chain
+	CrossChain bool `protobuf:"varint,12,opt,name=cross_chain,json=crossChain,proto3" json:"cross_chain,omitempty"`
+	// direction identifies if the swap is incoming or outgoing
+	Direction SwapDirection `protobuf:"varint,13,opt,name=direction,proto3,enum=kava.bep3.v1beta1.SwapDirection" json:"direction,omitempty"`
+}
+
+func (m *AtomicSwapResponse) Reset()         { *m = AtomicSwapResponse{} }
+func (m *AtomicSwapResponse) String() string { return proto.CompactTextString(m) }
+func (*AtomicSwapResponse) ProtoMessage()    {}
+func (*AtomicSwapResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a5e4082d53c18bf6, []int{9}
+}
+func (m *AtomicSwapResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *AtomicSwapResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_AtomicSwapResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *AtomicSwapResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AtomicSwapResponse.Merge(m, src)
+}
+func (m *AtomicSwapResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *AtomicSwapResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_AtomicSwapResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AtomicSwapResponse proto.InternalMessageInfo
+
+func (m *AtomicSwapResponse) GetId() string {
+	if m != nil {
+		return m.Id
 	}
 	return ""
 }
 
-func (m *QueryAtomicSwapResponse) GetAtomicSwap() AtomicSwap {
+func (m *AtomicSwapResponse) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
 	if m != nil {
-		return m.AtomicSwap
+		return m.Amount
 	}
-	return AtomicSwap{}
+	return nil
+}
+
+func (m *AtomicSwapResponse) GetRandomNumberHash() string {
+	if m != nil {
+		return m.RandomNumberHash
+	}
+	return ""
+}
+
+func (m *AtomicSwapResponse) GetExpireHeight() uint64 {
+	if m != nil {
+		return m.ExpireHeight
+	}
+	return 0
+}
+
+func (m *AtomicSwapResponse) GetTimestamp() int64 {
+	if m != nil {
+		return m.Timestamp
+	}
+	return 0
+}
+
+func (m *AtomicSwapResponse) GetSender() string {
+	if m != nil {
+		return m.Sender
+	}
+	return ""
+}
+
+func (m *AtomicSwapResponse) GetRecipient() string {
+	if m != nil {
+		return m.Recipient
+	}
+	return ""
+}
+
+func (m *AtomicSwapResponse) GetSenderOtherChain() string {
+	if m != nil {
+		return m.SenderOtherChain
+	}
+	return ""
+}
+
+func (m *AtomicSwapResponse) GetRecipientOtherChain() string {
+	if m != nil {
+		return m.RecipientOtherChain
+	}
+	return ""
+}
+
+func (m *AtomicSwapResponse) GetClosedBlock() int64 {
+	if m != nil {
+		return m.ClosedBlock
+	}
+	return 0
+}
+
+func (m *AtomicSwapResponse) GetStatus() SwapStatus {
+	if m != nil {
+		return m.Status
+	}
+	return SWAP_STATUS_UNSPECIFIED
+}
+
+func (m *AtomicSwapResponse) GetCrossChain() bool {
+	if m != nil {
+		return m.CrossChain
+	}
+	return false
+}
+
+func (m *AtomicSwapResponse) GetDirection() SwapDirection {
+	if m != nil {
+		return m.Direction
+	}
+	return SWAP_DIRECTION_UNSPECIFIED
 }
 
 // QueryAtomicSwapsRequest is the request type for the Query/AtomicSwaps RPC method.
@@ -402,7 +606,7 @@ func (m *QueryAtomicSwapsRequest) Reset()         { *m = QueryAtomicSwapsRequest
 func (m *QueryAtomicSwapsRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAtomicSwapsRequest) ProtoMessage()    {}
 func (*QueryAtomicSwapsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a5e4082d53c18bf6, []int{8}
+	return fileDescriptor_a5e4082d53c18bf6, []int{10}
 }
 func (m *QueryAtomicSwapsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -434,15 +638,15 @@ var xxx_messageInfo_QueryAtomicSwapsRequest proto.InternalMessageInfo
 // QueryAtomicSwapsResponse is the response type for the Query/AtomicSwaps RPC method.
 type QueryAtomicSwapsResponse struct {
 	// atomic_swap represents the returned atomic swaps for the request
-	AtomicSwaps []AugmentedAtomicSwap `protobuf:"bytes,1,rep,name=atomic_swaps,json=atomicSwaps,proto3" json:"atomic_swaps"`
-	Pagination  *query.PageResponse   `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	AtomicSwaps []AtomicSwapResponse `protobuf:"bytes,1,rep,name=atomic_swaps,json=atomicSwaps,proto3" json:"atomic_swaps"`
+	Pagination  *query.PageResponse  `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAtomicSwapsResponse) Reset()         { *m = QueryAtomicSwapsResponse{} }
 func (m *QueryAtomicSwapsResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAtomicSwapsResponse) ProtoMessage()    {}
 func (*QueryAtomicSwapsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a5e4082d53c18bf6, []int{9}
+	return fileDescriptor_a5e4082d53c18bf6, []int{11}
 }
 func (m *QueryAtomicSwapsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -471,7 +675,7 @@ func (m *QueryAtomicSwapsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAtomicSwapsResponse proto.InternalMessageInfo
 
-func (m *QueryAtomicSwapsResponse) GetAtomicSwaps() []AugmentedAtomicSwap {
+func (m *QueryAtomicSwapsResponse) GetAtomicSwaps() []AtomicSwapResponse {
 	if m != nil {
 		return m.AtomicSwaps
 	}
@@ -489,11 +693,13 @@ func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "kava.bep3.v1beta1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "kava.bep3.v1beta1.QueryParamsResponse")
 	proto.RegisterType((*QueryAssetSupplyRequest)(nil), "kava.bep3.v1beta1.QueryAssetSupplyRequest")
+	proto.RegisterType((*AssetSupplyResponse)(nil), "kava.bep3.v1beta1.AssetSupplyResponse")
 	proto.RegisterType((*QueryAssetSupplyResponse)(nil), "kava.bep3.v1beta1.QueryAssetSupplyResponse")
 	proto.RegisterType((*QueryAssetSuppliesRequest)(nil), "kava.bep3.v1beta1.QueryAssetSuppliesRequest")
 	proto.RegisterType((*QueryAssetSuppliesResponse)(nil), "kava.bep3.v1beta1.QueryAssetSuppliesResponse")
 	proto.RegisterType((*QueryAtomicSwapRequest)(nil), "kava.bep3.v1beta1.QueryAtomicSwapRequest")
 	proto.RegisterType((*QueryAtomicSwapResponse)(nil), "kava.bep3.v1beta1.QueryAtomicSwapResponse")
+	proto.RegisterType((*AtomicSwapResponse)(nil), "kava.bep3.v1beta1.AtomicSwapResponse")
 	proto.RegisterType((*QueryAtomicSwapsRequest)(nil), "kava.bep3.v1beta1.QueryAtomicSwapsRequest")
 	proto.RegisterType((*QueryAtomicSwapsResponse)(nil), "kava.bep3.v1beta1.QueryAtomicSwapsResponse")
 }
@@ -501,58 +707,82 @@ func init() {
 func init() { proto.RegisterFile("kava/bep3/v1beta1/query.proto", fileDescriptor_a5e4082d53c18bf6) }
 
 var fileDescriptor_a5e4082d53c18bf6 = []byte{
-	// 813 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x95, 0xcf, 0x4f, 0xdb, 0x48,
-	0x14, 0xc7, 0xe3, 0x40, 0xc2, 0x32, 0x01, 0xa4, 0x9d, 0x8d, 0x20, 0xc9, 0x82, 0x93, 0xb5, 0xb4,
-	0x21, 0xb0, 0x8b, 0x2d, 0x40, 0x55, 0xd5, 0x56, 0xaa, 0x0a, 0x42, 0x45, 0xa8, 0x52, 0x7f, 0x38,
-	0xb7, 0x5e, 0xa2, 0x49, 0x3c, 0x72, 0xad, 0x26, 0x1e, 0x93, 0x71, 0x02, 0x14, 0x71, 0xe9, 0xa9,
-	0xa7, 0xaa, 0x52, 0xab, 0x9e, 0xf9, 0x1b, 0x2a, 0xd4, 0xbf, 0x81, 0x23, 0x6a, 0x2f, 0xbd, 0x14,
-	0x55, 0xa1, 0x87, 0xfe, 0x19, 0x95, 0x67, 0xc6, 0xb1, 0x89, 0x0d, 0x89, 0xaa, 0xde, 0xe2, 0x37,
-	0xdf, 0xf7, 0xde, 0x67, 0xde, 0x7b, 0xf3, 0x02, 0x16, 0x9e, 0xa3, 0x2e, 0xd2, 0xea, 0xd8, 0x59,
-	0xd7, 0xba, 0xab, 0x75, 0xec, 0xa2, 0x55, 0x6d, 0xb7, 0x83, 0xdb, 0x07, 0xaa, 0xd3, 0x26, 0x2e,
-	0x81, 0x7f, 0x7a, 0xc7, 0xaa, 0x77, 0xac, 0x8a, 0xe3, 0xc2, 0x7c, 0xd4, 0x83, 0x9d, 0x33, 0x87,
-	0x42, 0xd6, 0x24, 0x26, 0x61, 0x3f, 0x35, 0xef, 0x97, 0xb0, 0xe6, 0x1b, 0x84, 0xb6, 0x08, 0xad,
-	0xf1, 0x03, 0xfe, 0x21, 0x8e, 0xe6, 0x4d, 0x42, 0xcc, 0x26, 0xd6, 0x90, 0x63, 0x69, 0xc8, 0xb6,
-	0x89, 0x8b, 0x5c, 0x8b, 0xd8, 0xfe, 0xe9, 0x32, 0xd7, 0x6a, 0x75, 0x44, 0x31, 0x07, 0xeb, 0x27,
-	0x75, 0x90, 0x69, 0xd9, 0x4c, 0xcc, 0xb5, 0x4a, 0x16, 0xc0, 0x27, 0x9e, 0xe2, 0x31, 0x6a, 0xa3,
-	0x16, 0xd5, 0xf1, 0x6e, 0x07, 0x53, 0x57, 0x79, 0x08, 0xfe, 0xba, 0x64, 0xa5, 0x0e, 0xb1, 0x29,
-	0x86, 0x37, 0x41, 0xda, 0x61, 0x96, 0x9c, 0x54, 0x92, 0x2a, 0x99, 0xb5, 0xbc, 0x1a, 0xb9, 0xa9,
-	0xca, 0x5d, 0x36, 0xc7, 0x4f, 0xcf, 0x8b, 0x09, 0x5d, 0xc8, 0x95, 0x5b, 0x60, 0x8e, 0xc5, 0xdb,
-	0xa0, 0x14, 0xbb, 0xd5, 0x8e, 0xe3, 0x34, 0x0f, 0x44, 0x2a, 0x98, 0x05, 0x29, 0x03, 0xdb, 0xa4,
-	0xc5, 0x42, 0x4e, 0xea, 0xfc, 0xe3, 0xf6, 0x1f, 0xaf, 0x8e, 0x8b, 0x89, 0x1f, 0xc7, 0xc5, 0x84,
-	0xd2, 0x00, 0xb9, 0xa8, 0xab, 0xe0, 0xd9, 0x06, 0x53, 0xc8, 0x33, 0xd7, 0x28, 0xb3, 0x0b, 0x2a,
-	0x39, 0x86, 0x2a, 0xe4, 0x2d, 0xd0, 0x32, 0x28, 0x30, 0x29, 0x2d, 0x90, 0x1f, 0x48, 0x62, 0x61,
-	0xbf, 0x18, 0xf0, 0x3e, 0x00, 0x41, 0xd9, 0x44, 0x8e, 0xb2, 0x2a, 0xfa, 0xe1, 0xd5, 0x58, 0xe5,
-	0xcd, 0x0f, 0x2a, 0x60, 0x62, 0xe1, 0xab, 0x87, 0x3c, 0x43, 0x77, 0xfa, 0x20, 0x81, 0x42, 0x5c,
-	0x3e, 0x71, 0xad, 0x07, 0x60, 0x26, 0x74, 0x2d, 0x0b, 0x7b, 0xe5, 0x1e, 0x1b, 0xf9, 0x62, 0xd3,
-	0x28, 0x1c, 0x14, 0x6e, 0x5f, 0xa2, 0x4f, 0x32, 0xfa, 0xc5, 0xa1, 0xf4, 0x9c, 0x24, 0x8c, 0xaf,
-	0xdc, 0x01, 0xb3, 0x9c, 0xd9, 0x25, 0x2d, 0xab, 0x51, 0xdd, 0x43, 0x8e, 0x5f, 0xa0, 0x39, 0x30,
-	0x41, 0xf7, 0x90, 0x53, 0xb3, 0x0c, 0xd1, 0xc4, 0xb4, 0xf7, 0xb9, 0x63, 0x84, 0x6e, 0xbc, 0xe7,
-	0x0f, 0x40, 0xc8, 0x59, 0xdc, 0x76, 0x16, 0x24, 0x7d, 0xc7, 0xcd, 0x74, 0xef, 0xbc, 0x98, 0xdc,
-	0xd9, 0xd2, 0x93, 0x96, 0x01, 0xb7, 0x40, 0x06, 0x31, 0x75, 0xcd, 0x8b, 0x26, 0xc8, 0x17, 0xe2,
-	0x4a, 0xd0, 0x8f, 0x29, 0x2a, 0x00, 0x50, 0xdf, 0xa2, 0x7c, 0x4c, 0x46, 0x32, 0xf7, 0x1b, 0xbb,
-	0x06, 0x26, 0x2c, 0xbb, 0x4b, 0x9a, 0x5d, 0x2c, 0xd2, 0xe7, 0x3e, 0x9d, 0xac, 0x64, 0x45, 0x69,
-	0x36, 0x0c, 0xa3, 0x8d, 0x29, 0xad, 0xba, 0x6d, 0xcb, 0x36, 0x75, 0x5f, 0x08, 0x65, 0x00, 0xf0,
-	0xbe, 0x63, 0xb5, 0x83, 0x72, 0x8e, 0xeb, 0x21, 0x0b, 0xbc, 0x01, 0xd2, 0xd4, 0x45, 0x6e, 0x87,
-	0xe6, 0xc6, 0x4a, 0x52, 0x65, 0x26, 0x16, 0xd8, 0x83, 0xa8, 0x32, 0x91, 0x2e, 0xc4, 0xf0, 0x2e,
-	0x98, 0x34, 0xac, 0x36, 0x6e, 0xb0, 0xa8, 0xe3, 0xcc, 0xb3, 0x74, 0x85, 0xe7, 0x96, 0xaf, 0xd3,
-	0x03, 0x97, 0x81, 0x19, 0x4d, 0xfd, 0x86, 0x19, 0x3d, 0x91, 0xfc, 0x87, 0x17, 0x2e, 0x9c, 0xe8,
-	0xd9, 0x23, 0x30, 0x15, 0xea, 0x8d, 0x3f, 0x9f, 0xe5, 0xb8, 0xe6, 0x74, 0xcc, 0x16, 0xb6, 0x5d,
-	0x6c, 0x44, 0xba, 0x94, 0x09, 0xba, 0x34, 0x38, 0xa5, 0x63, 0xbf, 0x3c, 0xa5, 0x6b, 0x5f, 0x53,
-	0x20, 0xc5, 0xb0, 0xe1, 0x0b, 0x90, 0xe6, 0xbb, 0x08, 0xfe, 0x1b, 0xc3, 0x15, 0x5d, 0x7a, 0x85,
-	0xf2, 0x30, 0x19, 0x4f, 0xa7, 0xfc, 0xf3, 0xf2, 0xf3, 0xf7, 0xb7, 0xc9, 0xbf, 0x61, 0x5e, 0x8b,
-	0x2e, 0x75, 0xbe, 0xef, 0xe0, 0x7b, 0x09, 0x64, 0x42, 0x2f, 0x13, 0x2e, 0x5f, 0x15, 0x3a, 0xba,
-	0x10, 0x0b, 0xff, 0x8d, 0xa4, 0x15, 0x2c, 0x2a, 0x63, 0xa9, 0xc0, 0x72, 0x0c, 0x0b, 0xdb, 0x03,
-	0x7c, 0x33, 0x6a, 0x87, 0x6c, 0xad, 0x1e, 0x79, 0x60, 0xd3, 0x97, 0x96, 0x0e, 0xfc, 0x7f, 0x78,
-	0xba, 0x60, 0x17, 0x16, 0x56, 0x46, 0x54, 0x0b, 0xbc, 0x0a, 0xc3, 0x53, 0x60, 0xe9, 0x5a, 0x3c,
-	0x0f, 0xe3, 0x9d, 0x04, 0x40, 0x30, 0x22, 0x70, 0xe9, 0xca, 0x3c, 0x83, 0xdb, 0xa7, 0xb0, 0x3c,
-	0x8a, 0x54, 0xf0, 0x68, 0x8c, 0x67, 0x09, 0x2e, 0xc6, 0xf1, 0x30, 0xb9, 0x37, 0xcf, 0xda, 0xa1,
-	0x58, 0x67, 0x47, 0xf0, 0xb5, 0xd7, 0xc8, 0xd0, 0x9c, 0x8e, 0x90, 0x8c, 0x0e, 0x6f, 0x64, 0xf4,
-	0x45, 0x29, 0x65, 0x46, 0x56, 0x82, 0xf2, 0xb5, 0x64, 0x74, 0xf3, 0xde, 0x69, 0x4f, 0x96, 0xce,
-	0x7a, 0xb2, 0xf4, 0xad, 0x27, 0x4b, 0x6f, 0x2e, 0xe4, 0xc4, 0xd9, 0x85, 0x9c, 0xf8, 0x72, 0x21,
-	0x27, 0x9e, 0x96, 0x4d, 0xcb, 0x7d, 0xd6, 0xa9, 0xab, 0x0d, 0xd2, 0x62, 0x31, 0x56, 0x9a, 0xa8,
-	0x4e, 0x79, 0xb4, 0x7d, 0x1e, 0xcf, 0x3d, 0x70, 0x30, 0xad, 0xa7, 0xd9, 0x1f, 0xff, 0xfa, 0xcf,
-	0x00, 0x00, 0x00, 0xff, 0xff, 0x9f, 0xd4, 0x95, 0x08, 0xc5, 0x08, 0x00, 0x00,
+	// 1196 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0xcf, 0x6f, 0x1b, 0x45,
+	0x14, 0xf6, 0x3a, 0xb6, 0x1b, 0x3f, 0x3b, 0x01, 0xa6, 0x81, 0x3a, 0x6e, 0x6b, 0xbb, 0x8b, 0x48,
+	0xdd, 0xd2, 0x78, 0xdb, 0x54, 0x80, 0x00, 0x09, 0x51, 0xb7, 0x94, 0x22, 0x55, 0x2d, 0x6c, 0x6e,
+	0x5c, 0x56, 0xe3, 0xdd, 0x61, 0x3d, 0x8a, 0x77, 0x67, 0xbb, 0xb3, 0x4e, 0x5b, 0xaa, 0x1e, 0xe0,
+	0x04, 0x17, 0x84, 0x04, 0x42, 0x1c, 0x7b, 0xe6, 0x0a, 0xe2, 0xc0, 0x1f, 0x80, 0x7a, 0xac, 0xe0,
+	0x82, 0x90, 0x68, 0x51, 0xc2, 0x81, 0x3f, 0x03, 0xcd, 0x8f, 0xb5, 0xd7, 0xb1, 0xf3, 0x0b, 0xe5,
+	0x94, 0xec, 0x7b, 0xef, 0x7b, 0xdf, 0xf7, 0xc6, 0xef, 0xbd, 0x19, 0x38, 0xbd, 0x81, 0x37, 0xb1,
+	0xd5, 0x23, 0xd1, 0x65, 0x6b, 0xf3, 0x52, 0x8f, 0x24, 0xf8, 0x92, 0x75, 0x67, 0x48, 0xe2, 0xfb,
+	0x9d, 0x28, 0x66, 0x09, 0x43, 0x2f, 0x08, 0x77, 0x47, 0xb8, 0x3b, 0xda, 0x5d, 0x3f, 0x35, 0x8d,
+	0x90, 0x7e, 0x09, 0xa8, 0x2f, 0xf9, 0xcc, 0x67, 0xf2, 0x5f, 0x4b, 0xfc, 0xa7, 0xad, 0xcb, 0x2e,
+	0xe3, 0x01, 0xe3, 0x8e, 0x72, 0xa8, 0x0f, 0xed, 0x3a, 0xe5, 0x33, 0xe6, 0x0f, 0x88, 0x85, 0x23,
+	0x6a, 0xe1, 0x30, 0x64, 0x09, 0x4e, 0x28, 0x0b, 0x53, 0x6f, 0x43, 0xc5, 0x5a, 0x3d, 0xcc, 0xc9,
+	0x88, 0xce, 0x65, 0x34, 0x4c, 0xfd, 0x1a, 0x2d, 0xbf, 0x7a, 0xc3, 0x4f, 0x2c, 0x6f, 0x18, 0xcb,
+	0x04, 0xda, 0x7f, 0x3e, 0x8b, 0x97, 0x85, 0x8d, 0xb2, 0x44, 0xd8, 0xa7, 0x61, 0x26, 0xd6, 0x5c,
+	0x02, 0xf4, 0x91, 0x88, 0xf8, 0x10, 0xc7, 0x38, 0xe0, 0x36, 0xb9, 0x33, 0x24, 0x3c, 0x31, 0x6f,
+	0xc1, 0xf1, 0x09, 0x2b, 0x8f, 0x58, 0xc8, 0x09, 0x7a, 0x03, 0x4a, 0x91, 0xb4, 0xd4, 0x8c, 0x96,
+	0xd1, 0xae, 0xac, 0x2d, 0x77, 0xa6, 0x4e, 0xaa, 0xa3, 0x20, 0xdd, 0xc2, 0xe3, 0xa7, 0xcd, 0x9c,
+	0xad, 0xc3, 0xcd, 0x37, 0xe1, 0x84, 0xcc, 0x77, 0x85, 0x73, 0x92, 0xac, 0x0f, 0xa3, 0x68, 0x70,
+	0x5f, 0x53, 0xa1, 0x25, 0x28, 0x7a, 0x24, 0x64, 0x81, 0x4c, 0x59, 0xb6, 0xd5, 0xc7, 0x5b, 0xf3,
+	0x5f, 0x3c, 0x6a, 0xe6, 0xfe, 0x7d, 0xd4, 0xcc, 0x99, 0xbf, 0x16, 0xe0, 0xf8, 0x04, 0x4c, 0x6b,
+	0xe1, 0xf0, 0x1c, 0x0d, 0x5d, 0x16, 0xd0, 0xd0, 0x77, 0xb8, 0x74, 0x8d, 0x44, 0xe9, 0xa3, 0x16,
+	0xe5, 0x8f, 0x64, 0x5d, 0x65, 0x34, 0xec, 0x5a, 0x42, 0xd4, 0x9f, 0x4f, 0x9b, 0x67, 0x7d, 0x9a,
+	0xf4, 0x87, 0xbd, 0x8e, 0xcb, 0x02, 0xfd, 0xbb, 0xe8, 0x3f, 0xab, 0xdc, 0xdb, 0xb0, 0x92, 0xfb,
+	0x11, 0xe1, 0x12, 0x60, 0x2f, 0xa6, 0x14, 0x8a, 0x5c, 0x90, 0xb2, 0x61, 0xe2, 0xb3, 0x0c, 0x69,
+	0xfe, 0xe8, 0x49, 0x53, 0x0a, 0x4d, 0x7a, 0x07, 0x16, 0xdd, 0x61, 0x1c, 0x93, 0x30, 0x49, 0x39,
+	0xe7, 0x8e, 0x9c, 0x73, 0x41, 0x33, 0x68, 0xca, 0x2f, 0x0d, 0x38, 0x99, 0xd0, 0x80, 0x38, 0x03,
+	0x1a, 0xd0, 0x84, 0x78, 0xce, 0x0e, 0x01, 0x85, 0x23, 0x17, 0x50, 0x13, 0x74, 0x37, 0x15, 0xdb,
+	0xd5, 0x09, 0x2d, 0xd7, 0xa1, 0x2a, 0xa5, 0x90, 0x01, 0x8e, 0x38, 0xf1, 0x6a, 0x45, 0xcd, 0xad,
+	0x86, 0xa0, 0x93, 0x0e, 0x41, 0xe7, 0x9a, 0x1e, 0x82, 0xee, 0xbc, 0xe0, 0xfe, 0xfe, 0x59, 0xd3,
+	0xb0, 0x2b, 0x02, 0xf8, 0x9e, 0xc2, 0x99, 0x1b, 0x50, 0x9b, 0xee, 0x41, 0xdd, 0x4c, 0xb7, 0xa1,
+	0x8a, 0x85, 0x79, 0xb2, 0x93, 0x56, 0x66, 0xb4, 0xf7, 0x0c, 0xb4, 0xee, 0xf5, 0x0a, 0x1e, 0xbb,
+	0xcc, 0x00, 0x96, 0x77, 0x90, 0x51, 0x92, 0x4e, 0x17, 0xba, 0x0e, 0x30, 0x9e, 0xc3, 0x11, 0x57,
+	0xf6, 0x2c, 0xd5, 0x36, 0x1a, 0x8f, 0x94, 0x4f, 0x34, 0xd6, 0xce, 0x20, 0x33, 0x43, 0xf2, 0x8b,
+	0x01, 0xf5, 0x59, 0x7c, 0xba, 0xbc, 0x75, 0x58, 0xcc, 0x94, 0x47, 0x89, 0x98, 0xdf, 0xb9, 0x43,
+	0x17, 0xb8, 0x80, 0xb3, 0xc9, 0xd1, 0xfb, 0x13, 0x55, 0xa8, 0x31, 0x38, 0xbb, 0x6f, 0x15, 0x2a,
+	0x63, 0xb6, 0x0c, 0xf3, 0x6d, 0x78, 0x49, 0x69, 0x4f, 0x58, 0x40, 0xdd, 0xf5, 0xbb, 0x38, 0x4a,
+	0x0f, 0xea, 0x04, 0x1c, 0xe3, 0x77, 0x71, 0xe4, 0x50, 0x4f, 0x6f, 0x87, 0x92, 0xf8, 0xfc, 0xc0,
+	0xcb, 0x54, 0xee, 0xa7, 0x9b, 0x25, 0x03, 0xd6, 0x55, 0xdf, 0x84, 0x0a, 0x96, 0x56, 0x47, 0xa0,
+	0xb4, 0xc2, 0x57, 0x66, 0x95, 0x3c, 0x85, 0xd5, 0x15, 0x03, 0x1e, 0x79, 0xcc, 0xcf, 0x8a, 0x80,
+	0x66, 0x90, 0x2c, 0x42, 0x7e, 0xa4, 0x2e, 0x4f, 0x3d, 0xe4, 0x42, 0x09, 0x07, 0x6c, 0x18, 0x26,
+	0xb5, 0xbc, 0x3c, 0xe2, 0x3d, 0x66, 0xe4, 0xa2, 0xe0, 0xf8, 0xe1, 0x59, 0xb3, 0x7d, 0xc0, 0x19,
+	0xe1, 0xb6, 0x4e, 0x8d, 0x2e, 0x00, 0x8a, 0x71, 0xe8, 0xb1, 0xc0, 0x09, 0x87, 0x41, 0x8f, 0xc4,
+	0x4e, 0x1f, 0xf3, 0xbe, 0xdc, 0x0a, 0x65, 0xfb, 0x79, 0xe5, 0xb9, 0x25, 0x1d, 0x37, 0x30, 0xef,
+	0xa3, 0x97, 0x61, 0x81, 0xdc, 0x8b, 0x68, 0x4c, 0x9c, 0x3e, 0xa1, 0x7e, 0x3f, 0x91, 0xd3, 0x5b,
+	0xb0, 0xab, 0xca, 0x78, 0x43, 0xda, 0xd0, 0x29, 0x28, 0x8b, 0x61, 0xe1, 0x09, 0x0e, 0x22, 0x39,
+	0x62, 0x73, 0xf6, 0xd8, 0x80, 0x2e, 0x42, 0x89, 0x93, 0xd0, 0x23, 0x71, 0xad, 0x24, 0x48, 0xba,
+	0xb5, 0xdf, 0x7e, 0x5a, 0x5d, 0xd2, 0x85, 0x5d, 0xf1, 0xbc, 0x98, 0x70, 0xbe, 0x9e, 0xc4, 0x34,
+	0xf4, 0x6d, 0x1d, 0x87, 0x5e, 0x87, 0x72, 0x4c, 0x5c, 0x1a, 0x51, 0x12, 0x26, 0xb5, 0x63, 0xfb,
+	0x80, 0xc6, 0xa1, 0xa2, 0x34, 0x95, 0xc1, 0x61, 0x49, 0x9f, 0xc4, 0x8e, 0xdb, 0xc7, 0x34, 0xac,
+	0xcd, 0xab, 0xd2, 0x94, 0xe7, 0xb6, 0x70, 0x5c, 0x15, 0x76, 0xb4, 0x06, 0x2f, 0x8e, 0xa0, 0x13,
+	0x80, 0xb2, 0x04, 0x1c, 0x1f, 0x39, 0x33, 0x98, 0x33, 0x50, 0x75, 0x07, 0x8c, 0x13, 0xcf, 0xe9,
+	0x0d, 0x98, 0xbb, 0x51, 0x03, 0x59, 0x6c, 0x45, 0xd9, 0xba, 0xc2, 0x84, 0x5e, 0x83, 0x12, 0x4f,
+	0x70, 0x32, 0xe4, 0xb5, 0x4a, 0xcb, 0x68, 0x2f, 0xae, 0x9d, 0x9e, 0xd1, 0x34, 0xa2, 0x0b, 0xd6,
+	0x65, 0x90, 0xad, 0x83, 0x51, 0x13, 0x2a, 0x6e, 0xcc, 0x38, 0xd7, 0x1a, 0xaa, 0x2d, 0xa3, 0x3d,
+	0x6f, 0x83, 0x34, 0x29, 0xea, 0x77, 0xa0, 0xec, 0xd1, 0x98, 0xb8, 0x72, 0x62, 0x16, 0x64, 0xea,
+	0xd6, 0x2e, 0xa9, 0xaf, 0xa5, 0x71, 0xf6, 0x18, 0x62, 0xfe, 0x9c, 0x9f, 0xea, 0xf6, 0xd1, 0x52,
+	0x59, 0x83, 0x63, 0x34, 0xdc, 0x64, 0x83, 0x4d, 0xa2, 0xba, 0x71, 0x8f, 0xe3, 0x4e, 0x03, 0x51,
+	0x03, 0x40, 0x36, 0xc1, 0x78, 0x84, 0x0b, 0x76, 0xc6, 0x92, 0x39, 0x87, 0xb9, 0xc3, 0x9c, 0xc3,
+	0x44, 0x99, 0x85, 0x43, 0x97, 0xb9, 0x63, 0x3f, 0x16, 0x8f, 0x60, 0x3f, 0xfe, 0x68, 0xa4, 0xcb,
+	0x3f, 0x7b, 0x70, 0x7a, 0x84, 0x6f, 0x41, 0x35, 0xb3, 0x27, 0xd2, 0xdd, 0x78, 0xa8, 0x45, 0x51,
+	0x19, 0x2f, 0x8a, 0x9d, 0x8b, 0x71, 0xee, 0x7f, 0x2f, 0xc6, 0xb5, 0xbf, 0x8a, 0x50, 0x94, 0xaa,
+	0xd1, 0xa7, 0x50, 0x52, 0xef, 0x2a, 0x34, 0x4b, 0xd6, 0xf4, 0x03, 0xae, 0xbe, 0xb2, 0x5f, 0x98,
+	0xa2, 0x33, 0xcf, 0x7c, 0xfe, 0xfb, 0x3f, 0xdf, 0xe4, 0x4f, 0xa2, 0x65, 0x6b, 0xfa, 0x81, 0xab,
+	0xde, 0x6e, 0xe8, 0x3b, 0x03, 0x2a, 0x99, 0x4b, 0x01, 0x9d, 0xdf, 0x2d, 0xf5, 0xf4, 0xe3, 0xae,
+	0xfe, 0xea, 0x81, 0x62, 0xb5, 0x96, 0x8e, 0xd4, 0xd2, 0x46, 0x2b, 0x33, 0xb4, 0xc8, 0xab, 0x47,
+	0x5d, 0xce, 0xd6, 0x03, 0xf9, 0x44, 0x7c, 0x28, 0x84, 0x2d, 0x4c, 0xdc, 0x77, 0xe8, 0xc2, 0xfe,
+	0x74, 0xe3, 0x6b, 0xb8, 0xbe, 0x7a, 0xc0, 0x68, 0x2d, 0xaf, 0x2d, 0xe5, 0x99, 0xa8, 0xb5, 0xa7,
+	0x3c, 0x21, 0xe3, 0x5b, 0x03, 0x60, 0xdc, 0x2a, 0xe8, 0xdc, 0xae, 0x3c, 0x3b, 0x2f, 0xbc, 0xfa,
+	0xf9, 0x83, 0x84, 0x6a, 0x3d, 0x96, 0xd4, 0x73, 0x0e, 0x9d, 0x9d, 0xa5, 0x47, 0x86, 0x8b, 0x76,
+	0xb6, 0x1e, 0xe8, 0x1b, 0xf4, 0x21, 0xfa, 0x4a, 0xfc, 0x90, 0x99, 0x3e, 0x3d, 0x00, 0x19, 0xdf,
+	0xff, 0x87, 0x9c, 0x1e, 0x28, 0x73, 0x45, 0x2a, 0x6b, 0xa1, 0xc6, 0x9e, 0xca, 0x78, 0xf7, 0xdd,
+	0xc7, 0x5b, 0x0d, 0xe3, 0xc9, 0x56, 0xc3, 0xf8, 0x7b, 0xab, 0x61, 0x7c, 0xbd, 0xdd, 0xc8, 0x3d,
+	0xd9, 0x6e, 0xe4, 0xfe, 0xd8, 0x6e, 0xe4, 0x3e, 0x5e, 0xc9, 0x5c, 0x89, 0x22, 0xc7, 0xea, 0x00,
+	0xf7, 0xb8, 0xca, 0x76, 0x4f, 0xe5, 0x93, 0xd7, 0x62, 0xaf, 0x24, 0x5f, 0x7f, 0x97, 0xff, 0x0b,
+	0x00, 0x00, 0xff, 0xff, 0xc3, 0x33, 0x73, 0xe2, 0xd1, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -875,6 +1105,77 @@ func (m *QueryAssetSupplyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *AssetSupplyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AssetSupplyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *AssetSupplyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	n2, err2 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.TimeElapsed, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.TimeElapsed):])
+	if err2 != nil {
+		return 0, err2
+	}
+	i -= n2
+	i = encodeVarintQuery(dAtA, i, uint64(n2))
+	i--
+	dAtA[i] = 0x2a
+	{
+		size := m.TimeLimitedCurrentSupply.Size()
+		i -= size
+		if _, err := m.TimeLimitedCurrentSupply.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	{
+		size := m.CurrentSupply.Size()
+		i -= size
+		if _, err := m.CurrentSupply.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	{
+		size := m.OutgoingSupply.Size()
+		i -= size
+		if _, err := m.OutgoingSupply.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	{
+		size := m.IncomingSupply.Size()
+		i -= size
+		if _, err := m.IncomingSupply.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
 func (m *QueryAssetSupplyResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1052,10 +1353,117 @@ func (m *QueryAtomicSwapResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	}
 	i--
 	dAtA[i] = 0x12
-	if len(m.ID) > 0 {
-		i -= len(m.ID)
-		copy(dAtA[i:], m.ID)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.ID)))
+	return len(dAtA) - i, nil
+}
+
+func (m *AtomicSwapResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AtomicSwapResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *AtomicSwapResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Direction != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Direction))
+		i--
+		dAtA[i] = 0x68
+	}
+	if m.CrossChain {
+		i--
+		if m.CrossChain {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x60
+	}
+	if m.Status != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x58
+	}
+	if m.ClosedBlock != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.ClosedBlock))
+		i--
+		dAtA[i] = 0x50
+	}
+	if len(m.RecipientOtherChain) > 0 {
+		i -= len(m.RecipientOtherChain)
+		copy(dAtA[i:], m.RecipientOtherChain)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RecipientOtherChain)))
+		i--
+		dAtA[i] = 0x4a
+	}
+	if len(m.SenderOtherChain) > 0 {
+		i -= len(m.SenderOtherChain)
+		copy(dAtA[i:], m.SenderOtherChain)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.SenderOtherChain)))
+		i--
+		dAtA[i] = 0x42
+	}
+	if len(m.Recipient) > 0 {
+		i -= len(m.Recipient)
+		copy(dAtA[i:], m.Recipient)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Recipient)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.Timestamp != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Timestamp))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.ExpireHeight != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.ExpireHeight))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.RandomNumberHash) > 0 {
+		i -= len(m.RandomNumberHash)
+		copy(dAtA[i:], m.RandomNumberHash)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RandomNumberHash)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Amount) > 0 {
+		for iNdEx := len(m.Amount) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Amount[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Id)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1212,6 +1620,25 @@ func (m *QueryAssetSupplyRequest) Size() (n int) {
 	return n
 }
 
+func (m *AssetSupplyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.IncomingSupply.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.OutgoingSupply.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.CurrentSupply.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.TimeLimitedCurrentSupply.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.TimeElapsed)
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
 func (m *QueryAssetSupplyResponse) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1274,12 +1701,65 @@ func (m *QueryAtomicSwapResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.ID)
+	l = m.AtomicSwap.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *AtomicSwapResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Id)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
-	l = m.AtomicSwap.Size()
-	n += 1 + l + sovQuery(uint64(l))
+	if len(m.Amount) > 0 {
+		for _, e := range m.Amount {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	l = len(m.RandomNumberHash)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.ExpireHeight != 0 {
+		n += 1 + sovQuery(uint64(m.ExpireHeight))
+	}
+	if m.Timestamp != 0 {
+		n += 1 + sovQuery(uint64(m.Timestamp))
+	}
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.Recipient)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.SenderOtherChain)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.RecipientOtherChain)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.ClosedBlock != 0 {
+		n += 1 + sovQuery(uint64(m.ClosedBlock))
+	}
+	if m.Status != 0 {
+		n += 1 + sovQuery(uint64(m.Status))
+	}
+	if m.CrossChain {
+		n += 2
+	}
+	if m.Direction != 0 {
+		n += 1 + sovQuery(uint64(m.Direction))
+	}
 	return n
 }
 
@@ -1549,6 +2029,221 @@ func (m *QueryAssetSupplyRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *AssetSupplyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AssetSupplyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AssetSupplyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IncomingSupply", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.IncomingSupply.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OutgoingSupply", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.OutgoingSupply.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CurrentSupply", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.CurrentSupply.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeLimitedCurrentSupply", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TimeLimitedCurrentSupply.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeElapsed", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.TimeElapsed, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *QueryAssetSupplyResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1776,7 +2471,7 @@ func (m *QueryAssetSuppliesResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.AssetSupplies = append(m.AssetSupplies, AssetSupply{})
+			m.AssetSupplies = append(m.AssetSupplies, AssetSupplyResponse{})
 			if err := m.AssetSupplies[len(m.AssetSupplies)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1949,38 +2644,6 @@ func (m *QueryAtomicSwapResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: QueryAtomicSwapResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ID = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AtomicSwap", wireType)
@@ -2014,6 +2677,397 @@ func (m *QueryAtomicSwapResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AtomicSwapResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AtomicSwapResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AtomicSwapResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Amount = append(m.Amount, types.Coin{})
+			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RandomNumberHash", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RandomNumberHash = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExpireHeight", wireType)
+			}
+			m.ExpireHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ExpireHeight |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Timestamp", wireType)
+			}
+			m.Timestamp = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Timestamp |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Recipient", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Recipient = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SenderOtherChain", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SenderOtherChain = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RecipientOtherChain", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RecipientOtherChain = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ClosedBlock", wireType)
+			}
+			m.ClosedBlock = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ClosedBlock |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 11:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= SwapStatus(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 12:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CrossChain", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.CrossChain = bool(v != 0)
+		case 13:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Direction", wireType)
+			}
+			m.Direction = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Direction |= SwapDirection(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -2268,7 +3322,7 @@ func (m *QueryAtomicSwapsResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.AtomicSwaps = append(m.AtomicSwaps, AugmentedAtomicSwap{})
+			m.AtomicSwaps = append(m.AtomicSwaps, AtomicSwapResponse{})
 			if err := m.AtomicSwaps[len(m.AtomicSwaps)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

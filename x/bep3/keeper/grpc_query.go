@@ -40,7 +40,7 @@ func (k Keeper) AssetSupply(ctx context.Context, req *types.QueryAssetSupplyRequ
 		return nil, status.Errorf(codes.NotFound, "denom not found")
 	}
 
-	return &types.QueryAssetSupplyResponse{AssetSupply: assetSupply}, nil
+	return &types.QueryAssetSupplyResponse{AssetSupply: mapAssetSupplyToResponse(assetSupply)}, nil
 }
 
 // AssetSupplies queries a list of asset supplies
@@ -52,7 +52,7 @@ func (k Keeper) AssetSupplies(ctx context.Context, req *types.QueryAssetSupplies
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.AssetSupplyPrefix)
 
-	var queryResults []types.AssetSupply
+	var queryResults []types.AssetSupplyResponse
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, shouldAccumulate bool) (bool, error) {
 		var assetSupply types.AssetSupply
 		err := k.cdc.Unmarshal(value, &assetSupply)
@@ -61,7 +61,7 @@ func (k Keeper) AssetSupplies(ctx context.Context, req *types.QueryAssetSupplies
 		}
 
 		if shouldAccumulate {
-			queryResults = append(queryResults, assetSupply)
+			queryResults = append(queryResults, mapAssetSupplyToResponse(assetSupply))
 		}
 		return true, nil
 	})
@@ -93,8 +93,7 @@ func (k Keeper) AtomicSwap(ctx context.Context, req *types.QueryAtomicSwapReques
 	}
 
 	return &types.QueryAtomicSwapResponse{
-		ID:         atomicSwap.GetSwapID().String(),
-		AtomicSwap: atomicSwap,
+		AtomicSwap: mapAtomicSwapToResponse(atomicSwap),
 	}, nil
 }
 
@@ -107,7 +106,7 @@ func (k Keeper) AtomicSwaps(ctx context.Context, req *types.QueryAtomicSwapsRequ
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.AtomicSwapKeyPrefix)
 
-	var queryResults []types.AugmentedAtomicSwap
+	var queryResults []types.AtomicSwapResponse
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, shouldAccumulate bool) (bool, error) {
 		var atomicSwap types.AtomicSwap
 		err := k.cdc.Unmarshal(value, &atomicSwap)
@@ -143,8 +142,7 @@ func (k Keeper) AtomicSwaps(ctx context.Context, req *types.QueryAtomicSwapsRequ
 		}
 
 		if shouldAccumulate {
-			augmented := types.NewAugmentedAtomicSwap(atomicSwap)
-			queryResults = append(queryResults, augmented)
+			queryResults = append(queryResults, mapAtomicSwapToResponse(atomicSwap))
 		}
 		return true, nil
 	})
@@ -156,4 +154,32 @@ func (k Keeper) AtomicSwaps(ctx context.Context, req *types.QueryAtomicSwapsRequ
 		AtomicSwaps: queryResults,
 		Pagination:  pageRes,
 	}, nil
+}
+
+func mapAssetSupplyToResponse(assetSupply types.AssetSupply) types.AssetSupplyResponse {
+	return types.AssetSupplyResponse{
+		IncomingSupply:           assetSupply.IncomingSupply,
+		OutgoingSupply:           assetSupply.OutgoingSupply,
+		CurrentSupply:            assetSupply.CurrentSupply,
+		TimeLimitedCurrentSupply: assetSupply.TimeLimitedCurrentSupply,
+		TimeElapsed:              assetSupply.TimeElapsed,
+	}
+}
+
+func mapAtomicSwapToResponse(atomicSwap types.AtomicSwap) types.AtomicSwapResponse {
+	return types.AtomicSwapResponse{
+		Id:                  atomicSwap.GetSwapID().String(),
+		Amount:              atomicSwap.Amount,
+		RandomNumberHash:    atomicSwap.RandomNumberHash.String(),
+		ExpireHeight:        atomicSwap.ExpireHeight,
+		Timestamp:           atomicSwap.Timestamp,
+		Sender:              atomicSwap.Sender.String(),
+		Recipient:           atomicSwap.Recipient.String(),
+		SenderOtherChain:    atomicSwap.SenderOtherChain,
+		RecipientOtherChain: atomicSwap.RecipientOtherChain,
+		ClosedBlock:         atomicSwap.ClosedBlock,
+		Status:              atomicSwap.Status,
+		CrossChain:          atomicSwap.CrossChain,
+		Direction:           atomicSwap.Direction,
+	}
 }
