@@ -157,14 +157,65 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryCdps_InvalidCollateralType() {
 	suite.Require().Equal("rpc error: code = InvalidArgument desc = invalid collateral type", err.Error())
 }
 
-func (suite *grpcQueryTestSuite) TestGrpcQueryCdp_InvalidCollateralType() {
-	_, err := suite.queryServer.Cdp(sdk.WrapSDKContext(suite.ctx), &types.QueryCdpRequest{
-		CollateralType: "kava-a",
-	})
-	suite.Require().Error(err)
-	suite.Require().Equal("kava-a: invalid collateral for input collateral type", err.Error())
-}
+func (suite *grpcQueryTestSuite) TestGrpcQueryCdp() {
+	suite.addCdp()
 
+	tests := []struct {
+		giveName     string
+		giveRequest  types.QueryCdpRequest
+		wantAccepted bool
+		wantErr      string
+	}{
+		{
+			"valid",
+			types.QueryCdpRequest{
+				CollateralType: "xrp-a",
+				Owner:          suite.addrs[0].String(),
+			},
+			true,
+			"",
+		},
+		{
+			"invalid collateral",
+			types.QueryCdpRequest{
+				CollateralType: "kava-a",
+				Owner:          suite.addrs[0].String(),
+			},
+			false,
+			"kava-a: invalid collateral for input collateral type",
+		},
+		{
+			"missing owner",
+			types.QueryCdpRequest{
+				CollateralType: "xrp-a",
+			},
+			false,
+			"rpc error: code = InvalidArgument desc = invalid address",
+		},
+		{
+			"invalid owner",
+			types.QueryCdpRequest{
+				CollateralType: "xrp-a",
+				Owner:          "invalid addr",
+			},
+			false,
+			"rpc error: code = InvalidArgument desc = invalid address",
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.giveName, func() {
+			_, err := suite.queryServer.Cdp(sdk.WrapSDKContext(suite.ctx), &tt.giveRequest)
+
+			if tt.wantAccepted {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Equal(tt.wantErr, err.Error())
+			}
+		})
+	}
+}
 func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 	suite.addCdp()
 
