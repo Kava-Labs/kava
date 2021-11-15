@@ -53,6 +53,33 @@
   
     - [Msg](#kava.cdp.v1beta1.Msg)
   
+- [kava/committee/v1beta1/committee.proto](#kava/committee/v1beta1/committee.proto)
+    - [BaseCommittee](#kava.committee.v1beta1.BaseCommittee)
+    - [MemberCommittee](#kava.committee.v1beta1.MemberCommittee)
+    - [TokenCommittee](#kava.committee.v1beta1.TokenCommittee)
+  
+    - [TallyOption](#kava.committee.v1beta1.TallyOption)
+  
+- [kava/committee/v1beta1/genesis.proto](#kava/committee/v1beta1/genesis.proto)
+    - [GenesisState](#kava.committee.v1beta1.GenesisState)
+    - [Proposal](#kava.committee.v1beta1.Proposal)
+    - [Vote](#kava.committee.v1beta1.Vote)
+  
+    - [VoteType](#kava.committee.v1beta1.VoteType)
+  
+- [kava/committee/v1beta1/permissions.proto](#kava/committee/v1beta1/permissions.proto)
+    - [GodPermission](#kava.committee.v1beta1.GodPermission)
+    - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
+    - [TextPermission](#kava.committee.v1beta1.TextPermission)
+  
+- [kava/committee/v1beta1/proposal.proto](#kava/committee/v1beta1/proposal.proto)
+    - [CommitteeChangeProposal](#kava.committee.v1beta1.CommitteeChangeProposal)
+    - [CommitteeDeleteProposal](#kava.committee.v1beta1.CommitteeDeleteProposal)
+  
+- [kava/committee/v1beta1/tx.proto](#kava/committee/v1beta1/tx.proto)
+    - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
+    - [MsgVote](#kava.committee.v1beta1.MsgVote)
+  
 - [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
     - [Asset](#kava.issuance.v1beta1.Asset)
     - [AssetSupply](#kava.issuance.v1beta1.AssetSupply)
@@ -130,6 +157,39 @@
     - [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse)
   
     - [Msg](#kava.pricefeed.v1beta1.Msg)
+  
+- [kava/swap/v1beta1/swap.proto](#kava/swap/v1beta1/swap.proto)
+    - [AllowedPool](#kava.swap.v1beta1.AllowedPool)
+    - [Params](#kava.swap.v1beta1.Params)
+    - [PoolRecord](#kava.swap.v1beta1.PoolRecord)
+    - [ShareRecord](#kava.swap.v1beta1.ShareRecord)
+  
+- [kava/swap/v1beta1/genesis.proto](#kava/swap/v1beta1/genesis.proto)
+    - [GenesisState](#kava.swap.v1beta1.GenesisState)
+  
+- [kava/swap/v1beta1/query.proto](#kava/swap/v1beta1/query.proto)
+    - [DepositResponse](#kava.swap.v1beta1.DepositResponse)
+    - [PoolResponse](#kava.swap.v1beta1.PoolResponse)
+    - [QueryDepositsRequest](#kava.swap.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.swap.v1beta1.QueryDepositsResponse)
+    - [QueryParamsRequest](#kava.swap.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.swap.v1beta1.QueryParamsResponse)
+    - [QueryPoolsRequest](#kava.swap.v1beta1.QueryPoolsRequest)
+    - [QueryPoolsResponse](#kava.swap.v1beta1.QueryPoolsResponse)
+  
+    - [Query](#kava.swap.v1beta1.Query)
+  
+- [kava/swap/v1beta1/tx.proto](#kava/swap/v1beta1/tx.proto)
+    - [MsgDeposit](#kava.swap.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.swap.v1beta1.MsgDepositResponse)
+    - [MsgSwapExactForTokens](#kava.swap.v1beta1.MsgSwapExactForTokens)
+    - [MsgSwapExactForTokensResponse](#kava.swap.v1beta1.MsgSwapExactForTokensResponse)
+    - [MsgSwapForExactTokens](#kava.swap.v1beta1.MsgSwapForExactTokens)
+    - [MsgSwapForExactTokensResponse](#kava.swap.v1beta1.MsgSwapForExactTokensResponse)
+    - [MsgWithdraw](#kava.swap.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.swap.v1beta1.MsgWithdrawResponse)
+  
+    - [Msg](#kava.swap.v1beta1.Msg)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -814,6 +874,317 @@ Msg defines the cdp Msg service.
 | `DrawDebt` | [MsgDrawDebt](#kava.cdp.v1beta1.MsgDrawDebt) | [MsgDrawDebtResponse](#kava.cdp.v1beta1.MsgDrawDebtResponse) | DrawDebt defines a method to draw debt from a CDP. | |
 | `RepayDebt` | [MsgRepayDebt](#kava.cdp.v1beta1.MsgRepayDebt) | [MsgRepayDebtResponse](#kava.cdp.v1beta1.MsgRepayDebtResponse) | RepayDebt defines a method to repay debt from a CDP. | |
 | `Liquidate` | [MsgLiquidate](#kava.cdp.v1beta1.MsgLiquidate) | [MsgLiquidateResponse](#kava.cdp.v1beta1.MsgLiquidateResponse) | Liquidate defines a method to attempt to liquidate a CDP whos collateralization ratio is under its liquidation ratio. | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/committee.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/committee.proto
+
+
+
+<a name="kava.committee.v1beta1.BaseCommittee"></a>
+
+### BaseCommittee
+BaseCommittee is a common type shared by all Committees
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+| `description` | [string](#string) |  |  |
+| `members` | [bytes](#bytes) | repeated |  |
+| `permissions` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `vote_threshold` | [string](#string) |  | Smallest percentage that must vote for a proposal to pass |
+| `proposal_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  | The length of time a proposal remains active for. Proposals will close earlier if they get enough votes. |
+| `tally_option` | [TallyOption](#kava.committee.v1beta1.TallyOption) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.MemberCommittee"></a>
+
+### MemberCommittee
+MemberCommittee is an alias of BaseCommittee
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_committee` | [BaseCommittee](#kava.committee.v1beta1.BaseCommittee) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.TokenCommittee"></a>
+
+### TokenCommittee
+TokenCommittee supports voting on proposals by token holders
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_committee` | [BaseCommittee](#kava.committee.v1beta1.BaseCommittee) |  |  |
+| `quorum` | [string](#string) |  |  |
+| `tally_denom` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.committee.v1beta1.TallyOption"></a>
+
+### TallyOption
+TallyOption enumerates the valid types of a tally.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| TALLY_OPTION_UNSPECIFIED | 0 | TALLY_OPTION_UNSPECIFIED defines a null tally option. |
+| TALLY_OPTION_FIRST_PAST_THE_POST | 1 | Votes are tallied each block and the proposal passes as soon as the vote threshold is reached |
+| TALLY_OPTION_DEADLINE | 2 | Votes are tallied exactly once, when the deadline time is reached |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/genesis.proto
+
+
+
+<a name="kava.committee.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the committee module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `next_proposal_id` | [uint64](#uint64) |  |  |
+| `committees` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `proposals` | [Proposal](#kava.committee.v1beta1.Proposal) | repeated |  |
+| `votes` | [Vote](#kava.committee.v1beta1.Vote) | repeated |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.Proposal"></a>
+
+### Proposal
+Proposal is an internal record of a governance proposal submitted to a committee.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `content` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `id` | [uint64](#uint64) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+| `deadline` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.Vote"></a>
+
+### Vote
+Vote is an internal record of a single governance vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [bytes](#bytes) |  |  |
+| `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.committee.v1beta1.VoteType"></a>
+
+### VoteType
+VoteType enumerates the valid types of a vote.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| VOTE_TYPE_UNSPECIFIED | 0 | VOTE_TYPE_UNSPECIFIED defines a no-op vote option. |
+| VOTE_TYPE_YES | 1 | VOTE_TYPE_YES defines a yes vote option. |
+| VOTE_TYPE_NO | 2 | VOTE_TYPE_NO defines a no vote option. |
+| VOTE_TYPE_ABSTAIN | 3 | VOTE_TYPE_ABSTAIN defines an abstain vote option. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/permissions.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/permissions.proto
+
+
+
+<a name="kava.committee.v1beta1.GodPermission"></a>
+
+### GodPermission
+GodPermission allows any governance proposal. It is used mainly for testing.
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.SoftwareUpgradePermission"></a>
+
+### SoftwareUpgradePermission
+SoftwareUpgradePermission permission type for software upgrade proposals
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.TextPermission"></a>
+
+### TextPermission
+TextPermission allows any text governance proposal.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/proposal.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/proposal.proto
+
+
+
+<a name="kava.committee.v1beta1.CommitteeChangeProposal"></a>
+
+### CommitteeChangeProposal
+CommitteeChangeProposal is a gov proposal for creating a new committee or modifying an existing one.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `new_committee` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.CommitteeDeleteProposal"></a>
+
+### CommitteeDeleteProposal
+CommitteeDeleteProposal is a gov proposal for removing a committee.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/tx.proto
+
+
+
+<a name="kava.committee.v1beta1.MsgSubmitProposal"></a>
+
+### MsgSubmitProposal
+MsgSubmitProposal is used by committee members to create a new proposal that they can vote on.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pub_proposal` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `proposer` | [bytes](#bytes) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.MsgVote"></a>
+
+### MsgVote
+MsgVote is submitted by committee members to vote on proposals.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [bytes](#bytes) |  |  |
+| `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
 
  <!-- end services -->
 
@@ -1727,6 +2098,424 @@ Msg defines the pricefeed Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `PostPrice` | [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice) | [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse) | PostPrice defines a method for creating a new post price | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/swap/v1beta1/swap.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/swap/v1beta1/swap.proto
+
+
+
+<a name="kava.swap.v1beta1.AllowedPool"></a>
+
+### AllowedPool
+AllowedPool defines a pool that is allowed to be created
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `token_a` | [string](#string) |  | token_a represents the a token allowed |
+| `token_b` | [string](#string) |  | token_b represents the b token allowed |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the swap module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allowed_pools` | [AllowedPool](#kava.swap.v1beta1.AllowedPool) | repeated | allowed_pools defines that pools that are allowed to be created |
+| `swap_fee` | [string](#string) |  | swap_fee defines the swap fee for all pools |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.PoolRecord"></a>
+
+### PoolRecord
+PoolRecord represents the state of a liquidity pool
+and is used to store the state of a denominated pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pool_id` | [string](#string) |  | pool_id represents the unique id of the pool |
+| `reserves_a` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | reserves_a is the a token coin reserves |
+| `reserves_b` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | reserves_b is the a token coin reserves |
+| `total_shares` | [string](#string) |  | total_shares is the total distrubuted shares of the pool |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.ShareRecord"></a>
+
+### ShareRecord
+ShareRecord stores the shares owned for a depositor and pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [bytes](#bytes) |  | depositor represents the owner of the shares |
+| `pool_id` | [string](#string) |  | pool_id represents the pool the shares belong to |
+| `shares_owned` | [string](#string) |  | shares_owned represents the number of shares owned by depsoitor for the pool_id |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/swap/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/swap/v1beta1/genesis.proto
+
+
+
+<a name="kava.swap.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the swap module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.swap.v1beta1.Params) |  | params defines all the paramaters related to swap |
+| `pool_records` | [PoolRecord](#kava.swap.v1beta1.PoolRecord) | repeated | pool_records defines the available pools |
+| `share_records` | [ShareRecord](#kava.swap.v1beta1.ShareRecord) | repeated | share_records defines the owned shares of each pool |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/swap/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/swap/v1beta1/query.proto
+
+
+
+<a name="kava.swap.v1beta1.DepositResponse"></a>
+
+### DepositResponse
+DepositResponse defines a single deposit query response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the owner of the deposit |
+| `pool_id` | [string](#string) |  | pool_id represents the pool the deposit is for |
+| `shares_owned` | [string](#string) |  | shares_owned presents the shares owned by the depositor for the pool |
+| `shares_value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | shares_value represents the coin value of the shares_owned |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.PoolResponse"></a>
+
+### PoolResponse
+Pool represents the state of a single pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `name` | [string](#string) |  | name represents the name of the pool |
+| `coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | coins represents the total reserves of the pool |
+| `total_shares` | [string](#string) |  | total_shares represents the total shares of the pool |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.QueryDepositsRequest"></a>
+
+### QueryDepositsRequest
+QueryDepositsRequest is the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  | owner optionally filters deposits by owner |
+| `pool_id` | [string](#string) |  | pool_id optionally fitlers deposits by pool id |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.QueryDepositsResponse"></a>
+
+### QueryDepositsResponse
+QueryDepositsResponse is the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [DepositResponse](#kava.swap.v1beta1.DepositResponse) | repeated | deposits returns the deposits matching the requested parameters |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/swap parameters.
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/swap parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.swap.v1beta1.Params) |  | params represents the swap module parameters |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.QueryPoolsRequest"></a>
+
+### QueryPoolsRequest
+QueryPoolsRequest is the request type for the Query/Pools RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pool_id` | [string](#string) |  | pool_id filters pools by id |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.QueryPoolsResponse"></a>
+
+### QueryPoolsResponse
+QueryPoolsResponse is the response type for the Query/Pools RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pools` | [PoolResponse](#kava.swap.v1beta1.PoolResponse) | repeated | pools represents returned pools |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.swap.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for swap module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.swap.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.swap.v1beta1.QueryParamsResponse) | Params queries all parameters of the swap module. | GET|/kava/swap/v1beta1/params|
+| `Pools` | [QueryPoolsRequest](#kava.swap.v1beta1.QueryPoolsRequest) | [QueryPoolsResponse](#kava.swap.v1beta1.QueryPoolsResponse) | Pools queries pools based on pool ID | GET|/kava/swap/v1beta1/pools|
+| `Deposits` | [QueryDepositsRequest](#kava.swap.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.swap.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on owner address and pool | GET|/kava/swap/v1beta1/deposits|
+
+ <!-- end services -->
+
+
+
+<a name="kava/swap/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/swap/v1beta1/tx.proto
+
+
+
+<a name="kava.swap.v1beta1.MsgDeposit"></a>
+
+### MsgDeposit
+MsgDeposit represents a message for depositing liquidity into a pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the address to deposit funds from |
+| `token_a` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | token_a represents one token of deposit pair |
+| `token_b` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | token_b represents one token of deposit pair |
+| `slippage` | [string](#string) |  | slippage represents the max decimal percentage price change |
+| `deadline` | [int64](#int64) |  | deadline represents the unix timestamp to complete the deposit by |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgDepositResponse"></a>
+
+### MsgDepositResponse
+MsgDepositResponse defines the Msg/Deposit response type.
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgSwapExactForTokens"></a>
+
+### MsgSwapExactForTokens
+MsgSwapExactForTokens represents a message for trading exact coinA for coinB
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `requester` | [string](#string) |  | represents the address swaping the tokens |
+| `exact_token_a` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | exact_token_a represents the exact amount to swap for token_b |
+| `token_b` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | token_b represents the desired token_b to swap for |
+| `slippage` | [string](#string) |  | slippage represents the maximum change in token_b allowed |
+| `deadline` | [int64](#int64) |  | deadline represents the unix timestamp to complete the swap by |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgSwapExactForTokensResponse"></a>
+
+### MsgSwapExactForTokensResponse
+MsgSwapExactForTokensResponse defines the Msg/SwapExactForTokens response
+type.
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgSwapForExactTokens"></a>
+
+### MsgSwapForExactTokens
+MsgSwapForExactTokens represents a message for trading coinA for an exact
+coinB
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `requester` | [string](#string) |  | represents the address swaping the tokens |
+| `token_a` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | token_a represents the desired token_a to swap for |
+| `exact_token_b` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | exact_token_b represents the exact token b amount to swap for token a |
+| `slippage` | [string](#string) |  | slippage represents the maximum change in token_a allowed |
+| `deadline` | [int64](#int64) |  | deadline represents the unix timestamp to complete the swap by |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgSwapForExactTokensResponse"></a>
+
+### MsgSwapForExactTokensResponse
+MsgSwapForExactTokensResponse defines the Msg/SwapForExactTokensResponse
+response type.
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgWithdraw"></a>
+
+### MsgWithdraw
+MsgWithdraw represents a message for withdrawing liquidity from a pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  | from represents the address we are withdrawing for |
+| `shares` | [string](#string) |  | shares represents the amount of shares to withdraw |
+| `min_token_a` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | min_token_a represents the minimum a token to withdraw |
+| `min_token_b` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | min_token_a represents the minimum a token to withdraw |
+| `deadline` | [int64](#int64) |  | deadline represents the unix timestamp to complete the withdraw by |
+
+
+
+
+
+
+<a name="kava.swap.v1beta1.MsgWithdrawResponse"></a>
+
+### MsgWithdrawResponse
+MsgWithdrawResponse defines the Msg/Withdraw response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.swap.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the swap Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Deposit` | [MsgDeposit](#kava.swap.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.swap.v1beta1.MsgDepositResponse) | Deposit defines a method for depositing liquidity into a pool | |
+| `Withdraw` | [MsgWithdraw](#kava.swap.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.swap.v1beta1.MsgWithdrawResponse) | Withdraw defines a method for withdrawing liquidity into a pool | |
+| `SwapExactForTokens` | [MsgSwapExactForTokens](#kava.swap.v1beta1.MsgSwapExactForTokens) | [MsgSwapExactForTokensResponse](#kava.swap.v1beta1.MsgSwapExactForTokensResponse) | SwapExactForTokens represents a message for trading exact coinA for coinB | |
+| `SwapForExactTokens` | [MsgSwapForExactTokens](#kava.swap.v1beta1.MsgSwapForExactTokens) | [MsgSwapForExactTokensResponse](#kava.swap.v1beta1.MsgSwapForExactTokensResponse) | SwapForExactTokens represents a message for trading coinA for an exact coinB | |
 
  <!-- end services -->
 
