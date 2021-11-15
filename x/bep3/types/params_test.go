@@ -15,7 +15,7 @@ import (
 type ParamsTestSuite struct {
 	suite.Suite
 	addr   sdk.AccAddress
-	supply []types.SupplyLimit
+	supply types.SupplyLimits
 }
 
 func (suite *ParamsTestSuite) SetupTest() {
@@ -41,7 +41,7 @@ func (suite *ParamsTestSuite) SetupTest() {
 func (suite *ParamsTestSuite) TestParamValidation() {
 
 	type args struct {
-		assetParams []types.AssetParam
+		assetParams types.AssetParams
 	}
 
 	testCases := []struct {
@@ -53,7 +53,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "default",
 			args: args{
-				assetParams: []types.AssetParam{},
+				assetParams: types.AssetParams{},
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -61,7 +61,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "valid single asset",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
@@ -72,7 +72,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "valid single asset time limited",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[1], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
@@ -83,7 +83,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "valid multi asset",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
@@ -99,7 +99,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "invalid denom - empty",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
@@ -111,7 +111,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		// {
 		// 	name: "invalid denom - bad format",
 		// 	args: args{
-		// 		assetParams: []types.AssetParam{types.NewAssetParam(
+		// 		assetParams: types.AssetParams{types.NewAssetParam(
 		// 			"BNB", 714, suite.supply[0], true,
 		// 			suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 		// 			types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
@@ -122,7 +122,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "min block lock equal max block lock",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					243, 243)},
@@ -133,7 +133,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "min block lock greater max block lock",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					244, 243)},
@@ -144,7 +144,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "min swap not positive",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(0), sdk.NewInt(10000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
@@ -155,7 +155,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "max swap not positive",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(10000), sdk.NewInt(0),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
@@ -166,7 +166,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "min swap greater max swap",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000000), sdk.NewInt(10000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
@@ -177,7 +177,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "negative coin id",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", -714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
@@ -188,7 +188,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "negative asset limit",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714,
 					types.SupplyLimit{sdk.NewInt(-10000000000000), false, time.Hour, sdk.ZeroInt()}, true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
@@ -200,7 +200,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "negative asset time limit",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714,
 					types.SupplyLimit{sdk.NewInt(10000000000000), false, time.Hour, sdk.NewInt(-10000000000000)}, true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
@@ -212,7 +212,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "asset time limit greater than overall limit",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714,
 					types.SupplyLimit{sdk.NewInt(10000000000000), true, time.Hour, sdk.NewInt(100000000000000)},
 					true,
@@ -225,7 +225,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "duplicate denom",
 			args: args{
-				assetParams: []types.AssetParam{types.NewAssetParam(
+				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
