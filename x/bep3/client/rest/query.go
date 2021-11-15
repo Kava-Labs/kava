@@ -62,7 +62,7 @@ func queryAtomicSwapHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		// Decode and return results
 		cliCtx = cliCtx.WithHeight(height)
 
-		var swap types.AugmentedAtomicSwap
+		var swap types.LegacyAugmentedAtomicSwap
 		err = cliCtx.Codec.UnmarshalJSON(res, &swap)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())

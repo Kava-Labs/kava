@@ -134,14 +134,6 @@ message AtomicSwap {
   SwapDirection direction = 12;
 }
 
-// AugmentedAtomicSwap defines an AtomicSwap with an ID.
-message AugmentedAtomicSwap {
-  // id represents the identifier of the atomic swap
-  string id = 1 [(gogoproto.customname) = "ID"];
-  // atomic_swap defines the properties of the atomic swap
-  AtomicSwap atomic_swap = 2 [(gogoproto.nullable) = false];
-}
-
 // AssetSupply defines information about an asset's supply.
 message AssetSupply {
   // incoming_supply represents the incoming supply of an asset

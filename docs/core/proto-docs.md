@@ -8,7 +8,6 @@
     - [AssetParam](#kava.bep3.v1beta1.AssetParam)
     - [AssetSupply](#kava.bep3.v1beta1.AssetSupply)
     - [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap)
-    - [AugmentedAtomicSwap](#kava.bep3.v1beta1.AugmentedAtomicSwap)
     - [Params](#kava.bep3.v1beta1.Params)
     - [SupplyLimit](#kava.bep3.v1beta1.SupplyLimit)
   
@@ -229,22 +228,6 @@ AtomicSwap defines an atomic swap between chains for the pricefeed module.
 | `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  | status represents the current status of the swap |
 | `cross_chain` | [bool](#bool) |  | cross_chain identifies whether the atomic swap is cross chain |
 | `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  | direction identifies if the swap is incoming or outgoing |
-
-
-
-
-
-
-<a name="kava.bep3.v1beta1.AugmentedAtomicSwap"></a>
-
-### AugmentedAtomicSwap
-AugmentedAtomicSwap defines an AtomicSwap with an ID.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `id` | [string](#string) |  | id represents the identifier of the atomic swap |
-| `atomic_swap` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) |  | atomic_swap defines the properties of the atomic swap |
 
 
 

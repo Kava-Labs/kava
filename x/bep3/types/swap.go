@@ -126,13 +126,6 @@ func (direction SwapDirection) IsValid() bool {
 		direction == SWAP_DIRECTION_OUTGOING
 }
 
-func NewAugmentedAtomicSwap(swap AtomicSwap) AugmentedAtomicSwap {
-	return AugmentedAtomicSwap{
-		ID:         hex.EncodeToString(swap.GetSwapID()),
-		AtomicSwap: swap,
-	}
-}
-
 // LegacyAugmentedAtomicSwap defines an ID and AtomicSwap fields on the top level.
 // This should be removed when legacy REST endpoints are removed.
 type LegacyAugmentedAtomicSwap struct {

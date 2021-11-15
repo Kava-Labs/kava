@@ -81,7 +81,7 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, lega
 		return nil, sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%d", requestParams.SwapID)
 	}
 
-	augmentedAtomicSwap := types.NewAugmentedAtomicSwap(atomicSwap)
+	augmentedAtomicSwap := types.NewLegacyAugmentedAtomicSwap(atomicSwap)
 
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedAtomicSwap)

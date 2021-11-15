@@ -119,7 +119,7 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwap() {
 	suite.NotNil(bz)
 
 	// Unmarshal the bytes into type atomic swap
-	var swap types.AugmentedAtomicSwap
+	var swap types.LegacyAugmentedAtomicSwap
 	suite.Nil(types.ModuleCdc.LegacyAmino.UnmarshalJSON(bz, &swap))
 
 	// Check the returned atomic swap's ID
