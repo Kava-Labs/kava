@@ -55,7 +55,7 @@ func (k Keeper) AssetSupplies(ctx context.Context, req *types.QueryAssetSupplies
 	var queryResults []types.AssetSupply
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, shouldAccumulate bool) (bool, error) {
 		var assetSupply types.AssetSupply
-		err := k.cdc.UnmarshalLengthPrefixed(value, &assetSupply)
+		err := k.cdc.Unmarshal(value, &assetSupply)
 		if err != nil {
 			return false, err
 		}
@@ -110,7 +110,7 @@ func (k Keeper) AtomicSwaps(ctx context.Context, req *types.QueryAtomicSwapsRequ
 	var queryResults []types.AugmentedAtomicSwap
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, shouldAccumulate bool) (bool, error) {
 		var atomicSwap types.AtomicSwap
-		err := k.cdc.UnmarshalLengthPrefixed(value, &atomicSwap)
+		err := k.cdc.Unmarshal(value, &atomicSwap)
 		if err != nil {
 			return false, err
 		}
