@@ -8,24 +8,29 @@ import (
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types1 "github.com/cosmos/cosmos-sdk/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
 	types "github.com/cosmos/cosmos-sdk/x/auth/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -245,7 +250,7 @@ func (m *QueryCdpRequest) GetOwner() string {
 
 // QueryCdpResponse defines the response type for the Query/Cdp RPC method.
 type QueryCdpResponse struct {
-	Cdp AugmentedCDP `protobuf:"bytes,1,opt,name=cdp,proto3" json:"cdp"`
+	Cdp CDPResponse `protobuf:"bytes,1,opt,name=cdp,proto3" json:"cdp"`
 }
 
 func (m *QueryCdpResponse) Reset()         { *m = QueryCdpResponse{} }
@@ -281,11 +286,11 @@ func (m *QueryCdpResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryCdpResponse proto.InternalMessageInfo
 
-func (m *QueryCdpResponse) GetCdp() AugmentedCDP {
+func (m *QueryCdpResponse) GetCdp() CDPResponse {
 	if m != nil {
 		return m.Cdp
 	}
-	return AugmentedCDP{}
+	return CDPResponse{}
 }
 
 // QueryCdpsRequest is the params for a filtered CDP query, the request type for the Query/Cdps RPC method.
@@ -360,7 +365,7 @@ func (m *QueryCdpsRequest) GetPagination() *query.PageRequest {
 
 // QueryCdpsResponse defines the response type for the Query/Cdps RPC method.
 type QueryCdpsResponse struct {
-	Cdps       AugmentedCDPs       `protobuf:"bytes,1,rep,name=cdps,proto3,castrepeated=AugmentedCDPs" json:"cdps"`
+	Cdps       CDPResponses        `protobuf:"bytes,1,rep,name=cdps,proto3,castrepeated=CDPResponses" json:"cdps"`
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -397,7 +402,7 @@ func (m *QueryCdpsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryCdpsResponse proto.InternalMessageInfo
 
-func (m *QueryCdpsResponse) GetCdps() AugmentedCDPs {
+func (m *QueryCdpsResponse) GetCdps() CDPResponses {
 	if m != nil {
 		return m.Cdps
 	}
@@ -509,187 +514,6 @@ func (m *QueryDepositsResponse) GetDeposits() Deposits {
 	return nil
 }
 
-// QueryCdpsByCollateralTypeRequest defines the request type for the Query/CdpsByCollateralType RPC method.
-type QueryCdpsByCollateralTypeRequest struct {
-	CollateralType string `protobuf:"bytes,1,opt,name=collateral_type,json=collateralType,proto3" json:"collateral_type,omitempty"`
-}
-
-func (m *QueryCdpsByCollateralTypeRequest) Reset()         { *m = QueryCdpsByCollateralTypeRequest{} }
-func (m *QueryCdpsByCollateralTypeRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryCdpsByCollateralTypeRequest) ProtoMessage()    {}
-func (*QueryCdpsByCollateralTypeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fd68799328aaf74a, []int{10}
-}
-func (m *QueryCdpsByCollateralTypeRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryCdpsByCollateralTypeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryCdpsByCollateralTypeRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryCdpsByCollateralTypeRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryCdpsByCollateralTypeRequest.Merge(m, src)
-}
-func (m *QueryCdpsByCollateralTypeRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryCdpsByCollateralTypeRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryCdpsByCollateralTypeRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryCdpsByCollateralTypeRequest proto.InternalMessageInfo
-
-func (m *QueryCdpsByCollateralTypeRequest) GetCollateralType() string {
-	if m != nil {
-		return m.CollateralType
-	}
-	return ""
-}
-
-// QueryCdpsByCollateralTypeResponse defines the response type for the Query/CdpsByCollateralType RPC method.
-type QueryCdpsByCollateralTypeResponse struct {
-	Cdps AugmentedCDPs `protobuf:"bytes,1,rep,name=cdps,proto3,castrepeated=AugmentedCDPs" json:"cdps"`
-}
-
-func (m *QueryCdpsByCollateralTypeResponse) Reset()         { *m = QueryCdpsByCollateralTypeResponse{} }
-func (m *QueryCdpsByCollateralTypeResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryCdpsByCollateralTypeResponse) ProtoMessage()    {}
-func (*QueryCdpsByCollateralTypeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fd68799328aaf74a, []int{11}
-}
-func (m *QueryCdpsByCollateralTypeResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryCdpsByCollateralTypeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryCdpsByCollateralTypeResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryCdpsByCollateralTypeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryCdpsByCollateralTypeResponse.Merge(m, src)
-}
-func (m *QueryCdpsByCollateralTypeResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryCdpsByCollateralTypeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryCdpsByCollateralTypeResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryCdpsByCollateralTypeResponse proto.InternalMessageInfo
-
-func (m *QueryCdpsByCollateralTypeResponse) GetCdps() AugmentedCDPs {
-	if m != nil {
-		return m.Cdps
-	}
-	return nil
-}
-
-// QueryCdpsByCollateralTypeRequest defines the request type for the Query/CdpsByRatio RPC method.
-type QueryCdpsByRatioRequest struct {
-	CollateralType string                                 `protobuf:"bytes,1,opt,name=collateral_type,json=collateralType,proto3" json:"collateral_type,omitempty"`
-	Ratio          github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
-}
-
-func (m *QueryCdpsByRatioRequest) Reset()         { *m = QueryCdpsByRatioRequest{} }
-func (m *QueryCdpsByRatioRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryCdpsByRatioRequest) ProtoMessage()    {}
-func (*QueryCdpsByRatioRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fd68799328aaf74a, []int{12}
-}
-func (m *QueryCdpsByRatioRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryCdpsByRatioRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryCdpsByRatioRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryCdpsByRatioRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryCdpsByRatioRequest.Merge(m, src)
-}
-func (m *QueryCdpsByRatioRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryCdpsByRatioRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryCdpsByRatioRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryCdpsByRatioRequest proto.InternalMessageInfo
-
-func (m *QueryCdpsByRatioRequest) GetCollateralType() string {
-	if m != nil {
-		return m.CollateralType
-	}
-	return ""
-}
-
-// QueryCdpsByRatioResponse defines the response type for the Query/CdpsByRatio RPC method.
-type QueryCdpsByRatioResponse struct {
-	Cdps AugmentedCDPs `protobuf:"bytes,1,rep,name=cdps,proto3,castrepeated=AugmentedCDPs" json:"cdps"`
-}
-
-func (m *QueryCdpsByRatioResponse) Reset()         { *m = QueryCdpsByRatioResponse{} }
-func (m *QueryCdpsByRatioResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryCdpsByRatioResponse) ProtoMessage()    {}
-func (*QueryCdpsByRatioResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fd68799328aaf74a, []int{13}
-}
-func (m *QueryCdpsByRatioResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryCdpsByRatioResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryCdpsByRatioResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryCdpsByRatioResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryCdpsByRatioResponse.Merge(m, src)
-}
-func (m *QueryCdpsByRatioResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryCdpsByRatioResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryCdpsByRatioResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryCdpsByRatioResponse proto.InternalMessageInfo
-
-func (m *QueryCdpsByRatioResponse) GetCdps() AugmentedCDPs {
-	if m != nil {
-		return m.Cdps
-	}
-	return nil
-}
-
 // QueryTotalPrincipalRequest defines the request type for the Query/TotalPrincipal RPC method.
 type QueryTotalPrincipalRequest struct {
 	CollateralType string `protobuf:"bytes,1,opt,name=collateral_type,json=collateralType,proto3" json:"collateral_type,omitempty"`
@@ -699,7 +523,7 @@ func (m *QueryTotalPrincipalRequest) Reset()         { *m = QueryTotalPrincipalR
 func (m *QueryTotalPrincipalRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryTotalPrincipalRequest) ProtoMessage()    {}
 func (*QueryTotalPrincipalRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fd68799328aaf74a, []int{14}
+	return fileDescriptor_fd68799328aaf74a, []int{10}
 }
 func (m *QueryTotalPrincipalRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -744,7 +568,7 @@ func (m *QueryTotalPrincipalResponse) Reset()         { *m = QueryTotalPrincipal
 func (m *QueryTotalPrincipalResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryTotalPrincipalResponse) ProtoMessage()    {}
 func (*QueryTotalPrincipalResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fd68799328aaf74a, []int{15}
+	return fileDescriptor_fd68799328aaf74a, []int{11}
 }
 func (m *QueryTotalPrincipalResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -789,7 +613,7 @@ func (m *QueryTotalCollateralRequest) Reset()         { *m = QueryTotalCollatera
 func (m *QueryTotalCollateralRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryTotalCollateralRequest) ProtoMessage()    {}
 func (*QueryTotalCollateralRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fd68799328aaf74a, []int{16}
+	return fileDescriptor_fd68799328aaf74a, []int{12}
 }
 func (m *QueryTotalCollateralRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -834,7 +658,7 @@ func (m *QueryTotalCollateralResponse) Reset()         { *m = QueryTotalCollater
 func (m *QueryTotalCollateralResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryTotalCollateralResponse) ProtoMessage()    {}
 func (*QueryTotalCollateralResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fd68799328aaf74a, []int{17}
+	return fileDescriptor_fd68799328aaf74a, []int{13}
 }
 func (m *QueryTotalCollateralResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -870,6 +694,109 @@ func (m *QueryTotalCollateralResponse) GetTotalCollateral() TotalCollaterals {
 	return nil
 }
 
+// CDPResponse defines the state of a single collateralized debt position.
+type CDPResponse struct {
+	ID                     uint64                                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Owner                  string                                 `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	Type                   string                                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
+	Collateral             types1.Coin                            `protobuf:"bytes,4,opt,name=collateral,proto3" json:"collateral"`
+	Principal              types1.Coin                            `protobuf:"bytes,5,opt,name=principal,proto3" json:"principal"`
+	AccumulatedFees        types1.Coin                            `protobuf:"bytes,6,opt,name=accumulated_fees,json=accumulatedFees,proto3" json:"accumulated_fees"`
+	FeesUpdated            time.Time                              `protobuf:"bytes,7,opt,name=fees_updated,json=feesUpdated,proto3,stdtime" json:"fees_updated"`
+	InterestFactor         github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,8,opt,name=interest_factor,json=interestFactor,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"interest_factor"`
+	CollateralValue        types1.Coin                            `protobuf:"bytes,9,opt,name=collateral_value,json=collateralValue,proto3" json:"collateral_value"`
+	CollateralizationRatio github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,10,opt,name=collateralization_ratio,json=collateralizationRatio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"collateralization_ratio"`
+}
+
+func (m *CDPResponse) Reset()         { *m = CDPResponse{} }
+func (m *CDPResponse) String() string { return proto.CompactTextString(m) }
+func (*CDPResponse) ProtoMessage()    {}
+func (*CDPResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fd68799328aaf74a, []int{14}
+}
+func (m *CDPResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CDPResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CDPResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CDPResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CDPResponse.Merge(m, src)
+}
+func (m *CDPResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *CDPResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CDPResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CDPResponse proto.InternalMessageInfo
+
+func (m *CDPResponse) GetID() uint64 {
+	if m != nil {
+		return m.ID
+	}
+	return 0
+}
+
+func (m *CDPResponse) GetOwner() string {
+	if m != nil {
+		return m.Owner
+	}
+	return ""
+}
+
+func (m *CDPResponse) GetType() string {
+	if m != nil {
+		return m.Type
+	}
+	return ""
+}
+
+func (m *CDPResponse) GetCollateral() types1.Coin {
+	if m != nil {
+		return m.Collateral
+	}
+	return types1.Coin{}
+}
+
+func (m *CDPResponse) GetPrincipal() types1.Coin {
+	if m != nil {
+		return m.Principal
+	}
+	return types1.Coin{}
+}
+
+func (m *CDPResponse) GetAccumulatedFees() types1.Coin {
+	if m != nil {
+		return m.AccumulatedFees
+	}
+	return types1.Coin{}
+}
+
+func (m *CDPResponse) GetFeesUpdated() time.Time {
+	if m != nil {
+		return m.FeesUpdated
+	}
+	return time.Time{}
+}
+
+func (m *CDPResponse) GetCollateralValue() types1.Coin {
+	if m != nil {
+		return m.CollateralValue
+	}
+	return types1.Coin{}
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "kava.cdp.v1beta1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "kava.cdp.v1beta1.QueryParamsResponse")
@@ -881,88 +808,91 @@ func init() {
 	proto.RegisterType((*QueryCdpsResponse)(nil), "kava.cdp.v1beta1.QueryCdpsResponse")
 	proto.RegisterType((*QueryDepositsRequest)(nil), "kava.cdp.v1beta1.QueryDepositsRequest")
 	proto.RegisterType((*QueryDepositsResponse)(nil), "kava.cdp.v1beta1.QueryDepositsResponse")
-	proto.RegisterType((*QueryCdpsByCollateralTypeRequest)(nil), "kava.cdp.v1beta1.QueryCdpsByCollateralTypeRequest")
-	proto.RegisterType((*QueryCdpsByCollateralTypeResponse)(nil), "kava.cdp.v1beta1.QueryCdpsByCollateralTypeResponse")
-	proto.RegisterType((*QueryCdpsByRatioRequest)(nil), "kava.cdp.v1beta1.QueryCdpsByRatioRequest")
-	proto.RegisterType((*QueryCdpsByRatioResponse)(nil), "kava.cdp.v1beta1.QueryCdpsByRatioResponse")
 	proto.RegisterType((*QueryTotalPrincipalRequest)(nil), "kava.cdp.v1beta1.QueryTotalPrincipalRequest")
 	proto.RegisterType((*QueryTotalPrincipalResponse)(nil), "kava.cdp.v1beta1.QueryTotalPrincipalResponse")
 	proto.RegisterType((*QueryTotalCollateralRequest)(nil), "kava.cdp.v1beta1.QueryTotalCollateralRequest")
 	proto.RegisterType((*QueryTotalCollateralResponse)(nil), "kava.cdp.v1beta1.QueryTotalCollateralResponse")
+	proto.RegisterType((*CDPResponse)(nil), "kava.cdp.v1beta1.CDPResponse")
 }
 
 func init() { proto.RegisterFile("kava/cdp/v1beta1/query.proto", fileDescriptor_fd68799328aaf74a) }
 
 var fileDescriptor_fd68799328aaf74a = []byte{
-	// 1087 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0xcd, 0x6f, 0xdb, 0x64,
-	0x18, 0x8f, 0xd3, 0x0f, 0x95, 0xb7, 0xa2, 0x0d, 0x2f, 0x59, 0xe7, 0x99, 0xca, 0x49, 0xdf, 0xb1,
-	0xb6, 0x9b, 0x88, 0xbd, 0x65, 0xd2, 0x60, 0x80, 0x34, 0x35, 0x0d, 0x9b, 0x06, 0x42, 0x2a, 0x66,
-	0x12, 0x12, 0x12, 0x2a, 0x8e, 0xfd, 0xe2, 0x99, 0xa5, 0x7e, 0xbd, 0xbc, 0xce, 0x46, 0x35, 0x4d,
-	0x08, 0x0e, 0x13, 0x47, 0x24, 0x24, 0x38, 0x80, 0x60, 0x37, 0x24, 0xce, 0x13, 0x67, 0x8e, 0x3b,
-	0x4e, 0xe3, 0x82, 0x38, 0x14, 0xd4, 0x72, 0xe0, 0xcf, 0x98, 0xfc, 0xfa, 0x89, 0x3f, 0xe2, 0x38,
-	0x6d, 0xa4, 0xee, 0xd4, 0xe4, 0xf9, 0xf8, 0xfd, 0x7e, 0xcf, 0x87, 0xf3, 0xb8, 0x68, 0xf9, 0x96,
-	0x79, 0xc7, 0xd4, 0x2d, 0xdb, 0xd7, 0xef, 0x5c, 0xe8, 0xd0, 0xc0, 0xbc, 0xa0, 0xdf, 0xee, 0xd3,
-	0xde, 0xae, 0xe6, 0xf7, 0x58, 0xc0, 0x70, 0x25, 0xf4, 0x6a, 0x96, 0xed, 0x6b, 0xe0, 0x55, 0xd4,
-	0x5c, 0xbc, 0x43, 0x3d, 0xca, 0x5d, 0x1e, 0x65, 0x28, 0x4a, 0xce, 0x1f, 0x66, 0x47, 0xbe, 0xaa,
-	0xc3, 0x1c, 0x26, 0x3e, 0xea, 0xe1, 0x27, 0xb0, 0x2e, 0x3b, 0x8c, 0x39, 0x5d, 0xaa, 0x9b, 0xbe,
-	0xab, 0x9b, 0x9e, 0xc7, 0x02, 0x33, 0x70, 0x99, 0x37, 0xc0, 0x3b, 0x67, 0x31, 0xbe, 0xc3, 0xb8,
-	0xde, 0x31, 0x39, 0x8d, 0xa4, 0xc5, 0xc0, 0xbe, 0xe9, 0xb8, 0x9e, 0x08, 0x86, 0x58, 0x15, 0x62,
-	0xcd, 0x7e, 0x70, 0x33, 0x8e, 0x0a, 0xbf, 0x80, 0xff, 0x54, 0xe4, 0xdf, 0x8e, 0x24, 0x44, 0x5f,
-	0x22, 0x17, 0xa9, 0x22, 0xfc, 0x41, 0x08, 0xbe, 0x65, 0xf6, 0xcc, 0x1d, 0x6e, 0xd0, 0xdb, 0x7d,
-	0xca, 0x03, 0xf2, 0x11, 0x7a, 0x39, 0x63, 0xe5, 0x3e, 0xf3, 0x38, 0xc5, 0x97, 0xd0, 0xac, 0x2f,
-	0x2c, 0xb2, 0x54, 0x97, 0xd6, 0xe7, 0x9b, 0xb2, 0x36, 0xdc, 0x26, 0x2d, 0xca, 0x68, 0x4d, 0x3f,
-	0xde, 0xab, 0x95, 0x0c, 0x88, 0x7e, 0x73, 0xee, 0x9b, 0x87, 0xb5, 0xd2, 0xff, 0x0f, 0x6b, 0x25,
-	0xb2, 0x84, 0xaa, 0x02, 0x78, 0xc3, 0xb2, 0x58, 0xdf, 0x0b, 0x62, 0xc2, 0x4f, 0xd0, 0x89, 0x21,
-	0x3b, 0x50, 0xb6, 0xd1, 0x9c, 0x09, 0x36, 0x59, 0xaa, 0x4f, 0xad, 0xcf, 0x37, 0x89, 0x06, 0x05,
-	0x88, 0x02, 0x07, 0xbc, 0xef, 0x33, 0xbb, 0xdf, 0xa5, 0x90, 0x0e, 0xf4, 0x71, 0x26, 0xf9, 0x1c,
-	0x2d, 0x0a, 0xf8, 0x4d, 0xdb, 0x07, 0x46, 0xbc, 0x86, 0x16, 0x2d, 0xd6, 0xed, 0x9a, 0x01, 0xed,
-	0x99, 0xdd, 0xed, 0x60, 0xd7, 0xa7, 0xa2, 0xa8, 0x17, 0x8c, 0x85, 0xc4, 0x7c, 0x63, 0xd7, 0xa7,
-	0x58, 0x43, 0x33, 0xec, 0xae, 0x47, 0x7b, 0x72, 0x39, 0x74, 0xb7, 0xe4, 0xa7, 0x8f, 0x1a, 0x55,
-	0x50, 0xb0, 0x61, 0xdb, 0x3d, 0xca, 0xf9, 0x87, 0x41, 0xcf, 0xf5, 0x1c, 0x23, 0x0a, 0x23, 0xef,
-	0xa2, 0x4a, 0xc2, 0x15, 0x37, 0x6e, 0xca, 0xb2, 0x7d, 0xe8, 0x9a, 0x9a, 0xef, 0xda, 0x46, 0xdf,
-	0xd9, 0xa1, 0x5e, 0x40, 0xed, 0xcd, 0xf6, 0x16, 0x88, 0x0f, 0x13, 0xc8, 0x2f, 0xe5, 0x04, 0x8c,
-	0x3f, 0x6f, 0xe5, 0x78, 0x09, 0x95, 0x5d, 0x5b, 0x9e, 0xaa, 0x4b, 0xeb, 0xd3, 0xad, 0xd9, 0xfd,
-	0xbd, 0x5a, 0xf9, 0x7a, 0xdb, 0x28, 0xbb, 0x36, 0x36, 0xd0, 0x4c, 0x2f, 0x5c, 0x37, 0x79, 0x5a,
-	0xe0, 0xbc, 0x1d, 0xea, 0xfb, 0x7b, 0xaf, 0xb6, 0xea, 0xb8, 0xc1, 0xcd, 0x7e, 0x47, 0xb3, 0xd8,
-	0x0e, 0xec, 0x14, 0xfc, 0x69, 0x70, 0xfb, 0x96, 0x1e, 0xea, 0xe2, 0x5a, 0x9b, 0x5a, 0x4f, 0x1f,
-	0x35, 0x10, 0xb0, 0xb6, 0xa9, 0x65, 0x44, 0x50, 0xf8, 0x2a, 0x42, 0xc9, 0x1a, 0xcb, 0x33, 0xa2,
-	0x31, 0xab, 0x83, 0xc9, 0x86, 0x3b, 0xaf, 0x45, 0x8f, 0x63, 0xb2, 0x57, 0x0e, 0x85, 0x06, 0x18,
-	0xa9, 0x4c, 0xf2, 0xab, 0x84, 0x5e, 0x4a, 0x75, 0x08, 0xfa, 0x7d, 0x1d, 0x4d, 0x5b, 0xb6, 0x3f,
-	0xd8, 0x98, 0xc3, 0x1a, 0x7e, 0x22, 0x2c, 0xe8, 0xb7, 0x7f, 0x6a, 0x2f, 0xa6, 0xad, 0xdc, 0x10,
-	0x10, 0xf8, 0x5a, 0x46, 0x68, 0x59, 0x08, 0x5d, 0x3b, 0x54, 0x68, 0xa4, 0x23, 0xa3, 0x94, 0xc1,
-	0xea, 0xb7, 0xa9, 0xcf, 0xb8, 0x1b, 0x3c, 0xf7, 0x71, 0x92, 0x4f, 0xe1, 0x99, 0x4a, 0x08, 0xa1,
-	0x3b, 0xd7, 0xd0, 0x9c, 0x0d, 0x36, 0xe8, 0xd0, 0xa9, 0x7c, 0x87, 0x20, 0xab, 0x55, 0x81, 0xe6,
-	0xcc, 0xc5, 0x30, 0x71, 0x32, 0x79, 0x0f, 0xd5, 0xe3, 0xde, 0xb7, 0x76, 0x37, 0x33, 0x72, 0x27,
-	0x2d, 0x8f, 0x78, 0x68, 0x65, 0x0c, 0xd8, 0xb1, 0x0f, 0x96, 0x7c, 0x2f, 0xa1, 0x93, 0x29, 0x42,
-	0x23, 0x9c, 0xd2, 0xc4, 0x33, 0x89, 0x1f, 0x8d, 0xf2, 0xb1, 0x3d, 0x1a, 0x84, 0x22, 0x39, 0xaf,
-	0xeb, 0xf8, 0xeb, 0x7f, 0x07, 0x29, 0x82, 0xe6, 0x06, 0x0b, 0xcc, 0xee, 0x56, 0xcf, 0xf5, 0x2c,
-	0xd7, 0x37, 0xbb, 0x13, 0x8f, 0xed, 0x2b, 0x09, 0xbd, 0x32, 0x12, 0x07, 0x14, 0x77, 0xd0, 0x62,
-	0x10, 0x7a, 0xb6, 0xfd, 0x81, 0x0b, 0xc4, 0xd7, 0xf3, 0xe2, 0xb3, 0x10, 0xad, 0x93, 0x20, 0x7f,
-	0x31, 0x6b, 0xe7, 0xc6, 0x42, 0x90, 0x31, 0x90, 0xab, 0x69, 0x09, 0xc9, 0xe6, 0x4c, 0x5c, 0xcb,
-	0x03, 0x09, 0x2d, 0x8f, 0x06, 0x82, 0x62, 0x3e, 0x43, 0x95, 0xa8, 0x98, 0x24, 0x11, 0xaa, 0x59,
-	0x29, 0xa8, 0x26, 0x01, 0x69, 0xc9, 0x50, 0x4e, 0x65, 0xc8, 0xc1, 0x8d, 0xa8, 0x43, 0x89, 0xa5,
-	0xf9, 0x3b, 0x42, 0x33, 0x42, 0x08, 0xbe, 0x8b, 0x66, 0xa3, 0x93, 0x8a, 0x5f, 0xcd, 0x33, 0xe4,
-	0x2f, 0xb7, 0x72, 0xe6, 0x90, 0xa8, 0xa8, 0x10, 0x52, 0xff, 0xfa, 0xcf, 0xff, 0xbe, 0x2b, 0x2b,
-	0x58, 0xd6, 0x73, 0xaf, 0x2d, 0xd1, 0xcd, 0xc6, 0x5f, 0xa2, 0xb9, 0xc1, 0x31, 0xc6, 0xab, 0x05,
-	0xa0, 0x43, 0x57, 0x5c, 0x59, 0x3b, 0x34, 0x0e, 0xe8, 0x89, 0xa0, 0x5f, 0xc6, 0x4a, 0x9e, 0x7e,
-	0x70, 0xb3, 0xf1, 0x0f, 0x12, 0x5a, 0xc8, 0x0e, 0x1e, 0xbf, 0x56, 0x80, 0x3f, 0x72, 0x85, 0x95,
-	0xc6, 0x11, 0xa3, 0x41, 0xd3, 0xba, 0xd0, 0x44, 0x70, 0x3d, 0xaf, 0x29, 0xbb, 0x6e, 0xf8, 0x47,
-	0x09, 0x2d, 0x0e, 0xcd, 0x10, 0x8f, 0x25, 0xcb, 0xad, 0xa4, 0xa2, 0x1d, 0x35, 0x1c, 0xc4, 0x9d,
-	0x15, 0xe2, 0x4e, 0xe3, 0x95, 0x02, 0x71, 0x29, 0x25, 0x0c, 0x4d, 0x87, 0xbf, 0x1c, 0x98, 0x14,
-	0x50, 0xa4, 0x5e, 0x25, 0x94, 0xd3, 0x63, 0x63, 0x80, 0x5b, 0x15, 0xdc, 0x32, 0x5e, 0xd2, 0x47,
-	0xbd, 0xe2, 0x72, 0xfc, 0x40, 0x42, 0x53, 0x9b, 0xb6, 0x8f, 0x57, 0x8a, 0xc1, 0x06, 0x7c, 0x64,
-	0x5c, 0x08, 0xd0, 0xbd, 0x21, 0xe8, 0x9a, 0xf8, 0xfc, 0x68, 0x3a, 0xfd, 0x9e, 0xb8, 0x6e, 0xf7,
-	0xf5, 0x7b, 0x43, 0xcf, 0xf4, 0x7d, 0xfc, 0xb3, 0x84, 0xe2, 0x2b, 0x55, 0xb8, 0xb3, 0x43, 0xe7,
-	0xb7, 0x70, 0x67, 0x87, 0xaf, 0x26, 0xd9, 0x10, 0xba, 0xde, 0xc2, 0x97, 0x0b, 0x74, 0x0d, 0xae,
-	0xe2, 0x18, 0x81, 0x7f, 0x48, 0xa8, 0x3a, 0xea, 0xbc, 0xe1, 0xe6, 0x98, 0x39, 0x14, 0x1c, 0x56,
-	0xe5, 0xe2, 0x44, 0x39, 0x50, 0xc4, 0x15, 0x51, 0xc4, 0x65, 0xfc, 0x7a, 0x41, 0x11, 0xd9, 0x1f,
-	0xc4, 0x11, 0x25, 0xfc, 0x24, 0xa1, 0xf9, 0xd4, 0x61, 0xc2, 0x67, 0xc7, 0xaa, 0x48, 0x1f, 0x55,
-	0xe5, 0xdc, 0x51, 0x42, 0x41, 0xe7, 0x25, 0xa1, 0xf3, 0x3c, 0xd6, 0x0a, 0x74, 0x8a, 0x4b, 0x99,
-	0x97, 0xd7, 0xba, 0xf2, 0x78, 0x5f, 0x95, 0x9e, 0xec, 0xab, 0xd2, 0xbf, 0xfb, 0xaa, 0xf4, 0xed,
-	0x81, 0x5a, 0x7a, 0x72, 0xa0, 0x96, 0xfe, 0x3a, 0x50, 0x4b, 0x1f, 0x9f, 0x49, 0x9d, 0xe4, 0x10,
-	0xb3, 0xd1, 0x35, 0x3b, 0x3c, 0x42, 0xff, 0x42, 0xe0, 0x8b, 0xab, 0xdc, 0x99, 0x15, 0xff, 0x16,
-	0x5d, 0x7c, 0x16, 0x00, 0x00, 0xff, 0xff, 0x72, 0xcf, 0xe9, 0xff, 0x1f, 0x0e, 0x00, 0x00,
+	// 1183 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xcd, 0x6f, 0x1b, 0xc5,
+	0x1b, 0xf6, 0x3a, 0x76, 0xea, 0x4e, 0xaa, 0xd8, 0xbf, 0xf9, 0x99, 0x74, 0xbb, 0x04, 0xdb, 0xd9,
+	0xd2, 0x24, 0x20, 0xb2, 0x4b, 0x83, 0x40, 0x7c, 0xaa, 0x8a, 0x63, 0x52, 0x15, 0x09, 0x29, 0x2c,
+	0x01, 0x24, 0x24, 0x64, 0xc6, 0xbb, 0x13, 0x77, 0xa9, 0xbd, 0xb3, 0xdd, 0xd9, 0x4d, 0x09, 0x55,
+	0x85, 0xe0, 0x50, 0x71, 0x42, 0x95, 0x38, 0x70, 0x40, 0x82, 0x5e, 0xb8, 0x70, 0xee, 0x1f, 0xd1,
+	0x63, 0x55, 0x38, 0x20, 0x0e, 0x29, 0x4a, 0x38, 0xf0, 0x67, 0xa0, 0xf9, 0xd8, 0x0f, 0x7b, 0xe3,
+	0x24, 0x95, 0xda, 0x4b, 0x62, 0xbf, 0x1f, 0xcf, 0xf3, 0xbc, 0xaf, 0xdf, 0x79, 0x67, 0xc0, 0xfc,
+	0x35, 0xb4, 0x83, 0x4c, 0xdb, 0xf1, 0xcd, 0x9d, 0x8b, 0x3d, 0x1c, 0xa2, 0x8b, 0xe6, 0xf5, 0x08,
+	0x07, 0xbb, 0x86, 0x1f, 0x90, 0x90, 0xc0, 0x1a, 0xf3, 0x1a, 0xb6, 0xe3, 0x1b, 0xd2, 0xab, 0x35,
+	0x72, 0xf1, 0x7d, 0xec, 0x61, 0xea, 0x52, 0x91, 0xa1, 0x69, 0x39, 0x3f, 0xcb, 0x16, 0xbe, 0x7a,
+	0x9f, 0xf4, 0x09, 0xff, 0x68, 0xb2, 0x4f, 0xd2, 0xda, 0xec, 0x13, 0xd2, 0x1f, 0x60, 0x93, 0x7f,
+	0xeb, 0x45, 0xdb, 0x66, 0xe8, 0x0e, 0x31, 0x0d, 0xd1, 0x30, 0x4e, 0x9b, 0x97, 0x01, 0xc8, 0x77,
+	0x4d, 0xe4, 0x79, 0x24, 0x44, 0xa1, 0x4b, 0xbc, 0x98, 0xf0, 0x45, 0x9b, 0xd0, 0x21, 0xa1, 0x66,
+	0x0f, 0x51, 0x2c, 0xb4, 0x27, 0xcc, 0x3e, 0xea, 0xbb, 0x1e, 0x0f, 0x96, 0xb1, 0x8d, 0x6c, 0x6c,
+	0xa2, 0x8f, 0xb8, 0xe3, 0x7e, 0x14, 0x85, 0x57, 0x13, 0x3f, 0xfb, 0x22, 0xfd, 0xe7, 0x84, 0xbf,
+	0x2b, 0x6a, 0x10, 0x5f, 0x84, 0x4b, 0xaf, 0x03, 0xf8, 0x01, 0x23, 0xdf, 0x44, 0x01, 0x1a, 0x52,
+	0x0b, 0x5f, 0x8f, 0x30, 0x0d, 0xf5, 0x4f, 0xc0, 0xff, 0x47, 0xac, 0xd4, 0x27, 0x1e, 0xc5, 0xf0,
+	0x35, 0x30, 0xed, 0x73, 0x8b, 0xaa, 0xb4, 0x94, 0xe5, 0x99, 0x55, 0xd5, 0x18, 0xef, 0xb3, 0x21,
+	0x32, 0xda, 0xa5, 0xfb, 0x7b, 0xcd, 0x82, 0x25, 0xa3, 0xdf, 0xac, 0x7c, 0x77, 0xb7, 0x59, 0xf8,
+	0xf7, 0x6e, 0xb3, 0xa0, 0xcf, 0x81, 0x3a, 0x07, 0x5e, 0xb3, 0x6d, 0x12, 0x79, 0x61, 0x42, 0xf8,
+	0x19, 0x78, 0x66, 0xcc, 0x2e, 0x29, 0x3b, 0xa0, 0x82, 0xa4, 0x4d, 0x55, 0x5a, 0x53, 0xcb, 0x33,
+	0xab, 0xba, 0x21, 0x0b, 0xe0, 0x05, 0xc6, 0xbc, 0xef, 0x13, 0x27, 0x1a, 0x60, 0x99, 0x2e, 0xe9,
+	0x93, 0x4c, 0xfd, 0x0b, 0x50, 0xe5, 0xf0, 0xeb, 0x8e, 0x2f, 0x19, 0xe1, 0x12, 0xa8, 0xda, 0x64,
+	0x30, 0x40, 0x21, 0x0e, 0xd0, 0xa0, 0x1b, 0xee, 0xfa, 0x98, 0x17, 0x75, 0xda, 0x9a, 0x4d, 0xcd,
+	0x5b, 0xbb, 0x3e, 0x86, 0x06, 0x28, 0x93, 0x1b, 0x1e, 0x0e, 0xd4, 0x22, 0x73, 0xb7, 0xd5, 0x87,
+	0xf7, 0x56, 0xea, 0x52, 0xc1, 0x9a, 0xe3, 0x04, 0x98, 0xd2, 0x0f, 0xc3, 0xc0, 0xf5, 0xfa, 0x96,
+	0x08, 0xd3, 0xaf, 0x80, 0x5a, 0xca, 0x25, 0xab, 0x78, 0x15, 0x4c, 0xd9, 0x8e, 0x2f, 0xbb, 0xf6,
+	0x5c, 0xbe, 0x6b, 0xeb, 0x9d, 0xcd, 0x38, 0x56, 0x6a, 0x67, 0xf1, 0xfa, 0x2f, 0xc5, 0x14, 0x8b,
+	0x3e, 0x6d, 0xe1, 0x70, 0x0e, 0x14, 0x5d, 0x47, 0x9d, 0x6a, 0x29, 0xcb, 0xa5, 0xf6, 0xf4, 0xfe,
+	0x5e, 0xb3, 0x78, 0xa5, 0x63, 0x15, 0x5d, 0x07, 0x5a, 0xa0, 0x1c, 0xb0, 0x69, 0x54, 0x4b, 0x1c,
+	0xe7, 0x6d, 0xa6, 0xef, 0xaf, 0xbd, 0xe6, 0x62, 0xdf, 0x0d, 0xaf, 0x46, 0x3d, 0xc3, 0x26, 0x43,
+	0x39, 0x52, 0xf2, 0xdf, 0x0a, 0x75, 0xae, 0x99, 0x4c, 0x17, 0x35, 0x3a, 0xd8, 0x7e, 0x78, 0x6f,
+	0x05, 0x48, 0xd6, 0x0e, 0xb6, 0x2d, 0x01, 0x05, 0x37, 0x00, 0x48, 0xa7, 0x5c, 0x2d, 0xf3, 0xbe,
+	0x2c, 0xc6, 0x3f, 0x2c, 0x1b, 0x73, 0x43, 0x1c, 0xe7, 0x74, 0xac, 0xfa, 0x58, 0x36, 0xc0, 0xca,
+	0x64, 0xea, 0xbf, 0x2a, 0xe0, 0x7f, 0x99, 0x0e, 0xc9, 0x76, 0x5f, 0x06, 0x25, 0xdb, 0xf1, 0xe3,
+	0x81, 0x39, 0xa6, 0xdf, 0x75, 0x56, 0xcf, 0x6f, 0x8f, 0x9a, 0x67, 0x32, 0x46, 0x6a, 0x71, 0x00,
+	0x78, 0x79, 0x44, 0x66, 0x91, 0xcb, 0x5c, 0x3a, 0x56, 0xa6, 0xc0, 0x18, 0xd1, 0x49, 0xe4, 0xdc,
+	0x77, 0xb0, 0x4f, 0xa8, 0x1b, 0x3e, 0xf5, 0x1f, 0x53, 0xff, 0x5c, 0x1e, 0xa8, 0x94, 0x30, 0xe9,
+	0x4d, 0xc5, 0x91, 0x36, 0xd9, 0x9f, 0x73, 0xf9, 0xfe, 0xc8, 0xac, 0x76, 0x4d, 0xf6, 0xa6, 0x92,
+	0xc0, 0x24, 0xc9, 0xfa, 0xbb, 0x40, 0xe3, 0x0c, 0x5b, 0x24, 0x44, 0x83, 0xcd, 0xc0, 0xf5, 0x6c,
+	0xd7, 0x47, 0x83, 0xc7, 0x2d, 0x4c, 0xff, 0x46, 0x01, 0xcf, 0x1e, 0x8a, 0x23, 0xf5, 0xf6, 0x40,
+	0x35, 0x64, 0x9e, 0xae, 0x1f, 0xbb, 0xa4, 0xec, 0x56, 0x5e, 0xf6, 0x28, 0x44, 0xfb, 0xac, 0x54,
+	0x5f, 0x1d, 0xb5, 0x53, 0x6b, 0x36, 0x1c, 0x31, 0xe8, 0x1b, 0x59, 0x09, 0xeb, 0x89, 0xbe, 0xc7,
+	0xae, 0xe5, 0xb6, 0x02, 0xe6, 0x0f, 0x07, 0x92, 0xc5, 0x6c, 0x83, 0x9a, 0x28, 0x26, 0x4d, 0x94,
+	0xd5, 0x2c, 0x4c, 0xa8, 0x26, 0x05, 0x69, 0xab, 0xb2, 0x9c, 0xda, 0x98, 0x83, 0x5a, 0xa2, 0x43,
+	0xa9, 0x45, 0xff, 0xbe, 0x0c, 0x66, 0x32, 0xe3, 0x2c, 0x8f, 0xb6, 0x92, 0x3b, 0xda, 0xf5, 0x91,
+	0xa9, 0x8a, 0x17, 0x01, 0x04, 0x25, 0x5e, 0xe4, 0x14, 0x37, 0xf2, 0xcf, 0xf0, 0x12, 0x00, 0x19,
+	0xcd, 0x25, 0x7e, 0x12, 0xce, 0x8d, 0x9c, 0x84, 0xe4, 0x6c, 0x11, 0xd7, 0x93, 0x4b, 0x2c, 0x93,
+	0x02, 0xdf, 0x01, 0xa7, 0xd3, 0x5f, 0xb0, 0x7c, 0xb2, 0xfc, 0x34, 0x03, 0xbe, 0x07, 0x6a, 0xc8,
+	0xb6, 0xa3, 0x61, 0xc4, 0xf0, 0x9c, 0xee, 0x36, 0xc6, 0x54, 0x9d, 0x3e, 0x19, 0x4a, 0x35, 0x93,
+	0xb8, 0x81, 0x31, 0x3b, 0xd5, 0x67, 0x58, 0x7e, 0x37, 0xf2, 0x1d, 0x66, 0x53, 0x4f, 0x71, 0x1c,
+	0xcd, 0x10, 0xf7, 0xb5, 0x11, 0x5f, 0xe8, 0xc6, 0x56, 0x7c, 0xa1, 0xb7, 0x2b, 0x0c, 0xe8, 0xce,
+	0xa3, 0xa6, 0x62, 0xcd, 0xb0, 0xcc, 0x8f, 0x44, 0x22, 0xc4, 0xa0, 0xea, 0x7a, 0x21, 0x0e, 0x30,
+	0x0d, 0xbb, 0xdb, 0xc8, 0x0e, 0x49, 0xa0, 0x56, 0x9e, 0xc0, 0x8e, 0x9c, 0x8d, 0x41, 0x37, 0x38,
+	0x26, 0xab, 0x3d, 0x33, 0x7f, 0x3b, 0x68, 0x10, 0x61, 0xf5, 0xf4, 0x09, 0x6b, 0x4f, 0x13, 0x3f,
+	0x66, 0x79, 0x30, 0x02, 0x67, 0x53, 0x93, 0xfb, 0x15, 0xdf, 0x4e, 0x5d, 0xb1, 0xde, 0xc1, 0x13,
+	0x90, 0x3e, 0x97, 0x03, 0xb7, 0xd8, 0xdf, 0xd5, 0x3f, 0x4e, 0x81, 0x32, 0x3f, 0x19, 0xf0, 0x06,
+	0x98, 0x16, 0x6f, 0x04, 0xf8, 0x7c, 0x7e, 0xe4, 0xf3, 0x4f, 0x11, 0xed, 0xc2, 0x31, 0x51, 0x62,
+	0xc2, 0xf5, 0xd6, 0xb7, 0xbf, 0xff, 0xf3, 0x43, 0x51, 0x83, 0xaa, 0x99, 0x7b, 0xc8, 0x89, 0x47,
+	0x08, 0xfc, 0x1a, 0x54, 0xe2, 0xd7, 0x05, 0x5c, 0x9c, 0x00, 0x3a, 0xf6, 0x2c, 0xd1, 0x96, 0x8e,
+	0x8d, 0x93, 0xf4, 0x3a, 0xa7, 0x9f, 0x87, 0x5a, 0x9e, 0x3e, 0x7e, 0x84, 0xc0, 0x1f, 0x15, 0x30,
+	0x3b, 0xba, 0x89, 0xe0, 0x4b, 0x13, 0xf0, 0x0f, 0xdd, 0xa9, 0xda, 0xca, 0x09, 0xa3, 0xa5, 0xa6,
+	0x65, 0xae, 0x49, 0x87, 0xad, 0xbc, 0xa6, 0xd1, 0xfd, 0x07, 0x7f, 0x52, 0x40, 0x75, 0x6c, 0xa9,
+	0xc0, 0x23, 0xc9, 0x72, 0x3b, 0x52, 0x33, 0x4e, 0x1a, 0x2e, 0xc5, 0xbd, 0xc0, 0xc5, 0x9d, 0x87,
+	0x0b, 0x13, 0xc4, 0x65, 0x94, 0x10, 0x50, 0x62, 0xb7, 0x3b, 0xd4, 0x27, 0x50, 0x64, 0x1e, 0x47,
+	0xda, 0xf9, 0x23, 0x63, 0x24, 0x77, 0x83, 0x73, 0xab, 0x70, 0xce, 0x3c, 0xec, 0xd1, 0x4f, 0xe1,
+	0x6d, 0x05, 0x4c, 0xad, 0x3b, 0x3e, 0x5c, 0x98, 0x0c, 0x16, 0xf3, 0xe9, 0x47, 0x85, 0x48, 0xba,
+	0xd7, 0x39, 0xdd, 0x2a, 0x7c, 0xf9, 0x70, 0x3a, 0xf3, 0x26, 0xdf, 0xba, 0xb7, 0xcc, 0x9b, 0x63,
+	0x97, 0xcc, 0x2d, 0xf8, 0xb3, 0x02, 0x92, 0x9b, 0x77, 0xe2, 0xcc, 0x8e, 0x3d, 0x29, 0x26, 0xce,
+	0xec, 0xf8, 0x4b, 0x40, 0x5f, 0xe3, 0xba, 0xde, 0x82, 0x6f, 0x4c, 0xd0, 0x15, 0xdf, 0xf4, 0x93,
+	0x05, 0xb6, 0x2f, 0xdd, 0xdf, 0x6f, 0x28, 0x0f, 0xf6, 0x1b, 0xca, 0xdf, 0xfb, 0x0d, 0xe5, 0xce,
+	0x41, 0xa3, 0xf0, 0xe0, 0xa0, 0x51, 0xf8, 0xf3, 0xa0, 0x51, 0xf8, 0xf4, 0x42, 0x66, 0x7d, 0x30,
+	0xf8, 0x95, 0x01, 0xea, 0x51, 0x41, 0xf4, 0x25, 0xa7, 0xe2, 0x1b, 0xa4, 0x37, 0xcd, 0x97, 0xed,
+	0x2b, 0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0x18, 0xd8, 0x30, 0xa9, 0xcf, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -991,12 +921,6 @@ type QueryClient interface {
 	Cdp(ctx context.Context, in *QueryCdpRequest, opts ...grpc.CallOption) (*QueryCdpResponse, error)
 	// Deposits queries deposits associated with the CDP owned by an address for a collateral type.
 	Deposits(ctx context.Context, in *QueryDepositsRequest, opts ...grpc.CallOption) (*QueryDepositsResponse, error)
-	// CdpsByCollateralType queries all CDPs with the collateral type equal to the input collateral type.
-	CdpsByCollateralType(ctx context.Context, in *QueryCdpsByCollateralTypeRequest, opts ...grpc.CallOption) (*QueryCdpsByCollateralTypeResponse, error)
-	// CdpsByRatio queries all CDPs with the collateral type equal to the input
-	// colalteral type and collateralization ratio strictly less than the input
-	// ratio.
-	CdpsByRatio(ctx context.Context, in *QueryCdpsByRatioRequest, opts ...grpc.CallOption) (*QueryCdpsByRatioResponse, error)
 }
 
 type queryClient struct {
@@ -1070,24 +994,6 @@ func (c *queryClient) Deposits(ctx context.Context, in *QueryDepositsRequest, op
 	return out, nil
 }
 
-func (c *queryClient) CdpsByCollateralType(ctx context.Context, in *QueryCdpsByCollateralTypeRequest, opts ...grpc.CallOption) (*QueryCdpsByCollateralTypeResponse, error) {
-	out := new(QueryCdpsByCollateralTypeResponse)
-	err := c.cc.Invoke(ctx, "/kava.cdp.v1beta1.Query/CdpsByCollateralType", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) CdpsByRatio(ctx context.Context, in *QueryCdpsByRatioRequest, opts ...grpc.CallOption) (*QueryCdpsByRatioResponse, error) {
-	out := new(QueryCdpsByRatioResponse)
-	err := c.cc.Invoke(ctx, "/kava.cdp.v1beta1.Query/CdpsByRatio", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Params queries all parameters of the cdp module.
@@ -1104,12 +1010,6 @@ type QueryServer interface {
 	Cdp(context.Context, *QueryCdpRequest) (*QueryCdpResponse, error)
 	// Deposits queries deposits associated with the CDP owned by an address for a collateral type.
 	Deposits(context.Context, *QueryDepositsRequest) (*QueryDepositsResponse, error)
-	// CdpsByCollateralType queries all CDPs with the collateral type equal to the input collateral type.
-	CdpsByCollateralType(context.Context, *QueryCdpsByCollateralTypeRequest) (*QueryCdpsByCollateralTypeResponse, error)
-	// CdpsByRatio queries all CDPs with the collateral type equal to the input
-	// colalteral type and collateralization ratio strictly less than the input
-	// ratio.
-	CdpsByRatio(context.Context, *QueryCdpsByRatioRequest) (*QueryCdpsByRatioResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -1136,12 +1036,6 @@ func (*UnimplementedQueryServer) Cdp(ctx context.Context, req *QueryCdpRequest) 
 }
 func (*UnimplementedQueryServer) Deposits(ctx context.Context, req *QueryDepositsRequest) (*QueryDepositsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Deposits not implemented")
-}
-func (*UnimplementedQueryServer) CdpsByCollateralType(ctx context.Context, req *QueryCdpsByCollateralTypeRequest) (*QueryCdpsByCollateralTypeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CdpsByCollateralType not implemented")
-}
-func (*UnimplementedQueryServer) CdpsByRatio(ctx context.Context, req *QueryCdpsByRatioRequest) (*QueryCdpsByRatioResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CdpsByRatio not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -1274,42 +1168,6 @@ func _Query_Deposits_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_CdpsByCollateralType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryCdpsByCollateralTypeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).CdpsByCollateralType(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kava.cdp.v1beta1.Query/CdpsByCollateralType",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).CdpsByCollateralType(ctx, req.(*QueryCdpsByCollateralTypeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_CdpsByRatio_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryCdpsByRatioRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).CdpsByRatio(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kava.cdp.v1beta1.Query/CdpsByRatio",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).CdpsByRatio(ctx, req.(*QueryCdpsByRatioRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.cdp.v1beta1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -1341,14 +1199,6 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Deposits",
 			Handler:    _Query_Deposits_Handler,
-		},
-		{
-			MethodName: "CdpsByCollateralType",
-			Handler:    _Query_CdpsByCollateralType_Handler,
-		},
-		{
-			MethodName: "CdpsByRatio",
-			Handler:    _Query_CdpsByRatio_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1728,150 +1578,6 @@ func (m *QueryDepositsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryCdpsByCollateralTypeRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryCdpsByCollateralTypeRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryCdpsByCollateralTypeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.CollateralType) > 0 {
-		i -= len(m.CollateralType)
-		copy(dAtA[i:], m.CollateralType)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.CollateralType)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryCdpsByCollateralTypeResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryCdpsByCollateralTypeResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryCdpsByCollateralTypeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Cdps) > 0 {
-		for iNdEx := len(m.Cdps) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Cdps[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintQuery(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryCdpsByRatioRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryCdpsByRatioRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryCdpsByRatioRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size := m.Ratio.Size()
-		i -= size
-		if _, err := m.Ratio.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintQuery(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x12
-	if len(m.CollateralType) > 0 {
-		i -= len(m.CollateralType)
-		copy(dAtA[i:], m.CollateralType)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.CollateralType)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryCdpsByRatioResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryCdpsByRatioResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryCdpsByRatioResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Cdps) > 0 {
-		for iNdEx := len(m.Cdps) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Cdps[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintQuery(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *QueryTotalPrincipalRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -2002,6 +1708,116 @@ func (m *QueryTotalCollateralResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 			i--
 			dAtA[i] = 0xa
 		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *CDPResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CDPResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CDPResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.CollateralizationRatio.Size()
+		i -= size
+		if _, err := m.CollateralizationRatio.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x52
+	{
+		size, err := m.CollateralValue.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x4a
+	{
+		size := m.InterestFactor.Size()
+		i -= size
+		if _, err := m.InterestFactor.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x42
+	n6, err6 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.FeesUpdated, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.FeesUpdated):])
+	if err6 != nil {
+		return 0, err6
+	}
+	i -= n6
+	i = encodeVarintQuery(dAtA, i, uint64(n6))
+	i--
+	dAtA[i] = 0x3a
+	{
+		size, err := m.AccumulatedFees.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x32
+	{
+		size, err := m.Principal.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x2a
+	{
+		size, err := m.Collateral.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.Type) > 0 {
+		i -= len(m.Type)
+		copy(dAtA[i:], m.Type)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Type)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Owner)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.ID != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.ID))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -2166,64 +1982,6 @@ func (m *QueryDepositsResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryCdpsByCollateralTypeRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.CollateralType)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryCdpsByCollateralTypeResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.Cdps) > 0 {
-		for _, e := range m.Cdps {
-			l = e.Size()
-			n += 1 + l + sovQuery(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *QueryCdpsByRatioRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.CollateralType)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	l = m.Ratio.Size()
-	n += 1 + l + sovQuery(uint64(l))
-	return n
-}
-
-func (m *QueryCdpsByRatioResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.Cdps) > 0 {
-		for _, e := range m.Cdps {
-			l = e.Size()
-			n += 1 + l + sovQuery(uint64(l))
-		}
-	}
-	return n
-}
-
 func (m *QueryTotalPrincipalRequest) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2277,6 +2035,40 @@ func (m *QueryTotalCollateralResponse) Size() (n int) {
 			n += 1 + l + sovQuery(uint64(l))
 		}
 	}
+	return n
+}
+
+func (m *CDPResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.ID != 0 {
+		n += 1 + sovQuery(uint64(m.ID))
+	}
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.Type)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = m.Collateral.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.Principal.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.AccumulatedFees.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.FeesUpdated)
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.InterestFactor.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.CollateralValue.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.CollateralizationRatio.Size()
+	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
 
@@ -3011,7 +2803,7 @@ func (m *QueryCdpsResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Cdps = append(m.Cdps, AugmentedCDP{})
+			m.Cdps = append(m.Cdps, CDPResponse{})
 			if err := m.Cdps[len(m.Cdps)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -3247,372 +3039,6 @@ func (m *QueryDepositsResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.Deposits = append(m.Deposits, Deposit{})
 			if err := m.Deposits[len(m.Deposits)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryCdpsByCollateralTypeRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryCdpsByCollateralTypeRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryCdpsByCollateralTypeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CollateralType", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.CollateralType = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryCdpsByCollateralTypeResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryCdpsByCollateralTypeResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryCdpsByCollateralTypeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Cdps", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Cdps = append(m.Cdps, AugmentedCDP{})
-			if err := m.Cdps[len(m.Cdps)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryCdpsByRatioRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryCdpsByRatioRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryCdpsByRatioRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CollateralType", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.CollateralType = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Ratio", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.Ratio.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryCdpsByRatioResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryCdpsByRatioResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryCdpsByRatioResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Cdps", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Cdps = append(m.Cdps, AugmentedCDP{})
-			if err := m.Cdps[len(m.Cdps)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3945,6 +3371,372 @@ func (m *QueryTotalCollateralResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.TotalCollateral = append(m.TotalCollateral, TotalCollateral{})
 			if err := m.TotalCollateral[len(m.TotalCollateral)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CDPResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CDPResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CDPResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
+			}
+			m.ID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ID |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Type = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Collateral", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Collateral.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Principal", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Principal.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccumulatedFees", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.AccumulatedFees.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FeesUpdated", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.FeesUpdated, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InterestFactor", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.InterestFactor.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CollateralValue", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.CollateralValue.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CollateralizationRatio", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.CollateralizationRatio.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

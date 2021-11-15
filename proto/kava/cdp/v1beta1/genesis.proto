@@ -28,8 +28,6 @@ message GenesisState {
 
 // Params defines the parameters for the cdp module.
 message Params {
-  option (gogoproto.goproto_stringer) = false;
-
   repeated CollateralParam collateral_params = 1
       [(gogoproto.castrepeated) = "CollateralParams", (gogoproto.nullable) = false];
   DebtParam debt_param = 2 [(gogoproto.nullable) = false];
@@ -60,8 +58,6 @@ message Params {
 
 // DebtParam defines governance params for debt assets
 message DebtParam {
-  option (gogoproto.goproto_stringer) = false;
-
   string denom             = 1;
   string reference_asset   = 2;
   string conversion_factor = 3 [
@@ -78,8 +74,6 @@ message DebtParam {
 
 // CollateralParam defines governance parameters for each collateral type within the cdp module
 message CollateralParam {
-  option (gogoproto.goproto_stringer) = false;
-
   string denom             = 1;
   string type              = 2;
   string liquidation_ratio = 3 [
@@ -103,21 +97,19 @@ message CollateralParam {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
   ];
-  // No single byte type, use a uint32
-  uint32 prefix                   = 8;
-  string spot_market_id           = 9 [(gogoproto.customname) = "SpotMarketID"];
-  string liquidation_market_id    = 10 [(gogoproto.customname) = "LiquidationMarketID"];
-  string keeper_reward_percentage = 11 [
+  string spot_market_id           = 8 [(gogoproto.customname) = "SpotMarketID"];
+  string liquidation_market_id    = 9 [(gogoproto.customname) = "LiquidationMarketID"];
+  string keeper_reward_percentage = 10 [
     (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
   ];
-  string check_collateralization_index_count = 12 [
+  string check_collateralization_index_count = 11 [
     (cosmos_proto.scalar)  = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable)   = false
   ];
-  string conversion_factor = 13 [
+  string conversion_factor = 12 [
     (cosmos_proto.scalar)  = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable)   = false

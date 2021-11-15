@@ -153,12 +153,17 @@ containerProtoGenAny=$(PROJECT_NAME)-proto-gen-any-$(protoVer)
 containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
 containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
 
-proto-all: proto-format proto-lint proto-gen
+proto-all: proto-gen proto-format proto-lint proto-swagger-gen
 
 proto-gen:
 	@echo "Generating Protobuf files"
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
 		sh ./scripts/protocgen.sh; fi
+
+proto-swagger-gen:
+	@echo "Generating Protobuf Swagger"
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
+		sh ./scripts/protoc-swagger-gen.sh; fi
 
 proto-format:
 	@echo "Formatting Protobuf files"
@@ -174,6 +179,7 @@ proto-check-breaking:
 TM_URL = https://raw.githubusercontent.com/tendermint/tendermint/$(TM_PKG_VERSION)/proto/tendermint
 GOGO_PROTO_URL = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
 COSMOS_PROTO_URL = https://raw.githubusercontent.com/cosmos/cosmos-proto/master
+COSMOS_SDK_URL = https://raw.githubusercontent.com/cosmos/cosmos-sdk/$(COSMOS_PKG_VERSION)
 COSMOS_SDK_PROTO_URL = https://raw.githubusercontent.com/cosmos/cosmos-sdk/$(COSMOS_PKG_VERSION)/proto/cosmos
 COSMOS_SDK_BASE_PROTO_URL = $(COSMOS_SDK_PROTO_URL)/base
 GOOGLE_PROTO_URL = https://raw.githubusercontent.com/googleapis/googleapis/master/google/api
@@ -244,6 +250,9 @@ proto-update-deps:
 
 	mkdir -p $(PROTOBUF_GOOGLE_TYPES)
 	curl -sSL $(PROTOBUF_GOOGLE_URL)/any.proto > $(PROTOBUF_GOOGLE_TYPES)/any.proto
+
+	mkdir -p client/docs
+	curl -sSL $(COSMOS_SDK_URL)/client/docs/swagger-ui/swagger.yaml > client/docs/cosmos-swagger.yml
 
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps
 

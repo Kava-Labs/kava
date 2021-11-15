@@ -2,7 +2,6 @@ package types
 
 import (
 	"errors"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -11,14 +10,6 @@ import (
 // NewDeposit creates a new Deposit object
 func NewDeposit(cdpID uint64, depositor sdk.AccAddress, amount sdk.Coin) Deposit {
 	return Deposit{cdpID, depositor, amount}
-}
-
-// String implements fmt.Stringer
-func (d Deposit) String() string {
-	return fmt.Sprintf(`Deposit for CDP %d:
-	  Depositor: %s
-		Amount: %s`,
-		d.CdpID, d.Depositor, d.Amount)
 }
 
 // Validate performs a basic validation of the deposit fields.
@@ -37,18 +28,6 @@ func (d Deposit) Validate() error {
 
 // Deposits a collection of Deposit objects
 type Deposits []Deposit
-
-// String implements fmt.Stringer
-func (ds Deposits) String() string {
-	if len(ds) == 0 {
-		return "[]"
-	}
-	out := fmt.Sprintf("Deposits for CDP %d:", ds[0].CdpID)
-	for _, dep := range ds {
-		out += fmt.Sprintf("\n  %s: %s", dep.Depositor, dep.Amount)
-	}
-	return out
-}
 
 // Validate validates each deposit
 func (ds Deposits) Validate() error {

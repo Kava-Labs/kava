@@ -15,4 +15,5 @@ var (
 	ErrNoProposalHandlerExists = sdkerrors.Register(ModuleName, 9, "pubproposal has no corresponding handler")
 	ErrUnknownSubspace         = sdkerrors.Register(ModuleName, 10, "subspace not found")
 	ErrInvalidVoteType         = sdkerrors.Register(ModuleName, 11, "invalid vote type")
+	ErrNotFoundProposalTally   = sdkerrors.Register(ModuleName, 12, "proposal tally not found")
 )

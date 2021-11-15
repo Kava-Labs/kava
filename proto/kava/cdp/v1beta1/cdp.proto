@@ -1,14 +1,13 @@
 syntax = "proto3";
 package kava.cdp.v1beta1;
 
-import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "google/protobuf/timestamp.proto";
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 
-option go_package                       = "github.com/kava-labs/kava/x/cdp/types";
-option (gogoproto.goproto_stringer_all) = false;
-option (gogoproto.goproto_getters_all)  = false;
+option go_package                      = "github.com/kava-labs/kava/x/cdp/types";
+option (gogoproto.goproto_getters_all) = false;
 
 // CDP defines the state of a single collateralized debt position.
 message CDP {
@@ -23,17 +22,6 @@ message CDP {
   cosmos.base.v1beta1.Coin  accumulated_fees = 6 [(gogoproto.nullable) = false];
   google.protobuf.Timestamp fees_updated     = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
   string                    interest_factor  = 8 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
-  ];
-}
-
-// AugmentedCDP defines additional information about an active CDP
-message AugmentedCDP {
-  CDP                      cdp                     = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin collateral_value        = 2 [(gogoproto.nullable) = false];
-  string                   collateralization_ratio = 3 [
     (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false

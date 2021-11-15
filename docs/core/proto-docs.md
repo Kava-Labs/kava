@@ -5,7 +5,6 @@
 ## Table of Contents
 
 - [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
-    - [AugmentedCDP](#kava.cdp.v1beta1.AugmentedCDP)
     - [CDP](#kava.cdp.v1beta1.CDP)
     - [Deposit](#kava.cdp.v1beta1.Deposit)
     - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
@@ -20,14 +19,11 @@
     - [Params](#kava.cdp.v1beta1.Params)
   
 - [kava/cdp/v1beta1/query.proto](#kava/cdp/v1beta1/query.proto)
+    - [CDPResponse](#kava.cdp.v1beta1.CDPResponse)
     - [QueryAccountsRequest](#kava.cdp.v1beta1.QueryAccountsRequest)
     - [QueryAccountsResponse](#kava.cdp.v1beta1.QueryAccountsResponse)
     - [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest)
     - [QueryCdpResponse](#kava.cdp.v1beta1.QueryCdpResponse)
-    - [QueryCdpsByCollateralTypeRequest](#kava.cdp.v1beta1.QueryCdpsByCollateralTypeRequest)
-    - [QueryCdpsByCollateralTypeResponse](#kava.cdp.v1beta1.QueryCdpsByCollateralTypeResponse)
-    - [QueryCdpsByRatioRequest](#kava.cdp.v1beta1.QueryCdpsByRatioRequest)
-    - [QueryCdpsByRatioResponse](#kava.cdp.v1beta1.QueryCdpsByRatioResponse)
     - [QueryCdpsRequest](#kava.cdp.v1beta1.QueryCdpsRequest)
     - [QueryCdpsResponse](#kava.cdp.v1beta1.QueryCdpsResponse)
     - [QueryDepositsRequest](#kava.cdp.v1beta1.QueryDepositsRequest)
@@ -56,6 +52,33 @@
     - [MsgWithdrawResponse](#kava.cdp.v1beta1.MsgWithdrawResponse)
   
     - [Msg](#kava.cdp.v1beta1.Msg)
+  
+- [kava/committee/v1beta1/committee.proto](#kava/committee/v1beta1/committee.proto)
+    - [BaseCommittee](#kava.committee.v1beta1.BaseCommittee)
+    - [MemberCommittee](#kava.committee.v1beta1.MemberCommittee)
+    - [TokenCommittee](#kava.committee.v1beta1.TokenCommittee)
+  
+    - [TallyOption](#kava.committee.v1beta1.TallyOption)
+  
+- [kava/committee/v1beta1/genesis.proto](#kava/committee/v1beta1/genesis.proto)
+    - [GenesisState](#kava.committee.v1beta1.GenesisState)
+    - [Proposal](#kava.committee.v1beta1.Proposal)
+    - [Vote](#kava.committee.v1beta1.Vote)
+  
+    - [VoteType](#kava.committee.v1beta1.VoteType)
+  
+- [kava/committee/v1beta1/permissions.proto](#kava/committee/v1beta1/permissions.proto)
+    - [GodPermission](#kava.committee.v1beta1.GodPermission)
+    - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
+    - [TextPermission](#kava.committee.v1beta1.TextPermission)
+  
+- [kava/committee/v1beta1/proposal.proto](#kava/committee/v1beta1/proposal.proto)
+    - [CommitteeChangeProposal](#kava.committee.v1beta1.CommitteeChangeProposal)
+    - [CommitteeDeleteProposal](#kava.committee.v1beta1.CommitteeDeleteProposal)
+  
+- [kava/committee/v1beta1/tx.proto](#kava/committee/v1beta1/tx.proto)
+    - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
+    - [MsgVote](#kava.committee.v1beta1.MsgVote)
   
 - [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
     - [Asset](#kava.issuance.v1beta1.Asset)
@@ -179,23 +202,6 @@
 
 
 
-<a name="kava.cdp.v1beta1.AugmentedCDP"></a>
-
-### AugmentedCDP
-AugmentedCDP defines additional information about an active CDP
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `cdp` | [CDP](#kava.cdp.v1beta1.CDP) |  |  |
-| `collateral_value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-| `collateralization_ratio` | [string](#string) |  |  |
-
-
-
-
-
-
 <a name="kava.cdp.v1beta1.CDP"></a>
 
 ### CDP
@@ -298,7 +304,6 @@ CollateralParam defines governance parameters for each collateral type within th
 | `stability_fee` | [string](#string) |  |  |
 | `auction_size` | [string](#string) |  |  |
 | `liquidation_penalty` | [string](#string) |  |  |
-| `prefix` | [uint32](#uint32) |  | No single byte type, use a uint32 |
 | `spot_market_id` | [string](#string) |  |  |
 | `liquidation_market_id` | [string](#string) |  |  |
 | `keeper_reward_percentage` | [string](#string) |  |  |
@@ -421,6 +426,30 @@ Params defines the parameters for the cdp module.
 
 
 
+<a name="kava.cdp.v1beta1.CDPResponse"></a>
+
+### CDPResponse
+CDPResponse defines the state of a single collateralized debt position.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+| `owner` | [string](#string) |  |  |
+| `type` | [string](#string) |  |  |
+| `collateral` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `principal` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `accumulated_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `fees_updated` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `interest_factor` | [string](#string) |  |  |
+| `collateral_value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `collateralization_ratio` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="kava.cdp.v1beta1.QueryAccountsRequest"></a>
 
 ### QueryAccountsRequest
@@ -470,68 +499,7 @@ QueryCdpResponse defines the response type for the Query/Cdp RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `cdp` | [AugmentedCDP](#kava.cdp.v1beta1.AugmentedCDP) |  |  |
-
-
-
-
-
-
-<a name="kava.cdp.v1beta1.QueryCdpsByCollateralTypeRequest"></a>
-
-### QueryCdpsByCollateralTypeRequest
-QueryCdpsByCollateralTypeRequest defines the request type for the Query/CdpsByCollateralType RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `collateral_type` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.cdp.v1beta1.QueryCdpsByCollateralTypeResponse"></a>
-
-### QueryCdpsByCollateralTypeResponse
-QueryCdpsByCollateralTypeResponse defines the response type for the Query/CdpsByCollateralType RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `cdps` | [AugmentedCDP](#kava.cdp.v1beta1.AugmentedCDP) | repeated |  |
-
-
-
-
-
-
-<a name="kava.cdp.v1beta1.QueryCdpsByRatioRequest"></a>
-
-### QueryCdpsByRatioRequest
-QueryCdpsByCollateralTypeRequest defines the request type for the Query/CdpsByRatio RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `collateral_type` | [string](#string) |  |  |
-| `ratio` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="kava.cdp.v1beta1.QueryCdpsByRatioResponse"></a>
-
-### QueryCdpsByRatioResponse
-QueryCdpsByRatioResponse defines the response type for the Query/CdpsByRatio RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `cdps` | [AugmentedCDP](#kava.cdp.v1beta1.AugmentedCDP) | repeated |  |
+| `cdp` | [CDPResponse](#kava.cdp.v1beta1.CDPResponse) |  |  |
 
 
 
@@ -565,7 +533,7 @@ QueryCdpsResponse defines the response type for the Query/Cdps RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `cdps` | [AugmentedCDP](#kava.cdp.v1beta1.AugmentedCDP) | repeated |  |
+| `cdps` | [CDPResponse](#kava.cdp.v1beta1.CDPResponse) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
@@ -709,8 +677,6 @@ Query defines the gRPC querier service for cdp module
 | `Cdps` | [QueryCdpsRequest](#kava.cdp.v1beta1.QueryCdpsRequest) | [QueryCdpsResponse](#kava.cdp.v1beta1.QueryCdpsResponse) | Cdps queries all active CDPs. | GET|/kava/cdp/v1beta1/cdps|
 | `Cdp` | [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest) | [QueryCdpResponse](#kava.cdp.v1beta1.QueryCdpResponse) | Cdp queries a CDP with the input owner address and collateral type. | GET|/kava/cdp/v1beta1/cdps/{owner}/{collateral_type}|
 | `Deposits` | [QueryDepositsRequest](#kava.cdp.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.cdp.v1beta1.QueryDepositsResponse) | Deposits queries deposits associated with the CDP owned by an address for a collateral type. | GET|/kava/cdp/v1beta1/cdps/deposits/{owner}/{collateral_type}|
-| `CdpsByCollateralType` | [QueryCdpsByCollateralTypeRequest](#kava.cdp.v1beta1.QueryCdpsByCollateralTypeRequest) | [QueryCdpsByCollateralTypeResponse](#kava.cdp.v1beta1.QueryCdpsByCollateralTypeResponse) | CdpsByCollateralType queries all CDPs with the collateral type equal to the input collateral type. | GET|/kava/cdp/v1beta1/cdps/collateralType/{collateral_type}|
-| `CdpsByRatio` | [QueryCdpsByRatioRequest](#kava.cdp.v1beta1.QueryCdpsByRatioRequest) | [QueryCdpsByRatioResponse](#kava.cdp.v1beta1.QueryCdpsByRatioResponse) | CdpsByRatio queries all CDPs with the collateral type equal to the input colalteral type and collateralization ratio strictly less than the input ratio. | GET|/kava/cdp/v1beta1/cdps/ratio/{collateral_type}|
 
  <!-- end services -->
 
@@ -908,6 +874,317 @@ Msg defines the cdp Msg service.
 | `DrawDebt` | [MsgDrawDebt](#kava.cdp.v1beta1.MsgDrawDebt) | [MsgDrawDebtResponse](#kava.cdp.v1beta1.MsgDrawDebtResponse) | DrawDebt defines a method to draw debt from a CDP. | |
 | `RepayDebt` | [MsgRepayDebt](#kava.cdp.v1beta1.MsgRepayDebt) | [MsgRepayDebtResponse](#kava.cdp.v1beta1.MsgRepayDebtResponse) | RepayDebt defines a method to repay debt from a CDP. | |
 | `Liquidate` | [MsgLiquidate](#kava.cdp.v1beta1.MsgLiquidate) | [MsgLiquidateResponse](#kava.cdp.v1beta1.MsgLiquidateResponse) | Liquidate defines a method to attempt to liquidate a CDP whos collateralization ratio is under its liquidation ratio. | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/committee.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/committee.proto
+
+
+
+<a name="kava.committee.v1beta1.BaseCommittee"></a>
+
+### BaseCommittee
+BaseCommittee is a common type shared by all Committees
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+| `description` | [string](#string) |  |  |
+| `members` | [bytes](#bytes) | repeated |  |
+| `permissions` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `vote_threshold` | [string](#string) |  | Smallest percentage that must vote for a proposal to pass |
+| `proposal_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  | The length of time a proposal remains active for. Proposals will close earlier if they get enough votes. |
+| `tally_option` | [TallyOption](#kava.committee.v1beta1.TallyOption) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.MemberCommittee"></a>
+
+### MemberCommittee
+MemberCommittee is an alias of BaseCommittee
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_committee` | [BaseCommittee](#kava.committee.v1beta1.BaseCommittee) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.TokenCommittee"></a>
+
+### TokenCommittee
+TokenCommittee supports voting on proposals by token holders
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_committee` | [BaseCommittee](#kava.committee.v1beta1.BaseCommittee) |  |  |
+| `quorum` | [string](#string) |  |  |
+| `tally_denom` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.committee.v1beta1.TallyOption"></a>
+
+### TallyOption
+TallyOption enumerates the valid types of a tally.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| TALLY_OPTION_UNSPECIFIED | 0 | TALLY_OPTION_UNSPECIFIED defines a null tally option. |
+| TALLY_OPTION_FIRST_PAST_THE_POST | 1 | Votes are tallied each block and the proposal passes as soon as the vote threshold is reached |
+| TALLY_OPTION_DEADLINE | 2 | Votes are tallied exactly once, when the deadline time is reached |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/genesis.proto
+
+
+
+<a name="kava.committee.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the committee module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `next_proposal_id` | [uint64](#uint64) |  |  |
+| `committees` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `proposals` | [Proposal](#kava.committee.v1beta1.Proposal) | repeated |  |
+| `votes` | [Vote](#kava.committee.v1beta1.Vote) | repeated |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.Proposal"></a>
+
+### Proposal
+Proposal is an internal record of a governance proposal submitted to a committee.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `content` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `id` | [uint64](#uint64) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+| `deadline` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.Vote"></a>
+
+### Vote
+Vote is an internal record of a single governance vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [bytes](#bytes) |  |  |
+| `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.committee.v1beta1.VoteType"></a>
+
+### VoteType
+VoteType enumerates the valid types of a vote.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| VOTE_TYPE_UNSPECIFIED | 0 | VOTE_TYPE_UNSPECIFIED defines a no-op vote option. |
+| VOTE_TYPE_YES | 1 | VOTE_TYPE_YES defines a yes vote option. |
+| VOTE_TYPE_NO | 2 | VOTE_TYPE_NO defines a no vote option. |
+| VOTE_TYPE_ABSTAIN | 3 | VOTE_TYPE_ABSTAIN defines an abstain vote option. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/permissions.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/permissions.proto
+
+
+
+<a name="kava.committee.v1beta1.GodPermission"></a>
+
+### GodPermission
+GodPermission allows any governance proposal. It is used mainly for testing.
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.SoftwareUpgradePermission"></a>
+
+### SoftwareUpgradePermission
+SoftwareUpgradePermission permission type for software upgrade proposals
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.TextPermission"></a>
+
+### TextPermission
+TextPermission allows any text governance proposal.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/proposal.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/proposal.proto
+
+
+
+<a name="kava.committee.v1beta1.CommitteeChangeProposal"></a>
+
+### CommitteeChangeProposal
+CommitteeChangeProposal is a gov proposal for creating a new committee or modifying an existing one.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `new_committee` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.CommitteeDeleteProposal"></a>
+
+### CommitteeDeleteProposal
+CommitteeDeleteProposal is a gov proposal for removing a committee.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/tx.proto
+
+
+
+<a name="kava.committee.v1beta1.MsgSubmitProposal"></a>
+
+### MsgSubmitProposal
+MsgSubmitProposal is used by committee members to create a new proposal that they can vote on.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pub_proposal` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `proposer` | [bytes](#bytes) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.MsgVote"></a>
+
+### MsgVote
+MsgVote is submitted by committee members to vote on proposals.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [bytes](#bytes) |  |  |
+| `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
 
  <!-- end services -->
 
