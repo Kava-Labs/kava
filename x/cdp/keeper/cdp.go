@@ -523,8 +523,8 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 	return collateralBaseUnits.Quo(debtTotal)
 }
 
-// LoadAugmentedCDP creates a new augmented CDP from an existing CDP
-func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.AugmentedCDP {
+// LoadCDPResponse creates a new CDPResponse from an existing CDP
+func (k Keeper) LoadCDPResponse(ctx sdk.Context, cdp types.CDP) types.CDPResponse {
 	// sync the latest interest of the cdp
 	interestAccumulated := k.CalculateNewInterest(ctx, cdp)
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(interestAccumulated)
@@ -540,14 +540,23 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 	// calculate collateralization ratio
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Type, cdp.Principal, cdp.AccumulatedFees, liquidation)
 	if err != nil {
-		return types.AugmentedCDP{CDP: cdp}
+		return types.CDPResponse{
+			ID:              cdp.ID,
+			Owner:           cdp.Owner.String(),
+			Type:            cdp.Type,
+			Collateral:      cdp.Collateral,
+			Principal:       cdp.Principal,
+			AccumulatedFees: cdp.AccumulatedFees,
+			FeesUpdated:     cdp.FeesUpdated,
+			InterestFactor:  cdp.InterestFactor,
+		}
 	}
 	// convert collateral value to debt coin
 	totalDebt := cdp.GetTotalPrincipal().Amount
 	collateralValueInDebtDenom := sdk.NewDecFromInt(totalDebt).Mul(collateralizationRatio)
 	collateralValueInDebt := sdk.NewCoin(cdp.Principal.Denom, collateralValueInDebtDenom.RoundInt())
-	// create new augmuented cdp
-	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)
+	// create new cdp response
+	augmentedCDP := types.NewCDPResponse(cdp, collateralValueInDebt, collateralizationRatio)
 	return augmentedCDP
 }
 

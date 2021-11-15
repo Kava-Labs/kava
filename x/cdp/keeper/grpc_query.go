@@ -206,10 +206,10 @@ func (s QueryServer) Cdp(c context.Context, req *types.QueryCdpRequest) (*types.
 		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", req.Owner, req.CollateralType)
 	}
 
-	augmentedCDP := s.keeper.LoadAugmentedCDP(ctx, cdp)
+	cdpResponse := s.keeper.LoadCDPResponse(ctx, cdp)
 
 	return &types.QueryCdpResponse{
-		Cdp: augmentedCDP,
+		Cdp: cdpResponse,
 	}, nil
 }
 
@@ -239,59 +239,8 @@ func (s QueryServer) Deposits(c context.Context, req *types.QueryDepositsRequest
 	}, nil
 }
 
-// CdpsByCollateralType queries all CDPs with the collateral type equal to the input collateral type.
-func (s QueryServer) CdpsByCollateralType(c context.Context, req *types.QueryCdpsByCollateralTypeRequest) (*types.QueryCdpsByCollateralTypeResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-
-	_, valid := s.keeper.GetCollateralTypePrefix(ctx, req.CollateralType)
-	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, req.CollateralType)
-	}
-
-	cdps := s.keeper.GetAllCdpsByCollateralType(ctx, req.CollateralType)
-	// augment CDPs by adding collateral value and collateralization ratio
-	var augmentedCDPs types.AugmentedCDPs
-	for _, cdp := range cdps {
-		augmentedCDP := s.keeper.LoadAugmentedCDP(ctx, cdp)
-		augmentedCDPs = append(augmentedCDPs, augmentedCDP)
-	}
-
-	return &types.QueryCdpsByCollateralTypeResponse{
-		Cdps: augmentedCDPs,
-	}, nil
-}
-
-// CdpsByRatio queries all CDPs with the collateral type equal to the input
-// colalteral type and collateralization ratio strictly less than the input
-// ratio.
-func (s QueryServer) CdpsByRatio(c context.Context, req *types.QueryCdpsByRatioRequest) (*types.QueryCdpsByRatioResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-
-	_, valid := s.keeper.GetCollateralTypePrefix(ctx, req.CollateralType)
-	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, req.CollateralType)
-	}
-
-	ratio, err := s.keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, req.CollateralType, req.Ratio, "liquidation")
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "couldn't get collateralization ratio from absolute ratio")
-	}
-
-	cdps := s.keeper.GetAllCdpsByCollateralTypeAndRatio(ctx, req.CollateralType, ratio)
-	// augment CDPs by adding collateral value and collateralization ratio
-	var augmentedCDPs types.AugmentedCDPs
-	for _, cdp := range cdps {
-		augmentedCDP := s.keeper.LoadAugmentedCDP(ctx, cdp)
-		augmentedCDPs = append(augmentedCDPs, augmentedCDP)
-	}
-
-	return &types.QueryCdpsByRatioResponse{
-		Cdps: augmentedCDPs,
-	}, nil
-}
-
 // FilterCDPs queries the store for all CDPs that match query req
-func GrpcFilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (types.AugmentedCDPs, error) {
+func GrpcFilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (types.CDPResponses, error) {
 	// TODO: Use query.Paginate()? May be difficult to use special indexed keeper methods
 	page, limit, err := query.ParsePagination(req.Pagination)
 	if err != nil {
