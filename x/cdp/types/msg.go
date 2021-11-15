@@ -37,10 +37,6 @@ func (msg MsgCreateCDP) Type() string { return "create_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgCreateCDP) ValidateBasic() error {
-	if msg.Sender == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
-	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
@@ -91,13 +87,6 @@ func (msg MsgDeposit) Type() string { return "deposit_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDeposit) ValidateBasic() error {
-	if msg.Owner == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
-	}
-	if msg.Depositor == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
-	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %s", err)
@@ -149,13 +138,6 @@ func (msg MsgWithdraw) Type() string { return "withdraw_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdraw) ValidateBasic() error {
-	if msg.Owner == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
-	}
-	if msg.Depositor == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
-	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %s", err)
@@ -206,10 +188,6 @@ func (msg MsgDrawDebt) Type() string { return "draw_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDrawDebt) ValidateBasic() error {
-	if msg.Sender == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
-	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err)
@@ -256,10 +234,6 @@ func (msg MsgRepayDebt) Type() string { return "repay_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgRepayDebt) ValidateBasic() error {
-	if msg.Sender == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
-	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err)
@@ -306,13 +280,6 @@ func (msg MsgLiquidate) Type() string { return "liquidate" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgLiquidate) ValidateBasic() error {
-	if msg.Keeper == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "keeper address cannot be empty")
-	}
-	if msg.Borrower == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "borrower address cannot be empty")
-	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Keeper)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid keeper address %s", err)
