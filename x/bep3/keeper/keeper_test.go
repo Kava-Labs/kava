@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwaps() {
 	}
 
 	// Read each atomic swap from the store
-	var readAtomicSwaps []types.AtomicSwap
+	var readAtomicSwaps types.AtomicSwaps
 	suite.keeper.IterateAtomicSwaps(suite.ctx, func(a types.AtomicSwap) bool {
 		readAtomicSwaps = append(readAtomicSwaps, a)
 		return false
@@ -293,7 +293,7 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsLongtermStorage() {
 	suite.ResetChain()
 
 	// Set up atomic swaps with stagged closed blocks
-	var swaps []types.AtomicSwap
+	var swaps types.AtomicSwaps
 	for i := 0; i < 8; i++ {
 		timestamp := tmtime.Now().Unix()
 		randomNumber, _ := types.GenerateSecureRandomNumber()

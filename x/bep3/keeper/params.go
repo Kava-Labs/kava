@@ -45,7 +45,7 @@ func (k Keeper) SetAsset(ctx sdk.Context, asset types.AssetParam) {
 }
 
 // GetAssets returns a list containing all supported assets
-func (k Keeper) GetAssets(ctx sdk.Context) ([]types.AssetParam, bool) {
+func (k Keeper) GetAssets(ctx sdk.Context) (types.AssetParams, bool) {
 	params := k.GetParams(ctx)
 	return params.AssetParams, len(params.AssetParams) > 0
 }

@@ -138,7 +138,7 @@ func (suite *QuerierTestSuite) TestQueryAssetSupplies() {
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	var supplies []types.AssetSupply
+	var supplies types.AssetSupplies
 	suite.Nil(types.ModuleCdc.LegacyAmino.UnmarshalJSON(bz, &supplies))
 
 	// Check that returned value matches asset supplies in state
@@ -160,7 +160,7 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwaps() {
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	var swaps []types.AugmentedAtomicSwap
+	var swaps types.LegacyAugmentedAtomicSwaps
 	suite.Nil(types.ModuleCdc.LegacyAmino.UnmarshalJSON(bz, &swaps))
 
 	suite.Equal(len(suite.swapIDs), len(swaps))

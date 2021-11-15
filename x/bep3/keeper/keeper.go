@@ -108,7 +108,7 @@ func (k Keeper) IterateAtomicSwaps(ctx sdk.Context, cb func(atomicSwap types.Ato
 }
 
 // GetAllAtomicSwaps returns all AtomicSwaps from the store
-func (k Keeper) GetAllAtomicSwaps(ctx sdk.Context) (atomicSwaps []types.AtomicSwap) {
+func (k Keeper) GetAllAtomicSwaps(ctx sdk.Context) (atomicSwaps types.AtomicSwaps) {
 	k.IterateAtomicSwaps(ctx, func(atomicSwap types.AtomicSwap) bool {
 		atomicSwaps = append(atomicSwaps, atomicSwap)
 		return false
@@ -230,7 +230,7 @@ func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.Asset
 }
 
 // GetAllAssetSupplies returns all asset supplies from the store
-func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies []types.AssetSupply) {
+func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies types.AssetSupplies) {
 	k.IterateAssetSupplies(ctx, func(supply types.AssetSupply) bool {
 		supplies = append(supplies, supply)
 		return false

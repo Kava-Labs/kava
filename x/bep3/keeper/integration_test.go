@@ -38,7 +38,7 @@ func NewAuthGenStateFromAccs(cdc codec.JSONCodec, accounts ...authtypes.GenesisA
 func NewBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
-			AssetParams: []types.AssetParam{
+			AssetParams: types.AssetParams{
 				{
 					Denom:  "bnb",
 					CoinID: 714,
@@ -75,7 +75,7 @@ func NewBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app
 				},
 			},
 		},
-		Supplies: []types.AssetSupply{
+		Supplies: types.AssetSupplies{
 			types.NewAssetSupply(
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
@@ -96,8 +96,8 @@ func NewBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app
 	return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&bep3Genesis)}
 }
 
-func atomicSwaps(ctx sdk.Context, count int) []types.AtomicSwap {
-	var swaps []types.AtomicSwap
+func atomicSwaps(ctx sdk.Context, count int) types.AtomicSwaps {
+	var swaps types.AtomicSwaps
 	for i := 0; i < count; i++ {
 		swap := atomicSwap(ctx, i)
 		swaps = append(swaps, swap)

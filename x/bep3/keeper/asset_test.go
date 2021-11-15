@@ -629,7 +629,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 		suite.Run(tc.name, func() {
 			deputy, _ := sdk.AccAddressFromBech32(TestDeputy)
 			newParams := types.Params{
-				AssetParams: []types.AssetParam{
+				AssetParams: types.AssetParams{
 					{
 						Denom:  "bnb",
 						CoinID: 714,

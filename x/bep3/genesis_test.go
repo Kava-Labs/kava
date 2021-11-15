@@ -59,8 +59,8 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
-				var swaps []types.AtomicSwap
-				var supplies []types.AssetSupply
+				var swaps types.AtomicSwaps
+				var supplies types.AssetSupplies
 				for i := 0; i < 2; i++ {
 					swap, supply := loadSwapAndSupply(addrs[i], i)
 					swaps = append(swaps, swap)
@@ -87,7 +87,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(1)
 				swap, _ := loadSwapAndSupply(addrs[0], 2)
-				gs.AtomicSwaps = []types.AtomicSwap{swap}
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
 				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
@@ -97,7 +97,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
-				gs.Supplies = []types.AssetSupply{
+				gs.Supplies = types.AssetSupplies{
 					{
 						IncomingSupply: c("bnb", 0),
 						OutgoingSupply: c("bnb", 0),
@@ -124,10 +124,10 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				swap := types.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
 					types.DefaultMinBlockLock, timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_INCOMING)
-				gs.AtomicSwaps = []types.AtomicSwap{swap}
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
 
 				// Set up asset supply with overlimit current supply
-				gs.Supplies = []types.AssetSupply{
+				gs.Supplies = types.AssetSupplies{
 					{
 						IncomingSupply: c("bnb", assetParam.SupplyLimit.Limit.Add(i(1)).Int64()),
 						OutgoingSupply: c("bnb", 0),
@@ -155,10 +155,10 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				swap := types.NewAtomicSwap(cs(c("bnb", halfLimit)), randomNumberHash,
 					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_INCOMING)
-				gs.AtomicSwaps = []types.AtomicSwap{swap}
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
 
 				// Set up asset supply with overlimit current supply
-				gs.Supplies = []types.AssetSupply{
+				gs.Supplies = types.AssetSupplies{
 					{
 						IncomingSupply: c("bnb", halfLimit),
 						OutgoingSupply: c("bnb", 0),
@@ -185,10 +185,10 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				swap := types.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
 					types.DefaultMinBlockLock, timestamp, addrs[1], suite.addrs[0], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_OUTGOING)
-				gs.AtomicSwaps = []types.AtomicSwap{swap}
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
 
 				// Set up asset supply with overlimit current supply
-				gs.Supplies = []types.AssetSupply{
+				gs.Supplies = types.AssetSupplies{
 					{
 						IncomingSupply: c("bnb", 0),
 						OutgoingSupply: c("bnb", 0),
@@ -203,7 +203,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "asset supply denom is not a supported asset",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.Supplies = []types.AssetSupply{
+				gs.Supplies = types.AssetSupplies{
 					{
 						IncomingSupply: c("fake", 0),
 						OutgoingSupply: c("fake", 0),
@@ -226,7 +226,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_INCOMING)
 
-				gs.AtomicSwaps = []types.AtomicSwap{swap}
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
 				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
@@ -243,7 +243,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, types.SWAP_STATUS_UNSPECIFIED, true, types.SWAP_DIRECTION_INCOMING)
 
-				gs.AtomicSwaps = []types.AtomicSwap{swap}
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
 				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,

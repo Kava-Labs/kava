@@ -38,7 +38,7 @@ func NewBep3GenStateMulti(cdc codec.JSONCodec, deputy sdk.AccAddress) app.Genesi
 func baseGenState(deputy sdk.AccAddress) types.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
-			AssetParams: []types.AssetParam{
+			AssetParams: types.AssetParams{
 				{
 					Denom:  "bnb",
 					CoinID: 714,
@@ -75,7 +75,7 @@ func baseGenState(deputy sdk.AccAddress) types.GenesisState {
 				},
 			},
 		},
-		Supplies: []types.AssetSupply{
+		Supplies: types.AssetSupplies{
 			types.NewAssetSupply(
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
 				sdk.NewCoin("bnb", sdk.ZeroInt()),

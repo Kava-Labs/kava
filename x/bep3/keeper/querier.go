@@ -56,7 +56,7 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, leg
 func queryAssetSupplies(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	assets := keeper.GetAllAssetSupplies(ctx)
 	if assets == nil {
-		assets = []types.AssetSupply{}
+		assets = types.AssetSupplies{}
 	}
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, assets)
@@ -102,10 +102,10 @@ func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, leg
 	unfilteredSwaps := keeper.GetAllAtomicSwaps(ctx)
 	swaps := filterAtomicSwaps(ctx, unfilteredSwaps, params)
 	if swaps == nil {
-		swaps = []types.AtomicSwap{}
+		swaps = types.AtomicSwaps{}
 	}
 
-	augmentedSwaps := []types.LegacyAugmentedAtomicSwap{}
+	augmentedSwaps := types.LegacyAugmentedAtomicSwaps{}
 
 	for _, swap := range swaps {
 		augmentedSwaps = append(augmentedSwaps, types.NewLegacyAugmentedAtomicSwap(swap))
@@ -134,8 +134,8 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legac
 
 // filterAtomicSwaps retrieves atomic swaps filtered by a given set of params.
 // If no filters are provided, all atomic swaps will be returned in paginated form.
-func filterAtomicSwaps(ctx sdk.Context, swaps []types.AtomicSwap, params types.QueryAtomicSwaps) []types.AtomicSwap {
-	filteredSwaps := make([]types.AtomicSwap, 0, len(swaps))
+func filterAtomicSwaps(ctx sdk.Context, swaps types.AtomicSwaps, params types.QueryAtomicSwaps) types.AtomicSwaps {
+	filteredSwaps := make(types.AtomicSwaps, 0, len(swaps))
 
 	for _, s := range swaps {
 		if legacyAtomicSwapIsMatch(s, params) {
@@ -145,7 +145,7 @@ func filterAtomicSwaps(ctx sdk.Context, swaps []types.AtomicSwap, params types.Q
 
 	start, end := client.Paginate(len(filteredSwaps), params.Page, params.Limit, 100)
 	if start < 0 || end < 0 {
-		filteredSwaps = []types.AtomicSwap{}
+		filteredSwaps = types.AtomicSwaps{}
 	} else {
 		filteredSwaps = filteredSwaps[start:end]
 	}
