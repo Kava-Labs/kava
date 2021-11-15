@@ -409,7 +409,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.
 		if len(matchCollateralType) > 0 {
 			commonCDPs = matchCollateralType
 		} else {
-			return types.AugmentedCDPs{}, nil
+			return nil, nil
 		}
 	}
 
@@ -432,7 +432,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.
 				commonCDPs = matchID
 			}
 		} else {
-			return types.AugmentedCDPs{}, nil
+			return nil, nil
 		}
 	}
 	if !params.Ratio.IsNil() && params.Ratio.GT(sdk.ZeroDec()) {
@@ -443,7 +443,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.
 				commonCDPs = matchRatio
 			}
 		} else {
-			return types.AugmentedCDPs{}, nil
+			return nil, nil
 		}
 	}
 	// Load augmented CDPs
@@ -454,15 +454,12 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.
 	}
 
 	// Apply page and limit params
-	var paginatedCDPs types.AugmentedCDPs
 	start, end := client.Paginate(len(augmentedCDPs), params.Page, params.Limit, 100)
 	if start < 0 || end < 0 {
-		paginatedCDPs = types.AugmentedCDPs{}
-	} else {
-		paginatedCDPs = augmentedCDPs[start:end]
+		return nil, nil
 	}
 
-	return paginatedCDPs, nil
+	return augmentedCDPs[start:end], nil
 }
 
 // FindIntersection finds the intersection of two CDP arrays in linear time complexity O(n + n)
