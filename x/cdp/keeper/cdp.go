@@ -523,6 +523,34 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 	return collateralBaseUnits.Quo(debtTotal)
 }
 
+// LoadAugmentedCDP creates a new augmented CDP from an existing CDP
+func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.AugmentedCDP {
+	// sync the latest interest of the cdp
+	interestAccumulated := k.CalculateNewInterest(ctx, cdp)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(interestAccumulated)
+	// update cdp fields to match synced accumulated fees
+	prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cdp.Type)
+	if found {
+		cdp.FeesUpdated = prevAccrualTime
+	}
+	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
+	if found {
+		cdp.InterestFactor = globalInterestFactor
+	}
+	// calculate collateralization ratio
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Type, cdp.Principal, cdp.AccumulatedFees, liquidation)
+	if err != nil {
+		return types.AugmentedCDP{CDP: cdp}
+	}
+	// convert collateral value to debt coin
+	totalDebt := cdp.GetTotalPrincipal().Amount
+	collateralValueInDebtDenom := sdk.NewDecFromInt(totalDebt).Mul(collateralizationRatio)
+	collateralValueInDebt := sdk.NewCoin(cdp.Principal.Denom, collateralValueInDebtDenom.RoundInt())
+	// create new augmuented cdp
+	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)
+	return augmentedCDP
+}
+
 // LoadCDPResponse creates a new CDPResponse from an existing CDP
 func (k Keeper) LoadCDPResponse(ctx sdk.Context, cdp types.CDP) types.CDPResponse {
 	// sync the latest interest of the cdp
@@ -556,8 +584,7 @@ func (k Keeper) LoadCDPResponse(ctx sdk.Context, cdp types.CDP) types.CDPRespons
 	collateralValueInDebtDenom := sdk.NewDecFromInt(totalDebt).Mul(collateralizationRatio)
 	collateralValueInDebt := sdk.NewCoin(cdp.Principal.Denom, collateralValueInDebtDenom.RoundInt())
 	// create new cdp response
-	augmentedCDP := types.NewCDPResponse(cdp, collateralValueInDebt, collateralizationRatio)
-	return augmentedCDP
+	return types.NewCDPResponse(cdp, collateralValueInDebt, collateralizationRatio)
 }
 
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
