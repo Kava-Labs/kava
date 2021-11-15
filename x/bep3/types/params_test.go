@@ -15,7 +15,7 @@ import (
 type ParamsTestSuite struct {
 	suite.Suite
 	addr   sdk.AccAddress
-	supply types.SupplyLimits
+	supply []types.SupplyLimit
 }
 
 func (suite *ParamsTestSuite) SetupTest() {
