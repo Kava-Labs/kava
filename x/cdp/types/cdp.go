@@ -97,6 +97,71 @@ func (cdps CDPs) Validate() error {
 	return nil
 }
 
+// AugmentedCDP provides additional information about an active CDP.
+// This is only used for the legacy querier and legacy rest endpoints.
+type AugmentedCDP struct {
+	CDP                    `json:"cdp" yaml:"cdp"`
+	CollateralValue        sdk.Coin `json:"collateral_value" yaml:"collateral_value"`               // collateral's market value in debt coin
+	CollateralizationRatio sdk.Dec  `json:"collateralization_ratio" yaml:"collateralization_ratio"` // current collateralization ratio
+}
+
+// NewAugmentedCDP creates a new AugmentedCDP object
+func NewAugmentedCDP(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sdk.Dec) AugmentedCDP {
+	augmentedCDP := AugmentedCDP{
+		CDP: CDP{
+			ID:              cdp.ID,
+			Owner:           cdp.Owner,
+			Type:            cdp.Type,
+			Collateral:      cdp.Collateral,
+			Principal:       cdp.Principal,
+			AccumulatedFees: cdp.AccumulatedFees,
+			FeesUpdated:     cdp.FeesUpdated,
+			InterestFactor:  cdp.InterestFactor,
+		},
+		CollateralValue:        collateralValue,
+		CollateralizationRatio: collateralizationRatio,
+	}
+	return augmentedCDP
+}
+
+// String implements fmt.stringer
+func (augCDP AugmentedCDP) String() string {
+	return strings.TrimSpace(fmt.Sprintf(`AugmentedCDP:
+	Owner:      %s
+	ID: %d
+	Collateral Type: %s
+	Collateral: %s
+	Collateral Value: %s
+	Principal: %s
+	Fees: %s
+	Fees Last Updated: %s
+	Interest Factor: %s
+	Collateralization ratio: %s`,
+		augCDP.Owner,
+		augCDP.ID,
+		augCDP.Type,
+		augCDP.Collateral,
+		augCDP.CollateralValue,
+		augCDP.Principal,
+		augCDP.AccumulatedFees,
+		augCDP.FeesUpdated,
+		augCDP.InterestFactor,
+		augCDP.CollateralizationRatio,
+	))
+}
+
+// AugmentedCDPs a collection of AugmentedCDP objects
+type AugmentedCDPs []AugmentedCDP
+
+// String implements stringer
+func (augcdps AugmentedCDPs) String() string {
+	out := ""
+	for _, augcdp := range augcdps {
+		out += augcdp.String() + "\n"
+	}
+	return out
+}
+
 // NewCDPResponse creates a new CDPResponse object
 func NewCDPResponse(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sdk.Dec) CDPResponse {
 	return CDPResponse{
