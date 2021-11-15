@@ -35,7 +35,7 @@ func NewParams(ap []AssetParam) Params {
 
 // DefaultParams returns default params for bep3 module
 func DefaultParams() Params {
-	return NewParams([]AssetParam{})
+	return NewParams(AssetParams{})
 }
 
 // NewAssetParam returns a new AssetParam
