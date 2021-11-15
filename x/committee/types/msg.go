@@ -75,10 +75,10 @@ func (msg MsgSubmitProposal) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgSubmitProposal) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.GetProsper()}
+	return []sdk.AccAddress{msg.GetProposer()}
 }
 
-func (msg MsgSubmitProposal) GetProsper() sdk.AccAddress {
+func (msg MsgSubmitProposal) GetProposer() sdk.AccAddress {
 	address, err := sdk.AccAddressFromBech32(msg.Proposer)
 	if err != nil {
 		return sdk.AccAddress{}
