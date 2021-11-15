@@ -14,8 +14,8 @@ import (
 
 type GenesisTestSuite struct {
 	suite.Suite
-	swaps    []types.AtomicSwap
-	supplies []types.AssetSupply
+	swaps    types.AtomicSwaps
+	supplies types.AssetSupplies
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
@@ -23,13 +23,13 @@ func (suite *GenesisTestSuite) SetupTest() {
 	suite.swaps = atomicSwaps(10)
 
 	supply := types.NewAssetSupply(coin, coin, coin, coin, time.Duration(0))
-	suite.supplies = []types.AssetSupply{supply}
+	suite.supplies = types.AssetSupplies{supply}
 }
 
 func (suite *GenesisTestSuite) TestValidate() {
 	type args struct {
-		swaps             []types.AtomicSwap
-		supplies          []types.AssetSupply
+		swaps             types.AtomicSwaps
+		supplies          types.AssetSupplies
 		previousBlockTime time.Time
 	}
 	testCases := []struct {
@@ -40,7 +40,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"default",
 			args{
-				swaps:             []types.AtomicSwap{},
+				swaps:             types.AtomicSwaps{},
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			true,
@@ -56,7 +56,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"with supplies",
 			args{
-				swaps:             []types.AtomicSwap{},
+				swaps:             types.AtomicSwaps{},
 				supplies:          suite.supplies,
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
@@ -65,8 +65,8 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"invalid supply",
 			args{
-				swaps:             []types.AtomicSwap{},
-				supplies:          []types.AssetSupply{{IncomingSupply: sdk.Coin{Denom: "Invalid", Amount: sdk.ZeroInt()}}},
+				swaps:             types.AtomicSwaps{},
+				supplies:          types.AssetSupplies{{IncomingSupply: sdk.Coin{Denom: "Invalid", Amount: sdk.ZeroInt()}}},
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,
@@ -74,7 +74,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"duplicate swaps",
 			args{
-				swaps:             []types.AtomicSwap{suite.swaps[2], suite.swaps[2]},
+				swaps:             types.AtomicSwaps{suite.swaps[2], suite.swaps[2]},
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,
@@ -82,7 +82,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"invalid swap",
 			args{
-				swaps:             []types.AtomicSwap{{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}}}},
+				swaps:             types.AtomicSwaps{{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}}}},
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,
@@ -90,7 +90,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"blocktime not set",
 			args{
-				swaps: []types.AtomicSwap{},
+				swaps: types.AtomicSwaps{},
 			},
 			true,
 		},
