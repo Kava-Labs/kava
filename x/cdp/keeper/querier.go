@@ -51,7 +51,7 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQu
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
+	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
 		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
@@ -79,7 +79,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, leg
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
+	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
 		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
@@ -106,7 +106,7 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, 
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
+	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
 		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
@@ -137,7 +137,7 @@ func queryGetCdpsByCollateralType(ctx sdk.Context, req abci.RequestQuery, keeper
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
+	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
 		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
@@ -366,7 +366,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.
 				}
 			}
 		} else {
-			_, found := k.GetCollateralTypePrefix(ctx, params.CollateralType)
+			_, found := k.GetCollateral(ctx, params.CollateralType)
 			if !found {
 				return nil, fmt.Errorf("invalid collateral type")
 			}

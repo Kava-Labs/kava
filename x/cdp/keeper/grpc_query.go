@@ -196,7 +196,7 @@ func (s QueryServer) Cdp(c context.Context, req *types.QueryCdpRequest) (*types.
 		return nil, status.Errorf(codes.InvalidArgument, "invalid address")
 	}
 
-	_, valid := s.keeper.GetCollateralTypePrefix(ctx, req.CollateralType)
+	_, valid := s.keeper.GetCollateral(ctx, req.CollateralType)
 	if !valid {
 		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, req.CollateralType)
 	}
@@ -222,7 +222,7 @@ func (s QueryServer) Deposits(c context.Context, req *types.QueryDepositsRequest
 		return nil, status.Errorf(codes.InvalidArgument, "invalid address")
 	}
 
-	_, valid := s.keeper.GetCollateralTypePrefix(ctx, req.CollateralType)
+	_, valid := s.keeper.GetCollateral(ctx, req.CollateralType)
 	if !valid {
 		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, req.CollateralType)
 	}
@@ -264,5 +264,22 @@ func GrpcFilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (type
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	return cdps, nil
+	var cdpResponses types.CDPResponses
+	for _, cdp := range cdps {
+		cdpResponse := types.CDPResponse{
+			ID:                     cdp.ID,
+			Owner:                  cdp.Owner.String(),
+			Type:                   cdp.Type,
+			Collateral:             cdp.Collateral,
+			Principal:              cdp.Principal,
+			AccumulatedFees:        cdp.AccumulatedFees,
+			FeesUpdated:            cdp.FeesUpdated,
+			InterestFactor:         cdp.InterestFactor,
+			CollateralValue:        cdp.CollateralValue,
+			CollateralizationRatio: cdp.CollateralizationRatio,
+		}
+		cdpResponses = append(cdpResponses, cdpResponse)
+	}
+
+	return cdpResponses, nil
 }

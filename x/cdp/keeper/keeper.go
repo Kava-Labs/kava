@@ -57,22 +57,14 @@ func (k *Keeper) SetHooks(hooks types.CDPHooks) *Keeper {
 // CdpDenomIndexIterator returns an sdk.Iterator for all cdps with matching collateral denom
 func (k Keeper) CdpDenomIndexIterator(ctx sdk.Context, collateralType string) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, found := k.GetCollateralTypePrefix(ctx, collateralType)
-	if !found {
-		panic(fmt.Sprintf("denom %s prefix not found", collateralType))
-	}
-	return sdk.KVStorePrefixIterator(store, types.DenomIterKey(db))
+	return sdk.KVStorePrefixIterator(store, types.DenomIterKey(collateralType))
 }
 
 // CdpCollateralRatioIndexIterator returns an sdk.Iterator for all cdps that have collateral denom
 // matching denom and collateral:debt ratio LESS THAN targetRatio
 func (k Keeper) CdpCollateralRatioIndexIterator(ctx sdk.Context, collateralType string, targetRatio sdk.Dec) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, found := k.GetCollateralTypePrefix(ctx, collateralType)
-	if !found {
-		panic(fmt.Sprintf("denom %s prefix not found", collateralType))
-	}
-	return store.Iterator(types.CollateralRatioIterKey(db, sdk.ZeroDec()), types.CollateralRatioIterKey(db, targetRatio))
+	return store.Iterator(types.CollateralRatioIterKey(collateralType, sdk.ZeroDec()), types.CollateralRatioIterKey(collateralType, targetRatio))
 }
 
 // IterateAllCdps iterates over all cdps and performs a callback function
@@ -216,7 +208,7 @@ func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralType, principalDeno
 // SetTotalPrincipal sets the total amount of principal that has been drawn for the input collateral
 func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string, total sdk.Int) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
-	_, found := k.GetCollateralTypePrefix(ctx, collateralType)
+	_, found := k.GetCollateral(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("collateral not found: %s", collateralType))
 	}
