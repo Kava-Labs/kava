@@ -68,13 +68,13 @@ func getCirculatingSupply(blockTime time.Time, totalSupply sdk.Int) sdk.Int {
 
 	switch {
 	case blockTime.Before(vestingDates[0]):
-		return totalSupply.Sub(sdk.NewInt(19937500000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
+		return totalSupply.Sub(sdk.NewInt(9937500000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	case blockTime.After(vestingDates[0]) && blockTime.Before(vestingDates[1]) || blockTime.Equal(vestingDates[0]):
-		return totalSupply.Sub(sdk.NewInt(17453125000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
+		return totalSupply.Sub(sdk.NewInt(7453125000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	case blockTime.After(vestingDates[1]) && blockTime.Before(vestingDates[2]) || blockTime.Equal(vestingDates[1]):
-		return totalSupply.Sub(sdk.NewInt(14968750000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
+		return totalSupply.Sub(sdk.NewInt(4968750000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	case blockTime.After(vestingDates[2]) && blockTime.Before(vestingDates[3]) || blockTime.Equal(vestingDates[2]):
-		return totalSupply.Sub(sdk.NewInt(12484375000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
+		return totalSupply.Sub(sdk.NewInt(2484375000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	default:
 		return totalSupply.Sub(sdk.NewInt(10000000000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	}
