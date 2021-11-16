@@ -16,6 +16,7 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/kava-labs/kava/x/cdp/client/cli"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -86,15 +87,12 @@ func (AppModule) ConsensusVersion() uint64 {
 
 // GetTxCmd returns the root tx command for the cdp module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
-	// TODO:
-	// return cli.GetTxCmd()
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns the root query command for the auction module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
-	// TODO: return cli.GetQueryCmd(StoreKey)
+	return cli.GetQueryCmd(types.StoreKey)
 }
 
 //____________________________________________________________________________
