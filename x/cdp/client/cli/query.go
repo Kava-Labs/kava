@@ -126,8 +126,6 @@ $ kvcli q cdp cdps --page=2 --limit=100
 
 			req := types.QueryCdpsRequest{
 				Pagination: pageReq,
-				// Set to sdk.Dec(0) so that if not specified in params it doesn't panic when unmarshaled
-				Ratio: sdk.ZeroDec(),
 			}
 
 			if len(strCollateralType) != 0 {
@@ -155,7 +153,8 @@ $ kvcli q cdp cdps --page=2 --limit=100
 				if err != nil {
 					return fmt.Errorf("cannot parse cdp ratio %s", strRatio)
 				}
-				req.Ratio = cdpRatio
+				// ratio is also validated on server
+				req.Ratio = cdpRatio.String()
 			}
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -261,11 +260,6 @@ func QueryGetAccounts(queryRoute string) *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-
-			_, err = sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
 
 			res, err := queryClient.Accounts(context.Background(), &types.QueryAccountsRequest{})
 			if err != nil {
