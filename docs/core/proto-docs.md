@@ -517,7 +517,7 @@ QueryCdpsRequest is the params for a filtered CDP query, the request type for th
 | `collateral_type` | [string](#string) |  |  |
 | `owner` | [string](#string) |  |  |
 | `id` | [uint64](#uint64) |  |  |
-| `ratio` | [string](#string) |  |  |
+| `ratio` | [string](#string) |  | sdk.Dec as a string |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
 
 

@@ -172,9 +172,9 @@ func NewCDPResponse(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sd
 		Principal:              cdp.Principal,
 		AccumulatedFees:        cdp.AccumulatedFees,
 		FeesUpdated:            cdp.FeesUpdated,
-		InterestFactor:         cdp.InterestFactor,
+		InterestFactor:         cdp.InterestFactor.String(),
 		CollateralValue:        collateralValue,
-		CollateralizationRatio: collateralizationRatio,
+		CollateralizationRatio: collateralizationRatio.String(),
 	}
 }
 
