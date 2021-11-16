@@ -107,7 +107,7 @@ func TestDebtAuctionValidate(t *testing.T) {
 			"valid auction",
 			DebtAuction{
 				BaseAuction: BaseAuction{
-					Id:              1,
+					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
 					Bidder:          addr1.String(),
@@ -124,7 +124,7 @@ func TestDebtAuctionValidate(t *testing.T) {
 			"invalid corresponding debt",
 			DebtAuction{
 				BaseAuction: BaseAuction{
-					Id:              1,
+					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
 					Bidder:          addr1.String(),
@@ -166,7 +166,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 			"valid auction",
 			CollateralAuction{
 				BaseAuction: BaseAuction{
-					Id:              1,
+					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
 					Bidder:          addr1.String(),
@@ -188,7 +188,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 			"invalid corresponding debt",
 			CollateralAuction{
 				BaseAuction: BaseAuction{
-					Id:              1,
+					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
 					Bidder:          addr1.String(),
@@ -205,7 +205,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 			"invalid max bid",
 			CollateralAuction{
 				BaseAuction: BaseAuction{
-					Id:              1,
+					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
 					Bidder:          addr1.String(),
@@ -223,7 +223,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 			"invalid lot returns",
 			CollateralAuction{
 				BaseAuction: BaseAuction{
-					Id:              1,
+					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
 					Bidder:          addr1.String(),
@@ -265,13 +265,13 @@ func TestBaseAuctionGetters(t *testing.T) {
 		TestBidDenom, endTime,
 	)
 
-	auctionID := auction.GetId()
+	auctionID := auction.GetID()
 	auctionBid := auction.GetBid()
 	auctionLot := auction.GetLot()
 	auctionEndTime := auction.GetEndTime()
 	auctionString := auction.String()
 
-	require.Equal(t, auction.Id, auctionID)
+	require.Equal(t, auction.ID, auctionID)
 	require.Equal(t, auction.Bid, auctionBid)
 	require.Equal(t, auction.Lot, auctionLot)
 	require.Equal(t, auction.EndTime, auctionEndTime)
