@@ -6,22 +6,27 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -146,7 +151,7 @@ var xxx_messageInfo_QueryPriceRequest proto.InternalMessageInfo
 
 // QueryPriceResponse is the response type for the Query/Prices RPC method.
 type QueryPriceResponse struct {
-	Price CurrentPrice `protobuf:"bytes,1,opt,name=price,proto3" json:"price"`
+	Price CurrentPriceResponse `protobuf:"bytes,1,opt,name=price,proto3" json:"price"`
 }
 
 func (m *QueryPriceResponse) Reset()         { *m = QueryPriceResponse{} }
@@ -221,7 +226,7 @@ var xxx_messageInfo_QueryPricesRequest proto.InternalMessageInfo
 
 // QueryPricesResponse is the response type for the Query/Prices RPC method.
 type QueryPricesResponse struct {
-	Prices []CurrentPrice `protobuf:"bytes,1,rep,name=prices,proto3" json:"prices"`
+	Prices CurrentPriceResponses `protobuf:"bytes,1,rep,name=prices,proto3,castrepeated=CurrentPriceResponses" json:"prices"`
 }
 
 func (m *QueryPricesResponse) Reset()         { *m = QueryPricesResponse{} }
@@ -298,7 +303,7 @@ var xxx_messageInfo_QueryRawPricesRequest proto.InternalMessageInfo
 // QueryRawPricesResponse is the response type for the Query/RawPrices RPC
 // method.
 type QueryRawPricesResponse struct {
-	RawPrices []PostedPrice `protobuf:"bytes,1,rep,name=raw_prices,json=rawPrices,proto3" json:"raw_prices"`
+	RawPrices PostedPriceResponses `protobuf:"bytes,1,rep,name=raw_prices,json=rawPrices,proto3,castrepeated=PostedPriceResponses" json:"raw_prices"`
 }
 
 func (m *QueryRawPricesResponse) Reset()         { *m = QueryRawPricesResponse{} }
@@ -451,7 +456,7 @@ var xxx_messageInfo_QueryMarketsRequest proto.InternalMessageInfo
 // QueryMarketsResponse is the response type for the Query/Markets RPC method.
 type QueryMarketsResponse struct {
 	// List of markets
-	Markets []Market `protobuf:"bytes,1,rep,name=markets,proto3" json:"markets"`
+	Markets MarketResponses `protobuf:"bytes,1,rep,name=markets,proto3,castrepeated=MarketResponses" json:"markets"`
 }
 
 func (m *QueryMarketsResponse) Reset()         { *m = QueryMarketsResponse{} }
@@ -487,6 +492,192 @@ func (m *QueryMarketsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryMarketsResponse proto.InternalMessageInfo
 
+// PostedPriceResponse defines a price for market posted by a specific oracle.
+type PostedPriceResponse struct {
+	MarketID      string                                 `protobuf:"bytes,1,opt,name=market_id,json=marketId,proto3" json:"market_id,omitempty"`
+	OracleAddress string                                 `protobuf:"bytes,2,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
+	Price         github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=price,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"price"`
+	Expiry        time.Time                              `protobuf:"bytes,4,opt,name=expiry,proto3,stdtime" json:"expiry"`
+}
+
+func (m *PostedPriceResponse) Reset()         { *m = PostedPriceResponse{} }
+func (m *PostedPriceResponse) String() string { return proto.CompactTextString(m) }
+func (*PostedPriceResponse) ProtoMessage()    {}
+func (*PostedPriceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_84567be3085e4c6c, []int{12}
+}
+func (m *PostedPriceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PostedPriceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PostedPriceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PostedPriceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PostedPriceResponse.Merge(m, src)
+}
+func (m *PostedPriceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *PostedPriceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PostedPriceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PostedPriceResponse proto.InternalMessageInfo
+
+func (m *PostedPriceResponse) GetMarketID() string {
+	if m != nil {
+		return m.MarketID
+	}
+	return ""
+}
+
+func (m *PostedPriceResponse) GetOracleAddress() string {
+	if m != nil {
+		return m.OracleAddress
+	}
+	return ""
+}
+
+func (m *PostedPriceResponse) GetExpiry() time.Time {
+	if m != nil {
+		return m.Expiry
+	}
+	return time.Time{}
+}
+
+// CurrentPriceResponse defines a current price for a particular market in the pricefeed
+// module.
+type CurrentPriceResponse struct {
+	MarketID string                                 `protobuf:"bytes,1,opt,name=market_id,json=marketId,proto3" json:"market_id,omitempty"`
+	Price    github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=price,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"price"`
+}
+
+func (m *CurrentPriceResponse) Reset()         { *m = CurrentPriceResponse{} }
+func (m *CurrentPriceResponse) String() string { return proto.CompactTextString(m) }
+func (*CurrentPriceResponse) ProtoMessage()    {}
+func (*CurrentPriceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_84567be3085e4c6c, []int{13}
+}
+func (m *CurrentPriceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CurrentPriceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CurrentPriceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CurrentPriceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CurrentPriceResponse.Merge(m, src)
+}
+func (m *CurrentPriceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *CurrentPriceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CurrentPriceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CurrentPriceResponse proto.InternalMessageInfo
+
+func (m *CurrentPriceResponse) GetMarketID() string {
+	if m != nil {
+		return m.MarketID
+	}
+	return ""
+}
+
+// MarketResponse defines an asset in the pricefeed.
+type MarketResponse struct {
+	MarketID   string   `protobuf:"bytes,1,opt,name=market_id,json=marketId,proto3" json:"market_id,omitempty"`
+	BaseAsset  string   `protobuf:"bytes,2,opt,name=base_asset,json=baseAsset,proto3" json:"base_asset,omitempty"`
+	QuoteAsset string   `protobuf:"bytes,3,opt,name=quote_asset,json=quoteAsset,proto3" json:"quote_asset,omitempty"`
+	Oracles    []string `protobuf:"bytes,4,rep,name=oracles,proto3" json:"oracles,omitempty"`
+	Active     bool     `protobuf:"varint,5,opt,name=active,proto3" json:"active,omitempty"`
+}
+
+func (m *MarketResponse) Reset()         { *m = MarketResponse{} }
+func (m *MarketResponse) String() string { return proto.CompactTextString(m) }
+func (*MarketResponse) ProtoMessage()    {}
+func (*MarketResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_84567be3085e4c6c, []int{14}
+}
+func (m *MarketResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MarketResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MarketResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MarketResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MarketResponse.Merge(m, src)
+}
+func (m *MarketResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MarketResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MarketResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MarketResponse proto.InternalMessageInfo
+
+func (m *MarketResponse) GetMarketID() string {
+	if m != nil {
+		return m.MarketID
+	}
+	return ""
+}
+
+func (m *MarketResponse) GetBaseAsset() string {
+	if m != nil {
+		return m.BaseAsset
+	}
+	return ""
+}
+
+func (m *MarketResponse) GetQuoteAsset() string {
+	if m != nil {
+		return m.QuoteAsset
+	}
+	return ""
+}
+
+func (m *MarketResponse) GetOracles() []string {
+	if m != nil {
+		return m.Oracles
+	}
+	return nil
+}
+
+func (m *MarketResponse) GetActive() bool {
+	if m != nil {
+		return m.Active
+	}
+	return false
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "kava.pricefeed.v1beta1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "kava.pricefeed.v1beta1.QueryParamsResponse")
@@ -500,6 +691,9 @@ func init() {
 	proto.RegisterType((*QueryOraclesResponse)(nil), "kava.pricefeed.v1beta1.QueryOraclesResponse")
 	proto.RegisterType((*QueryMarketsRequest)(nil), "kava.pricefeed.v1beta1.QueryMarketsRequest")
 	proto.RegisterType((*QueryMarketsResponse)(nil), "kava.pricefeed.v1beta1.QueryMarketsResponse")
+	proto.RegisterType((*PostedPriceResponse)(nil), "kava.pricefeed.v1beta1.PostedPriceResponse")
+	proto.RegisterType((*CurrentPriceResponse)(nil), "kava.pricefeed.v1beta1.CurrentPriceResponse")
+	proto.RegisterType((*MarketResponse)(nil), "kava.pricefeed.v1beta1.MarketResponse")
 }
 
 func init() {
@@ -507,48 +701,63 @@ func init() {
 }
 
 var fileDescriptor_84567be3085e4c6c = []byte{
-	// 643 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x95, 0xb1, 0x6f, 0xd3, 0x40,
-	0x14, 0xc6, 0x73, 0xd0, 0x24, 0xe4, 0x98, 0x38, 0xd2, 0xaa, 0x32, 0xc8, 0x29, 0xa6, 0x2a, 0x90,
-	0x34, 0xb6, 0x9a, 0x8a, 0x0a, 0x55, 0x08, 0xa1, 0xb0, 0xc0, 0x50, 0x01, 0xd9, 0x40, 0x95, 0xa2,
-	0x4b, 0x72, 0xb8, 0x56, 0x13, 0x9f, 0x7b, 0x76, 0x1a, 0x2a, 0xc4, 0x82, 0x18, 0x60, 0x40, 0x42,
-	0x30, 0xb1, 0xc1, 0xc6, 0x9f, 0xd2, 0xb1, 0x12, 0x0b, 0x13, 0x2a, 0x09, 0x7f, 0x08, 0xca, 0xdd,
-	0xb3, 0x89, 0x43, 0x9d, 0xba, 0x9b, 0xfb, 0xf4, 0xbe, 0xef, 0xfb, 0xdd, 0xbb, 0x7b, 0x0d, 0x36,
-	0x76, 0xe9, 0x3e, 0xb5, 0x3c, 0xe1, 0xb4, 0xd9, 0x0b, 0xc6, 0x3a, 0xd6, 0xfe, 0x5a, 0x8b, 0x05,
-	0x74, 0xcd, 0xda, 0xeb, 0x33, 0x71, 0x60, 0x7a, 0x82, 0x07, 0x9c, 0x2c, 0x8c, 0x7b, 0xcc, 0xa8,
-	0xc7, 0x84, 0x1e, 0x6d, 0x39, 0x41, 0x6b, 0x33, 0x97, 0xf9, 0x8e, 0xaf, 0xd4, 0xda, 0x4a, 0x42,
-	0xd7, 0x3f, 0x3f, 0xd5, 0x57, 0xb4, 0xb9, 0xcd, 0xe5, 0xa7, 0x35, 0xfe, 0x82, 0xea, 0x55, 0x9b,
-	0x73, 0xbb, 0xcb, 0x2c, 0xea, 0x39, 0x16, 0x75, 0x5d, 0x1e, 0xd0, 0xc0, 0xe1, 0x2e, 0x78, 0x1b,
-	0x45, 0x4c, 0x9e, 0x8e, 0x41, 0x9f, 0x50, 0x41, 0x7b, 0x7e, 0x83, 0xed, 0xf5, 0x99, 0x1f, 0x18,
-	0xcf, 0xf0, 0xe5, 0x58, 0xd5, 0xf7, 0xb8, 0xeb, 0x33, 0x72, 0x17, 0xe7, 0x3c, 0x59, 0x59, 0x44,
-	0x4b, 0xe8, 0xe6, 0xc5, 0x9a, 0x6e, 0x9e, 0x7c, 0x2e, 0x53, 0xe9, 0xea, 0x73, 0x87, 0xbf, 0x4a,
-	0x99, 0x06, 0x68, 0x36, 0xe7, 0xde, 0x7d, 0x2d, 0x65, 0x8c, 0x0d, 0x7c, 0x49, 0x59, 0x8f, 0x45,
-	0x90, 0x47, 0xae, 0xe0, 0x42, 0x8f, 0x8a, 0x5d, 0x16, 0x34, 0x9d, 0x8e, 0xf4, 0x2e, 0x34, 0x2e,
-	0xa8, 0xc2, 0xa3, 0x0e, 0xe8, 0xb6, 0x43, 0x50, 0xa5, 0x03, 0xa2, 0xfb, 0x38, 0x2b, 0xd3, 0x01,
-	0x68, 0x39, 0x09, 0xe8, 0x41, 0x5f, 0x08, 0xe6, 0x06, 0x52, 0x0c, 0x58, 0x4a, 0x08, 0xee, 0xc5,
-	0x49, 0xf7, 0x68, 0x0c, 0xcd, 0x70, 0x0c, 0x50, 0x85, 0xd0, 0x3a, 0xce, 0x49, 0xed, 0x78, 0x0c,
-	0xe7, 0xcf, 0x98, 0x0a, 0x4a, 0x88, 0xdd, 0xc4, 0xf3, 0x32, 0xa0, 0x41, 0x07, 0xb1, 0xe4, 0x34,
-	0x03, 0xd9, 0xc1, 0x0b, 0xd3, 0x5a, 0xe0, 0x7b, 0x88, 0xb1, 0xa0, 0x83, 0x66, 0x8c, 0xf1, 0x7a,
-	0xe2, 0x55, 0x71, 0x3f, 0x60, 0x9d, 0x49, 0xc4, 0x82, 0x08, 0x1d, 0x21, 0xe9, 0x0e, 0x8c, 0xe1,
-	0xb1, 0xa0, 0xed, 0xee, 0x99, 0x18, 0x37, 0x70, 0x31, 0xae, 0x04, 0xc2, 0x45, 0x9c, 0xe7, 0xaa,
-	0x24, 0xf1, 0x0a, 0x8d, 0xf0, 0x4f, 0xd0, 0xcd, 0x43, 0xe2, 0x96, 0xb4, 0x8b, 0xee, 0x63, 0x1b,
-	0xec, 0xa2, 0x32, 0xd8, 0xdd, 0xc3, 0x79, 0x15, 0x1c, 0x9e, 0x36, 0xf1, 0x61, 0x2a, 0x25, 0x1c,
-	0x34, 0x14, 0xa9, 0xd0, 0xda, 0xdb, 0x3c, 0xce, 0x4a, 0x7b, 0xf2, 0x1e, 0xe1, 0x9c, 0x7a, 0xc2,
-	0xa4, 0x9c, 0xe4, 0xf4, 0xff, 0xd6, 0x68, 0x95, 0x54, 0xbd, 0x8a, 0xd9, 0x58, 0x79, 0xf3, 0xe3,
-	0xcf, 0xe7, 0x73, 0x4b, 0x44, 0xb7, 0x92, 0xb6, 0x5b, 0x01, 0x7c, 0x42, 0x38, 0x2b, 0x6f, 0x83,
-	0xdc, 0x9a, 0x6d, 0x3f, 0xb1, 0x4f, 0x5a, 0x39, 0x4d, 0x2b, 0x80, 0xd4, 0x24, 0xc8, 0x2a, 0x29,
-	0x5b, 0xb3, 0xfe, 0xcd, 0xf8, 0xd6, 0xab, 0xe8, 0xb2, 0x5f, 0xab, 0x01, 0xc9, 0x32, 0x49, 0x11,
-	0x95, 0x76, 0x40, 0xb1, 0x57, 0x9c, 0x62, 0x40, 0x0a, 0xe0, 0x1b, 0xc2, 0x85, 0x68, 0x07, 0x48,
-	0x75, 0x66, 0xc4, 0xf4, 0x9e, 0x69, 0x66, 0xda, 0x76, 0x80, 0xba, 0x2d, 0xa1, 0x2c, 0x52, 0x4d,
-	0x82, 0x12, 0x74, 0x70, 0xc2, 0xbc, 0xbe, 0x20, 0x9c, 0x87, 0x1d, 0x20, 0xb3, 0x87, 0x10, 0xdf,
-	0x31, 0x6d, 0x35, 0x5d, 0x33, 0xd0, 0xad, 0x4b, 0xba, 0x2a, 0xa9, 0x24, 0xd1, 0xc1, 0x96, 0xc5,
-	0xd8, 0x3e, 0x20, 0x9c, 0x87, 0x85, 0x3a, 0x85, 0x2d, 0xbe, 0x8d, 0xa7, 0xb0, 0x4d, 0xed, 0xa8,
-	0x71, 0x43, 0xb2, 0x5d, 0x23, 0xa5, 0x24, 0x36, 0x58, 0xc6, 0xfa, 0xd6, 0xf1, 0x6f, 0x1d, 0x7d,
-	0x1f, 0xea, 0xe8, 0x70, 0xa8, 0xa3, 0xa3, 0xa1, 0x8e, 0x8e, 0x87, 0x3a, 0xfa, 0x38, 0xd2, 0x33,
-	0x47, 0x23, 0x3d, 0xf3, 0x73, 0xa4, 0x67, 0x9e, 0x57, 0x6c, 0x27, 0xd8, 0xe9, 0xb7, 0xcc, 0x36,
-	0xef, 0x49, 0xb3, 0x6a, 0x97, 0xb6, 0x7c, 0x65, 0xfb, 0x72, 0xc2, 0x38, 0x38, 0xf0, 0x98, 0xdf,
-	0xca, 0xc9, 0xdf, 0xb9, 0xf5, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xbd, 0xf8, 0x1e, 0x9d, 0xa7,
-	0x07, 0x00, 0x00,
+	// 883 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x55, 0xcf, 0x6f, 0x1b, 0x45,
+	0x14, 0xf6, 0xa4, 0xfe, 0x39, 0x85, 0x22, 0xa6, 0x4e, 0xb0, 0x4c, 0xbb, 0x1b, 0x56, 0x22, 0xb4,
+	0x71, 0xbc, 0xab, 0xa6, 0xa2, 0x42, 0x15, 0x97, 0x9a, 0x1c, 0xe8, 0xa1, 0x02, 0x56, 0x5c, 0xca,
+	0xc5, 0x1a, 0x7b, 0xa7, 0xee, 0x2a, 0xb1, 0x67, 0xb3, 0x33, 0x8e, 0x1b, 0x21, 0x24, 0x84, 0x90,
+	0x28, 0x07, 0xa4, 0x08, 0x4e, 0xdc, 0xe0, 0x86, 0x90, 0xf8, 0x3f, 0x72, 0x8c, 0xc4, 0x05, 0x71,
+	0x48, 0x82, 0xc3, 0x8d, 0x7f, 0x02, 0xed, 0xcc, 0xdb, 0xc5, 0x9b, 0x78, 0x93, 0xb5, 0x38, 0x79,
+	0xe7, 0xcd, 0x7b, 0xdf, 0xfb, 0xde, 0x37, 0x33, 0x9f, 0xb1, 0xb5, 0x4d, 0xf7, 0xa8, 0x13, 0x84,
+	0x7e, 0x9f, 0x3d, 0x63, 0xcc, 0x73, 0xf6, 0xee, 0xf5, 0x98, 0xa4, 0xf7, 0x9c, 0xdd, 0x31, 0x0b,
+	0xf7, 0xed, 0x20, 0xe4, 0x92, 0x93, 0x95, 0x28, 0xc7, 0x4e, 0x72, 0x6c, 0xc8, 0x69, 0x66, 0xd5,
+	0x0a, 0xc9, 0x43, 0xa6, 0x6b, 0x9b, 0xf5, 0x01, 0x1f, 0x70, 0xf5, 0xe9, 0x44, 0x5f, 0x10, 0xbd,
+	0x35, 0xe0, 0x7c, 0xb0, 0xc3, 0x1c, 0x1a, 0xf8, 0x0e, 0x1d, 0x8d, 0xb8, 0xa4, 0xd2, 0xe7, 0x23,
+	0x01, 0xbb, 0x26, 0xec, 0xaa, 0x55, 0x6f, 0xfc, 0xcc, 0x91, 0xfe, 0x90, 0x09, 0x49, 0x87, 0x81,
+	0x4e, 0xb0, 0xea, 0x98, 0x7c, 0x12, 0xf1, 0xfb, 0x98, 0x86, 0x74, 0x28, 0x5c, 0xb6, 0x3b, 0x66,
+	0x42, 0x5a, 0x4f, 0xf1, 0xcd, 0x54, 0x54, 0x04, 0x7c, 0x24, 0x18, 0x79, 0x1f, 0x97, 0x03, 0x15,
+	0x69, 0xa0, 0x55, 0x74, 0xe7, 0xfa, 0xa6, 0x61, 0xcf, 0x1f, 0xc7, 0xd6, 0x75, 0x9d, 0xe2, 0xe1,
+	0xb1, 0x59, 0x70, 0xa1, 0xe6, 0x61, 0xf1, 0xe5, 0x4f, 0x66, 0xc1, 0x7a, 0x80, 0x5f, 0xd7, 0xd0,
+	0x51, 0x11, 0xf4, 0x23, 0x6f, 0xe2, 0xda, 0x90, 0x86, 0xdb, 0x4c, 0x76, 0x7d, 0x4f, 0x61, 0xd7,
+	0xdc, 0xaa, 0x0e, 0x3c, 0xf6, 0xa0, 0xce, 0x8b, 0x89, 0xea, 0x3a, 0x60, 0xf4, 0x21, 0x2e, 0xa9,
+	0xee, 0x40, 0x68, 0x23, 0x8b, 0xd0, 0x07, 0xe3, 0x30, 0x64, 0x23, 0x99, 0x2a, 0x06, 0x7a, 0x1a,
+	0x00, 0xba, 0xd4, 0x67, 0xbb, 0x24, 0x72, 0x7c, 0x89, 0x62, 0x3d, 0x20, 0x0c, 0xdd, 0xfb, 0xb8,
+	0xac, 0x8a, 0x23, 0x3d, 0xae, 0x2d, 0xdc, 0xfe, 0x76, 0xd4, 0xfe, 0xd7, 0x13, 0x73, 0x79, 0xde,
+	0xae, 0x70, 0x01, 0x1a, 0x88, 0x3d, 0xc4, 0xcb, 0x8a, 0x81, 0x4b, 0x27, 0x29, 0x6e, 0x79, 0xa4,
+	0x7b, 0x89, 0xf0, 0xca, 0xf9, 0x62, 0x98, 0xe0, 0x39, 0xc6, 0x21, 0x9d, 0x74, 0x53, 0x53, 0xb4,
+	0x32, 0x4f, 0x95, 0x0b, 0xc9, 0xbc, 0xf4, 0x10, 0xb7, 0x60, 0x88, 0xfa, 0x9c, 0x4d, 0xe1, 0xd6,
+	0xc2, 0xb8, 0x23, 0x50, 0x79, 0x0f, 0x84, 0xfc, 0x28, 0xa4, 0xfd, 0x9d, 0x85, 0x86, 0x78, 0x80,
+	0xeb, 0xe9, 0x4a, 0x98, 0xa0, 0x81, 0x2b, 0x5c, 0x87, 0x14, 0xfd, 0x9a, 0x1b, 0x2f, 0xa1, 0x6e,
+	0x19, 0x3a, 0x3e, 0x51, 0x70, 0xc9, 0x91, 0x4e, 0x00, 0x2e, 0x09, 0x03, 0xdc, 0x53, 0x5c, 0xd1,
+	0x8d, 0x63, 0x35, 0xd6, 0xb2, 0xd4, 0xd0, 0x95, 0x89, 0x10, 0x6f, 0x80, 0x10, 0xaf, 0xa5, 0xe3,
+	0xc2, 0x8d, 0xf1, 0x80, 0xcf, 0x3f, 0x08, 0xdf, 0x9c, 0xa3, 0x15, 0xb9, 0x7b, 0x41, 0x82, 0xce,
+	0x2b, 0xd3, 0x63, 0xb3, 0xaa, 0xe1, 0x1e, 0x6f, 0xfd, 0x27, 0x08, 0x79, 0x1b, 0xdf, 0xd0, 0x33,
+	0x76, 0xa9, 0xe7, 0x85, 0x4c, 0x88, 0xc6, 0x92, 0x92, 0xec, 0x55, 0x1d, 0x7d, 0xa4, 0x83, 0x64,
+	0x2b, 0x7e, 0x1b, 0xd7, 0x14, 0x9a, 0x1d, 0x11, 0xfc, 0xf3, 0xd8, 0x5c, 0x1b, 0xf8, 0xf2, 0xf9,
+	0xb8, 0x67, 0xf7, 0xf9, 0xd0, 0xe9, 0x73, 0x31, 0xe4, 0x02, 0x7e, 0xda, 0xc2, 0xdb, 0x76, 0xe4,
+	0x7e, 0xc0, 0x84, 0xbd, 0xc5, 0xfa, 0xf0, 0x2e, 0xa2, 0x37, 0xcf, 0x5e, 0x04, 0x7e, 0xb8, 0xdf,
+	0x28, 0xaa, 0x27, 0xd6, 0xb4, 0xb5, 0xa5, 0xd8, 0xb1, 0xa5, 0xd8, 0x9f, 0xc6, 0x96, 0xd2, 0xa9,
+	0x46, 0x2d, 0x0e, 0x4e, 0x4c, 0xe4, 0x42, 0x8d, 0xf5, 0x0d, 0xc2, 0xf5, 0x79, 0xd7, 0x7b, 0x91,
+	0x71, 0x93, 0x39, 0x96, 0xfe, 0xc7, 0x1c, 0xd6, 0x6f, 0x08, 0xdf, 0x48, 0x1f, 0xcd, 0x22, 0x1c,
+	0x6e, 0x63, 0xdc, 0xa3, 0x82, 0x75, 0xa9, 0x10, 0x4c, 0x82, 0xdc, 0xb5, 0x28, 0xf2, 0x28, 0x0a,
+	0x10, 0x13, 0x5f, 0xdf, 0x1d, 0x73, 0x19, 0xef, 0x2b, 0xc1, 0x5d, 0xac, 0x42, 0x3a, 0x61, 0xe6,
+	0x96, 0x16, 0x53, 0xb7, 0x94, 0xac, 0xe0, 0x32, 0xed, 0x4b, 0x7f, 0x8f, 0x35, 0x4a, 0xab, 0xe8,
+	0x4e, 0xd5, 0x85, 0xd5, 0xe6, 0xd7, 0x15, 0x5c, 0x52, 0x37, 0x94, 0x7c, 0x8b, 0x70, 0x59, 0x1b,
+	0x2a, 0x59, 0xcf, 0xba, 0x8c, 0x17, 0x3d, 0xbc, 0xd9, 0xca, 0x95, 0xab, 0xa5, 0xb0, 0xd6, 0xbe,
+	0xfa, 0xfd, 0xef, 0x1f, 0x96, 0x56, 0x89, 0xe1, 0x64, 0xfc, 0x11, 0x69, 0x0f, 0x27, 0xdf, 0x23,
+	0x5c, 0x52, 0x07, 0x49, 0xee, 0x5e, 0x0e, 0x3f, 0xe3, 0xee, 0xcd, 0xf5, 0x3c, 0xa9, 0x40, 0x64,
+	0x53, 0x11, 0xd9, 0x20, 0xeb, 0x99, 0x44, 0x94, 0x9d, 0x38, 0x9f, 0x27, 0x27, 0xf7, 0x85, 0x16,
+	0x48, 0x85, 0x49, 0x8e, 0x56, 0x79, 0x05, 0x4a, 0x19, 0x65, 0x0e, 0x81, 0x34, 0x81, 0x9f, 0x11,
+	0xae, 0x25, 0x36, 0x4b, 0xda, 0x97, 0xb6, 0x38, 0xef, 0xe5, 0x4d, 0x3b, 0x6f, 0x3a, 0x90, 0x7a,
+	0x57, 0x91, 0x72, 0x48, 0x3b, 0x8b, 0x54, 0x48, 0x27, 0x73, 0xf4, 0xfa, 0x11, 0xe1, 0x0a, 0xd8,
+	0x28, 0xb9, 0x5c, 0x84, 0xb4, 0x4d, 0x37, 0x37, 0xf2, 0x25, 0x03, 0xbb, 0xfb, 0x8a, 0x5d, 0x9b,
+	0xb4, 0xb2, 0xd8, 0xc1, 0x13, 0x48, 0x71, 0xfb, 0x0e, 0xe1, 0x0a, 0x78, 0xf2, 0x15, 0xdc, 0xd2,
+	0x86, 0x7e, 0x05, 0xb7, 0x73, 0x36, 0x6f, 0xbd, 0xa3, 0xb8, 0xbd, 0x45, 0xcc, 0x2c, 0x6e, 0x60,
+	0xda, 0x9d, 0x27, 0xa7, 0x7f, 0x19, 0xe8, 0x97, 0xa9, 0x81, 0x0e, 0xa7, 0x06, 0x3a, 0x9a, 0x1a,
+	0xe8, 0x74, 0x6a, 0xa0, 0x83, 0x33, 0xa3, 0x70, 0x74, 0x66, 0x14, 0xfe, 0x38, 0x33, 0x0a, 0x9f,
+	0xb5, 0x66, 0x7c, 0x28, 0x02, 0x6b, 0xef, 0xd0, 0x9e, 0xd0, 0xb0, 0x2f, 0x66, 0x80, 0x95, 0x21,
+	0xf5, 0xca, 0xca, 0x35, 0xef, 0xff, 0x1b, 0x00, 0x00, 0xff, 0xff, 0xfb, 0x14, 0x01, 0xd9, 0x2c,
+	0x0a, 0x00, 0x00,
 }
 
 func (this *QueryParamsRequest) VerboseEqual(that interface{}) error {
@@ -1221,6 +1430,226 @@ func (this *QueryMarketsResponse) Equal(that interface{}) bool {
 	}
 	return true
 }
+func (this *PostedPriceResponse) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*PostedPriceResponse)
+	if !ok {
+		that2, ok := that.(PostedPriceResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *PostedPriceResponse")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *PostedPriceResponse but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *PostedPriceResponse but is not nil && this == nil")
+	}
+	if this.MarketID != that1.MarketID {
+		return fmt.Errorf("MarketID this(%v) Not Equal that(%v)", this.MarketID, that1.MarketID)
+	}
+	if this.OracleAddress != that1.OracleAddress {
+		return fmt.Errorf("OracleAddress this(%v) Not Equal that(%v)", this.OracleAddress, that1.OracleAddress)
+	}
+	if !this.Price.Equal(that1.Price) {
+		return fmt.Errorf("Price this(%v) Not Equal that(%v)", this.Price, that1.Price)
+	}
+	if !this.Expiry.Equal(that1.Expiry) {
+		return fmt.Errorf("Expiry this(%v) Not Equal that(%v)", this.Expiry, that1.Expiry)
+	}
+	return nil
+}
+func (this *PostedPriceResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*PostedPriceResponse)
+	if !ok {
+		that2, ok := that.(PostedPriceResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.MarketID != that1.MarketID {
+		return false
+	}
+	if this.OracleAddress != that1.OracleAddress {
+		return false
+	}
+	if !this.Price.Equal(that1.Price) {
+		return false
+	}
+	if !this.Expiry.Equal(that1.Expiry) {
+		return false
+	}
+	return true
+}
+func (this *CurrentPriceResponse) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*CurrentPriceResponse)
+	if !ok {
+		that2, ok := that.(CurrentPriceResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *CurrentPriceResponse")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *CurrentPriceResponse but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *CurrentPriceResponse but is not nil && this == nil")
+	}
+	if this.MarketID != that1.MarketID {
+		return fmt.Errorf("MarketID this(%v) Not Equal that(%v)", this.MarketID, that1.MarketID)
+	}
+	if !this.Price.Equal(that1.Price) {
+		return fmt.Errorf("Price this(%v) Not Equal that(%v)", this.Price, that1.Price)
+	}
+	return nil
+}
+func (this *CurrentPriceResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*CurrentPriceResponse)
+	if !ok {
+		that2, ok := that.(CurrentPriceResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.MarketID != that1.MarketID {
+		return false
+	}
+	if !this.Price.Equal(that1.Price) {
+		return false
+	}
+	return true
+}
+func (this *MarketResponse) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*MarketResponse)
+	if !ok {
+		that2, ok := that.(MarketResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *MarketResponse")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *MarketResponse but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *MarketResponse but is not nil && this == nil")
+	}
+	if this.MarketID != that1.MarketID {
+		return fmt.Errorf("MarketID this(%v) Not Equal that(%v)", this.MarketID, that1.MarketID)
+	}
+	if this.BaseAsset != that1.BaseAsset {
+		return fmt.Errorf("BaseAsset this(%v) Not Equal that(%v)", this.BaseAsset, that1.BaseAsset)
+	}
+	if this.QuoteAsset != that1.QuoteAsset {
+		return fmt.Errorf("QuoteAsset this(%v) Not Equal that(%v)", this.QuoteAsset, that1.QuoteAsset)
+	}
+	if len(this.Oracles) != len(that1.Oracles) {
+		return fmt.Errorf("Oracles this(%v) Not Equal that(%v)", len(this.Oracles), len(that1.Oracles))
+	}
+	for i := range this.Oracles {
+		if this.Oracles[i] != that1.Oracles[i] {
+			return fmt.Errorf("Oracles this[%v](%v) Not Equal that[%v](%v)", i, this.Oracles[i], i, that1.Oracles[i])
+		}
+	}
+	if this.Active != that1.Active {
+		return fmt.Errorf("Active this(%v) Not Equal that(%v)", this.Active, that1.Active)
+	}
+	return nil
+}
+func (this *MarketResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MarketResponse)
+	if !ok {
+		that2, ok := that.(MarketResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.MarketID != that1.MarketID {
+		return false
+	}
+	if this.BaseAsset != that1.BaseAsset {
+		return false
+	}
+	if this.QuoteAsset != that1.QuoteAsset {
+		return false
+	}
+	if len(this.Oracles) != len(that1.Oracles) {
+		return false
+	}
+	for i := range this.Oracles {
+		if this.Oracles[i] != that1.Oracles[i] {
+			return false
+		}
+	}
+	if this.Active != that1.Active {
+		return false
+	}
+	return true
+}
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
@@ -1862,6 +2291,164 @@ func (m *QueryMarketsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *PostedPriceResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PostedPriceResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PostedPriceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	n3, err3 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.Expiry, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.Expiry):])
+	if err3 != nil {
+		return 0, err3
+	}
+	i -= n3
+	i = encodeVarintQuery(dAtA, i, uint64(n3))
+	i--
+	dAtA[i] = 0x22
+	{
+		size := m.Price.Size()
+		i -= size
+		if _, err := m.Price.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.OracleAddress) > 0 {
+		i -= len(m.OracleAddress)
+		copy(dAtA[i:], m.OracleAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.OracleAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.MarketID) > 0 {
+		i -= len(m.MarketID)
+		copy(dAtA[i:], m.MarketID)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.MarketID)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *CurrentPriceResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CurrentPriceResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CurrentPriceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.Price.Size()
+		i -= size
+		if _, err := m.Price.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.MarketID) > 0 {
+		i -= len(m.MarketID)
+		copy(dAtA[i:], m.MarketID)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.MarketID)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MarketResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MarketResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MarketResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Active {
+		i--
+		if m.Active {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x28
+	}
+	if len(m.Oracles) > 0 {
+		for iNdEx := len(m.Oracles) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Oracles[iNdEx])
+			copy(dAtA[i:], m.Oracles[iNdEx])
+			i = encodeVarintQuery(dAtA, i, uint64(len(m.Oracles[iNdEx])))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.QuoteAsset) > 0 {
+		i -= len(m.QuoteAsset)
+		copy(dAtA[i:], m.QuoteAsset)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.QuoteAsset)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.BaseAsset) > 0 {
+		i -= len(m.BaseAsset)
+		copy(dAtA[i:], m.BaseAsset)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.BaseAsset)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.MarketID) > 0 {
+		i -= len(m.MarketID)
+		copy(dAtA[i:], m.MarketID)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.MarketID)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -2017,6 +2604,72 @@ func (m *QueryMarketsResponse) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
+	}
+	return n
+}
+
+func (m *PostedPriceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.MarketID)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.OracleAddress)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = m.Price.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.Expiry)
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *CurrentPriceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.MarketID)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = m.Price.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *MarketResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.MarketID)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.BaseAsset)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.QuoteAsset)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if len(m.Oracles) > 0 {
+		for _, s := range m.Oracles {
+			l = len(s)
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if m.Active {
+		n += 2
 	}
 	return n
 }
@@ -2433,7 +3086,7 @@ func (m *QueryPricesResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Prices = append(m.Prices, CurrentPrice{})
+			m.Prices = append(m.Prices, CurrentPriceResponse{})
 			if err := m.Prices[len(m.Prices)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -2599,7 +3252,7 @@ func (m *QueryRawPricesResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RawPrices = append(m.RawPrices, PostedPrice{})
+			m.RawPrices = append(m.RawPrices, PostedPriceResponse{})
 			if err := m.RawPrices[len(m.RawPrices)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -2897,11 +3550,506 @@ func (m *QueryMarketsResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Markets = append(m.Markets, Market{})
+			m.Markets = append(m.Markets, MarketResponse{})
 			if err := m.Markets[len(m.Markets)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PostedPriceResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PostedPriceResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PostedPriceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MarketID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MarketID = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OracleAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OracleAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Price", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Price.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Expiry", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.Expiry, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CurrentPriceResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CurrentPriceResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CurrentPriceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MarketID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MarketID = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Price", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Price.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MarketResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MarketResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MarketResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MarketID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MarketID = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BaseAsset", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BaseAsset = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field QuoteAsset", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.QuoteAsset = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Oracles", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Oracles = append(m.Oracles, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Active", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Active = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
