@@ -1,5 +1,7 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 const (
 	// ModuleName The name that will be used throughout the module
 	ModuleName = "pricefeed"
@@ -39,10 +41,10 @@ func RawPriceIteratorKey(marketID string) []byte {
 }
 
 // RawPriceKey returns the prefix for the raw price
-func RawPriceKey(marketID string, oracleAddr string) []byte {
+func RawPriceKey(marketID string, oracleAddr sdk.AccAddress) []byte {
 	return append(
 		RawPriceIteratorKey(marketID),
-		lengthPrefixWithByte([]byte(oracleAddr))...,
+		lengthPrefixWithByte(oracleAddr)...,
 	)
 }
 

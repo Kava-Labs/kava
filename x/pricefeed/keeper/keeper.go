@@ -48,7 +48,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // SetPrice updates the posted price for a specific oracle
 func (k Keeper) SetPrice(
 	ctx sdk.Context,
-	oracle string,
+	oracle sdk.AccAddress,
 	marketID string,
 	price sdk.Dec,
 	expiry time.Time) (types.PostedPrice, error) {
@@ -66,7 +66,7 @@ func (k Keeper) SetPrice(
 		sdk.NewEvent(
 			types.EventTypeOracleUpdatedPrice,
 			sdk.NewAttribute(types.AttributeMarketID, marketID),
-			sdk.NewAttribute(types.AttributeOracle, oracle),
+			sdk.NewAttribute(types.AttributeOracle, oracle.String()),
 			sdk.NewAttribute(types.AttributeMarketPrice, price.String()),
 			sdk.NewAttribute(types.AttributeExpiry, expiry.UTC().String()),
 		),
@@ -109,7 +109,7 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
 		return types.ErrNoValidPrice
 	}
 
-	medianPrice := k.CalculateMedianPrice(ctx, notExpiredPrices)
+	medianPrice := k.CalculateMedianPrice(notExpiredPrices)
 
 	// check case that market price was not set in genesis
 	if validPrevPrice && !medianPrice.Equal(prevPrice.Price) {
@@ -135,7 +135,7 @@ func (k Keeper) setCurrentPrice(ctx sdk.Context, marketID string, currentPrice t
 }
 
 // CalculateMedianPrice calculates the median prices for the input prices.
-func (k Keeper) CalculateMedianPrice(ctx sdk.Context, prices []types.CurrentPrice) sdk.Dec {
+func (k Keeper) CalculateMedianPrice(prices []types.CurrentPrice) sdk.Dec {
 	l := len(prices)
 
 	if l == 1 {
@@ -148,16 +148,15 @@ func (k Keeper) CalculateMedianPrice(ctx sdk.Context, prices []types.CurrentPric
 	})
 	// for even numbers of prices, the median is calculated as the mean of the two middle prices
 	if l%2 == 0 {
-		median := k.calculateMeanPrice(ctx, prices[l/2-1:l/2+1])
+		median := k.calculateMeanPrice(prices[l/2-1], prices[l/2])
 		return median
 	}
 	// for odd numbers of prices, return the middle element
 	return prices[l/2].Price
-
 }
 
-func (k Keeper) calculateMeanPrice(ctx sdk.Context, prices []types.CurrentPrice) sdk.Dec {
-	sum := prices[0].Price.Add(prices[1].Price)
+func (k Keeper) calculateMeanPrice(priceA, priceB types.CurrentPrice) sdk.Dec {
+	sum := priceA.Price.Add(priceB.Price)
 	mean := sum.Quo(sdk.NewDec(2))
 	return mean
 }
@@ -195,8 +194,8 @@ func (k Keeper) IterateCurrentPrices(ctx sdk.Context, cb func(cp types.CurrentPr
 }
 
 // GetCurrentPrices returns all current price objects from the store
-func (k Keeper) GetCurrentPrices(ctx sdk.Context) []types.CurrentPrice {
-	var cps []types.CurrentPrice
+func (k Keeper) GetCurrentPrices(ctx sdk.Context) types.CurrentPrices {
+	var cps types.CurrentPrices
 	k.IterateCurrentPrices(ctx, func(cp types.CurrentPrice) (stop bool) {
 		cps = append(cps, cp)
 		return false
@@ -205,8 +204,8 @@ func (k Keeper) GetCurrentPrices(ctx sdk.Context) []types.CurrentPrice {
 }
 
 // GetRawPrices fetches the set of all prices posted by oracles for an asset
-func (k Keeper) GetRawPrices(ctx sdk.Context, marketId string) []types.PostedPrice {
-	var pps []types.PostedPrice
+func (k Keeper) GetRawPrices(ctx sdk.Context, marketId string) types.PostedPrices {
+	var pps types.PostedPrices
 	k.IterateRawPricesByMarket(ctx, marketId, func(pp types.PostedPrice) (stop bool) {
 		pps = append(pps, pp)
 		return false

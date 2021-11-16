@@ -127,16 +127,19 @@
   
     - [Query](#kava.kavadist.v1beta1.Query)
   
-- [kava/pricefeed/v1beta1/pricefeed.proto](#kava/pricefeed/v1beta1/pricefeed.proto)
+- [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
+    - [Params](#kava.pricefeed.v1beta1.Params)
     - [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice)
   
 - [kava/pricefeed/v1beta1/genesis.proto](#kava/pricefeed/v1beta1/genesis.proto)
     - [GenesisState](#kava.pricefeed.v1beta1.GenesisState)
-    - [Params](#kava.pricefeed.v1beta1.Params)
   
 - [kava/pricefeed/v1beta1/query.proto](#kava/pricefeed/v1beta1/query.proto)
+    - [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse)
+    - [MarketResponse](#kava.pricefeed.v1beta1.MarketResponse)
+    - [PostedPriceResponse](#kava.pricefeed.v1beta1.PostedPriceResponse)
     - [QueryMarketsRequest](#kava.pricefeed.v1beta1.QueryMarketsRequest)
     - [QueryMarketsResponse](#kava.pricefeed.v1beta1.QueryMarketsResponse)
     - [QueryOraclesRequest](#kava.pricefeed.v1beta1.QueryOraclesRequest)
@@ -517,7 +520,7 @@ QueryCdpsRequest is the params for a filtered CDP query, the request type for th
 | `collateral_type` | [string](#string) |  |  |
 | `owner` | [string](#string) |  |  |
 | `id` | [uint64](#uint64) |  |  |
-| `ratio` | [string](#string) |  |  |
+| `ratio` | [string](#string) |  | sdk.Dec as a string |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
 
 
@@ -1733,10 +1736,10 @@ Query defines the gRPC querier service.
 
 
 
-<a name="kava/pricefeed/v1beta1/pricefeed.proto"></a>
+<a name="kava/pricefeed/v1beta1/store.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/pricefeed/v1beta1/pricefeed.proto
+## kava/pricefeed/v1beta1/store.proto
 
 
 
@@ -1768,8 +1771,23 @@ Market defines an asset in the pricefeed.
 | `market_id` | [string](#string) |  |  |
 | `base_asset` | [string](#string) |  |  |
 | `quote_asset` | [string](#string) |  |  |
-| `oracles` | [string](#string) | repeated |  |
+| `oracles` | [bytes](#bytes) | repeated |  |
 | `active` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="kava.pricefeed.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the pricefeed module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated |  |
 
 
 
@@ -1785,7 +1803,7 @@ PostedPrice defines a price for market posted by a specific oracle.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `market_id` | [string](#string) |  |  |
-| `oracle_address` | [string](#string) |  |  |
+| `oracle_address` | [bytes](#bytes) |  |  |
 | `price` | [string](#string) |  |  |
 | `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 
@@ -1825,21 +1843,6 @@ GenesisState defines the pricefeed module's genesis state.
 
 
 
-
-<a name="kava.pricefeed.v1beta1.Params"></a>
-
-### Params
-Params defines the parameters for the pricefeed module.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated |  |
-
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -1854,6 +1857,60 @@ Params defines the parameters for the pricefeed module.
 <p align="right"><a href="#top">Top</a></p>
 
 ## kava/pricefeed/v1beta1/query.proto
+
+
+
+<a name="kava.pricefeed.v1beta1.CurrentPriceResponse"></a>
+
+### CurrentPriceResponse
+CurrentPriceResponse defines a current price for a particular market in the pricefeed
+module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `market_id` | [string](#string) |  |  |
+| `price` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.pricefeed.v1beta1.MarketResponse"></a>
+
+### MarketResponse
+MarketResponse defines an asset in the pricefeed.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `market_id` | [string](#string) |  |  |
+| `base_asset` | [string](#string) |  |  |
+| `quote_asset` | [string](#string) |  |  |
+| `oracles` | [string](#string) | repeated |  |
+| `active` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="kava.pricefeed.v1beta1.PostedPriceResponse"></a>
+
+### PostedPriceResponse
+PostedPriceResponse defines a price for market posted by a specific oracle.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `market_id` | [string](#string) |  |  |
+| `oracle_address` | [string](#string) |  |  |
+| `price` | [string](#string) |  |  |
+| `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
 
 
 
@@ -1875,7 +1932,7 @@ QueryMarketsResponse is the response type for the Query/Markets RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated | List of markets |
+| `markets` | [MarketResponse](#kava.pricefeed.v1beta1.MarketResponse) | repeated | List of markets |
 
 
 
@@ -1962,7 +2019,7 @@ QueryPriceResponse is the response type for the Query/Prices RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `price` | [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice) |  |  |
+| `price` | [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse) |  |  |
 
 
 
@@ -1987,7 +2044,7 @@ QueryPricesResponse is the response type for the Query/Prices RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `prices` | [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice) | repeated |  |
+| `prices` | [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse) | repeated |  |
 
 
 
@@ -2018,7 +2075,7 @@ method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `raw_prices` | [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice) | repeated |  |
+| `raw_prices` | [PostedPriceResponse](#kava.pricefeed.v1beta1.PostedPriceResponse) | repeated |  |
 
 
 
