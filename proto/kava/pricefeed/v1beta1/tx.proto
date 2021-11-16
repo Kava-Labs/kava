@@ -16,7 +16,6 @@ service Msg {
 
 // MsgPostPrice represents a method for creating a new post price
 message MsgPostPrice {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // address of client
