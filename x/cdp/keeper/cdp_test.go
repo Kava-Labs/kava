@@ -107,12 +107,11 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Require().True(errors.Is(err, types.ErrCdpAlreadyExists))
 }
 
-func (suite *CdpTestSuite) TestGetSetCollateralTypeByte() {
-	_, found := suite.keeper.GetCollateralTypePrefix(suite.ctx, "lol-a")
+func (suite *CdpTestSuite) TestGetCollateral() {
+	_, found := suite.keeper.GetCollateral(suite.ctx, "lol-a")
 	suite.False(found)
-	db, found := suite.keeper.GetCollateralTypePrefix(suite.ctx, "xrp-a")
+	_, found = suite.keeper.GetCollateral(suite.ctx, "xrp-a")
 	suite.True(found)
-	suite.Equal(byte(0x20), db)
 }
 
 func (suite *CdpTestSuite) TestGetDebtDenom() {

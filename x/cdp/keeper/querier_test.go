@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"math/rand"
 	"sort"
 	"strings"
@@ -71,22 +70,22 @@ func (suite *QuerierTestSuite) SetupTest() {
 	// Set up markets
 	oracle := addrs[9]
 	marketParams := pftypes.Params{
-		Markets: []pftypes.Market{
-			pftypes.Market{MarketID: "xrp-usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []string{oracle.String()}, Active: true},
-			pftypes.Market{MarketID: "btc-usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []string{oracle.String()}, Active: true},
+		Markets: pftypes.Markets{
+			pftypes.Market{MarketID: "xrp-usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracle}, Active: true},
+			pftypes.Market{MarketID: "btc-usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracle}, Active: true},
 		},
 	}
 	suite.pricefeedKeeper.SetParams(ctx, marketParams)
 
 	// Set collateral prices for use in collateralization calculations
 	_, err := suite.pricefeedKeeper.SetPrice(
-		ctx, oracle.String(), "xrp-usd",
+		ctx, oracle, "xrp-usd",
 		sdk.MustNewDecFromStr("0.75"),
 		time.Now().Add(1*time.Hour))
 	suite.Nil(err)
 
 	_, err = suite.pricefeedKeeper.SetPrice(
-		ctx, oracle.String(), "btc-usd",
+		ctx, oracle, "btc-usd",
 		sdk.MustNewDecFromStr("5000"),
 		time.Now().Add(1*time.Hour))
 	suite.Nil(err)
@@ -330,16 +329,19 @@ func (suite *QuerierTestSuite) TestFindIntersection() {
 
 func (suite *QuerierTestSuite) TestFilterCDPs() {
 	paramsType := types.NewQueryCdpsParams(1, 100, "btc-a", sdk.AccAddress{}, 0, sdk.ZeroDec())
-	filteredCDPs1 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsType)
+	filteredCDPs1, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsType)
+	suite.Require().NoError(err)
 	suite.Require().Equal(len(filteredCDPs1), 50)
 
 	paramsOwner := types.NewQueryCdpsParams(1, 100, "", suite.cdps[10].Owner, 0, sdk.ZeroDec())
-	filteredCDPs2 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsOwner)
+	filteredCDPs2, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsOwner)
+	suite.Require().NoError(err)
 	suite.Require().Equal(len(filteredCDPs2), 1)
 	suite.Require().Equal(filteredCDPs2[0].Owner, suite.cdps[10].Owner)
 
 	paramsID := types.NewQueryCdpsParams(1, 100, "", sdk.AccAddress{}, 68, sdk.ZeroDec())
-	filteredCDPs3 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsID)
+	filteredCDPs3, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsID)
+	suite.Require().NoError(err)
 	suite.Require().Equal(len(filteredCDPs3), 1)
 	suite.Require().Equal(filteredCDPs3[0].ID, suite.cdps[68-1].ID)
 
@@ -355,7 +357,8 @@ func (suite *QuerierTestSuite) TestFilterCDPs() {
 		}
 	}
 	paramsTypeAndRatio := types.NewQueryCdpsParams(1, 100, "btc-a", sdk.AccAddress{}, 0, sdk.NewDec(2500))
-	filteredCDPs4 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsTypeAndRatio)
+	filteredCDPs4, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsTypeAndRatio)
+	suite.Require().NoError(err)
 	suite.Require().Equal(len(filteredCDPs4), ratioCountBtc)
 }
 
@@ -392,7 +395,6 @@ func (suite *QuerierTestSuite) TestQueryTotalPrincipal() {
 
 	var output types.TotalPrincipals
 	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &output))
-	fmt.Printf("%s", output)
 	suite.Equal(1, len(output))
 	suite.Equal("btc-a", output[0].CollateralType)
 }
@@ -437,7 +439,6 @@ func (suite *QuerierTestSuite) TestQueryTotalCollateral() {
 
 	var output types.TotalCollaterals
 	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &output))
-	fmt.Printf("%s", output)
 	suite.Equal(1, len(output))
 	suite.Equal("btc-a", output[0].CollateralType)
 }

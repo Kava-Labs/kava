@@ -23,5 +23,5 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	return ValidatePostedPrices(gs.PostedPrices)
+	return gs.PostedPrices.Validate()
 }

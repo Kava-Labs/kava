@@ -67,7 +67,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, pk types.PricefeedKeeper, ak 
 	// add cdps
 	for _, cdp := range gs.CDPs {
 		if cdp.ID == gs.StartingCdpID {
-			panic(fmt.Sprintf("starting cdp id is assigned to an existing cdp: %s", cdp))
+			panic(fmt.Sprintf("starting cdp id is assigned to an existing cdp: %v", cdp))
 		}
 		err := k.SetCDP(ctx, cdp)
 		if err != nil {

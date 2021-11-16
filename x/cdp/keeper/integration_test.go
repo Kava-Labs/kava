@@ -23,13 +23,13 @@ func NewPricefeedGenState(cdc codec.JSONCodec, asset string, price sdk.Dec) app.
 	pfGenesis := pricefeedtypes.GenesisState{
 		Params: pricefeedtypes.Params{
 			Markets: []pricefeedtypes.Market{
-				{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: []string{}, Active: true},
+				{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeedtypes.PostedPrice{
 			{
 				MarketID:      asset + ":usd",
-				OracleAddress: "",
+				OracleAddress: sdk.AccAddress{},
 				Price:         price,
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
@@ -55,7 +55,6 @@ func NewCDPGenState(cdc codec.JSONCodec, asset string, liquidationRatio sdk.Dec)
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(100),
-					Prefix:                           0x20,
 					SpotMarketID:                     asset + ":usd",
 					LiquidationMarketID:              asset + ":usd",
 					KeeperRewardPercentage:           d("0.01"),
@@ -88,34 +87,34 @@ func NewPricefeedGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 	pfGenesis := pricefeedtypes.GenesisState{
 		Params: pricefeedtypes.Params{
 			Markets: []pricefeedtypes.Market{
-				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []string{}, Active: true},
-				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []string{}, Active: true},
-				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []string{}, Active: true},
-				{MarketID: "busd:usd", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "busd:usd", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeedtypes.PostedPrice{
 			{
 				MarketID:      "btc:usd",
-				OracleAddress: "",
+				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("8000.00"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "xrp:usd",
-				OracleAddress: "",
+				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("0.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "bnb:usd",
-				OracleAddress: "",
+				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("17.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
 				MarketID:      "busd:usd",
-				OracleAddress: "",
+				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.OneDec(),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
@@ -140,7 +139,6 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(7000000000),
-					Prefix:                           0x20,
 					SpotMarketID:                     "xrp:usd",
 					LiquidationMarketID:              "xrp:usd",
 					KeeperRewardPercentage:           d("0.01"),
@@ -155,7 +153,6 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
 					LiquidationPenalty:               d("0.025"),
 					AuctionSize:                      i(10000000),
-					Prefix:                           0x21,
 					SpotMarketID:                     "btc:usd",
 					LiquidationMarketID:              "btc:usd",
 					KeeperRewardPercentage:           d("0.01"),
@@ -170,7 +167,6 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(50000000000),
-					Prefix:                           0x22,
 					SpotMarketID:                     "bnb:usd",
 					LiquidationMarketID:              "bnb:usd",
 					KeeperRewardPercentage:           d("0.01"),
@@ -185,7 +181,6 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					StabilityFee:                     sdk.OneDec(), // %0 apr
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(10000000000),
-					Prefix:                           0x23,
 					SpotMarketID:                     "busd:usd",
 					LiquidationMarketID:              "busd:usd",
 					KeeperRewardPercentage:           d("0.01"),
@@ -237,7 +232,6 @@ func NewCDPGenStateHighDebtLimit(cdc codec.JSONCodec) app.GenesisState {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(7000000000),
-					Prefix:                           0x20,
 					SpotMarketID:                     "xrp:usd",
 					LiquidationMarketID:              "xrp:usd",
 					KeeperRewardPercentage:           d("0.01"),
@@ -252,7 +246,6 @@ func NewCDPGenStateHighDebtLimit(cdc codec.JSONCodec) app.GenesisState {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
 					LiquidationPenalty:               d("0.025"),
 					AuctionSize:                      i(10000000),
-					Prefix:                           0x21,
 					SpotMarketID:                     "btc:usd",
 					LiquidationMarketID:              "btc:usd",
 					KeeperRewardPercentage:           d("0.01"),

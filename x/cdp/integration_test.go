@@ -55,7 +55,6 @@ func NewCDPGenState(cdc codec.JSONCodec, asset string, liquidationRatio sdk.Dec)
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(1000000000),
-					Prefix:                           0x20,
 					ConversionFactor:                 i(6),
 					SpotMarketID:                     asset + ":usd",
 					LiquidationMarketID:              asset + ":usd",
@@ -126,7 +125,6 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(7000000000),
-					Prefix:                           0x20,
 					SpotMarketID:                     "xrp:usd",
 					LiquidationMarketID:              "xrp:usd",
 					KeeperRewardPercentage:           d("0.01"),
@@ -141,7 +139,6 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
 					LiquidationPenalty:               d("0.025"),
 					AuctionSize:                      i(10000000),
-					Prefix:                           0x21,
 					SpotMarketID:                     "btc:usd",
 					LiquidationMarketID:              "btc:usd",
 					KeeperRewardPercentage:           d("0.01"),

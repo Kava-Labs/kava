@@ -133,11 +133,6 @@ func (am AppModule) Route() sdk.Route {
 	return sdk.Route{}
 }
 
-// NewHandler module handler
-func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
-}
-
 // QuerierRoute module querier route name
 func (AppModule) QuerierRoute() string {
 	return types.QuerierRoute

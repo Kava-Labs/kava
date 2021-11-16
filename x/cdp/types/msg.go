@@ -37,10 +37,6 @@ func (msg MsgCreateCDP) Type() string { return "create_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgCreateCDP) ValidateBasic() error {
-	if msg.Sender == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
-	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
@@ -73,16 +69,6 @@ func (msg MsgCreateCDP) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sender}
 }
 
-// String implements the Stringer interface
-func (msg MsgCreateCDP) String() string {
-	return fmt.Sprintf(`Create CDP Message:
-  Sender:         %s
-	Collateral: %s
-	Principal: %s
-	Collateral Type: %s
-`, msg.Sender, msg.Collateral, msg.Principal, msg.CollateralType)
-}
-
 // NewMsgDeposit returns a new MsgDeposit
 func NewMsgDeposit(owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coin, collateralType string) MsgDeposit {
 	return MsgDeposit{
@@ -101,12 +87,15 @@ func (msg MsgDeposit) Type() string { return "deposit_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDeposit) ValidateBasic() error {
-	if msg.Owner == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %s", err)
 	}
-	if msg.Depositor == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err = sdk.AccAddressFromBech32(msg.Depositor)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address %s", err)
 	}
+
 	if !msg.Collateral.IsValid() || msg.Collateral.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
 	}
@@ -131,16 +120,6 @@ func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{depositor}
 }
 
-// String implements the Stringer interface
-func (msg MsgDeposit) String() string {
-	return fmt.Sprintf(`Deposit to CDP Message:
-	Sender:         %s
-	Owner: %s
-	Collateral: %s
-	CollateralType: %s
-`, msg.Owner, msg.Owner, msg.Collateral, msg.CollateralType)
-}
-
 // NewMsgWithdraw returns a new MsgDeposit
 func NewMsgWithdraw(owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coin, collateralType string) MsgWithdraw {
 	return MsgWithdraw{
@@ -159,12 +138,15 @@ func (msg MsgWithdraw) Type() string { return "withdraw_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdraw) ValidateBasic() error {
-	if msg.Owner == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %s", err)
 	}
-	if msg.Depositor == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err = sdk.AccAddressFromBech32(msg.Depositor)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address %s", err)
 	}
+
 	if !msg.Collateral.IsValid() || msg.Collateral.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
 	}
@@ -189,15 +171,6 @@ func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{depositor}
 }
 
-// String implements the Stringer interface
-func (msg MsgWithdraw) String() string {
-	return fmt.Sprintf(`Withdraw from CDP Message:
-	Owner:         %s
-	Depositor: %s
-	Collateral: %s
-`, msg.Owner, msg.Depositor, msg.Collateral)
-}
-
 // NewMsgDrawDebt returns a new MsgDrawDebt
 func NewMsgDrawDebt(sender sdk.AccAddress, collateralType string, principal sdk.Coin) MsgDrawDebt {
 	return MsgDrawDebt{
@@ -215,9 +188,11 @@ func (msg MsgDrawDebt) Type() string { return "draw_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDrawDebt) ValidateBasic() error {
-	if msg.Sender == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err)
 	}
+
 	if strings.TrimSpace(msg.CollateralType) == "" {
 		return errors.New("cdp collateral type cannot be blank")
 	}
@@ -242,15 +217,6 @@ func (msg MsgDrawDebt) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sender}
 }
 
-// String implements the Stringer interface
-func (msg MsgDrawDebt) String() string {
-	return fmt.Sprintf(`Draw debt from CDP Message:
-	Sender:         %s
-	Collateral Type: %s
-	Principal: %s
-`, msg.Sender, msg.CollateralType, msg.Principal)
-}
-
 // NewMsgRepayDebt returns a new MsgRepayDebt
 func NewMsgRepayDebt(sender sdk.AccAddress, collateralType string, payment sdk.Coin) MsgRepayDebt {
 	return MsgRepayDebt{
@@ -268,9 +234,11 @@ func (msg MsgRepayDebt) Type() string { return "repay_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgRepayDebt) ValidateBasic() error {
-	if msg.Sender == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err)
 	}
+
 	if strings.TrimSpace(msg.CollateralType) == "" {
 		return errors.New("cdp collateral type cannot be blank")
 	}
@@ -295,15 +263,6 @@ func (msg MsgRepayDebt) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sender}
 }
 
-// String implements the Stringer interface
-func (msg MsgRepayDebt) String() string {
-	return fmt.Sprintf(`Draw debt from CDP Message:
-	Sender:         %s
-	Collateral Type: %s
-	Payment: %s
-`, msg.Sender, msg.CollateralType, msg.Payment)
-}
-
 // NewMsgLiquidate returns a new MsgLiquidate
 func NewMsgLiquidate(keeper, borrower sdk.AccAddress, ctype string) MsgLiquidate {
 	return MsgLiquidate{
@@ -321,12 +280,15 @@ func (msg MsgLiquidate) Type() string { return "liquidate" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgLiquidate) ValidateBasic() error {
-	if msg.Keeper == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "keeper address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Keeper)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid keeper address %s", err)
 	}
-	if msg.Borrower == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "borrower address cannot be empty")
+	_, err = sdk.AccAddressFromBech32(msg.Borrower)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid borrower address %s", err)
 	}
+
 	if strings.TrimSpace(msg.CollateralType) == "" {
 		return sdkerrors.Wrap(ErrInvalidCollateral, "collateral type cannot be empty")
 	}
@@ -346,13 +308,4 @@ func (msg MsgLiquidate) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{keeper}
-}
-
-// String implements the Stringer interface
-func (msg MsgLiquidate) String() string {
-	return fmt.Sprintf(`Liquidate Message:
-	Keeper:           %s
-	Borrower:         %s
-	Collateral Type %s
-`, msg.Keeper, msg.Borrower, msg.CollateralType)
 }
