@@ -396,11 +396,6 @@ AtomicSwapResponse represents the returned atomic swap properties
 QueryAssetSuppliesRequest is the request type for the Query/AssetSupplies RPC method.
 
 
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
-
-
 
 
 
@@ -414,7 +409,6 @@ QueryAssetSuppliesResponse is the response type for the Query/AssetSupplies RPC 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `asset_supplies` | [AssetSupplyResponse](#kava.bep3.v1beta1.AssetSupplyResponse) | repeated | asset_supplies represents the supplies of returned assets |
-| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
 

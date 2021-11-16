@@ -50,28 +50,15 @@ func (k Keeper) AssetSupplies(ctx context.Context, req *types.QueryAssetSupplies
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.AssetSupplyPrefix)
 
 	var queryResults []types.AssetSupplyResponse
-	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, shouldAccumulate bool) (bool, error) {
-		var assetSupply types.AssetSupply
-		err := k.cdc.Unmarshal(value, &assetSupply)
-		if err != nil {
-			return false, err
-		}
-
-		if shouldAccumulate {
-			queryResults = append(queryResults, mapAssetSupplyToResponse(assetSupply))
-		}
-		return true, nil
+	k.IterateAssetSupplies(sdkCtx, func(assetSupply types.AssetSupply) bool {
+		queryResults = append(queryResults, mapAssetSupplyToResponse(assetSupply))
+		return false
 	})
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "paginate: %v", err)
-	}
 
 	return &types.QueryAssetSuppliesResponse{
 		AssetSupplies: queryResults,
-		Pagination:    pageRes,
 	}, nil
 }
 

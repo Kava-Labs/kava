@@ -85,16 +85,12 @@ message QueryAssetSupplyResponse {
 message QueryAssetSuppliesRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
-
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
 // QueryAssetSuppliesResponse is the response type for the Query/AssetSupplies RPC method.
 message QueryAssetSuppliesResponse {
   // asset_supplies represents the supplies of returned assets
   repeated AssetSupplyResponse asset_supplies = 1 [(gogoproto.nullable) = false];
-
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryAtomicSwapRequest is the request type for the Query/AtomicSwap RPC method.
