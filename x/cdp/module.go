@@ -17,6 +17,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/x/cdp/client/cli"
+	"github.com/kava-labs/kava/x/cdp/client/rest"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -64,8 +65,7 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 
 // RegisterRESTRoutes registers REST routes for the swap module.
 func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	// TODO:
-	// rest.RegisterRoutes(clientCtx, rtr)
+	rest.RegisterRoutes(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
