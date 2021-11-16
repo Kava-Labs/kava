@@ -31,9 +31,6 @@ func (msg MsgPlaceBid) ValidateBasic() error {
 	if msg.AuctionId == 0 {
 		return errors.New("auction id cannot be zero")
 	}
-	if len(msg.Bidder) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "bidder address cannot be empty")
-	}
 	_, err := sdk.AccAddressFromBech32(msg.Bidder)
 	if err != nil {
 		return fmt.Errorf("invalid bidder address %s", msg.Bidder)
