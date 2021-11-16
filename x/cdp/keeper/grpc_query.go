@@ -257,7 +257,18 @@ func GrpcFilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (type
 		}
 	}
 
-	legacyParams := types.NewQueryCdpsParams(page, limit, req.CollateralType, owner, req.ID, req.Ratio)
+	ratio := sdk.ZeroDec()
+
+	if req.Ratio != "" {
+		ratio, err = sdk.NewDecFromStr(req.Ratio)
+		if err != nil {
+			if err != nil {
+				return nil, status.Errorf(codes.InvalidArgument, "invalid ratio")
+			}
+		}
+	}
+
+	legacyParams := types.NewQueryCdpsParams(page, limit, req.CollateralType, owner, req.ID, ratio)
 
 	cdps, err := FilterCDPs(ctx, k, legacyParams)
 	if err != nil {
@@ -274,9 +285,9 @@ func GrpcFilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (type
 			Principal:              cdp.Principal,
 			AccumulatedFees:        cdp.AccumulatedFees,
 			FeesUpdated:            cdp.FeesUpdated,
-			InterestFactor:         cdp.InterestFactor,
+			InterestFactor:         cdp.InterestFactor.String(),
 			CollateralValue:        cdp.CollateralValue,
-			CollateralizationRatio: cdp.CollateralizationRatio,
+			CollateralizationRatio: cdp.CollateralizationRatio.String(),
 		}
 		cdpResponses = append(cdpResponses, cdpResponse)
 	}

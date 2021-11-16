@@ -576,7 +576,7 @@ func (k Keeper) LoadCDPResponse(ctx sdk.Context, cdp types.CDP) types.CDPRespons
 			Principal:       cdp.Principal,
 			AccumulatedFees: cdp.AccumulatedFees,
 			FeesUpdated:     cdp.FeesUpdated,
-			InterestFactor:  cdp.InterestFactor,
+			InterestFactor:  cdp.InterestFactor.String(),
 		}
 	}
 	// convert collateral value to debt coin

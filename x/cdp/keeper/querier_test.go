@@ -70,22 +70,22 @@ func (suite *QuerierTestSuite) SetupTest() {
 	// Set up markets
 	oracle := addrs[9]
 	marketParams := pftypes.Params{
-		Markets: []pftypes.Market{
-			pftypes.Market{MarketID: "xrp-usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []string{oracle.String()}, Active: true},
-			pftypes.Market{MarketID: "btc-usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []string{oracle.String()}, Active: true},
+		Markets: pftypes.Markets{
+			pftypes.Market{MarketID: "xrp-usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracle}, Active: true},
+			pftypes.Market{MarketID: "btc-usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracle}, Active: true},
 		},
 	}
 	suite.pricefeedKeeper.SetParams(ctx, marketParams)
 
 	// Set collateral prices for use in collateralization calculations
 	_, err := suite.pricefeedKeeper.SetPrice(
-		ctx, oracle.String(), "xrp-usd",
+		ctx, oracle, "xrp-usd",
 		sdk.MustNewDecFromStr("0.75"),
 		time.Now().Add(1*time.Hour))
 	suite.Nil(err)
 
 	_, err = suite.pricefeedKeeper.SetPrice(
-		ctx, oracle.String(), "btc-usd",
+		ctx, oracle, "btc-usd",
 		sdk.MustNewDecFromStr("5000"),
 		time.Now().Add(1*time.Hour))
 	suite.Nil(err)
