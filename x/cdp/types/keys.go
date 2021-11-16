@@ -79,9 +79,9 @@ func CdpKey(denomByte byte, cdpID uint64) []byte {
 }
 
 // SplitCdpKey returns the component parts of a cdp key
-func SplitCdpKey(key []byte) (byte, uint64) {
+func SplitCdpKey(key []byte) (string, uint64) {
 	split := bytes.Split(key, sep)
-	return split[0][0], GetCdpIDFromBytes(split[1])
+	return string(split[0]), GetCdpIDFromBytes(split[1])
 }
 
 // DenomIterKey returns the key for iterating over cdps of a certain denom in the store
@@ -90,9 +90,9 @@ func DenomIterKey(denomByte byte) []byte {
 }
 
 // SplitDenomIterKey returns the component part of a key for iterating over cdps by denom
-func SplitDenomIterKey(key []byte) byte {
+func SplitDenomIterKey(key []byte) string {
 	split := bytes.Split(key, sep)
-	return split[0][0]
+	return string(split[0])
 }
 
 // DepositKey key of a specific deposit in the store
@@ -136,17 +136,17 @@ func CollateralRatioKey(denomByte byte, cdpID uint64, ratio sdk.Dec) []byte {
 }
 
 // SplitCollateralRatioKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
-func SplitCollateralRatioKey(key []byte) (denom byte, cdpID uint64, ratio sdk.Dec) {
+func SplitCollateralRatioKey(key []byte) (string, uint64, sdk.Dec) {
 
-	cdpID = GetCdpIDFromBytes(key[len(key)-8:])
+	cdpID := GetCdpIDFromBytes(key[len(key)-8:])
 	split := bytes.Split(key[:len(key)-8], sep)
-	denom = split[0][0]
+	collateralType := string(split[0])
 
 	ratio, err := ParseDecBytes(split[1])
 	if err != nil {
 		panic(err)
 	}
-	return
+	return collateralType, cdpID, ratio
 }
 
 // CollateralRatioIterKey returns the key for iterating over cdps by denom and liquidation ratio
@@ -156,15 +156,15 @@ func CollateralRatioIterKey(denomByte byte, ratio sdk.Dec) []byte {
 }
 
 // SplitCollateralRatioIterKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
-func SplitCollateralRatioIterKey(key []byte) (denom byte, ratio sdk.Dec) {
+func SplitCollateralRatioIterKey(key []byte) (string, sdk.Dec) {
 	split := bytes.Split(key, sep)
-	denom = split[0][0]
+	collateralType := string(split[0])
 
 	ratio, err := ParseDecBytes(split[1])
 	if err != nil {
 		panic(err)
 	}
-	return
+	return collateralType, ratio
 }
 
 func createKey(bytes ...[]byte) (r []byte) {
