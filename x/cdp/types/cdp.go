@@ -10,18 +10,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// CDP is the state of a single collateralized debt position.
-type CDP struct {
-	ID              uint64         `json:"id" yaml:"id"`                             // unique id for cdp
-	Owner           sdk.AccAddress `json:"owner" yaml:"owner"`                       // Account that authorizes changes to the CDP
-	Type            string         `json:"type" yaml:"type"`                         // string representing the unique collateral type of the CDP
-	Collateral      sdk.Coin       `json:"collateral" yaml:"collateral"`             // Amount of collateral stored in this CDP
-	Principal       sdk.Coin       `json:"principal" yaml:"principal"`               // Amount of debt drawn using the CDP
-	AccumulatedFees sdk.Coin       `json:"accumulated_fees" yaml:"accumulated_fees"` // Fees accumulated since the CDP was opened or debt was last repaid
-	FeesUpdated     time.Time      `json:"fees_updated" yaml:"fees_updated"`         // The time when fees were last updated
-	InterestFactor  sdk.Dec        `json:"interest_factor" yaml:"interest_factor"`   // the interest factor when fees were last calculated for this CDP
-}
-
 // NewCDP creates a new CDP object
 func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType string, principal sdk.Coin, time time.Time, interestFactor sdk.Dec) CDP {
 	fees := sdk.NewCoin(principal.Denom, sdk.ZeroInt())
@@ -49,28 +37,6 @@ func NewCDPWithFees(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collat
 		FeesUpdated:     time,
 		InterestFactor:  interestFactor,
 	}
-}
-
-// String implements fmt.stringer
-func (cdp CDP) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`CDP:
-	Owner:      %s
-	ID: %d
-	Collateral Type: %s
-	Collateral: %s
-	Principal: %s
-	AccumulatedFees: %s
-	Fees Last Updated: %s
-	Interest Factor: %s`,
-		cdp.Owner,
-		cdp.ID,
-		cdp.Type,
-		cdp.Collateral,
-		cdp.Principal,
-		cdp.AccumulatedFees,
-		cdp.FeesUpdated,
-		cdp.InterestFactor,
-	))
 }
 
 // Validate performs a basic validation of the CDP fields.
@@ -121,15 +87,6 @@ func (cdp CDP) GetNormalizedPrincipal() (sdk.Dec, error) {
 // CDPs a collection of CDP objects
 type CDPs []CDP
 
-// String implements stringer
-func (cdps CDPs) String() string {
-	out := ""
-	for _, cdp := range cdps {
-		out += cdp.String() + "\n"
-	}
-	return out
-}
-
 // Validate validates each CDP
 func (cdps CDPs) Validate() error {
 	for _, cdp := range cdps {
@@ -140,7 +97,8 @@ func (cdps CDPs) Validate() error {
 	return nil
 }
 
-// AugmentedCDP provides additional information about an active CDP
+// AugmentedCDP provides additional information about an active CDP.
+// This is only used for the legacy querier and legacy rest endpoints.
 type AugmentedCDP struct {
 	CDP                    `json:"cdp" yaml:"cdp"`
 	CollateralValue        sdk.Coin `json:"collateral_value" yaml:"collateral_value"`               // collateral's market value in debt coin
@@ -204,29 +162,42 @@ func (augcdps AugmentedCDPs) String() string {
 	return out
 }
 
-// TotalCDPPrincipal is a total principal of a given collateral type
-type TotalCDPPrincipal struct {
-	CollateralType string   `json:"collateral_type" yaml:"collateral_type"` // string representing the unique collateral type of the CDP
-	Amount         sdk.Coin `json:"amount" yaml:"amount"`                   // Amount of principal stored in this CDP
+// NewCDPResponse creates a new CDPResponse object
+func NewCDPResponse(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sdk.Dec) CDPResponse {
+	return CDPResponse{
+		ID:                     cdp.ID,
+		Owner:                  cdp.Owner.String(),
+		Type:                   cdp.Type,
+		Collateral:             cdp.Collateral,
+		Principal:              cdp.Principal,
+		AccumulatedFees:        cdp.AccumulatedFees,
+		FeesUpdated:            cdp.FeesUpdated,
+		InterestFactor:         cdp.InterestFactor.String(),
+		CollateralValue:        collateralValue,
+		CollateralizationRatio: collateralizationRatio.String(),
+	}
 }
 
-// TotalCDPPrincipal returns a new TotalCDPPrincipal
-func NewTotalCDPPrincipal(collateralType string, amount sdk.Coin) TotalCDPPrincipal {
-	return TotalCDPPrincipal{
+// CDPResponses a collection of CDPResponse objects
+type CDPResponses []CDPResponse
+
+// TotalPrincipals a collection of TotalPrincipal objects
+type TotalPrincipals []TotalPrincipal
+
+// TotalPrincipal returns a new TotalPrincipal
+func NewTotalPrincipal(collateralType string, amount sdk.Coin) TotalPrincipal {
+	return TotalPrincipal{
 		CollateralType: collateralType,
 		Amount:         amount,
 	}
 }
 
-// TotalCDPCollateral is a total principal of a given collateral type
-type TotalCDPCollateral struct {
-	CollateralType string   `json:"collateral_type" yaml:"collateral_type"` // string representing the unique collateral type of the CDP
-	Amount         sdk.Coin `json:"amount" yaml:"amount"`                   // Amount of collateral stored in this CDP
-}
+// TotalCollaterals a collection of TotalCollateral objects
+type TotalCollaterals []TotalCollateral
 
-// TotalCDPCollateral returns a new TotalCDPCollateral
-func NewTotalCDPCollateral(collateralType string, amount sdk.Coin) TotalCDPCollateral {
-	return TotalCDPCollateral{
+// TotalCollateral returns a new TotalCollateral
+func NewTotalCollateral(collateralType string, amount sdk.Coin) TotalCollateral {
+	return TotalCollateral{
 		CollateralType: collateralType,
 		Amount:         amount,
 	}
