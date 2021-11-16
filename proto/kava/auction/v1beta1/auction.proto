@@ -20,7 +20,10 @@ message BaseAuction {
 
   cosmos.base.v1beta1.Coin lot = 3 [(gogoproto.nullable) = false];
 
-  string bidder = 4;
+  bytes bidder = 4 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
 
   cosmos.base.v1beta1.Coin bid = 5 [(gogoproto.nullable) = false];
 
@@ -69,7 +72,10 @@ message CollateralAuction {
 
 // WeightedAddresses is a type for storing some addresses and associated weights.
 message WeightedAddresses {
-  repeated string addresses = 1;
+  repeated bytes addresses = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
 
   repeated bytes weights = 2
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];

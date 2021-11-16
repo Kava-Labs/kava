@@ -2,7 +2,6 @@ package types
 
 import (
 	"errors"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -12,7 +11,7 @@ import (
 var _ sdk.Msg = &MsgPlaceBid{}
 
 // NewMsgPlaceBid returns a new MsgPlaceBid.
-func NewMsgPlaceBid(auctionID uint64, bidder string, amt sdk.Coin) MsgPlaceBid {
+func NewMsgPlaceBid(auctionID uint64, bidder sdk.AccAddress, amt sdk.Coin) MsgPlaceBid {
 	return MsgPlaceBid{
 		AuctionId: auctionID,
 		Bidder:    bidder,
@@ -31,9 +30,8 @@ func (msg MsgPlaceBid) ValidateBasic() error {
 	if msg.AuctionId == 0 {
 		return errors.New("auction id cannot be zero")
 	}
-	_, err := sdk.AccAddressFromBech32(msg.Bidder)
-	if err != nil {
-		return fmt.Errorf("invalid bidder address %s", msg.Bidder)
+	if msg.Bidder.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "bidder address cannot be empty")
 	}
 	if !msg.Amount.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "bid amount %s", msg.Amount)
@@ -49,9 +47,5 @@ func (msg MsgPlaceBid) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgPlaceBid) GetSigners() []sdk.AccAddress {
-	bidder, err := sdk.AccAddressFromBech32(msg.Bidder)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{bidder}
+	return []sdk.AccAddress{msg.Bidder}
 }
