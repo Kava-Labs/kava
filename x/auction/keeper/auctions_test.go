@@ -114,10 +114,7 @@ func (suite *auctionTestSuite) TestDebtAuctionDebtRemaining() {
 func (suite *auctionTestSuite) TestCollateralAuctionBasic() {
 	// Setup
 	buyer := suite.Addrs[0]
-	var returnAddrs []string
-	for _, addr := range suite.Addrs[1:] {
-		returnAddrs = append(returnAddrs, addr.String())
-	}
+	returnAddrs := suite.Addrs[1:]
 	returnWeights := is(30, 20, 10)
 	sellerModName := suite.ModAcc.Name
 	sellerAddr := suite.ModAcc.GetAddress()
@@ -162,10 +159,7 @@ func (suite *auctionTestSuite) TestCollateralAuctionBasic() {
 func (suite *auctionTestSuite) TestCollateralAuctionDebtRemaining() {
 	// Setup
 	buyer := suite.Addrs[0]
-	var returnAddrs []string
-	for _, addr := range suite.Addrs[1:] {
-		returnAddrs = append(returnAddrs, addr.String())
-	}
+	returnAddrs := suite.Addrs[1:]
 	returnWeights := is(30, 20, 10)
 	sellerModName := suite.ModAcc.Name
 	sellerAddr := suite.ModAcc.GetAddress()
@@ -273,7 +267,7 @@ func (suite *auctionTestSuite) TestStartSurplusAuction() {
 					ID:              id,
 					Initiator:       tc.args.seller,
 					Lot:             tc.args.lot,
-					Bidder:          "",
+					Bidder:          nil,
 					Bid:             c(tc.args.bidDenom, 0),
 					HasReceivedBids: false,
 					EndTime:         types.DistantFuture,

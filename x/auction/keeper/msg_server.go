@@ -23,12 +23,7 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) PlaceBid(goCtx context.Context, msg *types.MsgPlaceBid) (*types.MsgPlaceBidResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	bidder, err := sdk.AccAddressFromBech32(msg.Bidder)
-	if err != nil {
-		return nil, err
-	}
-
-	err = k.keeper.PlaceBid(ctx, msg.AuctionId, bidder, msg.Amount)
+	err := k.keeper.PlaceBid(ctx, msg.AuctionId, msg.Bidder, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +31,7 @@ func (k msgServer) PlaceBid(goCtx context.Context, msg *types.MsgPlaceBid) (*typ
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Bidder),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Bidder.String()),
 		),
 	)
 	return &types.MsgPlaceBidResponse{}, nil

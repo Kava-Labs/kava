@@ -128,7 +128,7 @@ func auctionIsMatch(auc types.Auction, params types.QueryAllAuctionParams) bool 
 		if cAuc, ok := auc.(*types.CollateralAuction); ok {
 			foundOwnerAddr := false
 			for _, addr := range cAuc.GetLotReturns().Addresses {
-				if addr == params.Owner.String() {
+				if addr.Equals(params.Owner) {
 					foundOwnerAddr = true
 					break
 				}

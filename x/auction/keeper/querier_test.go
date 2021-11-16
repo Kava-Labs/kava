@@ -46,7 +46,7 @@ func (suite *querierTestSuite) SetupTest() {
 			id, err = suite.Keeper.StartSurplusAuction(suite.Ctx, suite.ModAcc.Name, c("token1", lotAmount), "token2")
 		} else {
 			id, err = suite.Keeper.StartCollateralAuction(suite.Ctx, suite.ModAcc.Name, c("token1", lotAmount), c("usdx", int64(20)),
-				[]string{suite.Addrs[ownerAddrIndex].String()}, []sdk.Int{sdk.NewInt(lotAmount)}, c("debt", int64(10)))
+				[]sdk.AccAddress{suite.Addrs[ownerAddrIndex]}, []sdk.Int{sdk.NewInt(lotAmount)}, c("debt", int64(10)))
 		}
 		suite.NoError(err)
 
