@@ -1,0 +1,28 @@
+syntax = "proto3";
+package kava.committee.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/kava-labs/kava/x/committee/types";
+
+option (gogoproto.goproto_getters_all) = false;
+
+// CommitteeChangeProposal is a gov proposal for creating a new committee or modifying an existing one.
+message CommitteeChangeProposal {
+  option (cosmos_proto.implements_interface) = "cosmos.gov.v1beta1.Content";
+
+  string              title         = 1;
+  string              description   = 2;
+  google.protobuf.Any new_committee = 3 [(cosmos_proto.accepts_interface) = "Committee"];
+}
+
+// CommitteeDeleteProposal is a gov proposal for removing a committee.
+message CommitteeDeleteProposal {
+  option (cosmos_proto.implements_interface) = "cosmos.gov.v1beta1.Content";
+
+  string title        = 1;
+  string description  = 2;
+  uint64 committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
+}
