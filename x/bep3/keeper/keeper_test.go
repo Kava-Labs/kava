@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -43,34 +42,6 @@ func (suite *KeeperTestSuite) ResetChain() {
 	suite.keeper = keeper
 }
 
-func (suite *KeeperTestSuite) TestEnsureModuleAccountPermissions() {
-	suite.app.InitializeFromGenesisStates(
-		NewAuthGenStateFromAccs(
-			suite.app.AppCodec(),
-			authtypes.NewEmptyModuleAccount(types.ModuleName), // no permisions
-		),
-	)
-	bankKeeper := suite.app.GetBankKeeper()
-	testCoins := cs(c("busd", 1000_00_000_000))
-
-	// Ensure there are no minting and burning permissions.
-	// This calls mint/burn instead of checking permissions as the supply module can report permissions incorrectly.
-	// Using a panic check because MintCoins panics when permissions are incorrect.
-	suite.Panics(func() {
-		_ = bankKeeper.MintCoins(suite.ctx, types.ModuleName, testCoins)
-	})
-	suite.Panics(func() {
-		_ = bankKeeper.BurnCoins(suite.ctx, types.ModuleName, testCoins)
-	})
-
-	err := suite.keeper.EnsureModuleAccountPermissions(suite.ctx)
-	suite.NoError(err)
-
-	err = bankKeeper.MintCoins(suite.ctx, types.ModuleName, testCoins)
-	suite.NoError(err)
-	err = bankKeeper.BurnCoins(suite.ctx, types.ModuleName, testCoins)
-	suite.NoError(err)
-}
 func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
 	suite.ResetChain()
 

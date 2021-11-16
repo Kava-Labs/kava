@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -45,19 +44,6 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, sk types.BankKeeper, ak types.
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
-}
-
-// EnsureModuleAccountPermissions syncs the bep3 module account's permissions with those in the supply keeper.
-func (k Keeper) EnsureModuleAccountPermissions(ctx sdk.Context) error {
-	maccI := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
-	macc, ok := maccI.(*authtypes.ModuleAccount)
-	if !ok {
-		return fmt.Errorf("expected %s account to be a module account type", types.ModuleName)
-	}
-	_, perms := k.accountKeeper.GetModuleAddressAndPermissions(types.ModuleName)
-	macc.Permissions = perms
-	k.accountKeeper.SetModuleAccount(ctx, macc)
-	return nil
 }
 
 // ------------------------------------------

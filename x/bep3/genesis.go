@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -15,6 +16,23 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, accountKeeper types.Acco
 	moduleAcc := accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	if moduleAcc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	}
+
+	hasBurnPermissions := false
+	hasMintPermissions := false
+	for _, perm := range moduleAcc.GetPermissions() {
+		if perm == authtypes.Burner {
+			hasBurnPermissions = true
+		}
+		if perm == authtypes.Minter {
+			hasMintPermissions = true
+		}
+	}
+	if !hasBurnPermissions {
+		panic(fmt.Sprintf("%s module account does not have burn permissions", types.ModuleName))
+	}
+	if !hasMintPermissions {
+		panic(fmt.Sprintf("%s module account does not have mint permissions", types.ModuleName))
 	}
 
 	if err := gs.Validate(); err != nil {

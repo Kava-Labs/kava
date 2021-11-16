@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -35,6 +36,44 @@ func (suite *GenesisTestSuite) SetupTest() {
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
 	suite.addrs = addrs
+}
+
+func (suite *GenesisTestSuite) TestModulePermissionsCheck() {
+	cdc := suite.app.AppCodec()
+
+	testCases := []struct {
+		name          string
+		permissions   []string
+		expectedPanic string
+	}{
+		{"no permissions", []string{}, "bep3 module account does not have burn permissions"},
+		{"mint permissions", []string{authtypes.Minter}, "bep3 module account does not have burn permissions"},
+		{"burn permissions", []string{authtypes.Burner}, "bep3 module account does not have mint permissions"},
+		{"burn and mint permissions", []string{authtypes.Burner, authtypes.Minter}, ""},
+		{"mint and burn permissions", []string{authtypes.Minter, authtypes.Burner}, ""},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			authGenesis := authtypes.NewGenesisState(
+				authtypes.DefaultParams(),
+				authtypes.GenesisAccounts{authtypes.NewEmptyModuleAccount(types.ModuleName, tc.permissions...)},
+			)
+			bep3Genesis := types.DefaultGenesisState()
+			genState := app.GenesisState{
+				authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis),
+				types.ModuleName:     cdc.MustMarshalJSON(&bep3Genesis),
+			}
+
+			initApp := func() { suite.app.InitializeFromGenesisStates(genState) }
+
+			if tc.expectedPanic == "" {
+				suite.NotPanics(initApp)
+			} else {
+				suite.PanicsWithValue(tc.expectedPanic, initApp)
+			}
+		})
+	}
 }
 
 func (suite *GenesisTestSuite) TestGenesisState() {
