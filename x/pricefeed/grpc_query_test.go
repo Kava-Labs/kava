@@ -21,6 +21,7 @@ type grpcQueryTestSuite struct {
 	keeper      keeper.Keeper
 	queryServer types.QueryServer
 	addrs       []sdk.AccAddress
+	strAddrs    []string
 	now         time.Time
 }
 
@@ -34,12 +35,18 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	suite.addrs = addrs
 
+	var strAddrs []string
+	for _, a := range addrs {
+		strAddrs = append(strAddrs, a.String())
+	}
+	suite.strAddrs = strAddrs
+
 	suite.now = time.Now().UTC()
 }
 
 func (suite *grpcQueryTestSuite) setTestParams() {
 	params := types.NewParams([]types.Market{
-		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 	})
 	suite.keeper.SetParams(suite.ctx, params)
 }
@@ -52,7 +59,7 @@ func (suite *grpcQueryTestSuite) TestGrpcParams() {
 	}{
 		{"default params", types.DefaultParams(), true},
 		{"test params", types.NewParams([]types.Market{
-			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+			{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 		}), true},
 	}
 
@@ -76,7 +83,7 @@ func (suite *grpcQueryTestSuite) TestGrpcPrice() {
 	suite.setTestParams()
 	suite.setTstPrice()
 
-	expectedPrice := types.NewCurrentPrice("tstusd", sdk.MustNewDecFromStr("0.34"))
+	expectedPrice := types.NewCurrentPriceResponse("tstusd", sdk.MustNewDecFromStr("0.34"))
 
 	res, err := suite.queryServer.Price(sdk.WrapSDKContext(suite.ctx), &types.QueryPriceRequest{MarketId: "tstusd"})
 	suite.NoError(err)
@@ -103,7 +110,7 @@ func (suite *grpcQueryTestSuite) TestGrpcPrices() {
 	suite.setTestParams()
 	suite.setTstPrice()
 
-	expectedPrice := types.NewCurrentPrice("tstusd", sdk.MustNewDecFromStr("0.34"))
+	expectedPrice := types.NewCurrentPriceResponse("tstusd", sdk.MustNewDecFromStr("0.34"))
 
 	prices, err := suite.queryServer.Prices(sdk.WrapSDKContext(suite.ctx), &types.QueryPricesRequest{})
 	suite.NoError(err)
@@ -122,22 +129,22 @@ func (suite *grpcQueryTestSuite) TestGrpcRawPrices() {
 
 	suite.ElementsMatch(
 		res.RawPrices,
-		[]types.PostedPrice{
-			types.NewPostedPrice(
+		[]types.PostedPriceResponse{
+			types.NewPostedPriceResponse(
 				"tstusd",
-				suite.addrs[0].String(),
+				suite.addrs[0],
 				sdk.MustNewDecFromStr("0.33"),
 				suite.now.Add(time.Hour*1),
 			),
-			types.NewPostedPrice(
+			types.NewPostedPriceResponse(
 				"tstusd",
-				suite.addrs[1].String(),
+				suite.addrs[1],
 				sdk.MustNewDecFromStr("0.35"),
 				suite.now.Add(time.Hour*1),
 			),
-			types.NewPostedPrice(
+			types.NewPostedPriceResponse(
 				"tstusd",
-				suite.addrs[2].String(),
+				suite.addrs[2],
 				sdk.MustNewDecFromStr("0.34"),
 				suite.now.Add(time.Hour*1),
 			),
@@ -155,7 +162,7 @@ func (suite *grpcQueryTestSuite) TestGrpcRawPrices_InvalidMarket() {
 
 func (suite *grpcQueryTestSuite) TestGrpcOracles_Empty() {
 	params := types.NewParams([]types.Market{
-		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 	})
 	suite.keeper.SetParams(suite.ctx, params)
 
@@ -163,38 +170,28 @@ func (suite *grpcQueryTestSuite) TestGrpcOracles_Empty() {
 	suite.NoError(err)
 	suite.Empty(res.Oracles)
 
-	var oracles []string
-	for _, a := range suite.addrs {
-		oracles = append(oracles, a.String())
-	}
-
 	params = types.NewParams([]types.Market{
-		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: oracles, Active: true},
+		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: suite.addrs, Active: true},
 	})
 	suite.keeper.SetParams(suite.ctx, params)
 
 	res, err = suite.queryServer.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "tstusd"})
 	suite.NoError(err)
-	suite.ElementsMatch(res.Oracles, oracles)
+	suite.ElementsMatch(suite.strAddrs, res.Oracles)
 
 	_, err = suite.queryServer.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "invalid"})
 	suite.Equal("rpc error: code = NotFound desc = invalid market ID", err.Error())
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcOracles() {
-	var oracles []string
-	for _, a := range suite.addrs {
-		oracles = append(oracles, a.String())
-	}
-
 	params := types.NewParams([]types.Market{
-		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: oracles, Active: true},
+		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: suite.addrs, Active: true},
 	})
 	suite.keeper.SetParams(suite.ctx, params)
 
 	res, err := suite.queryServer.Oracles(sdk.WrapSDKContext(suite.ctx), &types.QueryOraclesRequest{MarketId: "tstusd"})
 	suite.NoError(err)
-	suite.ElementsMatch(res.Oracles, oracles)
+	suite.ElementsMatch(suite.strAddrs, res.Oracles)
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcOracles_InvalidMarket() {
@@ -206,32 +203,34 @@ func (suite *grpcQueryTestSuite) TestGrpcOracles_InvalidMarket() {
 
 func (suite *grpcQueryTestSuite) TestGrpcMarkets() {
 	params := types.NewParams([]types.Market{
-		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []string{}, Active: true},
+		{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+		{MarketID: "btcusd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 	})
 	suite.keeper.SetParams(suite.ctx, params)
 
 	res, err := suite.queryServer.Markets(sdk.WrapSDKContext(suite.ctx), &types.QueryMarketsRequest{})
 	suite.NoError(err)
-	suite.Len(res.Markets, 1)
+	suite.Len(res.Markets, 2)
 	suite.Equal(len(res.Markets), len(params.Markets))
-	suite.NoError(res.Markets[0].VerboseEqual(params.Markets[0]))
+	suite.NoError(res.Markets[0].VerboseEqual(params.Markets[0].ToMarketResponse()))
+	suite.NoError(res.Markets[1].VerboseEqual(params.Markets[1].ToMarketResponse()))
 }
 
 func (suite *grpcQueryTestSuite) setTstPrice() {
 	_, err := suite.keeper.SetPrice(
-		suite.ctx, suite.addrs[0].String(), "tstusd",
+		suite.ctx, suite.addrs[0], "tstusd",
 		sdk.MustNewDecFromStr("0.33"),
 		suite.now.Add(time.Hour*1))
 	suite.NoError(err)
 
 	_, err = suite.keeper.SetPrice(
-		suite.ctx, suite.addrs[1].String(), "tstusd",
+		suite.ctx, suite.addrs[1], "tstusd",
 		sdk.MustNewDecFromStr("0.35"),
 		suite.now.Add(time.Hour*1))
 	suite.NoError(err)
 
 	_, err = suite.keeper.SetPrice(
-		suite.ctx, suite.addrs[2].String(), "tstusd",
+		suite.ctx, suite.addrs[2], "tstusd",
 		sdk.MustNewDecFromStr("0.34"),
 		suite.now.Add(time.Hour*1))
 	suite.NoError(err)

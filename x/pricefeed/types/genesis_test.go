@@ -32,9 +32,9 @@ func TestGenesisStateValidate(t *testing.T) {
 			msg: "valid genesis",
 			genesisState: NewGenesisState(
 				NewParams([]Market{
-					{"market", "xrp", "bnb", []string{addr.String()}, true},
+					{"market", "xrp", "bnb", []sdk.AccAddress{addr}, true},
 				}),
-				[]PostedPrice{NewPostedPrice("xrp", addr.String(), sdk.OneDec(), now)},
+				[]PostedPrice{NewPostedPrice("xrp", addr, sdk.OneDec(), now)},
 			),
 			expPass: true,
 		},
@@ -42,9 +42,9 @@ func TestGenesisStateValidate(t *testing.T) {
 			msg: "invalid param",
 			genesisState: NewGenesisState(
 				NewParams([]Market{
-					{"", "xrp", "bnb", []string{addr.String()}, true},
+					{"", "xrp", "bnb", []sdk.AccAddress{addr}, true},
 				}),
-				[]PostedPrice{NewPostedPrice("xrp", addr.String(), sdk.OneDec(), now)},
+				[]PostedPrice{NewPostedPrice("xrp", addr, sdk.OneDec(), now)},
 			),
 			expPass: false,
 		},
@@ -52,10 +52,10 @@ func TestGenesisStateValidate(t *testing.T) {
 			msg: "dup market param",
 			genesisState: NewGenesisState(
 				NewParams([]Market{
-					{"market", "xrp", "bnb", []string{addr.String()}, true},
-					{"market", "xrp", "bnb", []string{addr.String()}, true},
+					{"market", "xrp", "bnb", []sdk.AccAddress{addr}, true},
+					{"market", "xrp", "bnb", []sdk.AccAddress{addr}, true},
 				}),
-				[]PostedPrice{NewPostedPrice("xrp", addr.String(), sdk.OneDec(), now)},
+				[]PostedPrice{NewPostedPrice("xrp", addr, sdk.OneDec(), now)},
 			),
 			expPass: false,
 		},
@@ -63,7 +63,7 @@ func TestGenesisStateValidate(t *testing.T) {
 			msg: "invalid posted price",
 			genesisState: NewGenesisState(
 				NewParams([]Market{}),
-				[]PostedPrice{NewPostedPrice("xrp", "", sdk.OneDec(), now)},
+				[]PostedPrice{NewPostedPrice("xrp", nil, sdk.OneDec(), now)},
 			),
 			expPass: false,
 		},
@@ -72,8 +72,8 @@ func TestGenesisStateValidate(t *testing.T) {
 			genesisState: NewGenesisState(
 				NewParams([]Market{}),
 				[]PostedPrice{
-					NewPostedPrice("xrp", addr.String(), sdk.OneDec(), now),
-					NewPostedPrice("xrp", addr.String(), sdk.OneDec(), now),
+					NewPostedPrice("xrp", addr, sdk.OneDec(), now),
+					NewPostedPrice("xrp", addr, sdk.OneDec(), now),
 				},
 			),
 			expPass: false,

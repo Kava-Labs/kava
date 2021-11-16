@@ -43,6 +43,55 @@
   
     - [Msg](#kava.bep3.v1beta1.Msg)
   
+- [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
+    - [CDP](#kava.cdp.v1beta1.CDP)
+    - [Deposit](#kava.cdp.v1beta1.Deposit)
+    - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
+    - [TotalPrincipal](#kava.cdp.v1beta1.TotalPrincipal)
+  
+- [kava/cdp/v1beta1/genesis.proto](#kava/cdp/v1beta1/genesis.proto)
+    - [CollateralParam](#kava.cdp.v1beta1.CollateralParam)
+    - [DebtParam](#kava.cdp.v1beta1.DebtParam)
+    - [GenesisAccumulationTime](#kava.cdp.v1beta1.GenesisAccumulationTime)
+    - [GenesisState](#kava.cdp.v1beta1.GenesisState)
+    - [GenesisTotalPrincipal](#kava.cdp.v1beta1.GenesisTotalPrincipal)
+    - [Params](#kava.cdp.v1beta1.Params)
+  
+- [kava/cdp/v1beta1/query.proto](#kava/cdp/v1beta1/query.proto)
+    - [CDPResponse](#kava.cdp.v1beta1.CDPResponse)
+    - [QueryAccountsRequest](#kava.cdp.v1beta1.QueryAccountsRequest)
+    - [QueryAccountsResponse](#kava.cdp.v1beta1.QueryAccountsResponse)
+    - [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest)
+    - [QueryCdpResponse](#kava.cdp.v1beta1.QueryCdpResponse)
+    - [QueryCdpsRequest](#kava.cdp.v1beta1.QueryCdpsRequest)
+    - [QueryCdpsResponse](#kava.cdp.v1beta1.QueryCdpsResponse)
+    - [QueryDepositsRequest](#kava.cdp.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.cdp.v1beta1.QueryDepositsResponse)
+    - [QueryParamsRequest](#kava.cdp.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.cdp.v1beta1.QueryParamsResponse)
+    - [QueryTotalCollateralRequest](#kava.cdp.v1beta1.QueryTotalCollateralRequest)
+    - [QueryTotalCollateralResponse](#kava.cdp.v1beta1.QueryTotalCollateralResponse)
+    - [QueryTotalPrincipalRequest](#kava.cdp.v1beta1.QueryTotalPrincipalRequest)
+    - [QueryTotalPrincipalResponse](#kava.cdp.v1beta1.QueryTotalPrincipalResponse)
+  
+    - [Query](#kava.cdp.v1beta1.Query)
+  
+- [kava/cdp/v1beta1/tx.proto](#kava/cdp/v1beta1/tx.proto)
+    - [MsgCreateCDP](#kava.cdp.v1beta1.MsgCreateCDP)
+    - [MsgCreateCDPResponse](#kava.cdp.v1beta1.MsgCreateCDPResponse)
+    - [MsgDeposit](#kava.cdp.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.cdp.v1beta1.MsgDepositResponse)
+    - [MsgDrawDebt](#kava.cdp.v1beta1.MsgDrawDebt)
+    - [MsgDrawDebtResponse](#kava.cdp.v1beta1.MsgDrawDebtResponse)
+    - [MsgLiquidate](#kava.cdp.v1beta1.MsgLiquidate)
+    - [MsgLiquidateResponse](#kava.cdp.v1beta1.MsgLiquidateResponse)
+    - [MsgRepayDebt](#kava.cdp.v1beta1.MsgRepayDebt)
+    - [MsgRepayDebtResponse](#kava.cdp.v1beta1.MsgRepayDebtResponse)
+    - [MsgWithdraw](#kava.cdp.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.cdp.v1beta1.MsgWithdrawResponse)
+  
+    - [Msg](#kava.cdp.v1beta1.Msg)
+  
 - [kava/committee/v1beta1/committee.proto](#kava/committee/v1beta1/committee.proto)
     - [BaseCommittee](#kava.committee.v1beta1.BaseCommittee)
     - [MemberCommittee](#kava.committee.v1beta1.MemberCommittee)
@@ -117,16 +166,19 @@
   
     - [Query](#kava.kavadist.v1beta1.Query)
   
-- [kava/pricefeed/v1beta1/pricefeed.proto](#kava/pricefeed/v1beta1/pricefeed.proto)
+- [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
+    - [Params](#kava.pricefeed.v1beta1.Params)
     - [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice)
   
 - [kava/pricefeed/v1beta1/genesis.proto](#kava/pricefeed/v1beta1/genesis.proto)
     - [GenesisState](#kava.pricefeed.v1beta1.GenesisState)
-    - [Params](#kava.pricefeed.v1beta1.Params)
   
 - [kava/pricefeed/v1beta1/query.proto](#kava/pricefeed/v1beta1/query.proto)
+    - [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse)
+    - [MarketResponse](#kava.pricefeed.v1beta1.MarketResponse)
+    - [PostedPriceResponse](#kava.pricefeed.v1beta1.PostedPriceResponse)
     - [QueryMarketsRequest](#kava.pricefeed.v1beta1.QueryMarketsRequest)
     - [QueryMarketsResponse](#kava.pricefeed.v1beta1.QueryMarketsResponse)
     - [QueryOraclesRequest](#kava.pricefeed.v1beta1.QueryOraclesRequest)
@@ -693,6 +745,690 @@ Msg defines the bep3 Msg service.
 | `CreateAtomicSwap` | [MsgCreateAtomicSwap](#kava.bep3.v1beta1.MsgCreateAtomicSwap) | [MsgCreateAtomicSwapResponse](#kava.bep3.v1beta1.MsgCreateAtomicSwapResponse) | CreateAtomicSwap defines a method for creating an atomic swap | |
 | `ClaimAtomicSwap` | [MsgClaimAtomicSwap](#kava.bep3.v1beta1.MsgClaimAtomicSwap) | [MsgClaimAtomicSwapResponse](#kava.bep3.v1beta1.MsgClaimAtomicSwapResponse) | ClaimAtomicSwap defines a method for claiming an atomic swap | |
 | `RefundAtomicSwap` | [MsgRefundAtomicSwap](#kava.bep3.v1beta1.MsgRefundAtomicSwap) | [MsgRefundAtomicSwapResponse](#kava.bep3.v1beta1.MsgRefundAtomicSwapResponse) | RefundAtomicSwap defines a method for refunding an atomic swap | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/cdp/v1beta1/cdp.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/cdp/v1beta1/cdp.proto
+
+
+
+<a name="kava.cdp.v1beta1.CDP"></a>
+
+### CDP
+CDP defines the state of a single collateralized debt position.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+| `owner` | [bytes](#bytes) |  |  |
+| `type` | [string](#string) |  |  |
+| `collateral` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `principal` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `accumulated_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `fees_updated` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `interest_factor` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.Deposit"></a>
+
+### Deposit
+Deposit defines an amount of coins deposited by an account to a cdp
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp_id` | [uint64](#uint64) |  |  |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.TotalCollateral"></a>
+
+### TotalCollateral
+TotalCollateral defines the total collateral of a given collateral type
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.TotalPrincipal"></a>
+
+### TotalPrincipal
+TotalPrincipal defines the total principal of a given collateral type
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/cdp/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/cdp/v1beta1/genesis.proto
+
+
+
+<a name="kava.cdp.v1beta1.CollateralParam"></a>
+
+### CollateralParam
+CollateralParam defines governance parameters for each collateral type within the cdp module
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `type` | [string](#string) |  |  |
+| `liquidation_ratio` | [string](#string) |  |  |
+| `debt_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `stability_fee` | [string](#string) |  |  |
+| `auction_size` | [string](#string) |  |  |
+| `liquidation_penalty` | [string](#string) |  |  |
+| `spot_market_id` | [string](#string) |  |  |
+| `liquidation_market_id` | [string](#string) |  |  |
+| `keeper_reward_percentage` | [string](#string) |  |  |
+| `check_collateralization_index_count` | [string](#string) |  |  |
+| `conversion_factor` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.DebtParam"></a>
+
+### DebtParam
+DebtParam defines governance params for debt assets
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `reference_asset` | [string](#string) |  |  |
+| `conversion_factor` | [string](#string) |  |  |
+| `debt_floor` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.GenesisAccumulationTime"></a>
+
+### GenesisAccumulationTime
+GenesisAccumulationTime defines the previous distribution time and its corresponding denom
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `previous_accumulation_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `interest_factor` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the cdp module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.cdp.v1beta1.Params) |  | params defines all the paramaters of the module. |
+| `cdps` | [CDP](#kava.cdp.v1beta1.CDP) | repeated |  |
+| `deposits` | [Deposit](#kava.cdp.v1beta1.Deposit) | repeated |  |
+| `starting_cdp_id` | [uint64](#uint64) |  |  |
+| `debt_denom` | [string](#string) |  |  |
+| `gov_denom` | [string](#string) |  |  |
+| `previous_accumulation_times` | [GenesisAccumulationTime](#kava.cdp.v1beta1.GenesisAccumulationTime) | repeated |  |
+| `total_principals` | [GenesisTotalPrincipal](#kava.cdp.v1beta1.GenesisTotalPrincipal) | repeated |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.GenesisTotalPrincipal"></a>
+
+### GenesisTotalPrincipal
+GenesisTotalPrincipal defines the total principal and its corresponding collateral type
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `total_principal` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the cdp module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_params` | [CollateralParam](#kava.cdp.v1beta1.CollateralParam) | repeated |  |
+| `debt_param` | [DebtParam](#kava.cdp.v1beta1.DebtParam) |  |  |
+| `global_debt_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `surplus_auction_threshold` | [string](#string) |  |  |
+| `surplus_auction_lot` | [string](#string) |  |  |
+| `debt_auction_threshold` | [string](#string) |  |  |
+| `debt_auction_lot` | [string](#string) |  |  |
+| `circuit_breaker` | [bool](#bool) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/cdp/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/cdp/v1beta1/query.proto
+
+
+
+<a name="kava.cdp.v1beta1.CDPResponse"></a>
+
+### CDPResponse
+CDPResponse defines the state of a single collateralized debt position.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+| `owner` | [string](#string) |  |  |
+| `type` | [string](#string) |  |  |
+| `collateral` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `principal` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `accumulated_fees` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `fees_updated` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `interest_factor` | [string](#string) |  |  |
+| `collateral_value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `collateralization_ratio` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryAccountsRequest"></a>
+
+### QueryAccountsRequest
+QueryAccountsRequest defines the request type for the Query/Accounts RPC method.
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryAccountsResponse"></a>
+
+### QueryAccountsResponse
+QueryAccountsResponse defines the response type for the Query/Accounts RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `accounts` | [cosmos.auth.v1beta1.ModuleAccount](#cosmos.auth.v1beta1.ModuleAccount) | repeated |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryCdpRequest"></a>
+
+### QueryCdpRequest
+QueryCdpRequest defines the request type for the Query/Cdp RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryCdpResponse"></a>
+
+### QueryCdpResponse
+QueryCdpResponse defines the response type for the Query/Cdp RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp` | [CDPResponse](#kava.cdp.v1beta1.CDPResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryCdpsRequest"></a>
+
+### QueryCdpsRequest
+QueryCdpsRequest is the params for a filtered CDP query, the request type for the Query/Cdps RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `id` | [uint64](#uint64) |  |  |
+| `ratio` | [string](#string) |  | sdk.Dec as a string |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryCdpsResponse"></a>
+
+### QueryCdpsResponse
+QueryCdpsResponse defines the response type for the Query/Cdps RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdps` | [CDPResponse](#kava.cdp.v1beta1.CDPResponse) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryDepositsRequest"></a>
+
+### QueryDepositsRequest
+QueryDepositsRequest defines the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryDepositsResponse"></a>
+
+### QueryDepositsResponse
+QueryDepositsResponse defines the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [Deposit](#kava.cdp.v1beta1.Deposit) | repeated |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.cdp.v1beta1.Params) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryTotalCollateralRequest"></a>
+
+### QueryTotalCollateralRequest
+QueryTotalCollateralRequest defines the request type for the Query/TotalCollateral RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryTotalCollateralResponse"></a>
+
+### QueryTotalCollateralResponse
+QueryTotalCollateralResponse defines the response type for the Query/TotalCollateral RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `total_collateral` | [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral) | repeated |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryTotalPrincipalRequest"></a>
+
+### QueryTotalPrincipalRequest
+QueryTotalPrincipalRequest defines the request type for the Query/TotalPrincipal RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.QueryTotalPrincipalResponse"></a>
+
+### QueryTotalPrincipalResponse
+QueryTotalPrincipalResponse defines the response type for the Query/TotalPrincipal RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `total_principal` | [TotalPrincipal](#kava.cdp.v1beta1.TotalPrincipal) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.cdp.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for cdp module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.cdp.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.cdp.v1beta1.QueryParamsResponse) | Params queries all parameters of the cdp module. | GET|/kava/cdp/v1beta1/params|
+| `Accounts` | [QueryAccountsRequest](#kava.cdp.v1beta1.QueryAccountsRequest) | [QueryAccountsResponse](#kava.cdp.v1beta1.QueryAccountsResponse) | Accounts queries the CDP module accounts. | GET|/kava/cdp/v1beta1/accounts|
+| `TotalPrincipal` | [QueryTotalPrincipalRequest](#kava.cdp.v1beta1.QueryTotalPrincipalRequest) | [QueryTotalPrincipalResponse](#kava.cdp.v1beta1.QueryTotalPrincipalResponse) | TotalPrincipal queries the total principal of a given collateral type. | GET|/kava/cdp/v1beta1/totalPrincipal|
+| `TotalCollateral` | [QueryTotalCollateralRequest](#kava.cdp.v1beta1.QueryTotalCollateralRequest) | [QueryTotalCollateralResponse](#kava.cdp.v1beta1.QueryTotalCollateralResponse) | TotalCollateral queries the total collateral of a given collateral type. | GET|/kava/cdp/v1beta1/totalCollateral|
+| `Cdps` | [QueryCdpsRequest](#kava.cdp.v1beta1.QueryCdpsRequest) | [QueryCdpsResponse](#kava.cdp.v1beta1.QueryCdpsResponse) | Cdps queries all active CDPs. | GET|/kava/cdp/v1beta1/cdps|
+| `Cdp` | [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest) | [QueryCdpResponse](#kava.cdp.v1beta1.QueryCdpResponse) | Cdp queries a CDP with the input owner address and collateral type. | GET|/kava/cdp/v1beta1/cdps/{owner}/{collateral_type}|
+| `Deposits` | [QueryDepositsRequest](#kava.cdp.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.cdp.v1beta1.QueryDepositsResponse) | Deposits queries deposits associated with the CDP owned by an address for a collateral type. | GET|/kava/cdp/v1beta1/cdps/deposits/{owner}/{collateral_type}|
+
+ <!-- end services -->
+
+
+
+<a name="kava/cdp/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/cdp/v1beta1/tx.proto
+
+
+
+<a name="kava.cdp.v1beta1.MsgCreateCDP"></a>
+
+### MsgCreateCDP
+MsgCreateCDP defines a message to create a new CDP.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `collateral` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `principal` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgCreateCDPResponse"></a>
+
+### MsgCreateCDPResponse
+MsgCreateCDPResponse defines the Msg/CreateCDP response type.
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgDeposit"></a>
+
+### MsgDeposit
+MsgDeposit defines a message to deposit to a CDP.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `collateral` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgDepositResponse"></a>
+
+### MsgDepositResponse
+MsgDepositResponse defines the Msg/Deposit response type.
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgDrawDebt"></a>
+
+### MsgDrawDebt
+MsgDrawDebt defines a message to draw debt from a CDP.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `principal` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgDrawDebtResponse"></a>
+
+### MsgDrawDebtResponse
+MsgDrawDebtResponse defines the Msg/DrawDebt response type.
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgLiquidate"></a>
+
+### MsgLiquidate
+MsgLiquidate defines a message to attempt to liquidate a CDP whos
+collateralization ratio is under its liquidation ratio.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `keeper` | [string](#string) |  |  |
+| `borrower` | [string](#string) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgLiquidateResponse"></a>
+
+### MsgLiquidateResponse
+MsgLiquidateResponse defines the Msg/Liquidate response type.
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgRepayDebt"></a>
+
+### MsgRepayDebt
+MsgRepayDebt defines a message to repay debt from a CDP.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `payment` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgRepayDebtResponse"></a>
+
+### MsgRepayDebtResponse
+MsgRepayDebtResponse defines the Msg/RepayDebt response type.
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgWithdraw"></a>
+
+### MsgWithdraw
+MsgWithdraw defines a message to withdraw collateral from a CDP.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `collateral` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.cdp.v1beta1.MsgWithdrawResponse"></a>
+
+### MsgWithdrawResponse
+MsgWithdrawResponse defines the Msg/Withdraw response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.cdp.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the cdp Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `CreateCDP` | [MsgCreateCDP](#kava.cdp.v1beta1.MsgCreateCDP) | [MsgCreateCDPResponse](#kava.cdp.v1beta1.MsgCreateCDPResponse) | CreateCDP defines a method to create a new CDP. | |
+| `Deposit` | [MsgDeposit](#kava.cdp.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.cdp.v1beta1.MsgDepositResponse) | Deposit defines a method to deposit to a CDP. | |
+| `Withdraw` | [MsgWithdraw](#kava.cdp.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.cdp.v1beta1.MsgWithdrawResponse) | Withdraw defines a method to withdraw collateral from a CDP. | |
+| `DrawDebt` | [MsgDrawDebt](#kava.cdp.v1beta1.MsgDrawDebt) | [MsgDrawDebtResponse](#kava.cdp.v1beta1.MsgDrawDebtResponse) | DrawDebt defines a method to draw debt from a CDP. | |
+| `RepayDebt` | [MsgRepayDebt](#kava.cdp.v1beta1.MsgRepayDebt) | [MsgRepayDebtResponse](#kava.cdp.v1beta1.MsgRepayDebtResponse) | RepayDebt defines a method to repay debt from a CDP. | |
+| `Liquidate` | [MsgLiquidate](#kava.cdp.v1beta1.MsgLiquidate) | [MsgLiquidateResponse](#kava.cdp.v1beta1.MsgLiquidateResponse) | Liquidate defines a method to attempt to liquidate a CDP whos collateralization ratio is under its liquidation ratio. | |
 
  <!-- end services -->
 
@@ -1552,10 +2288,10 @@ Query defines the gRPC querier service.
 
 
 
-<a name="kava/pricefeed/v1beta1/pricefeed.proto"></a>
+<a name="kava/pricefeed/v1beta1/store.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/pricefeed/v1beta1/pricefeed.proto
+## kava/pricefeed/v1beta1/store.proto
 
 
 
@@ -1587,8 +2323,23 @@ Market defines an asset in the pricefeed.
 | `market_id` | [string](#string) |  |  |
 | `base_asset` | [string](#string) |  |  |
 | `quote_asset` | [string](#string) |  |  |
-| `oracles` | [string](#string) | repeated |  |
+| `oracles` | [bytes](#bytes) | repeated |  |
 | `active` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="kava.pricefeed.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the pricefeed module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated |  |
 
 
 
@@ -1604,7 +2355,7 @@ PostedPrice defines a price for market posted by a specific oracle.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `market_id` | [string](#string) |  |  |
-| `oracle_address` | [string](#string) |  |  |
+| `oracle_address` | [bytes](#bytes) |  |  |
 | `price` | [string](#string) |  |  |
 | `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 
@@ -1644,21 +2395,6 @@ GenesisState defines the pricefeed module's genesis state.
 
 
 
-
-<a name="kava.pricefeed.v1beta1.Params"></a>
-
-### Params
-Params defines the parameters for the pricefeed module.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated |  |
-
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -1673,6 +2409,60 @@ Params defines the parameters for the pricefeed module.
 <p align="right"><a href="#top">Top</a></p>
 
 ## kava/pricefeed/v1beta1/query.proto
+
+
+
+<a name="kava.pricefeed.v1beta1.CurrentPriceResponse"></a>
+
+### CurrentPriceResponse
+CurrentPriceResponse defines a current price for a particular market in the pricefeed
+module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `market_id` | [string](#string) |  |  |
+| `price` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.pricefeed.v1beta1.MarketResponse"></a>
+
+### MarketResponse
+MarketResponse defines an asset in the pricefeed.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `market_id` | [string](#string) |  |  |
+| `base_asset` | [string](#string) |  |  |
+| `quote_asset` | [string](#string) |  |  |
+| `oracles` | [string](#string) | repeated |  |
+| `active` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="kava.pricefeed.v1beta1.PostedPriceResponse"></a>
+
+### PostedPriceResponse
+PostedPriceResponse defines a price for market posted by a specific oracle.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `market_id` | [string](#string) |  |  |
+| `oracle_address` | [string](#string) |  |  |
+| `price` | [string](#string) |  |  |
+| `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
 
 
 
@@ -1694,7 +2484,7 @@ QueryMarketsResponse is the response type for the Query/Markets RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated | List of markets |
+| `markets` | [MarketResponse](#kava.pricefeed.v1beta1.MarketResponse) | repeated | List of markets |
 
 
 
@@ -1781,7 +2571,7 @@ QueryPriceResponse is the response type for the Query/Prices RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `price` | [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice) |  |  |
+| `price` | [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse) |  |  |
 
 
 
@@ -1806,7 +2596,7 @@ QueryPricesResponse is the response type for the Query/Prices RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `prices` | [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice) | repeated |  |
+| `prices` | [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse) | repeated |  |
 
 
 
@@ -1837,7 +2627,7 @@ method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `raw_prices` | [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice) | repeated |  |
+| `raw_prices` | [PostedPriceResponse](#kava.pricefeed.v1beta1.PostedPriceResponse) | repeated |  |
 
 
 

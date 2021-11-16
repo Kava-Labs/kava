@@ -36,6 +36,7 @@ func (k QueryServer) Params(c context.Context, req *types.QueryParamsRequest) (*
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
+// Price implements the gRPC service handler for querying x/pricefeed price.
 func (k QueryServer) Price(c context.Context, req *types.QueryPriceRequest) (*types.QueryPriceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
@@ -49,16 +50,16 @@ func (k QueryServer) Price(c context.Context, req *types.QueryPriceRequest) (*ty
 	}
 
 	return &types.QueryPriceResponse{
-		Price: types.CurrentPrice{
-			MarketID: currentPrice.MarketID,
-			Price:    currentPrice.Price,
-		}}, nil
-
+		Price: types.CurrentPriceResponse(currentPrice)}, nil
 }
+
 func (k QueryServer) Prices(c context.Context, req *types.QueryPricesRequest) (*types.QueryPricesResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	currentPrices := k.keeper.GetCurrentPrices(ctx)
+	var currentPrices types.CurrentPriceResponses
+	for _, cp := range k.keeper.GetCurrentPrices(ctx) {
+		currentPrices = append(currentPrices, types.CurrentPriceResponse(cp))
+	}
 
 	return &types.QueryPricesResponse{
 		Prices: currentPrices,
@@ -72,10 +73,19 @@ func (k QueryServer) RawPrices(c context.Context, req *types.QueryRawPricesReque
 	if !found {
 		return nil, status.Error(codes.NotFound, "invalid market ID")
 	}
-	rawPrices := k.keeper.GetRawPrices(ctx, req.MarketId)
+
+	var prices types.PostedPriceResponses
+	for _, rp := range k.keeper.GetRawPrices(ctx, req.MarketId) {
+		prices = append(prices, types.PostedPriceResponse{
+			MarketID:      rp.MarketID,
+			OracleAddress: rp.OracleAddress.String(),
+			Price:         rp.Price,
+			Expiry:        rp.Expiry,
+		})
+	}
 
 	return &types.QueryRawPricesResponse{
-		RawPrices: rawPrices,
+		RawPrices: prices,
 	}, nil
 }
 
@@ -87,15 +97,23 @@ func (k QueryServer) Oracles(c context.Context, req *types.QueryOraclesRequest) 
 		return nil, status.Error(codes.NotFound, "invalid market ID")
 	}
 
+	var strOracles []string
+	for _, oracle := range oracles {
+		strOracles = append(strOracles, oracle.String())
+	}
+
 	return &types.QueryOraclesResponse{
-		Oracles: oracles,
+		Oracles: strOracles,
 	}, nil
 }
 
 func (k QueryServer) Markets(c context.Context, req *types.QueryMarketsRequest) (*types.QueryMarketsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	markets := k.keeper.GetMarkets(ctx)
+	var markets types.MarketResponses
+	for _, market := range k.keeper.GetMarkets(ctx) {
+		markets = append(markets, market.ToMarketResponse())
+	}
 
 	return &types.QueryMarketsResponse{
 		Markets: markets,

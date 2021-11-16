@@ -906,7 +906,7 @@ paths:
                     active:
                       type: boolean
                       format: boolean
-                  description: Market defines an asset in the pricefeed.
+                  description: MarketResponse defines an asset in the pricefeed.
                 title: List of markets
             description: >-
               QueryMarketsResponse is the response type for the Query/Markets
@@ -1010,6 +1010,7 @@ paths:
                           type: array
                           items:
                             type: string
+                            format: byte
                         active:
                           type: boolean
                           format: boolean
@@ -1064,8 +1065,8 @@ paths:
                     price:
                       type: string
                   description: >-
-                    CurrentPrice defines a current price for a particular market
-                    in the pricefeed
+                    CurrentPriceResponse defines a current price for a
+                    particular market in the pricefeed
 
                     module.
             description: >-
@@ -1113,8 +1114,8 @@ paths:
                   price:
                     type: string
                 description: >-
-                  CurrentPrice defines a current price for a particular market
-                  in the pricefeed
+                  CurrentPriceResponse defines a current price for a particular
+                  market in the pricefeed
 
                   module.
             description: >-
@@ -1174,8 +1175,8 @@ paths:
                       type: string
                       format: date-time
                   description: >-
-                    PostedPrice defines a price for market posted by a specific
-                    oracle.
+                    PostedPriceResponse defines a price for market posted by a
+                    specific oracle.
             description: >-
               QueryRawPricesResponse is the response type for the
               Query/RawPrices RPC
@@ -25149,7 +25150,7 @@ definitions:
        - SWAP_STATUS_COMPLETED: SWAP_STATUS_COMPLETED represents a completed swap
        - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
     title: SwapStatus is the status of an AtomicSwap
-  kava.pricefeed.v1beta1.CurrentPrice:
+  kava.pricefeed.v1beta1.CurrentPriceResponse:
     type: object
     properties:
       market_id:
@@ -25157,8 +25158,8 @@ definitions:
       price:
         type: string
     description: >-
-      CurrentPrice defines a current price for a particular market in the
-      pricefeed
+      CurrentPriceResponse defines a current price for a particular market in
+      the pricefeed
 
       module.
   kava.pricefeed.v1beta1.Market:
@@ -25174,10 +25175,28 @@ definitions:
         type: array
         items:
           type: string
+          format: byte
       active:
         type: boolean
         format: boolean
     description: Market defines an asset in the pricefeed.
+  kava.pricefeed.v1beta1.MarketResponse:
+    type: object
+    properties:
+      market_id:
+        type: string
+      base_asset:
+        type: string
+      quote_asset:
+        type: string
+      oracles:
+        type: array
+        items:
+          type: string
+      active:
+        type: boolean
+        format: boolean
+    description: MarketResponse defines an asset in the pricefeed.
   kava.pricefeed.v1beta1.Params:
     type: object
     properties:
@@ -25196,12 +25215,13 @@ definitions:
               type: array
               items:
                 type: string
+                format: byte
             active:
               type: boolean
               format: boolean
           description: Market defines an asset in the pricefeed.
     description: Params defines the parameters for the pricefeed module.
-  kava.pricefeed.v1beta1.PostedPrice:
+  kava.pricefeed.v1beta1.PostedPriceResponse:
     type: object
     properties:
       market_id:
@@ -25213,7 +25233,9 @@ definitions:
       expiry:
         type: string
         format: date-time
-    description: PostedPrice defines a price for market posted by a specific oracle.
+    description: >-
+      PostedPriceResponse defines a price for market posted by a specific
+      oracle.
   kava.pricefeed.v1beta1.QueryMarketsResponse:
     type: object
     properties:
@@ -25235,7 +25257,7 @@ definitions:
             active:
               type: boolean
               format: boolean
-          description: Market defines an asset in the pricefeed.
+          description: MarketResponse defines an asset in the pricefeed.
         title: List of markets
     description: >-
       QueryMarketsResponse is the response type for the Query/Markets RPC
@@ -25272,6 +25294,7 @@ definitions:
                   type: array
                   items:
                     type: string
+                    format: byte
                 active:
                   type: boolean
                   format: boolean
@@ -25291,8 +25314,8 @@ definitions:
           price:
             type: string
         description: >-
-          CurrentPrice defines a current price for a particular market in the
-          pricefeed
+          CurrentPriceResponse defines a current price for a particular market
+          in the pricefeed
 
           module.
     description: QueryPriceResponse is the response type for the Query/Prices RPC method.
@@ -25309,8 +25332,8 @@ definitions:
             price:
               type: string
           description: >-
-            CurrentPrice defines a current price for a particular market in the
-            pricefeed
+            CurrentPriceResponse defines a current price for a particular market
+            in the pricefeed
 
             module.
     description: QueryPricesResponse is the response type for the Query/Prices RPC method.
@@ -25331,7 +25354,9 @@ definitions:
             expiry:
               type: string
               format: date-time
-          description: PostedPrice defines a price for market posted by a specific oracle.
+          description: >-
+            PostedPriceResponse defines a price for market posted by a specific
+            oracle.
     description: |-
       QueryRawPricesResponse is the response type for the Query/RawPrices RPC
       method.
