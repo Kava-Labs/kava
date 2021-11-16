@@ -1,22 +1,49 @@
-package types
+package types_test
 
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/cdp/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestEqualProposalID(t *testing.T) {
-	state1 := GenesisState{}
-	state2 := GenesisState{}
-	require.Equal(t, state1, state2)
+func TestGenesis_Default(t *testing.T) {
+	defaultGenesis := types.DefaultGenesisState()
 
-	// Proposals
-	state1.StartingCdpID = 1
-	require.NotEqual(t, state1, state2)
-	require.False(t, state1.Equal(state2))
+	require.NoError(t, defaultGenesis.Validate())
 
-	state2.StartingCdpID = 1
-	require.Equal(t, state1, state2)
-	require.True(t, state1.Equal(state2))
+	defaultParams := types.DefaultParams()
+	assert.Equal(t, defaultParams, defaultGenesis.Params)
+}
+
+func TestGenesisTotalPrincipal(t *testing.T) {
+	tests := []struct {
+		giveName           string
+		giveCollateralType string
+		givePrincipal      sdk.Int
+		wantIsError        bool
+		wantError          string
+	}{
+		{"valid", "usdx", sdk.NewInt(10), false, ""},
+		{"zero principal", "usdx", sdk.NewInt(0), false, ""},
+		{"invalid empty collateral type", "", sdk.NewInt(10), true, "collateral type cannot be empty"},
+		{"invalid negative principal", "usdx", sdk.NewInt(-10), true, "total principal should be positive"},
+		{"both invalid", "", sdk.NewInt(-10), true, "collateral type cannot be empty"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.giveName, func(t *testing.T) {
+			tp := types.NewGenesisTotalPrincipal(tt.giveCollateralType, tt.givePrincipal)
+
+			err := tp.Validate()
+			if tt.wantIsError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantError)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }

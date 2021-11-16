@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 
 	types "github.com/cosmos/cosmos-sdk/codec/types"
@@ -53,37 +52,26 @@ func UnpackGenesisAuctions(genesisAuctionsAny []*types.Any) ([]GenesisAuction, e
 }
 
 // NewGenesisState returns a new genesis state object for auctions module.
-func NewGenesisState(nextID uint64, ap Params, ga []GenesisAuction) *GenesisState {
+func NewGenesisState(nextID uint64, ap Params, ga []GenesisAuction) (*GenesisState, error) {
 	packedGA, err := PackGenesisAuctions(ga)
 	if err != nil {
-		panic(err)
+		return &GenesisState{}, err
 	}
+
 	return &GenesisState{
 		NextAuctionId: nextID,
 		Params:        ap,
 		Auctions:      packedGA,
-	}
+	}, nil
 }
 
 // DefaultGenesisState returns the default genesis state for auction module.
-func DefaultGenesisState() *GenesisState {
+func DefaultGenesisState() (*GenesisState, error) {
 	return NewGenesisState(
 		DefaultNextAuctionID,
 		DefaultParams(),
 		[]GenesisAuction{},
 	)
-}
-
-// Equal checks whether two GenesisState structs are equivalent.
-func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	b1 := ModuleCdc.Amino.MustMarshalBinaryBare(&gs)
-	b2 := ModuleCdc.Amino.MustMarshalBinaryBare(&gs2)
-	return bytes.Equal(b1, b2)
-}
-
-// IsEmpty returns true if a GenesisState is empty.
-func (gs GenesisState) IsEmpty() bool {
-	return gs.Equal(GenesisState{})
 }
 
 // Validate validates genesis inputs. It returns error if validation of any input fails.
@@ -104,13 +92,13 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("found invalid auction: %w", err)
 		}
 
-		if ids[a.GetId()] {
-			return fmt.Errorf("found duplicate auction ID (%d)", a.GetId())
+		if ids[a.GetID()] {
+			return fmt.Errorf("found duplicate auction ID (%d)", a.GetID())
 		}
-		ids[a.GetId()] = true
+		ids[a.GetID()] = true
 
-		if a.GetId() >= gs.NextAuctionId {
-			return fmt.Errorf("found auction ID ≥ the nextAuctionID (%d ≥ %d)", a.GetId(), gs.NextAuctionId)
+		if a.GetID() >= gs.NextAuctionId {
+			return fmt.Errorf("found auction ID ≥ the nextAuctionID (%d ≥ %d)", a.GetID(), gs.NextAuctionId)
 		}
 	}
 	return nil

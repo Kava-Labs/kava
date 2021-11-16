@@ -39,8 +39,8 @@ var (
 type Auction interface {
 	proto.Message
 
-	GetId() uint64
-	WithId(uint64) Auction
+	GetID() uint64
+	WithID(uint64) Auction
 
 	GetInitiator() string
 	GetLot() sdk.Coin
@@ -55,7 +55,7 @@ type Auction interface {
 
 // --------------- BaseAuction ---------------
 
-func (a BaseAuction) GetId() uint64 { return a.Id }
+func (a BaseAuction) GetID() uint64 { return a.ID }
 
 func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
 
@@ -113,8 +113,8 @@ func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 	return auction
 }
 
-func (a SurplusAuction) WithId(id uint64) Auction {
-	a.Id = id
+func (a SurplusAuction) WithID(id uint64) Auction {
+	a.ID = id
 	return Auction(&a)
 }
 
@@ -157,8 +157,8 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 	return auction
 }
 
-func (a DebtAuction) WithId(id uint64) Auction {
-	a.Id = id
+func (a DebtAuction) WithID(id uint64) Auction {
+	a.ID = id
 	return Auction(&a)
 }
 
@@ -205,8 +205,8 @@ func NewCollateralAuction(seller string, lot sdk.Coin, endTime time.Time, maxBid
 	return auction
 }
 
-func (a CollateralAuction) WithId(id uint64) Auction {
-	a.Id = id
+func (a CollateralAuction) WithID(id uint64) Auction {
+	a.ID = id
 	return Auction(&a)
 }
 

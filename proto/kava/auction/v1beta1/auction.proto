@@ -14,7 +14,7 @@ option (gogoproto.goproto_getters_all) = false;
 message BaseAuction {
   option (cosmos_proto.implements_interface) = "Auction";
 
-  uint64 id = 1;
+  uint64 id = 1 [(gogoproto.customname) = "ID"];
 
   string initiator = 2;
 

@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"math/rand"
-	"strings"
 	"testing"
 	"time"
 
@@ -33,7 +32,7 @@ func (suite *CdpValidationSuite) SetupTest() {
 func (suite *CdpValidationSuite) TestCdpValidation() {
 	type errArgs struct {
 		expectPass bool
-		contains   string
+		msg        string
 	}
 	testCases := []struct {
 		name    string
@@ -45,7 +44,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 			cdp:  types.NewCDP(1, suite.addrs[0], sdk.NewInt64Coin("bnb", 100000), "bnb-a", sdk.NewInt64Coin("usdx", 100000), tmtime.Now(), sdk.OneDec()),
 			errArgs: errArgs{
 				expectPass: true,
-				contains:   "",
+				msg:        "",
 			},
 		},
 		{
@@ -53,7 +52,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 			cdp:  types.NewCDP(0, suite.addrs[0], sdk.NewInt64Coin("bnb", 100000), "bnb-a", sdk.NewInt64Coin("usdx", 100000), tmtime.Now(), sdk.OneDec()),
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "cdp id cannot be 0",
+				msg:        "cdp id cannot be 0",
 			},
 		},
 		{
@@ -61,15 +60,15 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 			cdp:  types.CDP{1, suite.addrs[0], "bnb-a", sdk.Coin{"", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid coins: collateral",
+				msg:        "collateral 100: invalid coins",
 			},
 		},
 		{
-			name: "invalid prinicpal",
+			name: "invalid principal",
 			cdp:  types.CDP{1, suite.addrs[0], "xrp-a", sdk.Coin{"xrp", sdk.NewInt(100)}, sdk.Coin{"", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid coins: principal",
+				msg:        "principal 100: invalid coins",
 			},
 		},
 		{
@@ -77,7 +76,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 			cdp:  types.CDP{1, suite.addrs[0], "xrp-a", sdk.Coin{"xrp", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(100)}, sdk.Coin{"", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid coins: accumulated fees",
+				msg:        "accumulated fees 0: invalid coins",
 			},
 		},
 		{
@@ -85,7 +84,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 			cdp:  types.CDP{1, suite.addrs[0], "xrp-a", sdk.Coin{"xrp", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(0)}, time.Time{}, sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "cdp updated fee time cannot be zero",
+				msg:        "cdp updated fee time cannot be zero",
 			},
 		},
 		{
@@ -93,7 +92,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 			cdp:  types.CDP{1, suite.addrs[0], "", sdk.Coin{"xrp", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "cdp type cannot be empty",
+				msg:        "cdp type cannot be empty",
 			},
 		},
 	}
@@ -105,7 +104,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 				suite.Require().NoError(err, tc.name)
 			} else {
 				suite.Require().Error(err, tc.name)
-				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+				suite.Require().Equal(err.Error(), tc.errArgs.msg)
 			}
 		})
 	}
@@ -114,7 +113,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 func (suite *CdpValidationSuite) TestDepositValidation() {
 	type errArgs struct {
 		expectPass bool
-		contains   string
+		msg        string
 	}
 	testCases := []struct {
 		name    string
@@ -126,7 +125,7 @@ func (suite *CdpValidationSuite) TestDepositValidation() {
 			deposit: types.NewDeposit(1, suite.addrs[0], sdk.NewInt64Coin("bnb", 1000000)),
 			errArgs: errArgs{
 				expectPass: true,
-				contains:   "",
+				msg:        "",
 			},
 		},
 		{
@@ -134,7 +133,7 @@ func (suite *CdpValidationSuite) TestDepositValidation() {
 			deposit: types.NewDeposit(0, suite.addrs[0], sdk.NewInt64Coin("bnb", 1000000)),
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "deposit's cdp id cannot be 0",
+				msg:        "deposit's cdp id cannot be 0",
 			},
 		},
 		{
@@ -142,15 +141,15 @@ func (suite *CdpValidationSuite) TestDepositValidation() {
 			deposit: types.NewDeposit(1, sdk.AccAddress{}, sdk.NewInt64Coin("bnb", 1000000)),
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "depositor cannot be empty",
+				msg:        "depositor cannot be empty",
 			},
 		},
 		{
 			name:    "invalid deposit coins",
-			deposit: types.NewDeposit(1, suite.addrs[0], sdk.Coin{"Invalid Denom", sdk.NewInt(1000000)}),
+			deposit: types.NewDeposit(1, suite.addrs[0], sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(1000000)}),
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid coins: deposit",
+				msg:        "deposit 1000000Invalid Denom: invalid coins",
 			},
 		},
 	}
@@ -161,7 +160,7 @@ func (suite *CdpValidationSuite) TestDepositValidation() {
 				suite.Require().NoError(err, tc.name)
 			} else {
 				suite.Require().Error(err, tc.name)
-				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+				suite.Require().Equal(err.Error(), tc.errArgs.msg)
 			}
 		})
 	}

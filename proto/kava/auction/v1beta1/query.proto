@@ -13,22 +13,22 @@ option go_package = "github.com/kava-labs/kava/x/auction/types";
 service Query {
   // Params queries all parameters of the auction module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/auction/params";
+    option (google.api.http).get = "/kava/auction/v1beta1/params";
   }
 
   // Auction queries an individual Auction by auction ID
   rpc Auction(QueryAuctionRequest) returns (QueryAuctionResponse) {
-    option (google.api.http).get = "/auction/auction";
+    option (google.api.http).get = "/kava/auction/v1beta1/auctions/{auction_id}";
   }
 
   // Auctions queries auctions filtered by asset denom, owner address, phase, and auction type
   rpc Auctions(QueryAuctionsRequest) returns (QueryAuctionsResponse) {
-    option (google.api.http).get = "/auction/auctions";
+    option (google.api.http).get = "/kava/auction/v1beta1/auctions";
   }
 
   // NextAuctionID queries the next auction ID
   rpc NextAuctionID(QueryNextAuctionIDRequest) returns (QueryNextAuctionIDResponse) {
-    option (google.api.http).get = "/auction/next-auction-id";
+    option (google.api.http).get = "/kava/auction/v1beta1/next-auction-id";
   }
 }
 
@@ -45,7 +45,7 @@ message QueryAuctionRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string auction_id = 1;
+  uint64 auction_id = 1;
 }
 
 // QueryAuctionResponse is the response type for the Query/Auction RPC method.

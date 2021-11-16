@@ -12,7 +12,10 @@ var testCoin = sdk.NewInt64Coin("test", 20)
 
 func TestGenesisState_Validate(t *testing.T) {
 
-	defaultGenesisAuctions, err := UnpackGenesisAuctions(DefaultGenesisState().Auctions)
+	defaultGenState, err := DefaultGenesisState()
+	require.NoError(t, err)
+
+	defaultGenesisAuctions, err := UnpackGenesisAuctions(defaultGenState.Auctions)
 	if err != nil {
 		panic(err)
 	}
@@ -25,7 +28,7 @@ func TestGenesisState_Validate(t *testing.T) {
 	}{
 		{
 			"default",
-			DefaultGenesisState().NextAuctionId,
+			defaultGenState.NextAuctionId,
 			defaultGenesisAuctions,
 			true,
 		},
@@ -33,7 +36,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			"invalid next ID",
 			54,
 			[]GenesisAuction{
-				GenesisAuction(&SurplusAuction{BaseAuction{Id: 105}}),
+				GenesisAuction(&SurplusAuction{BaseAuction{ID: 105}}),
 			},
 			false,
 		},
@@ -41,8 +44,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			"repeated ID",
 			1000,
 			[]GenesisAuction{
-				GenesisAuction(&SurplusAuction{BaseAuction{Id: 105}}),
-				GenesisAuction(&DebtAuction{BaseAuction{Id: 106}, testCoin}),
+				GenesisAuction(&SurplusAuction{BaseAuction{ID: 105}}),
+				GenesisAuction(&DebtAuction{BaseAuction{ID: 106}, testCoin}),
 			},
 			false,
 		},
@@ -50,10 +53,10 @@ func TestGenesisState_Validate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			gs := NewGenesisState(tc.nextID, DefaultParams(), tc.auctions)
+			gs, err := NewGenesisState(tc.nextID, DefaultParams(), tc.auctions)
+			require.NoError(t, err)
 
-			err := gs.Validate()
-
+			err = gs.Validate()
 			if tc.expectPass {
 				require.NoError(t, err)
 			} else {
