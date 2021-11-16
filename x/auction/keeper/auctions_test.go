@@ -270,7 +270,7 @@ func (suite *auctionTestSuite) TestStartSurplusAuction() {
 				suite.True(found, tc.name)
 
 				surplusAuction := types.SurplusAuction{BaseAuction: types.BaseAuction{
-					Id:              id,
+					ID:              id,
 					Initiator:       tc.args.seller,
 					Lot:             tc.args.lot,
 					Bidder:          "",

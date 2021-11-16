@@ -111,7 +111,7 @@ func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (uint64,
 		return 0, err
 	}
 
-	auction = auction.WithId(newAuctionID)
+	auction = auction.WithID(newAuctionID)
 	k.SetAuction(ctx, auction)
 
 	err = k.IncrementNextAuctionID(ctx)
@@ -124,15 +124,15 @@ func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (uint64,
 // SetAuction puts the auction into the store, and updates any indexes.
 func (k Keeper) SetAuction(ctx sdk.Context, auction types.Auction) {
 	// remove the auction from the byTime index if it is already in there
-	existingAuction, found := k.GetAuction(ctx, auction.GetId())
+	existingAuction, found := k.GetAuction(ctx, auction.GetID())
 	if found {
-		k.removeFromByTimeIndex(ctx, existingAuction.GetEndTime(), existingAuction.GetId())
+		k.removeFromByTimeIndex(ctx, existingAuction.GetEndTime(), existingAuction.GetID())
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionKeyPrefix)
 
-	store.Set(types.GetAuctionKey(auction.GetId()), k.MustMarshalAuction(auction))
-	k.InsertIntoByTimeIndex(ctx, auction.GetEndTime(), auction.GetId())
+	store.Set(types.GetAuctionKey(auction.GetID()), k.MustMarshalAuction(auction))
+	k.InsertIntoByTimeIndex(ctx, auction.GetEndTime(), auction.GetID())
 }
 
 // GetAuction gets an auction from the store.

@@ -5,6 +5,7 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -76,7 +77,7 @@ func queryAuctions(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQueri
 		auctions = []types.Auction{}
 	}
 
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, unfilteredAuctions)
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, auctions)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -103,6 +104,14 @@ func filterAuctions(ctx sdk.Context, auctions []types.Auction, params types.Quer
 			filteredAuctions = append(filteredAuctions, auc)
 		}
 	}
+
+	start, end := client.Paginate(len(filteredAuctions), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		filteredAuctions = []types.Auction{}
+	} else {
+		filteredAuctions = filteredAuctions[start:end]
+	}
+
 	return filteredAuctions
 }
 

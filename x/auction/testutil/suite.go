@@ -62,9 +62,10 @@ func (suite *Suite) SetupTest(numAddrs int) {
 		types.DefaultIncrement,
 	)
 
-	moduleGs := tApp.AppCodec().MustMarshalJSON(
-		types.NewGenesisState(types.DefaultNextAuctionID, params, []types.GenesisAuction{}),
-	)
+	auctionGs, err := types.NewGenesisState(types.DefaultNextAuctionID, params, []types.GenesisAuction{})
+	suite.Require().NoError(err)
+
+	moduleGs := tApp.AppCodec().MustMarshalJSON(auctionGs)
 	gs := app.GenesisState{types.ModuleName: moduleGs}
 	tApp.InitializeFromGenesisStates(authGS, gs)
 

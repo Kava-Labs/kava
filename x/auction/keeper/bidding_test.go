@@ -429,9 +429,10 @@ func TestAuctionBidding(t *testing.T) {
 				types.DefaultIncrement,
 			)
 
-			moduleGs := tApp.AppCodec().MustMarshalJSON(
-				types.NewGenesisState(types.DefaultNextAuctionID, params, []types.GenesisAuction{}),
-			)
+			auctionGs, err := types.NewGenesisState(types.DefaultNextAuctionID, params, []types.GenesisAuction{})
+			require.NoError(t, err)
+
+			moduleGs := tApp.AppCodec().MustMarshalJSON(auctionGs)
 			gs := app.GenesisState{types.ModuleName: moduleGs}
 			tApp.InitializeFromGenesisStates(authGS, gs)
 
@@ -439,7 +440,7 @@ func TestAuctionBidding(t *testing.T) {
 			keeper := tApp.GetAuctionKeeper()
 			bank := tApp.GetBankKeeper()
 
-			err := tApp.FundModuleAccount(ctx, modName, cs(c("token1", 1000), c("token2", 1000), c("debt", 1000)))
+			err = tApp.FundModuleAccount(ctx, modName, cs(c("token1", 1000), c("token2", 1000), c("debt", 1000)))
 			require.NoError(t, err)
 
 			// Start Auction

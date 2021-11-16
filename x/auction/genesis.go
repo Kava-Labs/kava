@@ -65,5 +65,10 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
 		return false
 	})
 
-	return types.NewGenesisState(nextAuctionID, params, genAuctions)
+	gs, err := types.NewGenesisState(nextAuctionID, params, genAuctions)
+	if err != nil {
+		panic(err)
+	}
+
+	return gs
 }

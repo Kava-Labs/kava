@@ -229,7 +229,7 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, auction *types.SurplusAuction, 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionBid,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.Id)),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.ID)),
 			sdk.NewAttribute(types.AttributeKeyBidder, auction.Bidder),
 			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
 			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", auction.EndTime.Unix())),
@@ -309,7 +309,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, auction *types.Collat
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionBid,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.Id)),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.ID)),
 			sdk.NewAttribute(types.AttributeKeyBidder, auction.Bidder),
 			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
 			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", auction.EndTime.Unix())),
@@ -391,7 +391,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, auction *types.Collat
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionBid,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.Id)),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.ID)),
 			sdk.NewAttribute(types.AttributeKeyBidder, auction.Bidder),
 			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
 			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", auction.EndTime.Unix())),
@@ -468,7 +468,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, auction *types.DebtAuction, bidder
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionBid,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.Id)),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.ID)),
 			sdk.NewAttribute(types.AttributeKeyBidder, auction.Bidder),
 			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
 			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", auction.EndTime.Unix())),
