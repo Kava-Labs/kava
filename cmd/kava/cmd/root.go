@@ -21,7 +21,7 @@ import (
 )
 
 // NewRootCmd creates a new root command for the kava blockchain.
-func NewRootCmd(defaultNodeHome string) *cobra.Command {
+func NewRootCmd() *cobra.Command {
 	app.SetSDKConfig().Seal()
 
 	encodingConfig := app.MakeEncodingConfig()
@@ -33,7 +33,7 @@ func NewRootCmd(defaultNodeHome string) *cobra.Command {
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithHomeDir(defaultNodeHome).
+		WithHomeDir(app.DefaultNodeHome).
 		WithViper("") // TODO this sets the env prefix
 
 	rootCmd := &cobra.Command{
@@ -58,7 +58,7 @@ func NewRootCmd(defaultNodeHome string) *cobra.Command {
 		},
 	}
 
-	addSubCmds(rootCmd, encodingConfig, defaultNodeHome)
+	addSubCmds(rootCmd, encodingConfig, app.DefaultNodeHome)
 
 	return rootCmd
 }

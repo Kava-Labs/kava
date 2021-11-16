@@ -69,7 +69,7 @@ func NewTestAppFromSealed() TestApp {
 
 	encCfg := MakeEncodingConfig()
 
-	app := NewApp(log.NewNopLogger(), db, map[int64]bool{}, DefaultNodeHome, nil, encCfg, Options{})
+	app := NewApp(log.NewNopLogger(), db, DefaultNodeHome, nil, encCfg, Options{})
 	return TestApp{App: *app}
 }
 

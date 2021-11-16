@@ -205,7 +205,6 @@ func init() {
 func NewApp(
 	logger tmlog.Logger,
 	db dbm.DB,
-	skipUpgradeHeights map[int64]bool,
 	homePath string,
 	traceStore io.Writer,
 	encodingConfig kavaparams.EncodingConfig,
@@ -318,7 +317,7 @@ func NewApp(
 		authtypes.FeeCollectorName,
 	)
 	app.upgradeKeeper = upgradekeeper.NewKeeper(
-		skipUpgradeHeights,
+		options.SkipUpgradeHeights,
 		keys[upgradetypes.StoreKey],
 		appCodec,
 		homePath,
