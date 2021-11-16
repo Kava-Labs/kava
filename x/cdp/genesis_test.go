@@ -222,7 +222,6 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000001547125958"), // 5% apr
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(7000000000),
-					Prefix:                           0x20,
 					SpotMarketID:                     "xrp:usd",
 					LiquidationMarketID:              "xrp:usd",
 					KeeperRewardPercentage:           d("0.01"),
@@ -237,7 +236,6 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000000782997609"), // 2.5% apr
 					LiquidationPenalty:               d("0.025"),
 					AuctionSize:                      i(10000000),
-					Prefix:                           0x21,
 					SpotMarketID:                     "btc:usd",
 					LiquidationMarketID:              "btc:usd",
 					KeeperRewardPercentage:           d("0.01"),
