@@ -110,10 +110,7 @@ func (am AppModule) Name() string {
 }
 
 // RegisterInvariants register module invariants
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// keeper.RegisterInvariants(ir, am.keeper)
-	// TODO
-}
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // Route module message route name
 func (am AppModule) Route() sdk.Route {
