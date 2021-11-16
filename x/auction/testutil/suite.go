@@ -28,7 +28,6 @@ type Suite struct {
 	App           app.TestApp
 	Ctx           sdk.Context
 	Addrs         []sdk.AccAddress
-	QueryClient   types.QueryClient
 	ModAcc        *authtypes.ModuleAccount
 }
 
@@ -75,11 +74,6 @@ func (suite *Suite) SetupTest(numAddrs int) {
 	suite.Keeper = tApp.GetAuctionKeeper()
 	suite.BankKeeper = tApp.GetBankKeeper()
 	suite.AccountKeeper = tApp.GetAccountKeeper()
-
-	// Set query client
-	queryHelper := tApp.NewQueryServerTestHelper(ctx)
-	types.RegisterQueryServer(queryHelper, suite.Keeper)
-	suite.QueryClient = types.NewQueryClient(queryHelper)
 }
 
 // CreateAccount adds coins to an account address
