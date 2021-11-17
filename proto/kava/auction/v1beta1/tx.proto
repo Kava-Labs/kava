@@ -1,7 +1,6 @@
 syntax = "proto3";
 package kava.auction.v1beta1;
 
-import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
@@ -20,10 +19,7 @@ message MsgPlaceBid {
 
   uint64 auction_id = 1;
 
-  bytes bidder = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
-  ];
+  string bidder = 2;
 
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
