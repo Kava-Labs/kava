@@ -2,10 +2,10 @@
  * The v0_16 x/gov migration logic is adapted from
  * https://github.com/cosmos/cosmos-sdk/blob/b75c29fc15d3320ec0c7596dbd7c787c48dccad8/x/auth/legacy/v040/migrate.go
  *
- * The only changes made here are for supporting the following custom proposals from the kava modules.
- * - x/kavadist/CommunityPoolMultiSpendProposal
+ * The original migration code is changed here to support the following custom proposals from the kava modules.
+ * - `x/kavadist/CommunityPoolMultiSpendProposal`
  *
- * Note: The committee modules also adds the CommitteeChangeProposal and CommitteeDeleteProposal.
+ * Note: The committee modules also adds the `CommitteeChangeProposal` and `CommitteeDeleteProposal`.
  * However, we should not have any proposals of these type on mainet so we should be good to ignore them here.
  */
 package modules
