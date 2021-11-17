@@ -6,12 +6,14 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/bep3"
+	"github.com/kava-labs/kava/x/bep3/keeper"
+	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 type GenesisTestSuite struct {
@@ -19,13 +21,16 @@ type GenesisTestSuite struct {
 
 	app    app.TestApp
 	ctx    sdk.Context
-	keeper bep3.Keeper
+	keeper keeper.Keeper
 	addrs  []sdk.AccAddress
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
 	tApp := app.NewTestApp()
-	suite.ctx = tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	suite.ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	suite.keeper = tApp.GetBep3Keeper()
 	suite.app = tApp
 
@@ -33,9 +38,48 @@ func (suite *GenesisTestSuite) SetupTest() {
 	suite.addrs = addrs
 }
 
-func (suite *GenesisTestSuite) TestGenesisState() {
+func (suite *GenesisTestSuite) TestModulePermissionsCheck() {
+	cdc := suite.app.AppCodec()
 
+	testCases := []struct {
+		name          string
+		permissions   []string
+		expectedPanic string
+	}{
+		{"no permissions", []string{}, "bep3 module account does not have burn permissions"},
+		{"mint permissions", []string{authtypes.Minter}, "bep3 module account does not have burn permissions"},
+		{"burn permissions", []string{authtypes.Burner}, "bep3 module account does not have mint permissions"},
+		{"burn and mint permissions", []string{authtypes.Burner, authtypes.Minter}, ""},
+		{"mint and burn permissions", []string{authtypes.Minter, authtypes.Burner}, ""},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			authGenesis := authtypes.NewGenesisState(
+				authtypes.DefaultParams(),
+				authtypes.GenesisAccounts{authtypes.NewEmptyModuleAccount(types.ModuleName, tc.permissions...)},
+			)
+			bep3Genesis := types.DefaultGenesisState()
+			genState := app.GenesisState{
+				authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis),
+				types.ModuleName:     cdc.MustMarshalJSON(&bep3Genesis),
+			}
+
+			initApp := func() { suite.app.InitializeFromGenesisStates(genState) }
+
+			if tc.expectedPanic == "" {
+				suite.NotPanics(initApp)
+			} else {
+				suite.PanicsWithValue(tc.expectedPanic, initApp)
+			}
+		})
+	}
+}
+
+func (suite *GenesisTestSuite) TestGenesisState() {
 	type GenState func() app.GenesisState
+
+	cdc := suite.app.AppCodec()
 
 	testCases := []struct {
 		name       string
@@ -45,7 +89,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 		{
 			name: "default",
 			genState: func() app.GenesisState {
-				return NewBep3GenStateMulti(suite.addrs[0])
+				return NewBep3GenStateMulti(cdc, suite.addrs[0])
 			},
 			expectPass: true,
 		},
@@ -54,8 +98,8 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
-				var swaps bep3.AtomicSwaps
-				var supplies bep3.AssetSupplies
+				var swaps types.AtomicSwaps
+				var supplies types.AssetSupplies
 				for i := 0; i < 2; i++ {
 					swap, supply := loadSwapAndSupply(addrs[i], i)
 					swaps = append(swaps, swap)
@@ -63,7 +107,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				}
 				gs.AtomicSwaps = swaps
 				gs.Supplies = supplies
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: true,
 		},
@@ -72,7 +116,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				gs.Params.AssetParams[0].FixedFee = sdk.ZeroInt()
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: true,
 		},
@@ -82,8 +126,8 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(1)
 				swap, _ := loadSwapAndSupply(addrs[0], 2)
-				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -92,14 +136,14 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
-				gs.Supplies = bep3.AssetSupplies{
-					bep3.AssetSupply{
+				gs.Supplies = types.AssetSupplies{
+					{
 						IncomingSupply: c("bnb", 0),
 						OutgoingSupply: c("bnb", 0),
 						CurrentSupply:  c("bnb", assetParam.SupplyLimit.Limit.Add(i(1)).Int64()),
 					},
 				}
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -114,22 +158,22 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				// Set up an atomic swap with amount equal to the currently asset supply
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
-				randomNumber, _ := bep3.GenerateSecureRandomNumber()
-				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
-				swap := bep3.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
-					bep3.DefaultMinBlockLock, timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
-					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
-				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
+				randomNumber, _ := types.GenerateSecureRandomNumber()
+				randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
+				swap := types.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
+					types.DefaultMinBlockLock, timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
+					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_INCOMING)
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
 
 				// Set up asset supply with overlimit current supply
-				gs.Supplies = bep3.AssetSupplies{
-					bep3.AssetSupply{
+				gs.Supplies = types.AssetSupplies{
+					{
 						IncomingSupply: c("bnb", assetParam.SupplyLimit.Limit.Add(i(1)).Int64()),
 						OutgoingSupply: c("bnb", 0),
 						CurrentSupply:  c("bnb", 0),
 					},
 				}
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -145,22 +189,22 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				// Set up an atomic swap with amount equal to the currently asset supply
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
-				randomNumber, _ := bep3.GenerateSecureRandomNumber()
-				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
-				swap := bep3.NewAtomicSwap(cs(c("bnb", halfLimit)), randomNumberHash,
+				randomNumber, _ := types.GenerateSecureRandomNumber()
+				randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
+				swap := types.NewAtomicSwap(cs(c("bnb", halfLimit)), randomNumberHash,
 					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
-					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
-				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
+					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_INCOMING)
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
 
 				// Set up asset supply with overlimit current supply
-				gs.Supplies = bep3.AssetSupplies{
-					bep3.AssetSupply{
+				gs.Supplies = types.AssetSupplies{
+					{
 						IncomingSupply: c("bnb", halfLimit),
 						OutgoingSupply: c("bnb", 0),
 						CurrentSupply:  c("bnb", overHalfLimit),
 					},
 				}
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -175,22 +219,22 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				// Set up an atomic swap with amount equal to the currently asset supply
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
-				randomNumber, _ := bep3.GenerateSecureRandomNumber()
-				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
-				swap := bep3.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
-					bep3.DefaultMinBlockLock, timestamp, addrs[1], suite.addrs[0], TestSenderOtherChain,
-					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Outgoing)
-				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
+				randomNumber, _ := types.GenerateSecureRandomNumber()
+				randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
+				swap := types.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
+					types.DefaultMinBlockLock, timestamp, addrs[1], suite.addrs[0], TestSenderOtherChain,
+					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_OUTGOING)
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
 
 				// Set up asset supply with overlimit current supply
-				gs.Supplies = bep3.AssetSupplies{
-					bep3.AssetSupply{
+				gs.Supplies = types.AssetSupplies{
+					{
 						IncomingSupply: c("bnb", 0),
 						OutgoingSupply: c("bnb", 0),
 						CurrentSupply:  c("bnb", assetParam.SupplyLimit.Limit.Add(i(1)).Int64()),
 					},
 				}
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -198,14 +242,14 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "asset supply denom is not a supported asset",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.Supplies = bep3.AssetSupplies{
-					bep3.AssetSupply{
+				gs.Supplies = types.AssetSupplies{
+					{
 						IncomingSupply: c("fake", 0),
 						OutgoingSupply: c("fake", 0),
 						CurrentSupply:  c("fake", 0),
 					},
 				}
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -215,14 +259,14 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
-				randomNumber, _ := bep3.GenerateSecureRandomNumber()
-				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
-				swap := bep3.NewAtomicSwap(cs(c("fake", 500000)), randomNumberHash,
+				randomNumber, _ := types.GenerateSecureRandomNumber()
+				randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
+				swap := types.NewAtomicSwap(cs(c("fake", 500000)), randomNumberHash,
 					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
-					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
+					TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_INCOMING)
 
-				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -232,14 +276,14 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
-				randomNumber, _ := bep3.GenerateSecureRandomNumber()
-				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
-				swap := bep3.NewAtomicSwap(cs(c("bnb", 5000)), randomNumberHash,
+				randomNumber, _ := types.GenerateSecureRandomNumber()
+				randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
+				swap := types.NewAtomicSwap(cs(c("bnb", 5000)), randomNumberHash,
 					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
-					TestRecipientOtherChain, 0, bep3.NULL, true, bep3.Incoming)
+					TestRecipientOtherChain, 0, types.SWAP_STATUS_UNSPECIFIED, true, types.SWAP_DIRECTION_INCOMING)
 
-				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				gs.AtomicSwaps = types.AtomicSwaps{swap}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -249,7 +293,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				gs.Params.AssetParams[0].MinBlockLock = 201
 				gs.Params.AssetParams[0].MaxBlockLock = 200
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -258,7 +302,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				gs.Params.AssetParams[0].Denom = ""
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -267,7 +311,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				gs.Params.AssetParams[0].SupplyLimit.Limit = i(-100)
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},
@@ -276,7 +320,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				gs.Params.AssetParams[1].Denom = "bnb"
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+				return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&gs)}
 			},
 			expectPass: false,
 		},

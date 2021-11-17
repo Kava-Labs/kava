@@ -19,9 +19,6 @@ type GenesisTestSuite struct {
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
-	config := sdk.GetConfig()
-	app.SetBech32AddressPrefixes(config)
-
 	coin := sdk.NewCoin("kava", sdk.OneInt())
 	suite.swaps = atomicSwaps(10)
 
@@ -69,7 +66,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"invalid supply",
 			args{
 				swaps:             types.AtomicSwaps{},
-				supplies:          types.AssetSupplies{types.AssetSupply{IncomingSupply: sdk.Coin{"Invalid", sdk.ZeroInt()}}},
+				supplies:          types.AssetSupplies{{IncomingSupply: sdk.Coin{Denom: "Invalid", Amount: sdk.ZeroInt()}}},
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,
@@ -85,7 +82,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"invalid swap",
 			args{
-				swaps:             types.AtomicSwaps{types.AtomicSwap{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}}}},
+				swaps:             types.AtomicSwaps{{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}}}},
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,
@@ -101,6 +98,8 @@ func (suite *GenesisTestSuite) TestValidate() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			config := sdk.GetConfig()
+			app.SetBech32AddressPrefixes(config)
 			var gs types.GenesisState
 			if tc.name == "default" {
 				gs = types.DefaultGenesisState()

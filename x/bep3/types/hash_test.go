@@ -3,9 +3,8 @@ package types_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -29,7 +28,6 @@ func (suite *HashTestSuite) SetupTest() {
 
 	suite.addrs = addrs
 	suite.timestamps = timestamps
-	return
 }
 
 func (suite *HashTestSuite) TestGenerateSecureRandomNumber() {

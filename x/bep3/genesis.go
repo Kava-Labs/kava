@@ -4,20 +4,39 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	"github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 // InitGenesis initializes the store state from a genesis state.
-func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, accountKeeper types.AccountKeeper, gs *types.GenesisState) {
 	// Check if the module account exists
-	moduleAcc := supplyKeeper.GetModuleAccount(ctx, ModuleName)
+	moduleAcc := accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	if moduleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", ModuleName))
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	}
+
+	hasBurnPermissions := false
+	hasMintPermissions := false
+	for _, perm := range moduleAcc.GetPermissions() {
+		if perm == authtypes.Burner {
+			hasBurnPermissions = true
+		}
+		if perm == authtypes.Minter {
+			hasMintPermissions = true
+		}
+	}
+	if !hasBurnPermissions {
+		panic(fmt.Sprintf("%s module account does not have burn permissions", types.ModuleName))
+	}
+	if !hasMintPermissions {
+		panic(fmt.Sprintf("%s module account does not have mint permissions", types.ModuleName))
 	}
 
 	if err := gs.Validate(); err != nil {
-		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
+		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
 	}
 
 	keeper.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)
@@ -45,28 +64,28 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		// Add swap to block index or longterm storage based on swap.Status
 		// Increment incoming or outgoing supply based on swap.Direction
 		switch swap.Direction {
-		case Incoming:
+		case types.SWAP_DIRECTION_INCOMING:
 			switch swap.Status {
-			case Open:
+			case types.SWAP_STATUS_OPEN:
 				// This index expires unclaimed swaps
 				keeper.InsertIntoByBlockIndex(ctx, swap)
 				incomingSupplies = incomingSupplies.Add(swap.Amount...)
-			case Expired:
+			case types.SWAP_STATUS_EXPIRED:
 				incomingSupplies = incomingSupplies.Add(swap.Amount...)
-			case Completed:
+			case types.SWAP_STATUS_COMPLETED:
 				// This index stores swaps until deletion
 				keeper.InsertIntoLongtermStorage(ctx, swap)
 			default:
 				panic(fmt.Sprintf("swap %s has invalid status %s", swap.GetSwapID(), swap.Status.String()))
 			}
-		case Outgoing:
+		case types.SWAP_DIRECTION_OUTGOING:
 			switch swap.Status {
-			case Open:
+			case types.SWAP_STATUS_OPEN:
 				keeper.InsertIntoByBlockIndex(ctx, swap)
 				outgoingSupplies = outgoingSupplies.Add(swap.Amount...)
-			case Expired:
+			case types.SWAP_STATUS_EXPIRED:
 				outgoingSupplies = outgoingSupplies.Add(swap.Amount...)
-			case Completed:
+			case types.SWAP_STATUS_COMPLETED:
 				keeper.InsertIntoLongtermStorage(ctx, swap)
 			default:
 				panic(fmt.Sprintf("swap %s has invalid status %s", swap.GetSwapID(), swap.Status.String()))
@@ -110,13 +129,13 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis
-func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) (data types.GenesisState) {
 	params := k.GetParams(ctx)
 	swaps := k.GetAllAtomicSwaps(ctx)
 	supplies := k.GetAllAssetSupplies(ctx)
 	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
 	if !found {
-		previousBlockTime = DefaultPreviousBlockTime
+		previousBlockTime = types.DefaultPreviousBlockTime
 	}
-	return NewGenesisState(params, swaps, supplies, previousBlockTime)
+	return types.NewGenesisState(params, swaps, supplies, previousBlockTime)
 }

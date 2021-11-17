@@ -4,31 +4,119 @@
 
 ## Table of Contents
 
+- [kava/bep3/v1beta1/bep3.proto](#kava/bep3/v1beta1/bep3.proto)
+    - [AssetParam](#kava.bep3.v1beta1.AssetParam)
+    - [AssetSupply](#kava.bep3.v1beta1.AssetSupply)
+    - [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap)
+    - [Params](#kava.bep3.v1beta1.Params)
+    - [SupplyLimit](#kava.bep3.v1beta1.SupplyLimit)
+
+    - [SwapDirection](#kava.bep3.v1beta1.SwapDirection)
+    - [SwapStatus](#kava.bep3.v1beta1.SwapStatus)
+
+- [kava/bep3/v1beta1/genesis.proto](#kava/bep3/v1beta1/genesis.proto)
+    - [GenesisState](#kava.bep3.v1beta1.GenesisState)
+
+- [kava/bep3/v1beta1/query.proto](#kava/bep3/v1beta1/query.proto)
+    - [AssetSupplyResponse](#kava.bep3.v1beta1.AssetSupplyResponse)
+    - [AtomicSwapResponse](#kava.bep3.v1beta1.AtomicSwapResponse)
+    - [QueryAssetSuppliesRequest](#kava.bep3.v1beta1.QueryAssetSuppliesRequest)
+    - [QueryAssetSuppliesResponse](#kava.bep3.v1beta1.QueryAssetSuppliesResponse)
+    - [QueryAssetSupplyRequest](#kava.bep3.v1beta1.QueryAssetSupplyRequest)
+    - [QueryAssetSupplyResponse](#kava.bep3.v1beta1.QueryAssetSupplyResponse)
+    - [QueryAtomicSwapRequest](#kava.bep3.v1beta1.QueryAtomicSwapRequest)
+    - [QueryAtomicSwapResponse](#kava.bep3.v1beta1.QueryAtomicSwapResponse)
+    - [QueryAtomicSwapsRequest](#kava.bep3.v1beta1.QueryAtomicSwapsRequest)
+    - [QueryAtomicSwapsResponse](#kava.bep3.v1beta1.QueryAtomicSwapsResponse)
+    - [QueryParamsRequest](#kava.bep3.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.bep3.v1beta1.QueryParamsResponse)
+
+    - [Query](#kava.bep3.v1beta1.Query)
+
+- [kava/bep3/v1beta1/tx.proto](#kava/bep3/v1beta1/tx.proto)
+    - [MsgClaimAtomicSwap](#kava.bep3.v1beta1.MsgClaimAtomicSwap)
+    - [MsgClaimAtomicSwapResponse](#kava.bep3.v1beta1.MsgClaimAtomicSwapResponse)
+    - [MsgCreateAtomicSwap](#kava.bep3.v1beta1.MsgCreateAtomicSwap)
+    - [MsgCreateAtomicSwapResponse](#kava.bep3.v1beta1.MsgCreateAtomicSwapResponse)
+    - [MsgRefundAtomicSwap](#kava.bep3.v1beta1.MsgRefundAtomicSwap)
+    - [MsgRefundAtomicSwapResponse](#kava.bep3.v1beta1.MsgRefundAtomicSwapResponse)
+
+    - [Msg](#kava.bep3.v1beta1.Msg)
+
+- [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
+    - [CDP](#kava.cdp.v1beta1.CDP)
+    - [Deposit](#kava.cdp.v1beta1.Deposit)
+    - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
+    - [TotalPrincipal](#kava.cdp.v1beta1.TotalPrincipal)
+
+- [kava/cdp/v1beta1/genesis.proto](#kava/cdp/v1beta1/genesis.proto)
+    - [CollateralParam](#kava.cdp.v1beta1.CollateralParam)
+    - [DebtParam](#kava.cdp.v1beta1.DebtParam)
+    - [GenesisAccumulationTime](#kava.cdp.v1beta1.GenesisAccumulationTime)
+    - [GenesisState](#kava.cdp.v1beta1.GenesisState)
+    - [GenesisTotalPrincipal](#kava.cdp.v1beta1.GenesisTotalPrincipal)
+    - [Params](#kava.cdp.v1beta1.Params)
+
+- [kava/cdp/v1beta1/query.proto](#kava/cdp/v1beta1/query.proto)
+    - [CDPResponse](#kava.cdp.v1beta1.CDPResponse)
+    - [QueryAccountsRequest](#kava.cdp.v1beta1.QueryAccountsRequest)
+    - [QueryAccountsResponse](#kava.cdp.v1beta1.QueryAccountsResponse)
+    - [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest)
+    - [QueryCdpResponse](#kava.cdp.v1beta1.QueryCdpResponse)
+    - [QueryCdpsRequest](#kava.cdp.v1beta1.QueryCdpsRequest)
+    - [QueryCdpsResponse](#kava.cdp.v1beta1.QueryCdpsResponse)
+    - [QueryDepositsRequest](#kava.cdp.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.cdp.v1beta1.QueryDepositsResponse)
+    - [QueryParamsRequest](#kava.cdp.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.cdp.v1beta1.QueryParamsResponse)
+    - [QueryTotalCollateralRequest](#kava.cdp.v1beta1.QueryTotalCollateralRequest)
+    - [QueryTotalCollateralResponse](#kava.cdp.v1beta1.QueryTotalCollateralResponse)
+    - [QueryTotalPrincipalRequest](#kava.cdp.v1beta1.QueryTotalPrincipalRequest)
+    - [QueryTotalPrincipalResponse](#kava.cdp.v1beta1.QueryTotalPrincipalResponse)
+
+    - [Query](#kava.cdp.v1beta1.Query)
+
+- [kava/cdp/v1beta1/tx.proto](#kava/cdp/v1beta1/tx.proto)
+    - [MsgCreateCDP](#kava.cdp.v1beta1.MsgCreateCDP)
+    - [MsgCreateCDPResponse](#kava.cdp.v1beta1.MsgCreateCDPResponse)
+    - [MsgDeposit](#kava.cdp.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.cdp.v1beta1.MsgDepositResponse)
+    - [MsgDrawDebt](#kava.cdp.v1beta1.MsgDrawDebt)
+    - [MsgDrawDebtResponse](#kava.cdp.v1beta1.MsgDrawDebtResponse)
+    - [MsgLiquidate](#kava.cdp.v1beta1.MsgLiquidate)
+    - [MsgLiquidateResponse](#kava.cdp.v1beta1.MsgLiquidateResponse)
+    - [MsgRepayDebt](#kava.cdp.v1beta1.MsgRepayDebt)
+    - [MsgRepayDebtResponse](#kava.cdp.v1beta1.MsgRepayDebtResponse)
+    - [MsgWithdraw](#kava.cdp.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.cdp.v1beta1.MsgWithdrawResponse)
+
+    - [Msg](#kava.cdp.v1beta1.Msg)
+
 - [kava/committee/v1beta1/committee.proto](#kava/committee/v1beta1/committee.proto)
     - [BaseCommittee](#kava.committee.v1beta1.BaseCommittee)
     - [MemberCommittee](#kava.committee.v1beta1.MemberCommittee)
     - [TokenCommittee](#kava.committee.v1beta1.TokenCommittee)
-  
+
     - [TallyOption](#kava.committee.v1beta1.TallyOption)
-  
+
 - [kava/committee/v1beta1/genesis.proto](#kava/committee/v1beta1/genesis.proto)
     - [GenesisState](#kava.committee.v1beta1.GenesisState)
     - [Proposal](#kava.committee.v1beta1.Proposal)
     - [Vote](#kava.committee.v1beta1.Vote)
-  
+
     - [VoteType](#kava.committee.v1beta1.VoteType)
-  
+
 - [kava/committee/v1beta1/permissions.proto](#kava/committee/v1beta1/permissions.proto)
     - [AllowedParamsChange](#kava.committee.v1beta1.AllowedParamsChange)
     - [GodPermission](#kava.committee.v1beta1.GodPermission)
     - [ParamsChangePermission](#kava.committee.v1beta1.ParamsChangePermission)
     - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
     - [TextPermission](#kava.committee.v1beta1.TextPermission)
-  
+
 - [kava/committee/v1beta1/proposal.proto](#kava/committee/v1beta1/proposal.proto)
     - [CommitteeChangeProposal](#kava.committee.v1beta1.CommitteeChangeProposal)
     - [CommitteeDeleteProposal](#kava.committee.v1beta1.CommitteeDeleteProposal)
-  
+
 - [kava/committee/v1beta1/query.proto](#kava/committee/v1beta1/query.proto)
     - [QueryCommitteeRequest](#kava.committee.v1beta1.QueryCommitteeRequest)
     - [QueryCommitteeResponse](#kava.committee.v1beta1.QueryCommitteeResponse)
@@ -48,26 +136,26 @@
     - [QueryVoteResponse](#kava.committee.v1beta1.QueryVoteResponse)
     - [QueryVotesRequest](#kava.committee.v1beta1.QueryVotesRequest)
     - [QueryVotesResponse](#kava.committee.v1beta1.QueryVotesResponse)
-  
+
     - [Query](#kava.committee.v1beta1.Query)
-  
+
 - [kava/committee/v1beta1/tx.proto](#kava/committee/v1beta1/tx.proto)
     - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
     - [MsgVote](#kava.committee.v1beta1.MsgVote)
-  
+
 - [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
     - [Asset](#kava.issuance.v1beta1.Asset)
     - [AssetSupply](#kava.issuance.v1beta1.AssetSupply)
     - [GenesisState](#kava.issuance.v1beta1.GenesisState)
     - [Params](#kava.issuance.v1beta1.Params)
     - [RateLimit](#kava.issuance.v1beta1.RateLimit)
-  
+
 - [kava/issuance/v1beta1/query.proto](#kava/issuance/v1beta1/query.proto)
     - [QueryParamsRequest](#kava.issuance.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.issuance.v1beta1.QueryParamsResponse)
-  
+
     - [Query](#kava.issuance.v1beta1.Query)
-  
+
 - [kava/issuance/v1beta1/tx.proto](#kava/issuance/v1beta1/tx.proto)
     - [MsgBlockAddress](#kava.issuance.v1beta1.MsgBlockAddress)
     - [MsgBlockAddressResponse](#kava.issuance.v1beta1.MsgBlockAddressResponse)
@@ -79,39 +167,43 @@
     - [MsgSetPauseStatusResponse](#kava.issuance.v1beta1.MsgSetPauseStatusResponse)
     - [MsgUnblockAddress](#kava.issuance.v1beta1.MsgUnblockAddress)
     - [MsgUnblockAddressResponse](#kava.issuance.v1beta1.MsgUnblockAddressResponse)
-  
+
     - [Msg](#kava.issuance.v1beta1.Msg)
-  
+
 - [kava/kavadist/v1beta1/params.proto](#kava/kavadist/v1beta1/params.proto)
     - [Params](#kava.kavadist.v1beta1.Params)
     - [Period](#kava.kavadist.v1beta1.Period)
-  
+
 - [kava/kavadist/v1beta1/genesis.proto](#kava/kavadist/v1beta1/genesis.proto)
     - [GenesisState](#kava.kavadist.v1beta1.GenesisState)
-  
+
 - [kava/kavadist/v1beta1/proposal.proto](#kava/kavadist/v1beta1/proposal.proto)
     - [CommunityPoolMultiSpendProposal](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposal)
     - [CommunityPoolMultiSpendProposalJSON](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposalJSON)
     - [MultiSpendRecipient](#kava.kavadist.v1beta1.MultiSpendRecipient)
-  
+
 - [kava/kavadist/v1beta1/query.proto](#kava/kavadist/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse)
     - [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse)
-  
+
     - [Query](#kava.kavadist.v1beta1.Query)
-  
+
 - [kava/pricefeed/v1beta1/pricefeed.proto](#kava/pricefeed/v1beta1/pricefeed.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
+    - [Params](#kava.pricefeed.v1beta1.Params)
     - [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice)
-  
+
 - [kava/pricefeed/v1beta1/genesis.proto](#kava/pricefeed/v1beta1/genesis.proto)
     - [GenesisState](#kava.pricefeed.v1beta1.GenesisState)
     - [Params](#kava.pricefeed.v1beta1.Params)
-  
+
 - [kava/pricefeed/v1beta1/query.proto](#kava/pricefeed/v1beta1/query.proto)
+    - [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse)
+    - [MarketResponse](#kava.pricefeed.v1beta1.MarketResponse)
+    - [PostedPriceResponse](#kava.pricefeed.v1beta1.PostedPriceResponse)
     - [QueryMarketsRequest](#kava.pricefeed.v1beta1.QueryMarketsRequest)
     - [QueryMarketsResponse](#kava.pricefeed.v1beta1.QueryMarketsResponse)
     - [QueryOraclesRequest](#kava.pricefeed.v1beta1.QueryOraclesRequest)
@@ -124,24 +216,24 @@
     - [QueryPricesResponse](#kava.pricefeed.v1beta1.QueryPricesResponse)
     - [QueryRawPricesRequest](#kava.pricefeed.v1beta1.QueryRawPricesRequest)
     - [QueryRawPricesResponse](#kava.pricefeed.v1beta1.QueryRawPricesResponse)
-  
+
     - [Query](#kava.pricefeed.v1beta1.Query)
-  
+
 - [kava/pricefeed/v1beta1/tx.proto](#kava/pricefeed/v1beta1/tx.proto)
     - [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice)
     - [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse)
-  
+
     - [Msg](#kava.pricefeed.v1beta1.Msg)
-  
+
 - [kava/swap/v1beta1/swap.proto](#kava/swap/v1beta1/swap.proto)
     - [AllowedPool](#kava.swap.v1beta1.AllowedPool)
     - [Params](#kava.swap.v1beta1.Params)
     - [PoolRecord](#kava.swap.v1beta1.PoolRecord)
     - [ShareRecord](#kava.swap.v1beta1.ShareRecord)
-  
+
 - [kava/swap/v1beta1/genesis.proto](#kava/swap/v1beta1/genesis.proto)
     - [GenesisState](#kava.swap.v1beta1.GenesisState)
-  
+
 - [kava/swap/v1beta1/query.proto](#kava/swap/v1beta1/query.proto)
     - [DepositResponse](#kava.swap.v1beta1.DepositResponse)
     - [PoolResponse](#kava.swap.v1beta1.PoolResponse)
@@ -151,9 +243,9 @@
     - [QueryParamsResponse](#kava.swap.v1beta1.QueryParamsResponse)
     - [QueryPoolsRequest](#kava.swap.v1beta1.QueryPoolsRequest)
     - [QueryPoolsResponse](#kava.swap.v1beta1.QueryPoolsResponse)
-  
+
     - [Query](#kava.swap.v1beta1.Query)
-  
+
 - [kava/swap/v1beta1/tx.proto](#kava/swap/v1beta1/tx.proto)
     - [MsgDeposit](#kava.swap.v1beta1.MsgDeposit)
     - [MsgDepositResponse](#kava.swap.v1beta1.MsgDepositResponse)
@@ -163,24 +255,26 @@
     - [MsgSwapForExactTokensResponse](#kava.swap.v1beta1.MsgSwapForExactTokensResponse)
     - [MsgWithdraw](#kava.swap.v1beta1.MsgWithdraw)
     - [MsgWithdrawResponse](#kava.swap.v1beta1.MsgWithdrawResponse)
-  
+
     - [Msg](#kava.swap.v1beta1.Msg)
-  
+
 - [Scalar Value Types](#scalar-value-types)
 
+ <!-- end services -->
 
 
-<a name="kava/committee/v1beta1/committee.proto"></a>
+
+<a name="kava/committee/v1beta1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/committee/v1beta1/committee.proto
+## kava/committee/v1beta1/query.proto
 
 
 
-<a name="kava.committee.v1beta1.BaseCommittee"></a>
+<a name="kava.committee.v1beta1.QueryCommitteeRequest"></a>
 
-### BaseCommittee
-BaseCommittee is a common type shared by all Committees
+### QueryCommitteeRequest
+QueryCommitteeRequest defines the request type for querying x/committee committee.
 
 
 | Field | Type | Label | Description |
@@ -198,25 +292,35 @@ BaseCommittee is a common type shared by all Committees
 
 
 
-<a name="kava.committee.v1beta1.MemberCommittee"></a>
+<a name="kava.committee.v1beta1.QueryCommitteeResponse"></a>
 
-### MemberCommittee
-MemberCommittee is an alias of BaseCommittee
+### QueryCommitteeResponse
+QueryCommitteeResponse defines the response type for querying x/committee committee.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `base_committee` | [BaseCommittee](#kava.committee.v1beta1.BaseCommittee) |  |  |
+| `committee` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 
 
 
 
 
 
-<a name="kava.committee.v1beta1.TokenCommittee"></a>
+<a name="kava.committee.v1beta1.QueryCommitteesRequest"></a>
 
-### TokenCommittee
-TokenCommittee supports voting on proposals by token holders
+### QueryCommitteesRequest
+QueryCommitteesRequest defines the request type for querying x/committee committees.
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryCommitteesResponse"></a>
+
+### QueryCommitteesResponse
+QueryCommitteesResponse defines the response type for querying x/committee committees.
 
 
 | Field | Type | Label | Description |
@@ -229,58 +333,51 @@ TokenCommittee supports voting on proposals by token holders
 
 
 
- <!-- end messages -->
 
+<a name="kava.committee.v1beta1.QueryNextProposalIDRequest"></a>
 
-<a name="kava.committee.v1beta1.TallyOption"></a>
-
-### TallyOption
-TallyOption enumerates the valid types of a tally.
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| TALLY_OPTION_UNSPECIFIED | 0 | TALLY_OPTION_UNSPECIFIED defines a null tally option. |
-| TALLY_OPTION_FIRST_PAST_THE_POST | 1 | Votes are tallied each block and the proposal passes as soon as the vote threshold is reached |
-| TALLY_OPTION_DEADLINE | 2 | Votes are tallied exactly once, when the deadline time is reached |
-
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
+### QueryNextProposalIDRequest
+QueryNextProposalIDRequest defines the request type for querying x/committee NextProposalID.
 
 
 
-<a name="kava/committee/v1beta1/genesis.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## kava/committee/v1beta1/genesis.proto
 
 
 
-<a name="kava.committee.v1beta1.GenesisState"></a>
+<a name="kava.committee.v1beta1.QueryNextProposalIDResponse"></a>
 
-### GenesisState
-GenesisState defines the committee module's genesis state.
+### QueryNextProposalIDResponse
+QueryNextProposalIDRequest defines the response type for querying x/committee NextProposalID.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `next_proposal_id` | [uint64](#uint64) |  |  |
-| `committees` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
-| `proposals` | [Proposal](#kava.committee.v1beta1.Proposal) | repeated |  |
-| `votes` | [Vote](#kava.committee.v1beta1.Vote) | repeated |  |
 
 
 
 
 
 
-<a name="kava.committee.v1beta1.Proposal"></a>
+<a name="kava.committee.v1beta1.QueryProposalRequest"></a>
 
-### Proposal
-Proposal is an internal record of a governance proposal submitted to a committee.
+### QueryProposalRequest
+QueryProposalRequest defines the request type for querying x/committee proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryProposalResponse"></a>
+
+### QueryProposalResponse
+QueryProposalResponse defines the response type for querying x/committee proposal.
 
 
 | Field | Type | Label | Description |
@@ -295,10 +392,10 @@ Proposal is an internal record of a governance proposal submitted to a committee
 
 
 
-<a name="kava.committee.v1beta1.Vote"></a>
+<a name="kava.committee.v1beta1.QueryProposalsRequest"></a>
 
-### Vote
-Vote is an internal record of a single governance vote.
+### QueryProposalsRequest
+QueryProposalsRequest defines the request type for querying x/committee proposals.
 
 
 | Field | Type | Label | Description |
@@ -311,35 +408,32 @@ Vote is an internal record of a single governance vote.
 
 
 
- <!-- end messages -->
+
+<a name="kava.committee.v1beta1.QueryProposalsResponse"></a>
+
+### QueryProposalsResponse
+QueryProposalsResponse defines the response type for querying x/committee proposals.
 
 
-<a name="kava.committee.v1beta1.VoteType"></a>
-
-### VoteType
-VoteType enumerates the valid types of a vote.
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| VOTE_TYPE_UNSPECIFIED | 0 | VOTE_TYPE_UNSPECIFIED defines a no-op vote option. |
-| VOTE_TYPE_YES | 1 | VOTE_TYPE_YES defines a yes vote option. |
-| VOTE_TYPE_NO | 2 | VOTE_TYPE_NO defines a no vote option. |
-| VOTE_TYPE_ABSTAIN | 3 | VOTE_TYPE_ABSTAIN defines an abstain vote option. |
-
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposals` | [QueryProposalResponse](#kava.committee.v1beta1.QueryProposalResponse) | repeated |  |
 
 
 
-<a name="kava/committee/v1beta1/permissions.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
 
-## kava/committee/v1beta1/permissions.proto
 
+
+<a name="kava.committee.v1beta1.QueryRawParamsRequest"></a>
+
+### QueryRawParamsRequest
+QueryRawParamsRequest defines the request type for querying x/committee raw params.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `subspace` | [string](#string) |  |  |
+| `key` | [string](#string) |  |  |
 
 
 <a name="kava.committee.v1beta1.AllowedParamsChange"></a>
@@ -360,12 +454,13 @@ AllowedParamsChange contains data on the allowed parameter changes for subspace,
 
 <a name="kava.committee.v1beta1.GodPermission"></a>
 
-### GodPermission
-GodPermission allows any governance proposal. It is used mainly for testing.
 
 
 
+<a name="kava.committee.v1beta1.QueryRawParamsResponse"></a>
 
+### QueryRawParamsResponse
+QueryRawParamsResponse defines the response type for querying x/committee raw params.
 
 
 <a name="kava.committee.v1beta1.ParamsChangePermission"></a>
@@ -385,18 +480,106 @@ ParamsChangePermission allows any parameter or sub parameter change proposal.
 
 <a name="kava.committee.v1beta1.SoftwareUpgradePermission"></a>
 
-### SoftwareUpgradePermission
-SoftwareUpgradePermission permission type for software upgrade proposals
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryTallyRequest"></a>
+
+### QueryTallyRequest
+QueryTallyRequest defines the request type for querying x/committee tally.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
 
 
 
 
 
 
-<a name="kava.committee.v1beta1.TextPermission"></a>
+<a name="kava.committee.v1beta1.QueryTallyResponse"></a>
 
-### TextPermission
-TextPermission allows any text governance proposal.
+### QueryTallyResponse
+QueryTallyResponse defines the response type for querying x/committee tally.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `yes_votes` | [string](#string) |  |  |
+| `no_votes` | [string](#string) |  |  |
+| `current_votes` | [string](#string) |  |  |
+| `possible_votes` | [string](#string) |  |  |
+| `vote_threshold` | [string](#string) |  |  |
+| `quorum` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVoteRequest"></a>
+
+### QueryVoteRequest
+QueryVoteRequest defines the request type for querying x/committee vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVoteResponse"></a>
+
+### QueryVoteResponse
+QueryVoteResponse defines the response type for querying x/committee vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+| `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVotesRequest"></a>
+
+### QueryVotesRequest
+QueryVotesRequest defines the request type for querying x/committee votes.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVotesResponse"></a>
+
+### QueryVotesResponse
+QueryVotesResponse defines the response type for querying x/committee votes.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `votes` | [QueryVoteResponse](#kava.committee.v1beta1.QueryVoteResponse) | repeated | votes defined the queried votes. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
 
 
 
@@ -408,55 +591,23 @@ TextPermission allows any text governance proposal.
 
  <!-- end HasExtensions -->
 
- <!-- end services -->
 
+<a name="kava.committee.v1beta1.Query"></a>
 
+### Query
+Query defines the gRPC querier service for committee module
 
-<a name="kava/committee/v1beta1/proposal.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## kava/committee/v1beta1/proposal.proto
-
-
-
-<a name="kava.committee.v1beta1.CommitteeChangeProposal"></a>
-
-### CommitteeChangeProposal
-CommitteeChangeProposal is a gov proposal for creating a new committee or modifying an existing one.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `title` | [string](#string) |  |  |
-| `description` | [string](#string) |  |  |
-| `new_committee` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
-
-
-
-
-
-
-<a name="kava.committee.v1beta1.CommitteeDeleteProposal"></a>
-
-### CommitteeDeleteProposal
-CommitteeDeleteProposal is a gov proposal for removing a committee.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `title` | [string](#string) |  |  |
-| `description` | [string](#string) |  |  |
-| `committee_id` | [uint64](#uint64) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Committees` | [QueryCommitteesRequest](#kava.committee.v1beta1.QueryCommitteesRequest) | [QueryCommitteesResponse](#kava.committee.v1beta1.QueryCommitteesResponse) | Committees queries all committess of the committee module. | GET|/kava/committee/v1beta1/committees|
+| `Committee` | [QueryCommitteeRequest](#kava.committee.v1beta1.QueryCommitteeRequest) | [QueryCommitteeResponse](#kava.committee.v1beta1.QueryCommitteeResponse) | Committee queries a committee based on committee ID. | GET|/kava/committee/v1beta1/committees/{committee_id}|
+| `Proposals` | [QueryProposalsRequest](#kava.committee.v1beta1.QueryProposalsRequest) | [QueryProposalsResponse](#kava.committee.v1beta1.QueryProposalsResponse) | Proposals queries proposals based on committee ID. | GET|/kava/committee/v1beta1/proposals|
+| `Proposal` | [QueryProposalRequest](#kava.committee.v1beta1.QueryProposalRequest) | [QueryProposalResponse](#kava.committee.v1beta1.QueryProposalResponse) | Deposits queries a proposal based on proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}|
+| `NextProposalID` | [QueryNextProposalIDRequest](#kava.committee.v1beta1.QueryNextProposalIDRequest) | [QueryNextProposalIDResponse](#kava.committee.v1beta1.QueryNextProposalIDResponse) | NextProposalID queries the next proposal ID of the committee module. | GET|/kava/committee/v1beta1/next-proposal-id|
+| `Votes` | [QueryVotesRequest](#kava.committee.v1beta1.QueryVotesRequest) | [QueryVotesResponse](#kava.committee.v1beta1.QueryVotesResponse) | Votes queries all votes for a single proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}/votes|
+| `Vote` | [QueryVoteRequest](#kava.committee.v1beta1.QueryVoteRequest) | [QueryVoteResponse](#kava.committee.v1beta1.QueryVoteResponse) | Vote queries the vote of a single voter for a single proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}/votes/{voter}|
+| `Tally` | [QueryTallyRequest](#kava.committee.v1beta1.QueryTallyRequest) | [QueryTallyResponse](#kava.committee.v1beta1.QueryTallyResponse) | Tally queries the tally of a single proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}/tally|
+| `RawParams` | [QueryRawParamsRequest](#kava.committee.v1beta1.QueryRawParamsRequest) | [QueryRawParamsResponse](#kava.committee.v1beta1.QueryRawParamsResponse) | RawParams queries the raw params data of any subspace and key. | GET|/kava/committee/v1beta1/raw-params|
 
  <!-- end services -->
 
@@ -1364,10 +1515,10 @@ Query defines the gRPC querier service.
 
 
 
-<a name="kava/pricefeed/v1beta1/pricefeed.proto"></a>
+<a name="kava/pricefeed/v1beta1/store.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/pricefeed/v1beta1/pricefeed.proto
+## kava/pricefeed/v1beta1/store.proto
 
 
 
@@ -1399,8 +1550,23 @@ Market defines an asset in the pricefeed.
 | `market_id` | [string](#string) |  |  |
 | `base_asset` | [string](#string) |  |  |
 | `quote_asset` | [string](#string) |  |  |
-| `oracles` | [string](#string) | repeated |  |
+| `oracles` | [bytes](#bytes) | repeated |  |
 | `active` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="kava.pricefeed.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the pricefeed module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated |  |
 
 
 
@@ -1416,7 +1582,7 @@ PostedPrice defines a price for market posted by a specific oracle.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `market_id` | [string](#string) |  |  |
-| `oracle_address` | [string](#string) |  |  |
+| `oracle_address` | [bytes](#bytes) |  |  |
 | `price` | [string](#string) |  |  |
 | `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 
@@ -1456,21 +1622,6 @@ GenesisState defines the pricefeed module's genesis state.
 
 
 
-
-<a name="kava.pricefeed.v1beta1.Params"></a>
-
-### Params
-Params defines the parameters for the pricefeed module.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated |  |
-
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -1485,6 +1636,60 @@ Params defines the parameters for the pricefeed module.
 <p align="right"><a href="#top">Top</a></p>
 
 ## kava/pricefeed/v1beta1/query.proto
+
+
+
+<a name="kava.pricefeed.v1beta1.CurrentPriceResponse"></a>
+
+### CurrentPriceResponse
+CurrentPriceResponse defines a current price for a particular market in the pricefeed
+module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `market_id` | [string](#string) |  |  |
+| `price` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.pricefeed.v1beta1.MarketResponse"></a>
+
+### MarketResponse
+MarketResponse defines an asset in the pricefeed.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `market_id` | [string](#string) |  |  |
+| `base_asset` | [string](#string) |  |  |
+| `quote_asset` | [string](#string) |  |  |
+| `oracles` | [string](#string) | repeated |  |
+| `active` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="kava.pricefeed.v1beta1.PostedPriceResponse"></a>
+
+### PostedPriceResponse
+PostedPriceResponse defines a price for market posted by a specific oracle.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `market_id` | [string](#string) |  |  |
+| `oracle_address` | [string](#string) |  |  |
+| `price` | [string](#string) |  |  |
+| `expiry` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
 
 
 
@@ -1506,7 +1711,7 @@ QueryMarketsResponse is the response type for the Query/Markets RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `markets` | [Market](#kava.pricefeed.v1beta1.Market) | repeated | List of markets |
+| `markets` | [MarketResponse](#kava.pricefeed.v1beta1.MarketResponse) | repeated | List of markets |
 
 
 
@@ -1593,7 +1798,7 @@ QueryPriceResponse is the response type for the Query/Prices RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `price` | [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice) |  |  |
+| `price` | [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse) |  |  |
 
 
 
@@ -1618,7 +1823,7 @@ QueryPricesResponse is the response type for the Query/Prices RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `prices` | [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice) | repeated |  |
+| `prices` | [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse) | repeated |  |
 
 
 
@@ -1649,7 +1854,7 @@ method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `raw_prices` | [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice) | repeated |  |
+| `raw_prices` | [PostedPriceResponse](#kava.pricefeed.v1beta1.PostedPriceResponse) | repeated |  |
 
 
 

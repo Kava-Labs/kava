@@ -1,0 +1,91 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Kava - gRPC Gateway docs",
+    "description": "A REST interface for state queries",
+    "version": "1.0.0"
+  },
+  "apis": [
+    {
+      "url": "./tmp-swagger-gen/kava/kavadist/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "KavaDist"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "KavaDist$1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/kava/bep3/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Bep3"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Bep3$1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/kava/pricefeed/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Pricefeed"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Pricefeed$1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/kava/swap/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Swap"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Swap$1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "./client/docs/cosmos-swagger.yml",
+      "dereference": {
+        "circular": "ignore"
+      },
+      "paths": {
+        "exclude": [
+          "^/cosmos/authz/.*",
+          "^/cosmos/feegrant/.*"
+        ]
+      }
+    }
+  ]
+}
+

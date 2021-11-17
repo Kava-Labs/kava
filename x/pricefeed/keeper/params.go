@@ -20,40 +20,41 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 }
 
 // GetMarkets returns the markets from params
-func (k Keeper) GetMarkets(ctx sdk.Context) []types.Market {
+func (k Keeper) GetMarkets(ctx sdk.Context) types.Markets {
 	return k.GetParams(ctx).Markets
 }
 
 // GetOracles returns the oracles in the pricefeed store
-func (k Keeper) GetOracles(ctx sdk.Context, MarketID string) ([]string, error) {
+func (k Keeper) GetOracles(ctx sdk.Context, marketID string) ([]sdk.AccAddress, error) {
 	for _, m := range k.GetMarkets(ctx) {
-		if MarketID == m.MarketID {
+		if marketID == m.MarketID {
 			return m.Oracles, nil
 		}
 	}
-	return nil, sdkerrors.Wrap(types.ErrInvalidMarket, MarketID)
+	return nil, sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
 }
 
 // GetOracle returns the oracle from the store or an error if not found
-func (k Keeper) GetOracle(ctx sdk.Context, MarketID string, address string) (string, error) {
-	oracles, err := k.GetOracles(ctx, MarketID)
+func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address sdk.AccAddress) (sdk.AccAddress, error) {
+	oracles, err := k.GetOracles(ctx, marketID)
 	if err != nil {
-		return "", sdkerrors.Wrap(types.ErrInvalidMarket, MarketID)
+		// Error already wrapped
+		return nil, err
 	}
 	for _, addr := range oracles {
-		if addr == address {
+		if addr.Equals(address) {
 			return addr, nil
 		}
 	}
-	return "", sdkerrors.Wrap(types.ErrInvalidOracle, address)
+	return nil, sdkerrors.Wrap(types.ErrInvalidOracle, address.String())
 }
 
 // GetMarket returns the market if it is in the pricefeed system
-func (k Keeper) GetMarket(ctx sdk.Context, MarketID string) (types.Market, bool) {
+func (k Keeper) GetMarket(ctx sdk.Context, marketID string) (types.Market, bool) {
 	markets := k.GetMarkets(ctx)
 
 	for i := range markets {
-		if markets[i].MarketID == MarketID {
+		if markets[i].MarketID == marketID {
 			return markets[i], true
 		}
 	}
@@ -68,14 +69,10 @@ func (k Keeper) GetAuthorizedAddresses(ctx sdk.Context) []sdk.AccAddress {
 	for _, m := range k.GetMarkets(ctx) {
 		for _, o := range m.Oracles {
 			// de-dup list of oracles
-			if _, found := uniqueOracles[o]; !found {
-				addr, err := sdk.AccAddressFromBech32(o)
-				if err != nil {
-					panic(err)
-				}
-				oracles = append(oracles, addr)
+			if _, found := uniqueOracles[o.String()]; !found {
+				oracles = append(oracles, o)
 			}
-			uniqueOracles[o] = true
+			uniqueOracles[o.String()] = true
 		}
 	}
 	return oracles
