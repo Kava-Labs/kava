@@ -40,7 +40,6 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	suite.addrs = addrs
 	suite.timestamps = timestamps
 	suite.randomNumberHashes = randomNumberHashes
-	return
 }
 
 func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
@@ -61,9 +60,9 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 				RecipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
 				SenderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
 				ClosedBlock:         1,
-				Status:              types.Open,
+				Status:              types.SWAP_STATUS_OPEN,
 				CrossChain:          true,
-				Direction:           types.Incoming,
+				Direction:           types.SWAP_DIRECTION_INCOMING,
 			},
 			true,
 		},
@@ -194,7 +193,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 				SenderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
 				RecipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
 				ClosedBlock:         0,
-				Status:              types.Completed,
+				Status:              types.SWAP_STATUS_COMPLETED,
 			},
 			false,
 		},
@@ -210,7 +209,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 				SenderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
 				RecipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
 				ClosedBlock:         1,
-				Status:              types.NULL,
+				Status:              types.SWAP_STATUS_UNSPECIFIED,
 			},
 			false,
 		},
@@ -226,8 +225,8 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 				SenderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
 				RecipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
 				ClosedBlock:         1,
-				Status:              types.Open,
-				Direction:           types.INVALID,
+				Status:              types.SWAP_STATUS_OPEN,
+				Direction:           types.SWAP_DIRECTION_UNSPECIFIED,
 			},
 			false,
 		},

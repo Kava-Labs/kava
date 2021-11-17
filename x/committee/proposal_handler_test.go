@@ -8,64 +8,65 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee"
+	"github.com/kava-labs/kava/x/committee/keeper"
+	"github.com/kava-labs/kava/x/committee/testutil"
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
 var testTime time.Time = time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
 
-func NewCommitteeGenState(cdc *codec.Codec, gs committee.GenesisState) app.GenesisState {
-	return app.GenesisState{committee.ModuleName: cdc.MustMarshalJSON(gs)}
+func NewCommitteeGenState(cdc codec.Codec, gs *types.GenesisState) app.GenesisState {
+	return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(gs)}
 }
 
 type ProposalHandlerTestSuite struct {
 	suite.Suite
 
-	keeper committee.Keeper
+	keeper keeper.Keeper
 	app    app.TestApp
 	ctx    sdk.Context
 
 	addresses   []sdk.AccAddress
-	testGenesis committee.GenesisState
+	testGenesis *types.GenesisState
 }
 
 func (suite *ProposalHandlerTestSuite) SetupTest() {
 	_, suite.addresses = app.GeneratePrivKeyAddressPairs(5)
-	suite.testGenesis = committee.NewGenesisState(
+	suite.testGenesis = types.NewGenesisState(
 		2,
-		[]committee.Committee{
-			committee.MemberCommittee{
-				BaseCommittee: committee.BaseCommittee{
-					ID:               1,
-					Description:      "This committee is for testing.",
-					Members:          suite.addresses[:3],
-					Permissions:      []types.Permission{types.GodPermission{}},
-					VoteThreshold:    d("0.667"),
-					ProposalDuration: time.Hour * 24 * 7,
-					TallyOption:      types.FirstPastThePost,
-				},
-			},
-			committee.MemberCommittee{
-				BaseCommittee: committee.BaseCommittee{
-					ID:               2,
-					Members:          suite.addresses[2:],
-					Permissions:      nil,
-					VoteThreshold:    d("0.667"),
-					ProposalDuration: time.Hour * 24 * 7,
-					TallyOption:      types.FirstPastThePost,
-				},
-			},
+		[]types.Committee{
+			types.MustNewMemberCommittee(
+				1,
+				"This committee is for testing.",
+				suite.addresses[:3],
+				[]types.Permission{&types.GodPermission{}},
+				testutil.D("0.667"),
+				time.Hour*24*7,
+				types.TALLY_OPTION_FIRST_PAST_THE_POST,
+			),
+			types.MustNewMemberCommittee(
+				2,
+				"member committee",
+				suite.addresses[2:],
+				nil,
+				testutil.D("0.667"),
+				time.Hour*24*7,
+				types.TALLY_OPTION_FIRST_PAST_THE_POST,
+			),
 		},
-		[]committee.Proposal{
-			{ID: 1, CommitteeID: 1, PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."), Deadline: testTime.Add(7 * 24 * time.Hour)},
+		types.Proposals{
+			types.MustNewProposal(
+				govtypes.NewTextProposal("A Title", "A description of this proposal."), 1, 1, testTime.Add(7*24*time.Hour),
+			),
 		},
-		[]committee.Vote{
-			{ProposalID: 1, Voter: suite.addresses[0], VoteType: types.Yes},
+		[]types.Vote{
+			{ProposalID: 1, Voter: suite.addresses[0], VoteType: types.VOTE_TYPE_YES},
 		},
 	)
 }
@@ -73,67 +74,66 @@ func (suite *ProposalHandlerTestSuite) SetupTest() {
 func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 	testCases := []struct {
 		name       string
-		proposal   committee.CommitteeChangeProposal
+		proposal   types.CommitteeChangeProposal
 		expectPass bool
 	}{
 		{
 			name: "add new",
-			proposal: committee.NewCommitteeChangeProposal(
+			proposal: types.MustNewCommitteeChangeProposal(
 				"A Title",
 				"A proposal description.",
-				committee.MemberCommittee{
-					BaseCommittee: committee.BaseCommittee{
-						ID:               34,
-						Members:          suite.addresses[:1],
-						VoteThreshold:    d("1"),
-						ProposalDuration: time.Hour * 24,
-						TallyOption:      types.FirstPastThePost,
-					},
-				},
+				types.MustNewMemberCommittee(
+					34,
+					"member committee",
+					suite.addresses[:1],
+					[]types.Permission{},
+					testutil.D("1"),
+					time.Hour*24,
+					types.TALLY_OPTION_DEADLINE,
+				),
 			),
 			expectPass: true,
 		},
 		{
 			name: "update",
-			proposal: committee.NewCommitteeChangeProposal(
+			proposal: types.MustNewCommitteeChangeProposal(
 				"A Title",
 				"A proposal description.",
-				committee.MemberCommittee{
-					BaseCommittee: committee.BaseCommittee{
-						ID:               suite.testGenesis.Committees[0].GetID(),
-						Members:          suite.addresses, // add new members
-						Permissions:      suite.testGenesis.Committees[0].GetPermissions(),
-						VoteThreshold:    suite.testGenesis.Committees[0].GetVoteThreshold(),
-						ProposalDuration: suite.testGenesis.Committees[0].GetProposalDuration(),
-						TallyOption:      types.FirstPastThePost,
-					},
-				},
+				types.MustNewMemberCommittee(
+					suite.testGenesis.GetCommittees()[0].GetID(),
+					"member committee",
+					suite.addresses, // add new members
+					suite.testGenesis.GetCommittees()[0].GetPermissions(),
+					suite.testGenesis.GetCommittees()[0].GetVoteThreshold(),
+					suite.testGenesis.GetCommittees()[0].GetProposalDuration(),
+					types.TALLY_OPTION_FIRST_PAST_THE_POST,
+				),
 			),
 			expectPass: true,
 		},
 		{
 			name: "invalid title",
-			proposal: committee.NewCommitteeChangeProposal(
+			proposal: types.MustNewCommitteeChangeProposal(
 				"A Title That Is Much Too Long And Really Quite Unreasonable Given That It Is Trying To Fulfill The Roll Of An Acceptable Governance Proposal Title That Should Succinctly Communicate The Goal And Contents Of The Proposed Proposal To All Parties Involved",
 				"A proposal description.",
-				suite.testGenesis.Committees[0],
+				suite.testGenesis.GetCommittees()[0],
 			),
 			expectPass: false,
 		},
 		{
 			name: "invalid committee",
-			proposal: committee.NewCommitteeChangeProposal(
+			proposal: types.MustNewCommitteeChangeProposal(
 				"A Title",
 				"A proposal description.",
-				committee.MemberCommittee{
-					BaseCommittee: committee.BaseCommittee{
-						ID:               suite.testGenesis.Committees[0].GetID(),
-						Members:          append(suite.addresses, suite.addresses[0]), // duplicate address
-						Permissions:      suite.testGenesis.Committees[0].GetPermissions(),
-						VoteThreshold:    suite.testGenesis.Committees[0].GetVoteThreshold(),
-						ProposalDuration: suite.testGenesis.Committees[0].GetProposalDuration(),
-					},
-				},
+				types.MustNewMemberCommittee(
+					suite.testGenesis.GetCommittees()[0].GetID(),
+					"member committee",
+					append(suite.addresses, suite.addresses[0]), // duplicate address
+					suite.testGenesis.GetCommittees()[0].GetPermissions(),
+					suite.testGenesis.GetCommittees()[0].GetVoteThreshold(),
+					suite.testGenesis.GetCommittees()[0].GetProposalDuration(),
+					types.TALLY_OPTION_DEADLINE,
+				),
 			),
 			expectPass: false,
 		},
@@ -144,32 +144,32 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 			suite.app = app.NewTestApp()
 			suite.keeper = suite.app.GetCommitteeKeeper()
 			suite.app = suite.app.InitializeFromGenesisStates(
-				NewCommitteeGenState(suite.app.Codec(), suite.testGenesis),
+				NewCommitteeGenState(suite.app.AppCodec(), suite.testGenesis),
 			)
-			suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: testTime})
+			suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: testTime})
 			handler := committee.NewProposalHandler(suite.keeper)
 
-			oldProposals := suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.NewCommittee.GetID())
+			oldProposals := suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.GetNewCommittee().GetID())
 
 			// Run
-			err := handler(suite.ctx, tc.proposal)
+			err := handler(suite.ctx, &tc.proposal)
 
 			// Check
 			if tc.expectPass {
 				suite.NoError(err)
 				// check committee is accurate
-				actualCom, found := suite.keeper.GetCommittee(suite.ctx, tc.proposal.NewCommittee.GetID())
+				actualCom, found := suite.keeper.GetCommittee(suite.ctx, tc.proposal.GetNewCommittee().GetID())
 				suite.True(found)
-				suite.Equal(tc.proposal.NewCommittee, actualCom)
+				testutil.AssertProtoMessageJSON(suite.T(), suite.app.AppCodec(), tc.proposal.GetNewCommittee(), actualCom)
 
 				// check proposals and votes for this committee have been removed
-				suite.Empty(suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.NewCommittee.GetID()))
+				suite.Empty(suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.GetNewCommittee().GetID()))
 				for _, p := range oldProposals {
 					suite.Empty(suite.keeper.GetVotesByProposal(suite.ctx, p.ID))
 				}
 			} else {
 				suite.Error(err)
-				suite.Equal(suite.testGenesis, committee.ExportGenesis(suite.ctx, suite.keeper))
+				testutil.AssertProtoMessageJSON(suite.T(), suite.app.AppCodec(), suite.testGenesis, committee.ExportGenesis(suite.ctx, suite.keeper))
 			}
 		})
 	}
@@ -178,24 +178,24 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 func (suite *ProposalHandlerTestSuite) TestProposalHandler_DeleteCommittee() {
 	testCases := []struct {
 		name       string
-		proposal   committee.CommitteeDeleteProposal
+		proposal   types.CommitteeDeleteProposal
 		expectPass bool
 	}{
 		{
 			name: "normal",
-			proposal: committee.NewCommitteeDeleteProposal(
+			proposal: types.NewCommitteeDeleteProposal(
 				"A Title",
 				"A proposal description.",
-				suite.testGenesis.Committees[0].GetID(),
+				suite.testGenesis.GetCommittees()[0].GetID(),
 			),
 			expectPass: true,
 		},
 		{
 			name: "invalid title",
-			proposal: committee.NewCommitteeDeleteProposal(
+			proposal: types.NewCommitteeDeleteProposal(
 				"A Title That Is Much Too Long And Really Quite Unreasonable Given That It Is Trying To Fulfill The Roll Of An Acceptable Governance Proposal Title That Should Succinctly Communicate The Goal And Contents Of The Proposed Proposal To All Parties Involved",
 				"A proposal description.",
-				suite.testGenesis.Committees[1].GetID(),
+				suite.testGenesis.GetCommittees()[1].GetID(),
 			),
 			expectPass: false,
 		},
@@ -206,15 +206,15 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_DeleteCommittee() {
 			suite.app = app.NewTestApp()
 			suite.keeper = suite.app.GetCommitteeKeeper()
 			suite.app = suite.app.InitializeFromGenesisStates(
-				NewCommitteeGenState(suite.app.Codec(), suite.testGenesis),
+				NewCommitteeGenState(suite.app.AppCodec(), suite.testGenesis),
 			)
-			suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: testTime})
+			suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: testTime})
 			handler := committee.NewProposalHandler(suite.keeper)
 
 			oldProposals := suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.CommitteeID)
 
 			// Run
-			err := handler(suite.ctx, tc.proposal)
+			err := handler(suite.ctx, &tc.proposal)
 
 			// Check
 			if tc.expectPass {
@@ -230,7 +230,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_DeleteCommittee() {
 				}
 			} else {
 				suite.Error(err)
-				suite.Equal(suite.testGenesis, committee.ExportGenesis(suite.ctx, suite.keeper))
+				testutil.AssertProtoMessageJSON(suite.T(), suite.app.AppCodec(), suite.testGenesis, committee.ExportGenesis(suite.ctx, suite.keeper))
 			}
 		})
 	}

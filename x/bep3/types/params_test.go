@@ -36,7 +36,6 @@ func (suite *ParamsTestSuite) SetupTest() {
 		TimePeriod:     time.Hour * 24,
 	}
 	suite.supply = append(suite.supply, supply1, supply2)
-	return
 }
 
 func (suite *ParamsTestSuite) TestParamValidation() {
@@ -102,17 +101,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"", 714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
-					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
-			},
-			expectPass:  false,
-			expectedErr: "denom invalid",
-		},
-		{
-			name: "invalid denom - bad format",
-			args: args{
-				assetParams: types.AssetParams{types.NewAssetParam(
-					"BNB", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},

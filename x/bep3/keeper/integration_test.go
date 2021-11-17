@@ -3,9 +3,9 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/tendermint/tendermint/crypto"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -26,21 +26,20 @@ var (
 	TestUser2 = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2")))
 )
 
-func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func ts(minOffset int) int64                { return tmtime.Now().Add(time.Duration(minOffset) * time.Minute).Unix() }
 
-func NewAuthGenStateFromAccs(accounts ...authexported.GenesisAccount) app.GenesisState {
-	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)
-	return app.GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
+func NewAuthGenStateFromAccs(cdc codec.JSONCodec, accounts ...authtypes.GenesisAccount) app.GenesisState {
+	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
+	return app.GenesisState{authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis)}
 }
 
-func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
+func NewBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
 			AssetParams: types.AssetParams{
-				types.AssetParam{
+				{
 					Denom:  "bnb",
 					CoinID: 714,
 					SupplyLimit: types.SupplyLimit{
@@ -57,7 +56,7 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 					MinBlockLock:  types.DefaultMinBlockLock,
 					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},
-				types.AssetParam{
+				{
 					Denom:  "inc",
 					CoinID: 9999,
 					SupplyLimit: types.SupplyLimit{
@@ -94,7 +93,7 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 		},
 		PreviousBlockTime: types.DefaultPreviousBlockTime,
 	}
-	return app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(bep3Genesis)}
+	return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&bep3Genesis)}
 }
 
 func atomicSwaps(ctx sdk.Context, count int) types.AtomicSwaps {
@@ -114,24 +113,6 @@ func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
 
 	return types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
 		uint64(ctx.BlockHeight())+expireOffset, timestamp, TestUser1, TestUser2,
-		TestSenderOtherChain, TestRecipientOtherChain, 0, types.Open, true,
-		types.Incoming)
-}
-
-func assetSupplies(count int) types.AssetSupplies {
-	if count > 5 { // Max 5 asset supplies
-		return types.AssetSupplies{}
-	}
-
-	var supplies types.AssetSupplies
-
-	for i := 0; i < count; i++ {
-		supply := assetSupply(DenomMap[i])
-		supplies = append(supplies, supply)
-	}
-	return supplies
-}
-
-func assetSupply(denom string) types.AssetSupply {
-	return types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 0), c(denom, 0), time.Duration(0))
+		TestSenderOtherChain, TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN, true,
+		types.SWAP_DIRECTION_INCOMING)
 }

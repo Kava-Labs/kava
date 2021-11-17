@@ -1,0 +1,23 @@
+syntax = "proto3";
+package kava.bep3.v1beta1;
+
+import "kava/bep3/v1beta1/bep3.proto";
+import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/bep3/types";
+
+// GenesisState defines the pricefeed module's genesis state.
+message GenesisState {
+  // params defines all the paramaters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  // atomic_swaps represents the state of stored atomic swaps
+  repeated AtomicSwap atomic_swaps = 2 [(gogoproto.castrepeated) = "AtomicSwaps", (gogoproto.nullable) = false];
+
+  // supplies represents the supply information of each atomic swap
+  repeated AssetSupply supplies = 3 [(gogoproto.castrepeated) = "AssetSupplies", (gogoproto.nullable) = false];
+
+  // previous_block_time represents the time of the previous block
+  google.protobuf.Timestamp previous_block_time = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+}
