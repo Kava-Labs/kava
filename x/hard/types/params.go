@@ -15,6 +15,7 @@ var (
 	KeyMinimumBorrowUSDValue     = []byte("MinimumBorrowUSDValue")
 	DefaultMoneyMarkets          = MoneyMarkets{}
 	DefaultMinimumBorrowUSDValue = sdk.NewDec(10) // $10 USD minimum borrow value
+	// TODO: When CDP fully merged, errors with x/cdp/go.mod
 	// GovDenom                     = cdptypes.DefaultGovDenom
 	DefaultAccumulationTimes = GenesisAccumulationTimes{}
 	DefaultTotalSupplied     = sdk.Coins{}

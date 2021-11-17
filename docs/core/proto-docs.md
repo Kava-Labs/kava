@@ -2376,7 +2376,7 @@ BorrowResponse defines an amount of coins borrowed from a hard module account.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `borrower` | [string](#string) |  | bech32 address as string |
+| `borrower` | [string](#string) |  |  |
 | `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 | `index` | [BorrowInterestFactorResponse](#kava.hard.v1beta1.BorrowInterestFactorResponse) | repeated |  |
 
