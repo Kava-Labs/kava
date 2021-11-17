@@ -6,77 +6,91 @@ import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "google/protobuf/duration.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos/auth/v1beta1/auth.proto";
 
 option go_package = "github.com/kava-labs/kava/x/hard/types";
 
-// Query defines the gRPC querier service for bep3 module
+// Query defines the gRPC querier service for bep3 module.
 service Query {
+  // Params queries module params.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/kava/hard/v1beta1/params";
   }
 
-  rpc ModAccounts(QueryModAccountsRequest) returns (QueryModAccountsResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/mod_accounts";
+  // Accounts queries module accounts.
+  rpc Accounts(QueryAccountsRequest) returns (QueryAccountsResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/accounts/{name}";
   }
 
+  // Deposits queries hard deposits.
   rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
     option (google.api.http).get = "/kava/hard/v1beta1/deposits";
   }
 
+  // UnsyncedDeposits queries unsynced deposits.
   rpc UnsyncedDeposits(QueryUnsyncedDepositsRequest) returns (QueryUnsyncedDepositsResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/unsynced_deposits";
+    option (google.api.http).get = "/kava/hard/v1beta1/unsynced-deposits";
   }
 
+  // TotalDeposited queries total coins deposited to hard liquidity pools.
   rpc TotalDeposited(QueryTotalDepositedRequest) returns (QueryTotalDepositedResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/total_deposited";
+    option (google.api.http).get = "/kava/hard/v1beta1/total-deposited/{denom}";
   }
 
+  // Borrows queries hard borrows.
   rpc Borrows(QueryBorrowsRequest) returns (QueryBorrowsResponse) {
     option (google.api.http).get = "/kava/hard/v1beta1/borrows";
   }
 
+  // UnsyncedBorrows queries unsynced borrows.
   rpc UnsyncedBorrows(QueryUnsyncedBorrowsRequest) returns (QueryUnsyncedBorrowsResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/unsynced_borrows";
+    option (google.api.http).get = "/kava/hard/v1beta1/unsynced-borrows";
   }
 
+  // TotalBorrowed queries total coins borrowed from hard liquidity pools.
   rpc TotalBorrowed(QueryTotalBorrowedRequest) returns (QueryTotalBorrowedResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/total_borrowed";
+    option (google.api.http).get = "/kava/hard/v1beta1/total-borrowed/{denom}";
   }
 
+  // InterestRate queries the hard module interest rates.
   rpc InterestRate(QueryInterestRateRequest) returns (QueryInterestRateResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/interest_rate";
+    option (google.api.http).get = "/kava/hard/v1beta1/interest-rate/{denom}";
   }
 
+  // Reserves queries total hard reserve coins.
   rpc Reserves(QueryReservesRequest) returns (QueryReservesResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/reserves";
+    option (google.api.http).get = "/kava/hard/v1beta1/reserves/{denom}";
   }
 
+  // InterestFactors queries hard module interest factors.
   rpc InterestFactors(QueryInterestFactorsRequest) returns (QueryInterestFactorsResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/interest_factors";
+    option (google.api.http).get = "/kava/hard/v1beta1/interest-factors/{denom}";
   }
 }
 
+// QueryParamsRequest is the request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
+// QueryParamsResponse is the response type for the Query/Params RPC method.
 message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryModAccountsRequest {
+// QueryModAccountsRequest is the request type for the Query/ModAccounts RPC method.
+message QueryAccountsRequest {
   string name = 1;
 
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
-message QueryModAccountsResponse {
+// QueryModAccountsResponse is the response type for the Query/ModAccounts RPC method.
+message QueryAccountsResponse {
   repeated cosmos.auth.v1beta1.ModuleAccount accounts   = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse     pagination = 2;
 }
 
-// QueryDepositsParams is the params for a filtered deposit query
+// QueryDepositsRequest is the request type for the Query/Deposits RPC method.
 message QueryDepositsRequest {
   string denom = 1;
   string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -84,13 +98,14 @@ message QueryDepositsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
+// QueryDepositsResponse is the response type for the Query/Deposits RPC method.
 message QueryDepositsResponse {
   repeated Deposit deposits = 1 [(gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-// QueryUnsyncedDepositsParams is the params for a filtered unsynced deposit query.
+// QueryUnsyncedDepositsRequest is the request type for the Query/UnsyncedDeposits RPC method.
 message QueryUnsyncedDepositsRequest {
   string denom = 1;
   string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -98,23 +113,25 @@ message QueryUnsyncedDepositsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
+// QueryUnsyncedDepositsResponse is the response type for the Query/UnsyncedDeposits RPC method.
 message QueryUnsyncedDepositsResponse {
   repeated Deposit deposits = 1 [(gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-// QueryTotalDepositedParams is the params for a filtered total deposited coins query
+// QueryTotalDepositedRequest is the request type for the Query/TotalDeposited RPC method.
 message QueryTotalDepositedRequest {
   string denom = 1;
 }
 
+// QueryTotalDepositedResponse is the response type for the Query/TotalDeposited RPC method.
 message QueryTotalDepositedResponse {
   repeated cosmos.base.v1beta1.Coin supplied_coins = 2
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
-// QueryBorrowsParams is the params for a filtered borrows query
+// QueryBorrowsRequest is the request type for the Query/Borrows RPC method.
 message QueryBorrowsRequest {
   string denom = 1;
   string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -122,13 +139,14 @@ message QueryBorrowsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
+// QueryBorrowsResponse is the response type for the Query/Borrows RPC method.
 message QueryBorrowsResponse {
   repeated Borrow borrows = 1 [(gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-// QueryUnsyncedBorrowsParams is the params for a filtered unsynced borrows query
+// QueryUnsyncedBorrowsRequest is the request type for the Query/UnsyncedBorrows RPC method.
 message QueryUnsyncedBorrowsRequest {
   string denom = 1;
   string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -136,47 +154,52 @@ message QueryUnsyncedBorrowsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
+// QueryUnsyncedBorrowsResponse is the response type for the Query/UnsyncedBorrows RPC method.
 message QueryUnsyncedBorrowsResponse {
   repeated Borrow borrows = 1 [(gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-// QueryTotalBorrowedParams is the params for a filtered total borrowed coins query
+// QueryTotalBorrowedRequest is the request type for the Query/TotalBorrowed RPC method.
 message QueryTotalBorrowedRequest {
   string denom = 1;
 }
 
+// QueryTotalBorrowedResponse is the response type for the Query/TotalBorrowed RPC method.
 message QueryTotalBorrowedResponse {
   repeated cosmos.base.v1beta1.Coin borrowed_coins = 2
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
-// QueryInterestRateParams is the params for a filtered interest rate query
+// QueryInterestRateRequest is the request type for the Query/InterestRate RPC method.
 message QueryInterestRateRequest {
   string denom = 1;
 }
 
+// QueryInterestRateResponse is the response type for the Query/InterestRate RPC method.
 message QueryInterestRateResponse {
   repeated MoneyMarketInterestRate interest_rates = 1
       [(gogoproto.castrepeated) = "MoneyMarketInterestRates", (gogoproto.nullable) = false];
 }
 
-// QueryReservesParams is the params for a filtered reserves query
+// QueryReservesRequest is the request type for the Query/Reserves RPC method.
 message QueryReservesRequest {
   string denom = 1;
 }
 
+// QueryReservesResponse is the response type for the Query/Reserves RPC method.
 message QueryReservesResponse {
   repeated cosmos.base.v1beta1.Coin amount = 2
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
-// QueryInterestFactorsParams is the params for a filtered interest factors query
+// QueryInterestFactorsRequest is the request type for the Query/InterestFactors RPC method.
 message QueryInterestFactorsRequest {
   string denom = 1;
 }
 
+// QueryInterestFactorsResponse is the response type for the Query/InterestFactors RPC method.
 message QueryInterestFactorsResponse {
   repeated InterestFactor interest_factors = 1
       [(gogoproto.castrepeated) = "InterestFactors", (gogoproto.nullable) = false];

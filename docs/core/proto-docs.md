@@ -158,6 +158,8 @@
 - [kava/hard/v1beta1/query.proto](#kava/hard/v1beta1/query.proto)
     - [InterestFactor](#kava.hard.v1beta1.InterestFactor)
     - [MoneyMarketInterestRate](#kava.hard.v1beta1.MoneyMarketInterestRate)
+    - [QueryAccountsRequest](#kava.hard.v1beta1.QueryAccountsRequest)
+    - [QueryAccountsResponse](#kava.hard.v1beta1.QueryAccountsResponse)
     - [QueryBorrowsRequest](#kava.hard.v1beta1.QueryBorrowsRequest)
     - [QueryBorrowsResponse](#kava.hard.v1beta1.QueryBorrowsResponse)
     - [QueryDepositsRequest](#kava.hard.v1beta1.QueryDepositsRequest)
@@ -166,8 +168,6 @@
     - [QueryInterestFactorsResponse](#kava.hard.v1beta1.QueryInterestFactorsResponse)
     - [QueryInterestRateRequest](#kava.hard.v1beta1.QueryInterestRateRequest)
     - [QueryInterestRateResponse](#kava.hard.v1beta1.QueryInterestRateResponse)
-    - [QueryModAccountsRequest](#kava.hard.v1beta1.QueryModAccountsRequest)
-    - [QueryModAccountsResponse](#kava.hard.v1beta1.QueryModAccountsResponse)
     - [QueryParamsRequest](#kava.hard.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.hard.v1beta1.QueryParamsResponse)
     - [QueryReservesRequest](#kava.hard.v1beta1.QueryReservesRequest)
@@ -2142,7 +2142,7 @@ MsgVote is submitted by committee members to vote on proposals.
 <a name="kava.hard.v1beta1.Borrow"></a>
 
 ### Borrow
-Borrow defines an amount of coins borrowed from a hard module account
+Borrow defines an amount of coins borrowed from a hard module account.
 
 
 | Field | Type | Label | Description |
@@ -2159,7 +2159,7 @@ Borrow defines an amount of coins borrowed from a hard module account
 <a name="kava.hard.v1beta1.BorrowInterestFactor"></a>
 
 ### BorrowInterestFactor
-BorrowInterestFactor defines an individual borrow interest factor
+BorrowInterestFactor defines an individual borrow interest factor.
 
 
 | Field | Type | Label | Description |
@@ -2175,7 +2175,7 @@ BorrowInterestFactor defines an individual borrow interest factor
 <a name="kava.hard.v1beta1.BorrowLimit"></a>
 
 ### BorrowLimit
-BorrowLimit enforces restrictions on a money market
+BorrowLimit enforces restrictions on a money market.
 
 
 | Field | Type | Label | Description |
@@ -2192,7 +2192,7 @@ BorrowLimit enforces restrictions on a money market
 <a name="kava.hard.v1beta1.Deposit"></a>
 
 ### Deposit
-Deposit defines an amount of coins deposited into a hard module account
+Deposit defines an amount of coins deposited into a hard module account.
 
 
 | Field | Type | Label | Description |
@@ -2209,7 +2209,7 @@ Deposit defines an amount of coins deposited into a hard module account
 <a name="kava.hard.v1beta1.InterestRateModel"></a>
 
 ### InterestRateModel
-InterestRateModel contains information about an asset's interest rate
+InterestRateModel contains information about an asset's interest rate.
 
 
 | Field | Type | Label | Description |
@@ -2227,7 +2227,7 @@ InterestRateModel contains information about an asset's interest rate
 <a name="kava.hard.v1beta1.MoneyMarket"></a>
 
 ### MoneyMarket
-MoneyMarket is a money market for an individual asset
+MoneyMarket is a money market for an individual asset.
 
 
 | Field | Type | Label | Description |
@@ -2248,7 +2248,7 @@ MoneyMarket is a money market for an individual asset
 <a name="kava.hard.v1beta1.Params"></a>
 
 ### Params
-Params defines the parameters for the bep3 module.
+Params defines the parameters for the hard module.
 
 
 | Field | Type | Label | Description |
@@ -2264,7 +2264,7 @@ Params defines the parameters for the bep3 module.
 <a name="kava.hard.v1beta1.SupplyInterestFactor"></a>
 
 ### SupplyInterestFactor
-SupplyInterestFactor defines an individual borrow interest factor
+SupplyInterestFactor defines an individual borrow interest factor.
 
 
 | Field | Type | Label | Description |
@@ -2296,7 +2296,7 @@ SupplyInterestFactor defines an individual borrow interest factor
 <a name="kava.hard.v1beta1.GenesisAccumulationTime"></a>
 
 ### GenesisAccumulationTime
-GenesisAccumulationTime stores the previous distribution time and its corresponding denom
+GenesisAccumulationTime stores the previous distribution time and its corresponding denom.
 
 
 | Field | Type | Label | Description |
@@ -2314,7 +2314,7 @@ GenesisAccumulationTime stores the previous distribution time and its correspond
 <a name="kava.hard.v1beta1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the pricefeed module's genesis state.
+GenesisState defines the hard module's genesis state.
 
 
 | Field | Type | Label | Description |
@@ -2382,10 +2382,42 @@ MoneyMarketInterestRate is a unique type returned by interest rate queries
 
 
 
+<a name="kava.hard.v1beta1.QueryAccountsRequest"></a>
+
+### QueryAccountsRequest
+QueryModAccountsRequest is the request type for the Query/ModAccounts RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `name` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryAccountsResponse"></a>
+
+### QueryAccountsResponse
+QueryModAccountsResponse is the response type for the Query/ModAccounts RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `accounts` | [cosmos.auth.v1beta1.ModuleAccount](#cosmos.auth.v1beta1.ModuleAccount) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
 <a name="kava.hard.v1beta1.QueryBorrowsRequest"></a>
 
 ### QueryBorrowsRequest
-QueryBorrowsParams is the params for a filtered borrows query
+QueryBorrowsRequest is the request type for the Query/Borrows RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2402,7 +2434,7 @@ QueryBorrowsParams is the params for a filtered borrows query
 <a name="kava.hard.v1beta1.QueryBorrowsResponse"></a>
 
 ### QueryBorrowsResponse
-
+QueryBorrowsResponse is the response type for the Query/Borrows RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2418,7 +2450,7 @@ QueryBorrowsParams is the params for a filtered borrows query
 <a name="kava.hard.v1beta1.QueryDepositsRequest"></a>
 
 ### QueryDepositsRequest
-QueryDepositsParams is the params for a filtered deposit query
+QueryDepositsRequest is the request type for the Query/Deposits RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2435,7 +2467,7 @@ QueryDepositsParams is the params for a filtered deposit query
 <a name="kava.hard.v1beta1.QueryDepositsResponse"></a>
 
 ### QueryDepositsResponse
-
+QueryDepositsResponse is the response type for the Query/Deposits RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2451,7 +2483,7 @@ QueryDepositsParams is the params for a filtered deposit query
 <a name="kava.hard.v1beta1.QueryInterestFactorsRequest"></a>
 
 ### QueryInterestFactorsRequest
-QueryInterestFactorsParams is the params for a filtered interest factors query
+QueryInterestFactorsRequest is the request type for the Query/InterestFactors RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2466,7 +2498,7 @@ QueryInterestFactorsParams is the params for a filtered interest factors query
 <a name="kava.hard.v1beta1.QueryInterestFactorsResponse"></a>
 
 ### QueryInterestFactorsResponse
-
+QueryInterestFactorsResponse is the response type for the Query/InterestFactors RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2481,7 +2513,7 @@ QueryInterestFactorsParams is the params for a filtered interest factors query
 <a name="kava.hard.v1beta1.QueryInterestRateRequest"></a>
 
 ### QueryInterestRateRequest
-QueryInterestRateParams is the params for a filtered interest rate query
+QueryInterestRateRequest is the request type for the Query/InterestRate RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2496,7 +2528,7 @@ QueryInterestRateParams is the params for a filtered interest rate query
 <a name="kava.hard.v1beta1.QueryInterestRateResponse"></a>
 
 ### QueryInterestRateResponse
-
+QueryInterestRateResponse is the response type for the Query/InterestRate RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2508,42 +2540,10 @@ QueryInterestRateParams is the params for a filtered interest rate query
 
 
 
-<a name="kava.hard.v1beta1.QueryModAccountsRequest"></a>
-
-### QueryModAccountsRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `name` | [string](#string) |  |  |
-| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
-
-
-
-
-
-
-<a name="kava.hard.v1beta1.QueryModAccountsResponse"></a>
-
-### QueryModAccountsResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `accounts` | [cosmos.auth.v1beta1.ModuleAccount](#cosmos.auth.v1beta1.ModuleAccount) | repeated |  |
-| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
-
-
-
-
-
-
 <a name="kava.hard.v1beta1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
-
+QueryParamsRequest is the request type for the Query/Params RPC method.
 
 
 
@@ -2553,7 +2553,7 @@ QueryInterestRateParams is the params for a filtered interest rate query
 <a name="kava.hard.v1beta1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
-
+QueryParamsResponse is the response type for the Query/Params RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2568,7 +2568,7 @@ QueryInterestRateParams is the params for a filtered interest rate query
 <a name="kava.hard.v1beta1.QueryReservesRequest"></a>
 
 ### QueryReservesRequest
-QueryReservesParams is the params for a filtered reserves query
+QueryReservesRequest is the request type for the Query/Reserves RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2583,7 +2583,7 @@ QueryReservesParams is the params for a filtered reserves query
 <a name="kava.hard.v1beta1.QueryReservesResponse"></a>
 
 ### QueryReservesResponse
-
+QueryReservesResponse is the response type for the Query/Reserves RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2598,7 +2598,7 @@ QueryReservesParams is the params for a filtered reserves query
 <a name="kava.hard.v1beta1.QueryTotalBorrowedRequest"></a>
 
 ### QueryTotalBorrowedRequest
-QueryTotalBorrowedParams is the params for a filtered total borrowed coins query
+QueryTotalBorrowedRequest is the request type for the Query/TotalBorrowed RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2613,7 +2613,7 @@ QueryTotalBorrowedParams is the params for a filtered total borrowed coins query
 <a name="kava.hard.v1beta1.QueryTotalBorrowedResponse"></a>
 
 ### QueryTotalBorrowedResponse
-
+QueryTotalBorrowedResponse is the response type for the Query/TotalBorrowed RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2628,7 +2628,7 @@ QueryTotalBorrowedParams is the params for a filtered total borrowed coins query
 <a name="kava.hard.v1beta1.QueryTotalDepositedRequest"></a>
 
 ### QueryTotalDepositedRequest
-QueryTotalDepositedParams is the params for a filtered total deposited coins query
+QueryTotalDepositedRequest is the request type for the Query/TotalDeposited RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2643,7 +2643,7 @@ QueryTotalDepositedParams is the params for a filtered total deposited coins que
 <a name="kava.hard.v1beta1.QueryTotalDepositedResponse"></a>
 
 ### QueryTotalDepositedResponse
-
+QueryTotalDepositedResponse is the response type for the Query/TotalDeposited RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2658,7 +2658,7 @@ QueryTotalDepositedParams is the params for a filtered total deposited coins que
 <a name="kava.hard.v1beta1.QueryUnsyncedBorrowsRequest"></a>
 
 ### QueryUnsyncedBorrowsRequest
-QueryUnsyncedBorrowsParams is the params for a filtered unsynced borrows query
+QueryUnsyncedBorrowsRequest is the request type for the Query/UnsyncedBorrows RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2675,7 +2675,7 @@ QueryUnsyncedBorrowsParams is the params for a filtered unsynced borrows query
 <a name="kava.hard.v1beta1.QueryUnsyncedBorrowsResponse"></a>
 
 ### QueryUnsyncedBorrowsResponse
-
+QueryUnsyncedBorrowsResponse is the response type for the Query/UnsyncedBorrows RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2691,7 +2691,7 @@ QueryUnsyncedBorrowsParams is the params for a filtered unsynced borrows query
 <a name="kava.hard.v1beta1.QueryUnsyncedDepositsRequest"></a>
 
 ### QueryUnsyncedDepositsRequest
-QueryUnsyncedDepositsParams is the params for a filtered unsynced deposit query.
+QueryUnsyncedDepositsRequest is the request type for the Query/UnsyncedDeposits RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2708,7 +2708,7 @@ QueryUnsyncedDepositsParams is the params for a filtered unsynced deposit query.
 <a name="kava.hard.v1beta1.QueryUnsyncedDepositsResponse"></a>
 
 ### QueryUnsyncedDepositsResponse
-
+QueryUnsyncedDepositsResponse is the response type for the Query/UnsyncedDeposits RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2730,21 +2730,21 @@ QueryUnsyncedDepositsParams is the params for a filtered unsynced deposit query.
 <a name="kava.hard.v1beta1.Query"></a>
 
 ### Query
-Query defines the gRPC querier service for bep3 module
+Query defines the gRPC querier service for bep3 module.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#kava.hard.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.hard.v1beta1.QueryParamsResponse) |  | GET|/kava/hard/v1beta1/params|
-| `ModAccounts` | [QueryModAccountsRequest](#kava.hard.v1beta1.QueryModAccountsRequest) | [QueryModAccountsResponse](#kava.hard.v1beta1.QueryModAccountsResponse) |  | GET|/kava/hard/v1beta1/mod_accounts|
-| `Deposits` | [QueryDepositsRequest](#kava.hard.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.hard.v1beta1.QueryDepositsResponse) |  | GET|/kava/hard/v1beta1/deposits|
-| `UnsyncedDeposits` | [QueryUnsyncedDepositsRequest](#kava.hard.v1beta1.QueryUnsyncedDepositsRequest) | [QueryUnsyncedDepositsResponse](#kava.hard.v1beta1.QueryUnsyncedDepositsResponse) |  | GET|/kava/hard/v1beta1/unsynced_deposits|
-| `TotalDeposited` | [QueryTotalDepositedRequest](#kava.hard.v1beta1.QueryTotalDepositedRequest) | [QueryTotalDepositedResponse](#kava.hard.v1beta1.QueryTotalDepositedResponse) |  | GET|/kava/hard/v1beta1/total_deposited|
-| `Borrows` | [QueryBorrowsRequest](#kava.hard.v1beta1.QueryBorrowsRequest) | [QueryBorrowsResponse](#kava.hard.v1beta1.QueryBorrowsResponse) |  | GET|/kava/hard/v1beta1/borrows|
-| `UnsyncedBorrows` | [QueryUnsyncedBorrowsRequest](#kava.hard.v1beta1.QueryUnsyncedBorrowsRequest) | [QueryUnsyncedBorrowsResponse](#kava.hard.v1beta1.QueryUnsyncedBorrowsResponse) |  | GET|/kava/hard/v1beta1/unsynced_borrows|
-| `TotalBorrowed` | [QueryTotalBorrowedRequest](#kava.hard.v1beta1.QueryTotalBorrowedRequest) | [QueryTotalBorrowedResponse](#kava.hard.v1beta1.QueryTotalBorrowedResponse) |  | GET|/kava/hard/v1beta1/total_borrowed|
-| `InterestRate` | [QueryInterestRateRequest](#kava.hard.v1beta1.QueryInterestRateRequest) | [QueryInterestRateResponse](#kava.hard.v1beta1.QueryInterestRateResponse) |  | GET|/kava/hard/v1beta1/interest_rate|
-| `Reserves` | [QueryReservesRequest](#kava.hard.v1beta1.QueryReservesRequest) | [QueryReservesResponse](#kava.hard.v1beta1.QueryReservesResponse) |  | GET|/kava/hard/v1beta1/reserves|
-| `InterestFactors` | [QueryInterestFactorsRequest](#kava.hard.v1beta1.QueryInterestFactorsRequest) | [QueryInterestFactorsResponse](#kava.hard.v1beta1.QueryInterestFactorsResponse) |  | GET|/kava/hard/v1beta1/interest_factors|
+| `Params` | [QueryParamsRequest](#kava.hard.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.hard.v1beta1.QueryParamsResponse) | Params queries module params. | GET|/kava/hard/v1beta1/params|
+| `Accounts` | [QueryAccountsRequest](#kava.hard.v1beta1.QueryAccountsRequest) | [QueryAccountsResponse](#kava.hard.v1beta1.QueryAccountsResponse) | Accounts queries module accounts. | GET|/kava/hard/v1beta1/accounts/{name}|
+| `Deposits` | [QueryDepositsRequest](#kava.hard.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.hard.v1beta1.QueryDepositsResponse) | Deposits queries hard deposits. | GET|/kava/hard/v1beta1/deposits|
+| `UnsyncedDeposits` | [QueryUnsyncedDepositsRequest](#kava.hard.v1beta1.QueryUnsyncedDepositsRequest) | [QueryUnsyncedDepositsResponse](#kava.hard.v1beta1.QueryUnsyncedDepositsResponse) | UnsyncedDeposits queries unsynced deposits. | GET|/kava/hard/v1beta1/unsynced-deposits|
+| `TotalDeposited` | [QueryTotalDepositedRequest](#kava.hard.v1beta1.QueryTotalDepositedRequest) | [QueryTotalDepositedResponse](#kava.hard.v1beta1.QueryTotalDepositedResponse) | TotalDeposited queries total coins deposited to hard liquidity pools. | GET|/kava/hard/v1beta1/total-deposited/{denom}|
+| `Borrows` | [QueryBorrowsRequest](#kava.hard.v1beta1.QueryBorrowsRequest) | [QueryBorrowsResponse](#kava.hard.v1beta1.QueryBorrowsResponse) | Borrows queries hard borrows. | GET|/kava/hard/v1beta1/borrows|
+| `UnsyncedBorrows` | [QueryUnsyncedBorrowsRequest](#kava.hard.v1beta1.QueryUnsyncedBorrowsRequest) | [QueryUnsyncedBorrowsResponse](#kava.hard.v1beta1.QueryUnsyncedBorrowsResponse) | UnsyncedBorrows queries unsynced borrows. | GET|/kava/hard/v1beta1/unsynced-borrows|
+| `TotalBorrowed` | [QueryTotalBorrowedRequest](#kava.hard.v1beta1.QueryTotalBorrowedRequest) | [QueryTotalBorrowedResponse](#kava.hard.v1beta1.QueryTotalBorrowedResponse) | TotalBorrowed queries total coins borrowed from hard liquidity pools. | GET|/kava/hard/v1beta1/total-borrowed/{denom}|
+| `InterestRate` | [QueryInterestRateRequest](#kava.hard.v1beta1.QueryInterestRateRequest) | [QueryInterestRateResponse](#kava.hard.v1beta1.QueryInterestRateResponse) | InterestRate queries the hard module interest rates. | GET|/kava/hard/v1beta1/interest-rate/{denom}|
+| `Reserves` | [QueryReservesRequest](#kava.hard.v1beta1.QueryReservesRequest) | [QueryReservesResponse](#kava.hard.v1beta1.QueryReservesResponse) | Reserves queries total hard reserve coins. | GET|/kava/hard/v1beta1/reserves/{denom}|
+| `InterestFactors` | [QueryInterestFactorsRequest](#kava.hard.v1beta1.QueryInterestFactorsRequest) | [QueryInterestFactorsResponse](#kava.hard.v1beta1.QueryInterestFactorsResponse) | InterestFactors queries hard module interest factors. | GET|/kava/hard/v1beta1/interest-factors/{denom}|
 
  <!-- end services -->
 
@@ -2760,7 +2760,7 @@ Query defines the gRPC querier service for bep3 module
 <a name="kava.hard.v1beta1.MsgBorrow"></a>
 
 ### MsgBorrow
-MsgBorrow borrows funds from the hard module.
+MsgBorrow defines the Msg/Borrow request type.
 
 
 | Field | Type | Label | Description |
@@ -2776,7 +2776,7 @@ MsgBorrow borrows funds from the hard module.
 <a name="kava.hard.v1beta1.MsgBorrowResponse"></a>
 
 ### MsgBorrowResponse
-
+MsgBorrowResponse defines the Msg/Borrow response type.
 
 
 
@@ -2786,7 +2786,7 @@ MsgBorrow borrows funds from the hard module.
 <a name="kava.hard.v1beta1.MsgDeposit"></a>
 
 ### MsgDeposit
-MsgDeposit deposit collateral to the hard module.
+MsgDeposit defines the Msg/Deposit request type.
 
 
 | Field | Type | Label | Description |
@@ -2802,7 +2802,7 @@ MsgDeposit deposit collateral to the hard module.
 <a name="kava.hard.v1beta1.MsgDepositResponse"></a>
 
 ### MsgDepositResponse
-
+MsgDepositResponse defines the Msg/Deposit response type.
 
 
 
@@ -2812,7 +2812,7 @@ MsgDeposit deposit collateral to the hard module.
 <a name="kava.hard.v1beta1.MsgLiquidate"></a>
 
 ### MsgLiquidate
-MsgLiquidate attempts to liquidate a borrower's borrow
+MsgLiquidate defines the Msg/Liquidate request type.
 
 
 | Field | Type | Label | Description |
@@ -2828,7 +2828,7 @@ MsgLiquidate attempts to liquidate a borrower's borrow
 <a name="kava.hard.v1beta1.MsgLiquidateResponse"></a>
 
 ### MsgLiquidateResponse
-
+MsgLiquidateResponse defines the Msg/Liquidate response type.
 
 
 
@@ -2838,7 +2838,7 @@ MsgLiquidate attempts to liquidate a borrower's borrow
 <a name="kava.hard.v1beta1.MsgRepay"></a>
 
 ### MsgRepay
-MsgRepay repays funds to the hard module.
+MsgRepay defines the Msg/Repay request type.
 
 
 | Field | Type | Label | Description |
@@ -2855,7 +2855,7 @@ MsgRepay repays funds to the hard module.
 <a name="kava.hard.v1beta1.MsgRepayResponse"></a>
 
 ### MsgRepayResponse
-
+MsgRepayResponse defines the Msg/Repay response type.
 
 
 
@@ -2865,7 +2865,7 @@ MsgRepay repays funds to the hard module.
 <a name="kava.hard.v1beta1.MsgWithdraw"></a>
 
 ### MsgWithdraw
-MsgWithdraw withdraw from the hard module.
+MsgWithdraw defines the Msg/Withdraw request type.
 
 
 | Field | Type | Label | Description |
@@ -2881,7 +2881,7 @@ MsgWithdraw withdraw from the hard module.
 <a name="kava.hard.v1beta1.MsgWithdrawResponse"></a>
 
 ### MsgWithdrawResponse
-
+MsgWithdrawResponse defines the Msg/Withdraw response type.
 
 
 
@@ -2897,15 +2897,15 @@ MsgWithdraw withdraw from the hard module.
 <a name="kava.hard.v1beta1.Msg"></a>
 
 ### Msg
-Msg defines the bep3 Msg service.
+Msg defines the hard Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Deposit` | [MsgDeposit](#kava.hard.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.hard.v1beta1.MsgDepositResponse) |  | |
-| `Withdraw` | [MsgWithdraw](#kava.hard.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.hard.v1beta1.MsgWithdrawResponse) |  | |
-| `Borrow` | [MsgBorrow](#kava.hard.v1beta1.MsgBorrow) | [MsgBorrowResponse](#kava.hard.v1beta1.MsgBorrowResponse) |  | |
-| `Repay` | [MsgRepay](#kava.hard.v1beta1.MsgRepay) | [MsgRepayResponse](#kava.hard.v1beta1.MsgRepayResponse) |  | |
-| `Liquidate` | [MsgLiquidate](#kava.hard.v1beta1.MsgLiquidate) | [MsgLiquidateResponse](#kava.hard.v1beta1.MsgLiquidateResponse) |  | |
+| `Deposit` | [MsgDeposit](#kava.hard.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.hard.v1beta1.MsgDepositResponse) | Deposit defines a method for depositing funds to hard liquidity pool. | |
+| `Withdraw` | [MsgWithdraw](#kava.hard.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.hard.v1beta1.MsgWithdrawResponse) | Withdraw defines a method for withdrawing funds from hard liquidity pool. | |
+| `Borrow` | [MsgBorrow](#kava.hard.v1beta1.MsgBorrow) | [MsgBorrowResponse](#kava.hard.v1beta1.MsgBorrowResponse) | Borrow defines a method for borrowing funds from hard liquidity pool. | |
+| `Repay` | [MsgRepay](#kava.hard.v1beta1.MsgRepay) | [MsgRepayResponse](#kava.hard.v1beta1.MsgRepayResponse) | Repay defines a method for repaying funds borrowed from hard liquidity pool. | |
+| `Liquidate` | [MsgLiquidate](#kava.hard.v1beta1.MsgLiquidate) | [MsgLiquidateResponse](#kava.hard.v1beta1.MsgLiquidateResponse) | Liquidate defines a method for attempgint to liquidate a borrower that is over their loan-to-value. | |
 
  <!-- end services -->
 

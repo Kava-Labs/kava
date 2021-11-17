@@ -24,7 +24,7 @@ message GenesisState {
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
-// GenesisAccumulationTime stores the previous distribution time and its corresponding denom
+// GenesisAccumulationTime stores the previous distribution time and its corresponding denom.
 message GenesisAccumulationTime {
   string                    collateral_type            = 1;
   google.protobuf.Timestamp previous_accumulation_time = 2 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];

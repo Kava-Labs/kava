@@ -30,7 +30,7 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenesisState defines the pricefeed module's genesis state.
+// GenesisState defines the hard module's genesis state.
 type GenesisState struct {
 	Params                    Params                                   `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
 	PreviousAccumulationTimes GenesisAccumulationTimes                 `protobuf:"bytes,2,rep,name=previous_accumulation_times,json=previousAccumulationTimes,proto3,castrepeated=GenesisAccumulationTimes" json:"previous_accumulation_times"`
@@ -123,7 +123,7 @@ func (m *GenesisState) GetTotalReserves() github_com_cosmos_cosmos_sdk_types.Coi
 	return nil
 }
 
-// GenesisAccumulationTime stores the previous distribution time and its corresponding denom
+// GenesisAccumulationTime stores the previous distribution time and its corresponding denom.
 type GenesisAccumulationTime struct {
 	CollateralType           string                                 `protobuf:"bytes,1,opt,name=collateral_type,json=collateralType,proto3" json:"collateral_type,omitempty"`
 	PreviousAccumulationTime time.Time                              `protobuf:"bytes,2,opt,name=previous_accumulation_time,json=previousAccumulationTime,proto3,stdtime" json:"previous_accumulation_time"`

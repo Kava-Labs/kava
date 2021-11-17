@@ -4,12 +4,11 @@ package kava.hard.v1beta1;
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
-import "google/protobuf/duration.proto";
 
 option go_package                      = "github.com/kava-labs/kava/x/hard/types";
 option (gogoproto.goproto_getters_all) = false;
 
-// Params defines the parameters for the bep3 module.
+// Params defines the parameters for the hard module.
 message Params {
   repeated MoneyMarket money_markets = 1 [(gogoproto.castrepeated) = "MoneyMarkets", (gogoproto.nullable) = false];
   string               minimum_borrow_usd_value = 2 [
@@ -20,7 +19,7 @@ message Params {
   ];
 }
 
-// MoneyMarket is a money market for an individual asset
+// MoneyMarket is a money market for an individual asset.
 message MoneyMarket {
   string      denom             = 1;
   BorrowLimit borrow_limit      = 2 [(gogoproto.nullable) = false];
@@ -43,7 +42,7 @@ message MoneyMarket {
   ];
 }
 
-// BorrowLimit enforces restrictions on a money market
+// BorrowLimit enforces restrictions on a money market.
 message BorrowLimit {
   bool   has_max_limit = 1;
   string maximum_limit = 2 [
@@ -58,7 +57,7 @@ message BorrowLimit {
   ];
 }
 
-// InterestRateModel contains information about an asset's interest rate
+// InterestRateModel contains information about an asset's interest rate.
 message InterestRateModel {
   string base_rate_apy = 1 [
     (gogoproto.customname) = "BaseRateAPY",
@@ -83,7 +82,7 @@ message InterestRateModel {
   ];
 }
 
-// Deposit defines an amount of coins deposited into a hard module account
+// Deposit defines an amount of coins deposited into a hard module account.
 message Deposit {
   string depositor = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
@@ -95,7 +94,7 @@ message Deposit {
       [(gogoproto.castrepeated) = "SupplyInterestFactors", (gogoproto.nullable) = false];
 }
 
-// Borrow defines an amount of coins borrowed from a hard module account
+// Borrow defines an amount of coins borrowed from a hard module account.
 message Borrow {
   string borrower = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
@@ -107,7 +106,7 @@ message Borrow {
       [(gogoproto.castrepeated) = "BorrowInterestFactors", (gogoproto.nullable) = false];
 }
 
-// SupplyInterestFactor defines an individual borrow interest factor
+// SupplyInterestFactor defines an individual borrow interest factor.
 message SupplyInterestFactor {
   string denom = 1;
   string value = 2 [
@@ -117,7 +116,7 @@ message SupplyInterestFactor {
   ];
 }
 
-// BorrowInterestFactor defines an individual borrow interest factor
+// BorrowInterestFactor defines an individual borrow interest factor.
 message BorrowInterestFactor {
   string denom = 1;
   string value = 2 [

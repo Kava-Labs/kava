@@ -31,7 +31,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgDeposit deposit collateral to the hard module.
+// MsgDeposit defines the Msg/Deposit request type.
 type MsgDeposit struct {
 	Depositor string                                   `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
 	Amount    github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
@@ -84,6 +84,7 @@ func (m *MsgDeposit) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
 	return nil
 }
 
+// MsgDepositResponse defines the Msg/Deposit response type.
 type MsgDepositResponse struct {
 }
 
@@ -120,7 +121,7 @@ func (m *MsgDepositResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDepositResponse proto.InternalMessageInfo
 
-// MsgWithdraw withdraw from the hard module.
+// MsgWithdraw defines the Msg/Withdraw request type.
 type MsgWithdraw struct {
 	Depositor string                                   `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
 	Amount    github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
@@ -173,6 +174,7 @@ func (m *MsgWithdraw) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
 	return nil
 }
 
+// MsgWithdrawResponse defines the Msg/Withdraw response type.
 type MsgWithdrawResponse struct {
 }
 
@@ -209,7 +211,7 @@ func (m *MsgWithdrawResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgWithdrawResponse proto.InternalMessageInfo
 
-// MsgBorrow borrows funds from the hard module.
+// MsgBorrow defines the Msg/Borrow request type.
 type MsgBorrow struct {
 	Borrower string                                   `protobuf:"bytes,1,opt,name=borrower,proto3" json:"borrower,omitempty"`
 	Amount   github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
@@ -262,6 +264,7 @@ func (m *MsgBorrow) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
 	return nil
 }
 
+// MsgBorrowResponse defines the Msg/Borrow response type.
 type MsgBorrowResponse struct {
 }
 
@@ -298,7 +301,7 @@ func (m *MsgBorrowResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgBorrowResponse proto.InternalMessageInfo
 
-// MsgRepay repays funds to the hard module.
+// MsgRepay defines the Msg/Repay request type.
 type MsgRepay struct {
 	Sender string                                   `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	Owner  string                                   `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
@@ -359,6 +362,7 @@ func (m *MsgRepay) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
 	return nil
 }
 
+// MsgRepayResponse defines the Msg/Repay response type.
 type MsgRepayResponse struct {
 }
 
@@ -395,7 +399,7 @@ func (m *MsgRepayResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRepayResponse proto.InternalMessageInfo
 
-// MsgLiquidate attempts to liquidate a borrower's borrow
+// MsgLiquidate defines the Msg/Liquidate request type.
 type MsgLiquidate struct {
 	Keeper   string `protobuf:"bytes,1,opt,name=keeper,proto3" json:"keeper,omitempty"`
 	Borrower string `protobuf:"bytes,2,opt,name=borrower,proto3" json:"borrower,omitempty"`
@@ -448,6 +452,7 @@ func (m *MsgLiquidate) GetBorrower() string {
 	return ""
 }
 
+// MsgLiquidateResponse defines the Msg/Liquidate response type.
 type MsgLiquidateResponse struct {
 }
 
@@ -549,10 +554,15 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
+	// Deposit defines a method for depositing funds to hard liquidity pool.
 	Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error)
+	// Withdraw defines a method for withdrawing funds from hard liquidity pool.
 	Withdraw(ctx context.Context, in *MsgWithdraw, opts ...grpc.CallOption) (*MsgWithdrawResponse, error)
+	// Borrow defines a method for borrowing funds from hard liquidity pool.
 	Borrow(ctx context.Context, in *MsgBorrow, opts ...grpc.CallOption) (*MsgBorrowResponse, error)
+	// Repay defines a method for repaying funds borrowed from hard liquidity pool.
 	Repay(ctx context.Context, in *MsgRepay, opts ...grpc.CallOption) (*MsgRepayResponse, error)
+	// Liquidate defines a method for attempgint to liquidate a borrower that is over their loan-to-value.
 	Liquidate(ctx context.Context, in *MsgLiquidate, opts ...grpc.CallOption) (*MsgLiquidateResponse, error)
 }
 
@@ -611,10 +621,15 @@ func (c *msgClient) Liquidate(ctx context.Context, in *MsgLiquidate, opts ...grp
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
+	// Deposit defines a method for depositing funds to hard liquidity pool.
 	Deposit(context.Context, *MsgDeposit) (*MsgDepositResponse, error)
+	// Withdraw defines a method for withdrawing funds from hard liquidity pool.
 	Withdraw(context.Context, *MsgWithdraw) (*MsgWithdrawResponse, error)
+	// Borrow defines a method for borrowing funds from hard liquidity pool.
 	Borrow(context.Context, *MsgBorrow) (*MsgBorrowResponse, error)
+	// Repay defines a method for repaying funds borrowed from hard liquidity pool.
 	Repay(context.Context, *MsgRepay) (*MsgRepayResponse, error)
+	// Liquidate defines a method for attempgint to liquidate a borrower that is over their loan-to-value.
 	Liquidate(context.Context, *MsgLiquidate) (*MsgLiquidateResponse, error)
 }
 
