@@ -1,5 +1,8 @@
-## A Quick Overview 
-short on time? Read these and get a refresher of the most commont commands.
+<!--
+order: 1
+-->
+# Quick Reference
+
 
 ### Get a list of all keys
 ```

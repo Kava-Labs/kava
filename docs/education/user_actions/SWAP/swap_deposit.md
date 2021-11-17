@@ -15,7 +15,7 @@ position|name|expects
 1|tokenA| amount & name (no spaces)
 2|tokenB| amount & name (no spaces)
 3|slippage| percentage float
-4|deadline| timestamp 
+4|deadline| deadline block 
 
 
 **Note**: the name is a placeholder for clarity and won't be needed when running the commands, see example below

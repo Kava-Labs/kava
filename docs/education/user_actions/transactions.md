@@ -1,4 +1,8 @@
-## Transaction Creation
+<!--
+order: 2
+-->
+
+# Transaction Creation
 
 One of the fundamental ways to interact with a Kava Node is through the use of ```kvcli```. It can be used to create new transactions from the user, which will later be broadcasted to other nodes in the network after going through validations and signing. the ```kvcli``` commands for transaction creation will all follow a very similar pattern across modules and it will follow the structure below: 
 
