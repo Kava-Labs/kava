@@ -1,4 +1,4 @@
-package genesis
+package app
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -6,8 +6,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/kava-labs/kava/app"
 )
 
 // AuthBankGenesisBuilder is a tool for creating a combined auth and bank genesis state.
@@ -33,8 +31,8 @@ func NewAuthBankGenesisBuilder() *AuthBankGenesisBuilder {
 }
 
 // BuildMarshalled assembles the final GenesisState and json encodes it into a generic genesis type.
-func (builder *AuthBankGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) app.GenesisState {
-	return app.GenesisState{
+func (builder *AuthBankGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) GenesisState {
+	return GenesisState{
 		authtypes.ModuleName: cdc.MustMarshalJSON(&builder.AuthGenesis),
 		banktypes.ModuleName: cdc.MustMarshalJSON(&builder.BankGenesis),
 	}

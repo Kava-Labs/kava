@@ -12,9 +12,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
@@ -197,39 +195,18 @@ func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk
 
 // NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
 func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) GenesisState {
-	balances := make([]sdk.Coins, len(addresses))
-	for i, _ := range addresses {
-		balances[i] = balance
+	builder := NewAuthBankGenesisBuilder()
+	for _, address := range addresses {
+		builder.WithSimpleAccount(address, balance)
 	}
-	return NewFundedGenStateWithCoins(cdc, balances, addresses)
+	return builder.BuildMarshalled(cdc)
 }
 
 // NewFundedGenStateWithCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and coins.
 func NewFundedGenStateWithCoins(cdc codec.JSONCodec, coins []sdk.Coins, addresses []sdk.AccAddress) GenesisState {
-	balances := make([]banktypes.Balance, len(addresses))
-	for i, addr := range addresses {
-		balances[i] = banktypes.Balance{
-			Address: addr.String(),
-			Coins:   coins[i],
-		}
+	builder := NewAuthBankGenesisBuilder()
+	for i, address := range addresses {
+		builder.WithSimpleAccount(address, coins[i])
 	}
-
-	bankGenesis := banktypes.NewGenesisState(
-		banktypes.DefaultParams(),
-		balances,
-		nil,
-		[]banktypes.Metadata{}, // Metadata is not widely used in the sdk or kava
-	)
-
-	accounts := make(authtypes.GenesisAccounts, len(addresses))
-	for i := range addresses {
-		accounts[i] = authtypes.NewBaseAccount(addresses[i], nil, 0, 0)
-	}
-
-	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
-
-	return GenesisState{
-		authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis),
-		banktypes.ModuleName: cdc.MustMarshalJSON(bankGenesis),
-	}
+	return builder.BuildMarshalled(cdc)
 }
