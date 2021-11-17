@@ -23,7 +23,6 @@ func NewBorrow(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFa
 //
 // An error is returned if the borrow is in an invalid state.
 func (b Borrow) NormalizedBorrow() (sdk.DecCoins, error) {
-
 	normalized := sdk.NewDecCoins()
 
 	for _, coin := range b.Amount {
@@ -62,6 +61,11 @@ func (b Borrow) Validate() error {
 	return nil
 }
 
+// ToResponse converts Borrow to BorrowResponse
+func (b Borrow) ToResponse() BorrowResponse {
+	return NewBorrowResponse(b.Borrower, b.Amount, b.Index)
+}
+
 // Borrows is a slice of Borrow
 type Borrows []Borrow
 
@@ -80,6 +84,28 @@ func (bs Borrows) Validate() error {
 	}
 	return nil
 }
+
+// ToResponse converts Borrows to BorrowResponses
+func (bs Borrows) ToResponse() BorrowResponses {
+	var bResponses BorrowResponses
+
+	for _, b := range bs {
+		bResponses = append(bResponses, b.ToResponse())
+	}
+	return bResponses
+}
+
+// NewBorrowResponse returns a new BorrowResponse instance
+func NewBorrowResponse(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFactors) BorrowResponse {
+	return BorrowResponse{
+		Borrower: borrower.String(),
+		Amount:   amount,
+		Index:    index.ToResponse(),
+	}
+}
+
+// BorrowResponses is a slice of BorrowResponse
+type BorrowResponses []BorrowResponse
 
 // NewBorrowInterestFactor returns a new BorrowInterestFactor instance
 func NewBorrowInterestFactor(denom string, value sdk.Dec) BorrowInterestFactor {
@@ -101,8 +127,18 @@ func (bif BorrowInterestFactor) Validate() error {
 	return nil
 }
 
-// BorrowResponses is a slice of BorrowResponse
-type BorrowResponses []BorrowResponse
+// ToResponse converts BorrowInterestFactor to BorrowInterestFactorResponse
+func (bif BorrowInterestFactor) ToResponse() BorrowInterestFactorResponse {
+	return NewBorrowInterestFactorResponse(bif.Denom, bif.Value)
+}
+
+// NewBorrowInterestFactorResponse returns a new BorrowInterestFactorResponse instance
+func NewBorrowInterestFactorResponse(denom string, value sdk.Dec) BorrowInterestFactorResponse {
+	return BorrowInterestFactorResponse{
+		Denom: denom,
+		Value: value.String(),
+	}
+}
 
 // BorrowInterestFactors is a slice of BorrowInterestFactor, because Amino won't marshal maps
 type BorrowInterestFactors []BorrowInterestFactor
@@ -147,6 +183,16 @@ func (bifs BorrowInterestFactors) Validate() error {
 		}
 	}
 	return nil
+}
+
+// ToResponse converts BorrowInterestFactors to BorrowInterestFactorResponses
+func (bifs BorrowInterestFactors) ToResponse() BorrowInterestFactorResponses {
+	var bifResponses BorrowInterestFactorResponses
+
+	for _, bif := range bifs {
+		bifResponses = append(bifResponses, bif.ToResponse())
+	}
+	return bifResponses
 }
 
 // BorrowInterestFactorResponses is a slice of BorrowInterestFactorResponse

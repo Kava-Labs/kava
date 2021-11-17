@@ -23,7 +23,6 @@ func NewDeposit(depositor sdk.AccAddress, amount sdk.Coins, indexes SupplyIntere
 //
 // An error is returned if the deposit is in an invalid state.
 func (b Deposit) NormalizedDeposit() (sdk.DecCoins, error) {
-
 	normalized := sdk.NewDecCoins()
 
 	for _, coin := range b.Amount {
@@ -62,6 +61,11 @@ func (d Deposit) Validate() error {
 	return nil
 }
 
+// ToResponse converts Deposit to DepositResponse
+func (d Deposit) ToResponse() DepositResponse {
+	return NewDepositResponse(d.Depositor, d.Amount, d.Index)
+}
+
 // Deposits is a slice of Deposit
 type Deposits []Deposit
 
@@ -81,6 +85,26 @@ func (ds Deposits) Validate() error {
 	return nil
 }
 
+// ToResponse converts Deposits to DepositResponses
+func (ds Deposits) ToResponse() DepositResponses {
+	var dResponses DepositResponses
+
+	for _, d := range ds {
+		dResponses = append(dResponses, d.ToResponse())
+	}
+	return dResponses
+}
+
+// NewDepositResponse returns a new DepositResponse
+func NewDepositResponse(depositor sdk.AccAddress, amount sdk.Coins, indexes SupplyInterestFactors) DepositResponse {
+	return DepositResponse{
+		Depositor: depositor.String(),
+		Amount:    amount,
+		Index:     indexes.ToResponse(),
+	}
+}
+
+// DepositResponses is a slice of DepositResponse
 type DepositResponses []DepositResponse
 
 // NewSupplyInterestFactor returns a new SupplyInterestFactor instance
@@ -101,6 +125,19 @@ func (sif SupplyInterestFactor) Validate() error {
 
 	}
 	return nil
+}
+
+// ToResponse converts SupplyInterestFactor to SupplyInterestFactorResponse
+func (sif SupplyInterestFactor) ToResponse() SupplyInterestFactorResponse {
+	return NewSupplyInterestFactorResponse(sif.Denom, sif.Value)
+}
+
+// NewSupplyInterestFactorResponse returns a new SupplyInterestFactorResponse instance
+func NewSupplyInterestFactorResponse(denom string, value sdk.Dec) SupplyInterestFactorResponse {
+	return SupplyInterestFactorResponse{
+		Denom: denom,
+		Value: value.String(),
+	}
 }
 
 // SupplyInterestFactors is a slice of SupplyInterestFactor, because Amino won't marshal maps
@@ -146,6 +183,16 @@ func (sifs SupplyInterestFactors) Validate() error {
 		}
 	}
 	return nil
+}
+
+// ToResponse converts SupplyInterestFactor to SupplyInterestFactorResponses
+func (sifs SupplyInterestFactors) ToResponse() SupplyInterestFactorResponses {
+	var sifResponses SupplyInterestFactorResponses
+
+	for _, sif := range sifs {
+		sifResponses = append(sifResponses, sif.ToResponse())
+	}
+	return sifResponses
 }
 
 // SupplyInterestFactorResponses is a slice of SupplyInterestFactorResponse
