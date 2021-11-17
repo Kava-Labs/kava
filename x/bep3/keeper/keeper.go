@@ -7,8 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -17,16 +16,16 @@ import (
 // Keeper of the bep3 store
 type Keeper struct {
 	key           sdk.StoreKey
-	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
-	supplyKeeper  types.SupplyKeeper
+	cdc           codec.Codec
+	paramSubspace paramtypes.Subspace
+	bankKeeper    types.BankKeeper
 	accountKeeper types.AccountKeeper
 	Maccs         map[string]bool
 }
 
 // NewKeeper creates a bep3 keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, ak types.AccountKeeper,
-	paramstore subspace.Subspace, maccs map[string]bool) Keeper {
+func NewKeeper(cdc codec.Codec, key sdk.StoreKey, sk types.BankKeeper, ak types.AccountKeeper,
+	paramstore paramtypes.Subspace, maccs map[string]bool) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -35,7 +34,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, ak typ
 		key:           key,
 		cdc:           cdc,
 		paramSubspace: paramstore,
-		supplyKeeper:  sk,
+		bankKeeper:    sk,
 		accountKeeper: ak,
 		Maccs:         maccs,
 	}
@@ -47,19 +46,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// EnsureModuleAccountPermissions syncs the bep3 module account's permissions with those in the supply keeper.
-func (k Keeper) EnsureModuleAccountPermissions(ctx sdk.Context) error {
-	maccI := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
-	macc, ok := maccI.(*supply.ModuleAccount)
-	if !ok {
-		return fmt.Errorf("expected %s account to be a module account type", types.ModuleName)
-	}
-	_, perms := k.supplyKeeper.GetModuleAddressAndPermissions(types.ModuleName)
-	macc.Permissions = perms
-	k.supplyKeeper.SetModuleAccount(ctx, macc)
-	return nil
-}
-
 // ------------------------------------------
 //				Atomic Swaps
 // ------------------------------------------
@@ -67,7 +53,7 @@ func (k Keeper) EnsureModuleAccountPermissions(ctx sdk.Context) error {
 // SetAtomicSwap puts the AtomicSwap into the store, and updates any indexes.
 func (k Keeper) SetAtomicSwap(ctx sdk.Context, atomicSwap types.AtomicSwap) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(atomicSwap)
+	bz := k.cdc.MustMarshal(&atomicSwap)
 	store.Set(atomicSwap.GetSwapID(), bz)
 }
 
@@ -81,7 +67,7 @@ func (k Keeper) GetAtomicSwap(ctx sdk.Context, swapID []byte) (types.AtomicSwap,
 		return atomicSwap, false
 	}
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &atomicSwap)
+	k.cdc.MustUnmarshal(bz, &atomicSwap)
 	return atomicSwap, true
 }
 
@@ -99,7 +85,7 @@ func (k Keeper) IterateAtomicSwaps(ctx sdk.Context, cb func(atomicSwap types.Ato
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var atomicSwap types.AtomicSwap
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &atomicSwap)
+		k.cdc.MustUnmarshal(iterator.Value(), &atomicSwap)
 
 		if cb(atomicSwap) {
 			break
@@ -204,14 +190,14 @@ func (k Keeper) GetAssetSupply(ctx sdk.Context, denom string) (types.AssetSupply
 	if bz == nil {
 		return types.AssetSupply{}, false
 	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &assetSupply)
+	k.cdc.MustUnmarshal(bz, &assetSupply)
 	return assetSupply, true
 }
 
 // SetAssetSupply updates an asset's supply
 func (k Keeper) SetAssetSupply(ctx sdk.Context, supply types.AssetSupply, denom string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyPrefix)
-	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(supply))
+	store.Set([]byte(denom), k.cdc.MustMarshal(&supply))
 }
 
 // IterateAssetSupplies provides an iterator over all stored AssetSupplies.
@@ -221,7 +207,7 @@ func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.Asset
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var supply types.AssetSupply
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &supply)
+		k.cdc.MustUnmarshal(iterator.Value(), &supply)
 
 		if cb(supply) {
 			break
@@ -241,16 +227,22 @@ func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies types.AssetSuppli
 // GetPreviousBlockTime get the blocktime for the previous block
 func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	b := store.Get([]byte{})
+	b := store.Get(types.PreviousBlockTimeKey)
 	if b == nil {
 		return time.Time{}, false
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &blockTime)
+	if err := blockTime.UnmarshalBinary(b); err != nil {
+		panic(err)
+	}
 	return blockTime, true
 }
 
 // SetPreviousBlockTime set the time of the previous block
 func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(blockTime))
+	b, err := blockTime.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
+	store.Set(types.PreviousBlockTimeKey, b)
 }
