@@ -156,6 +156,9 @@
     - [GenesisState](#kava.hard.v1beta1.GenesisState)
   
 - [kava/hard/v1beta1/query.proto](#kava/hard/v1beta1/query.proto)
+    - [BorrowInterestFactorResponse](#kava.hard.v1beta1.BorrowInterestFactorResponse)
+    - [BorrowResponse](#kava.hard.v1beta1.BorrowResponse)
+    - [DepositResponse](#kava.hard.v1beta1.DepositResponse)
     - [InterestFactor](#kava.hard.v1beta1.InterestFactor)
     - [MoneyMarketInterestRate](#kava.hard.v1beta1.MoneyMarketInterestRate)
     - [QueryAccountsRequest](#kava.hard.v1beta1.QueryAccountsRequest)
@@ -180,6 +183,7 @@
     - [QueryUnsyncedBorrowsResponse](#kava.hard.v1beta1.QueryUnsyncedBorrowsResponse)
     - [QueryUnsyncedDepositsRequest](#kava.hard.v1beta1.QueryUnsyncedDepositsRequest)
     - [QueryUnsyncedDepositsResponse](#kava.hard.v1beta1.QueryUnsyncedDepositsResponse)
+    - [SupplyInterestFactorResponse](#kava.hard.v1beta1.SupplyInterestFactorResponse)
   
     - [Query](#kava.hard.v1beta1.Query)
   
@@ -2348,6 +2352,56 @@ GenesisState defines the hard module's genesis state.
 
 
 
+<a name="kava.hard.v1beta1.BorrowInterestFactorResponse"></a>
+
+### BorrowInterestFactorResponse
+BorrowInterestFactorResponse defines an individual borrow interest factor.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `value` | [string](#string) |  | sdk.Dec as string |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.BorrowResponse"></a>
+
+### BorrowResponse
+BorrowResponse defines an amount of coins borrowed from a hard module account.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrower` | [string](#string) |  | bech32 address as string |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `index` | [BorrowInterestFactorResponse](#kava.hard.v1beta1.BorrowInterestFactorResponse) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.DepositResponse"></a>
+
+### DepositResponse
+DepositResponse defines an amount of coins deposited into a hard module account.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `index` | [SupplyInterestFactorResponse](#kava.hard.v1beta1.SupplyInterestFactorResponse) | repeated |  |
+
+
+
+
+
+
 <a name="kava.hard.v1beta1.InterestFactor"></a>
 
 ### InterestFactor
@@ -2439,7 +2493,7 @@ QueryBorrowsResponse is the response type for the Query/Borrows RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `borrows` | [Borrow](#kava.hard.v1beta1.Borrow) | repeated |  |
+| `borrows` | [BorrowResponse](#kava.hard.v1beta1.BorrowResponse) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
@@ -2472,7 +2526,7 @@ QueryDepositsResponse is the response type for the Query/Deposits RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `deposits` | [Deposit](#kava.hard.v1beta1.Deposit) | repeated |  |
+| `deposits` | [DepositResponse](#kava.hard.v1beta1.DepositResponse) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
@@ -2680,7 +2734,7 @@ QueryUnsyncedBorrowsResponse is the response type for the Query/UnsyncedBorrows 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `borrows` | [Borrow](#kava.hard.v1beta1.Borrow) | repeated |  |
+| `borrows` | [BorrowResponse](#kava.hard.v1beta1.BorrowResponse) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
@@ -2713,8 +2767,24 @@ QueryUnsyncedDepositsResponse is the response type for the Query/UnsyncedDeposit
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `deposits` | [Deposit](#kava.hard.v1beta1.Deposit) | repeated |  |
+| `deposits` | [DepositResponse](#kava.hard.v1beta1.DepositResponse) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.SupplyInterestFactorResponse"></a>
+
+### SupplyInterestFactorResponse
+SupplyInterestFactorResponse defines an individual borrow interest factor.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `value` | [string](#string) |  | sdk.Dec as string |
 
 
 

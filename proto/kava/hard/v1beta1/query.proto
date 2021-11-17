@@ -100,7 +100,7 @@ message QueryDepositsRequest {
 
 // QueryDepositsResponse is the response type for the Query/Deposits RPC method.
 message QueryDepositsResponse {
-  repeated Deposit deposits = 1 [(gogoproto.nullable) = false];
+  repeated DepositResponse deposits = 1 [(gogoproto.castrepeated) = "DepositResponses", (gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -115,7 +115,7 @@ message QueryUnsyncedDepositsRequest {
 
 // QueryUnsyncedDepositsResponse is the response type for the Query/UnsyncedDeposits RPC method.
 message QueryUnsyncedDepositsResponse {
-  repeated Deposit deposits = 1 [(gogoproto.nullable) = false];
+  repeated DepositResponse deposits = 1 [(gogoproto.castrepeated) = "DepositResponses", (gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -141,7 +141,7 @@ message QueryBorrowsRequest {
 
 // QueryBorrowsResponse is the response type for the Query/Borrows RPC method.
 message QueryBorrowsResponse {
-  repeated Borrow borrows = 1 [(gogoproto.nullable) = false];
+  repeated BorrowResponse borrows = 1 [(gogoproto.castrepeated) = "BorrowResponses", (gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -156,7 +156,7 @@ message QueryUnsyncedBorrowsRequest {
 
 // QueryUnsyncedBorrowsResponse is the response type for the Query/UnsyncedBorrows RPC method.
 message QueryUnsyncedBorrowsResponse {
-  repeated Borrow borrows = 1 [(gogoproto.nullable) = false];
+  repeated BorrowResponse borrows = 1 [(gogoproto.castrepeated) = "BorrowResponses", (gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -203,6 +203,39 @@ message QueryInterestFactorsRequest {
 message QueryInterestFactorsResponse {
   repeated InterestFactor interest_factors = 1
       [(gogoproto.castrepeated) = "InterestFactors", (gogoproto.nullable) = false];
+}
+
+// DepositResponse defines an amount of coins deposited into a hard module account.
+message DepositResponse {
+  string   depositor                       = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated cosmos.base.v1beta1.Coin amount = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated SupplyInterestFactorResponse index = 3
+      [(gogoproto.castrepeated) = "SupplyInterestFactorResponses", (gogoproto.nullable) = false];
+}
+
+// SupplyInterestFactorResponse defines an individual borrow interest factor.
+message SupplyInterestFactorResponse {
+  string denom = 1;
+  // sdk.Dec as string
+  string value = 2;
+}
+
+// BorrowResponse defines an amount of coins borrowed from a hard module account.
+message BorrowResponse {
+  // bech32 address as string
+  string   borrower                        = 1;
+  repeated cosmos.base.v1beta1.Coin amount = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated BorrowInterestFactorResponse index = 3
+      [(gogoproto.castrepeated) = "BorrowInterestFactorResponses", (gogoproto.nullable) = false];
+}
+
+// BorrowInterestFactorResponse defines an individual borrow interest factor.
+message BorrowInterestFactorResponse {
+  string denom = 1;
+  // sdk.Dec as string
+  string value = 2;
 }
 
 // MoneyMarketInterestRate is a unique type returned by interest rate queries

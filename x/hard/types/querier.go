@@ -189,4 +189,4 @@ func NewInterestFactor(denom string, supplyInterestFactor, borrowInterestFactor 
 }
 
 // InterestFactors is a slice of InterestFactor
-type InterestFactors = []InterestFactor
+type InterestFactors []InterestFactor

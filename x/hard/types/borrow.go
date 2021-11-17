@@ -101,6 +101,9 @@ func (bif BorrowInterestFactor) Validate() error {
 	return nil
 }
 
+// BorrowResponses is a slice of BorrowResponse
+type BorrowResponses []BorrowResponse
+
 // BorrowInterestFactors is a slice of BorrowInterestFactor, because Amino won't marshal maps
 type BorrowInterestFactors []BorrowInterestFactor
 
@@ -145,3 +148,6 @@ func (bifs BorrowInterestFactors) Validate() error {
 	}
 	return nil
 }
+
+// BorrowInterestFactorResponses is a slice of BorrowInterestFactorResponse
+type BorrowInterestFactorResponses []BorrowInterestFactorResponse

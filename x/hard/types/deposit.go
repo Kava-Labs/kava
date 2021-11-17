@@ -81,6 +81,8 @@ func (ds Deposits) Validate() error {
 	return nil
 }
 
+type DepositResponses []DepositResponse
+
 // NewSupplyInterestFactor returns a new SupplyInterestFactor instance
 func NewSupplyInterestFactor(denom string, value sdk.Dec) SupplyInterestFactor {
 	return SupplyInterestFactor{
@@ -145,3 +147,6 @@ func (sifs SupplyInterestFactors) Validate() error {
 	}
 	return nil
 }
+
+// SupplyInterestFactorResponses is a slice of SupplyInterestFactorResponse
+type SupplyInterestFactorResponses []SupplyInterestFactorResponse
