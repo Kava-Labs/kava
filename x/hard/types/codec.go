@@ -9,8 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
-// RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
-// governance module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgDeposit{}, "hard/MsgDeposit", nil)
 	cdc.RegisterConcrete(MsgWithdraw{}, "hard/MsgWithdraw", nil)
