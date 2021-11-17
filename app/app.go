@@ -62,6 +62,10 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/x/bep3"
+	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
+	bep3types "github.com/kava-labs/kava/x/bep3/types"
+	"github.com/kava-labs/kava/x/committee"
 	issuance "github.com/kava-labs/kava/x/issuance"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
@@ -79,6 +83,10 @@ import (
 	"github.com/kava-labs/kava/x/swap"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
+
+	// committeeclient "github.com/kava-labs/kava/x/committee/client"
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 )
 
 const (
@@ -109,8 +117,11 @@ var (
 		vesting.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		issuance.AppModuleBasic{},
+		bep3.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 		swap.AppModuleBasic{},
+		kavadist.AppModuleBasic{},
+		committee.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -125,6 +136,7 @@ var (
 		govtypes.ModuleName:             {authtypes.Burner},
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
+		bep3types.ModuleName:            {authtypes.Burner, authtypes.Minter},
 		swaptypes.ModuleName:            nil,
 		auctiontypes.ModuleName:         nil,
 		"liquidator":                    {authtypes.Burner, authtypes.Minter}, // TODO: for testing. Import from CDP module once migrated to v44.
@@ -173,8 +185,10 @@ type App struct {
 	kavadistKeeper  kavadistkeeper.Keeper
 	auctionKeeper   auctionkeeper.Keeper
 	issuanceKeeper  issuancekeeper.Keeper
+	bep3Keeper      bep3keeper.Keeper
 	pricefeedKeeper pricefeedkeeper.Keeper
 	swapKeeper      swapkeeper.Keeper
+	committeeKeeper committeekeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -202,8 +216,9 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
-		kavadisttypes.StoreKey, issuancetypes.StoreKey, pricefeedtypes.StoreKey,
-		swaptypes.StoreKey, auctiontypes.StoreKey,
+		kavadisttypes.StoreKey, issuancetypes.StoreKey, bep3types.StoreKey,
+		pricefeedtypes.StoreKey, swaptypes.StoreKey, committeetypes.StoreKey,
+    auctiontypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -234,6 +249,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadisttypes.ModuleName)
 	auctionSubspace := app.paramsKeeper.Subspace(auctiontypes.ModuleName)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuancetypes.ModuleName)
+	bep3Subspace := app.paramsKeeper.Subspace(bep3types.ModuleName)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
 
@@ -305,7 +321,8 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper))
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
+		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[govtypes.StoreKey],
@@ -316,6 +333,14 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		govRouter,
 	)
 
+	app.bep3Keeper = bep3keeper.NewKeeper(
+		appCodec,
+		keys[bep3types.StoreKey],
+		app.bankKeeper,
+		app.accountKeeper,
+		bep3Subspace,
+		app.ModuleAccountAddrs(),
+	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
 		keys[kavadisttypes.StoreKey],
@@ -351,6 +376,23 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		auctionSubspace,
 		app.bankKeeper,
 		app.accountKeeper,
+
+	// create committee keeper with router
+	committeeGovRouter := govtypes.NewRouter()
+	committeeGovRouter.
+		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+		// AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
+	// Note: the committee proposal handler is not registered on the committee router. This means committees cannot create or update other committees.
+	// Adding the committee proposal handler to the router is possible but awkward as the handler depends on the keeper which depends on the handler.
+	app.committeeKeeper = committeekeeper.NewKeeper(
+		appCodec,
+		keys[committeetypes.StoreKey],
+		committeeGovRouter,
+		app.paramsKeeper,
+		app.accountKeeper,
+		app.bankKeeper,
 	)
 
 	// register the staking hooks
@@ -375,11 +417,13 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		params.NewAppModule(app.paramsKeeper),
+		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
+		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -395,7 +439,9 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		stakingtypes.ModuleName,
 		kavadisttypes.ModuleName,
 		auctiontypes.ModuleName,
+		committeetypes.ModuleName,
 		issuancetypes.ModuleName,
+		bep3types.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -413,15 +459,17 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
 		minttypes.ModuleName,
-		crisistypes.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
 		pricefeedtypes.ModuleName,
 		auctiontypes.ModuleName,
 		kavadisttypes.ModuleName,
+		committeetypes.ModuleName,
 		issuancetypes.ModuleName,
+		bep3types.ModuleName,
 		pricefeedtypes.ModuleName,
 		swaptypes.ModuleName,
+		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -456,6 +504,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	if options.MempoolEnableAuth {
 		fetchers = append(fetchers,
 			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
+			app.bep3Keeper.GetAuthorizedAddresses,
 			app.pricefeedKeeper.GetAuthorizedAddresses,
 		)
 	}

@@ -39,137 +39,236 @@
 
   - [Msg](#kava.auction.v1beta1.Msg)
 
-- [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
+- [kava/bep3/v1beta1/bep3.proto](#kava/bep3/v1beta1/bep3.proto)
+    - [AssetParam](#kava.bep3.v1beta1.AssetParam)
+    - [AssetSupply](#kava.bep3.v1beta1.AssetSupply)
+    - [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap)
+    - [Params](#kava.bep3.v1beta1.Params)
+    - [SupplyLimit](#kava.bep3.v1beta1.SupplyLimit)
 
-  - [CDP](#kava.cdp.v1beta1.CDP)
-  - [Deposit](#kava.cdp.v1beta1.Deposit)
-  - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
-  - [TotalPrincipal](#kava.cdp.v1beta1.TotalPrincipal)
+    - [SwapDirection](#kava.bep3.v1beta1.SwapDirection)
+    - [SwapStatus](#kava.bep3.v1beta1.SwapStatus)
+
+- [kava/bep3/v1beta1/genesis.proto](#kava/bep3/v1beta1/genesis.proto)
+    - [GenesisState](#kava.bep3.v1beta1.GenesisState)
+
+- [kava/bep3/v1beta1/query.proto](#kava/bep3/v1beta1/query.proto)
+    - [AssetSupplyResponse](#kava.bep3.v1beta1.AssetSupplyResponse)
+    - [AtomicSwapResponse](#kava.bep3.v1beta1.AtomicSwapResponse)
+    - [QueryAssetSuppliesRequest](#kava.bep3.v1beta1.QueryAssetSuppliesRequest)
+    - [QueryAssetSuppliesResponse](#kava.bep3.v1beta1.QueryAssetSuppliesResponse)
+    - [QueryAssetSupplyRequest](#kava.bep3.v1beta1.QueryAssetSupplyRequest)
+    - [QueryAssetSupplyResponse](#kava.bep3.v1beta1.QueryAssetSupplyResponse)
+    - [QueryAtomicSwapRequest](#kava.bep3.v1beta1.QueryAtomicSwapRequest)
+    - [QueryAtomicSwapResponse](#kava.bep3.v1beta1.QueryAtomicSwapResponse)
+    - [QueryAtomicSwapsRequest](#kava.bep3.v1beta1.QueryAtomicSwapsRequest)
+    - [QueryAtomicSwapsResponse](#kava.bep3.v1beta1.QueryAtomicSwapsResponse)
+    - [QueryParamsRequest](#kava.bep3.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.bep3.v1beta1.QueryParamsResponse)
+
+    - [Query](#kava.bep3.v1beta1.Query)
+
+- [kava/bep3/v1beta1/tx.proto](#kava/bep3/v1beta1/tx.proto)
+    - [MsgClaimAtomicSwap](#kava.bep3.v1beta1.MsgClaimAtomicSwap)
+    - [MsgClaimAtomicSwapResponse](#kava.bep3.v1beta1.MsgClaimAtomicSwapResponse)
+    - [MsgCreateAtomicSwap](#kava.bep3.v1beta1.MsgCreateAtomicSwap)
+    - [MsgCreateAtomicSwapResponse](#kava.bep3.v1beta1.MsgCreateAtomicSwapResponse)
+    - [MsgRefundAtomicSwap](#kava.bep3.v1beta1.MsgRefundAtomicSwap)
+    - [MsgRefundAtomicSwapResponse](#kava.bep3.v1beta1.MsgRefundAtomicSwapResponse)
+
+    - [Msg](#kava.bep3.v1beta1.Msg)
+
+- [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
+    - [CDP](#kava.cdp.v1beta1.CDP)
+    - [Deposit](#kava.cdp.v1beta1.Deposit)
+    - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
+    - [TotalPrincipal](#kava.cdp.v1beta1.TotalPrincipal)
 
 - [kava/cdp/v1beta1/genesis.proto](#kava/cdp/v1beta1/genesis.proto)
-
-  - [CollateralParam](#kava.cdp.v1beta1.CollateralParam)
-  - [DebtParam](#kava.cdp.v1beta1.DebtParam)
-  - [GenesisAccumulationTime](#kava.cdp.v1beta1.GenesisAccumulationTime)
-  - [GenesisState](#kava.cdp.v1beta1.GenesisState)
-  - [GenesisTotalPrincipal](#kava.cdp.v1beta1.GenesisTotalPrincipal)
-  - [Params](#kava.cdp.v1beta1.Params)
+    - [CollateralParam](#kava.cdp.v1beta1.CollateralParam)
+    - [DebtParam](#kava.cdp.v1beta1.DebtParam)
+    - [GenesisAccumulationTime](#kava.cdp.v1beta1.GenesisAccumulationTime)
+    - [GenesisState](#kava.cdp.v1beta1.GenesisState)
+    - [GenesisTotalPrincipal](#kava.cdp.v1beta1.GenesisTotalPrincipal)
+    - [Params](#kava.cdp.v1beta1.Params)
 
 - [kava/cdp/v1beta1/query.proto](#kava/cdp/v1beta1/query.proto)
+    - [CDPResponse](#kava.cdp.v1beta1.CDPResponse)
+    - [QueryAccountsRequest](#kava.cdp.v1beta1.QueryAccountsRequest)
+    - [QueryAccountsResponse](#kava.cdp.v1beta1.QueryAccountsResponse)
+    - [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest)
+    - [QueryCdpResponse](#kava.cdp.v1beta1.QueryCdpResponse)
+    - [QueryCdpsRequest](#kava.cdp.v1beta1.QueryCdpsRequest)
+    - [QueryCdpsResponse](#kava.cdp.v1beta1.QueryCdpsResponse)
+    - [QueryDepositsRequest](#kava.cdp.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.cdp.v1beta1.QueryDepositsResponse)
+    - [QueryParamsRequest](#kava.cdp.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.cdp.v1beta1.QueryParamsResponse)
+    - [QueryTotalCollateralRequest](#kava.cdp.v1beta1.QueryTotalCollateralRequest)
+    - [QueryTotalCollateralResponse](#kava.cdp.v1beta1.QueryTotalCollateralResponse)
+    - [QueryTotalPrincipalRequest](#kava.cdp.v1beta1.QueryTotalPrincipalRequest)
+    - [QueryTotalPrincipalResponse](#kava.cdp.v1beta1.QueryTotalPrincipalResponse)
 
-  - [CDPResponse](#kava.cdp.v1beta1.CDPResponse)
-  - [QueryAccountsRequest](#kava.cdp.v1beta1.QueryAccountsRequest)
-  - [QueryAccountsResponse](#kava.cdp.v1beta1.QueryAccountsResponse)
-  - [QueryCdpRequest](#kava.cdp.v1beta1.QueryCdpRequest)
-  - [QueryCdpResponse](#kava.cdp.v1beta1.QueryCdpResponse)
-  - [QueryCdpsRequest](#kava.cdp.v1beta1.QueryCdpsRequest)
-  - [QueryCdpsResponse](#kava.cdp.v1beta1.QueryCdpsResponse)
-  - [QueryDepositsRequest](#kava.cdp.v1beta1.QueryDepositsRequest)
-  - [QueryDepositsResponse](#kava.cdp.v1beta1.QueryDepositsResponse)
-  - [QueryParamsRequest](#kava.cdp.v1beta1.QueryParamsRequest)
-  - [QueryParamsResponse](#kava.cdp.v1beta1.QueryParamsResponse)
-  - [QueryTotalCollateralRequest](#kava.cdp.v1beta1.QueryTotalCollateralRequest)
-  - [QueryTotalCollateralResponse](#kava.cdp.v1beta1.QueryTotalCollateralResponse)
-  - [QueryTotalPrincipalRequest](#kava.cdp.v1beta1.QueryTotalPrincipalRequest)
-  - [QueryTotalPrincipalResponse](#kava.cdp.v1beta1.QueryTotalPrincipalResponse)
-
-  - [Query](#kava.cdp.v1beta1.Query)
+    - [Query](#kava.cdp.v1beta1.Query)
 
 - [kava/cdp/v1beta1/tx.proto](#kava/cdp/v1beta1/tx.proto)
+    - [MsgCreateCDP](#kava.cdp.v1beta1.MsgCreateCDP)
+    - [MsgCreateCDPResponse](#kava.cdp.v1beta1.MsgCreateCDPResponse)
+    - [MsgDeposit](#kava.cdp.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.cdp.v1beta1.MsgDepositResponse)
+    - [MsgDrawDebt](#kava.cdp.v1beta1.MsgDrawDebt)
+    - [MsgDrawDebtResponse](#kava.cdp.v1beta1.MsgDrawDebtResponse)
+    - [MsgLiquidate](#kava.cdp.v1beta1.MsgLiquidate)
+    - [MsgLiquidateResponse](#kava.cdp.v1beta1.MsgLiquidateResponse)
+    - [MsgRepayDebt](#kava.cdp.v1beta1.MsgRepayDebt)
+    - [MsgRepayDebtResponse](#kava.cdp.v1beta1.MsgRepayDebtResponse)
+    - [MsgWithdraw](#kava.cdp.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.cdp.v1beta1.MsgWithdrawResponse)
 
-  - [MsgCreateCDP](#kava.cdp.v1beta1.MsgCreateCDP)
-  - [MsgCreateCDPResponse](#kava.cdp.v1beta1.MsgCreateCDPResponse)
-  - [MsgDeposit](#kava.cdp.v1beta1.MsgDeposit)
-  - [MsgDepositResponse](#kava.cdp.v1beta1.MsgDepositResponse)
-  - [MsgDrawDebt](#kava.cdp.v1beta1.MsgDrawDebt)
-  - [MsgDrawDebtResponse](#kava.cdp.v1beta1.MsgDrawDebtResponse)
-  - [MsgLiquidate](#kava.cdp.v1beta1.MsgLiquidate)
-  - [MsgLiquidateResponse](#kava.cdp.v1beta1.MsgLiquidateResponse)
-  - [MsgRepayDebt](#kava.cdp.v1beta1.MsgRepayDebt)
-  - [MsgRepayDebtResponse](#kava.cdp.v1beta1.MsgRepayDebtResponse)
-  - [MsgWithdraw](#kava.cdp.v1beta1.MsgWithdraw)
-  - [MsgWithdrawResponse](#kava.cdp.v1beta1.MsgWithdrawResponse)
-
-  - [Msg](#kava.cdp.v1beta1.Msg)
+    - [Msg](#kava.cdp.v1beta1.Msg)
 
 - [kava/committee/v1beta1/committee.proto](#kava/committee/v1beta1/committee.proto)
+    - [BaseCommittee](#kava.committee.v1beta1.BaseCommittee)
+    - [MemberCommittee](#kava.committee.v1beta1.MemberCommittee)
+    - [TokenCommittee](#kava.committee.v1beta1.TokenCommittee)
 
-  - [BaseCommittee](#kava.committee.v1beta1.BaseCommittee)
-  - [MemberCommittee](#kava.committee.v1beta1.MemberCommittee)
-  - [TokenCommittee](#kava.committee.v1beta1.TokenCommittee)
-
-  - [TallyOption](#kava.committee.v1beta1.TallyOption)
+    - [TallyOption](#kava.committee.v1beta1.TallyOption)
 
 - [kava/committee/v1beta1/genesis.proto](#kava/committee/v1beta1/genesis.proto)
+    - [GenesisState](#kava.committee.v1beta1.GenesisState)
+    - [Proposal](#kava.committee.v1beta1.Proposal)
+    - [Vote](#kava.committee.v1beta1.Vote)
 
-  - [GenesisState](#kava.committee.v1beta1.GenesisState)
-  - [Proposal](#kava.committee.v1beta1.Proposal)
-  - [Vote](#kava.committee.v1beta1.Vote)
-
-  - [VoteType](#kava.committee.v1beta1.VoteType)
+    - [VoteType](#kava.committee.v1beta1.VoteType)
 
 - [kava/committee/v1beta1/permissions.proto](#kava/committee/v1beta1/permissions.proto)
-
-  - [GodPermission](#kava.committee.v1beta1.GodPermission)
-  - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
-  - [TextPermission](#kava.committee.v1beta1.TextPermission)
+    - [GodPermission](#kava.committee.v1beta1.GodPermission)
+    - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
+    - [TextPermission](#kava.committee.v1beta1.TextPermission)
 
 - [kava/committee/v1beta1/proposal.proto](#kava/committee/v1beta1/proposal.proto)
-
-  - [CommitteeChangeProposal](#kava.committee.v1beta1.CommitteeChangeProposal)
-  - [CommitteeDeleteProposal](#kava.committee.v1beta1.CommitteeDeleteProposal)
+    - [CommitteeChangeProposal](#kava.committee.v1beta1.CommitteeChangeProposal)
+    - [CommitteeDeleteProposal](#kava.committee.v1beta1.CommitteeDeleteProposal)
 
 - [kava/committee/v1beta1/tx.proto](#kava/committee/v1beta1/tx.proto)
-
-  - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
-  - [MsgVote](#kava.committee.v1beta1.MsgVote)
+    - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
+    - [MsgVote](#kava.committee.v1beta1.MsgVote)
 
 - [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
-
-  - [Asset](#kava.issuance.v1beta1.Asset)
-  - [AssetSupply](#kava.issuance.v1beta1.AssetSupply)
-  - [GenesisState](#kava.issuance.v1beta1.GenesisState)
-  - [Params](#kava.issuance.v1beta1.Params)
-  - [RateLimit](#kava.issuance.v1beta1.RateLimit)
+    - [Asset](#kava.issuance.v1beta1.Asset)
+    - [AssetSupply](#kava.issuance.v1beta1.AssetSupply)
+    - [GenesisState](#kava.issuance.v1beta1.GenesisState)
+    - [Params](#kava.issuance.v1beta1.Params)
+    - [RateLimit](#kava.issuance.v1beta1.RateLimit)
 
 - [kava/issuance/v1beta1/query.proto](#kava/issuance/v1beta1/query.proto)
+    - [QueryParamsRequest](#kava.issuance.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.issuance.v1beta1.QueryParamsResponse)
 
-  - [QueryParamsRequest](#kava.issuance.v1beta1.QueryParamsRequest)
-  - [QueryParamsResponse](#kava.issuance.v1beta1.QueryParamsResponse)
-
-  - [Query](#kava.issuance.v1beta1.Query)
+    - [Query](#kava.issuance.v1beta1.Query)
 
 - [kava/issuance/v1beta1/tx.proto](#kava/issuance/v1beta1/tx.proto)
+    - [MsgBlockAddress](#kava.issuance.v1beta1.MsgBlockAddress)
+    - [MsgBlockAddressResponse](#kava.issuance.v1beta1.MsgBlockAddressResponse)
+    - [MsgIssueTokens](#kava.issuance.v1beta1.MsgIssueTokens)
+    - [MsgIssueTokensResponse](#kava.issuance.v1beta1.MsgIssueTokensResponse)
+    - [MsgRedeemTokens](#kava.issuance.v1beta1.MsgRedeemTokens)
+    - [MsgRedeemTokensResponse](#kava.issuance.v1beta1.MsgRedeemTokensResponse)
+    - [MsgSetPauseStatus](#kava.issuance.v1beta1.MsgSetPauseStatus)
+    - [MsgSetPauseStatusResponse](#kava.issuance.v1beta1.MsgSetPauseStatusResponse)
+    - [MsgUnblockAddress](#kava.issuance.v1beta1.MsgUnblockAddress)
+    - [MsgUnblockAddressResponse](#kava.issuance.v1beta1.MsgUnblockAddressResponse)
 
-  - [MsgBlockAddress](#kava.issuance.v1beta1.MsgBlockAddress)
-  - [MsgBlockAddressResponse](#kava.issuance.v1beta1.MsgBlockAddressResponse)
-  - [MsgIssueTokens](#kava.issuance.v1beta1.MsgIssueTokens)
-  - [MsgIssueTokensResponse](#kava.issuance.v1beta1.MsgIssueTokensResponse)
-  - [MsgRedeemTokens](#kava.issuance.v1beta1.MsgRedeemTokens)
-  - [MsgRedeemTokensResponse](#kava.issuance.v1beta1.MsgRedeemTokensResponse)
-  - [MsgSetPauseStatus](#kava.issuance.v1beta1.MsgSetPauseStatus)
-  - [MsgSetPauseStatusResponse](#kava.issuance.v1beta1.MsgSetPauseStatusResponse)
-  - [MsgUnblockAddress](#kava.issuance.v1beta1.MsgUnblockAddress)
-  - [MsgUnblockAddressResponse](#kava.issuance.v1beta1.MsgUnblockAddressResponse)
-
-  - [Msg](#kava.issuance.v1beta1.Msg)
+    - [Msg](#kava.issuance.v1beta1.Msg)
 
 - [kava/kavadist/v1beta1/params.proto](#kava/kavadist/v1beta1/params.proto)
-
-  - [Params](#kava.kavadist.v1beta1.Params)
-  - [Period](#kava.kavadist.v1beta1.Period)
+    - [Params](#kava.kavadist.v1beta1.Params)
+    - [Period](#kava.kavadist.v1beta1.Period)
 
 - [kava/kavadist/v1beta1/genesis.proto](#kava/kavadist/v1beta1/genesis.proto)
-
-  - [GenesisState](#kava.kavadist.v1beta1.GenesisState)
+    - [GenesisState](#kava.kavadist.v1beta1.GenesisState)
 
 - [kava/kavadist/v1beta1/proposal.proto](#kava/kavadist/v1beta1/proposal.proto)
-
-  - [CommunityPoolMultiSpendProposal](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposal)
-  - [CommunityPoolMultiSpendProposalJSON](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposalJSON)
-  - [MultiSpendRecipient](#kava.kavadist.v1beta1.MultiSpendRecipient)
+    - [CommunityPoolMultiSpendProposal](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposal)
+    - [CommunityPoolMultiSpendProposalJSON](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposalJSON)
+    - [MultiSpendRecipient](#kava.kavadist.v1beta1.MultiSpendRecipient)
 
 - [kava/kavadist/v1beta1/query.proto](#kava/kavadist/v1beta1/query.proto)
+    - [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest)
+    - [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse)
+    - [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse)
+
+    - [Query](#kava.kavadist.v1beta1.Query)
+
+- [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
+    - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
+    - [Market](#kava.pricefeed.v1beta1.Market)
+    - [Params](#kava.pricefeed.v1beta1.Params)
+    - [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice)
+
+- [kava/pricefeed/v1beta1/genesis.proto](#kava/pricefeed/v1beta1/genesis.proto)
+    - [GenesisState](#kava.pricefeed.v1beta1.GenesisState)
+
+- [kava/pricefeed/v1beta1/query.proto](#kava/pricefeed/v1beta1/query.proto)
+    - [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse)
+    - [MarketResponse](#kava.pricefeed.v1beta1.MarketResponse)
+    - [PostedPriceResponse](#kava.pricefeed.v1beta1.PostedPriceResponse)
+    - [QueryMarketsRequest](#kava.pricefeed.v1beta1.QueryMarketsRequest)
+    - [QueryMarketsResponse](#kava.pricefeed.v1beta1.QueryMarketsResponse)
+    - [QueryOraclesRequest](#kava.pricefeed.v1beta1.QueryOraclesRequest)
+    - [QueryOraclesResponse](#kava.pricefeed.v1beta1.QueryOraclesResponse)
+    - [QueryParamsRequest](#kava.pricefeed.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.pricefeed.v1beta1.QueryParamsResponse)
+    - [QueryPriceRequest](#kava.pricefeed.v1beta1.QueryPriceRequest)
+    - [QueryPriceResponse](#kava.pricefeed.v1beta1.QueryPriceResponse)
+    - [QueryPricesRequest](#kava.pricefeed.v1beta1.QueryPricesRequest)
+    - [QueryPricesResponse](#kava.pricefeed.v1beta1.QueryPricesResponse)
+    - [QueryRawPricesRequest](#kava.pricefeed.v1beta1.QueryRawPricesRequest)
+    - [QueryRawPricesResponse](#kava.pricefeed.v1beta1.QueryRawPricesResponse)
+
+    - [Query](#kava.pricefeed.v1beta1.Query)
+
+- [kava/pricefeed/v1beta1/tx.proto](#kava/pricefeed/v1beta1/tx.proto)
+    - [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice)
+    - [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse)
+
+    - [Msg](#kava.pricefeed.v1beta1.Msg)
+
+- [kava/swap/v1beta1/swap.proto](#kava/swap/v1beta1/swap.proto)
+    - [AllowedPool](#kava.swap.v1beta1.AllowedPool)
+    - [Params](#kava.swap.v1beta1.Params)
+    - [PoolRecord](#kava.swap.v1beta1.PoolRecord)
+    - [ShareRecord](#kava.swap.v1beta1.ShareRecord)
+
+- [kava/swap/v1beta1/genesis.proto](#kava/swap/v1beta1/genesis.proto)
+    - [GenesisState](#kava.swap.v1beta1.GenesisState)
+
+- [kava/swap/v1beta1/query.proto](#kava/swap/v1beta1/query.proto)
+    - [DepositResponse](#kava.swap.v1beta1.DepositResponse)
+    - [PoolResponse](#kava.swap.v1beta1.PoolResponse)
+    - [QueryDepositsRequest](#kava.swap.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.swap.v1beta1.QueryDepositsResponse)
+    - [QueryParamsRequest](#kava.swap.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.swap.v1beta1.QueryParamsResponse)
+    - [QueryPoolsRequest](#kava.swap.v1beta1.QueryPoolsRequest)
+    - [QueryPoolsResponse](#kava.swap.v1beta1.QueryPoolsResponse)
+
+    - [Query](#kava.swap.v1beta1.Query)
+
+- [kava/swap/v1beta1/tx.proto](#kava/swap/v1beta1/tx.proto)
+    - [MsgDeposit](#kava.swap.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.swap.v1beta1.MsgDepositResponse)
+    - [MsgSwapExactForTokens](#kava.swap.v1beta1.MsgSwapExactForTokens)
+    - [MsgSwapExactForTokensResponse](#kava.swap.v1beta1.MsgSwapExactForTokensResponse)
+    - [MsgSwapForExactTokens](#kava.swap.v1beta1.MsgSwapForExactTokens)
+    - [MsgSwapForExactTokensResponse](#kava.swap.v1beta1.MsgSwapForExactTokensResponse)
+    - [MsgWithdraw](#kava.swap.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.swap.v1beta1.MsgWithdrawResponse)
+
+    - [Msg](#kava.swap.v1beta1.Msg)
+
+- [Scalar Value Types](#scalar-value-types)
 
   - [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest)
   - [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse)
@@ -178,7 +277,522 @@
 
   - [Query](#kava.kavadist.v1beta1.Query)
 
-- [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
+
+<a name="kava/bep3/v1beta1/bep3.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/bep3/v1beta1/bep3.proto
+
+
+
+<a name="kava.bep3.v1beta1.AssetParam"></a>
+
+### AssetParam
+AssetParam defines parameters for each bep3 asset.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | denom represents the denominatin for this asset |
+| `coin_id` | [int64](#int64) |  | coin_id represents the registered coin type to use (https://github.com/satoshilabs/slips/blob/master/slip-0044.md) |
+| `supply_limit` | [SupplyLimit](#kava.bep3.v1beta1.SupplyLimit) |  | supply_limit defines the maximum supply allowed for the asset - a total or time based rate limit |
+| `active` | [bool](#bool) |  | active specifies if the asset is live or paused |
+| `deputy_address` | [bytes](#bytes) |  | deputy_address the kava address of the deputy |
+| `fixed_fee` | [string](#string) |  | fixed_fee defines the fee for incoming swaps |
+| `min_swap_amount` | [string](#string) |  | min_swap_amount defines the minimum amount able to be swapped in a single message |
+| `max_swap_amount` | [string](#string) |  | max_swap_amount defines the maximum amount able to be swapped in a single message |
+| `min_block_lock` | [uint64](#uint64) |  | min_block_lock defined the minimum blocks to lock |
+| `max_block_lock` | [uint64](#uint64) |  | min_block_lock defined the maximum blocks to lock |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.AssetSupply"></a>
+
+### AssetSupply
+AssetSupply defines information about an asset's supply.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `incoming_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | incoming_supply represents the incoming supply of an asset |
+| `outgoing_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | outgoing_supply represents the outgoing supply of an asset |
+| `current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | current_supply represents the current on-chain supply of an asset |
+| `time_limited_current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | time_limited_current_supply represents the time limited current supply of an asset |
+| `time_elapsed` | [google.protobuf.Duration](#google.protobuf.Duration) |  | time_elapsed represents the time elapsed |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.AtomicSwap"></a>
+
+### AtomicSwap
+AtomicSwap defines an atomic swap between chains for the pricefeed module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | amount represents the amount being swapped |
+| `random_number_hash` | [bytes](#bytes) |  | random_number_hash represents the hash of the random number |
+| `expire_height` | [uint64](#uint64) |  | expire_height represents the height when the swap expires |
+| `timestamp` | [int64](#int64) |  | timestamp represents the timestamp of the swap |
+| `sender` | [bytes](#bytes) |  | sender is the kava chain sender of the swap |
+| `recipient` | [bytes](#bytes) |  | recipient is the kava chain recipient of the swap |
+| `sender_other_chain` | [string](#string) |  | sender_other_chain is the sender on the other chain |
+| `recipient_other_chain` | [string](#string) |  | recipient_other_chain is the recipient on the other chain |
+| `closed_block` | [int64](#int64) |  | closed_block is the block when the swap is closed |
+| `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  | status represents the current status of the swap |
+| `cross_chain` | [bool](#bool) |  | cross_chain identifies whether the atomic swap is cross chain |
+| `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  | direction identifies if the swap is incoming or outgoing |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the bep3 module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `asset_params` | [AssetParam](#kava.bep3.v1beta1.AssetParam) | repeated | asset_params define the parameters for each bep3 asset |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.SupplyLimit"></a>
+
+### SupplyLimit
+SupplyLimit define the absolute and time-based limits for an assets's supply.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `limit` | [string](#string) |  | limit defines the total supply allowed |
+| `time_limited` | [bool](#bool) |  | time_limited enables or disables time based supply limiting |
+| `time_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | time_period specifies the duration that time_based_limit is evalulated |
+| `time_based_limit` | [string](#string) |  | time_based_limit defines the maximum supply that can be swapped within time_period |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.bep3.v1beta1.SwapDirection"></a>
+
+### SwapDirection
+SwapDirection is the direction of an AtomicSwap
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| SWAP_DIRECTION_UNSPECIFIED | 0 | SWAP_DIRECTION_UNSPECIFIED represents unspecified or invalid swap direcation |
+| SWAP_DIRECTION_INCOMING | 1 | SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain) |
+| SWAP_DIRECTION_OUTGOING | 2 | SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain) |
+
+
+
+<a name="kava.bep3.v1beta1.SwapStatus"></a>
+
+### SwapStatus
+SwapStatus is the status of an AtomicSwap
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| SWAP_STATUS_UNSPECIFIED | 0 | SWAP_STATUS_UNSPECIFIED represents an unspecified status |
+| SWAP_STATUS_OPEN | 1 | SWAP_STATUS_OPEN represents an open swap |
+| SWAP_STATUS_COMPLETED | 2 | SWAP_STATUS_COMPLETED represents a completed swap |
+| SWAP_STATUS_EXPIRED | 3 | SWAP_STATUS_EXPIRED represents an expired swap |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/bep3/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/bep3/v1beta1/genesis.proto
+
+
+
+<a name="kava.bep3.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the pricefeed module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.bep3.v1beta1.Params) |  | params defines all the paramaters of the module. |
+| `atomic_swaps` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) | repeated | atomic_swaps represents the state of stored atomic swaps |
+| `supplies` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) | repeated | supplies represents the supply information of each atomic swap |
+| `previous_block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | previous_block_time represents the time of the previous block |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/bep3/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/bep3/v1beta1/query.proto
+
+
+
+<a name="kava.bep3.v1beta1.AssetSupplyResponse"></a>
+
+### AssetSupplyResponse
+AssetSupplyResponse defines information about an asset's supply.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `incoming_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | incoming_supply represents the incoming supply of an asset |
+| `outgoing_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | outgoing_supply represents the outgoing supply of an asset |
+| `current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | current_supply represents the current on-chain supply of an asset |
+| `time_limited_current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | time_limited_current_supply represents the time limited current supply of an asset |
+| `time_elapsed` | [google.protobuf.Duration](#google.protobuf.Duration) |  | time_elapsed represents the time elapsed |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.AtomicSwapResponse"></a>
+
+### AtomicSwapResponse
+AtomicSwapResponse represents the returned atomic swap properties
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  | id represents the id of the atomic swap |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | amount represents the amount being swapped |
+| `random_number_hash` | [string](#string) |  | random_number_hash represents the hash of the random number |
+| `expire_height` | [uint64](#uint64) |  | expire_height represents the height when the swap expires |
+| `timestamp` | [int64](#int64) |  | timestamp represents the timestamp of the swap |
+| `sender` | [string](#string) |  | sender is the kava chain sender of the swap |
+| `recipient` | [string](#string) |  | recipient is the kava chain recipient of the swap |
+| `sender_other_chain` | [string](#string) |  | sender_other_chain is the sender on the other chain |
+| `recipient_other_chain` | [string](#string) |  | recipient_other_chain is the recipient on the other chain |
+| `closed_block` | [int64](#int64) |  | closed_block is the block when the swap is closed |
+| `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  | status represents the current status of the swap |
+| `cross_chain` | [bool](#bool) |  | cross_chain identifies whether the atomic swap is cross chain |
+| `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  | direction identifies if the swap is incoming or outgoing |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAssetSuppliesRequest"></a>
+
+### QueryAssetSuppliesRequest
+QueryAssetSuppliesRequest is the request type for the Query/AssetSupplies RPC method.
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAssetSuppliesResponse"></a>
+
+### QueryAssetSuppliesResponse
+QueryAssetSuppliesResponse is the response type for the Query/AssetSupplies RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `asset_supplies` | [AssetSupplyResponse](#kava.bep3.v1beta1.AssetSupplyResponse) | repeated | asset_supplies represents the supplies of returned assets |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAssetSupplyRequest"></a>
+
+### QueryAssetSupplyRequest
+QueryAssetSupplyRequest is the request type for the Query/AssetSupply RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | denom filters the asset response for the specified denom |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAssetSupplyResponse"></a>
+
+### QueryAssetSupplyResponse
+QueryAssetSupplyResponse is the response type for the Query/AssetSupply RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `asset_supply` | [AssetSupplyResponse](#kava.bep3.v1beta1.AssetSupplyResponse) |  | asset_supply represents the supply of the asset |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAtomicSwapRequest"></a>
+
+### QueryAtomicSwapRequest
+QueryAtomicSwapRequest is the request type for the Query/AtomicSwap RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `swap_id` | [string](#string) |  | swap_id represents the id of the swap to query |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAtomicSwapResponse"></a>
+
+### QueryAtomicSwapResponse
+QueryAtomicSwapResponse is the response type for the Query/AtomicSwap RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `atomic_swap` | [AtomicSwapResponse](#kava.bep3.v1beta1.AtomicSwapResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAtomicSwapsRequest"></a>
+
+### QueryAtomicSwapsRequest
+QueryAtomicSwapsRequest is the request type for the Query/AtomicSwaps RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `involve` | [string](#string) |  | involve filters by address |
+| `expiration` | [uint64](#uint64) |  | expiration filters by expiration block height |
+| `status` | [SwapStatus](#kava.bep3.v1beta1.SwapStatus) |  | status filters by swap status |
+| `direction` | [SwapDirection](#kava.bep3.v1beta1.SwapDirection) |  | direction fitlers by swap direction |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryAtomicSwapsResponse"></a>
+
+### QueryAtomicSwapsResponse
+QueryAtomicSwapsResponse is the response type for the Query/AtomicSwaps RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `atomic_swaps` | [AtomicSwapResponse](#kava.bep3.v1beta1.AtomicSwapResponse) | repeated | atomic_swap represents the returned atomic swaps for the request |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/bep3 parameters.
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/bep3 parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.bep3.v1beta1.Params) |  | params represents the parameters of the module |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.bep3.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for bep3 module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.bep3.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.bep3.v1beta1.QueryParamsResponse) | Params queries module params | GET|/kava/bep3/v1beta1/params|
+| `AssetSupply` | [QueryAssetSupplyRequest](#kava.bep3.v1beta1.QueryAssetSupplyRequest) | [QueryAssetSupplyResponse](#kava.bep3.v1beta1.QueryAssetSupplyResponse) | AssetSupply queries info about an asset's supply | GET|/kava/bep3/v1beta1/assetsupply/{denom}|
+| `AssetSupplies` | [QueryAssetSuppliesRequest](#kava.bep3.v1beta1.QueryAssetSuppliesRequest) | [QueryAssetSuppliesResponse](#kava.bep3.v1beta1.QueryAssetSuppliesResponse) | AssetSupplies queries a list of asset supplies | GET|/kava/bep3/v1beta1/assetsupplies|
+| `AtomicSwap` | [QueryAtomicSwapRequest](#kava.bep3.v1beta1.QueryAtomicSwapRequest) | [QueryAtomicSwapResponse](#kava.bep3.v1beta1.QueryAtomicSwapResponse) | AtomicSwap queries info about an atomic swap | GET|/kava/bep3/v1beta1/atomicswap/{swap_id}|
+| `AtomicSwaps` | [QueryAtomicSwapsRequest](#kava.bep3.v1beta1.QueryAtomicSwapsRequest) | [QueryAtomicSwapsResponse](#kava.bep3.v1beta1.QueryAtomicSwapsResponse) | AtomicSwaps queries a list of atomic swaps | GET|/kava/bep3/v1beta1/atomicswaps|
+
+ <!-- end services -->
+
+
+
+<a name="kava/bep3/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/bep3/v1beta1/tx.proto
+
+
+
+<a name="kava.bep3.v1beta1.MsgClaimAtomicSwap"></a>
+
+### MsgClaimAtomicSwap
+MsgClaimAtomicSwap defines the Msg/ClaimAtomicSwap request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  |  |
+| `swap_id` | [bytes](#bytes) |  |  |
+| `random_number` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.MsgClaimAtomicSwapResponse"></a>
+
+### MsgClaimAtomicSwapResponse
+MsgClaimAtomicSwapResponse defines the Msg/ClaimAtomicSwap response type.
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.MsgCreateAtomicSwap"></a>
+
+### MsgCreateAtomicSwap
+MsgCreateAtomicSwap defines the Msg/CreateAtomicSwap request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  |  |
+| `to` | [string](#string) |  |  |
+| `recipient_other_chain` | [string](#string) |  |  |
+| `sender_other_chain` | [string](#string) |  |  |
+| `random_number_hash` | [string](#string) |  |  |
+| `timestamp` | [int64](#int64) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `height_span` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.MsgCreateAtomicSwapResponse"></a>
+
+### MsgCreateAtomicSwapResponse
+MsgCreateAtomicSwapResponse defines the Msg/CreateAtomicSwap response type.
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.MsgRefundAtomicSwap"></a>
+
+### MsgRefundAtomicSwap
+MsgRefundAtomicSwap defines the Msg/RefundAtomicSwap request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  |  |
+| `swap_id` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.bep3.v1beta1.MsgRefundAtomicSwapResponse"></a>
+
+### MsgRefundAtomicSwapResponse
+MsgRefundAtomicSwapResponse defines the Msg/RefundAtomicSwap response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.bep3.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the bep3 Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `CreateAtomicSwap` | [MsgCreateAtomicSwap](#kava.bep3.v1beta1.MsgCreateAtomicSwap) | [MsgCreateAtomicSwapResponse](#kava.bep3.v1beta1.MsgCreateAtomicSwapResponse) | CreateAtomicSwap defines a method for creating an atomic swap | |
+| `ClaimAtomicSwap` | [MsgClaimAtomicSwap](#kava.bep3.v1beta1.MsgClaimAtomicSwap) | [MsgClaimAtomicSwapResponse](#kava.bep3.v1beta1.MsgClaimAtomicSwapResponse) | ClaimAtomicSwap defines a method for claiming an atomic swap | |
+| `RefundAtomicSwap` | [MsgRefundAtomicSwap](#kava.bep3.v1beta1.MsgRefundAtomicSwap) | [MsgRefundAtomicSwapResponse](#kava.bep3.v1beta1.MsgRefundAtomicSwapResponse) | RefundAtomicSwap defines a method for refunding an atomic swap | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/cdp/v1beta1/cdp.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
 
   - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
   - [Market](#kava.pricefeed.v1beta1.Market)
@@ -1768,6 +2382,317 @@ QueryProposalsResponse defines the response type for querying x/committee propos
 ### QueryRawParamsRequest
 
 QueryRawParamsRequest defines the request type for querying x/committee raw params.
+<a name="kava/committee/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/query.proto
+
+
+
+<a name="kava.committee.v1beta1.QueryCommitteeRequest"></a>
+
+### QueryCommitteeRequest
+QueryCommitteeRequest defines the request type for querying x/committee committee.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `committee_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryCommitteeResponse"></a>
+
+### QueryCommitteeResponse
+QueryCommitteeResponse defines the response type for querying x/committee committee.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `committee` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryCommitteesRequest"></a>
+
+### QueryCommitteesRequest
+QueryCommitteesRequest defines the request type for querying x/committee committees.
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryCommitteesResponse"></a>
+
+### QueryCommitteesResponse
+QueryCommitteesResponse defines the response type for querying x/committee committees.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `committees` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryNextProposalIDRequest"></a>
+
+### QueryNextProposalIDRequest
+QueryNextProposalIDRequest defines the request type for querying x/committee NextProposalID.
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryNextProposalIDResponse"></a>
+
+### QueryNextProposalIDResponse
+QueryNextProposalIDRequest defines the response type for querying x/committee NextProposalID.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `next_proposal_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryProposalRequest"></a>
+
+### QueryProposalRequest
+QueryProposalRequest defines the request type for querying x/committee proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryProposalResponse"></a>
+
+### QueryProposalResponse
+QueryProposalResponse defines the response type for querying x/committee proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pub_proposal` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `id` | [uint64](#uint64) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+| `deadline` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryProposalsRequest"></a>
+
+### QueryProposalsRequest
+QueryProposalsRequest defines the request type for querying x/committee proposals.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `committee_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryProposalsResponse"></a>
+
+### QueryProposalsResponse
+QueryProposalsResponse defines the response type for querying x/committee proposals.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposals` | [QueryProposalResponse](#kava.committee.v1beta1.QueryProposalResponse) | repeated |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryRawParamsRequest"></a>
+
+### QueryRawParamsRequest
+QueryRawParamsRequest defines the request type for querying x/committee raw params.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `subspace` | [string](#string) |  |  |
+| `key` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryRawParamsResponse"></a>
+
+### QueryRawParamsResponse
+QueryRawParamsResponse defines the response type for querying x/committee raw params.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `raw_data` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryTallyRequest"></a>
+
+### QueryTallyRequest
+QueryTallyRequest defines the request type for querying x/committee tally.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryTallyResponse"></a>
+
+### QueryTallyResponse
+QueryTallyResponse defines the response type for querying x/committee tally.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `yes_votes` | [string](#string) |  |  |
+| `no_votes` | [string](#string) |  |  |
+| `current_votes` | [string](#string) |  |  |
+| `possible_votes` | [string](#string) |  |  |
+| `vote_threshold` | [string](#string) |  |  |
+| `quorum` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVoteRequest"></a>
+
+### QueryVoteRequest
+QueryVoteRequest defines the request type for querying x/committee vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVoteResponse"></a>
+
+### QueryVoteResponse
+QueryVoteResponse defines the response type for querying x/committee vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+| `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVotesRequest"></a>
+
+### QueryVotesRequest
+QueryVotesRequest defines the request type for querying x/committee votes.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVotesResponse"></a>
+
+### QueryVotesResponse
+QueryVotesResponse defines the response type for querying x/committee votes.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `votes` | [QueryVoteResponse](#kava.committee.v1beta1.QueryVoteResponse) | repeated | votes defined the queried votes. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.committee.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for committee module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Committees` | [QueryCommitteesRequest](#kava.committee.v1beta1.QueryCommitteesRequest) | [QueryCommitteesResponse](#kava.committee.v1beta1.QueryCommitteesResponse) | Committees queries all committess of the committee module. | GET|/kava/committee/v1beta1/committees|
+| `Committee` | [QueryCommitteeRequest](#kava.committee.v1beta1.QueryCommitteeRequest) | [QueryCommitteeResponse](#kava.committee.v1beta1.QueryCommitteeResponse) | Committee queries a committee based on committee ID. | GET|/kava/committee/v1beta1/committees/{committee_id}|
+| `Proposals` | [QueryProposalsRequest](#kava.committee.v1beta1.QueryProposalsRequest) | [QueryProposalsResponse](#kava.committee.v1beta1.QueryProposalsResponse) | Proposals queries proposals based on committee ID. | GET|/kava/committee/v1beta1/proposals|
+| `Proposal` | [QueryProposalRequest](#kava.committee.v1beta1.QueryProposalRequest) | [QueryProposalResponse](#kava.committee.v1beta1.QueryProposalResponse) | Deposits queries a proposal based on proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}|
+| `NextProposalID` | [QueryNextProposalIDRequest](#kava.committee.v1beta1.QueryNextProposalIDRequest) | [QueryNextProposalIDResponse](#kava.committee.v1beta1.QueryNextProposalIDResponse) | NextProposalID queries the next proposal ID of the committee module. | GET|/kava/committee/v1beta1/next-proposal-id|
+| `Votes` | [QueryVotesRequest](#kava.committee.v1beta1.QueryVotesRequest) | [QueryVotesResponse](#kava.committee.v1beta1.QueryVotesResponse) | Votes queries all votes for a single proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}/votes|
+| `Vote` | [QueryVoteRequest](#kava.committee.v1beta1.QueryVoteRequest) | [QueryVoteResponse](#kava.committee.v1beta1.QueryVoteResponse) | Vote queries the vote of a single voter for a single proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}/votes/{voter}|
+| `Tally` | [QueryTallyRequest](#kava.committee.v1beta1.QueryTallyRequest) | [QueryTallyResponse](#kava.committee.v1beta1.QueryTallyResponse) | Tally queries the tally of a single proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}/tally|
+| `RawParams` | [QueryRawParamsRequest](#kava.committee.v1beta1.QueryRawParamsRequest) | [QueryRawParamsResponse](#kava.committee.v1beta1.QueryRawParamsResponse) | RawParams queries the raw params data of any subspace and key. | GET|/kava/committee/v1beta1/raw-params|
+
+ <!-- end services -->
+
+
+
+<a name="kava/committee/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
 
 | Field      | Type              | Label | Description |
 | ---------- | ----------------- | ----- | ----------- |
@@ -1787,6 +2712,11 @@ QueryRawParamsResponse defines the response type for querying x/committee raw pa
 <a name="kava.committee.v1beta1.QueryTallyRequest"></a>
 
 ### QueryTallyRequest
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pub_proposal` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `proposer` | [string](#string) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
 
 QueryTallyRequest defines the request type for querying x/committee tally.
 
@@ -1815,6 +2745,12 @@ QueryTallyResponse defines the response type for querying x/committee tally.
 ### QueryVoteRequest
 
 QueryVoteRequest defines the request type for querying x/committee vote.
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+| `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
 
 | Field         | Type              | Label | Description |
 | ------------- | ----------------- | ----- | ----------- |

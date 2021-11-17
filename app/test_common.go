@@ -23,6 +23,7 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -30,6 +31,7 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
@@ -88,14 +90,15 @@ func (tApp TestApp) GetParamsKeeper() paramskeeper.Keeper       { return tApp.pa
 func (tApp TestApp) GetKavadistKeeper() kavadistkeeper.Keeper   { return tApp.kavadistKeeper }
 func (tApp TestApp) GetIssuanceKeeper() issuancekeeper.Keeper   { return tApp.issuanceKeeper }
 func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
+func (tApp TestApp) GetBep3Keeper() bep3keeper.Keeper           { return tApp.bep3Keeper }
 func (tApp TestApp) GetSwapKeeper() swapkeeper.Keeper           { return tApp.swapKeeper }
 func (tApp TestApp) GetAuctionKeeper() auctionkeeper.Keeper     { return tApp.auctionKeeper }
+func (tApp TestApp) GetCommitteeKeeper() committeekeeper.Keeper { return tApp.committeeKeeper }
 
 // TODO add back with modules
 // func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
 // func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
 // func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeeper }
-// func (tApp TestApp) GetBep3Keeper() bep3.Keeper           { return tApp.bep3Keeper }
 // func (tApp TestApp) GetIncentiveKeeper() incentive.Keeper { return tApp.incentiveKeeper }
 // func (tApp TestApp) GetHardKeeper() hard.Keeper           { return tApp.hardKeeper }
 // func (tApp TestApp) GetCommitteeKeeper() committee.Keeper { return tApp.committeeKeeper }
@@ -196,11 +199,20 @@ func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk
 
 // NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
 func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) GenesisState {
+	balances := make([]sdk.Coins, len(addresses))
+	for i, _ := range addresses {
+		balances[i] = balance
+	}
+	return NewFundedGenStateWithCoins(cdc, balances, addresses)
+}
+
+// NewFundedGenStateWithCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and coins.
+func NewFundedGenStateWithCoins(cdc codec.JSONCodec, coins []sdk.Coins, addresses []sdk.AccAddress) GenesisState {
 	balances := make([]banktypes.Balance, len(addresses))
 	for i, addr := range addresses {
 		balances[i] = banktypes.Balance{
 			Address: addr.String(),
-			Coins:   balance,
+			Coins:   coins[i],
 		}
 	}
 

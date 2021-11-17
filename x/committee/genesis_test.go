@@ -6,12 +6,13 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee"
+	"github.com/kava-labs/kava/x/committee/keeper"
+	"github.com/kava-labs/kava/x/committee/testutil"
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
@@ -20,50 +21,46 @@ type GenesisTestSuite struct {
 
 	app       app.TestApp
 	ctx       sdk.Context
-	keeper    committee.Keeper
+	keeper    keeper.Keeper
 	addresses []sdk.AccAddress
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
 	suite.app = app.NewTestApp()
 	suite.keeper = suite.app.GetCommitteeKeeper()
-	suite.ctx = suite.app.NewContext(true, abci.Header{})
+	suite.ctx = suite.app.NewContext(true, tmproto.Header{})
 	_, suite.addresses = app.GeneratePrivKeyAddressPairs(10)
 }
 
 func (suite *GenesisTestSuite) TestInitGenesis() {
 
-	memberCom := types.MemberCommittee{
-		BaseCommittee: types.BaseCommittee{
-			ID:               1,
-			Description:      "This member committee is for testing.",
-			Members:          suite.addresses[:2],
-			Permissions:      []types.Permission{types.GodPermission{}},
-			VoteThreshold:    d("0.667"),
-			ProposalDuration: time.Hour * 24 * 7,
-			TallyOption:      types.FirstPastThePost,
-		},
-	}
+	memberCom := types.MustNewMemberCommittee(
+		1,
+		"This member committee is for testing.",
+		suite.addresses[:2],
+		[]types.Permission{&types.GodPermission{}},
+		testutil.D("0.667"),
+		time.Hour*24*7,
+		types.TALLY_OPTION_FIRST_PAST_THE_POST,
+	)
 
-	tokenCom := types.TokenCommittee{
-		BaseCommittee: types.BaseCommittee{
-			ID:               1,
-			Description:      "This token committee is for testing.",
-			Members:          suite.addresses[:2],
-			Permissions:      []types.Permission{types.GodPermission{}},
-			VoteThreshold:    d("0.667"),
-			ProposalDuration: time.Hour * 24 * 7,
-			TallyOption:      types.FirstPastThePost,
-		},
-		Quorum:     d("0.4"),
-		TallyDenom: "hard",
-	}
+	tokenCom := types.MustNewTokenCommittee(
+		1,
+		"This token committee is for testing.",
+		suite.addresses[:2],
+		[]types.Permission{&types.GodPermission{}},
+		testutil.D("0.667"),
+		time.Hour*24*7,
+		types.TALLY_OPTION_FIRST_PAST_THE_POST,
+		testutil.D("0.4"),
+		"hard",
+	)
 
 	// Most genesis validation tests are located in the types directory. The 'invalid' test cases are
 	// randomly selected subset of those tests.
 	testCases := []struct {
 		name       string
-		genState   types.GenesisState
+		genState   *types.GenesisState
 		expectPass bool
 	}{
 		{
@@ -117,7 +114,7 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 				1,
 				[]types.Committee{},
 				[]types.Proposal{},
-				[]types.Vote{{Voter: suite.addresses[0], ProposalID: 1, VoteType: types.Yes}},
+				[]types.Vote{{Voter: suite.addresses[0], ProposalID: 1, VoteType: types.VOTE_TYPE_YES}},
 			),
 			expectPass: false,
 		},
@@ -137,23 +134,26 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 			// Setup (note: suite.SetupTest is not run before every suite.Run)
 			suite.app = app.NewTestApp()
 			suite.keeper = suite.app.GetCommitteeKeeper()
-			suite.ctx = suite.app.NewContext(true, abci.Header{})
+			suite.ctx = suite.app.NewContext(true, tmproto.Header{})
 
 			// Run
-			var exportedGenState types.GenesisState
+			var exportedGenState *types.GenesisState
 			run := func() {
 				committee.InitGenesis(suite.ctx, suite.keeper, tc.genState)
 				exportedGenState = committee.ExportGenesis(suite.ctx, suite.keeper)
 			}
 			if tc.expectPass {
-				suite.NotPanics(run)
+				suite.Require().NotPanics(run)
 			} else {
-				suite.Panics(run)
+				suite.Require().Panics(run)
 			}
 
 			// Check
 			if tc.expectPass {
-				suite.Equal(tc.genState, exportedGenState)
+				expectedJson, err := suite.app.AppCodec().MarshalJSON(tc.genState)
+				suite.Require().NoError(err)
+				actualJson, err := suite.app.AppCodec().MarshalJSON(exportedGenState)
+				suite.Equal(expectedJson, actualJson)
 			}
 		})
 	}
