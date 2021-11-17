@@ -49,10 +49,10 @@ func (b Deposit) NormalizedDeposit() (sdk.DecCoins, error) {
 // Validate deposit validation
 func (d Deposit) Validate() error {
 	if d.Depositor.Empty() {
-		return fmt.Errorf("Depositor cannot be empty")
+		return fmt.Errorf("depositor cannot be empty")
 	}
 	if !d.Amount.IsValid() {
-		return fmt.Errorf("Invalid deposit coins: %s", d.Amount)
+		return fmt.Errorf("invalid deposit coins: %s", d.Amount)
 	}
 
 	if err := d.Index.Validate(); err != nil {

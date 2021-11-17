@@ -94,11 +94,11 @@ func (mm MoneyMarket) Validate() error {
 	}
 
 	if mm.ReserveFactor.IsNegative() || mm.ReserveFactor.GT(sdk.OneDec()) {
-		return fmt.Errorf("Reserve factor must be between 0.0-1.0")
+		return fmt.Errorf("reserve factor must be between 0.0-1.0")
 	}
 
 	if mm.KeeperRewardPercentage.IsNegative() || mm.KeeperRewardPercentage.GT(sdk.OneDec()) {
-		return fmt.Errorf("Keeper reward percentage must be between 0.0-1.0")
+		return fmt.Errorf("keeper reward percentage must be between 0.0-1.0")
 	}
 
 	return nil
@@ -156,19 +156,19 @@ func NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier sdk.
 // Validate InterestRateModel param
 func (irm InterestRateModel) Validate() error {
 	if irm.BaseRateAPY.IsNegative() || irm.BaseRateAPY.GT(sdk.OneDec()) {
-		return fmt.Errorf("Base rate APY must be in the inclusive range 0.0-1.0")
+		return fmt.Errorf("base rate APY must be in the inclusive range 0.0-1.0")
 	}
 
 	if irm.BaseMultiplier.IsNegative() {
-		return fmt.Errorf("Base multiplier must not be negative")
+		return fmt.Errorf("base multiplier must not be negative")
 	}
 
 	if irm.Kink.IsNegative() || irm.Kink.GT(sdk.OneDec()) {
-		return fmt.Errorf("Kink must be in the inclusive range 0.0-1.0")
+		return fmt.Errorf("kink must be in the inclusive range 0.0-1.0")
 	}
 
 	if irm.JumpMultiplier.IsNegative() {
-		return fmt.Errorf("Jump multiplier must not be negative")
+		return fmt.Errorf("jump multiplier must not be negative")
 	}
 
 	return nil
@@ -236,7 +236,7 @@ func validateMinimumBorrowUSDValue(i interface{}) error {
 	}
 
 	if minBorrowVal.IsNegative() {
-		return fmt.Errorf("Minimum borrow USD value cannot be negative")
+		return fmt.Errorf("minimum borrow USD value cannot be negative")
 	}
 
 	return nil

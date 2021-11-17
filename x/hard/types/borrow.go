@@ -49,10 +49,10 @@ func (b Borrow) NormalizedBorrow() (sdk.DecCoins, error) {
 // Validate deposit validation
 func (b Borrow) Validate() error {
 	if b.Borrower.Empty() {
-		return fmt.Errorf("Borrower cannot be empty")
+		return fmt.Errorf("borrower cannot be empty")
 	}
 	if !b.Amount.IsValid() {
-		return fmt.Errorf("Invalid borrow coins: %s", b.Amount)
+		return fmt.Errorf("invalid borrow coins: %s", b.Amount)
 	}
 
 	if err := b.Index.Validate(); err != nil {
