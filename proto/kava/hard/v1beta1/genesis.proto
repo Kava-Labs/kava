@@ -9,13 +9,13 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/hard/types";
 
-// GenesisState defines the pricefeed module's genesis state.
+// GenesisState defines the hard module's genesis state.
 message GenesisState {
   Params                           params                      = 1 [(gogoproto.nullable) = false];
   repeated GenesisAccumulationTime previous_accumulation_times = 2
       [(gogoproto.castrepeated) = "GenesisAccumulationTimes", (gogoproto.nullable) = false];
-  repeated Deposit         deposits       = 3 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
-  repeated Borrow          borrows        = 4 [(gogoproto.castrepeated) = "Borrows", (gogoproto.nullable) = false];
+  repeated Deposit deposits = 3 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
+  repeated Borrow  borrows  = 4 [(gogoproto.castrepeated) = "Borrows", (gogoproto.nullable) = false];
   repeated cosmos.base.v1beta1.Coin total_supplied = 5
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
   repeated cosmos.base.v1beta1.Coin total_borrowed = 6
