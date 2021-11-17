@@ -440,7 +440,6 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
 		minttypes.ModuleName,
-		crisistypes.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
 		kavadisttypes.ModuleName,
@@ -449,6 +448,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		bep3types.ModuleName,
 		pricefeedtypes.ModuleName,
 		swaptypes.ModuleName,
+		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
