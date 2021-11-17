@@ -61,6 +61,14 @@ func NewCommitteeChangeProposal(title string, description string, newCommittee C
 	}, nil
 }
 
+func MustNewCommitteeChangeProposal(title string, description string, newCommittee Committee) CommitteeChangeProposal {
+	proposal, err := NewCommitteeChangeProposal(title, description, newCommittee)
+	if err != nil {
+		panic(err)
+	}
+	return proposal
+}
+
 // GetTitle returns the title of the proposal.
 func (ccp CommitteeChangeProposal) GetTitle() string { return ccp.Title }
 
