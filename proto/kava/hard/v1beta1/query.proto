@@ -1,0 +1,200 @@
+syntax = "proto3";
+package kava.hard.v1beta1;
+
+import "kava/hard/v1beta1/hard.proto";
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/duration.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+option go_package = "github.com/kava-labs/kava/x/hard/types";
+
+// Query defines the gRPC querier service for bep3 module
+service Query {
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/params";
+  }
+
+  rpc ModAccounts(QueryModAccountsRequest) returns (QueryModAccountsResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/mod_accounts";
+  }
+
+  rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/deposits";
+  }
+
+  rpc UnsyncedDeposits(QueryUnsyncedDepositsRequest) returns (QueryUnsyncedDepositsResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/unsynced_deposits";
+  }
+
+  rpc TotalDeposited(QueryTotalDepositedRequest) returns (QueryTotalDepositedResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/total_deposited";
+  }
+
+  rpc Borrows(QueryBorrowsRequest) returns (QueryBorrowsResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/borrows";
+  }
+
+  rpc UnsyncedBorrows(QueryUnsyncedBorrowsRequest) returns (QueryUnsyncedBorrowsResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/unsynced_borrows";
+  }
+
+  rpc TotalBorrowed(QueryTotalBorrowedRequest) returns (QueryTotalBorrowedResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/total_borrowed";
+  }
+
+  rpc InterestRate(QueryInterestRateRequest) returns (QueryInterestRateResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/interest_rate";
+  }
+
+  rpc Reserves(QueryReservesRequest) returns (QueryReservesResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/reserves";
+  }
+
+  rpc InterestFactors(QueryInterestFactorsRequest) returns (QueryInterestFactorsResponse) {
+    option (google.api.http).get = "/kava/hard/v1beta1/interest_factors";
+  }
+}
+
+message QueryParamsRequest {}
+
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryModAccountsRequest {
+  string name = 1;
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryModAccountsResponse {
+  repeated cosmos.auth.v1beta1.ModuleAccount accounts   = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse     pagination = 2;
+}
+
+// QueryDepositsParams is the params for a filtered deposit query
+message QueryDepositsRequest {
+  string denom = 1;
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+message QueryDepositsResponse {
+  repeated Deposit deposits = 1 [(gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryUnsyncedDepositsParams is the params for a filtered unsynced deposit query.
+message QueryUnsyncedDepositsRequest {
+  string denom = 1;
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+message QueryUnsyncedDepositsResponse {
+  repeated Deposit deposits = 1 [(gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryTotalDepositedParams is the params for a filtered total deposited coins query
+message QueryTotalDepositedRequest {
+  string denom = 1;
+}
+
+message QueryTotalDepositedResponse {
+  repeated cosmos.base.v1beta1.Coin supplied_coins = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}
+
+// QueryBorrowsParams is the params for a filtered borrows query
+message QueryBorrowsRequest {
+  string denom = 1;
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+message QueryBorrowsResponse {
+  repeated Borrow borrows = 1 [(gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryUnsyncedBorrowsParams is the params for a filtered unsynced borrows query
+message QueryUnsyncedBorrowsRequest {
+  string denom = 1;
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+message QueryUnsyncedBorrowsResponse {
+  repeated Borrow borrows = 1 [(gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryTotalBorrowedParams is the params for a filtered total borrowed coins query
+message QueryTotalBorrowedRequest {
+  string denom = 1;
+}
+
+message QueryTotalBorrowedResponse {
+  repeated cosmos.base.v1beta1.Coin borrowed_coins = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}
+
+// QueryInterestRateParams is the params for a filtered interest rate query
+message QueryInterestRateRequest {
+  string denom = 1;
+}
+
+message QueryInterestRateResponse {
+  repeated MoneyMarketInterestRate interest_rates = 1
+      [(gogoproto.castrepeated) = "MoneyMarketInterestRates", (gogoproto.nullable) = false];
+}
+
+// QueryReservesParams is the params for a filtered reserves query
+message QueryReservesRequest {
+  string denom = 1;
+}
+
+message QueryReservesResponse {
+  repeated cosmos.base.v1beta1.Coin amount = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}
+
+// QueryInterestFactorsParams is the params for a filtered interest factors query
+message QueryInterestFactorsRequest {
+  string denom = 1;
+}
+
+message QueryInterestFactorsResponse {
+  repeated InterestFactor interest_factors = 1
+      [(gogoproto.castrepeated) = "InterestFactors", (gogoproto.nullable) = false];
+}
+
+// MoneyMarketInterestRate is a unique type returned by interest rate queries
+message MoneyMarketInterestRate {
+  string denom = 1;
+  // sdk.Dec as String
+  string supply_interest_rate = 2;
+  // sdk.Dec as String
+  string borrow_interest_rate = 3;
+}
+
+// InterestFactor is a unique type returned by interest factor queries
+message InterestFactor {
+  string denom = 1;
+  // sdk.Dec as String
+  string borrow_interest_factor = 2;
+  // sdk.Dec as String
+  string supply_interest_factor = 3;
+}

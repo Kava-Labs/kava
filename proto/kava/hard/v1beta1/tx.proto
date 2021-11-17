@@ -1,0 +1,58 @@
+syntax = "proto3";
+package kava.hard.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/kava-labs/kava/x/hard/types";
+
+// Msg defines the bep3 Msg service.
+service Msg {
+  rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
+  rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
+  rpc Borrow(MsgBorrow) returns (MsgBorrowResponse);
+  rpc Repay(MsgRepay) returns (MsgRepayResponse);
+  rpc Liquidate(MsgLiquidate) returns (MsgLiquidateResponse);
+}
+
+// MsgDeposit deposit collateral to the hard module.
+message MsgDeposit {
+  string                   depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount    = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgDepositResponse {}
+
+// MsgWithdraw withdraw from the hard module.
+message MsgWithdraw {
+  string                   depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount    = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgWithdrawResponse {}
+
+// MsgBorrow borrows funds from the hard module.
+message MsgBorrow {
+  string                   borrower = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount   = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgBorrowResponse {}
+
+// MsgRepay repays funds to the hard module.
+message MsgRepay {
+  string                   sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string                   owner  = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+}
+
+message MsgRepayResponse {}
+
+// MsgLiquidate attempts to liquidate a borrower's borrow
+message MsgLiquidate {
+  string keeper   = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string borrower = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgLiquidateResponse {}
