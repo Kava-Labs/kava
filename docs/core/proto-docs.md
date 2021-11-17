@@ -115,6 +115,28 @@
     - [CommitteeChangeProposal](#kava.committee.v1beta1.CommitteeChangeProposal)
     - [CommitteeDeleteProposal](#kava.committee.v1beta1.CommitteeDeleteProposal)
   
+- [kava/committee/v1beta1/query.proto](#kava/committee/v1beta1/query.proto)
+    - [QueryCommitteeRequest](#kava.committee.v1beta1.QueryCommitteeRequest)
+    - [QueryCommitteeResponse](#kava.committee.v1beta1.QueryCommitteeResponse)
+    - [QueryCommitteesRequest](#kava.committee.v1beta1.QueryCommitteesRequest)
+    - [QueryCommitteesResponse](#kava.committee.v1beta1.QueryCommitteesResponse)
+    - [QueryNextProposalIDRequest](#kava.committee.v1beta1.QueryNextProposalIDRequest)
+    - [QueryNextProposalIDResponse](#kava.committee.v1beta1.QueryNextProposalIDResponse)
+    - [QueryProposalRequest](#kava.committee.v1beta1.QueryProposalRequest)
+    - [QueryProposalResponse](#kava.committee.v1beta1.QueryProposalResponse)
+    - [QueryProposalsRequest](#kava.committee.v1beta1.QueryProposalsRequest)
+    - [QueryProposalsResponse](#kava.committee.v1beta1.QueryProposalsResponse)
+    - [QueryRawParamsRequest](#kava.committee.v1beta1.QueryRawParamsRequest)
+    - [QueryRawParamsResponse](#kava.committee.v1beta1.QueryRawParamsResponse)
+    - [QueryTallyRequest](#kava.committee.v1beta1.QueryTallyRequest)
+    - [QueryTallyResponse](#kava.committee.v1beta1.QueryTallyResponse)
+    - [QueryVoteRequest](#kava.committee.v1beta1.QueryVoteRequest)
+    - [QueryVoteResponse](#kava.committee.v1beta1.QueryVoteResponse)
+    - [QueryVotesRequest](#kava.committee.v1beta1.QueryVotesRequest)
+    - [QueryVotesResponse](#kava.committee.v1beta1.QueryVotesResponse)
+  
+    - [Query](#kava.committee.v1beta1.Query)
+  
 - [kava/committee/v1beta1/tx.proto](#kava/committee/v1beta1/tx.proto)
     - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
     - [MsgVote](#kava.committee.v1beta1.MsgVote)
@@ -1751,6 +1773,315 @@ CommitteeDeleteProposal is a gov proposal for removing a committee.
 
 
 
+<a name="kava/committee/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/committee/v1beta1/query.proto
+
+
+
+<a name="kava.committee.v1beta1.QueryCommitteeRequest"></a>
+
+### QueryCommitteeRequest
+QueryCommitteeRequest defines the request type for querying x/committee committee.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `committee_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryCommitteeResponse"></a>
+
+### QueryCommitteeResponse
+QueryCommitteeResponse defines the response type for querying x/committee committee.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `committee` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryCommitteesRequest"></a>
+
+### QueryCommitteesRequest
+QueryCommitteesRequest defines the request type for querying x/committee committees.
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryCommitteesResponse"></a>
+
+### QueryCommitteesResponse
+QueryCommitteesResponse defines the response type for querying x/committee committees.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `committees` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryNextProposalIDRequest"></a>
+
+### QueryNextProposalIDRequest
+QueryNextProposalIDRequest defines the request type for querying x/committee NextProposalID.
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryNextProposalIDResponse"></a>
+
+### QueryNextProposalIDResponse
+QueryNextProposalIDRequest defines the response type for querying x/committee NextProposalID.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `next_proposal_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryProposalRequest"></a>
+
+### QueryProposalRequest
+QueryProposalRequest defines the request type for querying x/committee proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryProposalResponse"></a>
+
+### QueryProposalResponse
+QueryProposalResponse defines the response type for querying x/committee proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pub_proposal` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+| `id` | [uint64](#uint64) |  |  |
+| `committee_id` | [uint64](#uint64) |  |  |
+| `deadline` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryProposalsRequest"></a>
+
+### QueryProposalsRequest
+QueryProposalsRequest defines the request type for querying x/committee proposals.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `committee_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryProposalsResponse"></a>
+
+### QueryProposalsResponse
+QueryProposalsResponse defines the response type for querying x/committee proposals.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposals` | [QueryProposalResponse](#kava.committee.v1beta1.QueryProposalResponse) | repeated |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryRawParamsRequest"></a>
+
+### QueryRawParamsRequest
+QueryRawParamsRequest defines the request type for querying x/committee raw params.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `subspace` | [string](#string) |  |  |
+| `key` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryRawParamsResponse"></a>
+
+### QueryRawParamsResponse
+QueryRawParamsResponse defines the response type for querying x/committee raw params.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `raw_data` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryTallyRequest"></a>
+
+### QueryTallyRequest
+QueryTallyRequest defines the request type for querying x/committee tally.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryTallyResponse"></a>
+
+### QueryTallyResponse
+QueryTallyResponse defines the response type for querying x/committee tally.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `yes_votes` | [string](#string) |  |  |
+| `no_votes` | [string](#string) |  |  |
+| `current_votes` | [string](#string) |  |  |
+| `possible_votes` | [string](#string) |  |  |
+| `vote_threshold` | [string](#string) |  |  |
+| `quorum` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVoteRequest"></a>
+
+### QueryVoteRequest
+QueryVoteRequest defines the request type for querying x/committee vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVoteResponse"></a>
+
+### QueryVoteResponse
+QueryVoteResponse defines the response type for querying x/committee vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+| `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVotesRequest"></a>
+
+### QueryVotesRequest
+QueryVotesRequest defines the request type for querying x/committee votes.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.QueryVotesResponse"></a>
+
+### QueryVotesResponse
+QueryVotesResponse defines the response type for querying x/committee votes.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `votes` | [QueryVoteResponse](#kava.committee.v1beta1.QueryVoteResponse) | repeated | votes defined the queried votes. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.committee.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for committee module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Committees` | [QueryCommitteesRequest](#kava.committee.v1beta1.QueryCommitteesRequest) | [QueryCommitteesResponse](#kava.committee.v1beta1.QueryCommitteesResponse) | Committees queries all committess of the committee module. | GET|/kava/committee/v1beta1/committees|
+| `Committee` | [QueryCommitteeRequest](#kava.committee.v1beta1.QueryCommitteeRequest) | [QueryCommitteeResponse](#kava.committee.v1beta1.QueryCommitteeResponse) | Committee queries a committee based on committee ID. | GET|/kava/committee/v1beta1/committees/{committee_id}|
+| `Proposals` | [QueryProposalsRequest](#kava.committee.v1beta1.QueryProposalsRequest) | [QueryProposalsResponse](#kava.committee.v1beta1.QueryProposalsResponse) | Proposals queries proposals based on committee ID. | GET|/kava/committee/v1beta1/proposals|
+| `Proposal` | [QueryProposalRequest](#kava.committee.v1beta1.QueryProposalRequest) | [QueryProposalResponse](#kava.committee.v1beta1.QueryProposalResponse) | Deposits queries a proposal based on proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}|
+| `NextProposalID` | [QueryNextProposalIDRequest](#kava.committee.v1beta1.QueryNextProposalIDRequest) | [QueryNextProposalIDResponse](#kava.committee.v1beta1.QueryNextProposalIDResponse) | NextProposalID queries the next proposal ID of the committee module. | GET|/kava/committee/v1beta1/next-proposal-id|
+| `Votes` | [QueryVotesRequest](#kava.committee.v1beta1.QueryVotesRequest) | [QueryVotesResponse](#kava.committee.v1beta1.QueryVotesResponse) | Votes queries all votes for a single proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}/votes|
+| `Vote` | [QueryVoteRequest](#kava.committee.v1beta1.QueryVoteRequest) | [QueryVoteResponse](#kava.committee.v1beta1.QueryVoteResponse) | Vote queries the vote of a single voter for a single proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}/votes/{voter}|
+| `Tally` | [QueryTallyRequest](#kava.committee.v1beta1.QueryTallyRequest) | [QueryTallyResponse](#kava.committee.v1beta1.QueryTallyResponse) | Tally queries the tally of a single proposal ID. | GET|/kava/committee/v1beta1/proposals/{proposal_id}/tally|
+| `RawParams` | [QueryRawParamsRequest](#kava.committee.v1beta1.QueryRawParamsRequest) | [QueryRawParamsResponse](#kava.committee.v1beta1.QueryRawParamsResponse) | RawParams queries the raw params data of any subspace and key. | GET|/kava/committee/v1beta1/raw-params|
+
+ <!-- end services -->
+
+
+
 <a name="kava/committee/v1beta1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -1767,7 +2098,7 @@ MsgSubmitProposal is used by committee members to create a new proposal that the
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `pub_proposal` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
-| `proposer` | [bytes](#bytes) |  |  |
+| `proposer` | [string](#string) |  |  |
 | `committee_id` | [uint64](#uint64) |  |  |
 
 
@@ -1784,7 +2115,7 @@ MsgVote is submitted by committee members to vote on proposals.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `proposal_id` | [uint64](#uint64) |  |  |
-| `voter` | [bytes](#bytes) |  |  |
+| `voter` | [string](#string) |  |  |
 | `vote_type` | [VoteType](#kava.committee.v1beta1.VoteType) |  |  |
 
 

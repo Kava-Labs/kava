@@ -1,21 +1,18 @@
 package keeper_test
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/committee/keeper"
+	"github.com/kava-labs/kava/x/committee/testutil"
 	"github.com/kava-labs/kava/x/committee/types"
 )
-
-// Avoid cluttering test cases with long function names
-func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
-func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) }
-func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
-func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 
 // getProposalVoteMap collects up votes into a map indexed by proposalID
 func getProposalVoteMap(k keeper.Keeper, ctx sdk.Context) map[uint64]([]types.Vote) {
@@ -29,12 +26,40 @@ func getProposalVoteMap(k keeper.Keeper, ctx sdk.Context) map[uint64]([]types.Vo
 	return proposalVoteMap
 }
 
-func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
-	ak := suite.app.GetAccountKeeper()
-	return ak.GetAccount(suite.ctx, addr)
+func (suite *keeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
+	ak := suite.App.GetAccountKeeper()
+	return ak.GetAccount(suite.Ctx, addr)
+}
+
+func mustNewTestMemberCommittee(addresses []sdk.AccAddress) *types.MemberCommittee {
+	com, err := types.NewMemberCommittee(
+		12,
+		"This committee is for testing.",
+		addresses,
+		[]types.Permission{&types.GodPermission{}},
+		testutil.D("0.667"),
+		time.Hour*24*7,
+		types.TALLY_OPTION_FIRST_PAST_THE_POST,
+	)
+	if err != nil {
+		panic(err)
+	}
+	return com
+}
+
+// mustNewTestProposal returns a new test proposal.
+func mustNewTestProposal() types.Proposal {
+	proposal, err := types.NewProposal(
+		govtypes.NewTextProposal("A Title", "A description of this proposal."),
+		1, 1, time.Date(2010, time.January, 1, 0, 0, 0, 0, time.UTC),
+	)
+	if err != nil {
+		panic(err)
+	}
+	return proposal
 }
 
 // NewCommitteeGenesisState marshals a committee genesis state into json for use in initializing test apps.
-func NewCommitteeGenesisState(cdc *codec.Codec, gs committee.GenesisState) app.GenesisState {
-	return app.GenesisState{committee.ModuleName: cdc.MustMarshalJSON(gs)}
+func NewCommitteeGenesisState(cdc codec.Codec, gs *types.GenesisState) app.GenesisState {
+	return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(gs)}
 }

@@ -21,7 +21,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	}
 
 	// Check committee has permissions to enact proposal.
-	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, pubProposal) {
+	if !com.HasPermissionsFor(ctx, k.cdc, k.paramKeeper, pubProposal) {
 		return 0, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
@@ -64,11 +64,11 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
 	}
 
-	if _, ok := com.(types.MemberCommittee); ok {
+	if _, ok := com.(*types.MemberCommittee); ok {
 		if !com.HasMember(voter) {
 			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "voter must be a member of committee")
 		}
-		if voteType != types.Yes {
+		if voteType != types.VOTE_TYPE_YES {
 			return sdkerrors.Wrap(types.ErrInvalidVoteType, "member committees only accept yes votes")
 		}
 	}
@@ -122,9 +122,7 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 }
 
 func (k Keeper) ProcessProposals(ctx sdk.Context) {
-
 	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
-
 		committee, found := k.GetCommittee(ctx, proposal.CommitteeID)
 		if !found {
 			k.CloseProposal(ctx, proposal, types.Failed)
@@ -132,7 +130,7 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) {
 		}
 
 		if !proposal.HasExpiredBy(ctx.BlockTime()) {
-			if committee.GetTallyOption() == types.FirstPastThePost {
+			if committee.GetTallyOption() == types.TALLY_OPTION_FIRST_PAST_THE_POST {
 				passed := k.GetProposalResult(ctx, proposal.ID, committee)
 				if passed {
 					outcome := k.attemptEnactProposal(ctx, proposal)
@@ -153,9 +151,9 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) {
 
 func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64, committee types.Committee) bool {
 	switch com := committee.(type) {
-	case types.MemberCommittee:
+	case *types.MemberCommittee:
 		return k.GetMemberCommitteeProposalResult(ctx, proposalID, com)
-	case types.TokenCommittee:
+	case *types.TokenCommittee:
 		return k.GetTokenCommitteeProposalResult(ctx, proposalID, com)
 	default: // Should never hit default case
 		return false
@@ -176,7 +174,7 @@ func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64) (t
 }
 
 // GetTokenCommitteeProposalResult gets the result of a token committee proposal
-func (k Keeper) GetTokenCommitteeProposalResult(ctx sdk.Context, proposalID uint64, committee types.TokenCommittee) bool {
+func (k Keeper) GetTokenCommitteeProposalResult(ctx sdk.Context, proposalID uint64, committee *types.TokenCommittee) bool {
 	yesVotes, noVotes, totalVotes, possibleVotes := k.TallyTokenCommitteeVotes(ctx, proposalID, committee.TallyDenom)
 	if totalVotes.GTE(committee.Quorum.Mul(possibleVotes)) { // quorum requirement
 		nonAbstainVotes := yesVotes.Add(noVotes)
@@ -200,18 +198,18 @@ func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
 	for _, vote := range votes {
 		// 1 token = 1 vote
 		acc := k.accountKeeper.GetAccount(ctx, vote.Voter)
-		accNumCoins := acc.GetCoins().AmountOf(tallyDenom)
+		accNumCoins := k.bankKeeper.GetBalance(ctx, acc.GetAddress(), tallyDenom).Amount
 
 		// Add votes to counters
 		totalVotes = totalVotes.Add(accNumCoins.ToDec())
-		if vote.VoteType == types.Yes {
+		if vote.VoteType == types.VOTE_TYPE_YES {
 			yesVotes = yesVotes.Add(accNumCoins.ToDec())
-		} else if vote.VoteType == types.No {
+		} else if vote.VoteType == types.VOTE_TYPE_NO {
 			noVotes = noVotes.Add(accNumCoins.ToDec())
 		}
 	}
 
-	possibleVotesInt := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(tallyDenom)
+	possibleVotesInt := k.bankKeeper.GetSupply(ctx, tallyDenom).Amount
 	return yesVotes, noVotes, totalVotes, possibleVotesInt.ToDec()
 }
 
@@ -231,49 +229,70 @@ func (k Keeper) enactProposal(ctx sdk.Context, proposal types.Proposal) error {
 	if !found {
 		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", proposal.CommitteeID)
 	}
-	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, proposal.PubProposal) {
+	if !com.HasPermissionsFor(ctx, k.cdc, k.paramKeeper, proposal.GetContent()) {
 		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
-	if err := k.ValidatePubProposal(ctx, proposal.PubProposal); err != nil {
+	if err := k.ValidatePubProposal(ctx, proposal.GetContent()); err != nil {
 		return err
 	}
 
 	// enact the proposal
-	handler := k.router.GetRoute(proposal.ProposalRoute())
-	if err := handler(ctx, proposal.PubProposal); err != nil {
+	handler := k.router.GetRoute(proposal.GetContent().ProposalRoute())
+	if err := handler(ctx, proposal.GetContent()); err != nil {
 		// the handler should not error as it was checked in ValidatePubProposal
 		panic(fmt.Sprintf("unexpected handler error: %s", err))
 	}
 	return nil
 }
 
-// CloseProposal deletes proposals and their votes, emitting an event denoting the final status of the proposal
-func (k Keeper) CloseProposal(ctx sdk.Context, proposal types.Proposal, outcome types.ProposalOutcome) {
-
-	proposalTally := types.ProposalPollingStatus{}
+// GetProposalTallyResponse returns the tally results of a proposal.
+func (k Keeper) GetProposalTallyResponse(ctx sdk.Context, proposalID uint64) (*types.QueryTallyResponse, bool) {
+	proposal, found := k.GetProposal(ctx, proposalID)
+	if !found {
+		return nil, found
+	}
 	committee, found := k.GetCommittee(ctx, proposal.CommitteeID)
-	if found {
-		switch com := committee.(type) {
-		case types.MemberCommittee:
-			currVotes := k.TallyMemberCommitteeVotes(ctx, proposal.ID)
-			possibleVotes := sdk.NewDec(int64(len(com.Members)))
-			memberPollingStatus := types.NewProposalPollingStatus(proposal.ID, currVotes, sdk.ZeroDec(),
-				currVotes, possibleVotes, com.VoteThreshold, sdk.Dec{Int: nil})
-			proposalTally = memberPollingStatus
-		case types.TokenCommittee:
-			yesVotes, noVotes, currVotes, possibleVotes := k.TallyTokenCommitteeVotes(ctx, proposal.ID, com.TallyDenom)
-			tokenPollingStatus := types.NewProposalPollingStatus(proposal.ID, yesVotes, noVotes,
-				currVotes, possibleVotes, com.VoteThreshold, com.Quorum)
-			proposalTally = tokenPollingStatus
+	if !found {
+		return nil, found
+	}
+	var proposalTally types.QueryTallyResponse
+	switch com := committee.(type) {
+	case *types.MemberCommittee:
+		currVotes := k.TallyMemberCommitteeVotes(ctx, proposal.ID)
+		possibleVotes := sdk.NewDec(int64(len(com.Members)))
+		proposalTally = types.QueryTallyResponse{
+			ProposalID:    proposal.ID,
+			YesVotes:      currVotes,
+			NoVotes:       sdk.ZeroDec(),
+			CurrentVotes:  currVotes,
+			PossibleVotes: possibleVotes,
+			VoteThreshold: com.VoteThreshold,
+			Quorum:        sdk.ZeroDec(),
+		}
+	case *types.TokenCommittee:
+		yesVotes, noVotes, currVotes, possibleVotes := k.TallyTokenCommitteeVotes(ctx, proposal.ID, com.TallyDenom)
+		proposalTally = types.QueryTallyResponse{
+			ProposalID:    proposal.ID,
+			YesVotes:      yesVotes,
+			NoVotes:       noVotes,
+			CurrentVotes:  currVotes,
+			PossibleVotes: possibleVotes,
+			VoteThreshold: com.VoteThreshold,
+			Quorum:        com.Quorum,
 		}
 	}
+	return &proposalTally, true
+}
 
+// CloseProposal deletes proposals and their votes, emitting an event denoting the final status of the proposal
+func (k Keeper) CloseProposal(ctx sdk.Context, proposal types.Proposal, outcome types.ProposalOutcome) {
+	tally, _ := k.GetProposalTallyResponse(ctx, proposal.ID)
 	k.DeleteProposalAndVotes(ctx, proposal.ID)
 
-	bz, err := k.cdc.MarshalJSON(proposalTally)
+	bz, err := k.cdc.MarshalJSON(tally)
 	if err != nil {
-		fmt.Println("error marshaling proposal tally to bytes:", proposalTally.String())
+		fmt.Println("error marshaling proposal tally to bytes:", tally.String())
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -281,7 +300,7 @@ func (k Keeper) CloseProposal(ctx sdk.Context, proposal types.Proposal, outcome 
 			types.EventTypeProposalClose,
 			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
 			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
-			sdk.NewAttribute(types.AttributeKeyProposalTally, fmt.Sprintf("%s", bz)),
+			sdk.NewAttribute(types.AttributeKeyProposalTally, string(bz)),
 			sdk.NewAttribute(types.AttributeKeyProposalOutcome, outcome.String()),
 		),
 	)
