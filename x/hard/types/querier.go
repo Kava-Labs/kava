@@ -143,19 +143,12 @@ func NewQueryInterestRateParams(denom string) QueryInterestRateParams {
 	}
 }
 
-// MoneyMarketInterestRate is a unique type returned by interest rate queries
-type MoneyMarketInterestRate struct {
-	Denom              string  `json:"denom" yaml:"denom"`
-	SupplyInterestRate sdk.Dec `json:"supply_interest_rate" yaml:"supply_interest_rate"`
-	BorrowInterestRate sdk.Dec `json:"borrow_interest_rate" yaml:"borrow_interest_rate"`
-}
-
 // NewMoneyMarketInterestRate returns a new instance of MoneyMarketInterestRate
 func NewMoneyMarketInterestRate(denom string, supplyInterestRate, borrowInterestRate sdk.Dec) MoneyMarketInterestRate {
 	return MoneyMarketInterestRate{
 		Denom:              denom,
-		SupplyInterestRate: supplyInterestRate,
-		BorrowInterestRate: borrowInterestRate,
+		SupplyInterestRate: supplyInterestRate.String(),
+		BorrowInterestRate: borrowInterestRate.String(),
 	}
 }
 
@@ -186,19 +179,12 @@ func NewQueryInterestFactorsParams(denom string) QueryInterestFactorsParams {
 	}
 }
 
-// InterestFactor is a unique type returned by interest factor queries
-type InterestFactor struct {
-	Denom                string  `json:"denom" yaml:"denom"`
-	BorrowInterestFactor sdk.Dec `json:"borrow_interest_factor" yaml:"borrow_interest_factor"`
-	SupplyInterestFactor sdk.Dec `json:"supply_interest_factor" yaml:"supply_interest_factor"`
-}
-
 // NewInterestFactor returns a new instance of InterestFactor
 func NewInterestFactor(denom string, supplyInterestFactor, borrowInterestFactor sdk.Dec) InterestFactor {
 	return InterestFactor{
 		Denom:                denom,
-		SupplyInterestFactor: supplyInterestFactor,
-		BorrowInterestFactor: borrowInterestFactor,
+		SupplyInterestFactor: supplyInterestFactor.String(),
+		BorrowInterestFactor: borrowInterestFactor.String(),
 	}
 }
 

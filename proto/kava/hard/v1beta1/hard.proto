@@ -7,11 +7,13 @@ import "cosmos_proto/cosmos.proto";
 import "google/protobuf/duration.proto";
 
 option go_package = "github.com/kava-labs/kava/x/hard/types";
+option (gogoproto.goproto_getters_all) = false;
 
 // Params defines the parameters for the bep3 module.
 message Params {
   repeated MoneyMarket money_markets = 1 [(gogoproto.castrepeated) = "MoneyMarkets", (gogoproto.nullable) = false];
   string               minimum_borrow_usd_value = 2 [
+    (gogoproto.customname) = "MinimumBorrowUSDValue",
     (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
@@ -22,7 +24,7 @@ message Params {
 message MoneyMarket {
   string      denom             = 1;
   BorrowLimit borrow_limit      = 2 [(gogoproto.nullable) = false];
-  string      spot_market_id    = 3;
+  string      spot_market_id    = 3 [(gogoproto.customname) = "SpotMarketID"];
   string      conversion_factor = 4 [
     (cosmos_proto.scalar)  = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
@@ -59,6 +61,7 @@ message BorrowLimit {
 // InterestRateModel contains information about an asset's interest rate
 message InterestRateModel {
   string base_rate_apy = 1 [
+    (gogoproto.customname) = "BaseRateAPY",
     (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false

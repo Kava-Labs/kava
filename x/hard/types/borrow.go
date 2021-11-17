@@ -7,13 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Borrow defines an amount of coins borrowed from a hard module account
-type Borrow struct {
-	Borrower sdk.AccAddress        `json:"borrower" yaml:"borrower"`
-	Amount   sdk.Coins             `json:"amount" yaml:"amount"`
-	Index    BorrowInterestFactors `json:"index" yaml:"index"`
-}
-
 // NewBorrow returns a new Borrow instance
 func NewBorrow(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFactors) Borrow {
 	return Borrow{
@@ -69,14 +62,6 @@ func (b Borrow) Validate() error {
 	return nil
 }
 
-func (b Borrow) String() string {
-	return fmt.Sprintf(`Borrow:
-	Borrower: %s
-	Amount: %s
-	Index: %s
-	`, b.Borrower, b.Amount, b.Index)
-}
-
 // Borrows is a slice of Borrow
 type Borrows []Borrow
 
@@ -94,12 +79,6 @@ func (bs Borrows) Validate() error {
 		borrowDupMap[b.Borrower.String()] = b
 	}
 	return nil
-}
-
-// BorrowInterestFactor defines an individual borrow interest factor
-type BorrowInterestFactor struct {
-	Denom string  `json:"denom" yaml:"denom"`
-	Value sdk.Dec `json:"value" yaml:"value"`
 }
 
 // NewBorrowInterestFactor returns a new BorrowInterestFactor instance
@@ -120,11 +99,6 @@ func (bif BorrowInterestFactor) Validate() error {
 
 	}
 	return nil
-}
-
-func (bif BorrowInterestFactor) String() string {
-	return fmt.Sprintf(`[%s,%s]
-	`, bif.Denom, bif.Value)
 }
 
 // BorrowInterestFactors is a slice of BorrowInterestFactor, because Amino won't marshal maps
@@ -170,12 +144,4 @@ func (bifs BorrowInterestFactors) Validate() error {
 		}
 	}
 	return nil
-}
-
-func (bifs BorrowInterestFactors) String() string {
-	out := ""
-	for _, bif := range bifs {
-		out += bif.String()
-	}
-	return out
 }

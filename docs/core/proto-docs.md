@@ -119,6 +119,62 @@
     - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
     - [MsgVote](#kava.committee.v1beta1.MsgVote)
   
+- [kava/hard/v1beta1/hard.proto](#kava/hard/v1beta1/hard.proto)
+    - [Borrow](#kava.hard.v1beta1.Borrow)
+    - [BorrowInterestFactor](#kava.hard.v1beta1.BorrowInterestFactor)
+    - [BorrowLimit](#kava.hard.v1beta1.BorrowLimit)
+    - [Deposit](#kava.hard.v1beta1.Deposit)
+    - [InterestRateModel](#kava.hard.v1beta1.InterestRateModel)
+    - [MoneyMarket](#kava.hard.v1beta1.MoneyMarket)
+    - [Params](#kava.hard.v1beta1.Params)
+    - [SupplyInterestFactor](#kava.hard.v1beta1.SupplyInterestFactor)
+  
+- [kava/hard/v1beta1/genesis.proto](#kava/hard/v1beta1/genesis.proto)
+    - [GenesisAccumulationTime](#kava.hard.v1beta1.GenesisAccumulationTime)
+    - [GenesisState](#kava.hard.v1beta1.GenesisState)
+  
+- [kava/hard/v1beta1/query.proto](#kava/hard/v1beta1/query.proto)
+    - [InterestFactor](#kava.hard.v1beta1.InterestFactor)
+    - [MoneyMarketInterestRate](#kava.hard.v1beta1.MoneyMarketInterestRate)
+    - [QueryBorrowsRequest](#kava.hard.v1beta1.QueryBorrowsRequest)
+    - [QueryBorrowsResponse](#kava.hard.v1beta1.QueryBorrowsResponse)
+    - [QueryDepositsRequest](#kava.hard.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.hard.v1beta1.QueryDepositsResponse)
+    - [QueryInterestFactorsRequest](#kava.hard.v1beta1.QueryInterestFactorsRequest)
+    - [QueryInterestFactorsResponse](#kava.hard.v1beta1.QueryInterestFactorsResponse)
+    - [QueryInterestRateRequest](#kava.hard.v1beta1.QueryInterestRateRequest)
+    - [QueryInterestRateResponse](#kava.hard.v1beta1.QueryInterestRateResponse)
+    - [QueryModAccountsRequest](#kava.hard.v1beta1.QueryModAccountsRequest)
+    - [QueryModAccountsResponse](#kava.hard.v1beta1.QueryModAccountsResponse)
+    - [QueryParamsRequest](#kava.hard.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.hard.v1beta1.QueryParamsResponse)
+    - [QueryReservesRequest](#kava.hard.v1beta1.QueryReservesRequest)
+    - [QueryReservesResponse](#kava.hard.v1beta1.QueryReservesResponse)
+    - [QueryTotalBorrowedRequest](#kava.hard.v1beta1.QueryTotalBorrowedRequest)
+    - [QueryTotalBorrowedResponse](#kava.hard.v1beta1.QueryTotalBorrowedResponse)
+    - [QueryTotalDepositedRequest](#kava.hard.v1beta1.QueryTotalDepositedRequest)
+    - [QueryTotalDepositedResponse](#kava.hard.v1beta1.QueryTotalDepositedResponse)
+    - [QueryUnsyncedBorrowsRequest](#kava.hard.v1beta1.QueryUnsyncedBorrowsRequest)
+    - [QueryUnsyncedBorrowsResponse](#kava.hard.v1beta1.QueryUnsyncedBorrowsResponse)
+    - [QueryUnsyncedDepositsRequest](#kava.hard.v1beta1.QueryUnsyncedDepositsRequest)
+    - [QueryUnsyncedDepositsResponse](#kava.hard.v1beta1.QueryUnsyncedDepositsResponse)
+  
+    - [Query](#kava.hard.v1beta1.Query)
+  
+- [kava/hard/v1beta1/tx.proto](#kava/hard/v1beta1/tx.proto)
+    - [MsgBorrow](#kava.hard.v1beta1.MsgBorrow)
+    - [MsgBorrowResponse](#kava.hard.v1beta1.MsgBorrowResponse)
+    - [MsgDeposit](#kava.hard.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.hard.v1beta1.MsgDepositResponse)
+    - [MsgLiquidate](#kava.hard.v1beta1.MsgLiquidate)
+    - [MsgLiquidateResponse](#kava.hard.v1beta1.MsgLiquidateResponse)
+    - [MsgRepay](#kava.hard.v1beta1.MsgRepay)
+    - [MsgRepayResponse](#kava.hard.v1beta1.MsgRepayResponse)
+    - [MsgWithdraw](#kava.hard.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.hard.v1beta1.MsgWithdrawResponse)
+  
+    - [Msg](#kava.hard.v1beta1.Msg)
+  
 - [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
     - [Asset](#kava.issuance.v1beta1.Asset)
     - [AssetSupply](#kava.issuance.v1beta1.AssetSupply)
@@ -1740,6 +1796,785 @@ MsgVote is submitted by committee members to vote on proposals.
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/hard/v1beta1/hard.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/hard/v1beta1/hard.proto
+
+
+
+<a name="kava.hard.v1beta1.Borrow"></a>
+
+### Borrow
+Borrow defines an amount of coins borrowed from a hard module account
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrower` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `index` | [BorrowInterestFactor](#kava.hard.v1beta1.BorrowInterestFactor) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.BorrowInterestFactor"></a>
+
+### BorrowInterestFactor
+BorrowInterestFactor defines an individual borrow interest factor
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `value` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.BorrowLimit"></a>
+
+### BorrowLimit
+BorrowLimit enforces restrictions on a money market
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `has_max_limit` | [bool](#bool) |  |  |
+| `maximum_limit` | [string](#string) |  |  |
+| `loan_to_value` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.Deposit"></a>
+
+### Deposit
+Deposit defines an amount of coins deposited into a hard module account
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `index` | [SupplyInterestFactor](#kava.hard.v1beta1.SupplyInterestFactor) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.InterestRateModel"></a>
+
+### InterestRateModel
+InterestRateModel contains information about an asset's interest rate
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_rate_apy` | [string](#string) |  |  |
+| `base_multiplier` | [string](#string) |  |  |
+| `kink` | [string](#string) |  |  |
+| `jump_multiplier` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MoneyMarket"></a>
+
+### MoneyMarket
+MoneyMarket is a money market for an individual asset
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `borrow_limit` | [BorrowLimit](#kava.hard.v1beta1.BorrowLimit) |  |  |
+| `spot_market_id` | [string](#string) |  |  |
+| `conversion_factor` | [string](#string) |  |  |
+| `interest_rate_model` | [InterestRateModel](#kava.hard.v1beta1.InterestRateModel) |  |  |
+| `reserve_factor` | [string](#string) |  |  |
+| `keeper_reward_percentage` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the bep3 module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `money_markets` | [MoneyMarket](#kava.hard.v1beta1.MoneyMarket) | repeated |  |
+| `minimum_borrow_usd_value` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.SupplyInterestFactor"></a>
+
+### SupplyInterestFactor
+SupplyInterestFactor defines an individual borrow interest factor
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `value` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/hard/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/hard/v1beta1/genesis.proto
+
+
+
+<a name="kava.hard.v1beta1.GenesisAccumulationTime"></a>
+
+### GenesisAccumulationTime
+GenesisAccumulationTime stores the previous distribution time and its corresponding denom
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `previous_accumulation_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `supply_interest_factor` | [string](#string) |  |  |
+| `borrow_interest_factor` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the pricefeed module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.hard.v1beta1.Params) |  |  |
+| `previous_accumulation_times` | [GenesisAccumulationTime](#kava.hard.v1beta1.GenesisAccumulationTime) | repeated |  |
+| `deposits` | [Deposit](#kava.hard.v1beta1.Deposit) | repeated |  |
+| `borrows` | [Borrow](#kava.hard.v1beta1.Borrow) | repeated |  |
+| `total_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `total_borrowed` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `total_reserves` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/hard/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/hard/v1beta1/query.proto
+
+
+
+<a name="kava.hard.v1beta1.InterestFactor"></a>
+
+### InterestFactor
+InterestFactor is a unique type returned by interest factor queries
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `borrow_interest_factor` | [string](#string) |  | sdk.Dec as String |
+| `supply_interest_factor` | [string](#string) |  | sdk.Dec as String |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MoneyMarketInterestRate"></a>
+
+### MoneyMarketInterestRate
+MoneyMarketInterestRate is a unique type returned by interest rate queries
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `supply_interest_rate` | [string](#string) |  | sdk.Dec as String |
+| `borrow_interest_rate` | [string](#string) |  | sdk.Dec as String |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryBorrowsRequest"></a>
+
+### QueryBorrowsRequest
+QueryBorrowsParams is the params for a filtered borrows query
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryBorrowsResponse"></a>
+
+### QueryBorrowsResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrows` | [Borrow](#kava.hard.v1beta1.Borrow) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryDepositsRequest"></a>
+
+### QueryDepositsRequest
+QueryDepositsParams is the params for a filtered deposit query
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryDepositsResponse"></a>
+
+### QueryDepositsResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [Deposit](#kava.hard.v1beta1.Deposit) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryInterestFactorsRequest"></a>
+
+### QueryInterestFactorsRequest
+QueryInterestFactorsParams is the params for a filtered interest factors query
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryInterestFactorsResponse"></a>
+
+### QueryInterestFactorsResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `interest_factors` | [InterestFactor](#kava.hard.v1beta1.InterestFactor) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryInterestRateRequest"></a>
+
+### QueryInterestRateRequest
+QueryInterestRateParams is the params for a filtered interest rate query
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryInterestRateResponse"></a>
+
+### QueryInterestRateResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `interest_rates` | [MoneyMarketInterestRate](#kava.hard.v1beta1.MoneyMarketInterestRate) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryModAccountsRequest"></a>
+
+### QueryModAccountsRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `name` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryModAccountsResponse"></a>
+
+### QueryModAccountsResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `accounts` | [cosmos.auth.v1beta1.ModuleAccount](#cosmos.auth.v1beta1.ModuleAccount) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.hard.v1beta1.Params) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryReservesRequest"></a>
+
+### QueryReservesRequest
+QueryReservesParams is the params for a filtered reserves query
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryReservesResponse"></a>
+
+### QueryReservesResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryTotalBorrowedRequest"></a>
+
+### QueryTotalBorrowedRequest
+QueryTotalBorrowedParams is the params for a filtered total borrowed coins query
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryTotalBorrowedResponse"></a>
+
+### QueryTotalBorrowedResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrowed_coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryTotalDepositedRequest"></a>
+
+### QueryTotalDepositedRequest
+QueryTotalDepositedParams is the params for a filtered total deposited coins query
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryTotalDepositedResponse"></a>
+
+### QueryTotalDepositedResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `supplied_coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryUnsyncedBorrowsRequest"></a>
+
+### QueryUnsyncedBorrowsRequest
+QueryUnsyncedBorrowsParams is the params for a filtered unsynced borrows query
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryUnsyncedBorrowsResponse"></a>
+
+### QueryUnsyncedBorrowsResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrows` | [Borrow](#kava.hard.v1beta1.Borrow) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryUnsyncedDepositsRequest"></a>
+
+### QueryUnsyncedDepositsRequest
+QueryUnsyncedDepositsParams is the params for a filtered unsynced deposit query.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryUnsyncedDepositsResponse"></a>
+
+### QueryUnsyncedDepositsResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [Deposit](#kava.hard.v1beta1.Deposit) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.hard.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for bep3 module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.hard.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.hard.v1beta1.QueryParamsResponse) |  | GET|/kava/hard/v1beta1/params|
+| `ModAccounts` | [QueryModAccountsRequest](#kava.hard.v1beta1.QueryModAccountsRequest) | [QueryModAccountsResponse](#kava.hard.v1beta1.QueryModAccountsResponse) |  | GET|/kava/hard/v1beta1/mod_accounts|
+| `Deposits` | [QueryDepositsRequest](#kava.hard.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.hard.v1beta1.QueryDepositsResponse) |  | GET|/kava/hard/v1beta1/deposits|
+| `UnsyncedDeposits` | [QueryUnsyncedDepositsRequest](#kava.hard.v1beta1.QueryUnsyncedDepositsRequest) | [QueryUnsyncedDepositsResponse](#kava.hard.v1beta1.QueryUnsyncedDepositsResponse) |  | GET|/kava/hard/v1beta1/unsynced_deposits|
+| `TotalDeposited` | [QueryTotalDepositedRequest](#kava.hard.v1beta1.QueryTotalDepositedRequest) | [QueryTotalDepositedResponse](#kava.hard.v1beta1.QueryTotalDepositedResponse) |  | GET|/kava/hard/v1beta1/total_deposited|
+| `Borrows` | [QueryBorrowsRequest](#kava.hard.v1beta1.QueryBorrowsRequest) | [QueryBorrowsResponse](#kava.hard.v1beta1.QueryBorrowsResponse) |  | GET|/kava/hard/v1beta1/borrows|
+| `UnsyncedBorrows` | [QueryUnsyncedBorrowsRequest](#kava.hard.v1beta1.QueryUnsyncedBorrowsRequest) | [QueryUnsyncedBorrowsResponse](#kava.hard.v1beta1.QueryUnsyncedBorrowsResponse) |  | GET|/kava/hard/v1beta1/unsynced_borrows|
+| `TotalBorrowed` | [QueryTotalBorrowedRequest](#kava.hard.v1beta1.QueryTotalBorrowedRequest) | [QueryTotalBorrowedResponse](#kava.hard.v1beta1.QueryTotalBorrowedResponse) |  | GET|/kava/hard/v1beta1/total_borrowed|
+| `InterestRate` | [QueryInterestRateRequest](#kava.hard.v1beta1.QueryInterestRateRequest) | [QueryInterestRateResponse](#kava.hard.v1beta1.QueryInterestRateResponse) |  | GET|/kava/hard/v1beta1/interest_rate|
+| `Reserves` | [QueryReservesRequest](#kava.hard.v1beta1.QueryReservesRequest) | [QueryReservesResponse](#kava.hard.v1beta1.QueryReservesResponse) |  | GET|/kava/hard/v1beta1/reserves|
+| `InterestFactors` | [QueryInterestFactorsRequest](#kava.hard.v1beta1.QueryInterestFactorsRequest) | [QueryInterestFactorsResponse](#kava.hard.v1beta1.QueryInterestFactorsResponse) |  | GET|/kava/hard/v1beta1/interest_factors|
+
+ <!-- end services -->
+
+
+
+<a name="kava/hard/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/hard/v1beta1/tx.proto
+
+
+
+<a name="kava.hard.v1beta1.MsgBorrow"></a>
+
+### MsgBorrow
+MsgBorrow borrows funds from the hard module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrower` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgBorrowResponse"></a>
+
+### MsgBorrowResponse
+
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgDeposit"></a>
+
+### MsgDeposit
+MsgDeposit deposit collateral to the hard module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgDepositResponse"></a>
+
+### MsgDepositResponse
+
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgLiquidate"></a>
+
+### MsgLiquidate
+MsgLiquidate attempts to liquidate a borrower's borrow
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `keeper` | [string](#string) |  |  |
+| `borrower` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgLiquidateResponse"></a>
+
+### MsgLiquidateResponse
+
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgRepay"></a>
+
+### MsgRepay
+MsgRepay repays funds to the hard module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgRepayResponse"></a>
+
+### MsgRepayResponse
+
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgWithdraw"></a>
+
+### MsgWithdraw
+MsgWithdraw withdraw from the hard module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgWithdrawResponse"></a>
+
+### MsgWithdrawResponse
+
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.hard.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the bep3 Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Deposit` | [MsgDeposit](#kava.hard.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.hard.v1beta1.MsgDepositResponse) |  | |
+| `Withdraw` | [MsgWithdraw](#kava.hard.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.hard.v1beta1.MsgWithdrawResponse) |  | |
+| `Borrow` | [MsgBorrow](#kava.hard.v1beta1.MsgBorrow) | [MsgBorrowResponse](#kava.hard.v1beta1.MsgBorrowResponse) |  | |
+| `Repay` | [MsgRepay](#kava.hard.v1beta1.MsgRepay) | [MsgRepayResponse](#kava.hard.v1beta1.MsgRepayResponse) |  | |
+| `Liquidate` | [MsgLiquidate](#kava.hard.v1beta1.MsgLiquidate) | [MsgLiquidateResponse](#kava.hard.v1beta1.MsgLiquidateResponse) |  | |
 
  <!-- end services -->
 

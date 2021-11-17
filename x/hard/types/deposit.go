@@ -7,13 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Deposit defines an amount of coins deposited into a hard module account
-type Deposit struct {
-	Depositor sdk.AccAddress        `json:"depositor" yaml:"depositor"`
-	Amount    sdk.Coins             `json:"amount" yaml:"amount"`
-	Index     SupplyInterestFactors `json:"index" yaml:"index"`
-}
-
 // NewDeposit returns a new deposit
 func NewDeposit(depositor sdk.AccAddress, amount sdk.Coins, indexes SupplyInterestFactors) Deposit {
 	return Deposit{
@@ -69,14 +62,6 @@ func (d Deposit) Validate() error {
 	return nil
 }
 
-func (d Deposit) String() string {
-	return fmt.Sprintf(`Deposit:
-	Depositor: %s
-	Amount: %s
-	Index: %s
-	`, d.Depositor, d.Amount, d.Index)
-}
-
 // Deposits is a slice of Deposit
 type Deposits []Deposit
 
@@ -94,12 +79,6 @@ func (ds Deposits) Validate() error {
 		depositDupMap[d.Depositor.String()] = d
 	}
 	return nil
-}
-
-// SupplyInterestFactor defines an individual borrow interest factor
-type SupplyInterestFactor struct {
-	Denom string  `json:"denom" yaml:"denom"`
-	Value sdk.Dec `json:"value" yaml:"value"`
 }
 
 // NewSupplyInterestFactor returns a new SupplyInterestFactor instance
@@ -120,11 +99,6 @@ func (sif SupplyInterestFactor) Validate() error {
 
 	}
 	return nil
-}
-
-func (sif SupplyInterestFactor) String() string {
-	return fmt.Sprintf(`[%s,%s]
-	`, sif.Denom, sif.Value)
 }
 
 // SupplyInterestFactors is a slice of SupplyInterestFactor, because Amino won't marshal maps
@@ -170,12 +144,4 @@ func (sifs SupplyInterestFactors) Validate() error {
 		}
 	}
 	return nil
-}
-
-func (sifs SupplyInterestFactors) String() string {
-	out := ""
-	for _, sif := range sifs {
-		out += sif.String()
-	}
-	return out
 }
