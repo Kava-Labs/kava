@@ -18,20 +18,8 @@ module.exports = {
             },
             {
               title: "Development Process",
-              children: [
-                {
-                  title: "Kava DAO Governance",
-                  path: "/education/kava_dao_governance.html",
-                },
-                {
-                  title: "Testnet",
-                  path: "/education/testnet.html",
-                },
-                {
-                  title: "Mainnet upgrade",
-                  path: "/education/mainnet_upgrade.html",
-                }
-              ]
+              path: "education/dev_process",
+              directory: true,
             }
           ]
         },
