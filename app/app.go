@@ -65,6 +65,7 @@ import (
 	"github.com/kava-labs/kava/x/bep3"
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
+	"github.com/kava-labs/kava/x/committee"
 	issuance "github.com/kava-labs/kava/x/issuance"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
@@ -80,7 +81,6 @@ import (
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 
 	// committeeclient "github.com/kava-labs/kava/x/committee/client"
-	"github.com/kava-labs/kava/x/committee"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 )
