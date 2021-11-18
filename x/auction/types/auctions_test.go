@@ -39,39 +39,45 @@ func is(ns ...int64) (is []sdk.Int) {
 }
 
 func TestNewWeightedAddresses(t *testing.T) {
+	addr1, err := sdk.AccAddressFromBech32(testAccAddress1)
+	require.NoError(t, err)
+
+	addr2, err := sdk.AccAddressFromBech32(testAccAddress2)
+	require.NoError(t, err)
+
 	tests := []struct {
 		name      string
-		addresses []string
+		addresses []sdk.AccAddress
 		weights   []sdk.Int
 		expPass   bool
 	}{
 		{
 			"normal",
-			[]string{testAccAddress1, testAccAddress2},
+			[]sdk.AccAddress{addr1, addr2},
 			[]sdk.Int{sdk.NewInt(6), sdk.NewInt(8)},
 			true,
 		},
 		{
 			"empty address",
-			[]string{"", ""},
+			[]sdk.AccAddress{nil, nil},
 			[]sdk.Int{sdk.NewInt(6), sdk.NewInt(8)},
 			false,
 		},
 		{
 			"mismatched",
-			[]string{testAccAddress1, testAccAddress2},
+			[]sdk.AccAddress{addr1, addr2},
 			[]sdk.Int{sdk.NewInt(6)},
 			false,
 		},
 		{
 			"negative weight",
-			[]string{testAccAddress1, testAccAddress2},
+			[]sdk.AccAddress{addr1, addr2},
 			is(6, -8),
 			false,
 		},
 		{
 			"zero weight",
-			[]string{testAccAddress1, testAccAddress2},
+			[]sdk.AccAddress{addr1, addr2},
 			is(0, 0),
 			false,
 		},
@@ -110,7 +116,7 @@ func TestDebtAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1.String(),
+					Bidder:          addr1,
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -127,7 +133,7 @@ func TestDebtAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1.String(),
+					Bidder:          addr1,
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -169,7 +175,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1.String(),
+					Bidder:          addr1,
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -178,7 +184,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 				CorrespondingDebt: c("kava", 1),
 				MaxBid:            c("kava", 1),
 				LotReturns: WeightedAddresses{
-					Addresses: []string{testAccAddress1},
+					Addresses: []sdk.AccAddress{addr1},
 					Weights:   []sdk.Int{sdk.NewInt(1)},
 				},
 			},
@@ -191,7 +197,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1.String(),
+					Bidder:          addr1,
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -208,7 +214,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1.String(),
+					Bidder:          addr1,
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -226,7 +232,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1.String(),
+					Bidder:          addr1,
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -235,7 +241,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 				CorrespondingDebt: c("kava", 1),
 				MaxBid:            c("kava", 1),
 				LotReturns: WeightedAddresses{
-					Addresses: []string{""},
+					Addresses: []sdk.AccAddress{nil},
 					Weights:   []sdk.Int{sdk.NewInt(1)},
 				},
 			},
@@ -317,9 +323,9 @@ func TestNewDebtAuction(t *testing.T) {
 
 func TestNewCollateralAuction(t *testing.T) {
 	// Set up WeightedAddresses
-	addresses := []string{
-		testAccAddress1,
-		testAccAddress2,
+	addresses := []sdk.AccAddress{
+		sdk.AccAddress([]byte(testAccAddress1)),
+		sdk.AccAddress([]byte(testAccAddress2)),
 	}
 
 	weights := []sdk.Int{
