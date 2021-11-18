@@ -5,14 +5,14 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	auctypes "github.com/kava-labs/kava/x/auction/types"
 	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/hard/types"
-	"github.com/kava-labs/kava/x/pricefeed"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeperLiquidation() {
@@ -528,15 +528,24 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)})
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)})
 
 			// account which will deposit "initial module account coins"
 			depositor := sdk.AccAddress(crypto.AddressHash([]byte("testdepositor")))
 
 			// Auth module genesis state
-			authGS := app.NewAuthGenState(
-				[]sdk.AccAddress{tc.args.borrower, tc.args.keeper, depositor},
-				[]sdk.Coins{tc.args.initialBorrowerCoins, tc.args.initialKeeperCoins, tc.args.initialModuleCoins},
+			authGS := app.NewFundedGenStateWithCoins(
+				tApp.AppCodec(),
+				[]sdk.Coins{
+					tc.args.initialBorrowerCoins,
+					tc.args.initialKeeperCoins,
+					tc.args.initialModuleCoins,
+				},
+				[]sdk.AccAddress{
+					tc.args.borrower,
+					tc.args.keeper,
+					depositor,
+				},
 			)
 
 			// Hard module genesis state
@@ -598,9 +607,9 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			)
 
 			// Pricefeed module genesis state
-			pricefeedGS := pricefeed.GenesisState{
-				Params: pricefeed.Params{
-					Markets: []pricefeed.Market{
+			pricefeedGS := pricefeedtypes.GenesisState{
+				Params: pricefeedtypes.Params{
+					Markets: []pricefeedtypes.Market{
 						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 						{MarketID: "usdt:usd", BaseAsset: "usdt", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 						{MarketID: "usdc:usd", BaseAsset: "usdc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
@@ -610,7 +619,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 					},
 				},
-				PostedPrices: []pricefeed.PostedPrice{
+				PostedPrices: []pricefeedtypes.PostedPrice{
 					{
 						MarketID:      "usdx:usd",
 						OracleAddress: sdk.AccAddress{},
@@ -658,8 +667,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 
 			// Initialize test application
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
+				app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)})
 
 			auctionKeeper := tApp.GetAuctionKeeper()
 

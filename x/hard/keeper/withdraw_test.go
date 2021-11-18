@@ -5,14 +5,14 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/hard/types"
-	"github.com/kava-labs/kava/x/pricefeed"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 func (suite *KeeperTestSuite) TestWithdraw() {
@@ -116,10 +116,14 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-			authGS := app.NewAuthGenState(
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			authGS := app.NewFundedGenStateWithCoins(
+				tApp.AppCodec(),
+				[]sdk.Coins{sdk.NewCoins(
+					sdk.NewCoin("bnb", sdk.NewInt(1000)),
+					sdk.NewCoin("btcb", sdk.NewInt(1000)),
+				)},
 				[]sdk.AccAddress{tc.args.depositor},
-				[]sdk.Coins{sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000)))},
 			)
 
 			loanToValue := sdk.MustNewDecFromStr("0.6")
@@ -135,15 +139,15 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			)
 
 			// Pricefeed module genesis state
-			pricefeedGS := pricefeed.GenesisState{
-				Params: pricefeed.Params{
-					Markets: []pricefeed.Market{
+			pricefeedGS := pricefeedtypes.GenesisState{
+				Params: pricefeedtypes.Params{
+					Markets: []pricefeedtypes.Market{
 						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 						{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 					},
 				},
-				PostedPrices: []pricefeed.PostedPrice{
+				PostedPrices: []pricefeedtypes.PostedPrice{
 					{
 						MarketID:      "usdx:usd",
 						OracleAddress: sdk.AccAddress{},
@@ -166,16 +170,16 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			}
 
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
+				app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)})
 			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
 
 			// Mint coins to Hard module account
-			supplyKeeper := tApp.GetSupplyKeeper()
-			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModAccountBalance)
+			bankKeeper := tApp.GetBankKeeper()
+			bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModAccountBalance)
 
 			if tc.args.createDeposit {
 				err := suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.depositAmount)
@@ -187,9 +191,9 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 				acc := suite.getAccount(tc.args.depositor)
-				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
+				suite.Require().Equal(tc.args.expectedAccountBalance, bankKeeper.GetAllBalances(ctx, acc.GetAddress()))
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
+				suite.Require().Equal(tc.args.expectedModAccountBalance, bankKeeper.GetAllBalances(ctx, mAcc.GetAddress()))
 				testDeposit, f := suite.keeper.GetDeposit(suite.ctx, tc.args.depositor)
 				if tc.errArgs.expectDelete {
 					suite.Require().False(f)
@@ -257,12 +261,13 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 			// Auth module genesis state
-			authGS := app.NewAuthGenState(
-				[]sdk.AccAddress{tc.args.borrower},
+			authGS := app.NewFundedGenStateWithCoins(
+				tApp.AppCodec(),
 				[]sdk.Coins{tc.args.initialBorrowerCoins},
+				[]sdk.AccAddress{tc.args.borrower},
 			)
 
 			// Harvest module genesis state
@@ -289,14 +294,14 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 			)
 
 			// Pricefeed module genesis state
-			pricefeedGS := pricefeed.GenesisState{
-				Params: pricefeed.Params{
-					Markets: []pricefeed.Market{
+			pricefeedGS := pricefeedtypes.GenesisState{
+				Params: pricefeedtypes.Params{
+					Markets: []pricefeedtypes.Market{
 						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 					},
 				},
-				PostedPrices: []pricefeed.PostedPrice{
+				PostedPrices: []pricefeedtypes.PostedPrice{
 					{
 						MarketID:      "usdx:usd",
 						OracleAddress: sdk.AccAddress{},
@@ -314,12 +319,12 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 
 			// Initialize test application
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
+				app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&harvestGS)})
 
 			// Mint coins to Harvest module account
-			supplyKeeper := tApp.GetSupplyKeeper()
-			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			bankKeeper := tApp.GetBankKeeper()
+			bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
 
 			auctionKeeper := tApp.GetAuctionKeeper()
 

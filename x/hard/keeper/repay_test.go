@@ -4,14 +4,14 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/hard/types"
-	"github.com/kava-labs/kava/x/pricefeed"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 func (suite *KeeperTestSuite) TestRepay() {
@@ -209,14 +209,18 @@ func (suite *KeeperTestSuite) TestRepay() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 			// Auth module genesis state
 			addrs, coinses := uniqueAddressCoins(
 				[]sdk.AccAddress{tc.args.borrower, tc.args.repayer},
 				[]sdk.Coins{tc.args.initialBorrowerCoins, tc.args.initialRepayerCoins},
 			)
-			authGS := app.NewAuthGenState(addrs, coinses)
+			authGS := app.NewFundedGenStateWithCoins(
+				tApp.AppCodec(),
+				coinses,
+				addrs,
+			)
 
 			// Hard module genesis state
 			hardGS := types.NewGenesisState(types.NewParams(
@@ -242,14 +246,14 @@ func (suite *KeeperTestSuite) TestRepay() {
 			)
 
 			// Pricefeed module genesis state
-			pricefeedGS := pricefeed.GenesisState{
-				Params: pricefeed.Params{
-					Markets: []pricefeed.Market{
+			pricefeedGS := pricefeedtypes.GenesisState{
+				Params: pricefeedtypes.Params{
+					Markets: []pricefeedtypes.Market{
 						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 					},
 				},
-				PostedPrices: []pricefeed.PostedPrice{
+				PostedPrices: []pricefeedtypes.PostedPrice{
 					{
 						MarketID:      "usdx:usd",
 						OracleAddress: sdk.AccAddress{},
@@ -267,18 +271,17 @@ func (suite *KeeperTestSuite) TestRepay() {
 
 			// Initialize test application
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)},
+				app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)},
 			)
 
 			// Mint coins to Hard module account
-			supplyKeeper := tApp.GetSupplyKeeper()
-			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			bankKeeper := tApp.GetBankKeeper()
+			bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
 
-			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
-			suite.keeper = keeper
+			suite.keeper = tApp.GetHardKeeper()
 
 			var err error
 
@@ -293,7 +296,8 @@ func (suite *KeeperTestSuite) TestRepay() {
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
 			suite.Require().NoError(err)
 
-			previousRepayerCoins := suite.getAccount(tc.args.repayer).GetCoins()
+			repayerAcc := suite.getAccount(tc.args.repayer)
+			previousRepayerCoins := bankKeeper.GetAllBalances(suite.ctx, repayerAcc.GetAddress())
 
 			err = suite.keeper.Repay(suite.ctx, tc.args.repayer, tc.args.borrower, tc.args.repayCoins)
 			if tc.errArgs.expectPass {
@@ -305,12 +309,12 @@ func (suite *KeeperTestSuite) TestRepay() {
 				// Check repayer balance
 				expectedRepayerCoins := previousRepayerCoins.Sub(repaymentCoins)
 				acc := suite.getAccount(tc.args.repayer)
-				suite.Require().Equal(expectedRepayerCoins, acc.GetCoins())
+				suite.Require().Equal(expectedRepayerCoins, bankKeeper.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 				// Check module account balance
 				expectedModuleCoins := tc.args.initialModuleCoins.Add(tc.args.depositCoins...).Sub(tc.args.borrowCoins).Add(repaymentCoins...)
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(expectedModuleCoins, mAcc.GetCoins())
+				suite.Require().Equal(expectedModuleCoins, bankKeeper.GetAllBalances(suite.ctx, mAcc.GetAddress()))
 
 				// Check user's borrow object
 				borrow, foundBorrow := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
@@ -328,12 +332,12 @@ func (suite *KeeperTestSuite) TestRepay() {
 
 				// Check repayer balance (no repay coins)
 				acc := suite.getAccount(tc.args.repayer)
-				suite.Require().Equal(previousRepayerCoins, acc.GetCoins())
+				suite.Require().Equal(previousRepayerCoins, bankKeeper.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 				// Check module account balance (no repay coins)
 				expectedModuleCoins := tc.args.initialModuleCoins.Add(tc.args.depositCoins...).Sub(tc.args.borrowCoins)
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(expectedModuleCoins, mAcc.GetCoins())
+				suite.Require().Equal(expectedModuleCoins, bankKeeper.GetAllBalances(suite.ctx, mAcc.GetAddress()))
 
 				// Check user's borrow object (no repay coins)
 				borrow, foundBorrow := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)

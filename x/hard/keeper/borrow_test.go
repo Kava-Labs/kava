@@ -5,14 +5,14 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/hard/types"
-	"github.com/kava-labs/kava/x/pricefeed"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 const (
@@ -294,14 +294,21 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 			// Auth module genesis state
-			authGS := app.NewAuthGenState(
+			authGS := app.NewFundedGenStateWithCoins(
+				tApp.AppCodec(),
+				[]sdk.Coins{
+					sdk.NewCoins(
+						sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)),
+						sdk.NewCoin("btcb", sdk.NewInt(100*BTCB_CF)),
+						sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF)),
+						sdk.NewCoin("xyz", sdk.NewInt(1)),
+					),
+				},
 				[]sdk.AccAddress{tc.args.borrower},
-				[]sdk.Coins{sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)),
-					sdk.NewCoin("btcb", sdk.NewInt(100*BTCB_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF)),
-					sdk.NewCoin("xyz", sdk.NewInt(1)))})
+			)
 
 			// hard module genesis state
 			hardGS := types.NewGenesisState(types.NewParams(
@@ -319,9 +326,9 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			)
 
 			// Pricefeed module genesis state
-			pricefeedGS := pricefeed.GenesisState{
-				Params: pricefeed.Params{
-					Markets: []pricefeed.Market{
+			pricefeedGS := pricefeedtypes.GenesisState{
+				Params: pricefeedtypes.Params{
+					Markets: []pricefeedtypes.Market{
 						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 						{MarketID: "busd:usd", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
@@ -330,7 +337,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 						{MarketID: "xyz:usd", BaseAsset: "xyz", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 					},
 				},
-				PostedPrices: []pricefeed.PostedPrice{
+				PostedPrices: []pricefeedtypes.PostedPrice{
 					{
 						MarketID:      "usdx:usd",
 						OracleAddress: sdk.AccAddress{},
@@ -366,14 +373,14 @@ func (suite *KeeperTestSuite) TestBorrow() {
 
 			// Initialize test application
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
+				app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)})
 
 			// Mint coins to hard module account
-			supplyKeeper := tApp.GetSupplyKeeper()
+			bankKeeper := tApp.GetBankKeeper()
 			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)),
 				sdk.NewCoin("usdx", sdk.NewInt(200*USDX_CF)), sdk.NewCoin("busd", sdk.NewInt(100*BUSD_CF)))
-			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, hardMaccCoins)
+			bankKeeper.MintCoins(ctx, types.ModuleAccountName, hardMaccCoins)
 
 			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
@@ -436,12 +443,14 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 
 	// Initialize test app and set context
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	// Auth module genesis state
-	authGS := app.NewAuthGenState(
+	authGS := app.NewFundedGenStateWithSameCoins(
+		tApp.AppCodec(),
+		initialBorrowerBalance,
 		[]sdk.AccAddress{borrower},
-		[]sdk.Coins{initialBorrowerBalance})
+	)
 
 	// Hard module genesis state
 	hardGS := types.NewGenesisState(
@@ -473,14 +482,14 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 	)
 
 	// Pricefeed module genesis state
-	pricefeedGS := pricefeed.GenesisState{
-		Params: pricefeed.Params{
-			Markets: []pricefeed.Market{
+	pricefeedGS := pricefeedtypes.GenesisState{
+		Params: pricefeedtypes.Params{
+			Markets: []pricefeedtypes.Market{
 				{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
-		PostedPrices: []pricefeed.PostedPrice{
+		PostedPrices: []pricefeedtypes.PostedPrice{
 			{
 				MarketID:      "usdx:usd",
 				OracleAddress: sdk.AccAddress{},
@@ -499,8 +508,8 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 	// Initialize test application
 	tApp.InitializeFromGenesisStates(
 		authGS,
-		app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
-		app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)},
+		app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
+		app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)},
 	)
 
 	keeper := tApp.GetHardKeeper()

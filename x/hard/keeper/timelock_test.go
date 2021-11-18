@@ -4,10 +4,10 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	abci "github.com/tendermint/tendermint/abci/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/tendermint/tendermint/crypto"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard/types"
@@ -19,18 +19,18 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 		vestingAccountBefore bool
 		vestingAccountAfter  bool
 		coins                sdk.Coins
-		periods              vesting.Periods
+		periods              vestingtypes.Periods
 		origVestingCoins     sdk.Coins
 		startTime            int64
 		endTime              int64
 	}
 	type args struct {
 		accArgs                   accountArgs
-		period                    vesting.Period
+		period                    vestingtypes.Period
 		blockTime                 time.Time
 		expectedAccountBalance    sdk.Coins
 		expectedModAccountBalance sdk.Coins
-		expectedPeriods           vesting.Periods
+		expectedPeriods           vestingtypes.Periods
 		expectedStartTime         int64
 		expectedEndTime           int64
 	}
@@ -53,11 +53,11 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 					vestingAccountAfter:  false,
 					coins:                sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				},
-				period:                    vesting.Period{Length: 0, Amount: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(100)))},
+				period:                    vestingtypes.Period{Length: 0, Amount: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(100)))},
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000)), sdk.NewCoin("hard", sdk.NewInt(100))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(900))),
-				expectedPeriods:           vesting.Periods{},
+				expectedPeriods:           vestingtypes.Periods{},
 				expectedStartTime:         0,
 				expectedEndTime:           0,
 			},
@@ -74,19 +74,19 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 					vestingAccountBefore: true,
 					vestingAccountAfter:  true,
 					coins:                sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-					periods: vesting.Periods{
-						vesting.Period{Amount: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))), Length: 100},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Amount: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))), Length: 100},
 					},
 					origVestingCoins: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
 					startTime:        time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Unix(),
 					endTime:          time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Unix() + 100,
 				},
-				period:                    vesting.Period{Length: 0, Amount: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(100)))},
+				period:                    vestingtypes.Period{Length: 0, Amount: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(100)))},
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000)), sdk.NewCoin("hard", sdk.NewInt(100))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(900))),
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Amount: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))), Length: 100},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Amount: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))), Length: 100},
 				},
 				expectedStartTime: time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Unix(),
 				expectedEndTime:   time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Unix() + 100,
@@ -104,25 +104,25 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 					vestingAccountBefore: true,
 					vestingAccountAfter:  true,
 					coins:                cs(c("bnb", 20)),
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))}},
 					origVestingCoins: cs(c("bnb", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:                    vesting.Period{Length: 2, Amount: cs(c("hard", 6))},
+				period:                    vestingtypes.Period{Length: 2, Amount: cs(c("hard", 6))},
 				blockTime:                 time.Unix(101, 0),
 				expectedAccountBalance:    cs(c("bnb", 20), c("hard", 6)),
 				expectedModAccountBalance: cs(c("hard", 994)),
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 3, Amount: cs(c("hard", 6))},
-					vesting.Period{Length: 2, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 3, Amount: cs(c("hard", 6))},
+					vestingtypes.Period{Length: 2, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))}},
 				expectedStartTime: 100,
 				expectedEndTime:   120,
 			},
@@ -139,25 +139,25 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 					vestingAccountBefore: true,
 					vestingAccountAfter:  true,
 					coins:                cs(c("bnb", 20)),
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))}},
 					origVestingCoins: cs(c("bnb", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:                    vesting.Period{Length: 7, Amount: cs(c("hard", 6))},
+				period:                    vestingtypes.Period{Length: 7, Amount: cs(c("hard", 6))},
 				blockTime:                 time.Unix(80, 0),
 				expectedAccountBalance:    cs(c("bnb", 20), c("hard", 6)),
 				expectedModAccountBalance: cs(c("hard", 994)),
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 7, Amount: cs(c("hard", 6))},
-					vesting.Period{Length: 18, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 7, Amount: cs(c("hard", 6))},
+					vestingtypes.Period{Length: 18, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))}},
 				expectedStartTime: 80,
 				expectedEndTime:   120,
 			},
@@ -174,25 +174,25 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 					vestingAccountBefore: true,
 					vestingAccountAfter:  true,
 					coins:                cs(c("bnb", 20)),
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))}},
 					origVestingCoins: cs(c("bnb", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:                    vesting.Period{Length: 7, Amount: cs(c("hard", 6))},
+				period:                    vestingtypes.Period{Length: 7, Amount: cs(c("hard", 6))},
 				blockTime:                 time.Unix(101, 0),
 				expectedAccountBalance:    cs(c("bnb", 20), c("hard", 6)),
 				expectedModAccountBalance: cs(c("hard", 994)),
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 3, Amount: cs(c("hard", 6))},
-					vesting.Period{Length: 2, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 3, Amount: cs(c("hard", 6))},
+					vestingtypes.Period{Length: 2, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))}},
 				expectedStartTime: 100,
 				expectedEndTime:   120,
 			},
@@ -209,25 +209,25 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 					vestingAccountBefore: true,
 					vestingAccountAfter:  true,
 					coins:                cs(c("bnb", 20)),
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))}},
 					origVestingCoins: cs(c("bnb", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:                    vesting.Period{Length: 7, Amount: cs(c("hard", 6))},
+				period:                    vestingtypes.Period{Length: 7, Amount: cs(c("hard", 6))},
 				blockTime:                 time.Unix(125, 0),
 				expectedAccountBalance:    cs(c("bnb", 20), c("hard", 6)),
 				expectedModAccountBalance: cs(c("hard", 994)),
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 12, Amount: cs(c("hard", 6))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 12, Amount: cs(c("hard", 6))}},
 				expectedStartTime: 100,
 				expectedEndTime:   132,
 			},
@@ -244,24 +244,24 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 					vestingAccountBefore: true,
 					vestingAccountAfter:  true,
 					coins:                cs(c("bnb", 20)),
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("bnb", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))}},
 					origVestingCoins: cs(c("bnb", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:                    vesting.Period{Length: 5, Amount: cs(c("hard", 6))},
+				period:                    vestingtypes.Period{Length: 5, Amount: cs(c("hard", 6))},
 				blockTime:                 time.Unix(110, 0),
 				expectedAccountBalance:    cs(c("bnb", 20), c("hard", 6)),
 				expectedModAccountBalance: cs(c("hard", 994)),
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5), c("hard", 6))},
-					vesting.Period{Length: 5, Amount: cs(c("bnb", 5))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5), c("hard", 6))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("bnb", 5))}},
 				expectedStartTime: 100,
 				expectedEndTime:   120,
 			},
@@ -277,8 +277,12 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tc.args.blockTime})
-			authGS := app.NewAuthGenState([]sdk.AccAddress{tc.args.accArgs.addr}, []sdk.Coins{tc.args.accArgs.coins})
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tc.args.blockTime})
+			authGS := app.NewFundedGenStateWithCoins(
+				tApp.AppCodec(),
+				[]sdk.Coins{tc.args.accArgs.coins},
+				[]sdk.AccAddress{tc.args.accArgs.addr},
+			)
 			loanToValue := sdk.MustNewDecFromStr("0.6")
 			hardGS := types.NewGenesisState(types.NewParams(
 				types.MoneyMarkets{
@@ -292,15 +296,18 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
 			if tc.args.accArgs.vestingAccountBefore {
 				ak := tApp.GetAccountKeeper()
+				bk := tApp.GetBankKeeper()
 				acc := ak.GetAccount(ctx, tc.args.accArgs.addr)
-				bacc := auth.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
-				bva, err := vesting.NewBaseVestingAccount(bacc, tc.args.accArgs.origVestingCoins, tc.args.accArgs.endTime)
+				bal := bk.GetAllBalances(ctx, acc.GetAddress())
+
+				bacc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+				bva := vestingtypes.NewBaseVestingAccount(bacc, tc.args.accArgs.origVestingCoins, tc.args.accArgs.endTime)
 				suite.Require().NoError(err)
-				pva := vesting.NewPeriodicVestingAccountRaw(bva, tc.args.accArgs.startTime, tc.args.accArgs.periods)
+				pva := vestingtypes.NewPeriodicVestingAccountRaw(bva, tc.args.accArgs.startTime, tc.args.accArgs.periods)
 				ak.SetAccount(ctx, pva)
 			}
-			supplyKeeper := tApp.GetSupplyKeeper()
-			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1000))))
+			bankKeeper := tApp.GetBankKeeper()
+			bankKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1000))))
 			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
@@ -311,10 +318,10 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 				acc := suite.getAccount(tc.args.accArgs.addr)
-				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
+				suite.Require().Equal(tc.args.expectedAccountBalance, bankKeeper.GetAllBalances(ctx, acc.GetAddress()))
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
-				vacc, ok := acc.(*vesting.PeriodicVestingAccount)
+				suite.Require().Equal(tc.args.expectedModAccountBalance, bankKeeper.GetAllBalances(ctx, mAcc.GetAddress()))
+				vacc, ok := acc.(*vestingtypes.PeriodicVestingAccount)
 				if tc.args.accArgs.vestingAccountAfter {
 					suite.Require().True(ok)
 					suite.Require().Equal(tc.args.expectedPeriods, vacc.VestingPeriods)

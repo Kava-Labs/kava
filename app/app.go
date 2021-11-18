@@ -94,6 +94,8 @@ import (
 	// committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 )
 
 const (
@@ -150,6 +152,7 @@ var (
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
 		bep3types.ModuleName:            {authtypes.Burner, authtypes.Minter},
+		hardtypes.ModuleAccountName:     {authtypes.Minter},
 		swaptypes.ModuleName:            nil,
 		auctiontypes.ModuleName:         nil,
 		"liquidator":                    {authtypes.Burner, authtypes.Minter}, // TODO: for testing. Import from CDP module once migrated to v44.
@@ -203,6 +206,7 @@ type App struct {
 	pricefeedKeeper pricefeedkeeper.Keeper
 	swapKeeper      swapkeeper.Keeper
 	committeeKeeper committeekeeper.Keeper
+	hardKeeper      hardkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -283,6 +287,7 @@ func NewApp(
 	bep3Subspace := app.paramsKeeper.Subspace(bep3types.ModuleName)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
+	hardSubspace := app.paramsKeeper.Subspace(hardtypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -408,6 +413,17 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
+	hardKeeper := hardkeeper.NewKeeper(
+		appCodec,
+		keys[hardtypes.StoreKey],
+		hardSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		app.stakingKeeper,
+		app.pricefeedKeeper,
+		// TODO: app.auctionKeeper,
+		nil,
+	)
 
 	app.auctionKeeper = auctionkeeper.NewKeeper(
 		appCodec,
@@ -440,6 +456,8 @@ func NewApp(
 		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks())))
 
 	// TODO: Add swap hooks after incentive upgraded
+
+	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks( /* TODO: app.incentiveKeeper.Hooks() */ ))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)

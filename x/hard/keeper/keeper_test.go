@@ -9,14 +9,13 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	aucKeeper "github.com/kava-labs/kava/x/auction/keeper"
+	// TODO: aucKeeper "github.com/kava-labs/kava/x/auction/keeper"
 	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
 	pfKeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
@@ -25,8 +24,8 @@ import (
 // Test suite used for all keeper tests
 type KeeperTestSuite struct {
 	suite.Suite
-	keeper          keeper.Keeper
-	auctionKeeper   aucKeeper.Keeper
+	keeper keeper.Keeper
+	// auctionKeeper   aucKeeper.Keeper
 	pricefeedKeeper pfKeeper.Keeper
 	app             app.TestApp
 	ctx             sdk.Context
@@ -39,7 +38,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates()
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	keeper := tApp.GetHardKeeper()
@@ -134,24 +133,24 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 	suite.Require().Equal(setDenoms, seenDenoms)
 }
 
-func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
+func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
 }
 
-func (suite *KeeperTestSuite) getAccountAtCtx(addr sdk.AccAddress, ctx sdk.Context) authexported.Account {
+func (suite *KeeperTestSuite) getAccountAtCtx(addr sdk.AccAddress, ctx sdk.Context) authtypes.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(ctx, addr)
 }
 
-func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.ModuleAccountI {
-	sk := suite.app.GetSupplyKeeper()
-	return sk.GetModuleAccount(suite.ctx, name)
+func (suite *KeeperTestSuite) getModuleAccount(name string) authtypes.ModuleAccountI {
+	ak := suite.app.GetAccountKeeper()
+	return ak.GetModuleAccount(suite.ctx, name)
 }
 
-func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) supplyexported.ModuleAccountI {
-	sk := suite.app.GetSupplyKeeper()
-	return sk.GetModuleAccount(ctx, name)
+func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) authtypes.ModuleAccountI {
+	ak := suite.app.GetAccountKeeper()
+	return ak.GetModuleAccount(ctx, name)
 }
 
 func addressSort(addrs []sdk.AccAddress) (sortedAddrs []sdk.AccAddress) {
