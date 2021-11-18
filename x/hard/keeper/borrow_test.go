@@ -411,11 +411,11 @@ func (suite *KeeperTestSuite) TestBorrow() {
 
 				// Check borrower balance
 				acc := suite.getAccount(tc.args.borrower)
-				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
+				suite.Require().Equal(tc.args.expectedAccountBalance, suite.getAccountCoins(acc))
 
 				// Check module account balance
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
+				suite.Require().Equal(tc.args.expectedModAccountBalance, suite.getAccountCoins(mAcc))
 
 				// Check that borrow struct is in store
 				_, f := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
@@ -543,7 +543,7 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 	suite.Require().NoError(err)
 
 	// Get the total borrowable amount from the protocol, taking into account the reserves.
-	modAccBalance := suite.getModuleAccountAtCtx(types.ModuleAccountName, suite.ctx).GetCoins()
+	modAccBalance := suite.getAccountCoins(suite.getModuleAccountAtCtx(types.ModuleAccountName, suite.ctx))
 	reserves, found := suite.keeper.GetTotalReserves(suite.ctx)
 	suite.Require().True(found)
 	availableToBorrow := modAccBalance.Sub(reserves)

@@ -890,7 +890,7 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 			for _, snapshot := range tc.args.expectedInterestSnaphots {
 				// ---------------------------- Calculate expected interest ----------------------------
 				// 1. Get cash, borrows, reserves, and borrow index
-				cashPrior := suite.getModuleAccountAtCtx(types.ModuleName, prevCtx).GetCoins().AmountOf(tc.args.borrowCoinDenom)
+				cashPrior := suite.getAccountCoins(suite.getModuleAccountAtCtx(types.ModuleName, prevCtx)).AmountOf(tc.args.borrowCoinDenom)
 
 				borrowCoinsPrior, borrowCoinsPriorFound := suite.keeper.GetBorrowedCoins(prevCtx)
 				suite.Require().True(borrowCoinsPriorFound)
@@ -1305,7 +1305,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 				for _, coinDenom := range tc.args.coinDenoms {
 					// ---------------------------- Calculate expected supply interest ----------------------------
 					// 1. Get cash, borrows, reserves, and borrow index
-					cashPrior := suite.getModuleAccountAtCtx(types.ModuleName, prevCtx).GetCoins().AmountOf(coinDenom)
+					cashPrior := suite.getAccountCoins(suite.getModuleAccountAtCtx(types.ModuleName, prevCtx)).AmountOf(coinDenom)
 
 					var borrowCoinPriorAmount sdk.Int
 					borrowCoinsPrior, borrowCoinsPriorFound := suite.keeper.GetBorrowedCoins(prevCtx)

@@ -185,9 +185,9 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 				acc := suite.getAccount(tc.args.depositor)
-				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
+				suite.Require().Equal(tc.args.expectedAccountBalance, suite.getAccountCoins(acc))
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
+				suite.Require().Equal(tc.args.expectedModAccountBalance, suite.getAccountCoins(mAcc))
 				dep, f := suite.keeper.GetDeposit(suite.ctx, tc.args.depositor)
 				suite.Require().True(f)
 				suite.Require().Equal(tc.args.expectedDepositCoins, dep.Amount)

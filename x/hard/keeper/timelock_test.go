@@ -293,16 +293,14 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
-			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
+			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)})
 			if tc.args.accArgs.vestingAccountBefore {
 				ak := tApp.GetAccountKeeper()
-				bk := tApp.GetBankKeeper()
 				acc := ak.GetAccount(ctx, tc.args.accArgs.addr)
-				bal := bk.GetAllBalances(ctx, acc.GetAddress())
 
 				bacc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
 				bva := vestingtypes.NewBaseVestingAccount(bacc, tc.args.accArgs.origVestingCoins, tc.args.accArgs.endTime)
-				suite.Require().NoError(err)
+				// TODO: check bal here?
 				pva := vestingtypes.NewPeriodicVestingAccountRaw(bva, tc.args.accArgs.startTime, tc.args.accArgs.periods)
 				ak.SetAccount(ctx, pva)
 			}

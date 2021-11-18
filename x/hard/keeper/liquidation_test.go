@@ -725,11 +725,11 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 
 				// Check that the keeper's balance increased by reward % of all the borrowed coins
 				accKeeper := suite.getAccountAtCtx(tc.args.keeper, liqCtx)
-				suite.Require().Equal(tc.args.expectedKeeperCoins, accKeeper.GetCoins())
+				suite.Require().Equal(tc.args.expectedKeeperCoins, suite.getAccountCoins(accKeeper))
 
 				// Check that borrower's balance contains the expected coins
 				accBorrower := suite.getAccountAtCtx(tc.args.borrower, liqCtx)
-				suite.Require().Equal(tc.args.expectedBorrowerCoins, accBorrower.GetCoins())
+				suite.Require().Equal(tc.args.expectedBorrowerCoins, suite.getAccountCoins(accBorrower))
 
 				// Check that the expected auctions have been created
 				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)

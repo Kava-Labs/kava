@@ -133,6 +133,11 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 	suite.Require().Equal(setDenoms, seenDenoms)
 }
 
+func (suite *KeeperTestSuite) getAccountCoins(acc authtypes.AccountI) sdk.Coins {
+	bk := suite.app.GetBankKeeper()
+	return bk.GetAllBalances(suite.ctx, acc.GetAddress())
+}
+
 func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
