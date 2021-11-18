@@ -195,7 +195,7 @@ type App struct {
 func init() {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
-		stdlog.Println("Failed to get home dir %2", err)
+		stdlog.Printf("Failed to get home dir %v", err)
 	}
 
 	DefaultNodeHome = filepath.Join(userHomeDir, ".kava")
