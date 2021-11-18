@@ -197,7 +197,7 @@ func (k Keeper) SetSuppliedCoins(ctx sdk.Context, suppliedCoins sdk.Coins) {
 func (k Keeper) GetSuppliedCoins(ctx sdk.Context) (sdk.Coins, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SuppliedCoinsPrefix)
 	bz := store.Get(types.SuppliedCoinsPrefix)
-	if len(bz) == 0 || len(bz) == 0 {
+	if len(bz) == 0 {
 		return sdk.Coins{}, false
 	}
 	var suppliedCoins sdk.Coins
