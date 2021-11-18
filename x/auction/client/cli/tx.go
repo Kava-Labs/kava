@@ -1,40 +1,44 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
-// GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	auctionTxCmd := &cobra.Command{
-		Use:   "auction",
-		Short: "auction transactions subcommands",
+// GetTxCmd returns the transaction cli commands for the issuance module
+func GetTxCmd() *cobra.Command {
+	issuanceTxCmd := &cobra.Command{
+		Use:   types.ModuleName,
+		Short: "transaction commands for the issuance module",
 	}
 
-	auctionTxCmd.AddCommand(flags.PostCommands(
-		GetCmdPlaceBid(cdc),
-	)...)
+	cmds := []*cobra.Command{
+		GetCmdPlaceBid(),
+	}
 
-	return auctionTxCmd
+	for _, cmd := range cmds {
+		flags.AddTxFlagsToCmd(cmd)
+	}
+
+	issuanceTxCmd.AddCommand(cmds...)
+
+	return issuanceTxCmd
+
 }
 
 // GetCmdPlaceBid cli command for placing bids on auctions
-func GetCmdPlaceBid(cdc *codec.Codec) *cobra.Command {
+func GetCmdPlaceBid() *cobra.Command {
 	return &cobra.Command{
 		Use:   "bid [auction-id] [amount]",
 		Short: "place a bid on an auction",
@@ -43,29 +47,30 @@ func GetCmdPlaceBid(cdc *codec.Codec) *cobra.Command {
 
 Example:
 $ %s tx %s bid 34 1000usdx --from myKeyName
-`, version.ClientName, types.ModuleName)),
+`, version.AppName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("auction-id '%s' not a valid uint", args[0])
 			}
 
-			amt, err := sdk.ParseCoin(args[1])
+			amt, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgPlaceBid(id, cliCtx.GetFromAddress(), amt)
+			msg := types.NewMsgPlaceBid(id, clientCtx.GetFromAddress().String(), amt)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 }

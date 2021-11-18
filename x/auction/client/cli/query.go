@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -8,14 +9,91 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/auction/client/common"
 	"github.com/kava-labs/kava/x/auction/types"
 )
+
+// GetQueryCmd returns the cli query commands for the auction module
+func GetQueryCmd() *cobra.Command {
+	auctionQueryCmd := &cobra.Command{
+		Use:   types.ModuleName,
+		Short: fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
+	}
+
+	cmds := []*cobra.Command{
+		GetCmdQueryParams(),
+		GetCmdQueryAuction(),
+	}
+
+	for _, cmd := range cmds {
+		flags.AddQueryFlagsToCmd(cmd)
+	}
+
+	auctionQueryCmd.AddCommand(cmds...)
+
+	return auctionQueryCmd
+}
+
+// GetCmdQueryParams queries the issuance module parameters
+func GetCmdQueryParams() *cobra.Command {
+	return &cobra.Command{
+		Use:   "params",
+		Short: fmt.Sprintf("get the %s module parameters", types.ModuleName),
+		Long:  "Get the current auction module parameters.",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+}
+
+// GetCmdQueryAuction queries one auction in the store
+func GetCmdQueryAuction() *cobra.Command {
+	return &cobra.Command{
+		Use:   "auction [auction-id]",
+		Short: "get a info about an auction",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			auctionID, err := strconv.Atoi(args[0])
+			if err != nil {
+				return err
+			}
+
+			params := types.QueryAuctionRequest{
+				AuctionId: uint64(auctionID),
+			}
+
+			res, err := queryClient.Auction(context.Background(), &params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+}
 
 // Query auction flags
 const (
@@ -25,53 +103,8 @@ const (
 	flagOwner = "owner"
 )
 
-// GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	// Group nameservice queries under a subcommand
-	auctionQueryCmd := &cobra.Command{
-		Use:   "auction",
-		Short: "Querying commands for the auction module",
-	}
-
-	auctionQueryCmd.AddCommand(flags.GetCommands(
-		QueryGetAuctionCmd(queryRoute, cdc),
-		QueryGetAuctionsCmd(queryRoute, cdc),
-		QueryParamsCmd(queryRoute, cdc),
-	)...)
-
-	return auctionQueryCmd
-}
-
-// QueryGetAuctionCmd queries one auction in the store
-func QueryGetAuctionCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "auction [auction-id]",
-		Short: "get a info about an auction",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Prepare params for querier
-			id, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("auction-id '%s' not a valid uint", args[0])
-			}
-
-			auction, height, err := common.QueryAuctionByID(cliCtx, cdc, queryRoute, id)
-			if err != nil {
-				return err
-			}
-
-			auctionWithPhase := types.NewAuctionWithPhase(auction)
-
-			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(auctionWithPhase)
-		},
-	}
-}
-
-// QueryGetAuctionsCmd queries the auctions in the store
-func QueryGetAuctionsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetCmdQueryAuctions queries the auctions in the store
+func GetCmdQueryAuctions() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auctions",
 		Short: "query auctions with optional filters",
@@ -143,33 +176,25 @@ $ kvcli q auction auctions --page=2 --limit=100
 				params.Phase = auctionPhase
 			}
 
-			bz, err := cdc.MarshalJSON(params)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			queryClient := types.NewQueryClient(clientCtx)
+			request := types.QueryAuctionsRequest{
+				Type:  strType,
+				Owner: strOwner,
+				Denom: strDenom,
+				Phase: strPhase,
+			}
 
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAuctions), bz)
+			res, err := queryClient.Auctions(context.Background(), &request)
 			if err != nil {
 				return err
 			}
 
-			// Decode and print results
-			var matchingAuctions types.Auctions
-			cdc.MustUnmarshalJSON(res, &matchingAuctions)
-
-			if len(matchingAuctions) == 0 {
-				return fmt.Errorf("No matching auctions found")
-			}
-
-			auctionsWithPhase := []types.AuctionWithPhase{} // using empty slice so json returns [] instead of null when there's no auctions
-			for _, a := range matchingAuctions {
-				auctionsWithPhase = append(auctionsWithPhase, types.NewAuctionWithPhase(a))
-			}
-			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(auctionsWithPhase) // nolint:errcheck
+			return clientCtx.PrintProto(res)
 		},
 	}
 
@@ -181,30 +206,4 @@ $ kvcli q auction auctions --page=2 --limit=100
 	cmd.Flags().String(flagPhase, "", "(optional) filter by collateral auction phase, phase: forward/reverse")
 
 	return cmd
-}
-
-// QueryParamsCmd queries the auction module parameters
-func QueryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "params",
-		Short: "get the auction module parameters",
-		Long:  "Get the current global auction module parameters.",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetParams)
-			res, height, err := cliCtx.QueryWithData(route, nil)
-			if err != nil {
-				return err
-			}
-
-			// Decode and print results
-			var out types.Params
-			cdc.MustUnmarshalJSON(res, &out)
-			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(out)
-		},
-	}
 }
