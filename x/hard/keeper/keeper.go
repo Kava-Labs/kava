@@ -59,7 +59,7 @@ func (k *Keeper) SetHooks(hooks types.HARDHooks) *Keeper {
 func (k Keeper) GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (types.Deposit, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
 	bz := store.Get(depositor.Bytes())
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.Deposit{}, false
 	}
 	var deposit types.Deposit
@@ -115,7 +115,7 @@ func (k Keeper) BondDenom(ctx sdk.Context) string {
 func (k Keeper) GetBorrow(ctx sdk.Context, borrower sdk.AccAddress) (types.Borrow, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
 	bz := store.Get(borrower)
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.Borrow{}, false
 	}
 	var borrow types.Borrow
@@ -168,7 +168,7 @@ func (k Keeper) SetBorrowedCoins(ctx sdk.Context, borrowedCoins sdk.Coins) {
 func (k Keeper) GetBorrowedCoins(ctx sdk.Context) (sdk.Coins, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowedCoinsPrefix)
 	bz := store.Get(types.BorrowedCoinsPrefix)
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdk.Coins{}, false
 	}
 	var borrowedCoins sdk.Coins
@@ -197,7 +197,7 @@ func (k Keeper) SetSuppliedCoins(ctx sdk.Context, suppliedCoins sdk.Coins) {
 func (k Keeper) GetSuppliedCoins(ctx sdk.Context) (sdk.Coins, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SuppliedCoinsPrefix)
 	bz := store.Get(types.SuppliedCoinsPrefix)
-	if bz == nil {
+	if len(bz) == 0 || len(bz) == 0 {
 		return sdk.Coins{}, false
 	}
 	var suppliedCoins sdk.Coins
@@ -212,7 +212,7 @@ func (k Keeper) GetSuppliedCoins(ctx sdk.Context) (sdk.Coins, bool) {
 func (k Keeper) GetMoneyMarket(ctx sdk.Context, denom string) (types.MoneyMarket, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.MoneyMarketsPrefix)
 	bz := store.Get([]byte(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.MoneyMarket{}, false
 	}
 	var moneyMarket types.MoneyMarket
@@ -261,9 +261,10 @@ func (k Keeper) GetAllMoneyMarkets(ctx sdk.Context) (moneyMarkets types.MoneyMar
 func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, denom string) (time.Time, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
 	bz := store.Get([]byte(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return time.Time{}, false
 	}
+
 	var previousAccrualTime time.Time
 	if err := previousAccrualTime.UnmarshalBinary(bz); err != nil {
 		panic(err)
@@ -285,9 +286,10 @@ func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, denom string, previousAc
 func (k Keeper) GetTotalReserves(ctx sdk.Context) (sdk.Coins, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
 	bz := store.Get(types.TotalReservesPrefix)
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdk.Coins{}, false
 	}
+
 	var totalReserves sdk.Coins
 	if err := json.Unmarshal(bz, &totalReserves); err != nil {
 		panic(err)
@@ -297,7 +299,6 @@ func (k Keeper) GetTotalReserves(ctx sdk.Context) (sdk.Coins, bool) {
 
 // SetTotalReserves sets the total reserves for an individual market
 func (k Keeper) SetTotalReserves(ctx sdk.Context, coins sdk.Coins) {
-
 	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
 	if coins.Empty() {
 		store.Set(types.TotalReservesPrefix, []byte{})
@@ -314,7 +315,7 @@ func (k Keeper) SetTotalReserves(ctx sdk.Context, coins sdk.Coins) {
 func (k Keeper) GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowInterestFactorPrefix)
 	bz := store.Get([]byte(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdk.ZeroDec(), false
 	}
 	var borrowInterestFactor sdk.DecProto
@@ -348,7 +349,7 @@ func (k Keeper) IterateBorrowInterestFactors(ctx sdk.Context, cb func(denom stri
 func (k Keeper) GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
 	bz := store.Get([]byte(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdk.ZeroDec(), false
 	}
 	var supplyInterestFactor sdk.DecProto

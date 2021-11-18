@@ -24,7 +24,6 @@ const (
 )
 
 func (suite *KeeperTestSuite) TestBorrow() {
-
 	type args struct {
 		usdxBorrowLimit           sdk.Dec
 		priceKAVA                 sdk.Dec
