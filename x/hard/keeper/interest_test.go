@@ -930,7 +930,7 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 
 				// Check that the total reserves have changed as expected
 				currTotalReserves, _ := suite.keeper.GetTotalReserves(snapshotCtx)
-				suite.Require().Equal(expectedReserves, currTotalReserves)
+				suite.Require().True(expectedReserves.IsEqual(currTotalReserves))
 
 				// Check that the borrow index has increased as expected
 				currIndexPrior, _ := suite.keeper.GetBorrowInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
