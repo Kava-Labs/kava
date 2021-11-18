@@ -328,6 +328,9 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 				} else {
 					suite.Require().False(ok)
 				}
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.errArgs.contains)
 			}
 
 		})
