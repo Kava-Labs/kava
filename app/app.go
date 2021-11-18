@@ -80,6 +80,10 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+
+	"github.com/kava-labs/kava/x/auction"
+	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
+	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -122,6 +126,7 @@ var (
 		slashing.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
+		auction.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		issuance.AppModuleBasic{},
@@ -146,6 +151,8 @@ var (
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
 		bep3types.ModuleName:            {authtypes.Burner, authtypes.Minter},
 		swaptypes.ModuleName:            nil,
+		auctiontypes.ModuleName:         nil,
+		"liquidator":                    {authtypes.Burner, authtypes.Minter}, // TODO: for testing. Import from CDP module once migrated to v44.
 	}
 )
 
@@ -190,6 +197,7 @@ type App struct {
 	paramsKeeper    paramskeeper.Keeper
 	evidenceKeeper  evidencekeeper.Keeper
 	kavadistKeeper  kavadistkeeper.Keeper
+	auctionKeeper   auctionkeeper.Keeper
 	issuanceKeeper  issuancekeeper.Keeper
 	bep3Keeper      bep3keeper.Keeper
 	pricefeedKeeper pricefeedkeeper.Keeper
@@ -241,7 +249,7 @@ func NewApp(
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
 		upgradetypes.StoreKey, kavadisttypes.StoreKey, issuancetypes.StoreKey,
 		bep3types.StoreKey, pricefeedtypes.StoreKey, swaptypes.StoreKey,
-		committeetypes.StoreKey,
+		committeetypes.StoreKey, auctiontypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -270,6 +278,7 @@ func NewApp(
 	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.ModuleName)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadisttypes.ModuleName)
+	auctionSubspace := app.paramsKeeper.Subspace(auctiontypes.ModuleName)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuancetypes.ModuleName)
 	bep3Subspace := app.paramsKeeper.Subspace(bep3types.ModuleName)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
@@ -400,6 +409,13 @@ func NewApp(
 		app.bankKeeper,
 	)
 
+	app.auctionKeeper = auctionkeeper.NewKeeper(
+		appCodec,
+		keys[auctiontypes.StoreKey],
+		auctionSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+	)
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -443,6 +459,7 @@ func NewApp(
 		params.NewAppModule(app.paramsKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
+		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
@@ -462,6 +479,7 @@ func NewApp(
 		evidencetypes.ModuleName, // TODO why new evidence and staking begin blockers?
 		stakingtypes.ModuleName,
 		kavadisttypes.ModuleName,
+		auctiontypes.ModuleName,
 		committeetypes.ModuleName,
 		issuancetypes.ModuleName,
 		bep3types.ModuleName,
@@ -484,6 +502,8 @@ func NewApp(
 		minttypes.ModuleName,
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
+		pricefeedtypes.ModuleName,
+		auctiontypes.ModuleName,
 		kavadisttypes.ModuleName,
 		committeetypes.ModuleName,
 		issuancetypes.ModuleName,

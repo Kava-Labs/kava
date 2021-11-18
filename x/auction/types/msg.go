@@ -2,7 +2,6 @@ package types
 
 import (
 	"errors"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -33,7 +32,7 @@ func (msg MsgPlaceBid) ValidateBasic() error {
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Bidder)
 	if err != nil {
-		return fmt.Errorf("invalid bidder address %s", msg.Bidder)
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "bidder address cannot be empty or invalid")
 	}
 	if !msg.Amount.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "bid amount %s", msg.Amount)

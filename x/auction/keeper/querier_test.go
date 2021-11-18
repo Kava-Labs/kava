@@ -7,19 +7,14 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
-	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/auction/keeper"
+	"github.com/kava-labs/kava/x/auction/testutil"
 	"github.com/kava-labs/kava/x/auction/types"
-	"github.com/kava-labs/kava/x/cdp"
 )
 
 const (
@@ -27,121 +22,107 @@ const (
 	TestAuctionCount = 10
 )
 
-type QuerierTestSuite struct {
-	suite.Suite
+type querierTestSuite struct {
+	testutil.Suite
 
-	keeper   keeper.Keeper
-	app      app.TestApp
-	auctions types.Auctions
-	ctx      sdk.Context
-	querier  sdk.Querier
+	auctions    []types.Auction
+	legacyAmino *codec.LegacyAmino
+	querier     sdk.Querier
 }
 
-func (suite *QuerierTestSuite) SetupTest() {
-	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-
-	_, addrs := app.GeneratePrivKeyAddressPairs(10)
-	buyer := addrs[0]
-	modName := cdp.LiquidatorMacc
-
-	// Set up seller account
-	sellerAcc := supply.NewEmptyModuleAccount(modName, supply.Minter, supply.Burner)
-	sellerAcc.SetCoins(cs(c("token1", 1000), c("token2", 1000), c("debt", 1000)))
-
-	// Initialize genesis accounts
-	tApp.InitializeFromGenesisStates(
-		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
-			auth.NewBaseAccount(buyer, cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-			sellerAcc,
-		}),
-	)
-
-	suite.ctx = ctx
-	suite.app = tApp
-	suite.keeper = tApp.GetAuctionKeeper()
-
+func (suite *querierTestSuite) SetupTest() {
+	suite.Suite.SetupTest(10)
 	// Populate with auctions
-	randSrc := rand.New(rand.NewSource(int64(1234)))
 	for j := 0; j < TestAuctionCount; j++ {
 		var id uint64
 		var err error
-		lotAmount := int64(simulation.RandIntBetween(randSrc, 10, 100))
-		ownerAddrIndex := simulation.RandIntBetween(randSrc, 1, 9)
+		lotAmount := int64(rand.Intn(100-10) + 10)
+
+		// Add coins required for auction creation to module account
+		suite.AddCoinsToNamedModule(suite.ModAcc.Name, cs(c("token1", lotAmount), c("usdx", 20), c("debt", 10)))
+
+		ownerAddrIndex := rand.Intn(9-1) + 1
 		if ownerAddrIndex%2 == 0 {
-			id, err = suite.keeper.StartSurplusAuction(suite.ctx, modName, c("token1", lotAmount), "token2")
+			id, err = suite.Keeper.StartSurplusAuction(suite.Ctx, suite.ModAcc.Name, c("token1", lotAmount), "token2")
 		} else {
-			id, err = suite.keeper.StartCollateralAuction(suite.ctx, modName, c("token1", lotAmount), c("usdx", int64(20)),
-				[]sdk.AccAddress{addrs[ownerAddrIndex]}, []sdk.Int{sdk.NewInt(lotAmount)}, c("debt", int64(10)))
+			id, err = suite.Keeper.StartCollateralAuction(suite.Ctx, suite.ModAcc.Name, c("token1", lotAmount), c("usdx", int64(20)),
+				[]sdk.AccAddress{suite.Addrs[ownerAddrIndex]}, []sdk.Int{sdk.NewInt(lotAmount)}, c("debt", int64(10)))
 		}
 		suite.NoError(err)
 
-		auc, found := suite.keeper.GetAuction(suite.ctx, id)
+		auc, found := suite.Keeper.GetAuction(suite.Ctx, id)
 		suite.True(found)
 		suite.auctions = append(suite.auctions, auc)
 	}
-
-	suite.querier = keeper.NewQuerier(suite.keeper)
+	suite.legacyAmino = suite.App.LegacyAmino()
+	suite.querier = keeper.NewQuerier(suite.Keeper, suite.legacyAmino)
 }
 
-func (suite *QuerierTestSuite) TestQueryAuction() {
-	ctx := suite.ctx.WithIsCheckTx(false)
+func TestQuerierTestSuite(t *testing.T) {
+	suite.Run(t, new(querierTestSuite))
+}
+
+func (suite *querierTestSuite) assertQuerierResponse(expected interface{}, actual []byte) {
+	expectedJson, err := suite.legacyAmino.MarshalJSONIndent(expected, "", "  ")
+	suite.Require().NoError(err)
+	suite.Require().Equal(string(expectedJson), string(actual))
+}
+
+func (suite *querierTestSuite) TestQueryParams() {
+	bz, err := suite.querier(suite.Ctx, []string{types.QueryGetParams}, abci.RequestQuery{})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(bz)
+
+	var params types.Params
+	suite.Require().NoError(suite.legacyAmino.UnmarshalJSON(bz, &params))
+
+	expectedParams := suite.Keeper.GetParams(suite.Ctx)
+	suite.Require().Equal(expectedParams, params)
+}
+
+func (suite *querierTestSuite) TestQueryAuction() {
+	ctx := suite.Ctx.WithIsCheckTx(false)
+
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAuction}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.QueryAuctionParams{AuctionID: types.DefaultNextAuctionID}), // get the first auction
+		Data: suite.legacyAmino.MustMarshalJSON(types.NewQueryAuctionParams(suite.auctions[0].GetID())),
 	}
 
 	// Execute query and check the []byte result
 	bz, err := suite.querier(ctx, []string{types.QueryGetAuction}, query)
 	suite.NoError(err)
 	suite.NotNil(bz)
-
-	// Unmarshal the bytes into type Auction
-	var auction types.Auction
-	suite.NoError(types.ModuleCdc.UnmarshalJSON(bz, &auction))
-
-	// Check the returned auction
-	suite.Equal(suite.auctions[0].GetID(), auction.GetID())
-	suite.Equal(suite.auctions[0].GetInitiator(), auction.GetInitiator())
-	suite.Equal(suite.auctions[0].GetLot(), auction.GetLot())
-	suite.Equal(suite.auctions[0].GetBid(), auction.GetBid())
-	suite.Equal(suite.auctions[0].GetEndTime(), auction.GetEndTime())
-
+	suite.assertQuerierResponse(suite.auctions[0], bz)
 }
 
-func (suite *QuerierTestSuite) TestQueryAuctions() {
-	ctx := suite.ctx.WithIsCheckTx(false)
+func (suite *querierTestSuite) TestQueryAuctions() {
+	ctx := suite.Ctx.WithIsCheckTx(false)
+
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAuctions}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(
-			types.NewQueryAllAuctionParams(int(1), int(TestAuctionCount), "", "", "", nil),
+		Data: suite.legacyAmino.MustMarshalJSON(
+			types.NewQueryAllAuctionParams(1, TestAuctionCount, "", "", "", nil),
 		),
 	}
 
 	// Execute query and check the []byte result
 	bz, err := suite.querier(ctx, []string{types.QueryGetAuctions}, query)
-	suite.NoError(err)
-	suite.NotNil(bz)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(bz)
 
-	// Unmarshal the bytes into type Auctions
-	var auctions types.Auctions
-	suite.NoError(types.ModuleCdc.UnmarshalJSON(bz, &auctions))
-
-	// Check that each Auction has correct values
-	if len(auctions) == 0 && len(suite.auctions) != 0 {
-		suite.FailNow("no auctions returned") // skip the panic from indexing empty slice below
-	}
-	for i := 0; i < TestAuctionCount; i++ {
-		suite.Equal(suite.auctions[i].GetID(), auctions[i].GetID())
-		suite.Equal(suite.auctions[i].GetInitiator(), auctions[i].GetInitiator())
-		suite.Equal(suite.auctions[i].GetLot(), auctions[i].GetLot())
-		suite.Equal(suite.auctions[i].GetBid(), auctions[i].GetBid())
-		suite.Equal(suite.auctions[i].GetEndTime(), auctions[i].GetEndTime())
-	}
+	suite.assertQuerierResponse(suite.Keeper.GetAllAuctions(suite.Ctx), bz)
 }
 
-func TestQuerierTestSuite(t *testing.T) {
-	suite.Run(t, new(QuerierTestSuite))
+func (suite *querierTestSuite) TestQueryNextAuctionID() {
+	bz, err := suite.querier(suite.Ctx, []string{types.QueryNextAuctionID}, abci.RequestQuery{})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(bz)
+
+	var nextAuctionID uint64
+	suite.Require().NoError(suite.legacyAmino.UnmarshalJSON(bz, &nextAuctionID))
+
+	expectedID, _ := suite.Keeper.GetNextAuctionID(suite.Ctx)
+	suite.Require().Equal(expectedID, nextAuctionID)
 }

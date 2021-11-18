@@ -9,9 +9,6 @@ import (
 )
 
 func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
-	_, err := sdk.AccAddressFromBech32(testAccAddress1)
-	require.NoError(t, err)
-
 	tests := []struct {
 		name       string
 		msg        MsgPlaceBid
@@ -30,11 +27,6 @@ func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
 		{
 			"empty address ",
 			NewMsgPlaceBid(1, "", c("token", 10)),
-			false,
-		},
-		{
-			"invalid address",
-			NewMsgPlaceBid(1, testAccAddress1[:10], c("token", 10)),
 			false,
 		},
 		{

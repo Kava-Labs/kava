@@ -30,6 +30,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
+	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
@@ -91,6 +92,7 @@ func (tApp TestApp) GetIssuanceKeeper() issuancekeeper.Keeper   { return tApp.is
 func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
 func (tApp TestApp) GetBep3Keeper() bep3keeper.Keeper           { return tApp.bep3Keeper }
 func (tApp TestApp) GetSwapKeeper() swapkeeper.Keeper           { return tApp.swapKeeper }
+func (tApp TestApp) GetAuctionKeeper() auctionkeeper.Keeper     { return tApp.auctionKeeper }
 func (tApp TestApp) GetCommitteeKeeper() committeekeeper.Keeper { return tApp.committeeKeeper }
 
 // TODO add back with modules
@@ -225,6 +227,46 @@ func NewFundedGenStateWithCoins(cdc codec.JSONCodec, coins []sdk.Coins, addresse
 	for i := range addresses {
 		accounts[i] = authtypes.NewBaseAccount(addresses[i], nil, 0, 0)
 	}
+
+	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
+
+	return GenesisState{
+		authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis),
+		banktypes.ModuleName: cdc.MustMarshalJSON(bankGenesis),
+	}
+}
+
+// NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
+func NewFundedGenStateWithSameCoinsWithModuleAccount(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress, modAcc *authtypes.ModuleAccount) GenesisState {
+	balances := make([]banktypes.Balance, len(addresses))
+	for i, addr := range addresses {
+		balances[i] = banktypes.Balance{
+			Address: addr.String(),
+			Coins:   balance,
+		}
+	}
+
+	// Add mod account balance to balances array
+	modAccBalance := banktypes.Balance{
+		Address: modAcc.Address,
+		Coins:   nil,
+	}
+	balances = append(balances, modAccBalance)
+
+	bankGenesis := banktypes.NewGenesisState(
+		banktypes.DefaultParams(),
+		balances,
+		nil,
+		[]banktypes.Metadata{}, // Metadata is not widely used in the sdk or kava
+	)
+
+	accounts := make(authtypes.GenesisAccounts, len(addresses))
+	for i := range addresses {
+		accounts[i] = authtypes.NewBaseAccount(addresses[i], nil, 0, 0)
+	}
+
+	// Add mod account to accounts array
+	accounts = append(accounts, modAcc)
 
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
 

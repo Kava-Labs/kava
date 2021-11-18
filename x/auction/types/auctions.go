@@ -44,7 +44,7 @@ type Auction interface {
 
 	GetInitiator() string
 	GetLot() sdk.Coin
-	GetBidder() string
+	GetBidder() sdk.AccAddress
 	GetBid() sdk.Coin
 	GetEndTime() time.Time
 	GetMaxEndTime() time.Time
@@ -61,7 +61,7 @@ func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
 
 func (a BaseAuction) GetLot() sdk.Coin { return a.Lot }
 
-func (a BaseAuction) GetBidder() string { return a.Bidder }
+func (a BaseAuction) GetBidder() sdk.AccAddress { return a.Bidder }
 
 func (a BaseAuction) GetInitiator() string { return a.Initiator }
 
@@ -77,11 +77,6 @@ func ValidateAuction(a Auction) error {
 	}
 	if !a.GetLot().IsValid() {
 		return fmt.Errorf("invalid lot: %s", a.GetLot())
-	}
-	// NOTE: bidder can be empty for Surplus and Collateral auctions
-	_, err := sdk.AccAddressFromBech32(a.GetBidder())
-	if a.GetBidder() != "" && err != nil {
-		return fmt.Errorf("invalid bidder address %s", a.GetBidder())
 	}
 	if !a.GetBid().IsValid() {
 		return fmt.Errorf("invalid bid: %s", a.GetBid())
@@ -103,7 +98,7 @@ func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 			// No Id
 			Initiator:       seller,
 			Lot:             lot,
-			Bidder:          "",
+			Bidder:          nil,
 			Bid:             sdk.NewInt64Coin(bidDenom, 0),
 			HasReceivedBids: false, // new auctions don't have any bids
 			EndTime:         endTime,
@@ -146,9 +141,9 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 			// no ID
 			Initiator:       buyerModAccName,
 			Lot:             initialLot,
-			Bidder:          authtypes.NewModuleAddress(buyerModAccName).String(), // send proceeds from the first bid to the buyer.
-			Bid:             bid,                                                  // amount that the buyer is buying - doesn't change over course of auction
-			HasReceivedBids: false,                                                // new auctions don't have any bids
+			Bidder:          authtypes.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
+			Bid:             bid,                                         // amount that the buyer is buying - doesn't change over course of auction
+			HasReceivedBids: false,                                       // new auctions don't have any bids
 			EndTime:         endTime,
 			MaxEndTime:      endTime,
 		},
@@ -192,7 +187,7 @@ func NewCollateralAuction(seller string, lot sdk.Coin, endTime time.Time, maxBid
 			// no ID
 			Initiator:       seller,
 			Lot:             lot,
-			Bidder:          "",
+			Bidder:          nil,
 			Bid:             sdk.NewInt64Coin(maxBid.Denom, 0),
 			HasReceivedBids: false, // new auctions don't have any bids
 			EndTime:         endTime,
@@ -252,7 +247,7 @@ func (a CollateralAuction) Validate() error {
 }
 
 // NewWeightedAddresses returns a new list addresses with weights.
-func NewWeightedAddresses(addrs []string, weights []sdk.Int) (WeightedAddresses, error) {
+func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdk.Int) (WeightedAddresses, error) {
 	wa := WeightedAddresses{
 		Addresses: addrs,
 		Weights:   weights,
@@ -275,12 +270,8 @@ func (wa WeightedAddresses) Validate() error {
 
 	totalWeight := sdk.ZeroInt()
 	for i := range wa.Addresses {
-		if len(wa.Addresses[i]) == 0 {
+		if wa.Addresses[i].Empty() {
 			return fmt.Errorf("address %d cannot be empty", i)
-		}
-		_, err := sdk.AccAddressFromBech32(wa.Addresses[i])
-		if err != nil {
-			return fmt.Errorf("address %s is not a valid bech32 address", wa.Addresses[i])
 		}
 		if wa.Weights[i].IsNegative() {
 			return fmt.Errorf("weight %d contains a negative amount: %s", i, wa.Weights[i])
