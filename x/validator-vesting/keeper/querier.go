@@ -76,7 +76,7 @@ func getCirculatingSupply(blockTime time.Time, totalSupply sdk.Int) sdk.Int {
 	case blockTime.After(vestingDates[2]) && blockTime.Before(vestingDates[3]) || blockTime.Equal(vestingDates[2]):
 		return totalSupply.Sub(sdk.NewInt(2484375000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	default:
-		return totalSupply.Sub(sdk.NewInt(10000000000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
+		return totalSupply.ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	}
 }
 
