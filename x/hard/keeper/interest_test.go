@@ -468,7 +468,7 @@ func (suite *InterestTestSuite) TestAPYToSPY() {
 		{
 			"out of bounds error after 178",
 			args{
-				apy:           sdk.MustNewDecFromStr("178"),
+				apy:           sdk.MustNewDecFromStr("179"),
 				expectedValue: sdk.ZeroDec(),
 			},
 			true,
