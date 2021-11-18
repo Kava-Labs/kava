@@ -1,23 +1,23 @@
 package keeper
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	supplyExported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
 	"github.com/kava-labs/kava/x/hard/types"
-	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 // SendTimeLockedCoinsToAccount sends time-locked coins from the input module account to the recipient.
 // If the recipients account is not a vesting account and the input length is greater than zero,
 // the recipient account is converted to a periodic vesting account and the coins are added to the vesting balance as a vesting period with the input length.
 func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) error {
-	macc := k.supplyKeeper.GetModuleAccount(ctx, senderModule)
-	if !macc.GetCoins().IsAllGTE(amt) {
+	macc := k.accountKeeper.GetModuleAccount(ctx, senderModule)
+	balances := k.bankKeeper.GetAllBalances(ctx, macc.GetAddress())
+	if !balances.IsAllGTE(amt) {
 		return sdkerrors.Wrapf(types.ErrInsufficientModAccountBalance, "%s", senderModule)
 	}
 
@@ -28,14 +28,12 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 	}
 
 	if length == 0 {
-		return k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
+		return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
 	}
 	switch acc.(type) {
-	case *validatorvesting.ValidatorVestingAccount, supplyExported.ModuleAccountI:
-		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
-	case *vesting.PeriodicVestingAccount:
+	case *vestingtypes.PeriodicVestingAccount:
 		return k.SendTimeLockedCoinsToPeriodicVestingAccount(ctx, senderModule, recipientAddr, amt, length)
-	case *auth.BaseAccount:
+	case *authtypes.BaseAccount:
 		return k.SendTimeLockedCoinsToBaseAccount(ctx, senderModule, recipientAddr, amt, length)
 	default:
 		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
@@ -44,7 +42,7 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 
 // SendTimeLockedCoinsToPeriodicVestingAccount sends time-locked coins from the input module account to the recipient
 func (k Keeper) SendTimeLockedCoinsToPeriodicVestingAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) error {
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
 	if err != nil {
 		return err
 	}
@@ -54,19 +52,27 @@ func (k Keeper) SendTimeLockedCoinsToPeriodicVestingAccount(ctx sdk.Context, sen
 
 // SendTimeLockedCoinsToBaseAccount sends time-locked coins from the input module account to the recipient, converting the recipient account to a vesting account
 func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) error {
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
 	if err != nil {
 		return err
 	}
 	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)
+	bal := k.bankKeeper.GetAllBalances(ctx, acc.GetAddress())
 	// transition the account to a periodic vesting account:
-	bacc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
-	newPeriods := vesting.Periods{types.NewPeriod(amt, length)}
-	bva, err := vesting.NewBaseVestingAccount(bacc, amt, ctx.BlockTime().Unix()+length)
-	if err != nil {
-		return err
+	bacc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+
+	newPeriods := vestingtypes.Periods{types.NewPeriod(amt, length)}
+
+	bva := vestingtypes.NewBaseVestingAccount(bacc, amt, ctx.BlockTime().Unix()+length)
+
+	// TODO: Check new logic of creating a new vesting account
+	if (bal.IsZero() && !bva.OriginalVesting.IsZero()) ||
+		bva.OriginalVesting.IsAnyGT(bal) {
+		return errors.New("vesting amount cannot be greater than total amount")
 	}
-	pva := vesting.NewPeriodicVestingAccountRaw(bva, ctx.BlockTime().Unix(), newPeriods)
+
+	pva := vestingtypes.NewPeriodicVestingAccountRaw(bva, ctx.BlockTime().Unix(), newPeriods)
+
 	k.accountKeeper.SetAccount(ctx, pva)
 	return nil
 }
@@ -75,7 +81,7 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 // the input address must be a periodic vesting account
 func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins, length int64) {
 	acc := k.accountKeeper.GetAccount(ctx, addr)
-	vacc := acc.(*vesting.PeriodicVestingAccount)
+	vacc := acc.(*vestingtypes.PeriodicVestingAccount)
 	// Add the new vesting coins to OriginalVesting
 	vacc.OriginalVesting = vacc.OriginalVesting.Add(amt...)
 	if vacc.EndTime < ctx.BlockTime().Unix() {
@@ -91,7 +97,7 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 	if vacc.StartTime > ctx.BlockTime().Unix() {
 		// edge case two - the vesting account's start time is in the future (all periods have not started)
 		// update the start time to now and adjust the period lengths in place - a new period will be inserted in the next code block
-		updatedPeriods := vesting.Periods{}
+		updatedPeriods := vestingtypes.Periods{}
 		for i, period := range vacc.VestingPeriods {
 			updatedPeriod := period
 			if i == 0 {
@@ -116,7 +122,7 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 		vacc.EndTime = proposedEndTime
 	} else {
 		// In the case that the proposed length is less than or equal to the sum of all previous period lengths, insert the period and update other periods as necessary.
-		newPeriods := vesting.Periods{}
+		newPeriods := vestingtypes.Periods{}
 		lengthCounter := int64(0)
 		appendRemaining := false
 		for _, period := range vacc.VestingPeriods {

@@ -75,7 +75,8 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	}
 
 	// Get current protocol state and hold in memory as 'prior'
-	cashPrior := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
+	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
+	cashPrior := k.bankKeeper.GetBalance(ctx, macc.GetAddress(), denom).Amount
 
 	borrowedPrior := sdk.NewCoin(denom, sdk.ZeroInt())
 	borrowedCoinsPrior, foundBorrowedCoinsPrior := k.GetBorrowedCoins(ctx)

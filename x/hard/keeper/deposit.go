@@ -37,10 +37,11 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		return err
 	}
 
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, coins)
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, coins)
 	if err != nil {
 		if errors.Is(err, sdkerrors.ErrInsufficientFunds) {
-			accCoins := k.accountKeeper.GetAccount(ctx, depositor).SpendableCoins(ctx.BlockTime())
+			acc := k.accountKeeper.GetAccount(ctx, depositor)
+			accCoins := k.bankKeeper.SpendableCoins(ctx, acc.GetAddress())
 			for _, coin := range coins {
 				_, isNegative := accCoins.SafeSub(sdk.NewCoins(coin))
 				if isNegative {
@@ -117,8 +118,8 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 // GetTotalDeposited returns the total amount deposited for the input deposit type and deposit denom
 func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdk.Int) {
 	var macc authtypes.ModuleAccountI
-	macc = k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
-	return macc.GetCoins().AmountOf(depositDenom)
+	macc = k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
+	return k.bankKeeper.GetBalance(ctx, macc.GetAddress(), depositDenom).Amount
 }
 
 // IncrementSuppliedCoins increments the total amount of supplied coins by the newCoins parameter
