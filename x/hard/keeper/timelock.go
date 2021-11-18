@@ -56,6 +56,7 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 	if err != nil {
 		return err
 	}
+
 	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)
 	bal := k.bankKeeper.GetAllBalances(ctx, acc.GetAddress())
 	// transition the account to a periodic vesting account:
@@ -65,9 +66,8 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 
 	bva := vestingtypes.NewBaseVestingAccount(bacc, amt, ctx.BlockTime().Unix()+length)
 
-	// TODO: Check new logic of creating a new vesting account
-	if (bal.IsZero() && !bva.OriginalVesting.IsZero()) ||
-		bva.OriginalVesting.IsAnyGT(bal) {
+	// TODO: Double check new logic of creating a new vesting account, where does bal go?
+	if (bal.IsZero() && !bva.OriginalVesting.IsZero()) || bva.OriginalVesting.IsAnyGT(bal) {
 		return errors.New("vesting amount cannot be greater than total amount")
 	}
 
@@ -147,5 +147,4 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 		vacc.VestingPeriods = newPeriods
 	}
 	k.accountKeeper.SetAccount(ctx, vacc)
-	return
 }
