@@ -964,7 +964,6 @@ type ExpectedSupplyInterest struct {
 func (suite *KeeperTestSuite) TestSupplyInterest() {
 	type args struct {
 		user                     sdk.AccAddress
-		initialSupplierCoins     sdk.Coins
 		initialBorrowerCoins     sdk.Coins
 		initialModuleCoins       sdk.Coins
 		depositCoins             sdk.Coins
