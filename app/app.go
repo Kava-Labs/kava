@@ -376,7 +376,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		auctionSubspace,
 		app.bankKeeper,
 		app.accountKeeper,
-
+)
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
