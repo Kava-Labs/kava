@@ -73,6 +73,7 @@ import (
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	"github.com/kava-labs/kava/x/committee"
+	"github.com/kava-labs/kava/x/hard"
 	issuance "github.com/kava-labs/kava/x/issuance"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
@@ -137,6 +138,7 @@ var (
 		swap.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		committee.AppModuleBasic{},
+		hard.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -482,6 +484,7 @@ func NewApp(
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -501,6 +504,7 @@ func NewApp(
 		committeetypes.ModuleName,
 		issuancetypes.ModuleName,
 		bep3types.ModuleName,
+		hardtypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -522,6 +526,7 @@ func NewApp(
 		evidencetypes.ModuleName,
 		pricefeedtypes.ModuleName,
 		auctiontypes.ModuleName,
+		hardtypes.ModuleName,
 		kavadisttypes.ModuleName,
 		committeetypes.ModuleName,
 		issuancetypes.ModuleName,
