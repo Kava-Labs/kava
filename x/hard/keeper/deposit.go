@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	supplyExported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/x/hard/types"
 )
@@ -116,7 +116,7 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 
 // GetTotalDeposited returns the total amount deposited for the input deposit type and deposit denom
 func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdk.Int) {
-	var macc supplyExported.ModuleAccountI
+	var macc authtypes.ModuleAccountI
 	macc = k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	return macc.GetCoins().AmountOf(depositDenom)
 }
