@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/x/hard/types"
 )
@@ -117,8 +116,7 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 
 // GetTotalDeposited returns the total amount deposited for the input deposit type and deposit denom
 func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdk.Int) {
-	var macc authtypes.ModuleAccountI
-	macc = k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
+	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	return k.bankKeeper.GetBalance(ctx, macc.GetAddress(), depositDenom).Amount
 }
 

@@ -315,11 +315,3 @@ func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
 func SPYToEstimatedAPY(apy sdk.Dec) sdk.Dec {
 	return apy.Power(uint64(secondsPerYear))
 }
-
-// minInt64 returns the smaller of x or y
-func minDec(x, y sdk.Dec) sdk.Dec {
-	if x.GT(y) {
-		return y
-	}
-	return x
-}
