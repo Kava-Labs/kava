@@ -16,7 +16,8 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	// "github.com/kava-labs/kava/x/auction/client/rest"
+	"github.com/kava-labs/kava/x/auction/client/cli"
+	"github.com/kava-labs/kava/x/auction/client/rest"
 	"github.com/kava-labs/kava/x/auction/keeper"
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -66,7 +67,7 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 
 // RegisterRESTRoutes registers REST routes for the swap module.
 func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	// rest.RegisterRoutes(clientCtx, rtr)
+	rest.RegisterRoutes(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
@@ -76,14 +77,12 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux 
 
 // GetTxCmd returns the root tx command for the swap module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	// TODO: return cli.GetTxCmd()
-	return &cobra.Command{}
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the swap module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	// TODO: return cli.GetQueryCmd()
-	return &cobra.Command{}
+	return cli.GetQueryCmd()
 }
 
 //____________________________________________________________________________
@@ -118,7 +117,6 @@ func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 // Route module message route name
 func (am AppModule) Route() sdk.Route {
 	return sdk.Route{}
-	// return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
 }
 
 // QuerierRoute module querier route name
