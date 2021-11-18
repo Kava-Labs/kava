@@ -78,16 +78,6 @@ func ValidateAuction(a Auction) error {
 	if !a.GetLot().IsValid() {
 		return fmt.Errorf("invalid lot: %s", a.GetLot())
 	}
-	// TODO:
-	// NOTE: bidder can be empty for Surplus and Collateral auctions
-	// _, err := sdk.AccAddressFromBech32(a.GetBidder())
-	// if a.GetBidder() != "" && err != nil {
-	// 	return fmt.Errorf("invalid bidder address %s", a.GetBidder())
-	// }
-	// NOTE: bidder can be empty for Surplus and Collateral auctions
-	// if !a.GetBidder().Empty() && len(a.Bidder) != sdk.Addr {
-	// 	return fmt.Errorf("the expected bidder address length is %d, actual length is %d", sdk.AddrLen, len(a.Bidder))
-	// }
 	if !a.GetBid().IsValid() {
 		return fmt.Errorf("invalid bid: %s", a.GetBid())
 	}
