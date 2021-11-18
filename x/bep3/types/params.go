@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
@@ -26,21 +26,8 @@ var (
 	DefaultPreviousBlockTime         = tmtime.Canonical(time.Unix(1, 0))
 )
 
-// Params governance parameters for bep3 module
-type Params struct {
-	AssetParams AssetParams `json:"asset_params" yaml:"asset_params"`
-}
-
-// String implements fmt.Stringer
-func (p Params) String() string {
-	return fmt.Sprintf(`Params:
-	AssetParams: %s`,
-		p.AssetParams)
-}
-
 // NewParams returns a new params object
-func NewParams(ap AssetParams,
-) Params {
+func NewParams(ap []AssetParam) Params {
 	return Params{
 		AssetParams: ap,
 	}
@@ -51,23 +38,9 @@ func DefaultParams() Params {
 	return NewParams(AssetParams{})
 }
 
-// AssetParam parameters that must be specified for each bep3 asset
-type AssetParam struct {
-	Denom         string         `json:"denom" yaml:"denom"`                     // name of the asset
-	CoinID        int            `json:"coin_id" yaml:"coin_id"`                 // SLIP-0044 registered coin type - see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-	SupplyLimit   SupplyLimit    `json:"supply_limit" yaml:"supply_limit"`       // asset supply limit
-	Active        bool           `json:"active" yaml:"active"`                   // denotes if asset is available or paused
-	DeputyAddress sdk.AccAddress `json:"deputy_address" yaml:"deputy_address"`   // the address of the relayer process
-	FixedFee      sdk.Int        `json:"fixed_fee" yaml:"fixed_fee"`             // the fixed fee charged by the relayer process for outgoing swaps
-	MinSwapAmount sdk.Int        `json:"min_swap_amount" yaml:"min_swap_amount"` // Minimum swap amount
-	MaxSwapAmount sdk.Int        `json:"max_swap_amount" yaml:"max_swap_amount"` // Maximum swap amount
-	MinBlockLock  uint64         `json:"min_block_lock" yaml:"min_block_lock"`   // Minimum swap block lock
-	MaxBlockLock  uint64         `json:"max_block_lock" yaml:"max_block_lock"`   // Maximum swap block lock
-}
-
 // NewAssetParam returns a new AssetParam
 func NewAssetParam(
-	denom string, coinID int, limit SupplyLimit, active bool,
+	denom string, coinID int64, limit SupplyLimit, active bool,
 	deputyAddr sdk.AccAddress, fixedFee sdk.Int, minSwapAmount sdk.Int,
 	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
 ) AssetParam {
@@ -85,51 +58,8 @@ func NewAssetParam(
 	}
 }
 
-// String implements fmt.Stringer
-func (ap AssetParam) String() string {
-	return fmt.Sprintf(`Asset:
-	Denom: %s
-	Coin ID: %d
-	Limit: %s
-	Active: %t
-	Deputy Address: %s
-	Fixed Fee: %s
-	Min Swap Amount: %s
-	Max Swap Amount: %s
-	Min Block Lock: %d
-	Max Block Lock: %d`,
-		ap.Denom, ap.CoinID, ap.SupplyLimit, ap.Active, ap.DeputyAddress, ap.FixedFee,
-		ap.MinSwapAmount, ap.MaxSwapAmount, ap.MinBlockLock, ap.MaxBlockLock)
-}
-
 // AssetParams array of AssetParam
 type AssetParams []AssetParam
-
-// String implements fmt.Stringer
-func (aps AssetParams) String() string {
-	out := "Asset Params\n"
-	for _, ap := range aps {
-		out += fmt.Sprintf("%s\n", ap)
-	}
-	return out
-}
-
-// SupplyLimit parameters that control the absolute and time-based limits for an assets's supply
-type SupplyLimit struct {
-	Limit          sdk.Int       `json:"limit" yaml:"limit"`                       // the absolute supply limit for an asset
-	TimeLimited    bool          `json:"time_limited" yaml:"time_limited"`         // boolean for if the supply is also limited by time
-	TimePeriod     time.Duration `json:"time_period" yaml:"time_period"`           // the duration for which the supply time limit applies
-	TimeBasedLimit sdk.Int       `json:"time_based_limit" yaml:"time_based_limit"` // the supply limit for an asset for each time period
-}
-
-// String implements fmt.Stringer
-func (sl SupplyLimit) String() string {
-	return fmt.Sprintf(`%s
-	%t
-	%s
-	%s
-	`, sl.Limit, sl.TimeLimited, sl.TimePeriod, sl.TimeBasedLimit)
-}
 
 // Equals returns true if two supply limits are equal
 func (sl SupplyLimit) Equals(sl2 SupplyLimit) bool {
@@ -137,16 +67,16 @@ func (sl SupplyLimit) Equals(sl2 SupplyLimit) bool {
 }
 
 // ParamKeyTable Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 // pairs of bep3 module's parameters.
 // nolint
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyAssetParams, &p.AssetParams, validateAssetParams),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyAssetParams, &p.AssetParams, validateAssetParams),
 	}
 }
 
@@ -192,10 +122,6 @@ func validateAssetParams(i interface{}) error {
 
 		if asset.DeputyAddress.Empty() {
 			return fmt.Errorf("deputy address cannot be empty for %s", asset.Denom)
-		}
-
-		if len(asset.DeputyAddress.Bytes()) != sdk.AddrLen {
-			return fmt.Errorf("%s deputy address invalid bytes length got %d, want %d", asset.Denom, len(asset.DeputyAddress.Bytes()), sdk.AddrLen)
 		}
 
 		if asset.FixedFee.IsNegative() {

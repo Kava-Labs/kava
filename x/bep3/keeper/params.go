@@ -109,7 +109,7 @@ func (k Keeper) GetMaxBlockLock(ctx sdk.Context, denom string) (uint64, error) {
 }
 
 // GetAssetByCoinID returns an asset by its denom
-func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID int) (types.AssetParam, bool) {
+func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID int64) (types.AssetParam, bool) {
 	params := k.GetParams(ctx)
 	for _, asset := range params.AssetParams {
 		if asset.CoinID == coinID {
@@ -151,7 +151,7 @@ func (k Keeper) GetAuthorizedAddresses(ctx sdk.Context) []sdk.AccAddress {
 		// no assets params is a valid genesis state
 		return nil
 	}
-	addresses := []sdk.AccAddress{}
+	var addresses []sdk.AccAddress
 	uniqueAddresses := map[string]bool{}
 
 	for _, ap := range assetParams {

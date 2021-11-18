@@ -39,45 +39,39 @@ func is(ns ...int64) (is []sdk.Int) {
 }
 
 func TestNewWeightedAddresses(t *testing.T) {
-	addr1, err := sdk.AccAddressFromBech32(testAccAddress1)
-	require.NoError(t, err)
-
-	addr2, err := sdk.AccAddressFromBech32(testAccAddress2)
-	require.NoError(t, err)
-
 	tests := []struct {
 		name      string
-		addresses []sdk.AccAddress
+		addresses []string
 		weights   []sdk.Int
 		expPass   bool
 	}{
 		{
 			"normal",
-			[]sdk.AccAddress{addr1, addr2},
+			[]string{testAccAddress1, testAccAddress2},
 			[]sdk.Int{sdk.NewInt(6), sdk.NewInt(8)},
 			true,
 		},
 		{
 			"empty address",
-			[]sdk.AccAddress{nil, nil},
+			[]string{"", ""},
 			[]sdk.Int{sdk.NewInt(6), sdk.NewInt(8)},
 			false,
 		},
 		{
 			"mismatched",
-			[]sdk.AccAddress{addr1, addr2},
+			[]string{testAccAddress1, testAccAddress2},
 			[]sdk.Int{sdk.NewInt(6)},
 			false,
 		},
 		{
 			"negative weight",
-			[]sdk.AccAddress{addr1, addr2},
+			[]string{testAccAddress1, testAccAddress2},
 			is(6, -8),
 			false,
 		},
 		{
 			"zero weight",
-			[]sdk.AccAddress{addr1, addr2},
+			[]string{testAccAddress1, testAccAddress2},
 			is(0, 0),
 			false,
 		},
@@ -94,118 +88,6 @@ func TestNewWeightedAddresses(t *testing.T) {
 			require.Equal(t, tc.weights, weightedAddresses.Weights)
 		} else {
 			require.Error(t, err)
-		}
-	}
-}
-
-func TestBaseAuctionValidate(t *testing.T) {
-	addr1, err := sdk.AccAddressFromBech32(testAccAddress1)
-	require.NoError(t, err)
-
-	now := time.Now()
-
-	tests := []struct {
-		msg     string
-		auction BaseAuction
-		expPass bool
-	}{
-		{
-			"valid auction",
-			BaseAuction{
-				ID:              1,
-				Initiator:       testAccAddress1,
-				Lot:             c("kava", 1),
-				Bidder:          addr1,
-				Bid:             c("kava", 1),
-				EndTime:         now,
-				MaxEndTime:      now,
-				HasReceivedBids: true,
-			},
-			true,
-		},
-		{
-			"blank initiator",
-			BaseAuction{
-				ID:        1,
-				Initiator: "",
-			},
-			false,
-		},
-		{
-			"invalid lot",
-			BaseAuction{
-				ID:        1,
-				Initiator: testAccAddress1,
-				Lot:       sdk.Coin{Denom: "DENOM", Amount: sdk.NewInt(1)},
-			},
-			false,
-		},
-		{
-			"empty bidder",
-			BaseAuction{
-				ID:        1,
-				Initiator: testAccAddress1,
-				Lot:       c("kava", 1),
-				Bidder:    sdk.AccAddress{},
-			},
-			false,
-		},
-		{
-			"invalid bidder",
-			BaseAuction{
-				ID:        1,
-				Initiator: testAccAddress1,
-				Lot:       c("kava", 1),
-				Bidder:    addr1[:10],
-			},
-			false,
-		},
-		{
-			"invalid bid",
-			BaseAuction{
-				ID:        1,
-				Initiator: testAccAddress1,
-				Lot:       c("kava", 1),
-				Bidder:    addr1,
-				Bid:       sdk.Coin{Denom: "DENOM", Amount: sdk.NewInt(1)},
-			},
-			false,
-		},
-		{
-			"invalid end time",
-			BaseAuction{
-				ID:        1,
-				Initiator: testAccAddress1,
-				Lot:       c("kava", 1),
-				Bidder:    addr1,
-				Bid:       c("kava", 1),
-				EndTime:   time.Unix(0, 0),
-			},
-			false,
-		},
-		{
-			"max end time > endtime",
-			BaseAuction{
-				ID:         1,
-				Initiator:  testAccAddress1,
-				Lot:        c("kava", 1),
-				Bidder:     addr1,
-				Bid:        c("kava", 1),
-				EndTime:    now.Add(time.Minute),
-				MaxEndTime: now,
-			},
-			false,
-		},
-	}
-
-	for _, tc := range tests {
-
-		err := tc.auction.Validate()
-
-		if tc.expPass {
-			require.NoError(t, err, tc.msg)
-		} else {
-			require.Error(t, err, tc.msg)
 		}
 	}
 }
@@ -228,7 +110,7 @@ func TestDebtAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1,
+					Bidder:          addr1.String(),
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -245,13 +127,13 @@ func TestDebtAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1,
+					Bidder:          addr1.String(),
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
 					HasReceivedBids: true,
 				},
-				CorrespondingDebt: sdk.Coin{Denom: "DENOM", Amount: sdk.NewInt(1)},
+				CorrespondingDebt: sdk.Coin{Denom: "", Amount: sdk.NewInt(1)},
 			},
 			false,
 		},
@@ -287,7 +169,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1,
+					Bidder:          addr1.String(),
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -296,7 +178,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 				CorrespondingDebt: c("kava", 1),
 				MaxBid:            c("kava", 1),
 				LotReturns: WeightedAddresses{
-					Addresses: []sdk.AccAddress{addr1},
+					Addresses: []string{testAccAddress1},
 					Weights:   []sdk.Int{sdk.NewInt(1)},
 				},
 			},
@@ -309,7 +191,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1,
+					Bidder:          addr1.String(),
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -326,7 +208,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1,
+					Bidder:          addr1.String(),
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -344,7 +226,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 					ID:              1,
 					Initiator:       testAccAddress1,
 					Lot:             c("kava", 1),
-					Bidder:          addr1,
+					Bidder:          addr1.String(),
 					Bid:             c("kava", 1),
 					EndTime:         now,
 					MaxEndTime:      now,
@@ -353,7 +235,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 				CorrespondingDebt: c("kava", 1),
 				MaxBid:            c("kava", 1),
 				LotReturns: WeightedAddresses{
-					Addresses: []sdk.AccAddress{nil},
+					Addresses: []string{""},
 					Weights:   []sdk.Int{sdk.NewInt(1)},
 				},
 			},
@@ -435,9 +317,9 @@ func TestNewDebtAuction(t *testing.T) {
 
 func TestNewCollateralAuction(t *testing.T) {
 	// Set up WeightedAddresses
-	addresses := []sdk.AccAddress{
-		sdk.AccAddress([]byte(testAccAddress1)),
-		sdk.AccAddress([]byte(testAccAddress2)),
+	addresses := []string{
+		testAccAddress1,
+		testAccAddress2,
 	}
 
 	weights := []sdk.Int{
@@ -458,11 +340,11 @@ func TestNewCollateralAuction(t *testing.T) {
 		c(TestDebtDenom, TestDebtAmount2),
 	)
 
-	require.Equal(t, collateralAuction.BaseAuction.Initiator, TestInitiatorModuleName)
-	require.Equal(t, collateralAuction.BaseAuction.Lot, c(TestLotDenom, TestLotAmount))
-	require.Equal(t, collateralAuction.BaseAuction.Bid, c(TestBidDenom, 0))
-	require.Equal(t, collateralAuction.BaseAuction.EndTime, endTime)
-	require.Equal(t, collateralAuction.BaseAuction.MaxEndTime, endTime)
+	require.Equal(t, collateralAuction.Initiator, TestInitiatorModuleName)
+	require.Equal(t, collateralAuction.Lot, c(TestLotDenom, TestLotAmount))
+	require.Equal(t, collateralAuction.Bid, c(TestBidDenom, 0))
+	require.Equal(t, collateralAuction.EndTime, endTime)
+	require.Equal(t, collateralAuction.MaxEndTime, endTime)
 	require.Equal(t, collateralAuction.MaxBid, c(TestBidDenom, TestBidAmount))
 	require.Equal(t, collateralAuction.LotReturns, weightedAddresses)
 	require.Equal(t, collateralAuction.CorrespondingDebt, c(TestDebtDenom, TestDebtAmount2))

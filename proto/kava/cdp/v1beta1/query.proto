@@ -1,0 +1,147 @@
+syntax = "proto3";
+package kava.cdp.v1beta1;
+
+import "kava/cdp/v1beta1/genesis.proto";
+import "kava/cdp/v1beta1/cdp.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/auth/v1beta1/auth.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/kava-labs/kava/x/cdp/types";
+
+// Query defines the gRPC querier service for cdp module
+service Query {
+  // Params queries all parameters of the cdp module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/cdp/v1beta1/params";
+  }
+
+  // Accounts queries the CDP module accounts.
+  rpc Accounts(QueryAccountsRequest) returns (QueryAccountsResponse) {
+    option (google.api.http).get = "/kava/cdp/v1beta1/accounts";
+  };
+
+  // TotalPrincipal queries the total principal of a given collateral type.
+  rpc TotalPrincipal(QueryTotalPrincipalRequest) returns (QueryTotalPrincipalResponse) {
+    option (google.api.http).get = "/kava/cdp/v1beta1/totalPrincipal";
+  };
+
+  // TotalCollateral queries the total collateral of a given collateral type.
+  rpc TotalCollateral(QueryTotalCollateralRequest) returns (QueryTotalCollateralResponse) {
+    option (google.api.http).get = "/kava/cdp/v1beta1/totalCollateral";
+  };
+
+  // Cdps queries all active CDPs.
+  rpc Cdps(QueryCdpsRequest) returns (QueryCdpsResponse) {
+    option (google.api.http).get = "/kava/cdp/v1beta1/cdps";
+  };
+
+  // Cdp queries a CDP with the input owner address and collateral type.
+  rpc Cdp(QueryCdpRequest) returns (QueryCdpResponse) {
+    option (google.api.http).get = "/kava/cdp/v1beta1/cdps/{owner}/{collateral_type}";
+  };
+
+  // Deposits queries deposits associated with the CDP owned by an address for a collateral type.
+  rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
+    option (google.api.http).get = "/kava/cdp/v1beta1/cdps/deposits/{owner}/{collateral_type}";
+  };
+}
+
+// QueryParamsRequest defines the request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryAccountsRequest defines the request type for the Query/Accounts RPC method.
+message QueryAccountsRequest {}
+
+// QueryAccountsResponse defines the response type for the Query/Accounts RPC method.
+message QueryAccountsResponse {
+  repeated cosmos.auth.v1beta1.ModuleAccount accounts = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryCdpRequest defines the request type for the Query/Cdp RPC method.
+message QueryCdpRequest {
+  string collateral_type = 1;
+  string owner           = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// QueryCdpResponse defines the response type for the Query/Cdp RPC method.
+message QueryCdpResponse {
+  CDPResponse cdp = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryCdpsRequest is the params for a filtered CDP query, the request type for the Query/Cdps RPC method.
+message QueryCdpsRequest {
+  string collateral_type = 1;
+  string owner           = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  uint64 id              = 3 [(gogoproto.customname) = "ID"];
+  // sdk.Dec as a string
+  string ratio = 4;
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 5;
+}
+
+// QueryCdpsResponse defines the response type for the Query/Cdps RPC method.
+message QueryCdpsResponse {
+  repeated CDPResponse cdps = 1 [(gogoproto.castrepeated) = "CDPResponses", (gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryDepositsRequest defines the request type for the Query/Deposits RPC method.
+message QueryDepositsRequest {
+  string collateral_type = 1;
+  string owner           = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// QueryDepositsResponse defines the response type for the Query/Deposits RPC method.
+message QueryDepositsResponse {
+  repeated Deposit deposits = 1 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
+}
+
+// QueryTotalPrincipalRequest defines the request type for the Query/TotalPrincipal RPC method.
+message QueryTotalPrincipalRequest {
+  string collateral_type = 1;
+}
+
+// QueryTotalPrincipalResponse defines the response type for the Query/TotalPrincipal RPC method.
+message QueryTotalPrincipalResponse {
+  repeated TotalPrincipal total_principal = 1
+      [(gogoproto.castrepeated) = "TotalPrincipals", (gogoproto.nullable) = false];
+}
+
+// QueryTotalCollateralRequest defines the request type for the Query/TotalCollateral RPC method.
+message QueryTotalCollateralRequest {
+  string collateral_type = 1;
+}
+
+// QueryTotalCollateralResponse defines the response type for the Query/TotalCollateral RPC method.
+message QueryTotalCollateralResponse {
+  repeated TotalCollateral total_collateral = 1
+      [(gogoproto.castrepeated) = "TotalCollaterals", (gogoproto.nullable) = false];
+}
+
+// CDPResponse defines the state of a single collateralized debt position.
+message CDPResponse {
+  uint64                    id                      = 1 [(gogoproto.customname) = "ID"];
+  string                    owner                   = 2;
+  string                    type                    = 3;
+  cosmos.base.v1beta1.Coin  collateral              = 4 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin  principal               = 5 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin  accumulated_fees        = 6 [(gogoproto.nullable) = false];
+  google.protobuf.Timestamp fees_updated            = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  string                    interest_factor         = 8;
+  cosmos.base.v1beta1.Coin  collateral_value        = 9 [(gogoproto.nullable) = false];
+  string                    collateralization_ratio = 10;
+}

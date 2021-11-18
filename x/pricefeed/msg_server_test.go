@@ -20,12 +20,8 @@ func TestKeeper_PostPrice(t *testing.T) {
 	k := tApp.GetPriceFeedKeeper()
 	msgSrv := pricefeed.NewMsgServerImpl(k)
 
-	var strAddrs []string
-	for _, a := range addrs {
-		strAddrs = append(strAddrs, a.String())
-	}
-	authorizedOracles := strAddrs[:2]
-	unauthorizedAddrs := strAddrs[2:]
+	authorizedOracles := addrs[:2]
+	unauthorizedAddrs := addrs[2:]
 
 	mp := types.Params{
 		Markets: []types.Market{
@@ -38,7 +34,7 @@ func TestKeeper_PostPrice(t *testing.T) {
 
 	tests := []struct {
 		giveMsg      string
-		giveOracle   string
+		giveOracle   sdk.AccAddress
 		giveMarketId string
 		giveExpiry   time.Time
 		wantAccepted bool
@@ -53,7 +49,7 @@ func TestKeeper_PostPrice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.giveMsg, func(t *testing.T) {
 			// Use MsgServer over keeper methods directly to tests against valid oracles
-			msg := types.NewMsgPostPrice(tt.giveOracle, tt.giveMarketId, sdk.MustNewDecFromStr("0.5"), tt.giveExpiry)
+			msg := types.NewMsgPostPrice(tt.giveOracle.String(), tt.giveMarketId, sdk.MustNewDecFromStr("0.5"), tt.giveExpiry)
 			_, err := msgSrv.PostPrice(sdk.WrapSDKContext(ctx), msg)
 
 			if tt.wantAccepted {
