@@ -7,13 +7,13 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/circulatingsupply", types.QueryPath), getCirculatingSupplyHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/totalsupply", types.QueryPath), getTotalSupplyHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/circulatingsupplyhard", types.QueryPath), getCirculatingSupplyHARDHandlerFn(cliCtx)).Methods("GET")
@@ -23,7 +23,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/totalsupplyusdx", types.QueryPath), getTotalSupplyUSDXHandlerFn(cliCtx)).Methods("GET")
 }
 
-func getTotalSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func getTotalSupplyHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -37,7 +37,7 @@ func getTotalSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -50,7 +50,7 @@ func getTotalSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 		var totalSupply int64
-		err = cliCtx.Codec.UnmarshalJSON(res, &totalSupply)
+		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &totalSupply)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -64,7 +64,7 @@ func getTotalSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func getCirculatingSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func getCirculatingSupplyHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -78,7 +78,7 @@ func getCirculatingSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -92,7 +92,7 @@ func getCirculatingSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		var circSupply int64
-		err = cliCtx.Codec.UnmarshalJSON(res, &circSupply)
+		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &circSupply)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -106,7 +106,7 @@ func getCirculatingSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func getCirculatingSupplyHARDHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func getCirculatingSupplyHARDHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -120,7 +120,7 @@ func getCirculatingSupplyHARDHandlerFn(cliCtx context.CLIContext) http.HandlerFu
 		}
 
 		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -134,7 +134,7 @@ func getCirculatingSupplyHARDHandlerFn(cliCtx context.CLIContext) http.HandlerFu
 		}
 
 		var circSupply int64
-		err = cliCtx.Codec.UnmarshalJSON(res, &circSupply)
+		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &circSupply)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -148,7 +148,7 @@ func getCirculatingSupplyHARDHandlerFn(cliCtx context.CLIContext) http.HandlerFu
 	}
 }
 
-func getCirculatingSupplyUSDXHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func getCirculatingSupplyUSDXHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -162,7 +162,7 @@ func getCirculatingSupplyUSDXHandlerFn(cliCtx context.CLIContext) http.HandlerFu
 		}
 
 		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -176,7 +176,7 @@ func getCirculatingSupplyUSDXHandlerFn(cliCtx context.CLIContext) http.HandlerFu
 		}
 
 		var circSupply int64
-		err = cliCtx.Codec.UnmarshalJSON(res, &circSupply)
+		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &circSupply)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -190,7 +190,7 @@ func getCirculatingSupplyUSDXHandlerFn(cliCtx context.CLIContext) http.HandlerFu
 	}
 }
 
-func getCirculatingSupplySWPHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func getCirculatingSupplySWPHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -204,7 +204,7 @@ func getCirculatingSupplySWPHandlerFn(cliCtx context.CLIContext) http.HandlerFun
 		}
 
 		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -218,7 +218,7 @@ func getCirculatingSupplySWPHandlerFn(cliCtx context.CLIContext) http.HandlerFun
 		}
 
 		var circSupply int64
-		err = cliCtx.Codec.UnmarshalJSON(res, &circSupply)
+		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &circSupply)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -232,7 +232,7 @@ func getCirculatingSupplySWPHandlerFn(cliCtx context.CLIContext) http.HandlerFun
 	}
 }
 
-func getTotalSupplyHARDHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func getTotalSupplyHARDHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -246,7 +246,7 @@ func getTotalSupplyHARDHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -259,7 +259,7 @@ func getTotalSupplyHARDHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 		var totalSupply int64
-		err = cliCtx.Codec.UnmarshalJSON(res, &totalSupply)
+		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &totalSupply)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -273,7 +273,7 @@ func getTotalSupplyHARDHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func getTotalSupplyUSDXHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func getTotalSupplyUSDXHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -287,7 +287,7 @@ func getTotalSupplyUSDXHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -300,7 +300,7 @@ func getTotalSupplyUSDXHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 		var totalSupply int64
-		err = cliCtx.Codec.UnmarshalJSON(res, &totalSupply)
+		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &totalSupply)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return

@@ -1,8 +1,10 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -13,43 +15,44 @@ import (
 
 const SafuFund int64 = 10000000 // 10 million KAVA
 
-// NewQuerier returns a new querier function
-func NewQuerier(keeper Keeper) sdk.Querier {
+// NewQuerier is the module level router for state queries
+func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryCirculatingSupply:
-			return queryGetCirculatingSupply(ctx, req, keeper)
+			return queryGetCirculatingSupply(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryTotalSupply:
-			return queryGetTotalSupply(ctx, req, keeper)
+			return queryGetTotalSupply(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryCirculatingSupplyHARD:
-			return getCirculatingSupplyHARD(ctx, req, keeper)
+			return getCirculatingSupplyHARD(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryCirculatingSupplyUSDX:
-			return getCirculatingSupplyUSDX(ctx, req, keeper)
+			return getCirculatingSupplyUSDX(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryCirculatingSupplySWP:
-			return getCirculatingSupplySWP(ctx, req, keeper)
+			return getCirculatingSupplySWP(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryTotalSupplyHARD:
-			return getTotalSupplyHARD(ctx, req, keeper)
+			return getTotalSupplyHARD(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryTotalSupplyUSDX:
-			return getCirculatingSupplyUSDX(ctx, req, keeper) // Intentional - USDX total supply is the circulating supply
+			return getCirculatingSupplyUSDX(ctx, req, keeper, legacyQuerierCdc) // Intentional - USDX total supply is the circulating supply
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
 	}
 }
 
-func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
+func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	totalSupply := keeper.bk.GetSupply(ctx, "ukava").Amount
+	fmt.Printf("suppy: %v", totalSupply)
 	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
-	bz, err := types.ModuleCdc.MarshalJSON(supplyInt)
+	bz, err := legacyQuerierCdc.MarshalJSON(supplyInt)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	supplyInt := getCirculatingSupply(ctx.BlockTime())
-	bz, err := keeper.cdc.MarshalJSON(supplyInt)
+	bz, err := legacyQuerierCdc.MarshalJSON(supplyInt)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -107,7 +110,7 @@ func getCirculatingSupply(blockTime time.Time) sdk.Int {
 	}
 }
 
-func getCirculatingSupplyHARD(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func getCirculatingSupplyHARD(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	supplyIncreaseDates := []time.Time{
 		time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC), // + 30,000,000 *** Year ONE ***
 		time.Date(2020, 11, 15, 14, 0, 0, 0, time.UTC), // + 5,000,000
@@ -264,24 +267,24 @@ func getCirculatingSupplyHARD(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 		circSupply = sdk.NewInt(200000000)
 	}
 
-	bz, err := keeper.cdc.MarshalJSON(circSupply)
+	bz, err := legacyQuerierCdc.MarshalJSON(circSupply)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func getCirculatingSupplyUSDX(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("usdx")
+func getCirculatingSupplyUSDX(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	totalSupply := keeper.bk.GetSupply(ctx, "usdx").Amount
 	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
-	bz, err := types.ModuleCdc.MarshalJSON(supplyInt)
+	bz, err := legacyQuerierCdc.MarshalJSON(supplyInt)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func getCirculatingSupplySWP(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func getCirculatingSupplySWP(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	// Start values
 	year := 2021
 	month := 8
@@ -365,17 +368,17 @@ func getCirculatingSupplySWP(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 		circSupply = circSupply.Add(sdk.NewInt(monthTotal))
 	}
 
-	bz, err := keeper.cdc.MarshalJSON(circSupply)
+	bz, err := legacyQuerierCdc.MarshalJSON(circSupply)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func getTotalSupplyHARD(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("hard")
+func getTotalSupplyHARD(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	totalSupply := keeper.bk.GetSupply(ctx, "hard").Amount
 	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
-	bz, err := types.ModuleCdc.MarshalJSON(supplyInt)
+	bz, err := legacyQuerierCdc.MarshalJSON(supplyInt)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}

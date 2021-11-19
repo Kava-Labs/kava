@@ -83,6 +83,8 @@ import (
 	// committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
+	validatorvestingkeeper "github.com/kava-labs/kava/x/validator-vesting/keeper"
 )
 
 const (
@@ -117,6 +119,7 @@ var (
 		swap.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		committee.AppModuleBasic{},
+		validatorvesting.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -181,6 +184,7 @@ type App struct {
 	pricefeedKeeper pricefeedkeeper.Keeper
 	swapKeeper      swapkeeper.Keeper
 	committeeKeeper committeekeeper.Keeper
+	vvKeeper        validatorvestingkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -347,6 +351,10 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		app.accountKeeper,
 		app.bankKeeper,
 	)
+	app.vvKeeper = validatorvestingkeeper.NewKeeper(
+		appCodec,
+		app.bankKeeper,
+	)
 	app.pricefeedKeeper = pricefeedkeeper.NewKeeper(
 		appCodec,
 		keys[pricefeedtypes.StoreKey],
@@ -404,6 +412,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
+		validatorvesting.NewAppModule(app.vvKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)

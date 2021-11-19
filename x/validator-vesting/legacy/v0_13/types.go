@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
@@ -15,7 +15,7 @@ import (
 // Assert ValidatorVestingAccount implements the vestexported.VestingAccount interface
 // Assert ValidatorVestingAccount implements the authexported.GenesisAccount interface
 var _ vestexported.VestingAccount = (*ValidatorVestingAccount)(nil)
-var _ authexported.GenesisAccount = (*ValidatorVestingAccount)(nil)
+var _ authtypes.GenesisAccount = (*ValidatorVestingAccount)(nil)
 
 // GenesisState - all auth state that must be provided at genesis
 type GenesisState struct {
