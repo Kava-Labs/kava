@@ -255,7 +255,7 @@ func NewApp(
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
 		upgradetypes.StoreKey, kavadisttypes.StoreKey, issuancetypes.StoreKey,
 		bep3types.StoreKey, pricefeedtypes.StoreKey, swaptypes.StoreKey,
-		committeetypes.StoreKey, auctiontypes.StoreKey,
+		committeetypes.StoreKey, auctiontypes.StoreKey, hardtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
