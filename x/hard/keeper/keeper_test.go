@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
 	"testing"
 
@@ -156,21 +155,6 @@ func (suite *KeeperTestSuite) getModuleAccount(name string) authtypes.ModuleAcco
 func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) authtypes.ModuleAccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetModuleAccount(ctx, name)
-}
-
-func addressSort(addrs []sdk.AccAddress) (sortedAddrs []sdk.AccAddress) {
-	addrStrs := []string{}
-	for _, addr := range addrs {
-		addrStrs = append(addrStrs, addr.String())
-	}
-
-	sort.Strings(addrStrs)
-
-	for _, addrStr := range addrStrs {
-		addr, _ := sdk.AccAddressFromBech32(addrStr)
-		sortedAddrs = append(sortedAddrs, addr)
-	}
-	return sortedAddrs
 }
 
 func TestKeeperTestSuite(t *testing.T) {
