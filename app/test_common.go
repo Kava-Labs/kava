@@ -12,6 +12,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
@@ -27,6 +28,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
+	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
@@ -69,7 +71,7 @@ func NewTestAppFromSealed() TestApp {
 
 	encCfg := MakeEncodingConfig()
 
-	app := NewApp(log.NewNopLogger(), db, nil, encCfg, Options{})
+	app := NewApp(log.NewNopLogger(), db, DefaultNodeHome, nil, encCfg, Options{})
 	return TestApp{App: *app}
 }
 
@@ -89,6 +91,7 @@ func (tApp TestApp) GetIssuanceKeeper() issuancekeeper.Keeper   { return tApp.is
 func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
 func (tApp TestApp) GetBep3Keeper() bep3keeper.Keeper           { return tApp.bep3Keeper }
 func (tApp TestApp) GetSwapKeeper() swapkeeper.Keeper           { return tApp.swapKeeper }
+func (tApp TestApp) GetAuctionKeeper() auctionkeeper.Keeper     { return tApp.auctionKeeper }
 func (tApp TestApp) GetCommitteeKeeper() committeekeeper.Keeper { return tApp.committeeKeeper }
 
 // TODO add back with modules
@@ -208,5 +211,18 @@ func NewFundedGenStateWithCoins(cdc codec.JSONCodec, coins []sdk.Coins, addresse
 	for i, address := range addresses {
 		builder.WithSimpleAccount(address, coins[i])
 	}
+	return builder.BuildMarshalled(cdc)
+}
+
+// NewFundedGenStateWithSameCoinsWithModuleAccount creates a (auth and bank) genesis state populated with accounts from the given addresses and balance along with an empty module account
+func NewFundedGenStateWithSameCoinsWithModuleAccount(cdc codec.JSONCodec, coins sdk.Coins, addresses []sdk.AccAddress, modAcc *authtypes.ModuleAccount) GenesisState {
+	builder := NewAuthBankGenesisBuilder()
+
+	for _, address := range addresses {
+		builder.WithSimpleAccount(address, coins)
+	}
+
+	builder.WithSimpleModuleAccount(modAcc.Address, nil)
+
 	return builder.BuildMarshalled(cdc)
 }

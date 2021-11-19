@@ -4,19 +4,48 @@
 
 ## Table of Contents
 
+- [kava/auction/v1beta1/auction.proto](#kava/auction/v1beta1/auction.proto)
+    - [BaseAuction](#kava.auction.v1beta1.BaseAuction)
+    - [CollateralAuction](#kava.auction.v1beta1.CollateralAuction)
+    - [DebtAuction](#kava.auction.v1beta1.DebtAuction)
+    - [SurplusAuction](#kava.auction.v1beta1.SurplusAuction)
+    - [WeightedAddresses](#kava.auction.v1beta1.WeightedAddresses)
+  
+- [kava/auction/v1beta1/genesis.proto](#kava/auction/v1beta1/genesis.proto)
+    - [GenesisState](#kava.auction.v1beta1.GenesisState)
+    - [Params](#kava.auction.v1beta1.Params)
+  
+- [kava/auction/v1beta1/query.proto](#kava/auction/v1beta1/query.proto)
+    - [QueryAuctionRequest](#kava.auction.v1beta1.QueryAuctionRequest)
+    - [QueryAuctionResponse](#kava.auction.v1beta1.QueryAuctionResponse)
+    - [QueryAuctionsRequest](#kava.auction.v1beta1.QueryAuctionsRequest)
+    - [QueryAuctionsResponse](#kava.auction.v1beta1.QueryAuctionsResponse)
+    - [QueryNextAuctionIDRequest](#kava.auction.v1beta1.QueryNextAuctionIDRequest)
+    - [QueryNextAuctionIDResponse](#kava.auction.v1beta1.QueryNextAuctionIDResponse)
+    - [QueryParamsRequest](#kava.auction.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.auction.v1beta1.QueryParamsResponse)
+  
+    - [Query](#kava.auction.v1beta1.Query)
+  
+- [kava/auction/v1beta1/tx.proto](#kava/auction/v1beta1/tx.proto)
+    - [MsgPlaceBid](#kava.auction.v1beta1.MsgPlaceBid)
+    - [MsgPlaceBidResponse](#kava.auction.v1beta1.MsgPlaceBidResponse)
+  
+    - [Msg](#kava.auction.v1beta1.Msg)
+  
 - [kava/bep3/v1beta1/bep3.proto](#kava/bep3/v1beta1/bep3.proto)
     - [AssetParam](#kava.bep3.v1beta1.AssetParam)
     - [AssetSupply](#kava.bep3.v1beta1.AssetSupply)
     - [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap)
     - [Params](#kava.bep3.v1beta1.Params)
     - [SupplyLimit](#kava.bep3.v1beta1.SupplyLimit)
-
+  
     - [SwapDirection](#kava.bep3.v1beta1.SwapDirection)
     - [SwapStatus](#kava.bep3.v1beta1.SwapStatus)
-
+  
 - [kava/bep3/v1beta1/genesis.proto](#kava/bep3/v1beta1/genesis.proto)
     - [GenesisState](#kava.bep3.v1beta1.GenesisState)
-
+  
 - [kava/bep3/v1beta1/query.proto](#kava/bep3/v1beta1/query.proto)
     - [AssetSupplyResponse](#kava.bep3.v1beta1.AssetSupplyResponse)
     - [AtomicSwapResponse](#kava.bep3.v1beta1.AtomicSwapResponse)
@@ -30,9 +59,9 @@
     - [QueryAtomicSwapsResponse](#kava.bep3.v1beta1.QueryAtomicSwapsResponse)
     - [QueryParamsRequest](#kava.bep3.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.bep3.v1beta1.QueryParamsResponse)
-
+  
     - [Query](#kava.bep3.v1beta1.Query)
-
+  
 - [kava/bep3/v1beta1/tx.proto](#kava/bep3/v1beta1/tx.proto)
     - [MsgClaimAtomicSwap](#kava.bep3.v1beta1.MsgClaimAtomicSwap)
     - [MsgClaimAtomicSwapResponse](#kava.bep3.v1beta1.MsgClaimAtomicSwapResponse)
@@ -40,15 +69,15 @@
     - [MsgCreateAtomicSwapResponse](#kava.bep3.v1beta1.MsgCreateAtomicSwapResponse)
     - [MsgRefundAtomicSwap](#kava.bep3.v1beta1.MsgRefundAtomicSwap)
     - [MsgRefundAtomicSwapResponse](#kava.bep3.v1beta1.MsgRefundAtomicSwapResponse)
-
+  
     - [Msg](#kava.bep3.v1beta1.Msg)
-
+  
 - [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
     - [CDP](#kava.cdp.v1beta1.CDP)
     - [Deposit](#kava.cdp.v1beta1.Deposit)
     - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
     - [TotalPrincipal](#kava.cdp.v1beta1.TotalPrincipal)
-
+  
 - [kava/cdp/v1beta1/genesis.proto](#kava/cdp/v1beta1/genesis.proto)
     - [CollateralParam](#kava.cdp.v1beta1.CollateralParam)
     - [DebtParam](#kava.cdp.v1beta1.DebtParam)
@@ -56,7 +85,7 @@
     - [GenesisState](#kava.cdp.v1beta1.GenesisState)
     - [GenesisTotalPrincipal](#kava.cdp.v1beta1.GenesisTotalPrincipal)
     - [Params](#kava.cdp.v1beta1.Params)
-
+  
 - [kava/cdp/v1beta1/query.proto](#kava/cdp/v1beta1/query.proto)
     - [CDPResponse](#kava.cdp.v1beta1.CDPResponse)
     - [QueryAccountsRequest](#kava.cdp.v1beta1.QueryAccountsRequest)
@@ -73,9 +102,9 @@
     - [QueryTotalCollateralResponse](#kava.cdp.v1beta1.QueryTotalCollateralResponse)
     - [QueryTotalPrincipalRequest](#kava.cdp.v1beta1.QueryTotalPrincipalRequest)
     - [QueryTotalPrincipalResponse](#kava.cdp.v1beta1.QueryTotalPrincipalResponse)
-
+  
     - [Query](#kava.cdp.v1beta1.Query)
-
+  
 - [kava/cdp/v1beta1/tx.proto](#kava/cdp/v1beta1/tx.proto)
     - [MsgCreateCDP](#kava.cdp.v1beta1.MsgCreateCDP)
     - [MsgCreateCDPResponse](#kava.cdp.v1beta1.MsgCreateCDPResponse)
@@ -89,49 +118,71 @@
     - [MsgRepayDebtResponse](#kava.cdp.v1beta1.MsgRepayDebtResponse)
     - [MsgWithdraw](#kava.cdp.v1beta1.MsgWithdraw)
     - [MsgWithdrawResponse](#kava.cdp.v1beta1.MsgWithdrawResponse)
-
+  
     - [Msg](#kava.cdp.v1beta1.Msg)
-
+  
 - [kava/committee/v1beta1/committee.proto](#kava/committee/v1beta1/committee.proto)
     - [BaseCommittee](#kava.committee.v1beta1.BaseCommittee)
     - [MemberCommittee](#kava.committee.v1beta1.MemberCommittee)
     - [TokenCommittee](#kava.committee.v1beta1.TokenCommittee)
-
+  
     - [TallyOption](#kava.committee.v1beta1.TallyOption)
-
+  
 - [kava/committee/v1beta1/genesis.proto](#kava/committee/v1beta1/genesis.proto)
     - [GenesisState](#kava.committee.v1beta1.GenesisState)
     - [Proposal](#kava.committee.v1beta1.Proposal)
     - [Vote](#kava.committee.v1beta1.Vote)
-
+  
     - [VoteType](#kava.committee.v1beta1.VoteType)
-
+  
 - [kava/committee/v1beta1/permissions.proto](#kava/committee/v1beta1/permissions.proto)
     - [GodPermission](#kava.committee.v1beta1.GodPermission)
     - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
     - [TextPermission](#kava.committee.v1beta1.TextPermission)
-
+  
 - [kava/committee/v1beta1/proposal.proto](#kava/committee/v1beta1/proposal.proto)
     - [CommitteeChangeProposal](#kava.committee.v1beta1.CommitteeChangeProposal)
     - [CommitteeDeleteProposal](#kava.committee.v1beta1.CommitteeDeleteProposal)
-
+  
+- [kava/committee/v1beta1/query.proto](#kava/committee/v1beta1/query.proto)
+    - [QueryCommitteeRequest](#kava.committee.v1beta1.QueryCommitteeRequest)
+    - [QueryCommitteeResponse](#kava.committee.v1beta1.QueryCommitteeResponse)
+    - [QueryCommitteesRequest](#kava.committee.v1beta1.QueryCommitteesRequest)
+    - [QueryCommitteesResponse](#kava.committee.v1beta1.QueryCommitteesResponse)
+    - [QueryNextProposalIDRequest](#kava.committee.v1beta1.QueryNextProposalIDRequest)
+    - [QueryNextProposalIDResponse](#kava.committee.v1beta1.QueryNextProposalIDResponse)
+    - [QueryProposalRequest](#kava.committee.v1beta1.QueryProposalRequest)
+    - [QueryProposalResponse](#kava.committee.v1beta1.QueryProposalResponse)
+    - [QueryProposalsRequest](#kava.committee.v1beta1.QueryProposalsRequest)
+    - [QueryProposalsResponse](#kava.committee.v1beta1.QueryProposalsResponse)
+    - [QueryRawParamsRequest](#kava.committee.v1beta1.QueryRawParamsRequest)
+    - [QueryRawParamsResponse](#kava.committee.v1beta1.QueryRawParamsResponse)
+    - [QueryTallyRequest](#kava.committee.v1beta1.QueryTallyRequest)
+    - [QueryTallyResponse](#kava.committee.v1beta1.QueryTallyResponse)
+    - [QueryVoteRequest](#kava.committee.v1beta1.QueryVoteRequest)
+    - [QueryVoteResponse](#kava.committee.v1beta1.QueryVoteResponse)
+    - [QueryVotesRequest](#kava.committee.v1beta1.QueryVotesRequest)
+    - [QueryVotesResponse](#kava.committee.v1beta1.QueryVotesResponse)
+  
+    - [Query](#kava.committee.v1beta1.Query)
+  
 - [kava/committee/v1beta1/tx.proto](#kava/committee/v1beta1/tx.proto)
     - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
     - [MsgVote](#kava.committee.v1beta1.MsgVote)
-
+  
 - [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
     - [Asset](#kava.issuance.v1beta1.Asset)
     - [AssetSupply](#kava.issuance.v1beta1.AssetSupply)
     - [GenesisState](#kava.issuance.v1beta1.GenesisState)
     - [Params](#kava.issuance.v1beta1.Params)
     - [RateLimit](#kava.issuance.v1beta1.RateLimit)
-
+  
 - [kava/issuance/v1beta1/query.proto](#kava/issuance/v1beta1/query.proto)
     - [QueryParamsRequest](#kava.issuance.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.issuance.v1beta1.QueryParamsResponse)
-
+  
     - [Query](#kava.issuance.v1beta1.Query)
-
+  
 - [kava/issuance/v1beta1/tx.proto](#kava/issuance/v1beta1/tx.proto)
     - [MsgBlockAddress](#kava.issuance.v1beta1.MsgBlockAddress)
     - [MsgBlockAddressResponse](#kava.issuance.v1beta1.MsgBlockAddressResponse)
@@ -143,38 +194,38 @@
     - [MsgSetPauseStatusResponse](#kava.issuance.v1beta1.MsgSetPauseStatusResponse)
     - [MsgUnblockAddress](#kava.issuance.v1beta1.MsgUnblockAddress)
     - [MsgUnblockAddressResponse](#kava.issuance.v1beta1.MsgUnblockAddressResponse)
-
+  
     - [Msg](#kava.issuance.v1beta1.Msg)
-
+  
 - [kava/kavadist/v1beta1/params.proto](#kava/kavadist/v1beta1/params.proto)
     - [Params](#kava.kavadist.v1beta1.Params)
     - [Period](#kava.kavadist.v1beta1.Period)
-
+  
 - [kava/kavadist/v1beta1/genesis.proto](#kava/kavadist/v1beta1/genesis.proto)
     - [GenesisState](#kava.kavadist.v1beta1.GenesisState)
-
+  
 - [kava/kavadist/v1beta1/proposal.proto](#kava/kavadist/v1beta1/proposal.proto)
     - [CommunityPoolMultiSpendProposal](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposal)
     - [CommunityPoolMultiSpendProposalJSON](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposalJSON)
     - [MultiSpendRecipient](#kava.kavadist.v1beta1.MultiSpendRecipient)
-
+  
 - [kava/kavadist/v1beta1/query.proto](#kava/kavadist/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse)
     - [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse)
-
+  
     - [Query](#kava.kavadist.v1beta1.Query)
-
+  
 - [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
     - [Params](#kava.pricefeed.v1beta1.Params)
     - [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice)
-
+  
 - [kava/pricefeed/v1beta1/genesis.proto](#kava/pricefeed/v1beta1/genesis.proto)
     - [GenesisState](#kava.pricefeed.v1beta1.GenesisState)
-
+  
 - [kava/pricefeed/v1beta1/query.proto](#kava/pricefeed/v1beta1/query.proto)
     - [CurrentPriceResponse](#kava.pricefeed.v1beta1.CurrentPriceResponse)
     - [MarketResponse](#kava.pricefeed.v1beta1.MarketResponse)
@@ -191,24 +242,24 @@
     - [QueryPricesResponse](#kava.pricefeed.v1beta1.QueryPricesResponse)
     - [QueryRawPricesRequest](#kava.pricefeed.v1beta1.QueryRawPricesRequest)
     - [QueryRawPricesResponse](#kava.pricefeed.v1beta1.QueryRawPricesResponse)
-
+  
     - [Query](#kava.pricefeed.v1beta1.Query)
-
+  
 - [kava/pricefeed/v1beta1/tx.proto](#kava/pricefeed/v1beta1/tx.proto)
     - [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice)
     - [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse)
-
+  
     - [Msg](#kava.pricefeed.v1beta1.Msg)
-
+  
 - [kava/swap/v1beta1/swap.proto](#kava/swap/v1beta1/swap.proto)
     - [AllowedPool](#kava.swap.v1beta1.AllowedPool)
     - [Params](#kava.swap.v1beta1.Params)
     - [PoolRecord](#kava.swap.v1beta1.PoolRecord)
     - [ShareRecord](#kava.swap.v1beta1.ShareRecord)
-
+  
 - [kava/swap/v1beta1/genesis.proto](#kava/swap/v1beta1/genesis.proto)
     - [GenesisState](#kava.swap.v1beta1.GenesisState)
-
+  
 - [kava/swap/v1beta1/query.proto](#kava/swap/v1beta1/query.proto)
     - [DepositResponse](#kava.swap.v1beta1.DepositResponse)
     - [PoolResponse](#kava.swap.v1beta1.PoolResponse)
@@ -218,9 +269,9 @@
     - [QueryParamsResponse](#kava.swap.v1beta1.QueryParamsResponse)
     - [QueryPoolsRequest](#kava.swap.v1beta1.QueryPoolsRequest)
     - [QueryPoolsResponse](#kava.swap.v1beta1.QueryPoolsResponse)
-
+  
     - [Query](#kava.swap.v1beta1.Query)
-
+  
 - [kava/swap/v1beta1/tx.proto](#kava/swap/v1beta1/tx.proto)
     - [MsgDeposit](#kava.swap.v1beta1.MsgDeposit)
     - [MsgDepositResponse](#kava.swap.v1beta1.MsgDepositResponse)
@@ -230,10 +281,369 @@
     - [MsgSwapForExactTokensResponse](#kava.swap.v1beta1.MsgSwapForExactTokensResponse)
     - [MsgWithdraw](#kava.swap.v1beta1.MsgWithdraw)
     - [MsgWithdrawResponse](#kava.swap.v1beta1.MsgWithdrawResponse)
-
+  
     - [Msg](#kava.swap.v1beta1.Msg)
-
+  
 - [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="kava/auction/v1beta1/auction.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/auction/v1beta1/auction.proto
+
+
+
+<a name="kava.auction.v1beta1.BaseAuction"></a>
+
+### BaseAuction
+BaseAuction defines common attributes of all auctions
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+| `initiator` | [string](#string) |  |  |
+| `lot` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `bidder` | [bytes](#bytes) |  |  |
+| `bid` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `has_received_bids` | [bool](#bool) |  |  |
+| `end_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `max_end_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.CollateralAuction"></a>
+
+### CollateralAuction
+CollateralAuction is a two phase auction.
+Initially, in forward auction phase, bids can be placed up to a max bid.
+Then it switches to a reverse auction phase, where the initial amount up for auction is bid down.
+Unsold Lot is sent to LotReturns, being divided among the addresses by weight.
+Collateral auctions are normally used to sell off collateral seized from CDPs.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_auction` | [BaseAuction](#kava.auction.v1beta1.BaseAuction) |  |  |
+| `corresponding_debt` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `max_bid` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `lot_returns` | [WeightedAddresses](#kava.auction.v1beta1.WeightedAddresses) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.DebtAuction"></a>
+
+### DebtAuction
+DebtAuction is a reverse auction that mints what it pays out.
+It is normally used to acquire pegged asset to cover the CDP system's debts that were not covered by selling
+collateral.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_auction` | [BaseAuction](#kava.auction.v1beta1.BaseAuction) |  |  |
+| `corresponding_debt` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.SurplusAuction"></a>
+
+### SurplusAuction
+SurplusAuction is a forward auction that burns what it receives from bids.
+It is normally used to sell off excess pegged asset acquired by the CDP system.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_auction` | [BaseAuction](#kava.auction.v1beta1.BaseAuction) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.WeightedAddresses"></a>
+
+### WeightedAddresses
+WeightedAddresses is a type for storing some addresses and associated weights.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `addresses` | [bytes](#bytes) | repeated |  |
+| `weights` | [bytes](#bytes) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/auction/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/auction/v1beta1/genesis.proto
+
+
+
+<a name="kava.auction.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the auction module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `next_auction_id` | [uint64](#uint64) |  |  |
+| `params` | [Params](#kava.auction.v1beta1.Params) |  |  |
+| `auctions` | [google.protobuf.Any](#google.protobuf.Any) | repeated | Genesis auctions |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the issuance module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `max_auction_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `bid_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `increment_surplus` | [bytes](#bytes) |  |  |
+| `increment_debt` | [bytes](#bytes) |  |  |
+| `increment_collateral` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/auction/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/auction/v1beta1/query.proto
+
+
+
+<a name="kava.auction.v1beta1.QueryAuctionRequest"></a>
+
+### QueryAuctionRequest
+QueryAuctionRequest is the request type for the Query/Auction RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `auction_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.QueryAuctionResponse"></a>
+
+### QueryAuctionResponse
+QueryAuctionResponse is the response type for the Query/Auction RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `auction` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.QueryAuctionsRequest"></a>
+
+### QueryAuctionsRequest
+QueryAuctionsRequest is the request type for the Query/Auctions RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `denom` | [string](#string) |  |  |
+| `phase` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.QueryAuctionsResponse"></a>
+
+### QueryAuctionsResponse
+QueryAuctionsResponse is the response type for the Query/Auctions RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `auction` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.QueryNextAuctionIDRequest"></a>
+
+### QueryNextAuctionIDRequest
+QueryNextAuctionIDRequest defines the request type for querying x/auction next auction ID.
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.QueryNextAuctionIDResponse"></a>
+
+### QueryNextAuctionIDResponse
+QueryNextAuctionIDResponse defines the response type for querying x/auction next auction ID.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/auction parameters.
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/auction parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.auction.v1beta1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.auction.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for auction module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.auction.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.auction.v1beta1.QueryParamsResponse) | Params queries all parameters of the auction module. | GET|/kava/auction/v1beta1/params|
+| `Auction` | [QueryAuctionRequest](#kava.auction.v1beta1.QueryAuctionRequest) | [QueryAuctionResponse](#kava.auction.v1beta1.QueryAuctionResponse) | Auction queries an individual Auction by auction ID | GET|/kava/auction/v1beta1/auctions/{auction_id}|
+| `Auctions` | [QueryAuctionsRequest](#kava.auction.v1beta1.QueryAuctionsRequest) | [QueryAuctionsResponse](#kava.auction.v1beta1.QueryAuctionsResponse) | Auctions queries auctions filtered by asset denom, owner address, phase, and auction type | GET|/kava/auction/v1beta1/auctions|
+| `NextAuctionID` | [QueryNextAuctionIDRequest](#kava.auction.v1beta1.QueryNextAuctionIDRequest) | [QueryNextAuctionIDResponse](#kava.auction.v1beta1.QueryNextAuctionIDResponse) | NextAuctionID queries the next auction ID | GET|/kava/auction/v1beta1/next-auction-id|
+
+ <!-- end services -->
+
+
+
+<a name="kava/auction/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/auction/v1beta1/tx.proto
+
+
+
+<a name="kava.auction.v1beta1.MsgPlaceBid"></a>
+
+### MsgPlaceBid
+MsgPlaceBid represents a message used by bidders to place bids on auctions
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `auction_id` | [uint64](#uint64) |  |  |
+| `bidder` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta1.MsgPlaceBidResponse"></a>
+
+### MsgPlaceBidResponse
+MsgPlaceBidResponse defines the Msg/PlaceBid response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.auction.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the auction Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `PlaceBid` | [MsgPlaceBid](#kava.auction.v1beta1.MsgPlaceBid) | [MsgPlaceBidResponse](#kava.auction.v1beta1.MsgPlaceBidResponse) | PlaceBid message type used by bidders to place bids on auctions | |
+
+ <!-- end services -->
 
 
 
