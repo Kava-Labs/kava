@@ -10,6 +10,7 @@ import (
 // GetParams returns the total set of bep3 parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	k.paramSubspace.GetParamSet(ctx, &params)
+	return params
 }
 
 // SetParams sets the bep3 parameters to the param space.
