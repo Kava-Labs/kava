@@ -15,7 +15,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	// TODO: aucKeeper "github.com/kava-labs/kava/x/auction/keeper"
+	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
 	pfKeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
@@ -24,8 +24,8 @@ import (
 // Test suite used for all keeper tests
 type KeeperTestSuite struct {
 	suite.Suite
-	keeper keeper.Keeper
-	// auctionKeeper   aucKeeper.Keeper
+	keeper          keeper.Keeper
+	auctionKeeper   auctionkeeper.Keeper
 	pricefeedKeeper pfKeeper.Keeper
 	app             app.TestApp
 	ctx             sdk.Context
