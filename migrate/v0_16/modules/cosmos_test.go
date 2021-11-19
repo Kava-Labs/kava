@@ -14,20 +14,13 @@ import (
 )
 
 func TestCosmosMigrate_Gov(t *testing.T) {
-	// appstate-v15-gov contains a gov app state with 3 different proposals.
+	// The gov json contains a gov app state with 3 different proposals.
 	// Two of the proposals are from cosmos while the 3rd one is kavadist/CommunityPoolMultiSpendProposal.
-	original := GetTestDataJSON("appstate-v15-gov")
-	expected := GetTestDataJSON("appstate-v16-gov")
+	original := GetTestDataJSON("appstate-gov-v15.json")
+	expected := GetTestDataJSON("appstate-gov-v16.json")
 	actual := MustMigrateAppStateJSON(original)
 	assert.JSONEq(t, expected, actual)
 }
-
-// func TestCosmosMigrate_Auth_Bank(t *testing.T) {
-// 	original := GetTestDataJSON("appstate-v15-auth")
-// 	expected := GetTestDataJSON("appstate-v16-auth")
-// 	MustMigrateAppStateJSON(original)
-// 	assert.JSONEq(t, expected, actual)
-// }
 
 // MustMigrateAppStateJSON migrate v15 app state json to v16
 func MustMigrateAppStateJSON(appStateJson string) string {
@@ -44,7 +37,7 @@ func MustMigrateAppStateJSON(appStateJson string) string {
 }
 
 func GetTestDataJSON(filename string) string {
-	file := filepath.Join("testdata", filename+".json")
+	file := filepath.Join("testdata", filename)
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		panic(err)

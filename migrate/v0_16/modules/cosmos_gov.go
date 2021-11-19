@@ -1,6 +1,6 @@
 /**
  * The v0_16 x/gov migration logic is adapted from
- * https://github.com/cosmos/cosmos-sdk/blob/b75c29fc15d3320ec0c7596dbd7c787c48dccad8/x/auth/legacy/v040/migrate.go
+ * https://github.com/cosmos/cosmos-sdk/blob/b75c29fc15d3320ec0c7596dbd7c787c48dccad8/x/gov/legacy/v040/migrate.go
  *
  * The original migration code is changed here to support the following custom proposals from the kava modules.
  * - `x/kavadist/CommunityPoolMultiSpendProposal`
@@ -177,7 +177,7 @@ func migrateContent(oldContent v036gov.Content) *codectypes.Any {
 // - Migrate proposal content to Any.
 // - Convert addresses from bytes to bech32 strings.
 // - Re-encode in v0.40 GenesisState.
-func MigrateGovV036(oldGovState v036gov.GenesisState) *v040gov.GenesisState {
+func MigrateGovV040(oldGovState v036gov.GenesisState) *v040gov.GenesisState {
 	newDeposits := make([]v040gov.Deposit, len(oldGovState.Deposits))
 	for i, oldDeposit := range oldGovState.Deposits {
 		newDeposits[i] = v040gov.Deposit{
