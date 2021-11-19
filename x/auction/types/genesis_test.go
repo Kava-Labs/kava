@@ -21,9 +21,7 @@ func newTestModuleCodec() codec.Codec {
 
 func TestGenesisState_Validate(t *testing.T) {
 
-	defaultGenState, err := DefaultGenesisState()
-	require.NoError(t, err)
-
+	defaultGenState := DefaultGenesisState()
 	defaultGenesisAuctions, err := UnpackGenesisAuctions(defaultGenState.Auctions)
 	if err != nil {
 		panic(err)

@@ -131,10 +131,8 @@ func TestExportGenesis(t *testing.T) {
 		// export
 		gs := auction.ExportGenesis(ctx, tApp.GetAuctionKeeper())
 
-		defaultGS, err := types.DefaultGenesisState()
-		require.NoError(t, err)
-
 		// check state matches
+		defaultGS := types.DefaultGenesisState()
 		require.Equal(t, defaultGS, gs)
 	})
 	t.Run("one auction", func(t *testing.T) {
@@ -148,9 +146,7 @@ func TestExportGenesis(t *testing.T) {
 		gs := auction.ExportGenesis(ctx, tApp.GetAuctionKeeper())
 
 		// check state matches
-		expectedGenesisState, err := types.DefaultGenesisState()
-		require.NoError(t, err)
-
+		expectedGenesisState := types.DefaultGenesisState()
 		packedGenesisAuctions, err := types.PackGenesisAuctions([]types.GenesisAuction{testAuction})
 		require.NoError(t, err)
 

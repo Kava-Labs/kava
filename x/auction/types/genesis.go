@@ -70,12 +70,16 @@ func NewGenesisState(nextID uint64, ap Params, ga []GenesisAuction) (*GenesisSta
 }
 
 // DefaultGenesisState returns the default genesis state for auction module.
-func DefaultGenesisState() (*GenesisState, error) {
-	return NewGenesisState(
+func DefaultGenesisState() *GenesisState {
+	genesis, err := NewGenesisState(
 		DefaultNextAuctionID,
 		DefaultParams(),
 		[]GenesisAuction{},
 	)
+	if err != nil {
+		panic(fmt.Sprintf("could not create default genesis state: %v", err))
+	}
+	return genesis
 }
 
 // Validate validates genesis inputs. It returns error if validation of any input fails.
