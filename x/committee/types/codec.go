@@ -54,7 +54,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
 	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
 	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
-	// cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
+	cdc.RegisterConcrete(ParamsChangePermission{}, "kava/ParamsChangePermission", nil)
 
 	// Msgs
 	cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
@@ -81,6 +81,9 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		"kava.committee.v1beta1.Permission",
 		(*Permission)(nil),
 		&GodPermission{},
+		&TextPermission{},
+		&SoftwareUpgradePermission{},
+		&ParamsChangePermission{},
 	)
 
 	// Need to register PubProposal here since we use this as alias for the x/gov Content interface for all the proposal implementations used in this module.

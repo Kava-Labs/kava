@@ -17,6 +17,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
+	"github.com/kava-labs/kava/x/committee/client/cli"
+	"github.com/kava-labs/kava/x/committee/client/rest"
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -65,7 +67,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 
 // RegisterRESTRoutes registers committee module's REST service handlers.
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	// rest.RegisterRoutes(clientCtx, rtr)
+	rest.RegisterRoutes(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for committee module.
@@ -74,12 +76,13 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 }
 
 // GetTxCmd returns committee module's root tx command.
-func (a AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
+func (a AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd()
+}
 
 // GetQueryCmd returns committee module's root query command.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
-	// return cli.GetQueryCmd()
+	return cli.GetQueryCmd()
 }
 
 // ----------------------------------------------------------------------------

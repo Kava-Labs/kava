@@ -136,7 +136,9 @@
     - [VoteType](#kava.committee.v1beta1.VoteType)
   
 - [kava/committee/v1beta1/permissions.proto](#kava/committee/v1beta1/permissions.proto)
+    - [AllowedParamsChange](#kava.committee.v1beta1.AllowedParamsChange)
     - [GodPermission](#kava.committee.v1beta1.GodPermission)
+    - [ParamsChangePermission](#kava.committee.v1beta1.ParamsChangePermission)
     - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
     - [TextPermission](#kava.committee.v1beta1.TextPermission)
   
@@ -2016,10 +2018,41 @@ VoteType enumerates the valid types of a vote.
 
 
 
+<a name="kava.committee.v1beta1.AllowedParamsChange"></a>
+
+### AllowedParamsChange
+AllowedParamsChange contains data on the allowed parameter changes for subspace, key, and sub params attrs.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `subspace` | [string](#string) |  |  |
+| `key` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="kava.committee.v1beta1.GodPermission"></a>
 
 ### GodPermission
 GodPermission allows any governance proposal. It is used mainly for testing.
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.ParamsChangePermission"></a>
+
+### ParamsChangePermission
+ParamsChangePermission allows any parameter or sub parameter change proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allowed_params_changes` | [AllowedParamsChange](#kava.committee.v1beta1.AllowedParamsChange) | repeated |  |
 
 
 
