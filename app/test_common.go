@@ -14,7 +14,6 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
@@ -23,7 +22,6 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -31,6 +29,7 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
+	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
@@ -199,168 +198,31 @@ func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk
 
 // NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
 func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) GenesisState {
-	balances := make([]sdk.Coins, len(addresses))
-	for i, _ := range addresses {
-		balances[i] = balance
+	builder := NewAuthBankGenesisBuilder()
+	for _, address := range addresses {
+		builder.WithSimpleAccount(address, balance)
 	}
-	return NewFundedGenStateWithCoins(cdc, balances, addresses)
+	return builder.BuildMarshalled(cdc)
 }
 
 // NewFundedGenStateWithCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and coins.
 func NewFundedGenStateWithCoins(cdc codec.JSONCodec, coins []sdk.Coins, addresses []sdk.AccAddress) GenesisState {
-	balances := make([]banktypes.Balance, len(addresses))
-	for i, addr := range addresses {
-		balances[i] = banktypes.Balance{
-			Address: addr.String(),
-			Coins:   coins[i],
-		}
+	builder := NewAuthBankGenesisBuilder()
+	for i, address := range addresses {
+		builder.WithSimpleAccount(address, coins[i])
 	}
-
-	bankGenesis := banktypes.NewGenesisState(
-		banktypes.DefaultParams(),
-		balances,
-		nil,
-		[]banktypes.Metadata{}, // Metadata is not widely used in the sdk or kava
-	)
-
-	accounts := make(authtypes.GenesisAccounts, len(addresses))
-	for i := range addresses {
-		accounts[i] = authtypes.NewBaseAccount(addresses[i], nil, 0, 0)
-	}
-
-	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
-
-	return GenesisState{
-		authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis),
-		banktypes.ModuleName: cdc.MustMarshalJSON(bankGenesis),
-	}
+	return builder.BuildMarshalled(cdc)
 }
 
-// NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
-func NewFundedGenStateWithSameCoinsWithModuleAccount(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress, modAcc *authtypes.ModuleAccount) GenesisState {
-	balances := make([]banktypes.Balance, len(addresses))
-	for i, addr := range addresses {
-		balances[i] = banktypes.Balance{
-			Address: addr.String(),
-			Coins:   balance,
-		}
+// NewFundedGenStateWithSameCoinsWithModuleAccount creates a (auth and bank) genesis state populated with accounts from the given addresses and balance along with an empty module account
+func NewFundedGenStateWithSameCoinsWithModuleAccount(cdc codec.JSONCodec, coins sdk.Coins, addresses []sdk.AccAddress, modAcc *authtypes.ModuleAccount) GenesisState {
+	builder := NewAuthBankGenesisBuilder()
+
+	for _, address := range addresses {
+		builder.WithSimpleAccount(address, coins)
 	}
 
-	// Add mod account balance to balances array
-	modAccBalance := banktypes.Balance{
-		Address: modAcc.Address,
-		Coins:   nil,
-	}
-	balances = append(balances, modAccBalance)
+	builder.WithSimpleModuleAccount(modAcc.Address, nil)
 
-	bankGenesis := banktypes.NewGenesisState(
-		banktypes.DefaultParams(),
-		balances,
-		nil,
-		[]banktypes.Metadata{}, // Metadata is not widely used in the sdk or kava
-	)
-
-	accounts := make(authtypes.GenesisAccounts, len(addresses))
-	for i := range addresses {
-		accounts[i] = authtypes.NewBaseAccount(addresses[i], nil, 0, 0)
-	}
-
-	// Add mod account to accounts array
-	accounts = append(accounts, modAcc)
-
-	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), accounts)
-
-	return GenesisState{
-		authtypes.ModuleName: cdc.MustMarshalJSON(authGenesis),
-		banktypes.ModuleName: cdc.MustMarshalJSON(bankGenesis),
-	}
+	return builder.BuildMarshalled(cdc)
 }
-
-// TODO move auth builder to a new package
-
-// // AuthGenesisBuilder is a tool for creating an auth genesis state.
-// // Helper methods create basic accounts types and add them to a default genesis state.
-// // All methods are immutable and return updated copies of the builder.
-// // The builder inherits from auth.GenesisState, so fields can be accessed directly if a helper method doesn't exist.
-// //
-// // Example:
-// //     // create a single account genesis state
-// //     builder := NewAuthGenesisBuilder().WithSimpleAccount(testUserAddress, testCoins)
-// //     genesisState := builder.Build()
-// //
-// type AuthGenesisBuilder struct {
-// 	auth.GenesisState
-// }
-
-// // NewAuthGenesisBuilder creates a AuthGenesisBuilder containing a default genesis state.
-// func NewAuthGenesisBuilder() AuthGenesisBuilder {
-// 	return AuthGenesisBuilder{
-// 		GenesisState: auth.DefaultGenesisState(),
-// 	}
-// }
-
-// // Build assembles and returns the final GenesisState
-// func (builder AuthGenesisBuilder) Build() auth.GenesisState {
-// 	return builder.GenesisState
-// }
-
-// // BuildMarshalled assembles the final GenesisState and json encodes it into a generic genesis type.
-// func (builder AuthGenesisBuilder) BuildMarshalled() GenesisState {
-// 	return GenesisState{
-// 		auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(builder.Build()),
-// 	}
-// }
-
-// // WithAccounts adds accounts of any type to the genesis state.
-// func (builder AuthGenesisBuilder) WithAccounts(account ...authexported.GenesisAccount) AuthGenesisBuilder {
-// 	builder.Accounts = append(builder.Accounts, account...)
-// 	return builder
-// }
-
-// // WithSimpleAccount adds a standard account to the genesis state.
-// func (builder AuthGenesisBuilder) WithSimpleAccount(address sdk.AccAddress, balance sdk.Coins) AuthGenesisBuilder {
-// 	return builder.WithAccounts(auth.NewBaseAccount(address, balance, nil, 0, 0))
-// }
-
-// // WithSimpleModuleAccount adds a module account to the genesis state.
-// func (builder AuthGenesisBuilder) WithSimpleModuleAccount(moduleName string, balance sdk.Coins, permissions ...string) AuthGenesisBuilder {
-// 	account := supply.NewEmptyModuleAccount(moduleName, permissions...)
-// 	account.SetCoins(balance)
-// 	return builder.WithAccounts(account)
-// }
-
-// // WithSimplePeriodicVestingAccount adds a periodic vesting account to the genesis state.
-// func (builder AuthGenesisBuilder) WithSimplePeriodicVestingAccount(address sdk.AccAddress, balance sdk.Coins, periods vesting.Periods, firstPeriodStartTimestamp int64) AuthGenesisBuilder {
-// 	baseAccount := auth.NewBaseAccount(address, balance, nil, 0, 0)
-
-// 	originalVesting := sdk.NewCoins()
-// 	for _, p := range periods {
-// 		originalVesting = originalVesting.Add(p.Amount...)
-// 	}
-
-// 	var totalPeriods int64
-// 	for _, p := range periods {
-// 		totalPeriods += p.Length
-// 	}
-// 	endTime := firstPeriodStartTimestamp + totalPeriods
-
-// 	baseVestingAccount, err := vesting.NewBaseVestingAccount(baseAccount, originalVesting, endTime)
-// 	if err != nil {
-// 		panic(err.Error())
-// 	}
-// 	periodicVestingAccount := vesting.NewPeriodicVestingAccountRaw(baseVestingAccount, firstPeriodStartTimestamp, periods)
-
-// 	return builder.WithAccounts(periodicVestingAccount)
-// }
-
-// // WithEmptyValidatorVestingAccount adds a stub validator vesting account to the genesis state.
-// func (builder AuthGenesisBuilder) WithEmptyValidatorVestingAccount(address sdk.AccAddress) AuthGenesisBuilder {
-// 	// TODO create a validator vesting account builder and remove this method
-// 	bacc := auth.NewBaseAccount(address, nil, nil, 0, 0)
-// 	bva, err := vesting.NewBaseVestingAccount(bacc, nil, 1)
-// 	if err != nil {
-// 		panic(err.Error())
-// 	}
-// 	account := validatorvesting.NewValidatorVestingAccountRaw(bva, 0, nil, sdk.ConsAddress{}, nil, 90)
-// 	return builder.WithAccounts(account)
-// }
