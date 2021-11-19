@@ -81,7 +81,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              1,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 9500390),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              1,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 10000411),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -187,7 +187,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              1,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 11874430),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("bnb", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -202,7 +202,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              2,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 11874254),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("btc", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -217,7 +217,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              3,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 11875163),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -232,7 +232,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              4,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 11876185),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("usdc", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -273,7 +273,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              1,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("bnb", 950000000),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -288,7 +288,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              2,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("btc", 95000000),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -303,7 +303,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              3,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 47504818),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -348,7 +348,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              1,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdc", 95000000), // $95.00
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("bnb", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -363,7 +363,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              2,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdt", 10552835), // $10.55
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("bnb", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -378,7 +378,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              3,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdt", 84447165), // $84.45
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("btc", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -393,7 +393,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              4,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdx", 21097866), // $21.10
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("btc", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -408,7 +408,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              5,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdx", 73902133), //$73.90
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -452,7 +452,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              1,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("dai", 263894126),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("usdt", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -467,7 +467,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              2,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("dai", 68605874),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("usdx", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -482,7 +482,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							ID:              3,
 							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdc", 189999999),
-							Bidder:          sdk.AccAddress{},
+							Bidder:          sdk.AccAddress(nil),
 							Bid:             sdk.NewInt64Coin("usdx", 0),
 							HasReceivedBids: false,
 							EndTime:         endTime,
@@ -739,7 +739,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				suppliedCoinsPost, _ := suite.keeper.GetSuppliedCoins(liqCtx)
 				suite.Require().Equal(tc.args.expectedTotalSuppliedCoins, suppliedCoinsPost)
 				borrowedCoinsPost, _ := suite.keeper.GetBorrowedCoins(liqCtx)
-				suite.Require().Equal(tc.args.expectedTotalBorrowedCoins, borrowedCoinsPost)
+				suite.Require().True(tc.args.expectedTotalBorrowedCoins.IsEqual(borrowedCoinsPost))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
@@ -757,7 +757,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 
 				// Check that supplied and borrowed coins have not been updated post-liquidation
 				suite.Require().Equal(tc.args.expectedTotalSuppliedCoins, suppliedCoinsPre)
-				suite.Require().Equal(tc.args.expectedTotalBorrowedCoins, borrowedCoinsPre)
+				suite.Require().True(tc.args.expectedTotalBorrowedCoins.IsEqual(borrowedCoinsPre))
 			}
 		})
 	}

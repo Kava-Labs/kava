@@ -193,7 +193,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				acc := suite.getAccount(tc.args.depositor)
 				suite.Require().Equal(tc.args.expectedAccountBalance, bankKeeper.GetAllBalances(ctx, acc.GetAddress()))
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(tc.args.expectedModAccountBalance, bankKeeper.GetAllBalances(ctx, mAcc.GetAddress()))
+				suite.Require().True(tc.args.expectedModAccountBalance.IsEqual(bankKeeper.GetAllBalances(ctx, mAcc.GetAddress())))
 				testDeposit, f := suite.keeper.GetDeposit(suite.ctx, tc.args.depositor)
 				if tc.errArgs.expectDelete {
 					suite.Require().False(f)
