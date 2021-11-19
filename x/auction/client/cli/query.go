@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -26,6 +27,7 @@ func GetQueryCmd() *cobra.Command {
 	cmds := []*cobra.Command{
 		GetCmdQueryParams(),
 		GetCmdQueryAuction(),
+		GetCmdQueryAuctions(),
 	}
 
 	for _, cmd := range cmds {
@@ -66,7 +68,7 @@ func GetCmdQueryParams() *cobra.Command {
 func GetCmdQueryAuction() *cobra.Command {
 	return &cobra.Command{
 		Use:   "auction [auction-id]",
-		Short: "get a info about an auction",
+		Short: "get info about an auction",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -108,15 +110,14 @@ func GetCmdQueryAuctions() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auctions",
 		Short: "query auctions with optional filters",
-		Long: strings.TrimSpace(`Query for all paginated auctions that match optional filters:
-Example:
-$ kvcli q auction auctions --type=(collateral|surplus|debt)
-$ kvcli q auction auctions --owner=kava1hatdq32u5x4wnxrtv5wzjzmq49sxgjgsj0mffm
-$ kvcli q auction auctions --denom=bnb
-$ kvcli q auction auctions --phase=(forward|reverse)
-$ kvcli q auction auctions --page=2 --limit=100
-`,
-		),
+		Long:  "Query for all paginated auctions that match optional filters.",
+		Example: strings.Join([]string{
+			fmt.Sprintf("  $ %s q %s auctions --type=(collateral|surplus|debt)", version.AppName, types.ModuleName),
+			fmt.Sprintf("  $ %s q %s auctions --owner=kava1hatdq32u5x4wnxrtv5wzjzmq49sxgjgsj0mffm", version.AppName, types.ModuleName),
+			fmt.Sprintf("  $ %s q %s auctions --denom=bnb", version.AppName, types.ModuleName),
+			fmt.Sprintf("  $ %s q %s auctions --phase=(forward|reverse)", version.AppName, types.ModuleName),
+			fmt.Sprintf("  $ %s q %s auctions --page=2 --limit=100", version.AppName, types.ModuleName),
+		}, "\n"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			strType := viper.GetString(flagType)
 			strOwner := viper.GetString(flagOwner)
