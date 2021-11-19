@@ -415,6 +415,13 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
+	app.auctionKeeper = auctionkeeper.NewKeeper(
+		appCodec,
+		keys[auctiontypes.StoreKey],
+		auctionSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+	)
 	hardKeeper := hardkeeper.NewKeeper(
 		appCodec,
 		keys[hardtypes.StoreKey],
@@ -423,17 +430,9 @@ func NewApp(
 		app.bankKeeper,
 		app.stakingKeeper,
 		app.pricefeedKeeper,
-		// TODO: app.auctionKeeper,
-		nil,
+		app.auctionKeeper,
 	)
 
-	app.auctionKeeper = auctionkeeper.NewKeeper(
-		appCodec,
-		keys[auctiontypes.StoreKey],
-		auctionSubspace,
-		app.bankKeeper,
-		app.accountKeeper,
-	)
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
