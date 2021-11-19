@@ -22,6 +22,16 @@ func TestCosmosMigrate_Gov(t *testing.T) {
 	assert.JSONEq(t, expected, actual)
 }
 
+func TestCosmosMigrate_Bank(t *testing.T) {
+	// The bank json tests migrating the bank, auth, and supply modules
+	// The json contains the kava ValidatorVestingAccount account and tests for
+	// both the correct proto migration & moving account coins and supply to the bank module.
+	original := GetTestDataJSON("appstate-bank-v15.json")
+	expected := GetTestDataJSON("appstate-bank-v16.json")
+	actual := MustMigrateAppStateJSON(original)
+	assert.JSONEq(t, expected, actual)
+}
+
 // MustMigrateAppStateJSON migrate v15 app state json to v16
 func MustMigrateAppStateJSON(appStateJson string) string {
 	var appState genutiltypes.AppMap
