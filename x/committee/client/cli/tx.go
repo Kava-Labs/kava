@@ -24,6 +24,41 @@ import (
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
+const PARAMS_CHANGE_PROPOSAL_EXAMPLE = `
+{
+  "title": "title",
+  "description": "description",
+  "changes": [{ "subspace": "subspace", "key": "key", "value": "value" }]
+}
+`
+
+const COMMITTEE_CHANGE_PROPOSAL_EXAMPLE = `
+{
+  "title": "A Title",
+  "description": "A proposal description.",
+  "new_committee": {
+    "@type": "/kava.committee.v1beta1.MemberCommittee",
+    "base_committee": {
+      "id": "34",
+      "description": "member committee",
+      "members": ["kava1ze7y9qwdddejmy7jlw4cymqqlt2wh05yhwmrv2"],
+      "permissions": [],
+      "vote_threshold": "1.000000000000000000",
+      "proposal_duration": "86400s",
+      "tally_option": "TALLY_OPTION_DEADLINE"
+    }
+  }
+}
+`
+
+const COMMITTEE_DELETE_PROPOSAL_EXAMPLE = `
+{
+  "title": "A Title",
+  "description": "A proposal description.",
+  "committee_id": "1"
+}
+`
+
 func GetTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -57,7 +92,7 @@ func getCmdSubmitProposal() *cobra.Command {
 The proposal file must be the json encoded forms of the proposal type you want to submit.
 For example:
 %s
-`, "[omitted]"), // TODO: Example json omitted for now because we don't have the codec to decode it. Need a better way to handle this.
+`, PARAMS_CHANGE_PROPOSAL_EXAMPLE),
 		Args:    cobra.ExactArgs(2),
 		Example: fmt.Sprintf("%s tx %s submit-proposal 1 your-proposal.json", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -171,7 +206,7 @@ For example, to create or update a committee:
 
 and to delete a committee:
 %s
-`, "[omitted]", "[omitted]"), // TODO: Example json omitted for now because we don't have the codec to decode it. Need a better way to handle this.
+`, COMMITTEE_CHANGE_PROPOSAL_EXAMPLE, COMMITTEE_DELETE_PROPOSAL_EXAMPLE),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
