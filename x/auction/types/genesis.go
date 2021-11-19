@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	proto "github.com/gogo/protobuf/proto"
@@ -50,6 +51,9 @@ func UnpackGenesisAuctions(genesisAuctionsAny []*types.Any) ([]GenesisAuction, e
 
 	return genesisAuctions, nil
 }
+
+// Ensure this type will unpack contained interface types correctly when it is unmarshalled.
+var _ codectypes.UnpackInterfacesMessage = &GenesisState{}
 
 // NewGenesisState returns a new genesis state object for auctions module.
 func NewGenesisState(nextID uint64, ap Params, ga []GenesisAuction) (*GenesisState, error) {
@@ -99,6 +103,18 @@ func (gs GenesisState) Validate() error {
 
 		if a.GetID() >= gs.NextAuctionId {
 			return fmt.Errorf("found auction ID ≥ the nextAuctionID (%d ≥ %d)", a.GetID(), gs.NextAuctionId)
+		}
+	}
+	return nil
+}
+
+// UnpackInterfaces hooks into unmarshalling to unpack any interface types contained within the GenesisState.
+func (gs GenesisState) UnpackInterfaces(unpacker types.AnyUnpacker) error {
+	for _, any := range gs.Auctions {
+		var auction GenesisAuction
+		err := unpacker.UnpackAny(any, &auction)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
