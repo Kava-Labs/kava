@@ -21,4 +21,9 @@ COPY . .
 #ENV LEDGER_ENABLED False
 RUN make install
 
+FROM alpine:3.15
+
+RUN apk add bash jq curl
+COPY --from=build-env /go/bin/kava /bin/kava
+
 CMD ["kava"]

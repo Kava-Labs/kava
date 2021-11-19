@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -34,7 +35,7 @@ func ModuleAccountInvariants(k Keeper) sdk.Invariant {
 			return false
 		})
 
-		moduleAccCoins := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins()
+		moduleAccCoins := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
 		broken := !moduleAccCoins.IsEqual(totalAuctionCoins)
 
 		invariantMessage := sdk.FormatInvariant(
