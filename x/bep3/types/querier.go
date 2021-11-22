@@ -18,6 +18,8 @@ const (
 	QueryGetParams = "parameters"
 )
 
+// Legacy querier requests
+
 // QueryAssetSupply contains the params for query 'custom/bep3/supply'
 type QueryAssetSupply struct {
 	Denom string `json:"denom" yaml:"denom"`

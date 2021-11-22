@@ -31,7 +31,7 @@ func atomicSwap(index int) types.AtomicSwap {
 	randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
 	swap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash, expireOffset, timestamp, kavaAddrs[0],
-		kavaAddrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), 1, types.Open, true, types.Incoming)
+		kavaAddrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), 1, types.SWAP_STATUS_OPEN, true, types.SWAP_DIRECTION_INCOMING)
 
 	return swap
 }

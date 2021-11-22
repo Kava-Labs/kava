@@ -1,0 +1,28 @@
+syntax = "proto3";
+package kava.auction.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/kava-labs/kava/x/auction/types";
+
+// Msg defines the auction Msg service.
+service Msg {
+  // PlaceBid message type used by bidders to place bids on auctions
+  rpc PlaceBid(MsgPlaceBid) returns (MsgPlaceBidResponse);
+}
+
+// MsgPlaceBid represents a message used by bidders to place bids on auctions
+message MsgPlaceBid {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 auction_id = 1;
+
+  string bidder = 2;
+
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgPlaceBidResponse defines the Msg/PlaceBid response type.
+message MsgPlaceBidResponse {}

@@ -56,7 +56,8 @@ func (ac appCreator) newApp(
 		panic(err)
 	}
 
-	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots") // TODO can these directory names be imported from somewhere?
+	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
+	snapshotDir := filepath.Join(homeDir, "data", "snapshots") // TODO can these directory names be imported from somewhere?
 	snapshotDB, err := sdk.NewLevelDB("metadata", snapshotDir)
 	if err != nil {
 		panic(err)
@@ -75,7 +76,7 @@ func (ac appCreator) newApp(
 	}
 
 	return app.NewApp(
-		logger, db, traceStore, ac.encodingConfig,
+		logger, db, homeDir, traceStore, ac.encodingConfig,
 		app.Options{
 			SkipLoadLatest:        false,
 			SkipUpgradeHeights:    skipUpgradeHeights,

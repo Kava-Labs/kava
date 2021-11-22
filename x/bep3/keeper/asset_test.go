@@ -9,7 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -31,11 +31,11 @@ func (suite *AssetTestSuite) SetupTest() {
 
 	// Initialize test app and set context
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	// Initialize genesis state
 	deputy, _ := sdk.AccAddressFromBech32(TestDeputy)
-	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(deputy))
+	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(tApp.AppCodec(), deputy))
 
 	keeper := tApp.GetBep3Keeper()
 	params := keeper.GetParams(ctx)
@@ -54,7 +54,6 @@ func (suite *AssetTestSuite) SetupTest() {
 	suite.app = tApp
 	suite.ctx = ctx
 	suite.keeper = keeper
-	return
 }
 
 func (suite *AssetTestSuite) TestIncrementCurrentAssetSupply() {
@@ -631,7 +630,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 			deputy, _ := sdk.AccAddressFromBech32(TestDeputy)
 			newParams := types.Params{
 				AssetParams: types.AssetParams{
-					types.AssetParam{
+					{
 						Denom:  "bnb",
 						CoinID: 714,
 						SupplyLimit: types.SupplyLimit{
@@ -648,7 +647,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 						MinBlockLock:  types.DefaultMinBlockLock,
 						MaxBlockLock:  types.DefaultMaxBlockLock,
 					},
-					types.AssetParam{
+					{
 						Denom:  "inc",
 						CoinID: 9999,
 						SupplyLimit: types.SupplyLimit{
@@ -665,7 +664,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 						MinBlockLock:  types.DefaultMinBlockLock,
 						MaxBlockLock:  types.DefaultMaxBlockLock,
 					},
-					types.AssetParam{
+					{
 						Denom:  "lol",
 						CoinID: 9999,
 						SupplyLimit: types.SupplyLimit{
