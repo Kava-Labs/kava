@@ -858,13 +858,12 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 
 			// Mint coins to Hard module account
 			bankKeeper := tApp.GetBankKeeper()
-			bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			suite.Require().NoError(err)
 
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = tApp.GetHardKeeper()
-
-			var err error
 
 			// Run begin blocker and store initial block time
 			hard.BeginBlocker(suite.ctx, suite.keeper)
@@ -1278,14 +1277,13 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 
 			// Mint coins to Hard module account
 			bankKeeper := tApp.GetBankKeeper()
-			bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			suite.Require().NoError(err)
 
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = tApp.GetHardKeeper()
 			suite.keeper.SetSuppliedCoins(ctx, tc.args.initialModuleCoins)
-
-			var err error
 
 			// Run begin blocker
 			hard.BeginBlocker(suite.ctx, suite.keeper)

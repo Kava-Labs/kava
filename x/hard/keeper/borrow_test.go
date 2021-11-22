@@ -379,14 +379,13 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			bankKeeper := tApp.GetBankKeeper()
 			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)),
 				sdk.NewCoin("usdx", sdk.NewInt(200*USDX_CF)), sdk.NewCoin("busd", sdk.NewInt(100*BUSD_CF)))
-			bankKeeper.MintCoins(ctx, types.ModuleAccountName, hardMaccCoins)
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, hardMaccCoins)
+			suite.Require().NoError(err)
 
 			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
-
-			var err error
 
 			// Run BeginBlocker once to transition MoneyMarkets
 			hard.BeginBlocker(suite.ctx, suite.keeper)
