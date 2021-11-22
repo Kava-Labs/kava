@@ -416,19 +416,6 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
-	app.cdpKeeper = cdpkeeper.NewKeeper(
-		appCodec,
-		keys[cdptypes.StoreKey],
-		cdpSubspace,
-		app.pricefeedKeeper,
-		// TODO: when auctions merged
-		// app.auctionKeeper,
-		nil,
-		app.bankKeeper,
-		app.accountKeeper,
-		mAccPerms,
-	)
-
 	app.auctionKeeper = auctionkeeper.NewKeeper(
 		appCodec,
 		keys[auctiontypes.StoreKey],
@@ -436,6 +423,17 @@ func NewApp(
 		app.bankKeeper,
 		app.accountKeeper,
 	)
+	app.cdpKeeper = cdpkeeper.NewKeeper(
+		appCodec,
+		keys[cdptypes.StoreKey],
+		cdpSubspace,
+		app.pricefeedKeeper,
+		app.auctionKeeper,
+		app.bankKeeper,
+		app.accountKeeper,
+		mAccPerms,
+	)
+
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
