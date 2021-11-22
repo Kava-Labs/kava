@@ -2,30 +2,14 @@ package types
 
 import (
 	"errors"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// Deposit defines an amount of coins deposited by an account to a cdp
-type Deposit struct {
-	CdpID     uint64         `json:"cdp_id" yaml:"cdp_id"`       //  cdpID of the cdp
-	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"` //  Address of the depositor
-	Amount    sdk.Coin       `json:"amount" yaml:"amount"`       //  Deposit amount
-}
-
 // NewDeposit creates a new Deposit object
 func NewDeposit(cdpID uint64, depositor sdk.AccAddress, amount sdk.Coin) Deposit {
 	return Deposit{cdpID, depositor, amount}
-}
-
-// String implements fmt.Stringer
-func (d Deposit) String() string {
-	return fmt.Sprintf(`Deposit for CDP %d:
-	  Depositor: %s
-		Amount: %s`,
-		d.CdpID, d.Depositor, d.Amount)
 }
 
 // Validate performs a basic validation of the deposit fields.
@@ -44,18 +28,6 @@ func (d Deposit) Validate() error {
 
 // Deposits a collection of Deposit objects
 type Deposits []Deposit
-
-// String implements fmt.Stringer
-func (ds Deposits) String() string {
-	if len(ds) == 0 {
-		return "[]"
-	}
-	out := fmt.Sprintf("Deposits for CDP %d:", ds[0].CdpID)
-	for _, dep := range ds {
-		out += fmt.Sprintf("\n  %s: %s", dep.Depositor, dep.Amount)
-	}
-	return out
-}
 
 // Validate validates each deposit
 func (ds Deposits) Validate() error {

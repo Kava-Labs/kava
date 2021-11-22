@@ -1,0 +1,138 @@
+syntax = "proto3";
+package kava.cdp.v1beta1;
+
+import "kava/cdp/v1beta1/cdp.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/kava-labs/kava/x/cdp/types";
+
+// GenesisState defines the cdp module's genesis state.
+message GenesisState {
+  // params defines all the paramaters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  repeated CDP cdps = 2
+      [(gogoproto.customname) = "CDPs", (gogoproto.castrepeated) = "CDPs", (gogoproto.nullable) = false];
+  repeated Deposit                 deposits = 3 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
+  uint64                           starting_cdp_id             = 4 [(gogoproto.customname) = "StartingCdpID"];
+  string                           debt_denom                  = 5;
+  string                           gov_denom                   = 6;
+  repeated GenesisAccumulationTime previous_accumulation_times = 7
+      [(gogoproto.castrepeated) = "GenesisAccumulationTimes", (gogoproto.nullable) = false];
+  repeated GenesisTotalPrincipal total_principals = 8
+      [(gogoproto.castrepeated) = "GenesisTotalPrincipals", (gogoproto.nullable) = false];
+}
+
+// Params defines the parameters for the cdp module.
+message Params {
+  repeated CollateralParam collateral_params = 1
+      [(gogoproto.castrepeated) = "CollateralParams", (gogoproto.nullable) = false];
+  DebtParam debt_param = 2 [(gogoproto.nullable) = false];
+
+  cosmos.base.v1beta1.Coin global_debt_limit         = 3 [(gogoproto.nullable) = false];
+  string                   surplus_auction_threshold = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  string surplus_auction_lot = 5 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  string debt_auction_threshold = 6 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  string debt_auction_lot = 7 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  bool circuit_breaker = 8;
+}
+
+// DebtParam defines governance params for debt assets
+message DebtParam {
+  string denom             = 1;
+  string reference_asset   = 2;
+  string conversion_factor = 3 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  string debt_floor = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// CollateralParam defines governance parameters for each collateral type within the cdp module
+message CollateralParam {
+  string denom             = 1;
+  string type              = 2;
+  string liquidation_ratio = 3 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  cosmos.base.v1beta1.Coin debt_limit    = 4 [(gogoproto.nullable) = false];
+  string                   stability_fee = 5 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  string auction_size = 6 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  string liquidation_penalty = 7 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  string spot_market_id           = 8 [(gogoproto.customname) = "SpotMarketID"];
+  string liquidation_market_id    = 9 [(gogoproto.customname) = "LiquidationMarketID"];
+  string keeper_reward_percentage = 10 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  string check_collateralization_index_count = 11 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  string conversion_factor = 12 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// GenesisAccumulationTime defines the previous distribution time and its corresponding denom
+message GenesisAccumulationTime {
+  string                    collateral_type            = 1;
+  google.protobuf.Timestamp previous_accumulation_time = 2 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  string                    interest_factor            = 3 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// GenesisTotalPrincipal defines the total principal and its corresponding collateral type
+message GenesisTotalPrincipal {
+  string collateral_type = 1;
+  string total_principal = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+}

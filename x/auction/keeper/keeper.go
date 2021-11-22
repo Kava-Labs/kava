@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -15,28 +15,61 @@ import (
 )
 
 type Keeper struct {
-	supplyKeeper  types.SupplyKeeper
 	storeKey      sdk.StoreKey
-	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
+	cdc           codec.Codec
+	paramSubspace paramtypes.Subspace
+	bankKeeper    types.BankKeeper
+	accountKeeper types.AccountKeeper
 }
 
 // NewKeeper returns a new auction keeper.
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper types.SupplyKeeper, paramstore subspace.Subspace) Keeper {
-	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
-	}
-
+func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, paramstore paramtypes.Subspace,
+	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		supplyKeeper:  supplyKeeper,
 		storeKey:      storeKey,
 		cdc:           cdc,
 		paramSubspace: paramstore,
+		accountKeeper: accountKeeper,
+		bankKeeper:    bankKeeper,
 	}
+}
+
+// MustUnmarshalAuction attempts to decode and return an Auction object from
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustUnmarshalAuction(bz []byte) types.Auction {
+	auction, err := k.UnmarshalAuction(bz)
+	if err != nil {
+		panic(fmt.Errorf("failed to decode auction: %w", err))
+	}
+
+	return auction
+}
+
+// MustMarshalAuction attempts to encode an Auction object and returns the
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustMarshalAuction(auction types.Auction) []byte {
+	bz, err := k.MarshalAuction(auction)
+	if err != nil {
+		panic(fmt.Errorf("failed to encode auction: %w", err))
+	}
+
+	return bz
+}
+
+// MarshalAuction protobuf serializes an Auction interface
+func (k Keeper) MarshalAuction(auctionI types.Auction) ([]byte, error) {
+	return k.cdc.MarshalInterface(auctionI)
+}
+
+// UnmarshalAuction returns an Auction interface from raw encoded auction
+// bytes of a Proto-based Auction type
+func (k Keeper) UnmarshalAuction(bz []byte) (types.Auction, error) {
+	var evi types.Auction
+	return evi, k.cdc.UnmarshalInterface(bz, &evi)
 }
 
 // Logger returns a module-specific logger.
@@ -46,13 +79,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // SetNextAuctionID stores an ID to be used for the next created auction
 func (k Keeper) SetNextAuctionID(ctx sdk.Context, id uint64) {
-	store := ctx.KVStore(k.storeKey)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.NextAuctionIDKey)
 	store.Set(types.NextAuctionIDKey, types.Uint64ToBytes(id))
+
 }
 
 // GetNextAuctionID reads the next available global ID from store
 func (k Keeper) GetNextAuctionID(ctx sdk.Context) (uint64, error) {
-	store := ctx.KVStore(k.storeKey)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.NextAuctionIDKey)
 	bz := store.Get(types.NextAuctionIDKey)
 	if bz == nil {
 		return 0, types.ErrInvalidInitialAuctionID
@@ -76,8 +110,8 @@ func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (uint64,
 	if err != nil {
 		return 0, err
 	}
-	auction = auction.WithID(newAuctionID)
 
+	auction = auction.WithID(newAuctionID)
 	k.SetAuction(ctx, auction)
 
 	err = k.IncrementNextAuctionID(ctx)
@@ -96,9 +130,8 @@ func (k Keeper) SetAuction(ctx sdk.Context, auction types.Auction) {
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(auction)
-	store.Set(types.GetAuctionKey(auction.GetID()), bz)
 
+	store.Set(types.GetAuctionKey(auction.GetID()), k.MustMarshalAuction(auction))
 	k.InsertIntoByTimeIndex(ctx, auction.GetEndTime(), auction.GetID())
 }
 
@@ -112,8 +145,7 @@ func (k Keeper) GetAuction(ctx sdk.Context, auctionID uint64) (types.Auction, bo
 		return auction, false
 	}
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &auction)
-	return auction, true
+	return k.MustUnmarshalAuction(bz), true
 }
 
 // DeleteAuction removes an auction from the store, and any indexes.
@@ -166,8 +198,7 @@ func (k Keeper) IterateAuctions(ctx sdk.Context, cb func(auction types.Auction) 
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var auction types.Auction
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &auction)
+		auction := k.MustUnmarshalAuction(iterator.Value())
 
 		if cb(auction) {
 			break
@@ -176,7 +207,7 @@ func (k Keeper) IterateAuctions(ctx sdk.Context, cb func(auction types.Auction) 
 }
 
 // GetAllAuctions returns all auctions from the store
-func (k Keeper) GetAllAuctions(ctx sdk.Context) (auctions types.Auctions) {
+func (k Keeper) GetAllAuctions(ctx sdk.Context) (auctions []types.Auction) {
 	k.IterateAuctions(ctx, func(auction types.Auction) bool {
 		auctions = append(auctions, auction)
 		return false

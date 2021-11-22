@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
 	simdcmd "github.com/cosmos/cosmos-sdk/simapp/simd/cmd"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -21,7 +20,7 @@ import (
 )
 
 // NewRootCmd creates a new root command for the kava blockchain.
-func NewRootCmd(defaultNodeHome string) *cobra.Command {
+func NewRootCmd() *cobra.Command {
 	app.SetSDKConfig().Seal()
 
 	encodingConfig := app.MakeEncodingConfig()
@@ -33,13 +32,16 @@ func NewRootCmd(defaultNodeHome string) *cobra.Command {
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithHomeDir(defaultNodeHome).
+		WithHomeDir(app.DefaultNodeHome).
 		WithViper("") // TODO this sets the env prefix
 
 	rootCmd := &cobra.Command{
 		Use:   "kava",
 		Short: "Daemon and CLI for the Kava blockchain.",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			cmd.SetOut(cmd.OutOrStdout())
+			cmd.SetErr(cmd.ErrOrStderr())
+
 			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
 				return err
@@ -58,7 +60,7 @@ func NewRootCmd(defaultNodeHome string) *cobra.Command {
 		},
 	}
 
-	addSubCmds(rootCmd, encodingConfig, defaultNodeHome)
+	addSubCmds(rootCmd, encodingConfig, app.DefaultNodeHome)
 
 	return rootCmd
 }
@@ -86,7 +88,7 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		StatusCommand(),
 		newQueryCmd(),
 		newTxCmd(),
 		keys.Commands(defaultNodeHome),

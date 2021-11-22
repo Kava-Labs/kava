@@ -8,15 +8,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// AssetSupply contains information about an asset's supply
-type AssetSupply struct {
-	IncomingSupply           sdk.Coin      `json:"incoming_supply"  yaml:"incoming_supply"`
-	OutgoingSupply           sdk.Coin      `json:"outgoing_supply"  yaml:"outgoing_supply"`
-	CurrentSupply            sdk.Coin      `json:"current_supply"  yaml:"current_supply"`
-	TimeLimitedCurrentSupply sdk.Coin      `json:"time_limited_current_supply" yaml:"time_limited_current_supply"`
-	TimeElapsed              time.Duration `json:"time_elapsed" yaml:"time_elapsed"`
-}
-
 // NewAssetSupply initializes a new AssetSupply
 func NewAssetSupply(incomingSupply, outgoingSupply, currentSupply, timeLimitedSupply sdk.Coin, timeElapsed time.Duration) AssetSupply {
 	return AssetSupply{
@@ -61,19 +52,6 @@ func (a AssetSupply) Equal(b AssetSupply) bool {
 		a.OutgoingSupply.IsEqual(b.OutgoingSupply) &&
 		a.TimeLimitedCurrentSupply.IsEqual(b.TimeLimitedCurrentSupply) &&
 		a.TimeElapsed == b.TimeElapsed)
-}
-
-// String implements stringer
-func (a AssetSupply) String() string {
-	return fmt.Sprintf(`
-	asset supply:
-		Incoming supply:    %s
-		Outgoing supply:    %s
-		Current supply:     %s
-		Time-limited current cupply: %s
-		Time elapsed: %s
-		`,
-		a.IncomingSupply, a.OutgoingSupply, a.CurrentSupply, a.TimeLimitedCurrentSupply, a.TimeElapsed)
 }
 
 // GetDenom getter method for the denom of the asset supply

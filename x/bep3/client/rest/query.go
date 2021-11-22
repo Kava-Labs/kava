@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
@@ -17,7 +17,7 @@ import (
 const restSwapID = "swap-id"
 const restDenom = "denom"
 
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/swap/{%s}", types.ModuleName, restSwapID), queryAtomicSwapHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/swaps", types.ModuleName), queryAtomicSwapsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/supply/{%s}", types.ModuleName, restDenom), queryAssetSupplyHandlerFn(cliCtx)).Methods("GET")
@@ -26,7 +26,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 }
 
-func queryAtomicSwapHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryAtomicSwapHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -46,7 +46,7 @@ func queryAtomicSwapHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		bz, err := cliCtx.Codec.MarshalJSON(types.QueryAtomicSwapByID{SwapID: swapID})
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(types.QueryAtomicSwapByID{SwapID: swapID})
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -62,18 +62,18 @@ func queryAtomicSwapHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		// Decode and return results
 		cliCtx = cliCtx.WithHeight(height)
 
-		var swap types.AugmentedAtomicSwap
-		err = cliCtx.Codec.UnmarshalJSON(res, &swap)
+		var swap types.LegacyAugmentedAtomicSwap
+		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &swap)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(swap))
+		rest.PostProcessResponse(w, cliCtx, cliCtx.LegacyAmino.MustMarshalJSON(swap))
 	}
 }
 
 // HTTP request handler to query list of atomic swaps filtered by optional params
-func queryAtomicSwapsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryAtomicSwapsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -126,7 +126,7 @@ func queryAtomicSwapsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewQueryAtomicSwaps(page, limit, involveAddr, expiration, swapStatus, swapDirection)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -144,7 +144,7 @@ func queryAtomicSwapsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryAssetSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryAssetSupplyHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -157,7 +157,7 @@ func queryAssetSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		denom := vars[restDenom]
 		params := types.NewQueryAssetSupply(denom)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -179,11 +179,11 @@ func queryAssetSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(assetSupply))
+		rest.PostProcessResponse(w, cliCtx, cliCtx.LegacyAmino.MustMarshalJSON(assetSupply))
 	}
 }
 
-func queryAssetSuppliesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryAssetSuppliesHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -202,23 +202,22 @@ func queryAssetSuppliesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		// Decode and return results
 		cliCtx = cliCtx.WithHeight(height)
 
-		var supplies types.AssetSupplies
-		err = cliCtx.Codec.UnmarshalJSON(res, &supplies)
+		var supplies []types.AssetSupply
+		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &supplies)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
 		}
 
 		// using empty slice so json returns [] instead of null when there's no swaps
-		sliceSupplies := types.AssetSupplies{}
-		for _, s := range supplies {
-			sliceSupplies = append(sliceSupplies, s)
-		}
-		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(sliceSupplies))
+		sliceSupplies := []types.AssetSupply{}
+		sliceSupplies = append(sliceSupplies, supplies...)
+
+		rest.PostProcessResponse(w, cliCtx, cliCtx.LegacyAmino.MustMarshalJSON(sliceSupplies))
 	}
 }
 
-func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryParamsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
