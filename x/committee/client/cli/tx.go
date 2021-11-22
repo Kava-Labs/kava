@@ -116,7 +116,7 @@ For example:
 			if err != nil {
 				return err
 			}
-			if err := clientCtx.Codec.UnmarshalInterface(contents, &pubProposal); err != nil {
+			if err := clientCtx.Codec.UnmarshalInterfaceJSON(contents, &pubProposal); err != nil {
 				return err
 			}
 			if err = pubProposal.ValidateBasic(); err != nil {
