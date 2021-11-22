@@ -93,6 +93,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		(*PubProposal)(nil),
 		&Proposal{},
 		&govtypes.TextProposal{},
+		&upgradetypes.SoftwareUpgradeProposal{},
 		&proposaltypes.ParameterChangeProposal{},
 		&CommitteeChangeProposal{},
 		&CommitteeDeleteProposal{},
