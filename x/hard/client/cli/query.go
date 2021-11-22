@@ -1,18 +1,14 @@
 package cli
 
 import (
-	"fmt"
+	"context"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	"github.com/kava-labs/kava/x/hard/types"
 )
@@ -25,7 +21,7 @@ const (
 )
 
 // GetQueryCmd returns the cli query commands for the  module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	hardQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Querying commands for the hard module",
@@ -34,52 +30,55 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	hardQueryCmd.AddCommand(flags.GetCommands(
-		queryParamsCmd(queryRoute, cdc),
-		queryModAccountsCmd(queryRoute, cdc),
-		queryDepositsCmd(queryRoute, cdc),
-		queryUnsyncedDepositsCmd(queryRoute, cdc),
-		queryTotalDepositedCmd(queryRoute, cdc),
-		queryBorrowsCmd(queryRoute, cdc),
-		queryUnsyncedBorrowsCmd(queryRoute, cdc),
-		queryTotalBorrowedCmd(queryRoute, cdc),
-		queryInterestRateCmd(queryRoute, cdc),
-		queryReserves(queryRoute, cdc),
-		queryInterestFactorsCmd(queryRoute, cdc),
-	)...)
+	cmds := []*cobra.Command{
+		queryParamsCmd(),
+		queryModAccountsCmd(),
+		queryDepositsCmd(),
+		queryUnsyncedDepositsCmd(),
+		queryTotalDepositedCmd(),
+		queryBorrowsCmd(),
+		queryUnsyncedBorrowsCmd(),
+		queryTotalBorrowedCmd(),
+		queryInterestRateCmd(),
+		queryReserves(),
+		queryInterestFactorsCmd(),
+	}
+
+	for _, cmd := range cmds {
+		flags.AddQueryFlagsToCmd(cmd)
+	}
+
+	hardQueryCmd.AddCommand(cmds...)
 
 	return hardQueryCmd
 }
 
-func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryParamsCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "params",
 		Short: "get the hard module parameters",
 		Long:  "Get the current global hard module parameters.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetParams)
-			res, height, err := cliCtx.QueryWithData(route, nil)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
 
-			// Decode and print results
-			var params types.Params
-			if err := cdc.UnmarshalJSON(res, &params); err != nil {
-				return fmt.Errorf("failed to unmarshal params: %w", err)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
 			}
-			return cliCtx.PrintOutput(params)
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 }
 
-func queryModAccountsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+func queryModAccountsCmd() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "accounts",
 		Short: "query hard module accounts with optional filter",
 		Long: strings.TrimSpace(`Query for all hard module accounts or a specific account using the name flag:
@@ -90,35 +89,46 @@ func queryModAccountsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			name := viper.GetString(flagName)
-			page := viper.GetInt(flags.FlagPage)
-			limit := viper.GetInt(flags.FlagLimit)
-
-			params := types.NewQueryAccountParams(page, limit, name)
-			bz, err := cdc.MarshalJSON(params)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetModuleAccounts)
-			res, height, err := cliCtx.QueryWithData(route, bz)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
 
-			var modAccounts []supplyexported.ModuleAccountI
-			if err := cdc.UnmarshalJSON(res, &modAccounts); err != nil {
-				return fmt.Errorf("failed to unmarshal module accounts: %w", err)
+			name, err := cmd.Flags().GetString(flagName)
+			if err != nil {
+				return err
 			}
-			return cliCtx.PrintOutput(modAccounts)
+
+			req := &types.QueryAccountsRequest{
+				Pagination: pageReq,
+			}
+
+			if name != "" {
+				req.Name = name
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Accounts(context.Background(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddPaginationFlagsToCmd(cmd, "accounts")
+
+	return cmd
 }
 
-func queryUnsyncedDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryUnsyncedDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unsynced-deposits",
 		Short: "query hard module unsynced deposits with optional filters",
@@ -132,53 +142,58 @@ func queryUnsyncedDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Comman
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			var owner sdk.AccAddress
+			ownerBech, err := cmd.Flags().GetString(flagOwner)
+			if err != nil {
+				return err
+			}
+			denom, err := cmd.Flags().GetString(flagDenom)
+			if err != nil {
+				return err
+			}
 
-			ownerBech := viper.GetString(flagOwner)
-			denom := viper.GetString(flagDenom)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryUnsyncedDepositsRequest{
+				Denom:      denom,
+				Pagination: pageReq,
+			}
 
 			if len(ownerBech) != 0 {
 				depositOwner, err := sdk.AccAddressFromBech32(ownerBech)
 				if err != nil {
 					return err
 				}
-				owner = depositOwner
+				req.Owner = depositOwner.String()
 			}
 
-			page := viper.GetInt(flags.FlagPage)
-			limit := viper.GetInt(flags.FlagLimit)
+			queryClient := types.NewQueryClient(clientCtx)
 
-			params := types.NewQueryUnsyncedDepositsParams(page, limit, denom, owner)
-			bz, err := cdc.MarshalJSON(params)
+			res, err := queryClient.UnsyncedDeposits(context.Background(), req)
 			if err != nil {
 				return err
 			}
 
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetUnsyncedDeposits)
-			res, height, err := cliCtx.QueryWithData(route, bz)
-			if err != nil {
-				return err
-			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			var deposits types.Deposits
-			if err := cdc.UnmarshalJSON(res, &deposits); err != nil {
-				return fmt.Errorf("failed to unmarshal deposits: %w", err)
-			}
-			return cliCtx.PrintOutput(deposits)
+			return clientCtx.PrintProto(res)
 		},
 	}
 
-	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
-	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
+	flags.AddPaginationFlagsToCmd(cmd, "unsynced-deposits")
+
 	cmd.Flags().String(flagOwner, "", "(optional) filter for unsynced deposits by owner address")
 	cmd.Flags().String(flagDenom, "", "(optional) filter for unsynced deposits by denom")
+
 	return cmd
 }
 
-func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deposits",
 		Short: "query hard module deposits with optional filters",
@@ -192,53 +207,58 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			var owner sdk.AccAddress
+			ownerBech, err := cmd.Flags().GetString(flagOwner)
+			if err != nil {
+				return err
+			}
+			denom, err := cmd.Flags().GetString(flagDenom)
+			if err != nil {
+				return err
+			}
 
-			ownerBech := viper.GetString(flagOwner)
-			denom := viper.GetString(flagDenom)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryDepositsRequest{
+				Denom:      denom,
+				Pagination: pageReq,
+			}
 
 			if len(ownerBech) != 0 {
 				depositOwner, err := sdk.AccAddressFromBech32(ownerBech)
 				if err != nil {
 					return err
 				}
-				owner = depositOwner
+				req.Owner = depositOwner.String()
 			}
 
-			page := viper.GetInt(flags.FlagPage)
-			limit := viper.GetInt(flags.FlagLimit)
+			queryClient := types.NewQueryClient(clientCtx)
 
-			params := types.NewQueryDepositsParams(page, limit, denom, owner)
-			bz, err := cdc.MarshalJSON(params)
+			res, err := queryClient.Deposits(context.Background(), req)
 			if err != nil {
 				return err
 			}
 
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetDeposits)
-			res, height, err := cliCtx.QueryWithData(route, bz)
-			if err != nil {
-				return err
-			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			var deposits types.Deposits
-			if err := cdc.UnmarshalJSON(res, &deposits); err != nil {
-				return fmt.Errorf("failed to unmarshal deposits: %w", err)
-			}
-			return cliCtx.PrintOutput(deposits)
+			return clientCtx.PrintProto(res)
 		},
 	}
 
-	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
-	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
+	flags.AddPaginationFlagsToCmd(cmd, "deposits")
+
 	cmd.Flags().String(flagOwner, "", "(optional) filter for deposits by owner address")
 	cmd.Flags().String(flagDenom, "", "(optional) filter for deposits by denom")
+
 	return cmd
 }
 
-func queryUnsyncedBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryUnsyncedBorrowsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unsynced-borrows",
 		Short: "query hard module unsynced borrows with optional filters",
@@ -251,52 +271,58 @@ func queryUnsyncedBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			var owner sdk.AccAddress
+			ownerBech, err := cmd.Flags().GetString(flagOwner)
+			if err != nil {
+				return err
+			}
+			denom, err := cmd.Flags().GetString(flagDenom)
+			if err != nil {
+				return err
+			}
 
-			ownerBech := viper.GetString(flagOwner)
-			denom := viper.GetString(flagDenom)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryUnsyncedBorrowsRequest{
+				Denom:      denom,
+				Pagination: pageReq,
+			}
 
 			if len(ownerBech) != 0 {
 				borrowOwner, err := sdk.AccAddressFromBech32(ownerBech)
 				if err != nil {
 					return err
 				}
-				owner = borrowOwner
+				req.Owner = borrowOwner.String()
 			}
 
-			page := viper.GetInt(flags.FlagPage)
-			limit := viper.GetInt(flags.FlagLimit)
+			queryClient := types.NewQueryClient(clientCtx)
 
-			params := types.NewQueryUnsyncedBorrowsParams(page, limit, owner, denom)
-			bz, err := cdc.MarshalJSON(params)
+			res, err := queryClient.UnsyncedBorrows(context.Background(), req)
 			if err != nil {
 				return err
 			}
 
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetUnsyncedBorrows)
-			res, height, err := cliCtx.QueryWithData(route, bz)
-			if err != nil {
-				return err
-			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			var borrows types.Borrows
-			if err := cdc.UnmarshalJSON(res, &borrows); err != nil {
-				return fmt.Errorf("failed to unmarshal borrows: %w", err)
-			}
-			return cliCtx.PrintOutput(borrows)
+			return clientCtx.PrintProto(res)
 		},
 	}
-	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
-	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
+
+	flags.AddPaginationFlagsToCmd(cmd, "unsynced borrows")
+
 	cmd.Flags().String(flagOwner, "", "(optional) filter for unsynced borrows by owner address")
 	cmd.Flags().String(flagDenom, "", "(optional) filter for unsynced borrows by denom")
+
 	return cmd
 }
 
-func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryBorrowsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "borrows",
 		Short: "query hard module borrows with optional filters",
@@ -309,52 +335,57 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			var owner sdk.AccAddress
+			ownerBech, err := cmd.Flags().GetString(flagOwner)
+			if err != nil {
+				return err
+			}
+			denom, err := cmd.Flags().GetString(flagDenom)
+			if err != nil {
+				return err
+			}
 
-			ownerBech := viper.GetString(flagOwner)
-			denom := viper.GetString(flagDenom)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryBorrowsRequest{
+				Denom:      denom,
+				Pagination: pageReq,
+			}
 
 			if len(ownerBech) != 0 {
 				borrowOwner, err := sdk.AccAddressFromBech32(ownerBech)
 				if err != nil {
 					return err
 				}
-				owner = borrowOwner
+				req.Owner = borrowOwner.String()
 			}
 
-			page := viper.GetInt(flags.FlagPage)
-			limit := viper.GetInt(flags.FlagLimit)
-
-			params := types.NewQueryBorrowsParams(page, limit, owner, denom)
-			bz, err := cdc.MarshalJSON(params)
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Borrows(context.Background(), req)
 			if err != nil {
 				return err
 			}
 
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetBorrows)
-			res, height, err := cliCtx.QueryWithData(route, bz)
-			if err != nil {
-				return err
-			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			var borrows types.Borrows
-			if err := cdc.UnmarshalJSON(res, &borrows); err != nil {
-				return fmt.Errorf("failed to unmarshal borrows: %w", err)
-			}
-			return cliCtx.PrintOutput(borrows)
+			return clientCtx.PrintProto(res)
 		},
 	}
-	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
-	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
+
+	flags.AddPaginationFlagsToCmd(cmd, "borrows")
+
 	cmd.Flags().String(flagOwner, "", "(optional) filter for borrows by owner address")
 	cmd.Flags().String(flagDenom, "", "(optional) filter for borrows by denom")
+
 	return cmd
 }
 
-func queryTotalBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryTotalBorrowedCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "total-borrowed",
 		Short: "get total current borrowed amount",
@@ -366,38 +397,34 @@ func queryTotalBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			denom := viper.GetString(flagDenom)
-
-			// Construct query with params
-			params := types.NewQueryTotalBorrowedParams(denom)
-			bz, err := cdc.MarshalJSON(params)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// Execute query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetTotalBorrowed)
-			res, height, err := cliCtx.QueryWithData(route, bz)
+			denom, err := cmd.Flags().GetString(flagDenom)
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
 
-			// Decode and print results
-			var totalBorrowedCoins sdk.Coins
-			if err := cdc.UnmarshalJSON(res, &totalBorrowedCoins); err != nil {
-				return fmt.Errorf("failed to unmarshal total borrowed coins: %w", err)
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.TotalBorrowed(context.Background(), &types.QueryTotalBorrowedRequest{
+				Denom: denom,
+			})
+			if err != nil {
+				return err
 			}
-			return cliCtx.PrintOutput(totalBorrowedCoins)
+
+			return clientCtx.PrintProto(res)
 		},
 	}
+
 	cmd.Flags().String(flagDenom, "", "(optional) filter total borrowed coins by denom")
+
 	return cmd
 }
 
-func queryTotalDepositedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryTotalDepositedCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "total-deposited",
 		Short: "get total current deposited amount",
@@ -409,38 +436,34 @@ func queryTotalDepositedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command 
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			denom := viper.GetString(flagDenom)
-
-			// Construct query with params
-			params := types.NewQueryTotalDepositedParams(denom)
-			bz, err := cdc.MarshalJSON(params)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// Execute query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetTotalDeposited)
-			res, height, err := cliCtx.QueryWithData(route, bz)
+			denom, err := cmd.Flags().GetString(flagDenom)
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
 
-			// Decode and print results
-			var totalSuppliedCoins sdk.Coins
-			if err := cdc.UnmarshalJSON(res, &totalSuppliedCoins); err != nil {
-				return fmt.Errorf("failed to unmarshal total deposited coins: %w", err)
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.TotalDeposited(context.Background(), &types.QueryTotalDepositedRequest{
+				Denom: denom,
+			})
+			if err != nil {
+				return err
 			}
-			return cliCtx.PrintOutput(totalSuppliedCoins)
+
+			return clientCtx.PrintProto(res)
 		},
 	}
+
 	cmd.Flags().String(flagDenom, "", "(optional) filter total deposited coins by denom")
+
 	return cmd
 }
 
-func queryInterestRateCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryInterestRateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "interest-rate",
 		Short: "get current money market interest rates",
@@ -452,38 +475,34 @@ func queryInterestRateCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			denom := viper.GetString(flagDenom)
-
-			// Construct query with params
-			params := types.NewQueryInterestRateParams(denom)
-			bz, err := cdc.MarshalJSON(params)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// Execute query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetInterestRate)
-			res, height, err := cliCtx.QueryWithData(route, bz)
+			denom, err := cmd.Flags().GetString(flagDenom)
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
 
-			// Decode and print results
-			var moneyMarketInterestRates types.MoneyMarketInterestRates
-			if err := cdc.UnmarshalJSON(res, &moneyMarketInterestRates); err != nil {
-				return fmt.Errorf("failed to unmarshal money market interest rates: %w", err)
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.InterestRate(context.Background(), &types.QueryInterestRateRequest{
+				Denom: denom,
+			})
+			if err != nil {
+				return err
 			}
-			return cliCtx.PrintOutput(moneyMarketInterestRates)
+
+			return clientCtx.PrintProto(res)
 		},
 	}
+
 	cmd.Flags().String(flagDenom, "", "(optional) filter interest rates by denom")
+
 	return cmd
 }
 
-func queryReserves(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryReserves() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reserves",
 		Short: "get total current Hard module reserves",
@@ -495,38 +514,34 @@ func queryReserves(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			denom := viper.GetString(flagDenom)
-
-			// Construct query with params
-			params := types.NewQueryReservesParams(denom)
-			bz, err := cdc.MarshalJSON(params)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// Execute query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetReserves)
-			res, height, err := cliCtx.QueryWithData(route, bz)
+			denom, err := cmd.Flags().GetString(flagDenom)
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
 
-			// Decode and print results
-			var reserves sdk.Coins
-			if err := cdc.UnmarshalJSON(res, &reserves); err != nil {
-				return fmt.Errorf("failed to unmarshal reserve coins: %w", err)
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Reserves(context.Background(), &types.QueryReservesRequest{
+				Denom: denom,
+			})
+			if err != nil {
+				return err
 			}
-			return cliCtx.PrintOutput(reserves)
+
+			return clientCtx.PrintProto(res)
 		},
 	}
+
 	cmd.Flags().String(flagDenom, "", "(optional) filter reserve coins by denom")
+
 	return cmd
 }
 
-func queryInterestFactorsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryInterestFactorsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "interest-factors",
 		Short: "get current global interest factors",
@@ -538,33 +553,29 @@ func queryInterestFactorsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			denom := viper.GetString(flagDenom)
-
-			// Construct query with params
-			params := types.NewQueryInterestFactorsParams(denom)
-			bz, err := cdc.MarshalJSON(params)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// Execute query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetInterestFactors)
-			res, height, err := cliCtx.QueryWithData(route, bz)
+			denom, err := cmd.Flags().GetString(flagDenom)
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
 
-			// Decode and print results
-			var interestFactors types.InterestFactors
-			if err := cdc.UnmarshalJSON(res, &interestFactors); err != nil {
-				return fmt.Errorf("failed to unmarshal interest factors: %w", err)
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.InterestFactors(context.Background(), &types.QueryInterestFactorsRequest{
+				Denom: denom,
+			})
+			if err != nil {
+				return err
 			}
-			return cliCtx.PrintOutput(interestFactors)
+
+			return clientCtx.PrintProto(res)
 		},
 	}
+
 	cmd.Flags().String(flagDenom, "", "(optional) filter interest factors by denom")
+
 	return cmd
 }
