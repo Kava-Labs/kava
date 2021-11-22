@@ -5,7 +5,7 @@
  * The original migration code is changed here to support the following custom Account from the kava modules.
  * - `x/validator-vesting/ValidatorVestingAccount`
  */
-package modules
+package v0_16
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

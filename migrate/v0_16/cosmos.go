@@ -1,4 +1,4 @@
-package modules
+package v0_16
 
 import (
 	"github.com/cosmos/cosmos-sdk/client"
