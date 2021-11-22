@@ -10,6 +10,14 @@ option go_package = "github.com/kava-labs/kava/x/committee/types";
 
 option (gogoproto.goproto_getters_all) = false;
 
+// Msg defines the committee Msg service
+service Msg {
+  // SubmitProposal defines a method for submitting a committee proposal
+  rpc SubmitProposal(MsgSubmitProposal) returns (MsgSubmitProposalResponse);
+  // Vote defines a method for voting on a proposal
+  rpc Vote(MsgVote) returns (MsgVoteResponse);
+}
+
 // MsgSubmitProposal is used by committee members to create a new proposal that they can vote on.
 message MsgSubmitProposal {
   google.protobuf.Any pub_proposal = 1 [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content"];
@@ -17,9 +25,17 @@ message MsgSubmitProposal {
   uint64              committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
 }
 
+// MsgSubmitProposalResponse defines the SubmitProposal response type
+message MsgSubmitProposalResponse {
+  uint64 id = 1 [(gogoproto.customname) = "ID"];
+}
+
 // MsgVote is submitted by committee members to vote on proposals.
 message MsgVote {
-  uint64   proposal_id = 1;
+  uint64   proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
   string   voter       = 2;
   VoteType vote_type   = 3;
 }
+
+// MsgVoteResponse defines the Vote response type
+message MsgVoteResponse {}
