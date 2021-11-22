@@ -1,13 +1,13 @@
 # Repay
 
-repay tokens to the hard protocol
+Repay tokens to the hard protocol
 
 ## Command
 ```
 kvcli tx hard repay <amount> <flags>
 ```
 
-using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```repay``` and finally follow up with required arguments or flags.
+Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```repay``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects

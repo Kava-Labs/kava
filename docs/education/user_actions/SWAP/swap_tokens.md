@@ -1,13 +1,13 @@
 # Swap Tokens
 
-swap an exact amount of token a for token b
+Swap an exact amount of token a for token b
 
 ## Command
 ```
 kvcli tx swap swap-exact-for-tokens <exactCoinA> <coinB> <slippage> <deadline> <flags>
 ```
 
-using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```swap```, then define the action which is ```swap-exact-for-tokens``` and finally follow up with required arguments or flags.
+Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```swap```, then define the action which is ```swap-exact-for-tokens``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects

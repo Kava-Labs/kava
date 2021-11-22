@@ -20,7 +20,10 @@ Proper vetting of a parameter change proposal should prevent this from happening
 regardless.
 
 Example:
+
+```
 $ kvcli tx gov submit-proposal param-change <path/to/proposal.json> --from=<key_or_address>
+```
 
 Where proposal.json contains:
 ```

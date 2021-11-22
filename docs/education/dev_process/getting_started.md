@@ -6,12 +6,12 @@ In order for developers to start building modules, they must install the followi
 2. [Docker](https://docs.docker.com/get-docker/)
 
 ### Go Programming Language 
-Go is used to develop modules and gives much needed performance and flexibility to blockchain developers being a language developed and used by some of the largest companies in the world, in their server/networking applications. 
+Go is a language developed and used by some of the largest companies in the world for server/networking applications. Go is used to develop modules and provides optimum performance and flexibility to blockchain developers.
 
 [A Tour Of Go](https://tour.golang.org/welcome/1)
 
 ### Docker 
-Docker is a software containerization tool used to spin up Kava nodes and shut them down quickly and allow software portability between different operating systems & environments. It is also used to spin up multiple Kava nodes locally and handles basic networking between them with Docker Compose. 
+Docker is a software containerization tool used to spin up and shut down Kava nodes and allows software portability between different operating systems & environments. It is also used to spin up multiple Kava nodes locally and handles basic networking between them with `docker compose`.
 
 [Docker Overview](https://docs.docker.com/get-started/overview/)
 

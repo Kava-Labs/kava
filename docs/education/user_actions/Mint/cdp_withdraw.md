@@ -1,13 +1,13 @@
 # Remove Collateral
 
-withdraw collateral from an existing cdp
+Withdraw collateral from an existing cdp
 
 ## Command
 ```
 kvcli tx cdp withdraw <owner-addr> <collateral> <collateral-type> <flags>
 ```
 
-using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```withdraw``` and finally follow up with required arguments or flags.
+Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```withdraw``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects

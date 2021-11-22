@@ -1,13 +1,13 @@
 # Borrow
 
-borrow tokens from the hard protocol
+Borrow tokens from the hard protocol
 
 ## Command
 ```
 kvcli tx hard borrow <amount> <flags>
 ```
 
-using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```borrow``` and finally follow up with required arguments or flags.
+Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```borrow``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects

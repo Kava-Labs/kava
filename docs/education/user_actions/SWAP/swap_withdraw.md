@@ -1,13 +1,13 @@
 # Withdraw
 
-withdraw coins from a swap liquidity pool
+Withdraw coins from a swap liquidity pool
 
 ## Command
 ```
 kvcli tx swap withdraw <shares> <minCoinA> <minCoinB> <deadline> <flags>
 ```
 
-using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```swap```, then define the action which is ```withdraw``` and finally follow up with required arguments or flags.
+Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```swap```, then define the action which is ```withdraw``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects

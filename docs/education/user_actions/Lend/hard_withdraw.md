@@ -1,13 +1,13 @@
 # Withdraw
 
-withdraw coins from hard
+Withdraw coins from hard
 
 ## Command
 ```
 kvcli tx hard withdraw <amount> <flags>
 ```
 
-using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```withdraw``` and finally follow up with required arguments or flags.
+Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```withdraw``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects

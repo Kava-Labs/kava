@@ -7,7 +7,7 @@ Create debt in an existing cdp and send the newly minted asset to your account.
 kvcli tx cdp draw <collateral-type> <debt> <flags>
 ```
 
-using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```draw``` and finally follow up with required arguments or flags.
+Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```draw``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects

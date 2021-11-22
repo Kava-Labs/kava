@@ -1,13 +1,13 @@
 # Deposit
 
-deposit coins to hard
+Deposit coins to hard
 
 ## Command
 ```
 kvcli tx hard deposit <amount> <flags>
 ```
 
-using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```deposit``` and finally follow up with required arguments or flags.
+Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```deposit``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects

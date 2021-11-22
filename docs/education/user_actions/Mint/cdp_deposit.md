@@ -7,7 +7,7 @@ Add collateral to an existing cdp.
 kvcli tx cdp deposit <owner-addr> <collateral> <collateral-type> <flags>
 ```
 
-using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```deposit``` and finally follow up with required arguments or flags.
+Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```deposit``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
