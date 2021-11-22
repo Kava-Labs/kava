@@ -341,8 +341,10 @@ func (suite *InterestTestSuite) TestCalculateBorrowInterestFactor() {
 	}
 
 	for _, tc := range testCases {
-		interestFactor := keeper.CalculateBorrowInterestFactor(tc.args.perSecondInterestRate, tc.args.timeElapsed)
-		suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		suite.Run(tc.name, func() {
+			interestFactor := keeper.CalculateBorrowInterestFactor(tc.args.perSecondInterestRate, tc.args.timeElapsed)
+			suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		})
 	}
 }
 
@@ -398,9 +400,11 @@ func (suite *InterestTestSuite) TestCalculateSupplyInterestFactor() {
 	}
 
 	for _, tc := range testCases {
-		interestFactor := keeper.CalculateSupplyInterestFactor(tc.args.newInterest,
-			tc.args.cash, tc.args.borrows, tc.args.reserves)
-		suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		suite.Run(tc.name, func() {
+			interestFactor := keeper.CalculateSupplyInterestFactor(tc.args.newInterest,
+				tc.args.cash, tc.args.borrows, tc.args.reserves)
+			suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		})
 	}
 }
 

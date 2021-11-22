@@ -179,14 +179,15 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 
 			// Mint coins to Hard module account
 			bankKeeper := tApp.GetBankKeeper()
-			bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModAccountBalance)
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModAccountBalance)
+			suite.Require().NoError(err)
 
 			if tc.args.createDeposit {
 				err := suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.depositAmount)
 				suite.Require().NoError(err)
 			}
 
-			err := suite.keeper.Withdraw(suite.ctx, tc.args.depositor, tc.args.withdrawAmount)
+			err = suite.keeper.Withdraw(suite.ctx, tc.args.depositor, tc.args.withdrawAmount)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
@@ -324,7 +325,8 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 
 			// Mint coins to Harvest module account
 			bankKeeper := tApp.GetBankKeeper()
-			bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			suite.Require().NoError(err)
 
 			auctionKeeper := tApp.GetAuctionKeeper()
 
@@ -333,8 +335,6 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 			suite.ctx = ctx
 			suite.keeper = keeper
 			suite.auctionKeeper = auctionKeeper
-
-			var err error
 
 			// Run begin blocker to set up state
 			hard.BeginBlocker(suite.ctx, suite.keeper)

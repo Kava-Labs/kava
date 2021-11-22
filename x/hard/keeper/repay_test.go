@@ -277,13 +277,12 @@ func (suite *KeeperTestSuite) TestRepay() {
 
 			// Mint coins to Hard module account
 			bankKeeper := tApp.GetBankKeeper()
-			bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			suite.Require().NoError(err)
 
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = tApp.GetHardKeeper()
-
-			var err error
 
 			// Run BeginBlocker once to transition MoneyMarkets
 			hard.BeginBlocker(suite.ctx, suite.keeper)
