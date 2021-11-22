@@ -103,6 +103,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&Proposal{},
 		&distrtypes.CommunityPoolSpendProposal{},
 		&govtypes.TextProposal{},
+		&upgradetypes.SoftwareUpgradeProposal{},
 		&proposaltypes.ParameterChangeProposal{},
 		&upgradetypes.SoftwareUpgradeProposal{},
 		&upgradetypes.CancelSoftwareUpgradeProposal{},
