@@ -107,7 +107,11 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&proposaltypes.ParameterChangeProposal{},
 		&upgradetypes.SoftwareUpgradeProposal{},
 		&upgradetypes.CancelSoftwareUpgradeProposal{},
-		&CommitteeChangeProposal{}, // TODO: are these needed since they do not route for committees? tests pass without these
-		&CommitteeDeleteProposal{}, // TODO: ^^
+	)
+
+	registry.RegisterImplementations(
+		(*govtypes.Content)(nil),
+		&CommitteeChangeProposal{},
+		&CommitteeDeleteProposal{},
 	)
 }
