@@ -46,11 +46,12 @@ func (suite *grpcQueryTestSuite) addCdp() {
 	pk := suite.tApp.GetPriceFeedKeeper()
 
 	acc := ak.NewAccountWithAddress(suite.ctx, suite.addrs[0])
-	suite.tApp.FundAccount(suite.ctx, acc.GetAddress(), cs(c("xrp", 200000000), c("btc", 500000000)))
+	err := suite.tApp.FundAccount(suite.ctx, acc.GetAddress(), cs(c("xrp", 200000000), c("btc", 500000000)))
+	suite.NoError(err)
 
 	ak.SetAccount(suite.ctx, acc)
 
-	err := pk.SetCurrentPrices(suite.ctx, "xrp:usd")
+	err = pk.SetCurrentPrices(suite.ctx, "xrp:usd")
 	suite.NoError(err)
 
 	ok := suite.keeper.UpdatePricefeedStatus(suite.ctx, "xrp:usd")

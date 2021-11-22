@@ -251,15 +251,18 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 func (suite *QuerierTestSuite) TestQueryParams() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	bz, err := suite.querier(ctx, []string{types.QueryGetParams}, abci.RequestQuery{})
-	suite.Nil(err)
+	suite.NoError(err)
 	suite.NotNil(bz)
 
 	var p types.Params
-	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &p))
+	err = suite.legacyAmino.UnmarshalJSON(bz, &p)
+	suite.NoError(err)
 
 	cdpGS := NewCDPGenStateHighDebtLimit(suite.app.AppCodec())
 	gs := types.GenesisState{}
-	suite.legacyAmino.UnmarshalJSON(cdpGS["cdp"], &gs)
+	err = suite.legacyAmino.UnmarshalJSON(cdpGS["cdp"], &gs)
+	suite.NoError(err)
+
 	suite.Equal(gs.Params, p)
 }
 

@@ -143,8 +143,10 @@ func (suite *DrawTestSuite) TestRepayPrincipalOverpay() {
 func (suite *DrawTestSuite) TestPricefeedFailure() {
 	ctx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour * 2))
 	pfk := suite.app.GetPriceFeedKeeper()
-	pfk.SetCurrentPrices(ctx, "xrp:usd")
-	err := suite.keeper.AddPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
+	err := pfk.SetCurrentPrices(ctx, "xrp:usd")
+	suite.Error(err)
+
+	err = suite.keeper.AddPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
 	suite.Error(err)
 	err = suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
 	suite.NoError(err)
@@ -163,7 +165,8 @@ func (suite *DrawTestSuite) TestModuleAccountFailure() {
 	suite.Require().NoError(err)
 
 	suite.Panics(func() {
-		suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
+		// Error ignored here since this should panic
+		_ = suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
 	})
 }
 

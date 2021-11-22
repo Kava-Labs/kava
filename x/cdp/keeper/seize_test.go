@@ -112,8 +112,9 @@ func (suite *SeizeTestSuite) createCdps() {
 func (suite *SeizeTestSuite) setPrice(price sdk.Dec, market string) {
 	pfKeeper := suite.app.GetPriceFeedKeeper()
 
-	pfKeeper.SetPrice(suite.ctx, sdk.AccAddress{}, market, price, suite.ctx.BlockTime().Add(time.Hour*3))
-	err := pfKeeper.SetCurrentPrices(suite.ctx, market)
+	_, err := pfKeeper.SetPrice(suite.ctx, sdk.AccAddress{}, market, price, suite.ctx.BlockTime().Add(time.Hour*3))
+	suite.NoError(err)
+	err = pfKeeper.SetCurrentPrices(suite.ctx, market)
 	suite.NoError(err)
 	pp, err := pfKeeper.GetCurrentPrice(suite.ctx, market)
 	suite.NoError(err)
@@ -157,13 +158,13 @@ func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	ak := suite.app.GetAccountKeeper()
 	bk := suite.app.GetBankKeeper()
 
-	cdp, found := suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
+	_, found := suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
 	suite.True(found)
 
 	err := suite.keeper.DepositCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], c("xrp", 6999000000), "xrp-a")
 	suite.NoError(err)
 
-	cdp, found = suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
+	cdp, found := suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
 	suite.True(found)
 
 	deposits := suite.keeper.GetDeposits(suite.ctx, cdp.ID)
@@ -198,7 +199,9 @@ func (suite *SeizeTestSuite) TestLiquidateCdps() {
 	p, found := suite.keeper.GetCollateral(suite.ctx, "xrp-a")
 	suite.True(found)
 
-	suite.keeper.LiquidateCdps(suite.ctx, "xrp:usd", "xrp-a", p.LiquidationRatio, p.CheckCollateralizationIndexCount)
+	err := suite.keeper.LiquidateCdps(suite.ctx, "xrp:usd", "xrp-a", p.LiquidationRatio, p.CheckCollateralizationIndexCount)
+	suite.NoError(err)
+
 	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
 	finalXrpCollateral := bk.GetBalance(suite.ctx, acc.GetAddress(), "xrp").Amount
 	seizedXrpCollateral := originalXrpCollateral.Sub(finalXrpCollateral)

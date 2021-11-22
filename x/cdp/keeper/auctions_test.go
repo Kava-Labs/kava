@@ -43,7 +43,6 @@ func (suite *AuctionTestSuite) SetupTest() {
 	suite.ctx = ctx
 	suite.keeper = keeper
 	suite.addrs = []sdk.AccAddress{taddr}
-	return
 }
 
 func (suite *AuctionTestSuite) TestNetDebtSurplus() {
@@ -54,7 +53,10 @@ func (suite *AuctionTestSuite) TestNetDebtSurplus() {
 	suite.NoError(err)
 	err = bk.MintCoins(suite.ctx, types.LiquidatorMacc, cs(c("usdx", 10)))
 	suite.NoError(err)
-	suite.NotPanics(func() { suite.keeper.NetSurplusAndDebt(suite.ctx) })
+	suite.NotPanics(func() {
+		err := suite.keeper.NetSurplusAndDebt(suite.ctx)
+		suite.NoError(err)
+	})
 	acc := ak.GetModuleAccount(suite.ctx, types.LiquidatorMacc)
 	suite.Equal(cs(c("debt", 90)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 }
@@ -76,7 +78,8 @@ func (suite *AuctionTestSuite) TestSurplusAuction() {
 	suite.NoError(err)
 	err = bk.MintCoins(suite.ctx, types.LiquidatorMacc, cs(c("debt", 100000000000)))
 	suite.NoError(err)
-	suite.keeper.RunSurplusAndDebtAuctions(suite.ctx)
+	err = suite.keeper.RunSurplusAndDebtAuctions(suite.ctx)
+	suite.NoError(err)
 	acc := ak.GetModuleAccount(suite.ctx, auctiontypes.ModuleName)
 	suite.Equal(cs(c("usdx", 10000000000)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 	acc = ak.GetModuleAccount(suite.ctx, types.LiquidatorMacc)
@@ -91,7 +94,8 @@ func (suite *AuctionTestSuite) TestDebtAuction() {
 	suite.NoError(err)
 	err = bk.MintCoins(suite.ctx, types.LiquidatorMacc, cs(c("debt", 200000000000)))
 	suite.NoError(err)
-	suite.keeper.RunSurplusAndDebtAuctions(suite.ctx)
+	err = suite.keeper.RunSurplusAndDebtAuctions(suite.ctx)
+	suite.NoError(err)
 	acc := ak.GetModuleAccount(suite.ctx, auctiontypes.ModuleName)
 	suite.Equal(cs(c("debt", 10000000000)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 	acc = ak.GetModuleAccount(suite.ctx, types.LiquidatorMacc)
