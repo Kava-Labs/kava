@@ -3,6 +3,9 @@ package app
 import (
 	"fmt"
 	"io"
+	stdlog "log"
+	"os"
+	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -55,6 +58,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -62,10 +69,13 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
-	pricefeed "github.com/kava-labs/kava/x/pricefeed"
-	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
-	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
-
+	"github.com/kava-labs/kava/x/bep3"
+	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
+	bep3types "github.com/kava-labs/kava/x/bep3/types"
+	"github.com/kava-labs/kava/x/committee"
+	committeeclient "github.com/kava-labs/kava/x/committee/client"
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	issuance "github.com/kava-labs/kava/x/issuance"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
@@ -78,16 +88,25 @@ import (
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 
+	"github.com/kava-labs/kava/x/auction"
+	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
+	auctiontypes "github.com/kava-labs/kava/x/auction/types"
+	pricefeed "github.com/kava-labs/kava/x/pricefeed"
+	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/kava-labs/kava/x/swap"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
 const (
-	appName = "kava"
+	appName     = "kava"
+	upgradeName = "v44"
 )
 
 var (
+	// DefaultNodeHome default home directories for the application daemon
+	DefaultNodeHome string
 
 	// ModuleBasics manages simple versions of full app modules.
 	// It's used for things such as codec registration and genesis file verification.
@@ -101,18 +120,26 @@ var (
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler,
 			distrclient.ProposalHandler,
+			upgradeclient.ProposalHandler,
+			upgradeclient.CancelProposalHandler,
 			kavadistclient.ProposalHandler,
+			committeeclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
+		auction.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		issuance.AppModuleBasic{},
+		bep3.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 		swap.AppModuleBasic{},
 		cdp.AppModuleBasic{},
+		kavadist.AppModuleBasic{},
+		committee.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -129,7 +156,9 @@ var (
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
+		bep3types.ModuleName:            {authtypes.Burner, authtypes.Minter},
 		swaptypes.ModuleName:            nil,
+		auctiontypes.ModuleName:         nil,
 	}
 )
 
@@ -170,13 +199,17 @@ type App struct {
 	distrKeeper     distrkeeper.Keeper
 	govKeeper       govkeeper.Keeper
 	crisisKeeper    crisiskeeper.Keeper
+	upgradeKeeper   upgradekeeper.Keeper
 	paramsKeeper    paramskeeper.Keeper
 	evidenceKeeper  evidencekeeper.Keeper
 	kavadistKeeper  kavadistkeeper.Keeper
 	cdpKeeper       cdpkeeper.Keeper
+	auctionKeeper   auctionkeeper.Keeper
 	issuanceKeeper  issuancekeeper.Keeper
+	bep3Keeper      bep3keeper.Keeper
 	pricefeedKeeper pricefeedkeeper.Keeper
 	swapKeeper      swapkeeper.Keeper
+	committeeKeeper committeekeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -188,8 +221,25 @@ type App struct {
 	configurator module.Configurator
 }
 
+func init() {
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		stdlog.Printf("Failed to get home dir %v", err)
+	}
+
+	DefaultNodeHome = filepath.Join(userHomeDir, ".kava")
+}
+
 // NewApp returns a reference to an initialized App.
-func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig kavaparams.EncodingConfig, options Options, baseAppOptions ...func(*baseapp.BaseApp)) *App {
+func NewApp(
+	logger tmlog.Logger,
+	db dbm.DB,
+	homePath string,
+	traceStore io.Writer,
+	encodingConfig kavaparams.EncodingConfig,
+	options Options,
+	baseAppOptions ...func(*baseapp.BaseApp),
+) *App {
 
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
@@ -204,8 +254,9 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
-		pricefeedtypes.StoreKey, cdptypes.StoreKey, kavadisttypes.StoreKey,
-		issuancetypes.StoreKey, swaptypes.StoreKey,
+		upgradetypes.StoreKey, kavadisttypes.StoreKey, issuancetypes.StoreKey,
+		bep3types.StoreKey, pricefeedtypes.StoreKey, swaptypes.StoreKey,
+		committeetypes.StoreKey, auctiontypes.StoreKey, cdptypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -235,7 +286,9 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.ModuleName)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadisttypes.ModuleName)
 	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
+	auctionSubspace := app.paramsKeeper.Subspace(auctiontypes.ModuleName)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuancetypes.ModuleName)
+	bep3Subspace := app.paramsKeeper.Subspace(bep3types.ModuleName)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
 
@@ -296,6 +349,13 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
 	)
+	app.upgradeKeeper = upgradekeeper.NewKeeper(
+		options.SkipUpgradeHeights,
+		keys[upgradetypes.StoreKey],
+		appCodec,
+		homePath,
+		app.BaseApp,
+	)
 	app.evidenceKeeper = *evidencekeeper.NewKeeper(
 		appCodec,
 		keys[evidencetypes.StoreKey],
@@ -307,7 +367,9 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper))
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
+		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[govtypes.StoreKey],
@@ -318,6 +380,14 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		govRouter,
 	)
 
+	app.bep3Keeper = bep3keeper.NewKeeper(
+		appCodec,
+		keys[bep3types.StoreKey],
+		app.bankKeeper,
+		app.accountKeeper,
+		bep3Subspace,
+		app.ModuleAccountAddrs(),
+	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
 		keys[kavadisttypes.StoreKey],
@@ -359,6 +429,31 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		mAccPerms,
 	)
 
+	app.auctionKeeper = auctionkeeper.NewKeeper(
+		appCodec,
+		keys[auctiontypes.StoreKey],
+		auctionSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+	)
+	// create committee keeper with router
+	committeeGovRouter := govtypes.NewRouter()
+	committeeGovRouter.
+		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+		// AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
+	// Note: the committee proposal handler is not registered on the committee router. This means committees cannot create or update other committees.
+	// Adding the committee proposal handler to the router is possible but awkward as the handler depends on the keeper which depends on the handler.
+	app.committeeKeeper = committeekeeper.NewKeeper(
+		appCodec,
+		keys[committeetypes.StoreKey],
+		committeeGovRouter,
+		app.paramsKeeper,
+		app.accountKeeper,
+		app.bankKeeper,
+	)
+
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
 	app.stakingKeeper = *(app.stakingKeeper.SetHooks(
@@ -382,13 +477,17 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
+		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		params.NewAppModule(app.paramsKeeper),
+		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
+		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
+		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -397,6 +496,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	// Auction.BeginBlocker will close out expired auctions and pay debt back to cdp.
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
 	app.mm.SetOrderBeginBlockers(
+		upgradetypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -404,7 +504,10 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		stakingtypes.ModuleName,
 		kavadisttypes.ModuleName,
 		cdptypes.ModuleName,
+		auctiontypes.ModuleName,
+		committeetypes.ModuleName,
 		issuancetypes.ModuleName,
+		bep3types.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -422,14 +525,19 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
 		minttypes.ModuleName,
-		crisistypes.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
+		pricefeedtypes.ModuleName,
+		auctiontypes.ModuleName,
 		kavadisttypes.ModuleName,
+		committeetypes.ModuleName,
+		issuancetypes.ModuleName,
+		bep3types.ModuleName,
 		pricefeedtypes.ModuleName,
 		cdptypes.ModuleName,
 		issuancetypes.ModuleName,
 		swaptypes.ModuleName,
+		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -464,6 +572,7 @@ func NewApp(logger tmlog.Logger, db dbm.DB, traceStore io.Writer, encodingConfig
 	if options.MempoolEnableAuth {
 		fetchers = append(fetchers,
 			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
+			app.bep3Keeper.GetAuthorizedAddresses,
 			app.pricefeedKeeper.GetAuthorizedAddresses,
 		)
 	}

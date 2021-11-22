@@ -37,7 +37,7 @@ func (suite *DrawTestSuite) SetupTest() {
 		cs(c("xrp", 10000000000000), c("usdx", 100000000000)),
 	}
 
-	authGS := app.NewFundedGenStateWithUniqueCoins(cdc, coins, addrs)
+	authGS := app.NewFundedGenStateWithCoins(cdc, coins, addrs)
 	tApp.InitializeFromGenesisStates(
 		authGS,
 		NewPricefeedGenStateMulti(cdc),

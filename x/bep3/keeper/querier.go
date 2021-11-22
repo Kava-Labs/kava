@@ -12,29 +12,29 @@ import (
 )
 
 // NewQuerier is the module level router for state queries
-func NewQuerier(keeper Keeper) sdk.Querier {
+func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryGetAssetSupply:
-			return queryAssetSupply(ctx, req, keeper)
+			return queryAssetSupply(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetAssetSupplies:
-			return queryAssetSupplies(ctx, req, keeper)
+			return queryAssetSupplies(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetAtomicSwap:
-			return queryAtomicSwap(ctx, req, keeper)
+			return queryAtomicSwap(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetAtomicSwaps:
-			return queryAtomicSwaps(ctx, req, keeper)
+			return queryAtomicSwaps(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetParams:
-			return queryGetParams(ctx, req, keeper)
+			return queryGetParams(ctx, req, keeper, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
 	}
 }
 
-func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	// Decode request
 	var requestParams types.QueryAssetSupply
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -45,7 +45,7 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 	}
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, assetSupply)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, assetSupply)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -53,13 +53,13 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 	return bz, nil
 }
 
-func queryAssetSupplies(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+func queryAssetSupplies(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	assets := keeper.GetAllAssetSupplies(ctx)
 	if assets == nil {
 		assets = types.AssetSupplies{}
 	}
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, assets)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, assets)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -67,10 +67,10 @@ func queryAssetSupplies(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (
 	return bz, nil
 }
 
-func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	// Decode request
 	var requestParams types.QueryAtomicSwapByID
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -81,10 +81,10 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]b
 		return nil, sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%d", requestParams.SwapID)
 	}
 
-	augmentedAtomicSwap := types.NewAugmentedAtomicSwap(atomicSwap)
+	augmentedAtomicSwap := types.NewLegacyAugmentedAtomicSwap(atomicSwap)
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedAtomicSwap)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedAtomicSwap)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -92,9 +92,9 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]b
 	return bz, nil
 }
 
-func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryAtomicSwaps
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -105,13 +105,13 @@ func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 		swaps = types.AtomicSwaps{}
 	}
 
-	augmentedSwaps := types.AugmentedAtomicSwaps{}
+	augmentedSwaps := types.LegacyAugmentedAtomicSwaps{}
 
 	for _, swap := range swaps {
-		augmentedSwaps = append(augmentedSwaps, types.NewAugmentedAtomicSwap(swap))
+		augmentedSwaps = append(augmentedSwaps, types.NewLegacyAugmentedAtomicSwap(swap))
 	}
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedSwaps)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedSwaps)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -120,12 +120,12 @@ func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 }
 
 // query params in the bep3 store
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	// Get params
 	params := keeper.GetParams(ctx)
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -138,29 +138,7 @@ func filterAtomicSwaps(ctx sdk.Context, swaps types.AtomicSwaps, params types.Qu
 	filteredSwaps := make(types.AtomicSwaps, 0, len(swaps))
 
 	for _, s := range swaps {
-		matchInvolve, matchExpiration, matchStatus, matchDirection := true, true, true, true
-
-		// match involved address (if supplied)
-		if len(params.Involve) > 0 {
-			matchInvolve = s.Sender.Equals(params.Involve) || s.Recipient.Equals(params.Involve)
-		}
-
-		// match expiration block limit (if supplied)
-		if params.Expiration > 0 {
-			matchExpiration = s.ExpireHeight <= params.Expiration
-		}
-
-		// match status (if supplied/valid)
-		if params.Status.IsValid() {
-			matchStatus = s.Status == params.Status
-		}
-
-		// match direction (if supplied/valid)
-		if params.Direction.IsValid() {
-			matchDirection = s.Direction == params.Direction
-		}
-
-		if matchInvolve && matchExpiration && matchStatus && matchDirection {
+		if legacyAtomicSwapIsMatch(s, params) {
 			filteredSwaps = append(filteredSwaps, s)
 		}
 	}
@@ -173,4 +151,36 @@ func filterAtomicSwaps(ctx sdk.Context, swaps types.AtomicSwaps, params types.Qu
 	}
 
 	return filteredSwaps
+}
+
+func legacyAtomicSwapIsMatch(swap types.AtomicSwap, params types.QueryAtomicSwaps) bool {
+	// match involved address (if supplied)
+	if len(params.Involve) > 0 {
+		if !swap.Sender.Equals(params.Involve) && !swap.Recipient.Equals(params.Involve) {
+			return false
+		}
+	}
+
+	// match expiration block limit (if supplied)
+	if params.Expiration > 0 {
+		if swap.ExpireHeight > params.Expiration {
+			return false
+		}
+	}
+
+	// match status (if supplied/valid)
+	if params.Status.IsValid() {
+		if swap.Status != params.Status {
+			return false
+		}
+	}
+
+	// match direction (if supplied/valid)
+	if params.Direction.IsValid() {
+		if swap.Direction != params.Direction {
+			return false
+		}
+	}
+
+	return true
 }

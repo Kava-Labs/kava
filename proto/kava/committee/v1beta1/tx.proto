@@ -8,23 +8,18 @@ import "kava/committee/v1beta1/genesis.proto";
 
 option go_package = "github.com/kava-labs/kava/x/committee/types";
 
+option (gogoproto.goproto_getters_all) = false;
+
 // MsgSubmitProposal is used by committee members to create a new proposal that they can vote on.
 message MsgSubmitProposal {
-  google.protobuf.Any pub_proposal = 1
-      [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content", (gogoproto.embed) = true];
-  bytes proposer = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
-  ];
-  uint64 committee_id = 3;
+  google.protobuf.Any pub_proposal = 1 [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content"];
+  string              proposer     = 2;
+  uint64              committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
 }
 
 // MsgVote is submitted by committee members to vote on proposals.
 message MsgVote {
-  uint64 proposal_id = 1;
-  bytes  voter       = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
-  ];
-  VoteType vote_type = 3;
+  uint64   proposal_id = 1;
+  string   voter       = 2;
+  VoteType vote_type   = 3;
 }

@@ -31,7 +31,7 @@ func (suite *DepositTestSuite) SetupTest() {
 	cdc := tApp.AppCodec()
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(10)
-	authGS := app.NewFundedGenStateWithUniqueCoins(
+	authGS := app.NewFundedGenStateWithCoins(
 		cdc,
 		[]sdk.Coins{
 			cs(c("xrp", 500000000), c("btc", 500000000)),

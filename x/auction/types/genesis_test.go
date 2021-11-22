@@ -11,20 +11,41 @@ import (
 var testCoin = sdk.NewInt64Coin("test", 20)
 
 func TestGenesisState_Validate(t *testing.T) {
+
+	defaultGenState, err := DefaultGenesisState()
+	require.NoError(t, err)
+
+	defaultGenesisAuctions, err := UnpackGenesisAuctions(defaultGenState.Auctions)
+	if err != nil {
+		panic(err)
+	}
+
 	testCases := []struct {
 		name       string
 		nextID     uint64
-		auctions   GenesisAuctions
+		auctions   []GenesisAuction
 		expectPass bool
 	}{
-		{"default", DefaultGenesisState().NextAuctionID, DefaultGenesisState().Auctions, true},
-		{"invalid next ID", 54, GenesisAuctions{SurplusAuction{BaseAuction{ID: 105}}}, false},
+		{
+			"default",
+			defaultGenState.NextAuctionId,
+			defaultGenesisAuctions,
+			true,
+		},
+		{
+			"invalid next ID",
+			54,
+			[]GenesisAuction{
+				GenesisAuction(&SurplusAuction{BaseAuction{ID: 105}}),
+			},
+			false,
+		},
 		{
 			"repeated ID",
 			1000,
-			GenesisAuctions{
-				SurplusAuction{BaseAuction{ID: 105}},
-				DebtAuction{BaseAuction{ID: 105}, testCoin},
+			[]GenesisAuction{
+				GenesisAuction(&SurplusAuction{BaseAuction{ID: 105}}),
+				GenesisAuction(&DebtAuction{BaseAuction{ID: 106}, testCoin}),
 			},
 			false,
 		},
@@ -32,10 +53,10 @@ func TestGenesisState_Validate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			gs := NewGenesisState(tc.nextID, DefaultParams(), tc.auctions)
+			gs, err := NewGenesisState(tc.nextID, DefaultParams(), tc.auctions)
+			require.NoError(t, err)
 
-			err := gs.Validate()
-
+			err = gs.Validate()
 			if tc.expectPass {
 				require.NoError(t, err)
 			} else {

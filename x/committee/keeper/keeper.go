@@ -13,19 +13,19 @@ import (
 )
 
 type Keeper struct {
-	cdc      *codec.Codec
+	cdc      codec.Codec
 	storeKey sdk.StoreKey
 
-	ParamKeeper   types.ParamKeeper // TODO ideally don't export, only sims need it exported
+	paramKeeper   types.ParamKeeper
 	accountKeeper types.AccountKeeper
-	supplyKeeper  types.SupplyKeeper
+	bankKeeper    types.BankKeeper
 
 	// Proposal router
 	router govtypes.Router
 }
 
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router,
-	paramKeeper types.ParamKeeper, ak types.AccountKeeper, sk types.SupplyKeeper) Keeper {
+func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, router govtypes.Router,
+	paramKeeper types.ParamKeeper, ak types.AccountKeeper, sk types.BankKeeper) Keeper {
 	// Logic in the keeper methods assume the set of gov handlers is fixed.
 	// So the gov router must be sealed so no handlers can be added or removed after the keeper is created.
 	router.Seal()
@@ -33,9 +33,9 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router,
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      storeKey,
-		ParamKeeper:   paramKeeper,
+		paramKeeper:   paramKeeper,
 		accountKeeper: ak,
-		supplyKeeper:  sk,
+		bankKeeper:    sk,
 		router:        router,
 	}
 }
@@ -52,14 +52,20 @@ func (k Keeper) GetCommittee(ctx sdk.Context, committeeID uint64) (types.Committ
 	if bz == nil {
 		return committee, false
 	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &committee)
+	err := k.cdc.UnmarshalInterface(bz, &committee)
+	if err != nil {
+		panic(err)
+	}
 	return committee, true
 }
 
 // SetCommittee puts a committee into the store.
 func (k Keeper) SetCommittee(ctx sdk.Context, committee types.Committee) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(committee)
+	bz, err := k.cdc.MarshalInterface(committee)
+	if err != nil {
+		panic(err)
+	}
 	store.Set(types.GetKeyFromID(committee.GetID()), bz)
 }
 
@@ -77,8 +83,9 @@ func (k Keeper) IterateCommittees(ctx sdk.Context, cb func(committee types.Commi
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var committee types.Committee
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &committee)
-
+		if err := k.cdc.UnmarshalInterface(iterator.Value(), &committee); err != nil {
+			panic(err)
+		}
 		if cb(committee) {
 			break
 		}
@@ -86,8 +93,8 @@ func (k Keeper) IterateCommittees(ctx sdk.Context, cb func(committee types.Commi
 }
 
 // GetCommittees returns all stored committees.
-func (k Keeper) GetCommittees(ctx sdk.Context) []types.Committee {
-	results := []types.Committee{}
+func (k Keeper) GetCommittees(ctx sdk.Context) types.Committees {
+	results := types.Committees{}
 	k.IterateCommittees(ctx, func(com types.Committee) bool {
 		results = append(results, com)
 		return false
@@ -131,12 +138,15 @@ func (k Keeper) StoreNewProposal(ctx sdk.Context, pubProposal types.PubProposal,
 	if err != nil {
 		return 0, err
 	}
-	proposal := types.NewProposal(
+	proposal, err := types.NewProposal(
 		pubProposal,
 		newProposalID,
 		committeeID,
 		deadline,
 	)
+	if err != nil {
+		return 0, err
+	}
 
 	k.SetProposal(ctx, proposal)
 
@@ -155,14 +165,14 @@ func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal,
 		return types.Proposal{}, false
 	}
 	var proposal types.Proposal
-	k.cdc.MustUnmarshalBinaryBare(bz, &proposal)
+	k.cdc.MustUnmarshal(bz, &proposal)
 	return proposal, true
 }
 
 // SetProposal puts a proposal into the store.
 func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(proposal)
+	bz := k.cdc.MustMarshal(&proposal)
 	store.Set(types.GetKeyFromID(proposal.ID), bz)
 }
 
@@ -180,8 +190,7 @@ func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposa
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var proposal types.Proposal
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &proposal)
-
+		k.cdc.MustUnmarshal(iterator.Value(), &proposal)
 		if cb(proposal) {
 			break
 		}
@@ -189,8 +198,8 @@ func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposa
 }
 
 // GetProposals returns all stored proposals.
-func (k Keeper) GetProposals(ctx sdk.Context) []types.Proposal {
-	results := []types.Proposal{}
+func (k Keeper) GetProposals(ctx sdk.Context) types.Proposals {
+	results := types.Proposals{}
 	k.IterateProposals(ctx, func(prop types.Proposal) bool {
 		results = append(results, prop)
 		return false
@@ -199,8 +208,8 @@ func (k Keeper) GetProposals(ctx sdk.Context) []types.Proposal {
 }
 
 // GetProposalsByCommittee returns all proposals for one committee.
-func (k Keeper) GetProposalsByCommittee(ctx sdk.Context, committeeID uint64) []types.Proposal {
-	results := []types.Proposal{}
+func (k Keeper) GetProposalsByCommittee(ctx sdk.Context, committeeID uint64) types.Proposals {
+	results := types.Proposals{}
 	k.IterateProposals(ctx, func(prop types.Proposal) bool {
 		if prop.CommitteeID == committeeID {
 			results = append(results, prop)
@@ -231,14 +240,14 @@ func (k Keeper) GetVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 		return types.Vote{}, false
 	}
 	var vote types.Vote
-	k.cdc.MustUnmarshalBinaryBare(bz, &vote)
+	k.cdc.MustUnmarshal(bz, &vote)
 	return vote, true
 }
 
 // SetVote puts a vote into the store.
 func (k Keeper) SetVote(ctx sdk.Context, vote types.Vote) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(vote)
+	bz := k.cdc.MustMarshal(&vote)
 	store.Set(types.GetVoteKey(vote.ProposalID, vote.Voter), bz)
 }
 
@@ -256,7 +265,7 @@ func (k Keeper) IterateVotes(ctx sdk.Context, cb func(vote types.Vote) (stop boo
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
+		k.cdc.MustUnmarshal(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
@@ -282,7 +291,7 @@ func (k Keeper) GetVotesByProposal(ctx sdk.Context, proposalID uint64) []types.V
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
+		k.cdc.MustUnmarshal(iterator.Value(), &vote)
 		results = append(results, vote)
 	}
 
