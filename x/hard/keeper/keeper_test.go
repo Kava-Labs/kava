@@ -17,18 +17,16 @@ import (
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
-	pfKeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 )
 
 // Test suite used for all keeper tests
 type KeeperTestSuite struct {
 	suite.Suite
-	keeper          keeper.Keeper
-	auctionKeeper   auctionkeeper.Keeper
-	pricefeedKeeper pfKeeper.Keeper
-	app             app.TestApp
-	ctx             sdk.Context
-	addrs           []sdk.AccAddress
+	keeper        keeper.Keeper
+	auctionKeeper auctionkeeper.Keeper
+	app           app.TestApp
+	ctx           sdk.Context
+	addrs         []sdk.AccAddress
 }
 
 // The default state used by each test
