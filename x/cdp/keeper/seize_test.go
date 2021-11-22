@@ -270,7 +270,10 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 						},
 						CorrespondingDebt: c("debt", 1333330000),
 						MaxBid:            c("usdx", 1366663250),
-						LotReturns:        auctiontypes.WeightedAddresses{[]sdk.AccAddress{addr}, []sdk.Int{sdk.NewInt(9900000)}},
+						LotReturns: auctiontypes.WeightedAddresses{
+							Addresses: []sdk.AccAddress{addr},
+							Weights:   []sdk.Int{sdk.NewInt(9900000)},
+						},
 					},
 				},
 			},
@@ -396,7 +399,10 @@ func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
 						},
 						CorrespondingDebt: c("debt", 1000000000),
 						MaxBid:            c("usdx", 1025000000),
-						LotReturns:        auctiontypes.WeightedAddresses{[]sdk.AccAddress{addr}, []sdk.Int{sdk.NewInt(10000000)}},
+						LotReturns: auctiontypes.WeightedAddresses{
+							Addresses: []sdk.AccAddress{addr},
+							Weights:   []sdk.Int{sdk.NewInt(10000000)},
+						},
 					},
 				},
 			},
@@ -460,7 +466,7 @@ func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
 				}
 			} else {
 				suite.Require().Equal(0, len(auctions))
-				for idx, _ := range tc.args.collaterals {
+				for idx := range tc.args.collaterals {
 					_, found := suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, suite.addrs[idx], tc.args.ctype)
 					suite.Require().True(found)
 				}
