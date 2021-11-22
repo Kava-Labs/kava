@@ -38,40 +38,6 @@ func (suite *InterestTestSuite) SetupTest() {
 	suite.keeper = keeper
 }
 
-// createCdps is a helper function to create two CDPs each with zero fees
-func (suite *InterestTestSuite) createCdps() {
-	// create 2 accounts in the state and give them some coins
-	// create two private key pair addresses
-	_, addrs := app.GeneratePrivKeyAddressPairs(2)
-	ak := suite.app.GetAccountKeeper()
-	// setup the first account
-	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
-
-	err := suite.app.FundAccount(suite.ctx, acc.GetAddress(), cs(c("xrp", 200000000), c("btc", 500000000)))
-	suite.NoError(err)
-
-	ak.SetAccount(suite.ctx, acc)
-	// now setup the second account
-	acc2 := ak.NewAccountWithAddress(suite.ctx, addrs[1])
-	err = suite.app.FundAccount(suite.ctx, acc.GetAddress(), cs(c("xrp", 200000000), c("btc", 500000000)))
-	suite.NoError(err)
-
-	ak.SetAccount(suite.ctx, acc2)
-
-	// now create two cdps with the addresses we just created
-	// use the created account to create a cdp that SHOULD have fees updated
-	// to get a ratio between 100 - 110% of liquidation ratio we can use 200xrp ($50) and 24 usdx (208% collateralization with liquidation ratio of 200%)
-	// create CDP for the first address
-	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 24000000), "xrp-a")
-	suite.NoError(err) // check that no error was thrown
-
-	// use the other account to create a cdp that SHOULD NOT have fees updated - 500% collateralization
-	// create CDP for the second address
-	err = suite.keeper.AddCdp(suite.ctx, addrs[1], c("xrp", 200000000), c("usdx", 10000000), "xrp-a")
-	suite.NoError(err) // check that no error was thrown
-
-}
-
 func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 	type args struct {
 		perSecondInterestRate sdk.Dec
