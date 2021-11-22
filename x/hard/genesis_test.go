@@ -8,11 +8,13 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard"
+	"github.com/kava-labs/kava/x/hard/keeper"
+	"github.com/kava-labs/kava/x/hard/types"
 )
 
 type GenesisTestSuite struct {
@@ -21,14 +23,14 @@ type GenesisTestSuite struct {
 	app     app.TestApp
 	genTime time.Time
 	ctx     sdk.Context
-	keeper  hard.Keeper
+	keeper  keeper.Keeper
 	addrs   []sdk.AccAddress
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	suite.genTime = tmtime.Canonical(time.Date(2021, 1, 1, 1, 1, 1, 1, time.UTC))
-	suite.ctx = tApp.NewContext(true, abci.Header{Height: 1, Time: suite.genTime})
+	suite.ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: suite.genTime})
 	suite.keeper = tApp.GetHardKeeper()
 	suite.app = tApp
 
@@ -39,18 +41,35 @@ func (suite *GenesisTestSuite) SetupTest() {
 func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 
 	loanToValue, _ := sdk.NewDecFromStr("0.6")
-	params := hard.NewParams(
-		hard.MoneyMarkets{
-			hard.NewMoneyMarket("ukava", hard.NewBorrowLimit(false, sdk.NewDec(1e15), loanToValue), "kava:usd", sdk.NewInt(1e6), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+	params := types.NewParams(
+		types.MoneyMarkets{
+			types.NewMoneyMarket(
+				"ukava",
+				types.NewBorrowLimit(
+					false,
+					sdk.NewDec(1e15),
+					loanToValue,
+				),
+				"kava:usd",
+				sdk.NewInt(1e6),
+				types.NewInterestRateModel(
+					sdk.MustNewDecFromStr("0.05"),
+					sdk.MustNewDecFromStr("2"),
+					sdk.MustNewDecFromStr("0.8"),
+					sdk.MustNewDecFromStr("10"),
+				),
+				sdk.MustNewDecFromStr("0.05"),
+				sdk.ZeroDec(),
+			),
 		},
 		sdk.NewDec(10),
 	)
 
-	deposits := hard.Deposits{
-		hard.NewDeposit(
+	deposits := types.Deposits{
+		types.NewDeposit(
 			suite.addrs[0],
 			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e8))), // 100 ukava
-			hard.SupplyInterestFactors{
+			types.SupplyInterestFactors{
 				{
 					Denom: "ukava",
 					Value: sdk.NewDec(1),
@@ -64,11 +83,11 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		totalSupplied = totalSupplied.Add(deposit.Amount...)
 	}
 
-	borrows := hard.Borrows{
-		hard.NewBorrow(
+	borrows := types.Borrows{
+		types.NewBorrow(
 			suite.addrs[1],
 			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e7))), // 10 ukava
-			hard.BorrowInterestFactors{
+			types.BorrowInterestFactors{
 				{
 					Denom: "ukava",
 					Value: sdk.NewDec(1),
@@ -84,11 +103,11 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 
 	supplyInterestFactor := sdk.MustNewDecFromStr("1.0001")
 	borrowInterestFactor := sdk.MustNewDecFromStr("1.1234")
-	accuralTimes := hard.GenesisAccumulationTimes{
-		hard.NewGenesisAccumulationTime("ukava", suite.genTime, supplyInterestFactor, borrowInterestFactor),
+	accuralTimes := types.GenesisAccumulationTimes{
+		types.NewGenesisAccumulationTime("ukava", suite.genTime, supplyInterestFactor, borrowInterestFactor),
 	}
 
-	hardGenesis := hard.NewGenesisState(
+	hardGenesis := types.NewGenesisState(
 		params,
 		accuralTimes,
 		deposits,
@@ -102,12 +121,12 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		func() {
 			suite.app.InitializeFromGenesisStatesWithTime(
 				suite.genTime,
-				app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGenesis)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGenesis)},
 			)
 		},
 	)
 
-	var expectedDeposits hard.Deposits
+	var expectedDeposits types.Deposits
 	for _, deposit := range deposits {
 		// Deposit coin amounts
 		var depositAmount sdk.Coins
@@ -121,7 +140,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		}
 		deposit.Amount = depositAmount
 		// Deposit interest factor indexes
-		var indexes hard.SupplyInterestFactors
+		var indexes types.SupplyInterestFactors
 		for _, index := range deposit.Index {
 			accrualTime, found := getGenesisAccumulationTime(index.Denom, accuralTimes)
 			if !found {
@@ -134,7 +153,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		expectedDeposits = append(expectedDeposits, deposit)
 	}
 
-	var expectedBorrows hard.Borrows
+	var expectedBorrows types.Borrows
 	for _, borrow := range borrows {
 		// Borrow coin amounts
 		var borrowAmount sdk.Coins
@@ -149,7 +168,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		}
 		borrow.Amount = borrowAmount
 		// Borrow interest factor indexes
-		var indexes hard.BorrowInterestFactors
+		var indexes types.BorrowInterestFactors
 		for _, index := range borrow.Index {
 			accrualTime, found := getGenesisAccumulationTime(index.Denom, accuralTimes)
 			if !found {
@@ -169,13 +188,13 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 	suite.Equal(expectedGenesis, exportedGenesis)
 }
 
-func getGenesisAccumulationTime(denom string, ts hard.GenesisAccumulationTimes) (hard.GenesisAccumulationTime, bool) {
+func getGenesisAccumulationTime(denom string, ts types.GenesisAccumulationTimes) (types.GenesisAccumulationTime, bool) {
 	for _, t := range ts {
 		if t.CollateralType == denom {
 			return t, true
 		}
 	}
-	return hard.GenesisAccumulationTime{}, false
+	return types.GenesisAccumulationTime{}, false
 }
 
 func TestGenesisTestSuite(t *testing.T) {
