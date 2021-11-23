@@ -128,15 +128,14 @@ var (
 		slashing.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
-		auction.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
+		auction.AppModuleBasic{},
 		issuance.AppModuleBasic{},
 		bep3.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 		swap.AppModuleBasic{},
 		cdp.AppModuleBasic{},
-		kavadist.AppModuleBasic{},
 		committee.AppModuleBasic{},
 	)
 
@@ -150,13 +149,13 @@ var (
 		stakingtypes.BondedPoolName:     {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName:  {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:             {authtypes.Burner},
-		cdptypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
-		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
+		auctiontypes.ModuleName:         nil,
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
 		bep3types.ModuleName:            {authtypes.Burner, authtypes.Minter},
 		swaptypes.ModuleName:            nil,
-		auctiontypes.ModuleName:         nil,
+		cdptypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
+		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -201,12 +200,12 @@ type App struct {
 	paramsKeeper    paramskeeper.Keeper
 	evidenceKeeper  evidencekeeper.Keeper
 	kavadistKeeper  kavadistkeeper.Keeper
-	cdpKeeper       cdpkeeper.Keeper
 	auctionKeeper   auctionkeeper.Keeper
 	issuanceKeeper  issuancekeeper.Keeper
 	bep3Keeper      bep3keeper.Keeper
 	pricefeedKeeper pricefeedkeeper.Keeper
 	swapKeeper      swapkeeper.Keeper
+	cdpKeeper       cdpkeeper.Keeper
 	committeeKeeper committeekeeper.Keeper
 
 	// the module manager
@@ -283,12 +282,12 @@ func NewApp(
 	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.ModuleName)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadisttypes.ModuleName)
-	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
 	auctionSubspace := app.paramsKeeper.Subspace(auctiontypes.ModuleName)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuancetypes.ModuleName)
 	bep3Subspace := app.paramsKeeper.Subspace(bep3types.ModuleName)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
+	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -378,14 +377,6 @@ func NewApp(
 		govRouter,
 	)
 
-	app.bep3Keeper = bep3keeper.NewKeeper(
-		appCodec,
-		keys[bep3types.StoreKey],
-		app.bankKeeper,
-		app.accountKeeper,
-		bep3Subspace,
-		app.ModuleAccountAddrs(),
-	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
 		keys[kavadisttypes.StoreKey],
@@ -395,12 +386,27 @@ func NewApp(
 		app.distrKeeper,
 		app.ModuleAccountAddrs(),
 	)
+	app.auctionKeeper = auctionkeeper.NewKeeper(
+		appCodec,
+		keys[auctiontypes.StoreKey],
+		auctionSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+	)
 	app.issuanceKeeper = issuancekeeper.NewKeeper(
 		appCodec,
 		keys[issuancetypes.StoreKey],
 		issuanceSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
+	)
+	app.bep3Keeper = bep3keeper.NewKeeper(
+		appCodec,
+		keys[bep3types.StoreKey],
+		app.bankKeeper,
+		app.accountKeeper,
+		bep3Subspace,
+		app.ModuleAccountAddrs(),
 	)
 	app.pricefeedKeeper = pricefeedkeeper.NewKeeper(
 		appCodec,
@@ -413,13 +419,6 @@ func NewApp(
 		swapSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-	)
-	app.auctionKeeper = auctionkeeper.NewKeeper(
-		appCodec,
-		keys[auctiontypes.StoreKey],
-		auctionSubspace,
-		app.bankKeeper,
-		app.accountKeeper,
 	)
 	app.cdpKeeper = cdpkeeper.NewKeeper(
 		appCodec,
@@ -476,10 +475,10 @@ func NewApp(
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		params.NewAppModule(app.paramsKeeper),
-		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
+		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
@@ -499,11 +498,11 @@ func NewApp(
 		evidencetypes.ModuleName, // TODO why new evidence and staking begin blockers?
 		stakingtypes.ModuleName,
 		kavadisttypes.ModuleName,
-		cdptypes.ModuleName,
 		auctiontypes.ModuleName,
-		committeetypes.ModuleName,
 		issuancetypes.ModuleName,
 		bep3types.ModuleName,
+		cdptypes.ModuleName,
+		committeetypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -523,16 +522,14 @@ func NewApp(
 		minttypes.ModuleName,
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
-		pricefeedtypes.ModuleName,
-		auctiontypes.ModuleName,
 		kavadisttypes.ModuleName,
-		committeetypes.ModuleName,
+		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
 		bep3types.ModuleName,
 		pricefeedtypes.ModuleName,
-		cdptypes.ModuleName,
-		issuancetypes.ModuleName,
 		swaptypes.ModuleName,
+		cdptypes.ModuleName,
+		committeetypes.ModuleName,
 		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
 	)
 
