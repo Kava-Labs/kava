@@ -13,6 +13,7 @@ func TestNewApp(t *testing.T) {
 	NewApp(
 		log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
 		db.NewMemDB(),
+		DefaultNodeHome,
 		nil,
 		MakeEncodingConfig(),
 		Options{},

@@ -4,6 +4,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -54,7 +56,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
 	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
 	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
-	// cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
+	cdc.RegisterConcrete(ParamsChangePermission{}, "kava/ParamsChangePermission", nil)
 
 	// Msgs
 	cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
@@ -68,6 +70,13 @@ func RegisterProposalTypeCodec(o interface{}, name string) {
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgSubmitProposal{},
+		&MsgVote{},
+	)
+
+	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+
 	registry.RegisterInterface(
 		"kava.committee.v1beta1.Committee",
 		(*Committee)(nil),
@@ -81,6 +90,9 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		"kava.committee.v1beta1.Permission",
 		(*Permission)(nil),
 		&GodPermission{},
+		&TextPermission{},
+		&SoftwareUpgradePermission{},
+		&ParamsChangePermission{},
 	)
 
 	// Need to register PubProposal here since we use this as alias for the x/gov Content interface for all the proposal implementations used in this module.
@@ -89,7 +101,15 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		"kava.committee.v1beta1.PubProposal",
 		(*PubProposal)(nil),
 		&Proposal{},
+		&distrtypes.CommunityPoolSpendProposal{},
 		&govtypes.TextProposal{},
+		&proposaltypes.ParameterChangeProposal{},
+		&upgradetypes.SoftwareUpgradeProposal{},
+		&upgradetypes.CancelSoftwareUpgradeProposal{},
+	)
+
+	registry.RegisterImplementations(
+		(*govtypes.Content)(nil),
 		&CommitteeChangeProposal{},
 		&CommitteeDeleteProposal{},
 	)

@@ -1,0 +1,38 @@
+syntax = "proto3";
+package kava.auction.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/kava-labs/kava/x/auction/types";
+
+option (gogoproto.goproto_getters_all) = false;
+
+// GenesisState defines the auction module's genesis state.
+message GenesisState {
+  uint64 next_auction_id = 1;
+
+  Params params = 2 [(gogoproto.nullable) = false];
+
+  // Genesis auctions
+  repeated google.protobuf.Any auctions = 3 [(cosmos_proto.accepts_interface) = "GenesisAuction"];
+}
+
+// Params defines the parameters for the issuance module.
+message Params {
+
+  google.protobuf.Duration max_auction_duration = 1 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+
+  google.protobuf.Duration bid_duration = 2 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+
+  bytes increment_surplus = 3
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+
+  bytes increment_debt = 4
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+
+  bytes increment_collateral = 5
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}

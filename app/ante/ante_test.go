@@ -34,6 +34,7 @@ func TestAppAnteHandler(t *testing.T) {
 		App: *app.NewApp(
 			log.NewNopLogger(),
 			tmdb.NewMemDB(),
+			app.DefaultNodeHome,
 			nil,
 			encodingConfig,
 			app.Options{

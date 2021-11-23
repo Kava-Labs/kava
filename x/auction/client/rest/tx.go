@@ -4,49 +4,50 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/gorilla/mux"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/%s/auctions/{%s}/bids", types.ModuleName, restAuctionID), bidHandlerFn(cliCtx)).Methods("POST")
+func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
+	r.HandleFunc(fmt.Sprintf("/%s/auctions/{%s}/bids", types.ModuleName, restAuctionID), postPlaceBidHandlerFn(cliCtx)).Methods("POST")
 }
 
-func bidHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Get auction ID from url
-		auctionID, ok := rest.ParseUint64OrReturnBadRequest(w, mux.Vars(r)[restAuctionID])
-		if !ok {
+func postPlaceBidHandlerFn(cliCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		var requestBody PlaceBidReq
+		if !rest.ReadRESTReq(w, req, cliCtx.LegacyAmino, &requestBody) {
 			return
 		}
 
-		// Get info from the http request body
-		var req placeBidReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		baseReq := requestBody.BaseReq.Sanitize()
+		if !baseReq.ValidateBasic(w) {
 			return
 		}
-		req.BaseReq = req.BaseReq.Sanitize()
-		if !req.BaseReq.ValidateBasic(w) {
-			return
-		}
-		bidderAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+
+		bidderAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
+		// Get auction ID from url
+		auctionID, ok := rest.ParseUint64OrReturnBadRequest(w, mux.Vars(req)[restAuctionID])
+		if !ok {
+			return
+		}
+
 		// Create and return a StdTx
-		msg := types.NewMsgPlaceBid(auctionID, bidderAddr, req.Amount)
+		msg := types.NewMsgPlaceBid(auctionID, bidderAddr.String(), requestBody.Amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, &msg)
 	}
 }
