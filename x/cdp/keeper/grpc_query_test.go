@@ -277,14 +277,6 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 	}
 }
 
-func (suite *grpcQueryTestSuite) TestGrpcQueryCdpsByCollateralType() {
-
-}
-
-func (suite *grpcQueryTestSuite) TestGrpcQueryCdpsByRatio() {
-
-}
-
 func TestGrpcQueryTestSuite(t *testing.T) {
 	suite.Run(t, new(grpcQueryTestSuite))
 }
