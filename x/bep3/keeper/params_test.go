@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -21,15 +21,14 @@ type ParamsTestSuite struct {
 
 	keeper keeper.Keeper
 	addrs  []sdk.AccAddress
-	app    app.TestApp
 	ctx    sdk.Context
 }
 
 func (suite *ParamsTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	_, addrs := app.GeneratePrivKeyAddressPairs(10)
-	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(addrs[0]))
+	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(tApp.AppCodec(), addrs[0]))
 	suite.keeper = tApp.GetBep3Keeper()
 	suite.ctx = ctx
 	suite.addrs = addrs

@@ -56,11 +56,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		expectPass bool
 		contains   string
 	}
-	type genesisTest struct {
-		name    string
-		args    args
-		errArgs errArgs
-	}
+
 	testCases := []struct {
 		name    string
 		args    args
@@ -158,10 +154,10 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 
 	cdpGS := NewCDPGenStateMulti(cdc)
 	gs := types.GenesisState{}
-	types.ModuleCdc.UnmarshalJSON(cdpGS["cdp"], &gs)
+	suite.app.AppCodec().MustUnmarshalJSON(cdpGS["cdp"], &gs)
 	gs.CDPs = cdps()
 	gs.StartingCdpID = uint64(5)
-	appGS := app.GenesisState{"cdp": types.ModuleCdc.MustMarshalJSON(&gs)}
+	appGS := app.GenesisState{"cdp": suite.app.AppCodec().MustMarshalJSON(&gs)}
 	suite.NotPanics(func() {
 		suite.app.InitializeFromGenesisStates(
 			NewPricefeedGenStateMulti(cdc),
@@ -266,7 +262,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		suite.app.InitializeFromGenesisStatesWithTime(
 			suite.genTime,
 			NewPricefeedGenStateMulti(suite.app.AppCodec()),
-			app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&cdpGenesis)},
+			app.GenesisState{types.ModuleName: suite.app.AppCodec().MustMarshalJSON(&cdpGenesis)},
 		)
 	})
 

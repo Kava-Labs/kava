@@ -87,7 +87,7 @@ message QueryCdpsRequest {
   string owner           = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   uint64 id              = 3 [(gogoproto.customname) = "ID"];
   // sdk.Dec as a string
-  string ratio           = 4;
+  string ratio = 4;
 
   cosmos.base.query.v1beta1.PageRequest pagination = 5;
 }
@@ -134,14 +134,14 @@ message QueryTotalCollateralResponse {
 
 // CDPResponse defines the state of a single collateralized debt position.
 message CDPResponse {
-  uint64                    id               = 1 [(gogoproto.customname) = "ID"];
-  string                    owner            = 2;
-  string                    type             = 3;
-  cosmos.base.v1beta1.Coin  collateral       = 4 [(gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin  principal        = 5 [(gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin  accumulated_fees = 6 [(gogoproto.nullable) = false];
-  google.protobuf.Timestamp fees_updated     = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-  string                    interest_factor  = 8;
-  cosmos.base.v1beta1.Coin collateral_value        = 9 [(gogoproto.nullable) = false];
-  string                   collateralization_ratio = 10;
+  uint64                    id                      = 1 [(gogoproto.customname) = "ID"];
+  string                    owner                   = 2;
+  string                    type                    = 3;
+  cosmos.base.v1beta1.Coin  collateral              = 4 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin  principal               = 5 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin  accumulated_fees        = 6 [(gogoproto.nullable) = false];
+  google.protobuf.Timestamp fees_updated            = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  string                    interest_factor         = 8;
+  cosmos.base.v1beta1.Coin  collateral_value        = 9 [(gogoproto.nullable) = false];
+  string                    collateralization_ratio = 10;
 }

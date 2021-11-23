@@ -42,10 +42,11 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
-	suite.app.FundAccount(suite.ctx, acc.GetAddress(), cs(c("xrp", 200000000), c("btc", 500000000)))
+	err := suite.app.FundAccount(suite.ctx, acc.GetAddress(), cs(c("xrp", 200000000), c("btc", 500000000)))
+	suite.Require().NoError(err)
 
 	ak.SetAccount(suite.ctx, acc)
-	err := suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 10000000), "btc-a")
+	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 10000000), "btc-a")
 	suite.Require().True(errors.Is(err, types.ErrInvalidCollateral))
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 26000000), "xrp-a")
 	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
@@ -55,7 +56,9 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Require().True(errors.Is(err, types.ErrDebtNotSupported))
 
 	acc2 := ak.NewAccountWithAddress(suite.ctx, addrs[1])
-	suite.app.FundAccount(suite.ctx, acc2.GetAddress(), cs(c("btc", 500000000000)))
+	err = suite.app.FundAccount(suite.ctx, acc2.GetAddress(), cs(c("btc", 500000000000)))
+	suite.Require().NoError(err)
+
 	ak.SetAccount(suite.ctx, acc2)
 	err = suite.keeper.AddCdp(suite.ctx, addrs[1], c("btc", 500000000000), c("usdx", 500000000001), "btc-a")
 	suite.Require().True(errors.Is(err, types.ErrExceedsDebtLimit))
@@ -139,7 +142,7 @@ func (suite *CdpTestSuite) TestGetSetCdp() {
 	suite.Equal(cdp, t)
 	_, found = suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
 	suite.False(found)
-	suite.keeper.DeleteCDP(suite.ctx, cdp)
+	suite.NoError(suite.keeper.DeleteCDP(suite.ctx, cdp))
 	_, found = suite.keeper.GetCDP(suite.ctx, "btc-a", types.DefaultCdpStartingID)
 	suite.False(found)
 }
@@ -218,11 +221,11 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralType() {
 	suite.Equal(3, len(xrpCdps))
 	btcCdps := suite.keeper.GetAllCdpsByCollateralType(suite.ctx, "btc-a")
 	suite.Equal(1, len(btcCdps))
-	suite.keeper.DeleteCDP(suite.ctx, cdps[0])
+	suite.NoError(suite.keeper.DeleteCDP(suite.ctx, cdps[0]))
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
 	xrpCdps = suite.keeper.GetAllCdpsByCollateralType(suite.ctx, "xrp-a")
 	suite.Equal(2, len(xrpCdps))
-	suite.keeper.DeleteCDP(suite.ctx, cdps[1])
+	suite.NoError(suite.keeper.DeleteCDP(suite.ctx, cdps[1]))
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[1])
 	ids, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, cdps[1].Owner)
 	suite.True(found)
@@ -247,7 +250,9 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 	suite.Equal(2, len(xrpCdps))
 	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("100.0").Add(sdk.SmallestDec()))
 	suite.Equal(3, len(xrpCdps))
-	suite.keeper.DeleteCDP(suite.ctx, cdps[0])
+
+	suite.NoError(suite.keeper.DeleteCDP(suite.ctx, cdps[0]))
+
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdps[0].Collateral, cdps[0].Type, cdps[0].Principal)
 	suite.keeper.RemoveCdpCollateralRatioIndex(suite.ctx, cdps[0].Type, cdps[0].ID, cr)

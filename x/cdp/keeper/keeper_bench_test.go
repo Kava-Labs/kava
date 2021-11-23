@@ -53,7 +53,9 @@ func BenchmarkAccountIteration(b *testing.B) {
 				addr := sdk.AccAddress(arr)
 				acc := ak.NewAccountWithAddress(ctx, addr)
 				if bm.coins {
-					tApp.FundAccount(ctx, acc.GetAddress(), coins)
+					if err := tApp.FundAccount(ctx, acc.GetAddress(), coins); err != nil {
+						panic(err)
+					}
 				}
 				ak.SetAccount(ctx, acc)
 			}

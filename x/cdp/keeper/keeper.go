@@ -74,7 +74,7 @@ func (k Keeper) IterateAllCdps(ctx sdk.Context, cb func(cdp types.CDP) (stop boo
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cdp types.CDP
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &cdp)
+		k.cdc.MustUnmarshal(iterator.Value(), &cdp)
 
 		if cb(cdp) {
 			break
@@ -89,7 +89,7 @@ func (k Keeper) IterateCdpsByCollateralType(ctx sdk.Context, collateralType stri
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cdp types.CDP
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &cdp)
+		k.cdc.MustUnmarshal(iterator.Value(), &cdp)
 		if cb(cdp) {
 			break
 		}

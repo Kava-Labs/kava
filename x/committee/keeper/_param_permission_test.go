@@ -20,12 +20,12 @@ import (
 
 type PermissionTestSuite struct {
 	suite.Suite
-	cdc *codec.Codec
+	cdc codec.Codec
 }
 
 func (suite *PermissionTestSuite) SetupTest() {
 	app := app.NewTestApp()
-	suite.cdc = app.Codec()
+	suite.cdc = app.AppCodec()
 }
 
 func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {

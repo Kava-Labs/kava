@@ -9,6 +9,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
@@ -111,8 +112,12 @@ func validateAssetParams(i interface{}) error {
 			return fmt.Errorf("deputy address cannot be empty for %s", asset.Denom)
 		}
 
-		if len(asset.DeputyAddress.Bytes()) != sdk.AddrLen {
-			return fmt.Errorf("%s deputy address invalid bytes length got %d, want %d", asset.Denom, len(asset.DeputyAddress.Bytes()), sdk.AddrLen)
+		if len(asset.DeputyAddress.Bytes()) == 0 {
+			return fmt.Errorf("deputy addresses cannot be empty")
+		}
+
+		if len(asset.DeputyAddress.Bytes()) > address.MaxAddrLen {
+			return fmt.Errorf("deputy address max length is %d, got %d", address.MaxAddrLen, len(asset.DeputyAddress.Bytes()))
 		}
 
 		if asset.FixedFee.IsNegative() {

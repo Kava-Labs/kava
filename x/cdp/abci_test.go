@@ -15,7 +15,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/auction"
+	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -111,8 +111,10 @@ func (suite *ModuleTestSuite) createCdps() {
 func (suite *ModuleTestSuite) setPrice(price sdk.Dec, market string) {
 	pfKeeper := suite.app.GetPriceFeedKeeper()
 
-	pfKeeper.SetPrice(suite.ctx, "", market, price, suite.ctx.BlockTime().Add(time.Hour*3))
-	err := pfKeeper.SetCurrentPrices(suite.ctx, market)
+	_, err := pfKeeper.SetPrice(suite.ctx, sdk.AccAddress{}, market, price, suite.ctx.BlockTime().Add(time.Hour*3))
+	suite.NoError(err)
+
+	err = pfKeeper.SetCurrentPrices(suite.ctx, market)
 	suite.NoError(err)
 	pp, err := pfKeeper.GetCurrentPrice(suite.ctx, market)
 	suite.NoError(err)
@@ -143,7 +145,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	btcLiquidations := int(seizedBtcCollateral.Quo(i(100000000)).Int64())
 	suite.Equal(10, btcLiquidations)
 
-	acc = ak.GetModuleAccount(suite.ctx, auction.ModuleName)
+	acc = ak.GetModuleAccount(suite.ctx, auctiontypes.ModuleName)
 	suite.Equal(int64(71955653865), bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
 
 }
