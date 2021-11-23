@@ -11,11 +11,11 @@ import (
 // NewMultiplierNameFromString converts string to MultiplierName type
 func NewMultiplierNameFromString(str string) MultiplierName {
 	switch str {
-	case "Small", "small":
+	case "small":
 		return MULTIPLIER_NAME_SMALL
-	case "Medium", "medium":
+	case "medium":
 		return MULTIPLIER_NAME_MEDIUM
-	case "Large", "large":
+	case "large":
 		return MULTIPLIER_NAME_LARGE
 	default:
 		return MULTIPLIER_NAME_UNSPECIFIED
@@ -117,12 +117,6 @@ func (mpd MultipliersPerDenoms) Validate() error {
 		foundDenoms[item.Denom] = true
 	}
 	return nil
-}
-
-// Selection a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a denom.
-type Selection struct {
-	Denom          string `json:"denom" yaml:"denom"`
-	MultiplierName string `json:"multiplier_name" yaml:"multiplier_name"`
 }
 
 // NewSelection returns a new Selection
