@@ -59,7 +59,7 @@ func MustMigrateAppStateJSON(appStateJson string) string {
 	if err := json.Unmarshal([]byte(appStateJson), &appState); err != nil {
 		panic(err)
 	}
-	newGenState := MigrateCosmosAppState(appState, NewClientContext())
+	newGenState := migrateCosmosAppState(appState, NewClientContext())
 	actual, err := json.Marshal(newGenState)
 	if err != nil {
 		panic(err)
