@@ -313,40 +313,40 @@ func (suite *QuerierTestSuite) TestFindIntersection() {
 	expectedIntersection1 := types.CDPs{suite.cdps[3], suite.cdps[4]}
 
 	intersection1 := keeper.FindIntersection(a, b)
-	suite.Require().Equal(intersection1, expectedIntersection1)
+	suite.Require().Equal(expectedIntersection1, intersection1)
 
 	c := types.CDPs{suite.cdps[0], suite.cdps[1], suite.cdps[2], suite.cdps[3], suite.cdps[4]}
 	d := types.CDPs{suite.cdps[5], suite.cdps[6], suite.cdps[7], suite.cdps[8], suite.cdps[9]}
 	expectedIntersection2 := types.CDPs{}
 
 	intersection2 := keeper.FindIntersection(c, d)
-	suite.Require().Equal(intersection2, expectedIntersection2)
+	suite.Require().Equal(expectedIntersection2, intersection2)
 
 	e := types.CDPs{suite.cdps[0]}
 	f := types.CDPs{}
 	expectedIntersection3 := types.CDPs{}
 
 	intersection3 := keeper.FindIntersection(e, f)
-	suite.Require().Equal(intersection3, expectedIntersection3)
+	suite.Require().Equal(expectedIntersection3, intersection3)
 }
 
 func (suite *QuerierTestSuite) TestFilterCDPs() {
 	paramsType := types.NewQueryCdpsParams(1, 100, "btc-a", sdk.AccAddress{}, 0, sdk.ZeroDec())
 	filteredCDPs1, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsType)
 	suite.Require().NoError(err)
-	suite.Require().Equal(len(filteredCDPs1), 50)
+	suite.Require().Equal(50, len(filteredCDPs1))
 
 	paramsOwner := types.NewQueryCdpsParams(1, 100, "", suite.cdps[10].Owner, 0, sdk.ZeroDec())
 	filteredCDPs2, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsOwner)
 	suite.Require().NoError(err)
-	suite.Require().Equal(len(filteredCDPs2), 1)
-	suite.Require().Equal(filteredCDPs2[0].Owner, suite.cdps[10].Owner)
+	suite.Require().Equal(1, len(filteredCDPs2))
+	suite.Require().Equal(suite.cdps[10].Owner, filteredCDPs2[0].Owner)
 
 	paramsID := types.NewQueryCdpsParams(1, 100, "", sdk.AccAddress{}, 68, sdk.ZeroDec())
 	filteredCDPs3, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsID)
 	suite.Require().NoError(err)
-	suite.Require().Equal(len(filteredCDPs3), 1)
-	suite.Require().Equal(filteredCDPs3[0].ID, suite.cdps[68-1].ID)
+	suite.Require().Equal(1, len(filteredCDPs3))
+	suite.Require().Equal(suite.cdps[68-1].ID, filteredCDPs3[0].ID)
 
 	ratioCountBtc := 0
 	btcRatio := d("2500")
@@ -362,7 +362,7 @@ func (suite *QuerierTestSuite) TestFilterCDPs() {
 	paramsTypeAndRatio := types.NewQueryCdpsParams(1, 100, "btc-a", sdk.AccAddress{}, 0, sdk.NewDec(2500))
 	filteredCDPs4, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsTypeAndRatio)
 	suite.Require().NoError(err)
-	suite.Require().Equal(len(filteredCDPs4), ratioCountBtc)
+	suite.Require().Equal(ratioCountBtc, len(filteredCDPs4))
 }
 
 func (suite *QuerierTestSuite) TestQueryCdps() {
