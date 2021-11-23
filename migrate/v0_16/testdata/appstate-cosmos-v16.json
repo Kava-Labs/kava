@@ -1,0 +1,94 @@
+{
+  "crisis": { "constant_fee": { "denom": "ukava", "amount": "1333000000" } },
+  "evidence": { "evidence": [] },
+  "genutil": {
+    "gen_txs": [
+      {
+        "type": "cosmos-sdk/StdTx",
+        "value": {
+          "fee": { "amount": [], "gas": "200000" },
+          "memo": "23a5601684fa065ce9d953af5fc7d4347050ad14@192.168.0.14:26656",
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "commission": {
+                  "max_change_rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "rate": "0.100000000000000000"
+                },
+                "delegator_address": "kava1ypjp0m04pyp73hwgtc0dgkx0e9rrydecm054da",
+                "description": {
+                  "details": "",
+                  "identity": "",
+                  "moniker": "validator",
+                  "security_contact": "",
+                  "website": ""
+                },
+                "min_self_delegation": "1",
+                "pubkey": "kavavalconspub1zcjduepqvfq6egzgfmdkd6k7cqhsvsfr4lhsp6adh4uurxgkhec8h7amxcjq7gjum4",
+                "validator_address": "kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42",
+                "value": { "amount": "1000000000", "denom": "ukava" }
+              }
+            }
+          ],
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AgIWiZpdEVb69gfaqyNjbA0b3oe+nRS9BZ9gH/I6oGz+"
+              },
+              "signature": "K9ZA2OYWrX2WSanMnbMHIaFIABWxhcrFjAnyF1U83nlFsVuEmUyGYMOmwo4vac54nkY4pfSzNreu5EnJxniUHA=="
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "mint": {
+    "minter": {
+      "inflation": "0.200000000000000000",
+      "annual_provisions": "29956047968909.000000000000000000"
+    },
+    "params": {
+      "mint_denom": "ukava",
+      "inflation_rate_change": "0.130000000000000000",
+      "inflation_max": "0.200000000000000000",
+      "inflation_min": "0.150000000000000000",
+      "goal_bonded": "0.670000000000000000",
+      "blocks_per_year": "5256000"
+    }
+  },
+  "params": null,
+  "slashing": {
+    "params": {
+      "signed_blocks_window": "10000",
+      "min_signed_per_window": "0.050000000000000000",
+      "downtime_jail_duration": "600s",
+      "slash_fraction_double_sign": "0.050000000000000000",
+      "slash_fraction_downtime": "0.000100000000000000"
+    },
+    "signing_infos": [
+      {
+        "address": "kavavalcons1wy67mmvmr2ge6apmtfykhnqpejtnd0apaktk72",
+        "validator_signing_info": {
+          "address": "kavavalcons1wy67mmvmr2ge6apmtfykhnqpejtnd0apaktk72",
+          "start_height": "0",
+          "index_offset": "1058101",
+          "jailed_until": "2021-08-14T05:05:11.063230794Z",
+          "tombstoned": false,
+          "missed_blocks_counter": "2"
+        }
+      }
+    ],
+    "missed_blocks": [
+      {
+        "address": "kavavalcons1029jhm4lz26q78ftrmazf8hw7lmrt08l2vq3cs",
+        "missed_blocks": [
+          { "index": "3538", "missed": false },
+          { "index": "3539", "missed": false }
+        ]
+      }
+    ]
+  }
+}

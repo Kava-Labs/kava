@@ -42,7 +42,7 @@ func migrateGenutil(oldGenState v039genutil.GenesisState) *genutiltypes.GenesisS
 	}
 }
 
-func MigrateCosmosAppState(appState genutiltypes.AppMap, clientCtx client.Context) genutiltypes.AppMap {
+func migrateCosmosAppState(appState genutiltypes.AppMap, clientCtx client.Context) genutiltypes.AppMap {
 	appState = migrateV040(appState, clientCtx)
 	appState = migrateV043(appState, clientCtx)
 	return appState
@@ -138,7 +138,7 @@ func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context) genutil
 	if appState[v038evidence.ModuleName] != nil {
 		// unmarshal relative source genesis application state
 		var evidenceGenState v038evidence.GenesisState
-		v039Codec.MustUnmarshalJSON(appState[v038bank.ModuleName], &evidenceGenState)
+		v039Codec.MustUnmarshalJSON(appState[v038evidence.ModuleName], &evidenceGenState)
 
 		// delete deprecated x/evidence genesis state
 		delete(appState, v038evidence.ModuleName)

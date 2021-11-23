@@ -32,6 +32,30 @@ func TestCosmosMigrate_Bank(t *testing.T) {
 	assert.JSONEq(t, expected, actual)
 }
 
+func TestCosmosMigrate_Distribution(t *testing.T) {
+	original := GetTestDataJSON("appstate-distribution-v15.json")
+	expected := GetTestDataJSON("appstate-distribution-v16.json")
+	actual := MustMigrateAppStateJSON(original)
+	assert.JSONEq(t, expected, actual)
+}
+
+func TestCosmosMigrate_Staking(t *testing.T) {
+	original := GetTestDataJSON("appstate-staking-v15.json")
+	expected := GetTestDataJSON("appstate-staking-v16.json")
+	actual := MustMigrateAppStateJSON(original)
+	assert.JSONEq(t, expected, actual)
+}
+
+// Test migration of all cosmos modules other than x/gov and x/bank
+// gov and bank is separated out since the migrations are a bit more complex,
+// the rest of the modules migrations are pretty straightforward.
+func TestCosmosMigrate_Modules(t *testing.T) {
+	original := GetTestDataJSON("appstate-cosmos-v15.json")
+	expected := GetTestDataJSON("appstate-cosmos-v16.json")
+	actual := MustMigrateAppStateJSON(original)
+	assert.JSONEq(t, expected, actual)
+}
+
 // MustMigrateAppStateJSON migrate v15 app state json to v16
 func MustMigrateAppStateJSON(appStateJson string) string {
 	var appState genutiltypes.AppMap
