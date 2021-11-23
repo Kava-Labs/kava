@@ -384,20 +384,14 @@ func (k Keeper) RemoveCdpCollateralRatioIndex(ctx sdk.Context, collateralType st
 func (k Keeper) GetDebtDenom(ctx sdk.Context) string {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
 	bz := store.Get(types.DebtDenomKey)
-
-	var debtDenom gogotypes.StringValue
-	k.cdc.MustUnmarshal(bz, &debtDenom)
-	return debtDenom.Value
+	return string(bz)
 }
 
 // GetGovDenom returns the denom of the governance token
 func (k Keeper) GetGovDenom(ctx sdk.Context) string {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
 	bz := store.Get(types.GovDenomKey)
-
-	var govDenom gogotypes.StringValue
-	k.cdc.MustUnmarshal(bz, &govDenom)
-	return govDenom.Value
+	return string(bz)
 }
 
 // SetDebtDenom set the denom of debt in the system
@@ -406,9 +400,7 @@ func (k Keeper) SetDebtDenom(ctx sdk.Context, denom string) {
 		panic("debt denom not set in genesis")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
-	store.Set(types.DebtDenomKey, k.cdc.MustMarshal(&gogotypes.StringValue{
-		Value: denom,
-	}))
+	store.Set(types.DebtDenomKey, []byte(denom))
 }
 
 // SetGovDenom set the denom of the governance token in the system
@@ -417,9 +409,7 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 		panic("gov denom not set in genesis")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
-	store.Set(types.GovDenomKey, k.cdc.MustMarshal(&gogotypes.StringValue{
-		Value: denom,
-	}))
+	store.Set(types.GovDenomKey, []byte(denom))
 }
 
 // ValidateCollateral validates that a collateral is valid for use in cdps
