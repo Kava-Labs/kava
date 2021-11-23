@@ -46,9 +46,6 @@ func TestCosmosMigrate_Staking(t *testing.T) {
 	assert.JSONEq(t, expected, actual)
 }
 
-// Test migration of all cosmos modules other than x/gov and x/bank
-// gov and bank is separated out since the migrations are a bit more complex,
-// the rest of the modules migrations are pretty straightforward.
 func TestCosmosMigrate_Modules(t *testing.T) {
 	original := GetTestDataJSON("appstate-cosmos-v15.json")
 	expected := GetTestDataJSON("appstate-cosmos-v16.json")
