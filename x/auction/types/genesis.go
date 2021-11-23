@@ -38,6 +38,14 @@ func PackGenesisAuctions(ga []GenesisAuction) ([]*types.Any, error) {
 	return gaAny, nil
 }
 
+func mustPackGenesisAuctions(ga []GenesisAuction) []*types.Any {
+	anys, err := PackGenesisAuctions(ga)
+	if err != nil {
+		panic(err)
+	}
+	return anys
+}
+
 // UnpackGenesisAuctions converts Any slice to GenesisAuctions slice
 func UnpackGenesisAuctions(genesisAuctionsAny []*types.Any) ([]GenesisAuction, error) {
 	genesisAuctions := make([]GenesisAuction, len(genesisAuctionsAny))
