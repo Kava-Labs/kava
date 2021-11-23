@@ -236,7 +236,7 @@ func (k Keeper) GetCDP(ctx sdk.Context, collateralType string, cdpID uint64) (ty
 		return types.CDP{}, false
 	}
 	var cdp types.CDP
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &cdp)
+	k.cdc.MustUnmarshal(bz, &cdp)
 	return cdp, true
 }
 
@@ -247,7 +247,7 @@ func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) error {
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
-	bz := k.cdc.MustMarshalLengthPrefixed(&cdp)
+	bz := k.cdc.MustMarshal(&cdp)
 	store.Set(types.CdpKey(cdp.Type, cdp.ID), bz)
 	return nil
 }
@@ -386,7 +386,7 @@ func (k Keeper) GetDebtDenom(ctx sdk.Context) string {
 	bz := store.Get(types.DebtDenomKey)
 
 	var debtDenom gogotypes.StringValue
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &debtDenom)
+	k.cdc.MustUnmarshal(bz, &debtDenom)
 	return debtDenom.Value
 }
 
@@ -396,7 +396,7 @@ func (k Keeper) GetGovDenom(ctx sdk.Context) string {
 	bz := store.Get(types.GovDenomKey)
 
 	var govDenom gogotypes.StringValue
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &govDenom)
+	k.cdc.MustUnmarshal(bz, &govDenom)
 	return govDenom.Value
 }
 
@@ -406,7 +406,7 @@ func (k Keeper) SetDebtDenom(ctx sdk.Context, denom string) {
 		panic("debt denom not set in genesis")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
-	store.Set(types.DebtDenomKey, k.cdc.MustMarshalLengthPrefixed(&gogotypes.StringValue{
+	store.Set(types.DebtDenomKey, k.cdc.MustMarshal(&gogotypes.StringValue{
 		Value: denom,
 	}))
 }
@@ -417,7 +417,7 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 		panic("gov denom not set in genesis")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
-	store.Set(types.GovDenomKey, k.cdc.MustMarshalLengthPrefixed(&gogotypes.StringValue{
+	store.Set(types.GovDenomKey, k.cdc.MustMarshal(&gogotypes.StringValue{
 		Value: denom,
 	}))
 }
