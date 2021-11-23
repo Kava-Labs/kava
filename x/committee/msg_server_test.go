@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	proposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/gogo/protobuf/proto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
@@ -18,19 +19,21 @@ import (
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
-//var _ types.PubProposal = UnregisteredPubProposal{}
-//
-//// UnregisteredPubProposal is a pubproposal type that is not registered on the amino codec.
-//type UnregisteredPubProposal struct{}
-//
-//func (UnregisteredPubProposal) GetTitle() string       { return "unregistered" }
-//func (UnregisteredPubProposal) GetDescription() string { return "unregistered" }
-//func (UnregisteredPubProposal) ProposalRoute() string  { return "unregistered" }
-//func (UnregisteredPubProposal) ProposalType() string   { return "unregistered" }
-//func (UnregisteredPubProposal) ValidateBasic() error   { return nil }
-//func (UnregisteredPubProposal) String() string         { return "unregistered" }
+var _ types.PubProposal = &UnregisteredPubProposal{}
 
-// NewDistributionGenesisWithPool creates a default distribution genesis state with some coins in the community pool.
+// UnregisteredPubProposal is a pubproposal type that is not registered on the amino codec.
+type UnregisteredPubProposal struct {
+	proto.Message
+}
+
+func (*UnregisteredPubProposal) GetTitle() string       { return "unregistered" }
+func (*UnregisteredPubProposal) GetDescription() string { return "unregistered" }
+func (*UnregisteredPubProposal) ProposalRoute() string  { return "unregistered" }
+func (*UnregisteredPubProposal) ProposalType() string   { return "unregistered" }
+func (*UnregisteredPubProposal) ValidateBasic() error   { return nil }
+func (*UnregisteredPubProposal) String() string         { return "unregistered" }
+
+//NewDistributionGenesisWithPool creates a default distribution genesis state with some coins in the community pool.
 //func NewDistributionGenesisWithPool(communityPoolCoins sdk.Coins) app.GenesisState {
 //gs := distribution.DefaultGenesisState()
 //gs.FeePool = distribution.FeePool{CommunityPool: sdk.NewDecCoinsFromCoins(communityPoolCoins...)}
@@ -158,23 +161,23 @@ func (suite *MsgServerTestSuite) TestSubmitProposalMsg_ValidUpgrade() {
 }
 
 // TODO: create a unregisted proto for tests?
-//func (suite *MsgServerTestSuite) TestSubmitProposalMsg_Unregistered() {
-//	var committeeID uint64 = 1
-//	msg, err := types.NewMsgSubmitProposal(
-//		UnregisteredPubProposal{},
-//		suite.addresses[0],
-//		committeeID,
-//	)
-//	suite.Require().NoError(err)
-//
-//	_, err = suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), msg)
-//
-//	suite.Error(err)
-//	suite.Empty(
-//		suite.keeper.GetProposalsByCommittee(suite.ctx, committeeID),
-//		"proposal found when none should exist",
-//	)
-//}
+func (suite *MsgServerTestSuite) TestSubmitProposalMsg_Unregistered() {
+	var committeeID uint64 = 1
+	msg, err := types.NewMsgSubmitProposal(
+		&UnregisteredPubProposal{},
+		suite.addresses[0],
+		committeeID,
+	)
+	suite.Require().NoError(err)
+
+	_, err = suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), msg)
+
+	suite.Error(err)
+	suite.Empty(
+		suite.keeper.GetProposalsByCommittee(suite.ctx, committeeID),
+		"proposal found when none should exist",
+	)
+}
 
 func (suite *MsgServerTestSuite) TestSubmitProposalMsgAndVote() {
 	msg, err := types.NewMsgSubmitProposal(
