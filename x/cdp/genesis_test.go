@@ -56,11 +56,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		expectPass bool
 		contains   string
 	}
-	type genesisTest struct {
-		name    string
-		args    args
-		errArgs errArgs
-	}
+
 	testCases := []struct {
 		name    string
 		args    args
