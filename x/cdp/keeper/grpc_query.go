@@ -241,7 +241,9 @@ func (s QueryServer) Deposits(c context.Context, req *types.QueryDepositsRequest
 
 // FilterCDPs queries the store for all CDPs that match query req
 func GrpcFilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (types.CDPResponses, error) {
-	// TODO: Use query.Paginate()? May be difficult to use special indexed keeper methods
+	// TODO: Ideally use query.Paginate() here over existing FilterCDPs. However
+	// This is difficult to use different CDP indices and specific keeper
+	// methods without iterating over all CDPs.
 	page, limit, err := query.ParsePagination(req.Pagination)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())

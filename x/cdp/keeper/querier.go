@@ -400,17 +400,17 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.
 
 	var commonCDPs types.CDPs
 	// If no params specified, fetch all CDPs
-	if len(params.CollateralType) == 0 && len(params.Owner) == 0 && params.ID == 0 && params.Ratio.Equal(sdk.ZeroDec()) {
+	if params.CollateralType == "" && len(params.Owner) == 0 && params.ID == 0 && params.Ratio.Equal(sdk.ZeroDec()) {
 		commonCDPs = k.GetAllCdps(ctx)
 	}
 
 	// Find the intersection of any matched CDPs
-	if len(params.CollateralType) > 0 {
-		if len(matchCollateralType) > 0 {
-			commonCDPs = matchCollateralType
-		} else {
+	if params.CollateralType != "" {
+		if len(matchCollateralType) == 0 {
 			return nil, nil
 		}
+
+		commonCDPs = matchCollateralType
 	}
 
 	if len(params.Owner) > 0 {
@@ -424,28 +424,31 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.
 			commonCDPs = matchOwner
 		}
 	}
+
 	if params.ID != 0 {
-		if len(matchID) > 0 {
-			if len(commonCDPs) > 0 {
-				commonCDPs = FindIntersection(commonCDPs, matchID)
-			} else {
-				commonCDPs = matchID
-			}
-		} else {
+		if len(matchID) == 0 {
 			return nil, nil
 		}
+
+		if len(commonCDPs) > 0 {
+			commonCDPs = FindIntersection(commonCDPs, matchID)
+		} else {
+			commonCDPs = matchID
+		}
 	}
+
 	if !params.Ratio.IsNil() && params.Ratio.GT(sdk.ZeroDec()) {
-		if len(matchRatio) > 0 {
-			if len(commonCDPs) > 0 {
-				commonCDPs = FindIntersection(commonCDPs, matchRatio)
-			} else {
-				commonCDPs = matchRatio
-			}
-		} else {
+		if len(matchRatio) == 0 {
 			return nil, nil
 		}
+
+		if len(commonCDPs) > 0 {
+			commonCDPs = FindIntersection(commonCDPs, matchRatio)
+		} else {
+			commonCDPs = matchRatio
+		}
 	}
+
 	// Load augmented CDPs
 	var augmentedCDPs types.AugmentedCDPs
 	for _, cdp := range commonCDPs {
