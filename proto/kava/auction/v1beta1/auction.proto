@@ -1,0 +1,82 @@
+syntax = "proto3";
+package kava.auction.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/kava-labs/kava/x/auction/types";
+
+option (gogoproto.goproto_getters_all) = false;
+
+// BaseAuction defines common attributes of all auctions
+message BaseAuction {
+  option (cosmos_proto.implements_interface) = "Auction";
+
+  uint64 id = 1 [(gogoproto.customname) = "ID"];
+
+  string initiator = 2;
+
+  cosmos.base.v1beta1.Coin lot = 3 [(gogoproto.nullable) = false];
+
+  bytes bidder = 4 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+
+  cosmos.base.v1beta1.Coin bid = 5 [(gogoproto.nullable) = false];
+
+  bool has_received_bids = 6;
+
+  google.protobuf.Timestamp end_time = 7 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+
+  google.protobuf.Timestamp max_end_time = 8 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+}
+
+// SurplusAuction is a forward auction that burns what it receives from bids.
+// It is normally used to sell off excess pegged asset acquired by the CDP system.
+message SurplusAuction {
+  option (cosmos_proto.implements_interface) = "Auction";
+
+  BaseAuction base_auction = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+}
+
+// DebtAuction is a reverse auction that mints what it pays out.
+// It is normally used to acquire pegged asset to cover the CDP system's debts that were not covered by selling
+// collateral.
+message DebtAuction {
+  option (cosmos_proto.implements_interface) = "Auction";
+
+  BaseAuction base_auction = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+
+  cosmos.base.v1beta1.Coin corresponding_debt = 2 [(gogoproto.nullable) = false];
+}
+
+// CollateralAuction is a two phase auction.
+// Initially, in forward auction phase, bids can be placed up to a max bid.
+// Then it switches to a reverse auction phase, where the initial amount up for auction is bid down.
+// Unsold Lot is sent to LotReturns, being divided among the addresses by weight.
+// Collateral auctions are normally used to sell off collateral seized from CDPs.
+message CollateralAuction {
+  option (cosmos_proto.implements_interface) = "Auction";
+
+  BaseAuction base_auction = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+
+  cosmos.base.v1beta1.Coin corresponding_debt = 2 [(gogoproto.nullable) = false];
+
+  cosmos.base.v1beta1.Coin max_bid = 3 [(gogoproto.nullable) = false];
+
+  WeightedAddresses lot_returns = 4 [(gogoproto.nullable) = false];
+}
+
+// WeightedAddresses is a type for storing some addresses and associated weights.
+message WeightedAddresses {
+  repeated bytes addresses = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+
+  repeated bytes weights = 2
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+}

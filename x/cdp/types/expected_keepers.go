@@ -32,7 +32,7 @@ type PricefeedKeeper interface {
 	GetParams(sdk.Context) pftypes.Params
 	// These are used for testing TODO replace mockApp with keeper in tests to remove these
 	SetParams(sdk.Context, pftypes.Params)
-	SetPrice(sdk.Context, string, string, sdk.Dec, time.Time) (pftypes.PostedPrice, error)
+	SetPrice(sdk.Context, sdk.AccAddress, string, sdk.Dec, time.Time) (pftypes.PostedPrice, error)
 	SetCurrentPrices(sdk.Context, string) error
 }
 
