@@ -154,7 +154,7 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 
 	cdpGS := NewCDPGenStateMulti(cdc)
 	gs := types.GenesisState{}
-	suite.app.AppCodec().UnmarshalJSON(cdpGS["cdp"], &gs)
+	suite.app.AppCodec().MustUnmarshalJSON(cdpGS["cdp"], &gs)
 	gs.CDPs = cdps()
 	gs.StartingCdpID = uint64(5)
 	appGS := app.GenesisState{"cdp": suite.app.AppCodec().MustMarshalJSON(&gs)}
