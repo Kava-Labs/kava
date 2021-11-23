@@ -116,7 +116,7 @@ For example:
 			if err != nil {
 				return err
 			}
-			if err := clientCtx.Codec.UnmarshalInterface(contents, &pubProposal); err != nil {
+			if err := clientCtx.Codec.UnmarshalInterfaceJSON(contents, &pubProposal); err != nil {
 				return err
 			}
 			if err = pubProposal.ValidateBasic(); err != nil {
@@ -229,7 +229,7 @@ and to delete a committee:
 				return err
 			}
 			var content govtypes.Content
-			if err := clientCtx.Codec.UnmarshalInterface(bz, &content); err != nil {
+			if err := clientCtx.Codec.UnmarshalInterfaceJSON(bz, &content); err != nil {
 				return err
 			}
 			if err = content.ValidateBasic(); err != nil {
