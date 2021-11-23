@@ -2,6 +2,13 @@
 
 In this tutorial we will be going over building a module in Kava to show how easy it is to build on top of the Kava ecosystem. This module will be simple in nature but will show how to set up and connect a module to Kava and can be used as a starting point for more complex modules. 
 
+Draft!:
+
+ 1. finish up explanation of each section 
+ 2. possibly split up sections into separate pages 
+ 3. add the set up and start up (a bit complicated for someone to follow along because master is not yet v44, and this tutorial is based on v44)
+
+	
 ## Set up
 ```
 a bit complicated for now becuase they have to clone a specific branch to work on v44
@@ -183,9 +190,9 @@ ModuleCdc = codec.NewAminoCodec(amino)
 
 ### Define our NewMsgCreateGreet type
 Now that we have set up our codec & keys files lets add some code for creating a new greeting, create a file ```x/greet/types/message_greet.go``` and add the following code:
+
 ```
 package  types
-
 
 import (
 	sdk  "github.com/cosmos/cosmos-sdk/types"
@@ -437,7 +444,7 @@ func  NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspac
 	}
 }
 ```
-
+Setting up the greet keeper
 ```x/greet/keeper/greet.go```: 
 
 ```
