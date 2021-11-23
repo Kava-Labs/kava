@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -35,7 +34,6 @@ func TestAuctionBidding(t *testing.T) {
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	buyer := addrs[0]
-	fmt.Println(buyer.String())
 	secondBuyer := addrs[1]
 	modName := "liquidator"
 	collateralAddrs := addrs[2:]
