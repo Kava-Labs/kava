@@ -111,8 +111,10 @@ func (suite *ModuleTestSuite) createCdps() {
 func (suite *ModuleTestSuite) setPrice(price sdk.Dec, market string) {
 	pfKeeper := suite.app.GetPriceFeedKeeper()
 
-	pfKeeper.SetPrice(suite.ctx, sdk.AccAddress{}, market, price, suite.ctx.BlockTime().Add(time.Hour*3))
-	err := pfKeeper.SetCurrentPrices(suite.ctx, market)
+	_, err := pfKeeper.SetPrice(suite.ctx, sdk.AccAddress{}, market, price, suite.ctx.BlockTime().Add(time.Hour*3))
+	suite.NoError(err)
+
+	err = pfKeeper.SetCurrentPrices(suite.ctx, market)
 	suite.NoError(err)
 	pp, err := pfKeeper.GetCurrentPrice(suite.ctx, market)
 	suite.NoError(err)
