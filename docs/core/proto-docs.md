@@ -196,6 +196,27 @@
     - [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState)
     - [GenesisState](#kava.incentive.v1beta1.GenesisState)
   
+- [kava/incentive/v1beta1/tx.proto](#kava/incentive/v1beta1/tx.proto)
+    - [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward)
+    - [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse)
+    - [MsgClaimDelegatorRewardVVesting](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVesting)
+    - [MsgClaimDelegatorRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVestingResponse)
+    - [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward)
+    - [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse)
+    - [MsgClaimHardRewardVVesting](#kava.incentive.v1beta1.MsgClaimHardRewardVVesting)
+    - [MsgClaimHardRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimHardRewardVVestingResponse)
+    - [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward)
+    - [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse)
+    - [MsgClaimSwapRewardVVesting](#kava.incentive.v1beta1.MsgClaimSwapRewardVVesting)
+    - [MsgClaimSwapRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardVVestingResponse)
+    - [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward)
+    - [MsgClaimUSDXMintingRewardResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse)
+    - [MsgClaimUSDXMintingRewardVVesting](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVesting)
+    - [MsgClaimUSDXMintingRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVestingResponse)
+    - [Selection](#kava.incentive.v1beta1.Selection)
+  
+    - [Msg](#kava.incentive.v1beta1.Msg)
+  
 - [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
     - [Asset](#kava.issuance.v1beta1.Asset)
     - [AssetSupply](#kava.issuance.v1beta1.AssetSupply)
@@ -2855,6 +2876,268 @@ GenesisState is the state that must be provided at genesis.
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/incentive/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/tx.proto
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorReward"></a>
+
+### MsgClaimDelegatorReward
+MsgClaimDelegatorReward message type used to claim delegator rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse"></a>
+
+### MsgClaimDelegatorRewardResponse
+MsgClaimDelegatorRewardResponse defines the Msg/ClaimDelegatorReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorRewardVVesting"></a>
+
+### MsgClaimDelegatorRewardVVesting
+MsgClaimDelegatorRewardVVesting message type used to claim delegator rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorRewardVVestingResponse"></a>
+
+### MsgClaimDelegatorRewardVVestingResponse
+MsgClaimDelegatorRewardVVestingResponse defines the Msg/ClaimDelegatorRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardReward"></a>
+
+### MsgClaimHardReward
+MsgClaimHardReward message type used to claim Hard liquidity provider rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardRewardResponse"></a>
+
+### MsgClaimHardRewardResponse
+MsgClaimHardRewardResponse defines the Msg/ClaimHardReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardRewardVVesting"></a>
+
+### MsgClaimHardRewardVVesting
+MsgClaimHardRewardVVesting message type used to claim Hard liquidity provider rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardRewardVVestingResponse"></a>
+
+### MsgClaimHardRewardVVestingResponse
+MsgClaimHardRewardVVestingResponse defines the Msg/ClaimHardRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapReward"></a>
+
+### MsgClaimSwapReward
+MsgClaimSwapReward message type used to claim delegator rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapRewardResponse"></a>
+
+### MsgClaimSwapRewardResponse
+MsgClaimSwapRewardResponse defines the Msg/ClaimSwapReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapRewardVVesting"></a>
+
+### MsgClaimSwapRewardVVesting
+MsgClaimSwapRewardVVesting message type used to claim delegator rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapRewardVVestingResponse"></a>
+
+### MsgClaimSwapRewardVVestingResponse
+MsgClaimSwapRewardVVestingResponse defines the Msg/ClaimSwapRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingReward"></a>
+
+### MsgClaimUSDXMintingReward
+MsgClaimUSDXMintingReward message type used to claim USDX minting rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `multiplier_name` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse"></a>
+
+### MsgClaimUSDXMintingRewardResponse
+MsgClaimUSDXMintingRewardResponse defines the Msg/ClaimUSDXMintingReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVesting"></a>
+
+### MsgClaimUSDXMintingRewardVVesting
+MsgClaimUSDXMintingRewardVVesting message type used to claim USDX minting rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `multiplier_name` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVestingResponse"></a>
+
+### MsgClaimUSDXMintingRewardVVestingResponse
+MsgClaimUSDXMintingRewardVVestingResponse defines the Msg/ClaimUSDXMintingRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.Selection"></a>
+
+### Selection
+Selection is a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a
+denom.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `multiplier_name` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.incentive.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the incentive Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `ClaimUSDXMintingReward` | [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward) | [MsgClaimUSDXMintingRewardResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse) | ClaimUSDXMintingReward is a message type used to claim USDX minting rewards | |
+| `ClaimUSDXMintingRewardVVesting` | [MsgClaimUSDXMintingRewardVVesting](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVesting) | [MsgClaimUSDXMintingRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVestingResponse) | ClaimUSDXMintingRewardVVesting is a message type used to claim USDX minting rewards for validator vesting accounts | |
+| `ClaimHardReward` | [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward) | [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse) | ClaimHardReward is a message type used to claim Hard liquidity provider rewards | |
+| `ClaimHardRewardVVesting` | [MsgClaimHardRewardVVesting](#kava.incentive.v1beta1.MsgClaimHardRewardVVesting) | [MsgClaimHardRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimHardRewardVVestingResponse) | ClaimHardRewardVVesting is a message type used to claim Hard liquidity provider rewards for validator vesting accounts | |
+| `ClaimDelegatorReward` | [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward) | [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse) | ClaimDelegatorReward is a message type used to claim delegator rewards | |
+| `ClaimDelegatorRewardVVesting` | [MsgClaimDelegatorRewardVVesting](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVesting) | [MsgClaimDelegatorRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVestingResponse) | ClaimDelegatorRewardVVesting is a message type used to claim delegator rewards for validator vesting accounts | |
+| `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim delegator rewards | |
+| `ClaimSwapRewardVVesting` | [MsgClaimSwapRewardVVesting](#kava.incentive.v1beta1.MsgClaimSwapRewardVVesting) | [MsgClaimSwapRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardVVestingResponse) | ClaimSwapRewardVVesting is a message type used to claim delegator rewards for validator vesting accounts | |
 
  <!-- end services -->
 
