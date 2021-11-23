@@ -15,11 +15,11 @@ import (
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
-// GetTxCmd returns the transaction cli commands for the issuance module
+// GetTxCmd returns the transaction cli commands for this module
 func GetTxCmd() *cobra.Command {
-	issuanceTxCmd := &cobra.Command{
+	txCmd := &cobra.Command{
 		Use:   types.ModuleName,
-		Short: "transaction commands for the issuance module",
+		Short: "transaction commands for the auction module",
 	}
 
 	cmds := []*cobra.Command{
@@ -30,9 +30,9 @@ func GetTxCmd() *cobra.Command {
 		flags.AddTxFlagsToCmd(cmd)
 	}
 
-	issuanceTxCmd.AddCommand(cmds...)
+	txCmd.AddCommand(cmds...)
 
-	return issuanceTxCmd
+	return txCmd
 
 }
 
