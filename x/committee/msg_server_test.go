@@ -103,7 +103,7 @@ func (suite *MsgServerTestSuite) TestSubmitProposalMsg_Valid() {
 	res, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), msg)
 
 	suite.NoError(err)
-	_, found := suite.keeper.GetProposal(suite.ctx, res.ID)
+	_, found := suite.keeper.GetProposal(suite.ctx, res.ProposalID)
 	suite.True(found)
 }
 
@@ -153,7 +153,7 @@ func (suite *MsgServerTestSuite) TestSubmitProposalMsg_ValidUpgrade() {
 	res, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), msg)
 
 	suite.NoError(err)
-	_, found := suite.keeper.GetProposal(suite.ctx, res.ID)
+	_, found := suite.keeper.GetProposal(suite.ctx, res.ProposalID)
 	suite.True(found)
 }
 
@@ -195,7 +195,7 @@ func (suite *MsgServerTestSuite) TestSubmitProposalMsgAndVote() {
 	res, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), msg)
 	suite.Require().NoError(err)
 
-	proposal, found := suite.keeper.GetProposal(suite.ctx, res.ID)
+	proposal, found := suite.keeper.GetProposal(suite.ctx, res.ProposalID)
 	suite.Require().True(found)
 
 	msgVote := types.NewMsgVote(suite.addresses[0], proposal.ID, types.VOTE_TYPE_YES)

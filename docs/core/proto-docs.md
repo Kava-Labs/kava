@@ -2483,7 +2483,7 @@ MsgSubmitProposalResponse defines the SubmitProposal response type
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `id` | [uint64](#uint64) |  |  |
+| `proposal_id` | [uint64](#uint64) |  |  |
 
 
 

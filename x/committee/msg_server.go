@@ -43,7 +43,7 @@ func (m msgServer) SubmitProposal(goCtx context.Context, msg *types.MsgSubmitPro
 		),
 	)
 
-	return &types.MsgSubmitProposalResponse{ID: proposalID}, nil
+	return &types.MsgSubmitProposalResponse{ProposalID: proposalID}, nil
 }
 
 // Vote handles MsgVote messages

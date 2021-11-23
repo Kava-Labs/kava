@@ -27,7 +27,7 @@ message MsgSubmitProposal {
 
 // MsgSubmitProposalResponse defines the SubmitProposal response type
 message MsgSubmitProposalResponse {
-  uint64 id = 1 [(gogoproto.customname) = "ID"];
+  uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
 }
 
 // MsgVote is submitted by committee members to vote on proposals.
