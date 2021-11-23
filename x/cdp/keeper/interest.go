@@ -11,8 +11,6 @@ import (
 
 var (
 	scalingFactor = 1e18
-	// TODO: Seems to be unused, can remove?
-	// secondsPerYear = 31536000
 )
 
 // AccumulateInterest calculates the new interest that has accrued for the input collateral type based on the total amount of principal
