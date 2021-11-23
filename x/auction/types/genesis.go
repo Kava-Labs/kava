@@ -3,9 +3,9 @@ package types
 import (
 	"fmt"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	proto "github.com/gogo/protobuf/proto"
 )
 
 // DefaultNextAuctionID is the starting point for auction IDs.
@@ -23,11 +23,7 @@ type GenesisAuction interface {
 func PackGenesisAuctions(ga []GenesisAuction) ([]*types.Any, error) {
 	gaAny := make([]*types.Any, len(ga))
 	for i, genesisAuction := range ga {
-		msg, ok := genesisAuction.(proto.Message)
-		if !ok {
-			return nil, fmt.Errorf("cannot proto marshal %T", genesisAuction)
-		}
-		any, err := types.NewAnyWithValue(msg)
+		any, err := types.NewAnyWithValue(genesisAuction)
 		if err != nil {
 			return nil, err
 		}
@@ -35,6 +31,14 @@ func PackGenesisAuctions(ga []GenesisAuction) ([]*types.Any, error) {
 	}
 
 	return gaAny, nil
+}
+
+func mustPackGenesisAuctions(ga []GenesisAuction) []*types.Any {
+	anys, err := PackGenesisAuctions(ga)
+	if err != nil {
+		panic(err)
+	}
+	return anys
 }
 
 // UnpackGenesisAuctions converts Any slice to GenesisAuctions slice
@@ -51,6 +55,9 @@ func UnpackGenesisAuctions(genesisAuctionsAny []*types.Any) ([]GenesisAuction, e
 	return genesisAuctions, nil
 }
 
+// Ensure this type will unpack contained interface types correctly when it is unmarshalled.
+var _ codectypes.UnpackInterfacesMessage = &GenesisState{}
+
 // NewGenesisState returns a new genesis state object for auctions module.
 func NewGenesisState(nextID uint64, ap Params, ga []GenesisAuction) (*GenesisState, error) {
 	packedGA, err := PackGenesisAuctions(ga)
@@ -66,12 +73,16 @@ func NewGenesisState(nextID uint64, ap Params, ga []GenesisAuction) (*GenesisSta
 }
 
 // DefaultGenesisState returns the default genesis state for auction module.
-func DefaultGenesisState() (*GenesisState, error) {
-	return NewGenesisState(
+func DefaultGenesisState() *GenesisState {
+	genesis, err := NewGenesisState(
 		DefaultNextAuctionID,
 		DefaultParams(),
 		[]GenesisAuction{},
 	)
+	if err != nil {
+		panic(fmt.Sprintf("could not create default genesis state: %v", err))
+	}
+	return genesis
 }
 
 // Validate validates genesis inputs. It returns error if validation of any input fails.
@@ -99,6 +110,18 @@ func (gs GenesisState) Validate() error {
 
 		if a.GetID() >= gs.NextAuctionId {
 			return fmt.Errorf("found auction ID ≥ the nextAuctionID (%d ≥ %d)", a.GetID(), gs.NextAuctionId)
+		}
+	}
+	return nil
+}
+
+// UnpackInterfaces hooks into unmarshalling to unpack any interface types contained within the GenesisState.
+func (gs GenesisState) UnpackInterfaces(unpacker types.AnyUnpacker) error {
+	for _, any := range gs.Auctions {
+		var auction GenesisAuction
+		err := unpacker.UnpackAny(any, &auction)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
