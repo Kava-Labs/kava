@@ -6,7 +6,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	proto "github.com/gogo/protobuf/proto"
 )
 
 // DefaultNextAuctionID is the starting point for auction IDs.
@@ -24,11 +23,7 @@ type GenesisAuction interface {
 func PackGenesisAuctions(ga []GenesisAuction) ([]*types.Any, error) {
 	gaAny := make([]*types.Any, len(ga))
 	for i, genesisAuction := range ga {
-		msg, ok := genesisAuction.(proto.Message)
-		if !ok {
-			return nil, fmt.Errorf("cannot proto marshal %T", genesisAuction)
-		}
-		any, err := types.NewAnyWithValue(msg)
+		any, err := types.NewAnyWithValue(genesisAuction)
 		if err != nil {
 			return nil, err
 		}
