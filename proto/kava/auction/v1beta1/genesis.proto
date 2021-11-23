@@ -22,7 +22,6 @@ message GenesisState {
 
 // Params defines the parameters for the issuance module.
 message Params {
-  option (gogoproto.goproto_stringer) = false;
 
   google.protobuf.Duration max_auction_duration = 1 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 
