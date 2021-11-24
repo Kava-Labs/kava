@@ -293,7 +293,7 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
-			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)})
+			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)})
 			if tc.args.accArgs.vestingAccountBefore {
 				ak := tApp.GetAccountKeeper()
 				acc := ak.GetAccount(ctx, tc.args.accArgs.addr)

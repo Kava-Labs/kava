@@ -372,8 +372,8 @@ func (suite *KeeperTestSuite) TestBorrow() {
 
 			// Initialize test application
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)})
+				app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)})
 
 			// Mint coins to hard module account
 			bankKeeper := tApp.GetBankKeeper()
@@ -506,8 +506,8 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 	// Initialize test application
 	tApp.InitializeFromGenesisStates(
 		authGS,
-		app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
-		app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)},
+		app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+		app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)},
 	)
 
 	keeper := tApp.GetHardKeeper()

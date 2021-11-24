@@ -121,7 +121,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		func() {
 			suite.app.InitializeFromGenesisStatesWithTime(
 				suite.genTime,
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGenesis)},
+				app.GenesisState{types.ModuleName: suite.app.AppCodec().MustMarshalJSON(&hardGenesis)},
 			)
 		},
 	)
