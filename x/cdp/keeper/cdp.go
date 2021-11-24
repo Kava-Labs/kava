@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/json"
 	"fmt"
 	"sort"
 
@@ -198,12 +197,9 @@ func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint6
 		return []uint64{}, false
 	}
 
-	// TODO: Must match IndexCdpByOwner
-	var cdpIDs []uint64
-	if err := json.Unmarshal(bz, &cdpIDs); err != nil {
-		panic(err)
-	}
-	return cdpIDs, true
+	var index types.OwnerCDPIndex
+	k.cdc.MustUnmarshal(bz, &index)
+	return index.CdpIDs, true
 }
 
 // GetCdpByOwnerAndCollateralType queries cdps owned by owner and returns the cdp with matching denom
@@ -314,24 +310,15 @@ func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
 
 	cdpIDs, found := k.GetCdpIdsByOwner(ctx, cdp.Owner)
 
-	if !found {
-		// TODO: Is using json.Marshal fine here? Have not found a good alternative
-		idBytes, err := json.Marshal([]uint64{cdp.ID})
-		if err != nil {
-			panic(err)
-		}
-		store.Set(cdp.Owner, idBytes)
-		return
-	}
-	cdpIDs = append(cdpIDs, cdp.ID)
-	sort.Slice(cdpIDs, func(i, j int) bool { return cdpIDs[i] < cdpIDs[j] })
-
-	cdpIDsBytes, err := json.Marshal(cdpIDs)
-	if err != nil {
-		panic(err)
+	if found {
+		cdpIDs = append(cdpIDs, cdp.ID)
+		sort.Slice(cdpIDs, func(i, j int) bool { return cdpIDs[i] < cdpIDs[j] })
+	} else {
+		cdpIDs = []uint64{cdp.ID}
 	}
 
-	store.Set(cdp.Owner, cdpIDsBytes)
+	newIndex := types.OwnerCDPIndex{CdpIDs: cdpIDs}
+	store.Set(cdp.Owner, k.cdc.MustMarshal(&newIndex))
 }
 
 // RemoveCdpOwnerIndex deletes the cdp id from the store's index of cdps by owner
@@ -353,11 +340,9 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 		return
 	}
 
-	updatedCdpIdsBytes, err := json.Marshal(updatedCdpIds)
-	if err != nil {
-		panic(err)
-	}
-	store.Set(cdp.Owner, updatedCdpIdsBytes)
+	updatedIndex := types.OwnerCDPIndex{CdpIDs: updatedCdpIds}
+	updatedBytes := k.cdc.MustMarshal(&updatedIndex)
+	store.Set(cdp.Owner, updatedBytes)
 }
 
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
