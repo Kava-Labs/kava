@@ -25,7 +25,7 @@ const (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group nameservice queries under a subcommand
 	cdpQueryCmd := &cobra.Command{
 		Use:   "cdp",
@@ -33,11 +33,11 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	}
 
 	cmds := []*cobra.Command{
-		QueryCdpCmd(queryRoute),
-		QueryGetCdpsCmd(queryRoute),
-		QueryCdpDepositsCmd(queryRoute),
-		QueryParamsCmd(queryRoute),
-		QueryGetAccounts(queryRoute),
+		QueryCdpCmd(),
+		QueryGetCdpsCmd(),
+		QueryCdpDepositsCmd(),
+		QueryParamsCmd(),
+		QueryGetAccounts(),
 	}
 
 	for _, cmd := range cmds {
@@ -50,7 +50,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 }
 
 // QueryCdpCmd returns the command handler for querying a particular cdp
-func QueryCdpCmd(queryRoute string) *cobra.Command {
+func QueryCdpCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "cdp [owner-addr] [collateral-type]",
 		Short: "get info about a cdp",
@@ -88,7 +88,7 @@ $ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw atom-a
 }
 
 // QueryGetCdpsCmd queries the cdps in the store
-func QueryGetCdpsCmd(queryRoute string) *cobra.Command {
+func QueryGetCdpsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cdps",
 		Short: "query cdps with optional filters",
@@ -184,7 +184,7 @@ $ kvcli q cdp cdps --page=2 --limit=100
 }
 
 // QueryCdpDepositsCmd returns the command handler for querying the deposits of a particular cdp
-func QueryCdpDepositsCmd(queryRoute string) *cobra.Command {
+func QueryCdpDepositsCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "deposits [owner-addr] [collateral-type]",
 		Short: "get deposits for a cdp",
@@ -222,7 +222,7 @@ $ %s query %s deposits kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw atom-a
 }
 
 // QueryParamsCmd returns the command handler for cdp parameter querying
-func QueryParamsCmd(queryRoute string) *cobra.Command {
+func QueryParamsCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "params",
 		Short: "get the cdp module parameters",
@@ -247,7 +247,7 @@ func QueryParamsCmd(queryRoute string) *cobra.Command {
 }
 
 // QueryGetAccounts queries CDP module accounts
-func QueryGetAccounts(queryRoute string) *cobra.Command {
+func QueryGetAccounts() *cobra.Command {
 	return &cobra.Command{
 		Use:   "accounts",
 		Short: "get module accounts",
