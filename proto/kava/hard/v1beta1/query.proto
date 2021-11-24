@@ -77,14 +77,14 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryModAccountsRequest is the request type for the Query/ModAccounts RPC method.
+// QueryAccountsRequest is the request type for the Query/Accounts RPC method.
 message QueryAccountsRequest {
   string name = 1;
 
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
-// QueryModAccountsResponse is the response type for the Query/ModAccounts RPC method.
+// QueryAccountsResponse is the response type for the Query/Accounts RPC method.
 message QueryAccountsResponse {
   repeated cosmos.auth.v1beta1.ModuleAccount accounts   = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse     pagination = 2;
