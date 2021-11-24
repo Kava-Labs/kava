@@ -14,19 +14,16 @@ Draft!:
 a bit complicated for now becuase they have to clone a specific branch to work on v44
 we can either have them do that or wait unit we are running v44 in master
 ```
-## Defining protobuf Types 
+## Defining Protocol Buffer Types 
 
 The first step in building a new Kava Module is to define our Module's types. To do that we use Protocol Buffers which is a used for serializing structured data and generating code for multiple target languages, Protocol Buffers are also smaller than JSON & XML so sending data around the network will be less expensive. [Learn More](https://developers.google.com/protocol-buffers). 
 
 Our Protobuf files will all live in ```proto/kava``` directory.  we will create a new directory with the new module ```greet``` and add the following files in the ```proto/greet/v1beta1/``` directory
 ```
-├── ...
-├── proto                 # Contains .proto files for all modules
-│   ├── kava ├── greet ├── v1beta1 ├── |genesis.proto
-|	...								   |greet.proto
-|	...								   |query.proto
-|	...								   |tx.proto
-|   ... 
+genesis.proto
+greet.proto
+query.proto
+tx.proto
 ```
 ### Defining The Greet Type
 Inside the ```proto/greet/v1beta1/greet.proto``` file lets define our greet type: 
@@ -43,7 +40,7 @@ string id = 2;
 string message = 3;
 }
 ```
-Here we are saying that we have a Greet type that will have an owner, an id and a message that will contain the greet string. Once we have that define we are ready to set up a way to create this greet message and query it.  
+Here we are saying that we have a Greet type that will have an owner, an id and a message that will contain the greet string. Once we have that defined we are ready to set up a way to create this greet message and query it.  
 
 ### Creating a new Greeting 
 Inside the ```proto/greet/v1beta1/tx.proto``` file lets define our Msg Type: 
@@ -69,9 +66,12 @@ string owner = 2;
 // we will leave our response type empty 
 message  MsgCreateGreetResponse { }
 ```
-Now that we have defined how to create a new Greeting lets finish up by setting up our queries to view a specific greeting or all of them.
+Now that we have defined how to create a new Greeting let's finish up by setting up our queries to view a specific greeting or all of them.
+
+One thing to note here is that any state changing actions are transactions and for that reason we put them in our ```tx.proto``` files, we essentially said we are creating a new state changing message & defined the types for that message in our proto file, we will later add clients to trigger state change, which in our case will be adding a new message to our chain. 
 
 ### Querying Greetings 
+Code inside the ```proto/greet/v1beta1/query.proto``` : 
 ```
 syntax = "proto3";
 package  kava.greet.v1beta1;
@@ -86,7 +86,7 @@ import  "kava/greet/v1beta1/greet.proto";
 
 service  Query {
 	// Greet will take and input of type QueryGetGreetRequest and return QueryGetGreetResponse
-
+	
 	rpc  Greet(QueryGetGreetRequest) returns (QueryGetGreetResponse) {
 	// this is the endpoint for our Greet service
 	option  (google.api.http).get = "/kava/greet/v1beta1/greetings/{id}";
@@ -120,8 +120,9 @@ repeated  Greet greetings = 1;
 cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 ```
+Our ```query.proto``` now contains the types for our queries, we have defined a request type  & a response type and those types will be returned once we trigger a query through the CLI, REST API, or Grpc. The response will follow the same structure regardless of the type of client initiating the request. 
 
-Once we have now defined our query, tx, and greet proto files we finally need to set up the genesis.proto file and then we are ready to generate these types in the genesis file we will create a basic genesis that doesn't do anything for now. 
+We defined our query, tx, and greet proto files we finally need to set up the genesis file and then we are ready to generate these types. In the genesis file we will create a minimal ```genesis.proto``` for this tutorial to keep things simple. 
 ```
 syntax = "proto3";
 package  kava.greet.v1beta1;
@@ -135,7 +136,7 @@ message  GenesisState {}
 ```
 Once all the files are filled in we are ready to generate our proto types. in the Kava Directory run ```make proto-gen ``` to generate the types, this will create a folder inside the ```x/greet``` and will contain the auto-generated proto types. 
 
-### Developing Our Greet Module
+## Developing Our Greet Module
 
 First thing we will do is set up our greet module's keys we will create a new file ```x/greet/types/keys.go```, and populate this with keys for the greet module, we will use these keys later as we build our module. 
 ```
@@ -155,14 +156,14 @@ func  KeyPrefix(p string) []byte {
 }
 ```
 
-Once we have our keys set up let's create our codec which will handle serialization of our data and register our protobuf types and interfaces.
+Once we have our keys set up let's create our codec which will handle serialization of our data and register our Protocol Buffer types.
 
 Create   ```x/greet/types/codec.go``` file and add the code below: 
 ```
 package  types
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec" 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	sdk  "github.com/cosmos/cosmos-sdk/types"
@@ -187,6 +188,8 @@ amino = codec.NewLegacyAmino()
 ModuleCdc = codec.NewAminoCodec(amino)
 )
 ```
+As seen above this code is all about registering your Protocol Buffer generated types and teaching your application how to handle these types. 
+
 
 ### Define our NewMsgCreateGreet type
 Now that we have set up our codec & keys files lets add some code for creating a new greeting, create a file ```x/greet/types/message_greet.go``` and add the following code:
@@ -201,7 +204,8 @@ import (
 
 var _ sdk.Msg =  &MsgCreateGreet{}
 
-// this is our "constructor" for a new greeting 
+// this is our "constructor" for a new greeting this will return a message that will 
+// have all the methods defined below Route, Type, GetSigners, GetSignBytes, ValidateBasic
 func  NewMsgCreateGreet(owner string, message string) *MsgCreateGreet {
 		return  &MsgCreateGreet{
 		Owner: owner,
@@ -209,7 +213,6 @@ func  NewMsgCreateGreet(owner string, message string) *MsgCreateGreet {
 	}
 }
 
-  
  // returns our RouterKey which is "greet"
 func (msg MsgCreateGreet) Route() string {
 	return RouterKey
@@ -220,7 +223,6 @@ func (msg MsgCreateGreet) Route() string {
 func (msg MsgCreateGreet) Type() string {
 	return  "CreateGreet"
 }
-
   
 // get the signer of msg
 func (msg MsgCreateGreet) GetSigners() []sdk.AccAddress {
@@ -230,15 +232,12 @@ func (msg MsgCreateGreet) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{owner}
 }
-
   
 // marshals the msg
 func (msg *MsgCreateGreet) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
-
-  
 
 // does basic msg validation 
 func (msg MsgCreateGreet) ValidateBasic() error {
@@ -249,14 +248,16 @@ func (msg MsgCreateGreet) ValidateBasic() error {
 	if  len(msg.Message) ==  0 {
 		return sdkerrors.Wrapf(sdkerrors.Error{ }, "must provide greeting message")
 	}
-
 	return  nil
 }
 ```
+As you can see above, this code is all about the ```&MsgCreateGreet{}``` and all these functions are "receiver functions" in Go. They can be thought of as a collection of useful method on our ```&MsgCreateGreet{}``` type, such as getting the signer of the new message or doing a basic validation, etc. 
 
-### Setting up a create-greet command 
 
-In order for users to interact with out new module, we will create a command to create a new greeting that will live in the following folder so let's create it and write down some code in  ```/x/greet/client/cli/tx.go```:
+## Setting up Commands
+
+### Creating a new greeting
+In order for users to interact with our new module, we will create a command to create a new greeting that will live in the following folder so let's create it and write down some code in there ```/x/greet/client/cli/tx.go```:
 
 ```
 package  cli
@@ -323,8 +324,12 @@ func  CmdCreateGreet() *cobra.Command {
 	return cmd
 }
 ```
-### Setting up query commands 
-```/x/greet/client/cli/query.go```:
+
+
+### Querying Our Greetings 
+Just as we set up a way for user's to interact with our blockchain and creating a new greeting, now we have to wire up a way for user's to be able to query our greetings, below we will set up a way for user's to get a particular  greeting by it's ```Id``` or alternatively get a list of all the greetings created. 
+
+Inside ```/x/greet/client/cli/query.go```:
 ```
 package  cli
 
@@ -414,9 +419,10 @@ func  CmdShowGreet() *cobra.Command {
 ```
 
 
-## Setting Up Keeper
+## Setting Up The Module's Keeper
+A keeper can be thought of as a guard or a gatekeeper for your module, it has access to the underlying store for your module, and can allow or disallow other module's from accessing your module's store. For this Tutorial we will keep things simple and simply use our Keeper as a store for our greetings. 
 
-```x/greet/keeper/keeper.go```
+First We will create our keeper type and constructor inside  ```x/greet/keeper/keeper.go```:
 
 ```
 package  keeper
@@ -425,7 +431,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk  "github.com/cosmos/cosmos-sdk/types"
 	paramtypes  "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/kava-labs/kava/x/swap/types"
+	"github.com/kava-labs/kava/x/greet/types"
 )
 
 type (
@@ -444,9 +450,7 @@ func  NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspac
 	}
 }
 ```
-Setting up the greet keeper
-```x/greet/keeper/greet.go```: 
-
+Now it's time to set up our storage layer for our greet module inside ```x/greet/keeper/greet.go```: 
 ```
 package  keeper
 
@@ -456,7 +460,7 @@ import (
 	 sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/greet/types"
 )  
-
+// gets the amount of greetings stored 
 func (k Keeper) GetGreetCount(ctx sdk.Context) int64 {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetCountKey))
 	byteKey := types.KeyPrefix(types.GreetCountKey)
@@ -470,7 +474,7 @@ func (k Keeper) GetGreetCount(ctx sdk.Context) int64 {
 	}
 	return count
 }
-
+// increments out greet amount by ```count```
 func (k Keeper) SetGreetCount(ctx sdk.Context, count int64){
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetCountKey))
 	byteKey := types.KeyPrefix(types.GreetCountKey)
@@ -478,10 +482,11 @@ func (k Keeper) SetGreetCount(ctx sdk.Context, count int64){
 	store.Set(byteKey, bz)
 }
 
+// stores a newly created greeting 
 func (k Keeper) CreateGreet(ctx sdk.Context, msg types.MsgCreateGreet){
-	count := k.GetGreetCount(ctx)
+	count := k.GetGreetCount(ctx) // using our count to create an Id 
 	var greet = types.Greet{
-	Id: strconv.FormatInt(count, 10),
+	Id: strconv.FormatInt(count, 10), // Id is our count 
 	Owner: msg.Owner,
 	Message: msg.Message,
 	}
@@ -489,10 +494,10 @@ func (k Keeper) CreateGreet(ctx sdk.Context, msg types.MsgCreateGreet){
 	key := types.KeyPrefix(types.GreetKey + greet.Id)
 	value := k.cdc.MustMarshal(&greet)
 	store.Set(key, value)
-	k.SetGreetCount(ctx, count +  1)
+	k.SetGreetCount(ctx, count +  1) // increments count by 1 
 }
 
- 
+ // gets the greeting from the store
 func (k Keeper) GetGreet(ctx sdk.Context, key string) types.Greet {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetKey))
 	var Greet types.Greet
@@ -500,16 +505,18 @@ func (k Keeper) GetGreet(ctx sdk.Context, key string) types.Greet {
 	return Greet
 }
 
+// checks if a greeting exists in the store
 func (k Keeper) HasGreet(ctx sdk.Context, id string) bool {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetKey))
 	return store.Has(types.KeyPrefix(types.GreetKey + id))
 }
 
-
+// returns the owner of a particular greeting 
 func (k Keeper) GetGreetOwner(ctx sdk.Context, key string) string{
 	return k.GetGreet(ctx, key).Owner
 }
 
+// returns all greetings from our store
 func (k Keeper) GetAllGreet(ctx sdk.Context) (msgs []types.Greet){
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetKey))
 	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefix(types.GreetKey))
@@ -523,8 +530,8 @@ func (k Keeper) GetAllGreet(ctx sdk.Context) (msgs []types.Greet){
 }
 ```
 
-```x/greet/query_greet.go```:
-
+We set up our store in the keeper, now we just have to add a few wrapper functions that will call these functions used for querying our store. 
+Inside ```x/greet/query_greet.go```:
 ```
 package  keeper
 
@@ -552,30 +559,21 @@ func  listGreet(ctx sdk.Context, keeper Keeper, legacyQuerierCdc *codec.LegacyAm
 }
 ```
 
+Now let's set up our querier inside which will call the two different functions ```getGreet``` & ```listGreet``` we defined above.
 
-```x/greet/querier.go```:
+ Inside ```x/greet/querier.go```:
 
 ```
 package  keeper
 
-  
-
 import (
-
 "github.com/cosmos/cosmos-sdk/codec"
-
 sdk  "github.com/cosmos/cosmos-sdk/types"
-
 sdkerrors  "github.com/cosmos/cosmos-sdk/types/errors"
-
 abci  "github.com/tendermint/tendermint/abci/types"
-
 "github.com/kava-labs/kava/x/greet/types"
-
 )
 
-  
-  
 
 func  NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 		return  func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
@@ -590,9 +588,7 @@ func  NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	}
 }
 ```
-
-```x/greet/types/query.go```:
-
+Now lets define these two queries inside ```x/greet/types/query.go```:
 ```
 package  types
 
