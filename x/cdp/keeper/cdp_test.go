@@ -365,6 +365,31 @@ func (suite *CdpTestSuite) TestCdpOwnerIndex() {
 	suite.Require().Equal([]uint64{}, expectedCdpIds)
 }
 
+func (suite *CdpTestSuite) TestMarketStatus() {
+	suite.keeper.SetMarketStatus(suite.ctx, "ukava:usd", true)
+	status := suite.keeper.GetMarketStatus(suite.ctx, "ukava:usd")
+	suite.Require().True(status)
+	suite.keeper.SetMarketStatus(suite.ctx, "ukava:usd", false)
+	status = suite.keeper.GetMarketStatus(suite.ctx, "ukava:usd")
+	suite.Require().False(status)
+	suite.keeper.SetMarketStatus(suite.ctx, "ukava:usd", true)
+	status = suite.keeper.GetMarketStatus(suite.ctx, "ukava:usd")
+	suite.Require().True(status)
+
+	status = suite.keeper.GetMarketStatus(suite.ctx, "unknown:usd")
+	suite.Require().False(status)
+
+	suite.keeper.SetMarketStatus(suite.ctx, "btc:usd", false)
+	status = suite.keeper.GetMarketStatus(suite.ctx, "btc:usd")
+	suite.Require().False(status)
+	suite.keeper.SetMarketStatus(suite.ctx, "btc:usd", true)
+	status = suite.keeper.GetMarketStatus(suite.ctx, "btc:usd")
+	suite.Require().True(status)
+	suite.keeper.SetMarketStatus(suite.ctx, "btc:usd", false)
+	status = suite.keeper.GetMarketStatus(suite.ctx, "btc:usd")
+	suite.Require().False(status)
+}
+
 func TestCdpTestSuite(t *testing.T) {
 	suite.Run(t, new(CdpTestSuite))
 }

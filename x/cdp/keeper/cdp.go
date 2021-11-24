@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	gogotypes "github.com/gogo/protobuf/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -618,17 +617,18 @@ func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context
 // SetMarketStatus sets the status of the input market, true means the market is up and running, false means it is down
 func (k Keeper) SetMarketStatus(ctx sdk.Context, marketID string, up bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PricefeedStatusKeyPrefix)
-	store.Set([]byte(marketID), k.cdc.MustMarshal(&gogotypes.BoolValue{Value: up}))
+	if up {
+		store.Set([]byte(marketID), []byte{})
+	} else {
+		store.Delete([]byte(marketID))
+	}
 }
 
 // GetMarketStatus returns true if the market has a price, otherwise false
 func (k Keeper) GetMarketStatus(ctx sdk.Context, marketID string) bool {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PricefeedStatusKeyPrefix)
 	bz := store.Get([]byte(marketID))
-
-	var status gogotypes.BoolValue
-	k.cdc.MustUnmarshal(bz, &status)
-	return status.Value
+	return bz != nil
 }
 
 // UpdatePricefeedStatus determines if the price of an asset is available and updates the global status of the market
