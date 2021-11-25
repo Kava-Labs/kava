@@ -75,6 +75,7 @@
 - [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
     - [CDP](#kava.cdp.v1beta1.CDP)
     - [Deposit](#kava.cdp.v1beta1.Deposit)
+    - [OwnerCDPIndex](#kava.cdp.v1beta1.OwnerCDPIndex)
     - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
     - [TotalPrincipal](#kava.cdp.v1beta1.TotalPrincipal)
   
@@ -1212,6 +1213,21 @@ Deposit defines an amount of coins deposited by an account to a cdp
 
 
 
+<a name="kava.cdp.v1beta1.OwnerCDPIndex"></a>
+
+### OwnerCDPIndex
+OwnerCDPIndex defines the cdp ids for a single cdp owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp_ids` | [uint64](#uint64) | repeated |  |
+
+
+
+
+
+
 <a name="kava.cdp.v1beta1.TotalCollateral"></a>
 
 ### TotalCollateral
@@ -1682,6 +1698,11 @@ MsgCreateCDP defines a message to create a new CDP.
 
 ### MsgCreateCDPResponse
 MsgCreateCDPResponse defines the Msg/CreateCDP response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp_id` | [uint64](#uint64) |  |  |
 
 
 

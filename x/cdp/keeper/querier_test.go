@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"math/rand"
 	"sort"
 	"strings"
@@ -10,11 +9,13 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
-	supply "github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/cosmos/cosmos-sdk/types/simulation"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -39,26 +40,26 @@ type QuerierTestSuite struct {
 	augmentedCDPs   types.AugmentedCDPs
 	ctx             sdk.Context
 	querier         sdk.Querier
+	cdc             codec.Codec
+	legacyAmino     codec.LegacyAmino
 }
 
 func (suite *QuerierTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.cdc = tApp.AppCodec()
+	suite.legacyAmino = *tApp.LegacyAmino()
+
 	cdps := make(types.CDPs, 100)
 	augmentedCDPs := make(types.AugmentedCDPs, 100)
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
-	coins := []sdk.Coins{}
+	coins := cs(c("btc", 10000000000), c("xrp", 10000000000))
 
-	for j := 0; j < 100; j++ {
-		coins = append(coins, cs(c("btc", 10000000000), c("xrp", 10000000000)))
-	}
-
-	authGS := app.NewAuthGenState(
-		addrs, coins)
+	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	tApp.InitializeFromGenesisStates(
 		authGS,
-		NewPricefeedGenStateMulti(),
-		NewCDPGenStateHighDebtLimit(),
+		NewPricefeedGenStateMulti(suite.cdc),
+		NewCDPGenStateHighDebtLimit(suite.cdc),
 	)
 
 	suite.ctx = ctx
@@ -109,7 +110,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 
 	suite.cdps = cdps
 	suite.augmentedCDPs = augmentedCDPs
-	suite.querier = keeper.NewQuerier(suite.keeper)
+	suite.querier = keeper.NewQuerier(suite.keeper, tApp.LegacyAmino())
 	suite.addrs = addrs
 }
 
@@ -117,19 +118,19 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdp}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, suite.cdps[0].Type)),
+		Data: suite.legacyAmino.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, suite.cdps[0].Type)),
 	}
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdp}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
 
 	var c types.AugmentedCDP
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &c))
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &c))
 	suite.Equal(suite.augmentedCDPs[0], c)
 
 	query = abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdp}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, "lol-a")),
+		Data: suite.legacyAmino.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, "lol-a")),
 	}
 	_, err = suite.querier(ctx, []string{types.QueryGetCdp}, query)
 	suite.Error(err)
@@ -147,7 +148,7 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 
 	query = abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdp}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, "xrp-a")),
+		Data: suite.legacyAmino.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, "xrp-a")),
 	}
 	_, err = suite.querier(ctx, []string{types.QueryGetCdp}, query)
 	suite.Error(err)
@@ -158,19 +159,19 @@ func (suite *QuerierTestSuite) TestQueryCdpsByCollateralType() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpsByCollateralType}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsByCollateralTypeParams(suite.cdps[0].Type)),
+		Data: suite.legacyAmino.MustMarshalJSON(types.NewQueryCdpsByCollateralTypeParams(suite.cdps[0].Type)),
 	}
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdpsByCollateralType}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
 
 	var c types.AugmentedCDPs
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &c))
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &c))
 	suite.Equal(50, len(c))
 
 	query = abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpsByCollateralType}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsByCollateralTypeParams("lol-a")),
+		Data: suite.legacyAmino.MustMarshalJSON(types.NewQueryCdpsByCollateralTypeParams("lol-a")),
 	}
 	_, err = suite.querier(ctx, []string{types.QueryGetCdpsByCollateralType}, query)
 	suite.Error(err)
@@ -203,7 +204,7 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpsByCollateralization}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsByRatioParams("xrp-a", xrpRatio)),
+		Data: suite.legacyAmino.MustMarshalJSON(types.NewQueryCdpsByRatioParams("xrp-a", xrpRatio)),
 	}
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdpsByCollateralization}, query)
 	suite.Nil(err)
@@ -211,7 +212,7 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 
 	var c types.AugmentedCDPs
 	actualXrpIds := []int{}
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &c))
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &c))
 	for _, k := range c {
 		actualXrpIds = append(actualXrpIds, int(k.ID))
 	}
@@ -220,7 +221,7 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 
 	query = abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpsByCollateralization}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsByRatioParams("btc-a", btcRatio)),
+		Data: suite.legacyAmino.MustMarshalJSON(types.NewQueryCdpsByRatioParams("btc-a", btcRatio)),
 	}
 	bz, err = suite.querier(ctx, []string{types.QueryGetCdpsByCollateralization}, query)
 	suite.Nil(err)
@@ -228,7 +229,7 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 
 	c = types.AugmentedCDPs{}
 	actualBtcIds := []int{}
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &c))
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &c))
 	for _, k := range c {
 		actualBtcIds = append(actualBtcIds, int(k.ID))
 	}
@@ -237,28 +238,31 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 
 	query = abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpsByCollateralization}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsByRatioParams("xrp-a", d("0.003"))),
+		Data: suite.legacyAmino.MustMarshalJSON(types.NewQueryCdpsByRatioParams("xrp-a", d("0.003"))),
 	}
 	bz, err = suite.querier(ctx, []string{types.QueryGetCdpsByCollateralization}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
 	c = types.AugmentedCDPs{}
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &c))
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &c))
 	suite.Equal(0, len(c))
 }
 
 func (suite *QuerierTestSuite) TestQueryParams() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	bz, err := suite.querier(ctx, []string{types.QueryGetParams}, abci.RequestQuery{})
-	suite.Nil(err)
+	suite.NoError(err)
 	suite.NotNil(bz)
 
 	var p types.Params
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &p))
+	err = suite.legacyAmino.UnmarshalJSON(bz, &p)
+	suite.NoError(err)
 
-	cdpGS := NewCDPGenStateHighDebtLimit()
+	cdpGS := NewCDPGenStateHighDebtLimit(suite.app.AppCodec())
 	gs := types.GenesisState{}
-	types.ModuleCdc.UnmarshalJSON(cdpGS["cdp"], &gs)
+	err = suite.legacyAmino.UnmarshalJSON(cdpGS["cdp"], &gs)
+	suite.NoError(err)
+
 	suite.Equal(gs.Params, p)
 }
 
@@ -266,7 +270,7 @@ func (suite *QuerierTestSuite) TestQueryDeposits() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpDeposits}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpDeposits(suite.cdps[0].Owner, suite.cdps[0].Type)),
+		Data: suite.legacyAmino.MustMarshalJSON(types.NewQueryCdpDeposits(suite.cdps[0].Owner, suite.cdps[0].Type)),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdpDeposits}, query)
@@ -276,7 +280,7 @@ func (suite *QuerierTestSuite) TestQueryDeposits() {
 	deposits := suite.keeper.GetDeposits(ctx, suite.cdps[0].ID)
 
 	var d types.Deposits
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &d))
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &d))
 	suite.Equal(deposits, d)
 
 }
@@ -286,8 +290,8 @@ func (suite *QuerierTestSuite) TestQueryAccounts() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(bz)
 
-	var accounts []supply.ModuleAccount
-	suite.Require().Nil(supply.ModuleCdc.UnmarshalJSON(bz, &accounts))
+	var accounts []authtypes.ModuleAccount
+	suite.Require().Nil(suite.legacyAmino.UnmarshalJSON(bz, &accounts))
 	suite.Require().Equal(2, len(accounts))
 
 	findByName := func(name string) bool {
@@ -309,37 +313,40 @@ func (suite *QuerierTestSuite) TestFindIntersection() {
 	expectedIntersection1 := types.CDPs{suite.cdps[3], suite.cdps[4]}
 
 	intersection1 := keeper.FindIntersection(a, b)
-	suite.Require().Equal(intersection1, expectedIntersection1)
+	suite.Require().Equal(expectedIntersection1, intersection1)
 
 	c := types.CDPs{suite.cdps[0], suite.cdps[1], suite.cdps[2], suite.cdps[3], suite.cdps[4]}
 	d := types.CDPs{suite.cdps[5], suite.cdps[6], suite.cdps[7], suite.cdps[8], suite.cdps[9]}
 	expectedIntersection2 := types.CDPs{}
 
 	intersection2 := keeper.FindIntersection(c, d)
-	suite.Require().Equal(intersection2, expectedIntersection2)
+	suite.Require().Equal(expectedIntersection2, intersection2)
 
 	e := types.CDPs{suite.cdps[0]}
 	f := types.CDPs{}
 	expectedIntersection3 := types.CDPs{}
 
 	intersection3 := keeper.FindIntersection(e, f)
-	suite.Require().Equal(intersection3, expectedIntersection3)
+	suite.Require().Equal(expectedIntersection3, intersection3)
 }
 
 func (suite *QuerierTestSuite) TestFilterCDPs() {
 	paramsType := types.NewQueryCdpsParams(1, 100, "btc-a", sdk.AccAddress{}, 0, sdk.ZeroDec())
-	filteredCDPs1 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsType)
-	suite.Require().Equal(len(filteredCDPs1), 50)
+	filteredCDPs1, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsType)
+	suite.Require().NoError(err)
+	suite.Require().Equal(50, len(filteredCDPs1))
 
 	paramsOwner := types.NewQueryCdpsParams(1, 100, "", suite.cdps[10].Owner, 0, sdk.ZeroDec())
-	filteredCDPs2 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsOwner)
-	suite.Require().Equal(len(filteredCDPs2), 1)
-	suite.Require().Equal(filteredCDPs2[0].Owner, suite.cdps[10].Owner)
+	filteredCDPs2, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsOwner)
+	suite.Require().NoError(err)
+	suite.Require().Equal(1, len(filteredCDPs2))
+	suite.Require().Equal(suite.cdps[10].Owner, filteredCDPs2[0].Owner)
 
 	paramsID := types.NewQueryCdpsParams(1, 100, "", sdk.AccAddress{}, 68, sdk.ZeroDec())
-	filteredCDPs3 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsID)
-	suite.Require().Equal(len(filteredCDPs3), 1)
-	suite.Require().Equal(filteredCDPs3[0].ID, suite.cdps[68-1].ID)
+	filteredCDPs3, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsID)
+	suite.Require().NoError(err)
+	suite.Require().Equal(1, len(filteredCDPs3))
+	suite.Require().Equal(suite.cdps[68-1].ID, filteredCDPs3[0].ID)
 
 	ratioCountBtc := 0
 	btcRatio := d("2500")
@@ -353,8 +360,9 @@ func (suite *QuerierTestSuite) TestFilterCDPs() {
 		}
 	}
 	paramsTypeAndRatio := types.NewQueryCdpsParams(1, 100, "btc-a", sdk.AccAddress{}, 0, sdk.NewDec(2500))
-	filteredCDPs4 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsTypeAndRatio)
-	suite.Require().Equal(len(filteredCDPs4), ratioCountBtc)
+	filteredCDPs4, err := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsTypeAndRatio)
+	suite.Require().NoError(err)
+	suite.Require().Equal(ratioCountBtc, len(filteredCDPs4))
 }
 
 func (suite *QuerierTestSuite) TestQueryCdps() {
@@ -363,7 +371,7 @@ func (suite *QuerierTestSuite) TestQueryCdps() {
 
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdps}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(params),
+		Data: suite.legacyAmino.MustMarshalJSON(params),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdps}, query)
@@ -371,7 +379,7 @@ func (suite *QuerierTestSuite) TestQueryCdps() {
 	suite.NotNil(bz)
 
 	output := types.AugmentedCDPs{}
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &output))
 	suite.Equal(50, len(output))
 }
 
@@ -381,16 +389,15 @@ func (suite *QuerierTestSuite) TestQueryTotalPrincipal() {
 
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetTotalPrincipal}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(params),
+		Data: suite.legacyAmino.MustMarshalJSON(params),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetTotalPrincipal}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	output := []types.TotalCDPPrincipal{}
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
-	fmt.Printf("%s", output)
+	var output types.TotalPrincipals
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &output))
 	suite.Equal(1, len(output))
 	suite.Equal("btc-a", output[0].CollateralType)
 }
@@ -401,15 +408,15 @@ func (suite *QuerierTestSuite) TestQueryTotalPrincipalAll() {
 
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetTotalPrincipal}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(params),
+		Data: suite.legacyAmino.MustMarshalJSON(params),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetTotalPrincipal}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	output := []types.TotalCDPPrincipal{}
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
+	var output types.TotalPrincipals
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &output))
 
 	var outputTypes []string
 	for _, c := range output {
@@ -426,16 +433,15 @@ func (suite *QuerierTestSuite) TestQueryTotalCollateral() {
 
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetTotalCollateral}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(params),
+		Data: suite.legacyAmino.MustMarshalJSON(params),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetTotalCollateral}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	output := []types.TotalCDPCollateral{}
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
-	fmt.Printf("%s", output)
+	var output types.TotalCollaterals
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &output))
 	suite.Equal(1, len(output))
 	suite.Equal("btc-a", output[0].CollateralType)
 }
@@ -446,15 +452,15 @@ func (suite *QuerierTestSuite) TestQueryTotalCollateralAll() {
 
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetTotalCollateral}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(params),
+		Data: suite.legacyAmino.MustMarshalJSON(params),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetTotalCollateral}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	output := []types.TotalCDPCollateral{}
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
+	var output types.TotalCollaterals
+	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &output))
 
 	var outputTypes []string
 	for _, c := range output {

@@ -49,3 +49,8 @@ message TotalCollateral {
   string                   collateral_type = 1;
   cosmos.base.v1beta1.Coin amount          = 2 [(gogoproto.nullable) = false];
 }
+
+// OwnerCDPIndex defines the cdp ids for a single cdp owner
+message OwnerCDPIndex {
+  repeated uint64 cdp_ids = 1 [(gogoproto.customname) = "CdpIDs"];
+}
