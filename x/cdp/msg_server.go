@@ -41,15 +41,8 @@ func (k msgServer) CreateCDP(goCtx context.Context, msg *types.MsgCreateCDP) (*t
 		),
 	)
 
-	// TODO: Do we still need to respond with CDP ID?
-	// id, _ := k.keeper.GetCdpID(ctx, sender, msg.CollateralType)
-
-	// return &sdk.Result{
-	// 	Data:   types.GetCdpIDBytes(id),
-	// 	Events: ctx.EventManager().Events(),
-	// }, nil
-
-	return &types.MsgCreateCDPResponse{}, nil
+	id, _ := k.keeper.GetCdpID(ctx, sender, msg.CollateralType)
+	return &types.MsgCreateCDPResponse{CdpID: id}, nil
 }
 
 func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {

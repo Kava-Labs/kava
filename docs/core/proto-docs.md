@@ -1700,6 +1700,11 @@ MsgCreateCDP defines a message to create a new CDP.
 MsgCreateCDPResponse defines the Msg/CreateCDP response type.
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp_id` | [uint64](#uint64) |  |  |
+
+
 
 
 
