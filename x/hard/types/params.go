@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	// cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
 // Parameter keys and default values
