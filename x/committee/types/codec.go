@@ -60,8 +60,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(ParamsChangePermission{}, "kava/ParamsChangePermission", nil)
 
 	// Msgs
-	cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
-	cdc.RegisterConcrete(MsgVote{}, "kava/MsgVote", nil)
+	cdc.RegisterConcrete(&MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
+	cdc.RegisterConcrete(&MsgVote{}, "kava/MsgVote", nil)
 }
 
 // RegisterProposalTypeCodec allows external modules to register their own pubproposal types on the
