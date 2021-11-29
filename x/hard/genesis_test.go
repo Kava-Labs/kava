@@ -114,7 +114,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		borrows,
 		totalSupplied,
 		totalBorrowed,
-		nil,
+		sdk.Coins{},
 	)
 
 	suite.NotPanics(
