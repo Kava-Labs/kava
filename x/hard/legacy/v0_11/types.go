@@ -9,8 +9,6 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
@@ -41,7 +39,6 @@ var (
 	DefaultDistributionTimes  = GenesisDistributionTimes{}
 	DefaultDeposits           = Deposits{}
 	DefaultClaims             = Claims{}
-	GovDenom                  = cdptypes.DefaultGovDenom
 )
 
 // GenesisState is the state that must be provided at genesis.
