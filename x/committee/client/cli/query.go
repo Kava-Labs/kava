@@ -61,7 +61,7 @@ func getCmdQueryCommittee() *cobra.Command {
 		Short:   "Query details of a single committee",
 		Example: fmt.Sprintf("%s query %s committee 1", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -90,7 +90,7 @@ func getCmdQueryCommittees() *cobra.Command {
 		Short:   "Query all committees",
 		Example: fmt.Sprintf("%s query %s committees", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -116,7 +116,7 @@ func getCmdQueryNextProposalID() *cobra.Command {
 		Args:    cobra.ExactArgs(0),
 		Example: fmt.Sprintf("%s query %s next-proposal-id", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -138,7 +138,7 @@ func getCmdQueryProposal() *cobra.Command {
 		Short:   "Query details of a single proposal",
 		Example: fmt.Sprintf("%s query %s proposal 2", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -170,7 +170,7 @@ func getCmdQueryProposals() *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		Example: fmt.Sprintf("%s query %s proposals 1", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -205,7 +205,7 @@ func getCmdQueryVotes() *cobra.Command {
 		Short:   "Query votes on a proposal",
 		Example: fmt.Sprintf("%s query %s votes 2", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -240,7 +240,7 @@ func getCmdQueryTally() *cobra.Command {
 		Long:    "Query the current tally of votes on a proposal to see the progress of the voting.",
 		Example: fmt.Sprintf("%s query %s tally 2", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -271,7 +271,7 @@ func getCmdQueryProposer() *cobra.Command {
 		Long:    "Query which address proposed a proposal with a given ID.",
 		Example: fmt.Sprintf("%s query %s proposer 2", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -299,7 +299,7 @@ func getCmdQueryRawParams() *cobra.Command {
 		Long:    "Query the byte value of any module's parameters. Useful in debugging and verifying governance proposals.",
 		Example: fmt.Sprintf("%s query %s raw-params cdp CollateralParams", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}

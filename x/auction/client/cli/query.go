@@ -177,7 +177,7 @@ func GetCmdQueryAuctions() *cobra.Command {
 				params.Phase = auctionPhase
 			}
 
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
