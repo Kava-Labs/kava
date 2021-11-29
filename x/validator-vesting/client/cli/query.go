@@ -44,7 +44,7 @@ func queryCirculatingSupply() *cobra.Command {
 		Long:  "Get the current circulating supply of kava tokens",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -73,7 +73,7 @@ func queryTotalSupply() *cobra.Command {
 		Long:  "Get the current total supply of kava tokens",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -102,7 +102,7 @@ func queryCirculatingSupplyHARD() *cobra.Command {
 		Long:  "Get the current circulating supply of HARD tokens",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -131,7 +131,7 @@ func queryCirculatingSupplyUSDX() *cobra.Command {
 		Long:  "Get the current circulating supply of USDX tokens",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -160,7 +160,7 @@ func queryCirculatingSupplySWP() *cobra.Command {
 		Long:  "Get the current circulating supply of SWP tokens",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -189,7 +189,7 @@ func queryTotalSupplyHARD() *cobra.Command {
 		Long:  "Get the current total supply of HARD tokens",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -218,7 +218,7 @@ func queryTotalSupplyUSDX() *cobra.Command {
 		Long:  "Get the current total supply of USDX tokens",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
