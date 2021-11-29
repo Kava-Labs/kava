@@ -88,6 +88,9 @@ import (
 	"github.com/kava-labs/kava/x/bep3"
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
+	"github.com/kava-labs/kava/x/cdp"
+	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
+	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee"
 	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
@@ -150,6 +153,7 @@ var (
 		bep3.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 		swap.AppModuleBasic{},
+		cdp.AppModuleBasic{},
 		committee.AppModuleBasic{},
 	)
 
@@ -166,10 +170,11 @@ var (
 		ibctransfertypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
 		auctiontypes.ModuleName:         nil,
-		"liquidator":                    {authtypes.Burner, authtypes.Minter}, // TODO: for testing. Import from CDP module once migrated to v44.
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
 		bep3types.ModuleName:            {authtypes.Burner, authtypes.Minter},
 		swaptypes.ModuleName:            nil,
+		cdptypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
+		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -223,6 +228,7 @@ type App struct {
 	bep3Keeper       bep3keeper.Keeper
 	pricefeedKeeper  pricefeedkeeper.Keeper
 	swapKeeper       swapkeeper.Keeper
+	cdpKeeper        cdpkeeper.Keeper
 	committeeKeeper  committeekeeper.Keeper
 
 	// make scoped keepers public for test purposes TODO do we need these public?
@@ -275,7 +281,7 @@ func NewApp(
 		upgradetypes.StoreKey, evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
-		swaptypes.StoreKey, committeetypes.StoreKey,
+		swaptypes.StoreKey, cdptypes.StoreKey, committeetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -311,6 +317,7 @@ func NewApp(
 	bep3Subspace := app.paramsKeeper.Subspace(bep3types.ModuleName)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
+	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
 	ibcSubspace := app.paramsKeeper.Subspace(ibchost.ModuleName)
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 
@@ -477,14 +484,24 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
+	app.cdpKeeper = cdpkeeper.NewKeeper(
+		appCodec,
+		keys[cdptypes.StoreKey],
+		cdpSubspace,
+		app.pricefeedKeeper,
+		app.auctionKeeper,
+		app.bankKeeper,
+		app.accountKeeper,
+		mAccPerms,
+	)
 
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
-		// AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
 	// Note: the committee proposal handler is not registered on the committee router. This means committees cannot create or update other committees.
 	// Adding the committee proposal handler to the router is possible but awkward as the handler depends on the keeper which depends on the handler.
 	app.committeeKeeper = committeekeeper.NewKeeper(
@@ -502,6 +519,9 @@ func NewApp(
 		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks())))
 
 	// TODO: Add swap hooks after incentive upgraded
+
+	// TODO: Add app.incentiveKeeper.Hooks() to cdptypes.NewMultiCDPHooks()
+	app.cdpKeeper = *(app.cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks()))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
@@ -522,12 +542,14 @@ func NewApp(
 		evidence.NewAppModule(app.evidenceKeeper),
 		transferModule,
 		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
+		params.NewAppModule(app.paramsKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)
 
@@ -548,6 +570,7 @@ func NewApp(
 		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
 		bep3types.ModuleName,
+		cdptypes.ModuleName,
 		committeetypes.ModuleName,
 		ibchost.ModuleName,
 	)
@@ -572,13 +595,15 @@ func NewApp(
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		pricefeedtypes.ModuleName,
 		auctiontypes.ModuleName,
-		swaptypes.ModuleName,
-		bep3types.ModuleName,
 		kavadisttypes.ModuleName,
-		committeetypes.ModuleName,
+		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
+		bep3types.ModuleName,
+		pricefeedtypes.ModuleName,
+		swaptypes.ModuleName,
+		cdptypes.ModuleName,
+		committeetypes.ModuleName,
 		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
 	)
 
@@ -704,6 +729,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
 	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
+	RegisterLegacyTxRoutes(clientCtx, apiSvr.Router)
 
 	// Register GRPC Gateway routes
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)

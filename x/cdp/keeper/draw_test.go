@@ -9,7 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -28,18 +28,20 @@ type DrawTestSuite struct {
 
 func (suite *DrawTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	cdc := tApp.AppCodec()
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	authGS := app.NewAuthGenState(
-		addrs,
-		[]sdk.Coins{
-			cs(c("xrp", 500000000), c("btc", 500000000), c("usdx", 10000000000)),
-			cs(c("xrp", 200000000)),
-			cs(c("xrp", 10000000000000), c("usdx", 100000000000))})
+	coins := []sdk.Coins{
+		cs(c("xrp", 500000000), c("btc", 500000000), c("usdx", 10000000000)),
+		cs(c("xrp", 200000000)),
+		cs(c("xrp", 10000000000000), c("usdx", 100000000000)),
+	}
+
+	authGS := app.NewFundedGenStateWithCoins(cdc, coins, addrs)
 	tApp.InitializeFromGenesisStates(
 		authGS,
-		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMulti(cdc),
+		NewCDPGenStateMulti(cdc),
 	)
 	keeper := tApp.GetCDPKeeper()
 	suite.app = tApp
@@ -66,9 +68,12 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	suite.Equal(ts[0], t)
 	tp := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp-a", "usdx")
 	suite.Equal(i(20000000), tp)
-	sk := suite.app.GetSupplyKeeper()
-	acc := sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(cs(c("xrp", 400000000), c("debt", 20000000)), acc.GetCoins())
+
+	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
+
+	acc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(cs(c("xrp", 400000000), c("debt", 20000000)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 	err = suite.keeper.AddPrincipal(suite.ctx, suite.addrs[0], "xrp-a", c("susd", 10000000))
 	suite.Require().True(errors.Is(err, types.ErrInvalidDebtRequest))
@@ -93,9 +98,11 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	suite.Equal(0, len(ts))
 	ts = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("40.0").Add(sdk.SmallestDec()))
 	suite.Equal(ts[0], t)
-	sk = suite.app.GetSupplyKeeper()
-	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(cs(c("xrp", 400000000), c("debt", 10000000)), acc.GetCoins())
+
+	ak = suite.app.GetAccountKeeper()
+	bk = suite.app.GetBankKeeper()
+	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(cs(c("xrp", 400000000), c("debt", 10000000)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp-a", c("xusd", 10000000))
 	suite.Require().True(errors.Is(err, types.ErrInvalidPayment))
@@ -113,9 +120,11 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	suite.Equal(0, len(ts))
 	ts = suite.keeper.GetAllCdpsByCollateralType(suite.ctx, "xrp-a")
 	suite.Equal(0, len(ts))
-	sk = suite.app.GetSupplyKeeper()
-	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(sdk.Coins(nil), acc.GetCoins())
+
+	ak = suite.app.GetAccountKeeper()
+	bk = suite.app.GetBankKeeper()
+	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(sdk.Coins{}, bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 }
 
@@ -123,8 +132,10 @@ func (suite *DrawTestSuite) TestRepayPrincipalOverpay() {
 	err := suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp-a", c("usdx", 20000000))
 	suite.NoError(err)
 	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
+
 	acc := ak.GetAccount(suite.ctx, suite.addrs[0])
-	suite.Equal(i(10000000000), (acc.GetCoins().AmountOf("usdx")))
+	suite.Equal(i(10000000000), (bk.GetBalance(suite.ctx, acc.GetAddress(), "usdx")).Amount)
 	_, found := suite.keeper.GetCDP(suite.ctx, "xrp-a", 1)
 	suite.False(found)
 }
@@ -132,21 +143,30 @@ func (suite *DrawTestSuite) TestRepayPrincipalOverpay() {
 func (suite *DrawTestSuite) TestPricefeedFailure() {
 	ctx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour * 2))
 	pfk := suite.app.GetPriceFeedKeeper()
-	pfk.SetCurrentPrices(ctx, "xrp:usd")
-	err := suite.keeper.AddPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
+	err := pfk.SetCurrentPrices(ctx, "xrp:usd")
+	suite.Error(err)
+
+	err = suite.keeper.AddPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
 	suite.Error(err)
 	err = suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
 	suite.NoError(err)
 }
 
 func (suite *DrawTestSuite) TestModuleAccountFailure() {
+	ctx := suite.ctx.WithBlockHeader(suite.ctx.BlockHeader())
+	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
+	acc := ak.GetModuleAccount(ctx, types.ModuleName)
+
+	// Remove module account balance
+	ak.RemoveAccount(ctx, acc)
+	// Also need to burn coins as account keeper no longer stores balances
+	err := bk.BurnCoins(ctx, types.ModuleName, bk.GetAllBalances(ctx, acc.GetAddress()))
+	suite.Require().NoError(err)
+
 	suite.Panics(func() {
-		ctx := suite.ctx.WithBlockHeader(suite.ctx.BlockHeader())
-		sk := suite.app.GetSupplyKeeper()
-		acc := sk.GetModuleAccount(ctx, types.ModuleName)
-		ak := suite.app.GetAccountKeeper()
-		ak.RemoveAccount(ctx, acc)
-		suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
+		// Error ignored here since this should panic
+		_ = suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
 	})
 }
 

@@ -75,6 +75,7 @@
 - [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
     - [CDP](#kava.cdp.v1beta1.CDP)
     - [Deposit](#kava.cdp.v1beta1.Deposit)
+    - [OwnerCDPIndex](#kava.cdp.v1beta1.OwnerCDPIndex)
     - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
     - [TotalPrincipal](#kava.cdp.v1beta1.TotalPrincipal)
   
@@ -170,7 +171,11 @@
   
 - [kava/committee/v1beta1/tx.proto](#kava/committee/v1beta1/tx.proto)
     - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
+    - [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse)
     - [MsgVote](#kava.committee.v1beta1.MsgVote)
+    - [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse)
+  
+    - [Msg](#kava.committee.v1beta1.Msg)
   
 - [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
     - [Asset](#kava.issuance.v1beta1.Asset)
@@ -1208,6 +1213,21 @@ Deposit defines an amount of coins deposited by an account to a cdp
 
 
 
+<a name="kava.cdp.v1beta1.OwnerCDPIndex"></a>
+
+### OwnerCDPIndex
+OwnerCDPIndex defines the cdp ids for a single cdp owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp_ids` | [uint64](#uint64) | repeated |  |
+
+
+
+
+
+
 <a name="kava.cdp.v1beta1.TotalCollateral"></a>
 
 ### TotalCollateral
@@ -1678,6 +1698,11 @@ MsgCreateCDP defines a message to create a new CDP.
 
 ### MsgCreateCDPResponse
 MsgCreateCDPResponse defines the Msg/CreateCDP response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp_id` | [uint64](#uint64) |  |  |
 
 
 
@@ -2471,6 +2496,21 @@ MsgSubmitProposal is used by committee members to create a new proposal that the
 
 
 
+<a name="kava.committee.v1beta1.MsgSubmitProposalResponse"></a>
+
+### MsgSubmitProposalResponse
+MsgSubmitProposalResponse defines the SubmitProposal response type
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
 <a name="kava.committee.v1beta1.MsgVote"></a>
 
 ### MsgVote
@@ -2487,11 +2527,32 @@ MsgVote is submitted by committee members to vote on proposals.
 
 
 
+
+<a name="kava.committee.v1beta1.MsgVoteResponse"></a>
+
+### MsgVoteResponse
+MsgVoteResponse defines the Vote response type
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+
+<a name="kava.committee.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the committee Msg service
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `SubmitProposal` | [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse) | SubmitProposal defines a method for submitting a committee proposal | |
+| `Vote` | [MsgVote](#kava.committee.v1beta1.MsgVote) | [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse) | Vote defines a method for voting on a proposal | |
 
  <!-- end services -->
 

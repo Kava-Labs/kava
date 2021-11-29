@@ -176,7 +176,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 func (k Keeper) PlaceBidSurplus(ctx sdk.Context, auction *types.SurplusAuction, bidder sdk.AccAddress, bid sdk.Coin) (*types.SurplusAuction, error) {
 	// Validate new bid
 	if bid.Denom != auction.Bid.Denom {
-		return auction, sdkerrors.Wrapf(types.ErrInvalidBidDenom, "%s ≠ %s)", bid.Denom, auction.Bid.Denom)
+		return auction, sdkerrors.Wrapf(types.ErrInvalidBidDenom, "%s ≠ %s", bid.Denom, auction.Bid.Denom)
 	}
 	minNewBidAmt := auction.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -314,7 +314,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, auction *types.Collat
 func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, auction *types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (*types.CollateralAuction, error) {
 	// Validate new bid
 	if lot.Denom != auction.Lot.Denom {
-		return auction, sdkerrors.Wrapf(types.ErrInvalidLotDenom, lot.Denom, auction.Lot.Denom)
+		return auction, sdkerrors.Wrapf(types.ErrInvalidLotDenom, "%s ≠ %s", lot.Denom, auction.Lot.Denom)
 	}
 	if !auction.IsReversePhase() {
 		panic("cannot place reverse bid on auction in forward phase")
@@ -388,7 +388,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, auction *types.Collat
 func (k Keeper) PlaceBidDebt(ctx sdk.Context, auction *types.DebtAuction, bidder sdk.AccAddress, lot sdk.Coin) (*types.DebtAuction, error) {
 	// Validate new bid
 	if lot.Denom != auction.Lot.Denom {
-		return auction, sdkerrors.Wrapf(types.ErrInvalidLotDenom, lot.Denom, auction.Lot.Denom)
+		return auction, sdkerrors.Wrapf(types.ErrInvalidLotDenom, "%s ≠ %s", lot.Denom, auction.Lot.Denom)
 	}
 	maxNewLotAmt := auction.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
 		sdk.MaxInt(

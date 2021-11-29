@@ -30,6 +30,7 @@ import (
 
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
+	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
@@ -87,20 +88,19 @@ func (tApp TestApp) GetCrisisKeeper() crisiskeeper.Keeper       { return tApp.cr
 func (tApp TestApp) GetParamsKeeper() paramskeeper.Keeper       { return tApp.paramsKeeper }
 
 func (tApp TestApp) GetKavadistKeeper() kavadistkeeper.Keeper   { return tApp.kavadistKeeper }
-func (tApp TestApp) GetIssuanceKeeper() issuancekeeper.Keeper   { return tApp.issuanceKeeper }
-func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
-func (tApp TestApp) GetBep3Keeper() bep3keeper.Keeper           { return tApp.bep3Keeper }
-func (tApp TestApp) GetSwapKeeper() swapkeeper.Keeper           { return tApp.swapKeeper }
 func (tApp TestApp) GetAuctionKeeper() auctionkeeper.Keeper     { return tApp.auctionKeeper }
+func (tApp TestApp) GetIssuanceKeeper() issuancekeeper.Keeper   { return tApp.issuanceKeeper }
+func (tApp TestApp) GetBep3Keeper() bep3keeper.Keeper           { return tApp.bep3Keeper }
+func (tApp TestApp) GetPriceFeedKeeper() pricefeedkeeper.Keeper { return tApp.pricefeedKeeper }
+func (tApp TestApp) GetSwapKeeper() swapkeeper.Keeper           { return tApp.swapKeeper }
+func (tApp TestApp) GetCDPKeeper() cdpkeeper.Keeper             { return tApp.cdpKeeper }
 func (tApp TestApp) GetCommitteeKeeper() committeekeeper.Keeper { return tApp.committeeKeeper }
 
 // TODO add back with modules
 // func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
-// func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
-// func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeeper }
+
 // func (tApp TestApp) GetIncentiveKeeper() incentive.Keeper { return tApp.incentiveKeeper }
 // func (tApp TestApp) GetHardKeeper() hard.Keeper           { return tApp.hardKeeper }
-// func (tApp TestApp) GetCommitteeKeeper() committee.Keeper { return tApp.committeeKeeper }
 
 // LegacyAmino returns the app's amino codec.
 func (app *App) LegacyAmino() *codec.LegacyAmino {

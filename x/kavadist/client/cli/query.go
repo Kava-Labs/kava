@@ -38,7 +38,7 @@ func queryParamsCmd() *cobra.Command {
 		Long:  "Get the current global kavadist module parameters.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -62,7 +62,7 @@ func queryBalanceCmd() *cobra.Command {
 		Long:  "Get the current kavadist module account balance.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
