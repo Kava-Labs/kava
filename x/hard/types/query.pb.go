@@ -116,7 +116,7 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
-// QueryModAccountsRequest is the request type for the Query/ModAccounts RPC method.
+// QueryAccountsRequest is the request type for the Query/Accounts RPC method.
 type QueryAccountsRequest struct {
 	Name       string             `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -169,7 +169,7 @@ func (m *QueryAccountsRequest) GetPagination() *query.PageRequest {
 	return nil
 }
 
-// QueryModAccountsResponse is the response type for the Query/ModAccounts RPC method.
+// QueryAccountsResponse is the response type for the Query/Accounts RPC method.
 type QueryAccountsResponse struct {
 	Accounts   []types.ModuleAccount `protobuf:"bytes,1,rep,name=accounts,proto3" json:"accounts"`
 	Pagination *query.PageResponse   `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`

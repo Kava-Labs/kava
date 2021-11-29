@@ -31,7 +31,6 @@ var (
 	BorrowInterestFactorPrefix    = []byte{0x08} // denom -> sdk.Dec
 	SupplyInterestFactorPrefix    = []byte{0x09} // denom -> sdk.Dec
 	DelegatorInterestFactorPrefix = []byte{0x10} // denom -> sdk.Dec
-	sep                           = []byte(":")
 )
 
 // DepositTypeIteratorKey returns an interator prefix for interating over deposits by deposit denom

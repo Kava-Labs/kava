@@ -91,9 +91,10 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 		}
 	}
 	if !keeperRewardCoins.Empty() {
-		k.DecrementSuppliedCoins(ctx, keeperRewardCoins)
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, keeperRewardCoins)
-		if err != nil {
+		if err := k.DecrementSuppliedCoins(ctx, keeperRewardCoins); err != nil {
+			return err
+		}
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, keeperRewardCoins); err != nil {
 			return err
 		}
 	}

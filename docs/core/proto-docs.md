@@ -2827,7 +2827,7 @@ MoneyMarketInterestRate is a unique type returned by interest rate queries
 <a name="kava.hard.v1beta1.QueryAccountsRequest"></a>
 
 ### QueryAccountsRequest
-QueryModAccountsRequest is the request type for the Query/ModAccounts RPC method.
+QueryAccountsRequest is the request type for the Query/Accounts RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2843,7 +2843,7 @@ QueryModAccountsRequest is the request type for the Query/ModAccounts RPC method
 <a name="kava.hard.v1beta1.QueryAccountsResponse"></a>
 
 ### QueryAccountsResponse
-QueryModAccountsResponse is the response type for the Query/ModAccounts RPC method.
+QueryAccountsResponse is the response type for the Query/Accounts RPC method.
 
 
 | Field | Type | Label | Description |

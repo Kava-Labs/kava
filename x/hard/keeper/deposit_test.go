@@ -164,8 +164,8 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			}
 
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)},
+				app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)},
 			)
 			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
@@ -317,8 +317,8 @@ func (suite *KeeperTestSuite) TestDecrementSuppliedCoins() {
 				},
 			}
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)},
+				app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)},
 			)
 			keeper := tApp.GetHardKeeper()
 			suite.app = tApp

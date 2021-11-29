@@ -293,7 +293,7 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
-			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)})
+			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)})
 			if tc.args.accArgs.vestingAccountBefore {
 				ak := tApp.GetAccountKeeper()
 				acc := ak.GetAccount(ctx, tc.args.accArgs.addr)
@@ -305,13 +305,15 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 				ak.SetAccount(ctx, pva)
 			}
 			bankKeeper := tApp.GetBankKeeper()
-			bankKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1000))))
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1000))))
+			suite.Require().NoError(err)
+
 			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
 
-			err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, types.ModuleAccountName, tc.args.accArgs.addr, tc.args.period.Amount, tc.args.period.Length)
+			err = suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, types.ModuleAccountName, tc.args.accArgs.addr, tc.args.period.Amount, tc.args.period.Length)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)

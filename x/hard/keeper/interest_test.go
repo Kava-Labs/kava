@@ -341,8 +341,10 @@ func (suite *InterestTestSuite) TestCalculateBorrowInterestFactor() {
 	}
 
 	for _, tc := range testCases {
-		interestFactor := keeper.CalculateBorrowInterestFactor(tc.args.perSecondInterestRate, tc.args.timeElapsed)
-		suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		suite.Run(tc.name, func() {
+			interestFactor := keeper.CalculateBorrowInterestFactor(tc.args.perSecondInterestRate, tc.args.timeElapsed)
+			suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		})
 	}
 }
 
@@ -398,9 +400,11 @@ func (suite *InterestTestSuite) TestCalculateSupplyInterestFactor() {
 	}
 
 	for _, tc := range testCases {
-		interestFactor := keeper.CalculateSupplyInterestFactor(tc.args.newInterest,
-			tc.args.cash, tc.args.borrows, tc.args.reserves)
-		suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		suite.Run(tc.name, func() {
+			interestFactor := keeper.CalculateSupplyInterestFactor(tc.args.newInterest,
+				tc.args.cash, tc.args.borrows, tc.args.reserves)
+			suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		})
 	}
 }
 
@@ -853,18 +857,17 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 
 			// Initialize test application
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)})
+				app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)})
 
 			// Mint coins to Hard module account
 			bankKeeper := tApp.GetBankKeeper()
-			bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			suite.Require().NoError(err)
 
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = tApp.GetHardKeeper()
-
-			var err error
 
 			// Run begin blocker and store initial block time
 			hard.BeginBlocker(suite.ctx, suite.keeper)
@@ -1273,19 +1276,18 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 
 			// Initialize test application
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&hardGS)})
+				app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)})
 
 			// Mint coins to Hard module account
 			bankKeeper := tApp.GetBankKeeper()
-			bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			suite.Require().NoError(err)
 
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = tApp.GetHardKeeper()
 			suite.keeper.SetSuppliedCoins(ctx, tc.args.initialModuleCoins)
-
-			var err error
 
 			// Run begin blocker
 			hard.BeginBlocker(suite.ctx, suite.keeper)

@@ -41,14 +41,14 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the bep3
+// DefaultGenesis returns default genesis state as raw bytes for the hard
 // module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	gs := types.DefaultGenesisState()
 	return cdc.MustMarshalJSON(&gs)
 }
 
-// ValidateGenesis performs genesis state validation for the bep3 module.
+// ValidateGenesis performs genesis state validation for the hard module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs types.GenesisState
 	err := cdc.UnmarshalJSON(bz, &gs)
@@ -70,7 +70,9 @@ func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Ro
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // LegacyQuerierHandler returns sdk.Querier.
@@ -83,12 +85,12 @@ func (AppModule) ConsensusVersion() uint64 {
 	return 1
 }
 
-// GetTxCmd returns the root tx command for the bep3 module.
+// GetTxCmd returns the root tx command for the hard module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd()
 }
 
-// GetQueryCmd returns no root query command for the bep3 module.
+// GetQueryCmd returns no root query command for the hard module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
@@ -124,12 +126,12 @@ func (AppModule) Name() string {
 // RegisterInvariants register module invariants
 func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route returns the message routing key for the bep3 module.
+// Route returns the message routing key for the hard module.
 func (am AppModule) Route() sdk.Route {
 	return sdk.Route{}
 }
 
-// QuerierRoute returns the bep3 module's querier route name.
+// QuerierRoute returns the hard module's querier route name.
 func (AppModule) QuerierRoute() string {
 	return types.QuerierRoute
 }
@@ -141,7 +143,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	// types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
-// InitGenesis performs genesis initialization for the bep3 module. It returns
+// InitGenesis performs genesis initialization for the hard module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
 	var genState types.GenesisState
@@ -152,7 +154,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.Ra
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the bep3
+// ExportGenesis returns the exported genesis state as raw bytes for the hard
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)

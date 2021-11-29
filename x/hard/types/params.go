@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	// cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
 // Parameter keys and default values
@@ -15,14 +14,12 @@ var (
 	KeyMinimumBorrowUSDValue     = []byte("MinimumBorrowUSDValue")
 	DefaultMoneyMarkets          = MoneyMarkets{}
 	DefaultMinimumBorrowUSDValue = sdk.NewDec(10) // $10 USD minimum borrow value
-	// TODO: When CDP fully merged, errors with x/cdp/go.mod
-	// GovDenom                     = cdptypes.DefaultGovDenom
-	DefaultAccumulationTimes = GenesisAccumulationTimes{}
-	DefaultTotalSupplied     = sdk.Coins{}
-	DefaultTotalBorrowed     = sdk.Coins{}
-	DefaultTotalReserves     = sdk.Coins{}
-	DefaultDeposits          = Deposits{}
-	DefaultBorrows           = Borrows{}
+	DefaultAccumulationTimes     = GenesisAccumulationTimes{}
+	DefaultTotalSupplied         = sdk.Coins{}
+	DefaultTotalBorrowed         = sdk.Coins{}
+	DefaultTotalReserves         = sdk.Coins{}
+	DefaultDeposits              = Deposits{}
+	DefaultBorrows               = Borrows{}
 )
 
 // NewBorrowLimit returns a new BorrowLimit
