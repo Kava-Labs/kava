@@ -125,3 +125,9 @@ message BorrowInterestFactor {
     (gogoproto.nullable)   = false
   ];
 }
+
+// CoinsProto defines a Protobuf wrapper around a Coins slice
+message CoinsProto {
+  repeated cosmos.base.v1beta1.Coin coins = 1
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}
