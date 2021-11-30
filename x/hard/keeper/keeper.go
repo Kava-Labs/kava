@@ -19,7 +19,6 @@ type Keeper struct {
 	paramSubspace   paramtypes.Subspace
 	accountKeeper   types.AccountKeeper
 	bankKeeper      types.BankKeeper
-	stakingKeeper   types.StakingKeeper
 	pricefeedKeeper types.PricefeedKeeper
 	auctionKeeper   types.AuctionKeeper
 	hooks           types.HARDHooks
@@ -27,7 +26,7 @@ type Keeper struct {
 
 // NewKeeper creates a new keeper
 func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace,
-	ak types.AccountKeeper, bk types.BankKeeper, stk types.StakingKeeper,
+	ak types.AccountKeeper, bk types.BankKeeper,
 	pfk types.PricefeedKeeper, auk types.AuctionKeeper) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -39,7 +38,6 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace
 		paramSubspace:   paramstore,
 		accountKeeper:   ak,
 		bankKeeper:      bk,
-		stakingKeeper:   stk,
 		pricefeedKeeper: pfk,
 		auctionKeeper:   auk,
 		hooks:           nil,
@@ -104,11 +102,6 @@ func (k Keeper) GetDepositsByUser(ctx sdk.Context, user sdk.AccAddress) []types.
 		return false
 	})
 	return deposits
-}
-
-// BondDenom returns the bond denom from the staking keeper
-func (k Keeper) BondDenom(ctx sdk.Context) string {
-	return k.stakingKeeper.BondDenom(ctx)
 }
 
 // GetBorrow returns a Borrow from the store for a particular borrower address and borrow denom

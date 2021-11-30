@@ -428,7 +428,6 @@ func NewApp(
 		hardSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		app.stakingKeeper,
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 	)
