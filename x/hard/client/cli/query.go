@@ -2,13 +2,14 @@ package cli
 
 import (
 	"context"
-	"strings"
+	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/kava-labs/kava/x/hard/types"
 )
@@ -81,12 +82,9 @@ func queryModAccountsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "accounts",
 		Short: "query hard module accounts with optional filter",
-		Long: strings.TrimSpace(`Query for all hard module accounts or a specific account using the name flag:
-
-		Example:
-		$ kvcli q hard accounts
-		$ kvcli q hard accounts --name hard|hard_delegator_distribution|hard_lp_distribution`,
-		),
+		Long:  "Query for all hard module accounts or a specific account using the name flag",
+		Example: fmt.Sprintf(`%[1]s q %[2]s accounts
+%[1]s q %[2]s accounts --name hard|hard_delegator_distribution|hard_lp_distribution`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -132,14 +130,11 @@ func queryUnsyncedDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unsynced-deposits",
 		Short: "query hard module unsynced deposits with optional filters",
-		Long: strings.TrimSpace(`query for all hard module unsynced deposits or a specific unsynced deposit using flags:
-
-		Example:
-		$ kvcli q hard unsynced-deposits
-		$ kvcli q hard unsynced-deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --denom bnb
-		$ kvcli q hard unsynced-deposits --denom ukava
-		$ kvcli q hard unsynced-deposits --denom btcb`,
-		),
+		Long:  "query for all hard module unsynced deposits or a specific unsynced deposit using flags",
+		Example: fmt.Sprintf(`%[1]s q %[2]s unsynced-deposits
+%[1]s q %[2]s unsynced-deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --denom bnb
+%[1]s q %[2]s unsynced-deposits --denom ukava
+%[1]s q %[2]s unsynced-deposits --denom btcb`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -197,14 +192,11 @@ func queryDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deposits",
 		Short: "query hard module deposits with optional filters",
-		Long: strings.TrimSpace(`query for all hard module deposits or a specific deposit using flags:
-
-		Example:
-		$ kvcli q hard deposits
-		$ kvcli q hard deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --denom bnb
-		$ kvcli q hard deposits --denom ukava
-		$ kvcli q hard deposits --denom btcb`,
-		),
+		Long:  "query for all hard module deposits or a specific deposit using flags",
+		Example: fmt.Sprintf(`%[1]s q %[2]s deposits
+%[1]s q %[2]s deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --denom bnb
+%[1]s q %[2]s deposits --denom ukava
+%[1]s q %[2]s deposits --denom btcb`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -262,13 +254,10 @@ func queryUnsyncedBorrowsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unsynced-borrows",
 		Short: "query hard module unsynced borrows with optional filters",
-		Long: strings.TrimSpace(`query for all hard module unsynced borrows or a specific unsynced borrow using flags:
-
-		Example:
-		$ kvcli q hard unsynced-borrows
-		$ kvcli q hard unsynced-borrows --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
-		$ kvcli q hard unsynced-borrows --denom bnb`,
-		),
+		Long:  "query for all hard module unsynced borrows or a specific unsynced borrow using flags",
+		Example: fmt.Sprintf(`%[1]s q %[2]s unsynced-borrows
+%[1]s q %[2]s unsynced-borrows --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
+%[1]s q %[2]s unsynced-borrows --denom bnb`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -326,13 +315,10 @@ func queryBorrowsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "borrows",
 		Short: "query hard module borrows with optional filters",
-		Long: strings.TrimSpace(`query for all hard module borrows or a specific borrow using flags:
-
-		Example:
-		$ kvcli q hard borrows
-		$ kvcli q hard borrows --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
-		$ kvcli q hard borrows --denom bnb`,
-		),
+		Long:  "query for all hard module borrows or a specific borrow using flags",
+		Example: fmt.Sprintf(`%[1]s q %[2]s borrows
+%[1]s q %[2]s borrows --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
+%[1]s q %[2]s borrows --denom bnb`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -389,12 +375,9 @@ func queryTotalBorrowedCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "total-borrowed",
 		Short: "get total current borrowed amount",
-		Long: strings.TrimSpace(`get the total amount of coins currently borrowed using flags:
-
-		Example:
-		$ kvcli q hard total-borrowed
-		$ kvcli q hard total-borrowed --denom bnb`,
-		),
+		Long:  "get the total amount of coins currently borrowed using flags",
+		Example: fmt.Sprintf(`%[1]s q %[2]s total-borrowed
+%[1]s q %[2]s total-borrowed --denom bnb`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -428,12 +411,9 @@ func queryTotalDepositedCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "total-deposited",
 		Short: "get total current deposited amount",
-		Long: strings.TrimSpace(`get the total amount of coins currently deposited using flags:
-
-		Example:
-		$ kvcli q hard total-deposited
-		$ kvcli q hard total-deposited --denom bnb`,
-		),
+		Long:  "get the total amount of coins currently deposited using flags",
+		Example: fmt.Sprintf(`%[1]s q %[2]s total-deposited
+%[1]s q %[2]s total-deposited --denom bnb`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -467,12 +447,9 @@ func queryInterestRateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "interest-rate",
 		Short: "get current money market interest rates",
-		Long: strings.TrimSpace(`get current money market interest rates:
-
-		Example:
-		$ kvcli q hard interest-rate
-		$ kvcli q hard interest-rate --denom bnb`,
-		),
+		Long:  "get current money market interest rates",
+		Example: fmt.Sprintf(`%[1]s q %[2]s interest-rate
+%[1]s q %[2]s interest-rate --denom bnb`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -506,12 +483,9 @@ func queryReserves() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reserves",
 		Short: "get total current Hard module reserves",
-		Long: strings.TrimSpace(`get the total amount of coins currently held as reserve by the Hard module:
-
-		Example:
-		$ kvcli q hard reserves
-		$ kvcli q hard reserves --denom bnb`,
-		),
+		Long:  "get the total amount of coins currently held as reserve by the Hard module",
+		Example: fmt.Sprintf(`%[1]s q %[2]s reserves
+%[1]s q %[2]s reserves --denom bnb`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -545,12 +519,9 @@ func queryInterestFactorsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "interest-factors",
 		Short: "get current global interest factors",
-		Long: strings.TrimSpace(`get current global interest factors:
-
-		Example:
-		$ kvcli q hard interest-factors
-		$ kvcli q hard interest-factors --denom bnb`,
-		),
+		Long:  "get current global interest factors",
+		Example: fmt.Sprintf(`%[1]s q %[2]s interest-factors
+%[1]s q %[2]s interest-factors --denom bnb`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)

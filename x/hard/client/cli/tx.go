@@ -130,11 +130,10 @@ func getCmdRepay() *cobra.Command {
 		Short: "repay tokens to the hard protocol",
 		Long:  strings.TrimSpace(`repay tokens to the hard protocol with optional --owner param to repay another account's loan`),
 		Args:  cobra.ExactArgs(1),
-		Example: strings.TrimSpace(`
-kvcli tx hard repay 1000000000ukava --from <key>
-kvcli tx hard repay 1000000000ukava,25000000000bnb --from <key>
-kvcli tx hard repay 1000000000ukava,25000000000bnb --owner <owner-address> --from <key>
-		`),
+		Example: fmt.Sprintf(`
+%[1]s tx %[2]s repay 1000000000ukava --from <key>
+%[1]s tx %[2]s repay 1000000000ukava,25000000000bnb --from <key>
+%[1]s tx %[2]s repay 1000000000ukava,25000000000bnb --owner <owner-address> --from <key>`, version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
