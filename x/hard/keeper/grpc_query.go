@@ -42,13 +42,13 @@ func (qs QueryServer) Accounts(ctx context.Context, req *types.QueryAccountsRequ
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	var accs []authtypes.ModuleAccountI
+	var accs []authtypes.ModuleAccount
 	if len(req.Name) > 0 {
 		acc := qs.keeper.accountKeeper.GetModuleAccount(sdkCtx, req.Name)
-		accs = append(accs, acc)
+		accs = append(accs, *acc.(*authtypes.ModuleAccount))
 	} else {
 		acc := qs.keeper.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleAccountName)
-		accs = append(accs, acc)
+		accs = append(accs, *acc.(*authtypes.ModuleAccount))
 	}
 
 	return &types.QueryAccountsResponse{
