@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 )
@@ -16,22 +15,6 @@ var (
 		MultiRewardIndexes{},
 	)
 )
-
-// GenesisState is the state that must be provided at genesis.
-type GenesisState struct {
-	Params Params `json:"params" yaml:"params"`
-
-	USDXRewardState       GenesisRewardState `json:"usdx_reward_state" yaml:"usdx_reward_state"`
-	HardSupplyRewardState GenesisRewardState `json:"hard_supply_reward_state" yaml:"hard_supply_reward_state"`
-	HardBorrowRewardState GenesisRewardState `json:"hard_borrow_reward_state" yaml:"hard_borrow_reward_state"`
-	DelegatorRewardState  GenesisRewardState `json:"delegator_reward_state" yaml:"delegator_reward_state"`
-	SwapRewardState       GenesisRewardState `json:"swap_reward_state" yaml:"swap_reward_state"`
-
-	USDXMintingClaims           USDXMintingClaims           `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
-	HardLiquidityProviderClaims HardLiquidityProviderClaims `json:"hard_liquidity_provider_claims" yaml:"hard_liquidity_provider_claims"`
-	DelegatorClaims             DelegatorClaims             `json:"delegator_claims" yaml:"delegator_claims"`
-	SwapClaims                  SwapClaims                  `json:"swap_claims" yaml:"swap_claims"`
-}
 
 // NewGenesisState returns a new genesis state
 func NewGenesisState(
@@ -106,24 +89,6 @@ func (gs GenesisState) Validate() error {
 	return gs.SwapClaims.Validate()
 }
 
-// Equal checks whether two gov GenesisState structs are equivalent
-func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	b1 := ModuleCdc.MustMarshalBinaryBare(gs)
-	b2 := ModuleCdc.MustMarshalBinaryBare(gs2)
-	return bytes.Equal(b1, b2)
-}
-
-// IsEmpty returns true if a GenesisState is empty
-func (gs GenesisState) IsEmpty() bool {
-	return gs.Equal(GenesisState{})
-}
-
-// GenesisRewardState groups together the global state for a particular reward so it can be exported in genesis.
-type GenesisRewardState struct {
-	AccumulationTimes  AccumulationTimes  `json:"accumulation_times" yaml:"accumulation_times"`
-	MultiRewardIndexes MultiRewardIndexes `json:"multi_reward_indexes" yaml:"multi_reward_indexes"`
-}
-
 // NewGenesisRewardState returns a new GenesisRewardState
 func NewGenesisRewardState(accumTimes AccumulationTimes, indexes MultiRewardIndexes) GenesisRewardState {
 	return GenesisRewardState{
@@ -138,12 +103,6 @@ func (grs GenesisRewardState) Validate() error {
 		return err
 	}
 	return grs.MultiRewardIndexes.Validate()
-}
-
-// AccumulationTime stores the previous reward distribution time and its corresponding collateral type
-type AccumulationTime struct {
-	CollateralType           string    `json:"collateral_type" yaml:"collateral_type"`
-	PreviousAccumulationTime time.Time `json:"previous_accumulation_time" yaml:"previous_accumulation_time"`
 }
 
 // NewAccumulationTime returns a new GenesisAccumulationTime
