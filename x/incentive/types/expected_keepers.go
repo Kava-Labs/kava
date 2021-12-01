@@ -5,7 +5,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	// cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	// hardtypes "github.com/kava-labs/kava/x/hard/types"
 )
 
@@ -34,13 +34,8 @@ type StakingKeeper interface {
 type CdpKeeper interface {
 	GetInterestFactor(ctx sdk.Context, collateralType string) (sdk.Dec, bool)
 	GetTotalPrincipal(ctx sdk.Context, collateralType string, principalDenom string) (total sdk.Int)
-
-	// TODO: update once cdptypes are available
-	// GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
-	// GetCollateral(ctx sdk.Context, collateralType string) (cdptypes.CollateralParam, bool)
-
-	GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (interface{}, bool)
-	GetCollateral(ctx sdk.Context, collateralType string) (interface{}, bool)
+	GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
+	GetCollateral(ctx sdk.Context, collateralType string) (cdptypes.CollateralParam, bool)
 }
 
 // HardKeeper defines the expected hard keeper for interacting with Hard protocol
