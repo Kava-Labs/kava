@@ -18,6 +18,12 @@ type QueryServer struct {
 	keeper Keeper
 }
 
+// NewQueryServer returns an implementation of the hard MsgServer interface
+// for the provided Keeper.
+func NewQueryServerImpl(keeper Keeper) types.QueryServer {
+	return &QueryServer{keeper: keeper}
+}
+
 var _ types.QueryServer = QueryServer{}
 
 func (qs QueryServer) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
