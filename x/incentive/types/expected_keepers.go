@@ -6,7 +6,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	// hardtypes "github.com/kava-labs/kava/x/hard/types"
+	// TODO: hardtypes "github.com/kava-labs/kava/x/hard/types"
 )
 
 // ParamSubspace defines the expected Subspace interfacace
@@ -20,6 +20,7 @@ type ParamSubspace interface {
 // BankKeeper defines the expected interface needed to send coins
 type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 }
 
 // StakingKeeper defines the expected staking keeper for module accounts
@@ -41,10 +42,8 @@ type CdpKeeper interface {
 // HardKeeper defines the expected hard keeper for interacting with Hard protocol
 type HardKeeper interface {
 	// TODO: update once hardtypes are available
-	// GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (hardtypes.Deposit, bool)
-	// GetBorrow(ctx sdk.Context, borrower sdk.AccAddress) (hardtypes.Borrow, bool)
-	GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (interface{}, bool)
-	GetBorrow(ctx sdk.Context, borrower sdk.AccAddress) (interface{}, bool)
+	GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (Deposit, bool)
+	GetBorrow(ctx sdk.Context, borrower sdk.AccAddress) (Borrow, bool)
 
 	GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
 	GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
