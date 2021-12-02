@@ -33,7 +33,9 @@ message MsgCreateCDP {
 }
 
 // MsgCreateCDPResponse defines the Msg/CreateCDP response type.
-message MsgCreateCDPResponse {}
+message MsgCreateCDPResponse {
+  uint64 cdp_id = 1 [(gogoproto.customname) = "CdpID"];
+}
 
 // MsgDeposit defines a message to deposit to a CDP.
 message MsgDeposit {

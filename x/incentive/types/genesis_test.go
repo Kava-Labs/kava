@@ -45,12 +45,12 @@ func TestGenesisState_Validate(t *testing.T) {
 					DefaultMultiRewardPeriods,
 					DefaultMultiRewardPeriods,
 					DefaultMultiRewardPeriods,
-					MultipliersPerDenom{
+					MultipliersPerDenoms{
 						{
 							Denom: "ukava",
 							Multipliers: Multipliers{
-								NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33")),
-								NewMultiplier(Large, 12, sdk.MustNewDecFromStr("1.00")),
+								NewMultiplier(MULTIPLIER_NAME_SMALL, 1, sdk.MustNewDecFromStr("0.33")),
+								NewMultiplier(MULTIPLIER_NAME_LARGE, 12, sdk.MustNewDecFromStr("1.00")),
 							},
 						},
 					},

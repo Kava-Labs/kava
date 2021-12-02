@@ -1,33 +1,66 @@
 package types
 
-import "github.com/cosmos/cosmos-sdk/codec"
+import (
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
 
-// ModuleCdc generic sealed codec to be used throughout module
-var ModuleCdc *codec.Codec
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
+)
 
-func init() {
-	cdc := codec.New()
-	RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	ModuleCdc = cdc.Seal()
+// RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
+// governance module.
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&MsgClaimUSDXMintingReward{}, "incentive/MsgClaimUSDXMintingReward", nil)
+	cdc.RegisterConcrete(&MsgClaimHardReward{}, "incentive/MsgClaimHardReward", nil)
+	cdc.RegisterConcrete(&MsgClaimDelegatorReward{}, "incentive/MsgClaimDelegatorReward", nil)
+	cdc.RegisterConcrete(&MsgClaimSwapReward{}, "incentive/MsgClaimSwapReward", nil)
+	cdc.RegisterConcrete(&MsgClaimUSDXMintingRewardVVesting{}, "incentive/MsgClaimUSDXRewardVVesting", nil)
+	cdc.RegisterConcrete(&MsgClaimHardRewardVVesting{}, "incentive/MsgClaimHardRewardVVesting", nil)
+	cdc.RegisterConcrete(&MsgClaimDelegatorRewardVVesting{}, "incentive/MsgClaimDelegatorRewardVVesting", nil)
+	cdc.RegisterConcrete(&MsgClaimSwapRewardVVesting{}, "incentive/MsgClaimSwapRewardVVesting", nil)
+
+	cdc.RegisterInterface((*Claim)(nil), nil)
+
+	cdc.RegisterConcrete(&USDXMintingClaim{}, "incentive/USDXMintingClaim", nil)
+	cdc.RegisterConcrete(&HardLiquidityProviderClaim{}, "incentive/HardLiquidityProviderClaim", nil)
+	cdc.RegisterConcrete(&DelegatorClaim{}, "incentive/DelegatorClaim", nil)
+	cdc.RegisterConcrete(&SwapClaim{}, "incentive/SwapClaim", nil)
 }
 
-// RegisterCodec registers the necessary types for incentive module
-func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterInterface((*Claim)(nil), nil)
-	cdc.RegisterConcrete(USDXMintingClaim{}, "incentive/USDXMintingClaim", nil)
-	cdc.RegisterConcrete(HardLiquidityProviderClaim{}, "incentive/HardLiquidityProviderClaim", nil)
-	cdc.RegisterConcrete(DelegatorClaim{}, "incentive/DelegatorClaim", nil)
-	cdc.RegisterConcrete(SwapClaim{}, "incentive/SwapClaim", nil)
+func RegisterInterfaces(registry types.InterfaceRegistry) {
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgClaimUSDXMintingReward{},
+		&MsgClaimHardReward{},
+		&MsgClaimDelegatorReward{},
+		&MsgClaimSwapReward{},
+		&MsgClaimUSDXMintingRewardVVesting{},
+		&MsgClaimHardRewardVVesting{},
+		&MsgClaimDelegatorRewardVVesting{},
+		&MsgClaimSwapRewardVVesting{},
+	)
 
-	// Register msgs
-	cdc.RegisterConcrete(MsgClaimUSDXMintingReward{}, "incentive/MsgClaimUSDXMintingReward", nil)
-	cdc.RegisterConcrete(MsgClaimHardReward{}, "incentive/MsgClaimHardReward", nil)
-	cdc.RegisterConcrete(MsgClaimDelegatorReward{}, "incentive/MsgClaimDelegatorReward", nil)
-	cdc.RegisterConcrete(MsgClaimSwapReward{}, "incentive/MsgClaimSwapReward", nil)
+	registry.RegisterInterface(
+		"kava.auction.v1beta1.Claim",
+		(*BaseClaim)(nil),
+		(*BaseMultiClaim)(nil),
+		&USDXMintingClaim{},
+		&HardLiquidityProviderClaim{},
+		&DelegatorClaim{},
+		&SwapClaim{},
+	)
 
-	cdc.RegisterConcrete(MsgClaimUSDXMintingRewardVVesting{}, "incentive/MsgClaimUSDXRewardVVesting", nil)
-	cdc.RegisterConcrete(MsgClaimHardRewardVVesting{}, "incentive/MsgClaimHardRewardVVesting", nil)
-	cdc.RegisterConcrete(MsgClaimDelegatorRewardVVesting{}, "incentive/MsgClaimDelegatorRewardVVesting", nil)
-	cdc.RegisterConcrete(MsgClaimSwapRewardVVesting{}, "incentive/MsgClaimSwapRewardVVesting", nil)
+	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+}
+
+var (
+	amino = codec.NewLegacyAmino()
+
+	ModuleCdc = codec.NewAminoCodec(amino)
+)
+
+func init() {
+	RegisterLegacyAminoCodec(amino)
+	cryptocodec.RegisterCrypto(amino)
 }
