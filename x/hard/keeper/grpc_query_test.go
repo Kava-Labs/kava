@@ -36,7 +36,10 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	err := suite.tApp.FundModuleAccount(
 		suite.ctx,
 		types.ModuleAccountName,
-		cs(c("usdx", 10000000000)),
+		cs(
+			c("usdx", 10000000000),
+			c("busd", 10000000000),
+		),
 	)
 	suite.Require().NoError(err)
 
@@ -129,19 +132,19 @@ func (suite *grpcQueryTestSuite) addBorrows() {
 	}{
 		{
 			suite.addrs[0],
-			cs(c("usdx", 1*10000000)),
+			cs(c("usdx", 10000000)),
 		},
 		{
 			suite.addrs[1],
-			cs(c("usdx", 2*10000000)),
+			cs(c("usdx", 20000000)),
 		},
 		{
 			suite.addrs[0],
-			cs(c("usdx", 4*10000000)),
+			cs(c("usdx", 40000000)),
 		},
 		{
 			suite.addrs[0],
-			cs(c("usdx", 8*10000000)),
+			cs(c("busd", 80000000)),
 		},
 	}
 
@@ -354,6 +357,112 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryBorrows() {
 			}
 		})
 	}
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryTotalDeposited() {
+	suite.addDeposits()
+
+	totalDeposited, err := suite.queryServer.TotalDeposited(sdk.WrapSDKContext(suite.ctx), &types.QueryTotalDepositedRequest{})
+	suite.Require().NoError(err)
+
+	suite.Equal(&types.QueryTotalDepositedResponse{
+		SuppliedCoins: cs(
+			c("bnb", 100000000+20000000),
+			c("busd", 20000000+8000000),
+		),
+	}, totalDeposited)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryTotalDeposited_Denom() {
+	suite.addDeposits()
+
+	totalDeposited, err := suite.queryServer.TotalDeposited(sdk.WrapSDKContext(suite.ctx), &types.QueryTotalDepositedRequest{
+		Denom: "bnb",
+	})
+	suite.Require().NoError(err)
+
+	suite.Equal(&types.QueryTotalDepositedResponse{
+		SuppliedCoins: cs(
+			c("bnb", 100000000+20000000),
+		),
+	}, totalDeposited)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryTotalBorrowed() {
+	suite.addDeposits()
+	suite.addBorrows()
+
+	totalDeposited, err := suite.queryServer.TotalBorrowed(sdk.WrapSDKContext(suite.ctx), &types.QueryTotalBorrowedRequest{})
+	suite.Require().NoError(err)
+
+	suite.Equal(&types.QueryTotalBorrowedResponse{
+		BorrowedCoins: cs(
+			c("usdx", 10000000+20000000+40000000),
+			c("busd", 80000000),
+		),
+	}, totalDeposited)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryTotalBorrowed_denom() {
+	suite.addDeposits()
+	suite.addBorrows()
+
+	totalDeposited, err := suite.queryServer.TotalBorrowed(sdk.WrapSDKContext(suite.ctx), &types.QueryTotalBorrowedRequest{
+		Denom: "usdx",
+	})
+	suite.Require().NoError(err)
+
+	suite.Equal(&types.QueryTotalBorrowedResponse{
+		BorrowedCoins: cs(
+			c("usdx", 10000000+20000000+40000000),
+		),
+	}, totalDeposited)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryInterestRate() {
+	res, err := suite.queryServer.InterestRate(sdk.WrapSDKContext(suite.ctx), &types.QueryInterestRateRequest{
+		Denom: "usdx",
+	})
+	suite.Require().NoError(err)
+
+	suite.Equal(&types.QueryInterestRateResponse{
+		InterestRates: types.MoneyMarketInterestRates{
+			{
+				Denom:              "usdx",
+				SupplyInterestRate: "0.000000000000000000",
+				BorrowInterestRate: "0.050000000000000000",
+			},
+		},
+	}, res)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryInterestFactors() {
+	res, err := suite.queryServer.InterestFactors(sdk.WrapSDKContext(suite.ctx), &types.QueryInterestFactorsRequest{
+		Denom: "usdx",
+	})
+	suite.Require().NoError(err)
+
+	suite.Equal(&types.QueryInterestFactorsResponse{
+		InterestFactors: types.InterestFactors{
+			{
+				Denom:                "usdx",
+				BorrowInterestFactor: "1.000000000000000000",
+				SupplyInterestFactor: "1.000000000000000000",
+			},
+		},
+	}, res)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryReserves() {
+	suite.addDeposits()
+	suite.addBorrows()
+
+	res, err := suite.queryServer.Reserves(sdk.WrapSDKContext(suite.ctx), &types.QueryReservesRequest{})
+	suite.Require().NoError(err)
+
+	suite.Equal(&types.QueryReservesResponse{
+		Amount: sdk.Coins{},
+	}, res)
 }
 
 func TestGrpcQueryTestSuite(t *testing.T) {
