@@ -7,13 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Borrow defines an amount of coins borrowed from a hard module account
-type Borrow struct {
-	Borrower sdk.AccAddress        `json:"borrower" yaml:"borrower"`
-	Amount   sdk.Coins             `json:"amount" yaml:"amount"`
-	Index    BorrowInterestFactors `json:"index" yaml:"index"`
-}
-
 // NewBorrow returns a new Borrow instance
 func NewBorrow(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFactors) Borrow {
 	return Borrow{
@@ -30,7 +23,6 @@ func NewBorrow(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFa
 //
 // An error is returned if the borrow is in an invalid state.
 func (b Borrow) NormalizedBorrow() (sdk.DecCoins, error) {
-
 	normalized := sdk.NewDecCoins()
 
 	for _, coin := range b.Amount {
@@ -56,10 +48,10 @@ func (b Borrow) NormalizedBorrow() (sdk.DecCoins, error) {
 // Validate deposit validation
 func (b Borrow) Validate() error {
 	if b.Borrower.Empty() {
-		return fmt.Errorf("Borrower cannot be empty")
+		return fmt.Errorf("borrower cannot be empty")
 	}
 	if !b.Amount.IsValid() {
-		return fmt.Errorf("Invalid borrow coins: %s", b.Amount)
+		return fmt.Errorf("invalid borrow coins: %s", b.Amount)
 	}
 
 	if err := b.Index.Validate(); err != nil {
@@ -69,12 +61,9 @@ func (b Borrow) Validate() error {
 	return nil
 }
 
-func (b Borrow) String() string {
-	return fmt.Sprintf(`Borrow:
-	Borrower: %s
-	Amount: %s
-	Index: %s
-	`, b.Borrower, b.Amount, b.Index)
+// ToResponse converts Borrow to BorrowResponse
+func (b Borrow) ToResponse() BorrowResponse {
+	return NewBorrowResponse(b.Borrower, b.Amount, b.Index)
 }
 
 // Borrows is a slice of Borrow
@@ -96,11 +85,27 @@ func (bs Borrows) Validate() error {
 	return nil
 }
 
-// BorrowInterestFactor defines an individual borrow interest factor
-type BorrowInterestFactor struct {
-	Denom string  `json:"denom" yaml:"denom"`
-	Value sdk.Dec `json:"value" yaml:"value"`
+// ToResponse converts Borrows to BorrowResponses
+func (bs Borrows) ToResponse() BorrowResponses {
+	var bResponses BorrowResponses
+
+	for _, b := range bs {
+		bResponses = append(bResponses, b.ToResponse())
+	}
+	return bResponses
 }
+
+// NewBorrowResponse returns a new BorrowResponse instance
+func NewBorrowResponse(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFactors) BorrowResponse {
+	return BorrowResponse{
+		Borrower: borrower.String(),
+		Amount:   amount,
+		Index:    index.ToResponse(),
+	}
+}
+
+// BorrowResponses is a slice of BorrowResponse
+type BorrowResponses []BorrowResponse
 
 // NewBorrowInterestFactor returns a new BorrowInterestFactor instance
 func NewBorrowInterestFactor(denom string, value sdk.Dec) BorrowInterestFactor {
@@ -122,9 +127,17 @@ func (bif BorrowInterestFactor) Validate() error {
 	return nil
 }
 
-func (bif BorrowInterestFactor) String() string {
-	return fmt.Sprintf(`[%s,%s]
-	`, bif.Denom, bif.Value)
+// ToResponse converts BorrowInterestFactor to BorrowInterestFactorResponse
+func (bif BorrowInterestFactor) ToResponse() BorrowInterestFactorResponse {
+	return NewBorrowInterestFactorResponse(bif.Denom, bif.Value)
+}
+
+// NewBorrowInterestFactorResponse returns a new BorrowInterestFactorResponse instance
+func NewBorrowInterestFactorResponse(denom string, value sdk.Dec) BorrowInterestFactorResponse {
+	return BorrowInterestFactorResponse{
+		Denom: denom,
+		Value: value.String(),
+	}
 }
 
 // BorrowInterestFactors is a slice of BorrowInterestFactor, because Amino won't marshal maps
@@ -172,10 +185,15 @@ func (bifs BorrowInterestFactors) Validate() error {
 	return nil
 }
 
-func (bifs BorrowInterestFactors) String() string {
-	out := ""
+// ToResponse converts BorrowInterestFactors to BorrowInterestFactorResponses
+func (bifs BorrowInterestFactors) ToResponse() BorrowInterestFactorResponses {
+	var bifResponses BorrowInterestFactorResponses
+
 	for _, bif := range bifs {
-		out += bif.String()
+		bifResponses = append(bifResponses, bif.ToResponse())
 	}
-	return out
+	return bifResponses
 }
+
+// BorrowInterestFactorResponses is a slice of BorrowInterestFactorResponse
+type BorrowInterestFactorResponses []BorrowInterestFactorResponse
