@@ -10,8 +10,6 @@ import (
 )
 
 func TestMigrateGenesisDoc(t *testing.T) {
-	// The gov json contains a gov app state with 3 different proposals.
-	// Two of the proposals are from cosmos while the 3rd one is kavadist/CommunityPoolMultiSpendProposal.
 	expected := getTestDataJSON("genesis-v16.json")
 	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis-v15.json"))
 	assert.NoError(t, err)
