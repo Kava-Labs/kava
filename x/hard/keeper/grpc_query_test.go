@@ -82,10 +82,23 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAccounts() {
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryAccounts_InvalidName() {
 	_, err := suite.queryServer.Accounts(sdk.WrapSDKContext(suite.ctx), &types.QueryAccountsRequest{
-		Name: "boo",
+		Name: "bun",
 	})
 	suite.Require().Error(err)
 	suite.Require().Equal("rpc error: code = InvalidArgument desc = invalid account name", err.Error())
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryAccounts_Name() {
+	res, err := suite.queryServer.Accounts(sdk.WrapSDKContext(suite.ctx), &types.QueryAccountsRequest{
+		Name: types.ModuleAccountName,
+	})
+	suite.Require().NoError(err)
+
+	ak := suite.tApp.GetAccountKeeper()
+	acc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
+
+	suite.Len(res.Accounts, 1)
+	suite.Equal(acc, &res.Accounts[0], "accounts should include module account")
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits_EmptyResponse() {
@@ -420,20 +433,69 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalBorrowed_denom() {
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryInterestRate() {
-	res, err := suite.queryServer.InterestRate(sdk.WrapSDKContext(suite.ctx), &types.QueryInterestRateRequest{
-		Denom: "usdx",
-	})
-	suite.Require().NoError(err)
-
-	suite.Equal(&types.QueryInterestRateResponse{
-		InterestRates: types.MoneyMarketInterestRates{
-			{
-				Denom:              "usdx",
-				SupplyInterestRate: "0.000000000000000000",
-				BorrowInterestRate: "0.050000000000000000",
+	tests := []struct {
+		giveName          string
+		giveDenom         string
+		wantInterestRates types.MoneyMarketInterestRates
+		shouldError       bool
+	}{
+		{
+			"no denom",
+			"",
+			types.MoneyMarketInterestRates{
+				{
+					Denom:              "usdx",
+					SupplyInterestRate: "0.000000000000000000",
+					BorrowInterestRate: "0.050000000000000000",
+				},
+				{
+					Denom:              "bnb",
+					SupplyInterestRate: "0.000000000000000000",
+					BorrowInterestRate: "0.000000000000000000",
+				},
+				{
+					Denom:              "busd",
+					SupplyInterestRate: "0.000000000000000000",
+					BorrowInterestRate: "0.000000000000000000",
+				},
 			},
+			false,
 		},
-	}, res)
+		{
+			"denom",
+			"usdx",
+			types.MoneyMarketInterestRates{
+				{
+					Denom:              "usdx",
+					SupplyInterestRate: "0.000000000000000000",
+					BorrowInterestRate: "0.050000000000000000",
+				},
+			},
+			false,
+		},
+		{
+			"invalid denom",
+			"bun",
+			types.MoneyMarketInterestRates{},
+			true,
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.giveName, func() {
+			res, err := suite.queryServer.InterestRate(sdk.WrapSDKContext(suite.ctx), &types.QueryInterestRateRequest{
+				Denom: tt.giveDenom,
+			})
+
+			if tt.shouldError {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NoError(err)
+
+				suite.ElementsMatch(tt.wantInterestRates, res.InterestRates)
+			}
+		})
+	}
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryInterestFactors() {
