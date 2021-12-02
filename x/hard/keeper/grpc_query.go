@@ -51,6 +51,10 @@ func (qs QueryServer) Accounts(ctx context.Context, req *types.QueryAccountsRequ
 	var accs []authtypes.ModuleAccount
 	if len(req.Name) > 0 {
 		acc := qs.keeper.accountKeeper.GetModuleAccount(sdkCtx, req.Name)
+		if acc == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid account name")
+		}
+
 		accs = append(accs, *acc.(*authtypes.ModuleAccount))
 	} else {
 		acc := qs.keeper.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleAccountName)
