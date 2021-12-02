@@ -8,6 +8,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard/types"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 func NewHARDGenState(cdc codec.JSONCodec) app.GenesisState {
@@ -39,7 +40,7 @@ func NewHARDGenState(cdc codec.JSONCodec) app.GenesisState {
 						MaximumLimit: sdk.MustNewDecFromStr("3000000000000"),
 						LoanToValue:  sdk.MustNewDecFromStr("0.5"),
 					},
-					SpotMarketID:     "bnb:usd:30",
+					SpotMarketID:     "bnb:usd",
 					ConversionFactor: sdk.NewInt(USDX_CF),
 					InterestRateModel: types.InterestRateModel{
 						BaseRateAPY:    sdk.MustNewDecFromStr("0"),
@@ -57,7 +58,7 @@ func NewHARDGenState(cdc codec.JSONCodec) app.GenesisState {
 						MaximumLimit: sdk.MustNewDecFromStr("1000000000000000"),
 						LoanToValue:  sdk.MustNewDecFromStr("0.5"),
 					},
-					SpotMarketID:     "busd:usd:30",
+					SpotMarketID:     "busd:usd",
 					ConversionFactor: sdk.Int(sdk.MustNewDecFromStr("100000000")),
 					InterestRateModel: types.InterestRateModel{
 						BaseRateAPY:    sdk.MustNewDecFromStr("0"),
@@ -86,4 +87,38 @@ func NewHARDGenState(cdc codec.JSONCodec) app.GenesisState {
 		TotalReserves: sdk.NewCoins(),
 	}
 	return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&hardGenesis)}
+}
+
+func NewPricefeedGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
+	pfGenesis := pricefeedtypes.GenesisState{
+		Params: pricefeedtypes.Params{
+			Markets: []pricefeedtypes.Market{
+				{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "busd:usd", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+			},
+		},
+		PostedPrices: []pricefeedtypes.PostedPrice{
+			{
+				MarketID:      "usdx:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.OneDec(),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
+			{
+				MarketID:      "bnb:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("618.13"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
+			{
+				MarketID:      "busd:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.OneDec(),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
+		},
+	}
+	return app.GenesisState{pricefeedtypes.ModuleName: cdc.MustMarshalJSON(&pfGenesis)}
 }
