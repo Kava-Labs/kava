@@ -130,7 +130,9 @@ func (qs QueryServer) Deposits(ctx context.Context, req *types.QueryDepositsRequ
 		syncedDeposits = append(syncedDeposits, syncedDeposit)
 	}
 
-	// TODO: Use more optimal FilteredPaginate
+	// TODO: Use more optimal FilteredPaginate to directly iterate over the store
+	// and not fetch everything. This currently also ignores certain fields in
+	// the pagination request like Key, CountTotal, Reverse.
 	page, limit, err := query.ParsePagination(req.Pagination)
 	if err != nil {
 		return nil, err

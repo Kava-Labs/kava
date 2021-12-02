@@ -194,6 +194,23 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 				suite.Equal(tt.wantDepositCounts, len(res.Deposits))
 			}
 		})
+
+		// Unsynced deposits should be the same
+		suite.Run(tt.giveName+"_unsynced", func() {
+			res, err := suite.queryServer.UnsyncedDeposits(sdk.WrapSDKContext(suite.ctx), &types.QueryUnsyncedDepositsRequest{
+				Denom:      tt.giveRequest.Denom,
+				Owner:      tt.giveRequest.Owner,
+				Pagination: tt.giveRequest.Pagination,
+			})
+
+			if tt.shouldError {
+				suite.Error(err)
+				suite.Contains(err.Error(), tt.errorSubstr)
+			} else {
+				suite.NoError(err)
+				suite.Equal(tt.wantDepositCounts, len(res.Deposits))
+			}
+		})
 	}
 }
 func TestGrpcQueryTestSuite(t *testing.T) {
