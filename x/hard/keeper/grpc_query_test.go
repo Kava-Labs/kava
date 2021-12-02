@@ -24,25 +24,26 @@ type grpcQueryTestSuite struct {
 
 func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.tApp = app.NewTestApp()
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+
+	suite.addrs = addrs
+
 	suite.tApp.InitializeFromGenesisStates(
 		NewHARDGenState(suite.tApp.AppCodec()),
+		app.NewFundedGenStateWithSameCoins(
+			suite.tApp.AppCodec(),
+			cs(
+				c("bnb", 1000),
+				c("busd", 2000),
+			),
+			addrs,
+		),
 	)
 	suite.ctx = suite.tApp.NewContext(true, tmprototypes.Header{}).
 		WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetHardKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
 
-	_, addrs := app.GeneratePrivKeyAddressPairs(5)
-
-	app.NewFundedGenStateWithSameCoins(
-		suite.tApp.AppCodec(),
-		cs(
-			c("bnb", 1000*100000000),
-			c("busd", 1000*100000000),
-		),
-		addrs,
-	)
-	suite.addrs = addrs
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryParams() {
@@ -100,7 +101,7 @@ func (suite *grpcQueryTestSuite) addDeposits() {
 		},
 		{
 			suite.addrs[0],
-			sdk.NewCoins(sdk.NewCoin("bun", sdk.NewInt(800))),
+			sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(800))),
 		},
 	}
 
@@ -125,17 +126,17 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 		{
 			"empty query",
 			&types.QueryDepositsRequest{},
-			4,
+			2,
 			false,
 			"",
 		},
 		{
 			"owner",
 			&types.QueryDepositsRequest{
-				Owner: sdk.AccAddress("test").String(),
+				Owner: suite.addrs[0].String(),
 			},
 			// Excludes the second address
-			3,
+			1,
 			false,
 			"",
 		},
@@ -152,7 +153,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 		{
 			"owner and denom",
 			&types.QueryDepositsRequest{
-				Owner: sdk.AccAddress("test").String(),
+				Owner: suite.addrs[0].String(),
 				Denom: "bnb",
 			},
 			// Only the first one
@@ -163,7 +164,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 		{
 			"owner and invalid denom empty response",
 			&types.QueryDepositsRequest{
-				Owner: sdk.AccAddress("test").String(),
+				Owner: suite.addrs[0].String(),
 				Denom: "invalid denom",
 			},
 			0,

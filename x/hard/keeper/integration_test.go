@@ -14,42 +14,60 @@ func NewHARDGenState(cdc codec.JSONCodec) app.GenesisState {
 	hardGenesis := types.GenesisState{
 		Params: types.NewParams(
 			types.MoneyMarkets{
-				types.NewMoneyMarket(
-					"usdx",
-					types.NewBorrowLimit(
-						true,
-						sdk.MustNewDecFromStr("100000000000"),
-						sdk.MustNewDecFromStr("1"),
-					),
-					"usdx:usd",
-					sdk.NewInt(USDX_CF),
-					types.NewInterestRateModel(
-						sdk.MustNewDecFromStr("0.05"),
-						sdk.MustNewDecFromStr("2"),
-						sdk.MustNewDecFromStr("0.8"),
-						sdk.MustNewDecFromStr("10"),
-					),
-					sdk.MustNewDecFromStr("0.05"),
-					sdk.ZeroDec(),
-				),
-				types.NewMoneyMarket(
-					"bnb",
-					types.NewBorrowLimit(
-						true,
-						sdk.MustNewDecFromStr("3000000000000"),
-						sdk.MustNewDecFromStr("0.5"),
-					),
-					"bnb:usd:30",
-					sdk.NewInt(USDX_CF),
-					types.NewInterestRateModel(
-						sdk.MustNewDecFromStr("0"),
-						sdk.MustNewDecFromStr("0.05"),
-						sdk.MustNewDecFromStr("0.8"),
-						sdk.MustNewDecFromStr("5.0"),
-					),
-					sdk.MustNewDecFromStr("0.025"),
-					sdk.MustNewDecFromStr("0.02"),
-				),
+				types.MoneyMarket{
+					Denom: "usdx",
+					BorrowLimit: types.BorrowLimit{
+						HasMaxLimit:  true,
+						MaximumLimit: sdk.MustNewDecFromStr("100000000000"),
+						LoanToValue:  sdk.MustNewDecFromStr("1"),
+					},
+					SpotMarketID:     "usdx:usd",
+					ConversionFactor: sdk.NewInt(USDX_CF),
+					InterestRateModel: types.InterestRateModel{
+						BaseRateAPY:    sdk.MustNewDecFromStr("0.05"),
+						BaseMultiplier: sdk.MustNewDecFromStr("2"),
+						Kink:           sdk.MustNewDecFromStr("0.8"),
+						JumpMultiplier: sdk.MustNewDecFromStr("10"),
+					},
+					ReserveFactor:          sdk.MustNewDecFromStr("0.05"),
+					KeeperRewardPercentage: sdk.ZeroDec(),
+				},
+				types.MoneyMarket{
+					Denom: "bnb",
+					BorrowLimit: types.BorrowLimit{
+						HasMaxLimit:  true,
+						MaximumLimit: sdk.MustNewDecFromStr("3000000000000"),
+						LoanToValue:  sdk.MustNewDecFromStr("0.5"),
+					},
+					SpotMarketID:     "bnb:usd:30",
+					ConversionFactor: sdk.NewInt(USDX_CF),
+					InterestRateModel: types.InterestRateModel{
+						BaseRateAPY:    sdk.MustNewDecFromStr("0"),
+						BaseMultiplier: sdk.MustNewDecFromStr("0.05"),
+						Kink:           sdk.MustNewDecFromStr("0.8"),
+						JumpMultiplier: sdk.MustNewDecFromStr("5.0"),
+					},
+					ReserveFactor:          sdk.MustNewDecFromStr("0.025"),
+					KeeperRewardPercentage: sdk.MustNewDecFromStr("0.02"),
+				},
+				types.MoneyMarket{
+					Denom: "busd",
+					BorrowLimit: types.BorrowLimit{
+						HasMaxLimit:  true,
+						MaximumLimit: sdk.MustNewDecFromStr("1000000000000000"),
+						LoanToValue:  sdk.MustNewDecFromStr("0.5"),
+					},
+					SpotMarketID:     "busd:usd:30",
+					ConversionFactor: sdk.Int(sdk.MustNewDecFromStr("100000000")),
+					InterestRateModel: types.InterestRateModel{
+						BaseRateAPY:    sdk.MustNewDecFromStr("0"),
+						BaseMultiplier: sdk.MustNewDecFromStr("0.5"),
+						Kink:           sdk.MustNewDecFromStr("0.8"),
+						JumpMultiplier: sdk.MustNewDecFromStr("5"),
+					},
+					ReserveFactor:          sdk.MustNewDecFromStr("0.025"),
+					KeeperRewardPercentage: sdk.MustNewDecFromStr("0.02"),
+				},
 			},
 			sdk.MustNewDecFromStr("10"),
 		),
