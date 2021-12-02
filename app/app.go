@@ -501,8 +501,8 @@ func NewApp(
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
-		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
+		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
