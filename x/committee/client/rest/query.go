@@ -7,14 +7,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/kava-labs/kava/x/committee/client/common"
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/committees", types.ModuleName), queryCommitteesHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/committees/{%s}", types.ModuleName, RestCommitteeID), queryCommitteeHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/next-proposal-id", types.ModuleName), queryNextProposalIdHandlerFn(cliCtx)).Methods("GET")
@@ -29,7 +29,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 //				Committees
 // ------------------------------------------
 
-func queryCommitteesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryCommitteesHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -50,7 +50,7 @@ func queryCommitteesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryCommitteeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryCommitteeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -69,7 +69,7 @@ func queryCommitteeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		bz, err := cliCtx.Codec.MarshalJSON(types.NewQueryCommitteeParams(committeeID))
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(types.NewQueryCommitteeParams(committeeID))
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -92,7 +92,7 @@ func queryCommitteeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 //				Proposals
 // ------------------------------------------
 
-func queryNextProposalIdHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryNextProposalIdHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -113,7 +113,7 @@ func queryNextProposalIdHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryProposalsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryProposalsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -132,7 +132,7 @@ func queryProposalsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		bz, err := cliCtx.Codec.MarshalJSON(types.NewQueryCommitteeParams(committeeID))
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(types.NewQueryCommitteeParams(committeeID))
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -151,7 +151,7 @@ func queryProposalsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -171,13 +171,13 @@ func queryProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		proposal, height, err := common.QueryProposalByID(cliCtx, cliCtx.Codec, types.ModuleName, proposalID)
+		proposal, height, err := common.QueryProposalByID(cliCtx, cliCtx.LegacyAmino, types.ModuleName, proposalID)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		res, err := cliCtx.Codec.MarshalJSON(proposal)
+		res, err := cliCtx.LegacyAmino.MarshalJSON(proposal)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -189,7 +189,7 @@ func queryProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryProposerHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryProposerHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -220,7 +220,7 @@ func queryProposerHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 //				Votes
 // ------------------------------------------
 
-func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryVotesOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -239,7 +239,7 @@ func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		bz, err := cliCtx.Codec.MarshalJSON(types.NewQueryProposalParams(proposalID))
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(types.NewQueryProposalParams(proposalID))
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -258,7 +258,7 @@ func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryTallyOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryTallyOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -277,7 +277,7 @@ func queryTallyOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		bz, err := cliCtx.Codec.MarshalJSON(types.NewQueryProposalParams(proposalID))
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(types.NewQueryProposalParams(proposalID))
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

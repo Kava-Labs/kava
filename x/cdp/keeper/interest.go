@@ -10,8 +10,7 @@ import (
 )
 
 var (
-	scalingFactor  = 1e18
-	secondsPerYear = 31536000
+	scalingFactor = 1e18
 )
 
 // AccumulateInterest calculates the new interest that has accrued for the input collateral type based on the total amount of principal
@@ -69,7 +68,7 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 
 	// mint surplus coins to the liquidator module account.
 	if newFeesSurplus.IsPositive() {
-		err := k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
+		err := k.bankKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
 		if err != nil {
 			return err
 		}
@@ -113,7 +112,9 @@ func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
 		k.SetInterestFactor(ctx, cdp.Type, sdk.OneDec())
 		cdp.InterestFactor = sdk.OneDec()
 		cdp.FeesUpdated = ctx.BlockTime()
-		k.SetCDP(ctx, cdp)
+		if err := k.SetCDP(ctx, cdp); err != nil {
+			panic(err)
+		}
 		return cdp
 	}
 
@@ -130,14 +131,19 @@ func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
 		}
 		// if apy is zero, we need to update FeesUpdated
 		cdp.FeesUpdated = prevAccrualTime
-		k.SetCDP(ctx, cdp)
+		if err := k.SetCDP(ctx, cdp); err != nil {
+			panic(err)
+		}
 	}
 
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(accumulatedInterest)
 	cdp.FeesUpdated = prevAccrualTime
 	cdp.InterestFactor = globalInterestFactor
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
-	k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	if err := k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio); err != nil {
+		panic(err)
+	}
+
 	return cdp
 }
 

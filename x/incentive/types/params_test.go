@@ -81,19 +81,19 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods: types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:  types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:       types.DefaultMultiRewardPeriods,
-				ClaimMultipliers: types.MultipliersPerDenom{
+				ClaimMultipliers: types.MultipliersPerDenoms{
 					{
 						Denom: "hard",
 						Multipliers: types.Multipliers{
-							types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.25")),
-							types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0")),
+							types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, sdk.MustNewDecFromStr("0.25")),
+							types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, sdk.MustNewDecFromStr("1.0")),
 						},
 					},
 					{
 						Denom: "ukava",
 						Multipliers: types.Multipliers{
-							types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.2")),
-							types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0")),
+							types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, sdk.MustNewDecFromStr("0.2")),
+							types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, sdk.MustNewDecFromStr("1.0")),
 						},
 					},
 				},

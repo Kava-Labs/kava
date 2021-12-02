@@ -275,13 +275,11 @@ func TestBaseAuctionGetters(t *testing.T) {
 	auctionBid := auction.GetBid()
 	auctionLot := auction.GetLot()
 	auctionEndTime := auction.GetEndTime()
-	auctionString := auction.String()
 
 	require.Equal(t, auction.ID, auctionID)
 	require.Equal(t, auction.Bid, auctionBid)
 	require.Equal(t, auction.Lot, auctionLot)
 	require.Equal(t, auction.EndTime, auctionEndTime)
-	require.NotNil(t, auctionString)
 }
 
 func TestNewSurplusAuction(t *testing.T) {

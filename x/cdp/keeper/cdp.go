@@ -50,17 +50,17 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	}
 	cdp := types.NewCDP(id, owner, collateral, collateralType, principal, ctx.BlockHeader().Time, interestFactor)
 	deposit := types.NewDeposit(cdp.ID, owner, collateral)
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(collateral))
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(collateral))
 	if err != nil {
 		return err
 	}
 
 	// mint the principal and send to the owners account
-	err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(principal))
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(principal))
 	if err != nil {
 		panic(err)
 	}
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.NewCoins(principal))
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.NewCoins(principal))
 	if err != nil {
 		panic(err)
 	}
@@ -159,16 +159,16 @@ func (k Keeper) removeOldCollateralRatioIndex(ctx sdk.Context, ctype string, id 
 // MintDebtCoins mints debt coins in the cdp module account
 func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, principalCoins.Amount))
-	return k.supplyKeeper.MintCoins(ctx, moduleAccount, debtCoins)
+	return k.bankKeeper.MintCoins(ctx, moduleAccount, debtCoins)
 }
 
 // BurnDebtCoins burns debt coins from the cdp module account
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coin) error {
-	macc := k.supplyKeeper.GetModuleAccount(ctx, moduleAccount)
-	maxBurnableAmount := macc.GetCoins().AmountOf(denom)
+	macc := k.accountKeeper.GetModuleAccount(ctx, moduleAccount)
+	maxBurnableAmount := k.bankKeeper.GetBalance(ctx, macc.GetAddress(), denom).Amount
 	// check that the requested burn is not greater than the mod account balance
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.MinInt(paymentCoins.Amount, maxBurnableAmount)))
-	return k.supplyKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
+	return k.bankKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
 }
 
 // GetCdpID returns the id of the cdp corresponding to a specific owner and collateral denom
@@ -195,9 +195,10 @@ func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint6
 	if bz == nil {
 		return []uint64{}, false
 	}
-	var cdpIDs []uint64
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &cdpIDs)
-	return cdpIDs, true
+
+	var index types.OwnerCDPIndex
+	k.cdc.MustUnmarshal(bz, &index)
+	return index.CdpIDs, true
 }
 
 // GetCdpByOwnerAndCollateralType queries cdps owned by owner and returns the cdp with matching denom
@@ -219,41 +220,41 @@ func (k Keeper) GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAdd
 func (k Keeper) GetCDP(ctx sdk.Context, collateralType string, cdpID uint64) (types.CDP, bool) {
 	// get store
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, found := k.GetCollateralTypePrefix(ctx, collateralType)
+	_, found := k.GetCollateral(ctx, collateralType)
 	if !found {
 		return types.CDP{}, false
 	}
 	// get CDP
-	bz := store.Get(types.CdpKey(db, cdpID))
+	bz := store.Get(types.CdpKey(collateralType, cdpID))
 	// unmarshal
 	if bz == nil {
 		return types.CDP{}, false
 	}
 	var cdp types.CDP
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &cdp)
+	k.cdc.MustUnmarshal(bz, &cdp)
 	return cdp, true
 }
 
 // SetCDP sets a cdp in the store
 func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, found := k.GetCollateralTypePrefix(ctx, cdp.Type)
+	_, found := k.GetCollateral(ctx, cdp.Type)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(cdp)
-	store.Set(types.CdpKey(db, cdp.ID), bz)
+	bz := k.cdc.MustMarshal(&cdp)
+	store.Set(types.CdpKey(cdp.Type, cdp.ID), bz)
 	return nil
 }
 
 // DeleteCDP deletes a cdp from the store
 func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, found := k.GetCollateralTypePrefix(ctx, cdp.Type)
+	_, found := k.GetCollateral(ctx, cdp.Type)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
-	store.Delete(types.CdpKey(db, cdp.ID))
+	store.Delete(types.CdpKey(cdp.Type, cdp.ID))
 	return nil
 
 }
@@ -288,13 +289,13 @@ func (k Keeper) GetAllCdpsByCollateralTypeAndRatio(ctx sdk.Context, collateralTy
 // SetNextCdpID sets the highest cdp id in the store
 func (k Keeper) SetNextCdpID(ctx sdk.Context, id uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKey)
-	store.Set([]byte{}, types.GetCdpIDBytes(id))
+	store.Set(types.CdpIDKey, types.GetCdpIDBytes(id))
 }
 
 // GetNextCdpID returns the highest cdp id from the store
 func (k Keeper) GetNextCdpID(ctx sdk.Context) (id uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKey)
-	bz := store.Get([]byte{})
+	bz := store.Get(types.CdpIDKey)
 	if bz == nil {
 		panic("starting cdp id not set in genesis")
 	}
@@ -305,21 +306,24 @@ func (k Keeper) GetNextCdpID(ctx sdk.Context) (id uint64) {
 // IndexCdpByOwner sets the cdp id in the store, indexed by the owner
 func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKeyPrefix)
+
 	cdpIDs, found := k.GetCdpIdsByOwner(ctx, cdp.Owner)
 
-	if !found {
-		idBytes := k.cdc.MustMarshalBinaryLengthPrefixed([]uint64{cdp.ID})
-		store.Set(cdp.Owner, idBytes)
-		return
+	if found {
+		cdpIDs = append(cdpIDs, cdp.ID)
+		sort.Slice(cdpIDs, func(i, j int) bool { return cdpIDs[i] < cdpIDs[j] })
+	} else {
+		cdpIDs = []uint64{cdp.ID}
 	}
-	cdpIDs = append(cdpIDs, cdp.ID)
-	sort.Slice(cdpIDs, func(i, j int) bool { return cdpIDs[i] < cdpIDs[j] })
-	store.Set(cdp.Owner, k.cdc.MustMarshalBinaryLengthPrefixed(cdpIDs))
+
+	newIndex := types.OwnerCDPIndex{CdpIDs: cdpIDs}
+	store.Set(cdp.Owner, k.cdc.MustMarshal(&newIndex))
 }
 
 // RemoveCdpOwnerIndex deletes the cdp id from the store's index of cdps by owner
 func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKeyPrefix)
+
 	cdpIDs, found := k.GetCdpIdsByOwner(ctx, cdp.Owner)
 	if !found {
 		return
@@ -334,43 +338,44 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 		store.Delete(cdp.Owner)
 		return
 	}
-	store.Set(cdp.Owner, k.cdc.MustMarshalBinaryLengthPrefixed(updatedCdpIds))
+
+	updatedIndex := types.OwnerCDPIndex{CdpIDs: updatedCdpIds}
+	updatedBytes := k.cdc.MustMarshal(&updatedIndex)
+	store.Set(cdp.Owner, updatedBytes)
 }
 
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
 func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, collateralType string, id uint64, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, found := k.GetCollateralTypePrefix(ctx, collateralType)
+	_, found := k.GetCollateral(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("denom %s prefix not found", collateralType))
 	}
-	store.Set(types.CollateralRatioKey(db, id, collateralRatio), types.GetCdpIDBytes(id))
+	store.Set(types.CollateralRatioKey(collateralType, id, collateralRatio), types.GetCdpIDBytes(id))
 }
 
 // RemoveCdpCollateralRatioIndex deletes the cdp id from the store's index of cdps by collateral type and collateral to debt ratio
 func (k Keeper) RemoveCdpCollateralRatioIndex(ctx sdk.Context, collateralType string, id uint64, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, found := k.GetCollateralTypePrefix(ctx, collateralType)
+	_, found := k.GetCollateral(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("denom %s prefix not found", collateralType))
 	}
-	store.Delete(types.CollateralRatioKey(db, id, collateralRatio))
+	store.Delete(types.CollateralRatioKey(collateralType, id, collateralRatio))
 }
 
 // GetDebtDenom returns the denom of debt in the system
-func (k Keeper) GetDebtDenom(ctx sdk.Context) (denom string) {
+func (k Keeper) GetDebtDenom(ctx sdk.Context) string {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
-	bz := store.Get([]byte{})
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
-	return
+	bz := store.Get(types.DebtDenomKey)
+	return string(bz)
 }
 
 // GetGovDenom returns the denom of the governance token
-func (k Keeper) GetGovDenom(ctx sdk.Context) (denom string) {
+func (k Keeper) GetGovDenom(ctx sdk.Context) string {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
-	bz := store.Get([]byte{})
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
-	return
+	bz := store.Get(types.GovDenomKey)
+	return string(bz)
 }
 
 // SetDebtDenom set the denom of debt in the system
@@ -379,7 +384,7 @@ func (k Keeper) SetDebtDenom(ctx sdk.Context, denom string) {
 		panic("debt denom not set in genesis")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
-	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
+	store.Set(types.DebtDenomKey, []byte(denom))
 }
 
 // SetGovDenom set the denom of the governance token in the system
@@ -388,7 +393,7 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 		panic("gov denom not set in genesis")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
-	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
+	store.Set(types.GovDenomKey, []byte(denom))
 }
 
 // ValidateCollateral validates that a collateral is valid for use in cdps
@@ -472,7 +477,7 @@ func (k Keeper) ValidateBalance(ctx sdk.Context, amount sdk.Coin, sender sdk.Acc
 	if acc == nil {
 		return sdkerrors.Wrapf(types.ErrAccountNotFound, "address: %s", sender)
 	}
-	spendableBalance := acc.SpendableCoins(ctx.BlockTime()).AmountOf(amount.Denom)
+	spendableBalance := k.bankKeeper.SpendableCoins(ctx, acc.GetAddress()).AmountOf(amount.Denom)
 	if spendableBalance.LT(amount.Amount) {
 		return sdkerrors.Wrapf(types.ErrInsufficientBalance, "%s < %s", sdk.NewCoin(amount.Denom, spendableBalance), amount)
 	}
@@ -518,6 +523,42 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 	// create new augmuented cdp
 	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)
 	return augmentedCDP
+}
+
+// LoadCDPResponse creates a new CDPResponse from an existing CDP
+func (k Keeper) LoadCDPResponse(ctx sdk.Context, cdp types.CDP) types.CDPResponse {
+	// sync the latest interest of the cdp
+	interestAccumulated := k.CalculateNewInterest(ctx, cdp)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(interestAccumulated)
+	// update cdp fields to match synced accumulated fees
+	prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cdp.Type)
+	if found {
+		cdp.FeesUpdated = prevAccrualTime
+	}
+	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
+	if found {
+		cdp.InterestFactor = globalInterestFactor
+	}
+	// calculate collateralization ratio
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Type, cdp.Principal, cdp.AccumulatedFees, liquidation)
+	if err != nil {
+		return types.CDPResponse{
+			ID:              cdp.ID,
+			Owner:           cdp.Owner.String(),
+			Type:            cdp.Type,
+			Collateral:      cdp.Collateral,
+			Principal:       cdp.Principal,
+			AccumulatedFees: cdp.AccumulatedFees,
+			FeesUpdated:     cdp.FeesUpdated,
+			InterestFactor:  cdp.InterestFactor.String(),
+		}
+	}
+	// convert collateral value to debt coin
+	totalDebt := cdp.GetTotalPrincipal().Amount
+	collateralValueInDebtDenom := sdk.NewDecFromInt(totalDebt).Mul(collateralizationRatio)
+	collateralValueInDebt := sdk.NewCoin(cdp.Principal.Denom, collateralValueInDebtDenom.RoundInt())
+	// create new cdp response
+	return types.NewCDPResponse(cdp, collateralValueInDebt, collateralizationRatio)
 }
 
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
@@ -576,16 +617,18 @@ func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context
 // SetMarketStatus sets the status of the input market, true means the market is up and running, false means it is down
 func (k Keeper) SetMarketStatus(ctx sdk.Context, marketID string, up bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PricefeedStatusKeyPrefix)
-	store.Set([]byte(marketID), k.cdc.MustMarshalBinaryBare(up))
-	return
+	if up {
+		store.Set([]byte(marketID), []byte{})
+	} else {
+		store.Delete([]byte(marketID))
+	}
 }
 
 // GetMarketStatus returns true if the market has a price, otherwise false
-func (k Keeper) GetMarketStatus(ctx sdk.Context, marketID string) (up bool) {
+func (k Keeper) GetMarketStatus(ctx sdk.Context, marketID string) bool {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PricefeedStatusKeyPrefix)
 	bz := store.Get([]byte(marketID))
-	k.cdc.MustUnmarshalBinaryBare(bz, &up)
-	return up
+	return bz != nil
 }
 
 // UpdatePricefeedStatus determines if the price of an asset is available and updates the global status of the market

@@ -68,17 +68,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
-// String implements stringer interface
-func (p Params) String() string {
-	return fmt.Sprintf(`Auction Params:
-	Max Auction Duration: %s
-	Bid Duration: %s
-	Increment Surplus: %s
-	Increment Debt: %s
-	Increment Collateral: %s`,
-		p.MaxAuctionDuration, p.BidDuration, p.IncrementSurplus, p.IncrementDebt, p.IncrementCollateral)
-}
-
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
 	if err := validateBidDurationParam(p.BidDuration); err != nil {

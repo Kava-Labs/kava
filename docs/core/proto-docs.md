@@ -75,6 +75,7 @@
 - [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
     - [CDP](#kava.cdp.v1beta1.CDP)
     - [Deposit](#kava.cdp.v1beta1.Deposit)
+    - [OwnerCDPIndex](#kava.cdp.v1beta1.OwnerCDPIndex)
     - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
     - [TotalPrincipal](#kava.cdp.v1beta1.TotalPrincipal)
   
@@ -136,7 +137,9 @@
     - [VoteType](#kava.committee.v1beta1.VoteType)
   
 - [kava/committee/v1beta1/permissions.proto](#kava/committee/v1beta1/permissions.proto)
+    - [AllowedParamsChange](#kava.committee.v1beta1.AllowedParamsChange)
     - [GodPermission](#kava.committee.v1beta1.GodPermission)
+    - [ParamsChangePermission](#kava.committee.v1beta1.ParamsChangePermission)
     - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
     - [TextPermission](#kava.committee.v1beta1.TextPermission)
   
@@ -168,7 +171,56 @@
   
 - [kava/committee/v1beta1/tx.proto](#kava/committee/v1beta1/tx.proto)
     - [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal)
+    - [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse)
     - [MsgVote](#kava.committee.v1beta1.MsgVote)
+    - [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse)
+  
+    - [Msg](#kava.committee.v1beta1.Msg)
+  
+- [kava/incentive/v1beta1/claims.proto](#kava/incentive/v1beta1/claims.proto)
+    - [BaseClaim](#kava.incentive.v1beta1.BaseClaim)
+    - [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim)
+    - [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim)
+    - [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim)
+    - [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex)
+    - [RewardIndex](#kava.incentive.v1beta1.RewardIndex)
+    - [SwapClaim](#kava.incentive.v1beta1.SwapClaim)
+    - [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim)
+  
+- [kava/incentive/v1beta1/params.proto](#kava/incentive/v1beta1/params.proto)
+    - [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod)
+    - [Multiplier](#kava.incentive.v1beta1.Multiplier)
+    - [MultipliersPerDenom](#kava.incentive.v1beta1.MultipliersPerDenom)
+    - [Params](#kava.incentive.v1beta1.Params)
+    - [RewardPeriod](#kava.incentive.v1beta1.RewardPeriod)
+  
+    - [MultiplierName](#kava.incentive.v1beta1.MultiplierName)
+  
+- [kava/incentive/v1beta1/genesis.proto](#kava/incentive/v1beta1/genesis.proto)
+    - [AccumulationTime](#kava.incentive.v1beta1.AccumulationTime)
+    - [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState)
+    - [GenesisState](#kava.incentive.v1beta1.GenesisState)
+  
+- [kava/incentive/v1beta1/tx.proto](#kava/incentive/v1beta1/tx.proto)
+    - [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward)
+    - [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse)
+    - [MsgClaimDelegatorRewardVVesting](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVesting)
+    - [MsgClaimDelegatorRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVestingResponse)
+    - [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward)
+    - [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse)
+    - [MsgClaimHardRewardVVesting](#kava.incentive.v1beta1.MsgClaimHardRewardVVesting)
+    - [MsgClaimHardRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimHardRewardVVestingResponse)
+    - [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward)
+    - [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse)
+    - [MsgClaimSwapRewardVVesting](#kava.incentive.v1beta1.MsgClaimSwapRewardVVesting)
+    - [MsgClaimSwapRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardVVestingResponse)
+    - [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward)
+    - [MsgClaimUSDXMintingRewardResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse)
+    - [MsgClaimUSDXMintingRewardVVesting](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVesting)
+    - [MsgClaimUSDXMintingRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVestingResponse)
+    - [Selection](#kava.incentive.v1beta1.Selection)
+  
+    - [Msg](#kava.incentive.v1beta1.Msg)
   
 - [kava/hard/v1beta1/hard.proto](#kava/hard/v1beta1/hard.proto)
     - [Borrow](#kava.hard.v1beta1.Borrow)
@@ -1267,6 +1319,21 @@ Deposit defines an amount of coins deposited by an account to a cdp
 
 
 
+<a name="kava.cdp.v1beta1.OwnerCDPIndex"></a>
+
+### OwnerCDPIndex
+OwnerCDPIndex defines the cdp ids for a single cdp owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp_ids` | [uint64](#uint64) | repeated |  |
+
+
+
+
+
+
 <a name="kava.cdp.v1beta1.TotalCollateral"></a>
 
 ### TotalCollateral
@@ -1739,6 +1806,11 @@ MsgCreateCDP defines a message to create a new CDP.
 MsgCreateCDPResponse defines the Msg/CreateCDP response type.
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp_id` | [uint64](#uint64) |  |  |
+
+
 
 
 
@@ -2077,10 +2149,41 @@ VoteType enumerates the valid types of a vote.
 
 
 
+<a name="kava.committee.v1beta1.AllowedParamsChange"></a>
+
+### AllowedParamsChange
+AllowedParamsChange contains data on the allowed parameter changes for subspace, key, and sub params attrs.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `subspace` | [string](#string) |  |  |
+| `key` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="kava.committee.v1beta1.GodPermission"></a>
 
 ### GodPermission
 GodPermission allows any governance proposal. It is used mainly for testing.
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.ParamsChangePermission"></a>
+
+### ParamsChangePermission
+ParamsChangePermission allows any parameter or sub parameter change proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allowed_params_changes` | [AllowedParamsChange](#kava.committee.v1beta1.AllowedParamsChange) | repeated |  |
 
 
 
@@ -2499,6 +2602,21 @@ MsgSubmitProposal is used by committee members to create a new proposal that the
 
 
 
+<a name="kava.committee.v1beta1.MsgSubmitProposalResponse"></a>
+
+### MsgSubmitProposalResponse
+MsgSubmitProposalResponse defines the SubmitProposal response type
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
 <a name="kava.committee.v1beta1.MsgVote"></a>
 
 ### MsgVote
@@ -2515,11 +2633,633 @@ MsgVote is submitted by committee members to vote on proposals.
 
 
 
+
+<a name="kava.committee.v1beta1.MsgVoteResponse"></a>
+
+### MsgVoteResponse
+MsgVoteResponse defines the Vote response type
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+
+<a name="kava.committee.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the committee Msg service
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `SubmitProposal` | [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse) | SubmitProposal defines a method for submitting a committee proposal | |
+| `Vote` | [MsgVote](#kava.committee.v1beta1.MsgVote) | [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse) | Vote defines a method for voting on a proposal | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/incentive/v1beta1/claims.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/claims.proto
+
+
+
+<a name="kava.incentive.v1beta1.BaseClaim"></a>
+
+### BaseClaim
+BaseClaim is a claim with a single reward coin types
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [bytes](#bytes) |  |  |
+| `reward` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.BaseMultiClaim"></a>
+
+### BaseMultiClaim
+BaseMultiClaim is a claim with multiple reward coin types
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [bytes](#bytes) |  |  |
+| `reward` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.DelegatorClaim"></a>
+
+### DelegatorClaim
+DelegatorClaim stores delegation rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.HardLiquidityProviderClaim"></a>
+
+### HardLiquidityProviderClaim
+HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `supply_reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+| `borrow_reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MultiRewardIndex"></a>
+
+### MultiRewardIndex
+MultiRewardIndex stores reward accumulation information on multiple reward types
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `reward_indexes` | [RewardIndex](#kava.incentive.v1beta1.RewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.RewardIndex"></a>
+
+### RewardIndex
+RewardIndex stores reward accumulation information
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `reward_factor` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.SwapClaim"></a>
+
+### SwapClaim
+SwapClaim stores the swap rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.USDXMintingClaim"></a>
+
+### USDXMintingClaim
+USDXMintingClaim is for USDX minting rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseClaim](#kava.incentive.v1beta1.BaseClaim) |  |  |
+| `reward_indexes` | [RewardIndex](#kava.incentive.v1beta1.RewardIndex) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/incentive/v1beta1/params.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/params.proto
+
+
+
+<a name="kava.incentive.v1beta1.MultiRewardPeriod"></a>
+
+### MultiRewardPeriod
+MultiRewardPeriod supports multiple reward types
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active` | [bool](#bool) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `start` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `rewards_per_second` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.Multiplier"></a>
+
+### Multiplier
+Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `name` | [MultiplierName](#kava.incentive.v1beta1.MultiplierName) |  |  |
+| `months_lockup` | [int64](#int64) |  |  |
+| `factor` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MultipliersPerDenom"></a>
+
+### MultipliersPerDenom
+MultipliersPerDenom is a map of denoms to a set of multipliers
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `multipliers` | [Multiplier](#kava.incentive.v1beta1.Multiplier) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.Params"></a>
+
+### Params
+Params
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `usdx_minting_reward_periods` | [RewardPeriod](#kava.incentive.v1beta1.RewardPeriod) | repeated |  |
+| `hard_supply_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `hard_borrow_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `delegator_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `swap_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `claim_multipliers` | [MultipliersPerDenom](#kava.incentive.v1beta1.MultipliersPerDenom) | repeated |  |
+| `claim_end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.RewardPeriod"></a>
+
+### RewardPeriod
+RewardPeriod stores the state of an ongoing reward
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active` | [bool](#bool) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `start` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `rewards_per_second` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.incentive.v1beta1.MultiplierName"></a>
+
+### MultiplierName
+MultiplierName represent different claim multiplier types
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| MULTIPLIER_NAME_UNSPECIFIED | 0 | represents an unspecified status |
+| MULTIPLIER_NAME_SMALL | 1 | MULTIPLIER_SMALL represents a small multiplier |
+| MULTIPLIER_NAME_MEDIUM | 2 | MULTIPLIER_MEDIUM represents a medium multiplier |
+| MULTIPLIER_NAME_LARGE | 3 | MULTIPLIER_LARGE represents a large multiplier |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/incentive/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/genesis.proto
+
+
+
+<a name="kava.incentive.v1beta1.AccumulationTime"></a>
+
+### AccumulationTime
+AccumulationTime stores the previous reward distribution time and its corresponding collateral type
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `previous_accumulation_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.GenesisRewardState"></a>
+
+### GenesisRewardState
+GenesisRewardState groups together the global state for a particular reward so it can be exported in genesis.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `accumulation_times` | [AccumulationTime](#kava.incentive.v1beta1.AccumulationTime) | repeated |  |
+| `multi_reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState is the state that must be provided at genesis.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.incentive.v1beta1.Params) |  |  |
+| `usdx_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `hard_supply_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `hard_borrow_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `delegator_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `swap_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `usdx_minting_claims` | [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim) | repeated |  |
+| `hard_liquidity_provider_claims` | [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim) | repeated |  |
+| `delegator_claims` | [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim) | repeated |  |
+| `swap_claims` | [SwapClaim](#kava.incentive.v1beta1.SwapClaim) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/incentive/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/tx.proto
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorReward"></a>
+
+### MsgClaimDelegatorReward
+MsgClaimDelegatorReward message type used to claim delegator rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse"></a>
+
+### MsgClaimDelegatorRewardResponse
+MsgClaimDelegatorRewardResponse defines the Msg/ClaimDelegatorReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorRewardVVesting"></a>
+
+### MsgClaimDelegatorRewardVVesting
+MsgClaimDelegatorRewardVVesting message type used to claim delegator rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorRewardVVestingResponse"></a>
+
+### MsgClaimDelegatorRewardVVestingResponse
+MsgClaimDelegatorRewardVVestingResponse defines the Msg/ClaimDelegatorRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardReward"></a>
+
+### MsgClaimHardReward
+MsgClaimHardReward message type used to claim Hard liquidity provider rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardRewardResponse"></a>
+
+### MsgClaimHardRewardResponse
+MsgClaimHardRewardResponse defines the Msg/ClaimHardReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardRewardVVesting"></a>
+
+### MsgClaimHardRewardVVesting
+MsgClaimHardRewardVVesting message type used to claim Hard liquidity provider rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardRewardVVestingResponse"></a>
+
+### MsgClaimHardRewardVVestingResponse
+MsgClaimHardRewardVVestingResponse defines the Msg/ClaimHardRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapReward"></a>
+
+### MsgClaimSwapReward
+MsgClaimSwapReward message type used to claim delegator rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapRewardResponse"></a>
+
+### MsgClaimSwapRewardResponse
+MsgClaimSwapRewardResponse defines the Msg/ClaimSwapReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapRewardVVesting"></a>
+
+### MsgClaimSwapRewardVVesting
+MsgClaimSwapRewardVVesting message type used to claim delegator rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapRewardVVestingResponse"></a>
+
+### MsgClaimSwapRewardVVestingResponse
+MsgClaimSwapRewardVVestingResponse defines the Msg/ClaimSwapRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingReward"></a>
+
+### MsgClaimUSDXMintingReward
+MsgClaimUSDXMintingReward message type used to claim USDX minting rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `multiplier_name` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse"></a>
+
+### MsgClaimUSDXMintingRewardResponse
+MsgClaimUSDXMintingRewardResponse defines the Msg/ClaimUSDXMintingReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVesting"></a>
+
+### MsgClaimUSDXMintingRewardVVesting
+MsgClaimUSDXMintingRewardVVesting message type used to claim USDX minting rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `multiplier_name` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVestingResponse"></a>
+
+### MsgClaimUSDXMintingRewardVVestingResponse
+MsgClaimUSDXMintingRewardVVestingResponse defines the Msg/ClaimUSDXMintingRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.Selection"></a>
+
+### Selection
+Selection is a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a
+denom.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `multiplier_name` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.incentive.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the incentive Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `ClaimUSDXMintingReward` | [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward) | [MsgClaimUSDXMintingRewardResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse) | ClaimUSDXMintingReward is a message type used to claim USDX minting rewards | |
+| `ClaimUSDXMintingRewardVVesting` | [MsgClaimUSDXMintingRewardVVesting](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVesting) | [MsgClaimUSDXMintingRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVestingResponse) | ClaimUSDXMintingRewardVVesting is a message type used to claim USDX minting rewards for validator vesting accounts | |
+| `ClaimHardReward` | [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward) | [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse) | ClaimHardReward is a message type used to claim Hard liquidity provider rewards | |
+| `ClaimHardRewardVVesting` | [MsgClaimHardRewardVVesting](#kava.incentive.v1beta1.MsgClaimHardRewardVVesting) | [MsgClaimHardRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimHardRewardVVestingResponse) | ClaimHardRewardVVesting is a message type used to claim Hard liquidity provider rewards for validator vesting accounts | |
+| `ClaimDelegatorReward` | [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward) | [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse) | ClaimDelegatorReward is a message type used to claim delegator rewards | |
+| `ClaimDelegatorRewardVVesting` | [MsgClaimDelegatorRewardVVesting](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVesting) | [MsgClaimDelegatorRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVestingResponse) | ClaimDelegatorRewardVVesting is a message type used to claim delegator rewards for validator vesting accounts | |
+| `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim delegator rewards | |
+| `ClaimSwapRewardVVesting` | [MsgClaimSwapRewardVVesting](#kava.incentive.v1beta1.MsgClaimSwapRewardVVesting) | [MsgClaimSwapRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardVVestingResponse) | ClaimSwapRewardVVesting is a message type used to claim delegator rewards for validator vesting accounts | |
 
  <!-- end services -->
 
