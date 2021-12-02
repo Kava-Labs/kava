@@ -16,9 +16,9 @@ import (
 func TestCosmosMigrate_Gov(t *testing.T) {
 	// The gov json contains a gov app state with 3 different proposals.
 	// Two of the proposals are from cosmos while the 3rd one is kavadist/CommunityPoolMultiSpendProposal.
-	original := GetTestDataJSON("appstate-gov-v15.json")
-	expected := GetTestDataJSON("appstate-gov-v16.json")
-	actual := MustMigrateAppStateJSON(original)
+	original := getTestDataJSON("appstate-gov-v15.json")
+	expected := getTestDataJSON("appstate-gov-v16.json")
+	actual := mustMigrateCosmosAppStateJSON(original)
 	assert.JSONEq(t, expected, actual)
 }
 
@@ -26,40 +26,40 @@ func TestCosmosMigrate_Bank(t *testing.T) {
 	// The bank json tests migrating the bank, auth, and supply modules
 	// The json contains the kava ValidatorVestingAccount account and tests for
 	// both the correct proto migration & moving account coins and supply to the bank module.
-	original := GetTestDataJSON("appstate-bank-v15.json")
-	expected := GetTestDataJSON("appstate-bank-v16.json")
-	actual := MustMigrateAppStateJSON(original)
+	original := getTestDataJSON("appstate-bank-v15.json")
+	expected := getTestDataJSON("appstate-bank-v16.json")
+	actual := mustMigrateCosmosAppStateJSON(original)
 	assert.JSONEq(t, expected, actual)
 }
 
 func TestCosmosMigrate_Distribution(t *testing.T) {
-	original := GetTestDataJSON("appstate-distribution-v15.json")
-	expected := GetTestDataJSON("appstate-distribution-v16.json")
-	actual := MustMigrateAppStateJSON(original)
+	original := getTestDataJSON("appstate-distribution-v15.json")
+	expected := getTestDataJSON("appstate-distribution-v16.json")
+	actual := mustMigrateCosmosAppStateJSON(original)
 	assert.JSONEq(t, expected, actual)
 }
 
 func TestCosmosMigrate_Staking(t *testing.T) {
-	original := GetTestDataJSON("appstate-staking-v15.json")
-	expected := GetTestDataJSON("appstate-staking-v16.json")
-	actual := MustMigrateAppStateJSON(original)
+	original := getTestDataJSON("appstate-staking-v15.json")
+	expected := getTestDataJSON("appstate-staking-v16.json")
+	actual := mustMigrateCosmosAppStateJSON(original)
 	assert.JSONEq(t, expected, actual)
 }
 
 func TestCosmosMigrate_Modules(t *testing.T) {
-	original := GetTestDataJSON("appstate-cosmos-v15.json")
-	expected := GetTestDataJSON("appstate-cosmos-v16.json")
-	actual := MustMigrateAppStateJSON(original)
+	original := getTestDataJSON("appstate-cosmos-v15.json")
+	expected := getTestDataJSON("appstate-cosmos-v16.json")
+	actual := mustMigrateCosmosAppStateJSON(original)
 	assert.JSONEq(t, expected, actual)
 }
 
-// MustMigrateAppStateJSON migrate v15 app state json to v16
-func MustMigrateAppStateJSON(appStateJson string) string {
+// mustMigrateCosmosAppStateJSON migrate v15 app state json to v16
+func mustMigrateCosmosAppStateJSON(appStateJson string) string {
 	var appState genutiltypes.AppMap
 	if err := json.Unmarshal([]byte(appStateJson), &appState); err != nil {
 		panic(err)
 	}
-	newGenState := migrateCosmosAppState(appState, NewClientContext())
+	newGenState := migrateCosmosAppState(appState, newClientContext())
 	actual, err := json.Marshal(newGenState)
 	if err != nil {
 		panic(err)
@@ -67,7 +67,7 @@ func MustMigrateAppStateJSON(appStateJson string) string {
 	return string(actual)
 }
 
-func GetTestDataJSON(filename string) string {
+func getTestDataJSON(filename string) string {
 	file := filepath.Join("testdata", filename)
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -76,7 +76,7 @@ func GetTestDataJSON(filename string) string {
 	return string(data)
 }
 
-func NewClientContext() client.Context {
+func newClientContext() client.Context {
 	config := app.MakeEncodingConfig()
 	return client.Context{}.
 		WithCodec(config.Marshaler).

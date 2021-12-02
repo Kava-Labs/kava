@@ -65,6 +65,7 @@ func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context) genutil
 	v038upgrade.RegisterLegacyAminoCodec(v039Codec)
 	v015kavadist.RegisterLegacyAminoCodec(v039Codec)
 	v015validatorvesting.RegisterLegacyAminoCodec(v039Codec)
+	v039Codec.RegisterInterface((*v038evidence.Evidence)(nil), nil)
 
 	v040Codec := clientCtx.Codec
 
