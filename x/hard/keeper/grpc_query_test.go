@@ -33,6 +33,15 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+
+	app.NewFundedGenStateWithSameCoins(
+		suite.tApp.AppCodec(),
+		cs(
+			c("bnb", 1000*100000000),
+			c("busd", 1000*100000000),
+		),
+		addrs,
+	)
 	suite.addrs = addrs
 }
 
@@ -72,34 +81,51 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits_EmptyResponse() {
 	suite.Require().Empty(res)
 }
 
-func (suite *grpcQueryTestSuite) addDeposit() types.Deposit {
-	dep := types.NewDeposit(
-		sdk.AccAddress("test"),
-		sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
-		types.SupplyInterestFactors{
-			types.NewSupplyInterestFactor("bnb", sdk.MustNewDecFromStr("0")),
+func (suite *grpcQueryTestSuite) addDeposits() {
+	deposits := []struct {
+		Address sdk.AccAddress
+		Coins   sdk.Coins
+	}{
+		{
+			suite.addrs[0],
+			sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
 		},
-	)
+		{
+			suite.addrs[1],
+			sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
+		},
+		{
+			suite.addrs[0],
+			sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(400))),
+		},
+		{
+			suite.addrs[0],
+			sdk.NewCoins(sdk.NewCoin("bun", sdk.NewInt(800))),
+		},
+	}
 
-	suite.keeper.SetDeposit(suite.ctx, dep)
-
-	return dep
+	for _, dep := range deposits {
+		suite.NotPanics(func() {
+			err := suite.keeper.Deposit(suite.ctx, dep.Address, dep.Coins)
+			suite.Require().NoError(err)
+		})
+	}
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
-	dep := suite.addDeposit()
+	suite.addDeposits()
 
 	tests := []struct {
-		giveName     string
-		giveRequest  *types.QueryDepositsRequest
-		wantDeposits *types.Deposits
-		shouldError  bool
-		errorSubstr  string
+		giveName          string
+		giveRequest       *types.QueryDepositsRequest
+		wantDepositCounts int
+		shouldError       bool
+		errorSubstr       string
 	}{
 		{
 			"empty query",
 			&types.QueryDepositsRequest{},
-			&types.Deposits{dep},
+			4,
 			false,
 			"",
 		},
@@ -108,7 +134,8 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 			&types.QueryDepositsRequest{
 				Owner: sdk.AccAddress("test").String(),
 			},
-			&types.Deposits{dep},
+			// Excludes the second address
+			3,
 			false,
 			"",
 		},
@@ -117,7 +144,8 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 			&types.QueryDepositsRequest{
 				Owner: "invalid address",
 			},
-			&types.Deposits{},
+			// No deposits
+			0,
 			true,
 			"decoding bech32 failed",
 		},
@@ -127,7 +155,8 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 				Owner: sdk.AccAddress("test").String(),
 				Denom: "bnb",
 			},
-			&types.Deposits{dep},
+			// Only the first one
+			1,
 			false,
 			"",
 		},
@@ -137,7 +166,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 				Owner: sdk.AccAddress("test").String(),
 				Denom: "invalid denom",
 			},
-			&types.Deposits{},
+			0,
 			false,
 			"",
 		},
@@ -146,7 +175,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 			&types.QueryDepositsRequest{
 				Denom: "bnb",
 			},
-			&types.Deposits{dep},
+			2,
 			false,
 			"",
 		},
@@ -161,7 +190,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 				suite.Contains(err.Error(), tt.errorSubstr)
 			} else {
 				suite.NoError(err)
-				suite.Equal(tt.wantDeposits.ToResponse(), res.Deposits)
+				suite.Equal(tt.wantDepositCounts, len(res.Deposits))
 			}
 		})
 	}
