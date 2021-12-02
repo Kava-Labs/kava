@@ -326,7 +326,9 @@ func (k Keeper) GetAllSwapClaims(ctx sdk.Context) types.SwapClaims {
 // SetHardSupplyRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetHardSupplyRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
-	bz := k.cdc.MustMarshal(&indexes)
+	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
+		RewardIndexes: indexes,
+	})
 	store.Set([]byte(denom), bz)
 }
 
@@ -337,10 +339,9 @@ func (k Keeper) GetHardSupplyRewardIndexes(ctx sdk.Context, denom string) (types
 	if bz == nil {
 		return types.RewardIndexes{}, false
 	}
-
-	var rewardIndexes types.RewardIndexes
-	k.cdc.MustUnmarshal(bz, &rewardIndexes)
-	return rewardIndexes, true
+	var proto types.RewardIndexesProto
+	k.cdc.MustUnmarshal(bz, &proto)
+	return proto.RewardIndexes, true
 }
 
 // IterateHardSupplyRewardIndexes iterates over all Hard supply reward index objects in the store and preforms a callback function
@@ -349,9 +350,9 @@ func (k Keeper) IterateHardSupplyRewardIndexes(ctx sdk.Context, cb func(denom st
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var indexes types.RewardIndexes
-		k.cdc.MustUnmarshal(iterator.Value(), &indexes)
-		if cb(string(iterator.Key()), indexes) {
+		var proto types.RewardIndexesProto
+		k.cdc.MustUnmarshal(iterator.Value(), &proto)
+		if cb(string(iterator.Key()), proto.RewardIndexes) {
 			break
 		}
 	}
@@ -376,7 +377,9 @@ func (k Keeper) IterateHardSupplyRewardAccrualTimes(ctx sdk.Context, cb func(str
 // SetHardBorrowRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetHardBorrowRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardIndexesKeyPrefix)
-	bz := k.cdc.MustMarshal(&indexes)
+	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
+		RewardIndexes: indexes,
+	})
 	store.Set([]byte(denom), bz)
 }
 
@@ -387,9 +390,9 @@ func (k Keeper) GetHardBorrowRewardIndexes(ctx sdk.Context, denom string) (types
 	if bz == nil {
 		return types.RewardIndexes{}, false
 	}
-	var rewardIndexes types.RewardIndexes
-	k.cdc.MustUnmarshal(bz, &rewardIndexes)
-	return rewardIndexes, true
+	var proto types.RewardIndexesProto
+	k.cdc.MustUnmarshal(bz, &proto)
+	return proto.RewardIndexes, true
 }
 
 // IterateHardBorrowRewardIndexes iterates over all Hard borrow reward index objects in the store and preforms a callback function
@@ -398,9 +401,9 @@ func (k Keeper) IterateHardBorrowRewardIndexes(ctx sdk.Context, cb func(denom st
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var indexes types.RewardIndexes
-		k.cdc.MustUnmarshal(iterator.Value(), &indexes)
-		if cb(string(iterator.Key()), indexes) {
+		var proto types.RewardIndexesProto
+		k.cdc.MustUnmarshal(iterator.Value(), &proto)
+		if cb(string(iterator.Key()), proto.RewardIndexes) {
 			break
 		}
 	}
@@ -429,15 +432,17 @@ func (k Keeper) GetDelegatorRewardIndexes(ctx sdk.Context, denom string) (types.
 	if bz == nil {
 		return types.RewardIndexes{}, false
 	}
-	var rewardIndexes types.RewardIndexes
-	k.cdc.MustUnmarshal(bz, &rewardIndexes)
-	return rewardIndexes, true
+	var proto types.RewardIndexesProto
+	k.cdc.MustUnmarshal(bz, &proto)
+	return proto.RewardIndexes, true
 }
 
 // SetDelegatorRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetDelegatorRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
-	bz := k.cdc.MustMarshal(&indexes)
+	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
+		RewardIndexes: indexes,
+	})
 	store.Set([]byte(denom), bz)
 }
 
@@ -447,9 +452,9 @@ func (k Keeper) IterateDelegatorRewardIndexes(ctx sdk.Context, cb func(denom str
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var indexes types.RewardIndexes
-		k.cdc.MustUnmarshal(iterator.Value(), &indexes)
-		if cb(string(iterator.Key()), indexes) {
+		var proto types.RewardIndexesProto
+		k.cdc.MustUnmarshal(iterator.Value(), &proto)
+		if cb(string(iterator.Key()), proto.RewardIndexes) {
 			break
 		}
 	}
@@ -543,7 +548,9 @@ func (k Keeper) SetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom str
 // SetSwapRewardIndexes stores the global reward indexes that track total rewards to a swap pool.
 func (k Keeper) SetSwapRewardIndexes(ctx sdk.Context, poolID string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
-	bz := k.cdc.MustMarshal(&indexes)
+	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
+		RewardIndexes: indexes,
+	})
 	store.Set([]byte(poolID), bz)
 }
 
@@ -554,9 +561,9 @@ func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolID string) (types.Rewa
 	if bz == nil {
 		return types.RewardIndexes{}, false
 	}
-	var rewardIndexes types.RewardIndexes
-	k.cdc.MustUnmarshal(bz, &rewardIndexes)
-	return rewardIndexes, true
+	var proto types.RewardIndexesProto
+	k.cdc.MustUnmarshal(bz, &proto)
+	return proto.RewardIndexes, true
 }
 
 // IterateSwapRewardIndexes iterates over all swap reward index objects in the store and preforms a callback function
@@ -565,9 +572,9 @@ func (k Keeper) IterateSwapRewardIndexes(ctx sdk.Context, cb func(poolID string,
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var indexes types.RewardIndexes
-		k.cdc.MustUnmarshal(iterator.Value(), &indexes)
-		if cb(string(iterator.Key()), indexes) {
+		var proto types.RewardIndexesProto
+		k.cdc.MustUnmarshal(iterator.Value(), &proto)
+		if cb(string(iterator.Key()), proto.RewardIndexes) {
 			break
 		}
 	}

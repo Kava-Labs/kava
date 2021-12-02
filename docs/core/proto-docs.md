@@ -183,7 +183,9 @@
     - [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim)
     - [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim)
     - [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex)
+    - [MultiRewardIndexesProto](#kava.incentive.v1beta1.MultiRewardIndexesProto)
     - [RewardIndex](#kava.incentive.v1beta1.RewardIndex)
+    - [RewardIndexesProto](#kava.incentive.v1beta1.RewardIndexesProto)
     - [SwapClaim](#kava.incentive.v1beta1.SwapClaim)
     - [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim)
   
@@ -2691,6 +2693,21 @@ MultiRewardIndex stores reward accumulation information on multiple reward types
 
 
 
+<a name="kava.incentive.v1beta1.MultiRewardIndexesProto"></a>
+
+### MultiRewardIndexesProto
+MultiRewardIndexesProto defines a Protobuf wrapper around a MultiRewardIndexes slice
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `multi_reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.RewardIndex"></a>
 
 ### RewardIndex
@@ -2701,6 +2718,21 @@ RewardIndex stores reward accumulation information
 | ----- | ---- | ----- | ----------- |
 | `collateral_type` | [string](#string) |  |  |
 | `reward_factor` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.RewardIndexesProto"></a>
+
+### RewardIndexesProto
+RewardIndexesProto defines a Protobuf wrapper around a RewardIndexes slice
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `reward_indexes` | [RewardIndex](#kava.incentive.v1beta1.RewardIndex) | repeated |  |
 
 
 
