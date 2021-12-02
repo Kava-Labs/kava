@@ -82,6 +82,7 @@ import (
 	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
 	issuance "github.com/kava-labs/kava/x/issuance"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
@@ -207,6 +208,7 @@ type App struct {
 	swapKeeper      swapkeeper.Keeper
 	cdpKeeper       cdpkeeper.Keeper
 	committeeKeeper committeekeeper.Keeper
+	incentiveKeeper incentivekeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
