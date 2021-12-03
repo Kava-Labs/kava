@@ -20,7 +20,7 @@ func migrateParams(oldParams v015kavadist.Params) v016kavadist.Params {
 	}
 }
 
-// Migrate converts v0.15 swap state and returns it in v0.16 format
+// Migrate converts v0.15 kavadist state and returns it in v0.16 format
 func Migrate(oldState v015kavadist.GenesisState) *v016kavadist.GenesisState {
 	return &v016kavadist.GenesisState{
 		Params:            migrateParams(oldState.Params),
