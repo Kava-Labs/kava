@@ -101,6 +101,7 @@ func postSwapForExactTokensHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
+	
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq)
 	}
 }

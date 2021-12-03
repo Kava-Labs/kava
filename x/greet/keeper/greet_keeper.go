@@ -130,8 +130,14 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case types.QueryGetGreeting:
-				val := k.GetGreeting(ctx, path[1])
-				bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, val)
+				var getGreetRequest types.QueryGetGreetRequest 
+				err := legacyQuerierCdc.UnmarshalJSON(req.Data, &getGreetRequest)
+				if err != nil {
+					return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+				}
+				
+				val := k.GetGreeting(ctx, getGreetRequest.GetId())
+				bz, err := legacyQuerierCdc.MarshalJSON(val) 
 				if err != nil {
 					return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 				}
