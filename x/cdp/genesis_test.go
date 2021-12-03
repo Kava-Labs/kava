@@ -9,12 +9,15 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/cdp/keeper"
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 type GenesisTestSuite struct {
@@ -23,14 +26,14 @@ type GenesisTestSuite struct {
 	app     app.TestApp
 	ctx     sdk.Context
 	genTime time.Time
-	keeper  cdp.Keeper
+	keeper  keeper.Keeper
 	addrs   []sdk.AccAddress
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	suite.genTime = tmtime.Canonical(time.Date(2021, 1, 1, 1, 1, 1, 1, time.UTC))
-	suite.ctx = tApp.NewContext(true, abci.Header{Height: 1, Time: suite.genTime})
+	suite.ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: suite.genTime})
 	suite.keeper = tApp.GetCDPKeeper()
 	suite.app = tApp
 
@@ -40,24 +43,20 @@ func (suite *GenesisTestSuite) SetupTest() {
 
 func (suite *GenesisTestSuite) TestInvalidGenState() {
 	type args struct {
-		params             cdp.Params
-		cdps               cdp.CDPs
-		deposits           cdp.Deposits
+		params             types.Params
+		cdps               types.CDPs
+		deposits           types.Deposits
 		startingID         uint64
 		debtDenom          string
 		govDenom           string
-		genAccumTimes      cdp.GenesisAccumulationTimes
-		genTotalPrincipals cdp.GenesisTotalPrincipals
+		genAccumTimes      types.GenesisAccumulationTimes
+		genTotalPrincipals types.GenesisTotalPrincipals
 	}
 	type errArgs struct {
 		expectPass bool
 		contains   string
 	}
-	type genesisTest struct {
-		name    string
-		args    args
-		errArgs errArgs
-	}
+
 	testCases := []struct {
 		name    string
 		args    args
@@ -66,13 +65,13 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		{
 			name: "empty debt denom",
 			args: args{
-				params:             cdp.DefaultParams(),
-				cdps:               cdp.CDPs{},
-				deposits:           cdp.Deposits{},
+				params:             types.DefaultParams(),
+				cdps:               types.CDPs{},
+				deposits:           types.Deposits{},
 				debtDenom:          "",
-				govDenom:           cdp.DefaultGovDenom,
-				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
-				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
+				govDenom:           types.DefaultGovDenom,
+				genAccumTimes:      types.DefaultGenesisState().PreviousAccumulationTimes,
+				genTotalPrincipals: types.DefaultGenesisState().TotalPrincipals,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -82,13 +81,13 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		{
 			name: "empty gov denom",
 			args: args{
-				params:             cdp.DefaultParams(),
-				cdps:               cdp.CDPs{},
-				deposits:           cdp.Deposits{},
-				debtDenom:          cdp.DefaultDebtDenom,
+				params:             types.DefaultParams(),
+				cdps:               types.CDPs{},
+				deposits:           types.Deposits{},
+				debtDenom:          types.DefaultDebtDenom,
 				govDenom:           "",
-				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
-				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
+				genAccumTimes:      types.DefaultGenesisState().PreviousAccumulationTimes,
+				genTotalPrincipals: types.DefaultGenesisState().TotalPrincipals,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -98,13 +97,13 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		{
 			name: "interest factor below one",
 			args: args{
-				params:             cdp.DefaultParams(),
-				cdps:               cdp.CDPs{},
-				deposits:           cdp.Deposits{},
-				debtDenom:          cdp.DefaultDebtDenom,
-				govDenom:           cdp.DefaultGovDenom,
-				genAccumTimes:      cdp.GenesisAccumulationTimes{cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec().Sub(sdk.SmallestDec()))},
-				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
+				params:             types.DefaultParams(),
+				cdps:               types.CDPs{},
+				deposits:           types.Deposits{},
+				debtDenom:          types.DefaultDebtDenom,
+				govDenom:           types.DefaultGovDenom,
+				genAccumTimes:      types.GenesisAccumulationTimes{types.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec().Sub(sdk.SmallestDec()))},
+				genTotalPrincipals: types.DefaultGenesisState().TotalPrincipals,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -114,13 +113,13 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		{
 			name: "negative total principal",
 			args: args{
-				params:             cdp.DefaultParams(),
-				cdps:               cdp.CDPs{},
-				deposits:           cdp.Deposits{},
-				debtDenom:          cdp.DefaultDebtDenom,
-				govDenom:           cdp.DefaultGovDenom,
-				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
-				genTotalPrincipals: cdp.GenesisTotalPrincipals{cdp.NewGenesisTotalPrincipal("bnb-a", sdk.NewInt(-1))},
+				params:             types.DefaultParams(),
+				cdps:               types.CDPs{},
+				deposits:           types.Deposits{},
+				debtDenom:          types.DefaultDebtDenom,
+				govDenom:           types.DefaultGovDenom,
+				genAccumTimes:      types.DefaultGenesisState().PreviousAccumulationTimes,
+				genTotalPrincipals: types.GenesisTotalPrincipals{types.NewGenesisTotalPrincipal("bnb-a", sdk.NewInt(-1))},
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -130,7 +129,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			gs := cdp.NewGenesisState(tc.args.params, tc.args.cdps, tc.args.deposits, tc.args.startingID,
+			gs := types.NewGenesisState(tc.args.params, tc.args.cdps, tc.args.deposits, tc.args.startingID,
 				tc.args.debtDenom, tc.args.govDenom, tc.args.genAccumTimes, tc.args.genTotalPrincipals)
 			err := gs.Validate()
 			if tc.errArgs.expectPass {
@@ -144,22 +143,24 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 }
 
 func (suite *GenesisTestSuite) TestValidGenState() {
+	cdc := suite.app.AppCodec()
+
 	suite.NotPanics(func() {
 		suite.app.InitializeFromGenesisStates(
-			NewPricefeedGenStateMulti(),
-			NewCDPGenStateMulti(),
+			NewPricefeedGenStateMulti(cdc),
+			NewCDPGenStateMulti(cdc),
 		)
 	})
 
-	cdpGS := NewCDPGenStateMulti()
-	gs := cdp.GenesisState{}
-	cdp.ModuleCdc.UnmarshalJSON(cdpGS["cdp"], &gs)
+	cdpGS := NewCDPGenStateMulti(cdc)
+	gs := types.GenesisState{}
+	suite.app.AppCodec().MustUnmarshalJSON(cdpGS["cdp"], &gs)
 	gs.CDPs = cdps()
 	gs.StartingCdpID = uint64(5)
-	appGS := app.GenesisState{"cdp": cdp.ModuleCdc.MustMarshalJSON(gs)}
+	appGS := app.GenesisState{"cdp": suite.app.AppCodec().MustMarshalJSON(&gs)}
 	suite.NotPanics(func() {
 		suite.app.InitializeFromGenesisStates(
-			NewPricefeedGenStateMulti(),
+			NewPricefeedGenStateMulti(cdc),
 			appGS,
 		)
 	})
@@ -167,7 +168,7 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 
 func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 
-	cdps := cdp.CDPs{
+	cdps := types.CDPs{
 		{
 			ID:              2,
 			Owner:           suite.addrs[0],
@@ -180,14 +181,14 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		},
 	}
 
-	genTotalPrincipals := cdp.GenesisTotalPrincipals{
-		cdp.NewGenesisTotalPrincipal("btc-a", sdk.ZeroInt()),
-		cdp.NewGenesisTotalPrincipal("xrp-a", sdk.ZeroInt()),
+	genTotalPrincipals := types.GenesisTotalPrincipals{
+		types.NewGenesisTotalPrincipal("btc-a", sdk.ZeroInt()),
+		types.NewGenesisTotalPrincipal("xrp-a", sdk.ZeroInt()),
 	}
 
-	var deposits cdp.Deposits
+	var deposits types.Deposits
 	for _, c := range cdps {
-		deposit := cdp.Deposit{
+		deposit := types.Deposit{
 			CdpID:     c.ID,
 			Depositor: c.Owner,
 			Amount:    c.Collateral,
@@ -201,14 +202,14 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		}
 	}
 
-	cdpGenesis := cdp.GenesisState{
-		Params: cdp.Params{
+	cdpGenesis := types.GenesisState{
+		Params: types.Params{
 			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
-			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
-			SurplusAuctionLot:       cdp.DefaultSurplusLot,
-			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
-			DebtAuctionLot:          cdp.DefaultDebtLot,
-			CollateralParams: cdp.CollateralParams{
+			SurplusAuctionThreshold: types.DefaultSurplusThreshold,
+			SurplusAuctionLot:       types.DefaultSurplusLot,
+			DebtAuctionThreshold:    types.DefaultDebtThreshold,
+			DebtAuctionLot:          types.DefaultDebtLot,
+			CollateralParams: types.CollateralParams{
 				{
 					Denom:                            "xrp",
 					Type:                             "xrp-a",
@@ -217,7 +218,6 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000001547125958"), // 5% apr
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(7000000000),
-					Prefix:                           0x20,
 					SpotMarketID:                     "xrp:usd",
 					LiquidationMarketID:              "xrp:usd",
 					KeeperRewardPercentage:           d("0.01"),
@@ -232,7 +232,6 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 					StabilityFee:                     sdk.MustNewDecFromStr("1.000000000782997609"), // 2.5% apr
 					LiquidationPenalty:               d("0.025"),
 					AuctionSize:                      i(10000000),
-					Prefix:                           0x21,
 					SpotMarketID:                     "btc:usd",
 					LiquidationMarketID:              "btc:usd",
 					KeeperRewardPercentage:           d("0.01"),
@@ -240,21 +239,21 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 					ConversionFactor:                 i(8),
 				},
 			},
-			DebtParam: cdp.DebtParam{
+			DebtParam: types.DebtParam{
 				Denom:            "usdx",
 				ReferenceAsset:   "usd",
 				ConversionFactor: i(6),
 				DebtFloor:        i(10000000),
 			},
 		},
-		StartingCdpID: cdp.DefaultCdpStartingID,
-		DebtDenom:     cdp.DefaultDebtDenom,
-		GovDenom:      cdp.DefaultGovDenom,
+		StartingCdpID: types.DefaultCdpStartingID,
+		DebtDenom:     types.DefaultDebtDenom,
+		GovDenom:      types.DefaultGovDenom,
 		CDPs:          cdps,
 		Deposits:      deposits,
-		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
-			cdp.NewGenesisAccumulationTime("btc-a", suite.genTime, sdk.OneDec()),
-			cdp.NewGenesisAccumulationTime("xrp-a", suite.genTime, sdk.OneDec()),
+		PreviousAccumulationTimes: types.GenesisAccumulationTimes{
+			types.NewGenesisAccumulationTime("btc-a", suite.genTime, sdk.OneDec()),
+			types.NewGenesisAccumulationTime("xrp-a", suite.genTime, sdk.OneDec()),
 		},
 		TotalPrincipals: genTotalPrincipals,
 	}
@@ -262,8 +261,8 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 	suite.NotPanics(func() {
 		suite.app.InitializeFromGenesisStatesWithTime(
 			suite.genTime,
-			NewPricefeedGenStateMulti(),
-			app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)},
+			NewPricefeedGenStateMulti(suite.app.AppCodec()),
+			app.GenesisState{types.ModuleName: suite.app.AppCodec().MustMarshalJSON(&cdpGenesis)},
 		)
 	})
 
@@ -274,7 +273,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 	expectedGenesis := cdpGenesis
 
 	// Update previous accrual times in expected genesis
-	var expectedPrevAccTimes cdp.GenesisAccumulationTimes
+	var expectedPrevAccTimes types.GenesisAccumulationTimes
 	for _, prevAccTime := range cdpGenesis.PreviousAccumulationTimes {
 		time, found := suite.keeper.GetPreviousAccrualTime(suite.ctx, prevAccTime.CollateralType)
 		if !found {
@@ -293,7 +292,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 	expectedGenesis.PreviousAccumulationTimes = expectedPrevAccTimes
 
 	// Update total principals
-	var totalPrincipals cdp.GenesisTotalPrincipals
+	var totalPrincipals types.GenesisTotalPrincipals
 	for _, p := range expectedGenesis.TotalPrincipals {
 		totalPrincipal := suite.keeper.GetTotalPrincipal(suite.ctx, p.CollateralType, "usdx")
 		p.TotalPrincipal = totalPrincipal

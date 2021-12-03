@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -13,12 +13,12 @@ import (
 func TestGetTotalVestingPeriodLength(t *testing.T) {
 	testCases := []struct {
 		name        string
-		periods     vesting.Periods
+		periods     vestingtypes.Periods
 		expectedVal int64
 	}{
 		{
 			name: "two period lengths are added together",
-			periods: vesting.Periods{
+			periods: vestingtypes.Periods{
 				{
 					Length: 100,
 				},

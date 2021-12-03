@@ -19,7 +19,9 @@ RUN go mod download
 COPY . .
 
 #ENV LEDGER_ENABLED False
-RUN make install
+# Mount build container cache, persisted between builder invocations
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    make install
 
 FROM alpine:3.15
 

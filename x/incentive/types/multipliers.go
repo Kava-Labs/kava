@@ -8,20 +8,24 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// Available reward multipliers names
-const (
-	Small  MultiplierName = "small"
-	Medium MultiplierName = "medium"
-	Large  MultiplierName = "large"
-)
-
-// MultiplierName is the user facing ID for a multiplier. There is a restricted set of possible values.
-type MultiplierName string
+// NewMultiplierNameFromString converts string to MultiplierName type
+func NewMultiplierNameFromString(str string) MultiplierName {
+	switch str {
+	case "small":
+		return MULTIPLIER_NAME_SMALL
+	case "medium":
+		return MULTIPLIER_NAME_MEDIUM
+	case "large":
+		return MULTIPLIER_NAME_LARGE
+	default:
+		return MULTIPLIER_NAME_UNSPECIFIED
+	}
+}
 
 // IsValid checks if the input is one of the expected strings
 func (mn MultiplierName) IsValid() error {
 	switch mn {
-	case Small, Medium, Large:
+	case MULTIPLIER_NAME_SMALL, MULTIPLIER_NAME_MEDIUM, MULTIPLIER_NAME_LARGE:
 		return nil
 	}
 	return sdkerrors.Wrapf(ErrInvalidMultiplier, "invalid multiplier name: %s", mn)
@@ -29,18 +33,11 @@ func (mn MultiplierName) IsValid() error {
 
 // ParseMultiplierName converts a string into a valid MultiplierName value.
 func ParseMultiplierName(unparsedName string) (MultiplierName, error) {
-	name := MultiplierName(unparsedName)
+	name := NewMultiplierNameFromString(unparsedName)
 	if err := name.IsValid(); err != nil {
-		return "", err
+		return MULTIPLIER_NAME_UNSPECIFIED, err
 	}
 	return name, nil
-}
-
-// Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
-type Multiplier struct {
-	Name         MultiplierName `json:"name" yaml:"name"`
-	MonthsLockup int64          `json:"months_lockup" yaml:"months_lockup"`
-	Factor       sdk.Dec        `json:"factor" yaml:"factor"`
 }
 
 // NewMultiplier returns a new Multiplier
@@ -65,15 +62,6 @@ func (m Multiplier) Validate() error {
 	}
 
 	return nil
-}
-
-// String implements fmt.Stringer
-func (m Multiplier) String() string {
-	return fmt.Sprintf(`Claim Multiplier:
-	Name: %s
-	Months Lockup %d
-	Factor %s
-	`, m.Name, m.MonthsLockup, m.Factor)
 }
 
 // Multipliers is a slice of Multiplier
@@ -103,19 +91,16 @@ func (ms Multipliers) Get(name MultiplierName) (Multiplier, bool) {
 func (ms Multipliers) String() string {
 	out := "Claim Multipliers\n"
 	for _, s := range ms {
-		out += fmt.Sprintf("%s\n", s)
+		out += fmt.Sprintf("%v\n", s)
 	}
 	return out
 }
 
-// MultipliersPerDenom is a map of denoms to a set of multipliers
-type MultipliersPerDenom []struct {
-	Denom       string      `json:"denom" yaml:"denom"`
-	Multipliers Multipliers `json:"multipliers" yaml:"multipliers"`
-}
+// MultipliersPerDenoms is a slice of MultipliersPerDenom
+type MultipliersPerDenoms []MultipliersPerDenom
 
 // Validate checks each denom and multipliers for invalid values.
-func (mpd MultipliersPerDenom) Validate() error {
+func (mpd MultipliersPerDenoms) Validate() error {
 	foundDenoms := map[string]bool{}
 
 	for _, item := range mpd {
@@ -132,12 +117,6 @@ func (mpd MultipliersPerDenom) Validate() error {
 		foundDenoms[item.Denom] = true
 	}
 	return nil
-}
-
-// Selection a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a denom.
-type Selection struct {
-	Denom          string `json:"denom" yaml:"denom"`
-	MultiplierName string `json:"multiplier_name" yaml:"multiplier_name"`
 }
 
 // NewSelection returns a new Selection

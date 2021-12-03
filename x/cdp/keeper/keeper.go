@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -15,19 +15,19 @@ import (
 // Keeper keeper for the cdp module
 type Keeper struct {
 	key             sdk.StoreKey
-	cdc             *codec.Codec
-	paramSubspace   subspace.Subspace
+	cdc             codec.Codec
+	paramSubspace   paramtypes.Subspace
 	pricefeedKeeper types.PricefeedKeeper
-	supplyKeeper    types.SupplyKeeper
 	auctionKeeper   types.AuctionKeeper
+	bankKeeper      types.BankKeeper
 	accountKeeper   types.AccountKeeper
 	hooks           types.CDPHooks
 	maccPerms       map[string][]string
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper,
-	ak types.AuctionKeeper, sk types.SupplyKeeper, ack types.AccountKeeper, maccs map[string][]string) Keeper {
+func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace, pfk types.PricefeedKeeper,
+	ak types.AuctionKeeper, bk types.BankKeeper, ack types.AccountKeeper, maccs map[string][]string) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -38,7 +38,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 		paramSubspace:   paramstore,
 		pricefeedKeeper: pfk,
 		auctionKeeper:   ak,
-		supplyKeeper:    sk,
+		bankKeeper:      bk,
 		accountKeeper:   ack,
 		hooks:           nil,
 		maccPerms:       maccs,
@@ -57,22 +57,14 @@ func (k *Keeper) SetHooks(hooks types.CDPHooks) *Keeper {
 // CdpDenomIndexIterator returns an sdk.Iterator for all cdps with matching collateral denom
 func (k Keeper) CdpDenomIndexIterator(ctx sdk.Context, collateralType string) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, found := k.GetCollateralTypePrefix(ctx, collateralType)
-	if !found {
-		panic(fmt.Sprintf("denom %s prefix not found", collateralType))
-	}
-	return sdk.KVStorePrefixIterator(store, types.DenomIterKey(db))
+	return sdk.KVStorePrefixIterator(store, types.DenomIterKey(collateralType))
 }
 
 // CdpCollateralRatioIndexIterator returns an sdk.Iterator for all cdps that have collateral denom
 // matching denom and collateral:debt ratio LESS THAN targetRatio
 func (k Keeper) CdpCollateralRatioIndexIterator(ctx sdk.Context, collateralType string, targetRatio sdk.Dec) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, found := k.GetCollateralTypePrefix(ctx, collateralType)
-	if !found {
-		panic(fmt.Sprintf("denom %s prefix not found", collateralType))
-	}
-	return store.Iterator(types.CollateralRatioIterKey(db, sdk.ZeroDec()), types.CollateralRatioIterKey(db, targetRatio))
+	return store.Iterator(types.CollateralRatioIterKey(collateralType, sdk.ZeroDec()), types.CollateralRatioIterKey(collateralType, targetRatio))
 }
 
 // IterateAllCdps iterates over all cdps and performs a callback function
@@ -82,7 +74,7 @@ func (k Keeper) IterateAllCdps(ctx sdk.Context, cb func(cdp types.CDP) (stop boo
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cdp types.CDP
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &cdp)
+		k.cdc.MustUnmarshal(iterator.Value(), &cdp)
 
 		if cb(cdp) {
 			break
@@ -97,7 +89,7 @@ func (k Keeper) IterateCdpsByCollateralType(ctx sdk.Context, collateralType stri
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cdp types.CDP
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &cdp)
+		k.cdc.MustUnmarshal(iterator.Value(), &cdp)
 		if cb(cdp) {
 			break
 		}
@@ -130,10 +122,7 @@ func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx sdk.Context, cutoffCount sdk.In
 	k.IterateCdpsByCollateralRatio(ctx, collateralType, targetRatio, func(cdp types.CDP) bool {
 		cdps = append(cdps, cdp)
 		count = count.Add(sdk.OneInt())
-		if count.GTE(cutoffCount) {
-			return true
-		}
-		return false
+		return count.GTE(cutoffCount)
 	})
 	return cdps
 }
@@ -146,14 +135,19 @@ func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, ctype string) (time.Time
 		return time.Time{}, false
 	}
 	var previousAccrualTime time.Time
-	k.cdc.MustUnmarshalBinaryBare(bz, &previousAccrualTime)
+	if err := previousAccrualTime.UnmarshalBinary(bz); err != nil {
+		panic(err)
+	}
 	return previousAccrualTime, true
 }
 
 // SetPreviousAccrualTime sets the most recent accrual time for a particular market
 func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, ctype string, previousAccrualTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
-	bz := k.cdc.MustMarshalBinaryBare(previousAccrualTime)
+	bz, err := previousAccrualTime.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
 	store.Set([]byte(ctype), bz)
 }
 
@@ -165,14 +159,19 @@ func (k Keeper) GetInterestFactor(ctx sdk.Context, ctype string) (sdk.Dec, bool)
 		return sdk.ZeroDec(), false
 	}
 	var interestFactor sdk.Dec
-	k.cdc.MustUnmarshalBinaryBare(bz, &interestFactor)
+	if err := interestFactor.Unmarshal(bz); err != nil {
+		panic(err)
+	}
 	return interestFactor, true
 }
 
 // SetInterestFactor sets the current interest factor for an individual collateral type
 func (k Keeper) SetInterestFactor(ctx sdk.Context, ctype string, interestFactor sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestFactorPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(interestFactor)
+	bz, err := interestFactor.Marshal()
+	if err != nil {
+		panic(err)
+	}
 	store.Set([]byte(ctype), bz)
 }
 
@@ -200,28 +199,22 @@ func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralType, principalDeno
 		k.SetTotalPrincipal(ctx, collateralType, principalDenom, sdk.ZeroInt())
 		return sdk.ZeroInt()
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &total)
+	if err := total.Unmarshal(bz); err != nil {
+		panic(err)
+	}
 	return total
 }
 
 // SetTotalPrincipal sets the total amount of principal that has been drawn for the input collateral
 func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string, total sdk.Int) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
-	_, found := k.GetCollateralTypePrefix(ctx, collateralType)
+	_, found := k.GetCollateral(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("collateral not found: %s", collateralType))
 	}
-	store.Set([]byte(collateralType+principalDenom), k.cdc.MustMarshalBinaryLengthPrefixed(total))
-}
-
-// getModuleAccountCoins gets the total coin balance of this coin currently held by module accounts
-func (k Keeper) getModuleAccountCoins(ctx sdk.Context, denom string) sdk.Coins {
-	totalModCoinBalance := sdk.NewCoins(sdk.NewCoin(denom, sdk.ZeroInt()))
-	for macc := range k.maccPerms {
-		modCoinBalance := k.supplyKeeper.GetModuleAccount(ctx, macc).GetCoins().AmountOf(denom)
-		if modCoinBalance.IsPositive() {
-			totalModCoinBalance = totalModCoinBalance.Add(sdk.NewCoin(denom, modCoinBalance))
-		}
+	bz, err := total.Marshal()
+	if err != nil {
+		panic(err)
 	}
-	return totalModCoinBalance
+	store.Set([]byte(collateralType+principalDenom), bz)
 }

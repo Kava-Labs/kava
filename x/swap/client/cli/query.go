@@ -50,7 +50,7 @@ func queryParamsCmd(queryRoute string) *cobra.Command {
 		Long:  "Get the current global swap module parameters.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -95,7 +95,7 @@ func queryDepositsCmd(queryRoute string) *cobra.Command {
 				return err
 			}
 
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -134,7 +134,7 @@ func queryPoolsCmd(queryRoute string) *cobra.Command {
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}

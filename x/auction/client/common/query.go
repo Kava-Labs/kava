@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -19,8 +19,8 @@ const (
 )
 
 // QueryAuctionByID returns an auction from state if present or falls back to searching old blocks
-func QueryAuctionByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute string, auctionID uint64) (types.Auction, int64, error) {
-	bz, err := cdc.MarshalJSON(types.NewQueryAuctionParams(auctionID))
+func QueryAuctionByID(cliCtx client.Context, cdc *codec.Codec, queryRoute string, auctionID uint64) (types.Auction, int64, error) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(types.NewQueryAuctionParams(auctionID))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -29,7 +29,7 @@ func QueryAuctionByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute st
 
 	if err == nil {
 		var auction types.Auction
-		cdc.MustUnmarshalJSON(res, &auction)
+		cliCtx.LegacyAmino.MustUnmarshalJSON(res, &auction)
 
 		return auction, height, nil
 	}
@@ -44,7 +44,7 @@ func QueryAuctionByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute st
 	}
 
 	var nextAuctionID uint64
-	cdc.MustUnmarshalJSON(res, &nextAuctionID)
+	cliCtx.LegacyAmino.MustUnmarshalJSON(res, &nextAuctionID)
 
 	if auctionID >= nextAuctionID {
 		return nil, 0, sdkerrors.Wrapf(types.ErrAuctionNotFound, "%d", auctionID)
@@ -58,7 +58,7 @@ func QueryAuctionByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute st
 	// if the auction is closed, query for previous bid transactions
 	// note, will only fetch a maximum of 100 bids, so if an auction had more than that this
 	// query may fail to retreive the final state of the auction
-	searchResult, err := utils.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit)
+	searchResult, err := authtx.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit, "")
 	if err != nil {
 		return nil, 0, err
 	}
@@ -67,8 +67,9 @@ func QueryAuctionByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute st
 	found := false
 
 	for _, info := range searchResult.Txs {
-		for _, msg := range info.Tx.GetMsgs() {
-			if msg.Type() == "place_bid" {
+		for _, msg := range info.GetTx().GetMsgs() {
+			_, ok := msg.(*types.MsgPlaceBid)
+			if ok {
 				found = true
 				if info.Height > maxHeight {
 					maxHeight = info.Height
@@ -89,6 +90,6 @@ func QueryAuctionByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute st
 
 	// Decode and print results
 	var auction types.Auction
-	cdc.MustUnmarshalJSON(res, &auction)
+	cliCtx.LegacyAmino.MustUnmarshalJSON(res, &auction)
 	return auction, height, nil
 }
