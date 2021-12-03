@@ -1,0 +1,11 @@
+syntax = "proto3";
+package kava.greet.v1beta1;
+
+import "kava/greet/v1beta1/greet.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/kava-labs/kava/x/greet/types";
+
+message GenesisState {}

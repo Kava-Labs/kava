@@ -1,0 +1,15 @@
+syntax = "proto3";
+package kava.greet.v1beta1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package                      = "github.com/kava-labs/kava/x/greet/types";
+option (gogoproto.goproto_getters_all) = false;
+
+message Greet {
+  string owner   = 1;
+  string id      = 2;
+  string message = 3;
+}

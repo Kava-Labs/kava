@@ -95,6 +95,11 @@ import (
 	"github.com/kava-labs/kava/x/swap"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
+
+
+	greet "github.com/kava-labs/kava/x/greet" 
+	greetkeeper "github.com/kava-labs/kava/x/greet/keeper" 
+	greettypes  "github.com/kava-labs/kava/x/greet/types"
 )
 
 const (
@@ -137,6 +142,7 @@ var (
 		swap.AppModuleBasic{},
 		cdp.AppModuleBasic{},
 		committee.AppModuleBasic{},
+		greet.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -156,6 +162,7 @@ var (
 		swaptypes.ModuleName:            nil,
 		cdptypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
+		greettypes.ModuleName: 			 nil,
 	}
 )
 
@@ -207,7 +214,7 @@ type App struct {
 	swapKeeper      swapkeeper.Keeper
 	cdpKeeper       cdpkeeper.Keeper
 	committeeKeeper committeekeeper.Keeper
-
+	greetKeeper     greetkeeper.Keeper
 	// the module manager
 	mm *module.Manager
 
@@ -254,6 +261,7 @@ func NewApp(
 		upgradetypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, committeetypes.StoreKey,
+		greettypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -288,6 +296,7 @@ func NewApp(
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
 	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
+	greetSubspace := app.paramsKeeper.Subspace(greettypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -431,6 +440,12 @@ func NewApp(
 		mAccPerms,
 	)
 
+	app.greetKeeper = greetkeeper.NewKeeper(
+		appCodec,
+		keys[greettypes.StoreKey],
+		greetSubspace,
+	)
+
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -483,6 +498,7 @@ func NewApp(
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+		greet.NewAppModule(app.greetKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -503,6 +519,7 @@ func NewApp(
 		bep3types.ModuleName,
 		cdptypes.ModuleName,
 		committeetypes.ModuleName,
+		greettypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -510,6 +527,7 @@ func NewApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		pricefeedtypes.ModuleName,
+		greettypes.ModuleName,
 	)
 
 	app.mm.SetOrderInitGenesis( // TODO why the different order?
@@ -531,6 +549,7 @@ func NewApp(
 		cdptypes.ModuleName,
 		committeetypes.ModuleName,
 		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
+		greettypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

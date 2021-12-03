@@ -1,0 +1,38 @@
+syntax = "proto3";
+package kava.greet.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/greet/types";
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos_proto/cosmos.proto";
+import "kava/greet/v1beta1/greet.proto";
+
+service Query {
+  // this line is used by starport scaffolding # 2
+  rpc Greet(QueryGetGreetRequest) returns (QueryGetGreetResponse) {
+    option (google.api.http).get = "/kava/greet/v1beta1/greetings/{id}";
+  }
+  rpc GreetAll(QueryAllGreetRequest) returns (QueryAllGreetResponse) {
+    option (google.api.http).get = "/kava/swap/v1beta1/greetings";
+  }
+}
+
+// this line is used by starport scaffolding # 3
+message QueryGetGreetRequest {
+  string id = 1;
+}
+
+message QueryGetGreetResponse {
+  Greet greeting = 1;
+}
+
+message QueryAllGreetRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllGreetResponse {
+  repeated Greet                         greetings  = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

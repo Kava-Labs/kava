@@ -177,6 +177,26 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/greet/v1beta1/greet.proto](#kava/greet/v1beta1/greet.proto)
+    - [Greet](#kava.greet.v1beta1.Greet)
+  
+- [kava/greet/v1beta1/genesis.proto](#kava/greet/v1beta1/genesis.proto)
+    - [GenesisState](#kava.greet.v1beta1.GenesisState)
+  
+- [kava/greet/v1beta1/query.proto](#kava/greet/v1beta1/query.proto)
+    - [QueryAllGreetRequest](#kava.greet.v1beta1.QueryAllGreetRequest)
+    - [QueryAllGreetResponse](#kava.greet.v1beta1.QueryAllGreetResponse)
+    - [QueryGetGreetRequest](#kava.greet.v1beta1.QueryGetGreetRequest)
+    - [QueryGetGreetResponse](#kava.greet.v1beta1.QueryGetGreetResponse)
+  
+    - [Query](#kava.greet.v1beta1.Query)
+  
+- [kava/greet/v1beta1/tx.proto](#kava/greet/v1beta1/tx.proto)
+    - [MsgCreateGreet](#kava.greet.v1beta1.MsgCreateGreet)
+    - [MsgCreateGreetResponse](#kava.greet.v1beta1.MsgCreateGreetResponse)
+  
+    - [Msg](#kava.greet.v1beta1.Msg)
+  
 - [kava/incentive/v1beta1/claims.proto](#kava/incentive/v1beta1/claims.proto)
     - [BaseClaim](#kava.incentive.v1beta1.BaseClaim)
     - [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim)
@@ -2598,6 +2618,205 @@ Msg defines the committee Msg service
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `SubmitProposal` | [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse) | SubmitProposal defines a method for submitting a committee proposal | |
 | `Vote` | [MsgVote](#kava.committee.v1beta1.MsgVote) | [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse) | Vote defines a method for voting on a proposal | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/greet/v1beta1/greet.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/greet/v1beta1/greet.proto
+
+
+
+<a name="kava.greet.v1beta1.Greet"></a>
+
+### Greet
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  |  |
+| `id` | [string](#string) |  |  |
+| `message` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/greet/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/greet/v1beta1/genesis.proto
+
+
+
+<a name="kava.greet.v1beta1.GenesisState"></a>
+
+### GenesisState
+
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/greet/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/greet/v1beta1/query.proto
+
+
+
+<a name="kava.greet.v1beta1.QueryAllGreetRequest"></a>
+
+### QueryAllGreetRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.greet.v1beta1.QueryAllGreetResponse"></a>
+
+### QueryAllGreetResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `greetings` | [Greet](#kava.greet.v1beta1.Greet) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.greet.v1beta1.QueryGetGreetRequest"></a>
+
+### QueryGetGreetRequest
+this line is used by starport scaffolding # 3
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.greet.v1beta1.QueryGetGreetResponse"></a>
+
+### QueryGetGreetResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `greeting` | [Greet](#kava.greet.v1beta1.Greet) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.greet.v1beta1.Query"></a>
+
+### Query
+
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Greet` | [QueryGetGreetRequest](#kava.greet.v1beta1.QueryGetGreetRequest) | [QueryGetGreetResponse](#kava.greet.v1beta1.QueryGetGreetResponse) | this line is used by starport scaffolding # 2 | GET|/kava/greet/v1beta1/greetings/{id}|
+| `GreetAll` | [QueryAllGreetRequest](#kava.greet.v1beta1.QueryAllGreetRequest) | [QueryAllGreetResponse](#kava.greet.v1beta1.QueryAllGreetResponse) |  | GET|/kava/swap/v1beta1/greetings|
+
+ <!-- end services -->
+
+
+
+<a name="kava/greet/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/greet/v1beta1/tx.proto
+
+
+
+<a name="kava.greet.v1beta1.MsgCreateGreet"></a>
+
+### MsgCreateGreet
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `message` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.greet.v1beta1.MsgCreateGreetResponse"></a>
+
+### MsgCreateGreetResponse
+
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.greet.v1beta1.Msg"></a>
+
+### Msg
+
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `CreateGreet` | [MsgCreateGreet](#kava.greet.v1beta1.MsgCreateGreet) | [MsgCreateGreetResponse](#kava.greet.v1beta1.MsgCreateGreetResponse) |  | |
 
  <!-- end services -->
 
