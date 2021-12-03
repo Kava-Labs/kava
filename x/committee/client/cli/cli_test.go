@@ -13,22 +13,23 @@ import (
 
 type CLITestSuite struct {
 	suite.Suite
-	cdc *codec.Codec
+	cdc codec.Codec
 }
 
 func (suite *CLITestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	suite.cdc = tApp.Codec()
+	suite.cdc = tApp.AppCodec()
 }
 
-func (suite *CLITestSuite) TestExampleCommitteeChangeProposal() {
+func (suite *CLITestSuite) TestExampleCommitteeChangeProposal_NotPanics() {
 	suite.NotPanics(func() { cli.MustGetExampleCommitteeChangeProposal(suite.cdc) })
 }
 
-func (suite *CLITestSuite) TestExampleCommitteeDeleteProposal() {
+func (suite *CLITestSuite) TestExampleCommitteeDeleteProposal_NotPanics() {
 	suite.NotPanics(func() { cli.MustGetExampleCommitteeDeleteProposal(suite.cdc) })
 }
-func (suite *CLITestSuite) TestExampleParameterChangeProposal() {
+
+func (suite *CLITestSuite) TestExampleParameterChangeProposal_NotPanics() {
 	suite.NotPanics(func() { cli.MustGetExampleParameterChangeProposal(suite.cdc) })
 }
 

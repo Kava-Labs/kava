@@ -91,6 +91,7 @@ func ValidateAuction(a Auction) error {
 }
 
 // --------------- SurplusAuction ---------------
+
 // NewSurplusAuction returns a new surplus auction.
 func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) SurplusAuction {
 	auction := SurplusAuction{
@@ -131,6 +132,7 @@ func (a SurplusAuction) Validate() error {
 }
 
 // --------------- DebtAuction ---------------
+
 // NewDebtAuction returns a new debt auction.
 func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, endTime time.Time, debt sdk.Coin) DebtAuction {
 	// Note: Bidder is set to the initiator's module account address instead of module name. (when the first bid is placed, it is paid out to the initiator)
@@ -180,6 +182,7 @@ func (a DebtAuction) Validate() error {
 }
 
 // --------------- CollateralAuction ---------------
+
 // NewCollateralAuction returns a new collateral auction.
 func NewCollateralAuction(seller string, lot sdk.Coin, endTime time.Time, maxBid sdk.Coin, lotReturns WeightedAddresses, debt sdk.Coin) CollateralAuction {
 	auction := CollateralAuction{

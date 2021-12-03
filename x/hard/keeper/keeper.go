@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -19,7 +18,6 @@ type Keeper struct {
 	paramSubspace   paramtypes.Subspace
 	accountKeeper   types.AccountKeeper
 	bankKeeper      types.BankKeeper
-	stakingKeeper   types.StakingKeeper
 	pricefeedKeeper types.PricefeedKeeper
 	auctionKeeper   types.AuctionKeeper
 	hooks           types.HARDHooks
@@ -27,7 +25,7 @@ type Keeper struct {
 
 // NewKeeper creates a new keeper
 func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace,
-	ak types.AccountKeeper, bk types.BankKeeper, stk types.StakingKeeper,
+	ak types.AccountKeeper, bk types.BankKeeper,
 	pfk types.PricefeedKeeper, auk types.AuctionKeeper) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -39,7 +37,6 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace
 		paramSubspace:   paramstore,
 		accountKeeper:   ak,
 		bankKeeper:      bk,
-		stakingKeeper:   stk,
 		pricefeedKeeper: pfk,
 		auctionKeeper:   auk,
 		hooks:           nil,
@@ -106,11 +103,6 @@ func (k Keeper) GetDepositsByUser(ctx sdk.Context, user sdk.AccAddress) []types.
 	return deposits
 }
 
-// BondDenom returns the bond denom from the staking keeper
-func (k Keeper) BondDenom(ctx sdk.Context) string {
-	return k.stakingKeeper.BondDenom(ctx)
-}
-
 // GetBorrow returns a Borrow from the store for a particular borrower address and borrow denom
 func (k Keeper) GetBorrow(ctx sdk.Context, borrower sdk.AccAddress) (types.Borrow, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
@@ -156,10 +148,9 @@ func (k Keeper) SetBorrowedCoins(ctx sdk.Context, borrowedCoins sdk.Coins) {
 	if borrowedCoins.Empty() {
 		store.Set(types.BorrowedCoinsPrefix, []byte{})
 	} else {
-		bz, err := borrowedCoins.MarshalJSON()
-		if err != nil {
-			panic(err)
-		}
+		bz := k.cdc.MustMarshal(&types.CoinsProto{
+			Coins: borrowedCoins,
+		})
 		store.Set(types.BorrowedCoinsPrefix, bz)
 	}
 }
@@ -171,12 +162,9 @@ func (k Keeper) GetBorrowedCoins(ctx sdk.Context) (sdk.Coins, bool) {
 	if len(bz) == 0 {
 		return sdk.Coins{}, false
 	}
-	var borrowedCoins sdk.Coins
-
-	if err := json.Unmarshal(bz, &borrowedCoins); err != nil {
-		panic(err)
-	}
-	return borrowedCoins, true
+	var borrowed types.CoinsProto
+	k.cdc.MustUnmarshal(bz, &borrowed)
+	return borrowed.Coins, true
 }
 
 // SetSuppliedCoins sets the total amount of coins currently supplied in the store
@@ -185,10 +173,9 @@ func (k Keeper) SetSuppliedCoins(ctx sdk.Context, suppliedCoins sdk.Coins) {
 	if suppliedCoins.Empty() {
 		store.Set(types.SuppliedCoinsPrefix, []byte{})
 	} else {
-		bz, err := suppliedCoins.MarshalJSON()
-		if err != nil {
-			panic(err)
-		}
+		bz := k.cdc.MustMarshal(&types.CoinsProto{
+			Coins: suppliedCoins,
+		})
 		store.Set(types.SuppliedCoinsPrefix, bz)
 	}
 }
@@ -200,12 +187,9 @@ func (k Keeper) GetSuppliedCoins(ctx sdk.Context) (sdk.Coins, bool) {
 	if len(bz) == 0 {
 		return sdk.Coins{}, false
 	}
-	var suppliedCoins sdk.Coins
-
-	if err := json.Unmarshal(bz, &suppliedCoins); err != nil {
-		panic(err)
-	}
-	return suppliedCoins, true
+	var supplied types.CoinsProto
+	k.cdc.MustUnmarshal(bz, &supplied)
+	return supplied.Coins, true
 }
 
 // GetMoneyMarket returns a money market from the store for a denom
@@ -282,6 +266,20 @@ func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, denom string, previousAc
 	store.Set([]byte(denom), bz)
 }
 
+// SetTotalReserves sets the total reserves for an individual market
+func (k Keeper) SetTotalReserves(ctx sdk.Context, coins sdk.Coins) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
+	if coins.Empty() {
+		store.Set(types.TotalReservesPrefix, []byte{})
+		return
+	}
+
+	bz := k.cdc.MustMarshal(&types.CoinsProto{
+		Coins: coins,
+	})
+	store.Set(types.TotalReservesPrefix, bz)
+}
+
 // GetTotalReserves returns the total reserves for an individual market
 func (k Keeper) GetTotalReserves(ctx sdk.Context) (sdk.Coins, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
@@ -290,25 +288,9 @@ func (k Keeper) GetTotalReserves(ctx sdk.Context) (sdk.Coins, bool) {
 		return sdk.Coins{}, false
 	}
 
-	var totalReserves sdk.Coins
-	if err := json.Unmarshal(bz, &totalReserves); err != nil {
-		panic(err)
-	}
-	return totalReserves, true
-}
-
-// SetTotalReserves sets the total reserves for an individual market
-func (k Keeper) SetTotalReserves(ctx sdk.Context, coins sdk.Coins) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
-	if coins.Empty() {
-		store.Set(types.TotalReservesPrefix, []byte{})
-		return
-	}
-	bz, err := coins.MarshalJSON()
-	if err != nil {
-		panic(err)
-	}
-	store.Set(types.TotalReservesPrefix, bz)
+	var totalReserves types.CoinsProto
+	k.cdc.MustUnmarshal(bz, &totalReserves)
+	return totalReserves.Coins, true
 }
 
 // GetBorrowInterestFactor returns the current borrow interest factor for an individual market

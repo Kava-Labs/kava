@@ -7,6 +7,23 @@
   },
   "apis": [
     {
+      "url": "./tmp-swagger-gen/kava/cdp/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Cdp"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Cdp$1"
+          }
+        ]
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/kava/kavadist/v1beta1/query.swagger.json",
       "tags": {
         "rename": {

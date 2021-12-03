@@ -111,8 +111,7 @@ func (k Keeper) ValidateRepay(ctx sdk.Context, sender, owner sdk.AccAddress, coi
 		}
 	}
 
-	senderAcc := k.accountKeeper.GetAccount(ctx, sender)
-	senderCoins := k.bankKeeper.SpendableCoins(ctx, senderAcc.GetAddress())
+	senderCoins := k.bankKeeper.SpendableCoins(ctx, sender)
 	repayTotalUSDValue := sdk.ZeroDec()
 	for _, repayCoin := range coins {
 		// Check that sender holds enough tokens to make the proposed payment

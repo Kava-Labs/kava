@@ -130,6 +130,28 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 	suite.Require().Equal(setDenoms, seenDenoms)
 }
 
+func (suite *KeeperTestSuite) TestGetSetBorrowedCoins() {
+	suite.keeper.SetBorrowedCoins(suite.ctx, sdk.Coins{c("ukava", 123)})
+
+	coins, found := suite.keeper.GetBorrowedCoins(suite.ctx)
+	suite.Require().True(found)
+	suite.Require().Len(coins, 1)
+	suite.Require().Equal(coins, cs(c("ukava", 123)))
+}
+
+func (suite *KeeperTestSuite) TestGetSetBorrowedCoins_Empty() {
+	coins, found := suite.keeper.GetBorrowedCoins(suite.ctx)
+	suite.Require().False(found)
+	suite.Require().Empty(coins)
+
+	// None set and setting empty coins should both be the same
+	suite.keeper.SetBorrowedCoins(suite.ctx, sdk.Coins{})
+
+	coins, found = suite.keeper.GetBorrowedCoins(suite.ctx)
+	suite.Require().False(found)
+	suite.Require().Empty(coins)
+}
+
 func (suite *KeeperTestSuite) getAccountCoins(acc authtypes.AccountI) sdk.Coins {
 	bk := suite.app.GetBankKeeper()
 	return bk.GetAllBalances(suite.ctx, acc.GetAddress())

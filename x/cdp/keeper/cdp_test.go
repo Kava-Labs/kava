@@ -9,7 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -26,28 +26,27 @@ type CdpTestSuite struct {
 }
 
 func (suite *CdpTestSuite) SetupTest() {
-	config := sdk.GetConfig()
-	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates(
-		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMulti(tApp.AppCodec()),
+		NewCDPGenStateMulti(tApp.AppCodec()),
 	)
 	keeper := tApp.GetCDPKeeper()
 	suite.app = tApp
 	suite.ctx = ctx
 	suite.keeper = keeper
-	return
 }
 
 func (suite *CdpTestSuite) TestAddCdp() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
-	acc.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
+	err := suite.app.FundAccount(suite.ctx, acc.GetAddress(), cs(c("xrp", 200000000), c("btc", 500000000)))
+	suite.Require().NoError(err)
+
 	ak.SetAccount(suite.ctx, acc)
-	err := suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 10000000), "btc-a")
+	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 10000000), "btc-a")
 	suite.Require().True(errors.Is(err, types.ErrInvalidCollateral))
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 26000000), "xrp-a")
 	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
@@ -57,7 +56,9 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Require().True(errors.Is(err, types.ErrDebtNotSupported))
 
 	acc2 := ak.NewAccountWithAddress(suite.ctx, addrs[1])
-	acc2.SetCoins(cs(c("btc", 500000000000)))
+	err = suite.app.FundAccount(suite.ctx, acc2.GetAddress(), cs(c("btc", 500000000000)))
+	suite.Require().NoError(err)
+
 	ak.SetAccount(suite.ctx, acc2)
 	err = suite.keeper.AddCdp(suite.ctx, addrs[1], c("btc", 500000000000), c("usdx", 500000000001), "btc-a")
 	suite.Require().True(errors.Is(err, types.ErrExceedsDebtLimit))
@@ -81,11 +82,13 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Equal(uint64(2), id)
 	tp := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp-a", "usdx")
 	suite.Equal(i(10000000), tp)
-	sk := suite.app.GetSupplyKeeper()
-	macc := sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(cs(c("debt", 10000000), c("xrp", 100000000)), macc.GetCoins())
+
+	bk := suite.app.GetBankKeeper()
+
+	macc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(cs(c("debt", 10000000), c("xrp", 100000000)), bk.GetAllBalances(suite.ctx, macc.GetAddress()))
 	acc = ak.GetAccount(suite.ctx, addrs[0])
-	suite.Equal(cs(c("usdx", 10000000), c("xrp", 100000000), c("btc", 500000000)), acc.GetCoins())
+	suite.Equal(cs(c("usdx", 10000000), c("xrp", 100000000), c("btc", 500000000)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("btc", 500000000), c("usdx", 26667000000), "btc-a")
 	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
@@ -96,10 +99,10 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Equal(uint64(3), id)
 	tp = suite.keeper.GetTotalPrincipal(suite.ctx, "btc-a", "usdx")
 	suite.Equal(i(100000000), tp)
-	macc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(cs(c("debt", 110000000), c("xrp", 100000000), c("btc", 500000000)), macc.GetCoins())
+	macc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(cs(c("debt", 110000000), c("xrp", 100000000), c("btc", 500000000)), bk.GetAllBalances(suite.ctx, macc.GetAddress()))
 	acc = ak.GetAccount(suite.ctx, addrs[0])
-	suite.Equal(cs(c("usdx", 110000000), c("xrp", 100000000)), acc.GetCoins())
+	suite.Equal(cs(c("usdx", 110000000), c("xrp", 100000000)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("lol", 100), c("usdx", 10), "lol-a")
 	suite.Require().True(errors.Is(err, types.ErrCollateralNotSupported))
@@ -107,12 +110,11 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Require().True(errors.Is(err, types.ErrCdpAlreadyExists))
 }
 
-func (suite *CdpTestSuite) TestGetSetCollateralTypeByte() {
-	_, found := suite.keeper.GetCollateralTypePrefix(suite.ctx, "lol-a")
+func (suite *CdpTestSuite) TestGetCollateral() {
+	_, found := suite.keeper.GetCollateral(suite.ctx, "lol-a")
 	suite.False(found)
-	db, found := suite.keeper.GetCollateralTypePrefix(suite.ctx, "xrp-a")
+	_, found = suite.keeper.GetCollateral(suite.ctx, "xrp-a")
 	suite.True(found)
-	suite.Equal(byte(0x20), db)
 }
 
 func (suite *CdpTestSuite) TestGetDebtDenom() {
@@ -140,7 +142,7 @@ func (suite *CdpTestSuite) TestGetSetCdp() {
 	suite.Equal(cdp, t)
 	_, found = suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
 	suite.False(found)
-	suite.keeper.DeleteCDP(suite.ctx, cdp)
+	suite.NoError(suite.keeper.DeleteCDP(suite.ctx, cdp))
 	_, found = suite.keeper.GetCDP(suite.ctx, "btc-a", types.DefaultCdpStartingID)
 	suite.False(found)
 }
@@ -219,11 +221,11 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralType() {
 	suite.Equal(3, len(xrpCdps))
 	btcCdps := suite.keeper.GetAllCdpsByCollateralType(suite.ctx, "btc-a")
 	suite.Equal(1, len(btcCdps))
-	suite.keeper.DeleteCDP(suite.ctx, cdps[0])
+	suite.NoError(suite.keeper.DeleteCDP(suite.ctx, cdps[0]))
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
 	xrpCdps = suite.keeper.GetAllCdpsByCollateralType(suite.ctx, "xrp-a")
 	suite.Equal(2, len(xrpCdps))
-	suite.keeper.DeleteCDP(suite.ctx, cdps[1])
+	suite.NoError(suite.keeper.DeleteCDP(suite.ctx, cdps[1]))
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[1])
 	ids, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, cdps[1].Owner)
 	suite.True(found)
@@ -248,7 +250,9 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 	suite.Equal(2, len(xrpCdps))
 	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("100.0").Add(sdk.SmallestDec()))
 	suite.Equal(3, len(xrpCdps))
-	suite.keeper.DeleteCDP(suite.ctx, cdps[0])
+
+	suite.NoError(suite.keeper.DeleteCDP(suite.ctx, cdps[0]))
+
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdps[0].Collateral, cdps[0].Type, cdps[0].Principal)
 	suite.keeper.RemoveCdpCollateralRatioIndex(suite.ctx, cdps[0].Type, cdps[0].ID, cr)
@@ -304,18 +308,86 @@ func (suite *CdpTestSuite) TestMintBurnDebtCoins() {
 		_ = suite.keeper.MintDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	})
 
-	sk := suite.app.GetSupplyKeeper()
-	acc := sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(cs(c("debt", 10000000)), acc.GetCoins())
+	ak := suite.app.GetAccountKeeper()
+	bk := suite.app.GetBankKeeper()
+	acc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(cs(c("debt", 10000000)), bk.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 	err = suite.keeper.BurnDebtCoins(suite.ctx, types.ModuleName, suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	suite.NoError(err)
 	suite.Require().Panics(func() {
 		_ = suite.keeper.BurnDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	})
-	sk = suite.app.GetSupplyKeeper()
-	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
-	suite.Equal(sdk.Coins(nil), acc.GetCoins())
+
+	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	suite.Equal(sdk.Coins{}, bk.GetAllBalances(suite.ctx, acc.GetAddress()))
+}
+
+func (suite *CdpTestSuite) TestCdpOwnerIndex() {
+	cdps := cdps()
+
+	owner_1 := cdps[0].Owner
+	owner_2 := cdps[1].Owner
+
+	cdpIds_1, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_1)
+	suite.Require().False(found)
+	cdpIds_2, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_2)
+	suite.Require().False(found)
+
+	suite.Require().Equal(0, len(cdpIds_1))
+	suite.Require().Equal(0, len(cdpIds_2))
+
+	suite.keeper.IndexCdpByOwner(suite.ctx, cdps[2])
+	suite.keeper.IndexCdpByOwner(suite.ctx, cdps[1])
+	suite.keeper.IndexCdpByOwner(suite.ctx, cdps[0])
+
+	expectedCdpIds, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_1)
+	suite.Require().True(found)
+	suite.Require().Equal([]uint64{cdps[0].ID}, expectedCdpIds)
+
+	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_2)
+	suite.Require().True(found)
+	suite.Require().Equal([]uint64{cdps[1].ID, cdps[2].ID}, expectedCdpIds)
+
+	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
+	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_1)
+	suite.Require().False(found)
+	suite.Require().Equal([]uint64{}, expectedCdpIds)
+
+	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[1])
+	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_2)
+	suite.Require().True(found)
+	suite.Require().Equal([]uint64{cdps[2].ID}, expectedCdpIds)
+
+	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[2])
+	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_2)
+	suite.Require().False(found)
+	suite.Require().Equal([]uint64{}, expectedCdpIds)
+}
+
+func (suite *CdpTestSuite) TestMarketStatus() {
+	suite.keeper.SetMarketStatus(suite.ctx, "ukava:usd", true)
+	status := suite.keeper.GetMarketStatus(suite.ctx, "ukava:usd")
+	suite.Require().True(status)
+	suite.keeper.SetMarketStatus(suite.ctx, "ukava:usd", false)
+	status = suite.keeper.GetMarketStatus(suite.ctx, "ukava:usd")
+	suite.Require().False(status)
+	suite.keeper.SetMarketStatus(suite.ctx, "ukava:usd", true)
+	status = suite.keeper.GetMarketStatus(suite.ctx, "ukava:usd")
+	suite.Require().True(status)
+
+	status = suite.keeper.GetMarketStatus(suite.ctx, "unknown:usd")
+	suite.Require().False(status)
+
+	suite.keeper.SetMarketStatus(suite.ctx, "btc:usd", false)
+	status = suite.keeper.GetMarketStatus(suite.ctx, "btc:usd")
+	suite.Require().False(status)
+	suite.keeper.SetMarketStatus(suite.ctx, "btc:usd", true)
+	status = suite.keeper.GetMarketStatus(suite.ctx, "btc:usd")
+	suite.Require().True(status)
+	suite.keeper.SetMarketStatus(suite.ctx, "btc:usd", false)
+	status = suite.keeper.GetMarketStatus(suite.ctx, "btc:usd")
+	suite.Require().False(status)
 }
 
 func TestCdpTestSuite(t *testing.T) {

@@ -17,7 +17,7 @@ service Msg {
   rpc Borrow(MsgBorrow) returns (MsgBorrowResponse);
   // Repay defines a method for repaying funds borrowed from hard liquidity pool.
   rpc Repay(MsgRepay) returns (MsgRepayResponse);
-  // Liquidate defines a method for attempgint to liquidate a borrower that is over their loan-to-value.
+  // Liquidate defines a method for attempting to liquidate a borrower that is over their loan-to-value.
   rpc Liquidate(MsgLiquidate) returns (MsgLiquidateResponse);
 }
 

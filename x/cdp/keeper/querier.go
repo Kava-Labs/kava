@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -9,33 +10,33 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	supply "github.com/cosmos/cosmos-sdk/x/supply"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // NewQuerier returns a new querier function
-func NewQuerier(keeper Keeper) sdk.Querier {
+func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryGetCdp:
-			return queryGetCdp(ctx, req, keeper)
+			return queryGetCdp(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetCdps:
-			return queryGetCdps(ctx, req, keeper)
+			return queryGetCdps(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetCdpDeposits:
-			return queryGetDeposits(ctx, req, keeper)
+			return queryGetDeposits(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetCdpsByCollateralType: // legacy, maintained for REST API
-			return queryGetCdpsByCollateralType(ctx, req, keeper)
+			return queryGetCdpsByCollateralType(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetCdpsByCollateralization: // legacy, maintained for REST API
-			return queryGetCdpsByRatio(ctx, req, keeper)
+			return queryGetCdpsByRatio(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetParams:
-			return queryGetParams(ctx, req, keeper)
+			return queryGetParams(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetAccounts:
-			return queryGetAccounts(ctx, req, keeper)
+			return queryGetAccounts(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetTotalPrincipal:
-			return queryGetTotalPrincipal(ctx, req, keeper)
+			return queryGetTotalPrincipal(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryGetTotalCollateral:
-			return queryGetTotalCollateral(ctx, req, keeper)
+			return queryGetTotalCollateral(ctx, req, keeper, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
 		}
@@ -43,14 +44,14 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 }
 
 // query a specific cdp
-func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var requestParams types.QueryCdpParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
+	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
 		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
@@ -62,7 +63,7 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 
 	augmentedCDP := keeper.LoadAugmentedCDP(ctx, cdp)
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedCDP)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedCDP)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -71,14 +72,14 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 }
 
 // query deposits on a particular cdp
-func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var requestParams types.QueryCdpDeposits
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
+	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
 		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
@@ -90,7 +91,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 
 	deposits := keeper.GetDeposits(ctx, cdp.ID)
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, deposits)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, deposits)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -99,13 +100,13 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 }
 
 // query cdps with matching denom and ratio LESS THAN the input ratio
-func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var requestParams types.QueryCdpsByRatioParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
+	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
 		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
@@ -122,7 +123,7 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 		augmentedCDP := keeper.LoadAugmentedCDP(ctx, cdp)
 		augmentedCDPs = append(augmentedCDPs, augmentedCDP)
 	}
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedCDPs)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedCDPs)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -130,13 +131,13 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 }
 
 // query all cdps with matching collateral type
-func queryGetCdpsByCollateralType(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetCdpsByCollateralType(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var requestParams types.QueryCdpsByCollateralTypeParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
+	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
 		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
@@ -148,7 +149,7 @@ func queryGetCdpsByCollateralType(ctx sdk.Context, req abci.RequestQuery, keeper
 		augmentedCDP := keeper.LoadAugmentedCDP(ctx, cdp)
 		augmentedCDPs = append(augmentedCDPs, augmentedCDP)
 	}
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedCDPs)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedCDPs)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -156,12 +157,12 @@ func queryGetCdpsByCollateralType(ctx sdk.Context, req abci.RequestQuery, keeper
 }
 
 // query params in the cdp store
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	// Get params
 	params := keeper.GetParams(ctx)
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -169,17 +170,17 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 }
 
 // query cdp module accounts
-func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	cdpAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
-	liquidatorAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc)
+func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	cdpAccAccount := keeper.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
+	liquidatorAccAccount := keeper.accountKeeper.GetModuleAccount(ctx, types.LiquidatorMacc)
 
-	accounts := []supply.ModuleAccount{
-		*cdpAccAccount.(*supply.ModuleAccount),
-		*liquidatorAccAccount.(*supply.ModuleAccount),
+	accounts := []authtypes.ModuleAccount{
+		*cdpAccAccount.(*authtypes.ModuleAccount),
+		*liquidatorAccAccount.(*authtypes.ModuleAccount),
 	}
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(supply.ModuleCdc, accounts)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, accounts)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -187,17 +188,20 @@ func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 }
 
 // query cdps in store and filter by request params
-func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryCdpsParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	// Filter CDPs
-	filteredCDPs := FilterCDPs(ctx, keeper, params)
+	filteredCDPs, err := FilterCDPs(ctx, keeper, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, filteredCDPs)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, filteredCDPs)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -206,9 +210,9 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 }
 
 // query total amount of principal (ie. usdx) that has been minted with a particular collateral type
-func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryGetTotalPrincipalParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -227,7 +231,7 @@ func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keepe
 		}
 	}
 
-	var collateralPrincipals []types.TotalCDPPrincipal
+	var collateralPrincipals types.TotalPrincipals
 
 	for _, queryType := range queryCollateralTypes {
 		// Hardcoded to default USDX
@@ -235,11 +239,11 @@ func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keepe
 		// Wrap it in an sdk.Coin
 		totalAmountCoin := sdk.NewCoin(types.DefaultStableDenom, principalAmount)
 
-		totalPrincipal := types.NewTotalCDPPrincipal(queryType, totalAmountCoin)
+		totalPrincipal := types.NewTotalPrincipal(queryType, totalAmountCoin)
 		collateralPrincipals = append(collateralPrincipals, totalPrincipal)
 	}
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, collateralPrincipals)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, collateralPrincipals)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -248,9 +252,9 @@ func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keepe
 }
 
 // query total amount of collateral (ie. btcb) that has been deposited with a particular collateral type
-func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var request types.QueryGetTotalCollateralParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &request)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &request)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -272,10 +276,10 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 	}
 
 	// get total collateral in all cdps
-	cdpAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
-	totalCdpCollateral := cdpAccount.GetCoins()
+	cdpAccount := keeper.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
+	totalCdpCollateral := keeper.bankKeeper.GetAllBalances(ctx, cdpAccount.GetAddress())
 
-	var response []types.TotalCDPCollateral
+	var response types.TotalCollaterals
 
 	for denom, collateralTypes := range denomCollateralTypes {
 		// skip any denoms that do not match the requested collateral type
@@ -308,7 +312,7 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 
 			// if we have no collateralType filter, or the filter matches, include it in the response
 			if request.CollateralType == "" || collateralTypes[i] == request.CollateralType {
-				response = append(response, types.NewTotalCDPCollateral(collateralTypes[i], sdk.NewCoin(denom, collateral)))
+				response = append(response, types.NewTotalCollateral(collateralTypes[i], sdk.NewCoin(denom, collateral)))
 			}
 
 			// skip the rest of the cdp queries if we have a matching filter
@@ -319,7 +323,7 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 
 		if request.CollateralType == "" || collateralTypes[0] == request.CollateralType {
 			// all leftover total collateral belongs to the first collateral type
-			response = append(response, types.NewTotalCDPCollateral(collateralTypes[0], sdk.NewCoin(denom, totalCollateral)))
+			response = append(response, types.NewTotalCollateral(collateralTypes[0], sdk.NewCoin(denom, totalCollateral)))
 		}
 	}
 
@@ -329,7 +333,7 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 	})
 
 	// encode response
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, response)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, response)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -338,7 +342,7 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 }
 
 // FilterCDPs queries the store for all CDPs that match query params
-func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.AugmentedCDPs {
+func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.AugmentedCDPs, error) {
 	var matchCollateralType, matchOwner, matchID, matchRatio types.CDPs
 
 	// match cdp owner (if supplied)
@@ -362,6 +366,10 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 				}
 			}
 		} else {
+			_, found := k.GetCollateral(ctx, params.CollateralType)
+			if !found {
+				return nil, fmt.Errorf("invalid collateral type")
+			}
 			matchCollateralType = k.GetAllCdpsByCollateralType(ctx, params.CollateralType)
 		}
 	}
@@ -378,7 +386,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 	}
 
 	// match cdp ratio (if supplied)
-	if params.Ratio.GT(sdk.ZeroDec()) {
+	if !params.Ratio.IsNil() && params.Ratio.GT(sdk.ZeroDec()) {
 		denoms := k.GetCollateralTypes(ctx)
 		for _, denom := range denoms {
 			ratio, err := k.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, denom, params.Ratio, "liquidation")
@@ -392,17 +400,17 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 
 	var commonCDPs types.CDPs
 	// If no params specified, fetch all CDPs
-	if len(params.CollateralType) == 0 && len(params.Owner) == 0 && params.ID == 0 && params.Ratio.Equal(sdk.ZeroDec()) {
+	if params.CollateralType == "" && len(params.Owner) == 0 && params.ID == 0 && params.Ratio.Equal(sdk.ZeroDec()) {
 		commonCDPs = k.GetAllCdps(ctx)
 	}
 
 	// Find the intersection of any matched CDPs
-	if len(params.CollateralType) > 0 {
-		if len(matchCollateralType) > 0 {
-			commonCDPs = matchCollateralType
-		} else {
-			return types.AugmentedCDPs{}
+	if params.CollateralType != "" {
+		if len(matchCollateralType) == 0 {
+			return nil, nil
 		}
+
+		commonCDPs = matchCollateralType
 	}
 
 	if len(params.Owner) > 0 {
@@ -416,28 +424,31 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 			commonCDPs = matchOwner
 		}
 	}
+
 	if params.ID != 0 {
-		if len(matchID) > 0 {
-			if len(commonCDPs) > 0 {
-				commonCDPs = FindIntersection(commonCDPs, matchID)
-			} else {
-				commonCDPs = matchID
-			}
+		if len(matchID) == 0 {
+			return nil, nil
+		}
+
+		if len(commonCDPs) > 0 {
+			commonCDPs = FindIntersection(commonCDPs, matchID)
 		} else {
-			return types.AugmentedCDPs{}
+			commonCDPs = matchID
 		}
 	}
-	if params.Ratio.GT(sdk.ZeroDec()) {
-		if len(matchRatio) > 0 {
-			if len(commonCDPs) > 0 {
-				commonCDPs = FindIntersection(commonCDPs, matchRatio)
-			} else {
-				commonCDPs = matchRatio
-			}
+
+	if !params.Ratio.IsNil() && params.Ratio.GT(sdk.ZeroDec()) {
+		if len(matchRatio) == 0 {
+			return nil, nil
+		}
+
+		if len(commonCDPs) > 0 {
+			commonCDPs = FindIntersection(commonCDPs, matchRatio)
 		} else {
-			return types.AugmentedCDPs{}
+			commonCDPs = matchRatio
 		}
 	}
+
 	// Load augmented CDPs
 	var augmentedCDPs types.AugmentedCDPs
 	for _, cdp := range commonCDPs {
@@ -446,15 +457,12 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 	}
 
 	// Apply page and limit params
-	var paginatedCDPs types.AugmentedCDPs
 	start, end := client.Paginate(len(augmentedCDPs), params.Page, params.Limit, 100)
 	if start < 0 || end < 0 {
-		paginatedCDPs = types.AugmentedCDPs{}
-	} else {
-		paginatedCDPs = augmentedCDPs[start:end]
+		return nil, nil
 	}
 
-	return paginatedCDPs
+	return augmentedCDPs[start:end], nil
 }
 
 // FindIntersection finds the intersection of two CDP arrays in linear time complexity O(n + n)
