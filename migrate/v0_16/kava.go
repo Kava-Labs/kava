@@ -16,8 +16,10 @@ import (
 	v015committee "github.com/kava-labs/kava/x/committee/legacy/v0_15"
 	v016committee "github.com/kava-labs/kava/x/committee/legacy/v0_16"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
+	v016kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_16"
 	v015swap "github.com/kava-labs/kava/x/swap/legacy/v0_15"
 	v016swap "github.com/kava-labs/kava/x/swap/legacy/v0_16"
+	v015validatorvesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_15"
 )
 
 func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context) genutiltypes.AppMap {
@@ -70,6 +72,19 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		// replace migrated genstate with previous genstate
 		appState[v015swap.ModuleName] = v16Codec.MustMarshalJSON(v016swap.Migrate(genState))
 	}
+
+	// Migrate x/kavadist
+	if appState[v015kavadist.ModuleName] != nil {
+		// unmarshal relative source genesis application state
+		var genState v015kavadist.GenesisState
+		v15Codec.MustUnmarshalJSON(appState[v015kavadist.ModuleName], &genState)
+
+		// replace migrated genstate with previous genstate
+		appState[v015kavadist.ModuleName] = v16Codec.MustMarshalJSON(v016kavadist.Migrate(genState))
+	}
+
+	// Remove x/validator-vesting
+	delete(appState, v015validatorvesting.ModuleName)
 
 	return appState
 }
