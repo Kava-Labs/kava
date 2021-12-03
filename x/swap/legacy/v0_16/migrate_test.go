@@ -1,7 +1,6 @@
 package v0_16
 
 import (
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -55,7 +54,6 @@ func (s *migrateTestSuite) TestMigrate_JSON() {
 	// Compare expect v16 swap json with migrated json
 	actual := s.cdc.MustMarshalJSON(genstate)
 	file = filepath.Join("testdata", "v16-swap.json")
-	fmt.Println(string(actual))
 	expected, err := ioutil.ReadFile(file)
 	s.Require().NoError(err)
 	s.Require().JSONEq(string(expected), string(actual))
@@ -85,28 +83,28 @@ func (s *migrateTestSuite) TestMigrate_PoolRecords() {
 	s.v15genstate.PoolRecords = v015swap.PoolRecords{
 		{
 			PoolID:      "pool-1",
-			ReservesA:   sdk.NewCoin("a", sdk.NewInt(100)),
-			ReservesB:   sdk.NewCoin("b", sdk.NewInt(200)),
+			ReservesA:   sdk.NewCoin("usdx", sdk.NewInt(100)),
+			ReservesB:   sdk.NewCoin("xrpb", sdk.NewInt(200)),
 			TotalShares: sdk.NewInt(300),
 		},
 		{
 			PoolID:      "pool-2",
-			ReservesA:   sdk.NewCoin("c", sdk.NewInt(500)),
-			ReservesB:   sdk.NewCoin("d", sdk.NewInt(500)),
+			ReservesA:   sdk.NewCoin("usdx", sdk.NewInt(500)),
+			ReservesB:   sdk.NewCoin("ukava", sdk.NewInt(500)),
 			TotalShares: sdk.NewInt(1000),
 		},
 	}
 	expected := v016swap.PoolRecords{
 		{
 			PoolID:      "pool-1",
-			ReservesA:   sdk.NewCoin("a", sdk.NewInt(100)),
-			ReservesB:   sdk.NewCoin("b", sdk.NewInt(200)),
+			ReservesA:   sdk.NewCoin("usdx", sdk.NewInt(100)),
+			ReservesB:   sdk.NewCoin("xrpb", sdk.NewInt(200)),
 			TotalShares: sdk.NewInt(300),
 		},
 		{
 			PoolID:      "pool-2",
-			ReservesA:   sdk.NewCoin("c", sdk.NewInt(500)),
-			ReservesB:   sdk.NewCoin("d", sdk.NewInt(500)),
+			ReservesA:   sdk.NewCoin("usdx", sdk.NewInt(500)),
+			ReservesB:   sdk.NewCoin("ukava", sdk.NewInt(500)),
 			TotalShares: sdk.NewInt(1000),
 		},
 	}
@@ -142,78 +140,6 @@ func (s *migrateTestSuite) TestMigrate_ShareRecords() {
 	genState := Migrate(s.v15genstate)
 	s.Require().Equal(expected, genState.ShareRecords)
 }
-
-// func (s *migrateTestSuite) TestMigrate_PoolRecords() {
-// 	supplies := v015swap.AssetSupplies{
-// 		{
-// 			IncomingSupply:           sdk.NewInt64Coin("bnb", 1000),
-// 			OutgoingSupply:           sdk.NewInt64Coin("bnb", 1001),
-// 			CurrentSupply:            sdk.NewInt64Coin("bnb", 1002),
-// 			TimeLimitedCurrentSupply: sdk.NewInt64Coin("bnb", 1003),
-// 			TimeElapsed:              time.Hour,
-// 		},
-// 	}
-// 	expectedSupplies := v016swap.AssetSupplies{
-// 		{
-// 			IncomingSupply:           sdk.NewInt64Coin("bnb", 1000),
-// 			OutgoingSupply:           sdk.NewInt64Coin("bnb", 1001),
-// 			CurrentSupply:            sdk.NewInt64Coin("bnb", 1002),
-// 			TimeLimitedCurrentSupply: sdk.NewInt64Coin("bnb", 1003),
-// 			TimeElapsed:              time.Hour,
-// 		},
-// 	}
-
-// 	s.v15genstate.Supplies = supplies
-// 	genState := Migrate(s.v15genstate)
-// 	s.Require().Len(genState.Supplies, 1)
-// 	s.Require().Equal(genState.Supplies, expectedSupplies)
-// }
-
-// func (s *migrateTestSuite) TestMigrate_ShareRecords() {
-// 	params := v015swap.AssetParams{
-// 		{
-// 			Denom:  "bnb",
-// 			CoinID: int(714),
-// 			SupplyLimit: v015swap.SupplyLimit{
-// 				Limit:          sdk.NewInt(350000000000000),
-// 				TimeLimited:    false,
-// 				TimeBasedLimit: sdk.ZeroInt(),
-// 				TimePeriod:     time.Hour,
-// 			},
-// 			Active:        true,
-// 			DeputyAddress: s.addresses[0],
-// 			FixedFee:      sdk.NewInt(1000),
-// 			MinSwapAmount: sdk.OneInt(),
-// 			MaxSwapAmount: sdk.NewInt(1000000000000),
-// 			MinBlockLock:  220,
-// 			MaxBlockLock:  770,
-// 		},
-// 	}
-// 	expectedParams := v016swap.AssetParams{
-// 		{
-// 			Denom:  "bnb",
-// 			CoinID: int64(714),
-// 			SupplyLimit: v016swap.SupplyLimit{
-// 				Limit:          sdk.NewInt(350000000000000),
-// 				TimeLimited:    false,
-// 				TimeBasedLimit: sdk.ZeroInt(),
-// 				TimePeriod:     time.Hour,
-// 			},
-// 			Active:        true,
-// 			DeputyAddress: s.addresses[0],
-// 			FixedFee:      sdk.NewInt(1000),
-// 			MinSwapAmount: sdk.OneInt(),
-// 			MaxSwapAmount: sdk.NewInt(1000000000000),
-// 			MinBlockLock:  220,
-// 			MaxBlockLock:  770,
-// 		},
-// 	}
-
-// 	s.v15genstate.Params = v015swap.Params{AssetParams: params}
-// 	genState := Migrate(s.v15genstate)
-// 	s.Require().Len(genState.Params.AssetParams, 1)
-// 	s.Require().Equal(genState.Params, v016swap.Params{AssetParams: expectedParams})
-// }
 
 func TestMigrateTestSuite(t *testing.T) {
 	suite.Run(t, new(migrateTestSuite))
