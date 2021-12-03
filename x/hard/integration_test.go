@@ -1,4 +1,4 @@
-package keeper_test
+package hard_test
 
 import (
 	"time"
@@ -9,6 +9,10 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
+)
+
+const (
+	USDX_CF = 1000000
 )
 
 func NewHARDGenState(cdc codec.JSONCodec) app.GenesisState {
@@ -122,3 +126,6 @@ func NewPricefeedGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 	}
 	return app.GenesisState{pricefeedtypes.ModuleName: cdc.MustMarshalJSON(&pfGenesis)}
 }
+
+func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
+func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }

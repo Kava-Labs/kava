@@ -1,4 +1,4 @@
-package keeper_test
+package hard_test
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
 	"github.com/stretchr/testify/suite"
@@ -31,7 +32,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.ctx = suite.tApp.NewContext(true, tmprototypes.Header{}).
 		WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetHardKeeper()
-	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
+	suite.queryServer = hard.NewQueryServerImpl(suite.keeper, suite.tApp.GetAccountKeeper(), suite.tApp.GetBankKeeper())
 
 	err := suite.tApp.FundModuleAccount(
 		suite.ctx,

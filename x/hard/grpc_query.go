@@ -1,4 +1,4 @@
-package keeper
+package hard
 
 import (
 	"context"
@@ -11,17 +11,24 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
 )
 
 type QueryServer struct {
-	keeper Keeper
+	keeper        keeper.Keeper
+	accountKeeper types.AccountKeeper
+	bankKeeper    types.BankKeeper
 }
 
 // NewQueryServer returns an implementation of the hard MsgServer interface
 // for the provided Keeper.
-func NewQueryServerImpl(keeper Keeper) types.QueryServer {
-	return &QueryServer{keeper: keeper}
+func NewQueryServerImpl(keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) types.QueryServer {
+	return &QueryServer{
+		keeper:        keeper,
+		accountKeeper: ak,
+		bankKeeper:    bk,
+	}
 }
 
 var _ types.QueryServer = QueryServer{}
@@ -48,7 +55,7 @@ func (qs QueryServer) Accounts(ctx context.Context, req *types.QueryAccountsRequ
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	macc := qs.keeper.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleAccountName)
+	macc := qs.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleAccountName)
 
 	accounts := []authtypes.ModuleAccount{
 		*macc.(*authtypes.ModuleAccount),
@@ -425,8 +432,8 @@ func (qs QueryServer) InterestRate(ctx context.Context, req *types.QueryInterest
 	// Calculate the borrow and supply APY interest rates for each money market
 	for _, moneyMarket := range moneyMarkets {
 		denom := moneyMarket.Denom
-		macc := qs.keeper.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleName)
-		cash := qs.keeper.bankKeeper.GetBalance(sdkCtx, macc.GetAddress(), denom).Amount
+		macc := qs.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleName)
+		cash := qs.bankKeeper.GetBalance(sdkCtx, macc.GetAddress(), denom).Amount
 
 		borrowed := sdk.NewCoin(denom, sdk.ZeroInt())
 		borrowedCoins, foundBorrowedCoins := qs.keeper.GetBorrowedCoins(sdkCtx)
@@ -440,12 +447,12 @@ func (qs QueryServer) InterestRate(ctx context.Context, req *types.QueryInterest
 		}
 
 		// CalculateBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has ien borrowed)
-		borrowAPY, err := CalculateBorrowRate(moneyMarket.InterestRateModel, sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
+		borrowAPY, err := keeper.CalculateBorrowRate(moneyMarket.InterestRateModel, sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
 		if err != nil {
 			return nil, err
 		}
 
-		utilRatio := CalculateUtilizationRatio(sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
+		utilRatio := keeper.CalculateUtilizationRatio(sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
 		fullSupplyAPY := borrowAPY.Mul(utilRatio)
 		realSupplyAPY := fullSupplyAPY.Mul(sdk.OneDec().Sub(moneyMarket.ReserveFactor))
 
