@@ -44,6 +44,7 @@ func migrateShareRecords(oldRecords v015swap.ShareRecords) v016swap.ShareRecords
 	return newRecords
 }
 
+// Migrate converts v0.15 swap state and returns it in v0.16 format
 func Migrate(oldState v015swap.GenesisState) *v016swap.GenesisState {
 	return &v016swap.GenesisState{
 		Params:       migrateParams(oldState.Params),
