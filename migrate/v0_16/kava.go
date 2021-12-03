@@ -11,6 +11,8 @@ import (
 
 	v015auction "github.com/kava-labs/kava/x/auction/legacy/v0_15"
 	v016auction "github.com/kava-labs/kava/x/auction/legacy/v0_16"
+	v015bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_15"
+	v016bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_16"
 	v015committee "github.com/kava-labs/kava/x/committee/legacy/v0_15"
 	v016committee "github.com/kava-labs/kava/x/committee/legacy/v0_16"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
@@ -45,6 +47,16 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 
 		// replace migrated genstate with previous genstate
 		appState[v015committee.ModuleName] = v16Codec.MustMarshalJSON(v016committee.Migrate(genState))
+	}
+
+	// Migrate x/bep3
+	if appState[v015bep3.ModuleName] != nil {
+		// unmarshal relative source genesis application state
+		var genState v015bep3.GenesisState
+		v15Codec.MustUnmarshalJSON(appState[v015bep3.ModuleName], &genState)
+
+		// replace migrated genstate with previous genstate
+		appState[v015bep3.ModuleName] = v16Codec.MustMarshalJSON(v016bep3.Migrate(genState))
 	}
 
 	return appState
