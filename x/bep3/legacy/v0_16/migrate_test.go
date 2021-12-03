@@ -240,7 +240,7 @@ func (s *migrateTestSuite) TestMigrate_Params() {
 	s.v15genstate.Params = v015bep3.Params{AssetParams: params}
 	genState := Migrate(s.v15genstate)
 	s.Require().Len(genState.Params.AssetParams, 1)
-	s.Require().Equal(genState.Params, v016bep3.Params{AssetParams: expectedParams})
+	s.Require().Equal(v016bep3.Params{AssetParams: expectedParams}, genState.Params)
 }
 
 func (s *migrateTestSuite) TestMigrate_Supplies() {
@@ -266,7 +266,7 @@ func (s *migrateTestSuite) TestMigrate_Supplies() {
 	s.v15genstate.Supplies = supplies
 	genState := Migrate(s.v15genstate)
 	s.Require().Len(genState.Supplies, 1)
-	s.Require().Equal(genState.Supplies, expectedSupplies)
+	s.Require().Equal(expectedSupplies, genState.Supplies)
 }
 
 func TestMigrateTestSuite(t *testing.T) {
