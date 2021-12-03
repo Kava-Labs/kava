@@ -1,23 +1,11 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-// GenesisState is the state that must be provided at genesis.
-type GenesisState struct {
-	Params                    Params                   `json:"params" yaml:"params"`
-	PreviousAccumulationTimes GenesisAccumulationTimes `json:"previous_accumulation_times" yaml:"previous_accumulation_times"`
-	Deposits                  Deposits                 `json:"deposits" yaml:"deposits"`
-	Borrows                   Borrows                  `json:"borrows" yaml:"borrows"`
-	TotalSupplied             sdk.Coins                `json:"total_supplied" yaml:"total_supplied"`
-	TotalBorrowed             sdk.Coins                `json:"total_borrowed" yaml:"total_borrowed"`
-	TotalReserves             sdk.Coins                `json:"total_reserves" yaml:"total_reserves"`
-}
 
 // NewGenesisState returns a new genesis state
 func NewGenesisState(
@@ -74,26 +62,6 @@ func (gs GenesisState) Validate() error {
 		return fmt.Errorf("invalid total reserves coins: %s", gs.TotalReserves)
 	}
 	return nil
-}
-
-// Equal checks whether two gov GenesisState structs are equivalent
-func (gs GenesisState) Equal(gs2 GenesisState) bool {
-	b1 := ModuleCdc.MustMarshalBinaryBare(gs)
-	b2 := ModuleCdc.MustMarshalBinaryBare(gs2)
-	return bytes.Equal(b1, b2)
-}
-
-// IsEmpty returns true if a GenesisState is empty
-func (gs GenesisState) IsEmpty() bool {
-	return gs.Equal(GenesisState{})
-}
-
-// GenesisAccumulationTime stores the previous distribution time and its corresponding denom
-type GenesisAccumulationTime struct {
-	CollateralType           string    `json:"collateral_type" yaml:"collateral_type"`
-	PreviousAccumulationTime time.Time `json:"previous_accumulation_time" yaml:"previous_accumulation_time"`
-	SupplyInterestFactor     sdk.Dec   `json:"supply_interest_factor" yaml:"supply_interest_factor"`
-	BorrowInterestFactor     sdk.Dec   `json:"borrow_interest_factor" yaml:"borrow_interest_factor"`
 }
 
 // NewGenesisAccumulationTime returns a new GenesisAccumulationTime

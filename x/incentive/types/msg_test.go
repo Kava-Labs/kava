@@ -14,15 +14,15 @@ import (
 )
 
 func TestMsgClaimVVesting_Validate(t *testing.T) {
-	validAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1")))
+	validAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String()
 
 	type expectedErr struct {
 		wraps error
 		pass  bool
 	}
 	type msgArgs struct {
-		sender        sdk.AccAddress
-		receiver      sdk.AccAddress
+		sender        string
+		receiver      string
 		denomsToClaim types.Selections
 	}
 	tests := []struct {
@@ -135,7 +135,7 @@ func TestMsgClaimVVesting_Validate(t *testing.T) {
 		{
 			name: "invalid sender",
 			msgArgs: msgArgs{
-				sender:   sdk.AccAddress{},
+				sender:   "",
 				receiver: validAddress,
 				denomsToClaim: types.Selections{
 					{
@@ -152,7 +152,7 @@ func TestMsgClaimVVesting_Validate(t *testing.T) {
 			name: "invalid receiver",
 			msgArgs: msgArgs{
 				sender:   validAddress,
-				receiver: sdk.AccAddress{},
+				receiver: "",
 				denomsToClaim: types.Selections{
 					{
 						Denom:          "hard",
@@ -215,19 +215,12 @@ func TestMsgClaimVVesting_Validate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		msgs := []sdk.Msg{
-			types.NewMsgClaimHardRewardVVesting(
-				tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.denomsToClaim...,
-			),
-			types.NewMsgClaimDelegatorRewardVVesting(
-				tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.denomsToClaim...,
-			),
-			types.NewMsgClaimSwapRewardVVesting(
-				tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.denomsToClaim...,
-			),
-		}
+		msgClaimHardRewardVVesting := types.NewMsgClaimHardRewardVVesting(tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.denomsToClaim)
+		msgClaimDelegatorRewardVVesting := types.NewMsgClaimDelegatorRewardVVesting(tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.denomsToClaim)
+		msgClaimSwapRewardVVesting := types.NewMsgClaimSwapRewardVVesting(tc.msgArgs.sender, tc.msgArgs.receiver, tc.msgArgs.denomsToClaim)
+		msgs := []sdk.Msg{&msgClaimHardRewardVVesting, &msgClaimDelegatorRewardVVesting, &msgClaimSwapRewardVVesting}
 		for _, msg := range msgs {
-			t.Run(msg.Type()+" "+tc.name, func(t *testing.T) {
+			t.Run(msg.String()+" "+tc.name, func(t *testing.T) {
 
 				err := msg.ValidateBasic()
 				if tc.expect.pass {
@@ -241,14 +234,14 @@ func TestMsgClaimVVesting_Validate(t *testing.T) {
 }
 
 func TestMsgClaim_Validate(t *testing.T) {
-	validAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1")))
+	validAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String()
 
 	type expectedErr struct {
 		wraps error
 		pass  bool
 	}
 	type msgArgs struct {
-		sender        sdk.AccAddress
+		sender        string
 		denomsToClaim types.Selections
 	}
 	tests := []struct {
@@ -355,7 +348,7 @@ func TestMsgClaim_Validate(t *testing.T) {
 		{
 			name: "invalid sender",
 			msgArgs: msgArgs{
-				sender: sdk.AccAddress{},
+				sender: "",
 				denomsToClaim: types.Selections{
 					{
 						Denom:          "hard",
@@ -414,13 +407,13 @@ func TestMsgClaim_Validate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		msgs := []sdk.Msg{
-			types.NewMsgClaimHardReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim...),
-			types.NewMsgClaimDelegatorReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim...),
-			types.NewMsgClaimSwapReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim...),
-		}
+
+		msgClaimHardReward := types.NewMsgClaimHardReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim)
+		msgClaimDelegatorReward := types.NewMsgClaimDelegatorReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim)
+		msgClaimSwapReward := types.NewMsgClaimSwapReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim)
+		msgs := []sdk.Msg{&msgClaimHardReward, &msgClaimDelegatorReward, &msgClaimSwapReward}
 		for _, msg := range msgs {
-			t.Run(msg.Type()+" "+tc.name, func(t *testing.T) {
+			t.Run(msg.String()+" "+tc.name, func(t *testing.T) {
 
 				err := msg.ValidateBasic()
 				if tc.expect.pass {
@@ -434,15 +427,15 @@ func TestMsgClaim_Validate(t *testing.T) {
 }
 
 func TestMsgClaimUSDXMintingRewardVVesting_Validate(t *testing.T) {
-	validAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1")))
+	validAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String()
 
 	type expectedErr struct {
 		wraps error
 		pass  bool
 	}
 	type msgArgs struct {
-		sender         sdk.AccAddress
-		receiver       sdk.AccAddress
+		sender         string
+		receiver       string
 		multiplierName string
 	}
 	tests := []struct {
@@ -486,7 +479,7 @@ func TestMsgClaimUSDXMintingRewardVVesting_Validate(t *testing.T) {
 		{
 			name: "invalid sender",
 			msgArgs: msgArgs{
-				sender:         sdk.AccAddress{},
+				sender:         "",
 				receiver:       validAddress,
 				multiplierName: "medium",
 			},
@@ -498,7 +491,7 @@ func TestMsgClaimUSDXMintingRewardVVesting_Validate(t *testing.T) {
 			name: "invalid receiver",
 			msgArgs: msgArgs{
 				sender:         validAddress,
-				receiver:       sdk.AccAddress{},
+				receiver:       "",
 				multiplierName: "medium",
 			},
 			expect: expectedErr{
@@ -545,14 +538,14 @@ func TestMsgClaimUSDXMintingRewardVVesting_Validate(t *testing.T) {
 }
 
 func TestMsgClaimUSDXMintingReward_Validate(t *testing.T) {
-	validAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1")))
+	validAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))).String()
 
 	type expectedErr struct {
 		wraps error
 		pass  bool
 	}
 	type msgArgs struct {
-		sender         sdk.AccAddress
+		sender         string
 		multiplierName string
 	}
 	tests := []struct {
@@ -593,7 +586,7 @@ func TestMsgClaimUSDXMintingReward_Validate(t *testing.T) {
 		{
 			name: "invalid sender",
 			msgArgs: msgArgs{
-				sender:         sdk.AccAddress{},
+				sender:         "",
 				multiplierName: "medium",
 			},
 			expect: expectedErr{

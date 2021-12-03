@@ -42,10 +42,11 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	}
 
 	// Sends coins from Hard module account to user
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, coins)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, coins)
 	if err != nil {
 		if errors.Is(err, sdkerrors.ErrInsufficientFunds) {
-			modAccCoins := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName).GetCoins()
+			macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
+			modAccCoins := k.bankKeeper.GetAllBalances(ctx, macc.GetAddress())
 			for _, coin := range coins {
 				_, isNegative := modAccCoins.SafeSub(sdk.NewCoins(coin))
 				if isNegative {
@@ -115,7 +116,8 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	}
 
 	// The reserve coins aren't available for users to borrow
-	hardMaccCoins := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins()
+	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
+	hardMaccCoins := k.bankKeeper.GetAllBalances(ctx, macc.GetAddress())
 	reserveCoins, foundReserveCoins := k.GetTotalReserves(ctx)
 	if !foundReserveCoins {
 		reserveCoins = sdk.NewCoins()

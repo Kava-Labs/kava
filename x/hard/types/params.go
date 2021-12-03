@@ -4,9 +4,8 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
 
-	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Parameter keys and default values
@@ -15,7 +14,6 @@ var (
 	KeyMinimumBorrowUSDValue     = []byte("MinimumBorrowUSDValue")
 	DefaultMoneyMarkets          = MoneyMarkets{}
 	DefaultMinimumBorrowUSDValue = sdk.NewDec(10) // $10 USD minimum borrow value
-	GovDenom                     = cdptypes.DefaultGovDenom
 	DefaultAccumulationTimes     = GenesisAccumulationTimes{}
 	DefaultTotalSupplied         = sdk.Coins{}
 	DefaultTotalBorrowed         = sdk.Coins{}
@@ -23,19 +21,6 @@ var (
 	DefaultDeposits              = Deposits{}
 	DefaultBorrows               = Borrows{}
 )
-
-// Params governance parameters for hard module
-type Params struct {
-	MoneyMarkets          MoneyMarkets `json:"money_markets" yaml:"money_markets"`
-	MinimumBorrowUSDValue sdk.Dec      `json:"minimum_borrow_usd_value" yaml:"minimum_borrow_usd_value"`
-}
-
-// BorrowLimit enforces restrictions on a money market
-type BorrowLimit struct {
-	HasMaxLimit  bool    `json:"has_max_limit" yaml:"has_max_limit"`
-	MaximumLimit sdk.Dec `json:"maximum_limit" yaml:"maximum_limit"`
-	LoanToValue  sdk.Dec `json:"loan_to_value" yaml:"loan_to_value"`
-}
 
 // NewBorrowLimit returns a new BorrowLimit
 func NewBorrowLimit(hasMaxLimit bool, maximumLimit, loanToValue sdk.Dec) BorrowLimit {
@@ -74,17 +59,6 @@ func (bl BorrowLimit) Equal(blCompareTo BorrowLimit) bool {
 	return true
 }
 
-// MoneyMarket is a money market for an individual asset
-type MoneyMarket struct {
-	Denom                  string            `json:"denom" yaml:"denom"`
-	BorrowLimit            BorrowLimit       `json:"borrow_limit" yaml:"borrow_limit"`
-	SpotMarketID           string            `json:"spot_market_id" yaml:"spot_market_id"`
-	ConversionFactor       sdk.Int           `json:"conversion_factor" yaml:"conversion_factor"`
-	InterestRateModel      InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"`
-	ReserveFactor          sdk.Dec           `json:"reserve_factor" yaml:"reserve_factor"`
-	KeeperRewardPercentage sdk.Dec           `json:"keeper_reward_percentage" yaml:"keeper_reward_percentages"`
-}
-
 // NewMoneyMarket returns a new MoneyMarket
 func NewMoneyMarket(denom string, borrowLimit BorrowLimit, spotMarketID string, conversionFactor sdk.Int,
 	interestRateModel InterestRateModel, reserveFactor, keeperRewardPercentage sdk.Dec) MoneyMarket {
@@ -118,11 +92,11 @@ func (mm MoneyMarket) Validate() error {
 	}
 
 	if mm.ReserveFactor.IsNegative() || mm.ReserveFactor.GT(sdk.OneDec()) {
-		return fmt.Errorf("Reserve factor must be between 0.0-1.0")
+		return fmt.Errorf("reserve factor must be between 0.0-1.0")
 	}
 
 	if mm.KeeperRewardPercentage.IsNegative() || mm.KeeperRewardPercentage.GT(sdk.OneDec()) {
-		return fmt.Errorf("Keeper reward percentage must be between 0.0-1.0")
+		return fmt.Errorf("keeper reward percentage must be between 0.0-1.0")
 	}
 
 	return nil
@@ -167,14 +141,6 @@ func (mms MoneyMarkets) Validate() error {
 	return nil
 }
 
-// InterestRateModel contains information about an asset's interest rate
-type InterestRateModel struct {
-	BaseRateAPY    sdk.Dec `json:"base_rate_apy" yaml:"base_rate_apy"`
-	BaseMultiplier sdk.Dec `json:"base_multiplier" yaml:"base_multiplier"`
-	Kink           sdk.Dec `json:"kink" yaml:"kink"`
-	JumpMultiplier sdk.Dec `json:"jump_multiplier" yaml:"jump_multiplier"`
-}
-
 // NewInterestRateModel returns a new InterestRateModel
 func NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier sdk.Dec) InterestRateModel {
 	return InterestRateModel{
@@ -188,19 +154,19 @@ func NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier sdk.
 // Validate InterestRateModel param
 func (irm InterestRateModel) Validate() error {
 	if irm.BaseRateAPY.IsNegative() || irm.BaseRateAPY.GT(sdk.OneDec()) {
-		return fmt.Errorf("Base rate APY must be in the inclusive range 0.0-1.0")
+		return fmt.Errorf("base rate APY must be in the inclusive range 0.0-1.0")
 	}
 
 	if irm.BaseMultiplier.IsNegative() {
-		return fmt.Errorf("Base multiplier must not be negative")
+		return fmt.Errorf("base multiplier must not be negative")
 	}
 
 	if irm.Kink.IsNegative() || irm.Kink.GT(sdk.OneDec()) {
-		return fmt.Errorf("Kink must be in the inclusive range 0.0-1.0")
+		return fmt.Errorf("kink must be in the inclusive range 0.0-1.0")
 	}
 
 	if irm.JumpMultiplier.IsNegative() {
-		return fmt.Errorf("Jump multiplier must not be negative")
+		return fmt.Errorf("jump multiplier must not be negative")
 	}
 
 	return nil
@@ -239,24 +205,16 @@ func DefaultParams() Params {
 	return NewParams(DefaultMoneyMarkets, DefaultMinimumBorrowUSDValue)
 }
 
-// String implements fmt.Stringer
-func (p Params) String() string {
-	return fmt.Sprintf(`Params:
-	Minimum Borrow USD Value: %v
-	Money Markets: %v`,
-		p.MinimumBorrowUSDValue, p.MoneyMarkets)
-}
-
 // ParamKeyTable Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyMoneyMarkets, &p.MoneyMarkets, validateMoneyMarketParams),
-		params.NewParamSetPair(KeyMinimumBorrowUSDValue, &p.MinimumBorrowUSDValue, validateMinimumBorrowUSDValue),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyMoneyMarkets, &p.MoneyMarkets, validateMoneyMarketParams),
+		paramtypes.NewParamSetPair(KeyMinimumBorrowUSDValue, &p.MinimumBorrowUSDValue, validateMinimumBorrowUSDValue),
 	}
 }
 
@@ -276,7 +234,7 @@ func validateMinimumBorrowUSDValue(i interface{}) error {
 	}
 
 	if minBorrowVal.IsNegative() {
-		return fmt.Errorf("Minimum borrow USD value cannot be negative")
+		return fmt.Errorf("minimum borrow USD value cannot be negative")
 	}
 
 	return nil

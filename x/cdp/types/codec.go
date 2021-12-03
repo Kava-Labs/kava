@@ -12,12 +12,12 @@ import (
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
 // governance module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(MsgCreateCDP{}, "cdp/MsgCreateCDP", nil)
-	cdc.RegisterConcrete(MsgDeposit{}, "cdp/MsgDeposit", nil)
-	cdc.RegisterConcrete(MsgWithdraw{}, "cdp/MsgWithdraw", nil)
-	cdc.RegisterConcrete(MsgDrawDebt{}, "cdp/MsgDrawDebt", nil)
-	cdc.RegisterConcrete(MsgRepayDebt{}, "cdp/MsgRepayDebt", nil)
-	cdc.RegisterConcrete(MsgLiquidate{}, "cdp/MsgLiquidate", nil)
+	cdc.RegisterConcrete(&MsgCreateCDP{}, "cdp/MsgCreateCDP", nil)
+	cdc.RegisterConcrete(&MsgDeposit{}, "cdp/MsgDeposit", nil)
+	cdc.RegisterConcrete(&MsgWithdraw{}, "cdp/MsgWithdraw", nil)
+	cdc.RegisterConcrete(&MsgDrawDebt{}, "cdp/MsgDrawDebt", nil)
+	cdc.RegisterConcrete(&MsgRepayDebt{}, "cdp/MsgRepayDebt", nil)
+	cdc.RegisterConcrete(&MsgLiquidate{}, "cdp/MsgLiquidate", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {

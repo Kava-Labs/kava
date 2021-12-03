@@ -1,0 +1,59 @@
+syntax = "proto3";
+package kava.incentive.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "kava/incentive/v1beta1/claims.proto";
+import "kava/incentive/v1beta1/params.proto";
+import "google/protobuf/timestamp.proto";
+
+// import "cosmos/base/v1beta1/coin.proto";
+// import "cosmos/base/v1beta1/coins.proto";
+
+option go_package = "github.com/kava-labs/kava/x/incentive/types";
+
+option (gogoproto.goproto_getters_all) = false;
+
+// AccumulationTime stores the previous reward distribution time and its corresponding collateral type
+message AccumulationTime {
+  string collateral_type = 1;
+
+  google.protobuf.Timestamp previous_accumulation_time = 2 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+}
+
+// GenesisRewardState groups together the global state for a particular reward so it can be exported in genesis.
+message GenesisRewardState {
+  repeated AccumulationTime accumulation_times = 1
+      [(gogoproto.castrepeated) = "AccumulationTimes", (gogoproto.nullable) = false];
+
+  repeated MultiRewardIndex multi_reward_indexes = 2
+      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+}
+
+// GenesisState is the state that must be provided at genesis.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  GenesisRewardState usdx_reward_state = 2 [(gogoproto.customname) = "USDXRewardState", (gogoproto.nullable) = false];
+
+  GenesisRewardState hard_supply_reward_state = 3 [(gogoproto.nullable) = false];
+
+  GenesisRewardState hard_borrow_reward_state = 4 [(gogoproto.nullable) = false];
+
+  GenesisRewardState delegator_reward_state = 5 [(gogoproto.nullable) = false];
+
+  GenesisRewardState swap_reward_state = 6 [(gogoproto.nullable) = false];
+
+  repeated USDXMintingClaim usdx_minting_claims = 7 [
+    (gogoproto.customname)   = "USDXMintingClaims",
+    (gogoproto.castrepeated) = "USDXMintingClaims",
+    (gogoproto.nullable)     = false
+  ];
+
+  repeated HardLiquidityProviderClaim hard_liquidity_provider_claims = 8
+      [(gogoproto.castrepeated) = "HardLiquidityProviderClaims", (gogoproto.nullable) = false];
+
+  repeated DelegatorClaim delegator_claims = 9
+      [(gogoproto.castrepeated) = "DelegatorClaims", (gogoproto.nullable) = false];
+
+  repeated SwapClaim swap_claims = 10 [(gogoproto.castrepeated) = "SwapClaims", (gogoproto.nullable) = false];
+}

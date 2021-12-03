@@ -6,10 +6,8 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	"github.com/cosmos/cosmos-sdk/x/params"
-
-	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
@@ -41,7 +39,6 @@ var (
 	DefaultDistributionTimes  = GenesisDistributionTimes{}
 	DefaultDeposits           = Deposits{}
 	DefaultClaims             = Claims{}
-	GovDenom                  = cdptypes.DefaultGovDenom
 )
 
 // GenesisState is the state that must be provided at genesis.
@@ -323,16 +320,16 @@ func (p Params) String() string {
 }
 
 // ParamKeyTable Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
-		params.NewParamSetPair(KeyLPSchedules, &p.LiquidityProviderSchedules, validateLPParams),
-		params.NewParamSetPair(KeyDelegatorSchedule, &p.DelegatorDistributionSchedules, validateDelegatorParams),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
+		paramtypes.NewParamSetPair(KeyLPSchedules, &p.LiquidityProviderSchedules, validateLPParams),
+		paramtypes.NewParamSetPair(KeyDelegatorSchedule, &p.DelegatorDistributionSchedules, validateDelegatorParams),
 	}
 }
 
@@ -464,12 +461,12 @@ func NewClaim(owner sdk.AccAddress, denom string, amount sdk.Coin, dtype Deposit
 type Claims []Claim
 
 // NewPeriod returns a new vesting period
-func NewPeriod(amount sdk.Coins, length int64) vesting.Period {
-	return vesting.Period{Amount: amount, Length: length}
+func NewPeriod(amount sdk.Coins, length int64) vestingtypes.Period {
+	return vestingtypes.Period{Amount: amount, Length: length}
 }
 
 // GetTotalVestingPeriodLength returns the summed length of all vesting periods
-func GetTotalVestingPeriodLength(periods vesting.Periods) int64 {
+func GetTotalVestingPeriodLength(periods vestingtypes.Periods) int64 {
 	length := int64(0)
 	for _, period := range periods {
 		length += period.Length
