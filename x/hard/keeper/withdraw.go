@@ -47,7 +47,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "proposed withdraw outside loan-to-value range")
 	}
 
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, amount)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, amount)
 	if err != nil {
 		return err
 	}

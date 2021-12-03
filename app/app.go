@@ -82,6 +82,9 @@ import (
 	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	"github.com/kava-labs/kava/x/hard"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	issuance "github.com/kava-labs/kava/x/issuance"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
@@ -136,6 +139,7 @@ var (
 		pricefeed.AppModuleBasic{},
 		swap.AppModuleBasic{},
 		cdp.AppModuleBasic{},
+		hard.AppModuleBasic{},
 		committee.AppModuleBasic{},
 	)
 
@@ -156,6 +160,7 @@ var (
 		swaptypes.ModuleName:            nil,
 		cdptypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
+		hardtypes.ModuleAccountName:     {authtypes.Minter},
 	}
 )
 
@@ -206,6 +211,7 @@ type App struct {
 	pricefeedKeeper pricefeedkeeper.Keeper
 	swapKeeper      swapkeeper.Keeper
 	cdpKeeper       cdpkeeper.Keeper
+	hardKeeper      hardkeeper.Keeper
 	committeeKeeper committeekeeper.Keeper
 
 	// the module manager
@@ -253,7 +259,8 @@ func NewApp(
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
 		upgradetypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
-		swaptypes.StoreKey, cdptypes.StoreKey, committeetypes.StoreKey,
+		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
+		committeetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -288,6 +295,7 @@ func NewApp(
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
 	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
+	hardSubspace := app.paramsKeeper.Subspace(hardtypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -420,7 +428,7 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
-	app.cdpKeeper = cdpkeeper.NewKeeper(
+	cdpKeeper := cdpkeeper.NewKeeper(
 		appCodec,
 		keys[cdptypes.StoreKey],
 		cdpSubspace,
@@ -429,6 +437,15 @@ func NewApp(
 		app.bankKeeper,
 		app.accountKeeper,
 		mAccPerms,
+	)
+	hardKeeper := hardkeeper.NewKeeper(
+		appCodec,
+		keys[hardtypes.StoreKey],
+		hardSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		app.pricefeedKeeper,
+		app.auctionKeeper,
 	)
 
 	// create committee keeper with router
@@ -457,7 +474,9 @@ func NewApp(
 	// TODO: Add swap hooks after incentive upgraded
 
 	// TODO: Add app.incentiveKeeper.Hooks() to cdptypes.NewMultiCDPHooks()
-	app.cdpKeeper = *(app.cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks()))
+	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks())
+	// TODO: app.incentiveKeeper.Hooks() to hardtypes.NewMultiHARDHooks()
+	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks())
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
@@ -482,6 +501,7 @@ func NewApp(
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
+		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)
 
@@ -502,6 +522,7 @@ func NewApp(
 		issuancetypes.ModuleName,
 		bep3types.ModuleName,
 		cdptypes.ModuleName,
+		hardtypes.ModuleName,
 		committeetypes.ModuleName,
 	)
 
@@ -529,6 +550,7 @@ func NewApp(
 		pricefeedtypes.ModuleName,
 		swaptypes.ModuleName,
 		cdptypes.ModuleName,
+		hardtypes.ModuleName,
 		committeetypes.ModuleName,
 		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
 	)

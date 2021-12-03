@@ -226,6 +226,7 @@
     - [Borrow](#kava.hard.v1beta1.Borrow)
     - [BorrowInterestFactor](#kava.hard.v1beta1.BorrowInterestFactor)
     - [BorrowLimit](#kava.hard.v1beta1.BorrowLimit)
+    - [CoinsProto](#kava.hard.v1beta1.CoinsProto)
     - [Deposit](#kava.hard.v1beta1.Deposit)
     - [InterestRateModel](#kava.hard.v1beta1.InterestRateModel)
     - [MoneyMarket](#kava.hard.v1beta1.MoneyMarket)
@@ -3315,6 +3316,21 @@ BorrowLimit enforces restrictions on a money market.
 | `has_max_limit` | [bool](#bool) |  |  |
 | `maximum_limit` | [string](#string) |  |  |
 | `loan_to_value` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.CoinsProto"></a>
+
+### CoinsProto
+CoinsProto defines a Protobuf wrapper around a Coins slice
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 
 
 
