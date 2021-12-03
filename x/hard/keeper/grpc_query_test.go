@@ -80,27 +80,6 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAccounts() {
 	suite.Equal(acc, &res.Accounts[0], "accounts should include module account")
 }
 
-func (suite *grpcQueryTestSuite) TestGrpcQueryAccounts_InvalidName() {
-	_, err := suite.queryServer.Accounts(sdk.WrapSDKContext(suite.ctx), &types.QueryAccountsRequest{
-		Name: "bun",
-	})
-	suite.Require().Error(err)
-	suite.Require().Equal("rpc error: code = InvalidArgument desc = invalid account name", err.Error())
-}
-
-func (suite *grpcQueryTestSuite) TestGrpcQueryAccounts_Name() {
-	res, err := suite.queryServer.Accounts(sdk.WrapSDKContext(suite.ctx), &types.QueryAccountsRequest{
-		Name: types.ModuleAccountName,
-	})
-	suite.Require().NoError(err)
-
-	ak := suite.tApp.GetAccountKeeper()
-	acc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
-
-	suite.Len(res.Accounts, 1)
-	suite.Equal(acc, &res.Accounts[0], "accounts should include module account")
-}
-
 func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits_EmptyResponse() {
 	res, err := suite.queryServer.Deposits(sdk.WrapSDKContext(suite.ctx), &types.QueryDepositsRequest{})
 	suite.Require().NoError(err)
