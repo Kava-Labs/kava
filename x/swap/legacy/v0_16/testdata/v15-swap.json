@@ -1,0 +1,83 @@
+{
+  "params": {
+    "allowed_pools": [
+      {
+        "token_a": "bnb",
+        "token_b": "usdx"
+      },
+      {
+        "token_a": "btcb",
+        "token_b": "usdx"
+      },
+      {
+        "token_a": "busd",
+        "token_b": "usdx"
+      },
+      {
+        "token_a": "hard",
+        "token_b": "usdx"
+      },
+      {
+        "token_a": "swp",
+        "token_b": "usdx"
+      },
+      {
+        "token_a": "ukava",
+        "token_b": "usdx"
+      },
+      {
+        "token_a": "usdx",
+        "token_b": "xrpb"
+      }
+    ],
+    "swap_fee": "0.001500000000000000"
+  },
+  "pool_records": [
+    {
+      "pool_id": "ukava:usdx",
+      "reserves_a": {
+        "amount": "583616549439",
+        "denom": "ukava"
+      },
+      "reserves_b": {
+        "amount": "3431399443511",
+        "denom": "usdx"
+      },
+      "total_shares": "1398497336200"
+    },
+    {
+      "pool_id": "usdx:xrpb",
+      "reserves_a": {
+        "amount": "843639517257",
+        "denom": "usdx"
+      },
+      "reserves_b": {
+        "amount": "72251274276145",
+        "denom": "xrpb"
+      },
+      "total_shares": "7739661881008"
+    }
+  ],
+  "share_records": [
+    {
+      "depositor": "kava1l77xymdt2ya0rl2mludkny5aqmr67u88ymgdje",
+      "pool_id": "usdx:xrpb",
+      "shares_owned": "29034728969"
+    },
+    {
+      "depositor": "kava1llqkrdr69wc76cuxpx6j06x9pt63f52f7mlcye",
+      "pool_id": "busd:usdx",
+      "shares_owned": "24905307583"
+    },
+    {
+      "depositor": "kava1ll3ndyv333aet6mzqltu5wdepqhyme8umv34es",
+      "pool_id": "hard:usdx",
+      "shares_owned": "708138421"
+    },
+    {
+      "depositor": "kava1ll3ndyv333aet6mzqltu5wdepqhyme8umv34es",
+      "pool_id": "ukava:usdx",
+      "shares_owned": "3427014047"
+    }
+  ]
+}
