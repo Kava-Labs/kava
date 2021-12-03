@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/hard/types"
 )
@@ -14,19 +14,18 @@ import (
 // Keeper keeper for the hard module
 type Keeper struct {
 	key             sdk.StoreKey
-	cdc             *codec.Codec
-	paramSubspace   subspace.Subspace
+	cdc             codec.Codec
+	paramSubspace   paramtypes.Subspace
 	accountKeeper   types.AccountKeeper
-	supplyKeeper    types.SupplyKeeper
-	stakingKeeper   types.StakingKeeper
+	bankKeeper      types.BankKeeper
 	pricefeedKeeper types.PricefeedKeeper
 	auctionKeeper   types.AuctionKeeper
 	hooks           types.HARDHooks
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
-	ak types.AccountKeeper, sk types.SupplyKeeper, stk types.StakingKeeper,
+func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace,
+	ak types.AccountKeeper, bk types.BankKeeper,
 	pfk types.PricefeedKeeper, auk types.AuctionKeeper) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -37,8 +36,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 		cdc:             cdc,
 		paramSubspace:   paramstore,
 		accountKeeper:   ak,
-		supplyKeeper:    sk,
-		stakingKeeper:   stk,
+		bankKeeper:      bk,
 		pricefeedKeeper: pfk,
 		auctionKeeper:   auk,
 		hooks:           nil,
@@ -58,18 +56,18 @@ func (k *Keeper) SetHooks(hooks types.HARDHooks) *Keeper {
 func (k Keeper) GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (types.Deposit, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
 	bz := store.Get(depositor.Bytes())
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.Deposit{}, false
 	}
 	var deposit types.Deposit
-	k.cdc.MustUnmarshalBinaryBare(bz, &deposit)
+	k.cdc.MustUnmarshal(bz, &deposit)
 	return deposit, true
 }
 
 // SetDeposit sets the input deposit in the store, prefixed by the deposit type, deposit denom, and depositor address, in that order
 func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(deposit)
+	bz := k.cdc.MustMarshal(&deposit)
 	store.Set(deposit.Depositor.Bytes(), bz)
 }
 
@@ -86,7 +84,7 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, cb func(deposit types.Deposit) 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &deposit)
+		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
 		if cb(deposit) {
 			break
 		}
@@ -105,27 +103,22 @@ func (k Keeper) GetDepositsByUser(ctx sdk.Context, user sdk.AccAddress) []types.
 	return deposits
 }
 
-// BondDenom returns the bond denom from the staking keeper
-func (k Keeper) BondDenom(ctx sdk.Context) string {
-	return k.stakingKeeper.BondDenom(ctx)
-}
-
 // GetBorrow returns a Borrow from the store for a particular borrower address and borrow denom
 func (k Keeper) GetBorrow(ctx sdk.Context, borrower sdk.AccAddress) (types.Borrow, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
 	bz := store.Get(borrower)
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.Borrow{}, false
 	}
 	var borrow types.Borrow
-	k.cdc.MustUnmarshalBinaryBare(bz, &borrow)
+	k.cdc.MustUnmarshal(bz, &borrow)
 	return borrow, true
 }
 
 // SetBorrow sets the input borrow in the store, prefixed by the borrower address and borrow denom
 func (k Keeper) SetBorrow(ctx sdk.Context, borrow types.Borrow) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(borrow)
+	bz := k.cdc.MustMarshal(&borrow)
 	store.Set(borrow.Borrower, bz)
 }
 
@@ -142,7 +135,7 @@ func (k Keeper) IterateBorrows(ctx sdk.Context, cb func(borrow types.Borrow) (st
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var borrow types.Borrow
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &borrow)
+		k.cdc.MustUnmarshal(iterator.Value(), &borrow)
 		if cb(borrow) {
 			break
 		}
@@ -153,64 +146,68 @@ func (k Keeper) IterateBorrows(ctx sdk.Context, cb func(borrow types.Borrow) (st
 func (k Keeper) SetBorrowedCoins(ctx sdk.Context, borrowedCoins sdk.Coins) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowedCoinsPrefix)
 	if borrowedCoins.Empty() {
-		store.Set([]byte{}, []byte{})
+		store.Set(types.BorrowedCoinsPrefix, []byte{})
 	} else {
-		bz := k.cdc.MustMarshalBinaryBare(borrowedCoins)
-		store.Set([]byte{}, bz)
+		bz := k.cdc.MustMarshal(&types.CoinsProto{
+			Coins: borrowedCoins,
+		})
+		store.Set(types.BorrowedCoinsPrefix, bz)
 	}
 }
 
 // GetBorrowedCoins returns an sdk.Coins object from the store representing all currently borrowed coins
 func (k Keeper) GetBorrowedCoins(ctx sdk.Context) (sdk.Coins, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowedCoinsPrefix)
-	bz := store.Get([]byte{})
-	if bz == nil {
+	bz := store.Get(types.BorrowedCoinsPrefix)
+	if len(bz) == 0 {
 		return sdk.Coins{}, false
 	}
-	var borrowedCoins sdk.Coins
-	k.cdc.MustUnmarshalBinaryBare(bz, &borrowedCoins)
-	return borrowedCoins, true
+	var borrowed types.CoinsProto
+	k.cdc.MustUnmarshal(bz, &borrowed)
+	return borrowed.Coins, true
 }
 
 // SetSuppliedCoins sets the total amount of coins currently supplied in the store
 func (k Keeper) SetSuppliedCoins(ctx sdk.Context, suppliedCoins sdk.Coins) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SuppliedCoinsPrefix)
 	if suppliedCoins.Empty() {
-		store.Set([]byte{}, []byte{})
+		store.Set(types.SuppliedCoinsPrefix, []byte{})
 	} else {
-		bz := k.cdc.MustMarshalBinaryBare(suppliedCoins)
-		store.Set([]byte{}, bz)
+		bz := k.cdc.MustMarshal(&types.CoinsProto{
+			Coins: suppliedCoins,
+		})
+		store.Set(types.SuppliedCoinsPrefix, bz)
 	}
 }
 
 // GetSuppliedCoins returns an sdk.Coins object from the store representing all currently supplied coins
 func (k Keeper) GetSuppliedCoins(ctx sdk.Context) (sdk.Coins, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SuppliedCoinsPrefix)
-	bz := store.Get([]byte{})
-	if bz == nil {
+	bz := store.Get(types.SuppliedCoinsPrefix)
+	if len(bz) == 0 {
 		return sdk.Coins{}, false
 	}
-	var suppliedCoins sdk.Coins
-	k.cdc.MustUnmarshalBinaryBare(bz, &suppliedCoins)
-	return suppliedCoins, true
+	var supplied types.CoinsProto
+	k.cdc.MustUnmarshal(bz, &supplied)
+	return supplied.Coins, true
 }
 
 // GetMoneyMarket returns a money market from the store for a denom
 func (k Keeper) GetMoneyMarket(ctx sdk.Context, denom string) (types.MoneyMarket, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.MoneyMarketsPrefix)
 	bz := store.Get([]byte(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return types.MoneyMarket{}, false
 	}
 	var moneyMarket types.MoneyMarket
-	k.cdc.MustUnmarshalBinaryBare(bz, &moneyMarket)
+	k.cdc.MustUnmarshal(bz, &moneyMarket)
 	return moneyMarket, true
 }
 
 // SetMoneyMarket sets a money market in the store for a denom
 func (k Keeper) SetMoneyMarket(ctx sdk.Context, denom string, moneyMarket types.MoneyMarket) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.MoneyMarketsPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(moneyMarket)
+	bz := k.cdc.MustMarshal(&moneyMarket)
 	store.Set([]byte(denom), bz)
 }
 
@@ -228,7 +225,7 @@ func (k Keeper) IterateMoneyMarkets(ctx sdk.Context, cb func(denom string, money
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var moneyMarket types.MoneyMarket
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &moneyMarket)
+		k.cdc.MustUnmarshal(iterator.Value(), &moneyMarket)
 		if cb(string(iterator.Key()), moneyMarket) {
 			break
 		}
@@ -248,61 +245,70 @@ func (k Keeper) GetAllMoneyMarkets(ctx sdk.Context) (moneyMarkets types.MoneyMar
 func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, denom string) (time.Time, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
 	bz := store.Get([]byte(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return time.Time{}, false
 	}
+
 	var previousAccrualTime time.Time
-	k.cdc.MustUnmarshalBinaryBare(bz, &previousAccrualTime)
+	if err := previousAccrualTime.UnmarshalBinary(bz); err != nil {
+		panic(err)
+	}
 	return previousAccrualTime, true
 }
 
 // SetPreviousAccrualTime sets the most recent accrual time for a particular market
 func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, denom string, previousAccrualTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
-	bz := k.cdc.MustMarshalBinaryBare(previousAccrualTime)
+	bz, err := previousAccrualTime.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
 	store.Set([]byte(denom), bz)
+}
+
+// SetTotalReserves sets the total reserves for an individual market
+func (k Keeper) SetTotalReserves(ctx sdk.Context, coins sdk.Coins) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
+	if coins.Empty() {
+		store.Set(types.TotalReservesPrefix, []byte{})
+		return
+	}
+
+	bz := k.cdc.MustMarshal(&types.CoinsProto{
+		Coins: coins,
+	})
+	store.Set(types.TotalReservesPrefix, bz)
 }
 
 // GetTotalReserves returns the total reserves for an individual market
 func (k Keeper) GetTotalReserves(ctx sdk.Context) (sdk.Coins, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
-	bz := store.Get([]byte{})
-	if bz == nil {
+	bz := store.Get(types.TotalReservesPrefix)
+	if len(bz) == 0 {
 		return sdk.Coins{}, false
 	}
-	var totalReserves sdk.Coins
-	k.cdc.MustUnmarshalBinaryBare(bz, &totalReserves)
-	return totalReserves, true
-}
 
-// SetTotalReserves sets the total reserves for an individual market
-func (k Keeper) SetTotalReserves(ctx sdk.Context, coins sdk.Coins) {
-
-	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
-	if coins.Empty() {
-		store.Set([]byte{}, []byte{})
-		return
-	}
-	bz := k.cdc.MustMarshalBinaryBare(coins)
-	store.Set([]byte{}, bz)
+	var totalReserves types.CoinsProto
+	k.cdc.MustUnmarshal(bz, &totalReserves)
+	return totalReserves.Coins, true
 }
 
 // GetBorrowInterestFactor returns the current borrow interest factor for an individual market
 func (k Keeper) GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowInterestFactorPrefix)
 	bz := store.Get([]byte(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdk.ZeroDec(), false
 	}
-	var borrowInterestFactor sdk.Dec
-	k.cdc.MustUnmarshalBinaryBare(bz, &borrowInterestFactor)
-	return borrowInterestFactor, true
+	var borrowInterestFactor sdk.DecProto
+	k.cdc.MustUnmarshal(bz, &borrowInterestFactor)
+	return borrowInterestFactor.Dec, true
 }
 
 // SetBorrowInterestFactor sets the current borrow interest factor for an individual market
 func (k Keeper) SetBorrowInterestFactor(ctx sdk.Context, denom string, borrowInterestFactor sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowInterestFactorPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(borrowInterestFactor)
+	bz := k.cdc.MustMarshal(&sdk.DecProto{Dec: borrowInterestFactor})
 	store.Set([]byte(denom), bz)
 }
 
@@ -313,9 +319,9 @@ func (k Keeper) IterateBorrowInterestFactors(ctx sdk.Context, cb func(denom stri
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var factor sdk.Dec
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &factor)
-		if cb(string(iterator.Key()), factor) {
+		var factor sdk.DecProto
+		k.cdc.MustUnmarshal(iterator.Value(), &factor)
+		if cb(string(iterator.Key()), factor.Dec) {
 			break
 		}
 	}
@@ -325,18 +331,18 @@ func (k Keeper) IterateBorrowInterestFactors(ctx sdk.Context, cb func(denom stri
 func (k Keeper) GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
 	bz := store.Get([]byte(denom))
-	if bz == nil {
+	if len(bz) == 0 {
 		return sdk.ZeroDec(), false
 	}
-	var supplyInterestFactor sdk.Dec
-	k.cdc.MustUnmarshalBinaryBare(bz, &supplyInterestFactor)
-	return supplyInterestFactor, true
+	var supplyInterestFactor sdk.DecProto
+	k.cdc.MustUnmarshal(bz, &supplyInterestFactor)
+	return supplyInterestFactor.Dec, true
 }
 
 // SetSupplyInterestFactor sets the current supply interest factor for an individual market
 func (k Keeper) SetSupplyInterestFactor(ctx sdk.Context, denom string, supplyInterestFactor sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(supplyInterestFactor)
+	bz := k.cdc.MustMarshal(&sdk.DecProto{Dec: supplyInterestFactor})
 	store.Set([]byte(denom), bz)
 }
 
@@ -347,9 +353,10 @@ func (k Keeper) IterateSupplyInterestFactors(ctx sdk.Context, cb func(denom stri
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var factor sdk.Dec
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &factor)
-		if cb(string(iterator.Key()), factor) {
+		var factor sdk.DecProto
+
+		k.cdc.MustUnmarshal(iterator.Value(), &factor)
+		if cb(string(iterator.Key()), factor.Dec) {
 			break
 		}
 	}

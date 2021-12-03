@@ -73,10 +73,10 @@ func QueryProposalByID(cliCtx client.Context, cdc *codec.LegacyAmino, queryRoute
 	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryProposal), bz)
 
 	if err == nil {
-		var proposal *types.Proposal
+		var proposal types.Proposal
 		cdc.MustUnmarshalJSON(res, &proposal)
 
-		return proposal, height, nil
+		return &proposal, height, nil
 	}
 
 	// NOTE: !errors.Is(err, types.ErrUnknownProposal) does not work here

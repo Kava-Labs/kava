@@ -5,13 +5,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
 )
 
 // InitGenesis initializes the store state from a genesis state.
-func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper types.AccountKeeper, gs types.GenesisState) {
 	if err := gs.Validate(); err != nil {
-		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
+		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
 	}
 
 	k.SetParams(ctx, gs.Params)
@@ -39,14 +40,14 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 	k.SetTotalReserves(ctx, gs.TotalReserves)
 
 	// check if the module account exists
-	DepositModuleAccount := supplyKeeper.GetModuleAccount(ctx, ModuleAccountName)
+	DepositModuleAccount := accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	if DepositModuleAccount == nil {
 		panic(fmt.Sprintf("%s module account has not been set", DepositModuleAccount))
 	}
 }
 
 // ExportGenesis export genesis state for hard module
-func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	params := k.GetParams(ctx)
 
 	gats := types.GenesisAccumulationTimes{}
@@ -75,15 +76,15 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 
 	totalSupplied, found := k.GetSuppliedCoins(ctx)
 	if !found {
-		totalSupplied = DefaultTotalSupplied
+		totalSupplied = types.DefaultTotalSupplied
 	}
 	totalBorrowed, found := k.GetBorrowedCoins(ctx)
 	if !found {
-		totalBorrowed = DefaultTotalBorrowed
+		totalBorrowed = types.DefaultTotalBorrowed
 	}
 	totalReserves, found := k.GetTotalReserves(ctx)
 	if !found {
-		totalReserves = DefaultTotalReserves
+		totalReserves = types.DefaultTotalReserves
 	}
 
 	for _, mm := range params.MoneyMarkets {
@@ -108,7 +109,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 		gats = append(gats, gat)
 
 	}
-	return NewGenesisState(
+	return types.NewGenesisState(
 		params, gats, deposits, borrows,
 		totalSupplied, totalBorrowed, totalReserves,
 	)

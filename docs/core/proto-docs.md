@@ -75,6 +75,7 @@
 - [kava/cdp/v1beta1/cdp.proto](#kava/cdp/v1beta1/cdp.proto)
     - [CDP](#kava.cdp.v1beta1.CDP)
     - [Deposit](#kava.cdp.v1beta1.Deposit)
+    - [OwnerCDPIndex](#kava.cdp.v1beta1.OwnerCDPIndex)
     - [TotalCollateral](#kava.cdp.v1beta1.TotalCollateral)
     - [TotalPrincipal](#kava.cdp.v1beta1.TotalPrincipal)
   
@@ -175,6 +176,112 @@
     - [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse)
   
     - [Msg](#kava.committee.v1beta1.Msg)
+  
+- [kava/incentive/v1beta1/claims.proto](#kava/incentive/v1beta1/claims.proto)
+    - [BaseClaim](#kava.incentive.v1beta1.BaseClaim)
+    - [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim)
+    - [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim)
+    - [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim)
+    - [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex)
+    - [RewardIndex](#kava.incentive.v1beta1.RewardIndex)
+    - [SwapClaim](#kava.incentive.v1beta1.SwapClaim)
+    - [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim)
+  
+- [kava/incentive/v1beta1/params.proto](#kava/incentive/v1beta1/params.proto)
+    - [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod)
+    - [Multiplier](#kava.incentive.v1beta1.Multiplier)
+    - [MultipliersPerDenom](#kava.incentive.v1beta1.MultipliersPerDenom)
+    - [Params](#kava.incentive.v1beta1.Params)
+    - [RewardPeriod](#kava.incentive.v1beta1.RewardPeriod)
+  
+    - [MultiplierName](#kava.incentive.v1beta1.MultiplierName)
+  
+- [kava/incentive/v1beta1/genesis.proto](#kava/incentive/v1beta1/genesis.proto)
+    - [AccumulationTime](#kava.incentive.v1beta1.AccumulationTime)
+    - [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState)
+    - [GenesisState](#kava.incentive.v1beta1.GenesisState)
+  
+- [kava/incentive/v1beta1/tx.proto](#kava/incentive/v1beta1/tx.proto)
+    - [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward)
+    - [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse)
+    - [MsgClaimDelegatorRewardVVesting](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVesting)
+    - [MsgClaimDelegatorRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVestingResponse)
+    - [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward)
+    - [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse)
+    - [MsgClaimHardRewardVVesting](#kava.incentive.v1beta1.MsgClaimHardRewardVVesting)
+    - [MsgClaimHardRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimHardRewardVVestingResponse)
+    - [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward)
+    - [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse)
+    - [MsgClaimSwapRewardVVesting](#kava.incentive.v1beta1.MsgClaimSwapRewardVVesting)
+    - [MsgClaimSwapRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardVVestingResponse)
+    - [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward)
+    - [MsgClaimUSDXMintingRewardResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse)
+    - [MsgClaimUSDXMintingRewardVVesting](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVesting)
+    - [MsgClaimUSDXMintingRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVestingResponse)
+    - [Selection](#kava.incentive.v1beta1.Selection)
+  
+    - [Msg](#kava.incentive.v1beta1.Msg)
+  
+- [kava/hard/v1beta1/hard.proto](#kava/hard/v1beta1/hard.proto)
+    - [Borrow](#kava.hard.v1beta1.Borrow)
+    - [BorrowInterestFactor](#kava.hard.v1beta1.BorrowInterestFactor)
+    - [BorrowLimit](#kava.hard.v1beta1.BorrowLimit)
+    - [CoinsProto](#kava.hard.v1beta1.CoinsProto)
+    - [Deposit](#kava.hard.v1beta1.Deposit)
+    - [InterestRateModel](#kava.hard.v1beta1.InterestRateModel)
+    - [MoneyMarket](#kava.hard.v1beta1.MoneyMarket)
+    - [Params](#kava.hard.v1beta1.Params)
+    - [SupplyInterestFactor](#kava.hard.v1beta1.SupplyInterestFactor)
+  
+- [kava/hard/v1beta1/genesis.proto](#kava/hard/v1beta1/genesis.proto)
+    - [GenesisAccumulationTime](#kava.hard.v1beta1.GenesisAccumulationTime)
+    - [GenesisState](#kava.hard.v1beta1.GenesisState)
+  
+- [kava/hard/v1beta1/query.proto](#kava/hard/v1beta1/query.proto)
+    - [BorrowInterestFactorResponse](#kava.hard.v1beta1.BorrowInterestFactorResponse)
+    - [BorrowResponse](#kava.hard.v1beta1.BorrowResponse)
+    - [DepositResponse](#kava.hard.v1beta1.DepositResponse)
+    - [InterestFactor](#kava.hard.v1beta1.InterestFactor)
+    - [MoneyMarketInterestRate](#kava.hard.v1beta1.MoneyMarketInterestRate)
+    - [QueryAccountsRequest](#kava.hard.v1beta1.QueryAccountsRequest)
+    - [QueryAccountsResponse](#kava.hard.v1beta1.QueryAccountsResponse)
+    - [QueryBorrowsRequest](#kava.hard.v1beta1.QueryBorrowsRequest)
+    - [QueryBorrowsResponse](#kava.hard.v1beta1.QueryBorrowsResponse)
+    - [QueryDepositsRequest](#kava.hard.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.hard.v1beta1.QueryDepositsResponse)
+    - [QueryInterestFactorsRequest](#kava.hard.v1beta1.QueryInterestFactorsRequest)
+    - [QueryInterestFactorsResponse](#kava.hard.v1beta1.QueryInterestFactorsResponse)
+    - [QueryInterestRateRequest](#kava.hard.v1beta1.QueryInterestRateRequest)
+    - [QueryInterestRateResponse](#kava.hard.v1beta1.QueryInterestRateResponse)
+    - [QueryParamsRequest](#kava.hard.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.hard.v1beta1.QueryParamsResponse)
+    - [QueryReservesRequest](#kava.hard.v1beta1.QueryReservesRequest)
+    - [QueryReservesResponse](#kava.hard.v1beta1.QueryReservesResponse)
+    - [QueryTotalBorrowedRequest](#kava.hard.v1beta1.QueryTotalBorrowedRequest)
+    - [QueryTotalBorrowedResponse](#kava.hard.v1beta1.QueryTotalBorrowedResponse)
+    - [QueryTotalDepositedRequest](#kava.hard.v1beta1.QueryTotalDepositedRequest)
+    - [QueryTotalDepositedResponse](#kava.hard.v1beta1.QueryTotalDepositedResponse)
+    - [QueryUnsyncedBorrowsRequest](#kava.hard.v1beta1.QueryUnsyncedBorrowsRequest)
+    - [QueryUnsyncedBorrowsResponse](#kava.hard.v1beta1.QueryUnsyncedBorrowsResponse)
+    - [QueryUnsyncedDepositsRequest](#kava.hard.v1beta1.QueryUnsyncedDepositsRequest)
+    - [QueryUnsyncedDepositsResponse](#kava.hard.v1beta1.QueryUnsyncedDepositsResponse)
+    - [SupplyInterestFactorResponse](#kava.hard.v1beta1.SupplyInterestFactorResponse)
+  
+    - [Query](#kava.hard.v1beta1.Query)
+  
+- [kava/hard/v1beta1/tx.proto](#kava/hard/v1beta1/tx.proto)
+    - [MsgBorrow](#kava.hard.v1beta1.MsgBorrow)
+    - [MsgBorrowResponse](#kava.hard.v1beta1.MsgBorrowResponse)
+    - [MsgDeposit](#kava.hard.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.hard.v1beta1.MsgDepositResponse)
+    - [MsgLiquidate](#kava.hard.v1beta1.MsgLiquidate)
+    - [MsgLiquidateResponse](#kava.hard.v1beta1.MsgLiquidateResponse)
+    - [MsgRepay](#kava.hard.v1beta1.MsgRepay)
+    - [MsgRepayResponse](#kava.hard.v1beta1.MsgRepayResponse)
+    - [MsgWithdraw](#kava.hard.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.hard.v1beta1.MsgWithdrawResponse)
+  
+    - [Msg](#kava.hard.v1beta1.Msg)
   
 - [kava/issuance/v1beta1/genesis.proto](#kava/issuance/v1beta1/genesis.proto)
     - [Asset](#kava.issuance.v1beta1.Asset)
@@ -1212,6 +1319,21 @@ Deposit defines an amount of coins deposited by an account to a cdp
 
 
 
+<a name="kava.cdp.v1beta1.OwnerCDPIndex"></a>
+
+### OwnerCDPIndex
+OwnerCDPIndex defines the cdp ids for a single cdp owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp_ids` | [uint64](#uint64) | repeated |  |
+
+
+
+
+
+
 <a name="kava.cdp.v1beta1.TotalCollateral"></a>
 
 ### TotalCollateral
@@ -1682,6 +1804,11 @@ MsgCreateCDP defines a message to create a new CDP.
 
 ### MsgCreateCDPResponse
 MsgCreateCDPResponse defines the Msg/CreateCDP response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cdp_id` | [uint64](#uint64) |  |  |
 
 
 
@@ -2532,6 +2659,1467 @@ Msg defines the committee Msg service
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `SubmitProposal` | [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse) | SubmitProposal defines a method for submitting a committee proposal | |
 | `Vote` | [MsgVote](#kava.committee.v1beta1.MsgVote) | [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse) | Vote defines a method for voting on a proposal | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/incentive/v1beta1/claims.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/claims.proto
+
+
+
+<a name="kava.incentive.v1beta1.BaseClaim"></a>
+
+### BaseClaim
+BaseClaim is a claim with a single reward coin types
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [bytes](#bytes) |  |  |
+| `reward` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.BaseMultiClaim"></a>
+
+### BaseMultiClaim
+BaseMultiClaim is a claim with multiple reward coin types
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [bytes](#bytes) |  |  |
+| `reward` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.DelegatorClaim"></a>
+
+### DelegatorClaim
+DelegatorClaim stores delegation rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.HardLiquidityProviderClaim"></a>
+
+### HardLiquidityProviderClaim
+HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `supply_reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+| `borrow_reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MultiRewardIndex"></a>
+
+### MultiRewardIndex
+MultiRewardIndex stores reward accumulation information on multiple reward types
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `reward_indexes` | [RewardIndex](#kava.incentive.v1beta1.RewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.RewardIndex"></a>
+
+### RewardIndex
+RewardIndex stores reward accumulation information
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `reward_factor` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.SwapClaim"></a>
+
+### SwapClaim
+SwapClaim stores the swap rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.USDXMintingClaim"></a>
+
+### USDXMintingClaim
+USDXMintingClaim is for USDX minting rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseClaim](#kava.incentive.v1beta1.BaseClaim) |  |  |
+| `reward_indexes` | [RewardIndex](#kava.incentive.v1beta1.RewardIndex) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/incentive/v1beta1/params.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/params.proto
+
+
+
+<a name="kava.incentive.v1beta1.MultiRewardPeriod"></a>
+
+### MultiRewardPeriod
+MultiRewardPeriod supports multiple reward types
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active` | [bool](#bool) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `start` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `rewards_per_second` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.Multiplier"></a>
+
+### Multiplier
+Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `name` | [MultiplierName](#kava.incentive.v1beta1.MultiplierName) |  |  |
+| `months_lockup` | [int64](#int64) |  |  |
+| `factor` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MultipliersPerDenom"></a>
+
+### MultipliersPerDenom
+MultipliersPerDenom is a map of denoms to a set of multipliers
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `multipliers` | [Multiplier](#kava.incentive.v1beta1.Multiplier) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.Params"></a>
+
+### Params
+Params
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `usdx_minting_reward_periods` | [RewardPeriod](#kava.incentive.v1beta1.RewardPeriod) | repeated |  |
+| `hard_supply_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `hard_borrow_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `delegator_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `swap_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `claim_multipliers` | [MultipliersPerDenom](#kava.incentive.v1beta1.MultipliersPerDenom) | repeated |  |
+| `claim_end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.RewardPeriod"></a>
+
+### RewardPeriod
+RewardPeriod stores the state of an ongoing reward
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `active` | [bool](#bool) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `start` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `rewards_per_second` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.incentive.v1beta1.MultiplierName"></a>
+
+### MultiplierName
+MultiplierName represent different claim multiplier types
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| MULTIPLIER_NAME_UNSPECIFIED | 0 | represents an unspecified status |
+| MULTIPLIER_NAME_SMALL | 1 | MULTIPLIER_SMALL represents a small multiplier |
+| MULTIPLIER_NAME_MEDIUM | 2 | MULTIPLIER_MEDIUM represents a medium multiplier |
+| MULTIPLIER_NAME_LARGE | 3 | MULTIPLIER_LARGE represents a large multiplier |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/incentive/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/genesis.proto
+
+
+
+<a name="kava.incentive.v1beta1.AccumulationTime"></a>
+
+### AccumulationTime
+AccumulationTime stores the previous reward distribution time and its corresponding collateral type
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `previous_accumulation_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.GenesisRewardState"></a>
+
+### GenesisRewardState
+GenesisRewardState groups together the global state for a particular reward so it can be exported in genesis.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `accumulation_times` | [AccumulationTime](#kava.incentive.v1beta1.AccumulationTime) | repeated |  |
+| `multi_reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState is the state that must be provided at genesis.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.incentive.v1beta1.Params) |  |  |
+| `usdx_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `hard_supply_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `hard_borrow_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `delegator_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `swap_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `usdx_minting_claims` | [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim) | repeated |  |
+| `hard_liquidity_provider_claims` | [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim) | repeated |  |
+| `delegator_claims` | [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim) | repeated |  |
+| `swap_claims` | [SwapClaim](#kava.incentive.v1beta1.SwapClaim) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/incentive/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/tx.proto
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorReward"></a>
+
+### MsgClaimDelegatorReward
+MsgClaimDelegatorReward message type used to claim delegator rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse"></a>
+
+### MsgClaimDelegatorRewardResponse
+MsgClaimDelegatorRewardResponse defines the Msg/ClaimDelegatorReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorRewardVVesting"></a>
+
+### MsgClaimDelegatorRewardVVesting
+MsgClaimDelegatorRewardVVesting message type used to claim delegator rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimDelegatorRewardVVestingResponse"></a>
+
+### MsgClaimDelegatorRewardVVestingResponse
+MsgClaimDelegatorRewardVVestingResponse defines the Msg/ClaimDelegatorRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardReward"></a>
+
+### MsgClaimHardReward
+MsgClaimHardReward message type used to claim Hard liquidity provider rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardRewardResponse"></a>
+
+### MsgClaimHardRewardResponse
+MsgClaimHardRewardResponse defines the Msg/ClaimHardReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardRewardVVesting"></a>
+
+### MsgClaimHardRewardVVesting
+MsgClaimHardRewardVVesting message type used to claim Hard liquidity provider rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimHardRewardVVestingResponse"></a>
+
+### MsgClaimHardRewardVVestingResponse
+MsgClaimHardRewardVVestingResponse defines the Msg/ClaimHardRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapReward"></a>
+
+### MsgClaimSwapReward
+MsgClaimSwapReward message type used to claim delegator rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapRewardResponse"></a>
+
+### MsgClaimSwapRewardResponse
+MsgClaimSwapRewardResponse defines the Msg/ClaimSwapReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapRewardVVesting"></a>
+
+### MsgClaimSwapRewardVVesting
+MsgClaimSwapRewardVVesting message type used to claim delegator rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSwapRewardVVestingResponse"></a>
+
+### MsgClaimSwapRewardVVestingResponse
+MsgClaimSwapRewardVVestingResponse defines the Msg/ClaimSwapRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingReward"></a>
+
+### MsgClaimUSDXMintingReward
+MsgClaimUSDXMintingReward message type used to claim USDX minting rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `multiplier_name` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse"></a>
+
+### MsgClaimUSDXMintingRewardResponse
+MsgClaimUSDXMintingRewardResponse defines the Msg/ClaimUSDXMintingReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVesting"></a>
+
+### MsgClaimUSDXMintingRewardVVesting
+MsgClaimUSDXMintingRewardVVesting message type used to claim USDX minting rewards for validator vesting accounts
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+| `multiplier_name` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVestingResponse"></a>
+
+### MsgClaimUSDXMintingRewardVVestingResponse
+MsgClaimUSDXMintingRewardVVestingResponse defines the Msg/ClaimUSDXMintingRewardVVesting response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.Selection"></a>
+
+### Selection
+Selection is a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a
+denom.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `multiplier_name` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.incentive.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the incentive Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `ClaimUSDXMintingReward` | [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward) | [MsgClaimUSDXMintingRewardResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse) | ClaimUSDXMintingReward is a message type used to claim USDX minting rewards | |
+| `ClaimUSDXMintingRewardVVesting` | [MsgClaimUSDXMintingRewardVVesting](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVesting) | [MsgClaimUSDXMintingRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVestingResponse) | ClaimUSDXMintingRewardVVesting is a message type used to claim USDX minting rewards for validator vesting accounts | |
+| `ClaimHardReward` | [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward) | [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse) | ClaimHardReward is a message type used to claim Hard liquidity provider rewards | |
+| `ClaimHardRewardVVesting` | [MsgClaimHardRewardVVesting](#kava.incentive.v1beta1.MsgClaimHardRewardVVesting) | [MsgClaimHardRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimHardRewardVVestingResponse) | ClaimHardRewardVVesting is a message type used to claim Hard liquidity provider rewards for validator vesting accounts | |
+| `ClaimDelegatorReward` | [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward) | [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse) | ClaimDelegatorReward is a message type used to claim delegator rewards | |
+| `ClaimDelegatorRewardVVesting` | [MsgClaimDelegatorRewardVVesting](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVesting) | [MsgClaimDelegatorRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardVVestingResponse) | ClaimDelegatorRewardVVesting is a message type used to claim delegator rewards for validator vesting accounts | |
+| `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim delegator rewards | |
+| `ClaimSwapRewardVVesting` | [MsgClaimSwapRewardVVesting](#kava.incentive.v1beta1.MsgClaimSwapRewardVVesting) | [MsgClaimSwapRewardVVestingResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardVVestingResponse) | ClaimSwapRewardVVesting is a message type used to claim delegator rewards for validator vesting accounts | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/hard/v1beta1/hard.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/hard/v1beta1/hard.proto
+
+
+
+<a name="kava.hard.v1beta1.Borrow"></a>
+
+### Borrow
+Borrow defines an amount of coins borrowed from a hard module account.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrower` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `index` | [BorrowInterestFactor](#kava.hard.v1beta1.BorrowInterestFactor) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.BorrowInterestFactor"></a>
+
+### BorrowInterestFactor
+BorrowInterestFactor defines an individual borrow interest factor.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `value` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.BorrowLimit"></a>
+
+### BorrowLimit
+BorrowLimit enforces restrictions on a money market.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `has_max_limit` | [bool](#bool) |  |  |
+| `maximum_limit` | [string](#string) |  |  |
+| `loan_to_value` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.CoinsProto"></a>
+
+### CoinsProto
+CoinsProto defines a Protobuf wrapper around a Coins slice
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.Deposit"></a>
+
+### Deposit
+Deposit defines an amount of coins deposited into a hard module account.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `index` | [SupplyInterestFactor](#kava.hard.v1beta1.SupplyInterestFactor) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.InterestRateModel"></a>
+
+### InterestRateModel
+InterestRateModel contains information about an asset's interest rate.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_rate_apy` | [string](#string) |  |  |
+| `base_multiplier` | [string](#string) |  |  |
+| `kink` | [string](#string) |  |  |
+| `jump_multiplier` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MoneyMarket"></a>
+
+### MoneyMarket
+MoneyMarket is a money market for an individual asset.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `borrow_limit` | [BorrowLimit](#kava.hard.v1beta1.BorrowLimit) |  |  |
+| `spot_market_id` | [string](#string) |  |  |
+| `conversion_factor` | [string](#string) |  |  |
+| `interest_rate_model` | [InterestRateModel](#kava.hard.v1beta1.InterestRateModel) |  |  |
+| `reserve_factor` | [string](#string) |  |  |
+| `keeper_reward_percentage` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the hard module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `money_markets` | [MoneyMarket](#kava.hard.v1beta1.MoneyMarket) | repeated |  |
+| `minimum_borrow_usd_value` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.SupplyInterestFactor"></a>
+
+### SupplyInterestFactor
+SupplyInterestFactor defines an individual borrow interest factor.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `value` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/hard/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/hard/v1beta1/genesis.proto
+
+
+
+<a name="kava.hard.v1beta1.GenesisAccumulationTime"></a>
+
+### GenesisAccumulationTime
+GenesisAccumulationTime stores the previous distribution time and its corresponding denom.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `previous_accumulation_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `supply_interest_factor` | [string](#string) |  |  |
+| `borrow_interest_factor` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the hard module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.hard.v1beta1.Params) |  |  |
+| `previous_accumulation_times` | [GenesisAccumulationTime](#kava.hard.v1beta1.GenesisAccumulationTime) | repeated |  |
+| `deposits` | [Deposit](#kava.hard.v1beta1.Deposit) | repeated |  |
+| `borrows` | [Borrow](#kava.hard.v1beta1.Borrow) | repeated |  |
+| `total_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `total_borrowed` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `total_reserves` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/hard/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/hard/v1beta1/query.proto
+
+
+
+<a name="kava.hard.v1beta1.BorrowInterestFactorResponse"></a>
+
+### BorrowInterestFactorResponse
+BorrowInterestFactorResponse defines an individual borrow interest factor.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `value` | [string](#string) |  | sdk.Dec as string |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.BorrowResponse"></a>
+
+### BorrowResponse
+BorrowResponse defines an amount of coins borrowed from a hard module account.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrower` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `index` | [BorrowInterestFactorResponse](#kava.hard.v1beta1.BorrowInterestFactorResponse) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.DepositResponse"></a>
+
+### DepositResponse
+DepositResponse defines an amount of coins deposited into a hard module account.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `index` | [SupplyInterestFactorResponse](#kava.hard.v1beta1.SupplyInterestFactorResponse) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.InterestFactor"></a>
+
+### InterestFactor
+InterestFactor is a unique type returned by interest factor queries
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `borrow_interest_factor` | [string](#string) |  | sdk.Dec as String |
+| `supply_interest_factor` | [string](#string) |  | sdk.Dec as String |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MoneyMarketInterestRate"></a>
+
+### MoneyMarketInterestRate
+MoneyMarketInterestRate is a unique type returned by interest rate queries
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `supply_interest_rate` | [string](#string) |  | sdk.Dec as String |
+| `borrow_interest_rate` | [string](#string) |  | sdk.Dec as String |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryAccountsRequest"></a>
+
+### QueryAccountsRequest
+QueryAccountsRequest is the request type for the Query/Accounts RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `name` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryAccountsResponse"></a>
+
+### QueryAccountsResponse
+QueryAccountsResponse is the response type for the Query/Accounts RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `accounts` | [cosmos.auth.v1beta1.ModuleAccount](#cosmos.auth.v1beta1.ModuleAccount) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryBorrowsRequest"></a>
+
+### QueryBorrowsRequest
+QueryBorrowsRequest is the request type for the Query/Borrows RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryBorrowsResponse"></a>
+
+### QueryBorrowsResponse
+QueryBorrowsResponse is the response type for the Query/Borrows RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrows` | [BorrowResponse](#kava.hard.v1beta1.BorrowResponse) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryDepositsRequest"></a>
+
+### QueryDepositsRequest
+QueryDepositsRequest is the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryDepositsResponse"></a>
+
+### QueryDepositsResponse
+QueryDepositsResponse is the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [DepositResponse](#kava.hard.v1beta1.DepositResponse) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryInterestFactorsRequest"></a>
+
+### QueryInterestFactorsRequest
+QueryInterestFactorsRequest is the request type for the Query/InterestFactors RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryInterestFactorsResponse"></a>
+
+### QueryInterestFactorsResponse
+QueryInterestFactorsResponse is the response type for the Query/InterestFactors RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `interest_factors` | [InterestFactor](#kava.hard.v1beta1.InterestFactor) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryInterestRateRequest"></a>
+
+### QueryInterestRateRequest
+QueryInterestRateRequest is the request type for the Query/InterestRate RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryInterestRateResponse"></a>
+
+### QueryInterestRateResponse
+QueryInterestRateResponse is the response type for the Query/InterestRate RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `interest_rates` | [MoneyMarketInterestRate](#kava.hard.v1beta1.MoneyMarketInterestRate) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.hard.v1beta1.Params) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryReservesRequest"></a>
+
+### QueryReservesRequest
+QueryReservesRequest is the request type for the Query/Reserves RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryReservesResponse"></a>
+
+### QueryReservesResponse
+QueryReservesResponse is the response type for the Query/Reserves RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryTotalBorrowedRequest"></a>
+
+### QueryTotalBorrowedRequest
+QueryTotalBorrowedRequest is the request type for the Query/TotalBorrowed RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryTotalBorrowedResponse"></a>
+
+### QueryTotalBorrowedResponse
+QueryTotalBorrowedResponse is the response type for the Query/TotalBorrowed RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrowed_coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryTotalDepositedRequest"></a>
+
+### QueryTotalDepositedRequest
+QueryTotalDepositedRequest is the request type for the Query/TotalDeposited RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryTotalDepositedResponse"></a>
+
+### QueryTotalDepositedResponse
+QueryTotalDepositedResponse is the response type for the Query/TotalDeposited RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `supplied_coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryUnsyncedBorrowsRequest"></a>
+
+### QueryUnsyncedBorrowsRequest
+QueryUnsyncedBorrowsRequest is the request type for the Query/UnsyncedBorrows RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryUnsyncedBorrowsResponse"></a>
+
+### QueryUnsyncedBorrowsResponse
+QueryUnsyncedBorrowsResponse is the response type for the Query/UnsyncedBorrows RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrows` | [BorrowResponse](#kava.hard.v1beta1.BorrowResponse) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryUnsyncedDepositsRequest"></a>
+
+### QueryUnsyncedDepositsRequest
+QueryUnsyncedDepositsRequest is the request type for the Query/UnsyncedDeposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.QueryUnsyncedDepositsResponse"></a>
+
+### QueryUnsyncedDepositsResponse
+QueryUnsyncedDepositsResponse is the response type for the Query/UnsyncedDeposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [DepositResponse](#kava.hard.v1beta1.DepositResponse) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.SupplyInterestFactorResponse"></a>
+
+### SupplyInterestFactorResponse
+SupplyInterestFactorResponse defines an individual borrow interest factor.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `value` | [string](#string) |  | sdk.Dec as string |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.hard.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for bep3 module.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.hard.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.hard.v1beta1.QueryParamsResponse) | Params queries module params. | GET|/kava/hard/v1beta1/params|
+| `Accounts` | [QueryAccountsRequest](#kava.hard.v1beta1.QueryAccountsRequest) | [QueryAccountsResponse](#kava.hard.v1beta1.QueryAccountsResponse) | Accounts queries module accounts. | GET|/kava/hard/v1beta1/accounts/{name}|
+| `Deposits` | [QueryDepositsRequest](#kava.hard.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.hard.v1beta1.QueryDepositsResponse) | Deposits queries hard deposits. | GET|/kava/hard/v1beta1/deposits|
+| `UnsyncedDeposits` | [QueryUnsyncedDepositsRequest](#kava.hard.v1beta1.QueryUnsyncedDepositsRequest) | [QueryUnsyncedDepositsResponse](#kava.hard.v1beta1.QueryUnsyncedDepositsResponse) | UnsyncedDeposits queries unsynced deposits. | GET|/kava/hard/v1beta1/unsynced-deposits|
+| `TotalDeposited` | [QueryTotalDepositedRequest](#kava.hard.v1beta1.QueryTotalDepositedRequest) | [QueryTotalDepositedResponse](#kava.hard.v1beta1.QueryTotalDepositedResponse) | TotalDeposited queries total coins deposited to hard liquidity pools. | GET|/kava/hard/v1beta1/total-deposited/{denom}|
+| `Borrows` | [QueryBorrowsRequest](#kava.hard.v1beta1.QueryBorrowsRequest) | [QueryBorrowsResponse](#kava.hard.v1beta1.QueryBorrowsResponse) | Borrows queries hard borrows. | GET|/kava/hard/v1beta1/borrows|
+| `UnsyncedBorrows` | [QueryUnsyncedBorrowsRequest](#kava.hard.v1beta1.QueryUnsyncedBorrowsRequest) | [QueryUnsyncedBorrowsResponse](#kava.hard.v1beta1.QueryUnsyncedBorrowsResponse) | UnsyncedBorrows queries unsynced borrows. | GET|/kava/hard/v1beta1/unsynced-borrows|
+| `TotalBorrowed` | [QueryTotalBorrowedRequest](#kava.hard.v1beta1.QueryTotalBorrowedRequest) | [QueryTotalBorrowedResponse](#kava.hard.v1beta1.QueryTotalBorrowedResponse) | TotalBorrowed queries total coins borrowed from hard liquidity pools. | GET|/kava/hard/v1beta1/total-borrowed/{denom}|
+| `InterestRate` | [QueryInterestRateRequest](#kava.hard.v1beta1.QueryInterestRateRequest) | [QueryInterestRateResponse](#kava.hard.v1beta1.QueryInterestRateResponse) | InterestRate queries the hard module interest rates. | GET|/kava/hard/v1beta1/interest-rate/{denom}|
+| `Reserves` | [QueryReservesRequest](#kava.hard.v1beta1.QueryReservesRequest) | [QueryReservesResponse](#kava.hard.v1beta1.QueryReservesResponse) | Reserves queries total hard reserve coins. | GET|/kava/hard/v1beta1/reserves/{denom}|
+| `InterestFactors` | [QueryInterestFactorsRequest](#kava.hard.v1beta1.QueryInterestFactorsRequest) | [QueryInterestFactorsResponse](#kava.hard.v1beta1.QueryInterestFactorsResponse) | InterestFactors queries hard module interest factors. | GET|/kava/hard/v1beta1/interest-factors/{denom}|
+
+ <!-- end services -->
+
+
+
+<a name="kava/hard/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/hard/v1beta1/tx.proto
+
+
+
+<a name="kava.hard.v1beta1.MsgBorrow"></a>
+
+### MsgBorrow
+MsgBorrow defines the Msg/Borrow request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `borrower` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgBorrowResponse"></a>
+
+### MsgBorrowResponse
+MsgBorrowResponse defines the Msg/Borrow response type.
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgDeposit"></a>
+
+### MsgDeposit
+MsgDeposit defines the Msg/Deposit request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgDepositResponse"></a>
+
+### MsgDepositResponse
+MsgDepositResponse defines the Msg/Deposit response type.
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgLiquidate"></a>
+
+### MsgLiquidate
+MsgLiquidate defines the Msg/Liquidate request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `keeper` | [string](#string) |  |  |
+| `borrower` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgLiquidateResponse"></a>
+
+### MsgLiquidateResponse
+MsgLiquidateResponse defines the Msg/Liquidate response type.
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgRepay"></a>
+
+### MsgRepay
+MsgRepay defines the Msg/Repay request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgRepayResponse"></a>
+
+### MsgRepayResponse
+MsgRepayResponse defines the Msg/Repay response type.
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgWithdraw"></a>
+
+### MsgWithdraw
+MsgWithdraw defines the Msg/Withdraw request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.hard.v1beta1.MsgWithdrawResponse"></a>
+
+### MsgWithdrawResponse
+MsgWithdrawResponse defines the Msg/Withdraw response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.hard.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the hard Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Deposit` | [MsgDeposit](#kava.hard.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.hard.v1beta1.MsgDepositResponse) | Deposit defines a method for depositing funds to hard liquidity pool. | |
+| `Withdraw` | [MsgWithdraw](#kava.hard.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.hard.v1beta1.MsgWithdrawResponse) | Withdraw defines a method for withdrawing funds from hard liquidity pool. | |
+| `Borrow` | [MsgBorrow](#kava.hard.v1beta1.MsgBorrow) | [MsgBorrowResponse](#kava.hard.v1beta1.MsgBorrowResponse) | Borrow defines a method for borrowing funds from hard liquidity pool. | |
+| `Repay` | [MsgRepay](#kava.hard.v1beta1.MsgRepay) | [MsgRepayResponse](#kava.hard.v1beta1.MsgRepayResponse) | Repay defines a method for repaying funds borrowed from hard liquidity pool. | |
+| `Liquidate` | [MsgLiquidate](#kava.hard.v1beta1.MsgLiquidate) | [MsgLiquidateResponse](#kava.hard.v1beta1.MsgLiquidateResponse) | Liquidate defines a method for attempgint to liquidate a borrower that is over their loan-to-value. | |
 
  <!-- end services -->
 

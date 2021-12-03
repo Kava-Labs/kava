@@ -69,13 +69,22 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/x/auction"
+	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
+	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	"github.com/kava-labs/kava/x/bep3"
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
+	"github.com/kava-labs/kava/x/cdp"
+	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
+	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee"
 	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	"github.com/kava-labs/kava/x/hard"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	issuance "github.com/kava-labs/kava/x/issuance"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
@@ -83,10 +92,6 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
-
-	"github.com/kava-labs/kava/x/auction"
-	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
-	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -128,14 +133,15 @@ var (
 		slashing.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
-		auction.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
+		auction.AppModuleBasic{},
 		issuance.AppModuleBasic{},
 		bep3.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 		swap.AppModuleBasic{},
-		kavadist.AppModuleBasic{},
+		cdp.AppModuleBasic{},
+		hard.AppModuleBasic{},
 		committee.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 	)
@@ -151,11 +157,13 @@ var (
 		stakingtypes.NotBondedPoolName:  {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:             {authtypes.Burner},
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
+		auctiontypes.ModuleName:         nil,
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
 		bep3types.ModuleName:            {authtypes.Burner, authtypes.Minter},
 		swaptypes.ModuleName:            nil,
-		auctiontypes.ModuleName:         nil,
-		"liquidator":                    {authtypes.Burner, authtypes.Minter}, // TODO: for testing. Import from CDP module once migrated to v44.
+		cdptypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
+		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
+		hardtypes.ModuleAccountName:     {authtypes.Minter},
 	}
 )
 
@@ -205,6 +213,8 @@ type App struct {
 	bep3Keeper      bep3keeper.Keeper
 	pricefeedKeeper pricefeedkeeper.Keeper
 	swapKeeper      swapkeeper.Keeper
+	cdpKeeper       cdpkeeper.Keeper
+	hardKeeper      hardkeeper.Keeper
 	committeeKeeper committeekeeper.Keeper
 	vvKeeper        validatorvestingkeeper.Keeper
 
@@ -251,9 +261,10 @@ func NewApp(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
-		upgradetypes.StoreKey, kavadisttypes.StoreKey, issuancetypes.StoreKey,
-		bep3types.StoreKey, pricefeedtypes.StoreKey, swaptypes.StoreKey,
-		committeetypes.StoreKey, auctiontypes.StoreKey,
+		upgradetypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
+		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
+		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
+		committeetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -287,6 +298,8 @@ func NewApp(
 	bep3Subspace := app.paramsKeeper.Subspace(bep3types.ModuleName)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeedtypes.ModuleName)
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
+	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
+	hardSubspace := app.paramsKeeper.Subspace(hardtypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -376,14 +389,6 @@ func NewApp(
 		govRouter,
 	)
 
-	app.bep3Keeper = bep3keeper.NewKeeper(
-		appCodec,
-		keys[bep3types.StoreKey],
-		app.bankKeeper,
-		app.accountKeeper,
-		bep3Subspace,
-		app.ModuleAccountAddrs(),
-	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
 		keys[kavadisttypes.StoreKey],
@@ -392,6 +397,13 @@ func NewApp(
 		app.accountKeeper,
 		app.distrKeeper,
 		app.ModuleAccountAddrs(),
+	)
+	app.auctionKeeper = auctionkeeper.NewKeeper(
+		appCodec,
+		keys[auctiontypes.StoreKey],
+		auctionSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
 	)
 	app.issuanceKeeper = issuancekeeper.NewKeeper(
 		appCodec,
@@ -403,6 +415,14 @@ func NewApp(
 	app.vvKeeper = validatorvestingkeeper.NewKeeper(
 		appCodec,
 		app.bankKeeper,
+	)
+	app.bep3Keeper = bep3keeper.NewKeeper(
+		appCodec,
+		keys[bep3types.StoreKey],
+		app.bankKeeper,
+		app.accountKeeper,
+		bep3Subspace,
+		app.ModuleAccountAddrs(),
 	)
 	app.pricefeedKeeper = pricefeedkeeper.NewKeeper(
 		appCodec,
@@ -416,14 +436,26 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
-
-	app.auctionKeeper = auctionkeeper.NewKeeper(
+	cdpKeeper := cdpkeeper.NewKeeper(
 		appCodec,
-		keys[auctiontypes.StoreKey],
-		auctionSubspace,
+		keys[cdptypes.StoreKey],
+		cdpSubspace,
+		app.pricefeedKeeper,
+		app.auctionKeeper,
 		app.bankKeeper,
 		app.accountKeeper,
+		mAccPerms,
 	)
+	hardKeeper := hardkeeper.NewKeeper(
+		appCodec,
+		keys[hardtypes.StoreKey],
+		hardSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		app.pricefeedKeeper,
+		app.auctionKeeper,
+	)
+
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -449,6 +481,11 @@ func NewApp(
 
 	// TODO: Add swap hooks after incentive upgraded
 
+	// TODO: Add app.incentiveKeeper.Hooks() to cdptypes.NewMultiCDPHooks()
+	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks())
+	// TODO: app.incentiveKeeper.Hooks() to hardtypes.NewMultiHARDHooks()
+	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks())
+
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
@@ -465,13 +502,15 @@ func NewApp(
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		params.NewAppModule(app.paramsKeeper),
-		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
+		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
+		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)
 
@@ -489,9 +528,11 @@ func NewApp(
 		stakingtypes.ModuleName,
 		kavadisttypes.ModuleName,
 		auctiontypes.ModuleName,
-		committeetypes.ModuleName,
 		issuancetypes.ModuleName,
 		bep3types.ModuleName,
+		cdptypes.ModuleName,
+		hardtypes.ModuleName,
+		committeetypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -511,14 +552,15 @@ func NewApp(
 		minttypes.ModuleName,
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
-		pricefeedtypes.ModuleName,
-		auctiontypes.ModuleName,
 		kavadisttypes.ModuleName,
-		committeetypes.ModuleName,
+		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
 		bep3types.ModuleName,
 		pricefeedtypes.ModuleName,
 		swaptypes.ModuleName,
+		cdptypes.ModuleName,
+		hardtypes.ModuleName,
+		committeetypes.ModuleName,
 		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
 	)
 
@@ -640,6 +682,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
 	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
+	RegisterLegacyTxRoutes(clientCtx, apiSvr.Router)
 
 	// Register GRPC Gateway routes
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)

@@ -35,7 +35,7 @@ func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.C
 	}
 
 	// Sends coins from user to Hard module account
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleAccountName, payment)
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleAccountName, payment)
 	if err != nil {
 		return err
 	}
@@ -111,8 +111,7 @@ func (k Keeper) ValidateRepay(ctx sdk.Context, sender, owner sdk.AccAddress, coi
 		}
 	}
 
-	senderAcc := k.accountKeeper.GetAccount(ctx, sender)
-	senderCoins := senderAcc.SpendableCoins(ctx.BlockTime())
+	senderCoins := k.bankKeeper.SpendableCoins(ctx, sender)
 	repayTotalUSDValue := sdk.ZeroDec()
 	for _, repayCoin := range coins {
 		// Check that sender holds enough tokens to make the proposed payment
