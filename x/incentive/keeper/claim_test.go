@@ -26,11 +26,11 @@ func (suite *ClaimTests) ErrorIs(err, target error) bool {
 func (suite *ClaimTests) TestCannotClaimWhenMultiplierNotRecognised() {
 	subspace := &fakeParamSubspace{
 		params: types.Params{
-			ClaimMultipliers: types.MultipliersPerDenom{
+			ClaimMultipliers: types.MultipliersPerDenoms{
 				{
 					Denom: "hard",
 					Multipliers: types.Multipliers{
-						types.NewMultiplier(types.Small, 1, d("0.2")),
+						types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, d("0.2")),
 					},
 				},
 			},
@@ -59,11 +59,11 @@ func (suite *ClaimTests) TestCannotClaimAfterEndTime() {
 
 	subspace := &fakeParamSubspace{
 		params: types.Params{
-			ClaimMultipliers: types.MultipliersPerDenom{
+			ClaimMultipliers: types.MultipliersPerDenoms{
 				{
 					Denom: "hard",
 					Multipliers: types.Multipliers{
-						types.NewMultiplier(types.Small, 1, d("0.2")),
+						types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, d("0.2")),
 					},
 				},
 			},
