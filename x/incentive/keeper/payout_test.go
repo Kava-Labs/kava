@@ -6,31 +6,32 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/stretchr/testify/suite"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+
+	// hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/kava-labs/kava/x/kavadist"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+	// hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 )
 
 // Test suite used for all keeper tests
 type PayoutTestSuite struct {
 	suite.Suite
 
-	keeper     keeper.Keeper
-	hardKeeper hardkeeper.Keeper
-	cdpKeeper  cdpkeeper.Keeper
+	keeper keeper.Keeper
+	// TODO: hardKeeper hardkeeper.Keeper
+	cdpKeeper cdpkeeper.Keeper
 
 	app app.TestApp
 	ctx sdk.Context
@@ -53,48 +54,51 @@ func (suite *PayoutTestSuite) SetupApp() {
 	suite.app = app.NewTestApp()
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
-	suite.hardKeeper = suite.app.GetHardKeeper()
+	// TODO:
+	// suite.hardKeeper = suite.app.GetHardKeeper()
 	suite.cdpKeeper = suite.app.GetCDPKeeper()
 
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
+	suite.ctx = suite.app.NewContext(true, tmprototypes.Header{Time: suite.genesisTime})
+
 }
 
-func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder, hardBuilder testutil.HardGenesisBuilder) {
+func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder, hardBuilder testutil.HardGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
-		authBuilder.BuildMarshalled(),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewCDPGenStateMulti(),
+		authBuilder.BuildMarshalled(suite.app.AppCodec()),
+		// TODO:
+		// NewPricefeedGenStateMultiFromTime(suite.genesisTime),
+		// NewCDPGenStateMulti(),
 		hardBuilder.BuildMarshalled(),
 		incentBuilder.BuildMarshalled(),
 	)
 }
 
-func (suite *PayoutTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
+func (suite *PayoutTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
 }
 
-func (suite *PayoutTestSuite) getModuleAccount(name string) supplyexported.ModuleAccountI {
-	sk := suite.app.GetSupplyKeeper()
-	return sk.GetModuleAccount(suite.ctx, name)
+func (suite *PayoutTestSuite) getModuleAccount(name string) authtypes.ModuleAccountI {
+	ak := suite.app.GetAccountKeeper()
+	return ak.GetModuleAccount(suite.ctx, name)
 }
 
 func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 	type accountArgs struct {
-		periods          vesting.Periods
+		periods          vestingtypes.Periods
 		origVestingCoins sdk.Coins
 		startTime        int64
 		endTime          int64
 	}
 	type args struct {
 		accArgs             accountArgs
-		period              vesting.Period
+		period              vestingtypes.Period
 		ctxTime             time.Time
 		mintModAccountCoins bool
-		expectedPeriods     vesting.Periods
+		expectedPeriods     vestingtypes.Periods
 		expectedStartTime   int64
 		expectedEndTime     int64
 	}
@@ -114,24 +118,24 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name: "insert period at beginning schedule",
 			args: args{
 				accArgs: accountArgs{
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 					origVestingCoins: cs(c("ukava", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:              vesting.Period{Length: 2, Amount: cs(c("ukava", 6))},
+				period:              vestingtypes.Period{Length: 2, Amount: cs(c("ukava", 6))},
 				ctxTime:             time.Unix(101, 0),
 				mintModAccountCoins: true,
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 3, Amount: cs(c("ukava", 6))},
-					vesting.Period{Length: 2, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 3, Amount: cs(c("ukava", 6))},
+					vestingtypes.Period{Length: 2, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 				expectedStartTime: 100,
 				expectedEndTime:   120,
 			},
@@ -144,24 +148,24 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name: "insert period at beginning with new start time",
 			args: args{
 				accArgs: accountArgs{
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 					origVestingCoins: cs(c("ukava", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:              vesting.Period{Length: 7, Amount: cs(c("ukava", 6))},
+				period:              vestingtypes.Period{Length: 7, Amount: cs(c("ukava", 6))},
 				ctxTime:             time.Unix(80, 0),
 				mintModAccountCoins: true,
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 7, Amount: cs(c("ukava", 6))},
-					vesting.Period{Length: 18, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 7, Amount: cs(c("ukava", 6))},
+					vestingtypes.Period{Length: 18, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 				expectedStartTime: 80,
 				expectedEndTime:   120,
 			},
@@ -174,24 +178,24 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name: "insert period in middle of schedule",
 			args: args{
 				accArgs: accountArgs{
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 					origVestingCoins: cs(c("ukava", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:              vesting.Period{Length: 7, Amount: cs(c("ukava", 6))},
+				period:              vestingtypes.Period{Length: 7, Amount: cs(c("ukava", 6))},
 				ctxTime:             time.Unix(101, 0),
 				mintModAccountCoins: true,
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 3, Amount: cs(c("ukava", 6))},
-					vesting.Period{Length: 2, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 3, Amount: cs(c("ukava", 6))},
+					vestingtypes.Period{Length: 2, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 				expectedStartTime: 100,
 				expectedEndTime:   120,
 			},
@@ -204,24 +208,24 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name: "append to end of schedule",
 			args: args{
 				accArgs: accountArgs{
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 					origVestingCoins: cs(c("ukava", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:              vesting.Period{Length: 7, Amount: cs(c("ukava", 6))},
+				period:              vestingtypes.Period{Length: 7, Amount: cs(c("ukava", 6))},
 				ctxTime:             time.Unix(125, 0),
 				mintModAccountCoins: true,
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 12, Amount: cs(c("ukava", 6))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 12, Amount: cs(c("ukava", 6))}},
 				expectedStartTime: 100,
 				expectedEndTime:   132,
 			},
@@ -234,23 +238,23 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name: "add coins to existing period",
 			args: args{
 				accArgs: accountArgs{
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 					origVestingCoins: cs(c("ukava", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:              vesting.Period{Length: 5, Amount: cs(c("ukava", 6))},
+				period:              vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 6))},
 				ctxTime:             time.Unix(110, 0),
 				mintModAccountCoins: true,
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 11))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 11))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 				expectedStartTime: 100,
 				expectedEndTime:   120,
 			},
@@ -263,24 +267,24 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name: "insufficient mod account balance",
 			args: args{
 				accArgs: accountArgs{
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 					origVestingCoins: cs(c("ukava", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:              vesting.Period{Length: 7, Amount: cs(c("ukava", 6))},
+				period:              vestingtypes.Period{Length: 7, Amount: cs(c("ukava", 6))},
 				ctxTime:             time.Unix(125, 0),
 				mintModAccountCoins: false,
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 12, Amount: cs(c("ukava", 6))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 12, Amount: cs(c("ukava", 6))}},
 				expectedStartTime: 100,
 				expectedEndTime:   132,
 			},
@@ -293,24 +297,24 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name: "add large period mid schedule",
 			args: args{
 				accArgs: accountArgs{
-					periods: vesting.Periods{
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+					periods: vestingtypes.Periods{
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))}},
 					origVestingCoins: cs(c("ukava", 20)),
 					startTime:        100,
 					endTime:          120,
 				},
-				period:              vesting.Period{Length: 50, Amount: cs(c("ukava", 6))},
+				period:              vestingtypes.Period{Length: 50, Amount: cs(c("ukava", 6))},
 				ctxTime:             time.Unix(110, 0),
 				mintModAccountCoins: true,
-				expectedPeriods: vesting.Periods{
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
-					vesting.Period{Length: 40, Amount: cs(c("ukava", 6))}},
+				expectedPeriods: vestingtypes.Periods{
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vestingtypes.Period{Length: 40, Amount: cs(c("ukava", 6))}},
 				expectedStartTime: 100,
 				expectedEndTime:   160,
 			},
@@ -322,23 +326,23 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 	}
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			authBuilder := app.NewAuthGenesisBuilder().WithSimplePeriodicVestingAccount(
+			authBuilder := app.NewAuthBankGenesisBuilder().WithSimplePeriodicVestingAccount(
 				suite.addrs[0],
 				tc.args.accArgs.origVestingCoins,
 				tc.args.accArgs.periods,
 				tc.args.accArgs.startTime,
 			)
 			if tc.args.mintModAccountCoins {
-				authBuilder = authBuilder.WithSimpleModuleAccount(kavadist.ModuleName, tc.args.period.Amount)
+				authBuilder = authBuilder.WithSimpleModuleAccount(kavadisttypes.ModuleName, tc.args.period.Amount)
 			}
 
 			suite.genesisTime = tc.args.ctxTime
 			suite.SetupApp()
 			suite.app.InitializeFromGenesisStates(
-				authBuilder.BuildMarshalled(),
+				authBuilder.BuildMarshalled(suite.app.AppCodec()),
 			)
 
-			err := suite.keeper.SendTimeLockedCoinsToPeriodicVestingAccount(suite.ctx, kavadist.ModuleName, suite.addrs[0], tc.args.period.Amount, tc.args.period.Length)
+			err := suite.keeper.SendTimeLockedCoinsToPeriodicVestingAccount(suite.ctx, kavadisttypes.ModuleName, suite.addrs[0], tc.args.period.Amount, tc.args.period.Length)
 
 			if tc.errArgs.expectErr {
 				suite.Require().Error(err)
@@ -347,7 +351,7 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 				suite.Require().NoError(err)
 
 				acc := suite.getAccount(suite.addrs[0])
-				vacc, ok := acc.(*vesting.PeriodicVestingAccount)
+				vacc, ok := acc.(*vestingtypes.PeriodicVestingAccount)
 				suite.Require().True(ok)
 				suite.Require().Equal(tc.args.expectedPeriods, vacc.VestingPeriods)
 				suite.Require().Equal(tc.args.expectedStartTime, vacc.StartTime)
@@ -358,46 +362,46 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 }
 
 func (suite *PayoutTestSuite) TestSendCoinsToBaseAccount() {
-	authBuilder := app.NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthBankGenesisBuilder().
 		WithSimpleAccount(suite.addrs[1], cs(c("ukava", 400))).
-		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("ukava", 600)))
+		WithSimpleModuleAccount(kavadisttypes.ModuleName, cs(c("ukava", 600)))
 
 	suite.genesisTime = time.Unix(100, 0)
 	suite.SetupApp()
 	suite.app.InitializeFromGenesisStates(
-		authBuilder.BuildMarshalled(),
+		authBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
 
 	// send coins to base account
-	err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadist.ModuleName, suite.addrs[1], cs(c("ukava", 100)), 5)
+	err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadisttypes.ModuleName, suite.addrs[1], cs(c("ukava", 100)), 5)
 	suite.Require().NoError(err)
 	acc := suite.getAccount(suite.addrs[1])
-	vacc, ok := acc.(*vesting.PeriodicVestingAccount)
+	vacc, ok := acc.(*vestingtypes.PeriodicVestingAccount)
 	suite.True(ok)
-	expectedPeriods := vesting.Periods{
-		vesting.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
+	expectedPeriods := vestingtypes.Periods{
+		vestingtypes.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
 	}
 	suite.Equal(expectedPeriods, vacc.VestingPeriods)
 	suite.Equal(cs(c("ukava", 100)), vacc.OriginalVesting)
-	suite.Equal(cs(c("ukava", 500)), vacc.Coins)
+	suite.Equal(cs(c("ukava", 500)), vacc.GetVestedCoins(suite.ctx.BlockTime()))
 	suite.Equal(int64(105), vacc.EndTime)
 	suite.Equal(int64(100), vacc.StartTime)
 
 }
 
 func (suite *PayoutTestSuite) TestSendCoinsToInvalidAccount() {
-	authBuilder := app.NewAuthGenesisBuilder().
-		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("ukava", 600))).
-		WithEmptyValidatorVestingAccount(suite.addrs[2])
+	authBuilder := app.NewAuthBankGenesisBuilder().
+		WithSimpleModuleAccount(kavadisttypes.ModuleName, cs(c("ukava", 600)))
+		//TODO: WithEmptyValidatorVestingAccount(suite.addrs[2])
 
 	suite.SetupApp()
 	suite.app.InitializeFromGenesisStates(
-		authBuilder.BuildMarshalled(),
+		authBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
-	err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadist.ModuleName, suite.addrs[2], cs(c("ukava", 100)), 5)
+	err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadisttypes.ModuleName, suite.addrs[2], cs(c("ukava", 100)), 5)
 	suite.Require().True(errors.Is(err, types.ErrInvalidAccountType))
 	macc := suite.getModuleAccount(cdptypes.ModuleName)
-	err = suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadist.ModuleName, macc.GetAddress(), cs(c("ukava", 100)), 5)
+	err = suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadisttypes.ModuleName, macc.GetAddress(), cs(c("ukava", 100)), 5)
 	suite.Require().True(errors.Is(err, types.ErrInvalidAccountType))
 }
 
@@ -421,7 +425,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "first half of month",
 			args: args{
 				blockTime:      time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 5, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -433,7 +437,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "first half of month long lockup",
 			args: args{
 				blockTime:      time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.Medium, 24, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 24, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2022, 11, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -445,7 +449,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "second half of month",
 			args: args{
 				blockTime:      time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 7, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -457,7 +461,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "second half of month long lockup",
 			args: args{
 				blockTime:      time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.Large, 24, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 24, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2023, 1, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -469,7 +473,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "end of feb",
 			args: args{
 				blockTime:      time.Date(2021, 2, 28, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 9, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2021, 2, 28, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -481,7 +485,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "leap year",
 			args: args{
 				blockTime:      time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2020, 9, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -493,7 +497,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "leap year long lockup",
 			args: args{
 				blockTime:      time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.Large, 24, sdk.MustNewDecFromStr("1")),
+				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 24, sdk.MustNewDecFromStr("1")),
 				expectedLength: time.Date(2022, 3, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -505,7 +509,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "exactly half of month, is pushed to start of month + lockup",
 			args: args{
 				blockTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 7, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -517,7 +521,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "just before half of month",
 			args: args{
 				blockTime:      time.Date(2020, 12, 15, 13, 59, 59, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 6, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 15, 13, 59, 59, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -529,7 +533,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "just after start of month payout time, is pushed to mid month + lockup",
 			args: args{
 				blockTime:      time.Date(2020, 12, 1, 14, 0, 1, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.Medium, 1, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 1, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 1, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 1, 14, 0, 1, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
