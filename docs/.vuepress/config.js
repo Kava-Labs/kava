@@ -13,7 +13,7 @@ module.exports = {
           title: "Getting Started - Developers",
           children: [
             {
-              title: "Getting Set Up",
+              title: "Get Started",
               path: "/education/getting_started.html"
             },
             {
@@ -51,10 +51,6 @@ module.exports = {
         {
           title: "Resources",
           children: [
-            {
-              title: "Lite Paper",
-              path: "/education/lite_paper.html"
-            },
             {
               title: "Community Tools",
               path: "/tools/community.html"
