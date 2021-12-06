@@ -5,9 +5,7 @@ import (
 	// stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	// TODO: bring hardtypes back in
-	// hardtypes "github.com/kava-labs/kava/x/hard/types"
-	"github.com/kava-labs/kava/x/incentive/types"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	// swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
@@ -18,7 +16,8 @@ type Hooks struct {
 
 var _ cdptypes.CDPHooks = Hooks{}
 
-// var _ hardtypes.HARDHooks = Hooks{}
+var _ hardtypes.HARDHooks = Hooks{}
+
 // var _ stakingtypes.StakingHooks = Hooks{}
 // var _ swaptypes.SwapHooks = Hooks{}
 
@@ -42,32 +41,32 @@ func (h Hooks) BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP) {
 // ------------------- Hard Module Hooks -------------------
 
 // AfterDepositCreated function that runs after a deposit is created
-func (h Hooks) AfterDepositCreated(ctx sdk.Context, deposit types.Deposit) {
+func (h Hooks) AfterDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit) {
 	h.k.InitializeHardSupplyReward(ctx, deposit)
 }
 
 // BeforeDepositModified function that runs before a deposit is modified
-func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit types.Deposit) {
+func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
 	h.k.SynchronizeHardSupplyReward(ctx, deposit)
 }
 
 // AfterDepositModified function that runs after a deposit is modified
-func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit types.Deposit) {
+func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
 	h.k.UpdateHardSupplyIndexDenoms(ctx, deposit)
 }
 
 // AfterBorrowCreated function that runs after a borrow is created
-func (h Hooks) AfterBorrowCreated(ctx sdk.Context, borrow types.Borrow) {
+func (h Hooks) AfterBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow) {
 	h.k.InitializeHardBorrowReward(ctx, borrow)
 }
 
 // BeforeBorrowModified function that runs before a borrow is modified
-func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow types.Borrow) {
+func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
 	h.k.SynchronizeHardBorrowReward(ctx, borrow)
 }
 
 // AfterBorrowModified function that runs after a borrow is modified
-func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow types.Borrow) {
+func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
 	h.k.UpdateHardBorrowIndexDenoms(ctx, borrow)
 }
 

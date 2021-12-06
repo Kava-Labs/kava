@@ -5,8 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	// TODO: bring hardtypes back in
-	// hardtypes "github.com/kava-labs/kava/x/hard/types"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -60,7 +59,7 @@ func (k Keeper) getHardSupplyTotalSourceShares(ctx sdk.Context, denom string) sd
 
 // InitializeHardSupplyReward initializes the supply-side of a hard liquidity provider claim
 // by creating the claim and setting the supply reward factor index
-func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit types.Deposit) {
+func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.Deposit) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if !found {
 		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil)
@@ -81,7 +80,7 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit types.Deposi
 
 // SynchronizeHardSupplyReward updates the claim object by adding any accumulated rewards
 // and updating the reward index value
-func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit types.Deposit) {
+func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.Deposit) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if !found {
 		return
@@ -137,7 +136,7 @@ func (k Keeper) synchronizeSingleHardSupplyReward(ctx sdk.Context, claim types.H
 }
 
 // UpdateHardSupplyIndexDenoms adds any new deposit denoms to the claim's supply reward index
-func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit types.Deposit) {
+func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.Deposit) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if !found {
 		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil)

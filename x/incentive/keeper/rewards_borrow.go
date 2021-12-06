@@ -6,8 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	// TODO: bring hardtypes back in
-	// hardtypes "github.com/kava-labs/kava/x/hard/types"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -67,7 +66,7 @@ func (k Keeper) getHardBorrowTotalSourceShares(ctx sdk.Context, denom string) sd
 
 // InitializeHardBorrowReward initializes the borrow-side of a hard liquidity provider claim
 // by creating the claim and setting the borrow reward factor index
-func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow types.Borrow) {
+func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {
 		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower, sdk.Coins{}, nil, nil)
@@ -88,7 +87,7 @@ func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow types.Borrow)
 
 // SynchronizeHardBorrowReward updates the claim object by adding any accumulated rewards
 // and updating the reward index value
-func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow types.Borrow) {
+func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {
 		return
@@ -144,7 +143,7 @@ func (k Keeper) synchronizeSingleHardBorrowReward(ctx sdk.Context, claim types.H
 }
 
 // UpdateHardBorrowIndexDenoms adds or removes reward indexes from a claim to match the denoms in the borrow.
-func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow types.Borrow) {
+func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {
 		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower, sdk.Coins{}, nil, nil)
