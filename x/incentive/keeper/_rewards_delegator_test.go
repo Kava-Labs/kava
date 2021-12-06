@@ -8,8 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/incentive/keeper"
@@ -51,15 +51,15 @@ func (suite *DelegatorRewardsTestSuite) SetupApp() {
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.stakingKeeper = suite.app.GetStakingKeeper()
 
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
+	suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder) {
+func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
-		authBuilder.BuildMarshalled(),
+		authBuilder.BuildMarshalled(suite.app.AppCodec()),
 		NewStakingGenesisState(),
 		incentBuilder.BuildMarshalled(),
 	)
@@ -125,7 +125,7 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateDelegatorRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			authBuilder := app.NewAuthGenesisBuilder().
+			authBuilder := app.NewAuthBankGenesisBuilder().
 				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
@@ -222,7 +222,7 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeDelegatorReward() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			authBuilder := app.NewAuthGenesisBuilder().
+			authBuilder := app.NewAuthBankGenesisBuilder().
 				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
@@ -346,7 +346,7 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateDelegatorRewardSynchronizati
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			authBuilder := app.NewAuthGenesisBuilder().
+			authBuilder := app.NewAuthBankGenesisBuilder().
 				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
 
@@ -446,7 +446,7 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgRedelegate(ctx sdk.Context, de
 
 // given a user has a delegation to a bonded validator, when the validator starts unbonding, the user does not accumulate rewards
 func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
-	authBuilder := app.NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthBankGenesisBuilder().
 		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 		WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
@@ -540,7 +540,7 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 
 // given a user has a delegation to an unbonded validator, when the validator becomes bonded, the user starts accumulating rewards
 func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
-	authBuilder := app.NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthBankGenesisBuilder().
 		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 		WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
@@ -634,7 +634,7 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 
 // If a validator is slashed delegators should have their claims synced
 func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
-	authBuilder := app.NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthBankGenesisBuilder().
 		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9)))
@@ -715,7 +715,7 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 
 // Given a delegation to a bonded validator, when a user redelegates everything to another (bonded) validator, the user's claim is synced
 func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
-	authBuilder := app.NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthBankGenesisBuilder().
 		WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9))).
 		WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[1]), cs(c("ukava", 1e9)))

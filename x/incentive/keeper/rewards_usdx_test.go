@@ -216,9 +216,8 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 	)
 
 	// Claim rewards
-	suite.NoError(
-		suite.DeliverIncentiveMsg(types.NewMsgClaimUSDXMintingReward(userB, "large")),
-	)
+	msg := types.NewMsgClaimUSDXMintingReward(userB.String(), "large")
+	suite.NoError(suite.DeliverIncentiveMsg(&msg))
 
 	// The cdp had half the total borrows for a 1s block. So should earn half the rewards for that block
 	suite.BalanceInEpsilon(
