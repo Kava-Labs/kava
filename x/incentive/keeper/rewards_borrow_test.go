@@ -136,7 +136,7 @@ func (suite *BorrowRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBank
 		authBuilder.BuildMarshalled(suite.app.AppCodec()),
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		hardBuilder.BuildMarshalled(),
-		NewCommitteeGenesisState(1, suite.addrs[:2]...),
+		NewCommitteeGenesisState(suite.app.AppCodec(), 1, suite.addrs[:2]...),
 		incentBuilder.BuildMarshalled(),
 	)
 }

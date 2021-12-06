@@ -43,12 +43,13 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 
 	registry.RegisterInterface(
 		"kava.auction.v1beta1.Claim",
-		(*BaseClaim)(nil),
-		(*BaseMultiClaim)(nil),
+		(*Claim)(nil),
 		&USDXMintingClaim{},
-		&HardLiquidityProviderClaim{},
-		&DelegatorClaim{},
-		&SwapClaim{},
+		// TODO: These Claims do not actually match Claim interface, GetReward()
+		// responds with sdk.Coins instead of a single sdk.Coin
+		// &HardLiquidityProviderClaim{},
+		// &DelegatorClaim{},
+		// &SwapClaim{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

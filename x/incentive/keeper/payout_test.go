@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -16,22 +15,20 @@ import (
 	"github.com/kava-labs/kava/app"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-
-	// hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
-	// hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 )
 
 // Test suite used for all keeper tests
 type PayoutTestSuite struct {
 	suite.Suite
 
-	keeper keeper.Keeper
-	// TODO: hardKeeper hardkeeper.Keeper
-	cdpKeeper cdpkeeper.Keeper
+	keeper     keeper.Keeper
+	hardKeeper hardkeeper.Keeper
+	cdpKeeper  cdpkeeper.Keeper
 
 	app app.TestApp
 	ctx sdk.Context
@@ -54,8 +51,7 @@ func (suite *PayoutTestSuite) SetupApp() {
 	suite.app = app.NewTestApp()
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
-	// TODO:
-	// suite.hardKeeper = suite.app.GetHardKeeper()
+	suite.hardKeeper = suite.app.GetHardKeeper()
 	suite.cdpKeeper = suite.app.GetCDPKeeper()
 
 	suite.ctx = suite.app.NewContext(true, tmprototypes.Header{Time: suite.genesisTime})
@@ -68,9 +64,8 @@ func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthBankGenesisB
 	suite.app.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
 		authBuilder.BuildMarshalled(suite.app.AppCodec()),
-		// TODO:
-		// NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		// NewCDPGenStateMulti(),
+		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
+		NewCDPGenStateMulti(),
 		hardBuilder.BuildMarshalled(),
 		incentBuilder.BuildMarshalled(),
 	)
@@ -353,7 +348,7 @@ func (suite *PayoutTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 				acc := suite.getAccount(suite.addrs[0])
 				vacc, ok := acc.(*vestingtypes.PeriodicVestingAccount)
 				suite.Require().True(ok)
-				suite.Require().Equal(tc.args.expectedPeriods, vacc.VestingPeriods)
+				suite.Require().ElementsMatch(tc.args.expectedPeriods, vacc.VestingPeriods)
 				suite.Require().Equal(tc.args.expectedStartTime, vacc.StartTime)
 				suite.Require().Equal(tc.args.expectedEndTime, vacc.EndTime)
 			}
@@ -381,7 +376,7 @@ func (suite *PayoutTestSuite) TestSendCoinsToBaseAccount() {
 	expectedPeriods := vestingtypes.Periods{
 		vestingtypes.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
 	}
-	suite.Equal(expectedPeriods, vacc.VestingPeriods)
+	suite.ElementsMatch(expectedPeriods, vacc.VestingPeriods)
 	suite.Equal(cs(c("ukava", 100)), vacc.OriginalVesting)
 	suite.Equal(cs(c("ukava", 500)), vacc.GetVestedCoins(suite.ctx.BlockTime()))
 	suite.Equal(int64(105), vacc.EndTime)
@@ -399,10 +394,10 @@ func (suite *PayoutTestSuite) TestSendCoinsToInvalidAccount() {
 		authBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
 	err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadisttypes.ModuleName, suite.addrs[2], cs(c("ukava", 100)), 5)
-	suite.Require().True(errors.Is(err, types.ErrInvalidAccountType))
+	suite.Require().ErrorIs(err, types.ErrInvalidAccountType)
 	macc := suite.getModuleAccount(cdptypes.ModuleName)
 	err = suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadisttypes.ModuleName, macc.GetAddress(), cs(c("ukava", 100)), 5)
-	suite.Require().True(errors.Is(err, types.ErrInvalidAccountType))
+	suite.Require().ErrorIs(err, types.ErrInvalidAccountType)
 }
 
 func (suite *PayoutTestSuite) TestGetPeriodLength() {

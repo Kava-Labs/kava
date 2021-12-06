@@ -5,7 +5,7 @@ import (
 
 	"time"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/kava-labs/kava/app"
@@ -186,26 +186,22 @@ func NewStakingGenesisState() app.GenesisState {
 	}
 }
 
-func NewCommitteeGenesisState(committeeID uint64, members ...sdk.AccAddress) app.GenesisState {
+func NewCommitteeGenesisState(cdc codec.Codec, committeeID uint64, members ...sdk.AccAddress) app.GenesisState {
 	genState := committeetypes.DefaultGenesisState()
 
-	com, err := committeetypes.NewMemberCommittee(
+	com := committeetypes.MustNewMemberCommittee(
 		committeeID,
 		"This committee is for testing.",
 		members,
-		[]committeetypes.Permission{committeetypes.GodPermission{}},
+		[]committeetypes.Permission{&committeetypes.GodPermission{}},
 		sdk.MustNewDecFromStr("0.666666667"),
 		time.Hour*24*7,
 		committeetypes.TALLY_OPTION_FIRST_PAST_THE_POST,
 	)
-	if err != nil {
-		panic(err)
-	}
 
 	genesisComms := committeetypes.Committees{com}
 
-	var anyUnpacker codectypes.AnyUnpacker
-	err = genesisComms.UnpackInterfaces(anyUnpacker)
+	err := genesisComms.UnpackInterfaces(cdc)
 	if err != nil {
 		panic(err)
 	}

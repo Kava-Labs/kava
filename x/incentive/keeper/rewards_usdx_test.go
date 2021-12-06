@@ -173,7 +173,7 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		NewCDPGenStateMulti(),
 		incentBuilder.BuildMarshalled(),
-		NewCommitteeGenesisState(0, userA), // create a committtee to change params
+		NewCommitteeGenesisState(suite.App.AppCodec(), 0, userA), // create a committtee to change params
 	)
 
 	// Accumulate some CDP rewards, requires creating a cdp so the total borrowed isn't 0.

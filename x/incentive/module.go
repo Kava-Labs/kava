@@ -1,7 +1,6 @@
 package incentive
 
 import (
-	"context"
 	"encoding/json"
 
 	"github.com/gorilla/mux"
@@ -16,8 +15,8 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/kava-labs/kava/x/incentive/client/cli"
-	"github.com/kava-labs/kava/x/incentive/client/rest"
+	// "github.com/kava-labs/kava/x/incentive/client/cli"
+	// "github.com/kava-labs/kava/x/incentive/client/rest"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -65,14 +64,15 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 
 // RegisterRESTRoutes registers REST routes for the incentive module.
 func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterRoutes(clientCtx, rtr)
+	// TODO: rest.RegisterRoutes(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the incentive module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
-		panic(err)
-	}
+	// TODO:
+	// if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+	// 	panic(err)
+	// }
 }
 
 // LegacyQuerierHandler returns sdk.Querier.
@@ -87,12 +87,12 @@ func (AppModule) ConsensusVersion() uint64 {
 
 // GetTxCmd returns the root tx command for the incentive module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
+	return nil // TODO: return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the incentive module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return nil // TODO: return cli.GetQueryCmd()
 }
 
 // AppModule implements the sdk.AppModule interface.
@@ -137,7 +137,7 @@ func (AppModule) QuerierRoute() string {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper, am.accountKeeper, am.bankKeeper))
+	// TODO: types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper, am.accountKeeper, am.bankKeeper))
 }
 
 // InitGenesis performs genesis initialization for the incentive module. It returns no validator updates.
@@ -146,19 +146,21 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.Ra
 	// Initialize global index to index in genesis state
 	cdc.MustUnmarshalJSON(gs, &genState)
 
-	InitGenesis(ctx, am.keeper, am.bankKeeper, am.cdpKeeper, gs)
+	// TODO: InitGenesis(ctx, am.keeper, am.bankKeeper, am.cdpKeeper, gs)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the incentive module
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := ExportGenesis(ctx, am.keeper)
-	return cdc.MustMarshalJSON(&gs)
+	// TODO: gs := ExportGenesis(ctx, am.keeper)
+	// TODO: return cdc.MustMarshalJSON(&gs)
+
+	return nil
 }
 
 // BeginBlock returns the begin blocker for the incentive module.
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
-	BeginBlocker(ctx, am.keeper)
+	// TODO: BeginBlocker(ctx, am.keeper)
 }
 
 // EndBlock returns the end blocker for the incentive module. It returns no validator updates.
