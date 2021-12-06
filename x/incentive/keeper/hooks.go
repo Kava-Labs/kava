@@ -2,11 +2,13 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	// stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
-	swaptypes "github.com/kava-labs/kava/x/swap/types"
+	// TODO: bring hardtypes back in
+	// hardtypes "github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/x/incentive/types"
+	// swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
 // Hooks wrapper struct for hooks
@@ -15,9 +17,10 @@ type Hooks struct {
 }
 
 var _ cdptypes.CDPHooks = Hooks{}
-var _ hardtypes.HARDHooks = Hooks{}
-var _ stakingtypes.StakingHooks = Hooks{}
-var _ swaptypes.SwapHooks = Hooks{}
+
+// var _ hardtypes.HARDHooks = Hooks{}
+// var _ stakingtypes.StakingHooks = Hooks{}
+// var _ swaptypes.SwapHooks = Hooks{}
 
 // Hooks create new incentive hooks
 func (k Keeper) Hooks() Hooks { return Hooks{k} }
@@ -39,32 +42,32 @@ func (h Hooks) BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP) {
 // ------------------- Hard Module Hooks -------------------
 
 // AfterDepositCreated function that runs after a deposit is created
-func (h Hooks) AfterDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit) {
+func (h Hooks) AfterDepositCreated(ctx sdk.Context, deposit types.Deposit) {
 	h.k.InitializeHardSupplyReward(ctx, deposit)
 }
 
 // BeforeDepositModified function that runs before a deposit is modified
-func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
+func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit types.Deposit) {
 	h.k.SynchronizeHardSupplyReward(ctx, deposit)
 }
 
 // AfterDepositModified function that runs after a deposit is modified
-func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
+func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit types.Deposit) {
 	h.k.UpdateHardSupplyIndexDenoms(ctx, deposit)
 }
 
 // AfterBorrowCreated function that runs after a borrow is created
-func (h Hooks) AfterBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow) {
+func (h Hooks) AfterBorrowCreated(ctx sdk.Context, borrow types.Borrow) {
 	h.k.InitializeHardBorrowReward(ctx, borrow)
 }
 
 // BeforeBorrowModified function that runs before a borrow is modified
-func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
+func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow types.Borrow) {
 	h.k.SynchronizeHardBorrowReward(ctx, borrow)
 }
 
 // AfterBorrowModified function that runs after a borrow is modified
-func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
+func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow types.Borrow) {
 	h.k.UpdateHardBorrowIndexDenoms(ctx, borrow)
 }
 
@@ -88,49 +91,49 @@ When delegated tokens (to bonded validators) are changed:
 
 */
 
-// BeforeDelegationCreated runs before a delegation is created
-func (h Hooks) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
-	// Add a claim if one doesn't exist, otherwise sync the existing.
-	h.k.InitializeDelegatorReward(ctx, delAddr)
-}
+// // BeforeDelegationCreated runs before a delegation is created
+// func (h Hooks) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+// 	// Add a claim if one doesn't exist, otherwise sync the existing.
+// 	h.k.InitializeDelegatorReward(ctx, delAddr)
+// }
 
-// BeforeDelegationSharesModified runs before an existing delegation is modified
-func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
-	// Sync rewards based on total delegated to bonded validators.
-	h.k.SynchronizeDelegatorRewards(ctx, delAddr, nil, false)
-}
+// // BeforeDelegationSharesModified runs before an existing delegation is modified
+// func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+// 	// Sync rewards based on total delegated to bonded validators.
+// 	h.k.SynchronizeDelegatorRewards(ctx, delAddr, nil, false)
+// }
 
-// BeforeValidatorSlashed is called before a validator is slashed
-// Validator status is not updated when Slash or Jail is called
-func (h Hooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) {
-	// Sync all claims for users delegated to this validator.
-	// For each claim, sync based on the total delegated to bonded validators.
-	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
-		h.k.SynchronizeDelegatorRewards(ctx, delegation.DelegatorAddress, nil, false)
-	}
-}
+// // BeforeValidatorSlashed is called before a validator is slashed
+// // Validator status is not updated when Slash or Jail is called
+// func (h Hooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) {
+// 	// Sync all claims for users delegated to this validator.
+// 	// For each claim, sync based on the total delegated to bonded validators.
+// 	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
+// 		h.k.SynchronizeDelegatorRewards(ctx, delegation.DelegatorAddress, nil, false)
+// 	}
+// }
 
-// AfterValidatorBeginUnbonding is called after a validator begins unbonding
-// Validator status is set to Unbonding prior to hook running
-func (h Hooks) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
-	// Sync all claims for users delegated to this validator.
-	// For each claim, sync based on the total delegated to bonded validators, and also delegations to valAddr.
-	// valAddr's status has just been set to Unbonding, but we want to include delegations to it in the sync.
-	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
-		h.k.SynchronizeDelegatorRewards(ctx, delegation.DelegatorAddress, valAddr, true)
-	}
-}
+// // AfterValidatorBeginUnbonding is called after a validator begins unbonding
+// // Validator status is set to Unbonding prior to hook running
+// func (h Hooks) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+// 	// Sync all claims for users delegated to this validator.
+// 	// For each claim, sync based on the total delegated to bonded validators, and also delegations to valAddr.
+// 	// valAddr's status has just been set to Unbonding, but we want to include delegations to it in the sync.
+// 	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
+// 		h.k.SynchronizeDelegatorRewards(ctx, delegation.DelegatorAddress, valAddr, true)
+// 	}
+// }
 
-// AfterValidatorBonded is called after a validator is bonded
-// Validator status is set to Bonded prior to hook running
-func (h Hooks) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
-	// Sync all claims for users delegated to this validator.
-	// For each claim, sync based on the total delegated to bonded validators, except for delegations to valAddr.
-	// valAddr's status has just been set to Bonded, but we don't want to include delegations to it in the sync
-	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
-		h.k.SynchronizeDelegatorRewards(ctx, delegation.DelegatorAddress, valAddr, false)
-	}
-}
+// // AfterValidatorBonded is called after a validator is bonded
+// // Validator status is set to Bonded prior to hook running
+// func (h Hooks) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+// 	// Sync all claims for users delegated to this validator.
+// 	// For each claim, sync based on the total delegated to bonded validators, except for delegations to valAddr.
+// 	// valAddr's status has just been set to Bonded, but we don't want to include delegations to it in the sync
+// 	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
+// 		h.k.SynchronizeDelegatorRewards(ctx, delegation.DelegatorAddress, valAddr, false)
+// 	}
+// }
 
 // NOTE: following hooks are just implemented to ensure StakingHooks interface compliance
 
@@ -154,10 +157,10 @@ func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, 
 
 // ------------------- Swap Module Hooks -------------------
 
-func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, _ sdk.Int) {
-	h.k.InitializeSwapReward(ctx, poolID, depositor)
-}
+// func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, _ sdk.Int) {
+// 	h.k.InitializeSwapReward(ctx, poolID, depositor)
+// }
 
-func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharesOwned sdk.Int) {
-	h.k.SynchronizeSwapReward(ctx, poolID, depositor, sharesOwned)
-}
+// func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharesOwned sdk.Int) {
+// 	h.k.SynchronizeSwapReward(ctx, poolID, depositor, sharesOwned)
+// }
