@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard"
@@ -38,7 +38,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 
-	authBuilder := app.NewAuthGenesisBuilder().
+	authBuilder := app.NewAuthBankGenesisBuilder().
 		WithSimpleAccount(addrs[0], cs(c("bnb", 1e10), c("ukava", 1e10))).
 		WithSimpleModuleAccount(kavadist.KavaDistMacc, cs(c("hard", 1e15), c("ukava", 1e15)))
 
@@ -102,14 +102,14 @@ func (suite *GenesisTestSuite) SetupTest() {
 	)
 	tApp.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
-		authBuilder.BuildMarshalled(),
-		app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)},
+		authBuilder.BuildMarshalled(suite.app.AppCodec()),
+		app.GenesisState{incentivetypes.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)},
 		app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGS)},
 		NewCDPGenStateMulti(),
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 	)
 
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 
 	suite.addrs = addrs
 	suite.keeper = keeper
@@ -233,7 +233,7 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 	)
 
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 0, Time: genesisTime})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 0, Time: genesisTime})
 
 	// Incentive init genesis reads from the cdp keeper to check params are ok. So it needs to be initialized first.
 	// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.
@@ -299,7 +299,7 @@ func (suite *GenesisTestSuite) TestInitGenesisPanicsWhenAccumulationTimesToLongA
 	for _, tc := range testCases {
 
 		tApp := app.NewTestApp()
-		ctx := tApp.NewContext(true, abci.Header{Height: 0, Time: genesisTime})
+		ctx := tApp.NewContext(true, tmproto.Header{Height: 0, Time: genesisTime})
 
 		// Incentive init genesis reads from the cdp keeper to check params are ok. So it needs to be initialized first.
 		// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.

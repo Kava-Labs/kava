@@ -156,10 +156,10 @@ func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, 
 
 // ------------------- Swap Module Hooks -------------------
 
-// func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, _ sdk.Int) {
-// 	h.k.InitializeSwapReward(ctx, poolID, depositor)
-// }
+func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, _ sdk.Int) {
+	h.k.InitializeSwapReward(ctx, poolID, depositor)
+}
 
-// func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharesOwned sdk.Int) {
-// 	h.k.SynchronizeSwapReward(ctx, poolID, depositor, sharesOwned)
-// }
+func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharesOwned sdk.Int) {
+	h.k.SynchronizeSwapReward(ctx, poolID, depositor, sharesOwned)
+}

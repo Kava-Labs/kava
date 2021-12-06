@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/incentive/testutil"
@@ -44,7 +44,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 func (suite *HandlerTestSuite) SetupApp() {
 	suite.App = app.NewTestApp()
 
-	suite.Ctx = suite.App.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
+	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 }
 
 type genesisBuilder interface {
@@ -84,9 +84,9 @@ func (suite *HandlerTestSuite) NewValidatorVestingAccountWithBalance(address sdk
 }
 
 // authBuilder returns a new auth genesis builder with a full kavadist module account.
-func (suite *HandlerTestSuite) authBuilder() app.AuthGenesisBuilder {
-	return app.NewAuthGenesisBuilder().
-		WithSimpleModuleAccount(kavadist.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18), c("hard", 1e18), c("swap", 1e18)))
+func (suite *HandlerTestSuite) authBuilder() *app.AuthBankGenesisBuilder {
+	return app.NewAuthBankGenesisBuilder().
+		WithSimpleModuleAccount(kavadisttypes.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18), c("hard", 1e18), c("swap", 1e18)))
 }
 
 // incentiveBuilder returns a new incentive genesis builder with a genesis time and multipliers set

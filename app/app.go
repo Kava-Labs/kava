@@ -85,7 +85,9 @@ import (
 	"github.com/kava-labs/kava/x/hard"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/x/incentive"
 	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
+	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	issuance "github.com/kava-labs/kava/x/issuance"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
@@ -142,6 +144,7 @@ var (
 		cdp.AppModuleBasic{},
 		hard.AppModuleBasic{},
 		committee.AppModuleBasic{},
+		incentive.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -298,6 +301,7 @@ func NewApp(
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
 	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
 	hardSubspace := app.paramsKeeper.Subspace(hardtypes.ModuleName)
+	incentiveSubspace := app.paramsKeeper.Subspace(incentivetypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -423,7 +427,7 @@ func NewApp(
 		keys[pricefeedtypes.StoreKey],
 		pricefeedSubspace,
 	)
-	app.swapKeeper = swapkeeper.NewKeeper(
+	swapKeeper := swapkeeper.NewKeeper(
 		appCodec,
 		keys[swaptypes.StoreKey],
 		swapSubspace,
@@ -450,6 +454,19 @@ func NewApp(
 		app.auctionKeeper,
 	)
 
+	app.incentiveKeeper = incentivekeeper.NewKeeper(
+		appCodec,
+		keys[incentivetypes.StoreKey],
+		incentiveSubspace,
+		app.bankKeeper,
+		// CDP, hard, swap not set in app yet
+		&cdpKeeper,
+		&hardKeeper,
+		app.accountKeeper,
+		app.stakingKeeper,
+		&swapKeeper,
+	)
+
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -473,12 +490,9 @@ func NewApp(
 	app.stakingKeeper = *(app.stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks())))
 
-	// TODO: Add swap hooks after incentive upgraded
-
-	// TODO: Add app.incentiveKeeper.Hooks() to cdptypes.NewMultiCDPHooks()
-	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks())
-	// TODO: app.incentiveKeeper.Hooks() to hardtypes.NewMultiHARDHooks()
-	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks())
+	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
+	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
+	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
