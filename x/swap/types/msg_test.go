@@ -67,7 +67,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid depositor address: decoding bech32 failed: invalid index of 1: invalid address",
+			expectedErr: "invalid depositor address: decoding bech32 failed: invalid separator index 4: invalid address",
 		},
 		{
 			name:        "negative token a",
@@ -259,7 +259,7 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 			minTokenA:   validMsg.MinTokenA,
 			minTokenB:   validMsg.MinTokenB,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid from address: decoding bech32 failed: invalid index of 1: invalid address",
+			expectedErr: "invalid from address: decoding bech32 failed: invalid separator index 4: invalid address",
 		},
 		{
 			name:        "zero token a",
@@ -445,7 +445,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			tokenB:      validMsg.TokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid requester address: decoding bech32 failed: invalid index of 1: invalid address",
+			expectedErr: "invalid requester address: decoding bech32 failed: invalid separator index 4: invalid address",
 		},
 		{
 			name:        "negative token a",
@@ -631,7 +631,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			exactTokenB: validMsg.ExactTokenB,
 			slippage:    validMsg.Slippage,
 			deadline:    validMsg.Deadline,
-			expectedErr: "invalid requester address: decoding bech32 failed: invalid index of 1: invalid address",
+			expectedErr: "invalid requester address: decoding bech32 failed: invalid separator index 4: invalid address",
 		},
 		{
 			name:        "negative token a",

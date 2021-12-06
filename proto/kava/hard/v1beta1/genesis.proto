@@ -1,0 +1,41 @@
+syntax = "proto3";
+package kava.hard.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "kava/hard/v1beta1/hard.proto";
+import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/hard/types";
+
+// GenesisState defines the hard module's genesis state.
+message GenesisState {
+  Params                           params                      = 1 [(gogoproto.nullable) = false];
+  repeated GenesisAccumulationTime previous_accumulation_times = 2
+      [(gogoproto.castrepeated) = "GenesisAccumulationTimes", (gogoproto.nullable) = false];
+  repeated Deposit deposits = 3 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
+  repeated Borrow  borrows  = 4 [(gogoproto.castrepeated) = "Borrows", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin total_supplied = 5
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin total_borrowed = 6
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin total_reserves = 7
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}
+
+// GenesisAccumulationTime stores the previous distribution time and its corresponding denom.
+message GenesisAccumulationTime {
+  string                    collateral_type            = 1;
+  google.protobuf.Timestamp previous_accumulation_time = 2 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  string                    supply_interest_factor     = 3 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  string borrow_interest_factor = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}

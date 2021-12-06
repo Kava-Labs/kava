@@ -2,35 +2,31 @@ package keeper_test
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	aucKeeper "github.com/kava-labs/kava/x/auction/keeper"
+	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
-	pfKeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 )
 
 // Test suite used for all keeper tests
 type KeeperTestSuite struct {
 	suite.Suite
-	keeper          keeper.Keeper
-	auctionKeeper   aucKeeper.Keeper
-	pricefeedKeeper pfKeeper.Keeper
-	app             app.TestApp
-	ctx             sdk.Context
-	addrs           []sdk.AccAddress
+	keeper        keeper.Keeper
+	auctionKeeper auctionkeeper.Keeper
+	app           app.TestApp
+	ctx           sdk.Context
+	addrs         []sdk.AccAddress
 }
 
 // The default state used by each test
@@ -39,7 +35,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates()
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	keeper := tApp.GetHardKeeper()
@@ -134,39 +130,51 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 	suite.Require().Equal(setDenoms, seenDenoms)
 }
 
-func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
+func (suite *KeeperTestSuite) TestGetSetBorrowedCoins() {
+	suite.keeper.SetBorrowedCoins(suite.ctx, sdk.Coins{c("ukava", 123)})
+
+	coins, found := suite.keeper.GetBorrowedCoins(suite.ctx)
+	suite.Require().True(found)
+	suite.Require().Len(coins, 1)
+	suite.Require().Equal(coins, cs(c("ukava", 123)))
+}
+
+func (suite *KeeperTestSuite) TestGetSetBorrowedCoins_Empty() {
+	coins, found := suite.keeper.GetBorrowedCoins(suite.ctx)
+	suite.Require().False(found)
+	suite.Require().Empty(coins)
+
+	// None set and setting empty coins should both be the same
+	suite.keeper.SetBorrowedCoins(suite.ctx, sdk.Coins{})
+
+	coins, found = suite.keeper.GetBorrowedCoins(suite.ctx)
+	suite.Require().False(found)
+	suite.Require().Empty(coins)
+}
+
+func (suite *KeeperTestSuite) getAccountCoins(acc authtypes.AccountI) sdk.Coins {
+	bk := suite.app.GetBankKeeper()
+	return bk.GetAllBalances(suite.ctx, acc.GetAddress())
+}
+
+func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
 }
 
-func (suite *KeeperTestSuite) getAccountAtCtx(addr sdk.AccAddress, ctx sdk.Context) authexported.Account {
+func (suite *KeeperTestSuite) getAccountAtCtx(addr sdk.AccAddress, ctx sdk.Context) authtypes.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(ctx, addr)
 }
 
-func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.ModuleAccountI {
-	sk := suite.app.GetSupplyKeeper()
-	return sk.GetModuleAccount(suite.ctx, name)
+func (suite *KeeperTestSuite) getModuleAccount(name string) authtypes.ModuleAccountI {
+	ak := suite.app.GetAccountKeeper()
+	return ak.GetModuleAccount(suite.ctx, name)
 }
 
-func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) supplyexported.ModuleAccountI {
-	sk := suite.app.GetSupplyKeeper()
-	return sk.GetModuleAccount(ctx, name)
-}
-
-func addressSort(addrs []sdk.AccAddress) (sortedAddrs []sdk.AccAddress) {
-	addrStrs := []string{}
-	for _, addr := range addrs {
-		addrStrs = append(addrStrs, addr.String())
-	}
-
-	sort.Strings(addrStrs)
-
-	for _, addrStr := range addrStrs {
-		addr, _ := sdk.AccAddressFromBech32(addrStr)
-		sortedAddrs = append(sortedAddrs, addr)
-	}
-	return sortedAddrs
+func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) authtypes.ModuleAccountI {
+	ak := suite.app.GetAccountKeeper()
+	return ak.GetModuleAccount(ctx, name)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
