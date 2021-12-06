@@ -2,17 +2,14 @@
 
 In this tutorial we will be going over building a module in Kava to show how easy it is to build on top of the Kava ecosystem. This module will be simple in nature but will show how to set up and connect a module to Kava and can be used as a starting point for more complex modules. 
 
-Draft!:
 
- 1. finish up explanation of each section 
- 2. possibly split up sections into separate pages 
- 3. add the set up and start up (a bit complicated for someone to follow along because master is not yet v44, and this tutorial is based on v44)
 
 	
 ## Set up
 ```
-a bit complicated for now becuase they have to clone a specific branch to work on v44
-we can either have them do that or wait unit we are running v44 in master
+this tutorial is based on the v44 cosmos version which Kava is currently migrating to, to follow this tutorial clone the kava repo but ensure you 
+clone the upgrade-v44 branch as the master branch is currently on v39 & ensure you have kvtool, docker & go installed on your machine. 
+git clone -b upgrade-v44 https://github.com/Kava-Labs/kava.git 
 ```
 ## Defining Protocol Buffer Types 
 
@@ -51,20 +48,15 @@ import  "gogoproto/gogo.proto";
 import  "cosmos_proto/cosmos.proto";
 option  go_package = "github.com/kava-labs/kava/x/greet/types";
 
-// here we define our Msg Service which will handle our CreateGreet transaction
 service  Msg {
-// CreateGreet will take a MsgCreateGreet and return an MsgCreateGreetResponse response
-rpc  CreateGreet (MsgCreateGreet) returns (MsgCreateGreetResponse);
+	rpc  CreateGreet(MsgCreateGreet) returns (MsgCreateGreetResponse);
 }
 
-// to create a greet message provide the message and the owner of the message *note Id will be auto-generated
 message  MsgCreateGreet {
 string message = 1;
 string owner = 2;
 }
-
-// we will leave our response type empty 
-message  MsgCreateGreetResponse { }
+message  MsgCreateGreetResponse {}
 ```
 Now that we have defined how to create a new Greeting let's finish up by setting up our queries to view a specific greeting or all of them.
 
@@ -74,47 +66,38 @@ One thing to note here is that any state changing actions are transactions and f
 Code inside the ```proto/greet/v1beta1/query.proto``` : 
 ```
 syntax = "proto3";
+
 package  kava.greet.v1beta1;
 option  go_package = "github.com/kava-labs/kava/x/greet/types";
+
 import  "gogoproto/gogo.proto";
 import  "google/api/annotations.proto";
 import  "cosmos/base/query/v1beta1/pagination.proto";
 import  "cosmos_proto/cosmos.proto";
 import  "kava/greet/v1beta1/greet.proto";
 
-// this is where we link up our query services
-
 service  Query {
-	// Greet will take and input of type QueryGetGreetRequest and return QueryGetGreetResponse
-	
 	rpc  Greet(QueryGetGreetRequest) returns (QueryGetGreetResponse) {
-	// this is the endpoint for our Greet service
 	option  (google.api.http).get = "/kava/greet/v1beta1/greetings/{id}";
 	}
-
-	// GreetAll will show all of the greet messages we have added and will take a QueryAllGreetRequest and return a QueryAllGreetResponse
 	rpc  GreetAll(QueryAllGreetRequest) returns (QueryAllGreetResponse) {
-	// this is the endpoint to see all of the greetings in our chain
 	option  (google.api.http).get = "/kava/swap/v1beta1/greetings";
 	}
 }
 
-// the Greet Request will need an Id of the greet message
+ 
 message  QueryGetGreetRequest {
 string id = 1;
 }
 
-// the Greet Response will return the Greet Type which we defined in the greet.proto
 message  QueryGetGreetResponse {
 Greet greeting = 1;
 }
 
-// the query all request will not require any fields except for the pagination incase we have a lot 
 message  QueryAllGreetRequest {
 cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
-// will return a list of Greet types
 message  QueryAllGreetResponse {
 repeated  Greet greetings = 1;
 cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -137,390 +120,210 @@ message  GenesisState {}
 Once all the files are filled in we are ready to generate our proto types. in the Kava Directory run ```make proto-gen ``` to generate the types, this will create a folder inside the ```x/greet``` and will contain the auto-generated proto types. 
 
 ## Developing Our Greet Module
+we have successfully set up our Proto files & generated them, we now have a ```x/greet``` directory generated, this is where we will write our module's code. For starters we will define our module's types in a new file inside ```x/greet/types/greet.go```. 
 
-First thing we will do is set up our greet module's keys we will create a new file ```x/greet/types/keys.go```, and populate this with keys for the greet module, we will use these keys later as we build our module. 
+### Setting up constants & importing packages 
+Let's set up some basic constants for our module to help with routing, & fetching items from our store. 
 ```
 package  types
 
-const (
-	ModuleName =  "greet"
-	StoreKey = ModuleName
-	RouterKey = ModuleName
-	QuerierRoute = ModuleName
-	GreetKey =  "Greet-value-"
-	GreetCountKey =  "Greet-count-"
+import (
+	"fmt"
+	"strings"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
+	sdk  "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors  "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
+  
+
+// defined our module's constants such as name, routerkey 
+// and prefixes for getting items from the store
+const (
+	ModuleName =  "greet"
+	StoreKey = ModuleName 
+	RouterKey = ModuleName  
+	QuerierRoute = ModuleName  
+	GreetKey =  "greet-value-"  // used for getting a greeting from our store
+	GreetCountKey =  "greet-count-"  // used for getting count from out store
+	QueryGetGreeting =  "get-greeting"  // used for legacy querier routing
+	QueryListGreetings =  "list-greetings"// used for legacy querier routing
+)
+// heler function simply returns []byte out of a prefix string
 func  KeyPrefix(p string) []byte {
 	return []byte(p)
 }
-```
 
-Once we have our keys set up let's create our codec which will handle serialization of our data and register our Protocol Buffer types.
-
-Create   ```x/greet/types/codec.go``` file and add the code below: 
-```
-package  types
-
-import (
-	"github.com/cosmos/cosmos-sdk/codec" 
-	"github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	sdk  "github.com/cosmos/cosmos-sdk/types"
-)
-
-func  RegisterCodec(cdc *codec.LegacyAmino){
-	cdc.RegisterConcrete(&MsgCreateGreet{}, "greet/CreateGreet", nil)
+// returns default genesis state
+func  DefaultGenesisState() GenesisState {
+	return GenesisState{}
 }
 
-func  RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgCreateGreet{}, "greet/CreateGreet", nil)
+// validates genesis state
+func (gs GenesisState) Validate() error {
+	return  nil
 }
-
-func  RegisterInterfaces(registry types.InterfaceRegistry){
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgCreateGreet{})
-	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
-}
-
- 
-var (
-amino = codec.NewLegacyAmino()
-ModuleCdc = codec.NewAminoCodec(amino)
-)
 ```
-As seen above this code is all about registering your Protocol Buffer generated types and teaching your application how to handle these types. 
 
-
-### Define our NewMsgCreateGreet type
-Now that we have set up our codec & keys files lets add some code for creating a new greeting, create a file ```x/greet/types/message_greet.go``` and add the following code:
+### Setting up our Msg for creating a new greeting 
+Our ```MsgCreateGreet``` struct was created when we generated our Proto Types, we now need to use that struct to implement the ```sdk.Msg``` interface such that we can create new greetings. the first thing we will do is defined an unnamed variable with the ```_``` syntax and have it implement the ```sdk.Msg``` type. This will help us catch unimplemented functions and guide us with syntax highlighting. 
 
 ```
-package  types
-
-import (
-	sdk  "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors  "github.com/cosmos/cosmos-sdk/types/errors"
-)
-
+// MsgCreateGreet we defined it here to get type checking 
+//to make sure we are immplementing it correctly
 var _ sdk.Msg =  &MsgCreateGreet{}
 
-// this is our "constructor" for a new greeting this will return a message that will 
-// have all the methods defined below Route, Type, GetSigners, GetSignBytes, ValidateBasic
-func  NewMsgCreateGreet(owner string, message string) *MsgCreateGreet {
-		return  &MsgCreateGreet{
-		Owner: owner,
-		Message: message,
+  
+// constructor for creating a new greeting
+func  NewMsgCreateGreet(owner string, message string) *MsgCreateGreet{
+	return  &MsgCreateGreet{
+	Owner: owner,
+	Message: message,
 	}
 }
-
- // returns our RouterKey which is "greet"
-func (msg MsgCreateGreet) Route() string {
-	return RouterKey
+// does a quick stateless validation on our new greeting 
+func (m *MsgCreateGreet) ValidateBasic() error {
+	// ensures address is valid 
+	if _, err := sdk.AccAddressFromBech32(m.Owner); err !=  nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address", err)
+	}
+	// ensures the greeting is not empty
+	if  len(strings.TrimSpace(m.Message)) ==  0 {
+		return fmt.Errorf("must provide a greeting message")
+	}
+	return  nil
 }
 
-  
-// returns the type of our message which is "CreateGreet"
-func (msg MsgCreateGreet) Type() string {
-	return  "CreateGreet"
-}
-  
-// get the signer of msg
-func (msg MsgCreateGreet) GetSigners() []sdk.AccAddress {
-	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+// gets the signer of the new message which will be the owner of the greeting 
+func (m *MsgCreateGreet) GetSigners() []sdk.AccAddress {
+	owner, err := sdk.AccAddressFromBech32(m.Owner);
 	if err !=  nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{owner}
 }
-  
-// marshals the msg
-func (msg *MsgCreateGreet) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// does basic msg validation 
-func (msg MsgCreateGreet) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err !=  nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address", err)
-	}
-	if  len(msg.Message) ==  0 {
-		return sdkerrors.Wrapf(sdkerrors.Error{ }, "must provide greeting message")
-	}
-	return  nil
-}
-```
-As you can see above, this code is all about the ```&MsgCreateGreet{}``` and all these functions are "receiver functions" in Go. They can be thought of as a collection of useful method on our ```&MsgCreateGreet{}``` type, such as getting the signer of the new message or doing a basic validation, etc. 
-
-
-## Setting up Commands
-
-### Creating a new greeting
-In order for users to interact with our new module, we will create a command to create a new greeting that will live in the following folder so let's create it and write down some code in there ```/x/greet/client/cli/tx.go```:
-
-```
-package  cli
-
-import (
-	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/kava-labs/kava/x/greet/types"
-)
-
-  
-
-// this is the parent tx command for the greet module everytime we add a new command we will register it here
-func  GetTxCmd() *cobra.Command {
-	cmd :=  &cobra.Command{
-	Use: types.ModuleName,
-	Short: fmt.Sprintf("%s transactions subcommands", types.ModuleName),
-	DisableFlagParsing: true,
-	SuggestionsMinimumDistance: 2,
-	RunE: client.ValidateCmd,
-	}
-
-	// add the create greet command
-	cmd.AddCommand(CmdCreateGreet())
-	return cmd
-}
-
-  
- 
-// build the create greet command function
-func  CmdCreateGreet() *cobra.Command {
-	cmd :=  &cobra.Command{
-	Use: "create-greet [message]",
-	Short: "Create a new greeting",
-	Args: cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		message :=  string(args[0])
-		clientCtx, err := client.GetClientTxContext(cmd)
-		if err !=  nil {
-		return err
-		}
-
-		// create the new mesage using the new constuctor we made
-		msg := types.NewMsgCreateGreet(clientCtx.GetFromAddress().String(), string(message))
-		// do a basic message validation using the reciever function we created on the MsgCreateGreet type
-		if err := msg.ValidateBasic(); err !=  nil {
-		return err
-		}
-
-		// GenerateOrBroadcastTxCLI will either generate and print and unsigned transaction or sign it and broadcast it returning an error upon failure.
-
-		return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-
-	}
-
-	// add flags tx for our command
-	flags.AddTxFlagsToCmd(cmd)
-
-	// return the configured command struct
-	return cmd
-}
 ```
 
-
-### Querying Our Greetings 
-Just as we set up a way for user's to interact with our blockchain and creating a new greeting, now we have to wire up a way for user's to be able to query our greetings, below we will set up a way for user's to get a particular  greeting by it's ```Id``` or alternatively get a list of all the greetings created. 
-
-Inside ```/x/greet/client/cli/query.go```:
+### Registering our Codec & interfaces 
+now that we have our  ```MsgCreateGreet``` implement the ```sdk.Msg``` interface let's register our codec for marshaling/unmarshaling our greeting we will register both the deprecated legacy amino and the new Interface registry. 
 ```
-package  cli
-
-import (
-"fmt"
-"github.com/spf13/cobra"
-"github.com/cosmos/cosmos-sdk/client"
-"github.com/cosmos/cosmos-sdk/client/flags"
-"context"
-"github.com/kava-labs/kava/x/greet/types"
-)
-  
-// this is the parent query command for the greet module everytime we add a new command we will register it here
-func  GetQueryCmd(queryRoute string) *cobra.Command {
-	// Group todos queries under a subcommand
-	cmd :=  &cobra.Command{
-	Use: types.ModuleName,
-	Short: fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
-	DisableFlagParsing: true,
-	SuggestionsMinimumDistance: 2,
-	RunE: client.ValidateCmd,
-	}
-	// register the list greet command
-	cmd.AddCommand(CmdListGreet())
-	// register the show greet command
-	cmd.AddCommand(CmdShowGreet())
-	// return the configured command
-	return cmd
+// registers the marshal/unmarsahl for greating a new greeting for our legacy amino codec
+func  RegisterLegacyAminoCodec(cdc *codec.LegacyAmino){
+	cdc.RegisterConcrete(&MsgCreateGreet{}, "greet/CreateGreet", nil)
 }
 
-// build the list greet command function
-	func  CmdListGreet() *cobra.Command {
-	cmd :=  &cobra.Command{
-	Use: "list-greetings",
-	Short: "list all greetings",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		clientCtx, err := client.GetClientTxContext(cmd)
-		if err !=  nil {
-			return err
-		}
-		pageReq, err := client.ReadPageRequest(cmd.Flags())
-		if err !=  nil {
-			return err
-		}
-		queryClient := types.NewQueryClient(clientCtx)
-		params :=  &types.QueryAllGreetRequest{
-		Pagination: pageReq,
-		}
-		res, err := queryClient.GreetAll(context.Background(), params)
-		if err !=  nil {
-			return err
-		}
-		return clientCtx.PrintProto(res)
-		},
-		}
-		flags.AddQueryFlagsToCmd(cmd)
-		return cmd
-	}
-
-// build the show greet command function
-func  CmdShowGreet() *cobra.Command {
-	cmd :=  &cobra.Command{
-	Use: "show-greet [id]",
-	Short: "shows a greeting",
-	Args: cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		clientCtx, err := client.GetClientTxContext(cmd)
-		if err !=  nil {
-			return err
-		}
-		queryClient := types.NewQueryClient(clientCtx)
-		params :=  &types.QueryGetGreetRequest{
-			Id: args[0],
-		}
-		res, err := queryClient.Greet(context.Background(), params)
-		if err !=  nil {
-			return err
-		}
-
-		return clientCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
+// registers a module's interface types and their concrete implementations as proto.Message.
+func  RegisterInterfaces(registry types.InterfaceRegistry){
+	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgCreateGreet{})
+	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
+
+var amino = codec.NewLegacyAmino()
+var ModuleCdc = codec.NewAminoCodec(amino)
 ```
 
+### Setting up a basic Keeper 
+we have finished up setting up our types, now it's time to implement our greet module's keeper, lets do that in a new folder & package named keeper, create ```x/greet/keeper/greet_keeper.go``` .
 
-## Setting Up The Module's Keeper
-A keeper can be thought of as a guard or a gatekeeper for your module, it has access to the underlying store for your module, and can allow or disallow other module's from accessing your module's store. For this Tutorial we will keep things simple and simply use our Keeper as a store for our greetings. 
-
-First We will create our keeper type and constructor inside  ```x/greet/keeper/keeper.go```:
-
+### Setting up the Keeper Struct & imports 
+keepers are an abstraction over the state defined by a module, every module would have a keeper which would be used to access the state of that module, or if given access a keeper can also use other module's keepers by providing reference to the other module's keeper. 
 ```
 package  keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk  "github.com/cosmos/cosmos-sdk/types"
-	paramtypes  "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/kava-labs/kava/x/greet/types"
-)
-
-type (
-	Keeper struct {
-	cdc codec.Codec
-	key sdk.StoreKey
-	paramSubspace paramtypes.Subspace
-	}
-)
-
-func  NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace, accountKeeper types.AccountKeeper) *Keeper {
-	return  &Keeper{
-	cdc: cdc,
-	key: key,
-	paramSubspace: paramstore,
-	}
-}
-```
-Now it's time to set up our storage layer for our greet module inside ```x/greet/keeper/greet.go```: 
-```
-package  keeper
-
-import (
+	"context"
 	"strconv"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
-	 sdk "github.com/cosmos/cosmos-sdk/types"
+	sdk  "github.com/cosmos/cosmos-sdk/types"
+	abci  "github.com/tendermint/tendermint/abci/types"
 	"github.com/kava-labs/kava/x/greet/types"
-)  
-// gets the amount of greetings stored 
+	sdkerrors  "github.com/cosmos/cosmos-sdk/types/errors"
+)
+
+type  Keeper  struct {
+	cdc codec.Codec // used to marshall and unmarshall structs from & to []byte
+	key sdk.StoreKey // grant access to the store
+}
+
+// our constructor for creating a new Keeper for this module
+func  NewKeeper(c codec.Codec, k sdk.StoreKey) Keeper {
+	return Keeper{
+	cdc: c,
+	key: k,
+	}
+}
+```
+
+### Wiring up our methods for handling new transactions & queries 
+Now that we have our Keeper Struct written, let's create some receiver functions on our keeper to handle adding a new greeting & looking up a greeting. 
+```
+// get greet count will be used for setting an Id when a new greeting is created
 func (k Keeper) GetGreetCount(ctx sdk.Context) int64 {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetCountKey))
 	byteKey := types.KeyPrefix(types.GreetCountKey)
 	bz := store.Get(byteKey)
 	if bz ==  nil {
-	return  0
+		return  0
 	}
 	count, err := strconv.ParseInt(string(bz), 10, 64)
 	if err !=  nil {
-	panic("cannot decode count")
+		panic("cannot decode count")
 	}
 	return count
 }
-// increments out greet amount by ```count```
+
+// sets the greet count
 func (k Keeper) SetGreetCount(ctx sdk.Context, count int64){
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetCountKey))
-	byteKey := types.KeyPrefix(types.GreetCountKey)
-	bz := []byte(strconv.FormatInt(count, 10))
-	store.Set(byteKey, bz)
+	key := types.KeyPrefix(types.GreetCountKey)
+	value := []byte(strconv.FormatInt(count, 10))
+	store.Set(key, value)
 }
 
-// stores a newly created greeting 
-func (k Keeper) CreateGreet(ctx sdk.Context, msg types.MsgCreateGreet){
-	count := k.GetGreetCount(ctx) // using our count to create an Id 
-	var greet = types.Greet{
-	Id: strconv.FormatInt(count, 10), // Id is our count 
-	Owner: msg.Owner,
-	Message: msg.Message,
+// creates a new greeting
+func (k Keeper) CreateGreet(ctx sdk.Context, m types.MsgCreateGreet){
+	count := k.GetGreetCount(ctx)
+	greet := types.Greet{
+	Id: strconv.FormatInt(count, 10),
+	Owner: m.Owner,
+	Message: m.Message,
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetKey))
 	key := types.KeyPrefix(types.GreetKey + greet.Id)
 	value := k.cdc.MustMarshal(&greet)
 	store.Set(key, value)
-	k.SetGreetCount(ctx, count +  1) // increments count by 1 
+	k.SetGreetCount(ctx, count +  1)
 }
 
- // gets the greeting from the store
-func (k Keeper) GetGreet(ctx sdk.Context, key string) types.Greet {
+// gets a greeting from the store
+func (k Keeper) GetGreeting(ctx sdk.Context, key string) types.Greet {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetKey))
 	var Greet types.Greet
 	k.cdc.Unmarshal(store.Get(types.KeyPrefix(types.GreetKey + key)), &Greet)
 	return Greet
 }
 
-// checks if a greeting exists in the store
+// checks if a greeting exists by an id
 func (k Keeper) HasGreet(ctx sdk.Context, id string) bool {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetKey))
 	return store.Has(types.KeyPrefix(types.GreetKey + id))
 }
 
-// returns the owner of a particular greeting 
-func (k Keeper) GetGreetOwner(ctx sdk.Context, key string) string{
-	return k.GetGreet(ctx, key).Owner
+// gets the owner of a greeting
+func (k Keeper) GetGreetOwner(ctx sdk.Context, key string) string {
+	return k.GetGreeting(ctx, key).Owner
 }
 
-// returns all greetings from our store
-func (k Keeper) GetAllGreet(ctx sdk.Context) (msgs []types.Greet){
+// gets a list of all greetings in the store
+func (k Keeper) GetAllGreetings(ctx sdk.Context) (msgs []types.Greet){
 	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetKey))
 	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefix(types.GreetKey))
+	
 	defer iterator.Close()
+	
 	for ; iterator.Valid(); iterator.Next() {
 		var msg types.Greet
 		k.cdc.Unmarshal(iterator.Value(), &msg)
@@ -529,161 +332,211 @@ func (k Keeper) GetAllGreet(ctx sdk.Context) (msgs []types.Greet){
 	return
 }
 ```
+### Handling queries 
 
-We set up our store in the keeper, now we just have to add a few wrapper functions that will call these functions used for querying our store. 
-Inside ```x/greet/query_greet.go```:
-```
-package  keeper
-
-import (
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk  "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors  "github.com/cosmos/cosmos-sdk/types/errors"
-)
-
-func  getGreet(ctx sdk.Context, id string, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	msg := keeper.GetGreet(ctx, id)
-	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, msg)
-	if err !=  nil {
-		return  nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, nil
-}
-func  listGreet(ctx sdk.Context, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	msgs := keeper.GetAllGreet(ctx)
-	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, msgs)
-	if err !=  nil {
-		return  nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, err
-}
-```
-
-Now let's set up our querier inside which will call the two different functions ```getGreet``` & ```listGreet``` we defined above.
-
- Inside ```x/greet/querier.go```:
+We have added methods for interacting with greetings such as creating or reading them, now let's set up our two query services so we can route them to the correct method, we will set up our legacy Querier & gRPC querier below the methods we defined above on our keeper. 
 
 ```
-package  keeper
-
-import (
-"github.com/cosmos/cosmos-sdk/codec"
-sdk  "github.com/cosmos/cosmos-sdk/types"
-sdkerrors  "github.com/cosmos/cosmos-sdk/types/errors"
-abci  "github.com/tendermint/tendermint/abci/types"
-"github.com/kava-labs/kava/x/greet/types"
-)
-
-
-func  NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-		return  func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
-		switch path[0] {
-		case types.QueryGetGreet:
-		return  getGreet(ctx, path[1], k, legacyQuerierCdc)
-		case types.QueryListGreet:
-		return  listGreet(ctx, k, legacyQuerierCdc)
-		default:
-		return  nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
-		}
-	}
-}
-```
-Now lets define these two queries inside ```x/greet/types/query.go```:
-```
-package  types
-
-const (
-	QueryGetGreet =  "show-greet"
-	QueryListGreet =  "list-greetings"
-)
-```
-
-```x/greet/keeper/grpc_query_greet.go```:
-
-```
-package  keeper
-
-import (
-"context"
-"github.com/cosmos/cosmos-sdk/store/prefix"
-sdk  "github.com/cosmos/cosmos-sdk/types"
-"github.com/cosmos/cosmos-sdk/types/query"
-"github.com/kava-labs/kava/x/greet/types"
-"google.golang.org/grpc/codes"
-"google.golang.org/grpc/status"
-)
-
-
-func (k Keeper) GreetAll(c context.Context, req *types.QueryAllGreetRequest) (*types.QueryAllGreetResponse, error) {
-	var greetings []*types.Greet
+func (k Keeper) GreetAll(c context.Context, req *types.QueryAllGreetRequest) (*types.QueryAllGreetResponse, error){
 	ctx := sdk.UnwrapSDKContext(c)
-	store := ctx.KVStore(k.key)
-	greetStore := prefix.NewStore(store, types.KeyPrefix(types.GreetKey))
+	var greetings []*types.Greet
+	for _, g :=  range k.GetAllGreetings(ctx) {
+		var greeting =  &g
+		greetings =  append(greetings,greeting)
+	}
+	return  &types.QueryAllGreetResponse{Greetings: greetings, Pagination: nil}, nil
+}
 
-	pageRes, err := query.Paginate(greetStore, req.Pagination, func(key, value []byte) error {
-	var greet types.Greet
-	if err := k.cdc.Unmarshal(value, &greet); err !=  nil {
-		return err
-	}
-	greetings =  append(greetings, &greet)
-	return  nil
-	})
-	if err !=  nil {
-		return  nil, status.Error(codes.Internal, err.Error())
-	}
-	return  &types.QueryAllGreetResponse{Greetings: greetings, Pagination: pageRes}, nil
+func (k Keeper) Greet(c context.Context, req *types.QueryGetGreetRequest) (*types.QueryGetGreetResponse, error){
+	sdk.UnwrapSDKContext(c)
+	var greeting = k.GetGreeting(sdk.UnwrapSDKContext(c), req.Id)
+	return  &types.QueryGetGreetResponse{Greeting: &greeting}, nil
 }
 
   
+  
 
-func (k Keeper) Greet(c context.Context, req *types.QueryGetGreetRequest) (*types.QueryGetGreetResponse, error) {
-	if req ==  nil {
-		return  nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	var greet types.Greet
-	ctx := sdk.UnwrapSDKContext(c)
-	store := prefix.NewStore(ctx.KVStore(k.key), types.KeyPrefix(types.GreetKey))
-	k.cdc.MustUnmarshal(store.Get(types.KeyPrefix(types.GreetKey + req.Id)), &greet)
-	return &types.QueryGetGreetResponse{Greeting: &greet}, nil
-}
-```
-
-```x/greet/handler.go```
-
-```
-package  greet
-
-import (
-	"fmt"
-	 sdk  "github.com/cosmos/cosmos-sdk/types"
-	 sdkerrors  "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/kava-labs/kava/x/greet/types"
-	"github.com/kava-labs/kava/x/greet/keeper"
-)
-
-func  NewHandler(k keeper.Keeper) sdk.Handler{
-	return  func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		ctx = ctx.WithEventManager(sdk.NewEventManager())
-		switch msg := msg.(type) {
-		case  *types.MsgCreateGreet:
-		return  handleMsgCreateGreet(ctx, k, msg)
+// LEGACY QUERIER will be deperacted but for the sake of competeness this is how to set it up
+func  NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return  func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
+	switch path[0] {
+		case types.QueryGetGreeting:
+			var getGreetRequest types.QueryGetGreetRequest
+			err := legacyQuerierCdc.UnmarshalJSON(req.Data, &getGreetRequest)
+			if err !=  nil {
+				return  nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+			}
+			val := k.GetGreeting(ctx, getGreetRequest.GetId())
+			bz, err := legacyQuerierCdc.MarshalJSON(val)
+			if err !=  nil {
+				return  nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+			}
+			return bz, nil
+		
+		case types.QueryListGreetings:
+			val := k.GetAllGreetings(ctx)
+			bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, val)
+			if err !=  nil {
+				return  nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+			}
+			return bz, nil
 		default:
-		errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
-		return  nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
+			return  nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknow request at %s query endpoint", types.ModuleName)
 		}
 	}
 }
+```
 
-func  handleMsgCreateGreet(ctx sdk.Context, k keeper.Keeper, msg *types.MsgCreateGreet) (*sdk.Result, error) {
-	k.CreateGreet(ctx, *msg)
-	return  &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
+### Setting up a command to create a new greeting 
+let's set up a way for clients to submit a new greeting & query existing greetings, we can do that with a CLI, REST, & gRPC clients. for this tutorial we will focus on setting up our CLI client.  create ```x/greet/client/cli/tx.go```. 
+
+here We will define a command to create a new greeting:
+```
+package  cli
+
+import (
+	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/kava-labs/kava/x/greet/types"
+	"github.com/spf13/cobra"
+)
+
+func  GetTxCmd() *cobra.Command {
+	cmd :=  &cobra.Command{
+	Use: types.ModuleName,
+	Short: fmt.Sprintf("%s transactions subcommands", types.ModuleName),
+	DisableFlagParsing: true,
+	SuggestionsMinimumDistance: 2,
+	RunE: client.ValidateCmd,
+	}
+	cmd.AddCommand(CmdCreateGreeting())
+	return cmd
+}
+
+ 
+func  CmdCreateGreeting() *cobra.Command {
+	cmd:=  &cobra.Command{
+	Use: "create-greeting [message]",
+	Short: "creates a new greetings",
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+			message :=  string(args[0])
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err !=  nil {
+				return err
+			}
+			msg := types.NewMsgCreateGreet(clientCtx.GetFromAddress().String(), string(message))
+			if err := msg.ValidateBasic(); err !=  nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 ```
 
-```x/greet/module.go```
+### Querying greetings 
+We will now set up two different commands for querying, one will be to list all greetings & the other will be to get a greeting by it's id. inside ```x/greet/cli/query.go```:
+
+```
+package  cli
+
+import (
+	"context"
+	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/kava-labs/kava/x/greet/types"
+	"github.com/spf13/cobra"
+)
+// this is the parent query command for the greet module everytime we add a new command we will register it here
+func  GetQueryCmd(queryRoute string) *cobra.Command {
+// Group todos queries under a subcommand
+	cmd :=  &cobra.Command{
+		Use: types.ModuleName,
+		Short: fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
+		DisableFlagParsing: true,
+		SuggestionsMinimumDistance: 2,
+		RunE: client.ValidateCmd,
+	}
+
+	cmd.AddCommand(CmdListGreetings())
+	cmd.AddCommand(CmdShowGreeting())
+	return cmd
+}
+
+// build the list greet command function
+func  CmdListGreetings() *cobra.Command {
+	cmd :=  &cobra.Command{
+	Use: "list-greetings",
+	Short: "list all greetings",
+	RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err !=  nil {
+				return err
+			}
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err !=  nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+			params :=  &types.QueryAllGreetRequest{
+			Pagination: pageReq,
+			}
+
+			res, err := queryClient.GreetAll(context.Background(), params)
+			if err !=  nil {
+			return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// build the show greet command function
+func  CmdShowGreeting() *cobra.Command {
+	cmd :=  &cobra.Command{
+	Use: "get-greeting [id]",
+	Short: "shows a greeting",
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err !=  nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+			params :=  &types.QueryGetGreetRequest{
+			Id: args[0],
+			}
+			res, err := queryClient.Greet(context.Background(), params)
+			if err !=  nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+
+```
+
+### Setting up our Module's package 
+
+Now that we have all the basic functionality set up for our greet module, let's bring it all together and get our module ready to be used & tested, create a new file ```x/greet/module.go```. 
+
+Here we will start by implementing our ```AppModuleBasic```  && ```AppModule``` interfaces. 
 
 ```
 package  greet
+
 
 import (
 	"context"
@@ -698,174 +551,165 @@ import (
 	"github.com/kava-labs/kava/x/greet/client/cli"
 	"github.com/kava-labs/kava/x/greet/keeper"
 	"github.com/kava-labs/kava/x/greet/types"
-	"github.com/kava-labs/kava/x/pricefeed/client/rest"
 	"github.com/spf13/cobra"
 	abci  "github.com/tendermint/tendermint/abci/types"
 )
-
-  
 
 var (
 	_ module.AppModule = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-type  AppModuleBasic  struct{} 
- 
-// Name get module name
+/*
+The AppModuleBasic interface defines the independent methods modules need to implement
+it follows this interface below
+type AppModuleBasic interface {
+	Name() string
+	RegisterLegacyAminoCodec(*codec.LegacyAmino)
+	RegisterInterfaces(codectypes.InterfaceRegistry)
+	DefaultGenesis(codec.JSONMarshaler) json.RawMessage
+	ValidateGenesis(codec.JSONMarshaler, client.TxEncodingConfig, json.RawMessage) error
+	// client functionality
+	RegisterRESTRoutes(client.Context, *mux.Router)
+	RegisterGRPCRoutes(client.Context, *runtime.ServeMux)
+	GetTxCmd() *cobra.Command
+	GetQueryCmd() *cobra.Command
+}
+*/
+
+type  AppModuleBasic  struct{}
+
+// Returns the name of the module as a string
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterLegacyAminoCodec register module codec
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
-}
-
-  
-
-// DefaultGenesis default genesis state
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	gs := types.DefaultGenesisState()
 	return cdc.MustMarshalJSON(&gs)
 }
 
+
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var gs types.GenesisState
-	err := cdc.UnmarshalJSON(bz, &gs)
-	if err !=  nil {
-		return err
-	}
-	return gs.Validate()
+	return  nil
 }
-
-
-// RegisterInterfaces implements InterfaceModule.RegisterInterfaces
-func (a AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+// Registers the amino codec for the module, which is used to marshal
+// and unmarshal structs to/from []byte in order to persist them in the module's KVStore.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino){
+	types.RegisterLegacyAminoCodec(cdc)
+}
+// Registers a module's interface types and their concrete implementations as proto.Message
+func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 }
-
-  
-func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterRoutes(clientCtx, rtr)
-}
-
-  
-
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
+// Registers gRPC routes for the module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err !=  nil {
 		panic(err)
 	}
 }
+// Registers the REST routes for the module. These routes will be used to map REST request to the module in order to process them
+func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) { }
 
-  
-
-// GetTxCmd returns the root tx command for the swap module.
+// Returns the root Tx command for the module. The subcommands of this root command are used by end-users
+// to generate new transactions containing messages defined in the module
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd()
 }
-
-  
-
-// GetQueryCmd returns no root query command for the swap module.
+// Return the root query command for the module. The subcommands of this root command are used by end-users
+// to generate new queries to the subset of the state defined by the module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd(types.StoreKey)
 }
 
-// AppModule app module type
-type  AppModule  struct {
+// -------------------------------------APPMODULE BELOW------------------------------------------------- //
+
+  
+
+/*
+The AppModule interface defines the inter-dependent methods that modules need to implement
+follows the interface below
+	type AppModule interface {
+		AppModuleGenesis
+		// registers
+		RegisterInvariants(sdk.InvariantRegistry)
+		// routes
+		Route() sdk.Route
+		// Deprecated: use RegisterServices
+		QuerierRoute() string
+		// Deprecated: use RegisterServices
+		LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier
+		// RegisterServices allows a module to register services
+		RegisterServices(Configurator)
+		// ABCI
+		BeginBlock(sdk.Context, abci.RequestBeginBlock)
+		EndBlock(sdk.Context, abci.RequestEndBlock) []abci.ValidatorUpdate
+	}
+*/
+type  AppModule  struct{
 	AppModuleBasic
 	keeper keeper.Keeper
 }
-
+// constructor
 func  NewAppModule(keeper keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper: keeper,
 	}
 }
-
-// Name module name
+// Returns the route for messages to be routed to the module by BaseApp.
 func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
 }
 
-// RegisterInvariants register module invariants
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) { }
+// registers the invariants of the module. If an invariant deviates from its predicted value,
+// the InvariantRegistry triggers appropriate logic (most often the chain will be halted).
+func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) { }
 
-func (am AppModule) Route() sdk.Route {
+// Returns the route for messages to be routed to the module by BaseApp.
+func (AppModule) Route() sdk.Route {
 	return sdk.Route{}
 }
+  
 
+// Returns the name of the module's query route, for queries to be routes to the module by BaseApp.deprecated
 func (AppModule) QuerierRoute() string {
 	return types.QuerierRoute
 }
 
-  
-
+// Returns a querier given the query path, in order to process the query.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
-
-  
-  
 
 func (AppModule) ConsensusVersion() uint64 {
 	return  1
 }
 
-  
-
-// RegisterServices registers module services.
+// Allows a module to register services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
-  
-  
-
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
-	var genState types.GenesisState
-	cdc.MustUnmarshalJSON(gs, &genState)
-	InitGenesis(ctx, am.keeper, genState)
 	return []abci.ValidatorUpdate{}
 }
 
-  
-
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs :=  ExportGenesis(ctx, am.keeper)
+	gs := types.DefaultGenesisState()
 	return cdc.MustMarshalJSON(&gs)
 }
 
-  
-
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {	}
-
-// EndBlock module end-block
+func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) { }
 func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
-```
-
-
-```x/greet/msg_server.go```:
-
-```
-package  greet
-
-import (
-	"context"
-	"github.com/kava-labs/kava/x/greet/keeper"
-	"github.com/kava-labs/kava/x/greet/types"
-	sdk  "github.com/cosmos/cosmos-sdk/types"
-)
 
   
-  
 
+// ----------------------------------MSGSERVER REGISTER------------------------//
+var _ types.MsgServer = msgServer{}
 type  msgServer  struct {
 	keeper keeper.Keeper
 }
@@ -879,6 +723,55 @@ func (m msgServer) CreateGreet(c context.Context, msg *types.MsgCreateGreet) (*t
 func  NewMsgServerImpl(keeper keeper.Keeper) types.MsgServer {
 	return  &msgServer{keeper: keeper}
 }
-
-var _ types.MsgServer = msgServer{}
 ```
+
+### Hooking up our module inside App.go
+
+inside ```app/app.go``` start off importing the greet module, it's types & keeper packages and add them to the following places: 
+
+1. ```module.NewBasicManager()``` add ```greet.AppModuleBasic{}```
+2.  ```type App struct {}```  add ```greetkeeper.Keeper```
+3.  ```sdk.NewKVStoreKeys()``` inside ```NewApp``` func  add ```greettypes.StoreKey```
+4.  inside ```NewApp``` func add ```app.greetKeeper = greetKeeper.NewKeeper()``` and add arguments ```appCodec``` & ```keys[greettypes.StoreKey]```
+5. inside ```NewApp``` find where we define ```app.mm``` & add ```greet.NewAppModule(app.greetKeeper),```
+6. finally add the greet module's name to ```SetOrderBeginBlockers```, ```SetOrderEndBlockers``` && ```SetOrderInitGenesis```
+
+## Testing our new Module 
+
+1. inside the root of our directory run ```docker build -t kava/kava:tutorial-demo .```
+2. find the directory for ```kvtool``` and open in your favorite code editor 
+3. run ```kvtool testnet gen-config kava --kava.configTemplate upgrade-v44``` which will create a bunch of files inside ```full_configs/generated```
+4. open up the two ```docker-compose.yaml``` files the one inside ```generated``` & the one inside ```generated/kava``` and change the image to point to ```kava/kava:tutorial-demo``` this will point to the local image we just built 
+5. change into the ```full_configs/generated``` directory and run ```docker compose up -d```
+6. now run ```docker compose exec kavanode bash``` to bash into our ```kava``` cli inside the running container
+
+We should now have access to our greet commands that we defined first we will test creating a new greeting, for that we will run the following command: 
+
+```kava tx greet create-greeting "hello world from kava chain" --from whale```
+
+now let's test to see if the greeting message is able to be queried: 
+
+```kava q greet list-greetings```
+
+We should see something like this below: 
+
+```
+greetings:
+- id: "0"
+  message: hello world from kava chain
+  owner: kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc
+pagination: null
+```
+
+Now let's test if we can query the greeting by it's id which in our case will be ```"0"```, run the following: 
+
+```kava q greet get-greeting 0```
+
+We should see:
+```
+greeting:
+  id: "0"
+  message: hello world from kava chain
+  owner: kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc
+```
+
