@@ -23,6 +23,8 @@ import (
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/hard"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
+	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/swap"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
@@ -67,8 +69,23 @@ func (suite *IntegrationTester) NextBlockAfter(blockDuration time.Duration) {
 }
 
 func (suite *IntegrationTester) DeliverIncentiveMsg(msg sdk.Msg) error {
-	handler := incentivekeeper.NewMsgServerImpl(suite.App.GetIncentiveKeeper())
-	_, err := handler(suite.Ctx, msg)
+	msgServer := incentivekeeper.NewMsgServerImpl(suite.App.GetIncentiveKeeper())
+
+	var err error
+
+	switch msg.(type) {
+	case *types.MsgClaimHardReward:
+		msgServer.ClaimHardReward(sdk.WrapSDKContext(suite.Ctx), msg.(*types.MsgClaimHardReward))
+	case *types.MsgClaimSwapReward:
+		_, err = msgServer.ClaimSwapReward(sdk.WrapSDKContext(suite.Ctx), msg.(*types.MsgClaimSwapReward))
+	case *types.MsgClaimUSDXMintingReward:
+		_, err = msgServer.ClaimUSDXMintingReward(sdk.WrapSDKContext(suite.Ctx), msg.(*types.MsgClaimUSDXMintingReward))
+	case *types.MsgClaimDelegatorReward:
+		_, err = msgServer.ClaimDelegatorReward(sdk.WrapSDKContext(suite.Ctx), msg.(*types.MsgClaimDelegatorReward))
+	default:
+		panic("unhandled incentive msg")
+	}
+
 	return err
 }
 
