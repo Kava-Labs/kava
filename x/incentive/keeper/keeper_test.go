@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/incentive/keeper"
@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) SetupApp() {
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
 
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
+	suite.ctx = suite.app.NewContext(true, tmprototypes.Header{Time: suite.genesisTime})
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
