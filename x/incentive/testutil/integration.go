@@ -9,8 +9,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
@@ -23,7 +23,7 @@ import (
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/hard"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
-	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
+	"github.com/kava-labs/kava/x/swap"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
@@ -67,7 +67,7 @@ func (suite *IntegrationTester) NextBlockAfter(blockDuration time.Duration) {
 }
 
 func (suite *IntegrationTester) DeliverIncentiveMsg(msg sdk.Msg) error {
-	handler := incentivetypes.NewHandler(suite.App.GetIncentiveKeeper())
+	handler := incentivekeeper.NewMsgServerImpl(suite.App.GetIncentiveKeeper())
 	_, err := handler(suite.Ctx, msg)
 	return err
 }
@@ -85,8 +85,9 @@ func (suite *IntegrationTester) DeliverMsgCreateValidator(address sdk.ValAddress
 		return err
 	}
 
-	handler := stakingtypes.NewHandler(suite.App.GetStakingKeeper())
-	_, err := handler(suite.Ctx, msg)
+	msgServer := stakingkeeper.NewMsgServerImpl(suite.App.GetStakingKeeper())
+	_, err = msgServer.CreateValidator(sdk.WrapSDKContext(suite.Ctx), msg)
+
 	return err
 }
 
@@ -96,8 +97,8 @@ func (suite *IntegrationTester) DeliverMsgDelegate(delegator sdk.AccAddress, val
 		validator,
 		amount,
 	)
-	handleStakingMsg := stakingtypes.NewHandler(suite.App.GetStakingKeeper())
-	_, err := handleStakingMsg(suite.Ctx, msg)
+	msgServer := stakingkeeper.NewMsgServerImpl(suite.App.GetStakingKeeper())
+	_, err := msgServer.Delegate(sdk.WrapSDKContext(suite.Ctx), msg)
 	return err
 }
 
@@ -109,53 +110,69 @@ func (suite *IntegrationTester) DeliverSwapMsgDeposit(depositor sdk.AccAddress, 
 		slippage,
 		suite.Ctx.BlockTime().Add(time.Hour).Unix(), // ensure msg will not fail due to short deadline
 	)
-	_, err := swaptypes.NewHandler(suite.App.GetSwapKeeper())(suite.Ctx, msg)
+	msgServer := swap.NewMsgServerImpl(suite.App.GetSwapKeeper())
+	_, err := msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), msg)
+
 	return err
 }
 
 func (suite *IntegrationTester) DeliverHardMsgDeposit(owner sdk.AccAddress, deposit sdk.Coins) error {
 	msg := hardtypes.NewMsgDeposit(owner, deposit)
-	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+
+	_, err := msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverHardMsgBorrow(owner sdk.AccAddress, borrow sdk.Coins) error {
 	msg := hardtypes.NewMsgBorrow(owner, borrow)
-	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+
+	_, err := msgServer.Borrow(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverHardMsgRepay(owner sdk.AccAddress, repay sdk.Coins) error {
 	msg := hardtypes.NewMsgRepay(owner, owner, repay)
-	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+
+	_, err := msgServer.Repay(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverHardMsgWithdraw(owner sdk.AccAddress, withdraw sdk.Coins) error {
-	msg := hardtypes.NewMsgRepay(owner, owner, withdraw)
-	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	msg := hardtypes.NewMsgWithdraw(owner, withdraw)
+	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+
+	_, err := msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverMsgCreateCDP(owner sdk.AccAddress, collateral, principal sdk.Coin, collateralType string) error {
 	msg := cdptypes.NewMsgCreateCDP(owner, collateral, principal, collateralType)
-	_, err := cdp.NewHandler(suite.App.GetCDPKeeper())(suite.Ctx, msg)
+	msgServer := cdp.NewMsgServerImpl(suite.App.GetCDPKeeper())
+
+	_, err := msgServer.CreateCDP(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverCDPMsgRepay(owner sdk.AccAddress, collateralType string, payment sdk.Coin) error {
 	msg := cdptypes.NewMsgRepayDebt(owner, collateralType, payment)
-	_, err := cdp.NewHandler(suite.App.GetCDPKeeper())(suite.Ctx, msg)
+	msgServer := cdp.NewMsgServerImpl(suite.App.GetCDPKeeper())
+
+	_, err := msgServer.RepayDebt(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverCDPMsgBorrow(owner sdk.AccAddress, collateralType string, draw sdk.Coin) error {
 	msg := cdptypes.NewMsgDrawDebt(owner, collateralType, draw)
-	_, err := cdp.NewHandler(suite.App.GetCDPKeeper())(suite.Ctx, msg)
+	msgServer := cdp.NewMsgServerImpl(suite.App.GetCDPKeeper())
+
+	_, err := msgServer.DrawDebt(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
-func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, committeeID uint64, changes []paramtypes.ParamChange) {
+func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, committeeID uint64, changes []proposaltypes.ParamChange) {
 	propose, err := committeetypes.NewMsgSubmitProposal(
 		proposaltypes.NewParameterChangeProposal(
 			"test title",
@@ -167,15 +184,14 @@ func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, 
 	)
 	suite.NoError(err)
 
-	handleMsg := committee.NewHandler(suite.App.GetCommitteeKeeper())
+	msgServer := committee.NewMsgServerImpl(suite.App.GetCommitteeKeeper())
 
-	res, err := handleMsg(suite.Ctx, propose)
+	res, err := msgServer.SubmitProposal(sdk.WrapSDKContext(suite.Ctx), propose)
 	suite.NoError(err)
 
-	proposalID := committeetypes.Uint64FromBytes(res.Data)
+	proposalID := res.ProposalID
 	vote := committeetypes.NewMsgVote(voter, proposalID, committeetypes.VOTE_TYPE_YES)
-
-	_, err = handleMsg(suite.Ctx, vote)
+	msgServer.Vote(sdk.WrapSDKContext(suite.Ctx), vote)
 	suite.NoError(err)
 }
 
