@@ -18,7 +18,7 @@ position|name|expects
 4|deadline| deadline block 
 
 
-**Note**: the name is a placeholder for clarity and won't be needed when running the commands, see example below
+
 
 ### Example
 ```

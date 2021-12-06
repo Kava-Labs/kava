@@ -16,7 +16,7 @@ position|name|expects
 2|debt| amount & name (no spaces)
 
 
-**Note**: the name is a placeholder for clarity and won't be needed when running the commands, see example below
+
 
 ### Example
 ```
