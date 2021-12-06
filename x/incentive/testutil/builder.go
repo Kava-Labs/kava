@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/hard"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -35,8 +34,10 @@ func (builder IncentiveGenesisBuilder) Build() types.GenesisState {
 }
 
 func (builder IncentiveGenesisBuilder) BuildMarshalled() app.GenesisState {
+	built := builder.Build()
+
 	return app.GenesisState{
-		types.ModuleName: types.ModuleCdc.MustMarshalJSON(builder.Build()),
+		types.ModuleName: types.ModuleCdc.MustMarshalJSON(&built),
 	}
 }
 
@@ -167,7 +168,8 @@ func (builder IncentiveGenesisBuilder) WithSimpleUSDXRewardPeriod(ctype string, 
 }
 
 func (builder IncentiveGenesisBuilder) WithMultipliers(multipliers types.MultipliersPerDenom) IncentiveGenesisBuilder {
-	builder.Params.ClaimMultipliers = multipliers
+	builder.Params.ClaimMultipliers = types.MultipliersPerDenoms{multipliers}
+
 	return builder
 }
 
@@ -206,15 +208,17 @@ func (builder HardGenesisBuilder) Build() hardtypes.GenesisState {
 	return builder.GenesisState
 }
 func (builder HardGenesisBuilder) BuildMarshalled() app.GenesisState {
+	built := builder.Build()
+
 	return app.GenesisState{
-		hardtypes.ModuleName: hardtypes.ModuleCdc.MustMarshalJSON(builder.Build()),
+		hardtypes.ModuleName: hardtypes.ModuleCdc.MustMarshalJSON(&built),
 	}
 }
 func (builder HardGenesisBuilder) WithGenesisTime(genTime time.Time) HardGenesisBuilder {
 	builder.genesisTime = genTime
 	return builder
 }
-func (builder HardGenesisBuilder) WithInitializedMoneyMarket(market hard.MoneyMarket) HardGenesisBuilder {
+func (builder HardGenesisBuilder) WithInitializedMoneyMarket(market hardtypes.MoneyMarket) HardGenesisBuilder {
 	builder.Params.MoneyMarkets = append(builder.Params.MoneyMarkets, market)
 
 	builder.PreviousAccumulationTimes = append(
@@ -230,14 +234,14 @@ func (builder HardGenesisBuilder) WithMinBorrow(minUSDValue sdk.Dec) HardGenesis
 func NewStandardMoneyMarket(denom string) hardtypes.MoneyMarket {
 	return hardtypes.NewMoneyMarket(
 		denom,
-		hard.NewBorrowLimit(
+		hardtypes.NewBorrowLimit(
 			false,
 			sdk.NewDec(1e15),
 			sdk.MustNewDecFromStr("0.6"),
 		),
 		denom+":usd",
 		sdk.NewInt(1e6),
-		hard.NewInterestRateModel(
+		hardtypes.NewInterestRateModel(
 			sdk.MustNewDecFromStr("0.05"),
 			sdk.MustNewDecFromStr("2"),
 			sdk.MustNewDecFromStr("0.8"),
