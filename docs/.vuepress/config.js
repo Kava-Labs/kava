@@ -10,24 +10,14 @@ module.exports = {
       auto: false,
       nav: [
         {
-          title: "Intro to Kava Platform",
-          children: [
-            {
-              title: "Application Process",
-              path: "/education/application_process.html"
-            },
-            {
-              title: "Development Process",
-              path: "education/dev_process",
-              directory: true,
-            }
-          ]
-        },
-        {
           title: "Getting Started - Developers",
           children: [
             {
-              title: "Hello Kava",
+              title: "Getting Set Up",
+              path: "/education/getting_started.html"
+            },
+            {
+              title: "Building Modules",
               path: "/education/hello_kava.html"
             },
             {
