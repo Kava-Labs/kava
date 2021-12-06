@@ -208,5 +208,4 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 		vacc.VestingPeriods = newPeriods
 	}
 	k.accountKeeper.SetAccount(ctx, vacc)
-	return
 }

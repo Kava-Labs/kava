@@ -17,7 +17,7 @@ import (
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	// hardtypes "github.com/kava-labs/kava/x/hard/types"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -215,10 +215,10 @@ func (k *fakeHardKeeper) GetSupplyInterestFactor(_ sdk.Context, denom string) (s
 	f, ok := k.deposits.interestFactors[denom]
 	return f, ok
 }
-func (k *fakeHardKeeper) GetBorrow(_ sdk.Context, _ sdk.AccAddress) (types.Borrow, bool) {
+func (k *fakeHardKeeper) GetBorrow(_ sdk.Context, _ sdk.AccAddress) (hardtypes.Borrow, bool) {
 	panic("unimplemented")
 }
-func (k *fakeHardKeeper) GetDeposit(_ sdk.Context, _ sdk.AccAddress) (types.Deposit, bool) {
+func (k *fakeHardKeeper) GetDeposit(_ sdk.Context, _ sdk.AccAddress) (hardtypes.Deposit, bool) {
 	panic("unimplemented")
 }
 
