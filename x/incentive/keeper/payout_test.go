@@ -376,12 +376,12 @@ func (suite *PayoutTestSuite) TestSendCoinsToBaseAccount() {
 	expectedPeriods := vestingtypes.Periods{
 		vestingtypes.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
 	}
+
+	bk := suite.app.GetBankKeeper()
+
 	suite.ElementsMatch(expectedPeriods, vacc.VestingPeriods)
 	suite.Equal(cs(c("ukava", 100)), vacc.OriginalVesting)
-
-	// TODO: BlockTime is 100, same as periodic vesting account start date so
-	// it returns nil coins
-	suite.Equal(cs(c("ukava", 500)), vacc.GetVestedCoins(suite.ctx.BlockTime()))
+	suite.Equal(cs(c("ukava", 500)), bk.GetAllBalances(suite.ctx, vacc.GetAddress()))
 	suite.Equal(int64(105), vacc.EndTime)
 	suite.Equal(int64(100), vacc.StartTime)
 }
