@@ -237,8 +237,8 @@ type App struct {
 	hardKeeper       hardkeeper.Keeper
 	committeeKeeper  committeekeeper.Keeper
 
-	// make scoped keepers public for test purposes TODO do we need these public?
-	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper // these "scoped" keepers have something to do with object-capabilities model embedded in IBC spec.
+	// make scoped keepers public for test purposes
+	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	// the module manager
