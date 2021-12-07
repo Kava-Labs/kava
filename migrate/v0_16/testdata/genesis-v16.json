@@ -1,0 +1,37 @@
+{
+  "app_hash": "",
+  "app_state": {
+    "gov": {
+      "deposit_params": {
+        "max_deposit_period": "600s",
+        "min_deposit": [{ "amount": "200000000", "denom": "ukava" }]
+      },
+      "deposits": [],
+      "proposals": [],
+      "starting_proposal_id": "1",
+      "tally_params": {
+        "quorum": "0.334000000000000000",
+        "threshold": "0.500000000000000000",
+        "veto_threshold": "0.334000000000000000"
+      },
+      "votes": [],
+      "voting_params": { "voting_period": "600s" }
+    }
+  },
+  "chain_id": "kava-8",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "200000",
+      "max_gas": "20000000",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age_duration": "172800000000000",
+      "max_age_num_blocks": "100000"
+    },
+    "validator": { "pub_key_types": ["ed25519"] },
+    "version": {}
+  },
+  "genesis_time": "2021-11-30T15:00:00Z",
+  "initial_height": "1"
+}

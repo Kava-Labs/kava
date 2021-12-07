@@ -75,7 +75,8 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	}
 
 	// Get current protocol state and hold in memory as 'prior'
-	cashPrior := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
+	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
+	cashPrior := k.bankKeeper.GetBalance(ctx, macc.GetAddress(), denom).Amount
 
 	borrowedPrior := sdk.NewCoin(denom, sdk.ZeroInt())
 	borrowedCoinsPrior, foundBorrowedCoinsPrior := k.GetBorrowedCoins(ctx)
@@ -313,12 +314,4 @@ func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
 // interest rate. The returned value is an estimate  and should not be used for financial calculations.
 func SPYToEstimatedAPY(apy sdk.Dec) sdk.Dec {
 	return apy.Power(uint64(secondsPerYear))
-}
-
-// minInt64 returns the smaller of x or y
-func minDec(x, y sdk.Dec) sdk.Dec {
-	if x.GT(y) {
-		return y
-	}
-	return x
 }

@@ -7,14 +7,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/kava-labs/kava/x/hard/types"
 )
 
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/unsynced-deposits", types.ModuleName), queryUnsyncedDepositsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/deposits", types.ModuleName), queryDepositsHandlerFn(cliCtx)).Methods("GET")
@@ -28,7 +28,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/interest-factors", types.ModuleName), queryInterestFactorsHandlerFn(cliCtx)).Methods("GET")
 }
 
-func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryParamsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -48,7 +48,7 @@ func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryDepositsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -79,7 +79,7 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryDepositsParams(page, limit, denom, owner)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -96,7 +96,7 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryUnsyncedDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryUnsyncedDepositsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -127,7 +127,7 @@ func queryUnsyncedDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc 
 
 		params := types.NewQueryUnsyncedDepositsParams(page, limit, denom, owner)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -144,7 +144,7 @@ func queryUnsyncedDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc 
 	}
 }
 
-func queryTotalDepositedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryTotalDepositedHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -165,7 +165,7 @@ func queryTotalDepositedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryTotalDepositedParams(denom)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -182,7 +182,7 @@ func queryTotalDepositedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryBorrowsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryBorrowsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -213,7 +213,7 @@ func queryBorrowsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryBorrowsParams(page, limit, owner, denom)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -230,7 +230,7 @@ func queryBorrowsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryUnsyncedBorrowsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryUnsyncedBorrowsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -261,7 +261,7 @@ func queryUnsyncedBorrowsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryUnsyncedBorrowsParams(page, limit, owner, denom)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -278,7 +278,7 @@ func queryUnsyncedBorrowsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryTotalBorrowedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryTotalBorrowedHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -299,7 +299,7 @@ func queryTotalBorrowedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryTotalBorrowedParams(denom)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -316,7 +316,7 @@ func queryTotalBorrowedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryInterestRateHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryInterestRateHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -337,7 +337,7 @@ func queryInterestRateHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryInterestRateParams(denom)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -354,7 +354,7 @@ func queryInterestRateHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryModAccountsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryModAccountsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -375,7 +375,7 @@ func queryModAccountsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryAccountParams(page, limit, name)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -392,7 +392,7 @@ func queryModAccountsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryReservesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryReservesHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -413,7 +413,7 @@ func queryReservesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryReservesParams(denom)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -430,7 +430,7 @@ func queryReservesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryInterestFactorsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryInterestFactorsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -451,7 +451,7 @@ func queryInterestFactorsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryInterestFactorsParams(denom)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

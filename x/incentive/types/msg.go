@@ -17,14 +17,8 @@ var _ sdk.Msg = &MsgClaimDelegatorRewardVVesting{}
 var _ sdk.Msg = &MsgClaimSwapReward{}
 var _ sdk.Msg = &MsgClaimSwapRewardVVesting{}
 
-// MsgClaimUSDXMintingReward message type used to claim USDX minting rewards
-type MsgClaimUSDXMintingReward struct {
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
-}
-
 // NewMsgClaimUSDXMintingReward returns a new MsgClaimUSDXMintingReward.
-func NewMsgClaimUSDXMintingReward(sender sdk.AccAddress, multiplierName string) MsgClaimUSDXMintingReward {
+func NewMsgClaimUSDXMintingReward(sender string, multiplierName string) MsgClaimUSDXMintingReward {
 	return MsgClaimUSDXMintingReward{
 		Sender:         sender,
 		MultiplierName: multiplierName,
@@ -39,10 +33,11 @@ func (msg MsgClaimUSDXMintingReward) Type() string { return "claim_usdx_minting_
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgClaimUSDXMintingReward) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
-	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
+	if err := NewMultiplierNameFromString(msg.MultiplierName).IsValid(); err != nil {
 		return err
 	}
 	return nil
@@ -50,24 +45,21 @@ func (msg MsgClaimUSDXMintingReward) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgClaimUSDXMintingReward) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgClaimUSDXMintingReward) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// MsgClaimUSDXMintingRewardVVesting message type used to claim USDX minting rewards for validator vesting accounts
-type MsgClaimUSDXMintingRewardVVesting struct {
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	Receiver       sdk.AccAddress `json:"receiver" yaml:"receiver"`
-	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // NewMsgClaimUSDXMintingRewardVVesting returns a new MsgClaimUSDXMintingReward.
-func NewMsgClaimUSDXMintingRewardVVesting(sender, receiver sdk.AccAddress, multiplierName string) MsgClaimUSDXMintingRewardVVesting {
+func NewMsgClaimUSDXMintingRewardVVesting(sender, receiver string, multiplierName string) MsgClaimUSDXMintingRewardVVesting {
 	return MsgClaimUSDXMintingRewardVVesting{
 		Sender:         sender,
 		Receiver:       receiver,
@@ -85,13 +77,15 @@ func (msg MsgClaimUSDXMintingRewardVVesting) Type() string {
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgClaimUSDXMintingRewardVVesting) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
-	if msg.Receiver.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
+	_, err = sdk.AccAddressFromBech32(msg.Receiver)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty or invalid")
 	}
-	if err := MultiplierName(msg.MultiplierName).IsValid(); err != nil {
+	if err := NewMultiplierNameFromString(msg.MultiplierName).IsValid(); err != nil {
 		return err
 	}
 	return nil
@@ -99,23 +93,21 @@ func (msg MsgClaimUSDXMintingRewardVVesting) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgClaimUSDXMintingRewardVVesting) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgClaimUSDXMintingRewardVVesting) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// MsgClaimHardReward message type used to claim Hard liquidity provider rewards
-type MsgClaimHardReward struct {
-	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
-	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // NewMsgClaimHardReward returns a new MsgClaimHardReward.
-func NewMsgClaimHardReward(sender sdk.AccAddress, denomsToClaim ...Selection) MsgClaimHardReward {
+func NewMsgClaimHardReward(sender string, denomsToClaim Selections) MsgClaimHardReward {
 	return MsgClaimHardReward{
 		Sender:        sender,
 		DenomsToClaim: denomsToClaim,
@@ -132,8 +124,9 @@ func (msg MsgClaimHardReward) Type() string {
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgClaimHardReward) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
@@ -143,24 +136,21 @@ func (msg MsgClaimHardReward) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgClaimHardReward) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgClaimHardReward) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// MsgClaimHardRewardVVesting message type used to claim Hard liquidity provider rewards for validator vesting accounts
-type MsgClaimHardRewardVVesting struct {
-	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
-	Receiver      sdk.AccAddress `json:"receiver" yaml:"receiver"`
-	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // NewMsgClaimHardRewardVVesting returns a new MsgClaimHardRewardVVesting.
-func NewMsgClaimHardRewardVVesting(sender, receiver sdk.AccAddress, denomsToClaim ...Selection) MsgClaimHardRewardVVesting {
+func NewMsgClaimHardRewardVVesting(sender, receiver string, denomsToClaim Selections) MsgClaimHardRewardVVesting {
 	return MsgClaimHardRewardVVesting{
 		Sender:        sender,
 		Receiver:      receiver,
@@ -178,11 +168,13 @@ func (msg MsgClaimHardRewardVVesting) Type() string {
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgClaimHardRewardVVesting) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
-	if msg.Receiver.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
+	_, err = sdk.AccAddressFromBech32(msg.Receiver)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
@@ -192,23 +184,21 @@ func (msg MsgClaimHardRewardVVesting) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgClaimHardRewardVVesting) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgClaimHardRewardVVesting) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// MsgClaimDelegatorReward message type used to claim delegator rewards
-type MsgClaimDelegatorReward struct {
-	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
-	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // NewMsgClaimDelegatorReward returns a new MsgClaimDelegatorReward.
-func NewMsgClaimDelegatorReward(sender sdk.AccAddress, denomsToClaim ...Selection) MsgClaimDelegatorReward {
+func NewMsgClaimDelegatorReward(sender string, denomsToClaim Selections) MsgClaimDelegatorReward {
 	return MsgClaimDelegatorReward{
 		Sender:        sender,
 		DenomsToClaim: denomsToClaim,
@@ -225,8 +215,9 @@ func (msg MsgClaimDelegatorReward) Type() string {
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgClaimDelegatorReward) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
@@ -236,24 +227,21 @@ func (msg MsgClaimDelegatorReward) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgClaimDelegatorReward) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgClaimDelegatorReward) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// MsgClaimDelegatorRewardVVesting message type used to claim delegator rewards for validator vesting accounts
-type MsgClaimDelegatorRewardVVesting struct {
-	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
-	Receiver      sdk.AccAddress `json:"receiver" yaml:"receiver"`
-	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // MsgClaimDelegatorRewardVVesting returns a new MsgClaimDelegatorRewardVVesting.
-func NewMsgClaimDelegatorRewardVVesting(sender, receiver sdk.AccAddress, denomsToClaim ...Selection) MsgClaimDelegatorRewardVVesting {
+func NewMsgClaimDelegatorRewardVVesting(sender, receiver string, denomsToClaim Selections) MsgClaimDelegatorRewardVVesting {
 	return MsgClaimDelegatorRewardVVesting{
 		Sender:        sender,
 		Receiver:      receiver,
@@ -271,11 +259,13 @@ func (msg MsgClaimDelegatorRewardVVesting) Type() string {
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgClaimDelegatorRewardVVesting) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
-	if msg.Receiver.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
+	_, err = sdk.AccAddressFromBech32(msg.Receiver)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
@@ -285,23 +275,21 @@ func (msg MsgClaimDelegatorRewardVVesting) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgClaimDelegatorRewardVVesting) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgClaimDelegatorRewardVVesting) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// MsgClaimSwapReward message type used to claim delegator rewards
-type MsgClaimSwapReward struct {
-	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
-	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // NewMsgClaimSwapReward returns a new MsgClaimSwapReward.
-func NewMsgClaimSwapReward(sender sdk.AccAddress, denomsToClaim ...Selection) MsgClaimSwapReward {
+func NewMsgClaimSwapReward(sender string, denomsToClaim Selections) MsgClaimSwapReward {
 	return MsgClaimSwapReward{
 		Sender:        sender,
 		DenomsToClaim: denomsToClaim,
@@ -318,8 +306,9 @@ func (msg MsgClaimSwapReward) Type() string {
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgClaimSwapReward) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
@@ -329,24 +318,21 @@ func (msg MsgClaimSwapReward) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgClaimSwapReward) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgClaimSwapReward) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-// MsgClaimSwapRewardVVesting message type used to claim delegator rewards for validator vesting accounts
-type MsgClaimSwapRewardVVesting struct {
-	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
-	Receiver      sdk.AccAddress `json:"receiver" yaml:"receiver"`
-	DenomsToClaim Selections     `json:"denoms_to_claim" yaml:"denoms_to_claim"`
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }
 
 // MsgClaimSwapRewardVVesting returns a new MsgClaimSwapRewardVVesting.
-func NewMsgClaimSwapRewardVVesting(sender, receiver sdk.AccAddress, denomsToClaim ...Selection) MsgClaimSwapRewardVVesting {
+func NewMsgClaimSwapRewardVVesting(sender, receiver string, denomsToClaim Selections) MsgClaimSwapRewardVVesting {
 	return MsgClaimSwapRewardVVesting{
 		Sender:        sender,
 		Receiver:      receiver,
@@ -364,11 +350,13 @@ func (msg MsgClaimSwapRewardVVesting) Type() string {
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgClaimSwapRewardVVesting) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
-	if msg.Receiver.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
+	_, err = sdk.AccAddressFromBech32(msg.Receiver)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
@@ -378,11 +366,15 @@ func (msg MsgClaimSwapRewardVVesting) ValidateBasic() error {
 
 // GetSignBytes gets the canonical byte representation of the Msg.
 func (msg MsgClaimSwapRewardVVesting) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgClaimSwapRewardVVesting) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
 }

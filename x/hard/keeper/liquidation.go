@@ -91,9 +91,10 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 		}
 	}
 	if !keeperRewardCoins.Empty() {
-		k.DecrementSuppliedCoins(ctx, keeperRewardCoins)
-		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, keeperRewardCoins)
-		if err != nil {
+		if err := k.DecrementSuppliedCoins(ctx, keeperRewardCoins); err != nil {
+			return err
+		}
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, keeperRewardCoins); err != nil {
 			return err
 		}
 	}
@@ -155,8 +156,8 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 	weights := []sdk.Int{sdk.NewInt(100)}
 	debt := sdk.NewCoin("debt", sdk.ZeroInt())
 
-	macc := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
-	maccCoins := macc.SpendableCoins(ctx.BlockTime())
+	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
+	maccCoins := k.bankKeeper.SpendableCoins(ctx, macc.GetAddress())
 
 	var liquidatedCoins sdk.Coins
 	for _, bKey := range bKeys {
@@ -280,7 +281,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 		remaining := deposits.AmountOf(dKey)
 		if remaining.GT(sdk.ZeroInt()) {
 			returnCoin := sdk.NewCoins(sdk.NewCoin(dKey, remaining))
-			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, returnCoin)
+			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, returnCoin)
 			if err != nil {
 				return liquidatedCoins, err
 			}

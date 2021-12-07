@@ -7,14 +7,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard"
+	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
-	"github.com/kava-labs/kava/x/pricefeed"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 type InterestTestSuite struct {
@@ -84,7 +85,7 @@ func (suite *InterestTestSuite) TestCalculateUtilizationRatio() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			utilRatio := hard.CalculateUtilizationRatio(tc.args.cash, tc.args.borrows, tc.args.reserves)
+			utilRatio := keeper.CalculateUtilizationRatio(tc.args.cash, tc.args.borrows, tc.args.reserves)
 			suite.Require().Equal(tc.args.expectedValue, utilRatio)
 		})
 	}
@@ -211,7 +212,7 @@ func (suite *InterestTestSuite) TestCalculateBorrowRate() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			borrowRate, err := hard.CalculateBorrowRate(tc.args.model, tc.args.cash, tc.args.borrows, tc.args.reserves)
+			borrowRate, err := keeper.CalculateBorrowRate(tc.args.model, tc.args.cash, tc.args.borrows, tc.args.reserves)
 			suite.Require().NoError(err)
 			suite.Require().Equal(tc.args.expectedValue, borrowRate)
 		})
@@ -340,8 +341,10 @@ func (suite *InterestTestSuite) TestCalculateBorrowInterestFactor() {
 	}
 
 	for _, tc := range testCases {
-		interestFactor := hard.CalculateBorrowInterestFactor(tc.args.perSecondInterestRate, tc.args.timeElapsed)
-		suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		suite.Run(tc.name, func() {
+			interestFactor := keeper.CalculateBorrowInterestFactor(tc.args.perSecondInterestRate, tc.args.timeElapsed)
+			suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		})
 	}
 }
 
@@ -397,9 +400,11 @@ func (suite *InterestTestSuite) TestCalculateSupplyInterestFactor() {
 	}
 
 	for _, tc := range testCases {
-		interestFactor := hard.CalculateSupplyInterestFactor(tc.args.newInterest,
-			tc.args.cash, tc.args.borrows, tc.args.reserves)
-		suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		suite.Run(tc.name, func() {
+			interestFactor := keeper.CalculateSupplyInterestFactor(tc.args.newInterest,
+				tc.args.cash, tc.args.borrows, tc.args.reserves)
+			suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		})
 	}
 }
 
@@ -467,7 +472,7 @@ func (suite *InterestTestSuite) TestAPYToSPY() {
 		{
 			"out of bounds error after 178",
 			args{
-				apy:           sdk.MustNewDecFromStr("178"),
+				apy:           sdk.MustNewDecFromStr("179"),
 				expectedValue: sdk.ZeroDec(),
 			},
 			true,
@@ -475,7 +480,7 @@ func (suite *InterestTestSuite) TestAPYToSPY() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			spy, err := hard.APYToSPY(tc.args.apy)
+			spy, err := keeper.APYToSPY(tc.args.apy)
 			if tc.expectError {
 				suite.Require().Error(err)
 			} else {
@@ -551,7 +556,7 @@ func (suite *InterestTestSuite) TestSPYToEstimatedAPY() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			// From SPY calculate APY and parse result from sdk.Dec to float64
-			calculatedAPY := hard.SPYToEstimatedAPY(tc.args.spy)
+			calculatedAPY := keeper.SPYToEstimatedAPY(tc.args.spy)
 			calculatedAPYFloat, err := strconv.ParseFloat(calculatedAPY.String(), 32)
 			suite.Require().NoError(err)
 
@@ -808,12 +813,13 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 			// Auth module genesis state
-			authGS := app.NewAuthGenState(
-				[]sdk.AccAddress{tc.args.user},
+			authGS := app.NewFundedGenStateWithCoins(
+				tApp.AppCodec(),
 				[]sdk.Coins{tc.args.initialBorrowerCoins},
+				[]sdk.AccAddress{tc.args.user},
 			)
 
 			// Hard module genesis state
@@ -833,13 +839,13 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 			)
 
 			// Pricefeed module genesis state
-			pricefeedGS := pricefeed.GenesisState{
-				Params: pricefeed.Params{
-					Markets: []pricefeed.Market{
+			pricefeedGS := pricefeedtypes.GenesisState{
+				Params: pricefeedtypes.Params{
+					Markets: []pricefeedtypes.Market{
 						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 					},
 				},
-				PostedPrices: []pricefeed.PostedPrice{
+				PostedPrices: []pricefeedtypes.PostedPrice{
 					{
 						MarketID:      "kava:usd",
 						OracleAddress: sdk.AccAddress{},
@@ -851,19 +857,17 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 
 			// Initialize test application
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
+				app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)})
 
 			// Mint coins to Hard module account
-			supplyKeeper := tApp.GetSupplyKeeper()
-			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			bankKeeper := tApp.GetBankKeeper()
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			suite.Require().NoError(err)
 
-			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
-			suite.keeper = keeper
-
-			var err error
+			suite.keeper = tApp.GetHardKeeper()
 
 			// Run begin blocker and store initial block time
 			hard.BeginBlocker(suite.ctx, suite.keeper)
@@ -889,7 +893,7 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 			for _, snapshot := range tc.args.expectedInterestSnaphots {
 				// ---------------------------- Calculate expected interest ----------------------------
 				// 1. Get cash, borrows, reserves, and borrow index
-				cashPrior := suite.getModuleAccountAtCtx(types.ModuleName, prevCtx).GetCoins().AmountOf(tc.args.borrowCoinDenom)
+				cashPrior := suite.getAccountCoins(suite.getModuleAccountAtCtx(types.ModuleName, prevCtx)).AmountOf(tc.args.borrowCoinDenom)
 
 				borrowCoinsPrior, borrowCoinsPriorFound := suite.keeper.GetBorrowedCoins(prevCtx)
 				suite.Require().True(borrowCoinsPriorFound)
@@ -904,14 +908,14 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 				suite.Require().True(foundInterestFactorPrior)
 
 				// 2. Calculate expected interest owed
-				borrowRateApy, err := hard.CalculateBorrowRate(tc.args.interestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.AmountOf(tc.args.borrowCoinDenom)))
+				borrowRateApy, err := keeper.CalculateBorrowRate(tc.args.interestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.AmountOf(tc.args.borrowCoinDenom)))
 				suite.Require().NoError(err)
 
 				// Convert from APY to SPY, expressed as (1 + borrow rate)
-				borrowRateSpy, err := hard.APYToSPY(sdk.OneDec().Add(borrowRateApy))
+				borrowRateSpy, err := keeper.APYToSPY(sdk.OneDec().Add(borrowRateApy))
 				suite.Require().NoError(err)
 
-				interestFactor := hard.CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
+				interestFactor := keeper.CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
 				expectedInterest := (interestFactor.Mul(sdk.NewDecFromInt(borrowCoinPriorAmount)).TruncateInt()).Sub(borrowCoinPriorAmount)
 				expectedReserves := reservesPrior.Add(sdk.NewCoin(tc.args.borrowCoinDenom, sdk.NewDecFromInt(expectedInterest).Mul(tc.args.reserveFactor).TruncateInt()))
 				expectedInterestFactor := interestFactorPrior.Mul(interestFactor)
@@ -929,7 +933,7 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 
 				// Check that the total reserves have changed as expected
 				currTotalReserves, _ := suite.keeper.GetTotalReserves(snapshotCtx)
-				suite.Require().Equal(expectedReserves, currTotalReserves)
+				suite.Require().True(expectedReserves.IsEqual(currTotalReserves))
 
 				// Check that the borrow index has increased as expected
 				currIndexPrior, _ := suite.keeper.GetBorrowInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
@@ -963,7 +967,6 @@ type ExpectedSupplyInterest struct {
 func (suite *KeeperTestSuite) TestSupplyInterest() {
 	type args struct {
 		user                     sdk.AccAddress
-		initialSupplierCoins     sdk.Coins
 		initialBorrowerCoins     sdk.Coins
 		initialModuleCoins       sdk.Coins
 		depositCoins             sdk.Coins
@@ -1215,12 +1218,13 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 			// Auth module genesis state
-			authGS := app.NewAuthGenState(
-				[]sdk.AccAddress{tc.args.user},
+			authGS := app.NewFundedGenStateWithCoins(
+				tApp.AppCodec(),
 				[]sdk.Coins{tc.args.initialBorrowerCoins},
+				[]sdk.AccAddress{tc.args.user},
 			)
 
 			// Hard module genesis state
@@ -1247,14 +1251,14 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 			)
 
 			// Pricefeed module genesis state
-			pricefeedGS := pricefeed.GenesisState{
-				Params: pricefeed.Params{
-					Markets: []pricefeed.Market{
+			pricefeedGS := pricefeedtypes.GenesisState{
+				Params: pricefeedtypes.Params{
+					Markets: []pricefeedtypes.Market{
 						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 						{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 					},
 				},
-				PostedPrices: []pricefeed.PostedPrice{
+				PostedPrices: []pricefeedtypes.PostedPrice{
 					{
 						MarketID:      "kava:usd",
 						OracleAddress: sdk.AccAddress{},
@@ -1272,20 +1276,18 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 
 			// Initialize test application
 			tApp.InitializeFromGenesisStates(authGS,
-				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
-				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
+				app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)})
 
 			// Mint coins to Hard module account
-			supplyKeeper := tApp.GetSupplyKeeper()
-			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			bankKeeper := tApp.GetBankKeeper()
+			err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+			suite.Require().NoError(err)
 
-			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
-			suite.keeper = keeper
+			suite.keeper = tApp.GetHardKeeper()
 			suite.keeper.SetSuppliedCoins(ctx, tc.args.initialModuleCoins)
-
-			var err error
 
 			// Run begin blocker
 			hard.BeginBlocker(suite.ctx, suite.keeper)
@@ -1304,7 +1306,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 				for _, coinDenom := range tc.args.coinDenoms {
 					// ---------------------------- Calculate expected supply interest ----------------------------
 					// 1. Get cash, borrows, reserves, and borrow index
-					cashPrior := suite.getModuleAccountAtCtx(types.ModuleName, prevCtx).GetCoins().AmountOf(coinDenom)
+					cashPrior := suite.getAccountCoins(suite.getModuleAccountAtCtx(types.ModuleName, prevCtx)).AmountOf(coinDenom)
 
 					var borrowCoinPriorAmount sdk.Int
 					borrowCoinsPrior, borrowCoinsPriorFound := suite.keeper.GetBorrowedCoins(prevCtx)
@@ -1328,14 +1330,14 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					suite.Require().True(foundSupplyInterestFactorPrior)
 
 					// 2. Calculate expected borrow interest owed
-					borrowRateApy, err := hard.CalculateBorrowRate(tc.args.interestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.AmountOf(coinDenom)))
+					borrowRateApy, err := keeper.CalculateBorrowRate(tc.args.interestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.AmountOf(coinDenom)))
 					suite.Require().NoError(err)
 
 					// Convert from APY to SPY, expressed as (1 + borrow rate)
-					borrowRateSpy, err := hard.APYToSPY(sdk.OneDec().Add(borrowRateApy))
+					borrowRateSpy, err := keeper.APYToSPY(sdk.OneDec().Add(borrowRateApy))
 					suite.Require().NoError(err)
 
-					newBorrowInterestFactor := hard.CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
+					newBorrowInterestFactor := keeper.CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
 					expectedBorrowInterest := (newBorrowInterestFactor.Mul(sdk.NewDecFromInt(borrowCoinPriorAmount)).TruncateInt()).Sub(borrowCoinPriorAmount)
 					expectedReserves := reservesPrior.Add(sdk.NewCoin(coinDenom, sdk.NewDecFromInt(expectedBorrowInterest).Mul(tc.args.reserveFactor).TruncateInt())).Sub(reservesPrior)
 					expectedTotalReserves := expectedReserves.Add(reservesPrior...)
@@ -1343,7 +1345,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					expectedBorrowInterestFactor := borrowInterestFactorPrior.Mul(newBorrowInterestFactor)
 					expectedSupplyInterest := expectedBorrowInterest.Sub(expectedReserves.AmountOf(coinDenom))
 
-					newSupplyInterestFactor := hard.CalculateSupplyInterestFactor(expectedSupplyInterest.ToDec(), sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.AmountOf(coinDenom)))
+					newSupplyInterestFactor := keeper.CalculateSupplyInterestFactor(expectedSupplyInterest.ToDec(), sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.AmountOf(coinDenom)))
 					expectedSupplyInterestFactor := supplyInterestFactorPrior.Mul(newSupplyInterestFactor)
 					// -------------------------------------------------------------------------------------
 
