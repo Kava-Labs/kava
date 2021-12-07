@@ -69,7 +69,7 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing(
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		NewCDPGenStateMulti(),
 		authBulder.BuildMarshalled(suite.App.AppCodec()),
-		incentBuilder.BuildMarshalled(),
+		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 	)
 
 	// User creates a CDP to begin earning rewards.
@@ -128,7 +128,7 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncin
 		authBuilder.BuildMarshalled(suite.App.AppCodec()),
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		NewCDPGenStateMulti(),
-		incentBuilder.BuildMarshalled(),
+		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 	)
 
 	// Setup cdp state containing one CDP
@@ -175,7 +175,7 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 		authBuilder.BuildMarshalled(suite.App.AppCodec()),
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		NewCDPGenStateMulti(),
-		incentBuilder.BuildMarshalled(),
+		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 		NewCommitteeGenesisState(suite.App.AppCodec(), 0, userA), // create a committtee to change params
 	)
 
@@ -271,7 +271,7 @@ func (suite *USDXRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGe
 		authBuilder.BuildMarshalled(suite.app.AppCodec()),
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		NewCDPGenStateMulti(),
-		incentBuilder.BuildMarshalled(),
+		incentBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
 }
 

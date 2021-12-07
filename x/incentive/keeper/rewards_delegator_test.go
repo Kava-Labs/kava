@@ -63,7 +63,7 @@ func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthB
 		suite.genesisTime,
 		authBuilder.BuildMarshalled(suite.app.AppCodec()),
 		NewStakingGenesisState(suite.app.AppCodec()),
-		incentBuilder.BuildMarshalled(),
+		incentBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
 }
 

@@ -3,6 +3,7 @@ package testutil
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
@@ -33,11 +34,11 @@ func (builder IncentiveGenesisBuilder) Build() types.GenesisState {
 	return builder.GenesisState
 }
 
-func (builder IncentiveGenesisBuilder) BuildMarshalled() app.GenesisState {
+func (builder IncentiveGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) app.GenesisState {
 	built := builder.Build()
 
 	return app.GenesisState{
-		types.ModuleName: types.ModuleCdc.MustMarshalJSON(&built),
+		types.ModuleName: cdc.MustMarshalJSON(&built),
 	}
 }
 

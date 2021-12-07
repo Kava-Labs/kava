@@ -67,7 +67,7 @@ func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthBankGenesisB
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		NewCDPGenStateMulti(),
 		hardBuilder.BuildMarshalled(),
-		incentBuilder.BuildMarshalled(),
+		incentBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
 }
 

@@ -61,7 +61,7 @@ func (suite *BorrowIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		NewHardGenStateMulti(suite.genesisTime).BuildMarshalled(),
 		authBulder.BuildMarshalled(suite.App.AppCodec()),
-		incentBuilder.BuildMarshalled(),
+		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 	)
 
 	// Create a borrow (need to first deposit to allow it)
@@ -137,7 +137,7 @@ func (suite *BorrowRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBank
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 		hardBuilder.BuildMarshalled(),
 		NewCommitteeGenesisState(suite.app.AppCodec(), 1, suite.addrs[:2]...),
-		incentBuilder.BuildMarshalled(),
+		incentBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
 }
 

@@ -13,6 +13,7 @@ import (
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
+	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
 // Avoid cluttering test cases with long function names
@@ -215,5 +216,19 @@ func NewCommitteeGenesisState(cdc codec.Codec, committeeID uint64, members ...sd
 
 	return app.GenesisState{
 		committeetypes.ModuleName: cdc.MustMarshalJSON(genState),
+	}
+}
+
+func NewSwapGenesisState(cdc codec.JSONCodec) app.GenesisState {
+	genesis := swaptypes.NewGenesisState(
+		swaptypes.NewParams(
+			swaptypes.NewAllowedPools(swaptypes.NewAllowedPool("busd", "ukava")),
+			d("0.0"),
+		),
+		swaptypes.DefaultPoolRecords,
+		swaptypes.DefaultShareRecords,
+	)
+	return app.GenesisState{
+		swaptypes.ModuleName: cdc.MustMarshalJSON(&genesis),
 	}
 }
