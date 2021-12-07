@@ -540,6 +540,7 @@ func NewApp(
 		cdptypes.ModuleName,
 		hardtypes.ModuleName,
 		committeetypes.ModuleName,
+		incentivetypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -567,6 +568,7 @@ func NewApp(
 		swaptypes.ModuleName,
 		cdptypes.ModuleName,
 		hardtypes.ModuleName,
+		incentivetypes.ModuleName,
 		committeetypes.ModuleName,
 		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
 	)
