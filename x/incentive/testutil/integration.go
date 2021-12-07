@@ -73,15 +73,15 @@ func (suite *IntegrationTester) DeliverIncentiveMsg(msg sdk.Msg) error {
 
 	var err error
 
-	switch msg.(type) {
+	switch msg := msg.(type) {
 	case *types.MsgClaimHardReward:
-		msgServer.ClaimHardReward(sdk.WrapSDKContext(suite.Ctx), msg.(*types.MsgClaimHardReward))
+		msgServer.ClaimHardReward(sdk.WrapSDKContext(suite.Ctx), msg)
 	case *types.MsgClaimSwapReward:
-		_, err = msgServer.ClaimSwapReward(sdk.WrapSDKContext(suite.Ctx), msg.(*types.MsgClaimSwapReward))
+		_, err = msgServer.ClaimSwapReward(sdk.WrapSDKContext(suite.Ctx), msg)
 	case *types.MsgClaimUSDXMintingReward:
-		_, err = msgServer.ClaimUSDXMintingReward(sdk.WrapSDKContext(suite.Ctx), msg.(*types.MsgClaimUSDXMintingReward))
+		_, err = msgServer.ClaimUSDXMintingReward(sdk.WrapSDKContext(suite.Ctx), msg)
 	case *types.MsgClaimDelegatorReward:
-		_, err = msgServer.ClaimDelegatorReward(sdk.WrapSDKContext(suite.Ctx), msg.(*types.MsgClaimDelegatorReward))
+		_, err = msgServer.ClaimDelegatorReward(sdk.WrapSDKContext(suite.Ctx), msg)
 	default:
 		panic("unhandled incentive msg")
 	}
