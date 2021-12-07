@@ -178,11 +178,11 @@ func NewHardGenStateMulti(genTime time.Time) testutil.HardGenesisBuilder {
 	return builder
 }
 
-func NewStakingGenesisState() app.GenesisState {
+func NewStakingGenesisState(cdc codec.JSONCodec) app.GenesisState {
 	genState := stakingtypes.DefaultGenesisState()
 	genState.Params.BondDenom = "ukava"
 	return app.GenesisState{
-		stakingtypes.ModuleName: stakingtypes.ModuleCdc.MustMarshalJSON(genState),
+		stakingtypes.ModuleName: cdc.MustMarshalJSON(genState),
 	}
 }
 

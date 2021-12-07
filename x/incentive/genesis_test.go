@@ -111,8 +111,8 @@ func (suite *GenesisTestSuite) SetupTest() {
 		authBuilder.BuildMarshalled(cdc),
 		app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&incentiveGS)},
 		app.GenesisState{hardtypes.ModuleName: cdc.MustMarshalJSON(&hardGS)},
-		NewCDPGenStateMulti(),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
+		NewCDPGenStateMulti(cdc),
+		NewPricefeedGenStateMultiFromTime(cdc, suite.genesisTime),
 	)
 
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
@@ -243,8 +243,8 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 	// Incentive init genesis reads from the cdp keeper to check params are ok. So it needs to be initialized first.
 	// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.
 	tApp.InitializeFromGenesisStates(
-		NewCDPGenStateMulti(),
-		NewPricefeedGenStateMultiFromTime(genesisTime),
+		NewCDPGenStateMulti(tApp.AppCodec()),
+		NewPricefeedGenStateMultiFromTime(tApp.AppCodec(), genesisTime),
 	)
 
 	incentive.InitGenesis(
@@ -312,15 +312,14 @@ func (suite *GenesisTestSuite) TestInitGenesisPanicsWhenAccumulationTimesToLongA
 	}
 
 	for _, tc := range testCases {
-
 		tApp := app.NewTestApp()
 		ctx := tApp.NewContext(true, tmproto.Header{Height: 0, Time: genesisTime})
 
 		// Incentive init genesis reads from the cdp keeper to check params are ok. So it needs to be initialized first.
 		// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.
 		tApp.InitializeFromGenesisStates(
-			NewCDPGenStateMulti(),
-			NewPricefeedGenStateMultiFromTime(genesisTime),
+			NewCDPGenStateMulti(tApp.AppCodec()),
+			NewPricefeedGenStateMultiFromTime(tApp.AppCodec(), genesisTime),
 		)
 
 		suite.PanicsWithValue(
