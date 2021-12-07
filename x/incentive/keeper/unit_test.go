@@ -31,7 +31,9 @@ func NewTestContext(requiredStoreKeys ...sdk.StoreKey) sdk.Context {
 		cms.MountStoreWithDB(key, sdk.StoreTypeIAVL, nil)
 	}
 
-	cms.LoadLatestVersion()
+	if err := cms.LoadLatestVersion(); err != nil {
+		panic(err)
+	}
 
 	return sdk.NewContext(cms, tmprototypes.Header{}, false, log.NewNopLogger())
 

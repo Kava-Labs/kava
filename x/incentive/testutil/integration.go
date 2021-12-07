@@ -77,7 +77,7 @@ func (suite *IntegrationTester) DeliverIncentiveMsg(msg sdk.Msg) error {
 
 	switch msg := msg.(type) {
 	case *types.MsgClaimHardReward:
-		msgServer.ClaimHardReward(sdk.WrapSDKContext(suite.Ctx), msg)
+		_, err = msgServer.ClaimHardReward(sdk.WrapSDKContext(suite.Ctx), msg)
 	case *types.MsgClaimSwapReward:
 		_, err = msgServer.ClaimSwapReward(sdk.WrapSDKContext(suite.Ctx), msg)
 	case *types.MsgClaimUSDXMintingReward:
@@ -210,7 +210,7 @@ func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, 
 
 	proposalID := res.ProposalID
 	vote := committeetypes.NewMsgVote(voter, proposalID, committeetypes.VOTE_TYPE_YES)
-	msgServer.Vote(sdk.WrapSDKContext(suite.Ctx), vote)
+	_, err = msgServer.Vote(sdk.WrapSDKContext(suite.Ctx), vote)
 	suite.NoError(err)
 }
 
