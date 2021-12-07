@@ -16,10 +16,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgClaimHardReward{}, "incentive/MsgClaimHardReward", nil)
 	cdc.RegisterConcrete(&MsgClaimDelegatorReward{}, "incentive/MsgClaimDelegatorReward", nil)
 	cdc.RegisterConcrete(&MsgClaimSwapReward{}, "incentive/MsgClaimSwapReward", nil)
-	cdc.RegisterConcrete(&MsgClaimUSDXMintingRewardVVesting{}, "incentive/MsgClaimUSDXRewardVVesting", nil)
-	cdc.RegisterConcrete(&MsgClaimHardRewardVVesting{}, "incentive/MsgClaimHardRewardVVesting", nil)
-	cdc.RegisterConcrete(&MsgClaimDelegatorRewardVVesting{}, "incentive/MsgClaimDelegatorRewardVVesting", nil)
-	cdc.RegisterConcrete(&MsgClaimSwapRewardVVesting{}, "incentive/MsgClaimSwapRewardVVesting", nil)
 
 	cdc.RegisterInterface((*Claim)(nil), nil)
 
@@ -35,10 +31,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgClaimHardReward{},
 		&MsgClaimDelegatorReward{},
 		&MsgClaimSwapReward{},
-		&MsgClaimUSDXMintingRewardVVesting{},
-		&MsgClaimHardRewardVVesting{},
-		&MsgClaimDelegatorRewardVVesting{},
-		&MsgClaimSwapRewardVVesting{},
 	)
 
 	registry.RegisterInterface(
