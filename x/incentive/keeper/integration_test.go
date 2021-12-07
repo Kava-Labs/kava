@@ -214,6 +214,6 @@ func NewCommitteeGenesisState(cdc codec.Codec, committeeID uint64, members ...sd
 	genState.Committees = committeesAny
 
 	return app.GenesisState{
-		committeetypes.ModuleName: committeetypes.ModuleCdc.MustMarshalJSON(genState),
+		committeetypes.ModuleName: cdc.MustMarshalJSON(genState),
 	}
 }

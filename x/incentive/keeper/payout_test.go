@@ -378,16 +378,17 @@ func (suite *PayoutTestSuite) TestSendCoinsToBaseAccount() {
 	}
 	suite.ElementsMatch(expectedPeriods, vacc.VestingPeriods)
 	suite.Equal(cs(c("ukava", 100)), vacc.OriginalVesting)
+
+	// TODO: BlockTime is 100, same as periodic vesting account start date so
+	// it returns nil coins
 	suite.Equal(cs(c("ukava", 500)), vacc.GetVestedCoins(suite.ctx.BlockTime()))
 	suite.Equal(int64(105), vacc.EndTime)
 	suite.Equal(int64(100), vacc.StartTime)
-
 }
 
 func (suite *PayoutTestSuite) TestSendCoinsToInvalidAccount() {
 	authBuilder := app.NewAuthBankGenesisBuilder().
 		WithSimpleModuleAccount(kavadisttypes.ModuleName, cs(c("ukava", 600)))
-		//TODO: WithEmptyValidatorVestingAccount(suite.addrs[2])
 
 	suite.SetupApp()
 	suite.app.InitializeFromGenesisStates(
