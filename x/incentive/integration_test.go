@@ -72,6 +72,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 					StabilityFee:        sdk.OneDec(), // %0 apr
 					LiquidationPenalty:  d("0.05"),
 					AuctionSize:         i(10000000000),
+					SpotMarketID:        "busd:usd",
 					LiquidationMarketID: "busd:usd",
 					ConversionFactor:    i(8),
 				},
