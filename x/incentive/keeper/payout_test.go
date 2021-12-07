@@ -394,8 +394,11 @@ func (suite *PayoutTestSuite) TestSendCoinsToInvalidAccount() {
 	suite.app.InitializeFromGenesisStates(
 		authBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
+
+	// No longer an empty validator vesting account, just a regular addr
 	err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadisttypes.ModuleName, suite.addrs[2], cs(c("ukava", 100)), 5)
-	suite.Require().ErrorIs(err, types.ErrInvalidAccountType)
+	suite.Require().ErrorIs(err, types.ErrAccountNotFound)
+
 	macc := suite.getModuleAccount(cdptypes.ModuleName)
 	err = suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadisttypes.ModuleName, macc.GetAddress(), cs(c("ukava", 100)), 5)
 	suite.Require().ErrorIs(err, types.ErrInvalidAccountType)
