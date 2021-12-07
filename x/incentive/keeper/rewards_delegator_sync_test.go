@@ -88,8 +88,8 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsUnchangedWhenGlobalFac
 	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddress,
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddress.String(),
 				Shares:           d("1000"),
 			},
 		},
@@ -133,8 +133,8 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenNewReward
 	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddress,
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddress.String(),
 				Shares:           d("1000"),
 			},
 		},
@@ -183,8 +183,8 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenGlobalFac
 	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddress,
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddress.String(),
 				Shares:           d("1000"),
 			},
 		},
@@ -241,8 +241,8 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenGlobalFac
 
 func unslashedBondedValidator(address sdk.ValAddress) stakingtypes.Validator {
 	return stakingtypes.Validator{
-		OperatorAddress: address,
-		Status:          sdk.Bonded,
+		OperatorAddress: address.String(),
+		Status:          stakingtypes.Bonded,
 
 		// Set the tokens and shares equal so then
 		// a _delegator's_ token amount is equal to their shares amount
@@ -252,8 +252,8 @@ func unslashedBondedValidator(address sdk.ValAddress) stakingtypes.Validator {
 }
 func unslashedNotBondedValidator(address sdk.ValAddress) stakingtypes.Validator {
 	return stakingtypes.Validator{
-		OperatorAddress: address,
-		Status:          sdk.Unbonding,
+		OperatorAddress: address.String(),
+		Status:          stakingtypes.Unbonding,
 
 		// Set the tokens and shares equal so then
 		// a _delegator's_ token amount is equal to their shares amount
@@ -270,24 +270,24 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenValAddrIsNil()
 		delegations: stakingtypes.Delegations{
 			//bonded
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[0],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[0].String(),
 				Shares:           d("1"),
 			},
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[1],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[1].String(),
 				Shares:           d("10"),
 			},
 			// not bonded
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[2],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[2].String(),
 				Shares:           d("100"),
 			},
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[3],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[3].String(),
 				Shares:           d("1000"),
 			},
 		},
@@ -313,24 +313,24 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenExcludingAVali
 		delegations: stakingtypes.Delegations{
 			//bonded
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[0],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[0].String(),
 				Shares:           d("1"),
 			},
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[1],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[1].String(),
 				Shares:           d("10"),
 			},
 			// not bonded
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[2],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[2].String(),
 				Shares:           d("100"),
 			},
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[3],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[3].String(),
 				Shares:           d("1000"),
 			},
 		},
@@ -356,24 +356,24 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenIncludingAVali
 		delegations: stakingtypes.Delegations{
 			//bonded
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[0],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[0].String(),
 				Shares:           d("1"),
 			},
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[1],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[1].String(),
 				Shares:           d("10"),
 			},
 			// not bonded
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[2],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[2].String(),
 				Shares:           d("100"),
 			},
 			{
-				DelegatorAddress: delegator,
-				ValidatorAddress: validatorAddresses[3],
+				DelegatorAddress: delegator.String(),
+				ValidatorAddress: validatorAddresses[3].String(),
 				Shares:           d("1000"),
 			},
 		},
