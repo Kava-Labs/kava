@@ -100,7 +100,7 @@ func (k Keeper) GetAllUSDXMintingClaims(ctx sdk.Context) types.USDXMintingClaims
 // GetPreviousUSDXMintingAccrualTime returns the last time a collateral type accrued USDX minting rewards
 func (k Keeper) GetPreviousUSDXMintingAccrualTime(ctx sdk.Context, ctype string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix)
-	b := store.Get(types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix)
+	b := store.Get([]byte(ctype))
 	if b == nil {
 		return time.Time{}, false
 	}
