@@ -4,11 +4,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
@@ -246,7 +248,7 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeDelegatorReward() {
 			// Check that validator account has been created and delegation was successful
 			valAcc, found := suite.stakingKeeper.GetValidator(suite.ctx, suite.validatorAddrs[0])
 			suite.True(found)
-			suite.Require().Equal(valAcc.Status, sdk.Bonded)
+			suite.Require().Equal(valAcc.Status, stakingtypes.Bonded)
 			suite.Require().Equal(valAcc.Tokens, tc.args.delegation.Amount.Add(selfDelegationCoins.Amount))
 
 			// Check that Staking hooks initialized a DelegatorClaim
@@ -408,32 +410,37 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateDelegatorRewardSynchronizati
 }
 
 func (suite *DelegatorRewardsTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
-	msg := staking.NewMsgCreateValidator(
+	msg, err := stakingtypes.NewMsgCreateValidator(
 		address,
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
-		staking.Description{},
-		staking.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		stakingtypes.Description{},
+		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
 		sdk.NewInt(1_000_000),
 	)
+	if err != nil {
+		return err
+	}
+
 	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
-	_, err := handleStakingMsg(ctx, msg)
+	_, err = handleStakingMsg(ctx, msg)
 	return err
 }
 
 func (suite *DelegatorRewardsTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
-	msg := staking.NewMsgDelegate(
+	msg := stakingtypes.NewMsgDelegate(
 		delegator,
 		validator,
 		amount,
 	)
+
 	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
 	_, err := handleStakingMsg(ctx, msg)
 	return err
 }
 
 func (suite *DelegatorRewardsTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sdk.AccAddress, sourceValidator, destinationValidator sdk.ValAddress, amount sdk.Coin) error {
-	msg := staking.NewMsgBeginRedelegate(
+	msg := stakingtypes.NewMsgBeginRedelegate(
 		delegator,
 		sourceValidator,
 		destinationValidator,
@@ -692,7 +699,11 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 	suite.Require().True(found)
 	suite.Require().True(validator.GetTokens().IsPositive())
 	fraction := sdk.NewDecWithPrec(5, 1)
-	stakingKeeper.Slash(suite.ctx, validator.ConsAddress(), suite.ctx.BlockHeight(), 10, fraction)
+
+	consAddr, err := validator.GetConsAddr()
+	suite.Require().NoError(err)
+
+	stakingKeeper.Slash(suite.ctx, consAddr, suite.ctx.BlockHeight(), 10, fraction)
 
 	// Check that the user's claim has been synced. ie rewards added, index updated
 	claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
