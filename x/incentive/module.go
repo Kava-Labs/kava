@@ -146,21 +146,19 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.Ra
 	// Initialize global index to index in genesis state
 	cdc.MustUnmarshalJSON(gs, &genState)
 
-	// TODO: InitGenesis(ctx, am.keeper, am.bankKeeper, am.cdpKeeper, gs)
+	InitGenesis(ctx, am.keeper, am.accountKeeper, am.bankKeeper, am.cdpKeeper, genState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the incentive module
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	// TODO: gs := ExportGenesis(ctx, am.keeper)
-	// TODO: return cdc.MustMarshalJSON(&gs)
-
-	return nil
+	gs := ExportGenesis(ctx, am.keeper)
+	return cdc.MustMarshalJSON(&gs)
 }
 
 // BeginBlock returns the begin blocker for the incentive module.
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
-	// TODO: BeginBlocker(ctx, am.keeper)
+	BeginBlocker(ctx, am.keeper)
 }
 
 // EndBlock returns the end blocker for the incentive module. It returns no validator updates.
