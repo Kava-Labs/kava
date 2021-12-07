@@ -56,6 +56,8 @@ func (suite *SupplyIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 		}}).
 		WithSimpleSupplyRewardPeriod("bnb", cs(c("hard", 1e6))) // only borrow rewards
 
+	suite.SetApp()
+
 	suite.StartChain(
 		suite.genesisTime,
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),

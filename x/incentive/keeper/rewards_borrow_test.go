@@ -35,7 +35,6 @@ func TestBorrowIntegration(t *testing.T) {
 
 // SetupTest is run automatically before each suite test
 func (suite *BorrowIntegrationTests) SetupTest() {
-
 	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
 
 	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
@@ -55,6 +54,8 @@ func (suite *BorrowIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 			Multipliers: types.Multipliers{types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
 		}}).
 		WithSimpleBorrowRewardPeriod("bnb", cs(c("hard", 1e6))) // only borrow rewards
+
+	suite.SetApp()
 
 	suite.StartChain(
 		suite.genesisTime,

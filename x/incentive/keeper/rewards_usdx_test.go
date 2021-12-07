@@ -63,6 +63,7 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing(
 		}}).
 		WithSimpleUSDXRewardPeriod("bnb-a", c(types.USDXMintingRewardDenom, 1e6))
 
+	suite.SetApp()
 	suite.StartChain(
 		suite.genesisTime,
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
@@ -121,6 +122,7 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncin
 		}}).
 		WithSimpleUSDXRewardPeriod(collateralType, c(types.USDXMintingRewardDenom, 1e6))
 
+	suite.SetApp()
 	suite.StartChain(
 		suite.genesisTime,
 		authBuilder.BuildMarshalled(suite.App.AppCodec()),
@@ -167,6 +169,7 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 		}}).
 		WithSimpleUSDXRewardPeriod("bnb-a", c(types.USDXMintingRewardDenom, 1e6))
 
+	suite.SetApp()
 	suite.StartChain(
 		suite.genesisTime,
 		authBuilder.BuildMarshalled(suite.App.AppCodec()),

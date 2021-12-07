@@ -40,9 +40,11 @@ func (suite *IntegrationTester) SetupSuite() {
 	app.SetBech32AddressPrefixes(config)
 }
 
-func (suite *IntegrationTester) StartChain(genesisTime time.Time, genesisStates ...app.GenesisState) {
+func (suite *IntegrationTester) SetApp() {
 	suite.App = app.NewTestApp()
+}
 
+func (suite *IntegrationTester) StartChain(genesisTime time.Time, genesisStates ...app.GenesisState) {
 	suite.App.InitializeFromGenesisStatesWithTime(
 		genesisTime,
 		genesisStates...,
