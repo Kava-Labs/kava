@@ -519,6 +519,7 @@ func NewApp(
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
 		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
