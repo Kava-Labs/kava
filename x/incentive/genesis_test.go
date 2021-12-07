@@ -103,11 +103,14 @@ func (suite *GenesisTestSuite) SetupTest() {
 		types.DefaultDelegatorClaims,
 		types.DefaultSwapClaims,
 	)
+
+	cdc := suite.app.AppCodec()
+
 	tApp.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
-		authBuilder.BuildMarshalled(suite.app.AppCodec()),
-		app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(&incentiveGS)},
-		app.GenesisState{hardtypes.ModuleName: hardtypes.ModuleCdc.MustMarshalJSON(&hardGS)},
+		authBuilder.BuildMarshalled(cdc),
+		app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&incentiveGS)},
+		app.GenesisState{hardtypes.ModuleName: cdc.MustMarshalJSON(&hardGS)},
 		NewCDPGenStateMulti(),
 		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
 	)
