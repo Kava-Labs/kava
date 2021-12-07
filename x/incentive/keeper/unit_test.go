@@ -323,21 +323,8 @@ func (k *fakeCDPKeeper) GetCollateral(_ sdk.Context, collateralType string) (cdp
 // note: amino panics when encoding times ≥ the start of year 10000.
 var distantFuture = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
 
-func arbitraryCoin() sdk.Coin {
-	return c("hard", 1e9)
-}
-
 func arbitraryCoins() sdk.Coins {
 	return cs(c("btcb", 1))
-}
-
-func arbitraryCoinsWithDenoms(denom ...string) sdk.Coins {
-	const arbitraryAmount = 1 // must be > 0 as sdk.Coins type only stores positive amounts
-	coins := sdk.NewCoins()
-	for _, d := range denom {
-		coins = coins.Add(sdk.NewInt64Coin(d, arbitraryAmount))
-	}
-	return coins
 }
 
 func arbitraryAddress() sdk.AccAddress {
