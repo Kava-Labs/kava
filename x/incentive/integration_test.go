@@ -11,7 +11,6 @@ import (
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
-	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
 // Avoid cluttering test cases with long function names
@@ -180,19 +179,5 @@ func NewStakingGenesisState() app.GenesisState {
 	genState.Params.BondDenom = "ukava"
 	return app.GenesisState{
 		stakingtypes.ModuleName: stakingtypes.ModuleCdc.MustMarshalJSON(genState),
-	}
-}
-
-func NewSwapGenesisState() app.GenesisState {
-	genesis := swaptypes.NewGenesisState(
-		swaptypes.NewParams(
-			swaptypes.NewAllowedPools(swaptypes.NewAllowedPool("busd", "ukava")),
-			d("0.0"),
-		),
-		swaptypes.DefaultPoolRecords,
-		swaptypes.DefaultShareRecords,
-	)
-	return app.GenesisState{
-		swaptypes.ModuleName: swaptypes.ModuleCdc.MustMarshalJSON(&genesis),
 	}
 }
