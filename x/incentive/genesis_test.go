@@ -35,6 +35,7 @@ type GenesisTestSuite struct {
 
 func (suite *GenesisTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
+	suite.app = tApp
 	keeper := tApp.GetIncentiveKeeper()
 	suite.genesisTime = time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 
@@ -115,7 +116,6 @@ func (suite *GenesisTestSuite) SetupTest() {
 
 	suite.addrs = addrs
 	suite.keeper = keeper
-	suite.app = tApp
 	suite.ctx = ctx
 }
 
