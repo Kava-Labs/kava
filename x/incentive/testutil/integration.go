@@ -263,7 +263,7 @@ func (suite *IntegrationTester) VestingPeriodsEqual(address sdk.AccAddress, expe
 	suite.Require().NotNil(acc, "expected vesting account not to be nil")
 	vacc, ok := acc.(*vestingtypes.PeriodicVestingAccount)
 	suite.Require().True(ok, "expected vesting account to be type PeriodicVestingAccount")
-	suite.Equal(expectedPeriods, vacc.VestingPeriods)
+	suite.ElementsMatch(expectedPeriods, vacc.VestingPeriods)
 }
 
 func (suite *IntegrationTester) SwapRewardEquals(owner sdk.AccAddress, expected sdk.Coins) {
