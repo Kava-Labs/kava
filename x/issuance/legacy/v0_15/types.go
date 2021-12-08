@@ -6,6 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	// ModuleName The name that will be used throughout the module
+	ModuleName = "issuance"
+)
+
 // GenesisState is the state that must be provided at genesis for the issuance module
 type GenesisState struct {
 	Params   Params        `json:"params" yaml:"params"`

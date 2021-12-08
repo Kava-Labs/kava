@@ -1,6 +1,206 @@
 {
   "app_hash": "",
   "app_state": {
+    "validatorvesting": {
+      "previous_block_time": "2021-11-05T21:13:12.85608847Z"
+    },
+    "pricefeed": {
+      "params": {
+        "markets": [
+          {
+            "active": true,
+            "base_asset": "bnb",
+            "market_id": "bnb:usd",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "bnb",
+            "market_id": "bnb:usd:30",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          }
+        ]
+      },
+      "posted_prices": [
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "bnb:usd",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "215.962650000000001782"
+        },
+        {
+          "expiry": "2022-07-20T00:00:00Z",
+          "market_id": "bnb:usd:30",
+          "oracle_address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "price": "217.962650000000001782"
+        }
+      ]
+    },
+    "issuance": {
+      "params": {
+        "assets": [
+          {
+            "blockable": true,
+            "blocked_addresses": null,
+            "denom": "hbtc",
+            "owner": "kava1dmm9zpdnm6mfhywzt9sstm4p33y0cnsd0m673z",
+            "paused": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          }
+        ]
+      },
+      "supplies": [
+        {
+          "current_supply": { "denom": "ukava", "amount": "100" },
+          "time_elapsed": "3600000000000"
+        },
+        {
+          "current_supply": { "denom": "bnb", "amount": "300" },
+          "time_elapsed": "300000000000"
+        }
+      ]
+    },
+    "cdp": {
+      "cdps": [
+        {
+          "accumulated_fees": {
+            "amount": "36088",
+            "denom": "usdx"
+          },
+          "collateral": {
+            "amount": "40911876",
+            "denom": "bnb"
+          },
+          "fees_updated": "2021-11-05T21:13:12.85608847Z",
+          "id": "19",
+          "interest_factor": "1.002881426571765716",
+          "owner": "kava1u4p6a2yse66ewfndw4j7ppsa777vdcex3m4n9s",
+          "principal": {
+            "amount": "10016831",
+            "denom": "usdx"
+          },
+          "type": "bnb-a"
+        },
+        {
+          "accumulated_fees": {
+            "amount": "156662",
+            "denom": "usdx"
+          },
+          "collateral": {
+            "amount": "88268546",
+            "denom": "bnb"
+          },
+          "fees_updated": "2021-11-05T21:13:12.85608847Z",
+          "id": "22",
+          "interest_factor": "1.002881426571765716",
+          "owner": "kava1e8xjfylam4nvugcmkxwvuxh22uvvad5vknu4yh",
+          "principal": {
+            "amount": "10000000",
+            "denom": "usdx"
+          },
+          "type": "bnb-a"
+        }
+      ],
+      "debt_denom": "debt",
+      "deposits": [
+        {
+          "amount": {
+            "amount": "40911876",
+            "denom": "bnb"
+          },
+          "cdp_id": "19",
+          "depositor": "kava1u4p6a2yse66ewfndw4j7ppsa777vdcex3m4n9s"
+        },
+        {
+          "amount": {
+            "amount": "88268546",
+            "denom": "bnb"
+          },
+          "cdp_id": "22",
+          "depositor": "kava1e8xjfylam4nvugcmkxwvuxh22uvvad5vknu4yh"
+        }
+      ],
+      "gov_denom": "ukava",
+      "params": {
+        "circuit_breaker": false,
+        "collateral_params": [
+          {
+            "auction_size": "50000000000",
+            "conversion_factor": "8",
+            "debt_limit": {
+              "amount": "20000000000000",
+              "denom": "usdx"
+            },
+            "denom": "bnb",
+            "liquidation_market_id": "bnb:usd:30",
+            "liquidation_penalty": "0.050000000000000000",
+            "liquidation_ratio": "1.500000000000000000",
+            "keeper_reward_percentage": "0.01",
+            "check_collateralization_index_count": "10",
+            "prefix": 1,
+            "spot_market_id": "bnb:usd",
+            "stability_fee": "1.000000000782997700",
+            "type": "bnb-a"
+          },
+          {
+            "denom": "hbtc",
+            "type": "hbtc-a",
+            "liquidation_ratio": "1.500000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "10000000000000"
+            },
+            "stability_fee": "1.000000001547125958",
+            "auction_size": "1000000000000",
+            "liquidation_penalty": "0.075000000000000000",
+            "check_collateralization_index_count": "10",
+            "keeper_reward_percentage": "0.01",
+            "prefix": 8,
+            "spot_market_id": "btc:usd",
+            "liquidation_market_id": "btc:usd:30",
+            "conversion_factor": "8"
+          }
+        ],
+        "debt_auction_lot": "10000000000",
+        "debt_auction_threshold": "100000000000",
+        "debt_param": {
+          "conversion_factor": "6",
+          "debt_floor": "10000000",
+          "denom": "usdx",
+          "reference_asset": "usd",
+          "savings_rate": "0.950000000000000000"
+        },
+        "global_debt_limit": {
+          "amount": "43000000000000",
+          "denom": "usdx"
+        },
+        "savings_distribution_frequency": "43200000000000",
+        "surplus_auction_lot": "10000000000",
+        "surplus_auction_threshold": "500000000000"
+      },
+      "previous_distribution_time": "1970-01-01T00:00:00Z",
+      "savings_rate_distributed": "0",
+      "starting_cdp_id": "1",
+      "previous_accumulation_times": [
+        {
+          "collateral_type": "bnb-a",
+          "interest_factor": "1.002881426571765716",
+          "previous_accumulation_time": "2021-11-05T21:13:12.85608847Z"
+        }
+      ],
+      "total_principals": [
+        {
+          "collateral_type": "bnb-a",
+          "total_principal": "9285009581820"
+        }
+      ]
+    },
     "auction": {
       "auctions": [
         {
