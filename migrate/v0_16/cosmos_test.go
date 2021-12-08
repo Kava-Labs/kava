@@ -1,4 +1,4 @@
-package modules
+package v0_16
 
 import (
 	"encoding/json"
@@ -18,6 +18,16 @@ func TestCosmosMigrate_Gov(t *testing.T) {
 	// Two of the proposals are from cosmos while the 3rd one is kavadist/CommunityPoolMultiSpendProposal.
 	original := GetTestDataJSON("appstate-gov-v15.json")
 	expected := GetTestDataJSON("appstate-gov-v16.json")
+	actual := MustMigrateAppStateJSON(original)
+	assert.JSONEq(t, expected, actual)
+}
+
+func TestCosmosMigrate_Bank(t *testing.T) {
+	// The bank json tests migrating the bank, auth, and supply modules
+	// The json contains the kava ValidatorVestingAccount account and tests for
+	// both the correct proto migration & moving account coins and supply to the bank module.
+	original := GetTestDataJSON("appstate-bank-v15.json")
+	expected := GetTestDataJSON("appstate-bank-v16.json")
 	actual := MustMigrateAppStateJSON(original)
 	assert.JSONEq(t, expected, actual)
 }

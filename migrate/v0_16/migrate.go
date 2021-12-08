@@ -8,8 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-
-	"github.com/kava-labs/kava/migrate/v0_16/modules"
 )
 
 var (
@@ -25,7 +23,7 @@ func Migrate(genDoc *tmtypes.GenesisDoc, ctx client.Context) (*tmtypes.GenesisDo
 		return nil, fmt.Errorf("failed to marchal app state from genesis doc:  %w", err)
 	}
 
-	appState = modules.MigrateCosmosAppState(appState, ctx)
+	appState = MigrateCosmosAppState(appState, ctx)
 
 	// TODO: Migrate kava modules
 

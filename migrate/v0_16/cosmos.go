@@ -1,10 +1,11 @@
-package modules
+package v0_16
 
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	v039auth "github.com/cosmos/cosmos-sdk/x/auth/legacy/v039"
+	v040auth "github.com/cosmos/cosmos-sdk/x/auth/legacy/v040"
 	v036supply "github.com/cosmos/cosmos-sdk/x/bank/legacy/v036"
 	v038bank "github.com/cosmos/cosmos-sdk/x/bank/legacy/v038"
 	v040bank "github.com/cosmos/cosmos-sdk/x/bank/legacy/v040"
@@ -100,8 +101,7 @@ func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context) genutil
 		delete(appState, v039auth.ModuleName)
 
 		// Run our custom auth v40 migration on the v039 auth gen state
-		// TODO: Followup PR
-		// appState[v040auth.ModuleName] = v040Codec.MustMarshalJSON(MigrateAuthV040(authGenState))
+		appState[v040auth.ModuleName] = v040Codec.MustMarshalJSON(MigrateAuthV040(authGenState))
 	}
 
 	// Migrate x/crisis.

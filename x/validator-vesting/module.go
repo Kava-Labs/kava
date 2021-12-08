@@ -1,166 +1,136 @@
-package validatorvesting
+package validator_vesting
 
 import (
 	"encoding/json"
-	"math/rand"
 
 	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/kava-labs/kava/x/validator-vesting/client/cli"
 	"github.com/kava-labs/kava/x/validator-vesting/client/rest"
-	"github.com/kava-labs/kava/x/validator-vesting/simulation"
+	"github.com/kava-labs/kava/x/validator-vesting/keeper"
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModule      = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// AppModuleBasic defines the basic application module used by the auth module.
+// ----------------------------------------------------------------------------
+// AppModuleBasic
+// ----------------------------------------------------------------------------
+
+// AppModuleBasic app module basics object
 type AppModuleBasic struct{}
 
-// Name returns the auth module's name.
+func NewAppModuleBasic() AppModuleBasic {
+	return AppModuleBasic{}
+}
+
+// Name get module name
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterCodec registers the auth module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	types.RegisterCodec(cdc)
+// Registers legacy amino codec
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
+
+// RegisterInterfaces registers the module's interface types
+func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {}
+
+// DefaultGenesis default genesis state
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage { return nil }
+
+// ValidateGenesis module validate genesis
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+	return nil
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the validator-vesting
-// module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return types.ModuleCdc.MustMarshalJSON(types.DefaultGenesisState())
+// RegisterRESTRoutes registers validator-vesting module's REST service handlers.
+func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
+	rest.RegisterRoutes(clientCtx, rtr)
 }
 
-// ValidateGenesis performs genesis state validation for the validator-vesting module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	var data types.GenesisState
-	if err := types.ModuleCdc.UnmarshalJSON(bz, &data); err != nil {
-		return err
-	}
-	return types.ValidateGenesis(data)
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for validator-vesting module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
+
+// GetTxCmd returns validator-vesting module's root tx command.
+func (a AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
+
+// GetQueryCmd returns validator-vesting module's root query command.
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
 }
 
-// RegisterRESTRoutes registers no REST routes for the crisis module.
-func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	rest.RegisterRoutes(ctx, rtr)
-}
+// ----------------------------------------------------------------------------
+// AppModule
+// ----------------------------------------------------------------------------
 
-// GetTxCmd returns no root tx command for the validator-vesting module.
-func (AppModuleBasic) GetTxCmd(_ *codec.Codec) *cobra.Command { return nil }
-
-// GetQueryCmd returns no root query command for the validator-vesting module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(types.StoreKey, cdc)
-}
-
-// AppModule implements an application module for the validator-vesting module.
+// AppModule implements the AppModule interface for validator-vesting module.
 type AppModule struct {
 	AppModuleBasic
 
-	keeper        Keeper
-	accountKeeper types.AccountKeeper
+	keeper keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, ak types.AccountKeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
+		AppModuleBasic: NewAppModuleBasic(),
 		keeper:         keeper,
-		accountKeeper:  ak,
 	}
 }
 
-// Name returns the auth module's name.
-func (AppModule) Name() string {
-	return types.ModuleName
+// Name returns validator-vesting module's name.
+func (am AppModule) Name() string {
+	return am.AppModuleBasic.Name()
 }
 
-// RegisterInvariants performs a no-op.
-func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+// Route returns validator-vesting module's message route.
+func (am AppModule) Route() sdk.Route { return sdk.Route{} }
 
-// Route returns the message routing key for the auth module.
-func (AppModule) Route() string { return "" }
+// QuerierRoute returns validator-vesting module's query routing key.
+func (AppModule) QuerierRoute() string { return types.QuerierRoute }
 
-// NewHandler returns an sdk.Handler for the auth module.
-func (AppModule) NewHandler() sdk.Handler { return nil }
-
-// QuerierRoute returns the auth module's querier route name.
-func (AppModule) QuerierRoute() string {
-	return ModuleName
+// LegacyQuerierHandler returns validator-vesting module's Querier.
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
 
-// NewQuerierHandler returns the auth module sdk.Querier.
-func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return NewQuerier(am.keeper)
-}
+// RegisterServices registers a GRPC query service to respond to the
+// module-specific GRPC queries.
+func (am AppModule) RegisterServices(cfg module.Configurator) {}
 
-// InitGenesis performs genesis initialization for the auth module. It returns
+// RegisterInvariants registers validator-vesting module's invariants.
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+
+// InitGenesis performs validator-vesting module's genesis initialization It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState GenesisState
-	types.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.accountKeeper, genesisState)
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the auth
-// module.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	gs := ExportGenesis(ctx, am.keeper)
-	return types.ModuleCdc.MustMarshalJSON(gs)
-}
+// ExportGenesis returns validator-vesting module's exported genesis state as raw JSON bytes.
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage { return nil }
 
-// BeginBlock returns the begin blocker for the auth module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	BeginBlocker(ctx, req, am.keeper)
-}
+// ConsensusVersion implements ConsensusVersion.
+func (AppModule) ConsensusVersion() uint64 { return 1 }
 
-// EndBlock returns the end blocker for the auth module. It returns no validator
-// updates.
-func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+// BeginBlock executes all ABCI BeginBlock logic respective to validator-vesting module.
+func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {}
+
+// EndBlock executes all ABCI EndBlock logic respective to validator-vesting module. It
+// returns no validator updates.
+func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
-}
-
-//____________________________________________________________________________
-
-// AppModuleSimulation functions
-
-// GenerateGenesisState creates a randomized GenState of the auth module
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
-
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-	return nil
-}
-
-// RandomizedParams returns nil because validatorvesting has no params.
-func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []sim.ParamChange {
-	return []sim.ParamChange{}
-}
-
-// RegisterStoreDecoder registers a decoder for auth module's types
-func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = simulation.DecodeStore
-}
-
-// WeightedOperations returns the all the validator vesting module operations with their respective weights.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return nil
 }

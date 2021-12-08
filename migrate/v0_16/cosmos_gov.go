@@ -8,7 +8,7 @@
  * Note: The committee modules also adds the `CommitteeChangeProposal` and `CommitteeDeleteProposal`.
  * However, we should not have any proposals of these type on mainet so we should be good to ignore them here.
  */
-package modules
+package v0_16
 
 import (
 	"fmt"
