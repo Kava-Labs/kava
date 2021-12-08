@@ -2,11 +2,11 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	// stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
-	// swaptypes "github.com/kava-labs/kava/x/swap/types"
+	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
 // Hooks wrapper struct for hooks
@@ -15,11 +15,9 @@ type Hooks struct {
 }
 
 var _ cdptypes.CDPHooks = Hooks{}
-
 var _ hardtypes.HARDHooks = Hooks{}
-
-// var _ stakingtypes.StakingHooks = Hooks{}
-// var _ swaptypes.SwapHooks = Hooks{}
+var _ stakingtypes.StakingHooks = Hooks{}
+var _ swaptypes.SwapHooks = Hooks{}
 
 // Hooks create new incentive hooks
 func (k Keeper) Hooks() Hooks { return Hooks{k} }
