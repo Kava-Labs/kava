@@ -341,6 +341,11 @@ func (k Keeper) GetHardSupplyRewardIndexes(ctx sdk.Context, denom string) (types
 	}
 	var proto types.RewardIndexesProto
 	k.cdc.MustUnmarshal(bz, &proto)
+
+	if proto.RewardIndexes == nil {
+		return types.RewardIndexes{}, true
+	}
+
 	return proto.RewardIndexes, true
 }
 
@@ -392,6 +397,11 @@ func (k Keeper) GetHardBorrowRewardIndexes(ctx sdk.Context, denom string) (types
 	}
 	var proto types.RewardIndexesProto
 	k.cdc.MustUnmarshal(bz, &proto)
+
+	if proto.RewardIndexes == nil {
+		return types.RewardIndexes{}, true
+	}
+
 	return proto.RewardIndexes, true
 }
 
@@ -434,6 +444,11 @@ func (k Keeper) GetDelegatorRewardIndexes(ctx sdk.Context, denom string) (types.
 	}
 	var proto types.RewardIndexesProto
 	k.cdc.MustUnmarshal(bz, &proto)
+
+	if proto.RewardIndexes == nil {
+		return types.RewardIndexes{}, true
+	}
+
 	return proto.RewardIndexes, true
 }
 
@@ -563,6 +578,11 @@ func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolID string) (types.Rewa
 	}
 	var proto types.RewardIndexesProto
 	k.cdc.MustUnmarshal(bz, &proto)
+
+	if proto.RewardIndexes == nil {
+		return types.RewardIndexes{}, true
+	}
+
 	return proto.RewardIndexes, true
 }
 

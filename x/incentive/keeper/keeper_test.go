@@ -169,7 +169,7 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 			// this test is to detect any changes in behavior
 			name:     "setting nil indexes does not panic",
 			poolName: "btc/usdx",
-			indexes:  nil,
+			indexes:  types.RewardIndexes{},
 			panics:   false,
 		},
 	}
@@ -191,7 +191,7 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 
 			storedIndexes, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, tc.poolName)
 			suite.True(found)
-			suite.ElementsMatch(tc.indexes, storedIndexes)
+			suite.Equal(tc.indexes, storedIndexes)
 		})
 	}
 }
