@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -79,11 +78,11 @@ func queryRewardsCmd() *cobra.Command {
 				return err
 			}
 
-			page := viper.GetInt(flags.FlagPage)
-			limit := viper.GetInt(flags.FlagLimit)
-			strOwner := viper.GetString(flagOwner)
-			strType := viper.GetString(flagType)
-			boolUnsynced := viper.GetBool(flagUnsynced)
+			page, _ := cmd.Flags().GetInt(flags.FlagPage)
+			limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
+			strOwner, _ := cmd.Flags().GetString(flagOwner)
+			strType, _ := cmd.Flags().GetString(flagType)
+			boolUnsynced, _ := cmd.Flags().GetBool(flagUnsynced)
 
 			// Prepare params for querier
 			var owner sdk.AccAddress
@@ -142,16 +141,24 @@ func queryRewardsCmd() *cobra.Command {
 					return err
 				}
 				if len(hardClaims) > 0 {
-					cliCtx.PrintObjectLegacy(hardClaims)
+					if err := cliCtx.PrintObjectLegacy(hardClaims); err != nil {
+						return err
+					}
 				}
 				if len(usdxMintingClaims) > 0 {
-					cliCtx.PrintObjectLegacy(usdxMintingClaims)
+					if err := cliCtx.PrintObjectLegacy(usdxMintingClaims); err != nil {
+						return err
+					}
 				}
 				if len(delegatorClaims) > 0 {
-					cliCtx.PrintObjectLegacy(delegatorClaims)
+					if err := cliCtx.PrintObjectLegacy(delegatorClaims); err != nil {
+						return err
+					}
 				}
 				if len(swapClaims) > 0 {
-					cliCtx.PrintObjectLegacy(swapClaims)
+					if err := cliCtx.PrintObjectLegacy(swapClaims); err != nil {
+						return err
+					}
 				}
 			}
 			return nil

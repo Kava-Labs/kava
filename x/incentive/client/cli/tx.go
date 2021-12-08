@@ -97,7 +97,9 @@ func getCmdClaimHard() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringToStringVarP(&denomsToClaim, multiplierFlag, multiplierFlagShort, nil, "specify the denoms to claim, each with a multiplier lockup")
-	cmd.MarkFlagRequired(multiplierFlag)
+	if err := cmd.MarkFlagRequired(multiplierFlag); err != nil {
+		panic(err)
+	}
 	return cmd
 }
 
@@ -130,7 +132,9 @@ func getCmdClaimDelegator() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringToStringVarP(&denomsToClaim, multiplierFlag, multiplierFlagShort, nil, "specify the denoms to claim, each with a multiplier lockup")
-	cmd.MarkFlagRequired(multiplierFlag)
+	if err := cmd.MarkFlagRequired(multiplierFlag); err != nil {
+		panic(err)
+	}
 	return cmd
 }
 
@@ -163,6 +167,8 @@ func getCmdClaimSwap() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringToStringVarP(&denomsToClaim, multiplierFlag, multiplierFlagShort, nil, "specify the denoms to claim, each with a multiplier lockup")
-	cmd.MarkFlagRequired(multiplierFlag)
+	if err := cmd.MarkFlagRequired(multiplierFlag); err != nil {
+		panic(err)
+	}
 	return cmd
 }
