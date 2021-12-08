@@ -16,13 +16,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgClaimHardReward{}, "incentive/MsgClaimHardReward", nil)
 	cdc.RegisterConcrete(&MsgClaimDelegatorReward{}, "incentive/MsgClaimDelegatorReward", nil)
 	cdc.RegisterConcrete(&MsgClaimSwapReward{}, "incentive/MsgClaimSwapReward", nil)
-
-	cdc.RegisterInterface((*Claim)(nil), nil)
-
-	cdc.RegisterConcrete(&USDXMintingClaim{}, "incentive/USDXMintingClaim", nil)
-	cdc.RegisterConcrete(&HardLiquidityProviderClaim{}, "incentive/HardLiquidityProviderClaim", nil)
-	cdc.RegisterConcrete(&DelegatorClaim{}, "incentive/DelegatorClaim", nil)
-	cdc.RegisterConcrete(&SwapClaim{}, "incentive/SwapClaim", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -31,17 +24,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgClaimHardReward{},
 		&MsgClaimDelegatorReward{},
 		&MsgClaimSwapReward{},
-	)
-
-	registry.RegisterInterface(
-		"kava.auction.v1beta1.Claim",
-		(*Claim)(nil),
-		&USDXMintingClaim{},
-		// TODO: These Claims do not actually match Claim interface, GetReward()
-		// responds with sdk.Coins instead of a single sdk.Coin
-		// &HardLiquidityProviderClaim{},
-		// &DelegatorClaim{},
-		// &SwapClaim{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

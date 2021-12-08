@@ -15,24 +15,6 @@ const (
 	SwapClaimType                  = "swap"
 )
 
-var _ Claim = &BaseClaim{}
-var _ Claim = &USDXMintingClaim{}
-
-// var _ Claim = &BaseMultiClaim{}
-// var _ Claim = &HardLiquidityProviderClaim{}
-// var _ Claim = &DelegatorClaim{}
-// var _ Claim = &SwapClaim{}
-
-// Claim is an interface for handling common claim actions
-type Claim interface {
-	GetOwner() sdk.AccAddress
-	GetReward() sdk.Coin
-	GetType() string
-}
-
-// Claims is a slice of Claim
-type Claims []Claim
-
 // GetOwner is a getter for Claim Owner
 func (c BaseClaim) GetOwner() sdk.AccAddress { return c.Owner }
 
