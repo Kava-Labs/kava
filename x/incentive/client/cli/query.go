@@ -86,9 +86,11 @@ func queryRewardsCmd() *cobra.Command {
 			boolUnsynced := viper.GetBool(flagUnsynced)
 
 			// Prepare params for querier
-			owner, err := sdk.AccAddressFromBech32(strOwner)
-			if err != nil {
-				return err
+			var owner sdk.AccAddress
+			if strOwner != "" {
+				if owner, err = sdk.AccAddressFromBech32(strOwner); err != nil {
+					return err
+				}
 			}
 
 			switch strings.ToLower(strType) {
