@@ -142,7 +142,7 @@ func (suite *HandlerTestSuite) TestPayoutSwapClaimMultiDenom() {
 	expectedRewardsSwap := c("swap", int64(0.5*float64(7*1e6)))
 	suite.BalanceEquals(userAddr, preClaimBal.Add(expectedRewardsHard, expectedRewardsSwap))
 
-	suite.VestingPeriodsEqual(userAddr, vestingtypes.Periods{
+	suite.VestingPeriodsEqual(userAddr, []vestingtypes.Period{
 		{Length: (17+31)*secondsPerDay - 7, Amount: cs(expectedRewardsHard)},
 		{Length: (28 + 31 + 30 + 31 + 30) * secondsPerDay, Amount: cs(expectedRewardsSwap)}, // second length is stacked on top of the first
 	})

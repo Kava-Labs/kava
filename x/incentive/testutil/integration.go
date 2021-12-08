@@ -258,12 +258,12 @@ func (suite *IntegrationTester) BalanceInEpsilon(address sdk.AccAddress, expecte
 	}
 }
 
-func (suite *IntegrationTester) VestingPeriodsEqual(address sdk.AccAddress, expectedPeriods vestingtypes.Periods) {
+func (suite *IntegrationTester) VestingPeriodsEqual(address sdk.AccAddress, expectedPeriods []vestingtypes.Period) {
 	acc := suite.App.GetAccountKeeper().GetAccount(suite.Ctx, address)
 	suite.Require().NotNil(acc, "expected vesting account not to be nil")
 	vacc, ok := acc.(*vestingtypes.PeriodicVestingAccount)
 	suite.Require().True(ok, "expected vesting account to be type PeriodicVestingAccount")
-	suite.ElementsMatch(expectedPeriods, vacc.VestingPeriods)
+	suite.Equal(expectedPeriods, vacc.VestingPeriods)
 }
 
 func (suite *IntegrationTester) SwapRewardEquals(owner sdk.AccAddress, expected sdk.Coins) {
