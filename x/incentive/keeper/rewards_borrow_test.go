@@ -58,8 +58,8 @@ func (suite *BorrowIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 	suite.SetApp()
 	suite.StartChain(
 		suite.genesisTime,
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewHardGenStateMulti(suite.genesisTime).BuildMarshalled(),
+		NewPricefeedGenStateMultiFromTime(suite.App.AppCodec(), suite.genesisTime),
+		NewHardGenStateMulti(suite.genesisTime).BuildMarshalled(suite.App.AppCodec()),
 		authBulder.BuildMarshalled(suite.App.AppCodec()),
 		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 	)
@@ -134,8 +134,8 @@ func (suite *BorrowRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBank
 	suite.app.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
 		authBuilder.BuildMarshalled(suite.app.AppCodec()),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		hardBuilder.BuildMarshalled(),
+		NewPricefeedGenStateMultiFromTime(suite.app.AppCodec(), suite.genesisTime),
+		hardBuilder.BuildMarshalled(suite.app.AppCodec()),
 		NewCommitteeGenesisState(suite.app.AppCodec(), 1, suite.addrs[:2]...),
 		incentBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)

@@ -208,11 +208,11 @@ func NewHardGenesisBuilder() HardGenesisBuilder {
 func (builder HardGenesisBuilder) Build() hardtypes.GenesisState {
 	return builder.GenesisState
 }
-func (builder HardGenesisBuilder) BuildMarshalled() app.GenesisState {
+func (builder HardGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) app.GenesisState {
 	built := builder.Build()
 
 	return app.GenesisState{
-		hardtypes.ModuleName: hardtypes.ModuleCdc.MustMarshalJSON(&built),
+		hardtypes.ModuleName: cdc.MustMarshalJSON(&built),
 	}
 }
 func (builder HardGenesisBuilder) WithGenesisTime(genTime time.Time) HardGenesisBuilder {

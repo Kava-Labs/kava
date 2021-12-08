@@ -20,7 +20,7 @@ func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) 
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 
-func NewCDPGenStateMulti() app.GenesisState {
+func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 	cdpGenesis := cdptypes.GenesisState{
 		Params: cdptypes.Params{
 			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 2000000000000),
@@ -102,10 +102,10 @@ func NewCDPGenStateMulti() app.GenesisState {
 			cdptypes.NewGenesisTotalPrincipal("bnb-a", sdk.ZeroInt()),
 		},
 	}
-	return app.GenesisState{cdptypes.ModuleName: cdptypes.ModuleCdc.MustMarshalJSON(&cdpGenesis)}
+	return app.GenesisState{cdptypes.ModuleName: cdc.MustMarshalJSON(&cdpGenesis)}
 }
 
-func NewPricefeedGenStateMultiFromTime(t time.Time) app.GenesisState {
+func NewPricefeedGenStateMultiFromTime(cdc codec.JSONCodec, t time.Time) app.GenesisState {
 	expiry := 100 * 365 * 24 * time.Hour // 100 years
 
 	pfGenesis := pricefeedtypes.GenesisState{
@@ -158,7 +158,7 @@ func NewPricefeedGenStateMultiFromTime(t time.Time) app.GenesisState {
 			},
 		},
 	}
-	return app.GenesisState{pricefeedtypes.ModuleName: pricefeedtypes.ModuleCdc.MustMarshalJSON(&pfGenesis)}
+	return app.GenesisState{pricefeedtypes.ModuleName: cdc.MustMarshalJSON(&pfGenesis)}
 }
 
 func NewHardGenStateMulti(genTime time.Time) testutil.HardGenesisBuilder {

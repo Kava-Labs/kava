@@ -55,9 +55,9 @@ func (suite *HandlerTestSuite) SetupWithGenState(builders ...genesisBuilder) {
 
 	builtGenStates := []app.GenesisState{
 		NewStakingGenesisState(suite.App.AppCodec()),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewCDPGenStateMulti(),
-		NewHardGenStateMulti(suite.genesisTime).BuildMarshalled(),
+		NewPricefeedGenStateMultiFromTime(suite.App.AppCodec(), suite.genesisTime),
+		NewCDPGenStateMulti(suite.App.AppCodec()),
+		NewHardGenStateMulti(suite.genesisTime).BuildMarshalled(suite.App.AppCodec()),
 		NewSwapGenesisState(suite.App.AppCodec()),
 	}
 	for _, builder := range builders {

@@ -66,8 +66,8 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing(
 	suite.SetApp()
 	suite.StartChain(
 		suite.genesisTime,
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMultiFromTime(suite.App.AppCodec(), suite.genesisTime),
+		NewCDPGenStateMulti(suite.App.AppCodec()),
 		authBulder.BuildMarshalled(suite.App.AppCodec()),
 		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 	)
@@ -126,8 +126,8 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncin
 	suite.StartChain(
 		suite.genesisTime,
 		authBuilder.BuildMarshalled(suite.App.AppCodec()),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMultiFromTime(suite.App.AppCodec(), suite.genesisTime),
+		NewCDPGenStateMulti(suite.App.AppCodec()),
 		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 	)
 
@@ -173,8 +173,8 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 	suite.StartChain(
 		suite.genesisTime,
 		authBuilder.BuildMarshalled(suite.App.AppCodec()),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMultiFromTime(suite.App.AppCodec(), suite.genesisTime),
+		NewCDPGenStateMulti(suite.App.AppCodec()),
 		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 		NewCommitteeGenesisState(suite.App.AppCodec(), 0, userA), // create a committtee to change params
 	)
@@ -269,8 +269,8 @@ func (suite *USDXRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGe
 	suite.app.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
 		authBuilder.BuildMarshalled(suite.app.AppCodec()),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewCDPGenStateMulti(),
+		NewPricefeedGenStateMultiFromTime(suite.app.AppCodec(), suite.genesisTime),
+		NewCDPGenStateMulti(suite.app.AppCodec()),
 		incentBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
 }
