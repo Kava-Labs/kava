@@ -65,12 +65,8 @@ type AccountKeeper interface {
 
 // CDPHooks event hooks for other keepers to run code in response to CDP modifications
 type CDPHooks interface {
-	// TODO: update once cdptypes are available
-	// AfterCDPCreated(ctx sdk.Context, cdp cdptypes.CDP)
-	// BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP)
-
-	AfterCDPCreated(ctx sdk.Context, cdp interface{})
-	BeforeCDPModified(ctx sdk.Context, cdp interface{})
+	AfterCDPCreated(ctx sdk.Context, cdp cdptypes.CDP)
+	BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP)
 }
 
 // HARDHooks event hooks for other keepers to run code in response to HARD modifications
