@@ -191,7 +191,7 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 
 			storedIndexes, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, tc.poolName)
 			suite.True(found)
-			suite.Equal(len(tc.indexes), len(storedIndexes))
+			suite.ElementsMatch(tc.indexes, storedIndexes)
 		})
 	}
 }
