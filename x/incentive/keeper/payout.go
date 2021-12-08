@@ -23,11 +23,6 @@ const (
 
 // SendTimeLockedCoinsToAccount sends time-locked coins from the input module account to the recipient. If the recipients account is not a vesting account and the input length is greater than zero, the recipient account is converted to a periodic vesting account and the coins are added to the vesting balance as a vesting period with the input length.
 func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) error {
-	// macc := k.supplyKeeper.GetModuleAccount(ctx, senderModule)
-	// if !macc.GetCoins().IsAllGTE(amt) {
-	// 	return sdkerrors.Wrapf(types.ErrInsufficientModAccountBalance, "%s", senderModule)
-	// }
-
 	macc := k.accountKeeper.GetModuleAccount(ctx, senderModule)
 	maccCoins := k.bankKeeper.GetAllBalances(ctx, macc.GetAddress())
 	if !maccCoins.IsAllGTE(amt) {
