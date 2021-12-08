@@ -17,6 +17,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/migrate"
 )
 
 // NewRootCmd creates a new root command for the kava blockchain.
@@ -70,8 +71,8 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(app.ModuleBasics, defaultNodeHome),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
-		// app.MigrateGenesisCmd(), // TODO add
-		// TODO add assert-invariants cmd
+		migrate.MigrateGenesisCmd(),
+		migrate.AssertInvariantsCmd(encodingConfig),
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		simdcmd.AddGenesisAccountCmd(defaultNodeHome), // TODO use kava version with vesting accounts

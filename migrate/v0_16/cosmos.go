@@ -33,7 +33,6 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
-	v015validatorvesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_15"
 )
 
 func migrateGenutil(oldGenState v039genutil.GenesisState) *genutiltypes.GenesisState {
@@ -64,7 +63,6 @@ func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context) genutil
 	v036params.RegisterLegacyAminoCodec(v039Codec)
 	v038upgrade.RegisterLegacyAminoCodec(v039Codec)
 	v015kavadist.RegisterLegacyAminoCodec(v039Codec)
-	v015validatorvesting.RegisterLegacyAminoCodec(v039Codec)
 
 	v040Codec := clientCtx.Codec
 
