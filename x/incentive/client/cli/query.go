@@ -7,9 +7,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
@@ -31,22 +30,28 @@ const (
 var rewardTypes = []string{typeDelegator, typeHard, typeUSDXMinting, typeSwap}
 
 // GetQueryCmd returns the cli query commands for the incentive module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	incentiveQueryCmd := &cobra.Command{
 		Use:   types.ModuleName,
 		Short: "Querying commands for the incentive module",
 	}
 
-	incentiveQueryCmd.AddCommand(flags.GetCommands(
-		queryParamsCmd(queryRoute, cdc),
-		queryRewardsCmd(queryRoute, cdc),
-		queryRewardFactorsCmd(queryRoute, cdc),
-	)...)
+	cmds := []*cobra.Command{
+		queryParamsCmd(),
+		queryRewardsCmd(),
+		queryRewardFactorsCmd(),
+	}
+
+	for _, cmd := range cmds {
+		flags.AddQueryFlagsToCmd(cmd)
+	}
+
+	incentiveQueryCmd.AddCommand(cmds...)
 
 	return incentiveQueryCmd
 }
 
-func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryRewardsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rewards",
 		Short: "query claimable rewards",
@@ -63,13 +68,16 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			$ %s query %s rewards --type hard --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
 			$ %s query %s rewards --type hard --unsynced
 			`,
-				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName,
-				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName,
-				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName,
-				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName)),
+				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
+				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
+				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
+				version.AppName, types.ModuleName, version.AppName, types.ModuleName)),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
@@ -86,62 +94,62 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			switch strings.ToLower(strType) {
 			case typeHard:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeHardRewardsQuery(queryRoute, cdc, cliCtx, params)
+				claims, err := executeHardRewardsQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
-				return cliCtx.PrintOutput(claims)
+				return cliCtx.PrintObjectLegacy(claims)
 			case typeUSDXMinting:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeUSDXMintingRewardsQuery(queryRoute, cdc, cliCtx, params)
+				claims, err := executeUSDXMintingRewardsQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
-				return cliCtx.PrintOutput(claims)
+				return cliCtx.PrintObjectLegacy(claims)
 			case typeDelegator:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeDelegatorRewardsQuery(queryRoute, cdc, cliCtx, params)
+				claims, err := executeDelegatorRewardsQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
-				return cliCtx.PrintOutput(claims)
+				return cliCtx.PrintObjectLegacy(claims)
 			case typeSwap:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeSwapRewardsQuery(queryRoute, cdc, cliCtx, params)
+				claims, err := executeSwapRewardsQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
-				return cliCtx.PrintOutput(claims)
+				return cliCtx.PrintObjectLegacy(claims)
 			default:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
 
-				hardClaims, err := executeHardRewardsQuery(queryRoute, cdc, cliCtx, params)
+				hardClaims, err := executeHardRewardsQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
-				usdxMintingClaims, err := executeUSDXMintingRewardsQuery(queryRoute, cdc, cliCtx, params)
+				usdxMintingClaims, err := executeUSDXMintingRewardsQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
-				delegatorClaims, err := executeDelegatorRewardsQuery(queryRoute, cdc, cliCtx, params)
+				delegatorClaims, err := executeDelegatorRewardsQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
-				swapClaims, err := executeSwapRewardsQuery(queryRoute, cdc, cliCtx, params)
+				swapClaims, err := executeSwapRewardsQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
 				if len(hardClaims) > 0 {
-					cliCtx.PrintOutput(hardClaims)
+					cliCtx.PrintObjectLegacy(hardClaims)
 				}
 				if len(usdxMintingClaims) > 0 {
-					cliCtx.PrintOutput(usdxMintingClaims)
+					cliCtx.PrintObjectLegacy(usdxMintingClaims)
 				}
 				if len(delegatorClaims) > 0 {
-					cliCtx.PrintOutput(delegatorClaims)
+					cliCtx.PrintObjectLegacy(delegatorClaims)
 				}
 				if len(swapClaims) > 0 {
-					cliCtx.PrintOutput(swapClaims)
+					cliCtx.PrintObjectLegacy(swapClaims)
 				}
 			}
 			return nil
@@ -155,17 +163,20 @@ func queryRewardsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryParamsCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "params",
 		Short: "get the incentive module parameters",
 		Long:  "Get the current global incentive module parameters.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetParams)
+			route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetParams)
 			res, height, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
@@ -174,25 +185,28 @@ func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 			// Decode and print results
 			var params types.Params
-			if err := cdc.UnmarshalJSON(res, &params); err != nil {
+			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &params); err != nil {
 				return fmt.Errorf("failed to unmarshal params: %w", err)
 			}
-			return cliCtx.PrintOutput(params)
+			return cliCtx.PrintObjectLegacy(params)
 		},
 	}
 }
 
-func queryRewardFactorsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryRewardFactorsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reward-factors",
 		Short: "get current global reward factors",
 		Long:  `Get current global reward factors for all reward types.`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			// Execute query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetRewardFactors)
+			route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetRewardFactors)
 			res, height, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
@@ -201,23 +215,23 @@ func queryRewardFactorsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 			// Decode and print results
 			var response types.QueryGetRewardFactorsResponse
-			if err := cdc.UnmarshalJSON(res, &response); err != nil {
+			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &response); err != nil {
 				return fmt.Errorf("failed to unmarshal reward factors: %w", err)
 			}
-			return cliCtx.PrintOutput(response)
+			return cliCtx.PrintObjectLegacy(response)
 		},
 	}
 	cmd.Flags().String(flagDenom, "", "(optional) filter reward factors by denom")
 	return cmd
 }
 
-func executeHardRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext, params types.QueryRewardsParams) (types.HardLiquidityProviderClaims, error) {
-	bz, err := cdc.MarshalJSON(params)
+func executeHardRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.HardLiquidityProviderClaims, error) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		return types.HardLiquidityProviderClaims{}, err
 	}
 
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetHardRewards)
+	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetHardRewards)
 	res, height, err := cliCtx.QueryWithData(route, bz)
 	if err != nil {
 		return types.HardLiquidityProviderClaims{}, err
@@ -226,20 +240,20 @@ func executeHardRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context
 	cliCtx = cliCtx.WithHeight(height)
 
 	var claims types.HardLiquidityProviderClaims
-	if err := cdc.UnmarshalJSON(res, &claims); err != nil {
+	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
 		return types.HardLiquidityProviderClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
 	}
 
 	return claims, nil
 }
 
-func executeUSDXMintingRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext, params types.QueryRewardsParams) (types.USDXMintingClaims, error) {
-	bz, err := cdc.MarshalJSON(params)
+func executeUSDXMintingRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.USDXMintingClaims, error) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		return types.USDXMintingClaims{}, err
 	}
 
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetUSDXMintingRewards)
+	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetUSDXMintingRewards)
 	res, height, err := cliCtx.QueryWithData(route, bz)
 	if err != nil {
 		return types.USDXMintingClaims{}, err
@@ -248,20 +262,20 @@ func executeUSDXMintingRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx 
 	cliCtx = cliCtx.WithHeight(height)
 
 	var claims types.USDXMintingClaims
-	if err := cdc.UnmarshalJSON(res, &claims); err != nil {
+	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
 		return types.USDXMintingClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
 	}
 
 	return claims, nil
 }
 
-func executeDelegatorRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext, params types.QueryRewardsParams) (types.DelegatorClaims, error) {
-	bz, err := cdc.MarshalJSON(params)
+func executeDelegatorRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.DelegatorClaims, error) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		return types.DelegatorClaims{}, err
 	}
 
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetDelegatorRewards)
+	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetDelegatorRewards)
 	res, height, err := cliCtx.QueryWithData(route, bz)
 	if err != nil {
 		return types.DelegatorClaims{}, err
@@ -270,20 +284,20 @@ func executeDelegatorRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx co
 	cliCtx = cliCtx.WithHeight(height)
 
 	var claims types.DelegatorClaims
-	if err := cdc.UnmarshalJSON(res, &claims); err != nil {
+	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
 		return types.DelegatorClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
 	}
 
 	return claims, nil
 }
 
-func executeSwapRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context.CLIContext, params types.QueryRewardsParams) (types.SwapClaims, error) {
-	bz, err := cdc.MarshalJSON(params)
+func executeSwapRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.SwapClaims, error) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		return types.SwapClaims{}, err
 	}
 
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetSwapRewards)
+	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetSwapRewards)
 	res, height, err := cliCtx.QueryWithData(route, bz)
 	if err != nil {
 		return types.SwapClaims{}, err
@@ -292,7 +306,7 @@ func executeSwapRewardsQuery(queryRoute string, cdc *codec.Codec, cliCtx context
 	cliCtx = cliCtx.WithHeight(height)
 
 	var claims types.SwapClaims
-	if err := cdc.UnmarshalJSON(res, &claims); err != nil {
+	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
 		return types.SwapClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
 	}
 
