@@ -1,6 +1,8 @@
 package v0_16
 
 import (
+	"io/ioutil"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -46,149 +48,168 @@ func (s *migrateTestSuite) SetupTest() {
 	s.addresses = accAddresses
 }
 
-// func (s *migrateTestSuite) TestMigrate_JSON() {
-// 	// Migrate v15 cdp to v16
-// 	data := `{
-// 		"params": {
-// 			"assets": [
-// 				{
-// 					"blockable": true,
-// 					"blocked_addresses": null,
-// 					"denom": "hbtc",
-// 					"owner": "kava1dmm9zpdnm6mfhywzt9sstm4p33y0cnsd0m673z",
-// 					"paused": false,
-// 					"rate_limit": {
-// 						"active": false,
-// 						"limit": "0",
-// 						"time_period": "0"
-// 					}
-// 				}
-// 			]
-// 		},
-// 		"supplies": [
-// 			{
-// 				"current_supply": { "denom": "ukava", "amount": "100" },
-// 				"time_elapsed": "3600000000000"
-// 			},
-// 			{
-// 				"current_supply": { "denom": "bnb", "amount": "300" },
-// 				"time_elapsed": "300000000000"
-// 			}
-// 		]
-// 	}`
-// 	err := s.legacyCdc.UnmarshalJSON([]byte(data), &s.v15genstate)
-// 	s.Require().NoError(err)
-// 	genstate := Migrate(s.v15genstate)
+func (s *migrateTestSuite) TestMigrate_JSON() {
+	file := filepath.Join("testdata", "v15-cdp.json")
+	data, err := ioutil.ReadFile(file)
+	s.Require().NoError(err)
+	err = s.legacyCdc.UnmarshalJSON(data, &s.v15genstate)
+	s.Require().NoError(err)
+	genstate := Migrate(s.v15genstate)
+	actual := s.cdc.MustMarshalJSON(genstate)
 
-// 	// Compare expect v16 cdp json with migrated json
-// 	expected := `{
-// 		"params": {
-// 			"assets": [
-// 				{
-// 					"blockable": true,
-// 					"blocked_addresses": [],
-// 					"denom": "hbtc",
-// 					"owner": "kava1dmm9zpdnm6mfhywzt9sstm4p33y0cnsd0m673z",
-// 					"paused": false,
-// 					"rate_limit": {
-// 						"active": false,
-// 						"limit": "0",
-// 						"time_period": "0s"
-// 					}
-// 				}
-// 			]
-// 		},
-// 		"supplies": [
-// 			{
-// 				"current_supply": { "denom": "ukava", "amount": "100" },
-// 				"time_elapsed": "3600s"
-// 			},
-// 			{
-// 				"current_supply": { "denom": "bnb", "amount": "300" },
-// 				"time_elapsed": "300s"
-// 			}
-// 		]
-// 	}`
-// 	actual := s.cdc.MustMarshalJSON(genstate)
-// 	s.Require().NoError(err)
-// 	s.Require().JSONEq(expected, string(actual))
-// }
+	file = filepath.Join("testdata", "v16-cdp.json")
+	expected, err := ioutil.ReadFile(file)
+	s.Require().NoError(err)
+	s.Require().JSONEq(string(expected), string(actual))
+}
 
-func (s *migrateTestSuite) TestMigrate_Params() {
-	s.v15genstate.Params = v015cdp.Params{
-		CollateralParams: v015cdp.CollateralParams{
+func (s *migrateTestSuite) TestMigrate_GenState() {
+	s.v15genstate = v015cdp.GenesisState{
+		StartingCdpID: 2,
+		DebtDenom:     "usdx",
+		GovDenom:      "ukava",
+		Params: v015cdp.Params{
+			CollateralParams: v015cdp.CollateralParams{
+				{
+					Denom:                            "xrp",
+					Type:                             "xrp-a",
+					LiquidationRatio:                 sdk.MustNewDecFromStr("2.0"),
+					DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
+					StabilityFee:                     sdk.MustNewDecFromStr("1.012"),
+					LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
+					AuctionSize:                      sdk.NewInt(70),
+					SpotMarketID:                     "xrp:usd",
+					LiquidationMarketID:              "xrp:usd",
+					KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
+					CheckCollateralizationIndexCount: sdk.NewInt(10),
+					ConversionFactor:                 sdk.NewInt(6),
+				},
+			},
+			DebtParam: v015cdp.DebtParam{
+				Denom:            "usdx",
+				ReferenceAsset:   "usd",
+				ConversionFactor: sdk.NewInt(6),
+				DebtFloor:        sdk.NewInt(100),
+			},
+			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
+			SurplusAuctionThreshold: sdk.NewInt(6),
+			SurplusAuctionLot:       sdk.NewInt(7),
+			DebtAuctionThreshold:    sdk.NewInt(8),
+			DebtAuctionLot:          sdk.NewInt(9),
+		},
+		CDPs: v015cdp.CDPs{
 			{
-				Denom:                            "xrp",
-				Type:                             "xrp-a",
-				LiquidationRatio:                 sdk.MustNewDecFromStr("2.0"),
-				DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
-				StabilityFee:                     sdk.MustNewDecFromStr("1.012"),
-				LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
-				AuctionSize:                      sdk.NewInt(70),
-				SpotMarketID:                     "xrp:usd",
-				LiquidationMarketID:              "xrp:usd",
-				KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
-				CheckCollateralizationIndexCount: sdk.NewInt(10),
-				ConversionFactor:                 sdk.NewInt(6),
+				ID:              2,
+				Owner:           s.addresses[0],
+				Type:            "xrp-a",
+				Collateral:      sdk.NewCoin("xrp", sdk.NewInt(2123)),
+				Principal:       sdk.NewCoin("usdx", sdk.NewInt(100)),
+				AccumulatedFees: sdk.NewCoin("usdx", sdk.ZeroInt()),
+				FeesUpdated:     time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
+				InterestFactor:  sdk.NewDec(1),
 			},
 		},
-		DebtParam: v015cdp.DebtParam{
-			Denom:            "usdx",
-			ReferenceAsset:   "usd",
-			ConversionFactor: sdk.NewInt(6),
-			DebtFloor:        sdk.NewInt(100),
-		},
-		GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
-		SurplusAuctionThreshold: sdk.NewInt(6),
-		SurplusAuctionLot:       sdk.NewInt(7),
-		DebtAuctionThreshold:    sdk.NewInt(8),
-		DebtAuctionLot:          sdk.NewInt(9),
-	}
-	expectedParams := v016cdp.Params{
-		Assets: []v016cdp.Asset{
+		Deposits: v015cdp.Deposits{
 			{
-				Owner:            s.addresses[0].String(),
-				Denom:            "ukava",
-				BlockedAddresses: []string{s.addresses[1].String()},
-				Paused:           true,
-				Blockable:        true,
-				RateLimit: v016cdp.RateLimit{
-					Active:     true,
-					Limit:      sdk.NewInt(10),
-					TimePeriod: 1 * time.Hour,
+				CdpID:     1,
+				Depositor: s.addresses[0],
+				Amount:    sdk.NewCoin("usdx", sdk.NewInt(100)),
+			},
+			{
+				CdpID:     2,
+				Depositor: s.addresses[1],
+				Amount:    sdk.NewCoin("ukava", sdk.NewInt(1200)),
+			},
+		},
+		PreviousAccumulationTimes: v015cdp.GenesisAccumulationTimes{
+			{
+				CollateralType:           "usdx",
+				PreviousAccumulationTime: time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
+				InterestFactor:           sdk.MustNewDecFromStr("0.02"),
+			},
+		},
+		TotalPrincipals: v015cdp.GenesisTotalPrincipals{
+			{
+				CollateralType: "usdx",
+				TotalPrincipal: sdk.NewInt(1200),
+			},
+		},
+	}
+	expected := v016cdp.GenesisState{
+		StartingCdpID: 2,
+		DebtDenom:     "usdx",
+		GovDenom:      "ukava",
+		Params: v016cdp.Params{
+			CollateralParams: v016cdp.CollateralParams{
+				{
+					Denom:                            "xrp",
+					Type:                             "xrp-a",
+					LiquidationRatio:                 sdk.MustNewDecFromStr("2.0"),
+					DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
+					StabilityFee:                     sdk.MustNewDecFromStr("1.012"),
+					LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
+					AuctionSize:                      sdk.NewInt(70),
+					SpotMarketID:                     "xrp:usd",
+					LiquidationMarketID:              "xrp:usd",
+					KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
+					CheckCollateralizationIndexCount: sdk.NewInt(10),
+					ConversionFactor:                 sdk.NewInt(6),
 				},
+			},
+			DebtParam: v016cdp.DebtParam{
+				Denom:            "usdx",
+				ReferenceAsset:   "usd",
+				ConversionFactor: sdk.NewInt(6),
+				DebtFloor:        sdk.NewInt(100),
+			},
+			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
+			SurplusAuctionThreshold: sdk.NewInt(6),
+			SurplusAuctionLot:       sdk.NewInt(7),
+			DebtAuctionThreshold:    sdk.NewInt(8),
+			DebtAuctionLot:          sdk.NewInt(9),
+		},
+		CDPs: v016cdp.CDPs{
+			{
+				ID:              2,
+				Owner:           s.addresses[0],
+				Type:            "xrp-a",
+				Collateral:      sdk.NewCoin("xrp", sdk.NewInt(2123)),
+				Principal:       sdk.NewCoin("usdx", sdk.NewInt(100)),
+				AccumulatedFees: sdk.NewCoin("usdx", sdk.ZeroInt()),
+				FeesUpdated:     time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
+				InterestFactor:  sdk.NewDec(1),
+			},
+		},
+		Deposits: v016cdp.Deposits{
+			{
+				CdpID:     1,
+				Depositor: s.addresses[0],
+				Amount:    sdk.NewCoin("usdx", sdk.NewInt(100)),
+			},
+			{
+				CdpID:     2,
+				Depositor: s.addresses[1],
+				Amount:    sdk.NewCoin("ukava", sdk.NewInt(1200)),
+			},
+		},
+		PreviousAccumulationTimes: v016cdp.GenesisAccumulationTimes{
+			{
+				CollateralType:           "usdx",
+				PreviousAccumulationTime: time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
+				InterestFactor:           sdk.MustNewDecFromStr("0.02"),
+			},
+		},
+		TotalPrincipals: v016cdp.GenesisTotalPrincipals{
+			{
+				CollateralType: "usdx",
+				TotalPrincipal: sdk.NewInt(1200),
 			},
 		},
 	}
 	genState := Migrate(s.v15genstate)
-	s.Require().Equal(expectedParams, genState.Params)
+	s.Require().Equal(expected, *genState)
 }
 
-// func (s *migrateTestSuite) TestMigrate_Supplies() {
-// 	s.v15genstate.Supplies = v015cdp.AssetSupplies{
-// 		{
-// 			CurrentSupply: sdk.NewCoin("ukava", sdk.NewInt(100)),
-// 			TimeElapsed:   time.Duration(1 * time.Hour),
-// 		},
-// 		{
-// 			CurrentSupply: sdk.NewCoin("bnb", sdk.NewInt(300)),
-// 			TimeElapsed:   time.Duration(5 * time.Minute),
-// 		},
-// 	}
-// 	expected := []v016cdp.AssetSupply{
-// 		{
-// 			CurrentSupply: sdk.NewCoin("ukava", sdk.NewInt(100)),
-// 			TimeElapsed:   time.Duration(1 * time.Hour),
-// 		},
-// 		{
-// 			CurrentSupply: sdk.NewCoin("bnb", sdk.NewInt(300)),
-// 			TimeElapsed:   time.Duration(5 * time.Minute),
-// 		},
-// 	}
-// 	genState := Migrate(s.v15genstate)
-// 	s.Require().Equal(expected, genState.Supplies)
-// }
-
-func TestcdpMigrateTestSuite(t *testing.T) {
+func TestCdpMigrateTestSuite(t *testing.T) {
 	suite.Run(t, new(migrateTestSuite))
 }
