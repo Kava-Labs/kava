@@ -1,0 +1,83 @@
+{
+  "staking": {
+    "delegations": [
+      {
+        "delegator_address": "kava1ll7ekzdq2zanxqgvx7rt8w8d4u7qmys62qq7c9",
+        "shares": "2989000.000000000000000000",
+        "validator_address": "kavavaloper1jl42l225565y3hm9dm4my33hjgdzleucqryhlx"
+      }
+    ],
+    "exported": true,
+    "last_total_power": "87090141",
+    "last_validator_powers": [
+      {
+        "Address": "kavavaloper1leujfugjvuhxqdwlmc7hezra6j5fugk75ttlaa",
+        "Power": "1135"
+      }
+    ],
+    "params": {
+      "bond_denom": "ukava",
+      "historical_entries": 0,
+      "max_entries": 7,
+      "max_validators": 100,
+      "unbonding_time": "3600000000000"
+    },
+    "redelegations": [
+      {
+        "delegator_address": "kava1lu79dv2zncqknysg3qax0am859ee8du0k894qk",
+        "entries": [
+          {
+            "completion_time": "2021-11-21T05:23:07.223503021Z",
+            "creation_height": "781609",
+            "initial_balance": "53000000",
+            "shares_dst": "53000000.000000000000000000"
+          }
+        ],
+        "validator_dst_address": "kavavaloper140g8fnnl46mlvfhygj3zvjqlku6x0fwu6lgey7",
+        "validator_src_address": "kavavaloper1m4maus4725x5x4xzu9ac2rk5eu7thld4g0whvc"
+      }
+    ],
+    "unbonding_delegations": [
+      {
+        "delegator_address": "kava1ll35md2djrt4q5s4naxedfhq7ghyt9ncf2j5zd",
+        "entries": [
+          {
+            "balance": "176686927",
+            "completion_time": "2021-11-15T16:52:53.992989413Z",
+            "creation_height": "710207",
+            "initial_balance": "176686927"
+          }
+        ],
+        "validator_address": "kavavaloper1jl42l225565y3hm9dm4my33hjgdzleucqryhlx"
+      }
+    ],
+    "validators": [
+      {
+        "commission": {
+          "commission_rates": {
+            "max_change_rate": "0.500000000000000000",
+            "max_rate": "0.500000000000000000",
+            "rate": "0.500000000000000000"
+          },
+          "update_time": "2020-02-05T09:55:51.495267155Z"
+        },
+        "consensus_pubkey": "kavavalconspub1zcjduepqyj4j29k7hn58g7n6ert7mm4m7d0kllrx6h5rzzgpvjdt69r80zsq3az2xq",
+        "delegator_shares": "3000000001.511717782247836219",
+        "description": {
+          "details": "\"Trustless Digital Asset Management\", Twitter: @StakeCapital, operated by @bneiluj @leopoldjoy",
+          "identity": "",
+          "moniker": "Stake Capital",
+          "security_contact": "",
+          "website": ""
+        },
+        "jailed": true,
+        "min_self_delegation": "1",
+        "operator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z",
+        "status": 0,
+        "tokens": "2998500336",
+        "unbonding_height": "0",
+        "unbonding_time": "2021-01-06T14:07:27.057806845Z"
+      }
+    ]
+  }
+}
