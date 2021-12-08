@@ -459,7 +459,6 @@ func NewApp(
 		keys[incentivetypes.StoreKey],
 		incentiveSubspace,
 		app.bankKeeper,
-		// CDP, hard, swap not set in app yet
 		&cdpKeeper,
 		&hardKeeper,
 		app.accountKeeper,
