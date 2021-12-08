@@ -21,7 +21,8 @@ func (suite *HandlerTestSuite) TestPayoutUSDXClaim() {
 	suite.SetupWithGenState(authBulder, incentBuilder)
 
 	// mint some usdx
-	suite.DeliverMsgCreateCDP(userAddr, c("bnb", 1e9), c("usdx", 1e7), "bnb-a")
+	err := suite.DeliverMsgCreateCDP(userAddr, c("bnb", 1e9), c("usdx", 1e7), "bnb-a")
+	suite.NoError(err)
 	// accumulate some rewards
 	suite.NextBlockAfter(7 * time.Second)
 
@@ -30,7 +31,7 @@ func (suite *HandlerTestSuite) TestPayoutUSDXClaim() {
 	msg := types.NewMsgClaimUSDXMintingReward(userAddr.String(), "large")
 
 	// Claim a single denom
-	err := suite.DeliverIncentiveMsg(&msg)
+	err = suite.DeliverIncentiveMsg(&msg)
 	suite.NoError(err)
 
 	// Check rewards were paid out
