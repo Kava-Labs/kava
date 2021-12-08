@@ -100,9 +100,6 @@ func (tApp TestApp) GetHardKeeper() hardkeeper.Keeper           { return tApp.ha
 func (tApp TestApp) GetCommitteeKeeper() committeekeeper.Keeper { return tApp.committeeKeeper }
 func (tApp TestApp) GetIncentiveKeeper() incentivekeeper.Keeper { return tApp.incentiveKeeper }
 
-// TODO add back with modules
-// func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
-
 // LegacyAmino returns the app's amino codec.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
