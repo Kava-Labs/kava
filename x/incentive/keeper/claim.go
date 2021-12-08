@@ -5,7 +5,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/incentive/types"
-	// validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 // ClaimUSDXMintingReward pays out funds from a claim to a receiver account.
@@ -239,15 +238,3 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	)
 	return nil
 }
-
-// func (k Keeper) ValidateIsValidatorVestingAccount(ctx sdk.Context, address sdk.AccAddress) error {
-// 	acc := k.accountKeeper.GetAccount(ctx, address)
-// 	if acc == nil {
-// 		return sdkerrors.Wrapf(types.ErrAccountNotFound, "address not found: %s", address)
-// 	}
-// 	_, ok := acc.(*validatorvesting.ValidatorVestingAccount)
-// 	if !ok {
-// 		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "account is not validator vesting account, %s", address)
-// 	}
-// 	return nil
-// }
