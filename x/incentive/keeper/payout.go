@@ -39,8 +39,6 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 	}
 
 	switch acc.(type) {
-	// TODO: confirm we can replace *vestingtypes.ValidatorVestingAccount with *vestingtypes.ContinuousVestingAccount
-	// case *vestingtypes.ValidatorVestingAccount, authtypes.ModuleAccountI:
 	case *vestingtypes.ContinuousVestingAccount, authtypes.ModuleAccountI:
 		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
 	case *vestingtypes.PeriodicVestingAccount:
