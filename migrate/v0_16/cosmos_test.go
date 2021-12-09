@@ -1,4 +1,4 @@
-package modules
+package v0_16
 
 import (
 	"encoding/json"
@@ -22,13 +22,44 @@ func TestCosmosMigrate_Gov(t *testing.T) {
 	assert.JSONEq(t, expected, actual)
 }
 
+func TestCosmosMigrate_Bank(t *testing.T) {
+	// The bank json tests migrating the bank, auth, and supply modules
+	// The json contains the kava ValidatorVestingAccount account and tests for
+	// both the correct proto migration & moving account coins and supply to the bank module.
+	original := GetTestDataJSON("appstate-bank-v15.json")
+	expected := GetTestDataJSON("appstate-bank-v16.json")
+	actual := MustMigrateAppStateJSON(original)
+	assert.JSONEq(t, expected, actual)
+}
+
+func TestCosmosMigrate_Distribution(t *testing.T) {
+	original := GetTestDataJSON("appstate-distribution-v15.json")
+	expected := GetTestDataJSON("appstate-distribution-v16.json")
+	actual := MustMigrateAppStateJSON(original)
+	assert.JSONEq(t, expected, actual)
+}
+
+func TestCosmosMigrate_Staking(t *testing.T) {
+	original := GetTestDataJSON("appstate-staking-v15.json")
+	expected := GetTestDataJSON("appstate-staking-v16.json")
+	actual := MustMigrateAppStateJSON(original)
+	assert.JSONEq(t, expected, actual)
+}
+
+func TestCosmosMigrate_Modules(t *testing.T) {
+	original := GetTestDataJSON("appstate-cosmos-v15.json")
+	expected := GetTestDataJSON("appstate-cosmos-v16.json")
+	actual := MustMigrateAppStateJSON(original)
+	assert.JSONEq(t, expected, actual)
+}
+
 // MustMigrateAppStateJSON migrate v15 app state json to v16
 func MustMigrateAppStateJSON(appStateJson string) string {
 	var appState genutiltypes.AppMap
 	if err := json.Unmarshal([]byte(appStateJson), &appState); err != nil {
 		panic(err)
 	}
-	newGenState := MigrateCosmosAppState(appState, NewClientContext())
+	newGenState := migrateCosmosAppState(appState, NewClientContext())
 	actual, err := json.Marshal(newGenState)
 	if err != nil {
 		panic(err)

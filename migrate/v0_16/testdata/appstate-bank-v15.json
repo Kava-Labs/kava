@@ -1,0 +1,544 @@
+{
+  "auth": {
+    "accounts": [
+      {
+        "type": "cosmos-sdk/ModuleAccount",
+        "value": {
+          "address": "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+          "coins": [
+            {
+              "denom": "hard",
+              "amount": "1000000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "1000000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "1000000000000"
+            }
+          ],
+          "public_key": null,
+          "account_number": "0",
+          "sequence": "0",
+          "name": "kavadist",
+          "permissions": ["minter"]
+        }
+      },
+      {
+        "type": "cosmos-sdk/ModuleAccount",
+        "value": {
+          "address": "kava1a42xtwfzphuuu9mdp0es6633wu5mm8fhm789v3",
+          "coins": [
+            {
+              "denom": "usdx",
+              "amount": "1000000000"
+            }
+          ],
+          "public_key": null,
+          "account_number": "0",
+          "sequence": "1",
+          "name": "hard",
+          "permissions": ["minter", "burner"]
+        }
+      },
+      {
+        "type": "cosmos-sdk/ModuleAccount",
+        "value": {
+          "account_number": "32",
+          "address": "kava1mfru9azs5nua2wxcd4sq64g5nt7nn4n8s2w8cu",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            },
+            {
+              "amount": "4100000000000",
+              "denom": "usdx"
+            }
+          ],
+          "name": "swap",
+          "permissions": null,
+          "public_key": "",
+          "sequence": "3"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1ypjp0m04pyp73hwgtc0dgkx0e9rrydecm054da",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1agcvt07tcw0tglu0hmwdecsnuxp2yd45f3avgm",
+          "coins": [
+            {
+              "amount": "100000000000000",
+              "denom": "bnb"
+            },
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": {
+            "type": "tendermint/PubKeySecp256k1",
+            "value": "A7WkS5eJAiPE/gl7n4I5qa5JsREvQM5fkdgCEPhNfj0h"
+          },
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/PeriodicVestingAccount",
+        "value": {
+          "address": "kava1z3ytjpr6ancl8gw80z6f47z9smug7986x29vtj",
+          "coins": [
+            {
+              "denom": "ukava",
+              "amount": "565077579"
+            },
+            {
+              "denom": "usdx",
+              "amount": "1363200"
+            }
+          ],
+          "public_key": null,
+          "account_number": "0",
+          "sequence": "0",
+          "original_vesting": [
+            {
+              "denom": "ukava",
+              "amount": "560159828"
+            }
+          ],
+          "delegated_free": [],
+          "delegated_vesting": [],
+          "end_time": "1628213878",
+          "start_time": "1596677878",
+          "vesting_periods": [
+            {
+              "length": "31536000",
+              "amount": [
+                {
+                  "denom": "ukava",
+                  "amount": "560159828"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "cosmos-sdk/ValidatorVestingAccount",
+        "value": {
+          "address": "kava1h932rkxxhwf0gz3gq23qsnedgax5vwuxw4ufhy",
+          "coins": [
+            {
+              "denom": "ukava",
+              "amount": "2499984990625"
+            }
+          ],
+          "public_key": null,
+          "account_number": "0",
+          "sequence": "0",
+          "original_vesting": [
+            {
+              "denom": "ukava",
+              "amount": "1499974990625"
+            }
+          ],
+          "delegated_free": [],
+          "delegated_vesting": [],
+          "end_time": "1636120800",
+          "start_time": "1572962400",
+          "vesting_periods": [
+            {
+              "length": "31622400",
+              "amount": [
+                {
+                  "denom": "ukava",
+                  "amount": "416659707952"
+                }
+              ]
+            },
+            {
+              "length": "7948800",
+              "amount": [
+                {
+                  "denom": "ukava",
+                  "amount": "270828734420"
+                }
+              ]
+            },
+            {
+              "length": "7689600",
+              "amount": [
+                {
+                  "denom": "ukava",
+                  "amount": "270828734420"
+                }
+              ]
+            },
+            {
+              "length": "7948800",
+              "amount": [
+                {
+                  "denom": "ukava",
+                  "amount": "270828734420"
+                }
+              ]
+            },
+            {
+              "length": "7948800",
+              "amount": [
+                {
+                  "denom": "ukava",
+                  "amount": "270829079413"
+                }
+              ]
+            }
+          ],
+          "validator_address": "kavavalcons16mkm6ggf280kjtsxnvzur7tnqttgavj4mzr4zf",
+          "return_address": "kava1qvsus5qg8yhre7k2c78xkkw4nvqqgev7ezrja8",
+          "signing_threshold": "90",
+          "current_period_progress": {
+            "missed_blocks": "0",
+            "total_blocks": "1"
+          },
+          "vesting_period_progress": [
+            {
+              "period_complete": false,
+              "vesting_successful": false
+            },
+            {
+              "period_complete": false,
+              "vesting_successful": false
+            },
+            {
+              "period_complete": false,
+              "vesting_successful": false
+            },
+            {
+              "period_complete": false,
+              "vesting_successful": false
+            },
+            {
+              "period_complete": false,
+              "vesting_successful": false
+            }
+          ],
+          "debt_after_failed_vesting": []
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "140367",
+          "address": "kava1kla4wl0ccv7u85cemvs3y987hqk0afcv7vue84",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "140267",
+          "address": "kava14q5sawxdxtpap5x5sgzj7v4sp3ucncjlpuk3hs",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1tfvn5t8qwngqd2q427za2mel48pcus3z9u73fl",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1j9je7f6s0v6k7dmgv6u5k5ru202f5ffsc7af04",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1ektgdyy0z23qqnd67ns3qvfzgfgjd5xe82lf5c",
+          "coins": [
+            {
+              "amount": "10000000000000000",
+              "denom": "busd"
+            },
+            {
+              "amount": "10000000000000000",
+              "denom": "bnb"
+            },
+            {
+              "amount": "10000000000000000",
+              "denom": "xrpb"
+            },
+            {
+              "amount": "10000000000000000",
+              "denom": "btcb"
+            },
+            {
+              "amount": "10000000000000000",
+              "denom": "hbtc"
+            },
+            {
+              "amount": "100000000000000000",
+              "denom": "usdx"
+            },
+            {
+              "amount": "1000000000000000000",
+              "denom": "hard"
+            },
+            {
+              "amount": "1000000000000000000",
+              "denom": "swp"
+            },
+            {
+              "amount": "10000000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1g33w0mh4mjllhaj3y4dcwkwquxgwrma9ga5t94",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1ynf22ap74j6znl503a56y23x5stfr0aw5kntp8",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1fwfwmt6vupf3m9uvpdsuuc4dga8p5dtl4npcqz",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1sw54s6gq76acm35ls6m5c0kr93dstgrh6eftld",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1t4dvu32e309pzhmdn3aqcjlj79h9876plynrfm",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      },
+      {
+        "type": "cosmos-sdk/Account",
+        "value": {
+          "account_number": "0",
+          "address": "kava1wuzhkn2f8nqe2aprnwt3jkjvvr9m7dlkpumtz2",
+          "coins": [
+            {
+              "amount": "1000000000000",
+              "denom": "ukava"
+            }
+          ],
+          "public_key": null,
+          "sequence": "0"
+        }
+      }
+    ],
+    "params": {
+      "max_memo_characters": "256",
+      "sig_verify_cost_ed25519": "590",
+      "sig_verify_cost_secp256k1": "1000",
+      "tx_sig_limit": "7",
+      "tx_size_cost_per_byte": "10"
+    }
+  },
+  "bank": {
+    "send_enabled": true
+  },
+  "supply": {
+    "supply": [
+      {
+        "amount": "30467659434006",
+        "denom": "bnb"
+      },
+      {
+        "amount": "107149210616",
+        "denom": "btcb"
+      },
+      {
+        "amount": "10290947060016617",
+        "denom": "busd"
+      },
+      {
+        "amount": "149509607333687",
+        "denom": "debt"
+      },
+      {
+        "amount": "200000000000000",
+        "denom": "hard"
+      },
+      {
+        "amount": "50000000000",
+        "denom": "hbtc"
+      },
+      {
+        "amount": "250000000000000",
+        "denom": "swp"
+      },
+      {
+        "amount": "149780247604867",
+        "denom": "ukava"
+      },
+      {
+        "amount": "149509607333687",
+        "denom": "usdx"
+      },
+      {
+        "amount": "4126898198548806",
+        "denom": "xrpb"
+      }
+    ]
+  }
+}
