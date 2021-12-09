@@ -75,10 +75,6 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 	pva := vestingtypes.NewPeriodicVestingAccountRaw(bva, ctx.BlockTime().Unix(), newPeriods)
 	k.accountKeeper.SetAccount(ctx, pva)
 
-	// TODO: we probably also need to transition the account's coins via the bank keeper
-	// TODO: accCoins := k.bankKeeper.GetAllBalances(ctx, acc.GetAddress())
-	// TODO: k.bankKeeper.MintCoins(ctx, pva.Address)
-
 	return nil
 }
 
