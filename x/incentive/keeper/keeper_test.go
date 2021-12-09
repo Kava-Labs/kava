@@ -283,12 +283,12 @@ type accrualtime struct {
 
 var nonEmptyAccrualTimes = []accrualtime{
 	{
-		denom: "ukava",
-		time:  time.Time{},
-	},
-	{
 		denom: "btcb",
 		time:  time.Date(1998, 1, 1, 0, 0, 0, 1, time.UTC),
+	},
+	{
+		denom: "ukava",
+		time:  time.Time{},
 	},
 }
 
@@ -307,7 +307,7 @@ func (suite *KeeperTestSuite) TestIterateUSDXMintingAccrualTimes() {
 		return false
 	})
 
-	suite.ElementsMatch(expectedAccrualTimes, actualAccrualTimes)
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
 }
 
 func (suite *KeeperTestSuite) TestIterateHardSupplyRewardAccrualTimes() {
@@ -325,7 +325,7 @@ func (suite *KeeperTestSuite) TestIterateHardSupplyRewardAccrualTimes() {
 		return false
 	})
 
-	suite.ElementsMatch(expectedAccrualTimes, actualAccrualTimes)
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
 }
 
 func (suite *KeeperTestSuite) TestIterateHardBorrowrRewardAccrualTimes() {
@@ -343,7 +343,7 @@ func (suite *KeeperTestSuite) TestIterateHardBorrowrRewardAccrualTimes() {
 		return false
 	})
 
-	suite.ElementsMatch(expectedAccrualTimes, actualAccrualTimes)
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
 }
 
 func (suite *KeeperTestSuite) TestIterateDelegatorRewardAccrualTimes() {
@@ -361,7 +361,7 @@ func (suite *KeeperTestSuite) TestIterateDelegatorRewardAccrualTimes() {
 		return false
 	})
 
-	suite.ElementsMatch(expectedAccrualTimes, actualAccrualTimes)
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
 }
 
 func (suite *KeeperTestSuite) TestIterateSwapRewardAccrualTimes() {
@@ -379,7 +379,7 @@ func (suite *KeeperTestSuite) TestIterateSwapRewardAccrualTimes() {
 		return false
 	})
 
-	suite.ElementsMatch(expectedAccrualTimes, actualAccrualTimes)
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
