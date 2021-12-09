@@ -257,8 +257,6 @@
     - [Params](#kava.incentive.v1beta1.Params)
     - [RewardPeriod](#kava.incentive.v1beta1.RewardPeriod)
   
-    - [MultiplierName](#kava.incentive.v1beta1.MultiplierName)
-  
 - [kava/incentive/v1beta1/genesis.proto](#kava/incentive/v1beta1/genesis.proto)
     - [AccumulationTime](#kava.incentive.v1beta1.AccumulationTime)
     - [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState)
@@ -3720,7 +3718,7 @@ Multiplier amount the claim rewards get increased by, along with how long the cl
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `name` | [MultiplierName](#kava.incentive.v1beta1.MultiplierName) |  |  |
+| `name` | [string](#string) |  |  |
 | `months_lockup` | [int64](#int64) |  |  |
 | `factor` | [bytes](#bytes) |  |  |
 
@@ -3785,20 +3783,6 @@ RewardPeriod stores the state of an ongoing reward
 
 
  <!-- end messages -->
-
-
-<a name="kava.incentive.v1beta1.MultiplierName"></a>
-
-### MultiplierName
-MultiplierName represent different claim multiplier types
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| MULTIPLIER_NAME_UNSPECIFIED | 0 | represents an unspecified status |
-| MULTIPLIER_NAME_SMALL | 1 | MULTIPLIER_SMALL represents a small multiplier |
-| MULTIPLIER_NAME_MEDIUM | 2 | MULTIPLIER_MEDIUM represents a medium multiplier |
-| MULTIPLIER_NAME_LARGE | 3 | MULTIPLIER_LARGE represents a large multiplier |
-
 
  <!-- end enums -->
 
