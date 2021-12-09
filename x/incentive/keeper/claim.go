@@ -36,10 +36,7 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 		return types.ErrZeroClaim
 	}
 	rewardCoin := sdk.NewCoin(claim.Reward.Denom, rewardAmount)
-	length, err := k.GetPeriodLength(ctx, multiplier)
-	if err != nil {
-		return err
-	}
+	length := k.GetPeriodLength(ctx.BlockTime(), multiplier.MonthsLockup)
 
 	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, sdk.NewCoins(rewardCoin), length)
 	if err != nil {
@@ -87,12 +84,9 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
-	length, err := k.GetPeriodLength(ctx, multiplier)
-	if err != nil {
-		return err
-	}
+	length := k.GetPeriodLength(ctx.BlockTime(), multiplier.MonthsLockup)
 
-	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
+	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
 	if err != nil {
 		return err
 	}
@@ -144,10 +138,7 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 		return types.ErrZeroClaim
 	}
 
-	length, err := k.GetPeriodLength(ctx, multiplier)
-	if err != nil {
-		return err
-	}
+	length := k.GetPeriodLength(ctx.BlockTime(), multiplier.MonthsLockup)
 
 	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
 	if err != nil {
@@ -195,12 +186,9 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
-	length, err := k.GetPeriodLength(ctx, multiplier)
-	if err != nil {
-		return err
-	}
+	length := k.GetPeriodLength(ctx.BlockTime(), multiplier.MonthsLockup)
 
-	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
+	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
 	if err != nil {
 		return err
 	}
