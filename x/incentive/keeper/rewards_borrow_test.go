@@ -51,7 +51,7 @@ func (suite *BorrowIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 		WithGenesisTime(suite.genesisTime).
 		WithMultipliers(types.MultipliersPerDenoms{{
 			Denom:       "hard",
-			Multipliers: types.Multipliers{types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
+			Multipliers: types.Multipliers{types.NewMultiplier("large", 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
 		}}).
 		WithSimpleBorrowRewardPeriod("bnb", cs(c("hard", 1e6))) // only borrow rewards
 

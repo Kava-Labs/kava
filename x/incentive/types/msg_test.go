@@ -31,7 +31,7 @@ func TestMsgClaim_Validate(t *testing.T) {
 	}{
 
 		{
-			name: "large multiplier is valid",
+			name: "normal multiplier is valid",
 			msgArgs: msgArgs{
 				sender: validAddress,
 				denomsToClaim: types.Selections{
@@ -46,58 +46,13 @@ func TestMsgClaim_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "medium multiplier is valid",
+			name: "empty multiplier name is invalid",
 			msgArgs: msgArgs{
 				sender: validAddress,
 				denomsToClaim: types.Selections{
 					{
 						Denom:          "hard",
-						MultiplierName: "medium",
-					},
-				},
-			},
-			expect: expectedErr{
-				pass: true,
-			},
-		},
-		{
-			name: "small multiplier is valid",
-			msgArgs: msgArgs{
-				sender: validAddress,
-				denomsToClaim: types.Selections{
-					{
-						Denom:          "hard",
-						MultiplierName: "small",
-					},
-				},
-			},
-			expect: expectedErr{
-				pass: true,
-			},
-		},
-		{
-			name: "invalid multiplier",
-			msgArgs: msgArgs{
-				sender: validAddress,
-				denomsToClaim: types.Selections{
-					{
-						Denom:          "hard",
-						MultiplierName: "huge",
-					},
-				},
-			},
-			expect: expectedErr{
-				wraps: types.ErrInvalidMultiplier,
-			},
-		},
-		{
-			name: "multiplier with capitalization is invalid",
-			msgArgs: msgArgs{
-				sender: validAddress,
-				denomsToClaim: types.Selections{
-					{
-						Denom:          "hard",
-						MultiplierName: "Large",
+						MultiplierName: "",
 					},
 				},
 			},
@@ -222,30 +177,10 @@ func TestMsgClaimUSDXMintingReward_Validate(t *testing.T) {
 		expect  expectedErr
 	}{
 		{
-			name: "large multiplier is valid",
+			name: "normal multiplier is valid",
 			msgArgs: msgArgs{
 				sender:         validAddress,
 				multiplierName: "large",
-			},
-			expect: expectedErr{
-				pass: true,
-			},
-		},
-		{
-			name: "medium multiplier is valid",
-			msgArgs: msgArgs{
-				sender:         validAddress,
-				multiplierName: "medium",
-			},
-			expect: expectedErr{
-				pass: true,
-			},
-		},
-		{
-			name: "small multiplier is valid",
-			msgArgs: msgArgs{
-				sender:         validAddress,
-				multiplierName: "small",
 			},
 			expect: expectedErr{
 				pass: true,
@@ -262,20 +197,10 @@ func TestMsgClaimUSDXMintingReward_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid multiplier",
+			name: "empty multiplier is invalid",
 			msgArgs: msgArgs{
 				sender:         validAddress,
-				multiplierName: "huge",
-			},
-			expect: expectedErr{
-				wraps: types.ErrInvalidMultiplier,
-			},
-		},
-		{
-			name: "multiplier with capitalization is invalid",
-			msgArgs: msgArgs{
-				sender:         validAddress,
-				multiplierName: "Large",
+				multiplierName: "",
 			},
 			expect: expectedErr{
 				wraps: types.ErrInvalidMultiplier,

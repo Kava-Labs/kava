@@ -33,8 +33,8 @@ func (msg MsgClaimUSDXMintingReward) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
-	if err := NewMultiplierNameFromString(msg.MultiplierName).IsValid(); err != nil {
-		return err
+	if msg.MultiplierName == "" {
+		return sdkerrors.Wrap(ErrInvalidMultiplier, "multiplier name cannot be empty")
 	}
 	return nil
 }

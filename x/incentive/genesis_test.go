@@ -73,21 +73,21 @@ func (suite *GenesisTestSuite) SetupTest() {
 				{
 					Denom: "ukava",
 					Multipliers: types.Multipliers{
-						types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, d("1.0")),
+						types.NewMultiplier("large", 12, d("1.0")),
 					},
 				},
 				{
 					Denom: "hard",
 					Multipliers: types.Multipliers{
-						types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, d("0.25")),
-						types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, d("1.0")),
+						types.NewMultiplier("small", 1, d("0.25")),
+						types.NewMultiplier("large", 12, d("1.0")),
 					},
 				},
 				{
 					Denom: "swp",
 					Multipliers: types.Multipliers{
-						types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, d("0.25")),
-						types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, d("0.8")),
+						types.NewMultiplier("small", 1, d("0.25")),
+						types.NewMultiplier("medium", 6, d("0.8")),
 					},
 				},
 			},
@@ -135,21 +135,21 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				{
 					Denom: "ukava",
 					Multipliers: types.Multipliers{
-						types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, d("1.0")),
+						types.NewMultiplier("large", 12, d("1.0")),
 					},
 				},
 				{
 					Denom: "hard",
 					Multipliers: types.Multipliers{
-						types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, d("0.25")),
-						types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, d("1.0")),
+						types.NewMultiplier("small", 1, d("0.25")),
+						types.NewMultiplier("large", 12, d("1.0")),
 					},
 				},
 				{
 					Denom: "swp",
 					Multipliers: types.Multipliers{
-						types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, d("0.25")),
-						types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, d("0.8")),
+						types.NewMultiplier("small", 1, d("0.25")),
+						types.NewMultiplier("medium", 6, d("0.8")),
 					},
 				},
 			},

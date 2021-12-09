@@ -65,7 +65,7 @@ func (k Keeper) GetDelegatorRewardPeriods(ctx sdk.Context, denom string) (types.
 }
 
 // GetMultiplierByDenom fetches a multiplier from the params matching the denom and name.
-func (k Keeper) GetMultiplierByDenom(ctx sdk.Context, denom string, name types.MultiplierName) (types.Multiplier, bool) {
+func (k Keeper) GetMultiplierByDenom(ctx sdk.Context, denom string, name string) (types.Multiplier, bool) {
 	params := k.GetParams(ctx)
 
 	for _, dm := range params.ClaimMultipliers {

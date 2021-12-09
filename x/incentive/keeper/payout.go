@@ -78,27 +78,25 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 	return nil
 }
 
-// GetPeriodLength returns the length of the period based on the input blocktime and multiplier
-// note that pay dates are always the 1st or 15th of the month at 14:00UTC.
-func (k Keeper) GetPeriodLength(ctx sdk.Context, multiplier types.Multiplier) (int64, error) {
-
-	if multiplier.MonthsLockup == 0 {
-		return 0, nil
+// GetPeriodLength returns the length of the lockup period based on the input blocktime and multiplier lockup.
+// Note that pay dates are always the 1st or 15th of the month at 14:00UTC.
+// Months lockup cannot be negative
+func (k Keeper) GetPeriodLength(blockTime time.Time, monthsLockup int64) int64 {
+	if monthsLockup < 0 {
+		panic("months lockup must be non negative")
 	}
-	switch multiplier.Name {
-	case types.MULTIPLIER_NAME_SMALL, types.MULTIPLIER_NAME_MEDIUM, types.MULTIPLIER_NAME_LARGE:
-		currentDay := ctx.BlockTime().Day()
-		payDay := BeginningOfMonth
-		monthOffset := int64(1)
-		if currentDay < MidMonth || (currentDay == MidMonth && ctx.BlockTime().Hour() < PaymentHour) {
-			payDay = MidMonth
-			monthOffset = int64(0)
-		}
-		periodEndDate := time.Date(ctx.BlockTime().Year(), ctx.BlockTime().Month(), payDay, PaymentHour, 0, 0, 0, time.UTC).AddDate(0, int(multiplier.MonthsLockup+monthOffset), 0)
-		return periodEndDate.Unix() - ctx.BlockTime().Unix(), nil
-	default:
-		return 0, types.ErrInvalidMultiplier
+	if monthsLockup == 0 {
+		return 0
 	}
+	currentDay := blockTime.Day()
+	payDay := BeginningOfMonth
+	monthOffset := int64(1)
+	if currentDay < MidMonth || (currentDay == MidMonth && blockTime.Hour() < PaymentHour) {
+		payDay = MidMonth
+		monthOffset = int64(0)
+	}
+	periodEndDate := time.Date(blockTime.Year(), blockTime.Month(), payDay, PaymentHour, 0, 0, 0, time.UTC).AddDate(0, int(monthsLockup+monthOffset), 0)
+	return periodEndDate.Unix() - blockTime.Unix()
 }
 
 // addCoinsToVestingSchedule adds coins to the input account's vesting schedule where length is the amount of time (from the current block time), in seconds, that the coins will be vesting for

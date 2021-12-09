@@ -30,7 +30,7 @@ func (suite *ClaimTests) TestCannotClaimWhenMultiplierNotRecognised() {
 				{
 					Denom: "hard",
 					Multipliers: types.Multipliers{
-						types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, d("0.2")),
+						types.NewMultiplier("small", 1, d("0.2")),
 					},
 				},
 			},
@@ -63,7 +63,7 @@ func (suite *ClaimTests) TestCannotClaimAfterEndTime() {
 				{
 					Denom: "hard",
 					Multipliers: types.Multipliers{
-						types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, d("0.2")),
+						types.NewMultiplier("small", 1, d("0.2")),
 					},
 				},
 			},
