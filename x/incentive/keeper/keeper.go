@@ -113,11 +113,11 @@ func (k Keeper) GetPreviousUSDXMintingAccrualTime(ctx sdk.Context, ctype string)
 // SetPreviousUSDXMintingAccrualTime sets the last time a collateral type accrued USDX minting rewards
 func (k Keeper) SetPreviousUSDXMintingAccrualTime(ctx sdk.Context, ctype string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix)
-	b, err := blockTime.MarshalBinary()
+	bz, err := blockTime.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
-	store.Set([]byte(ctype), b)
+	store.Set([]byte(ctype), bz)
 }
 
 // IterateUSDXMintingAccrualTimes iterates over all previous USDX minting accrual times and preforms a callback function
@@ -494,11 +494,11 @@ func (k Keeper) IterateDelegatorRewardAccrualTimes(ctx sdk.Context, cb func(stri
 // GetPreviousHardSupplyRewardAccrualTime returns the last time a denom accrued Hard protocol supply-side rewards
 func (k Keeper) GetPreviousHardSupplyRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
-	b := store.Get([]byte(denom))
-	if b == nil {
+	bz := store.Get([]byte(denom))
+	if bz == nil {
 		return time.Time{}, false
 	}
-	if err := blockTime.UnmarshalBinary(b); err != nil {
+	if err := blockTime.UnmarshalBinary(bz); err != nil {
 		panic(err)
 	}
 	return blockTime, true
@@ -507,11 +507,11 @@ func (k Keeper) GetPreviousHardSupplyRewardAccrualTime(ctx sdk.Context, denom st
 // SetPreviousHardSupplyRewardAccrualTime sets the last time a denom accrued Hard protocol supply-side rewards
 func (k Keeper) SetPreviousHardSupplyRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
-	b, err := blockTime.MarshalBinary()
+	bz, err := blockTime.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
-	store.Set([]byte(denom), b)
+	store.Set([]byte(denom), bz)
 }
 
 // GetPreviousHardBorrowRewardAccrualTime returns the last time a denom accrued Hard protocol borrow-side rewards
@@ -530,21 +530,21 @@ func (k Keeper) GetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom st
 // SetPreviousHardBorrowRewardAccrualTime sets the last time a denom accrued Hard protocol borrow-side rewards
 func (k Keeper) SetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardBorrowRewardAccrualTimeKeyPrefix)
-	b, err := blockTime.MarshalBinary()
+	bz, err := blockTime.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
-	store.Set([]byte(denom), b)
+	store.Set([]byte(denom), bz)
 }
 
 // GetPreviousDelegatorRewardAccrualTime returns the last time a denom accrued protocol delegator rewards
 func (k Keeper) GetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousDelegatorRewardAccrualTimeKeyPrefix)
-	b := store.Get([]byte(denom))
-	if b == nil {
+	bz := store.Get([]byte(denom))
+	if bz == nil {
 		return time.Time{}, false
 	}
-	if err := blockTime.UnmarshalBinary(b); err != nil {
+	if err := blockTime.UnmarshalBinary(bz); err != nil {
 		panic(err)
 	}
 	return blockTime, true
@@ -553,11 +553,11 @@ func (k Keeper) GetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom str
 // SetPreviousDelegatorRewardAccrualTime sets the last time a denom accrued protocol delegator rewards
 func (k Keeper) SetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousDelegatorRewardAccrualTimeKeyPrefix)
-	b, err := blockTime.MarshalBinary()
+	bz, err := blockTime.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
-	store.Set([]byte(denom), b)
+	store.Set([]byte(denom), bz)
 }
 
 // SetSwapRewardIndexes stores the global reward indexes that track total rewards to a swap pool.
@@ -616,11 +616,11 @@ func (k Keeper) GetSwapRewardAccrualTime(ctx sdk.Context, poolID string) (blockT
 // SetSwapRewardAccrualTime stores the last time rewards were accrued for a swap pool.
 func (k Keeper) SetSwapRewardAccrualTime(ctx sdk.Context, poolID string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
-	b, err := blockTime.MarshalBinary()
+	bz, err := blockTime.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
-	store.Set([]byte(poolID), b)
+	store.Set([]byte(poolID), bz)
 }
 
 func (k Keeper) IterateSwapRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
