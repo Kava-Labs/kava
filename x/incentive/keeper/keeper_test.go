@@ -124,15 +124,26 @@ func (suite *KeeperTestSuite) TestIterateSwapClaims() {
 
 func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 	testCases := []struct {
-		name     string
-		poolName string
-		indexes  types.RewardIndexes
-		panics   bool
+		name      string
+		poolName  string
+		indexes   types.RewardIndexes
+		wantIndex types.RewardIndexes
+		panics    bool
 	}{
 		{
 			name:     "two factors can be written and read",
 			poolName: "btc/usdx",
 			indexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+			wantIndex: types.RewardIndexes{
 				{
 					CollateralType: "hard",
 					RewardFactor:   d("0.02"),
@@ -162,15 +173,19 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 			// this test is to detect any changes in behavior
 			name:     "setting empty indexes does not panic",
 			poolName: "btc/usdx",
-			indexes:  types.RewardIndexes{},
-			panics:   false,
+			// Marshalling empty slice results in [] bytes, unmarshalling the []
+			// empty bytes results in a nil slice instead of an empty slice
+			indexes:   types.RewardIndexes{},
+			wantIndex: nil,
+			panics:    false,
 		},
 		{
 			// this test is to detect any changes in behavior
-			name:     "setting nil indexes does not panic",
-			poolName: "btc/usdx",
-			indexes:  types.RewardIndexes{},
-			panics:   false,
+			name:      "setting nil indexes does not panic",
+			poolName:  "btc/usdx",
+			indexes:   nil,
+			wantIndex: nil,
+			panics:    false,
 		},
 	}
 
@@ -191,7 +206,7 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 
 			storedIndexes, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, tc.poolName)
 			suite.True(found)
-			suite.Equal(tc.indexes, storedIndexes)
+			suite.Equal(tc.wantIndex, storedIndexes)
 		})
 	}
 }
