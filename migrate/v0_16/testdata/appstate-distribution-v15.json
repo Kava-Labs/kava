@@ -1,0 +1,132 @@
+{
+  "distribution": {
+    "delegator_starting_infos": [
+      {
+        "delegator_address": "kava1qyc2cfl0nw8r95dsdw534x99wq0xcj9rksmhx4",
+        "starting_info": {
+          "creation_height": "0",
+          "previous_period": "1",
+          "stake": "2998500334.489037908092278841"
+        },
+        "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+      }
+    ],
+    "delegator_withdraw_infos": [],
+    "fee_pool": {
+      "community_pool": [
+        {
+          "amount": "16.000000000000000000",
+          "denom": "hard"
+        },
+        {
+          "amount": "895205479550.000000000000000000",
+          "denom": "swp"
+        },
+        {
+          "amount": "10026788897860.477125780244640707",
+          "denom": "ukava"
+        },
+        {
+          "amount": "8830.545647782965054425",
+          "denom": "usdx"
+        }
+      ]
+    },
+    "outstanding_rewards": [
+      {
+        "outstanding_rewards": null,
+        "validator_address": "kavavaloper1lv04hlf9tsmha42vd6yetf4r9g0tf3l36v243v"
+      },
+      {
+        "outstanding_rewards": [
+          {
+            "amount": "11080916.970485109335869445",
+            "denom": "ukava"
+          },
+          {
+            "amount": "0.649424494235324733",
+            "denom": "usdx"
+          }
+        ],
+        "validator_address": "kavavaloper1leujfugjvuhxqdwlmc7hezra6j5fugk75ttlaa"
+      }
+    ],
+    "params": {
+      "base_proposer_reward": "0.010000000000000000",
+      "bonus_proposer_reward": "0.040000000000000000",
+      "community_tax": "0.000000000000000000",
+      "withdraw_addr_enabled": false
+    },
+    "previous_proposer": "kavavalcons198lz0kngm8eeyfwxlp42rtt4kt3aswsc63tf6t",
+    "validator_accumulated_commissions": [
+      {
+        "accumulated": null,
+        "validator_address": "kavavaloper1lv04hlf9tsmha42vd6yetf4r9g0tf3l36v243v"
+      },
+      {
+        "accumulated": [
+          {
+            "amount": "3686239.375558734707570950",
+            "denom": "ukava"
+          },
+          {
+            "amount": "0.479786725383815797",
+            "denom": "usdx"
+          }
+        ],
+        "validator_address": "kavavaloper1leujfugjvuhxqdwlmc7hezra6j5fugk75ttlaa"
+      }
+    ],
+    "validator_current_rewards": [
+      {
+        "rewards": {
+          "period": "12",
+          "rewards": null
+        },
+        "validator_address": "kavavaloper1lv04hlf9tsmha42vd6yetf4r9g0tf3l36v243v"
+      },
+      {
+        "rewards": {
+          "period": "55",
+          "rewards": [
+            {
+              "amount": "1573825.556046395044080460",
+              "denom": "ukava"
+            }
+          ]
+        },
+        "validator_address": "kavavaloper1leujfugjvuhxqdwlmc7hezra6j5fugk75ttlaa"
+      }
+    ],
+    "validator_historical_rewards": [
+      {
+        "period": "40888",
+        "rewards": {
+          "cumulative_reward_ratio": [
+            {
+              "amount": "0.051970252339178715",
+              "denom": "ukava"
+            },
+            {
+              "amount": "0.000000007223525470",
+              "denom": "usdx"
+            }
+          ],
+          "reference_count": 1
+        },
+        "validator_address": "kavavaloper1ppj7c8tqt2e3rzqtmztsmd6ea6u3nz6qggcp5e"
+      }
+    ],
+    "validator_slash_events": [
+      {
+        "height": "10001",
+        "period": "5",
+        "validator_address": "kavavaloper1u3yuwhuh46nqjvw5pjy6krpcksfm0nyeujw8jz",
+        "validator_slash_event": {
+          "fraction": "0.000099999627751999",
+          "validator_period": "5"
+        }
+      }
+    ]
+  }
+}
