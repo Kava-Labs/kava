@@ -5,18 +5,17 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/kava-labs/kava/x/kavadist"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 type USDXIntegrationTests struct {
@@ -42,34 +41,35 @@ func (suite *USDXIntegrationTests) ProposeAndVoteOnNewRewardPeriods(committeeID 
 	suite.ProposeAndVoteOnNewParams(
 		voter,
 		committeeID,
-		[]paramtypes.ParamChange{{
-			Subspace: incentive.ModuleName,
-			Key:      string(incentive.KeyUSDXMintingRewardPeriods),
-			Value:    string(incentive.ModuleCdc.MustMarshalJSON(newPeriods)),
+		[]proposaltypes.ParamChange{{
+			Subspace: types.ModuleName,
+			Key:      string(types.KeyUSDXMintingRewardPeriods),
+			Value:    string(types.ModuleCdc.LegacyAmino.MustMarshalJSON(newPeriods)),
 		}})
 }
 
 func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing() {
 	userA := suite.addrs[0]
 
-	authBulder := app.NewAuthGenesisBuilder().
-		WithSimpleModuleAccount(kavadist.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18))). // Fill kavadist with enough coins to pay out any reward
-		WithSimpleAccount(userA, cs(c("bnb", 1e12)))                                             // give the user some coins
+	authBulder := app.NewAuthBankGenesisBuilder().
+		WithSimpleModuleAccount(kavadisttypes.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18))). // Fill kavadist with enough coins to pay out any reward
+		WithSimpleAccount(userA, cs(c("bnb", 1e12)))                                                  // give the user some coins
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
-		WithMultipliers(types.MultipliersPerDenom{{
+		WithMultipliers(types.MultipliersPerDenoms{{
 			Denom:       types.USDXMintingRewardDenom,
-			Multipliers: types.Multipliers{types.NewMultiplier(types.Large, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
+			Multipliers: types.Multipliers{types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
 		}}).
 		WithSimpleUSDXRewardPeriod("bnb-a", c(types.USDXMintingRewardDenom, 1e6))
 
+	suite.SetApp()
 	suite.StartChain(
 		suite.genesisTime,
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewCDPGenStateMulti(),
-		authBulder.BuildMarshalled(),
-		incentBuilder.BuildMarshalled(),
+		NewPricefeedGenStateMultiFromTime(suite.App.AppCodec(), suite.genesisTime),
+		NewCDPGenStateMulti(suite.App.AppCodec()),
+		authBulder.BuildMarshalled(suite.App.AppCodec()),
+		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 	)
 
 	// User creates a CDP to begin earning rewards.
@@ -94,9 +94,8 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing(
 	suite.NextBlockAfter(1e6 * time.Second) // about 12 days
 
 	// User claims all their rewards
-	suite.NoError(
-		suite.DeliverIncentiveMsg(types.NewMsgClaimUSDXMintingReward(userA, "large")),
-	)
+	msg := types.NewMsgClaimUSDXMintingReward(userA.String(), "large")
+	suite.NoError(suite.DeliverIncentiveMsg(&msg))
 
 	// The users has always had 100% of cdp debt, so they should receive all rewards for the previous two blocks.
 	// Total rewards for each block is block duration * rewards per second
@@ -109,26 +108,27 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncin
 	user := suite.addrs[0]
 	initialCollateral := c("bnb", 1e9)
 
-	authBuilder := app.NewAuthGenesisBuilder().
-		WithSimpleModuleAccount(kavadist.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18))). // Fill kavadist with enough coins to pay out any reward
+	authBuilder := app.NewAuthBankGenesisBuilder().
+		WithSimpleModuleAccount(kavadisttypes.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18))). // Fill kavadist with enough coins to pay out any reward
 		WithSimpleAccount(user, cs(initialCollateral))
 
 	collateralType := "bnb-a"
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
-		WithMultipliers(types.MultipliersPerDenom{{
+		WithMultipliers(types.MultipliersPerDenoms{{
 			Denom:       types.USDXMintingRewardDenom,
-			Multipliers: types.Multipliers{types.NewMultiplier(types.Large, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
+			Multipliers: types.Multipliers{types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
 		}}).
 		WithSimpleUSDXRewardPeriod(collateralType, c(types.USDXMintingRewardDenom, 1e6))
 
+	suite.SetApp()
 	suite.StartChain(
 		suite.genesisTime,
-		authBuilder.BuildMarshalled(),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewCDPGenStateMulti(),
-		incentBuilder.BuildMarshalled(),
+		authBuilder.BuildMarshalled(suite.App.AppCodec()),
+		NewPricefeedGenStateMultiFromTime(suite.App.AppCodec(), suite.genesisTime),
+		NewCDPGenStateMulti(suite.App.AppCodec()),
+		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 	)
 
 	// Setup cdp state containing one CDP
@@ -142,9 +142,8 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncin
 	suite.NextBlockAfter(1e6 * time.Second)
 	suite.NextBlockAfter(1e6 * time.Second)
 
-	suite.NoError(
-		suite.DeliverIncentiveMsg(types.NewMsgClaimUSDXMintingReward(user, "large")),
-	)
+	msg := types.NewMsgClaimUSDXMintingReward(user.String(), "large")
+	suite.NoError(suite.DeliverIncentiveMsg(&msg))
 
 	// The users has always had 100% of cdp debt, so they should receive all rewards for the previous two blocks.
 	// Total rewards for each block is block duration * rewards per second
@@ -157,26 +156,27 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 	userA := suite.addrs[0]
 	userB := suite.addrs[1]
 
-	authBuilder := app.NewAuthGenesisBuilder().
-		WithSimpleModuleAccount(kavadist.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18))). // Fill kavadist with enough coins to pay out any reward
+	authBuilder := app.NewAuthBankGenesisBuilder().
+		WithSimpleModuleAccount(kavadisttypes.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18))). // Fill kavadist with enough coins to pay out any reward
 		WithSimpleAccount(userA, cs(c("bnb", 1e10))).
 		WithSimpleAccount(userB, cs(c("bnb", 1e10)))
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
-		WithMultipliers(types.MultipliersPerDenom{{
+		WithMultipliers(types.MultipliersPerDenoms{{
 			Denom:       types.USDXMintingRewardDenom,
-			Multipliers: types.Multipliers{types.NewMultiplier(types.Large, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
+			Multipliers: types.Multipliers{types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
 		}}).
 		WithSimpleUSDXRewardPeriod("bnb-a", c(types.USDXMintingRewardDenom, 1e6))
 
+	suite.SetApp()
 	suite.StartChain(
 		suite.genesisTime,
-		authBuilder.BuildMarshalled(),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewCDPGenStateMulti(),
-		incentBuilder.BuildMarshalled(),
-		NewCommitteeGenesisState(0, userA), // create a committtee to change params
+		authBuilder.BuildMarshalled(suite.App.AppCodec()),
+		NewPricefeedGenStateMultiFromTime(suite.App.AppCodec(), suite.genesisTime),
+		NewCDPGenStateMulti(suite.App.AppCodec()),
+		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
+		NewCommitteeGenesisState(suite.App.AppCodec(), 0, userA), // create a committtee to change params
 	)
 
 	// Accumulate some CDP rewards, requires creating a cdp so the total borrowed isn't 0.
@@ -219,9 +219,8 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 	)
 
 	// Claim rewards
-	suite.NoError(
-		suite.DeliverIncentiveMsg(types.NewMsgClaimUSDXMintingReward(userB, "large")),
-	)
+	msg := types.NewMsgClaimUSDXMintingReward(userB.String(), "large")
+	suite.NoError(suite.DeliverIncentiveMsg(&msg))
 
 	// The cdp had half the total borrows for a 1s block. So should earn half the rewards for that block
 	suite.BalanceInEpsilon(
@@ -261,18 +260,18 @@ func (suite *USDXRewardsTestSuite) SetupApp() {
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.cdpKeeper = suite.app.GetCDPKeeper()
 
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
+	suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *USDXRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder) {
+func (suite *USDXRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
-		authBuilder.BuildMarshalled(),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewCDPGenStateMulti(),
-		incentBuilder.BuildMarshalled(),
+		authBuilder.BuildMarshalled(suite.app.AppCodec()),
+		NewPricefeedGenStateMultiFromTime(suite.app.AppCodec(), suite.genesisTime),
+		NewCDPGenStateMulti(suite.app.AppCodec()),
+		incentBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
 }
 
@@ -324,7 +323,7 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 		suite.Run(tc.name, func() {
 			incentBuilder := testutil.NewIncentiveGenesisBuilder().WithGenesisTime(suite.genesisTime).WithSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
 
-			suite.SetupWithGenState(app.NewAuthGenesisBuilder(), incentBuilder)
+			suite.SetupWithGenState(app.NewAuthBankGenesisBuilder(), incentBuilder)
 
 			// setup cdp state
 			suite.cdpKeeper.SetTotalPrincipal(suite.ctx, tc.args.ctype, cdptypes.DefaultStableDenom, tc.args.initialTotalPrincipal.Amount)
@@ -384,7 +383,7 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
+			authBuilder := app.NewAuthBankGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
 			incentBuilder := testutil.NewIncentiveGenesisBuilder().WithGenesisTime(suite.genesisTime).WithSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
@@ -470,7 +469,7 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
+			authBuilder := app.NewAuthBankGenesisBuilder().WithSimpleAccount(suite.addrs[0], cs(tc.args.initialCollateral))
 			incentBuilder := testutil.NewIncentiveGenesisBuilder().WithGenesisTime(suite.genesisTime).WithSimpleUSDXRewardPeriod(tc.args.ctype, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)

@@ -17,10 +17,16 @@ const year = 365 * 24 * time.Hour
 var EarliestValidAccumulationTime time.Duration = year
 
 // InitGenesis initializes the store state from a genesis state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeeper, cdpKeeper types.CdpKeeper, gs types.GenesisState) {
-
+func InitGenesis(
+	ctx sdk.Context,
+	k keeper.Keeper,
+	accountKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	cdpKeeper types.CdpKeeper,
+	gs types.GenesisState,
+) {
 	// check if the module account exists
-	moduleAcc := supplyKeeper.GetModuleAccount(ctx, types.IncentiveMacc)
+	moduleAcc := accountKeeper.GetModuleAccount(ctx, types.IncentiveMacc)
 	if moduleAcc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.IncentiveMacc))
 	}
@@ -133,14 +139,13 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 }
 
 func getUSDXMintingGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
-
-	var ats AccumulationTimes
+	var ats types.AccumulationTimes
 	keeper.IterateUSDXMintingAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
 		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
 		return false
 	})
 
-	var mris MultiRewardIndexes
+	var mris types.MultiRewardIndexes
 	keeper.IterateUSDXMintingRewardFactors(ctx, func(ctype string, factor sdk.Dec) bool {
 		mris = append(
 			mris,
@@ -156,14 +161,13 @@ func getUSDXMintingGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) typ
 }
 
 func getHardSupplyGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
-
-	var ats AccumulationTimes
+	var ats types.AccumulationTimes
 	keeper.IterateHardSupplyRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
 		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
 		return false
 	})
 
-	var mris MultiRewardIndexes
+	var mris types.MultiRewardIndexes
 	keeper.IterateHardSupplyRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
 		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
 		return false
@@ -173,14 +177,13 @@ func getHardSupplyGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) type
 }
 
 func getHardBorrowGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
-
-	var ats AccumulationTimes
+	var ats types.AccumulationTimes
 	keeper.IterateHardBorrowRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
 		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
 		return false
 	})
 
-	var mris MultiRewardIndexes
+	var mris types.MultiRewardIndexes
 	keeper.IterateHardBorrowRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
 		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
 		return false
@@ -190,14 +193,13 @@ func getHardBorrowGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) type
 }
 
 func getDelegatorGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
-
-	var ats AccumulationTimes
+	var ats types.AccumulationTimes
 	keeper.IterateDelegatorRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
 		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
 		return false
 	})
 
-	var mris MultiRewardIndexes
+	var mris types.MultiRewardIndexes
 	keeper.IterateDelegatorRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
 		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
 		return false
@@ -207,14 +209,13 @@ func getDelegatorGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types
 }
 
 func getSwapGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
-
-	var ats AccumulationTimes
+	var ats types.AccumulationTimes
 	keeper.IterateSwapRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
 		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
 		return false
 	})
 
-	var mris MultiRewardIndexes
+	var mris types.MultiRewardIndexes
 	keeper.IterateSwapRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
 		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
 		return false

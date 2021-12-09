@@ -98,6 +98,9 @@ import (
 	"github.com/kava-labs/kava/x/hard"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/x/incentive"
+	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
+	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	issuance "github.com/kava-labs/kava/x/issuance"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
@@ -161,6 +164,7 @@ var (
 		cdp.AppModuleBasic{},
 		hard.AppModuleBasic{},
 		committee.AppModuleBasic{},
+		incentive.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 	)
 
@@ -239,6 +243,7 @@ type App struct {
 	cdpKeeper        cdpkeeper.Keeper
 	hardKeeper       hardkeeper.Keeper
 	committeeKeeper  committeekeeper.Keeper
+	incentiveKeeper  incentivekeeper.Keeper
 	vvKeeper         validatorvestingkeeper.Keeper
 
 	// make scoped keepers public for test purposes
@@ -292,7 +297,7 @@ func NewApp(
 		capabilitytypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
-		committeetypes.StoreKey,
+		committeetypes.StoreKey, incentivetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -330,6 +335,7 @@ func NewApp(
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
 	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
 	hardSubspace := app.paramsKeeper.Subspace(hardtypes.ModuleName)
+	incentiveSubspace := app.paramsKeeper.Subspace(incentivetypes.ModuleName)
 	ibcSubspace := app.paramsKeeper.Subspace(ibchost.ModuleName)
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 
@@ -493,7 +499,7 @@ func NewApp(
 		keys[pricefeedtypes.StoreKey],
 		pricefeedSubspace,
 	)
-	app.swapKeeper = swapkeeper.NewKeeper(
+	swapKeeper := swapkeeper.NewKeeper(
 		appCodec,
 		keys[swaptypes.StoreKey],
 		swapSubspace,
@@ -520,6 +526,18 @@ func NewApp(
 		app.auctionKeeper,
 	)
 
+	app.incentiveKeeper = incentivekeeper.NewKeeper(
+		appCodec,
+		keys[incentivetypes.StoreKey],
+		incentiveSubspace,
+		app.bankKeeper,
+		&cdpKeeper,
+		&hardKeeper,
+		app.accountKeeper,
+		app.stakingKeeper,
+		&swapKeeper,
+	)
+
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -541,14 +559,11 @@ func NewApp(
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
 	app.stakingKeeper = *(app.stakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks())))
+		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks(), app.incentiveKeeper.Hooks())))
 
-	// TODO: Add swap hooks after incentive upgraded
-
-	// TODO: Add app.incentiveKeeper.Hooks() to cdptypes.NewMultiCDPHooks()
-	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks())
-	// TODO: app.incentiveKeeper.Hooks() to hardtypes.NewMultiHARDHooks()
-	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks())
+	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
+	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
+	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
@@ -580,6 +595,7 @@ func NewApp(
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
 		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -602,6 +618,7 @@ func NewApp(
 		cdptypes.ModuleName,
 		hardtypes.ModuleName,
 		committeetypes.ModuleName,
+		incentivetypes.ModuleName,
 		ibchost.ModuleName,
 	)
 
@@ -634,6 +651,7 @@ func NewApp(
 		swaptypes.ModuleName,
 		cdptypes.ModuleName,
 		hardtypes.ModuleName,
+		incentivetypes.ModuleName,
 		committeetypes.ModuleName,
 		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
 	)

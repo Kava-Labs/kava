@@ -5,19 +5,21 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/hard"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/kava-labs/kava/x/kavadist"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 type BorrowIntegrationTests struct {
@@ -33,7 +35,6 @@ func TestBorrowIntegration(t *testing.T) {
 
 // SetupTest is run automatically before each suite test
 func (suite *BorrowIntegrationTests) SetupTest() {
-
 	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
 
 	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
@@ -42,24 +43,25 @@ func (suite *BorrowIntegrationTests) SetupTest() {
 func (suite *BorrowIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing() {
 	userA := suite.addrs[0]
 
-	authBulder := app.NewAuthGenesisBuilder().
-		WithSimpleModuleAccount(kavadist.ModuleName, cs(c("hard", 1e18))). // Fill kavadist with enough coins to pay out any reward
-		WithSimpleAccount(userA, cs(c("bnb", 1e12)))                       // give the user some coins
+	authBulder := app.NewAuthBankGenesisBuilder().
+		WithSimpleModuleAccount(kavadisttypes.ModuleName, cs(c("hard", 1e18))). // Fill kavadist with enough coins to pay out any reward
+		WithSimpleAccount(userA, cs(c("bnb", 1e12)))                            // give the user some coins
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
-		WithMultipliers(types.MultipliersPerDenom{{
+		WithMultipliers(types.MultipliersPerDenoms{{
 			Denom:       "hard",
-			Multipliers: types.Multipliers{types.NewMultiplier(types.Large, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
+			Multipliers: types.Multipliers{types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
 		}}).
 		WithSimpleBorrowRewardPeriod("bnb", cs(c("hard", 1e6))) // only borrow rewards
 
+	suite.SetApp()
 	suite.StartChain(
 		suite.genesisTime,
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		NewHardGenStateMulti(suite.genesisTime).BuildMarshalled(),
-		authBulder.BuildMarshalled(),
-		incentBuilder.BuildMarshalled(),
+		NewPricefeedGenStateMultiFromTime(suite.App.AppCodec(), suite.genesisTime),
+		NewHardGenStateMulti(suite.genesisTime).BuildMarshalled(suite.App.AppCodec()),
+		authBulder.BuildMarshalled(suite.App.AppCodec()),
+		incentBuilder.BuildMarshalled(suite.App.AppCodec()),
 	)
 
 	// Create a borrow (need to first deposit to allow it)
@@ -78,8 +80,12 @@ func (suite *BorrowIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 	// The user still has the same percentage of all borrows (100%) so their rewards should be the same as in the previous block.
 	suite.NextBlockAfter(1e6 * time.Second) // about 12 days
 
+	msg := types.NewMsgClaimHardReward(userA.String(), types.Selections{
+		types.NewSelection("hard", "large"),
+	})
+
 	// User claims all their rewards
-	suite.NoError(suite.DeliverIncentiveMsg(types.NewMsgClaimHardReward(userA, types.NewSelection("hard", "large"))))
+	suite.NoError(suite.DeliverIncentiveMsg(&msg))
 
 	// The users has always had 100% of borrows, so they should receive all rewards for the previous two blocks.
 	// Total rewards for each block is block duration * rewards per second
@@ -119,19 +125,19 @@ func (suite *BorrowRewardsTestSuite) SetupApp() {
 	suite.hardKeeper = suite.app.GetHardKeeper()
 	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
 
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
+	suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 }
 
-func (suite *BorrowRewardsTestSuite) SetupWithGenState(authBuilder app.AuthGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder, hardBuilder testutil.HardGenesisBuilder) {
+func (suite *BorrowRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder, hardBuilder testutil.HardGenesisBuilder) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
-		authBuilder.BuildMarshalled(),
-		NewPricefeedGenStateMultiFromTime(suite.genesisTime),
-		hardBuilder.BuildMarshalled(),
-		NewCommitteeGenesisState(1, suite.addrs[:2]...),
-		incentBuilder.BuildMarshalled(),
+		authBuilder.BuildMarshalled(suite.app.AppCodec()),
+		NewPricefeedGenStateMultiFromTime(suite.app.AppCodec(), suite.genesisTime),
+		hardBuilder.BuildMarshalled(suite.app.AppCodec()),
+		NewCommitteeGenesisState(suite.app.AppCodec(), 1, suite.addrs[:2]...),
+		incentBuilder.BuildMarshalled(suite.app.AppCodec()),
 	)
 }
 
@@ -226,7 +232,7 @@ func (suite *BorrowRewardsTestSuite) TestAccumulateHardBorrowRewards() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(
+			authBuilder := app.NewAuthBankGenesisBuilder().WithSimpleAccount(
 				userAddr,
 				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
@@ -380,7 +386,7 @@ func (suite *BorrowRewardsTestSuite) TestInitializeHardBorrowRewards() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(
+			authBuilder := app.NewAuthBankGenesisBuilder().WithSimpleAccount(
 				userAddr,
 				cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
 			)
@@ -570,7 +576,7 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := app.NewAuthGenesisBuilder().
+			authBuilder := app.NewAuthBankGenesisBuilder().
 				WithSimpleAccount(suite.addrs[2], cs(c("ukava", 1e9))).
 				WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)))
 
@@ -686,13 +692,13 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 			}
 
 			// 2. Construct the parameter change proposal to update HardBorrowRewardPeriods param
-			pubProposal := params.NewParameterChangeProposal(
+			pubProposal := proposaltypes.NewParameterChangeProposal(
 				"Update hard borrow rewards", "Adds a new reward coin to the incentive module's hard borrow rewards.",
-				[]params.ParamChange{
+				[]proposaltypes.ParamChange{
 					{
 						Subspace: types.ModuleName,                         // target incentive module
 						Key:      string(types.KeyHardBorrowRewardPeriods), // target hard borrow rewards key
-						Value:    string(suite.app.Codec().MustMarshalJSON(currIncentiveHardBorrowRewardPeriods)),
+						Value:    string(suite.app.LegacyAmino().MustMarshalJSON(currIncentiveHardBorrowRewardPeriods)),
 					},
 				},
 			)
@@ -708,9 +714,9 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 			suite.Require().NoError(err)
 
 			// 5. Committee votes and passes proposal
-			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne, committee.Yes)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne, committeetypes.VOTE_TYPE_YES)
 			suite.Require().NoError(err)
-			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo, committee.Yes)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo, committeetypes.VOTE_TYPE_YES)
 			suite.Require().NoError(err)
 
 			// 6. Check proposal passed
@@ -888,7 +894,7 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := app.NewAuthGenesisBuilder().
+			authBuilder := app.NewAuthBankGenesisBuilder().
 				WithSimpleAccount(
 					userAddr,
 					cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)),
@@ -998,7 +1004,7 @@ func (suite *BorrowRewardsTestSuite) TestSimulateHardBorrowRewardSynchronization
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			userAddr := suite.addrs[3]
-			authBuilder := app.NewAuthGenesisBuilder().WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)))
+			authBuilder := app.NewAuthBankGenesisBuilder().WithSimpleAccount(userAddr, cs(c("bnb", 1e15), c("ukava", 1e15), c("btcb", 1e15), c("xrp", 1e15), c("zzz", 1e15)))
 
 			incentBuilder := testutil.NewIncentiveGenesisBuilder().
 				WithGenesisTime(suite.genesisTime).

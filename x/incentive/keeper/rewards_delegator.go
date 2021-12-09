@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -127,7 +128,7 @@ func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, val
 			continue
 		}
 
-		if validator.OperatorAddress.Equals(valAddr) {
+		if validator.GetOperator().Equals(valAddr) {
 			if shouldIncludeValidator {
 				// do nothing, so the validator is included regardless of bonded status
 			} else {
@@ -136,7 +137,7 @@ func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, val
 			}
 		} else {
 			// skip any not bonded validator
-			if validator.GetStatus() != sdk.Bonded {
+			if validator.GetStatus() != stakingtypes.Bonded {
 				continue
 			}
 		}
