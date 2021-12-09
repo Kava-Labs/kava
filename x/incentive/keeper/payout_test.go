@@ -424,7 +424,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "first half of month",
 			args: args{
 				blockTime:      time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier("medium", 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 5, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -436,7 +436,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "first half of month long lockup",
 			args: args{
 				blockTime:      time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 24, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier("medium", 24, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2022, 11, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -448,7 +448,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "second half of month",
 			args: args{
 				blockTime:      time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier("medium", 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 7, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -460,7 +460,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "second half of month long lockup",
 			args: args{
 				blockTime:      time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 24, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier("large", 24, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2023, 1, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -472,7 +472,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "end of feb",
 			args: args{
 				blockTime:      time.Date(2021, 2, 28, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier("medium", 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 9, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2021, 2, 28, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -484,7 +484,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "leap year",
 			args: args{
 				blockTime:      time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier("medium", 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2020, 9, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -496,7 +496,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "leap year long lockup",
 			args: args{
 				blockTime:      time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 24, sdk.MustNewDecFromStr("1")),
+				multiplier:     types.NewMultiplier("large", 24, sdk.MustNewDecFromStr("1")),
 				expectedLength: time.Date(2022, 3, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -508,7 +508,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "exactly half of month, is pushed to start of month + lockup",
 			args: args{
 				blockTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier("medium", 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 7, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -520,7 +520,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "just before half of month",
 			args: args{
 				blockTime:      time.Date(2020, 12, 15, 13, 59, 59, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 6, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier("medium", 6, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 6, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 15, 13, 59, 59, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{
@@ -532,7 +532,7 @@ func (suite *PayoutTestSuite) TestGetPeriodLength() {
 			name: "just after start of month payout time, is pushed to mid month + lockup",
 			args: args{
 				blockTime:      time.Date(2020, 12, 1, 14, 0, 1, 0, time.UTC),
-				multiplier:     types.NewMultiplier(types.MULTIPLIER_NAME_MEDIUM, 1, sdk.MustNewDecFromStr("0.333333")),
+				multiplier:     types.NewMultiplier("medium", 1, sdk.MustNewDecFromStr("0.333333")),
 				expectedLength: time.Date(2021, 1, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 1, 14, 0, 1, 0, time.UTC).Unix(),
 			},
 			errArgs: errArgs{

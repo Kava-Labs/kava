@@ -84,22 +84,22 @@ func (suite *HandlerTestSuite) incentiveBuilder() testutil.IncentiveGenesisBuild
 			{
 				Denom: "hard",
 				Multipliers: types.Multipliers{
-					types.NewMultiplier(types.NewMultiplierNameFromString("small"), 1, d("0.2")),
-					types.NewMultiplier(types.NewMultiplierNameFromString("large"), 12, d("1.0")),
+					types.NewMultiplier("small", 1, d("0.2")),
+					types.NewMultiplier("large", 12, d("1.0")),
 				},
 			},
 			{
 				Denom: "swap",
 				Multipliers: types.Multipliers{
-					types.NewMultiplier(types.NewMultiplierNameFromString("medium"), 6, d("0.5")),
-					types.NewMultiplier(types.NewMultiplierNameFromString("large"), 12, d("1.0")),
+					types.NewMultiplier("medium", 6, d("0.5")),
+					types.NewMultiplier("large", 12, d("1.0")),
 				},
 			},
 			{
 				Denom: "ukava",
 				Multipliers: types.Multipliers{
-					types.NewMultiplier(types.NewMultiplierNameFromString("small"), 1, d("0.2")),
-					types.NewMultiplier(types.NewMultiplierNameFromString("large"), 12, d("1.0")),
+					types.NewMultiplier("small", 1, d("0.2")),
+					types.NewMultiplier("large", 12, d("1.0")),
 				},
 			},
 		})

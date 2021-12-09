@@ -85,20 +85,15 @@ func (k Keeper) GetPeriodLength(ctx sdk.Context, multiplier types.Multiplier) (i
 	if multiplier.MonthsLockup == 0 {
 		return 0, nil
 	}
-	switch multiplier.Name {
-	case types.MULTIPLIER_NAME_SMALL, types.MULTIPLIER_NAME_MEDIUM, types.MULTIPLIER_NAME_LARGE:
-		currentDay := ctx.BlockTime().Day()
-		payDay := BeginningOfMonth
-		monthOffset := int64(1)
-		if currentDay < MidMonth || (currentDay == MidMonth && ctx.BlockTime().Hour() < PaymentHour) {
-			payDay = MidMonth
-			monthOffset = int64(0)
-		}
-		periodEndDate := time.Date(ctx.BlockTime().Year(), ctx.BlockTime().Month(), payDay, PaymentHour, 0, 0, 0, time.UTC).AddDate(0, int(multiplier.MonthsLockup+monthOffset), 0)
-		return periodEndDate.Unix() - ctx.BlockTime().Unix(), nil
-	default:
-		return 0, types.ErrInvalidMultiplier
+	currentDay := ctx.BlockTime().Day()
+	payDay := BeginningOfMonth
+	monthOffset := int64(1)
+	if currentDay < MidMonth || (currentDay == MidMonth && ctx.BlockTime().Hour() < PaymentHour) {
+		payDay = MidMonth
+		monthOffset = int64(0)
 	}
+	periodEndDate := time.Date(ctx.BlockTime().Year(), ctx.BlockTime().Month(), payDay, PaymentHour, 0, 0, 0, time.UTC).AddDate(0, int(multiplier.MonthsLockup+monthOffset), 0)
+	return periodEndDate.Unix() - ctx.BlockTime().Unix(), nil
 }
 
 // addCoinsToVestingSchedule adds coins to the input account's vesting schedule where length is the amount of time (from the current block time), in seconds, that the coins will be vesting for

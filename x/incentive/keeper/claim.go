@@ -15,14 +15,9 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
-	name, err := types.ParseMultiplierName(multiplierName)
-	if err != nil {
-		return err
-	}
-
-	multiplier, found := k.GetMultiplierByDenom(ctx, types.USDXMintingRewardDenom, name)
+	multiplier, found := k.GetMultiplierByDenom(ctx, types.USDXMintingRewardDenom, multiplierName)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", types.USDXMintingRewardDenom, name)
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", types.USDXMintingRewardDenom, multiplierName)
 	}
 
 	claimEnd := k.GetClaimEnd(ctx)
@@ -31,7 +26,7 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
 	}
 
-	claim, err = k.SynchronizeUSDXMintingClaim(ctx, claim)
+	claim, err := k.SynchronizeUSDXMintingClaim(ctx, claim)
 	if err != nil {
 		return err
 	}
@@ -67,14 +62,9 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 // ClaimHardReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
-	name, err := types.ParseMultiplierName(multiplierName)
-	if err != nil {
-		return err
-	}
-
-	multiplier, found := k.GetMultiplierByDenom(ctx, denom, name)
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, name)
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
 	}
 
 	claimEnd := k.GetClaimEnd(ctx)
@@ -130,14 +120,9 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
-	name, err := types.ParseMultiplierName(multiplierName)
-	if err != nil {
-		return err
-	}
-
-	multiplier, found := k.GetMultiplierByDenom(ctx, denom, name)
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, name)
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
 	}
 
 	claimEnd := k.GetClaimEnd(ctx)
@@ -187,13 +172,9 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 // ClaimSwapReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
-	name, err := types.ParseMultiplierName(multiplierName)
-	if err != nil {
-		return err
-	}
-	multiplier, found := k.GetMultiplierByDenom(ctx, denom, name)
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, name)
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
 	}
 
 	claimEnd := k.GetClaimEnd(ctx)
