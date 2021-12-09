@@ -696,9 +696,7 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 					{
 						Subspace: types.ModuleName,                         // target incentive module
 						Key:      string(types.KeyHardSupplyRewardPeriods), // target hard supply rewards key
-						// TODO: currIncentiveHardSupplyRewardPeriods does not implement proto message so cannot use
-						// proto marshaller
-						Value: string(suite.app.LegacyAmino().MustMarshalJSON(&currIncentiveHardSupplyRewardPeriods)),
+						Value:    string(suite.app.LegacyAmino().MustMarshalJSON(&currIncentiveHardSupplyRewardPeriods)),
 					},
 				},
 			)
