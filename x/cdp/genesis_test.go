@@ -159,6 +159,7 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 	gs.StartingCdpID = uint64(5)
 	appGS := app.GenesisState{"cdp": suite.app.AppCodec().MustMarshalJSON(&gs)}
 	suite.NotPanics(func() {
+		suite.SetupTest()
 		suite.app.InitializeFromGenesisStates(
 			NewPricefeedGenStateMulti(cdc),
 			appGS,
