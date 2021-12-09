@@ -85,15 +85,15 @@ func (suite *ParamTestSuite) TestParamValidation() {
 					{
 						Denom: "hard",
 						Multipliers: types.Multipliers{
-							types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, sdk.MustNewDecFromStr("0.25")),
-							types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, sdk.MustNewDecFromStr("1.0")),
+							types.NewMultiplier("small", 1, sdk.MustNewDecFromStr("0.25")),
+							types.NewMultiplier("large", 12, sdk.MustNewDecFromStr("1.0")),
 						},
 					},
 					{
 						Denom: "ukava",
 						Multipliers: types.Multipliers{
-							types.NewMultiplier(types.MULTIPLIER_NAME_SMALL, 1, sdk.MustNewDecFromStr("0.2")),
-							types.NewMultiplier(types.MULTIPLIER_NAME_LARGE, 12, sdk.MustNewDecFromStr("1.0")),
+							types.NewMultiplier("small", 1, sdk.MustNewDecFromStr("0.2")),
+							types.NewMultiplier("large", 12, sdk.MustNewDecFromStr("1.0")),
 						},
 					},
 				},
@@ -181,6 +181,29 @@ func (suite *ParamTestSuite) TestParamValidation() {
 			errArgs{
 				expectPass: false,
 				contains:   "invalid reward amount",
+			},
+		},
+		{
+			"invalid multipliers makes params invalid",
+			types.Params{
+				USDXMintingRewardPeriods: types.DefaultRewardPeriods,
+				HardSupplyRewardPeriods:  types.DefaultMultiRewardPeriods,
+				HardBorrowRewardPeriods:  types.DefaultMultiRewardPeriods,
+				DelegatorRewardPeriods:   types.DefaultMultiRewardPeriods,
+				SwapRewardPeriods:        types.DefaultMultiRewardPeriods,
+				ClaimMultipliers: types.MultipliersPerDenoms{
+					{
+						Denom: "hard",
+						Multipliers: types.Multipliers{
+							types.NewMultiplier("small", -9999, sdk.MustNewDecFromStr("0.25")),
+						},
+					},
+				},
+				ClaimEnd: time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "expected non-negative lockup",
 			},
 		},
 	}
