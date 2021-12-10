@@ -118,13 +118,13 @@ func (ac appCreator) appExport(
 
 	var tempApp *app.App
 	if height != -1 {
-		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: true, InvariantCheckPeriod: uint(1)})
+		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: true, InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))})
 
 		if err := tempApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: false, InvariantCheckPeriod: uint(1)})
+		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: false, InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))})
 	}
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
 }
