@@ -603,15 +603,15 @@ func NewApp(
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
-		evidencetypes.ModuleName, // TODO why new evidence and staking begin blockers?
+		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		kavadisttypes.ModuleName,
 		auctiontypes.ModuleName,
-		issuancetypes.ModuleName,
-		bep3types.ModuleName,
+		committeetypes.ModuleName, // TODO move to beginning?
 		cdptypes.ModuleName,
+		bep3types.ModuleName,
 		hardtypes.ModuleName,
-		committeetypes.ModuleName,
+		issuancetypes.ModuleName,
 		incentivetypes.ModuleName,
 		ibchost.ModuleName,
 	)
