@@ -15,8 +15,8 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	// "github.com/kava-labs/kava/x/incentive/client/cli"
-	// "github.com/kava-labs/kava/x/incentive/client/rest"
+	"github.com/kava-labs/kava/x/incentive/client/cli"
+	"github.com/kava-labs/kava/x/incentive/client/rest"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -63,7 +63,7 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 
 // RegisterRESTRoutes registers REST routes for the incentive module.
 func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	// TODO: rest.RegisterRoutes(clientCtx, rtr)
+	rest.RegisterRoutes(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the incentive module.
@@ -86,12 +86,12 @@ func (AppModule) ConsensusVersion() uint64 {
 
 // GetTxCmd returns the root tx command for the incentive module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil // TODO: return cli.GetTxCmd()
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the incentive module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil // TODO: return cli.GetQueryCmd()
+	return cli.GetQueryCmd()
 }
 
 // AppModule implements the sdk.AppModule interface.
