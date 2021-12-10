@@ -360,7 +360,7 @@ func NewApp(
 		keys[banktypes.StoreKey],
 		app.accountKeeper,
 		bankSubspace,
-		app.ModuleAccountAddrs(),
+		app.loadBlockedMaccAddrs(),
 	)
 	app.stakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
@@ -802,6 +802,19 @@ func (app *App) RegisterTxService(clientCtx client.Context) {
 // It registers the standard tendermint grpc endpoints on the app's grpc server.
 func (app *App) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
+}
+
+// loadBlockedMaccAddrs returns a map indicating the blocked status of each module account address
+func (app *App) loadBlockedMaccAddrs() map[string]bool {
+	modAccAddrs := app.ModuleAccountAddrs()
+	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
+	for addr := range modAccAddrs {
+		// Set the kavadist module account address as unblocked
+		if addr == kavadistMaccAddr.String() {
+			modAccAddrs[addr] = false
+		}
+	}
+	return modAccAddrs
 }
 
 // GetMaccPerms returns a mapping of the application's module account permissions.
