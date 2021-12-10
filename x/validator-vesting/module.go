@@ -17,7 +17,6 @@ import (
 
 	"github.com/kava-labs/kava/x/validator-vesting/client/cli"
 	"github.com/kava-labs/kava/x/validator-vesting/client/rest"
-	"github.com/kava-labs/kava/x/validator-vesting/keeper"
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
@@ -80,14 +79,14 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper keeper.Keeper
+	bankKeeper types.BankKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper keeper.Keeper) AppModule {
+func NewAppModule(bk types.BankKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(),
-		keeper:         keeper,
+		bankKeeper:     bk,
 	}
 }
 
@@ -104,7 +103,7 @@ func (AppModule) QuerierRoute() string { return types.QuerierRoute }
 
 // LegacyQuerierHandler returns validator-vesting module's Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
+	return NewQuerier(am.bankKeeper, legacyQuerierCdc)
 }
 
 // RegisterServices registers a GRPC query service to respond to the

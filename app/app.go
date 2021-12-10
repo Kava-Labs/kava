@@ -115,7 +115,6 @@ import (
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
-	validatorvestingkeeper "github.com/kava-labs/kava/x/validator-vesting/keeper"
 )
 
 const (
@@ -244,7 +243,6 @@ type App struct {
 	hardKeeper       hardkeeper.Keeper
 	committeeKeeper  committeekeeper.Keeper
 	incentiveKeeper  incentivekeeper.Keeper
-	vvKeeper         validatorvestingkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -482,10 +480,6 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
-	app.vvKeeper = validatorvestingkeeper.NewKeeper(
-		appCodec,
-		app.bankKeeper,
-	)
 	app.bep3Keeper = bep3keeper.NewKeeper(
 		appCodec,
 		keys[bep3types.StoreKey],
@@ -590,7 +584,7 @@ func NewApp(
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
-		validatorvesting.NewAppModule(app.vvKeeper),
+		validatorvesting.NewAppModule(app.bankKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
 		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
