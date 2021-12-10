@@ -67,7 +67,6 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string
 	/* Handle fee distribution state. */
 
 	// withdraw all validator commission
-	// withdraw all validator commission
 	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		_, _ = app.distrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
 		return false
