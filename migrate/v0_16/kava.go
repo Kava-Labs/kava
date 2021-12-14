@@ -28,7 +28,7 @@ import (
 	v015validatorvesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_15"
 )
 
-func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context) genutiltypes.AppMap {
+func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 	v15Codec := codec.NewLegacyAmino()
 	v015auction.RegisterLegacyAminoCodec(v15Codec)
 	v015committee.RegisterLegacyAminoCodec(v15Codec)
@@ -121,6 +121,4 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 
 	// Remove x/validator-vesting
 	delete(appState, v015validatorvesting.ModuleName)
-
-	return appState
 }

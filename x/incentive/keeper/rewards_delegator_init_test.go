@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
@@ -49,12 +48,12 @@ func (suite *InitializeDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreSetWh
 	validatorAddress := arbitraryValidatorAddress()
 	sk := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{{
-			ValidatorAddress: validatorAddress,
+			ValidatorAddress: validatorAddress.String(),
 			Shares:           d("1000"),
 		}},
 		validators: stakingtypes.Validators{{
-			OperatorAddress: validatorAddress,
-			Status:          sdk.Bonded,
+			OperatorAddress: validatorAddress.String(),
+			Status:          stakingtypes.Bonded,
 			Tokens:          i(1000),
 			DelegatorShares: d("1000"),
 		}},

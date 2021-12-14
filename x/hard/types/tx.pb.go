@@ -562,7 +562,7 @@ type MsgClient interface {
 	Borrow(ctx context.Context, in *MsgBorrow, opts ...grpc.CallOption) (*MsgBorrowResponse, error)
 	// Repay defines a method for repaying funds borrowed from hard liquidity pool.
 	Repay(ctx context.Context, in *MsgRepay, opts ...grpc.CallOption) (*MsgRepayResponse, error)
-	// Liquidate defines a method for attempgint to liquidate a borrower that is over their loan-to-value.
+	// Liquidate defines a method for attempting to liquidate a borrower that is over their loan-to-value.
 	Liquidate(ctx context.Context, in *MsgLiquidate, opts ...grpc.CallOption) (*MsgLiquidateResponse, error)
 }
 
@@ -629,7 +629,7 @@ type MsgServer interface {
 	Borrow(context.Context, *MsgBorrow) (*MsgBorrowResponse, error)
 	// Repay defines a method for repaying funds borrowed from hard liquidity pool.
 	Repay(context.Context, *MsgRepay) (*MsgRepayResponse, error)
-	// Liquidate defines a method for attempgint to liquidate a borrower that is over their loan-to-value.
+	// Liquidate defines a method for attempting to liquidate a borrower that is over their loan-to-value.
 	Liquidate(context.Context, *MsgLiquidate) (*MsgLiquidateResponse, error)
 }
 

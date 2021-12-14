@@ -2,6 +2,8 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // Querier routes for the hard module
@@ -69,6 +71,12 @@ func NewQueryAccountParams(page, limit int, name string) QueryAccountParams {
 		Limit: limit,
 		Name:  name,
 	}
+}
+
+// ModAccountWithCoins includes the module account with its coins
+type ModAccountWithCoins struct {
+	Account authtypes.ModuleAccountI `json:"account" yaml:"account"`
+	Coins   sdk.Coins                `json:"coins" yaml:"coins"`
 }
 
 // QueryBorrowsParams is the params for a filtered borrows query

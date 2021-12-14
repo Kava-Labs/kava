@@ -7,15 +7,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	db "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -30,9 +31,12 @@ func NewTestContext(requiredStoreKeys ...sdk.StoreKey) sdk.Context {
 		cms.MountStoreWithDB(key, sdk.StoreTypeIAVL, nil)
 	}
 
-	cms.LoadLatestVersion()
+	if err := cms.LoadLatestVersion(); err != nil {
+		panic(err)
+	}
 
-	return sdk.NewContext(cms, abci.Header{}, false, log.NewNopLogger())
+	return sdk.NewContext(cms, tmprototypes.Header{}, false, log.NewNopLogger())
+
 }
 
 // unitTester is a wrapper around suite.Suite, with common functionality for keeper unit tests.
@@ -42,12 +46,13 @@ type unitTester struct {
 	keeper keeper.Keeper
 	ctx    sdk.Context
 
-	cdc               *codec.Codec
+	cdc               codec.Codec
 	incentiveStoreKey sdk.StoreKey
 }
 
 func (suite *unitTester) SetupSuite() {
-	suite.cdc = app.MakeCodec()
+	tApp := app.NewTestApp()
+	suite.cdc = tApp.AppCodec()
 
 	suite.incentiveStoreKey = sdk.NewKVStoreKey(types.StoreKey)
 
@@ -63,8 +68,8 @@ func (suite *unitTester) TearDownTest() {
 	suite.ctx = sdk.Context{}
 }
 
-func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, sk types.SupplyKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper) keeper.Keeper {
-	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, sk, cdpk, hk, ak, stk, swk)
+func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, bk types.BankKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper) keeper.Keeper {
+	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk)
 }
 
 func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {
@@ -103,19 +108,19 @@ type fakeParamSubspace struct {
 	params types.Params
 }
 
-func (subspace *fakeParamSubspace) GetParamSet(_ sdk.Context, ps params.ParamSet) {
+func (subspace *fakeParamSubspace) GetParamSet(_ sdk.Context, ps paramtypes.ParamSet) {
 	*(ps.(*types.Params)) = subspace.params
 }
-func (subspace *fakeParamSubspace) SetParamSet(_ sdk.Context, ps params.ParamSet) {
+func (subspace *fakeParamSubspace) SetParamSet(_ sdk.Context, ps paramtypes.ParamSet) {
 	subspace.params = *(ps.(*types.Params))
 }
 func (subspace *fakeParamSubspace) HasKeyTable() bool {
 	// return true so the keeper does not try to call WithKeyTable, which does nothing
 	return true
 }
-func (subspace *fakeParamSubspace) WithKeyTable(params.KeyTable) params.Subspace {
+func (subspace *fakeParamSubspace) WithKeyTable(paramtypes.KeyTable) paramtypes.Subspace {
 	// return an non-functional subspace to satisfy the interface
-	return params.Subspace{}
+	return paramtypes.Subspace{}
 }
 
 // fakeSwapKeeper is a stub swap keeper.
@@ -236,7 +241,7 @@ func (k *fakeStakingKeeper) addBondedTokens(amount int64) *fakeStakingKeeper {
 	}
 	// add a validator with all the tokens
 	k.validators = append(k.validators, stakingtypes.Validator{
-		Status: sdk.Bonded,
+		Status: stakingtypes.Bonded,
 		Tokens: sdk.NewInt(amount),
 	})
 	return k
@@ -245,7 +250,7 @@ func (k *fakeStakingKeeper) addBondedTokens(amount int64) *fakeStakingKeeper {
 func (k *fakeStakingKeeper) TotalBondedTokens(_ sdk.Context) sdk.Int {
 	total := sdk.ZeroInt()
 	for _, val := range k.validators {
-		if val.GetStatus() == sdk.Bonded {
+		if val.GetStatus() == stakingtypes.Bonded {
 			total = total.Add(val.GetBondedTokens())
 		}
 	}
@@ -265,7 +270,7 @@ func (k *fakeStakingKeeper) GetValidator(_ sdk.Context, addr sdk.ValAddress) (st
 func (k *fakeStakingKeeper) GetValidatorDelegations(_ sdk.Context, valAddr sdk.ValAddress) []stakingtypes.Delegation {
 	var delegations stakingtypes.Delegations
 	for _, d := range k.delegations {
-		if d.ValidatorAddress.Equals(valAddr) {
+		if d.GetValidatorAddr().Equals(valAddr) {
 			delegations = append(delegations, d)
 		}
 	}
@@ -318,21 +323,8 @@ func (k *fakeCDPKeeper) GetCollateral(_ sdk.Context, collateralType string) (cdp
 // note: amino panics when encoding times ≥ the start of year 10000.
 var distantFuture = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
 
-func arbitraryCoin() sdk.Coin {
-	return c("hard", 1e9)
-}
-
 func arbitraryCoins() sdk.Coins {
 	return cs(c("btcb", 1))
-}
-
-func arbitraryCoinsWithDenoms(denom ...string) sdk.Coins {
-	const arbitraryAmount = 1 // must be > 0 as sdk.Coins type only stores positive amounts
-	coins := sdk.NewCoins()
-	for _, d := range denom {
-		coins = coins.Add(sdk.NewInt64Coin(d, arbitraryAmount))
-	}
-	return coins
 }
 
 func arbitraryAddress() sdk.AccAddress {

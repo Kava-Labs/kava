@@ -937,7 +937,7 @@
         "unbonding_time": "3600s",
         "max_validators": 100,
         "max_entries": 7,
-        "historical_entries": 0,
+        "historical_entries": 10000,
         "bond_denom": "ukava"
       },
       "last_total_power": "0",

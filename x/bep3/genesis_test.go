@@ -55,6 +55,7 @@ func (suite *GenesisTestSuite) TestModulePermissionsCheck() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			suite.SetupTest()
 			authGenesis := authtypes.NewGenesisState(
 				authtypes.DefaultParams(),
 				authtypes.GenesisAccounts{authtypes.NewEmptyModuleAccount(types.ModuleName, tc.permissions...)},
@@ -328,6 +329,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			suite.SetupTest()
 			if tc.expectPass {
 				suite.NotPanics(func() {
 					suite.app.InitializeFromGenesisStates(tc.genState())

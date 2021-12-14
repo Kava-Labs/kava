@@ -144,87 +144,6 @@ func (m *MsgClaimUSDXMintingRewardResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgClaimUSDXMintingRewardResponse proto.InternalMessageInfo
 
-// MsgClaimUSDXMintingRewardVVesting message type used to claim USDX minting rewards for validator vesting accounts
-type MsgClaimUSDXMintingRewardVVesting struct {
-	Sender         string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	Receiver       string `protobuf:"bytes,2,opt,name=receiver,proto3" json:"receiver,omitempty"`
-	MultiplierName string `protobuf:"bytes,3,opt,name=multiplier_name,json=multiplierName,proto3" json:"multiplier_name,omitempty"`
-}
-
-func (m *MsgClaimUSDXMintingRewardVVesting) Reset()         { *m = MsgClaimUSDXMintingRewardVVesting{} }
-func (m *MsgClaimUSDXMintingRewardVVesting) String() string { return proto.CompactTextString(m) }
-func (*MsgClaimUSDXMintingRewardVVesting) ProtoMessage()    {}
-func (*MsgClaimUSDXMintingRewardVVesting) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{3}
-}
-func (m *MsgClaimUSDXMintingRewardVVesting) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgClaimUSDXMintingRewardVVesting) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgClaimUSDXMintingRewardVVesting.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgClaimUSDXMintingRewardVVesting) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgClaimUSDXMintingRewardVVesting.Merge(m, src)
-}
-func (m *MsgClaimUSDXMintingRewardVVesting) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgClaimUSDXMintingRewardVVesting) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgClaimUSDXMintingRewardVVesting.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgClaimUSDXMintingRewardVVesting proto.InternalMessageInfo
-
-// MsgClaimUSDXMintingRewardVVestingResponse defines the Msg/ClaimUSDXMintingRewardVVesting response type.
-type MsgClaimUSDXMintingRewardVVestingResponse struct {
-}
-
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) Reset() {
-	*m = MsgClaimUSDXMintingRewardVVestingResponse{}
-}
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) String() string {
-	return proto.CompactTextString(m)
-}
-func (*MsgClaimUSDXMintingRewardVVestingResponse) ProtoMessage() {}
-func (*MsgClaimUSDXMintingRewardVVestingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{4}
-}
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgClaimUSDXMintingRewardVVestingResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgClaimUSDXMintingRewardVVestingResponse.Merge(m, src)
-}
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgClaimUSDXMintingRewardVVestingResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgClaimUSDXMintingRewardVVestingResponse proto.InternalMessageInfo
-
 // MsgClaimHardReward message type used to claim Hard liquidity provider rewards
 type MsgClaimHardReward struct {
 	Sender        string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
@@ -235,7 +154,7 @@ func (m *MsgClaimHardReward) Reset()         { *m = MsgClaimHardReward{} }
 func (m *MsgClaimHardReward) String() string { return proto.CompactTextString(m) }
 func (*MsgClaimHardReward) ProtoMessage()    {}
 func (*MsgClaimHardReward) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{5}
+	return fileDescriptor_b1cec058e3ff75d5, []int{3}
 }
 func (m *MsgClaimHardReward) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -272,7 +191,7 @@ func (m *MsgClaimHardRewardResponse) Reset()         { *m = MsgClaimHardRewardRe
 func (m *MsgClaimHardRewardResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgClaimHardRewardResponse) ProtoMessage()    {}
 func (*MsgClaimHardRewardResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{6}
+	return fileDescriptor_b1cec058e3ff75d5, []int{4}
 }
 func (m *MsgClaimHardRewardResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -301,83 +220,6 @@ func (m *MsgClaimHardRewardResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgClaimHardRewardResponse proto.InternalMessageInfo
 
-// MsgClaimHardRewardVVesting message type used to claim Hard liquidity provider rewards for validator vesting accounts
-type MsgClaimHardRewardVVesting struct {
-	Sender        string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	Receiver      string     `protobuf:"bytes,2,opt,name=receiver,proto3" json:"receiver,omitempty"`
-	DenomsToClaim Selections `protobuf:"bytes,3,rep,name=denoms_to_claim,json=denomsToClaim,proto3,castrepeated=Selections" json:"denoms_to_claim"`
-}
-
-func (m *MsgClaimHardRewardVVesting) Reset()         { *m = MsgClaimHardRewardVVesting{} }
-func (m *MsgClaimHardRewardVVesting) String() string { return proto.CompactTextString(m) }
-func (*MsgClaimHardRewardVVesting) ProtoMessage()    {}
-func (*MsgClaimHardRewardVVesting) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{7}
-}
-func (m *MsgClaimHardRewardVVesting) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgClaimHardRewardVVesting) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgClaimHardRewardVVesting.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgClaimHardRewardVVesting) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgClaimHardRewardVVesting.Merge(m, src)
-}
-func (m *MsgClaimHardRewardVVesting) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgClaimHardRewardVVesting) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgClaimHardRewardVVesting.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgClaimHardRewardVVesting proto.InternalMessageInfo
-
-// MsgClaimHardRewardVVestingResponse defines the Msg/ClaimHardRewardVVesting response type.
-type MsgClaimHardRewardVVestingResponse struct {
-}
-
-func (m *MsgClaimHardRewardVVestingResponse) Reset()         { *m = MsgClaimHardRewardVVestingResponse{} }
-func (m *MsgClaimHardRewardVVestingResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgClaimHardRewardVVestingResponse) ProtoMessage()    {}
-func (*MsgClaimHardRewardVVestingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{8}
-}
-func (m *MsgClaimHardRewardVVestingResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgClaimHardRewardVVestingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgClaimHardRewardVVestingResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgClaimHardRewardVVestingResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgClaimHardRewardVVestingResponse.Merge(m, src)
-}
-func (m *MsgClaimHardRewardVVestingResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgClaimHardRewardVVestingResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgClaimHardRewardVVestingResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgClaimHardRewardVVestingResponse proto.InternalMessageInfo
-
 // MsgClaimDelegatorReward message type used to claim delegator rewards
 type MsgClaimDelegatorReward struct {
 	Sender        string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
@@ -388,7 +230,7 @@ func (m *MsgClaimDelegatorReward) Reset()         { *m = MsgClaimDelegatorReward
 func (m *MsgClaimDelegatorReward) String() string { return proto.CompactTextString(m) }
 func (*MsgClaimDelegatorReward) ProtoMessage()    {}
 func (*MsgClaimDelegatorReward) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{9}
+	return fileDescriptor_b1cec058e3ff75d5, []int{5}
 }
 func (m *MsgClaimDelegatorReward) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -425,7 +267,7 @@ func (m *MsgClaimDelegatorRewardResponse) Reset()         { *m = MsgClaimDelegat
 func (m *MsgClaimDelegatorRewardResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgClaimDelegatorRewardResponse) ProtoMessage()    {}
 func (*MsgClaimDelegatorRewardResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{10}
+	return fileDescriptor_b1cec058e3ff75d5, []int{6}
 }
 func (m *MsgClaimDelegatorRewardResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -454,85 +296,6 @@ func (m *MsgClaimDelegatorRewardResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgClaimDelegatorRewardResponse proto.InternalMessageInfo
 
-// MsgClaimDelegatorRewardVVesting message type used to claim delegator rewards for validator vesting accounts
-type MsgClaimDelegatorRewardVVesting struct {
-	Sender        string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	Receiver      string     `protobuf:"bytes,2,opt,name=receiver,proto3" json:"receiver,omitempty"`
-	DenomsToClaim Selections `protobuf:"bytes,3,rep,name=denoms_to_claim,json=denomsToClaim,proto3,castrepeated=Selections" json:"denoms_to_claim"`
-}
-
-func (m *MsgClaimDelegatorRewardVVesting) Reset()         { *m = MsgClaimDelegatorRewardVVesting{} }
-func (m *MsgClaimDelegatorRewardVVesting) String() string { return proto.CompactTextString(m) }
-func (*MsgClaimDelegatorRewardVVesting) ProtoMessage()    {}
-func (*MsgClaimDelegatorRewardVVesting) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{11}
-}
-func (m *MsgClaimDelegatorRewardVVesting) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgClaimDelegatorRewardVVesting) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgClaimDelegatorRewardVVesting.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgClaimDelegatorRewardVVesting) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgClaimDelegatorRewardVVesting.Merge(m, src)
-}
-func (m *MsgClaimDelegatorRewardVVesting) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgClaimDelegatorRewardVVesting) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgClaimDelegatorRewardVVesting.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgClaimDelegatorRewardVVesting proto.InternalMessageInfo
-
-// MsgClaimDelegatorRewardVVestingResponse defines the Msg/ClaimDelegatorRewardVVesting response type.
-type MsgClaimDelegatorRewardVVestingResponse struct {
-}
-
-func (m *MsgClaimDelegatorRewardVVestingResponse) Reset() {
-	*m = MsgClaimDelegatorRewardVVestingResponse{}
-}
-func (m *MsgClaimDelegatorRewardVVestingResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgClaimDelegatorRewardVVestingResponse) ProtoMessage()    {}
-func (*MsgClaimDelegatorRewardVVestingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{12}
-}
-func (m *MsgClaimDelegatorRewardVVestingResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgClaimDelegatorRewardVVestingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgClaimDelegatorRewardVVestingResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgClaimDelegatorRewardVVestingResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgClaimDelegatorRewardVVestingResponse.Merge(m, src)
-}
-func (m *MsgClaimDelegatorRewardVVestingResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgClaimDelegatorRewardVVestingResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgClaimDelegatorRewardVVestingResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgClaimDelegatorRewardVVestingResponse proto.InternalMessageInfo
-
 // MsgClaimSwapReward message type used to claim delegator rewards
 type MsgClaimSwapReward struct {
 	Sender        string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
@@ -543,7 +306,7 @@ func (m *MsgClaimSwapReward) Reset()         { *m = MsgClaimSwapReward{} }
 func (m *MsgClaimSwapReward) String() string { return proto.CompactTextString(m) }
 func (*MsgClaimSwapReward) ProtoMessage()    {}
 func (*MsgClaimSwapReward) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{13}
+	return fileDescriptor_b1cec058e3ff75d5, []int{7}
 }
 func (m *MsgClaimSwapReward) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -580,7 +343,7 @@ func (m *MsgClaimSwapRewardResponse) Reset()         { *m = MsgClaimSwapRewardRe
 func (m *MsgClaimSwapRewardResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgClaimSwapRewardResponse) ProtoMessage()    {}
 func (*MsgClaimSwapRewardResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{14}
+	return fileDescriptor_b1cec058e3ff75d5, []int{8}
 }
 func (m *MsgClaimSwapRewardResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -609,146 +372,51 @@ func (m *MsgClaimSwapRewardResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgClaimSwapRewardResponse proto.InternalMessageInfo
 
-// MsgClaimSwapRewardVVesting message type used to claim delegator rewards for validator vesting accounts
-type MsgClaimSwapRewardVVesting struct {
-	Sender        string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	Receiver      string     `protobuf:"bytes,2,opt,name=receiver,proto3" json:"receiver,omitempty"`
-	DenomsToClaim Selections `protobuf:"bytes,3,rep,name=denoms_to_claim,json=denomsToClaim,proto3,castrepeated=Selections" json:"denoms_to_claim"`
-}
-
-func (m *MsgClaimSwapRewardVVesting) Reset()         { *m = MsgClaimSwapRewardVVesting{} }
-func (m *MsgClaimSwapRewardVVesting) String() string { return proto.CompactTextString(m) }
-func (*MsgClaimSwapRewardVVesting) ProtoMessage()    {}
-func (*MsgClaimSwapRewardVVesting) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{15}
-}
-func (m *MsgClaimSwapRewardVVesting) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgClaimSwapRewardVVesting) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgClaimSwapRewardVVesting.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgClaimSwapRewardVVesting) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgClaimSwapRewardVVesting.Merge(m, src)
-}
-func (m *MsgClaimSwapRewardVVesting) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgClaimSwapRewardVVesting) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgClaimSwapRewardVVesting.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgClaimSwapRewardVVesting proto.InternalMessageInfo
-
-// MsgClaimSwapRewardVVestingResponse defines the Msg/ClaimSwapRewardVVesting response type.
-type MsgClaimSwapRewardVVestingResponse struct {
-}
-
-func (m *MsgClaimSwapRewardVVestingResponse) Reset()         { *m = MsgClaimSwapRewardVVestingResponse{} }
-func (m *MsgClaimSwapRewardVVestingResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgClaimSwapRewardVVestingResponse) ProtoMessage()    {}
-func (*MsgClaimSwapRewardVVestingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1cec058e3ff75d5, []int{16}
-}
-func (m *MsgClaimSwapRewardVVestingResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgClaimSwapRewardVVestingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgClaimSwapRewardVVestingResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgClaimSwapRewardVVestingResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgClaimSwapRewardVVestingResponse.Merge(m, src)
-}
-func (m *MsgClaimSwapRewardVVestingResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgClaimSwapRewardVVestingResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgClaimSwapRewardVVestingResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgClaimSwapRewardVVestingResponse proto.InternalMessageInfo
-
 func init() {
 	proto.RegisterType((*Selection)(nil), "kava.incentive.v1beta1.Selection")
 	proto.RegisterType((*MsgClaimUSDXMintingReward)(nil), "kava.incentive.v1beta1.MsgClaimUSDXMintingReward")
 	proto.RegisterType((*MsgClaimUSDXMintingRewardResponse)(nil), "kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse")
-	proto.RegisterType((*MsgClaimUSDXMintingRewardVVesting)(nil), "kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVesting")
-	proto.RegisterType((*MsgClaimUSDXMintingRewardVVestingResponse)(nil), "kava.incentive.v1beta1.MsgClaimUSDXMintingRewardVVestingResponse")
 	proto.RegisterType((*MsgClaimHardReward)(nil), "kava.incentive.v1beta1.MsgClaimHardReward")
 	proto.RegisterType((*MsgClaimHardRewardResponse)(nil), "kava.incentive.v1beta1.MsgClaimHardRewardResponse")
-	proto.RegisterType((*MsgClaimHardRewardVVesting)(nil), "kava.incentive.v1beta1.MsgClaimHardRewardVVesting")
-	proto.RegisterType((*MsgClaimHardRewardVVestingResponse)(nil), "kava.incentive.v1beta1.MsgClaimHardRewardVVestingResponse")
 	proto.RegisterType((*MsgClaimDelegatorReward)(nil), "kava.incentive.v1beta1.MsgClaimDelegatorReward")
 	proto.RegisterType((*MsgClaimDelegatorRewardResponse)(nil), "kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse")
-	proto.RegisterType((*MsgClaimDelegatorRewardVVesting)(nil), "kava.incentive.v1beta1.MsgClaimDelegatorRewardVVesting")
-	proto.RegisterType((*MsgClaimDelegatorRewardVVestingResponse)(nil), "kava.incentive.v1beta1.MsgClaimDelegatorRewardVVestingResponse")
 	proto.RegisterType((*MsgClaimSwapReward)(nil), "kava.incentive.v1beta1.MsgClaimSwapReward")
 	proto.RegisterType((*MsgClaimSwapRewardResponse)(nil), "kava.incentive.v1beta1.MsgClaimSwapRewardResponse")
-	proto.RegisterType((*MsgClaimSwapRewardVVesting)(nil), "kava.incentive.v1beta1.MsgClaimSwapRewardVVesting")
-	proto.RegisterType((*MsgClaimSwapRewardVVestingResponse)(nil), "kava.incentive.v1beta1.MsgClaimSwapRewardVVestingResponse")
 }
 
 func init() { proto.RegisterFile("kava/incentive/v1beta1/tx.proto", fileDescriptor_b1cec058e3ff75d5) }
 
 var fileDescriptor_b1cec058e3ff75d5 = []byte{
-	// 617 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x96, 0x31, 0x6f, 0xd3, 0x40,
-	0x14, 0xc7, 0x7d, 0x8d, 0xa8, 0xd2, 0x87, 0x20, 0x92, 0x15, 0xa5, 0xc1, 0xaa, 0xec, 0x26, 0x20,
-	0xb5, 0xa5, 0xc2, 0x56, 0xc2, 0x80, 0xe8, 0x82, 0x28, 0x45, 0x62, 0x09, 0x43, 0x52, 0x2a, 0x84,
-	0x84, 0x22, 0x27, 0x79, 0x18, 0x0b, 0xdb, 0x17, 0xec, 0x6b, 0x5a, 0x36, 0x26, 0x04, 0x4c, 0x2c,
-	0x48, 0x88, 0x01, 0x75, 0xe6, 0x1b, 0xb0, 0x30, 0x57, 0x62, 0xe9, 0xc8, 0x04, 0x28, 0x59, 0xf8,
-	0x18, 0x28, 0x4e, 0x72, 0x8e, 0x1a, 0x3b, 0xae, 0x83, 0x2a, 0xb5, 0x9b, 0xcf, 0xf7, 0x7f, 0xef,
-	0x7e, 0xef, 0xee, 0xbd, 0x77, 0x07, 0xca, 0x0b, 0xbd, 0xa3, 0x6b, 0xa6, 0xd3, 0x44, 0x87, 0x99,
-	0x1d, 0xd4, 0x3a, 0xa5, 0x06, 0x32, 0xbd, 0xa4, 0xb1, 0x7d, 0xb5, 0xed, 0x52, 0x46, 0xc5, 0x5c,
-	0x5f, 0xa0, 0x72, 0x81, 0x3a, 0x14, 0x48, 0x59, 0x83, 0x1a, 0xd4, 0x97, 0x68, 0xfd, 0xaf, 0x81,
-	0xba, 0xb8, 0x0d, 0x0b, 0x35, 0xb4, 0xb0, 0xc9, 0x4c, 0xea, 0x88, 0x59, 0xb8, 0xd0, 0x42, 0x87,
-	0xda, 0x79, 0xb2, 0x4c, 0x56, 0x17, 0xaa, 0x83, 0x81, 0xb8, 0x02, 0x19, 0x7b, 0xd7, 0x62, 0x66,
-	0xdb, 0x32, 0xd1, 0xad, 0x3b, 0xba, 0x8d, 0xf9, 0x39, 0x7f, 0xfe, 0x72, 0xf0, 0xfb, 0xa1, 0x6e,
-	0xe3, 0x46, 0xfa, 0xed, 0x81, 0x22, 0xfc, 0x3d, 0x50, 0x84, 0xe2, 0x33, 0xb8, 0x52, 0xf1, 0x8c,
-	0x7b, 0x96, 0x6e, 0xda, 0x8f, 0x6a, 0x5b, 0x8f, 0x2b, 0xa6, 0xc3, 0x4c, 0xc7, 0xa8, 0xe2, 0x9e,
-	0xee, 0xb6, 0xc4, 0x1c, 0xcc, 0x7b, 0xe8, 0xb4, 0xd0, 0x1d, 0x2e, 0x33, 0x1c, 0xcd, 0xb2, 0xce,
-	0x55, 0x28, 0x44, 0xae, 0x53, 0x45, 0xaf, 0x4d, 0x1d, 0x0f, 0x8b, 0xef, 0xc9, 0x14, 0xd5, 0xce,
-	0x0e, 0x7a, 0xfd, 0x51, 0x24, 0x95, 0x04, 0x69, 0x17, 0x9b, 0x68, 0x76, 0xd0, 0x1d, 0xe2, 0xf0,
-	0x71, 0x18, 0x71, 0x2a, 0x86, 0x78, 0x1d, 0xd6, 0x62, 0x59, 0x38, 0xf9, 0x47, 0x02, 0xe2, 0x48,
-	0xfd, 0xc0, 0x0f, 0x69, 0xea, 0x06, 0x3e, 0x85, 0x8c, 0x7f, 0x62, 0x5e, 0x9d, 0xd1, 0x7a, 0xb3,
-	0x6f, 0x94, 0x9f, 0x5b, 0x4e, 0xad, 0x5e, 0x2c, 0x17, 0xd4, 0xf0, 0x9c, 0x50, 0xf9, 0xd1, 0x6f,
-	0x8a, 0x87, 0xbf, 0x14, 0xe1, 0xeb, 0x6f, 0x05, 0xf8, 0x2f, 0xaf, 0x7a, 0x69, 0xe0, 0x6d, 0x9b,
-	0xfa, 0x00, 0x63, 0x41, 0x2c, 0x81, 0x34, 0x89, 0xc5, 0xa9, 0xbf, 0x91, 0xb0, 0xe9, 0xff, 0xda,
-	0xe8, 0x90, 0xc8, 0x52, 0xa7, 0x12, 0xd9, 0x35, 0x28, 0x46, 0xa3, 0xf3, 0x08, 0x3f, 0x13, 0x58,
-	0x1c, 0xc9, 0xb6, 0xd0, 0x42, 0x43, 0x67, 0xd4, 0x3d, 0x2b, 0x87, 0x53, 0x00, 0x25, 0x82, 0x8d,
-	0xf3, 0x7f, 0x27, 0x91, 0x9a, 0xf3, 0x71, 0x4c, 0x6b, 0xb0, 0x12, 0xc3, 0x1f, 0x5a, 0x43, 0xb5,
-	0x3d, 0xbd, 0x7d, 0x06, 0x6b, 0x28, 0xc0, 0x0a, 0xad, 0xa1, 0x60, 0xfa, 0xdc, 0xd5, 0xd0, 0x24,
-	0xfa, 0x28, 0xc2, 0xf2, 0x8f, 0x34, 0xa4, 0x2a, 0x9e, 0x21, 0xbe, 0x21, 0x90, 0x8b, 0xb8, 0x28,
-	0x4a, 0x51, 0x60, 0x91, 0x1d, 0x54, 0xba, 0x9d, 0xd8, 0x64, 0x04, 0x24, 0x7e, 0x21, 0x20, 0xc7,
-	0xdc, 0x11, 0xc9, 0xbd, 0x8f, 0x4c, 0xa5, 0xbb, 0x33, 0x9b, 0x72, 0xc0, 0x97, 0x90, 0x39, 0x7e,
-	0x13, 0x5c, 0x8f, 0xf3, 0x1a, 0x68, 0xa5, 0xf2, 0xc9, 0xb5, 0x7c, 0xc9, 0x77, 0x04, 0x16, 0xa3,
-	0xfa, 0x78, 0x02, 0x7f, 0x7c, 0x17, 0x36, 0x92, 0xdb, 0x70, 0x96, 0xd7, 0x04, 0xb2, 0xa1, 0x1d,
-	0x57, 0x8b, 0x73, 0x7a, 0xcc, 0x40, 0xba, 0x95, 0xd0, 0x80, 0x23, 0x7c, 0x22, 0xb0, 0x34, 0xb5,
-	0x69, 0x26, 0xf5, 0xcc, 0x37, 0xe6, 0xce, 0x8c, 0x86, 0x13, 0xc9, 0x31, 0xd6, 0xe2, 0x62, 0x93,
-	0x23, 0xd0, 0xc6, 0x27, 0xc7, 0x64, 0x8f, 0x0a, 0x92, 0x23, 0xa4, 0x41, 0x25, 0xf0, 0x77, 0xf2,
-	0xe4, 0x88, 0xee, 0x26, 0x9b, 0xf7, 0x0f, 0xbb, 0x32, 0x39, 0xea, 0xca, 0xe4, 0x4f, 0x57, 0x26,
-	0x1f, 0x7a, 0xb2, 0x70, 0xd4, 0x93, 0x85, 0x9f, 0x3d, 0x59, 0x78, 0xb2, 0x6e, 0x98, 0xec, 0xf9,
-	0x6e, 0x43, 0x6d, 0x52, 0x5b, 0xeb, 0xfb, 0xbf, 0x61, 0xe9, 0x0d, 0xcf, 0xff, 0xd2, 0xf6, 0xc7,
-	0x9e, 0xd1, 0xec, 0x55, 0x1b, 0xbd, 0xc6, 0xbc, 0xff, 0x28, 0xbe, 0xf9, 0x2f, 0x00, 0x00, 0xff,
-	0xff, 0x8a, 0xdd, 0x39, 0x4e, 0x65, 0x0b, 0x00, 0x00,
+	// 463 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0xcf, 0x4e, 0x2c, 0x4b,
+	0xd4, 0xcf, 0xcc, 0x4b, 0x4e, 0xcd, 0x2b, 0xc9, 0x2c, 0x4b, 0xd5, 0x2f, 0x33, 0x4c, 0x4a, 0x2d,
+	0x49, 0x34, 0xd4, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x03, 0x29, 0xd0,
+	0x83, 0x2b, 0xd0, 0x83, 0x2a, 0x90, 0x12, 0x49, 0xcf, 0x4f, 0xcf, 0x07, 0x2b, 0xd1, 0x07, 0xb1,
+	0x20, 0xaa, 0x95, 0x42, 0xb8, 0x38, 0x83, 0x53, 0x73, 0x52, 0x93, 0x4b, 0x32, 0xf3, 0xf3, 0x84,
+	0x44, 0xb8, 0x58, 0x53, 0x52, 0xf3, 0xf2, 0x73, 0x25, 0x18, 0x15, 0x18, 0x35, 0x38, 0x83, 0x20,
+	0x1c, 0x21, 0x75, 0x2e, 0xfe, 0xdc, 0xd2, 0x9c, 0x92, 0xcc, 0x82, 0x9c, 0xcc, 0xd4, 0xa2, 0xf8,
+	0xbc, 0xc4, 0xdc, 0x54, 0x09, 0x26, 0xb0, 0x3c, 0x1f, 0x42, 0xd8, 0x2f, 0x31, 0x37, 0xd5, 0x8a,
+	0xa3, 0x63, 0x81, 0x3c, 0xc3, 0x8b, 0x05, 0xf2, 0x0c, 0x4a, 0x69, 0x5c, 0x92, 0xbe, 0xc5, 0xe9,
+	0xce, 0x39, 0x89, 0x99, 0xb9, 0xa1, 0xc1, 0x2e, 0x11, 0xbe, 0x99, 0x79, 0x25, 0x99, 0x79, 0xe9,
+	0x41, 0xa9, 0xe5, 0x89, 0x45, 0x29, 0x42, 0x62, 0x5c, 0x6c, 0xc5, 0xa9, 0x79, 0x29, 0xa9, 0x45,
+	0x50, 0x6b, 0xa0, 0x3c, 0x72, 0xec, 0x51, 0xe6, 0x52, 0xc4, 0x69, 0x4f, 0x50, 0x6a, 0x71, 0x41,
+	0x7e, 0x5e, 0x71, 0xaa, 0xd2, 0x54, 0x46, 0x2e, 0x21, 0x98, 0x2a, 0x0f, 0xb0, 0x04, 0x5e, 0x67,
+	0xc4, 0x72, 0xf1, 0x83, 0xfd, 0x5d, 0x1c, 0x5f, 0x92, 0x1f, 0x9f, 0x0c, 0xd2, 0x24, 0xc1, 0xa4,
+	0xc0, 0xac, 0xc1, 0x6d, 0xa4, 0xa8, 0x87, 0x3d, 0x64, 0xf5, 0xe0, 0x01, 0xe8, 0x24, 0x74, 0xe2,
+	0x9e, 0x3c, 0xc3, 0xaa, 0xfb, 0xf2, 0x5c, 0x70, 0xa1, 0xe2, 0x20, 0x5e, 0x88, 0x69, 0x21, 0xf9,
+	0x60, 0x07, 0x20, 0x39, 0x5e, 0x86, 0x4b, 0x0a, 0xd3, 0x59, 0x70, 0x57, 0xcf, 0x62, 0xe4, 0x12,
+	0x87, 0x49, 0xbb, 0xa4, 0xe6, 0xa4, 0xa6, 0x27, 0x96, 0xe4, 0x17, 0x0d, 0x16, 0xa7, 0x2b, 0x72,
+	0xc9, 0xe3, 0x70, 0x1b, 0xd6, 0x50, 0x0f, 0x2e, 0x4f, 0x2c, 0x18, 0x84, 0xa1, 0x8e, 0x70, 0x16,
+	0xcc, 0xd5, 0x46, 0xdf, 0x99, 0xb9, 0x98, 0x7d, 0x8b, 0xd3, 0x85, 0xda, 0x18, 0xb9, 0xc4, 0x70,
+	0x24, 0x5f, 0x43, 0x5c, 0x0e, 0xc2, 0x99, 0x12, 0xa5, 0x2c, 0x49, 0xd6, 0x02, 0x73, 0x90, 0x50,
+	0x21, 0x17, 0x3f, 0x7a, 0xc2, 0xd5, 0x22, 0x64, 0x1a, 0x42, 0xad, 0x94, 0x11, 0xf1, 0x6a, 0xe1,
+	0x56, 0x36, 0x30, 0x72, 0x89, 0x60, 0x4d, 0x76, 0xfa, 0x84, 0x0c, 0x43, 0xd3, 0x20, 0x65, 0x4e,
+	0xa2, 0x06, 0x0c, 0x5f, 0x23, 0x25, 0x1c, 0x82, 0xbe, 0x46, 0xa8, 0x25, 0xec, 0x6b, 0xcc, 0x98,
+	0x77, 0x72, 0x3d, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27,
+	0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0xed, 0xf4, 0xcc,
+	0x92, 0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0x7d, 0x90, 0xb9, 0xba, 0x39, 0x89, 0x49, 0xc5,
+	0x60, 0x96, 0x7e, 0x05, 0x52, 0x41, 0x5c, 0x52, 0x59, 0x90, 0x5a, 0x9c, 0xc4, 0x06, 0x2e, 0x56,
+	0x8d, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0xbd, 0xa2, 0xa0, 0x73, 0xa7, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -765,21 +433,12 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// ClaimUSDXMintingReward is a message type used to claim USDX minting rewards
 	ClaimUSDXMintingReward(ctx context.Context, in *MsgClaimUSDXMintingReward, opts ...grpc.CallOption) (*MsgClaimUSDXMintingRewardResponse, error)
-	// ClaimUSDXMintingRewardVVesting is a message type used to claim USDX minting rewards for validator vesting accounts
-	ClaimUSDXMintingRewardVVesting(ctx context.Context, in *MsgClaimUSDXMintingRewardVVesting, opts ...grpc.CallOption) (*MsgClaimUSDXMintingRewardVVestingResponse, error)
 	// ClaimHardReward is a message type used to claim Hard liquidity provider rewards
 	ClaimHardReward(ctx context.Context, in *MsgClaimHardReward, opts ...grpc.CallOption) (*MsgClaimHardRewardResponse, error)
-	// ClaimHardRewardVVesting is a message type used to claim Hard liquidity provider rewards for validator vesting
-	// accounts
-	ClaimHardRewardVVesting(ctx context.Context, in *MsgClaimHardRewardVVesting, opts ...grpc.CallOption) (*MsgClaimHardRewardVVestingResponse, error)
 	// ClaimDelegatorReward is a message type used to claim delegator rewards
 	ClaimDelegatorReward(ctx context.Context, in *MsgClaimDelegatorReward, opts ...grpc.CallOption) (*MsgClaimDelegatorRewardResponse, error)
-	// ClaimDelegatorRewardVVesting is a message type used to claim delegator rewards for validator vesting accounts
-	ClaimDelegatorRewardVVesting(ctx context.Context, in *MsgClaimDelegatorRewardVVesting, opts ...grpc.CallOption) (*MsgClaimDelegatorRewardVVestingResponse, error)
 	// ClaimSwapReward is a message type used to claim delegator rewards
 	ClaimSwapReward(ctx context.Context, in *MsgClaimSwapReward, opts ...grpc.CallOption) (*MsgClaimSwapRewardResponse, error)
-	// ClaimSwapRewardVVesting is a message type used to claim delegator rewards for validator vesting accounts
-	ClaimSwapRewardVVesting(ctx context.Context, in *MsgClaimSwapRewardVVesting, opts ...grpc.CallOption) (*MsgClaimSwapRewardVVestingResponse, error)
 }
 
 type msgClient struct {
@@ -799,27 +458,9 @@ func (c *msgClient) ClaimUSDXMintingReward(ctx context.Context, in *MsgClaimUSDX
 	return out, nil
 }
 
-func (c *msgClient) ClaimUSDXMintingRewardVVesting(ctx context.Context, in *MsgClaimUSDXMintingRewardVVesting, opts ...grpc.CallOption) (*MsgClaimUSDXMintingRewardVVestingResponse, error) {
-	out := new(MsgClaimUSDXMintingRewardVVestingResponse)
-	err := c.cc.Invoke(ctx, "/kava.incentive.v1beta1.Msg/ClaimUSDXMintingRewardVVesting", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *msgClient) ClaimHardReward(ctx context.Context, in *MsgClaimHardReward, opts ...grpc.CallOption) (*MsgClaimHardRewardResponse, error) {
 	out := new(MsgClaimHardRewardResponse)
 	err := c.cc.Invoke(ctx, "/kava.incentive.v1beta1.Msg/ClaimHardReward", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *msgClient) ClaimHardRewardVVesting(ctx context.Context, in *MsgClaimHardRewardVVesting, opts ...grpc.CallOption) (*MsgClaimHardRewardVVestingResponse, error) {
-	out := new(MsgClaimHardRewardVVestingResponse)
-	err := c.cc.Invoke(ctx, "/kava.incentive.v1beta1.Msg/ClaimHardRewardVVesting", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -835,27 +476,9 @@ func (c *msgClient) ClaimDelegatorReward(ctx context.Context, in *MsgClaimDelega
 	return out, nil
 }
 
-func (c *msgClient) ClaimDelegatorRewardVVesting(ctx context.Context, in *MsgClaimDelegatorRewardVVesting, opts ...grpc.CallOption) (*MsgClaimDelegatorRewardVVestingResponse, error) {
-	out := new(MsgClaimDelegatorRewardVVestingResponse)
-	err := c.cc.Invoke(ctx, "/kava.incentive.v1beta1.Msg/ClaimDelegatorRewardVVesting", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *msgClient) ClaimSwapReward(ctx context.Context, in *MsgClaimSwapReward, opts ...grpc.CallOption) (*MsgClaimSwapRewardResponse, error) {
 	out := new(MsgClaimSwapRewardResponse)
 	err := c.cc.Invoke(ctx, "/kava.incentive.v1beta1.Msg/ClaimSwapReward", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *msgClient) ClaimSwapRewardVVesting(ctx context.Context, in *MsgClaimSwapRewardVVesting, opts ...grpc.CallOption) (*MsgClaimSwapRewardVVestingResponse, error) {
-	out := new(MsgClaimSwapRewardVVestingResponse)
-	err := c.cc.Invoke(ctx, "/kava.incentive.v1beta1.Msg/ClaimSwapRewardVVesting", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -866,21 +489,12 @@ func (c *msgClient) ClaimSwapRewardVVesting(ctx context.Context, in *MsgClaimSwa
 type MsgServer interface {
 	// ClaimUSDXMintingReward is a message type used to claim USDX minting rewards
 	ClaimUSDXMintingReward(context.Context, *MsgClaimUSDXMintingReward) (*MsgClaimUSDXMintingRewardResponse, error)
-	// ClaimUSDXMintingRewardVVesting is a message type used to claim USDX minting rewards for validator vesting accounts
-	ClaimUSDXMintingRewardVVesting(context.Context, *MsgClaimUSDXMintingRewardVVesting) (*MsgClaimUSDXMintingRewardVVestingResponse, error)
 	// ClaimHardReward is a message type used to claim Hard liquidity provider rewards
 	ClaimHardReward(context.Context, *MsgClaimHardReward) (*MsgClaimHardRewardResponse, error)
-	// ClaimHardRewardVVesting is a message type used to claim Hard liquidity provider rewards for validator vesting
-	// accounts
-	ClaimHardRewardVVesting(context.Context, *MsgClaimHardRewardVVesting) (*MsgClaimHardRewardVVestingResponse, error)
 	// ClaimDelegatorReward is a message type used to claim delegator rewards
 	ClaimDelegatorReward(context.Context, *MsgClaimDelegatorReward) (*MsgClaimDelegatorRewardResponse, error)
-	// ClaimDelegatorRewardVVesting is a message type used to claim delegator rewards for validator vesting accounts
-	ClaimDelegatorRewardVVesting(context.Context, *MsgClaimDelegatorRewardVVesting) (*MsgClaimDelegatorRewardVVestingResponse, error)
 	// ClaimSwapReward is a message type used to claim delegator rewards
 	ClaimSwapReward(context.Context, *MsgClaimSwapReward) (*MsgClaimSwapRewardResponse, error)
-	// ClaimSwapRewardVVesting is a message type used to claim delegator rewards for validator vesting accounts
-	ClaimSwapRewardVVesting(context.Context, *MsgClaimSwapRewardVVesting) (*MsgClaimSwapRewardVVestingResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -890,26 +504,14 @@ type UnimplementedMsgServer struct {
 func (*UnimplementedMsgServer) ClaimUSDXMintingReward(ctx context.Context, req *MsgClaimUSDXMintingReward) (*MsgClaimUSDXMintingRewardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClaimUSDXMintingReward not implemented")
 }
-func (*UnimplementedMsgServer) ClaimUSDXMintingRewardVVesting(ctx context.Context, req *MsgClaimUSDXMintingRewardVVesting) (*MsgClaimUSDXMintingRewardVVestingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ClaimUSDXMintingRewardVVesting not implemented")
-}
 func (*UnimplementedMsgServer) ClaimHardReward(ctx context.Context, req *MsgClaimHardReward) (*MsgClaimHardRewardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClaimHardReward not implemented")
-}
-func (*UnimplementedMsgServer) ClaimHardRewardVVesting(ctx context.Context, req *MsgClaimHardRewardVVesting) (*MsgClaimHardRewardVVestingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ClaimHardRewardVVesting not implemented")
 }
 func (*UnimplementedMsgServer) ClaimDelegatorReward(ctx context.Context, req *MsgClaimDelegatorReward) (*MsgClaimDelegatorRewardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClaimDelegatorReward not implemented")
 }
-func (*UnimplementedMsgServer) ClaimDelegatorRewardVVesting(ctx context.Context, req *MsgClaimDelegatorRewardVVesting) (*MsgClaimDelegatorRewardVVestingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ClaimDelegatorRewardVVesting not implemented")
-}
 func (*UnimplementedMsgServer) ClaimSwapReward(ctx context.Context, req *MsgClaimSwapReward) (*MsgClaimSwapRewardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClaimSwapReward not implemented")
-}
-func (*UnimplementedMsgServer) ClaimSwapRewardVVesting(ctx context.Context, req *MsgClaimSwapRewardVVesting) (*MsgClaimSwapRewardVVestingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ClaimSwapRewardVVesting not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -934,24 +536,6 @@ func _Msg_ClaimUSDXMintingReward_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_ClaimUSDXMintingRewardVVesting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgClaimUSDXMintingRewardVVesting)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).ClaimUSDXMintingRewardVVesting(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kava.incentive.v1beta1.Msg/ClaimUSDXMintingRewardVVesting",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).ClaimUSDXMintingRewardVVesting(ctx, req.(*MsgClaimUSDXMintingRewardVVesting))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Msg_ClaimHardReward_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgClaimHardReward)
 	if err := dec(in); err != nil {
@@ -966,24 +550,6 @@ func _Msg_ClaimHardReward_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).ClaimHardReward(ctx, req.(*MsgClaimHardReward))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Msg_ClaimHardRewardVVesting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgClaimHardRewardVVesting)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).ClaimHardRewardVVesting(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kava.incentive.v1beta1.Msg/ClaimHardRewardVVesting",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).ClaimHardRewardVVesting(ctx, req.(*MsgClaimHardRewardVVesting))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1006,24 +572,6 @@ func _Msg_ClaimDelegatorReward_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_ClaimDelegatorRewardVVesting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgClaimDelegatorRewardVVesting)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).ClaimDelegatorRewardVVesting(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kava.incentive.v1beta1.Msg/ClaimDelegatorRewardVVesting",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).ClaimDelegatorRewardVVesting(ctx, req.(*MsgClaimDelegatorRewardVVesting))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Msg_ClaimSwapReward_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgClaimSwapReward)
 	if err := dec(in); err != nil {
@@ -1042,24 +590,6 @@ func _Msg_ClaimSwapReward_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_ClaimSwapRewardVVesting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgClaimSwapRewardVVesting)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).ClaimSwapRewardVVesting(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kava.incentive.v1beta1.Msg/ClaimSwapRewardVVesting",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).ClaimSwapRewardVVesting(ctx, req.(*MsgClaimSwapRewardVVesting))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.incentive.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -1069,32 +599,16 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_ClaimUSDXMintingReward_Handler,
 		},
 		{
-			MethodName: "ClaimUSDXMintingRewardVVesting",
-			Handler:    _Msg_ClaimUSDXMintingRewardVVesting_Handler,
-		},
-		{
 			MethodName: "ClaimHardReward",
 			Handler:    _Msg_ClaimHardReward_Handler,
-		},
-		{
-			MethodName: "ClaimHardRewardVVesting",
-			Handler:    _Msg_ClaimHardRewardVVesting_Handler,
 		},
 		{
 			MethodName: "ClaimDelegatorReward",
 			Handler:    _Msg_ClaimDelegatorReward_Handler,
 		},
 		{
-			MethodName: "ClaimDelegatorRewardVVesting",
-			Handler:    _Msg_ClaimDelegatorRewardVVesting_Handler,
-		},
-		{
 			MethodName: "ClaimSwapReward",
 			Handler:    _Msg_ClaimSwapReward_Handler,
-		},
-		{
-			MethodName: "ClaimSwapRewardVVesting",
-			Handler:    _Msg_ClaimSwapRewardVVesting_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1198,73 +712,6 @@ func (m *MsgClaimUSDXMintingRewardResponse) MarshalToSizedBuffer(dAtA []byte) (i
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgClaimUSDXMintingRewardVVesting) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgClaimUSDXMintingRewardVVesting) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgClaimUSDXMintingRewardVVesting) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.MultiplierName) > 0 {
-		i -= len(m.MultiplierName)
-		copy(dAtA[i:], m.MultiplierName)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.MultiplierName)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Receiver) > 0 {
-		i -= len(m.Receiver)
-		copy(dAtA[i:], m.Receiver)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Receiver)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Sender) > 0 {
-		i -= len(m.Sender)
-		copy(dAtA[i:], m.Sender)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
 func (m *MsgClaimHardReward) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1325,80 +772,6 @@ func (m *MsgClaimHardRewardResponse) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *MsgClaimHardRewardResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgClaimHardRewardVVesting) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgClaimHardRewardVVesting) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgClaimHardRewardVVesting) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.DenomsToClaim) > 0 {
-		for iNdEx := len(m.DenomsToClaim) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.DenomsToClaim[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTx(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x1a
-		}
-	}
-	if len(m.Receiver) > 0 {
-		i -= len(m.Receiver)
-		copy(dAtA[i:], m.Receiver)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Receiver)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Sender) > 0 {
-		i -= len(m.Sender)
-		copy(dAtA[i:], m.Sender)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgClaimHardRewardVVestingResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgClaimHardRewardVVestingResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgClaimHardRewardVVestingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1473,80 +846,6 @@ func (m *MsgClaimDelegatorRewardResponse) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgClaimDelegatorRewardVVesting) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgClaimDelegatorRewardVVesting) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgClaimDelegatorRewardVVesting) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.DenomsToClaim) > 0 {
-		for iNdEx := len(m.DenomsToClaim) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.DenomsToClaim[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTx(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x1a
-		}
-	}
-	if len(m.Receiver) > 0 {
-		i -= len(m.Receiver)
-		copy(dAtA[i:], m.Receiver)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Receiver)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Sender) > 0 {
-		i -= len(m.Sender)
-		copy(dAtA[i:], m.Sender)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgClaimDelegatorRewardVVestingResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgClaimDelegatorRewardVVestingResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgClaimDelegatorRewardVVestingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
 func (m *MsgClaimSwapReward) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1614,80 +913,6 @@ func (m *MsgClaimSwapRewardResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgClaimSwapRewardVVesting) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgClaimSwapRewardVVesting) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgClaimSwapRewardVVesting) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.DenomsToClaim) > 0 {
-		for iNdEx := len(m.DenomsToClaim) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.DenomsToClaim[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTx(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x1a
-		}
-	}
-	if len(m.Receiver) > 0 {
-		i -= len(m.Receiver)
-		copy(dAtA[i:], m.Receiver)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Receiver)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Sender) > 0 {
-		i -= len(m.Sender)
-		copy(dAtA[i:], m.Sender)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgClaimSwapRewardVVestingResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgClaimSwapRewardVVestingResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgClaimSwapRewardVVestingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -1742,36 +967,6 @@ func (m *MsgClaimUSDXMintingRewardResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgClaimUSDXMintingRewardVVesting) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Sender)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.Receiver)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.MultiplierName)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
 func (m *MsgClaimHardReward) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1792,38 +987,6 @@ func (m *MsgClaimHardReward) Size() (n int) {
 }
 
 func (m *MsgClaimHardRewardResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgClaimHardRewardVVesting) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Sender)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.Receiver)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if len(m.DenomsToClaim) > 0 {
-		for _, e := range m.DenomsToClaim {
-			l = e.Size()
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *MsgClaimHardRewardVVestingResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1860,38 +1023,6 @@ func (m *MsgClaimDelegatorRewardResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgClaimDelegatorRewardVVesting) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Sender)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.Receiver)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if len(m.DenomsToClaim) > 0 {
-		for _, e := range m.DenomsToClaim {
-			l = e.Size()
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *MsgClaimDelegatorRewardVVestingResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
 func (m *MsgClaimSwapReward) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1912,38 +1043,6 @@ func (m *MsgClaimSwapReward) Size() (n int) {
 }
 
 func (m *MsgClaimSwapRewardResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgClaimSwapRewardVVesting) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Sender)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.Receiver)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if len(m.DenomsToClaim) > 0 {
-		for _, e := range m.DenomsToClaim {
-			l = e.Size()
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *MsgClaimSwapRewardVVestingResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2236,202 +1335,6 @@ func (m *MsgClaimUSDXMintingRewardResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgClaimUSDXMintingRewardVVesting) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgClaimUSDXMintingRewardVVesting: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgClaimUSDXMintingRewardVVesting: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Sender = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Receiver", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Receiver = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MultiplierName", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.MultiplierName = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgClaimUSDXMintingRewardVVestingResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgClaimUSDXMintingRewardVVestingResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgClaimUSDXMintingRewardVVestingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *MsgClaimHardReward) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2575,204 +1478,6 @@ func (m *MsgClaimHardRewardResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgClaimHardRewardResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgClaimHardRewardVVesting) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgClaimHardRewardVVesting: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgClaimHardRewardVVesting: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Sender = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Receiver", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Receiver = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DenomsToClaim", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DenomsToClaim = append(m.DenomsToClaim, Selection{})
-			if err := m.DenomsToClaim[len(m.DenomsToClaim)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgClaimHardRewardVVestingResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgClaimHardRewardVVestingResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgClaimHardRewardVVestingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -2962,204 +1667,6 @@ func (m *MsgClaimDelegatorRewardResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgClaimDelegatorRewardVVesting) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgClaimDelegatorRewardVVesting: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgClaimDelegatorRewardVVesting: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Sender = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Receiver", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Receiver = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DenomsToClaim", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DenomsToClaim = append(m.DenomsToClaim, Selection{})
-			if err := m.DenomsToClaim[len(m.DenomsToClaim)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgClaimDelegatorRewardVVestingResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgClaimDelegatorRewardVVestingResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgClaimDelegatorRewardVVestingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *MsgClaimSwapReward) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3303,204 +1810,6 @@ func (m *MsgClaimSwapRewardResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgClaimSwapRewardResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgClaimSwapRewardVVesting) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgClaimSwapRewardVVesting: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgClaimSwapRewardVVesting: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Sender = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Receiver", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Receiver = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DenomsToClaim", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DenomsToClaim = append(m.DenomsToClaim, Selection{})
-			if err := m.DenomsToClaim[len(m.DenomsToClaim)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgClaimSwapRewardVVestingResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgClaimSwapRewardVVestingResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgClaimSwapRewardVVestingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

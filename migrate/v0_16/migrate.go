@@ -27,8 +27,8 @@ func Migrate(genDoc *tmtypes.GenesisDoc, ctx client.Context) (*tmtypes.GenesisDo
 		return nil, fmt.Errorf("failed to marchal app state from genesis doc:  %w", err)
 	}
 
-	appState = migrateCosmosAppState(appState, ctx)
-	appState = migrateKavaAppState(appState, ctx)
+	migrateCosmosAppState(appState, ctx)
+	migrateKavaAppState(appState, ctx)
 
 	genDoc.AppState, err = json.Marshal(appState)
 	if err != nil {

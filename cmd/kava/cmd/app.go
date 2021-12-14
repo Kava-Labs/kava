@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -110,9 +111,22 @@ func (ac appCreator) appExport(
 	appOpts servertypes.AppOptions,
 ) (servertypes.ExportedApp, error) {
 
-	panic("TODO") // TODO
+	homePath, ok := appOpts.Get(flags.FlagHome).(string)
+	if !ok || homePath == "" {
+		return servertypes.ExportedApp{}, errors.New("application home not set")
+	}
 
-	return servertypes.ExportedApp{}, nil
+	var tempApp *app.App
+	if height != -1 {
+		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: true, InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))})
+
+		if err := tempApp.LoadHeight(height); err != nil {
+			return servertypes.ExportedApp{}, err
+		}
+	} else {
+		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: false, InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))})
+	}
+	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
 }
 
 // addStartCmdFlags adds flags to the server start command.

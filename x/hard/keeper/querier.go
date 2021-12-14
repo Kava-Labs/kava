@@ -71,7 +71,17 @@ func queryGetModAccounts(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 		accs = append(accs, acc)
 	}
 
-	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, accs)
+	// Include module account coins with its account to keep backwards compatibility with v39 account behavior
+	response := make([]types.ModAccountWithCoins, len(accs))
+	for i, acc := range accs {
+		coins := k.bankKeeper.GetAllBalances(ctx, acc.GetAddress())
+		response[i] = types.ModAccountWithCoins{
+			Account: acc,
+			Coins:   coins,
+		}
+	}
+
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, response)
 
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())

@@ -128,14 +128,6 @@ func validateMultiRewardPeriodsParam(i interface{}) error {
 	return rewards.Validate()
 }
 
-func validateMultipliersParam(i interface{}) error {
-	multipliers, ok := i.(Multipliers)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	return multipliers.Validate()
-}
-
 func validateMultipliersPerDenomParam(i interface{}) error {
 	multipliers, ok := i.(MultipliersPerDenoms)
 	if !ok {

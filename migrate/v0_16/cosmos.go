@@ -196,6 +196,9 @@ func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context) genutil
 		var stakingGenState v038staking.GenesisState
 		v039Codec.MustUnmarshalJSON(appState[v038staking.ModuleName], &stakingGenState)
 
+		// Update historical entries to 10000
+		stakingGenState.Params.HistoricalEntries = 10000
+
 		// delete deprecated x/staking genesis state
 		delete(appState, v038staking.ModuleName)
 

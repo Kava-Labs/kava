@@ -15,7 +15,7 @@ func TestMigrateGenesisCmd_V16_Success(t *testing.T) {
 	ctx := newCmdContext()
 	cmd := migrate.MigrateGenesisCmd()
 	file := filepath.Join("v0_16", "testdata", "genesis-v15.json")
-	cmd.SetArgs([]string{"v0.16", file})
+	cmd.SetArgs([]string{file})
 	err := cmd.ExecuteContext(ctx)
 	require.NoError(t, err)
 }

@@ -20,7 +20,7 @@ service Query {
 
   // Accounts queries module accounts.
   rpc Accounts(QueryAccountsRequest) returns (QueryAccountsResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/accounts/{name}";
+    option (google.api.http).get = "/kava/hard/v1beta1/accounts";
   }
 
   // Deposits queries hard deposits.
@@ -78,16 +78,11 @@ message QueryParamsResponse {
 }
 
 // QueryAccountsRequest is the request type for the Query/Accounts RPC method.
-message QueryAccountsRequest {
-  string name = 1;
-
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
-}
+message QueryAccountsRequest {}
 
 // QueryAccountsResponse is the response type for the Query/Accounts RPC method.
 message QueryAccountsResponse {
-  repeated cosmos.auth.v1beta1.ModuleAccount accounts   = 1 [(gogoproto.nullable) = false];
-  cosmos.base.query.v1beta1.PageResponse     pagination = 2;
+  repeated cosmos.auth.v1beta1.ModuleAccount accounts = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryDepositsRequest is the request type for the Query/Deposits RPC method.

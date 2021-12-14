@@ -33,7 +33,7 @@ func GetQueryCmd() *cobra.Command {
 
 	cmds := []*cobra.Command{
 		queryParamsCmd(),
-		queryModAccountsCmd(),
+		queryAccountsCmd(),
 		queryDepositsCmd(),
 		queryUnsyncedDepositsCmd(),
 		queryTotalDepositedCmd(),
@@ -78,13 +78,13 @@ func queryParamsCmd() *cobra.Command {
 	}
 }
 
-func queryModAccountsCmd() *cobra.Command {
+func queryAccountsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "accounts",
-		Short: "query hard module accounts with optional filter",
-		Long:  "Query for all hard module accounts or a specific account using the name flag",
+		Short: "query hard module accounts",
+		Long:  "Query for all hard module accounts",
 		Example: fmt.Sprintf(`%[1]s q %[2]s accounts
-%[1]s q %[2]s accounts --name hard|hard_delegator_distribution|hard_lp_distribution`, version.AppName, types.ModuleName),
+%[1]s q %[2]s accounts`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -92,23 +92,7 @@ func queryModAccountsCmd() *cobra.Command {
 				return err
 			}
 
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			name, err := cmd.Flags().GetString(flagName)
-			if err != nil {
-				return err
-			}
-
-			req := &types.QueryAccountsRequest{
-				Pagination: pageReq,
-			}
-
-			if name != "" {
-				req.Name = name
-			}
+			req := &types.QueryAccountsRequest{}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
@@ -120,8 +104,6 @@ func queryModAccountsCmd() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
-
-	flags.AddPaginationFlagsToCmd(cmd, "accounts")
 
 	return cmd
 }
