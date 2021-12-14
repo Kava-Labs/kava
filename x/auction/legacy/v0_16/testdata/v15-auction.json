@@ -1,0 +1,91 @@
+{
+  "auctions": [
+    {
+      "type": "auction/CollateralAuction",
+      "value": {
+        "base_auction": {
+          "bid": {
+            "amount": "0",
+            "denom": "bnb"
+          },
+          "bidder": "",
+          "end_time": "9000-01-01T00:00:00Z",
+          "has_received_bids": false,
+          "id": "3795",
+          "initiator": "hard",
+          "lot": {
+            "amount": "1",
+            "denom": "bnb"
+          },
+          "max_end_time": "9000-01-01T00:00:00Z"
+        },
+        "corresponding_debt": {
+          "amount": "0",
+          "denom": "debt"
+        },
+        "lot_returns": {
+          "addresses": ["kava1eevfnzkf2mt6feyttyzh6ektclauq7zlayefwf"],
+          "weights": ["100"]
+        },
+        "max_bid": {
+          "amount": "1",
+          "denom": "bnb"
+        }
+      }
+    },
+    {
+      "type": "auction/SurplusAuction",
+      "value": {
+        "base_auction": {
+          "bid": {
+            "amount": "0",
+            "denom": "bnb"
+          },
+          "bidder": "",
+          "end_time": "9000-01-01T00:00:00Z",
+          "has_received_bids": false,
+          "id": "3796",
+          "initiator": "hard",
+          "lot": {
+            "amount": "1",
+            "denom": "bnb"
+          },
+          "max_end_time": "9000-01-01T00:00:00Z"
+        }
+      }
+    },
+    {
+      "type": "auction/DebtAuction",
+      "value": {
+        "base_auction": {
+          "bid": {
+            "amount": "0",
+            "denom": "bnb"
+          },
+          "bidder": "",
+          "end_time": "9000-01-01T00:00:00Z",
+          "has_received_bids": false,
+          "id": "3895",
+          "initiator": "hard",
+          "lot": {
+            "amount": "1",
+            "denom": "bnb"
+          },
+          "max_end_time": "9000-01-01T00:00:00Z"
+        },
+        "corresponding_debt": {
+          "amount": "0",
+          "denom": "debt"
+        }
+      }
+    }
+  ],
+  "next_auction_id": "12",
+  "params": {
+    "bid_duration": "600000000000",
+    "increment_collateral": "0.010000000000000000",
+    "increment_debt": "0.010000000000000000",
+    "increment_surplus": "0.010000000000000000",
+    "max_auction_duration": "172800000000000"
+  }
+}
