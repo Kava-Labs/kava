@@ -33,8 +33,6 @@ var (
 	_                      sdk.Msg = &MsgClaimAtomicSwap{}
 	_                      sdk.Msg = &MsgRefundAtomicSwap{}
 	AtomicSwapCoinsAccAddr         = sdk.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
-	// kava prefix address:  [INSERT BEP3-DEPUTY ADDRESS]
-	// tkava prefix address: [INSERT BEP3-DEPUTY ADDRESS]
 )
 
 // NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
@@ -73,7 +71,10 @@ func (msg MsgCreateAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) GetSigners() []sdk.AccAddress {
-	from, _ := sdk.AccAddressFromBech32(msg.From)
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{from}
 }
 
@@ -157,7 +158,10 @@ func (msg MsgClaimAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) GetSigners() []sdk.AccAddress {
-	from, _ := sdk.AccAddressFromBech32(msg.From)
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{from}
 }
 
@@ -211,7 +215,10 @@ func (msg MsgRefundAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) GetSigners() []sdk.AccAddress {
-	from, _ := sdk.AccAddressFromBech32(msg.From)
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{from}
 }
 
