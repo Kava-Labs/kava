@@ -8,40 +8,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// NewMultiplierNameFromString converts string to MultiplierName type
-func NewMultiplierNameFromString(str string) MultiplierName {
-	switch str {
-	case "small":
-		return MULTIPLIER_NAME_SMALL
-	case "medium":
-		return MULTIPLIER_NAME_MEDIUM
-	case "large":
-		return MULTIPLIER_NAME_LARGE
-	default:
-		return MULTIPLIER_NAME_UNSPECIFIED
-	}
-}
-
-// IsValid checks if the input is one of the expected strings
-func (mn MultiplierName) IsValid() error {
-	switch mn {
-	case MULTIPLIER_NAME_SMALL, MULTIPLIER_NAME_MEDIUM, MULTIPLIER_NAME_LARGE:
-		return nil
-	}
-	return sdkerrors.Wrapf(ErrInvalidMultiplier, "invalid multiplier name: %s", mn)
-}
-
-// ParseMultiplierName converts a string into a valid MultiplierName value.
-func ParseMultiplierName(unparsedName string) (MultiplierName, error) {
-	name := NewMultiplierNameFromString(unparsedName)
-	if err := name.IsValid(); err != nil {
-		return MULTIPLIER_NAME_UNSPECIFIED, err
-	}
-	return name, nil
-}
-
 // NewMultiplier returns a new Multiplier
-func NewMultiplier(name MultiplierName, lockup int64, factor sdk.Dec) Multiplier {
+func NewMultiplier(name string, lockup int64, factor sdk.Dec) Multiplier {
 	return Multiplier{
 		Name:         name,
 		MonthsLockup: lockup,
@@ -51,8 +19,8 @@ func NewMultiplier(name MultiplierName, lockup int64, factor sdk.Dec) Multiplier
 
 // Validate multiplier param
 func (m Multiplier) Validate() error {
-	if err := m.Name.IsValid(); err != nil {
-		return err
+	if m.Name == "" {
+		return fmt.Errorf("expected non empty name")
 	}
 	if m.MonthsLockup < 0 {
 		return fmt.Errorf("expected non-negative lockup, got %d", m.MonthsLockup)
@@ -78,22 +46,13 @@ func (ms Multipliers) Validate() error {
 }
 
 // Get returns a multiplier with a matching name
-func (ms Multipliers) Get(name MultiplierName) (Multiplier, bool) {
+func (ms Multipliers) Get(name string) (Multiplier, bool) {
 	for _, m := range ms {
 		if m.Name == name {
 			return m, true
 		}
 	}
 	return Multiplier{}, false
-}
-
-// String implements fmt.Stringer
-func (ms Multipliers) String() string {
-	out := "Claim Multipliers\n"
-	for _, s := range ms {
-		out += fmt.Sprintf("%v\n", s)
-	}
-	return out
 }
 
 // MultipliersPerDenoms is a slice of MultipliersPerDenom
@@ -132,8 +91,8 @@ func (s Selection) Validate() error {
 	if err := sdk.ValidateDenom(s.Denom); err != nil {
 		return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
 	}
-	if _, err := ParseMultiplierName(s.MultiplierName); err != nil {
-		return err
+	if s.MultiplierName == "" {
+		return sdkerrors.Wrap(ErrInvalidMultiplier, "multiplier name cannot be empty")
 	}
 	return nil
 }

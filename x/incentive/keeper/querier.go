@@ -5,30 +5,29 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 // NewQuerier is the module level router for state queries
-func NewQuerier(k Keeper) sdk.Querier {
+func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryGetParams:
-			return queryGetParams(ctx, req, k)
+			return queryGetParams(ctx, req, k, legacyQuerierCdc)
 
 		case types.QueryGetHardRewards:
-			return queryGetHardRewards(ctx, req, k)
+			return queryGetHardRewards(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetUSDXMintingRewards:
-			return queryGetUSDXMintingRewards(ctx, req, k)
+			return queryGetUSDXMintingRewards(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetDelegatorRewards:
-			return queryGetDelegatorRewards(ctx, req, k)
+			return queryGetDelegatorRewards(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetSwapRewards:
-			return queryGetSwapRewards(ctx, req, k)
+			return queryGetSwapRewards(ctx, req, k, legacyQuerierCdc)
 
 		case types.QueryGetRewardFactors:
-			return queryGetRewardFactors(ctx, req, k)
+			return queryGetRewardFactors(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -36,21 +35,21 @@ func NewQuerier(k Keeper) sdk.Querier {
 }
 
 // query params in the store
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	// Get params
 	params := k.GetParams(ctx)
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(k.cdc, params)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryGetHardRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryGetHardRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryRewardsParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -82,16 +81,16 @@ func queryGetHardRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 	}
 
 	// Marshal Hard claims
-	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedHardClaims)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, paginatedHardClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryGetUSDXMintingRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryGetUSDXMintingRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryRewardsParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -123,16 +122,16 @@ func queryGetUSDXMintingRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper
 	}
 
 	// Marshal USDX minting claims
-	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedUsdxMintingClaims)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, paginatedUsdxMintingClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryGetDelegatorRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryGetDelegatorRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryRewardsParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -164,16 +163,16 @@ func queryGetDelegatorRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) 
 	}
 
 	// Marshal Hard claims
-	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedDelegatorClaims)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, paginatedDelegatorClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryRewardsParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -209,14 +208,14 @@ func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 	}
 
 	// Marshal claims
-	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedClaims)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, paginatedClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 
 	var usdxFactors types.RewardIndexes
 	k.IterateUSDXMintingRewardFactors(ctx, func(collateralType string, factor sdk.Dec) (stop bool) {
@@ -256,7 +255,7 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]
 		swapFactors,
 	)
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, response)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, response)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

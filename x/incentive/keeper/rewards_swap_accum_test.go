@@ -22,7 +22,11 @@ func (suite *AccumulateSwapRewardsTests) storedTimeEquals(poolID string, expecte
 func (suite *AccumulateSwapRewardsTests) storedIndexesEqual(poolID string, expected types.RewardIndexes) {
 	storedIndexes, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, poolID)
 	suite.Equal(found, expected != nil)
-	suite.Equal(expected, storedIndexes)
+	if found {
+		suite.Equal(expected, storedIndexes)
+	} else {
+		suite.Empty(storedIndexes)
+	}
 }
 
 func TestAccumulateSwapRewards(t *testing.T) {

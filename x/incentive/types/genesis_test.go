@@ -49,8 +49,8 @@ func TestGenesisState_Validate(t *testing.T) {
 						{
 							Denom: "ukava",
 							Multipliers: Multipliers{
-								NewMultiplier(MULTIPLIER_NAME_SMALL, 1, sdk.MustNewDecFromStr("0.33")),
-								NewMultiplier(MULTIPLIER_NAME_LARGE, 12, sdk.MustNewDecFromStr("1.00")),
+								NewMultiplier("small", 1, sdk.MustNewDecFromStr("0.33")),
+								NewMultiplier("large", 12, sdk.MustNewDecFromStr("1.00")),
 							},
 						},
 					},

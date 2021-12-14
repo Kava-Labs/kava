@@ -22,7 +22,13 @@ func (suite *AccumulateBorrowRewardsTests) storedTimeEquals(denom string, expect
 func (suite *AccumulateBorrowRewardsTests) storedIndexesEqual(denom string, expected types.RewardIndexes) {
 	storedIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, denom)
 	suite.Equal(found, expected != nil)
-	suite.Equal(expected, storedIndexes)
+
+	if found {
+		suite.Equal(expected, storedIndexes)
+	} else {
+		// Can't compare Equal for types.RewardIndexes(nil) vs types.RewardIndexes{}
+		suite.Empty(storedIndexes)
+	}
 }
 
 func TestAccumulateBorrowRewards(t *testing.T) {

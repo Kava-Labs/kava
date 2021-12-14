@@ -2,48 +2,7 @@
   "crisis": { "constant_fee": { "denom": "ukava", "amount": "1333000000" } },
   "evidence": { "evidence": [] },
   "genutil": {
-    "gen_txs": [
-      {
-        "type": "cosmos-sdk/StdTx",
-        "value": {
-          "fee": { "amount": [], "gas": "200000" },
-          "memo": "23a5601684fa065ce9d953af5fc7d4347050ad14@192.168.0.14:26656",
-          "msg": [
-            {
-              "type": "cosmos-sdk/MsgCreateValidator",
-              "value": {
-                "commission": {
-                  "max_change_rate": "0.010000000000000000",
-                  "max_rate": "0.200000000000000000",
-                  "rate": "0.100000000000000000"
-                },
-                "delegator_address": "kava1ypjp0m04pyp73hwgtc0dgkx0e9rrydecm054da",
-                "description": {
-                  "details": "",
-                  "identity": "",
-                  "moniker": "validator",
-                  "security_contact": "",
-                  "website": ""
-                },
-                "min_self_delegation": "1",
-                "pubkey": "kavavalconspub1zcjduepqvfq6egzgfmdkd6k7cqhsvsfr4lhsp6adh4uurxgkhec8h7amxcjq7gjum4",
-                "validator_address": "kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42",
-                "value": { "amount": "1000000000", "denom": "ukava" }
-              }
-            }
-          ],
-          "signatures": [
-            {
-              "pub_key": {
-                "type": "tendermint/PubKeySecp256k1",
-                "value": "AgIWiZpdEVb69gfaqyNjbA0b3oe+nRS9BZ9gH/I6oGz+"
-              },
-              "signature": "K9ZA2OYWrX2WSanMnbMHIaFIABWxhcrFjAnyF1U83nlFsVuEmUyGYMOmwo4vac54nkY4pfSzNreu5EnJxniUHA=="
-            }
-          ]
-        }
-      }
-    ]
+    "gen_txs": []
   },
   "mint": {
     "minter": {

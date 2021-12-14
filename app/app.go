@@ -29,6 +29,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/capability"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
@@ -62,6 +65,16 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	transfer "github.com/cosmos/ibc-go/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/modules/core/02-client/client"
+	ibcclienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/modules/core/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -85,6 +98,9 @@ import (
 	"github.com/kava-labs/kava/x/hard"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/x/incentive"
+	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
+	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	issuance "github.com/kava-labs/kava/x/issuance"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
@@ -99,7 +115,6 @@ import (
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
-	validatorvestingkeeper "github.com/kava-labs/kava/x/validator-vesting/keeper"
 )
 
 const (
@@ -117,6 +132,7 @@ var (
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
+		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
@@ -125,14 +141,18 @@ var (
 			distrclient.ProposalHandler,
 			upgradeclient.ProposalHandler,
 			upgradeclient.CancelProposalHandler,
+			ibcclientclient.UpdateClientProposalHandler,
+			ibcclientclient.UpgradeProposalHandler,
 			kavadistclient.ProposalHandler,
 			committeeclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		ibc.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
+		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		auction.AppModuleBasic{},
@@ -143,6 +163,7 @@ var (
 		cdp.AppModuleBasic{},
 		hard.AppModuleBasic{},
 		committee.AppModuleBasic{},
+		incentive.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 	)
 
@@ -156,6 +177,7 @@ var (
 		stakingtypes.BondedPoolName:     {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName:  {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:             {authtypes.Burner},
+		ibctransfertypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
 		auctiontypes.ModuleName:         nil,
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
@@ -192,31 +214,39 @@ type App struct {
 	interfaceRegistry types.InterfaceRegistry
 
 	// keys to access the substores
-	keys  map[string]*sdk.KVStoreKey
-	tkeys map[string]*sdk.TransientStoreKey
+	keys    map[string]*sdk.KVStoreKey
+	tkeys   map[string]*sdk.TransientStoreKey
+	memKeys map[string]*sdk.MemoryStoreKey
 
 	// keepers from all the modules
-	accountKeeper   authkeeper.AccountKeeper
-	bankKeeper      bankkeeper.Keeper
-	stakingKeeper   stakingkeeper.Keeper
-	slashingKeeper  slashingkeeper.Keeper
-	mintKeeper      mintkeeper.Keeper
-	distrKeeper     distrkeeper.Keeper
-	govKeeper       govkeeper.Keeper
-	crisisKeeper    crisiskeeper.Keeper
-	upgradeKeeper   upgradekeeper.Keeper
-	paramsKeeper    paramskeeper.Keeper
-	evidenceKeeper  evidencekeeper.Keeper
-	kavadistKeeper  kavadistkeeper.Keeper
-	auctionKeeper   auctionkeeper.Keeper
-	issuanceKeeper  issuancekeeper.Keeper
-	bep3Keeper      bep3keeper.Keeper
-	pricefeedKeeper pricefeedkeeper.Keeper
-	swapKeeper      swapkeeper.Keeper
-	cdpKeeper       cdpkeeper.Keeper
-	hardKeeper      hardkeeper.Keeper
-	committeeKeeper committeekeeper.Keeper
-	vvKeeper        validatorvestingkeeper.Keeper
+	accountKeeper    authkeeper.AccountKeeper
+	bankKeeper       bankkeeper.Keeper
+	capabilityKeeper *capabilitykeeper.Keeper
+	stakingKeeper    stakingkeeper.Keeper
+	mintKeeper       mintkeeper.Keeper
+	distrKeeper      distrkeeper.Keeper
+	govKeeper        govkeeper.Keeper
+	paramsKeeper     paramskeeper.Keeper
+	crisisKeeper     crisiskeeper.Keeper
+	slashingKeeper   slashingkeeper.Keeper
+	ibcKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	upgradeKeeper    upgradekeeper.Keeper
+	evidenceKeeper   evidencekeeper.Keeper
+	transferKeeper   ibctransferkeeper.Keeper
+	kavadistKeeper   kavadistkeeper.Keeper
+	auctionKeeper    auctionkeeper.Keeper
+	issuanceKeeper   issuancekeeper.Keeper
+	bep3Keeper       bep3keeper.Keeper
+	pricefeedKeeper  pricefeedkeeper.Keeper
+	swapKeeper       swapkeeper.Keeper
+	cdpKeeper        cdpkeeper.Keeper
+	hardKeeper       hardkeeper.Keeper
+	committeeKeeper  committeekeeper.Keeper
+	incentiveKeeper  incentivekeeper.Keeper
+
+	// make scoped keepers public for test purposes
+	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	// the module manager
 	mm *module.Manager
@@ -260,13 +290,15 @@ func NewApp(
 	keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, paramstypes.StoreKey, evidencetypes.StoreKey,
-		upgradetypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
+		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey,
+		upgradetypes.StoreKey, evidencetypes.StoreKey, ibctransfertypes.StoreKey,
+		capabilitytypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
-		committeetypes.StoreKey,
+		committeetypes.StoreKey, incentivetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
+	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	var app = &App{
 		BaseApp:           bApp,
@@ -275,6 +307,7 @@ func NewApp(
 		interfaceRegistry: interfaceRegistry,
 		keys:              keys,
 		tkeys:             tkeys,
+		memKeys:           memKeys,
 	}
 
 	// init params keeper and subspaces
@@ -300,10 +333,17 @@ func NewApp(
 	swapSubspace := app.paramsKeeper.Subspace(swaptypes.ModuleName)
 	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
 	hardSubspace := app.paramsKeeper.Subspace(hardtypes.ModuleName)
+	incentiveSubspace := app.paramsKeeper.Subspace(incentivetypes.ModuleName)
+	ibcSubspace := app.paramsKeeper.Subspace(ibchost.ModuleName)
+	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
 	)
+	app.capabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
+	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.ModuleName)
+	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+	app.capabilityKeeper.Seal()
 
 	// add keepers
 	app.accountKeeper = authkeeper.NewAccountKeeper(
@@ -318,7 +358,7 @@ func NewApp(
 		keys[banktypes.StoreKey],
 		app.accountKeeper,
 		bankSubspace,
-		app.ModuleAccountAddrs(),
+		app.loadBlockedMaccAddrs(),
 	)
 	app.stakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
@@ -371,12 +411,23 @@ func NewApp(
 		&app.stakingKeeper,
 		app.slashingKeeper,
 	)
+
+	app.ibcKeeper = ibckeeper.NewKeeper(
+		appCodec,
+		keys[ibchost.StoreKey],
+		ibcSubspace,
+		app.stakingKeeper,
+		app.upgradeKeeper,
+		scopedIBCKeeper,
+	)
+
 	// TODO No evidence router is added so all submit evidence msgs will fail. Should there be a router added?
 	govRouter := govtypes.NewRouter()
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
 		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
@@ -388,6 +439,23 @@ func NewApp(
 		&app.stakingKeeper,
 		govRouter,
 	)
+
+	app.transferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		ibctransferSubspace,
+		app.ibcKeeper.ChannelKeeper,
+		&app.ibcKeeper.PortKeeper,
+		app.accountKeeper,
+		app.bankKeeper,
+		scopedTransferKeeper,
+	)
+	transferModule := transfer.NewAppModule(app.transferKeeper)
+
+	// Create static IBC router, add transfer route, then set and seal it
+	ibcRouter := porttypes.NewRouter()
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
+	app.ibcKeeper.SetRouter(ibcRouter)
 
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
@@ -412,10 +480,6 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
-	app.vvKeeper = validatorvestingkeeper.NewKeeper(
-		appCodec,
-		app.bankKeeper,
-	)
 	app.bep3Keeper = bep3keeper.NewKeeper(
 		appCodec,
 		keys[bep3types.StoreKey],
@@ -429,7 +493,7 @@ func NewApp(
 		keys[pricefeedtypes.StoreKey],
 		pricefeedSubspace,
 	)
-	app.swapKeeper = swapkeeper.NewKeeper(
+	swapKeeper := swapkeeper.NewKeeper(
 		appCodec,
 		keys[swaptypes.StoreKey],
 		swapSubspace,
@@ -456,6 +520,18 @@ func NewApp(
 		app.auctionKeeper,
 	)
 
+	app.incentiveKeeper = incentivekeeper.NewKeeper(
+		appCodec,
+		keys[incentivetypes.StoreKey],
+		incentiveSubspace,
+		app.bankKeeper,
+		&cdpKeeper,
+		&hardKeeper,
+		app.accountKeeper,
+		app.stakingKeeper,
+		&swapKeeper,
+	)
+
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -477,41 +553,43 @@ func NewApp(
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
 	app.stakingKeeper = *(app.stakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks())))
+		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks(), app.incentiveKeeper.Hooks())))
 
-	// TODO: Add swap hooks after incentive upgraded
-
-	// TODO: Add app.incentiveKeeper.Hooks() to cdptypes.NewMultiCDPHooks()
-	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks())
-	// TODO: app.incentiveKeeper.Hooks() to hardtypes.NewMultiHARDHooks()
-	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks())
+	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
+	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
+	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
 		auth.NewAppModule(appCodec, app.accountKeeper, nil),
-		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
-		crisis.NewAppModule(&app.crisisKeeper, options.SkipGenesisInvariants),
-		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
-		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
-		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
-		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
+		params.NewAppModule(app.paramsKeeper),
+		crisis.NewAppModule(&app.crisisKeeper, options.SkipGenesisInvariants),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		ibc.NewAppModule(app.ibcKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
+		transferModule,
+		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
 		params.NewAppModule(app.paramsKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
-		validatorvesting.NewAppModule(app.vvKeeper),
+		validatorvesting.NewAppModule(app.bankKeeper),
 		swap.NewAppModule(app.swapKeeper, app.accountKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
 		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -521,6 +599,7 @@ func NewApp(
 	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
 	app.mm.SetOrderBeginBlockers(
 		upgradetypes.ModuleName,
+		capabilitytypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -533,6 +612,8 @@ func NewApp(
 		cdptypes.ModuleName,
 		hardtypes.ModuleName,
 		committeetypes.ModuleName,
+		incentivetypes.ModuleName,
+		ibchost.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -543,6 +624,7 @@ func NewApp(
 	)
 
 	app.mm.SetOrderInitGenesis( // TODO why the different order?
+		capabilitytypes.ModuleName,
 		authtypes.ModuleName, // loads all accounts - should run before any module with a module account
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
@@ -550,8 +632,11 @@ func NewApp(
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
 		minttypes.ModuleName,
+		ibchost.ModuleName,
 		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
+		ibctransfertypes.ModuleName,
+		auctiontypes.ModuleName,
 		kavadisttypes.ModuleName,
 		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
@@ -560,6 +645,7 @@ func NewApp(
 		swaptypes.ModuleName,
 		cdptypes.ModuleName,
 		hardtypes.ModuleName,
+		incentivetypes.ModuleName,
 		committeetypes.ModuleName,
 		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
 	)
@@ -589,7 +675,7 @@ func NewApp(
 	// initialize stores
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
-	// TODO mount memory stores
+	app.MountMemoryStores(memKeys)
 
 	// initialize the app
 	var fetchers []ante.AddressFetcher // TODO add bep3 authorized addresses
@@ -604,6 +690,7 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 		nil,
+		app.ibcKeeper.ChannelKeeper,
 		encodingConfig.TxConfig.SignModeHandler(),
 		authante.DefaultSigVerificationGasConsumer,
 		fetchers...,
@@ -623,6 +710,9 @@ func NewApp(
 			panic(fmt.Sprintf("failed to load latest version: %s", err))
 		}
 	}
+
+	app.ScopedIBCKeeper = scopedIBCKeeper
+	app.ScopedTransferKeeper = scopedTransferKeeper
 
 	return app
 }
@@ -706,6 +796,19 @@ func (app *App) RegisterTxService(clientCtx client.Context) {
 // It registers the standard tendermint grpc endpoints on the app's grpc server.
 func (app *App) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
+}
+
+// loadBlockedMaccAddrs returns a map indicating the blocked status of each module account address
+func (app *App) loadBlockedMaccAddrs() map[string]bool {
+	modAccAddrs := app.ModuleAccountAddrs()
+	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
+	for addr := range modAccAddrs {
+		// Set the kavadist module account address as unblocked
+		if addr == kavadistMaccAddr.String() {
+			modAccAddrs[addr] = false
+		}
+	}
+	return modAccAddrs
 }
 
 // GetMaccPerms returns a mapping of the application's module account permissions.

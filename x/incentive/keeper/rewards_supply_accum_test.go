@@ -22,7 +22,12 @@ func (suite *AccumulateSupplyRewardsTests) storedTimeEquals(denom string, expect
 func (suite *AccumulateSupplyRewardsTests) storedIndexesEqual(denom string, expected types.RewardIndexes) {
 	storedIndexes, found := suite.keeper.GetHardSupplyRewardIndexes(suite.ctx, denom)
 	suite.Equal(found, expected != nil)
-	suite.Equal(expected, storedIndexes)
+
+	if found {
+		suite.Equal(expected, storedIndexes)
+	} else {
+		suite.Empty(storedIndexes)
+	}
 }
 
 func TestAccumulateSupplyRewards(t *testing.T) {
