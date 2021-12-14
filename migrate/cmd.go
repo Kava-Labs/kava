@@ -21,10 +21,10 @@ import (
 func MigrateGenesisCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "migrate [genesis-file]",
-		Short:   "Migrate genesis from v0.16 v0.16",
+		Short:   "Migrate genesis from v0.15 to v0.16",
 		Long:    "Migrate the source genesis into v0.16 and print to STDOUT.",
 		Example: fmt.Sprintf(`%s migrate /path/to/genesis.json`, version.AppName),
-		Args:    cobra.ExactArgs(2),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			importGenesis := args[0]
