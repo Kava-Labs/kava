@@ -587,6 +587,142 @@
     "bank": {
       "send_enabled": true
     },
+    "bep3": {
+      "supplies": [
+        {
+          "current_supply": {
+            "amount": "30467559434006",
+            "denom": "bnb"
+          },
+          "incoming_supply": {
+            "amount": "0",
+            "denom": "bnb"
+          },
+          "outgoing_supply": {
+            "amount": "0",
+            "denom": "bnb"
+          },
+          "time_elapsed": "0",
+          "time_limited_current_supply": {
+            "amount": "0",
+            "denom": "bnb"
+          }
+        }
+      ],
+      "atomic_swaps": [
+        {
+          "amount": [
+            {
+              "amount": "1999955998",
+              "denom": "btcb"
+            }
+          ],
+          "closed_block": "838115",
+          "cross_chain": true,
+          "direction": "Incoming",
+          "expire_height": "838627",
+          "random_number_hash": "6F1CF8F2E13A0C0F0A359F54E47E4E265D766B8E006D2F00BDF994ABDEF1E9E4",
+          "recipient": "kava1fl2hs6y9vz986g5v52pdan9ga923n9mn5cxxkw",
+          "recipient_other_chain": "bnb1xz3xqf4p2ygrw9lhp5g5df4ep4nd20vsywnmpr",
+          "sender": "kava14qsmvzprqvhwmgql9fr0u3zv9n2qla8zhnm5pc",
+          "sender_other_chain": "bnb19k9wuv2j7c7ck8tmc7kav0r0cnt3esmkrpf25x",
+          "status": "Completed",
+          "timestamp": "1636034914"
+        },
+        {
+          "amount": [
+            {
+              "amount": "999595462080",
+              "denom": "busd"
+            }
+          ],
+          "closed_block": "787122",
+          "cross_chain": true,
+          "direction": "Outgoing",
+          "expire_height": "811799",
+          "random_number_hash": "BFB7CC82DA0E0C8556AC37843F5AB136B9A7A066054368F5948944282B414D83",
+          "recipient": "kava1hh4x3a4suu5zyaeauvmv7ypf7w9llwlfufjmuu",
+          "recipient_other_chain": "bnb1vl3wn4x8kqajg2j9wxa5y5amgzdxchutkxr6at",
+          "sender": "kava1eufgf0w9d7hf5mgtek4zr2upkxag9stmzx6unl",
+          "sender_other_chain": "bnb10zq89008gmedc6rrwzdfukjk94swynd7dl97w8",
+          "status": "Expired",
+          "timestamp": "1635694492"
+        }
+      ],
+      "previous_block_time": "1970-01-01T00:00:00Z",
+      "params": {
+        "asset_params": [
+          {
+            "denom": "btcb",
+            "coin_id": "0",
+            "supply_limit": {
+              "limit": "100000000000",
+              "time_limited": false,
+              "time_period": "0",
+              "time_based_limit": "0"
+            },
+            "active": true,
+            "deputy_address": "kava1kla4wl0ccv7u85cemvs3y987hqk0afcv7vue84",
+            "fixed_fee": "2",
+            "min_swap_amount": "3",
+            "max_swap_amount": "2000000000",
+            "min_block_lock": "24686",
+            "max_block_lock": "86400"
+          },
+          {
+            "denom": "xrpb",
+            "coin_id": "144",
+            "supply_limit": {
+              "limit": "2000000000000000",
+              "time_limited": false,
+              "time_period": "0",
+              "time_based_limit": "0"
+            },
+            "active": true,
+            "deputy_address": "kava14q5sawxdxtpap5x5sgzj7v4sp3ucncjlpuk3hs",
+            "fixed_fee": "100000",
+            "min_swap_amount": "100001",
+            "max_swap_amount": "250000000000000",
+            "min_block_lock": "24686",
+            "max_block_lock": "86400"
+          },
+          {
+            "denom": "bnb",
+            "coin_id": "714",
+            "supply_limit": {
+              "limit": "100000000000000",
+              "time_limited": false,
+              "time_period": "0",
+              "time_based_limit": "0"
+            },
+            "active": true,
+            "deputy_address": "kava1agcvt07tcw0tglu0hmwdecsnuxp2yd45f3avgm",
+            "fixed_fee": "1000",
+            "min_swap_amount": "1001",
+            "max_swap_amount": "500000000000",
+            "min_block_lock": "24686",
+            "max_block_lock": "86400"
+          },
+          {
+            "denom": "busd",
+            "coin_id": "727",
+            "supply_limit": {
+              "limit": "2000000000000000",
+              "time_limited": false,
+              "time_period": "0",
+              "time_based_limit": "0"
+            },
+            "active": true,
+            "deputy_address": "kava1j9je7f6s0v6k7dmgv6u5k5ru202f5ffsc7af04",
+            "fixed_fee": "20000",
+            "min_swap_amount": "20001",
+            "max_swap_amount": "100000000000000",
+            "min_block_lock": "24686",
+            "max_block_lock": "86400"
+          }
+        ]
+      }
+    },
     "committee": {
       "committees": [
         {
