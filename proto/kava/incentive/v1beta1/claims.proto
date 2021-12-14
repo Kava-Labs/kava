@@ -44,11 +44,22 @@ message RewardIndex {
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
 
+// RewardIndexesProto defines a Protobuf wrapper around a RewardIndexes slice
+message RewardIndexesProto {
+  repeated RewardIndex reward_indexes = 1 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
+}
+
 // MultiRewardIndex stores reward accumulation information on multiple reward types
 message MultiRewardIndex {
   string collateral_type = 1;
 
   repeated RewardIndex reward_indexes = 2 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
+}
+
+// MultiRewardIndexesProto defines a Protobuf wrapper around a MultiRewardIndexes slice
+message MultiRewardIndexesProto {
+  repeated MultiRewardIndex multi_reward_indexes = 1
+      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
 }
 
 // -------------- Custom Claim Types --------------

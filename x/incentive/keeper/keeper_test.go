@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/incentive/keeper"
@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) SetupApp() {
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
 
-	suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: suite.genesisTime})
+	suite.ctx = suite.app.NewContext(true, tmprototypes.Header{Time: suite.genesisTime})
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
@@ -124,10 +124,11 @@ func (suite *KeeperTestSuite) TestIterateSwapClaims() {
 
 func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 	testCases := []struct {
-		name     string
-		poolName string
-		indexes  types.RewardIndexes
-		panics   bool
+		name      string
+		poolName  string
+		indexes   types.RewardIndexes
+		wantIndex types.RewardIndexes
+		panics    bool
 	}{
 		{
 			name:     "two factors can be written and read",
@@ -142,11 +143,7 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 					RewardFactor:   d("0.04"),
 				},
 			},
-		},
-		{
-			name:     "indexes with empty pool name can be written and read",
-			poolName: "",
-			indexes: types.RewardIndexes{
+			wantIndex: types.RewardIndexes{
 				{
 					CollateralType: "hard",
 					RewardFactor:   d("0.02"),
@@ -158,18 +155,37 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 			},
 		},
 		{
-			// this test is to detect any changes in behavior, it would be nice if Set didn't panic
-			name:     "setting empty indexes panics",
-			poolName: "btc/usdx",
-			indexes:  types.RewardIndexes{},
-			panics:   true,
+			name:     "indexes with empty pool name panics",
+			poolName: "",
+			indexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+			panics: true,
 		},
 		{
-			// this test is to detect any changes in behavior, it would be nice if Set didn't panic
-			name:     "setting nil indexes panics",
+			// this test is to detect any changes in behavior
+			name:     "setting empty indexes does not panic",
 			poolName: "btc/usdx",
-			indexes:  nil,
-			panics:   true,
+			// Marshalling empty slice results in [] bytes, unmarshalling the []
+			// empty bytes results in a nil slice instead of an empty slice
+			indexes:   types.RewardIndexes{},
+			wantIndex: nil,
+			panics:    false,
+		},
+		{
+			// this test is to detect any changes in behavior
+			name:      "setting nil indexes does not panic",
+			poolName:  "btc/usdx",
+			indexes:   nil,
+			wantIndex: nil,
+			panics:    false,
 		},
 	}
 
@@ -190,7 +206,7 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 
 			storedIndexes, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, tc.poolName)
 			suite.True(found)
-			suite.Equal(tc.indexes, storedIndexes)
+			suite.Equal(tc.wantIndex, storedIndexes)
 		})
 	}
 }
@@ -282,12 +298,12 @@ type accrualtime struct {
 
 var nonEmptyAccrualTimes = []accrualtime{
 	{
-		denom: "",
-		time:  time.Time{},
-	},
-	{
 		denom: "btcb",
 		time:  time.Date(1998, 1, 1, 0, 0, 0, 1, time.UTC),
+	},
+	{
+		denom: "ukava",
+		time:  time.Time{},
 	},
 }
 

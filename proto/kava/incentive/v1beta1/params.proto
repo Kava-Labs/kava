@@ -36,23 +36,9 @@ message MultiRewardPeriod {
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
-// MultiplierName represent different claim multiplier types
-enum MultiplierName {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  //  represents an unspecified status
-  MULTIPLIER_NAME_UNSPECIFIED = 0;
-  // MULTIPLIER_SMALL represents a small multiplier
-  MULTIPLIER_NAME_SMALL = 1;
-  // MULTIPLIER_MEDIUM represents a medium multiplier
-  MULTIPLIER_NAME_MEDIUM = 2;
-  // MULTIPLIER_LARGE represents a large multiplier
-  MULTIPLIER_NAME_LARGE = 3;
-}
-
 // Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
 message Multiplier {
-  MultiplierName name = 1;
+  string name = 1;
 
   int64 months_lockup = 2;
 

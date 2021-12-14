@@ -6,10 +6,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	channelkeeper "github.com/cosmos/ibc-go/modules/core/04-channel/keeper"
+	ibcante "github.com/cosmos/ibc-go/modules/core/ante"
 )
 
 // NewAnteHandler returns an 'AnteHandler' that will run actions before a tx is sent to a module's handler.
-func NewAnteHandler(accountKeeper ante.AccountKeeper, bankKeeper types.BankKeeper, feegrantKeeper ante.FeegrantKeeper, signModeHandler authsigning.SignModeHandler, sigGasConsumer ante.SignatureVerificationGasConsumer, addressFetchers ...AddressFetcher) (sdk.AnteHandler, error) {
+func NewAnteHandler(
+	accountKeeper ante.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	feegrantKeeper ante.FeegrantKeeper,
+	ibcChannelKeeper channelkeeper.Keeper,
+	signModeHandler authsigning.SignModeHandler, sigGasConsumer ante.SignatureVerificationGasConsumer, addressFetchers ...AddressFetcher) (sdk.AnteHandler, error) {
 	if accountKeeper == nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrLogic, "account keeper is required for ante builder")
 	}
@@ -47,6 +55,7 @@ func NewAnteHandler(accountKeeper ante.AccountKeeper, bankKeeper types.BankKeepe
 		ante.NewSigGasConsumeDecorator(accountKeeper, sigGasConsumer),
 		ante.NewSigVerificationDecorator(accountKeeper, signModeHandler),
 		ante.NewIncrementSequenceDecorator(accountKeeper), // innermost AnteDecorator
+		ibcante.NewAnteDecorator(ibcChannelKeeper),
 	)
 	return sdk.ChainAnteDecorators(decorators...), nil
 }

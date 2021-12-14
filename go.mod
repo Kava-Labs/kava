@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/cosmos/cosmos-proto v0.0.0-20211020182451-c7ca7198c2f8
 	github.com/cosmos/cosmos-sdk v0.44.5
+	github.com/cosmos/ibc-go v1.2.3
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2

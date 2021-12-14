@@ -8,20 +8,20 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/rewards", types.ModuleName), queryRewardsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/reward-factors", types.ModuleName), queryRewardFactorsHandlerFn(cliCtx)).Methods("GET")
 }
 
-func queryRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryRewardsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -74,7 +74,7 @@ func queryRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryParamsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -94,7 +94,7 @@ func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryRewardFactorsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryRewardFactorsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -114,8 +114,8 @@ func queryRewardFactorsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func executeHardRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryRewardsParams) {
-	bz, err := cliCtx.Codec.MarshalJSON(params)
+func executeHardRewardsQuery(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 		return
@@ -131,8 +131,8 @@ func executeHardRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, p
 	rest.PostProcessResponse(w, cliCtx, res)
 }
 
-func executeUSDXMintingRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryRewardsParams) {
-	bz, err := cliCtx.Codec.MarshalJSON(params)
+func executeUSDXMintingRewardsQuery(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 		return
@@ -148,8 +148,8 @@ func executeUSDXMintingRewardsQuery(w http.ResponseWriter, cliCtx context.CLICon
 	rest.PostProcessResponse(w, cliCtx, res)
 }
 
-func executeDelegatorRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryRewardsParams) {
-	bz, err := cliCtx.Codec.MarshalJSON(params)
+func executeDelegatorRewardsQuery(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 		return
@@ -165,8 +165,8 @@ func executeDelegatorRewardsQuery(w http.ResponseWriter, cliCtx context.CLIConte
 	rest.PostProcessResponse(w, cliCtx, res)
 }
 
-func executeSwapRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryRewardsParams) {
-	bz, err := cliCtx.Codec.MarshalJSON(params)
+func executeSwapRewardsQuery(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 		return
@@ -182,9 +182,9 @@ func executeSwapRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, p
 	rest.PostProcessResponse(w, cliCtx, res)
 }
 
-func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryRewardsParams) {
+func executeAllRewardQueries(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
 
-	paramsBz, err := cliCtx.Codec.MarshalJSON(params)
+	paramsBz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 		return
@@ -195,7 +195,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, p
 		return
 	}
 	var hardClaims types.HardLiquidityProviderClaims
-	cliCtx.Codec.MustUnmarshalJSON(hardRes, &hardClaims)
+	cliCtx.LegacyAmino.MustUnmarshalJSON(hardRes, &hardClaims)
 
 	usdxMintingRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetUSDXMintingRewards), paramsBz)
 	if err != nil {
@@ -203,7 +203,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, p
 		return
 	}
 	var usdxMintingClaims types.USDXMintingClaims
-	cliCtx.Codec.MustUnmarshalJSON(usdxMintingRes, &usdxMintingClaims)
+	cliCtx.LegacyAmino.MustUnmarshalJSON(usdxMintingRes, &usdxMintingClaims)
 
 	delegatorRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetDelegatorRewards), paramsBz)
 	if err != nil {
@@ -211,7 +211,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, p
 		return
 	}
 	var delegatorClaims types.DelegatorClaims
-	cliCtx.Codec.MustUnmarshalJSON(delegatorRes, &delegatorClaims)
+	cliCtx.LegacyAmino.MustUnmarshalJSON(delegatorRes, &delegatorClaims)
 
 	swapRes, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetSwapRewards), paramsBz)
 	if err != nil {
@@ -219,7 +219,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, p
 		return
 	}
 	var swapClaims types.SwapClaims
-	cliCtx.Codec.MustUnmarshalJSON(swapRes, &swapClaims)
+	cliCtx.LegacyAmino.MustUnmarshalJSON(swapRes, &swapClaims)
 
 	cliCtx = cliCtx.WithHeight(height)
 
@@ -237,7 +237,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext, p
 		SwapClaims:        swapClaims,
 	}
 
-	resBz, err := cliCtx.Codec.MarshalJSON(res)
+	resBz, err := cliCtx.LegacyAmino.MarshalJSON(res)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal result: %s", err))
 		return

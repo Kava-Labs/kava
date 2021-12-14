@@ -13,47 +13,28 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/migrate/v0_16"
 )
-
-type (
-	// MigrationCallback converts a genesis doc from the previous version to the
-	// targeted one.
-	MigrationCallback func(*tmtypes.GenesisDoc, client.Context) (*tmtypes.GenesisDoc, error)
-
-	// MigrationMap defines a mapping from a version to a MigrationCallback.
-	MigrationMap map[string]MigrationCallback
-)
-
-var migrationMap = MigrationMap{
-	// TODO: Upgrade v15 migrations and add it here to support it,
-	"v0.16": v0_16.Migrate,
-}
 
 // MigrateGenesisCmd returns a command to execute genesis state migration.
 func MigrateGenesisCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "migrate [target-version] [genesis-file]",
-		Short:   "Migrate genesis to a specified target version (v0.15 or v0.16)",
-		Long:    "Migrate the source genesis into the target version and print to STDOUT.",
-		Example: fmt.Sprintf(`%s migrate v0.16 /path/to/genesis.json`, version.AppName),
+		Use:     "migrate [genesis-file]",
+		Short:   "Migrate genesis from v0.16 v0.16",
+		Long:    "Migrate the source genesis into v0.16 and print to STDOUT.",
+		Example: fmt.Sprintf(`%s migrate /path/to/genesis.json`, version.AppName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			target := args[0]
-			importGenesis := args[1]
+			importGenesis := args[0]
 
 			oldGenDoc, err := tmtypes.GenesisDocFromFile(importGenesis)
 			if err != nil {
 				return fmt.Errorf("failed to read genesis document from file %s: %w", importGenesis, err)
 			}
 
-			migrationFunc := migrationMap[target]
-			if migrationFunc == nil {
-				return fmt.Errorf("unknown migration function for version: %s", target)
-			}
-
-			newGenDoc, err := migrationFunc(oldGenDoc, clientCtx)
+			newGenDoc, err := v0_16.Migrate(oldGenDoc, clientCtx)
 			if err != nil {
 				return fmt.Errorf("failed to run migration: %w", err)
 			}
@@ -76,7 +57,7 @@ func MigrateGenesisCmd() *cobra.Command {
 	return cmd
 }
 
-func AssertInvariantsCmd() *cobra.Command {
+func AssertInvariantsCmd(config params.EncodingConfig) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "assert-invariants [genesis-file]",
 		Short:   "Validates that the input genesis file is valid and invariants pass",
@@ -93,10 +74,9 @@ func AssertInvariantsCmd() *cobra.Command {
 			tApp := app.NewTestAppFromSealed()
 			var newAppState genutiltypes.AppMap
 			if err := json.Unmarshal(genDoc.AppState, &newAppState); err != nil {
-				return fmt.Errorf("failed to marchal app state from genesis doc: %s: %w", importGenesis, err)
+				return fmt.Errorf("failed to marshal app state from genesis doc: %s: %w", importGenesis, err)
 			}
-			encodingConfig := app.MakeEncodingConfig()
-			err = app.ModuleBasics.ValidateGenesis(encodingConfig.Marshaler, encodingConfig.TxConfig, newAppState)
+			err = app.ModuleBasics.ValidateGenesis(config.Marshaler, config.TxConfig, newAppState)
 			if err != nil {
 				return fmt.Errorf("genesis doc did not pass validate genesis: %s: %w", importGenesis, err)
 			}

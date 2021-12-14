@@ -5,22 +5,28 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
+	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/hard"
-	"github.com/kava-labs/kava/x/incentive"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
+	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/swap"
+	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
 type IntegrationTester struct {
@@ -34,15 +40,17 @@ func (suite *IntegrationTester) SetupSuite() {
 	app.SetBech32AddressPrefixes(config)
 }
 
-func (suite *IntegrationTester) StartChain(genesisTime time.Time, genesisStates ...app.GenesisState) {
+func (suite *IntegrationTester) SetApp() {
 	suite.App = app.NewTestApp()
+}
 
+func (suite *IntegrationTester) StartChain(genesisTime time.Time, genesisStates ...app.GenesisState) {
 	suite.App.InitializeFromGenesisStatesWithTime(
 		genesisTime,
 		genesisStates...,
 	)
 
-	suite.Ctx = suite.App.NewContext(false, abci.Header{Height: 1, Time: genesisTime})
+	suite.Ctx = suite.App.NewContext(false, tmproto.Header{Height: 1, Time: genesisTime})
 }
 
 func (suite *IntegrationTester) NextBlockAt(blockTime time.Time) {
@@ -51,11 +59,11 @@ func (suite *IntegrationTester) NextBlockAt(blockTime time.Time) {
 	}
 	blockHeight := suite.Ctx.BlockHeight() + 1
 
-	_ = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{})
+	_ = suite.App.EndBlocker(suite.Ctx, abcitypes.RequestEndBlock{})
 
 	suite.Ctx = suite.Ctx.WithBlockTime(blockTime).WithBlockHeight(blockHeight)
 
-	_ = suite.App.BeginBlocker(suite.Ctx, abci.RequestBeginBlock{}) // height and time in RequestBeginBlock are ignored by module begin blockers
+	_ = suite.App.BeginBlocker(suite.Ctx, abcitypes.RequestBeginBlock{}) // height and time in RequestBeginBlock are ignored by module begin blockers
 }
 
 func (suite *IntegrationTester) NextBlockAfter(blockDuration time.Duration) {
@@ -63,94 +71,129 @@ func (suite *IntegrationTester) NextBlockAfter(blockDuration time.Duration) {
 }
 
 func (suite *IntegrationTester) DeliverIncentiveMsg(msg sdk.Msg) error {
-	handler := incentive.NewHandler(suite.App.GetIncentiveKeeper())
-	_, err := handler(suite.Ctx, msg)
+	msgServer := incentivekeeper.NewMsgServerImpl(suite.App.GetIncentiveKeeper())
+
+	var err error
+
+	switch msg := msg.(type) {
+	case *types.MsgClaimHardReward:
+		_, err = msgServer.ClaimHardReward(sdk.WrapSDKContext(suite.Ctx), msg)
+	case *types.MsgClaimSwapReward:
+		_, err = msgServer.ClaimSwapReward(sdk.WrapSDKContext(suite.Ctx), msg)
+	case *types.MsgClaimUSDXMintingReward:
+		_, err = msgServer.ClaimUSDXMintingReward(sdk.WrapSDKContext(suite.Ctx), msg)
+	case *types.MsgClaimDelegatorReward:
+		_, err = msgServer.ClaimDelegatorReward(sdk.WrapSDKContext(suite.Ctx), msg)
+	default:
+		panic("unhandled incentive msg")
+	}
+
 	return err
 }
 
 func (suite *IntegrationTester) DeliverMsgCreateValidator(address sdk.ValAddress, selfDelegation sdk.Coin) error {
-	msg := staking.NewMsgCreateValidator(
+	msg, err := stakingtypes.NewMsgCreateValidator(
 		address,
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
-		staking.Description{},
-		staking.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		stakingtypes.Description{},
+		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
 		sdk.NewInt(1_000_000),
 	)
-	handler := staking.NewHandler(suite.App.GetStakingKeeper())
-	_, err := handler(suite.Ctx, msg)
+	if err != nil {
+		return err
+	}
+
+	msgServer := stakingkeeper.NewMsgServerImpl(suite.App.GetStakingKeeper())
+	_, err = msgServer.CreateValidator(sdk.WrapSDKContext(suite.Ctx), msg)
+
 	return err
 }
 
 func (suite *IntegrationTester) DeliverMsgDelegate(delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
-	msg := staking.NewMsgDelegate(
+	msg := stakingtypes.NewMsgDelegate(
 		delegator,
 		validator,
 		amount,
 	)
-	handleStakingMsg := staking.NewHandler(suite.App.GetStakingKeeper())
-	_, err := handleStakingMsg(suite.Ctx, msg)
+	msgServer := stakingkeeper.NewMsgServerImpl(suite.App.GetStakingKeeper())
+	_, err := msgServer.Delegate(sdk.WrapSDKContext(suite.Ctx), msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverSwapMsgDeposit(depositor sdk.AccAddress, tokenA, tokenB sdk.Coin, slippage sdk.Dec) error {
-	msg := swap.NewMsgDeposit(
-		depositor,
+	msg := swaptypes.NewMsgDeposit(
+		depositor.String(),
 		tokenA,
 		tokenB,
 		slippage,
 		suite.Ctx.BlockTime().Add(time.Hour).Unix(), // ensure msg will not fail due to short deadline
 	)
-	_, err := swap.NewHandler(suite.App.GetSwapKeeper())(suite.Ctx, msg)
+	msgServer := swap.NewMsgServerImpl(suite.App.GetSwapKeeper())
+	_, err := msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), msg)
+
 	return err
 }
 
 func (suite *IntegrationTester) DeliverHardMsgDeposit(owner sdk.AccAddress, deposit sdk.Coins) error {
-	msg := hard.NewMsgDeposit(owner, deposit)
-	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	msg := hardtypes.NewMsgDeposit(owner, deposit)
+	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+
+	_, err := msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverHardMsgBorrow(owner sdk.AccAddress, borrow sdk.Coins) error {
-	msg := hard.NewMsgBorrow(owner, borrow)
-	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	msg := hardtypes.NewMsgBorrow(owner, borrow)
+	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+
+	_, err := msgServer.Borrow(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverHardMsgRepay(owner sdk.AccAddress, repay sdk.Coins) error {
-	msg := hard.NewMsgRepay(owner, owner, repay)
-	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	msg := hardtypes.NewMsgRepay(owner, owner, repay)
+	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+
+	_, err := msgServer.Repay(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverHardMsgWithdraw(owner sdk.AccAddress, withdraw sdk.Coins) error {
-	msg := hard.NewMsgRepay(owner, owner, withdraw)
-	_, err := hard.NewHandler(suite.App.GetHardKeeper())(suite.Ctx, msg)
+	msg := hardtypes.NewMsgWithdraw(owner, withdraw)
+	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+
+	_, err := msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverMsgCreateCDP(owner sdk.AccAddress, collateral, principal sdk.Coin, collateralType string) error {
-	msg := cdp.NewMsgCreateCDP(owner, collateral, principal, collateralType)
-	_, err := cdp.NewHandler(suite.App.GetCDPKeeper())(suite.Ctx, msg)
+	msg := cdptypes.NewMsgCreateCDP(owner, collateral, principal, collateralType)
+	msgServer := cdp.NewMsgServerImpl(suite.App.GetCDPKeeper())
+
+	_, err := msgServer.CreateCDP(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverCDPMsgRepay(owner sdk.AccAddress, collateralType string, payment sdk.Coin) error {
-	msg := cdp.NewMsgRepayDebt(owner, collateralType, payment)
-	_, err := cdp.NewHandler(suite.App.GetCDPKeeper())(suite.Ctx, msg)
+	msg := cdptypes.NewMsgRepayDebt(owner, collateralType, payment)
+	msgServer := cdp.NewMsgServerImpl(suite.App.GetCDPKeeper())
+
+	_, err := msgServer.RepayDebt(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
 func (suite *IntegrationTester) DeliverCDPMsgBorrow(owner sdk.AccAddress, collateralType string, draw sdk.Coin) error {
-	msg := cdp.NewMsgDrawDebt(owner, collateralType, draw)
-	_, err := cdp.NewHandler(suite.App.GetCDPKeeper())(suite.Ctx, msg)
+	msg := cdptypes.NewMsgDrawDebt(owner, collateralType, draw)
+	msgServer := cdp.NewMsgServerImpl(suite.App.GetCDPKeeper())
+
+	_, err := msgServer.DrawDebt(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
 }
 
-func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, committeeID uint64, changes []paramtypes.ParamChange) {
-
-	propose := committee.NewMsgSubmitProposal(
-		paramtypes.NewParameterChangeProposal(
+func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, committeeID uint64, changes []proposaltypes.ParamChange) {
+	propose, err := committeetypes.NewMsgSubmitProposal(
+		proposaltypes.NewParameterChangeProposal(
 			"test title",
 			"test description",
 			changes,
@@ -158,36 +201,32 @@ func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, 
 		voter,
 		committeeID,
 	)
-
-	handleMsg := committee.NewHandler(suite.App.GetCommitteeKeeper())
-
-	res, err := handleMsg(suite.Ctx, propose)
 	suite.NoError(err)
 
-	proposalID := committee.Uint64FromBytes(res.Data)
-	vote := committee.NewMsgVote(voter, proposalID, committee.Yes)
+	msgServer := committee.NewMsgServerImpl(suite.App.GetCommitteeKeeper())
 
-	_, err = handleMsg(suite.Ctx, vote)
+	res, err := msgServer.SubmitProposal(sdk.WrapSDKContext(suite.Ctx), propose)
+	suite.NoError(err)
+
+	proposalID := res.ProposalID
+	vote := committeetypes.NewMsgVote(voter, proposalID, committeetypes.VOTE_TYPE_YES)
+	_, err = msgServer.Vote(sdk.WrapSDKContext(suite.Ctx), vote)
 	suite.NoError(err)
 }
 
-func (suite *IntegrationTester) GetAccount(addr sdk.AccAddress) authexported.Account {
+func (suite *IntegrationTester) GetAccount(addr sdk.AccAddress) authtypes.AccountI {
 	ak := suite.App.GetAccountKeeper()
 	return ak.GetAccount(suite.Ctx, addr)
 }
 
-func (suite *IntegrationTester) GetModuleAccount(name string) supplyexported.ModuleAccountI {
-	sk := suite.App.GetSupplyKeeper()
-	return sk.GetModuleAccount(suite.Ctx, name)
+func (suite *IntegrationTester) GetModuleAccount(name string) authtypes.ModuleAccountI {
+	ak := suite.App.GetAccountKeeper()
+	return ak.GetModuleAccount(suite.Ctx, name)
 }
 
 func (suite *IntegrationTester) GetBalance(address sdk.AccAddress) sdk.Coins {
-	acc := suite.App.GetAccountKeeper().GetAccount(suite.Ctx, address)
-	if acc != nil {
-		return acc.GetCoins()
-	} else {
-		return nil
-	}
+	bk := suite.App.GetBankKeeper()
+	return bk.GetAllBalances(suite.Ctx, address)
 }
 
 func (suite *IntegrationTester) ErrorIs(err, target error) bool {
@@ -195,9 +234,14 @@ func (suite *IntegrationTester) ErrorIs(err, target error) bool {
 }
 
 func (suite *IntegrationTester) BalanceEquals(address sdk.AccAddress, expected sdk.Coins) {
-	acc := suite.App.GetAccountKeeper().GetAccount(suite.Ctx, address)
-	suite.Require().NotNil(acc, "expected account to not be nil")
-	suite.Equalf(expected, acc.GetCoins(), "expected account balance to equal coins %s, but got %s", expected, acc.GetCoins())
+	bk := suite.App.GetBankKeeper()
+	suite.Equalf(
+		expected,
+		bk.GetAllBalances(suite.Ctx, address),
+		"expected account balance to equal coins %s, but got %s",
+		expected,
+		bk.GetAllBalances(suite.Ctx, address),
+	)
 }
 
 func (suite *IntegrationTester) BalanceInEpsilon(address sdk.AccAddress, expected sdk.Coins, epsilon float64) {
@@ -214,10 +258,10 @@ func (suite *IntegrationTester) BalanceInEpsilon(address sdk.AccAddress, expecte
 	}
 }
 
-func (suite *IntegrationTester) VestingPeriodsEqual(address sdk.AccAddress, expectedPeriods vesting.Periods) {
+func (suite *IntegrationTester) VestingPeriodsEqual(address sdk.AccAddress, expectedPeriods []vestingtypes.Period) {
 	acc := suite.App.GetAccountKeeper().GetAccount(suite.Ctx, address)
 	suite.Require().NotNil(acc, "expected vesting account not to be nil")
-	vacc, ok := acc.(*vesting.PeriodicVestingAccount)
+	vacc, ok := acc.(*vestingtypes.PeriodicVestingAccount)
 	suite.Require().True(ok, "expected vesting account to be type PeriodicVestingAccount")
 	suite.Equal(expectedPeriods, vacc.VestingPeriods)
 }

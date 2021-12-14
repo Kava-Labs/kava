@@ -7,15 +7,15 @@
           "address": "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
           "coins": [
             {
-              "denom": "ukava",
-              "amount": "1000000000000"
-            },
-            {
               "denom": "hard",
               "amount": "1000000000000"
             },
             {
               "denom": "swp",
+              "amount": "1000000000000"
+            },
+            {
+              "denom": "ukava",
               "amount": "1000000000000"
             }
           ],
@@ -38,7 +38,7 @@
           ],
           "public_key": null,
           "account_number": "0",
-          "sequence": "0",
+          "sequence": "1",
           "name": "hard",
           "permissions": ["minter", "burner"]
         }
@@ -61,7 +61,7 @@
           "name": "swap",
           "permissions": null,
           "public_key": "",
-          "sequence": "0"
+          "sequence": "3"
         }
       },
       {
@@ -109,7 +109,10 @@
               "denom": "ukava"
             }
           ],
-          "public_key": null,
+          "public_key": {
+            "type": "tendermint/PubKeySecp256k1",
+            "value": "A7WkS5eJAiPE/gl7n4I5qa5JsREvQM5fkdgCEPhNfj0h"
+          },
           "sequence": "0"
         }
       },
@@ -258,7 +261,7 @@
       {
         "type": "cosmos-sdk/Account",
         "value": {
-          "account_number": "0",
+          "account_number": "140367",
           "address": "kava1kla4wl0ccv7u85cemvs3y987hqk0afcv7vue84",
           "coins": [
             {
@@ -273,7 +276,7 @@
       {
         "type": "cosmos-sdk/Account",
         "value": {
-          "account_number": "0",
+          "account_number": "140267",
           "address": "kava14q5sawxdxtpap5x5sgzj7v4sp3ucncjlpuk3hs",
           "coins": [
             {

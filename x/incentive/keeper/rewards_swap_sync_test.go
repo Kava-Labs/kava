@@ -467,4 +467,3 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 	expectedReward := cs(c("rewarddenom1", 1_000_001_000_000), c("rewarddenom2", 2_000_002_000_000))
 	suite.Equal(claim.Reward.Add(expectedReward...), syncedClaim.Reward)
 }
-
