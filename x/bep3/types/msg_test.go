@@ -62,7 +62,7 @@ func (suite *MsgTestSuite) TestMsgCreateAtomicSwap() {
 		{"invalid amount", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash.String(), timestampInt64, nil, 500, false},
 		{"invalid from address", sdk.AccAddress{}, kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash.String(), timestampInt64, coinsSingle, 500, false},
 		{"invalid from address", binanceAddrs[0], sdk.AccAddress{}, kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash.String(), timestampInt64, coinsSingle, 500, false},
-		{"invalid rand hash", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), "ff", timestampInt64, coinsSingle, 500, true},
+		{"invalid rand hash", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), "ff", timestampInt64, coinsSingle, 500, false},
 	}
 
 	for i, tc := range tests {
