@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -101,7 +102,11 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 	if len(msg.SenderOtherChain) > MaxOtherChainAddrLength {
 		return fmt.Errorf("the length of sender address on other chain should be less than %d", MaxOtherChainAddrLength)
 	}
-	if len(msg.RandomNumberHash) != RandomNumberHashLength {
+	randomNumberHash, err := hex.DecodeString(msg.RandomNumberHash)
+	if err != nil {
+		return fmt.Errorf("random number hash should be valid hex: %v", err)
+	}
+	if len(randomNumberHash) != RandomNumberHashLength {
 		return fmt.Errorf("the length of random number hash should be %d", RandomNumberHashLength)
 	}
 	if msg.Timestamp <= 0 {
