@@ -1,0 +1,359 @@
+{
+  "params": {
+    "usdx_minting_reward_periods": [
+      {
+        "active": true,
+        "rewards_per_second": {
+          "amount": "122354",
+          "denom": "ukava"
+        },
+        "collateral_type": "bnb-a",
+        "start": "2021-07-20T14:00:00Z",
+        "end": "2024-10-16T14:00:00Z"
+      },
+      {
+        "active": true,
+        "rewards_per_second": {
+          "amount": "23809",
+          "denom": "ukava"
+        },
+        "collateral_type": "hard-a",
+        "start": "2021-07-20T14:00:00Z",
+        "end": "2024-10-16T14:00:00Z"
+      }
+    ],
+    "hard_supply_reward_periods": [
+      {
+        "active": true,
+        "collateral_type": "bnb",
+        "start": "2021-07-20T00:00:00Z",
+        "end": "2024-01-01T00:00:00Z",
+        "rewards_per_second": [
+          {
+            "amount": "123455",
+            "denom": "hard"
+          }
+        ]
+      },
+      {
+        "active": true,
+        "collateral_type": "hard",
+        "start": "2021-07-20T00:00:00Z",
+        "end": "2024-01-01T00:00:00Z",
+        "rewards_per_second": [
+          {
+            "amount": "123455",
+            "denom": "hard"
+          }
+        ]
+      }
+    ],
+    "hard_borrow_reward_periods": [
+      {
+        "active": true,
+        "collateral_type": "bnb",
+        "start": "2020-01-01T00:00:00Z",
+        "end": "2024-01-01T00:00:00Z",
+        "rewards_per_second": [
+          {
+            "amount": "12345",
+            "denom": "hard"
+          }
+        ]
+      },
+      {
+        "active": true,
+        "collateral_type": "btcb",
+        "start": "2020-01-01T00:00:00Z",
+        "end": "2024-01-01T00:00:00Z",
+        "rewards_per_second": [
+          {
+            "amount": "12345",
+            "denom": "hard"
+          }
+        ]
+      }
+    ],
+    "delegator_reward_periods": [
+      {
+        "active": true,
+        "collateral_type": "ukava",
+        "start": "2020-01-01T00:00:00Z",
+        "end": "2024-01-01T00:00:00Z",
+        "rewards_per_second": [
+          {
+            "amount": "316880",
+            "denom": "hard"
+          },
+          {
+            "amount": "316880",
+            "denom": "swp"
+          }
+        ]
+      }
+    ],
+    "swap_reward_periods": [
+      {
+        "active": true,
+        "collateral_type": "ukava:usdx",
+        "start": "2021-07-14T00:00:00Z",
+        "end": "2024-01-01T00:00:00Z",
+        "rewards_per_second": [
+          {
+            "amount": "316880",
+            "denom": "swp"
+          },
+          {
+            "amount": "31688",
+            "denom": "ukava"
+          }
+        ]
+      },
+      {
+        "active": true,
+        "collateral_type": "swp:usdx",
+        "start": "2021-07-14T00:00:00Z",
+        "end": "2024-01-01T00:00:00Z",
+        "rewards_per_second": [
+          {
+            "amount": "616880",
+            "denom": "swp"
+          },
+          {
+            "amount": "31688",
+            "denom": "ukava"
+          }
+        ]
+      }
+    ],
+    "claim_multipliers": [
+      {
+        "denom": "hard",
+        "multipliers": [
+          {
+            "name": "small",
+            "months_lockup": "1",
+            "factor": "0.2"
+          },
+          {
+            "name": "large",
+            "months_lockup": "12",
+            "factor": "1.0"
+          }
+        ]
+      },
+      {
+        "denom": "swp",
+        "multipliers": [
+          {
+            "name": "small",
+            "months_lockup": "1",
+            "factor": "0.1"
+          },
+          {
+            "name": "large",
+            "months_lockup": "12",
+            "factor": "1.0"
+          }
+        ]
+      }
+    ],
+    "claim_end": "2025-01-01T00:00:00Z"
+  },
+  "delegator_reward_state": {
+    "accumulation_times": [
+      {
+        "collateral_type": "ukava",
+        "previous_accumulation_time": "2021-11-05T21:13:12.85608847Z"
+      }
+    ],
+    "multi_reward_indexes": [
+      {
+        "collateral_type": "ukava",
+        "reward_indexes": [
+          {
+            "collateral_type": "hard",
+            "reward_factor": "0.078380843036861815"
+          },
+          {
+            "collateral_type": "swp",
+            "reward_factor": "0.013629025935176301"
+          }
+        ]
+      }
+    ]
+  },
+  "hard_borrow_reward_state": {
+    "accumulation_times": [
+      {
+        "collateral_type": "btcb",
+        "previous_accumulation_time": "2021-11-05T21:13:12.85608847Z"
+      }
+    ],
+    "multi_reward_indexes": [
+      {
+        "collateral_type": "btcb",
+        "reward_indexes": [
+          {
+            "collateral_type": "hard",
+            "reward_factor": "88.582200355378048199"
+          }
+        ]
+      }
+    ]
+  },
+  "hard_supply_reward_state": {
+    "accumulation_times": [
+      {
+        "collateral_type": "btcb",
+        "previous_accumulation_time": "2021-11-05T21:13:12.85608847Z"
+      }
+    ],
+    "multi_reward_indexes": [
+      {
+        "collateral_type": "btcb",
+        "reward_indexes": [
+          {
+            "collateral_type": "hard",
+            "reward_factor": "32.458112657412585027"
+          }
+        ]
+      }
+    ]
+  },
+  "swap_reward_state": {
+    "accumulation_times": [
+      {
+        "collateral_type": "btcb-a",
+        "previous_accumulation_time": "2021-06-10T16:43:11.679705Z"
+      }
+    ],
+    "multi_reward_indexes": [
+      {
+        "collateral_type": "btcb:usdx",
+        "reward_indexes": [
+          {
+            "collateral_type": "swp",
+            "reward_factor": "6.145396761233172901"
+          }
+        ]
+      }
+    ]
+  },
+  "usdx_reward_state": {
+    "accumulation_times": [
+      {
+        "collateral_type": "bnb-a",
+        "previous_accumulation_time": "2021-06-10T16:43:11.679705Z"
+      }
+    ],
+    "multi_reward_indexes": [
+      {
+        "collateral_type": "bnb-a",
+        "reward_indexes": [
+          {
+            "collateral_type": "ukava",
+            "reward_factor": "0.043949244534927716"
+          }
+        ]
+      }
+    ]
+  },
+  "delegator_claims": [
+    {
+      "base_claim": {
+        "owner": "kava1qqqvdyv8w0xdu7gjdtt598q78gtgqyukct4yz2",
+        "reward": []
+      },
+      "reward_indexes": [
+        {
+          "collateral_type": "ukava",
+          "reward_indexes": [
+            {
+              "collateral_type": "hard",
+              "reward_factor": "0.000000000000000000"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "hard_liquidity_provider_claims": [
+    {
+      "base_claim": {
+        "owner": "kava1qqqvdyv8w0xdu7gjdtt598q78gtgqyukct4yz2",
+        "reward": [
+          {
+            "amount": "1747514",
+            "denom": "hard"
+          }
+        ]
+      },
+      "borrow_reward_indexes": [
+        {
+          "collateral_type": "bnb-a",
+          "reward_factor": "0.043949244534927716"
+        },
+        {
+          "collateral_type": "btcb-a",
+          "reward_factor": "0.046551281526135881"
+        }
+      ],
+      "supply_reward_indexes": [
+        {
+          "collateral_type": "bnb-a",
+          "reward_factor": "0.043949244534927716"
+        },
+        {
+          "collateral_type": "btcb-a",
+          "reward_factor": "0.046551281526135881"
+        }
+      ]
+    }
+  ],
+  "usdx_minting_claims": [
+    {
+      "base_claim": {
+        "owner": "kava1qptt5vu26cmxpmv0hf2tnnmf293x266pjcsjar",
+        "reward": {
+          "amount": "550",
+          "denom": "ukava"
+        }
+      },
+      "reward_indexes": [
+        {
+          "collateral_type": "bnb-a",
+          "reward_factor": "0.043949244534927716"
+        },
+        {
+          "collateral_type": "btcb-a",
+          "reward_factor": "0.046551281526135881"
+        }
+      ]
+    }
+  ],
+  "swap_claims": [
+    {
+      "base_claim": {
+        "owner": "kava1qzease8mre5adak7wcc2twh6ryh9evnxpr6caj",
+        "reward": [
+          {
+            "amount": "1960368",
+            "denom": "swp"
+          }
+        ]
+      },
+      "reward_indexes": [
+        {
+          "collateral_type": "busd:usdx",
+          "reward_indexes": [
+            {
+              "collateral_type": "swp",
+              "reward_factor": "0.018083281889996318"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

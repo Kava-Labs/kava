@@ -17,6 +17,10 @@ import (
 	v016cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_16"
 	v015committee "github.com/kava-labs/kava/x/committee/legacy/v0_15"
 	v016committee "github.com/kava-labs/kava/x/committee/legacy/v0_16"
+	v015hard "github.com/kava-labs/kava/x/hard/legacy/v0_15"
+	v016hard "github.com/kava-labs/kava/x/hard/legacy/v0_16"
+	v015incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_15"
+	v016incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_16"
 	v015issuance "github.com/kava-labs/kava/x/issuance/legacy/v0_15"
 	v016issuance "github.com/kava-labs/kava/x/issuance/legacy/v0_16"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
@@ -117,6 +121,26 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 
 		// replace migrated genstate with previous genstate
 		appState[v015pricefeed.ModuleName] = v16Codec.MustMarshalJSON(v016pricefeed.Migrate(genState))
+	}
+
+	// Migrate x/hard
+	if appState[v015hard.ModuleName] != nil {
+		// unmarshal relative source genesis application state
+		var genState v015hard.GenesisState
+		v15Codec.MustUnmarshalJSON(appState[v015hard.ModuleName], &genState)
+
+		// replace migrated genstate with previous genstate
+		appState[v015hard.ModuleName] = v16Codec.MustMarshalJSON(v016hard.Migrate(genState))
+	}
+
+	// Migrate x/incentive
+	if appState[v015incentive.ModuleName] != nil {
+		// unmarshal relative source genesis application state
+		var genState v015incentive.GenesisState
+		v15Codec.MustUnmarshalJSON(appState[v015incentive.ModuleName], &genState)
+
+		// replace migrated genstate with previous genstate
+		appState[v015incentive.ModuleName] = v16Codec.MustMarshalJSON(v016incentive.Migrate(genState))
 	}
 
 	// Remove x/validator-vesting
