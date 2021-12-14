@@ -283,7 +283,7 @@ test-basic: test
 	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
 
 test:
-	@go test $$(go list ./... | grep -v 'migrate\|contrib')
+	@go test $$(go list ./... | grep -v 'contrib')
 
 # Run cli integration tests
 # `-p 4` to use 4 cores, `-tags cli_test` to tell go not to ignore the cli package
