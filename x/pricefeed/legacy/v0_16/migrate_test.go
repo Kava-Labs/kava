@@ -80,7 +80,7 @@ func (s *migrateTestSuite) TestMigrate_JSON() {
 	s.Require().NoError(err)
 	genstate := Migrate(s.v15genstate)
 
-	// Compare expect v16 pricefeed json with migrated json
+	// v16 pricefeed json should be the same as v15
 	actual := s.cdc.MustMarshalJSON(genstate)
 	s.Require().NoError(err)
 	s.Require().JSONEq(data, string(actual))
