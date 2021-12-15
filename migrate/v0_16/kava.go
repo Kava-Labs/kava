@@ -13,10 +13,16 @@ import (
 	v016auction "github.com/kava-labs/kava/x/auction/legacy/v0_16"
 	v015bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_15"
 	v016bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_16"
+	v015cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_15"
+	v016cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_16"
 	v015committee "github.com/kava-labs/kava/x/committee/legacy/v0_15"
 	v016committee "github.com/kava-labs/kava/x/committee/legacy/v0_16"
+	v015issuance "github.com/kava-labs/kava/x/issuance/legacy/v0_15"
+	v016issuance "github.com/kava-labs/kava/x/issuance/legacy/v0_16"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
 	v016kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_16"
+	v015pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_15"
+	v016pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_16"
 	v015swap "github.com/kava-labs/kava/x/swap/legacy/v0_15"
 	v016swap "github.com/kava-labs/kava/x/swap/legacy/v0_16"
 	v015validatorvesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_15"
@@ -81,6 +87,36 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 
 		// replace migrated genstate with previous genstate
 		appState[v015kavadist.ModuleName] = v16Codec.MustMarshalJSON(v016kavadist.Migrate(genState))
+	}
+
+	// Migrate x/cdp
+	if appState[v015cdp.ModuleName] != nil {
+		// unmarshal relative source genesis application state
+		var genState v015cdp.GenesisState
+		v15Codec.MustUnmarshalJSON(appState[v015cdp.ModuleName], &genState)
+
+		// replace migrated genstate with previous genstate
+		appState[v015cdp.ModuleName] = v16Codec.MustMarshalJSON(v016cdp.Migrate(genState))
+	}
+
+	// Migrate x/issuance
+	if appState[v015issuance.ModuleName] != nil {
+		// unmarshal relative source genesis application state
+		var genState v015issuance.GenesisState
+		v15Codec.MustUnmarshalJSON(appState[v015issuance.ModuleName], &genState)
+
+		// replace migrated genstate with previous genstate
+		appState[v015issuance.ModuleName] = v16Codec.MustMarshalJSON(v016issuance.Migrate(genState))
+	}
+
+	// Migrate x/pricefeed
+	if appState[v015pricefeed.ModuleName] != nil {
+		// unmarshal relative source genesis application state
+		var genState v015pricefeed.GenesisState
+		v15Codec.MustUnmarshalJSON(appState[v015pricefeed.ModuleName], &genState)
+
+		// replace migrated genstate with previous genstate
+		appState[v015pricefeed.ModuleName] = v16Codec.MustMarshalJSON(v016pricefeed.Migrate(genState))
 	}
 
 	// Remove x/validator-vesting
