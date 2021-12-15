@@ -592,20 +592,23 @@ func NewApp(
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 	)
 
-	// During begin block slashing happens after distr.BeginBlocker so that
-	// there is nothing left over in the validator fee pool, so as to keep the
-	// CanWithdrawInvariant invariant.
-	// Auction.BeginBlocker will close out expired auctions and pay debt back to cdp.
-	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
+
+	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
+		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
 		capabilitytypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
+		// During begin block slashing happens after distr.BeginBlocker so that
+		// there is nothing left over in the validator fee pool, so as to keep the
+		// CanWithdrawInvariant invariant.
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		kavadisttypes.ModuleName,
+		// Auction begin blocker will close out expired auctions and pay debt back to cdp.
+		// It should be run before cdp begin blocker which cancels out debt with stable and starts more auctions.
 		auctiontypes.ModuleName,
 		committeetypes.ModuleName, // TODO move to beginning?
 		cdptypes.ModuleName,
@@ -616,6 +619,7 @@ func NewApp(
 		ibchost.ModuleName,
 	)
 
+	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
@@ -623,9 +627,10 @@ func NewApp(
 		pricefeedtypes.ModuleName,
 	)
 
+	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
 	app.mm.SetOrderInitGenesis( // TODO why the different order?
-		capabilitytypes.ModuleName,
-		authtypes.ModuleName, // loads all accounts - should run before any module with a module account
+		capabilitytypes.ModuleName, // initialize capabilities - run before any module creating or claiming capabilities in InitGenesis
+		authtypes.ModuleName,       // loads all accounts - run before any module with a module account
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
