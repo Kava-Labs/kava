@@ -597,7 +597,11 @@ func NewApp(
 	app.mm.SetOrderBeginBlockers(
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
+		// Capability begin blocker runs non state changing initialization.
 		capabilitytypes.ModuleName,
+		// Committee begin blocker changes module params by enacting proposals.
+		// Run before to ensure params are updated together before state changes.
+		committeetypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		// During begin block slashing happens after distr.BeginBlocker so that
@@ -610,7 +614,6 @@ func NewApp(
 		// Auction begin blocker will close out expired auctions and pay debt back to cdp.
 		// It should be run before cdp begin blocker which cancels out debt with stable and starts more auctions.
 		auctiontypes.ModuleName,
-		committeetypes.ModuleName, // TODO move to beginning?
 		cdptypes.ModuleName,
 		bep3types.ModuleName,
 		hardtypes.ModuleName,
