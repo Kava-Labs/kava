@@ -592,7 +592,6 @@ func NewApp(
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 	)
 
-
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
@@ -631,31 +630,30 @@ func NewApp(
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
-	app.mm.SetOrderInitGenesis( // TODO why the different order?
-		capabilitytypes.ModuleName, // initialize capabilities - run before any module creating or claiming capabilities in InitGenesis
-		authtypes.ModuleName,       // loads all accounts - run before any module with a module account
+	app.mm.SetOrderInitGenesis(
+		capabilitytypes.ModuleName, // initialize capabilities, run before any module creating or claiming capabilities in InitGenesis
+		authtypes.ModuleName,       // loads all accounts, run before any module with a module account
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
-		slashingtypes.ModuleName,
+		slashingtypes.ModuleName, // iterates over validators, run after staking
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		ibchost.ModuleName,
-		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		auctiontypes.ModuleName,
 		kavadisttypes.ModuleName,
 		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
 		bep3types.ModuleName,
 		pricefeedtypes.ModuleName,
 		swaptypes.ModuleName,
-		cdptypes.ModuleName,
+		cdptypes.ModuleName, // reads market prices, so must run after pricefeed genesis
 		hardtypes.ModuleName,
-		incentivetypes.ModuleName,
+		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis // TODO should genutil run after this?
 		committeetypes.ModuleName,
-		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
+		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
+		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
