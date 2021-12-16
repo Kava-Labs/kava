@@ -272,6 +272,18 @@
         }
       ]
     },
+    {
+      "base_claim": {
+        "owner": "kava1w2uj6rpejrma47vjx4rcghh3fndhmrvs6pmxph",
+        "reward": [
+          {
+            "amount": "1747514",
+            "denom": "hard"
+          }
+        ]
+      },
+      "borrow_reward_indexes": [],
+      "supply_reward_indexes": []
     }
   ],
   "delegator_claims": [
@@ -287,6 +299,10 @@
             {
               "collateral_type": "hard",
               "reward_factor": "0.000000000000000000"
+            },
+            {
+              "collateral_type": "swp",
+              "reward_factor": "0.000000100000000000"
             }
           ]
         }
