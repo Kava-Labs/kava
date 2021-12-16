@@ -110,16 +110,3 @@ func newPeriodicVestingAccount(address sdk.AccAddress, periods vestingtypes.Peri
 	baseVestingAccount := vestingtypes.NewBaseVestingAccount(baseAccount, originalVesting, endTime)
 	return vestingtypes.NewPeriodicVestingAccountRaw(baseVestingAccount, firstPeriodStartTimestamp, periods)
 }
-
-// TODO upgrade once validator vesting upgraded
-// // WithEmptyValidatorVestingAccount adds a stub validator vesting account to the genesis state.
-// func (builder AuthGenesisBuilder) WithEmptyValidatorVestingAccount(address sdk.AccAddress) AuthGenesisBuilder {
-// 	// TODO create a validator vesting account builder and remove this method
-// 	bacc := auth.NewBaseAccount(address, nil, nil, 0, 0)
-// 	bva, err := vesting.NewBaseVestingAccount(bacc, nil, 1)
-// 	if err != nil {
-// 		panic(err.Error())
-// 	}
-// 	account := validatorvesting.NewValidatorVestingAccountRaw(bva, 0, nil, sdk.ConsAddress{}, nil, 90)
-// 	return builder.WithAccounts(account)
-// }
