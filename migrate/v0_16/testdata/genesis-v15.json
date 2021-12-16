@@ -208,17 +208,30 @@
       "hard_supply_reward_state": {
         "accumulation_times": [
           {
-            "collateral_type": "btcb",
+            "collateral_type": "bnb",
+            "previous_accumulation_time": "2021-11-05T21:13:12.85608847Z"
+          },
+          {
+            "collateral_type": "hard",
             "previous_accumulation_time": "2021-11-05T21:13:12.85608847Z"
           }
         ],
         "multi_reward_indexes": [
           {
-            "collateral_type": "btcb",
+            "collateral_type": "bnb",
             "reward_indexes": [
               {
                 "collateral_type": "hard",
                 "reward_factor": "32.458112657412585027"
+              }
+            ]
+          },
+          {
+            "collateral_type": "hard",
+            "reward_indexes": [
+              {
+                "collateral_type": "hard",
+                "reward_factor": "35.000000000000000000"
               }
             ]
           }
@@ -275,6 +288,10 @@
                 {
                   "collateral_type": "hard",
                   "reward_factor": "0.000000000000000000"
+                },
+                {
+                  "collateral_type": "swp",
+                  "reward_factor": "0.000000100000000000"
                 }
               ]
             }
@@ -294,24 +311,48 @@
           },
           "borrow_reward_indexes": [
             {
-              "collateral_type": "bnb-a",
-              "reward_factor": "0.043949244534927716"
-            },
-            {
-              "collateral_type": "btcb-a",
-              "reward_factor": "0.046551281526135881"
+              "collateral_type": "btc",
+              "reward_indexes": [
+                {
+                  "collateral_type": "hard",
+                  "reward_factor": "88.582200355378048199"
+                }
+              ]
             }
           ],
           "supply_reward_indexes": [
             {
-              "collateral_type": "bnb-a",
-              "reward_factor": "0.043949244534927716"
+              "collateral_type": "bnb",
+              "reward_indexes": [
+                {
+                  "collateral_type": "hard",
+                  "reward_factor": "22.000000000000000000"
+                }
+              ]
             },
             {
-              "collateral_type": "btcb-a",
-              "reward_factor": "0.046551281526135881"
+              "collateral_type": "hard",
+              "reward_indexes": [
+                {
+                  "collateral_type": "hard",
+                  "reward_factor": "30.000000000000000000"
+                }
+              ]
             }
           ]
+        },
+        {
+          "base_claim": {
+            "owner": "kava1w2uj6rpejrma47vjx4rcghh3fndhmrvs6pmxph",
+            "reward": [
+              {
+                "amount": "1747514",
+                "denom": "hard"
+              }
+            ]
+          },
+          "borrow_reward_indexes": [],
+          "supply_reward_indexes": []
         }
       ],
       "usdx_minting_claims": [
