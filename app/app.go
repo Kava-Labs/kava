@@ -677,7 +677,7 @@ func NewApp(
 	app.MountMemoryStores(memKeys)
 
 	// initialize the app
-	var fetchers []ante.AddressFetcher // TODO add bep3 authorized addresses
+	var fetchers []ante.AddressFetcher
 	if options.MempoolEnableAuth {
 		fetchers = append(fetchers,
 			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
