@@ -1,0 +1,115 @@
+{
+  "params": {
+    "minimum_borrow_usd_value": "10.0",
+    "money_markets": [
+      {
+        "denom": "usdx",
+        "borrow_limit": {
+          "has_max_limit": false,
+          "maximum_limit": "20000000",
+          "loan_to_value": "0.80"
+        },
+        "spot_market_id": "usdx:usd",
+        "conversion_factor": "1000000",
+        "interest_rate_model": {
+          "base_rate_apy": "0.05",
+          "base_multiplier": "0.1",
+          "kink": "0.8",
+          "jump_multiplier": "0.5"
+        },
+        "reserve_factor": "0.0",
+        "keeper_reward_percentage": "0.05"
+      },
+      {
+        "denom": "ukava",
+        "borrow_limit": {
+          "has_max_limit": false,
+          "maximum_limit": "100000000000",
+          "loan_to_value": "0.80"
+        },
+        "spot_market_id": "kava:usd",
+        "conversion_factor": "1000000",
+        "interest_rate_model": {
+          "base_rate_apy": "0.05",
+          "base_multiplier": "2",
+          "kink": "0.85",
+          "jump_multiplier": "10"
+        },
+        "reserve_factor": "0.1",
+        "keeper_reward_percentage": "0.01"
+      }
+    ]
+  },
+  "deposits": [
+    {
+      "amount": [
+        {
+          "amount": "162103943",
+          "denom": "bnb"
+        },
+        {
+          "amount": "19428483",
+          "denom": "btcb"
+        }
+      ],
+      "depositor": "kava1qq9ustlc0nv4aew275w93g4qy5zahqgxf5mwv9",
+      "index": [
+        {
+          "denom": "bnb",
+          "value": "1.001740185031830285"
+        }
+      ]
+    }
+  ],
+  "borrows": [
+    {
+      "amount": [
+        {
+          "amount": "146724966",
+          "denom": "usdx"
+        },
+        {
+          "amount": "541061835659",
+          "denom": "xrpb"
+        }
+      ],
+      "borrower": "kava1qq9ustlc0nv4aew275w93g4qy5zahqgxf5mwv9",
+      "index": [
+        {
+          "denom": "usdx",
+          "value": "1.000156840239586720"
+        },
+        {
+          "denom": "xrpb",
+          "value": "1.002063063678030789"
+        }
+      ]
+    }
+  ],
+  "total_supplied": [
+    {
+      "amount": "1246173151758",
+      "denom": "bnb"
+    }
+  ],
+  "total_borrowed": [
+    {
+      "amount": "704609324351367",
+      "denom": "busd"
+    }
+  ],
+  "total_reserves": [
+    {
+      "amount": "711656301126744",
+      "denom": "xrpb"
+    }
+  ],
+  "previous_accumulation_times": [
+    {
+      "borrow_interest_factor": "1.002233592784895182",
+      "collateral_type": "btcb",
+      "previous_accumulation_time": "2021-11-05T21:13:12.85608847Z",
+      "supply_interest_factor": "1.000205165357775358"
+    }
+  ]
+}
