@@ -421,7 +421,6 @@ func NewApp(
 		scopedIBCKeeper,
 	)
 
-	// TODO No evidence router is added so all submit evidence msgs will fail. Should there be a router added?
 	govRouter := govtypes.NewRouter()
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
