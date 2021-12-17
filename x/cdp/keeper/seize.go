@@ -119,7 +119,7 @@ func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, collateralType string, 
 
 // ValidateLiquidation validate that adding the input principal puts the cdp below the liquidation ratio
 func (k Keeper) ValidateLiquidation(ctx sdk.Context, collateral sdk.Coin, collateralType string, principal sdk.Coin, fees sdk.Coin) error {
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, collateralType, principal, fees, spot)
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, collateralType, principal, fees, liquidation)
 	if err != nil {
 		return err
 	}
