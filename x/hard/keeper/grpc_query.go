@@ -20,8 +20,7 @@ type queryServer struct {
 	bankKeeper    types.BankKeeper
 }
 
-// NewQueryServerImpl returns an implementation of the hard QueryServer
-// interface for the provided Keeper.
+// NewQueryServerImpl creates a new server for handling gRPC queries.
 func NewQueryServerImpl(keeper Keeper, ak types.AccountKeeper, bk types.BankKeeper) types.QueryServer {
 	return &queryServer{
 		keeper:        keeper,
