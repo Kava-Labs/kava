@@ -36,7 +36,7 @@ func (suite *Suite) SetupTest() {
 
 	// Set query client
 	queryHelper := suite.App.NewQueryServerTestHelper(suite.Ctx)
-	queryHandler := keeper.NewQueryHandler(&suite.Keeper)
+	queryHandler := keeper.NewQueryServerImpl(suite.Keeper)
 	types.RegisterQueryServer(queryHelper, queryHandler)
 	suite.QueryClient = types.NewQueryClient(queryHelper)
 }
