@@ -17,15 +17,15 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/cdp"
+	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	"github.com/kava-labs/kava/x/committee"
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
-	"github.com/kava-labs/kava/x/hard"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/kava-labs/kava/x/swap"
+	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
@@ -129,7 +129,7 @@ func (suite *IntegrationTester) DeliverSwapMsgDeposit(depositor sdk.AccAddress, 
 		slippage,
 		suite.Ctx.BlockTime().Add(time.Hour).Unix(), // ensure msg will not fail due to short deadline
 	)
-	msgServer := swap.NewMsgServerImpl(suite.App.GetSwapKeeper())
+	msgServer := swapkeeper.NewMsgServerImpl(suite.App.GetSwapKeeper())
 	_, err := msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), msg)
 
 	return err
@@ -137,7 +137,7 @@ func (suite *IntegrationTester) DeliverSwapMsgDeposit(depositor sdk.AccAddress, 
 
 func (suite *IntegrationTester) DeliverHardMsgDeposit(owner sdk.AccAddress, deposit sdk.Coins) error {
 	msg := hardtypes.NewMsgDeposit(owner, deposit)
-	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+	msgServer := hardkeeper.NewMsgServerImpl(suite.App.GetHardKeeper())
 
 	_, err := msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
@@ -145,7 +145,7 @@ func (suite *IntegrationTester) DeliverHardMsgDeposit(owner sdk.AccAddress, depo
 
 func (suite *IntegrationTester) DeliverHardMsgBorrow(owner sdk.AccAddress, borrow sdk.Coins) error {
 	msg := hardtypes.NewMsgBorrow(owner, borrow)
-	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+	msgServer := hardkeeper.NewMsgServerImpl(suite.App.GetHardKeeper())
 
 	_, err := msgServer.Borrow(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
@@ -153,7 +153,7 @@ func (suite *IntegrationTester) DeliverHardMsgBorrow(owner sdk.AccAddress, borro
 
 func (suite *IntegrationTester) DeliverHardMsgRepay(owner sdk.AccAddress, repay sdk.Coins) error {
 	msg := hardtypes.NewMsgRepay(owner, owner, repay)
-	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+	msgServer := hardkeeper.NewMsgServerImpl(suite.App.GetHardKeeper())
 
 	_, err := msgServer.Repay(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
@@ -161,7 +161,7 @@ func (suite *IntegrationTester) DeliverHardMsgRepay(owner sdk.AccAddress, repay 
 
 func (suite *IntegrationTester) DeliverHardMsgWithdraw(owner sdk.AccAddress, withdraw sdk.Coins) error {
 	msg := hardtypes.NewMsgWithdraw(owner, withdraw)
-	msgServer := hard.NewMsgServerImpl(suite.App.GetHardKeeper())
+	msgServer := hardkeeper.NewMsgServerImpl(suite.App.GetHardKeeper())
 
 	_, err := msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
@@ -169,7 +169,7 @@ func (suite *IntegrationTester) DeliverHardMsgWithdraw(owner sdk.AccAddress, wit
 
 func (suite *IntegrationTester) DeliverMsgCreateCDP(owner sdk.AccAddress, collateral, principal sdk.Coin, collateralType string) error {
 	msg := cdptypes.NewMsgCreateCDP(owner, collateral, principal, collateralType)
-	msgServer := cdp.NewMsgServerImpl(suite.App.GetCDPKeeper())
+	msgServer := cdpkeeper.NewMsgServerImpl(suite.App.GetCDPKeeper())
 
 	_, err := msgServer.CreateCDP(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
@@ -177,7 +177,7 @@ func (suite *IntegrationTester) DeliverMsgCreateCDP(owner sdk.AccAddress, collat
 
 func (suite *IntegrationTester) DeliverCDPMsgRepay(owner sdk.AccAddress, collateralType string, payment sdk.Coin) error {
 	msg := cdptypes.NewMsgRepayDebt(owner, collateralType, payment)
-	msgServer := cdp.NewMsgServerImpl(suite.App.GetCDPKeeper())
+	msgServer := cdpkeeper.NewMsgServerImpl(suite.App.GetCDPKeeper())
 
 	_, err := msgServer.RepayDebt(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
@@ -185,7 +185,7 @@ func (suite *IntegrationTester) DeliverCDPMsgRepay(owner sdk.AccAddress, collate
 
 func (suite *IntegrationTester) DeliverCDPMsgBorrow(owner sdk.AccAddress, collateralType string, draw sdk.Coin) error {
 	msg := cdptypes.NewMsgDrawDebt(owner, collateralType, draw)
-	msgServer := cdp.NewMsgServerImpl(suite.App.GetCDPKeeper())
+	msgServer := cdpkeeper.NewMsgServerImpl(suite.App.GetCDPKeeper())
 
 	_, err := msgServer.DrawDebt(sdk.WrapSDKContext(suite.Ctx), &msg)
 	return err
@@ -203,7 +203,7 @@ func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, 
 	)
 	suite.NoError(err)
 
-	msgServer := committee.NewMsgServerImpl(suite.App.GetCommitteeKeeper())
+	msgServer := committeekeeper.NewMsgServerImpl(suite.App.GetCommitteeKeeper())
 
 	res, err := msgServer.SubmitProposal(sdk.WrapSDKContext(suite.Ctx), propose)
 	suite.NoError(err)
