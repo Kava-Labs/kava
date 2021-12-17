@@ -225,6 +225,7 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 		blockTime           time.Time
 		initialPrice        sdk.Dec
 		finalPrice          sdk.Dec
+		finalTwapPrice      sdk.Dec
 		collateral          sdk.Coin
 		principal           sdk.Coin
 		expectedKeeperCoins sdk.Coins              // additional coins (if any) the borrower address should have after successfully liquidating position
@@ -252,14 +253,54 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 		{
 			"valid liquidation",
 			args{
-				"btc-a",
-				time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				d("20000.00"),
-				d("19000.0"),
-				c("btc", 10000000),
-				c("usdx", 1333330000),
-				cs(c("btc", 100100000), c("xrp", 10000000000)),
-				[]auctiontypes.Auction{
+				ctype:               "btc-a",
+				blockTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialPrice:        d("20000.00"),
+				finalPrice:          d("19000.0"),
+				finalTwapPrice:      d("19000.0"),
+				collateral:          c("btc", 10000000),
+				principal:           c("usdx", 1333330000),
+				expectedKeeperCoins: cs(c("btc", 100100000), c("xrp", 10000000000)),
+				expectedAuctions: []auctiontypes.Auction{
+					&auctiontypes.CollateralAuction{
+						BaseAuction: auctiontypes.BaseAuction{
+							ID:              1,
+							Initiator:       "liquidator",
+							Lot:             c("btc", 9900000),
+							Bidder:          nil,
+							Bid:             c("usdx", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: c("debt", 1333330000),
+						MaxBid:            c("usdx", 1366663250),
+						LotReturns: auctiontypes.WeightedAddresses{
+							Addresses: []sdk.AccAddress{addr},
+							Weights:   []sdk.Int{sdk.NewInt(9900000)},
+						},
+					},
+				},
+			},
+			errArgs{
+				true,
+				"",
+			},
+		},
+		{
+			"valid liquidation - twap market liquidateable but not spot",
+			args{
+				ctype:        "btc-a",
+				blockTime:    time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialPrice: d("20000.00"),
+				// spot price does not liquidates
+				finalPrice: d("21000.0"),
+				// twap / liquidation price does liquidate
+				finalTwapPrice:      d("19000.0"),
+				collateral:          c("btc", 10000000),
+				principal:           c("usdx", 1333330000),
+				expectedKeeperCoins: cs(c("btc", 100100000), c("xrp", 10000000000)),
+				expectedAuctions: []auctiontypes.Auction{
 					&auctiontypes.CollateralAuction{
 						BaseAuction: auctiontypes.BaseAuction{
 							ID:              1,
@@ -288,14 +329,35 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 		{
 			"invalid - not below collateralization ratio",
 			args{
-				"btc-a",
-				time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				d("20000.00"),
-				d("21000.0"),
-				c("btc", 10000000),
-				c("usdx", 1333330000),
-				cs(),
-				[]auctiontypes.Auction{},
+				ctype:               "btc-a",
+				blockTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialPrice:        d("20000.00"),
+				finalPrice:          d("21000.0"),
+				finalTwapPrice:      d("21000.0"),
+				collateral:          c("btc", 10000000),
+				principal:           c("usdx", 1333330000),
+				expectedKeeperCoins: cs(),
+				expectedAuctions:    []auctiontypes.Auction{},
+			},
+			errArgs{
+				false,
+				"collateral ratio not below liquidation ratio",
+			},
+		},
+		{
+			"invalid - spot market liquidateable but not twap",
+			args{
+				ctype:        "btc-a",
+				blockTime:    time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialPrice: d("20000.00"),
+				// spot price liquidates
+				finalPrice: d("19000.0"),
+				// twap / liquidation price does not liquidate
+				finalTwapPrice:      d("21000.0"),
+				collateral:          c("btc", 10000000),
+				principal:           c("usdx", 1333330000),
+				expectedKeeperCoins: cs(),
+				expectedAuctions:    []auctiontypes.Auction{},
 			},
 			errArgs{
 				false,
@@ -321,9 +383,16 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 			suite.Require().NoError(err)
 
 			// update pricefeed
+			// spot market
 			_, err = pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.finalPrice, suite.ctx.BlockTime().Add(time.Hour*24))
 			suite.Require().NoError(err)
+			// liquidate market
+			_, err = pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd:30", tc.args.finalTwapPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			suite.Require().NoError(err)
+
 			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
+			suite.Require().NoError(err)
+			err = pk.SetCurrentPrices(suite.ctx, "btc:usd:30")
 			suite.Require().NoError(err)
 
 			_, found := suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, suite.addrs[0], tc.args.ctype)
