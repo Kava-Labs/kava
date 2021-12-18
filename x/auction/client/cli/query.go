@@ -122,15 +122,15 @@ func GetCmdQueryAuctions() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			strOwner, err := cmd.Flags().GetString(flagOwner)
+			owner, err := cmd.Flags().GetString(flagOwner)
 			if err != nil {
 				return err
 			}
-			strDenom, err := cmd.Flags().GetString(flagDenom)
+			denom, err := cmd.Flags().GetString(flagDenom)
 			if err != nil {
 				return err
 			}
-			strPhase, err := cmd.Flags().GetString(flagPhase)
+			phase, err := cmd.Flags().GetString(flagPhase)
 			if err != nil {
 				return err
 			}
@@ -149,31 +149,31 @@ func GetCmdQueryAuctions() *cobra.Command {
 				}
 			}
 
-			if len(strOwner) != 0 {
+			if len(owner) != 0 {
 				if auctionType != types.CollateralAuctionType {
 					return fmt.Errorf("cannot apply owner flag to non-collateral auction type")
 				}
-				_, err := sdk.AccAddressFromBech32(strOwner)
+				_, err := sdk.AccAddressFromBech32(owner)
 				if err != nil {
-					return fmt.Errorf("cannot parse address from auction owner %s", strOwner)
+					return fmt.Errorf("cannot parse address from auction owner %s", owner)
 				}
 			}
 
-			if len(strDenom) != 0 {
-				strDenom := strings.TrimSpace(strDenom)
-				err := sdk.ValidateDenom(strDenom)
+			if len(denom) != 0 {
+				denom := strings.TrimSpace(denom)
+				err := sdk.ValidateDenom(denom)
 				if err != nil {
 					return err
 				}
 			}
 
-			if len(strPhase) != 0 {
-				strPhase := strings.ToLower(strings.TrimSpace(strPhase))
+			if len(phase) != 0 {
+				phase := strings.ToLower(strings.TrimSpace(phase))
 				if auctionType != types.CollateralAuctionType && len(auctionType) > 0 {
 					return fmt.Errorf("cannot apply phase flag to non-collateral auction type")
 				}
-				if strPhase != types.ForwardAuctionPhase && strPhase != types.ReverseAuctionPhase {
-					return fmt.Errorf("invalid auction phase %s", strPhase)
+				if phase != types.ForwardAuctionPhase && phase != types.ReverseAuctionPhase {
+					return fmt.Errorf("invalid auction phase %s", phase)
 				}
 			}
 
@@ -185,9 +185,9 @@ func GetCmdQueryAuctions() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 			request := types.QueryAuctionsRequest{
 				Type:       auctionType,
-				Owner:      strOwner,
-				Denom:      strDenom,
-				Phase:      strPhase,
+				Owner:      owner,
+				Denom:      denom,
+				Phase:      phase,
 				Pagination: pageReq,
 			}
 
