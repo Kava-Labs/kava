@@ -141,7 +141,8 @@ func GetCmdQueryAuctions() *cobra.Command {
 			}
 
 			if len(auctionType) != 0 {
-				auctionType = strings.ToLower(strings.TrimSpace(auctionType))
+				auctionType = strings.ToLower(auctionType)
+
 				if auctionType != types.CollateralAuctionType &&
 					auctionType != types.SurplusAuctionType &&
 					auctionType != types.DebtAuctionType {
@@ -160,7 +161,6 @@ func GetCmdQueryAuctions() *cobra.Command {
 			}
 
 			if len(denom) != 0 {
-				denom := strings.TrimSpace(denom)
 				err := sdk.ValidateDenom(denom)
 				if err != nil {
 					return err
@@ -168,8 +168,9 @@ func GetCmdQueryAuctions() *cobra.Command {
 			}
 
 			if len(phase) != 0 {
-				phase := strings.ToLower(strings.TrimSpace(phase))
-				if auctionType != types.CollateralAuctionType && len(auctionType) > 0 {
+				phase = strings.ToLower(phase)
+
+				if len(auctionType) > 0 && auctionType != types.CollateralAuctionType {
 					return fmt.Errorf("cannot apply phase flag to non-collateral auction type")
 				}
 				if phase != types.ForwardAuctionPhase && phase != types.ReverseAuctionPhase {
