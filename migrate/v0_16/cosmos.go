@@ -104,7 +104,7 @@ func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context) genutil
 		delete(appState, v039auth.ModuleName)
 
 		// Run our custom auth v40 migration on the v039 auth gen state
-		appState[v040auth.ModuleName] = v040Codec.MustMarshalJSON(MigrateAuthV040(authGenState))
+		appState[v040auth.ModuleName] = v040Codec.MustMarshalJSON(MigrateAuthV040(authGenState, GenesisTime))
 	}
 
 	// Migrate x/crisis.
