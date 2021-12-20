@@ -650,7 +650,7 @@ func NewApp(
 		swaptypes.ModuleName,
 		cdptypes.ModuleName, // reads market prices, so must run after pricefeed genesis
 		hardtypes.ModuleName,
-		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis // TODO should genutil run after this?
+		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
