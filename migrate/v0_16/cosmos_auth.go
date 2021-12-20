@@ -159,7 +159,13 @@ func MigrateAuthV040(authGenState v039auth.GenesisState, genesisTime time.Time) 
 
 				ResetPeriodicVestingAccount(&vacc, genesisTime)
 
-				v040Accounts[i] = &vacc
+				// If periodic vesting account has zero periods, convert back
+				// to a base account
+				if genesisTime.Unix() >= vacc.EndTime {
+					v040Accounts[i] = vacc.BaseVestingAccount.BaseAccount
+				} else {
+					v040Accounts[i] = &vacc
+				}
 			}
 		case *v015validatorvesting.ValidatorVestingAccount:
 			{
