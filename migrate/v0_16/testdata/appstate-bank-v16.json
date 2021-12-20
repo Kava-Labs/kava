@@ -66,24 +66,50 @@
         "sequence": "0"
       },
       {
+        "@type": "/cosmos.auth.v1beta1.BaseAccount",
+        "address": "kava1z3ytjpr6ancl8gw80z6f47z9smug7986x29vtj",
+        "pub_key": null,
+        "account_number": "0",
+        "sequence": "0"
+      },
+      {
         "@type": "/cosmos.vesting.v1beta1.PeriodicVestingAccount",
         "base_vesting_account": {
           "base_account": {
-            "address": "kava1z3ytjpr6ancl8gw80z6f47z9smug7986x29vtj",
+            "address": "kava1jun8w7meyvgxl68fsjrsdhnv87zursv7dwlgee",
             "pub_key": null,
             "account_number": "0",
             "sequence": "0"
           },
-          "original_vesting": [{ "denom": "ukava", "amount": "560159828" }],
+          "original_vesting": [
+            {
+              "denom": "swp",
+              "amount": "14791996"
+            }
+          ],
           "delegated_free": [],
           "delegated_vesting": [],
-          "end_time": "1628213878"
+          "end_time": "1671112800"
         },
-        "start_time": "1596677878",
+        "start_time": "1638284400",
         "vesting_periods": [
           {
-            "length": "31536000",
-            "amount": [{ "denom": "ukava", "amount": "560159828" }]
+            "length": "3970800",
+            "amount": [
+              {
+                "denom": "swp",
+                "amount": "684"
+              }
+            ]
+          },
+          {
+            "length": "28857600",
+            "amount": [
+              {
+                "denom": "swp",
+                "amount": "14791312"
+              }
+            ]
           }
         ]
       },
@@ -232,6 +258,13 @@
         "coins": [
           { "denom": "ukava", "amount": "565077579" },
           { "denom": "usdx", "amount": "1363200" }
+        ]
+      },
+      {
+        "address": "kava1jun8w7meyvgxl68fsjrsdhnv87zursv7dwlgee",
+        "coins": [
+          { "denom": "swp", "amount": "15915874" },
+          { "denom": "ukava", "amount": "1000000" }
         ]
       },
       {

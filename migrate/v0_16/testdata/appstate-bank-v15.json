@@ -157,6 +157,55 @@
         }
       },
       {
+        "type": "cosmos-sdk/PeriodicVestingAccount",
+        "value": {
+          "address": "kava1jun8w7meyvgxl68fsjrsdhnv87zursv7dwlgee",
+          "coins": [
+            {
+              "denom": "swp",
+              "amount": "15915874"
+            },
+            {
+              "denom": "ukava",
+              "amount": "1000000"
+            }
+          ],
+          "public_key": null,
+          "account_number": "0",
+          "sequence": "0",
+          "original_vesting": [
+            {
+              "denom": "swp",
+              "amount": "14791996"
+            }
+          ],
+          "delegated_free": [],
+          "delegated_vesting": [],
+          "end_time": "1671112800",
+          "start_time": "1638318086",
+          "vesting_periods": [
+            {
+              "length": "3937114",
+              "amount": [
+                {
+                  "denom": "swp",
+                  "amount": "684"
+                }
+              ]
+            },
+            {
+              "length": "28857600",
+              "amount": [
+                {
+                  "denom": "swp",
+                  "amount": "14791312"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
         "type": "cosmos-sdk/ValidatorVestingAccount",
         "value": {
           "address": "kava1h932rkxxhwf0gz3gq23qsnedgax5vwuxw4ufhy",
