@@ -66,7 +66,7 @@ func (suite *Suite) SetupTest() {
 
 	// Set query client
 	queryHelper := tApp.NewQueryServerTestHelper(ctx)
-	types.RegisterQueryServer(queryHelper, suite.Keeper)
+	types.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(suite.Keeper))
 	suite.QueryClient = types.NewQueryClient(queryHelper)
 }
 

@@ -1,4 +1,4 @@
-package bep3_test
+package keeper_test
 
 import (
 	"testing"
@@ -30,7 +30,6 @@ type MsgServerTestSuite struct {
 func (suite *MsgServerTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	keeper := tApp.GetBep3Keeper()
 
 	cdc := tApp.AppCodec()
 
@@ -41,8 +40,8 @@ func (suite *MsgServerTestSuite) SetupTest() {
 	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(cdc, addrs[0]))
 
 	suite.addrs = addrs
-	suite.msgServer = bep3.NewMsgServerImpl(keeper)
-	suite.keeper = keeper
+	suite.keeper = tApp.GetBep3Keeper()
+	suite.msgServer = keeper.NewMsgServerImpl(suite.keeper)
 	suite.app = tApp
 	suite.ctx = ctx
 }

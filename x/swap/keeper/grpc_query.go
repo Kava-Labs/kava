@@ -14,33 +14,42 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 )
 
-var _ types.QueryServer = Keeper{}
+type queryServer struct {
+	keeper Keeper
+}
+
+// NewQueryServerImpl creates a new server for handling gRPC queries.
+func NewQueryServerImpl(k Keeper) types.QueryServer {
+	return &queryServer{keeper: k}
+}
+
+var _ types.QueryServer = queryServer{}
 
 // Params implements the gRPC service handler for querying x/swap parameters.
-func (k Keeper) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (s queryServer) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	params := k.GetParams(sdkCtx)
+	params := s.keeper.GetParams(sdkCtx)
 
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
 // Pools implements the Query/Pools gRPC method
-func (k Keeper) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.QueryPoolsResponse, error) {
+func (s queryServer) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.QueryPoolsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(s.keeper.key), types.PoolKeyPrefix)
 
 	var queryResults []types.PoolResponse
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, shouldAccumulate bool) (bool, error) {
 		var poolRecord types.PoolRecord
-		err := k.cdc.Unmarshal(value, &poolRecord)
+		err := s.keeper.cdc.Unmarshal(value, &poolRecord)
 		if err != nil {
 			return false, err
 		}
@@ -55,7 +64,11 @@ func (k Keeper) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.Q
 				return true, types.ErrInvalidPool
 			}
 			totalCoins := denominatedPool.ShareValue(denominatedPool.TotalShares())
-			queryResult := types.PoolResponse{poolRecord.PoolID, totalCoins, denominatedPool.TotalShares()}
+			queryResult := types.PoolResponse{
+				Name:        poolRecord.PoolID,
+				Coins:       totalCoins,
+				TotalShares: denominatedPool.TotalShares(),
+			}
 			queryResults = append(queryResults, queryResult)
 		}
 		return true, nil
@@ -71,13 +84,13 @@ func (k Keeper) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.Q
 }
 
 // Deposits implements the Query/Deposits gRPC method
-func (k Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*types.QueryDepositsResponse, error) {
+func (s queryServer) Deposits(c context.Context, req *types.QueryDepositsRequest) (*types.QueryDepositsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
+	store := prefix.NewStore(ctx.KVStore(s.keeper.key), types.DepositorPoolSharesPrefix)
 
 	records := types.ShareRecords{}
 	pageRes, err := query.FilteredPaginate(
@@ -86,7 +99,7 @@ func (k Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 		func(key []byte, value []byte, accumulate bool) (bool, error) {
 
 			var record types.ShareRecord
-			err := k.cdc.Unmarshal(value, &record)
+			err := s.keeper.cdc.Unmarshal(value, &record)
 			if err != nil {
 				return false, err
 			}
@@ -117,12 +130,17 @@ func (k Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 
 	var queryResults []types.DepositResponse
 	for _, record := range records {
-		pool, err := k.loadDenominatedPool(ctx, record.PoolID)
+		pool, err := s.keeper.loadDenominatedPool(ctx, record.PoolID)
 		if err != nil {
 			return nil, err
 		}
 		shareValue := pool.ShareValue(record.SharesOwned)
-		queryResult := types.DepositResponse{record.Depositor.String(), record.PoolID, record.SharesOwned, shareValue}
+		queryResult := types.DepositResponse{
+			Depositor:   record.Depositor.String(),
+			PoolId:      record.PoolID,
+			SharesOwned: record.SharesOwned,
+			SharesValue: shareValue,
+		}
 		queryResults = append(queryResults, queryResult)
 	}
 
@@ -130,16 +148,4 @@ func (k Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 		Deposits:   queryResults,
 		Pagination: pageRes,
 	}, nil
-}
-
-func (k Keeper) loadDenominatedPool(ctx sdk.Context, poolID string) (*types.DenominatedPool, error) {
-	poolRecord, found := k.GetPool(ctx, poolID)
-	if !found {
-		return &types.DenominatedPool{}, types.ErrInvalidPool
-	}
-	denominatedPool, err := types.NewDenominatedPoolWithExistingShares(poolRecord.Reserves(), poolRecord.TotalShares)
-	if err != nil {
-		return &types.DenominatedPool{}, types.ErrInvalidPool
-	}
-	return denominatedPool, nil
 }

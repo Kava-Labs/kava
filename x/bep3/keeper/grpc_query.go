@@ -14,28 +14,37 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
-var _ types.QueryServer = Keeper{}
+type queryServer struct {
+	keeper Keeper
+}
+
+// NewQueryServerImpl creates a new server for handling gRPC queries.
+func NewQueryServerImpl(k Keeper) types.QueryServer {
+	return &queryServer{keeper: k}
+}
+
+var _ types.QueryServer = queryServer{}
 
 // Params queries module params
-func (k Keeper) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (s queryServer) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	params := k.GetParams(sdkCtx)
+	params := s.keeper.GetParams(sdkCtx)
 
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
 // AssetSupply queries info about an asset's supply
-func (k Keeper) AssetSupply(ctx context.Context, req *types.QueryAssetSupplyRequest) (*types.QueryAssetSupplyResponse, error) {
+func (s queryServer) AssetSupply(ctx context.Context, req *types.QueryAssetSupplyRequest) (*types.QueryAssetSupplyResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	assetSupply, ok := k.GetAssetSupply(sdkCtx, req.Denom)
+	assetSupply, ok := s.keeper.GetAssetSupply(sdkCtx, req.Denom)
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "denom not found")
 	}
@@ -44,7 +53,7 @@ func (k Keeper) AssetSupply(ctx context.Context, req *types.QueryAssetSupplyRequ
 }
 
 // AssetSupplies queries a list of asset supplies
-func (k Keeper) AssetSupplies(ctx context.Context, req *types.QueryAssetSuppliesRequest) (*types.QueryAssetSuppliesResponse, error) {
+func (s queryServer) AssetSupplies(ctx context.Context, req *types.QueryAssetSuppliesRequest) (*types.QueryAssetSuppliesResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -52,7 +61,7 @@ func (k Keeper) AssetSupplies(ctx context.Context, req *types.QueryAssetSupplies
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	var queryResults []types.AssetSupplyResponse
-	k.IterateAssetSupplies(sdkCtx, func(assetSupply types.AssetSupply) bool {
+	s.keeper.IterateAssetSupplies(sdkCtx, func(assetSupply types.AssetSupply) bool {
 		queryResults = append(queryResults, mapAssetSupplyToResponse(assetSupply))
 		return false
 	})
@@ -63,7 +72,7 @@ func (k Keeper) AssetSupplies(ctx context.Context, req *types.QueryAssetSupplies
 }
 
 // AtomicSwap queries info about an atomic swap
-func (k Keeper) AtomicSwap(ctx context.Context, req *types.QueryAtomicSwapRequest) (*types.QueryAtomicSwapResponse, error) {
+func (s queryServer) AtomicSwap(ctx context.Context, req *types.QueryAtomicSwapRequest) (*types.QueryAtomicSwapResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -74,7 +83,7 @@ func (k Keeper) AtomicSwap(ctx context.Context, req *types.QueryAtomicSwapReques
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	atomicSwap, ok := k.GetAtomicSwap(sdkCtx, swapId)
+	atomicSwap, ok := s.keeper.GetAtomicSwap(sdkCtx, swapId)
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "invalid atomic swap")
 	}
@@ -85,18 +94,18 @@ func (k Keeper) AtomicSwap(ctx context.Context, req *types.QueryAtomicSwapReques
 }
 
 // AtomicSwaps queries a list of atomic swaps
-func (k Keeper) AtomicSwaps(ctx context.Context, req *types.QueryAtomicSwapsRequest) (*types.QueryAtomicSwapsResponse, error) {
+func (s queryServer) AtomicSwaps(ctx context.Context, req *types.QueryAtomicSwapsRequest) (*types.QueryAtomicSwapsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.AtomicSwapKeyPrefix)
+	store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.AtomicSwapKeyPrefix)
 
 	var queryResults []types.AtomicSwapResponse
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, shouldAccumulate bool) (bool, error) {
 		var atomicSwap types.AtomicSwap
-		err := k.cdc.Unmarshal(value, &atomicSwap)
+		err := s.keeper.cdc.Unmarshal(value, &atomicSwap)
 		if err != nil {
 			return false, err
 		}

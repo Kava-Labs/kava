@@ -1,21 +1,20 @@
-package committee
+package keeper
 
 import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
 type msgServer struct {
-	keeper keeper.Keeper
+	keeper Keeper
 }
 
-// NewMsgServerImpl returns an implementation of the swap MsgServer interface
+// NewMsgServerImpl returns an implementation of the committee MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper keeper.Keeper) types.MsgServer {
+func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &msgServer{keeper: keeper}
 }
 
