@@ -77,23 +77,47 @@ func (s queryServer) Auctions(c context.Context, req *types.QueryAuctionsRequest
 	var auctions []*codectypes.Any
 	auctionStore := prefix.NewStore(ctx.KVStore(s.keeper.storeKey), types.AuctionKeyPrefix)
 
-	pageRes, err := query.Paginate(auctionStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.FilteredPaginate(auctionStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		result, err := s.keeper.UnmarshalAuction(value)
 		if err != nil {
-			return err
+			return false, err
 		}
 
-		msg, ok := result.(proto.Message)
-		if !ok {
-			return status.Errorf(codes.Internal, "can't protomarshal %T", msg)
+		// True if empty owner, otherwise check if auction contains owner
+		ownerIsMatch := req.Owner == ""
+		if req.Owner != "" {
+			if cAuc, ok := result.(*types.CollateralAuction); ok {
+				for _, addr := range cAuc.GetLotReturns().Addresses {
+					if addr.String() == req.Owner {
+						ownerIsMatch = true
+						break
+					}
+				}
+			}
 		}
 
-		auctionAny, err := codectypes.NewAnyWithValue(msg)
-		if err != nil {
-			return err
+		phaseIsMatch := req.Phase == "" || req.Phase == result.GetPhase()
+		typeIsMatch := req.Type == "" || req.Type == result.GetType()
+		denomIsMatch := req.Denom == "" || req.Denom == result.GetBid().Denom || req.Denom == result.GetLot().Denom
+
+		if ownerIsMatch && phaseIsMatch && typeIsMatch && denomIsMatch {
+			if accumulate {
+				msg, ok := result.(proto.Message)
+				if !ok {
+					return false, status.Errorf(codes.Internal, "can't protomarshal %T", msg)
+				}
+
+				auctionAny, err := codectypes.NewAnyWithValue(msg)
+				if err != nil {
+					return false, err
+				}
+				auctions = append(auctions, auctionAny)
+			}
+
+			return true, nil
 		}
-		auctions = append(auctions, auctionAny)
-		return nil
+
+		return false, nil
 	})
 	if err != nil {
 		return &types.QueryAuctionsResponse{}, err
