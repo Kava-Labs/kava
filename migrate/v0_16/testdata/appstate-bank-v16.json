@@ -84,26 +84,17 @@
           "original_vesting": [
             {
               "denom": "swp",
-              "amount": "14791996"
+              "amount": "14791312"
             }
           ],
           "delegated_free": [],
           "delegated_vesting": [],
-          "end_time": "1671112800"
+          "end_time": "1665767828"
         },
         "start_time": "1638284400",
         "vesting_periods": [
           {
-            "length": "3970800",
-            "amount": [
-              {
-                "denom": "swp",
-                "amount": "684"
-              }
-            ]
-          },
-          {
-            "length": "28857600",
+            "length": "27483428",
             "amount": [
               {
                 "denom": "swp",
