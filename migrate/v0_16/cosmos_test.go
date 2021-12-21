@@ -1,17 +1,24 @@
-package v0_16
+package v0_16_test
 
 import (
 	"encoding/json"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/migrate/v0_16"
 )
+
+// Periodic vesting account periods will change depending on the genesis time.
+// This test genesis time is used to be able to change the actual genesis time
+// without breaking the tests.
+var TestGenesisTime = time.Date(2021, 11, 30, 15, 0, 0, 0, time.UTC)
 
 func TestCosmosMigrate_Gov(t *testing.T) {
 	// The gov json contains a gov app state with 3 different proposals.
@@ -59,7 +66,7 @@ func mustMigrateCosmosAppStateJSON(appStateJson string) string {
 	if err := json.Unmarshal([]byte(appStateJson), &appState); err != nil {
 		panic(err)
 	}
-	newGenState := migrateCosmosAppState(appState, newClientContext())
+	newGenState := v0_16.MigrateCosmosAppState(appState, newClientContext(), TestGenesisTime)
 	actual, err := json.Marshal(newGenState)
 	if err != nil {
 		panic(err)

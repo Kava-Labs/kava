@@ -1,6 +1,8 @@
 package v0_16
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -42,8 +44,8 @@ func migrateGenutil(oldGenState v039genutil.GenesisState) *genutiltypes.GenesisS
 	}
 }
 
-func migrateCosmosAppState(appState genutiltypes.AppMap, clientCtx client.Context) genutiltypes.AppMap {
-	appState = migrateV040(appState, clientCtx)
+func MigrateCosmosAppState(appState genutiltypes.AppMap, clientCtx client.Context, genesisTime time.Time) genutiltypes.AppMap {
+	appState = migrateV040(appState, clientCtx, genesisTime)
 	appState = migrateV043(appState, clientCtx)
 	return appState
 }
@@ -55,7 +57,7 @@ func migrateV043(appState genutiltypes.AppMap, clientCtx client.Context) genutil
 
 // migrateV040 migrates cosmos modules from v0.39 to a v0.40 genesis state.
 // This is based on the genutil/legacy/v40 migration logic but adapted to handle custom types from the kava module.
-func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context) genutiltypes.AppMap {
+func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context, genesisTime time.Time) genutiltypes.AppMap {
 	app.SetSDKConfig()
 	v039Codec := codec.NewLegacyAmino()
 	v039auth.RegisterLegacyAminoCodec(v039Codec)
@@ -104,7 +106,7 @@ func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context) genutil
 		delete(appState, v039auth.ModuleName)
 
 		// Run our custom auth v40 migration on the v039 auth gen state
-		appState[v040auth.ModuleName] = v040Codec.MustMarshalJSON(MigrateAuthV040(authGenState, GenesisTime))
+		appState[v040auth.ModuleName] = v040Codec.MustMarshalJSON(MigrateAuthV040(authGenState, genesisTime))
 	}
 
 	// Migrate x/crisis.
