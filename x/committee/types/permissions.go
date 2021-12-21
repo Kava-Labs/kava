@@ -227,6 +227,11 @@ func (allowed AllowedParamsChange) allowsParamChange(ctx sdk.Context, paramsChan
 		return false
 	}
 
+	// Allow all param changes if no subparam rules are specified.
+	if len(allowed.SingleSubparamAllowedAttrs) == 0 && len(allowed.MultiSubparamsRequirements) == 0 {
+		return true
+	}
+
 	// Check if param value is an array before unmarshalling to corresponding types
 	tdata := strings.TrimLeft(paramsChange.Value, "\t\r\n")
 	isArray := len(tdata) > 0 && tdata[0] == '['

@@ -96,7 +96,7 @@ func (gs GenesisState) Validate() error {
 
 		// check committee exists
 		if !committeeMap[p.CommitteeID] {
-			return fmt.Errorf("proposal refers to non existent committee; proposal: %+v", p)
+			return fmt.Errorf("proposal refers to non existent committee; committee id: %d", p.CommitteeID)
 		}
 
 		// validate pubProposal
