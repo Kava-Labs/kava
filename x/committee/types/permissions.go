@@ -1,9 +1,11 @@
 package types
 
 import (
+	"encoding/json"
 	fmt "fmt"
+	"reflect"
+	"strings"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -24,7 +26,7 @@ func init() {
 
 // Permission is anything with a method that validates whether a proposal is allowed by it or not.
 type Permission interface {
-	Allows(sdk.Context, codec.Codec, ParamKeeper, PubProposal) bool
+	Allows(sdk.Context, ParamKeeper, PubProposal) bool
 }
 
 func PackPermissions(permissions []Permission) ([]*types.Any, error) {
@@ -64,22 +66,22 @@ var (
 )
 
 // Allows implement permission interface for GodPermission.
-func (GodPermission) Allows(sdk.Context, codec.Codec, ParamKeeper, PubProposal) bool { return true }
+func (GodPermission) Allows(sdk.Context, ParamKeeper, PubProposal) bool { return true }
 
 // Allows implement permission interface for TextPermission.
-func (TextPermission) Allows(_ sdk.Context, _ codec.Codec, _ ParamKeeper, p PubProposal) bool {
+func (TextPermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
 	_, ok := p.(*govtypes.TextProposal)
 	return ok
 }
 
 // Allows implement permission interface for SoftwareUpgradePermission.
-func (SoftwareUpgradePermission) Allows(_ sdk.Context, _ codec.Codec, _ ParamKeeper, p PubProposal) bool {
+func (SoftwareUpgradePermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
 	_, ok := p.(*upgradetypes.SoftwareUpgradeProposal)
 	return ok
 }
 
 // Allows implement permission interface for ParamsChangePermission.
-func (perm ParamsChangePermission) Allows(_ sdk.Context, _ codec.Codec, _ ParamKeeper, p PubProposal) bool {
+func (perm ParamsChangePermission) Allows(ctx sdk.Context, pk ParamKeeper, p PubProposal) bool {
 	proposal, ok := p.(*paramsproposal.ParameterChangeProposal)
 	if !ok {
 		return false
@@ -87,14 +89,13 @@ func (perm ParamsChangePermission) Allows(_ sdk.Context, _ codec.Codec, _ ParamK
 
 	// Check if all proposal changes are allowed by this permission.
 	for _, change := range proposal.Changes {
-		targetedParamsChange := perm.AllowedParamsChanges.FilterByParamChange(change)
+		targetedParamsChange := perm.AllowedParamsChanges.filterByParamChange(change)
 
 		// We allow the proposal param change if any of the targeted AllowedParamsChange allows it.
-		// This enables us to have multiple different rules for the same subspace/key.
-		// TODO: Note: This is here to support the sub parameter feature which is not yet implemented.
+		// This give the option of having multiple rules for the same subspace/key if needed.
 		allowed := false
 		for _, pc := range targetedParamsChange {
-			if pc.Allows(change) {
+			if pc.allowsParamChange(ctx, change, pk) {
 				allowed = true
 				break
 			}
@@ -111,8 +112,8 @@ func (perm ParamsChangePermission) Allows(_ sdk.Context, _ codec.Codec, _ ParamK
 
 type AllowedParamsChanges []AllowedParamsChange
 
-// FilterByParamChange returns all targeted AllowedParamsChange that matches a given ParamChange's subspace and key.
-func (changes AllowedParamsChanges) FilterByParamChange(paramChange paramsproposal.ParamChange) AllowedParamsChanges {
+// filterByParamChange returns all targeted AllowedParamsChange that matches a given ParamChange's subspace and key.
+func (changes AllowedParamsChanges) filterByParamChange(paramChange paramsproposal.ParamChange) AllowedParamsChanges {
 	filtered := []AllowedParamsChange{}
 	for _, p := range changes {
 		if paramChange.Subspace == p.Subspace && paramChange.Key == p.Key {
@@ -122,14 +123,149 @@ func (changes AllowedParamsChanges) FilterByParamChange(paramChange paramspropos
 	return filtered
 }
 
-// Allows returns true if the given proposal param change is allowed by the AllowedParamsChange rules.
-func (allowed AllowedParamsChange) Allows(paramsChange paramsproposal.ParamChange) bool {
+// SubparamChanges is a map of sub param change keys and its values.
+type SubparamChanges map[string]interface{}
+
+// MultiSubparamChanges is a slice of SubparamChanges.
+type MultiSubparamChanges []SubparamChanges
+
+func (allowed AllowedParamsChange) allowsMultiParamsChange(currentRecords MultiSubparamChanges, incomingRecords MultiSubparamChanges) bool {
+	// do not allow new records from being added or removed for multi-subparam changes.
+	if len(currentRecords) != len(incomingRecords) {
+		return false
+	}
+
+	for _, current := range currentRecords {
+		// find the incoming record and the requirements for each current record
+		var req *SubparamRequirement
+		var incoming *SubparamChanges
+		for _, v := range allowed.MultiSubparamsRequirements {
+			if current[v.Key] == v.Val {
+				req = &v
+				break
+			}
+		}
+
+		// all records should have a requirement, otherwise the change is not allowed
+		if req == nil {
+			return false
+		}
+
+		for _, v := range incomingRecords {
+			if v[req.Key] == req.Val {
+				incoming = &v
+				break
+			}
+		}
+
+		// disallow the change if no incoming record found for current record.
+		if incoming == nil {
+			return false
+		}
+
+		// check incoming changes are allowed
+		allowed := validateParamChangesAreAllowed(current, *incoming, req.AllowedSubparamAttrChanges)
+
+		if !allowed {
+			return false
+		}
+	}
+
+	return true
+}
+
+func validateParamChangesAreAllowed(current SubparamChanges, incoming SubparamChanges, allowList []string) bool {
+	// make sure we are not adding or removing any new attributes
+	if len(current) != len(incoming) {
+		return false
+	}
+
+	for k, v := range current {
+		isAllowed := false
+
+		// check if the param attr key is in the allow list
+		for _, allowedKey := range allowList {
+			if k == allowedKey {
+				isAllowed = true
+				break
+			}
+		}
+
+		// if not allowed, incoming value needs to be the same, or it is rejected
+		if !isAllowed {
+			// since we cannot compare maps directly, we need to convert them to json first.
+			// this should be fine since the data we are marshalling here should always be pretty small.
+			if reflect.TypeOf(v).Kind() == reflect.Map {
+				data, err := json.Marshal(v)
+				if err != nil {
+					return false
+				}
+				data2, err := json.Marshal(incoming[k])
+				if err != nil {
+					return false
+				}
+				if string(data) != string(data2) {
+					return false
+				}
+			} else if v != incoming[k] {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func (allowed AllowedParamsChange) allowsSingleParamsChange(current SubparamChanges, incoming SubparamChanges) bool {
+	return validateParamChangesAreAllowed(current, incoming, allowed.SingleSubparamAllowedAttrs)
+}
+
+// allowsParamChange returns true if the given proposal param change is allowed by the AllowedParamsChange rules.
+func (allowed AllowedParamsChange) allowsParamChange(ctx sdk.Context, paramsChange paramsproposal.ParamChange, pk ParamKeeper) bool {
 	// Check if param change matches target subspace and key.
 	if allowed.Subspace != paramsChange.Subspace && allowed.Key != paramsChange.Key {
 		return false
 	}
 
-	// TODO: Handle sub parameters and required sub param attr values
+	// Check if param value is an array before unmarshalling to corresponding types
+	tdata := strings.TrimLeft(paramsChange.Value, "\t\r\n")
+	isArray := len(tdata) > 0 && tdata[0] == '['
 
-	return true
+	// Handle multi param value validation
+	if isArray {
+		var changeValue MultiSubparamChanges
+		if err := json.Unmarshal([]byte(paramsChange.Value), &changeValue); err != nil {
+			return false
+		}
+
+		var currentValue MultiSubparamChanges
+		subspace, found := pk.GetSubspace(paramsChange.Subspace)
+		if !found {
+			return false
+		}
+		raw := subspace.GetRaw(ctx, []byte(paramsChange.Key))
+		if err := json.Unmarshal(raw, &currentValue); err != nil {
+			panic(err)
+		}
+
+		return allowed.allowsMultiParamsChange(currentValue, changeValue)
+	}
+
+	// Handle single param value validation
+	var changeValue SubparamChanges
+	if err := json.Unmarshal([]byte(paramsChange.Value), &changeValue); err != nil {
+		return false
+	}
+
+	var currentValue SubparamChanges
+	subspace, found := pk.GetSubspace(paramsChange.Subspace)
+	if !found {
+		return false
+	}
+	raw := subspace.GetRaw(ctx, []byte(paramsChange.Key))
+	if err := json.Unmarshal(raw, &currentValue); err != nil {
+		panic(err)
+	}
+
+	return allowed.allowsSingleParamsChange(currentValue, changeValue)
 }
