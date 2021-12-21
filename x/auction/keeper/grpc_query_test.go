@@ -104,7 +104,7 @@ func TestGrpcAuctionsFilter(t *testing.T) {
 			auctions[3:4],
 		},
 		{
-			"owner, denom, type, phaseå",
+			"owner, denom, type, phase",
 			types.QueryAuctionsRequest{
 				Owner: addrs[0].String(),
 				Denom: "hard",
