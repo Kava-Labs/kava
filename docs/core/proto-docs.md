@@ -2205,7 +2205,7 @@ SubparamRequirement contains requirements for a single record in a subparam valu
 | ----- | ---- | ----- | ----------- |
 | `key` | [string](#string) |  | The required attr key of the param record. |
 | `val` | [string](#string) |  | The required param value for the param record key. The key and value is used to match to the target param record. |
-| `allowed_subparam_attr_changes` | [string](#string) | repeated | The sub param attrs that are allowed to be changed. Empty if all attrs are allowed. |
+| `allowed_subparam_attr_changes` | [string](#string) | repeated | The sub param attrs that are allowed to be changed. |
 
 
 

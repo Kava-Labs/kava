@@ -50,6 +50,6 @@ message SubparamRequirement {
   // The required param value for the param record key. The key and value is used to match to the target param record.
   string val = 2;
 
-  // The sub param attrs that are allowed to be changed. Empty if all attrs are allowed.
+  // The sub param attrs that are allowed to be changed.
   repeated string allowed_subparam_attr_changes = 3;
 }

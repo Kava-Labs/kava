@@ -259,7 +259,7 @@ type SubparamRequirement struct {
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// The required param value for the param record key. The key and value is used to match to the target param record.
 	Val string `protobuf:"bytes,2,opt,name=val,proto3" json:"val,omitempty"`
-	// The sub param attrs that are allowed to be changed. Empty if all attrs are allowed.
+	// The sub param attrs that are allowed to be changed.
 	AllowedSubparamAttrChanges []string `protobuf:"bytes,3,rep,name=allowed_subparam_attr_changes,json=allowedSubparamAttrChanges,proto3" json:"allowed_subparam_attr_changes,omitempty"`
 }
 
