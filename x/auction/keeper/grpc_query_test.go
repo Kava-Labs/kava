@@ -62,7 +62,7 @@ func TestGrpcAuctionsFilter(t *testing.T) {
 		auctionsKeeper.SetAuction(ctx, a)
 	}
 
-	qs := keeper.NewQueryServer(auctionsKeeper)
+	qs := keeper.NewQueryServerImpl(auctionsKeeper)
 
 	tests := []struct {
 		giveName     string

@@ -1,4 +1,4 @@
-package hard
+package keeper
 
 import (
 	"context"
@@ -11,29 +11,27 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
 )
 
-type QueryServer struct {
-	keeper        keeper.Keeper
+type queryServer struct {
+	keeper        Keeper
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 }
 
-// NewQueryServer returns an implementation of the hard MsgServer interface
-// for the provided Keeper.
-func NewQueryServerImpl(keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) types.QueryServer {
-	return &QueryServer{
+// NewQueryServerImpl creates a new server for handling gRPC queries.
+func NewQueryServerImpl(keeper Keeper, ak types.AccountKeeper, bk types.BankKeeper) types.QueryServer {
+	return &queryServer{
 		keeper:        keeper,
 		accountKeeper: ak,
 		bankKeeper:    bk,
 	}
 }
 
-var _ types.QueryServer = QueryServer{}
+var _ types.QueryServer = queryServer{}
 
-func (qs QueryServer) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (s queryServer) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -41,21 +39,21 @@ func (qs QueryServer) Params(ctx context.Context, req *types.QueryParamsRequest)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	// Get params
-	params := qs.keeper.GetParams(sdkCtx)
+	params := s.keeper.GetParams(sdkCtx)
 
 	return &types.QueryParamsResponse{
 		Params: params,
 	}, nil
 }
 
-func (qs QueryServer) Accounts(ctx context.Context, req *types.QueryAccountsRequest) (*types.QueryAccountsResponse, error) {
+func (s queryServer) Accounts(ctx context.Context, req *types.QueryAccountsRequest) (*types.QueryAccountsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	macc := qs.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleAccountName)
+	macc := s.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleAccountName)
 
 	accounts := []authtypes.ModuleAccount{
 		*macc.(*authtypes.ModuleAccount),
@@ -66,7 +64,7 @@ func (qs QueryServer) Accounts(ctx context.Context, req *types.QueryAccountsRequ
 	}, nil
 }
 
-func (qs QueryServer) Deposits(ctx context.Context, req *types.QueryDepositsRequest) (*types.QueryDepositsResponse, error) {
+func (s queryServer) Deposits(ctx context.Context, req *types.QueryDepositsRequest) (*types.QueryDepositsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -88,7 +86,7 @@ func (qs QueryServer) Deposits(ctx context.Context, req *types.QueryDepositsRequ
 	var deposits types.Deposits
 	switch {
 	case hasOwner && hasDenom:
-		deposit, found := qs.keeper.GetSyncedDeposit(sdkCtx, owner)
+		deposit, found := s.keeper.GetSyncedDeposit(sdkCtx, owner)
 		if found {
 			for _, coin := range deposit.Amount {
 				if coin.Denom == req.Denom {
@@ -97,19 +95,19 @@ func (qs QueryServer) Deposits(ctx context.Context, req *types.QueryDepositsRequ
 			}
 		}
 	case hasOwner:
-		deposit, found := qs.keeper.GetSyncedDeposit(sdkCtx, owner)
+		deposit, found := s.keeper.GetSyncedDeposit(sdkCtx, owner)
 		if found {
 			deposits = append(deposits, deposit)
 		}
 	case hasDenom:
-		qs.keeper.IterateDeposits(sdkCtx, func(deposit types.Deposit) (stop bool) {
+		s.keeper.IterateDeposits(sdkCtx, func(deposit types.Deposit) (stop bool) {
 			if deposit.Amount.AmountOf(req.Denom).IsPositive() {
 				deposits = append(deposits, deposit)
 			}
 			return false
 		})
 	default:
-		qs.keeper.IterateDeposits(sdkCtx, func(deposit types.Deposit) (stop bool) {
+		s.keeper.IterateDeposits(sdkCtx, func(deposit types.Deposit) (stop bool) {
 			deposits = append(deposits, deposit)
 			return false
 		})
@@ -126,7 +124,7 @@ func (qs QueryServer) Deposits(ctx context.Context, req *types.QueryDepositsRequ
 	// Otherwise we need to simulate syncing of each deposit
 	var syncedDeposits types.Deposits
 	for _, deposit := range deposits {
-		syncedDeposit, _ := qs.keeper.GetSyncedDeposit(sdkCtx, deposit.Depositor)
+		syncedDeposit, _ := s.keeper.GetSyncedDeposit(sdkCtx, deposit.Depositor)
 		syncedDeposits = append(syncedDeposits, syncedDeposit)
 	}
 
@@ -151,7 +149,7 @@ func (qs QueryServer) Deposits(ctx context.Context, req *types.QueryDepositsRequ
 	}, nil
 }
 
-func (qs QueryServer) UnsyncedDeposits(ctx context.Context, req *types.QueryUnsyncedDepositsRequest) (*types.QueryUnsyncedDepositsResponse, error) {
+func (s queryServer) UnsyncedDeposits(ctx context.Context, req *types.QueryUnsyncedDepositsRequest) (*types.QueryUnsyncedDepositsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -173,7 +171,7 @@ func (qs QueryServer) UnsyncedDeposits(ctx context.Context, req *types.QueryUnsy
 	var deposits types.Deposits
 	switch {
 	case hasOwner && hasDenom:
-		deposit, found := qs.keeper.GetDeposit(sdkCtx, owner)
+		deposit, found := s.keeper.GetDeposit(sdkCtx, owner)
 		if found {
 			for _, coin := range deposit.Amount {
 				if coin.Denom == req.Denom {
@@ -182,19 +180,19 @@ func (qs QueryServer) UnsyncedDeposits(ctx context.Context, req *types.QueryUnsy
 			}
 		}
 	case hasOwner:
-		deposit, found := qs.keeper.GetDeposit(sdkCtx, owner)
+		deposit, found := s.keeper.GetDeposit(sdkCtx, owner)
 		if found {
 			deposits = append(deposits, deposit)
 		}
 	case hasDenom:
-		qs.keeper.IterateDeposits(sdkCtx, func(deposit types.Deposit) (stop bool) {
+		s.keeper.IterateDeposits(sdkCtx, func(deposit types.Deposit) (stop bool) {
 			if deposit.Amount.AmountOf(req.Denom).IsPositive() {
 				deposits = append(deposits, deposit)
 			}
 			return false
 		})
 	default:
-		qs.keeper.IterateDeposits(sdkCtx, func(deposit types.Deposit) (stop bool) {
+		s.keeper.IterateDeposits(sdkCtx, func(deposit types.Deposit) (stop bool) {
 			deposits = append(deposits, deposit)
 			return false
 		})
@@ -218,7 +216,7 @@ func (qs QueryServer) UnsyncedDeposits(ctx context.Context, req *types.QueryUnsy
 	}, nil
 }
 
-func (qs QueryServer) Borrows(ctx context.Context, req *types.QueryBorrowsRequest) (*types.QueryBorrowsResponse, error) {
+func (s queryServer) Borrows(ctx context.Context, req *types.QueryBorrowsRequest) (*types.QueryBorrowsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -240,7 +238,7 @@ func (qs QueryServer) Borrows(ctx context.Context, req *types.QueryBorrowsReques
 	var borrows types.Borrows
 	switch {
 	case hasOwner && hasDenom:
-		borrow, found := qs.keeper.GetSyncedBorrow(sdkCtx, owner)
+		borrow, found := s.keeper.GetSyncedBorrow(sdkCtx, owner)
 		if found {
 			for _, coin := range borrow.Amount {
 				if coin.Denom == req.Denom {
@@ -249,19 +247,19 @@ func (qs QueryServer) Borrows(ctx context.Context, req *types.QueryBorrowsReques
 			}
 		}
 	case hasOwner:
-		borrow, found := qs.keeper.GetSyncedBorrow(sdkCtx, owner)
+		borrow, found := s.keeper.GetSyncedBorrow(sdkCtx, owner)
 		if found {
 			borrows = append(borrows, borrow)
 		}
 	case hasDenom:
-		qs.keeper.IterateBorrows(sdkCtx, func(borrow types.Borrow) (stop bool) {
+		s.keeper.IterateBorrows(sdkCtx, func(borrow types.Borrow) (stop bool) {
 			if borrow.Amount.AmountOf(req.Denom).IsPositive() {
 				borrows = append(borrows, borrow)
 			}
 			return false
 		})
 	default:
-		qs.keeper.IterateBorrows(sdkCtx, func(borrow types.Borrow) (stop bool) {
+		s.keeper.IterateBorrows(sdkCtx, func(borrow types.Borrow) (stop bool) {
 			borrows = append(borrows, borrow)
 			return false
 		})
@@ -278,7 +276,7 @@ func (qs QueryServer) Borrows(ctx context.Context, req *types.QueryBorrowsReques
 	// Otherwise we need to simulate syncing of each borrow
 	var syncedBorrows types.Borrows
 	for _, borrow := range borrows {
-		syncedBorrow, _ := qs.keeper.GetSyncedBorrow(sdkCtx, borrow.Borrower)
+		syncedBorrow, _ := s.keeper.GetSyncedBorrow(sdkCtx, borrow.Borrower)
 		syncedBorrows = append(syncedBorrows, syncedBorrow)
 	}
 
@@ -299,7 +297,7 @@ func (qs QueryServer) Borrows(ctx context.Context, req *types.QueryBorrowsReques
 	}, nil
 }
 
-func (qs QueryServer) UnsyncedBorrows(ctx context.Context, req *types.QueryUnsyncedBorrowsRequest) (*types.QueryUnsyncedBorrowsResponse, error) {
+func (s queryServer) UnsyncedBorrows(ctx context.Context, req *types.QueryUnsyncedBorrowsRequest) (*types.QueryUnsyncedBorrowsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -321,7 +319,7 @@ func (qs QueryServer) UnsyncedBorrows(ctx context.Context, req *types.QueryUnsyn
 	var borrows types.Borrows
 	switch {
 	case hasOwner && hasDenom:
-		borrow, found := qs.keeper.GetBorrow(sdkCtx, owner)
+		borrow, found := s.keeper.GetBorrow(sdkCtx, owner)
 		if found {
 			for _, coin := range borrow.Amount {
 				if coin.Denom == req.Denom {
@@ -330,19 +328,19 @@ func (qs QueryServer) UnsyncedBorrows(ctx context.Context, req *types.QueryUnsyn
 			}
 		}
 	case hasOwner:
-		borrow, found := qs.keeper.GetBorrow(sdkCtx, owner)
+		borrow, found := s.keeper.GetBorrow(sdkCtx, owner)
 		if found {
 			borrows = append(borrows, borrow)
 		}
 	case hasDenom:
-		qs.keeper.IterateBorrows(sdkCtx, func(borrow types.Borrow) (stop bool) {
+		s.keeper.IterateBorrows(sdkCtx, func(borrow types.Borrow) (stop bool) {
 			if borrow.Amount.AmountOf(req.Denom).IsPositive() {
 				borrows = append(borrows, borrow)
 			}
 			return false
 		})
 	default:
-		qs.keeper.IterateBorrows(sdkCtx, func(borrow types.Borrow) (stop bool) {
+		s.keeper.IterateBorrows(sdkCtx, func(borrow types.Borrow) (stop bool) {
 			borrows = append(borrows, borrow)
 			return false
 		})
@@ -366,14 +364,14 @@ func (qs QueryServer) UnsyncedBorrows(ctx context.Context, req *types.QueryUnsyn
 	}, nil
 }
 
-func (qs QueryServer) TotalBorrowed(ctx context.Context, req *types.QueryTotalBorrowedRequest) (*types.QueryTotalBorrowedResponse, error) {
+func (s queryServer) TotalBorrowed(ctx context.Context, req *types.QueryTotalBorrowedRequest) (*types.QueryTotalBorrowedResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	borrowedCoins, found := qs.keeper.GetBorrowedCoins(sdkCtx)
+	borrowedCoins, found := s.keeper.GetBorrowedCoins(sdkCtx)
 	if !found {
 		return nil, types.ErrBorrowedCoinsNotFound
 	}
@@ -388,14 +386,14 @@ func (qs QueryServer) TotalBorrowed(ctx context.Context, req *types.QueryTotalBo
 	}, nil
 }
 
-func (qs QueryServer) TotalDeposited(ctx context.Context, req *types.QueryTotalDepositedRequest) (*types.QueryTotalDepositedResponse, error) {
+func (s queryServer) TotalDeposited(ctx context.Context, req *types.QueryTotalDepositedRequest) (*types.QueryTotalDepositedResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	suppliedCoins, found := qs.keeper.GetSuppliedCoins(sdkCtx)
+	suppliedCoins, found := s.keeper.GetSuppliedCoins(sdkCtx)
 	if !found {
 		return nil, types.ErrSuppliedCoinsNotFound
 	}
@@ -410,7 +408,7 @@ func (qs QueryServer) TotalDeposited(ctx context.Context, req *types.QueryTotalD
 	}, nil
 }
 
-func (qs QueryServer) InterestRate(ctx context.Context, req *types.QueryInterestRateRequest) (*types.QueryInterestRateResponse, error) {
+func (s queryServer) InterestRate(ctx context.Context, req *types.QueryInterestRateRequest) (*types.QueryInterestRateResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -420,39 +418,39 @@ func (qs QueryServer) InterestRate(ctx context.Context, req *types.QueryInterest
 	var moneyMarketInterestRates types.MoneyMarketInterestRates
 	var moneyMarkets types.MoneyMarkets
 	if len(req.Denom) > 0 {
-		moneyMarket, found := qs.keeper.GetMoneyMarket(sdkCtx, req.Denom)
+		moneyMarket, found := s.keeper.GetMoneyMarket(sdkCtx, req.Denom)
 		if !found {
 			return nil, types.ErrMoneyMarketNotFound
 		}
 		moneyMarkets = append(moneyMarkets, moneyMarket)
 	} else {
-		moneyMarkets = qs.keeper.GetAllMoneyMarkets(sdkCtx)
+		moneyMarkets = s.keeper.GetAllMoneyMarkets(sdkCtx)
 	}
 
 	// Calculate the borrow and supply APY interest rates for each money market
 	for _, moneyMarket := range moneyMarkets {
 		denom := moneyMarket.Denom
-		macc := qs.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleName)
-		cash := qs.bankKeeper.GetBalance(sdkCtx, macc.GetAddress(), denom).Amount
+		macc := s.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleName)
+		cash := s.bankKeeper.GetBalance(sdkCtx, macc.GetAddress(), denom).Amount
 
 		borrowed := sdk.NewCoin(denom, sdk.ZeroInt())
-		borrowedCoins, foundBorrowedCoins := qs.keeper.GetBorrowedCoins(sdkCtx)
+		borrowedCoins, foundBorrowedCoins := s.keeper.GetBorrowedCoins(sdkCtx)
 		if foundBorrowedCoins {
 			borrowed = sdk.NewCoin(denom, borrowedCoins.AmountOf(denom))
 		}
 
-		reserves, foundReserves := qs.keeper.GetTotalReserves(sdkCtx)
+		reserves, foundReserves := s.keeper.GetTotalReserves(sdkCtx)
 		if !foundReserves {
 			reserves = sdk.NewCoins()
 		}
 
 		// CalculateBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has ien borrowed)
-		borrowAPY, err := keeper.CalculateBorrowRate(moneyMarket.InterestRateModel, sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
+		borrowAPY, err := CalculateBorrowRate(moneyMarket.InterestRateModel, sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
 		if err != nil {
 			return nil, err
 		}
 
-		utilRatio := keeper.CalculateUtilizationRatio(sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
+		utilRatio := CalculateUtilizationRatio(sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
 		fullSupplyAPY := borrowAPY.Mul(utilRatio)
 		realSupplyAPY := fullSupplyAPY.Mul(sdk.OneDec().Sub(moneyMarket.ReserveFactor))
 
@@ -470,14 +468,14 @@ func (qs QueryServer) InterestRate(ctx context.Context, req *types.QueryInterest
 	}, nil
 }
 
-func (qs QueryServer) Reserves(ctx context.Context, req *types.QueryReservesRequest) (*types.QueryReservesResponse, error) {
+func (s queryServer) Reserves(ctx context.Context, req *types.QueryReservesRequest) (*types.QueryReservesResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	reserveCoins, found := qs.keeper.GetTotalReserves(sdkCtx)
+	reserveCoins, found := s.keeper.GetTotalReserves(sdkCtx)
 	if !found {
 		reserveCoins = sdk.Coins{}
 	}
@@ -492,7 +490,7 @@ func (qs QueryServer) Reserves(ctx context.Context, req *types.QueryReservesRequ
 	}, nil
 }
 
-func (qs QueryServer) InterestFactors(ctx context.Context, req *types.QueryInterestFactorsRequest) (*types.QueryInterestFactorsResponse, error) {
+func (s queryServer) InterestFactors(ctx context.Context, req *types.QueryInterestFactorsRequest) (*types.QueryInterestFactorsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -504,11 +502,11 @@ func (qs QueryServer) InterestFactors(ctx context.Context, req *types.QueryInter
 		// Fetch supply/borrow interest factors for a single denom
 		interestFactor := types.InterestFactor{}
 		interestFactor.Denom = req.Denom
-		supplyInterestFactor, found := qs.keeper.GetSupplyInterestFactor(sdkCtx, req.Denom)
+		supplyInterestFactor, found := s.keeper.GetSupplyInterestFactor(sdkCtx, req.Denom)
 		if found {
 			interestFactor.SupplyInterestFactor = supplyInterestFactor.String()
 		}
-		borrowInterestFactor, found := qs.keeper.GetBorrowInterestFactor(sdkCtx, req.Denom)
+		borrowInterestFactor, found := s.keeper.GetBorrowInterestFactor(sdkCtx, req.Denom)
 		if found {
 			interestFactor.BorrowInterestFactor = borrowInterestFactor.String()
 		}
@@ -516,13 +514,13 @@ func (qs QueryServer) InterestFactors(ctx context.Context, req *types.QueryInter
 	} else {
 		interestFactorMap := make(map[string]types.InterestFactor)
 		// Populate mapping with supply interest factors
-		qs.keeper.IterateSupplyInterestFactors(sdkCtx, func(denom string, factor sdk.Dec) (stop bool) {
+		s.keeper.IterateSupplyInterestFactors(sdkCtx, func(denom string, factor sdk.Dec) (stop bool) {
 			interestFactor := types.InterestFactor{Denom: denom, SupplyInterestFactor: factor.String()}
 			interestFactorMap[denom] = interestFactor
 			return false
 		})
 		// Populate mapping with borrow interest factors
-		qs.keeper.IterateBorrowInterestFactors(sdkCtx, func(denom string, factor sdk.Dec) (stop bool) {
+		s.keeper.IterateBorrowInterestFactors(sdkCtx, func(denom string, factor sdk.Dec) (stop bool) {
 			interestFactor, ok := interestFactorMap[denom]
 			if !ok {
 				newInterestFactor := types.InterestFactor{Denom: denom, BorrowInterestFactor: factor.String()}

@@ -256,3 +256,15 @@ func (k Keeper) updateDepositorShares(ctx sdk.Context, owner sdk.AccAddress, poo
 		k.SetDepositorShares(ctx, shareRecord)
 	}
 }
+
+func (k Keeper) loadDenominatedPool(ctx sdk.Context, poolID string) (*types.DenominatedPool, error) {
+	poolRecord, found := k.GetPool(ctx, poolID)
+	if !found {
+		return &types.DenominatedPool{}, types.ErrInvalidPool
+	}
+	denominatedPool, err := types.NewDenominatedPoolWithExistingShares(poolRecord.Reserves(), poolRecord.TotalShares)
+	if err != nil {
+		return &types.DenominatedPool{}, types.ErrInvalidPool
+	}
+	return denominatedPool, nil
+}
