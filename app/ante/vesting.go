@@ -18,7 +18,6 @@ func (vad VestingAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	for _, msg := range msgs {
 		_, ok := msg.(*vesting.MsgCreateVestingAccount)
 		if ok {
-			// return ctx, fmt.Errorf("MsgCreateVestingAccount not supported")
 			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "MsgCreateVestingAccount not supported")
 
 		}
