@@ -14,13 +14,11 @@ func NewVestingAccountDecorator() VestingAccountDecorator {
 }
 
 func (vad VestingAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	msgs := tx.GetMsgs()
-	for _, msg := range msgs {
-		_, ok := msg.(*vesting.MsgCreateVestingAccount)
-		if ok {
+	for _, msg := range tx.GetMsgs() {
+		if _, ok := msg.(*vesting.MsgCreateVestingAccount); ok {
 			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "MsgCreateVestingAccount not supported")
-
 		}
 	}
+
 	return next(ctx, tx, simulate)
 }
