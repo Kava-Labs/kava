@@ -13,6 +13,7 @@ import (
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	types "github.com/kava-labs/kava/x/committee/types"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 type ParamsChangeTestSuite struct {
@@ -531,13 +532,302 @@ func (s *ParamsChangeTestSuite) TestMultiSubparams_CdpCollateralParams() {
 	}
 }
 
-// Test fail when param change value is invalid json
-// Test fail when param change value is invalid array json
-// Test fail if bad existing data in subspace
-// Test success if permissions does not contain any changes
-// succeeds if one AllowedParamsChange is allowed and the other is not
-// succeeds if changing non cdp subspace data
-// fails if proposal has no corresponding allowed param changes in the permission
+func (s *ParamsChangeTestSuite) TestAllowedParamsChange_InvalidJSON() {
+	subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
+	s.Require().True(found)
+	subspace.Set(s.ctx, cdptypes.KeyDebtParam, s.cdpDebtParam)
+
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{{
+			Subspace:                   cdptypes.ModuleName,
+			Key:                        string(cdptypes.KeyDebtParam),
+			SingleSubparamAllowedAttrs: []string{"denom", "reference_asset", "conversion_factor", "debt_floor"},
+		}},
+	}
+	proposal := paramsproposal.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		[]paramsproposal.ParamChange{
+			{
+				Subspace: "cdp",
+				Key:      "DebtParam",
+				Value:    `{badjson}`,
+			},
+		},
+	)
+	s.Require().Equal(
+		false,
+		permission.Allows(s.ctx, s.pk, proposal),
+	)
+}
+
+func (s *ParamsChangeTestSuite) TestAllowedParamsChange_InvalidJSONArray() {
+	subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
+	s.Require().True(found)
+	subspace.Set(s.ctx, cdptypes.KeyCollateralParams, s.cdpCollateralParams)
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{{
+			Subspace:                   cdptypes.ModuleName,
+			Key:                        string(cdptypes.KeyCollateralParams),
+			MultiSubparamsRequirements: s.cdpCollateralRequirements,
+		}},
+	}
+	proposal := paramsproposal.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		[]paramsproposal.ParamChange{
+			{
+				Subspace: "cdp",
+				Key:      string(cdptypes.KeyCollateralParams),
+				Value:    `[badjson]`,
+			},
+		},
+	)
+	s.Require().Equal(
+		false,
+		permission.Allows(s.ctx, s.pk, proposal),
+	)
+}
+
+func (s *ParamsChangeTestSuite) TestAllowedParamsChange_NoSubspaceData() {
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{{
+			Subspace:                   cdptypes.ModuleName,
+			Key:                        string(cdptypes.KeyDebtParam),
+			SingleSubparamAllowedAttrs: []string{"denom"},
+		}},
+	}
+	proposal := paramsproposal.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		[]paramsproposal.ParamChange{{
+			Subspace: cdptypes.ModuleName,
+			Key:      string(cdptypes.KeyDebtParam),
+			Value:    `{}`,
+		}},
+	)
+	s.Require().Panics(func() {
+		permission.Allows(s.ctx, s.pk, proposal)
+	})
+}
+
+func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoAllowedChanged() {
+	permission := types.ParamsChangePermission{}
+	proposal := paramsproposal.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		[]paramsproposal.ParamChange{
+			{
+				Key:      string(cdptypes.KeyDebtParam),
+				Subspace: cdptypes.ModuleName,
+				Value:    `{}`,
+			},
+		},
+	)
+	s.Require().False(permission.Allows(s.ctx, s.pk, proposal))
+}
+
+func (s *ParamsChangeTestSuite) TestParamsChangePermission_PassWhenOneAllowed() {
+	subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
+	s.Require().True(found)
+	subspace.Set(s.ctx, cdptypes.KeyDebtParam, s.cdpDebtParam)
+
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{
+			{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyDebtParam),
+				SingleSubparamAllowedAttrs: []string{"denom"},
+			},
+			{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyDebtParam),
+				SingleSubparamAllowedAttrs: []string{"reference_asset"},
+			},
+		},
+	}
+	proposal := paramsproposal.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		// test success if one AllowedParamsChange is allowed and the other is not
+		[]paramsproposal.ParamChange{
+			{
+				Key:      string(cdptypes.KeyDebtParam),
+				Subspace: cdptypes.ModuleName,
+				Value: `{
+					"denom": "usdx",
+					"reference_asset": "usd2",
+					"conversion_factor": "6",
+					"debt_floor": "1000"
+				}`,
+			},
+		},
+	)
+	s.Require().True(permission.Allows(s.ctx, s.pk, proposal))
+}
+
+// Test subparam value with slice data unchanged comparision
+func (s *ParamsChangeTestSuite) TestParamsChangePermission_SliceSubparamComparision() {
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{{
+			Subspace: pricefeedtypes.ModuleName,
+			Key:      string(pricefeedtypes.KeyMarkets),
+			MultiSubparamsRequirements: []types.SubparamRequirement{
+				{
+					Key:                        "market_id",
+					Val:                        "xrp:usd",
+					AllowedSubparamAttrChanges: []string{"quote_asset", "oracles"},
+				},
+				{
+					Key:                        "market_id",
+					Val:                        "btc:usd",
+					AllowedSubparamAttrChanges: []string{"active"},
+				},
+			},
+		}},
+	}
+	_, oracles := app.GeneratePrivKeyAddressPairs(5)
+
+	testcases := []struct {
+		name     string
+		expected bool
+		value    string
+	}{
+		{
+			name:     "success changing allowed attrs",
+			expected: true,
+			value: fmt.Sprintf(`[{
+				"market_id": "xrp:usd",
+				"base_asset": "xrp",
+				"quote_asset": "usdx",
+				"oracles": [],
+				"active": true
+			},
+			{
+				"market_id": "btc:usd",
+				"base_asset": "btc",
+				"quote_asset": "usd",
+				"oracles": ["%s"],
+				"active": false
+			}]`, oracles[1].String()),
+		},
+		{
+			name:     "fails when changing not allowed attr (oracles)",
+			expected: false,
+			value: fmt.Sprintf(`[{
+				"market_id": "xrp:usd",
+				"base_asset": "xrp",
+				"quote_asset": "usdx",
+				"oracles": ["%s"],
+				"active": true
+			},
+			{
+				"market_id": "btc:usd",
+				"base_asset": "btc",
+				"quote_asset": "usd",
+				"oracles": ["%s"],
+				"active": false
+			}]`, oracles[0].String(), oracles[2].String()),
+		},
+	}
+	for _, tc := range testcases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			subspace, found := s.pk.GetSubspace(pricefeedtypes.ModuleName)
+			s.Require().True(found)
+			currentMs := pricefeedtypes.Markets{
+				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracles[0]}, Active: true},
+				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracles[1]}, Active: true},
+			}
+			subspace.Set(s.ctx, pricefeedtypes.KeyMarkets, &currentMs)
+
+			proposal := paramsproposal.NewParameterChangeProposal(
+				"A Title",
+				"A description of this proposal.",
+				[]paramsproposal.ParamChange{{
+					Subspace: pricefeedtypes.ModuleName,
+					Key:      string(pricefeedtypes.KeyMarkets),
+					Value:    tc.value,
+				}},
+			)
+			s.Require().Equal(
+				tc.expected,
+				permission.Allows(s.ctx, s.pk, proposal),
+			)
+		})
+	}
+}
+
+func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoSubparamRequirements() {
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{{
+			Subspace: cdptypes.ModuleName,
+			Key:      string(cdptypes.KeySurplusThreshold),
+		}},
+	}
+
+	testcases := []struct {
+		name     string
+		expected bool
+		changes  []paramsproposal.ParamChange
+	}{
+		{
+			name:     "success when changing allowed params",
+			expected: true,
+			changes: []paramsproposal.ParamChange{{
+				Subspace: cdptypes.ModuleName,
+				Key:      string(cdptypes.KeySurplusThreshold),
+				Value:    sdk.NewInt(120).String(),
+			}},
+		},
+		{
+			name:     "fail when changing not allowed params",
+			expected: false,
+			changes: []paramsproposal.ParamChange{{
+				Subspace: cdptypes.ModuleName,
+				Key:      string(cdptypes.KeySurplusLot),
+				Value:    sdk.NewInt(120).String(),
+			}},
+		},
+		{
+			name:     "fail if one change is not allowed",
+			expected: false,
+			changes: []paramsproposal.ParamChange{{
+				Subspace: cdptypes.ModuleName,
+				Key:      string(cdptypes.KeySurplusThreshold),
+				Value:    sdk.NewInt(120).String(),
+			},
+				{
+					Subspace: cdptypes.ModuleName,
+					Key:      string(cdptypes.KeySurplusLot),
+					Value:    sdk.NewInt(120).String(),
+				}},
+		},
+	}
+
+	for _, tc := range testcases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
+			s.Require().True(found)
+			subspace.Set(s.ctx, cdptypes.KeySurplusThreshold, sdk.NewInt(100))
+			subspace.Set(s.ctx, cdptypes.KeySurplusLot, sdk.NewInt(110))
+
+			proposal := paramsproposal.NewParameterChangeProposal(
+				"A Title",
+				"A description of this proposal.",
+				tc.changes,
+			)
+			s.Require().Equal(
+				tc.expected,
+				permission.Allows(s.ctx, s.pk, proposal),
+			)
+		})
+	}
+}
+
 func TestParamsChangeTestSuite(t *testing.T) {
 	suite.Run(t, new(ParamsChangeTestSuite))
 }

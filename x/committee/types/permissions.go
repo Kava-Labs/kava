@@ -192,24 +192,8 @@ func validateParamChangesAreAllowed(current SubparamChanges, incoming SubparamCh
 		}
 
 		// if not allowed, incoming value needs to be the same, or it is rejected
-		if !isAllowed {
-			// since we cannot compare maps directly, we need to convert them to json first.
-			// this should be fine since the data we are marshalling here should always be pretty small.
-			if reflect.TypeOf(v).Kind() == reflect.Map {
-				data, err := json.Marshal(v)
-				if err != nil {
-					return false
-				}
-				data2, err := json.Marshal(incoming[k])
-				if err != nil {
-					return false
-				}
-				if string(data) != string(data2) {
-					return false
-				}
-			} else if v != incoming[k] {
-				return false
-			}
+		if !isAllowed && !reflect.DeepEqual(v, incoming[k]) {
+			return false
 		}
 	}
 
@@ -232,8 +216,14 @@ func (allowed AllowedParamsChange) allowsParamChange(ctx sdk.Context, paramsChan
 		return true
 	}
 
-	// Check if param value is an array before unmarshalling to corresponding types
-	tdata := strings.TrimLeft(paramsChange.Value, "\t\r\n")
+	subspace, found := pk.GetSubspace(paramsChange.Subspace)
+	if !found {
+		return false
+	}
+	currentRaw := subspace.GetRaw(ctx, []byte(paramsChange.Key))
+
+	// Check if current param value is an array before unmarshalling to corresponding types
+	tdata := strings.TrimLeft(string(currentRaw), "\t\r\n")
 	isArray := len(tdata) > 0 && tdata[0] == '['
 
 	// Handle multi param value validation
@@ -244,12 +234,7 @@ func (allowed AllowedParamsChange) allowsParamChange(ctx sdk.Context, paramsChan
 		}
 
 		var currentValue MultiSubparamChanges
-		subspace, found := pk.GetSubspace(paramsChange.Subspace)
-		if !found {
-			return false
-		}
-		raw := subspace.GetRaw(ctx, []byte(paramsChange.Key))
-		if err := json.Unmarshal(raw, &currentValue); err != nil {
+		if err := json.Unmarshal(currentRaw, &currentValue); err != nil {
 			panic(err)
 		}
 
@@ -263,12 +248,7 @@ func (allowed AllowedParamsChange) allowsParamChange(ctx sdk.Context, paramsChan
 	}
 
 	var currentValue SubparamChanges
-	subspace, found := pk.GetSubspace(paramsChange.Subspace)
-	if !found {
-		return false
-	}
-	raw := subspace.GetRaw(ctx, []byte(paramsChange.Key))
-	if err := json.Unmarshal(raw, &currentValue); err != nil {
+	if err := json.Unmarshal(currentRaw, &currentValue); err != nil {
 		panic(err)
 	}
 
