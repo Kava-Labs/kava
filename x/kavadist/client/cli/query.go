@@ -48,7 +48,7 @@ func queryParamsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return cliCtx.PrintProto(res)
+			return cliCtx.PrintProto(&res.Params)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
