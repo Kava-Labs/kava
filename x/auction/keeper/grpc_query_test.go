@@ -123,7 +123,7 @@ func TestGrpcAuctionsFilter(t *testing.T) {
 
 			var unpackedAuctions []types.Auction
 
-			for _, anyAuction := range res.Auction {
+			for _, anyAuction := range res.Auctions {
 				var auction types.Auction
 				err := tApp.AppCodec().UnpackAny(anyAuction, &auction)
 				require.NoError(t, err)

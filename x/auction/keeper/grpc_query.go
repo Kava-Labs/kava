@@ -124,7 +124,7 @@ func (s queryServer) Auctions(c context.Context, req *types.QueryAuctionsRequest
 	}
 
 	return &types.QueryAuctionsResponse{
-		Auction:    auctions,
+		Auctions:   auctions,
 		Pagination: pageRes,
 	}, nil
 }
