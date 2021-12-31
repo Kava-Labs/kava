@@ -88,14 +88,24 @@ func NewPricefeedGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 		Params: pricefeedtypes.Params{
 			Markets: []pricefeedtypes.Market{
 				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "btc:usd:30", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "xrp:usd:30", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "bnb:usd:30", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "busd:usd", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "busd:usd:30", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeedtypes.PostedPrice{
 			{
 				MarketID:      "btc:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("8000.00"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
+			{
+				MarketID:      "btc:usd:30",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("8000.00"),
 				Expiry:        time.Now().Add(1 * time.Hour),
@@ -107,7 +117,19 @@ func NewPricefeedGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			{
+				MarketID:      "xrp:usd:30",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("0.25"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
+			{
 				MarketID:      "bnb:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("17.25"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
+			{
+				MarketID:      "bnb:usd:30",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("17.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),
@@ -118,10 +140,17 @@ func NewPricefeedGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 				Price:         sdk.OneDec(),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
+			{
+				MarketID:      "busd:usd:30",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.OneDec(),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
 		},
 	}
 	return app.GenesisState{pricefeedtypes.ModuleName: cdc.MustMarshalJSON(&pfGenesis)}
 }
+
 func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 	cdpGenesis := types.GenesisState{
 		Params: types.Params{
@@ -140,7 +169,7 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(7000000000),
 					SpotMarketID:                     "xrp:usd",
-					LiquidationMarketID:              "xrp:usd",
+					LiquidationMarketID:              "xrp:usd:30",
 					KeeperRewardPercentage:           d("0.01"),
 					CheckCollateralizationIndexCount: i(10),
 					ConversionFactor:                 i(6),
@@ -154,7 +183,7 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					LiquidationPenalty:               d("0.025"),
 					AuctionSize:                      i(10000000),
 					SpotMarketID:                     "btc:usd",
-					LiquidationMarketID:              "btc:usd",
+					LiquidationMarketID:              "btc:usd:30",
 					KeeperRewardPercentage:           d("0.01"),
 					CheckCollateralizationIndexCount: i(10),
 					ConversionFactor:                 i(8),
@@ -168,7 +197,7 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(50000000000),
 					SpotMarketID:                     "bnb:usd",
-					LiquidationMarketID:              "bnb:usd",
+					LiquidationMarketID:              "bnb:usd:30",
 					KeeperRewardPercentage:           d("0.01"),
 					CheckCollateralizationIndexCount: i(10),
 					ConversionFactor:                 i(8),
@@ -182,7 +211,7 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(10000000000),
 					SpotMarketID:                     "busd:usd",
-					LiquidationMarketID:              "busd:usd",
+					LiquidationMarketID:              "busd:usd:30",
 					KeeperRewardPercentage:           d("0.01"),
 					CheckCollateralizationIndexCount: i(10),
 					ConversionFactor:                 i(8),
