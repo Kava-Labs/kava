@@ -20,32 +20,34 @@ type queryServer struct {
 	keeper Keeper
 }
 
-// NewQueryServer creates a new server for handling gRPC queries.
-func NewQueryServer(k Keeper) types.QueryServer {
+// NewQueryServerImpl creates a new server for handling gRPC queries.
+func NewQueryServerImpl(k Keeper) types.QueryServer {
 	return &queryServer{keeper: k}
 }
 
+var _ types.QueryServer = queryServer{}
+
 // Params implements the gRPC service handler for querying x/auction parameters.
-func (q *queryServer) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (s queryServer) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	params := q.keeper.GetParams(sdkCtx)
+	params := s.keeper.GetParams(sdkCtx)
 
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
 // Auction implements the Query/Auction gRPC method
-func (q *queryServer) Auction(c context.Context, req *types.QueryAuctionRequest) (*types.QueryAuctionResponse, error) {
+func (s queryServer) Auction(c context.Context, req *types.QueryAuctionRequest) (*types.QueryAuctionResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	auction, found := q.keeper.GetAuction(ctx, req.AuctionId)
+	auction, found := s.keeper.GetAuction(ctx, req.AuctionId)
 	if !found {
 		return &types.QueryAuctionResponse{}, nil
 	}
@@ -66,51 +68,75 @@ func (q *queryServer) Auction(c context.Context, req *types.QueryAuctionRequest)
 }
 
 // Auctions implements the Query/Auctions gRPC method
-func (q *queryServer) Auctions(c context.Context, req *types.QueryAuctionsRequest) (*types.QueryAuctionsResponse, error) {
+func (s queryServer) Auctions(c context.Context, req *types.QueryAuctionsRequest) (*types.QueryAuctionsResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var auctions []*codectypes.Any
-	auctionStore := prefix.NewStore(ctx.KVStore(q.keeper.storeKey), types.AuctionKeyPrefix)
+	auctionStore := prefix.NewStore(ctx.KVStore(s.keeper.storeKey), types.AuctionKeyPrefix)
 
-	pageRes, err := query.Paginate(auctionStore, req.Pagination, func(key []byte, value []byte) error {
-		result, err := q.keeper.UnmarshalAuction(value)
+	pageRes, err := query.FilteredPaginate(auctionStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		result, err := s.keeper.UnmarshalAuction(value)
 		if err != nil {
-			return err
+			return false, err
 		}
 
-		msg, ok := result.(proto.Message)
-		if !ok {
-			return status.Errorf(codes.Internal, "can't protomarshal %T", msg)
+		// True if empty owner, otherwise check if auction contains owner
+		ownerIsMatch := req.Owner == ""
+		if req.Owner != "" {
+			if cAuc, ok := result.(*types.CollateralAuction); ok {
+				for _, addr := range cAuc.GetLotReturns().Addresses {
+					if addr.String() == req.Owner {
+						ownerIsMatch = true
+						break
+					}
+				}
+			}
 		}
 
-		auctionAny, err := codectypes.NewAnyWithValue(msg)
-		if err != nil {
-			return err
+		phaseIsMatch := req.Phase == "" || req.Phase == result.GetPhase()
+		typeIsMatch := req.Type == "" || req.Type == result.GetType()
+		denomIsMatch := req.Denom == "" || req.Denom == result.GetBid().Denom || req.Denom == result.GetLot().Denom
+
+		if ownerIsMatch && phaseIsMatch && typeIsMatch && denomIsMatch {
+			if accumulate {
+				msg, ok := result.(proto.Message)
+				if !ok {
+					return false, status.Errorf(codes.Internal, "can't protomarshal %T", msg)
+				}
+
+				auctionAny, err := codectypes.NewAnyWithValue(msg)
+				if err != nil {
+					return false, err
+				}
+				auctions = append(auctions, auctionAny)
+			}
+
+			return true, nil
 		}
-		auctions = append(auctions, auctionAny)
-		return nil
+
+		return false, nil
 	})
 	if err != nil {
 		return &types.QueryAuctionsResponse{}, err
 	}
 
 	return &types.QueryAuctionsResponse{
-		Auction:    auctions,
+		Auctions:   auctions,
 		Pagination: pageRes,
 	}, nil
 }
 
 // NextAuctionID implements the gRPC service handler for querying x/auction next auction ID.
-func (q *queryServer) NextAuctionID(ctx context.Context, req *types.QueryNextAuctionIDRequest) (*types.QueryNextAuctionIDResponse, error) {
+func (s queryServer) NextAuctionID(ctx context.Context, req *types.QueryNextAuctionIDRequest) (*types.QueryNextAuctionIDResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	nextAuctionID, err := q.keeper.GetNextAuctionID(sdkCtx)
+	nextAuctionID, err := s.keeper.GetNextAuctionID(sdkCtx)
 	if err != nil {
 		return &types.QueryNextAuctionIDResponse{}, err
 	}

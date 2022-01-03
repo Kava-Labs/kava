@@ -1,4 +1,4 @@
-package committee_test
+package keeper_test
 
 import (
 	"testing"
@@ -9,29 +9,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	proposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/gogo/protobuf/proto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
-
-var _ types.PubProposal = &UnregisteredPubProposal{}
-
-// UnregisteredPubProposal is a pubproposal type that is not registered on the amino codec.
-type UnregisteredPubProposal struct {
-	proto.Message
-}
-
-func (*UnregisteredPubProposal) GetTitle() string       { return "unregistered" }
-func (*UnregisteredPubProposal) GetDescription() string { return "unregistered" }
-func (*UnregisteredPubProposal) ProposalRoute() string  { return "unregistered" }
-func (*UnregisteredPubProposal) ProposalType() string   { return "unregistered" }
-func (*UnregisteredPubProposal) ValidateBasic() error   { return nil }
-func (*UnregisteredPubProposal) String() string         { return "unregistered" }
 
 //NewDistributionGenesisWithPool creates a default distribution genesis state with some coins in the community pool.
 //func NewDistributionGenesisWithPool(communityPoolCoins sdk.Coins) app.GenesisState {
@@ -56,7 +40,7 @@ func (suite *MsgServerTestSuite) SetupTest() {
 	_, suite.addresses = app.GeneratePrivKeyAddressPairs(5)
 	suite.app = app.NewTestApp()
 	suite.keeper = suite.app.GetCommitteeKeeper()
-	suite.msgServer = committee.NewMsgServerImpl(suite.keeper)
+	suite.msgServer = keeper.NewMsgServerImpl(suite.keeper)
 	encodingCfg := app.MakeEncodingConfig()
 	cdc := encodingCfg.Marshaler
 

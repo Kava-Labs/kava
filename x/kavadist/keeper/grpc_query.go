@@ -8,18 +8,27 @@ import (
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
-var _ types.QueryServer = Keeper{}
+type queryServer struct {
+	keeper Keeper
+}
 
-func (k Keeper) Balance(ctx context.Context, req *types.QueryBalanceRequest) (*types.QueryBalanceResponse, error) {
+// NewQueryServerImpl creates a new server for handling gRPC queries.
+func NewQueryServerImpl(k Keeper) types.QueryServer {
+	return &queryServer{keeper: k}
+}
+
+var _ types.QueryServer = queryServer{}
+
+func (s queryServer) Balance(ctx context.Context, req *types.QueryBalanceRequest) (*types.QueryBalanceResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	acc := k.accountKeeper.GetModuleAccount(sdkCtx, types.KavaDistMacc)
-	balance := k.bankKeeper.GetAllBalances(sdkCtx, acc.GetAddress())
+	acc := s.keeper.accountKeeper.GetModuleAccount(sdkCtx, types.KavaDistMacc)
+	balance := s.keeper.bankKeeper.GetAllBalances(sdkCtx, acc.GetAddress())
 	return &types.QueryBalanceResponse{Coins: balance}, nil
 }
 
-func (k Keeper) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (s queryServer) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	params := k.GetParams(sdkCtx)
+	params := s.keeper.GetParams(sdkCtx)
 
 	return &types.QueryParamsResponse{Params: params}, nil
 }

@@ -620,7 +620,7 @@ QueryAuctionsResponse is the response type for the Query/Auctions RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `auction` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `auctions` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
 
 

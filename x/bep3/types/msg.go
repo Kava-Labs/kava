@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -32,8 +33,6 @@ var (
 	_                      sdk.Msg = &MsgClaimAtomicSwap{}
 	_                      sdk.Msg = &MsgRefundAtomicSwap{}
 	AtomicSwapCoinsAccAddr         = sdk.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
-	// kava prefix address:  [INSERT BEP3-DEPUTY ADDRESS]
-	// tkava prefix address: [INSERT BEP3-DEPUTY ADDRESS]
 )
 
 // NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
@@ -72,7 +71,10 @@ func (msg MsgCreateAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) GetSigners() []sdk.AccAddress {
-	from, _ := sdk.AccAddressFromBech32(msg.From)
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{from}
 }
 
@@ -101,7 +103,11 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 	if len(msg.SenderOtherChain) > MaxOtherChainAddrLength {
 		return fmt.Errorf("the length of sender address on other chain should be less than %d", MaxOtherChainAddrLength)
 	}
-	if len(msg.RandomNumberHash) != RandomNumberHashLength {
+	randomNumberHash, err := hex.DecodeString(msg.RandomNumberHash)
+	if err != nil {
+		return fmt.Errorf("random number hash should be valid hex: %v", err)
+	}
+	if len(randomNumberHash) != RandomNumberHashLength {
 		return fmt.Errorf("the length of random number hash should be %d", RandomNumberHashLength)
 	}
 	if msg.Timestamp <= 0 {
@@ -152,7 +158,10 @@ func (msg MsgClaimAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) GetSigners() []sdk.AccAddress {
-	from, _ := sdk.AccAddressFromBech32(msg.From)
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{from}
 }
 
@@ -206,7 +215,10 @@ func (msg MsgRefundAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) GetSigners() []sdk.AccAddress {
-	from, _ := sdk.AccAddressFromBech32(msg.From)
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{from}
 }
 

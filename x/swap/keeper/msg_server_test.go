@@ -1,11 +1,11 @@
-package swap_test
+package keeper_test
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/kava-labs/kava/x/swap"
+	"github.com/kava-labs/kava/x/swap/keeper"
 	"github.com/kava-labs/kava/x/swap/testutil"
 	"github.com/kava-labs/kava/x/swap/types"
 	"github.com/stretchr/testify/suite"
@@ -26,7 +26,7 @@ type msgServerTestSuite struct {
 
 func (suite *msgServerTestSuite) SetupTest() {
 	suite.Suite.SetupTest()
-	suite.msgServer = swap.NewMsgServerImpl(suite.Keeper)
+	suite.msgServer = keeper.NewMsgServerImpl(suite.Keeper)
 }
 
 func (suite *msgServerTestSuite) TestDeposit_CreatePool() {

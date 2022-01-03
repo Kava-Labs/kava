@@ -45,6 +45,7 @@ func NewAnteHandler(
 	}
 	decorators = append(decorators,
 		ante.NewMempoolFeeDecorator(),
+		NewVestingAccountDecorator(),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(accountKeeper),

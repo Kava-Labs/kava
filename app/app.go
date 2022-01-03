@@ -592,30 +592,36 @@ func NewApp(
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 	)
 
-	// During begin block slashing happens after distr.BeginBlocker so that
-	// there is nothing left over in the validator fee pool, so as to keep the
-	// CanWithdrawInvariant invariant.
-	// Auction.BeginBlocker will close out expired auctions and pay debt back to cdp.
-	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
+	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
+		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
+		// Capability begin blocker runs non state changing initialization.
 		capabilitytypes.ModuleName,
+		// Committee begin blocker changes module params by enacting proposals.
+		// Run before to ensure params are updated together before state changes.
+		committeetypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
+		// During begin block slashing happens after distr.BeginBlocker so that
+		// there is nothing left over in the validator fee pool, so as to keep the
+		// CanWithdrawInvariant invariant.
 		slashingtypes.ModuleName,
-		evidencetypes.ModuleName, // TODO why new evidence and staking begin blockers?
+		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		kavadisttypes.ModuleName,
+		// Auction begin blocker will close out expired auctions and pay debt back to cdp.
+		// It should be run before cdp begin blocker which cancels out debt with stable and starts more auctions.
 		auctiontypes.ModuleName,
-		issuancetypes.ModuleName,
-		bep3types.ModuleName,
 		cdptypes.ModuleName,
+		bep3types.ModuleName,
 		hardtypes.ModuleName,
-		committeetypes.ModuleName,
+		issuancetypes.ModuleName,
 		incentivetypes.ModuleName,
 		ibchost.ModuleName,
 	)
 
+	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
@@ -623,31 +629,31 @@ func NewApp(
 		pricefeedtypes.ModuleName,
 	)
 
-	app.mm.SetOrderInitGenesis( // TODO why the different order?
-		capabilitytypes.ModuleName,
-		authtypes.ModuleName, // loads all accounts - should run before any module with a module account
+	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
+	app.mm.SetOrderInitGenesis(
+		capabilitytypes.ModuleName, // initialize capabilities, run before any module creating or claiming capabilities in InitGenesis
+		authtypes.ModuleName,       // loads all accounts, run before any module with a module account
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
-		slashingtypes.ModuleName,
+		slashingtypes.ModuleName, // iterates over validators, run after staking
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		ibchost.ModuleName,
-		genutiltypes.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		auctiontypes.ModuleName,
 		kavadisttypes.ModuleName,
 		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
 		bep3types.ModuleName,
 		pricefeedtypes.ModuleName,
 		swaptypes.ModuleName,
-		cdptypes.ModuleName,
+		cdptypes.ModuleName, // reads market prices, so must run after pricefeed genesis
 		hardtypes.ModuleName,
-		incentivetypes.ModuleName,
+		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
-		crisistypes.ModuleName, // runs the invariants at genesis - should run after other modules
+		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
+		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

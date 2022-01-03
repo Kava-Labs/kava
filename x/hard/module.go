@@ -138,8 +138,8 @@ func (AppModule) QuerierRoute() string {
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), NewQueryServerImpl(am.keeper, am.accountKeeper, am.bankKeeper))
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper, am.accountKeeper, am.bankKeeper))
 }
 
 // InitGenesis performs genesis initialization for the hard module. It returns

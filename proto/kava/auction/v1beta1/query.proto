@@ -69,7 +69,7 @@ message QueryAuctionsRequest {
 
 // QueryAuctionsResponse is the response type for the Query/Auctions RPC method.
 message QueryAuctionsResponse {
-  repeated google.protobuf.Any auction = 1;
+  repeated google.protobuf.Any auctions = 1;
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
