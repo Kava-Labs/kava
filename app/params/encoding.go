@@ -16,7 +16,7 @@ type EncodingConfig struct {
 	Amino             *codec.LegacyAmino
 }
 
-// MakeEncodingConfig creates an EncodingConfig for an amino based test configuration. // TODO description
+// MakeEncodingConfig creates a new EncodingConfig.
 func MakeEncodingConfig() EncodingConfig {
 	amino := codec.NewLegacyAmino()
 	interfaceRegistry := types.NewInterfaceRegistry()

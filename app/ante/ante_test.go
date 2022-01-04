@@ -15,6 +15,7 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
+	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
@@ -22,8 +23,8 @@ func TestAppAnteHandler(t *testing.T) {
 	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(10)
 	unauthed := testAddresses[0:2]
 	unauthedKeys := testPrivKeys[0:2]
-	// deputy := testAddresses[2]
-	// deputyKey := testPrivKeys[2]
+	deputy := testAddresses[2]
+	deputyKey := testPrivKeys[2]
 	oracles := testAddresses[3:6]
 	oraclesKeys := testPrivKeys[3:6]
 	manual := testAddresses[6:]
@@ -53,8 +54,7 @@ func TestAppAnteHandler(t *testing.T) {
 			sdk.NewCoins(sdk.NewInt64Coin("ukava", 1e9)),
 			testAddresses,
 		),
-		// TODO see below
-		// newBep3GenStateMulti(tApp.AppCodec(), deputy),
+		newBep3GenStateMulti(tApp.AppCodec(), deputy),
 		newPricefeedGenStateMulti(tApp.AppCodec(), oracles),
 	)
 
@@ -76,13 +76,12 @@ func TestAppAnteHandler(t *testing.T) {
 			privKey:    oraclesKeys[1],
 			expectPass: true,
 		},
-		// TODO add back when the bep3 module is reinstantiated
-		// {
-		// 	name:       "deputy",
-		// 	address:    deputy,
-		// 	privKey:    deputyKey,
-		// 	expectPass: true,
-		// },
+		{
+			name:       "deputy",
+			address:    deputy,
+			privKey:    deputyKey,
+			expectPass: true,
+		},
 		{
 			name:       "manual",
 			address:    manual[1],
@@ -129,8 +128,6 @@ func TestAppAnteHandler(t *testing.T) {
 	}
 }
 
-// TODO Test pricefeed oracles and bep3 deputy txs can always get into the mempool.
-
 func newPricefeedGenStateMulti(cdc codec.JSONCodec, oracles []sdk.AccAddress) app.GenesisState {
 	pfGenesis := pricefeedtypes.GenesisState{
 		Params: pricefeedtypes.Params{
@@ -142,39 +139,39 @@ func newPricefeedGenStateMulti(cdc codec.JSONCodec, oracles []sdk.AccAddress) ap
 	return app.GenesisState{pricefeedtypes.ModuleName: cdc.MustMarshalJSON(&pfGenesis)}
 }
 
-// func newBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app.GenesisState {
-// 	bep3Genesis := bep3.GenesisState{
-// 		Params: bep3.Params{
-// 			AssetParams: bep3.AssetParams{
-// 				bep3.AssetParam{
-// 					Denom:  "bnb",
-// 					CoinID: 714,
-// 					SupplyLimit: bep3.SupplyLimit{
-// 						Limit:          sdk.NewInt(350000000000000),
-// 						TimeLimited:    false,
-// 						TimeBasedLimit: sdk.ZeroInt(),
-// 						TimePeriod:     time.Hour,
-// 					},
-// 					Active:        true,
-// 					DeputyAddress: deputyAddress,
-// 					FixedFee:      sdk.NewInt(1000),
-// 					MinSwapAmount: sdk.OneInt(),
-// 					MaxSwapAmount: sdk.NewInt(1000000000000),
-// 					MinBlockLock:  bep3.DefaultMinBlockLock,
-// 					MaxBlockLock:  bep3.DefaultMaxBlockLock,
-// 				},
-// 			},
-// 		},
-// 		Supplies: bep3.AssetSupplies{
-// 			bep3.NewAssetSupply(
-// 				sdk.NewCoin("bnb", sdk.ZeroInt()),
-// 				sdk.NewCoin("bnb", sdk.ZeroInt()),
-// 				sdk.NewCoin("bnb", sdk.ZeroInt()),
-// 				sdk.NewCoin("bnb", sdk.ZeroInt()),
-// 				time.Duration(0),
-// 			),
-// 		},
-// 		PreviousBlockTime: bep3.DefaultPreviousBlockTime,
-// 	}
-// 	return app.GenesisState{bep3.ModuleName: cdc.MustMarshalJSON(bep3Genesis)}
-// }
+func newBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app.GenesisState {
+	bep3Genesis := bep3types.GenesisState{
+		Params: bep3types.Params{
+			AssetParams: bep3types.AssetParams{
+				bep3types.AssetParam{
+					Denom:  "bnb",
+					CoinID: 714,
+					SupplyLimit: bep3types.SupplyLimit{
+						Limit:          sdk.NewInt(350000000000000),
+						TimeLimited:    false,
+						TimeBasedLimit: sdk.ZeroInt(),
+						TimePeriod:     time.Hour,
+					},
+					Active:        true,
+					DeputyAddress: deputyAddress,
+					FixedFee:      sdk.NewInt(1000),
+					MinSwapAmount: sdk.OneInt(),
+					MaxSwapAmount: sdk.NewInt(1000000000000),
+					MinBlockLock:  bep3types.DefaultMinBlockLock,
+					MaxBlockLock:  bep3types.DefaultMaxBlockLock,
+				},
+			},
+		},
+		Supplies: bep3types.AssetSupplies{
+			bep3types.NewAssetSupply(
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				time.Duration(0),
+			),
+		},
+		PreviousBlockTime: bep3types.DefaultPreviousBlockTime,
+	}
+	return app.GenesisState{bep3types.ModuleName: cdc.MustMarshalJSON(&bep3Genesis)}
+}

@@ -421,7 +421,6 @@ func NewApp(
 		scopedIBCKeeper,
 	)
 
-	// TODO No evidence router is added so all submit evidence msgs will fail. Should there be a router added?
 	govRouter := govtypes.NewRouter()
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
@@ -684,7 +683,7 @@ func NewApp(
 	app.MountMemoryStores(memKeys)
 
 	// initialize the app
-	var fetchers []ante.AddressFetcher // TODO add bep3 authorized addresses
+	var fetchers []ante.AddressFetcher
 	if options.MempoolEnableAuth {
 		fetchers = append(fetchers,
 			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
@@ -740,8 +739,8 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 		panic(err)
 	}
 
-	// TODO: upgrade keeper version map?
-	// app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
