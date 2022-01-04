@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	GenesisTime = time.Date(2021, 11, 30, 15, 0, 0, 0, time.UTC)
-	ChainID     = "kava-8"
+	GenesisTime = time.Date(2022, 1, 19, 16, 0, 0, 0, time.UTC)
+	ChainID     = "kava-9"
 )
 
 // Migrate converts v15 genesis doc to v16 genesis doc
