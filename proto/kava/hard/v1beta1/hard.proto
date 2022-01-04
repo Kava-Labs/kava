@@ -44,7 +44,7 @@ message MoneyMarket {
 
 // BorrowLimit enforces restrictions on a money market.
 message BorrowLimit {
-  bool   has_max_limit = 1;
+  bool   has_max_limit = 1 [(gogoproto.jsontag) = "has_max_limit"];
   string maximum_limit = 2 [
     (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",

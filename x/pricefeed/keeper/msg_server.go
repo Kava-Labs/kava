@@ -1,21 +1,20 @@
-package pricefeed
+package keeper
 
 import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 type msgServer struct {
-	keeper keeper.Keeper
+	keeper Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the pricefeed MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper keeper.Keeper) types.MsgServer {
+func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &msgServer{keeper: keeper}
 }
 

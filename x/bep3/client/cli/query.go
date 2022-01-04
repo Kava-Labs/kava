@@ -329,7 +329,8 @@ func QueryParamsCmd(queryRoute string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return clientCtx.PrintProto(res)
+
+			return clientCtx.PrintProto(&res.Params)
 		},
 	}
 }

@@ -11,6 +11,7 @@ import (
 	v036supply "github.com/cosmos/cosmos-sdk/x/bank/legacy/v036"
 	v038bank "github.com/cosmos/cosmos-sdk/x/bank/legacy/v038"
 	v040bank "github.com/cosmos/cosmos-sdk/x/bank/legacy/v040"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	v039crisis "github.com/cosmos/cosmos-sdk/x/crisis/legacy/v039"
 	v040crisis "github.com/cosmos/cosmos-sdk/x/crisis/legacy/v040"
 	v036distr "github.com/cosmos/cosmos-sdk/x/distribution/legacy/v036"
@@ -33,6 +34,10 @@ import (
 	v040staking "github.com/cosmos/cosmos-sdk/x/staking/legacy/v040"
 	v038upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/legacy/v038"
 
+	ibctransfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
+	ibctypes "github.com/cosmos/ibc-go/modules/core/types"
+
 	"github.com/kava-labs/kava/app"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
 	v015validatorvesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_15"
@@ -47,6 +52,14 @@ func migrateGenutil(oldGenState v039genutil.GenesisState) *genutiltypes.GenesisS
 func MigrateCosmosAppState(appState genutiltypes.AppMap, clientCtx client.Context, genesisTime time.Time) genutiltypes.AppMap {
 	appState = migrateV040(appState, clientCtx, genesisTime)
 	appState = migrateV043(appState, clientCtx)
+	appState = addIbcGenesisStates(appState, clientCtx)
+	return appState
+}
+
+func addIbcGenesisStates(appState genutiltypes.AppMap, clientCtx client.Context) genutiltypes.AppMap {
+	appState[capabilitytypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(capabilitytypes.DefaultGenesis())
+	appState[ibchost.ModuleName] = clientCtx.Codec.MustMarshalJSON(ibctypes.DefaultGenesisState())
+	appState[ibctransfertypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(ibctransfertypes.DefaultGenesisState())
 	return appState
 }
 

@@ -1,4 +1,4 @@
-package v0_16_test
+package v0_16
 
 import (
 	"encoding/json"
@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/migrate/v0_16"
 )
 
 // Periodic vesting account periods will change depending on the genesis time.
@@ -66,8 +65,10 @@ func mustMigrateCosmosAppStateJSON(appStateJson string) string {
 	if err := json.Unmarshal([]byte(appStateJson), &appState); err != nil {
 		panic(err)
 	}
-	newGenState := v0_16.MigrateCosmosAppState(appState, newClientContext(), TestGenesisTime)
-	actual, err := json.Marshal(newGenState)
+	ctx := newClientContext()
+	appState = migrateV040(appState, ctx, TestGenesisTime)
+	appState = migrateV043(appState, ctx)
+	actual, err := json.Marshal(appState)
 	if err != nil {
 		panic(err)
 	}

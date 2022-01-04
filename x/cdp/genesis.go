@@ -37,7 +37,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, pk types.PricefeedKeeper, ak 
 	for _, col := range gs.Params.CollateralParams {
 		_, found := collateralMap[col.SpotMarketID]
 		if !found {
-			panic(fmt.Sprintf("%s collateral not found in pricefeed", col.Denom))
+			panic(fmt.Sprintf("%s collateral market %v not found in pricefeed", col.Denom, col.SpotMarketID))
 		}
 		// sets the status of the pricefeed in the store
 		// if pricefeed not active, debt operations are paused
@@ -45,7 +45,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, pk types.PricefeedKeeper, ak 
 
 		_, found = collateralMap[col.LiquidationMarketID]
 		if !found {
-			panic(fmt.Sprintf("%s collateral not found in pricefeed", col.Denom))
+			panic(fmt.Sprintf("%s collateral market %v not found in pricefeed", col.Denom, col.LiquidationMarketID))
 		}
 		// sets the status of the pricefeed in the store
 		// if pricefeed not active, debt operations are paused

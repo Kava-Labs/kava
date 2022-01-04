@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -59,7 +58,7 @@ func GetCmdQueryParams() *cobra.Command {
 				return err
 			}
 
-			return clientCtx.PrintProto(res)
+			return clientCtx.PrintProto(&res.Params)
 		},
 	}
 }
@@ -119,62 +118,64 @@ func GetCmdQueryAuctions() *cobra.Command {
 			fmt.Sprintf("  $ %s q %s auctions --page=2 --limit=100", version.AppName, types.ModuleName),
 		}, "\n"),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			strType := viper.GetString(flagType)
-			strOwner := viper.GetString(flagOwner)
-			strDenom := viper.GetString(flagDenom)
-			strPhase := viper.GetString(flagPhase)
-			page := viper.GetInt(flags.FlagPage)
-			limit := viper.GetInt(flags.FlagLimit)
+			auctionType, err := cmd.Flags().GetString(flagType)
+			if err != nil {
+				return err
+			}
+			owner, err := cmd.Flags().GetString(flagOwner)
+			if err != nil {
+				return err
+			}
+			denom, err := cmd.Flags().GetString(flagDenom)
+			if err != nil {
+				return err
+			}
+			phase, err := cmd.Flags().GetString(flagPhase)
+			if err != nil {
+				return err
+			}
 
-			var (
-				auctionType  string
-				auctionOwner sdk.AccAddress
-				auctionDenom string
-				auctionPhase string
-			)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-			params := types.NewQueryAllAuctionParams(page, limit, auctionType, auctionDenom, auctionPhase, auctionOwner)
+			if len(auctionType) != 0 {
+				auctionType = strings.ToLower(auctionType)
 
-			if len(strType) != 0 {
-				auctionType = strings.ToLower(strings.TrimSpace(strType))
 				if auctionType != types.CollateralAuctionType &&
 					auctionType != types.SurplusAuctionType &&
 					auctionType != types.DebtAuctionType {
-					return fmt.Errorf("invalid auction type %s", strType)
+					return fmt.Errorf("invalid auction type %s", auctionType)
 				}
-				params.Type = auctionType
 			}
 
-			if len(auctionOwner) != 0 {
+			if len(owner) != 0 {
 				if auctionType != types.CollateralAuctionType {
 					return fmt.Errorf("cannot apply owner flag to non-collateral auction type")
 				}
-				auctionOwnerStr := strings.ToLower(strings.TrimSpace(strOwner))
-				auctionOwner, err := sdk.AccAddressFromBech32(auctionOwnerStr)
+				_, err := sdk.AccAddressFromBech32(owner)
 				if err != nil {
-					return fmt.Errorf("cannot parse address from auction owner %s", auctionOwnerStr)
+					return fmt.Errorf("cannot parse address from auction owner %s", owner)
 				}
-				params.Owner = auctionOwner
 			}
 
-			if len(strDenom) != 0 {
-				auctionDenom := strings.TrimSpace(strDenom)
-				err := sdk.ValidateDenom(auctionDenom)
+			if len(denom) != 0 {
+				err := sdk.ValidateDenom(denom)
 				if err != nil {
 					return err
 				}
-				params.Denom = auctionDenom
 			}
 
-			if len(strPhase) != 0 {
-				auctionPhase := strings.ToLower(strings.TrimSpace(strPhase))
-				if auctionType != types.CollateralAuctionType && len(auctionType) > 0 {
+			if len(phase) != 0 {
+				phase = strings.ToLower(phase)
+
+				if len(auctionType) > 0 && auctionType != types.CollateralAuctionType {
 					return fmt.Errorf("cannot apply phase flag to non-collateral auction type")
 				}
-				if auctionPhase != types.ForwardAuctionPhase && auctionPhase != types.ReverseAuctionPhase {
-					return fmt.Errorf("invalid auction phase %s", strPhase)
+				if phase != types.ForwardAuctionPhase && phase != types.ReverseAuctionPhase {
+					return fmt.Errorf("invalid auction phase %s", phase)
 				}
-				params.Phase = auctionPhase
 			}
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -184,10 +185,11 @@ func GetCmdQueryAuctions() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 			request := types.QueryAuctionsRequest{
-				Type:  strType,
-				Owner: strOwner,
-				Denom: strDenom,
-				Phase: strPhase,
+				Type:       auctionType,
+				Owner:      owner,
+				Denom:      denom,
+				Phase:      phase,
+				Pagination: pageReq,
 			}
 
 			res, err := queryClient.Auctions(context.Background(), &request)
@@ -199,8 +201,8 @@ func GetCmdQueryAuctions() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Int(flags.FlagPage, 1, "pagination page of auctions to to query for")
-	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of auctions to query for")
+	flags.AddPaginationFlagsToCmd(cmd, "auctions")
+
 	cmd.Flags().String(flagType, "", "(optional) filter by auction type, type: collateral, debt, surplus")
 	cmd.Flags().String(flagOwner, "", "(optional) filter by collateral auction owner")
 	cmd.Flags().String(flagDenom, "", "(optional) filter by auction denom")
