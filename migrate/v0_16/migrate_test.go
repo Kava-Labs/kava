@@ -14,17 +14,16 @@ import (
 	"github.com/kava-labs/kava/app"
 )
 
-// TODO: do we want this test? seems too brittle to actually verify that migrations are working as expected.
-// func TestMigrateGenesisDoc(t *testing.T) {
-// 	expected := getTestDataJSON("genesis-v16.json")
-// 	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis-v15.json"))
-// 	assert.NoError(t, err)
-// 	actualGenDoc, err := Migrate(genDoc, newClientContext())
-// 	assert.NoError(t, err)
-// 	actualJson, err := tmjson.Marshal(actualGenDoc)
-// 	assert.NoError(t, err)
-// 	assert.JSONEq(t, expected, string(actualJson))
-// }
+func TestMigrateGenesisDoc(t *testing.T) {
+	expected := getTestDataJSON("genesis-v16.json")
+	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis-v15.json"))
+	assert.NoError(t, err)
+	actualGenDoc, err := Migrate(genDoc, newClientContext())
+	assert.NoError(t, err)
+	actualJson, err := tmjson.Marshal(actualGenDoc)
+	assert.NoError(t, err)
+	assert.JSONEq(t, expected, string(actualJson))
+}
 
 func TestMigrateFull(t *testing.T) {
 	t.Skip() // avoid committing mainnet state - test also currently fails due to https://github.com/cosmos/cosmos-sdk/issues/10862. If you apply the patch, it will pass
