@@ -1076,24 +1076,114 @@
               {
                 "@type": "/kava.committee.v1beta1.ParamsChangePermission",
                 "allowed_params_changes": [
-                  { "subspace": "auction", "key": "BidDuration" },
-                  { "subspace": "auction", "key": "IncrementSurplus" },
-                  { "subspace": "auction", "key": "IncrementDebt" },
-                  { "subspace": "auction", "key": "IncrementCollateral" },
-                  { "subspace": "bep3", "key": "AssetParams" },
-                  { "subspace": "cdp", "key": "GlobalDebtLimit" },
-                  { "subspace": "cdp", "key": "SurplusThreshold" },
-                  { "subspace": "cdp", "key": "SurplusLot" },
-                  { "subspace": "cdp", "key": "DebtThreshold" },
-                  { "subspace": "cdp", "key": "DebtLot" },
-                  { "subspace": "cdp", "key": "DistributionFrequency" },
-                  { "subspace": "cdp", "key": "CollateralParams" },
-                  { "subspace": "cdp", "key": "DebtParam" },
-                  { "subspace": "incentive", "key": "Active" },
-                  { "subspace": "kavadist", "key": "Active" },
-                  { "subspace": "pricefeed", "key": "Markets" },
-                  { "subspace": "hard", "key": "MoneyMarkets" },
-                  { "subspace": "hard", "key": "MinimumBorrowUSDValue" }
+                  {
+                    "subspace": "auction",
+                    "key": "BidDuration",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "auction",
+                    "key": "IncrementSurplus",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "auction",
+                    "key": "IncrementDebt",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "auction",
+                    "key": "IncrementCollateral",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "bep3",
+                    "key": "AssetParams",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "GlobalDebtLimit",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "SurplusThreshold",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "SurplusLot",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "DebtThreshold",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "DebtLot",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "DistributionFrequency",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "CollateralParams",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "DebtParam",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "incentive",
+                    "key": "Active",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "kavadist",
+                    "key": "Active",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "pricefeed",
+                    "key": "Markets",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "hard",
+                    "key": "MoneyMarkets",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "hard",
+                    "key": "MinimumBorrowUSDValue",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  }
                 ]
               },
               { "@type": "/kava.committee.v1beta1.TextPermission" }
@@ -1141,13 +1231,35 @@
               {
                 "@type": "/kava.committee.v1beta1.ParamsChangePermission",
                 "allowed_params_changes": [
-                  { "subspace": "hard", "key": "MoneyMarkets" },
-                  { "subspace": "hard", "key": "MinimumBorrowUSDValue" },
-                  { "subspace": "incentive", "key": "HardSupplyRewardPeriods" },
-                  { "subspace": "incentive", "key": "HardBorrowRewardPeriods" },
+                  {
+                    "subspace": "hard",
+                    "key": "MoneyMarkets",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "hard",
+                    "key": "MinimumBorrowUSDValue",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
                   {
                     "subspace": "incentive",
-                    "key": "HardDelegatorRewardPeriods"
+                    "key": "HardSupplyRewardPeriods",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "incentive",
+                    "key": "HardBorrowRewardPeriods",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "incentive",
+                    "key": "HardDelegatorRewardPeriods",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
                   }
                 ]
               }
@@ -1169,13 +1281,30 @@
               {
                 "@type": "/kava.committee.v1beta1.ParamsChangePermission",
                 "allowed_params_changes": [
-                  { "subspace": "swap", "key": "AllowedPools" },
-                  { "subspace": "swap", "key": "SwapFee" },
+                  {
+                    "subspace": "swap",
+                    "key": "AllowedPools",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "swap",
+                    "key": "SwapFee",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
                   {
                     "subspace": "incentive",
-                    "key": "HardDelegatorRewardPeriods"
+                    "key": "HardDelegatorRewardPeriods",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
                   },
-                  { "subspace": "incentive", "key": "SwapRewardPeriods" }
+                  {
+                    "subspace": "incentive",
+                    "key": "SwapRewardPeriods",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  }
                 ]
               }
             ],

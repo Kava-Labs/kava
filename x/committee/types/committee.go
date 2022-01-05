@@ -137,7 +137,7 @@ func (c *BaseCommittee) SetPermissions(permissions []Permission) {
 // As long as one permission allows the proposal then it goes through. Its the OR of all permissions.
 func (c BaseCommittee) HasPermissionsFor(ctx sdk.Context, appCdc codec.Codec, pk ParamKeeper, proposal PubProposal) bool {
 	for _, p := range c.GetPermissions() {
-		if p.Allows(ctx, appCdc, pk, proposal) {
+		if p.Allows(ctx, pk, proposal) {
 			return true
 		}
 	}

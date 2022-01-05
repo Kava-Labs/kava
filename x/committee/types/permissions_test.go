@@ -174,7 +174,7 @@ func TestParamsChangePermission_SimpleParamsChange_Allows(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			require.Equal(t, tc.expectAllowed, tc.permission.Allows(sdk.Context{}, nil, nil, tc.pubProposal))
+			require.Equal(t, tc.expectAllowed, tc.permission.Allows(sdk.Context{}, nil, tc.pubProposal))
 		})
 	}
 }

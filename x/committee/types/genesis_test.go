@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -174,7 +173,6 @@ func TestGenesisState_Validate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			fmt.Println(tc.genState)
 			err := tc.genState.Validate()
 
 			if tc.expectPass {

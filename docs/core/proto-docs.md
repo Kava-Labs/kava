@@ -141,6 +141,7 @@
     - [GodPermission](#kava.committee.v1beta1.GodPermission)
     - [ParamsChangePermission](#kava.committee.v1beta1.ParamsChangePermission)
     - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
+    - [SubparamRequirement](#kava.committee.v1beta1.SubparamRequirement)
     - [TextPermission](#kava.committee.v1beta1.TextPermission)
   
 - [kava/committee/v1beta1/proposal.proto](#kava/committee/v1beta1/proposal.proto)
@@ -2144,13 +2145,15 @@ VoteType enumerates the valid types of a vote.
 <a name="kava.committee.v1beta1.AllowedParamsChange"></a>
 
 ### AllowedParamsChange
-AllowedParamsChange contains data on the allowed parameter changes for subspace, key, and sub params attrs.
+AllowedParamsChange contains data on the allowed parameter changes for subspace, key, and sub params requirements.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `subspace` | [string](#string) |  |  |
 | `key` | [string](#string) |  |  |
+| `single_subparam_allowed_attrs` | [string](#string) | repeated | Requirements for when the subparam value is a single record. This contains list of allowed attribute keys that can be changed on the subparam record. |
+| `multi_subparams_requirements` | [SubparamRequirement](#kava.committee.v1beta1.SubparamRequirement) | repeated | Requirements for when the subparam value is a list of records. The requirements contains requirements for each record in the list. |
 
 
 
@@ -2186,6 +2189,23 @@ ParamsChangePermission allows any parameter or sub parameter change proposal.
 
 ### SoftwareUpgradePermission
 SoftwareUpgradePermission permission type for software upgrade proposals
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.SubparamRequirement"></a>
+
+### SubparamRequirement
+SubparamRequirement contains requirements for a single record in a subparam value list
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `key` | [string](#string) |  | The required attr key of the param record. |
+| `val` | [string](#string) |  | The required param value for the param record key. The key and value is used to match to the target param record. |
+| `allowed_subparam_attr_changes` | [string](#string) | repeated | The sub param attrs that are allowed to be changed. |
 
 
 
