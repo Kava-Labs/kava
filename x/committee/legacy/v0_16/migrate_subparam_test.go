@@ -345,7 +345,7 @@ func (s *migrateTestSuite) TestMigrate_Committee_SubparamPermissions() {
 		s.Run(tc.name, func() {
 			oldCommittee := v015committee.MemberCommittee{
 				BaseCommittee: v015committee.BaseCommittee{
-					ID:               1,
+					ID:               2,
 					Description:      "test",
 					Members:          s.addresses,
 					Permissions:      []v015committee.Permission{tc.v015permission},
@@ -354,7 +354,7 @@ func (s *migrateTestSuite) TestMigrate_Committee_SubparamPermissions() {
 					TallyOption:      v015committee.FirstPastThePost,
 				},
 			}
-			expectedProposal, err := v016committee.NewMemberCommittee(1, "test", s.addresses, []v016committee.Permission{tc.v016permission}, oldCommittee.VoteThreshold, oldCommittee.ProposalDuration, v016committee.TALLY_OPTION_FIRST_PAST_THE_POST)
+			expectedProposal, err := v016committee.NewMemberCommittee(2, "test", s.addresses, []v016committee.Permission{tc.v016permission}, oldCommittee.VoteThreshold, oldCommittee.ProposalDuration, v016committee.TALLY_OPTION_FIRST_PAST_THE_POST)
 			s.Require().NoError(err)
 			s.v15genstate.Committees = []v015committee.Committee{oldCommittee}
 			genState := Migrate(s.v15genstate)
