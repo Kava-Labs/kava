@@ -1270,6 +1270,17 @@
                           "keeper_reward_percentage",
                           "stability_fee"
                         ]
+                      },
+                      {
+                        "key": "type",
+                        "val": "swp-a",
+                        "allowed_subparam_attr_changes": [
+                          "auction_size",
+                          "check_collateralization_index_count",
+                          "debt_limit",
+                          "keeper_reward_percentage",
+                          "stability_fee"
+                        ]
                       }
                     ]
                   },
@@ -1442,6 +1453,16 @@
                       {
                         "key": "denom",
                         "val": "hard",
+                        "allowed_subparam_attr_changes": [
+                          "borrow_limit",
+                          "interest_rate_model",
+                          "keeper_reward_percentage",
+                          "reserve_factor"
+                        ]
+                      },
+                      {
+                        "key": "denom",
+                        "val": "swp",
                         "allowed_subparam_attr_changes": [
                           "borrow_limit",
                           "interest_rate_model",
