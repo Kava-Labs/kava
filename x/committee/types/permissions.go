@@ -180,6 +180,9 @@ func validateParamChangesAreAllowed(current SubparamChanges, incoming SubparamCh
 		return false
 	}
 
+	// Warning: ranging over maps iterates through keys in a random order.
+	// All state machine code must be deterministic between validators.
+	// This function's output is deterministic despite the range.
 	for k, v := range current {
 		isAllowed := false
 
