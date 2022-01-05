@@ -1,6 +1,6 @@
 # Node Guide
 
-This is an updated guide on setting up a mainnet node. Note that this is a minimal guide and does not cover more advanced topics like [sentry node architecture](https://github.com/stakefish/cosmos-validator-design) and [double signing protection](https://github.com/tendermint/tmkms). It is strongly recommended that any parties considering validating do additional research.  If you have questions, please join the active conversation in the #validators thread of our [__Discord Channel__](https://discord.com/invite/kQzh3Uv).
+This is an updated guide on setting up a mainnet full or light node. If you have questions, please join the active conversation in the #validators thread of our [__Discord Channel__](https://discord.com/invite/kQzh3Uv).
 
 ## Installing Kava
 
@@ -8,7 +8,10 @@ This is an updated guide on setting up a mainnet node. Note that this is a minim
 You should select an all-purpose server with at least 8GB of RAM, good connectivity, and a solid state drive with sufficient disk space. Storage requirements are discussed further in the section below. In addition, you’ll need to open **port 26656** to connect to the Kava peer-to-peer network. As the usage of the blockchain grows, the server requirements may increase as well, so you should have a plan for updating your server as well.
 
 ### Storage
-A light node (`pruning = "everything"`) grows at a rate of ~5 GB per month.
+The monthly storage requirements for a node are as follows. These are estimated values based on experience, but should serve as a good guide.
+
+- A light node (`pruning = "everything"`) grows at a rate of ~5 GB per month.
+- A full node (`pruning = "nothing"`) grows at a rate of ~100 GB per month
 
 ## Install Go
 Kava is built using Go and requires Go version 1.13+. In this example, you will be installing Go on a fresh install of ubuntu 18.04.
