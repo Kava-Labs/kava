@@ -155,8 +155,17 @@ func TestAccountBalances(t *testing.T) {
 			// new account as less than or equal
 			require.LessOrEqual(t, len(vacc.VestingPeriods), len(oldVacc.VestingPeriods), "expected vesting periods of new account to be less than or equal to old")
 
+			// start time should equal genesis time
+			require.Equal(t, vacc.StartTime, GenesisTime.Unix(), "expected start time to be equal to genesis time")
+
 			// end time should not change
 			require.Equal(t, oldVacc.EndTime, vacc.EndTime, "expected end time to not change")
+
+			// end time should be after genesis time
+			require.Greater(t, vacc.EndTime, GenesisTime.Unix(), "expected end time to be after genesis time")
+
+			// vesting account must have one or more periods
+			require.GreaterOrEqual(t, len(vacc.VestingPeriods), 1, "expected one or more vesting periods")
 		}
 	}
 }
