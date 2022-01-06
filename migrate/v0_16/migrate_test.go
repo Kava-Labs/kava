@@ -58,6 +58,7 @@ func TestMigrateFull(t *testing.T) {
 }
 
 func TestAccountBalances(t *testing.T) {
+	t.Skip() // avoid committing test data
 	app.SetSDKConfig()
 
 	// load auth state from kava-8 with empty accounts removed (keeps size down)
