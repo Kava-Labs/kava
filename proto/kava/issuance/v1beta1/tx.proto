@@ -2,6 +2,7 @@ syntax = "proto3";
 package kava.issuance.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/kava-labs/kava/x/issuance/types";
 
@@ -28,16 +29,9 @@ message MsgIssueTokens {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string sender = 1;
-
-  bytes tokens = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "tokens,omitempty",
-    (gogoproto.moretags)   = "yaml:\"tokens\""
-  ];
-
-  string receiver = 3;
+  string                   sender   = 1;
+  cosmos.base.v1beta1.Coin tokens   = 2 [(gogoproto.nullable) = false];
+  string                   receiver = 3;
 }
 
 // MsgIssueTokensResponse defines the Msg/IssueTokens response type.
@@ -48,14 +42,8 @@ message MsgRedeemTokens {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string sender = 1;
-
-  bytes tokens = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "tokens,omitempty",
-    (gogoproto.moretags)   = "yaml:\"tokens\""
-  ];
+  string                   sender = 1;
+  cosmos.base.v1beta1.Coin tokens = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgRedeemTokensResponse defines the Msg/RedeemTokens response type.
