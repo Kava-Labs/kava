@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -12,6 +13,11 @@ import (
 
 	"github.com/kava-labs/kava/app"
 )
+
+// Periodic vesting account periods will change depending on the genesis time.
+// This test genesis time is used to be able to change the actual genesis time
+// without breaking the tests.
+var TestGenesisTime = time.Date(2021, 11, 30, 15, 0, 0, 0, time.UTC)
 
 func TestCosmosMigrate_Gov(t *testing.T) {
 	// The gov json contains a gov app state with 3 different proposals.
@@ -60,7 +66,7 @@ func mustMigrateCosmosAppStateJSON(appStateJson string) string {
 		panic(err)
 	}
 	ctx := newClientContext()
-	appState = migrateV040(appState, ctx)
+	appState = migrateV040(appState, ctx, TestGenesisTime)
 	appState = migrateV043(appState, ctx)
 	actual, err := json.Marshal(appState)
 	if err != nil {
@@ -82,5 +88,6 @@ func newClientContext() client.Context {
 	config := app.MakeEncodingConfig()
 	return client.Context{}.
 		WithCodec(config.Marshaler).
-		WithLegacyAmino(config.Amino)
+		WithLegacyAmino(config.Amino).
+		WithInterfaceRegistry(config.InterfaceRegistry)
 }

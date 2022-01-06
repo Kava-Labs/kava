@@ -1,6 +1,6 @@
 {
-  "genesis_time": "2021-11-30T15:00:00Z",
-  "chain_id": "kava-8",
+  "genesis_time": "2022-01-19T16:00:00Z",
+  "chain_id": "kava-9",
   "initial_height": "1",
   "consensus_params": {
     "block": {
@@ -714,24 +714,41 @@
           "sequence": "0"
         },
         {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava1z3ytjpr6ancl8gw80z6f47z9smug7986x29vtj",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
           "@type": "/cosmos.vesting.v1beta1.PeriodicVestingAccount",
           "base_vesting_account": {
             "base_account": {
-              "address": "kava1z3ytjpr6ancl8gw80z6f47z9smug7986x29vtj",
+              "address": "kava1jun8w7meyvgxl68fsjrsdhnv87zursv7dwlgee",
               "pub_key": null,
               "account_number": "0",
               "sequence": "0"
             },
-            "original_vesting": [{ "denom": "ukava", "amount": "560159828" }],
+            "original_vesting": [
+              {
+                "denom": "swp",
+                "amount": "14791312"
+              }
+            ],
             "delegated_free": [],
             "delegated_vesting": [],
-            "end_time": "1628213878"
+            "end_time": "1665767828"
           },
-          "start_time": "1596677878",
+          "start_time": "1642608000",
           "vesting_periods": [
             {
-              "length": "31536000",
-              "amount": [{ "denom": "ukava", "amount": "560159828" }]
+              "length": "23159828",
+              "amount": [
+                {
+                  "denom": "swp",
+                  "amount": "14791312"
+                }
+              ]
             }
           ]
         },
@@ -877,6 +894,13 @@
           "coins": [
             { "denom": "ukava", "amount": "565077579" },
             { "denom": "usdx", "amount": "1363200" }
+          ]
+        },
+        {
+          "address": "kava1jun8w7meyvgxl68fsjrsdhnv87zursv7dwlgee",
+          "coins": [
+            { "denom": "swp", "amount": "15915874" },
+            { "denom": "ukava", "amount": "1000000" }
           ]
         },
         {

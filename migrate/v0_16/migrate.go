@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	GenesisTime = time.Date(2021, 11, 30, 15, 0, 0, 0, time.UTC)
-	ChainID     = "kava-8"
+	GenesisTime = time.Date(2022, 1, 19, 16, 0, 0, 0, time.UTC)
+	ChainID     = "kava-9"
 )
 
 // Migrate converts v15 genesis doc to v16 genesis doc
@@ -27,7 +27,7 @@ func Migrate(genDoc *tmtypes.GenesisDoc, ctx client.Context) (*tmtypes.GenesisDo
 		return nil, fmt.Errorf("failed to marchal app state from genesis doc:  %w", err)
 	}
 
-	migrateCosmosAppState(appState, ctx)
+	MigrateCosmosAppState(appState, ctx, GenesisTime)
 	migrateKavaAppState(appState, ctx)
 
 	genDoc.AppState, err = json.Marshal(appState)
