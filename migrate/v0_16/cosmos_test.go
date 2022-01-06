@@ -88,5 +88,6 @@ func newClientContext() client.Context {
 	config := app.MakeEncodingConfig()
 	return client.Context{}.
 		WithCodec(config.Marshaler).
-		WithLegacyAmino(config.Amino)
+		WithLegacyAmino(config.Amino).
+		WithInterfaceRegistry(config.InterfaceRegistry)
 }
