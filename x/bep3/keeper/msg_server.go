@@ -61,7 +61,17 @@ func (k msgServer) ClaimAtomicSwap(goCtx context.Context, msg *types.MsgClaimAto
 		return nil, err
 	}
 
-	err = k.keeper.ClaimAtomicSwap(ctx, from, msg.SwapID, msg.RandomNumber)
+	swapID, err := hex.DecodeString(msg.SwapID)
+	if err != nil {
+		return nil, err
+	}
+
+	randomNumber, err := hex.DecodeString(msg.RandomNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.keeper.ClaimAtomicSwap(ctx, from, swapID, randomNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +95,12 @@ func (k msgServer) RefundAtomicSwap(goCtx context.Context, msg *types.MsgRefundA
 		return nil, err
 	}
 
-	err = k.keeper.RefundAtomicSwap(ctx, from, msg.SwapID)
+	swapID, err := hex.DecodeString(msg.SwapID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.keeper.RefundAtomicSwap(ctx, from, swapID)
 	if err != nil {
 		return nil, err
 	}

@@ -1169,8 +1169,8 @@ MsgClaimAtomicSwap defines the Msg/ClaimAtomicSwap request type.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `from` | [string](#string) |  |  |
-| `swap_id` | [bytes](#bytes) |  |  |
-| `random_number` | [bytes](#bytes) |  |  |
+| `swap_id` | [string](#string) |  |  |
+| `random_number` | [string](#string) |  |  |
 
 
 
@@ -1228,7 +1228,7 @@ MsgRefundAtomicSwap defines the Msg/RefundAtomicSwap request type.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `from` | [string](#string) |  |  |
-| `swap_id` | [bytes](#bytes) |  |  |
+| `swap_id` | [string](#string) |  |  |
 
 
 
