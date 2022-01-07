@@ -4070,7 +4070,7 @@ total supply of the asset is tracked in the top-level supply module)
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `current_supply` | [bytes](#bytes) |  |  |
+| `current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 | `time_elapsed` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
 
 
