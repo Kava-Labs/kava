@@ -3,55 +3,68 @@ module.exports = {
   title: "Kava Documentation",
   themeConfig: {
     logo: {
-      src: "/logo.svg",
+      src: "/logo.svg"
     },
     custom: true,
     sidebar: {
       auto: false,
       nav: [
         {
-          title: "Reference",
+          title: "Getting Started - Developers",
           children: [
             {
-              title: "Modules",
-              path: "/Modules",
-              directory: true
-            },
-          ]
-        },
-        {
-          title: "Kava Tools",
-          children: [
-            {
-              title: "Chainlink Price Oracle",
-              path: "/tools/oracle.html"
+              title: "Get Started",
+              path: "/education/getting_started.html"
             },
             {
-              title: "Community Tools",
-              path: "/tools/community.html",
+              title: "Building Modules",
+              path: "/education/hello_kava.html"
             },
             {
-              title: "Sentinel",
-              path: "/tools/sentinel.html",
-            },
-            {
-              title: "Auction Bot",
-              path: "/tools/auction.html",
-            }
-          ]
-        },
-        {
-          title: "Building on Kava",
-          children: [
-            {
-              title: "JavaScript SDK",
+              title: "Javascript SDK",
               path: "/building/javascript-sdk.html"
+            },
+            {
+              title: "Run Validator Node",
+              path: "/validator_guide"
+            },
+            {
+              title: "Run Bots",
+              children: [
+                {
+                  title: "Sentinel Bot",
+                  path: "/tools/sentinel.html"
+                },
+                {
+                  title: "Auction Bot",
+                  path: "/tools/auction.html"
+                }
+              ]
+            },
+            {
+              title: "Migration Guide",
+              path: "/kava-8",
+              directory: true
             }
           ]
         },
         {
           title: "Resources",
           children: [
+            {
+              title: "Community Tools",
+              path: "/tools/community.html"
+            },
+            {
+              title: "Module Specs",
+              path: "/Modules",
+              directory: true,
+            },
+            {
+              title: "CLI Docs",
+              path: "/education/user_actions/",
+              directory: true,
+            },
             {
               title: "REST API Spec",
               path: "https://swagger.kava.io/"
@@ -92,8 +105,7 @@ module.exports = {
           url: "https://github.com/kava-labs"
         }
       ],
-      smallprint:
-        `© ${new Date().getFullYear()} Kava Labs.`,
+      smallprint: "© 2021 Kava Labs.",
       links: [
         {
           title: "Community",
@@ -113,8 +125,7 @@ module.exports = {
           children: [
             {
               title: "Contributing to the docs",
-              url:
-                "https://github.com/Kava-Labs/kava/tree/master/docs"
+              url: "https://github.com/Kava-Labs/kava/tree/master/docs"
             },
             {
               title: "Source code on GitHub",
@@ -134,8 +145,8 @@ module.exports = {
               url: "https://docs.binance.org"
             }
           ]
-        },
+        }
       ]
     }
   }
-};
+}

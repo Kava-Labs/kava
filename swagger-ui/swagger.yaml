@@ -2844,7 +2844,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: path
+        - in: query
           name: pool
           description: Pool ID
           required: true

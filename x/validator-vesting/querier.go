@@ -19,7 +19,7 @@ func NewQuerier(bk types.BankKeeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Qu
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryCirculatingSupply:
-			return queryGetCirculatingSupply(ctx, req, legacyQuerierCdc)
+			return queryGetCirculatingSupply(ctx, req, bk, legacyQuerierCdc)
 		case types.QueryTotalSupply:
 			return queryGetTotalSupply(ctx, req, bk, legacyQuerierCdc)
 		case types.QueryCirculatingSupplyHARD:
@@ -48,8 +48,9 @@ func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, bk types.BankKe
 	return bz, nil
 }
 
-func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	supplyInt := getCirculatingSupply(ctx.BlockTime())
+func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, bk types.BankKeeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	totalSupply := bk.GetSupply(ctx, "ukava").Amount
+	supplyInt := getCirculatingSupply(ctx.BlockTime(), totalSupply)
 	bz, err := legacyQuerierCdc.MarshalJSON(supplyInt)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -57,14 +58,9 @@ func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, legacyQue
 	return bz, nil
 }
 
-func getCirculatingSupply(blockTime time.Time) sdk.Int {
+func getCirculatingSupply(blockTime time.Time, totalSupply sdk.Int) sdk.Int {
+
 	vestingDates := []time.Time{
-		time.Date(2020, 9, 5, 14, 0, 0, 0, time.UTC),
-		time.Date(2020, 11, 5, 14, 0, 0, 0, time.UTC),
-		time.Date(2021, 2, 5, 14, 0, 0, 0, time.UTC),
-		time.Date(2021, 5, 5, 14, 0, 0, 0, time.UTC),
-		time.Date(2021, 8, 5, 14, 0, 0, 0, time.UTC),
-		time.Date(2021, 11, 5, 14, 0, 0, 0, time.UTC),
 		time.Date(2022, 2, 5, 14, 0, 0, 0, time.UTC),
 		time.Date(2022, 5, 5, 14, 0, 0, 0, time.UTC),
 		time.Date(2022, 8, 5, 14, 0, 0, 0, time.UTC),
@@ -73,38 +69,15 @@ func getCirculatingSupply(blockTime time.Time) sdk.Int {
 
 	switch {
 	case blockTime.Before(vestingDates[0]):
-		return sdk.NewInt(27190672)
+		return totalSupply.Sub(sdk.NewInt(9937500000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	case blockTime.After(vestingDates[0]) && blockTime.Before(vestingDates[1]) || blockTime.Equal(vestingDates[0]):
-		return sdk.NewInt(29442227)
+		return totalSupply.Sub(sdk.NewInt(7453125000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	case blockTime.After(vestingDates[1]) && blockTime.Before(vestingDates[2]) || blockTime.Equal(vestingDates[1]):
-		return sdk.NewInt(46876230)
+		return totalSupply.Sub(sdk.NewInt(4968750000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	case blockTime.After(vestingDates[2]) && blockTime.Before(vestingDates[3]) || blockTime.Equal(vestingDates[2]):
-		return sdk.NewInt(58524186)
-	case blockTime.After(vestingDates[3]) && blockTime.Before(vestingDates[4]) || blockTime.Equal(vestingDates[3]):
-		safuFundInitTime := time.Date(2021, 6, 14, 14, 0, 0, 0, time.UTC)
-		safuFundFilledTime := time.Date(2021, 7, 14, 14, 0, 0, 0, time.UTC)
-		switch {
-		case blockTime.Before(safuFundInitTime):
-			return sdk.NewInt(70172142)
-		case blockTime.After(safuFundInitTime) && blockTime.Before(safuFundFilledTime):
-			days := blockTime.Sub(safuFundInitTime).Hours() / 24
-			currSafuFundAmt := int64(days) * (SafuFund / 30)
-			return sdk.NewInt(70172142 + currSafuFundAmt)
-		default:
-			return sdk.NewInt(70172142 + SafuFund)
-		}
-	case blockTime.After(vestingDates[4]) && blockTime.Before(vestingDates[5]) || blockTime.Equal(vestingDates[4]):
-		return sdk.NewInt(81443180 + SafuFund)
-	case blockTime.After(vestingDates[5]) && blockTime.Before(vestingDates[6]) || blockTime.Equal(vestingDates[5]):
-		return sdk.NewInt(90625000 + SafuFund)
-	case blockTime.After(vestingDates[6]) && blockTime.Before(vestingDates[7]) || blockTime.Equal(vestingDates[6]):
-		return sdk.NewInt(92968750 + SafuFund)
-	case blockTime.After(vestingDates[7]) && blockTime.Before(vestingDates[8]) || blockTime.Equal(vestingDates[7]):
-		return sdk.NewInt(95312500 + SafuFund)
-	case blockTime.After(vestingDates[8]) && blockTime.Before(vestingDates[9]) || blockTime.Equal(vestingDates[8]):
-		return sdk.NewInt(97656250 + SafuFund)
+		return totalSupply.Sub(sdk.NewInt(2484375000000)).ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	default:
-		return sdk.NewInt(100000000)
+		return totalSupply.ToDec().Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
 	}
 }
 
