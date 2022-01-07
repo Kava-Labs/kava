@@ -4070,7 +4070,7 @@ total supply of the asset is tracked in the top-level supply module)
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `current_supply` | [bytes](#bytes) |  |  |
+| `current_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 | `time_elapsed` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
 
 
@@ -4229,7 +4229,7 @@ MsgIssueTokens represents a message used by the issuer to issue new tokens
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `sender` | [string](#string) |  |  |
-| `tokens` | [bytes](#bytes) |  |  |
+| `tokens` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 | `receiver` | [string](#string) |  |  |
 
 
@@ -4256,7 +4256,7 @@ MsgRedeemTokens represents a message used by the issuer to redeem (burn) tokens
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `sender` | [string](#string) |  |  |
-| `tokens` | [bytes](#bytes) |  |  |
+| `tokens` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 
 
 

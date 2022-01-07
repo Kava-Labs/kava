@@ -1,6 +1,7 @@
 syntax = "proto3";
 package kava.issuance.v1beta1;
 
+import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 
@@ -57,14 +58,9 @@ message RateLimit {
 message AssetSupply {
   option (gogoproto.goproto_stringer) = false;
 
-  bytes current_supply = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "current_supply,omitempty",
-    (gogoproto.moretags)   = "yaml:\"current_supply\""
-  ];
+  cosmos.base.v1beta1.Coin current_supply = 1 [(gogoproto.nullable) = false];
 
-  google.protobuf.Duration time_elapsed = 3 [
+  google.protobuf.Duration time_elapsed = 2 [
     (gogoproto.nullable)    = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags)    = "yaml:\"time_elapsed,omitempty\""

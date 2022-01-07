@@ -137,17 +137,13 @@ message AtomicSwap {
 // AssetSupply defines information about an asset's supply.
 message AssetSupply {
   // incoming_supply represents the incoming supply of an asset
-  cosmos.base.v1beta1.Coin incoming_supply = 1
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin incoming_supply = 1 [(gogoproto.nullable) = false];
   // outgoing_supply represents the outgoing supply of an asset
-  cosmos.base.v1beta1.Coin outgoing_supply = 2
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin outgoing_supply = 2 [(gogoproto.nullable) = false];
   // current_supply represents the current on-chain supply of an asset
-  cosmos.base.v1beta1.Coin current_supply = 3
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin current_supply = 3 [(gogoproto.nullable) = false];
   // time_limited_current_supply represents the time limited current supply of an asset
-  cosmos.base.v1beta1.Coin time_limited_current_supply = 4
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin time_limited_current_supply = 4 [(gogoproto.nullable) = false];
   // time_elapsed represents the time elapsed
   google.protobuf.Duration time_elapsed = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 }
