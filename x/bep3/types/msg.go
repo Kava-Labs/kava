@@ -132,11 +132,11 @@ func (msg MsgCreateAtomicSwap) GetSignBytes() []byte {
 }
 
 // NewMsgClaimAtomicSwap initializes a new MsgClaimAtomicSwap
-func NewMsgClaimAtomicSwap(from string, swapID, randomNumber []byte) MsgClaimAtomicSwap {
+func NewMsgClaimAtomicSwap(from string, swapID, randomNumber tmbytes.HexBytes) MsgClaimAtomicSwap {
 	return MsgClaimAtomicSwap{
 		From:         from,
-		SwapID:       swapID,
-		RandomNumber: randomNumber,
+		SwapID:       swapID.String(),
+		RandomNumber: randomNumber.String(),
 	}
 }
 
@@ -174,10 +174,18 @@ func (msg MsgClaimAtomicSwap) ValidateBasic() error {
 	if from.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.SwapID) != SwapIDLength {
+	swapID, err := hex.DecodeString(msg.SwapID)
+	if err != nil {
+		return fmt.Errorf("swap id should be valid hex: %v", err)
+	}
+	if len(swapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
 	}
-	if len(msg.RandomNumber) != RandomNumberLength {
+	randomNumber, err := hex.DecodeString(msg.RandomNumber)
+	if err != nil {
+		return fmt.Errorf("random number should be valid hex: %v", err)
+	}
+	if len(randomNumber) != RandomNumberLength {
 		return fmt.Errorf("the length of random number should be %d", RandomNumberLength)
 	}
 	return nil
@@ -190,10 +198,10 @@ func (msg MsgClaimAtomicSwap) GetSignBytes() []byte {
 }
 
 // NewMsgRefundAtomicSwap initializes a new MsgRefundAtomicSwap
-func NewMsgRefundAtomicSwap(from string, swapID []byte) MsgRefundAtomicSwap {
+func NewMsgRefundAtomicSwap(from string, swapID tmbytes.HexBytes) MsgRefundAtomicSwap {
 	return MsgRefundAtomicSwap{
 		From:   from,
-		SwapID: swapID,
+		SwapID: swapID.String(),
 	}
 }
 
@@ -231,7 +239,11 @@ func (msg MsgRefundAtomicSwap) ValidateBasic() error {
 	if from.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.SwapID) != SwapIDLength {
+	swapID, err := hex.DecodeString(msg.SwapID)
+	if err != nil {
+		return fmt.Errorf("swap id should be valid hex: %v", err)
+	}
+	if len(swapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
 	}
 	return nil

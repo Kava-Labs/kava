@@ -46,8 +46,8 @@ message MsgClaimAtomicSwap {
   option (gogoproto.goproto_getters)  = false;
 
   string from          = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  bytes  swap_id       = 2 [(gogoproto.customname) = "SwapID"];
-  bytes  random_number = 3;
+  string swap_id       = 2 [(gogoproto.customname) = "SwapID"];
+  string random_number = 3;
 }
 
 // MsgClaimAtomicSwapResponse defines the Msg/ClaimAtomicSwap response type.
@@ -60,7 +60,7 @@ message MsgRefundAtomicSwap {
   option (gogoproto.goproto_getters)  = false;
 
   string from    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  bytes  swap_id = 2 [(gogoproto.customname) = "SwapID"];
+  string swap_id = 2 [(gogoproto.customname) = "SwapID"];
 }
 
 // MsgRefundAtomicSwapResponse defines the Msg/RefundAtomicSwap response type.
