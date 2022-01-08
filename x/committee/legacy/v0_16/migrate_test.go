@@ -124,7 +124,7 @@ func (s *migrateTestSuite) TestMigrate_Committee_TallyOption() {
 		s.Run(tc.name, func() {
 			oldCommittee := v015committee.MemberCommittee{
 				BaseCommittee: v015committee.BaseCommittee{
-					ID:               1,
+					ID:               2,
 					Description:      "test",
 					Members:          s.addresses,
 					Permissions:      []v015committee.Permission{},
@@ -133,7 +133,7 @@ func (s *migrateTestSuite) TestMigrate_Committee_TallyOption() {
 					TallyOption:      tc.v015tallyOption,
 				},
 			}
-			expectedProposal, err := v016committee.NewMemberCommittee(1, "test", s.addresses, []v016committee.Permission{}, oldCommittee.VoteThreshold, oldCommittee.ProposalDuration, tc.v016tallyOption)
+			expectedProposal, err := v016committee.NewMemberCommittee(2, "test", s.addresses, []v016committee.Permission{}, oldCommittee.VoteThreshold, oldCommittee.ProposalDuration, tc.v016tallyOption)
 			s.Require().NoError(err)
 			s.v15genstate.Committees = []v015committee.Committee{oldCommittee}
 			genState := Migrate(s.v15genstate)
@@ -200,7 +200,7 @@ func (s *migrateTestSuite) TestMigrate_Committee_Permissions() {
 		s.Run(tc.name, func() {
 			oldCommittee := v015committee.MemberCommittee{
 				BaseCommittee: v015committee.BaseCommittee{
-					ID:               1,
+					ID:               2,
 					Description:      "test",
 					Members:          s.addresses,
 					Permissions:      []v015committee.Permission{tc.v015permission},
@@ -209,7 +209,7 @@ func (s *migrateTestSuite) TestMigrate_Committee_Permissions() {
 					TallyOption:      v015committee.FirstPastThePost,
 				},
 			}
-			expectedProposal, err := v016committee.NewMemberCommittee(1, "test", s.addresses, []v016committee.Permission{tc.v016permission}, oldCommittee.VoteThreshold, oldCommittee.ProposalDuration, v016committee.TALLY_OPTION_FIRST_PAST_THE_POST)
+			expectedProposal, err := v016committee.NewMemberCommittee(2, "test", s.addresses, []v016committee.Permission{tc.v016permission}, oldCommittee.VoteThreshold, oldCommittee.ProposalDuration, v016committee.TALLY_OPTION_FIRST_PAST_THE_POST)
 			s.Require().NoError(err)
 			s.v15genstate.Committees = []v015committee.Committee{oldCommittee}
 			genState := Migrate(s.v15genstate)

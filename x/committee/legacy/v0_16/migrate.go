@@ -2,6 +2,8 @@ package v0_16
 
 import (
 	"fmt"
+	"reflect"
+	"sort"
 
 	proto "github.com/gogo/protobuf/proto"
 
@@ -15,13 +17,205 @@ import (
 	v038upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/legacy/v038"
 	v040upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	v016bep3types "github.com/kava-labs/kava/x/bep3/types"
+	v016cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	v015committee "github.com/kava-labs/kava/x/committee/legacy/v0_15"
 	v016committee "github.com/kava-labs/kava/x/committee/types"
+	v016hardtypes "github.com/kava-labs/kava/x/hard/types"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
 	v016kavadist "github.com/kava-labs/kava/x/kavadist/types"
+	v016pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-func migratePermission(v015permission v015committee.Permission) *codectypes.Any {
+// migrateWhitelist returns an string slice of json keys that should be whitelisted on the whitelist interface
+func migrateWhitelist(whitelist interface{}, ignoredTag string) []string {
+	allowed := []string{}
+	v := reflect.ValueOf(whitelist)
+	typeOfS := v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		tag := typeOfS.Field(i).Tag.Get("json")
+		if tag != ignoredTag && tag != "" {
+			val, ok := v.Field(i).Interface().(bool)
+			if ok && val {
+				allowed = append(allowed, tag)
+			}
+		}
+	}
+	sort.Strings(allowed)
+	return allowed
+}
+
+// isSubparamAllowed returns true if the subspace and key is allowed in the v15 permissions
+func isSubparamAllowed(permission v015committee.SubParamChangePermission, subspace string, key string) bool {
+	for _, allowed := range permission.AllowedParams {
+		if allowed.Key == key && allowed.Subspace == subspace {
+			return true
+		}
+	}
+	return false
+}
+
+type subspaceKeyPair struct {
+	key      []byte
+	subspace string
+}
+
+// migrateSubParamPermissions converts v15 SubParamChangePermissions to v16 ParamsChangePermission
+func migrateSubParamPermissions(permission v015committee.SubParamChangePermission, isStabilityCommittee bool) *v016committee.ParamsChangePermission {
+	changes := v016committee.AllowedParamsChanges{}
+
+	// migrate allowed params
+	pairsToAvoid := []subspaceKeyPair{
+		{key: v016cdptypes.KeyCollateralParams, subspace: v016cdptypes.ModuleName},
+		{key: v016cdptypes.KeyDebtParam, subspace: v016cdptypes.ModuleName},
+		{key: v016bep3types.KeyAssetParams, subspace: v016bep3types.ModuleName},
+		{key: v016pricefeedtypes.KeyMarkets, subspace: v016pricefeedtypes.ModuleName},
+		{key: v016hardtypes.KeyMoneyMarkets, subspace: v016hardtypes.ModuleName},
+	}
+	for _, allowed := range permission.AllowedParams {
+		shouldAvoid := false
+		for _, pair := range pairsToAvoid {
+			if string(pair.key) == allowed.Key && pair.subspace == allowed.Subspace {
+				shouldAvoid = true
+				break
+			}
+		}
+		if !shouldAvoid {
+			changes = append(changes, v016committee.AllowedParamsChange{
+				Subspace: allowed.Subspace,
+				Key:      allowed.Key,
+			})
+		}
+	}
+
+	// migrate collateral params
+	if isSubparamAllowed(permission, v016cdptypes.ModuleName, string(v016cdptypes.KeyCollateralParams)) {
+		change := v016committee.AllowedParamsChange{
+			Key:      string(v016cdptypes.KeyCollateralParams),
+			Subspace: string(v016cdptypes.ModuleName),
+		}
+		requirements := []v016committee.SubparamRequirement{}
+		for _, param := range permission.AllowedCollateralParams {
+			requirement := v016committee.SubparamRequirement{
+				Key:                        "type",
+				Val:                        param.Type,
+				AllowedSubparamAttrChanges: []string{},
+			}
+			allowed := migrateWhitelist(param, "type")
+			requirement.AllowedSubparamAttrChanges = allowed
+			requirements = append(requirements, requirement)
+		}
+
+		// add new requirement for stability committee
+		if isStabilityCommittee {
+			requirement := v016committee.SubparamRequirement{
+				Key: "type",
+				Val: "swp-a",
+				AllowedSubparamAttrChanges: []string{
+					"auction_size", "check_collateralization_index_count", "debt_limit",
+					"keeper_reward_percentage", "stability_fee",
+				},
+			}
+			requirements = append(requirements, requirement)
+		}
+
+		change.MultiSubparamsRequirements = requirements
+		changes = append(changes, change)
+	}
+
+	// migrate debt params
+	if isSubparamAllowed(permission, string(v016cdptypes.ModuleName), string(v016cdptypes.KeyDebtParam)) {
+		change := v016committee.AllowedParamsChange{
+			Subspace:                   v016cdptypes.ModuleName,
+			Key:                        string(v016cdptypes.KeyDebtParam),
+			SingleSubparamAllowedAttrs: migrateWhitelist(permission.AllowedDebtParam, ""),
+		}
+		changes = append(changes, change)
+	}
+
+	// migrate asset params
+	if isSubparamAllowed(permission, string(v016bep3types.ModuleName), string(v016bep3types.KeyAssetParams)) {
+		change := v016committee.AllowedParamsChange{
+			Key:      string(v016bep3types.KeyAssetParams),
+			Subspace: string(v016bep3types.ModuleName),
+		}
+		requirements := []v016committee.SubparamRequirement{}
+		for _, param := range permission.AllowedAssetParams {
+			requirement := v016committee.SubparamRequirement{
+				Key:                        "denom",
+				Val:                        param.Denom,
+				AllowedSubparamAttrChanges: []string{},
+			}
+			allowed := migrateWhitelist(param, "denom")
+			requirement.AllowedSubparamAttrChanges = allowed
+			requirements = append(requirements, requirement)
+		}
+		change.MultiSubparamsRequirements = requirements
+		changes = append(changes, change)
+	}
+
+	// migrate markets
+	if isSubparamAllowed(permission, string(v016pricefeedtypes.ModuleName), string(v016pricefeedtypes.KeyMarkets)) {
+		change := v016committee.AllowedParamsChange{
+			Key:      string(v016pricefeedtypes.KeyMarkets),
+			Subspace: string(v016pricefeedtypes.ModuleName),
+		}
+		requirements := []v016committee.SubparamRequirement{}
+		for _, param := range permission.AllowedMarkets {
+			requirement := v016committee.SubparamRequirement{
+				Key:                        "market_id",
+				Val:                        param.MarketID,
+				AllowedSubparamAttrChanges: []string{},
+			}
+			allowed := migrateWhitelist(param, "market_id")
+			requirement.AllowedSubparamAttrChanges = allowed
+			requirements = append(requirements, requirement)
+		}
+		change.MultiSubparamsRequirements = requirements
+		changes = append(changes, change)
+	}
+
+	// migrate money markets
+	if isSubparamAllowed(permission, string(v016hardtypes.ModuleName), string(v016hardtypes.KeyMoneyMarkets)) {
+		change := v016committee.AllowedParamsChange{
+			Key:      string(v016hardtypes.KeyMoneyMarkets),
+			Subspace: string(v016hardtypes.ModuleName),
+		}
+		requirements := []v016committee.SubparamRequirement{}
+		for _, param := range permission.AllowedMoneyMarkets {
+			requirement := v016committee.SubparamRequirement{
+				Key:                        "denom",
+				Val:                        param.Denom,
+				AllowedSubparamAttrChanges: []string{},
+			}
+			allowed := migrateWhitelist(param, "denom")
+			requirement.AllowedSubparamAttrChanges = allowed
+			requirements = append(requirements, requirement)
+		}
+
+		// add new requirement for stability committee
+		if isStabilityCommittee {
+			requirement := v016committee.SubparamRequirement{
+				Key: "denom",
+				Val: "swp",
+				AllowedSubparamAttrChanges: []string{
+					"borrow_limit", "interest_rate_model",
+					"keeper_reward_percentage", "reserve_factor",
+				},
+			}
+			requirements = append(requirements, requirement)
+		}
+
+		change.MultiSubparamsRequirements = requirements
+		changes = append(changes, change)
+	}
+
+	return &v016committee.ParamsChangePermission{
+		AllowedParamsChanges: changes,
+	}
+}
+
+func migratePermission(v015permission v015committee.Permission, isStabilityCommittee bool) *codectypes.Any {
 	var protoProposal proto.Message
 
 	switch v015permission := v015permission.(type) {
@@ -52,18 +246,7 @@ func migratePermission(v015permission v015committee.Permission) *codectypes.Any 
 		}
 	case v015committee.SubParamChangePermission:
 		{
-			// TODO: Not implemented
-			// for now just convert these params change permission without sub param restrictions
-			changes := make(v016committee.AllowedParamsChanges, len(v015permission.AllowedParams))
-			for i, param := range v015permission.AllowedParams {
-				changes[i] = v016committee.AllowedParamsChange{
-					Subspace: param.Subspace,
-					Key:      param.Key,
-				}
-			}
-			protoProposal = &v016committee.ParamsChangePermission{
-				AllowedParamsChanges: changes,
-			}
+			protoProposal = migrateSubParamPermissions(v015permission, isStabilityCommittee)
 		}
 	default:
 		panic(fmt.Errorf("'%s' is not a valid permission", v015permission))
@@ -98,7 +281,8 @@ func migrateCommittee(committee v015committee.Committee) *codectypes.Any {
 		{
 			permissions := make([]*codectypes.Any, len(committee.Permissions))
 			for i, permission := range committee.Permissions {
-				permissions[i] = migratePermission(permission)
+				isStabilityCommittee := committee.GetID() == 1
+				permissions[i] = migratePermission(permission, isStabilityCommittee)
 			}
 
 			protoProposal = &v016committee.MemberCommittee{
@@ -117,7 +301,7 @@ func migrateCommittee(committee v015committee.Committee) *codectypes.Any {
 		{
 			permissions := make([]*codectypes.Any, len(committee.Permissions))
 			for i, permission := range committee.Permissions {
-				permissions[i] = migratePermission(permission)
+				permissions[i] = migratePermission(permission, false)
 			}
 
 			protoProposal = &v016committee.TokenCommittee{
@@ -136,6 +320,12 @@ func migrateCommittee(committee v015committee.Committee) *codectypes.Any {
 		}
 	default:
 		panic(fmt.Errorf("'%s' is not a valid committee", committee))
+	}
+
+	// Make some updates to the stability committee
+	if committee.GetID() == 1 {
+		// Add requirement to collatora params
+
 	}
 
 	// Convert the content into Any.

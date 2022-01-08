@@ -81,7 +81,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterInterface(
 		"kava.committee.v1beta1.Committee",
 		(*Committee)(nil),
-		// TODO: Might not need the base one since we just use token and member, add some tests to test this out.
 		&BaseCommittee{},
 		&TokenCommittee{},
 		&MemberCommittee{},
