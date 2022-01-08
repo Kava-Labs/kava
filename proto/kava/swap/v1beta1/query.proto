@@ -1,0 +1,114 @@
+syntax = "proto3";
+package kava.swap.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/swap/types";
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "kava/swap/v1beta1/swap.proto";
+
+// Query defines the gRPC querier service for swap module
+service Query {
+  // Params queries all parameters of the swap module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/swap/v1beta1/params";
+  }
+  // Pools queries pools based on pool ID
+  rpc Pools(QueryPoolsRequest) returns (QueryPoolsResponse) {
+    option (google.api.http).get = "/kava/swap/v1beta1/pools";
+  }
+  // Deposits queries deposit details based on owner address and pool
+  rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
+    option (google.api.http).get = "/kava/swap/v1beta1/deposits";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/swap parameters.
+message QueryParamsRequest {
+  option (gogoproto.goproto_getters) = false;
+}
+
+// QueryParamsResponse defines the response type for querying x/swap parameters.
+message QueryParamsResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  // params represents the swap module parameters
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPoolsRequest is the request type for the Query/Pools RPC method.
+message QueryPoolsRequest {
+  // pool_id filters pools by id
+  string pool_id = 1;
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryPoolsResponse is the response type for the Query/Pools RPC method.
+message QueryPoolsResponse {
+  // pools represents returned pools
+  repeated PoolResponse pools = 1 [(gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// Pool represents the state of a single pool
+message PoolResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  // name represents the name of the pool
+  string name = 1;
+  // coins represents the total reserves of the pool
+  repeated cosmos.base.v1beta1.Coin coins = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  //  total_shares represents the total shares of the pool
+  string total_shares = 3 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// QueryDepositsRequest is the request type for the Query/Deposits RPC method.
+message QueryDepositsRequest {
+  option (gogoproto.goproto_getters) = false;
+
+  // owner optionally filters deposits by owner
+  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // pool_id optionally fitlers deposits by pool id
+  string pool_id = 2;
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+// QueryDepositsResponse is the response type for the Query/Deposits RPC method.
+message QueryDepositsResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  // deposits returns the deposits matching the requested parameters
+  repeated DepositResponse deposits = 1 [(gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// DepositResponse defines a single deposit query response type.
+message DepositResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  // depositor represents the owner of the deposit
+  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // pool_id represents the pool the deposit is for
+  string pool_id = 2;
+  // shares_owned presents the shares owned by the depositor for the pool
+  string shares_owned = 3 [
+    (cosmos_proto.scalar)  = "cosmos.AddressString",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  // shares_value represents the coin value of the shares_owned
+  repeated cosmos.base.v1beta1.Coin shares_value = 4
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}

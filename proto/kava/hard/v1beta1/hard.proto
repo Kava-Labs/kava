@@ -1,0 +1,133 @@
+syntax = "proto3";
+package kava.hard.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package                      = "github.com/kava-labs/kava/x/hard/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Params defines the parameters for the hard module.
+message Params {
+  repeated MoneyMarket money_markets = 1 [(gogoproto.castrepeated) = "MoneyMarkets", (gogoproto.nullable) = false];
+  string               minimum_borrow_usd_value = 2 [
+    (gogoproto.customname) = "MinimumBorrowUSDValue",
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// MoneyMarket is a money market for an individual asset.
+message MoneyMarket {
+  string      denom             = 1;
+  BorrowLimit borrow_limit      = 2 [(gogoproto.nullable) = false];
+  string      spot_market_id    = 3 [(gogoproto.customname) = "SpotMarketID"];
+  string      conversion_factor = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  InterestRateModel interest_rate_model = 5 [(gogoproto.nullable) = false];
+  string            reserve_factor      = 6 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  string keeper_reward_percentage = 7 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// BorrowLimit enforces restrictions on a money market.
+message BorrowLimit {
+  bool   has_max_limit = 1 [(gogoproto.jsontag) = "has_max_limit"];
+  string maximum_limit = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  string loan_to_value = 3 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// InterestRateModel contains information about an asset's interest rate.
+message InterestRateModel {
+  string base_rate_apy = 1 [
+    (gogoproto.customname) = "BaseRateAPY",
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  string base_multiplier = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  string kink = 3 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  string jump_multiplier = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// Deposit defines an amount of coins deposited into a hard module account.
+message Deposit {
+  string depositor = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  repeated cosmos.base.v1beta1.Coin amount = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated SupplyInterestFactor index = 3
+      [(gogoproto.castrepeated) = "SupplyInterestFactors", (gogoproto.nullable) = false];
+}
+
+// Borrow defines an amount of coins borrowed from a hard module account.
+message Borrow {
+  string borrower = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  repeated cosmos.base.v1beta1.Coin amount = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated BorrowInterestFactor index = 3
+      [(gogoproto.castrepeated) = "BorrowInterestFactors", (gogoproto.nullable) = false];
+}
+
+// SupplyInterestFactor defines an individual borrow interest factor.
+message SupplyInterestFactor {
+  string denom = 1;
+  string value = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// BorrowInterestFactor defines an individual borrow interest factor.
+message BorrowInterestFactor {
+  string denom = 1;
+  string value = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// CoinsProto defines a Protobuf wrapper around a Coins slice
+message CoinsProto {
+  repeated cosmos.base.v1beta1.Coin coins = 1
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}

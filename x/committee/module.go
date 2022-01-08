@@ -1,87 +1,104 @@
 package committee
 
 import (
+	"context"
 	"encoding/json"
-	"math/rand"
+	"fmt"
 
 	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+
 	"github.com/kava-labs/kava/x/committee/client/cli"
 	"github.com/kava-labs/kava/x/committee/client/rest"
-	"github.com/kava-labs/kava/x/committee/simulation"
+	"github.com/kava-labs/kava/x/committee/keeper"
+	"github.com/kava-labs/kava/x/committee/types"
 )
 
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModule      = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
+	// _ module.AppModuleSimulation = AppModule{}
 )
+
+// ----------------------------------------------------------------------------
+// AppModuleBasic
+// ----------------------------------------------------------------------------
 
 // AppModuleBasic app module basics object
 type AppModuleBasic struct{}
 
-// Name gets the module name
+// Name get module name
 func (AppModuleBasic) Name() string {
-	return ModuleName
+	return types.ModuleName
 }
 
-// RegisterCodec register module codec
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	RegisterCodec(cdc)
+// Registers legacy amino codec
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
+}
+
+// RegisterInterfaces registers the module's interface types
+func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(reg)
 }
 
 // DefaultGenesis default genesis state
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 // ValidateGenesis module validate genesis
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	var gs GenesisState
-	err := ModuleCdc.UnmarshalJSON(bz, &gs)
-	if err != nil {
-		return err
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+	var genState types.GenesisState
+	if err := cdc.UnmarshalJSON(bz, &genState); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
-	return gs.Validate()
+	return genState.Validate()
 }
 
-// RegisterRESTRoutes registers the REST routes for the module.
-func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	rest.RegisterRoutes(ctx, rtr)
+// RegisterRESTRoutes registers committee module's REST service handlers.
+func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
+	rest.RegisterRoutes(clientCtx, rtr)
 }
 
-// GetTxCmd returns the root tx command for the module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(StoreKey, cdc)
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for committee module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
 
-// GetQueryCmd returns the root query command for the module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(StoreKey, cdc)
+// GetTxCmd returns committee module's root tx command.
+func (a AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd()
 }
 
-//____________________________________________________________________________
+// GetQueryCmd returns committee module's root query command.
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
 
-// AppModule app module type
+// ----------------------------------------------------------------------------
+// AppModule
+// ----------------------------------------------------------------------------
+
+// AppModule implements the AppModule interface for committee module.
 type AppModule struct {
 	AppModuleBasic
 
-	keeper        Keeper
-	accountKeeper auth.AccountKeeper
+	keeper        keeper.Keeper
+	accountKeeper types.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, accountKeeper auth.AccountKeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, accountKeeper types.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
@@ -89,82 +106,84 @@ func NewAppModule(keeper Keeper, accountKeeper auth.AccountKeeper) AppModule {
 	}
 }
 
-// Name module name
-func (AppModule) Name() string {
-	return ModuleName
+// Name returns committee module's name.
+func (am AppModule) Name() string {
+	return am.AppModuleBasic.Name()
 }
 
-// RegisterInvariants register module invariants
-func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+// Route returns committee module's message route.
+func (am AppModule) Route() sdk.Route { return sdk.Route{} }
 
-// Route module message route name
-func (AppModule) Route() string {
-	return RouterKey
+// QuerierRoute returns committee module's query routing key.
+func (AppModule) QuerierRoute() string { return types.QuerierRoute }
+
+// LegacyQuerierHandler returns committee module's Querier.
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
 
-// NewHandler module handler
-func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
+// RegisterServices registers a GRPC query service to respond to the
+// module-specific GRPC queries.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 }
 
-// QuerierRoute module querier route name
-func (AppModule) QuerierRoute() string {
-	return QuerierRoute
-}
+// RegisterInvariants registers committee module's invariants.
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// NewQuerierHandler module querier
-func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return NewQuerier(am.keeper)
-}
-
-// InitGenesis module init-genesis
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
-
+// InitGenesis performs committee module's genesis initialization It returns
+// no validator updates.
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+	var genState types.GenesisState
+	cdc.MustUnmarshalJSON(gs, &genState)
+	InitGenesis(ctx, am.keeper, &genState)
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis module export genesis
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	gs := ExportGenesis(ctx, am.keeper)
-	return ModuleCdc.MustMarshalJSON(gs)
+// ExportGenesis returns committee module's exported genesis state as raw JSON bytes.
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	genState := ExportGenesis(ctx, am.keeper)
+	return cdc.MustMarshalJSON(genState)
 }
 
-// BeginBlock module begin-block
+// ConsensusVersion implements ConsensusVersion.
+func (AppModule) ConsensusVersion() uint64 { return 1 }
+
+// BeginBlock executes all ABCI BeginBlock logic respective to committee module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 	BeginBlocker(ctx, req, am.keeper)
 }
 
-// EndBlock module end-block
+// EndBlock executes all ABCI EndBlock logic respective to committee module. It
+// returns no validator updates.
 func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 
 //____________________________________________________________________________
 
-// GenerateGenesisState creates a randomized GenState for the module
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
+// // GenerateGenesisState creates a randomized GenState of the auction module
+// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+// 	simulation.RandomizedGenState(simState)
+// }
 
-// ProposalContents returns functions that generate gov proposals for the module
-func (am AppModule) ProposalContents(simState module.SimulationState) []sim.WeightedProposalContent {
-	return simulation.ProposalContents(am.keeper, simState.ParamChanges)
-}
+// // ProposalContents doesn't return any content functions for governance proposals.
+// func (AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
+// 	return simulation.ProposalContents(am.keeper, simState.ParamChanges)
+// }
 
 // RandomizedParams returns functions that generate params for the module
-func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	return nil
-}
+// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+// 	return nil
+// }
 
-// RegisterStoreDecoder registers a decoder for the module's types
-func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = simulation.DecodeStore
-}
+// // RegisterStoreDecoder registers a decoder for the module's types
+// func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+// 	sdr[StoreKey] = simulation.DecodeStore
+// }
 
-// WeightedOperations returns the module operations for use in simulations
-func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper, simState.Contents)
-}
+// // WeightedOperations returns the module operations for use in simulations
+// func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper, simState.Contents)
+// }

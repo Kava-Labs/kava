@@ -1,0 +1,58 @@
+{
+  "next_auction_id": "12",
+  "params": {
+    "max_auction_duration": "172800s",
+    "bid_duration": "600s",
+    "increment_surplus": "0.010000000000000000",
+    "increment_debt": "0.010000000000000000",
+    "increment_collateral": "0.010000000000000000"
+  },
+  "auctions": [
+    {
+      "@type": "/kava.auction.v1beta1.CollateralAuction",
+      "base_auction": {
+        "id": "3795",
+        "initiator": "hard",
+        "lot": { "denom": "bnb", "amount": "1" },
+        "bidder": "",
+        "bid": { "denom": "bnb", "amount": "0" },
+        "has_received_bids": false,
+        "end_time": "9000-01-01T00:00:00Z",
+        "max_end_time": "9000-01-01T00:00:00Z"
+      },
+      "corresponding_debt": { "denom": "debt", "amount": "0" },
+      "max_bid": { "denom": "bnb", "amount": "1" },
+      "lot_returns": {
+        "addresses": ["kava1eevfnzkf2mt6feyttyzh6ektclauq7zlayefwf"],
+        "weights": ["100"]
+      }
+    },
+    {
+      "@type": "/kava.auction.v1beta1.SurplusAuction",
+      "base_auction": {
+        "id": "3796",
+        "initiator": "hard",
+        "lot": { "denom": "bnb", "amount": "1" },
+        "bidder": "",
+        "bid": { "denom": "bnb", "amount": "0" },
+        "has_received_bids": false,
+        "end_time": "9000-01-01T00:00:00Z",
+        "max_end_time": "9000-01-01T00:00:00Z"
+      }
+    },
+    {
+      "@type": "/kava.auction.v1beta1.DebtAuction",
+      "base_auction": {
+        "id": "3895",
+        "initiator": "hard",
+        "lot": { "denom": "bnb", "amount": "1" },
+        "bidder": "",
+        "bid": { "denom": "bnb", "amount": "0" },
+        "has_received_bids": false,
+        "end_time": "9000-01-01T00:00:00Z",
+        "max_end_time": "9000-01-01T00:00:00Z"
+      },
+      "corresponding_debt": { "denom": "debt", "amount": "0" }
+    }
+  ]
+}

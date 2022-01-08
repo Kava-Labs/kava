@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -21,7 +22,6 @@ const (
 	Int64Size               = 8
 	RandomNumberHashLength  = 32
 	RandomNumberLength      = 32
-	AddrByteCount           = 20
 	MaxOtherChainAddrLength = 64
 	SwapIDLength            = 32
 	MaxExpectedIncomeLength = 64
@@ -33,24 +33,10 @@ var (
 	_                      sdk.Msg = &MsgClaimAtomicSwap{}
 	_                      sdk.Msg = &MsgRefundAtomicSwap{}
 	AtomicSwapCoinsAccAddr         = sdk.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
-	// kava prefix address:  [INSERT BEP3-DEPUTY ADDRESS]
-	// tkava prefix address: [INSERT BEP3-DEPUTY ADDRESS]
 )
 
-// MsgCreateAtomicSwap contains an AtomicSwap struct
-type MsgCreateAtomicSwap struct {
-	From                sdk.AccAddress   `json:"from"  yaml:"from"`
-	To                  sdk.AccAddress   `json:"to"  yaml:"to"`
-	RecipientOtherChain string           `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
-	SenderOtherChain    string           `json:"sender_other_chain"  yaml:"sender_other_chain"`
-	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
-	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
-	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
-	HeightSpan          uint64           `json:"height_span"  yaml:"height_span"`
-}
-
 // NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
-func NewMsgCreateAtomicSwap(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
+func NewMsgCreateAtomicSwap(from, to string, recipientOtherChain,
 	senderOtherChain string, randomNumberHash tmbytes.HexBytes, timestamp int64,
 	amount sdk.Coins, heightSpan uint64) MsgCreateAtomicSwap {
 	return MsgCreateAtomicSwap{
@@ -58,7 +44,7 @@ func NewMsgCreateAtomicSwap(from sdk.AccAddress, to sdk.AccAddress, recipientOth
 		To:                  to,
 		RecipientOtherChain: recipientOtherChain,
 		SenderOtherChain:    senderOtherChain,
-		RandomNumberHash:    randomNumberHash,
+		RandomNumberHash:    randomNumberHash.String(),
 		Timestamp:           timestamp,
 		Amount:              amount,
 		HeightSpan:          heightSpan,
@@ -85,22 +71,28 @@ func (msg MsgCreateAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{from}
 }
 
 // ValidateBasic validates the MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) ValidateBasic() error {
-	if msg.From.Empty() {
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+	to, err := sdk.AccAddressFromBech32(msg.To)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+	if from.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.From) != AddrByteCount {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From))
-	}
-	if msg.To.Empty() {
+	if to.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient address cannot be empty")
-	}
-	if len(msg.To) != AddrByteCount {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.To))
 	}
 	if strings.TrimSpace(msg.RecipientOtherChain) == "" {
 		return errors.New("missing recipient address on other chain")
@@ -111,7 +103,11 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 	if len(msg.SenderOtherChain) > MaxOtherChainAddrLength {
 		return fmt.Errorf("the length of sender address on other chain should be less than %d", MaxOtherChainAddrLength)
 	}
-	if len(msg.RandomNumberHash) != RandomNumberHashLength {
+	randomNumberHash, err := hex.DecodeString(msg.RandomNumberHash)
+	if err != nil {
+		return fmt.Errorf("random number hash should be valid hex: %v", err)
+	}
+	if len(randomNumberHash) != RandomNumberHashLength {
 		return fmt.Errorf("the length of random number hash should be %d", RandomNumberHashLength)
 	}
 	if msg.Timestamp <= 0 {
@@ -131,23 +127,16 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 
 // GetSignBytes gets the sign bytes of a MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
-// MsgClaimAtomicSwap defines a AtomicSwap claim
-type MsgClaimAtomicSwap struct {
-	From         sdk.AccAddress   `json:"from"  yaml:"from"`
-	SwapID       tmbytes.HexBytes `json:"swap_id"  yaml:"swap_id"`
-	RandomNumber tmbytes.HexBytes `json:"random_number"  yaml:"random_number"`
-}
-
 // NewMsgClaimAtomicSwap initializes a new MsgClaimAtomicSwap
-func NewMsgClaimAtomicSwap(from sdk.AccAddress, swapID, randomNumber []byte) MsgClaimAtomicSwap {
+func NewMsgClaimAtomicSwap(from string, swapID, randomNumber tmbytes.HexBytes) MsgClaimAtomicSwap {
 	return MsgClaimAtomicSwap{
 		From:         from,
-		SwapID:       swapID,
-		RandomNumber: randomNumber,
+		SwapID:       swapID.String(),
+		RandomNumber: randomNumber.String(),
 	}
 }
 
@@ -169,21 +158,34 @@ func (msg MsgClaimAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{from}
 }
 
 // ValidateBasic validates the MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) ValidateBasic() error {
-	if msg.From.Empty() {
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+	if from.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.From) != AddrByteCount {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "actual address length ≠ expected length (%d ≠ %d)", len(msg.From), AddrByteCount)
+	swapID, err := hex.DecodeString(msg.SwapID)
+	if err != nil {
+		return fmt.Errorf("swap id should be valid hex: %v", err)
 	}
-	if len(msg.SwapID) != SwapIDLength {
+	if len(swapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
 	}
-	if len(msg.RandomNumber) != RandomNumberLength {
+	randomNumber, err := hex.DecodeString(msg.RandomNumber)
+	if err != nil {
+		return fmt.Errorf("random number should be valid hex: %v", err)
+	}
+	if len(randomNumber) != RandomNumberLength {
 		return fmt.Errorf("the length of random number should be %d", RandomNumberLength)
 	}
 	return nil
@@ -191,21 +193,15 @@ func (msg MsgClaimAtomicSwap) ValidateBasic() error {
 
 // GetSignBytes gets the sign bytes of a MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
-// MsgRefundAtomicSwap defines a refund msg
-type MsgRefundAtomicSwap struct {
-	From   sdk.AccAddress   `json:"from" yaml:"from"`
-	SwapID tmbytes.HexBytes `json:"swap_id" yaml:"swap_id"`
-}
-
 // NewMsgRefundAtomicSwap initializes a new MsgRefundAtomicSwap
-func NewMsgRefundAtomicSwap(from sdk.AccAddress, swapID []byte) MsgRefundAtomicSwap {
+func NewMsgRefundAtomicSwap(from string, swapID tmbytes.HexBytes) MsgRefundAtomicSwap {
 	return MsgRefundAtomicSwap{
 		From:   from,
-		SwapID: swapID,
+		SwapID: swapID.String(),
 	}
 }
 
@@ -227,18 +223,27 @@ func (msg MsgRefundAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 
 // GetSigners gets the signers of a MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{from}
 }
 
 // ValidateBasic validates the MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) ValidateBasic() error {
-	if msg.From.Empty() {
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+	if from.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.From) != AddrByteCount {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From))
+	swapID, err := hex.DecodeString(msg.SwapID)
+	if err != nil {
+		return fmt.Errorf("swap id should be valid hex: %v", err)
 	}
-	if len(msg.SwapID) != SwapIDLength {
+	if len(swapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
 	}
 	return nil
@@ -246,6 +251,6 @@ func (msg MsgRefundAtomicSwap) ValidateBasic() error {
 
 // GetSignBytes gets the sign bytes of a MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }

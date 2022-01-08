@@ -8,43 +8,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// Available reward multipliers names
-const (
-	Small  MultiplierName = "small"
-	Medium MultiplierName = "medium"
-	Large  MultiplierName = "large"
-)
-
-// MultiplierName is the user facing ID for a multiplier. There is a restricted set of possible values.
-type MultiplierName string
-
-// IsValid checks if the input is one of the expected strings
-func (mn MultiplierName) IsValid() error {
-	switch mn {
-	case Small, Medium, Large:
-		return nil
-	}
-	return sdkerrors.Wrapf(ErrInvalidMultiplier, "invalid multiplier name: %s", mn)
-}
-
-// ParseMultiplierName converts a string into a valid MultiplierName value.
-func ParseMultiplierName(unparsedName string) (MultiplierName, error) {
-	name := MultiplierName(unparsedName)
-	if err := name.IsValid(); err != nil {
-		return "", err
-	}
-	return name, nil
-}
-
-// Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
-type Multiplier struct {
-	Name         MultiplierName `json:"name" yaml:"name"`
-	MonthsLockup int64          `json:"months_lockup" yaml:"months_lockup"`
-	Factor       sdk.Dec        `json:"factor" yaml:"factor"`
-}
-
 // NewMultiplier returns a new Multiplier
-func NewMultiplier(name MultiplierName, lockup int64, factor sdk.Dec) Multiplier {
+func NewMultiplier(name string, lockup int64, factor sdk.Dec) Multiplier {
 	return Multiplier{
 		Name:         name,
 		MonthsLockup: lockup,
@@ -54,8 +19,8 @@ func NewMultiplier(name MultiplierName, lockup int64, factor sdk.Dec) Multiplier
 
 // Validate multiplier param
 func (m Multiplier) Validate() error {
-	if err := m.Name.IsValid(); err != nil {
-		return err
+	if m.Name == "" {
+		return fmt.Errorf("expected non empty name")
 	}
 	if m.MonthsLockup < 0 {
 		return fmt.Errorf("expected non-negative lockup, got %d", m.MonthsLockup)
@@ -65,15 +30,6 @@ func (m Multiplier) Validate() error {
 	}
 
 	return nil
-}
-
-// String implements fmt.Stringer
-func (m Multiplier) String() string {
-	return fmt.Sprintf(`Claim Multiplier:
-	Name: %s
-	Months Lockup %d
-	Factor %s
-	`, m.Name, m.MonthsLockup, m.Factor)
 }
 
 // Multipliers is a slice of Multiplier
@@ -90,7 +46,7 @@ func (ms Multipliers) Validate() error {
 }
 
 // Get returns a multiplier with a matching name
-func (ms Multipliers) Get(name MultiplierName) (Multiplier, bool) {
+func (ms Multipliers) Get(name string) (Multiplier, bool) {
 	for _, m := range ms {
 		if m.Name == name {
 			return m, true
@@ -99,23 +55,11 @@ func (ms Multipliers) Get(name MultiplierName) (Multiplier, bool) {
 	return Multiplier{}, false
 }
 
-// String implements fmt.Stringer
-func (ms Multipliers) String() string {
-	out := "Claim Multipliers\n"
-	for _, s := range ms {
-		out += fmt.Sprintf("%s\n", s)
-	}
-	return out
-}
-
-// MultipliersPerDenom is a map of denoms to a set of multipliers
-type MultipliersPerDenom []struct {
-	Denom       string      `json:"denom" yaml:"denom"`
-	Multipliers Multipliers `json:"multipliers" yaml:"multipliers"`
-}
+// MultipliersPerDenoms is a slice of MultipliersPerDenom
+type MultipliersPerDenoms []MultipliersPerDenom
 
 // Validate checks each denom and multipliers for invalid values.
-func (mpd MultipliersPerDenom) Validate() error {
+func (mpd MultipliersPerDenoms) Validate() error {
 	foundDenoms := map[string]bool{}
 
 	for _, item := range mpd {
@@ -134,12 +78,6 @@ func (mpd MultipliersPerDenom) Validate() error {
 	return nil
 }
 
-// Selection a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a denom.
-type Selection struct {
-	Denom          string `json:"denom" yaml:"denom"`
-	MultiplierName string `json:"multiplier_name" yaml:"multiplier_name"`
-}
-
 // NewSelection returns a new Selection
 func NewSelection(denom, multiplierName string) Selection {
 	return Selection{
@@ -153,8 +91,8 @@ func (s Selection) Validate() error {
 	if err := sdk.ValidateDenom(s.Denom); err != nil {
 		return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
 	}
-	if _, err := ParseMultiplierName(s.MultiplierName); err != nil {
-		return err
+	if s.MultiplierName == "" {
+		return sdkerrors.Wrap(ErrInvalidMultiplier, "multiplier name cannot be empty")
 	}
 	return nil
 }

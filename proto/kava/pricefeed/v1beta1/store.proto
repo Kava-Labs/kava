@@ -1,0 +1,45 @@
+syntax = "proto3";
+package kava.pricefeed.v1beta1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package                    = "github.com/kava-labs/kava/x/pricefeed/types";
+option (gogoproto.equal_all)         = true;
+option (gogoproto.verbose_equal_all) = true;
+
+// Params defines the parameters for the pricefeed module.
+message Params {
+  repeated Market markets = 1 [(gogoproto.castrepeated) = "Markets", (gogoproto.nullable) = false];
+}
+
+// Market defines an asset in the pricefeed.
+message Market {
+  string         market_id   = 1 [(gogoproto.customname) = "MarketID"];
+  string         base_asset  = 2;
+  string         quote_asset = 3;
+  repeated bytes oracles     = 4 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  bool active = 5;
+}
+
+// PostedPrice defines a price for market posted by a specific oracle.
+message PostedPrice {
+  string market_id      = 1 [(gogoproto.customname) = "MarketID"];
+  bytes  oracle_address = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  string price = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  google.protobuf.Timestamp expiry = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+}
+
+// CurrentPrice defines a current price for a particular market in the pricefeed
+// module.
+message CurrentPrice {
+  string market_id = 1 [(gogoproto.customname) = "MarketID"];
+  string price = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}

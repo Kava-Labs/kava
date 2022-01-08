@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine AS build-env
+FROM golang:1.16-alpine AS build-env
 
 # Set up dependencies
 # bash, jq, curl for debugging
@@ -6,22 +6,26 @@ FROM golang:1.13-alpine AS build-env
 # libc-dev, gcc, linux-headers, eudev-dev are used for cgo and ledger installation
 RUN apk add bash git make libc-dev gcc linux-headers eudev-dev jq curl
 
-
 # Set working directory for the build
 WORKDIR /root/kava
 # default home directory is /root
 
+# Speed up later builds by caching the dependencies
 COPY go.mod .
 COPY go.sum .
-
 RUN go mod download
 
 # Add source files
 COPY . .
 
-# Install kvd, kvcli
 #ENV LEDGER_ENABLED False
-RUN make install
+# Mount build container cache, persisted between builder invocations
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    make install
 
-# Run kvd by default, omit entrypoint to ease using container with kvcli
-CMD ["kvd"]
+FROM alpine:3.15
+
+RUN apk add bash jq curl
+COPY --from=build-env /go/bin/kava /bin/kava
+
+CMD ["kava"]

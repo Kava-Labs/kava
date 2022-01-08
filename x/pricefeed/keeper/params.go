@@ -31,21 +31,22 @@ func (k Keeper) GetOracles(ctx sdk.Context, marketID string) ([]sdk.AccAddress, 
 			return m.Oracles, nil
 		}
 	}
-	return []sdk.AccAddress{}, sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
+	return nil, sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
 }
 
 // GetOracle returns the oracle from the store or an error if not found
 func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address sdk.AccAddress) (sdk.AccAddress, error) {
 	oracles, err := k.GetOracles(ctx, marketID)
 	if err != nil {
-		return sdk.AccAddress{}, sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
+		// Error already wrapped
+		return nil, err
 	}
 	for _, addr := range oracles {
-		if address.Equals(addr) {
+		if addr.Equals(address) {
 			return addr, nil
 		}
 	}
-	return sdk.AccAddress{}, sdkerrors.Wrap(types.ErrInvalidOracle, address.String())
+	return nil, sdkerrors.Wrap(types.ErrInvalidOracle, address.String())
 }
 
 // GetMarket returns the market if it is in the pricefeed system
@@ -62,7 +63,7 @@ func (k Keeper) GetMarket(ctx sdk.Context, marketID string) (types.Market, bool)
 
 // GetAuthorizedAddresses returns a list of addresses that have special authorization within this module, eg the oracles of all markets.
 func (k Keeper) GetAuthorizedAddresses(ctx sdk.Context) []sdk.AccAddress {
-	oracles := []sdk.AccAddress{}
+	var oracles []sdk.AccAddress
 	uniqueOracles := map[string]bool{}
 
 	for _, m := range k.GetMarkets(ctx) {

@@ -1,0 +1,107 @@
+syntax = "proto3";
+package kava.incentive.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/kava-labs/kava/x/incentive/types";
+
+option (gogoproto.goproto_getters_all) = false;
+
+// -------------- Base Claim Types, Reward Indexes --------------
+
+// BaseClaim is a claim with a single reward coin types
+message BaseClaim {
+  option (cosmos_proto.implements_interface) = "Claim";
+
+  bytes owner = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+
+  cosmos.base.v1beta1.Coin reward = 2 [(gogoproto.nullable) = false];
+}
+
+// BaseMultiClaim is a claim with multiple reward coin types
+message BaseMultiClaim {
+  option (cosmos_proto.implements_interface) = "Claim";
+
+  bytes owner = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+
+  repeated cosmos.base.v1beta1.Coin reward = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}
+
+// RewardIndex stores reward accumulation information
+message RewardIndex {
+  string collateral_type = 1;
+
+  bytes reward_factor = 2
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+
+// RewardIndexesProto defines a Protobuf wrapper around a RewardIndexes slice
+message RewardIndexesProto {
+  repeated RewardIndex reward_indexes = 1 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
+}
+
+// MultiRewardIndex stores reward accumulation information on multiple reward types
+message MultiRewardIndex {
+  string collateral_type = 1;
+
+  repeated RewardIndex reward_indexes = 2 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
+}
+
+// MultiRewardIndexesProto defines a Protobuf wrapper around a MultiRewardIndexes slice
+message MultiRewardIndexesProto {
+  repeated MultiRewardIndex multi_reward_indexes = 1
+      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+}
+
+// -------------- Custom Claim Types --------------
+
+// USDXMintingClaim is for USDX minting rewards
+message USDXMintingClaim {
+  option (cosmos_proto.implements_interface) = "Claim";
+
+  BaseClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+
+  repeated RewardIndex reward_indexes = 2 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
+}
+
+// HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
+message HardLiquidityProviderClaim {
+  option (cosmos_proto.implements_interface) = "Claim";
+
+  BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+
+  repeated MultiRewardIndex supply_reward_indexes = 2
+      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+
+  repeated MultiRewardIndex borrow_reward_indexes = 3
+      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+}
+
+// DelegatorClaim stores delegation rewards that can be claimed by owner
+message DelegatorClaim {
+  option (cosmos_proto.implements_interface) = "Claim";
+
+  BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+
+  repeated MultiRewardIndex reward_indexes = 2
+      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+}
+
+// SwapClaim stores the swap rewards that can be claimed by owner
+message SwapClaim {
+  option (cosmos_proto.implements_interface) = "Claim";
+
+  BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+
+  repeated MultiRewardIndex reward_indexes = 2
+      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+}

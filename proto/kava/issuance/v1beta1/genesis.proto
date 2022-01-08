@@ -1,0 +1,68 @@
+syntax = "proto3";
+package kava.issuance.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/kava-labs/kava/x/issuance/types";
+
+// GenesisState defines the issuance module's genesis state.
+message GenesisState {
+  // params defines all the paramaters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  repeated AssetSupply supplies = 2
+      [(gogoproto.moretags) = "yaml:\"supplies,omitempty\"", (gogoproto.nullable) = false];
+}
+
+// Params defines the parameters for the issuance module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  repeated Asset assets = 1 [(gogoproto.moretags) = "yaml:\"assets,omitempty\"", (gogoproto.nullable) = false];
+}
+
+// Asset type for assets in the issuance module
+message Asset {
+  option (gogoproto.goproto_stringer) = false;
+
+  string          owner             = 1 [(gogoproto.moretags) = "yaml:\"owner,omitempty\""];
+  string          denom             = 2 [(gogoproto.moretags) = "yaml:\"denom,omitempty\""];
+  repeated string blocked_addresses = 3 [(gogoproto.moretags) = "yaml:\"blocked_addresses,omitempty\""];
+  bool            paused            = 4 [(gogoproto.moretags) = "yaml:\"paused,omitempty\""];
+  bool            blockable         = 5 [(gogoproto.moretags) = "yaml:\"blockable,omitempty\""];
+  RateLimit       rate_limit = 6 [(gogoproto.moretags) = "yaml:\"rate_limit,omitempty\"", (gogoproto.nullable) = false];
+}
+
+// RateLimit parameters for rate-limiting the supply of an issued asset
+message RateLimit {
+  bool active = 1 [(gogoproto.moretags) = "yaml:\"active,omitempty\""];
+
+  bytes limit = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.jsontag)    = "limit,omitempty",
+    (gogoproto.moretags)   = "yaml:\"limit\""
+  ];
+
+  google.protobuf.Duration time_period = 3 [
+    (gogoproto.nullable)    = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags)    = "yaml:\"time_period,omitempty\""
+  ];
+}
+
+// AssetSupply contains information about an asset's rate-limited supply (the
+// total supply of the asset is tracked in the top-level supply module)
+message AssetSupply {
+  option (gogoproto.goproto_stringer) = false;
+
+  cosmos.base.v1beta1.Coin current_supply = 1 [(gogoproto.nullable) = false];
+
+  google.protobuf.Duration time_elapsed = 2 [
+    (gogoproto.nullable)    = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags)    = "yaml:\"time_elapsed,omitempty\""
+  ];
+}

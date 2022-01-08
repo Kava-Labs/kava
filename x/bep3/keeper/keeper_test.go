@@ -7,9 +7,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -35,7 +34,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func (suite *KeeperTestSuite) ResetChain() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	keeper := tApp.GetBep3Keeper()
 
 	suite.app = tApp
@@ -43,37 +42,6 @@ func (suite *KeeperTestSuite) ResetChain() {
 	suite.keeper = keeper
 }
 
-func (suite *KeeperTestSuite) TestEnsureModuleAccountPermissions() {
-	suite.app.InitializeFromGenesisStates(
-		NewAuthGenStateFromAccs(
-			supply.NewEmptyModuleAccount(types.ModuleName), // no permisions
-		),
-	)
-	supplyKeeper := suite.app.GetSupplyKeeper()
-	testCoins := cs(c("busd", 1000_00_000_000))
-
-	// Ensure there are no minting and burning permissions.
-	// This calls mint/burn instead of checking permissions as the supply module can report permissions incorrectly.
-	// Using a panic check because MintCoins panics when permissions are incorrect.
-	suite.Panics(func() {
-		err := supplyKeeper.MintCoins(suite.ctx, types.ModuleName, testCoins)
-		if err != nil {
-			panic(err)
-		}
-		err = supplyKeeper.BurnCoins(suite.ctx, types.ModuleName, testCoins)
-		if err != nil {
-			panic(err)
-		}
-	})
-
-	err := suite.keeper.EnsureModuleAccountPermissions(suite.ctx)
-	suite.NoError(err)
-
-	err = supplyKeeper.MintCoins(suite.ctx, types.ModuleName, testCoins)
-	suite.NoError(err)
-	err = supplyKeeper.BurnCoins(suite.ctx, types.ModuleName, testCoins)
-	suite.NoError(err)
-}
 func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
 	suite.ResetChain()
 
@@ -160,8 +128,8 @@ func (suite *KeeperTestSuite) TestInsertIntoByBlockIndex() {
 	suite.Equal(len(swapIDs), 1)
 
 	// Marshal the expected swapID
-	cdc := suite.app.Codec()
-	res, _ := cdc.MarshalBinaryBare(atomicSwap.GetSwapID())
+	cdc := suite.app.LegacyAmino()
+	res, _ := cdc.Amino.MarshalBinaryBare(atomicSwap.GetSwapID())
 	expectedSwapID := res[1:]
 
 	suite.Equal(expectedSwapID, swapIDs[0])
@@ -213,8 +181,8 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsByBlock() {
 
 		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
 			uint64(blockCtx.BlockHeight()), timestamp, TestUser1, TestUser2,
-			TestSenderOtherChain, TestRecipientOtherChain, 0, types.Open,
-			true, types.Incoming)
+			TestSenderOtherChain, TestRecipientOtherChain, 0, types.SWAP_STATUS_OPEN,
+			true, types.SWAP_DIRECTION_INCOMING)
 
 		// Insert into block index
 		suite.keeper.InsertIntoByBlockIndex(blockCtx, atomicSwap)
@@ -258,8 +226,8 @@ func (suite *KeeperTestSuite) TestInsertIntoLongtermStorage() {
 	suite.Equal(len(swapIDs), 1)
 
 	// Marshal the expected swapID
-	cdc := suite.app.Codec()
-	res, _ := cdc.MarshalBinaryBare(atomicSwap.GetSwapID())
+	cdc := suite.app.LegacyAmino()
+	res, _ := cdc.Amino.MarshalBinaryBare(atomicSwap.GetSwapID())
 	expectedSwapID := res[1:]
 
 	suite.Equal(expectedSwapID, swapIDs[0])
@@ -304,8 +272,8 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsLongtermStorage() {
 
 		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
 			uint64(suite.ctx.BlockHeight()), timestamp, TestUser1, TestUser2,
-			TestSenderOtherChain, TestRecipientOtherChain, 100, types.Open,
-			true, types.Incoming)
+			TestSenderOtherChain, TestRecipientOtherChain, 100, types.SWAP_STATUS_OPEN,
+			true, types.SWAP_DIRECTION_INCOMING)
 
 		// Set closed block staggered by 100 blocks and insert into longterm storage
 		atomicSwap.ClosedBlock = int64(i) * 100

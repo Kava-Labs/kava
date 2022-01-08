@@ -1,0 +1,79 @@
+syntax = "proto3";
+package kava.incentive.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/kava-labs/kava/x/incentive/types";
+
+option (gogoproto.goproto_getters_all) = false;
+
+// RewardPeriod stores the state of an ongoing reward
+message RewardPeriod {
+  bool active = 1;
+
+  string collateral_type = 2;
+
+  google.protobuf.Timestamp start = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+
+  google.protobuf.Timestamp end = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+
+  cosmos.base.v1beta1.Coin rewards_per_second = 5 [(gogoproto.nullable) = false];
+}
+
+// MultiRewardPeriod supports multiple reward types
+message MultiRewardPeriod {
+  bool active = 1;
+
+  string collateral_type = 2;
+
+  google.protobuf.Timestamp start = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+
+  google.protobuf.Timestamp end = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+
+  repeated cosmos.base.v1beta1.Coin rewards_per_second = 5
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}
+
+// Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
+message Multiplier {
+  string name = 1;
+
+  int64 months_lockup = 2;
+
+  bytes factor = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+
+// MultipliersPerDenom is a map of denoms to a set of multipliers
+message MultipliersPerDenom {
+  string denom = 1;
+
+  repeated Multiplier multipliers = 2 [(gogoproto.castrepeated) = "Multipliers", (gogoproto.nullable) = false];
+}
+
+// Params
+message Params {
+  repeated RewardPeriod usdx_minting_reward_periods = 1 [
+    (gogoproto.customname)   = "USDXMintingRewardPeriods",
+    (gogoproto.castrepeated) = "RewardPeriods",
+    (gogoproto.nullable)     = false
+  ];
+
+  repeated MultiRewardPeriod hard_supply_reward_periods = 2
+      [(gogoproto.castrepeated) = "MultiRewardPeriods", (gogoproto.nullable) = false];
+
+  repeated MultiRewardPeriod hard_borrow_reward_periods = 3
+      [(gogoproto.castrepeated) = "MultiRewardPeriods", (gogoproto.nullable) = false];
+
+  repeated MultiRewardPeriod delegator_reward_periods = 4
+      [(gogoproto.castrepeated) = "MultiRewardPeriods", (gogoproto.nullable) = false];
+
+  repeated MultiRewardPeriod swap_reward_periods = 5
+      [(gogoproto.castrepeated) = "MultiRewardPeriods", (gogoproto.nullable) = false];
+
+  repeated MultipliersPerDenom claim_multipliers = 6
+      [(gogoproto.castrepeated) = "MultipliersPerDenoms", (gogoproto.nullable) = false];
+
+  google.protobuf.Timestamp claim_end = 7 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+}

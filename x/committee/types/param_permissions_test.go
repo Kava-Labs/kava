@@ -1,773 +1,833 @@
-package types
+package types_test
 
 import (
-	"time"
+	fmt "fmt"
+	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	bep3types "github.com/kava-labs/kava/x/bep3/types"
+	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	"github.com/stretchr/testify/suite"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
+
+	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	types "github.com/kava-labs/kava/x/committee/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
-	"github.com/tendermint/tendermint/crypto"
 )
 
-// Avoid cluttering test cases with long function names
-func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
-func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) }
-func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
-func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
+type ParamsChangeTestSuite struct {
+	suite.Suite
 
-func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
-	testCPs := cdptypes.CollateralParams{
-		cdptypes.NewCollateralParam("bnb", "bnb-a", d("2.0"), c("usdx", 1000000000000), d("1.000000001547125958"), i(100), d("0.05"), 0x20, "bnb:usd", "bnb:usd", d("0.01"), i(10), i(6)),
-		cdptypes.NewCollateralParam("btc", "btc-a", d("1.5"), c("usdx", 1000000000), d("1.000000001547125958"), i(1000), d("0.1"), 0x30, "btc:usd", "btc:usd", d("0.01"), i(10), i(8)),
-		cdptypes.NewCollateralParam("atom", "atom-a", d("2.0"), c("usdx", 1000000000), d("1.000000001547125958"), i(1000), d("0.07"), 0x40, "atom:usd", "atom:usd", d("0.01"), i(10), i(6)),
-	}
-	updatedTestCPs := make(cdptypes.CollateralParams, len(testCPs))
-	updatedTestCPs[0] = testCPs[1]
-	updatedTestCPs[1] = testCPs[0]
-	updatedTestCPs[2] = testCPs[2]
+	ctx sdk.Context
+	pk  types.ParamKeeper
 
-	updatedTestCPs[0].DebtLimit = c("usdx", 1000)    // btc
-	updatedTestCPs[1].LiquidationPenalty = d("0.15") // bnb
-	updatedTestCPs[2].DebtLimit = c("usdx", 1000)    // atom
-	updatedTestCPs[2].LiquidationPenalty = d("0.15") // atom
-
-	testcases := []struct {
-		name          string
-		allowed       AllowedCollateralParams
-		current       cdptypes.CollateralParams
-		incoming      cdptypes.CollateralParams
-		expectAllowed bool
-	}{
-		{
-			name: "disallowed add",
-			allowed: AllowedCollateralParams{
-				{
-					Type:        "bnb-a",
-					AuctionSize: true,
-				},
-				{
-					Type:         "btc-a",
-					StabilityFee: true,
-				},
-				{ // allow all fields
-					Type:                             "atom-a",
-					Denom:                            true,
-					LiquidationRatio:                 true,
-					DebtLimit:                        true,
-					StabilityFee:                     true,
-					AuctionSize:                      true,
-					LiquidationPenalty:               true,
-					Prefix:                           true,
-					SpotMarketID:                     true,
-					LiquidationMarketID:              true,
-					ConversionFactor:                 true,
-					KeeperRewardPercentage:           true,
-					CheckCollateralizationIndexCount: true,
-				},
-			},
-			current:       testCPs[:2],
-			incoming:      testCPs[:3],
-			expectAllowed: false,
-		},
-		{
-			name: "disallowed remove",
-			allowed: AllowedCollateralParams{
-				{
-					Type:        "bnb-a",
-					AuctionSize: true,
-				},
-				{
-					// allow all fields
-					Type:                             "btc-a",
-					Denom:                            true,
-					LiquidationRatio:                 true,
-					DebtLimit:                        true,
-					StabilityFee:                     true,
-					AuctionSize:                      true,
-					LiquidationPenalty:               true,
-					Prefix:                           true,
-					SpotMarketID:                     true,
-					LiquidationMarketID:              true,
-					ConversionFactor:                 true,
-					KeeperRewardPercentage:           true,
-					CheckCollateralizationIndexCount: true,
-				},
-			},
-			current:       testCPs[:2],
-			incoming:      testCPs[:1], // removes btc
-			expectAllowed: false,
-		},
-		{
-			name: "allowed change with different order",
-			allowed: AllowedCollateralParams{
-				{
-					Type:               "bnb-a",
-					LiquidationPenalty: true,
-				},
-				{
-					Type:      "btc-a",
-					DebtLimit: true,
-				},
-				{
-					Type:               "atom-a",
-					DebtLimit:          true,
-					LiquidationPenalty: true,
-				},
-			},
-			current:       testCPs,
-			incoming:      updatedTestCPs,
-			expectAllowed: true,
-		},
-	}
-	for _, tc := range testcases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(
-				tc.expectAllowed,
-				tc.allowed.Allows(tc.current, tc.incoming),
-			)
-		})
-	}
+	cdpCollateralParams       cdptypes.CollateralParams
+	cdpDebtParam              cdptypes.DebtParam
+	cdpCollateralRequirements []types.SubparamRequirement
 }
 
-func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
-	deputyAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
-	testAPs := bep3types.AssetParams{
-		bep3types.AssetParam{
-			Denom:  "btc",
-			CoinID: 0,
-			SupplyLimit: bep3types.SupplyLimit{
-				Limit:          sdk.NewInt(100),
-				TimeLimited:    true,
-				TimeBasedLimit: sdk.NewInt(50000000000),
-				TimePeriod:     time.Hour,
-			},
-			Active:        false,
-			DeputyAddress: deputyAddress,
-			FixedFee:      sdk.NewInt(1000),
-			MinSwapAmount: sdk.OneInt(),
-			MaxSwapAmount: sdk.NewInt(1000000000000),
-			MinBlockLock:  bep3types.DefaultMinBlockLock,
-			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
-		},
-		bep3types.AssetParam{
-			Denom:  "bnb",
-			CoinID: 714,
-			SupplyLimit: bep3types.SupplyLimit{
-				Limit:          sdk.NewInt(350000000000000),
-				TimeLimited:    true,
-				TimeBasedLimit: sdk.NewInt(50000000000),
-				TimePeriod:     time.Hour,
-			},
-			Active:        true,
-			DeputyAddress: deputyAddress,
-			FixedFee:      sdk.NewInt(1000),
-			MinSwapAmount: sdk.OneInt(),
-			MaxSwapAmount: sdk.NewInt(1000000000000),
-			MinBlockLock:  bep3types.DefaultMinBlockLock,
-			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
-		},
-		bep3types.AssetParam{
-			Denom:  "xrp",
-			CoinID: 414,
-			SupplyLimit: bep3types.SupplyLimit{
-				Limit:          sdk.NewInt(350000000000000),
-				TimeLimited:    true,
-				TimeBasedLimit: sdk.NewInt(50000000000),
-				TimePeriod:     time.Hour,
-			},
-			Active:        true,
-			DeputyAddress: deputyAddress,
-			FixedFee:      sdk.NewInt(1000),
-			MinSwapAmount: sdk.OneInt(),
-			MaxSwapAmount: sdk.NewInt(1000000000000),
-			MinBlockLock:  bep3types.DefaultMinBlockLock,
-			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
-		},
-	}
-	updatedTestAPs := make(bep3types.AssetParams, len(testAPs))
-	updatedTestAPs[0] = testAPs[1]
-	updatedTestAPs[1] = testAPs[0]
-	updatedTestAPs[2] = testAPs[2]
+func (suite *ParamsChangeTestSuite) SetupTest() {
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
-	updatedTestAPs[0].SupplyLimit.Limit = i(1000) // btc
-	updatedTestAPs[1].Active = false              // bnb
-	updatedTestAPs[2].SupplyLimit.Limit = i(1000) // xrp
-	updatedTestAPs[2].Active = false              // xrp
-	updatedTestAPs[2].MinBlockLock = uint64(210)  // xrp
-	updatedTestAPs[2].MaxSwapAmount = sdk.NewInt(10000000000000)
+	suite.ctx = ctx
+	suite.pk = tApp.GetParamsKeeper()
 
-	testcases := []struct {
-		name          string
-		allowed       AllowedAssetParams
-		current       bep3types.AssetParams
-		incoming      bep3types.AssetParams
-		expectAllowed bool
-	}{
-		{
-			name: "disallowed add",
-			allowed: AllowedAssetParams{
-				{
-					Denom:  "bnb",
-					Active: true,
-				},
-				{
-					Denom: "btc",
-					Limit: true,
-				},
-				{ // allow all fields
-					Denom:         "xrp",
-					CoinID:        true,
-					Limit:         true,
-					Active:        true,
-					MaxSwapAmount: true,
-					MinBlockLock:  true,
-				},
-			},
-			current:       testAPs[:2],
-			incoming:      testAPs[:3],
-			expectAllowed: false,
-		},
-		{
-			name: "disallowed remove",
-			allowed: AllowedAssetParams{
-				{
-					Denom:  "bnb",
-					Active: true,
-				},
-				{ // allow all fields
-					Denom:  "btc",
-					CoinID: true,
-					Limit:  true,
-					Active: true,
-				},
-			},
-			current:       testAPs[:2],
-			incoming:      testAPs[:1], // removes btc
-			expectAllowed: false,
-		},
-		{
-			name: "allowed change with different order",
-			allowed: AllowedAssetParams{
-				{
-					Denom:  "bnb",
-					Active: true,
-					Limit:  true,
-				},
-				{
-					Denom: "btc",
-					Limit: true,
-				},
-				{
-					Denom:         "xrp",
-					Limit:         true,
-					Active:        true,
-					MaxSwapAmount: true,
-					MinBlockLock:  true,
-				},
-			},
-			current:       testAPs,
-			incoming:      updatedTestAPs,
-			expectAllowed: true,
-		},
-	}
-	for _, tc := range testcases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(
-				tc.expectAllowed,
-				tc.allowed.Allows(tc.current, tc.incoming),
-			)
-		})
-	}
-}
-
-func (suite *PermissionsTestSuite) TestAllowedMarkets_Allows() {
-	testMs := pricefeedtypes.Markets{
-		{
-			MarketID:   "bnb:usd",
-			BaseAsset:  "bnb",
-			QuoteAsset: "usd",
-			Oracles:    []sdk.AccAddress{},
-			Active:     true,
-		},
-		{
-			MarketID:   "btc:usd",
-			BaseAsset:  "btc",
-			QuoteAsset: "usd",
-			Oracles:    []sdk.AccAddress{},
-			Active:     true,
-		},
-		{
-			MarketID:   "atom:usd",
-			BaseAsset:  "atom",
-			QuoteAsset: "usd",
-			Oracles:    []sdk.AccAddress{},
-			Active:     true,
-		},
-	}
-	updatedTestMs := make(pricefeedtypes.Markets, len(testMs))
-	updatedTestMs[0] = testMs[1]
-	updatedTestMs[1] = testMs[0]
-	updatedTestMs[2] = testMs[2]
-
-	updatedTestMs[0].Oracles = []sdk.AccAddress{[]byte("a test address")} // btc
-	updatedTestMs[1].Active = false                                       // bnb
-	updatedTestMs[2].Oracles = []sdk.AccAddress{[]byte("a test address")} // atom
-	updatedTestMs[2].Active = false                                       // atom
-
-	testcases := []struct {
-		name          string
-		allowed       AllowedMarkets
-		current       pricefeedtypes.Markets
-		incoming      pricefeedtypes.Markets
-		expectAllowed bool
-	}{
-		{
-			name: "disallowed add",
-			allowed: AllowedMarkets{
-				{
-					MarketID: "bnb:usd",
-					Active:   true,
-				},
-				{
-					MarketID: "btc:usd",
-					Oracles:  true,
-				},
-				{ // allow all fields
-					MarketID:   "atom:usd",
-					BaseAsset:  true,
-					QuoteAsset: true,
-					Oracles:    true,
-					Active:     true,
-				},
-			},
-			current:       testMs[:2],
-			incoming:      testMs[:3],
-			expectAllowed: false,
-		},
-		{
-			name: "disallowed remove",
-			allowed: AllowedMarkets{
-				{
-					MarketID: "bnb:usd",
-					Active:   true,
-				},
-				{ // allow all fields
-					MarketID:   "btc:usd",
-					BaseAsset:  true,
-					QuoteAsset: true,
-					Oracles:    true,
-					Active:     true,
-				},
-			},
-			current:       testMs[:2],
-			incoming:      testMs[:1], // removes btc
-			expectAllowed: false,
-		},
-		{
-			name: "allowed change with different order",
-			allowed: AllowedMarkets{
-				{
-					MarketID: "bnb:usd",
-					Active:   true,
-				},
-				{
-					MarketID: "btc:usd",
-					Oracles:  true,
-				},
-				{
-					MarketID: "atom:usd",
-					Oracles:  true,
-					Active:   true,
-				},
-			},
-			current:       testMs,
-			incoming:      updatedTestMs,
-			expectAllowed: true,
-		},
-	}
-	for _, tc := range testcases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(
-				tc.expectAllowed,
-				tc.allowed.Allows(tc.current, tc.incoming),
-			)
-		})
-	}
-}
-
-func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
-	testCP := cdptypes.NewCollateralParam(
-		"bnb",
-		"bnb-a",
-		d("1.5"),
-		c("usdx", 1000000000000),
-		d("1.000000001547125958"), // %5 apr
-		i(10000000000000),
-		d("0.05"),
-		0x20,
-		"bnb:usd",
-		"bnb:usd",
-		d("0.01"),
-		i(10),
-		i(8),
-	)
-	newMarketIDCP := testCP
-	newMarketIDCP.SpotMarketID = "btc:usd"
-
-	newDebtLimitCP := testCP
-	newDebtLimitCP.DebtLimit = c("usdx", 1000)
-
-	newMarketIDAndDebtLimitCP := testCP
-	newMarketIDCP.SpotMarketID = "btc:usd"
-	newDebtLimitCP.DebtLimit = c("usdx", 1000)
-
-	testcases := []struct {
-		name          string
-		allowed       AllowedCollateralParam
-		current       cdptypes.CollateralParam
-		incoming      cdptypes.CollateralParam
-		expectAllowed bool
-	}{
-		{
-			name: "allowed change",
-			allowed: AllowedCollateralParam{
-				Type:         "bnb-a",
-				DebtLimit:    true,
-				StabilityFee: true,
-				AuctionSize:  true,
-			},
-			current:       testCP,
-			incoming:      newDebtLimitCP,
-			expectAllowed: true,
-		},
-		{
-			name: "un-allowed change",
-			allowed: AllowedCollateralParam{
-				Type:         "bnb-a",
-				DebtLimit:    true,
-				StabilityFee: true,
-				AuctionSize:  true,
-			},
-			current:       testCP,
-			incoming:      newMarketIDCP,
-			expectAllowed: false,
-		},
-		{
-			name: "un-allowed mismatching denom",
-			allowed: AllowedCollateralParam{
-				Type:      "btc-a",
-				DebtLimit: true,
-			},
-			current:       testCP,
-			incoming:      newDebtLimitCP,
-			expectAllowed: false,
-		},
-
-		{
-			name: "allowed no change",
-			allowed: AllowedCollateralParam{
-				Type:      "bnb-a",
-				DebtLimit: true,
-			},
-			current:       testCP,
-			incoming:      testCP, // no change
-			expectAllowed: true,
-		},
-		{
-			name: "un-allowed change with allowed change",
-			allowed: AllowedCollateralParam{
-				Type:      "btc-a",
-				DebtLimit: true,
-			},
-			current:       testCP,
-			incoming:      newMarketIDAndDebtLimitCP,
-			expectAllowed: false,
-		},
-		// TODO {
-		// 	name: "nil Int values",
-		// 	allowed: AllowedCollateralParam{
-		// 		Denom:     "btc",
-		// 		DebtLimit: true,
-		// 	},
-		// 	incoming:    cdptypes.CollateralParam{}, // nil sdk.Int types
-		// 	current:     testCP,
-		// 	expectAllowed: false,
-		// },
-	}
-
-	for _, tc := range testcases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(
-				tc.expectAllowed,
-				tc.allowed.Allows(tc.current, tc.incoming),
-			)
-		})
-	}
-}
-
-func (suite *PermissionsTestSuite) TestAllowedDebtParam_Allows() {
-	testDP := cdptypes.DebtParam{
+	suite.cdpDebtParam = cdptypes.DebtParam{
 		Denom:            "usdx",
 		ReferenceAsset:   "usd",
-		ConversionFactor: i(6),
-		DebtFloor:        i(10000000),
+		ConversionFactor: sdk.NewInt(6),
+		DebtFloor:        sdk.NewInt(1000),
 	}
-	newDenomDP := testDP
-	newDenomDP.Denom = "usdz"
 
-	newDebtFloorDP := testDP
-	newDebtFloorDP.DebtFloor = i(1000)
+	suite.cdpCollateralParams = cdptypes.CollateralParams{
+		{
+			Denom:                            "bnb",
+			Type:                             "bnb-a",
+			LiquidationRatio:                 sdk.MustNewDecFromStr("2.0"),
+			DebtLimit:                        sdk.NewCoin("usdx", sdk.NewInt(100)),
+			StabilityFee:                     sdk.MustNewDecFromStr("1.02"),
+			LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
+			AuctionSize:                      sdk.NewInt(100),
+			ConversionFactor:                 sdk.NewInt(6),
+			SpotMarketID:                     "bnb:usd",
+			LiquidationMarketID:              "bnb:usd",
+			CheckCollateralizationIndexCount: sdk.NewInt(0),
+		},
+		{
+			Denom:                            "btc",
+			Type:                             "btc-a",
+			LiquidationRatio:                 sdk.MustNewDecFromStr("1.5"),
+			DebtLimit:                        sdk.NewCoin("usdx", sdk.NewInt(100)),
+			StabilityFee:                     sdk.MustNewDecFromStr("1.01"),
+			LiquidationPenalty:               sdk.MustNewDecFromStr("0.10"),
+			AuctionSize:                      sdk.NewInt(1000),
+			ConversionFactor:                 sdk.NewInt(8),
+			SpotMarketID:                     "btc:usd",
+			LiquidationMarketID:              "btc:usd",
+			CheckCollateralizationIndexCount: sdk.NewInt(1),
+			KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.12"),
+		},
+	}
+	suite.cdpCollateralRequirements = []types.SubparamRequirement{
+		{
+			Key:                        "type",
+			Val:                        "bnb-a",
+			AllowedSubparamAttrChanges: []string{"conversion_factor", "liquidation_ratio", "spot_market_id"},
+		},
+		{
+			Key:                        "type",
+			Val:                        "btc-a",
+			AllowedSubparamAttrChanges: []string{"stability_fee", "debt_limit", "auction_size", "keeper_reward_percentage"},
+		},
+	}
+}
 
-	newDenomAndDebtFloorDP := testDP
-	newDenomAndDebtFloorDP.Denom = "usdz"
-	newDenomAndDebtFloorDP.DebtFloor = i(1000)
-
+func (s *ParamsChangeTestSuite) TestSingleSubparams_CdpDeptParams() {
 	testcases := []struct {
-		name          string
-		allowed       AllowedDebtParam
-		current       cdptypes.DebtParam
-		incoming      cdptypes.DebtParam
-		expectAllowed bool
+		name        string
+		expected    bool
+		permission  types.AllowedParamsChange
+		paramChange paramsproposal.ParamChange
 	}{
 		{
-			name: "allowed change",
-			allowed: AllowedDebtParam{
-				DebtFloor: true,
+			name:     "allow changes to all allowed fields",
+			expected: true,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyDebtParam),
+				SingleSubparamAllowedAttrs: []string{"denom", "reference_asset", "conversion_factor", "debt_floor"},
 			},
-			current:       testDP,
-			incoming:      newDebtFloorDP,
-			expectAllowed: true,
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "DebtParam",
+				Value: `{
+					"denom": "bnb",
+					"reference_asset": "bnbx",
+					"conversion_factor": "11",
+					"debt_floor": "1200"
+				}`,
+			},
 		},
 		{
-			name: "un-allowed change",
-			allowed: AllowedDebtParam{
-				DebtFloor: true,
+			name:     "allows changes only to certain fields",
+			expected: true,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyDebtParam),
+				SingleSubparamAllowedAttrs: []string{"denom", "debt_floor"},
 			},
-			current:       testDP,
-			incoming:      newDenomDP,
-			expectAllowed: false,
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "DebtParam",
+				Value: `{
+					"denom": "bnb",
+					"reference_asset": "usd",
+					"conversion_factor": "6",
+					"debt_floor": "1100"
+				}`,
+			},
 		},
 		{
-			name: "allowed no change",
-			allowed: AllowedDebtParam{
-				DebtFloor: true,
+			name:     "fails if changing attr that is not allowed",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyDebtParam),
+				SingleSubparamAllowedAttrs: []string{"denom", "debt_floor"},
 			},
-			current:       testDP,
-			incoming:      testDP, // no change
-			expectAllowed: true,
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "DebtParam",
+				Value: `{
+					"denom": "usdx",
+					"reference_asset": "usd",
+					"conversion_factor": "7",
+					"debt_floor": "1000"
+				}`,
+			},
 		},
 		{
-			name: "un-allowed change with allowed change",
-			allowed: AllowedDebtParam{
-				DebtFloor: true,
+			name:     "fails if there are unexpected param change attrs",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyDebtParam),
+				SingleSubparamAllowedAttrs: []string{"denom"},
 			},
-			current:       testDP,
-			incoming:      newDenomAndDebtFloorDP,
-			expectAllowed: false,
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "DebtParam",
+				Value: `{
+					"denom": "usdx",
+					"reference_asset": "usd",
+					"conversion_factor": "6",
+					"debt_floor": "1000",
+					"extra_attr": "123"
+				}`,
+			},
 		},
-		// TODO {
-		// 	name: "nil Int values",
-		// 	allowed: AllowedCollateralParam{
-		// 		Denom:     "btc",
-		// 		DebtLimit: true,
-		// 	},
-		// 	incoming:    cdptypes.CollateralParam{}, // nil sdk.Int types
-		// 	current:     testCP,
-		// 	expectAllowed: false,
-		// },
+		{
+			name:     "fails if there are missing param change attrs",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyDebtParam),
+				SingleSubparamAllowedAttrs: []string{"denom", "reference_asset"},
+			},
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "DebtParam",
+				// debt_floor is missing
+				Value: `{
+					"denom": "usdx",
+					"reference_asset": "usd",
+					"conversion_factor": "11.000000000000000000",
+				}`,
+			},
+		},
+		{
+			name:     "fails if subspace does not match",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyDebtParam),
+				SingleSubparamAllowedAttrs: []string{"denom"},
+			},
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "auction",
+				Key:      "DebtParam",
+				Value: `{
+					"denom": "usdx",
+					"reference_asset": "usd",
+					"conversion_factor": "6",
+					"debt_floor": "1000"
+				}`,
+			},
+		},
 	}
 
 	for _, tc := range testcases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(
-				tc.expectAllowed,
-				tc.allowed.Allows(tc.current, tc.incoming),
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
+			s.Require().True(found)
+			subspace.Set(s.ctx, cdptypes.KeyDebtParam, s.cdpDebtParam)
+
+			permission := types.ParamsChangePermission{
+				AllowedParamsChanges: types.AllowedParamsChanges{tc.permission},
+			}
+			proposal := paramsproposal.NewParameterChangeProposal(
+				"A Title",
+				"A description of this proposal.",
+				[]paramsproposal.ParamChange{tc.paramChange},
+			)
+			s.Require().Equal(
+				tc.expected,
+				permission.Allows(s.ctx, s.pk, proposal),
 			)
 		})
 	}
 }
 
-func (suite *PermissionsTestSuite) TestAllowedAssetParam_Allows() {
-	testAP := bep3types.AssetParam{
-		Denom:  "usdx",
-		CoinID: 999,
-		SupplyLimit: bep3types.SupplyLimit{
-			Limit:          sdk.NewInt(350000000000000),
-			TimeLimited:    true,
-			TimeBasedLimit: sdk.NewInt(50000000000),
-			TimePeriod:     time.Hour,
-		},
-		Active:        true,
-		DeputyAddress: sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
-		FixedFee:      sdk.NewInt(1000),
-		MinSwapAmount: sdk.OneInt(),
-		MaxSwapAmount: sdk.NewInt(1000000000000),
-		MinBlockLock:  bep3types.DefaultMinBlockLock,
-		MaxBlockLock:  bep3types.DefaultMaxBlockLock,
-	}
-	newCoinidAP := testAP
-	newCoinidAP.CoinID = 0
-
-	newLimitAP := testAP
-	newLimitAP.SupplyLimit.Limit = i(1000)
-
-	newCoinidAndLimitAP := testAP
-	newCoinidAndLimitAP.CoinID = 0
-	newCoinidAndLimitAP.SupplyLimit.Limit = i(1000)
+func (s *ParamsChangeTestSuite) TestMultiSubparams_CdpCollateralParams() {
+	unchangedBnbValue := `{
+		"denom": "bnb",
+		"type": "bnb-a",
+		"liquidation_ratio": "2.000000000000000000",
+		"debt_limit": { "denom": "usdx", "amount": "100" },
+		"stability_fee": "1.020000000000000000",
+		"auction_size": "100",
+		"liquidation_penalty": "0.050000000000000000",
+		"spot_market_id": "bnb:usd",
+		"liquidation_market_id": "bnb:usd",
+		"keeper_reward_percentage": "0",
+		"check_collateralization_index_count": "0",
+		"conversion_factor": "6"
+	}`
+	unchangedBtcValue := `{
+		"denom": "btc",
+		"type": "btc-a",
+		"liquidation_ratio": "1.500000000000000000",
+		"debt_limit": { "denom": "usdx", "amount": "100" },
+		"stability_fee": "1.010000000000000000",
+		"auction_size": "1000",
+		"liquidation_penalty": "0.100000000000000000",
+		"spot_market_id": "btc:usd",
+		"liquidation_market_id": "btc:usd",
+		"keeper_reward_percentage": "0.12",
+		"check_collateralization_index_count": "1",
+		"conversion_factor": "8"
+	}`
 
 	testcases := []struct {
-		name          string
-		allowed       AllowedAssetParam
-		current       bep3types.AssetParam
-		incoming      bep3types.AssetParam
-		expectAllowed bool
+		name        string
+		expected    bool
+		permission  types.AllowedParamsChange
+		paramChange paramsproposal.ParamChange
 	}{
 		{
-			name: "allowed change",
-			allowed: AllowedAssetParam{
-				Denom: "usdx",
-				Limit: true,
+			name:     "succeeds when changing allowed values and keeping not allowed the same",
+			expected: true,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyCollateralParams),
+				MultiSubparamsRequirements: s.cdpCollateralRequirements,
 			},
-			current:       testAP,
-			incoming:      newLimitAP,
-			expectAllowed: true,
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "CollateralParams",
+				Value: `[{
+					"denom": "bnb",
+					"type": "bnb-a",
+					"liquidation_ratio": "2.010000000000000000",
+					"debt_limit": { "denom": "usdx", "amount": "100" },
+					"stability_fee": "1.020000000000000000",
+					"auction_size": "100",
+					"liquidation_penalty": "0.050000000000000000",
+					"spot_market_id": "bnbc:usd",
+					"liquidation_market_id": "bnb:usd",
+					"keeper_reward_percentage": "0",
+					"check_collateralization_index_count": "0",
+					"conversion_factor": "9"
+				},
+				{
+					"denom": "btc",
+					"type": "btc-a",
+					"liquidation_ratio": "1.500000000000000000",
+					"debt_limit": { "denom": "usdx", "amount": "200" },
+					"stability_fee": "2.010000000000000000",
+					"auction_size": "1200",
+					"liquidation_penalty": "0.100000000000000000",
+					"spot_market_id": "btc:usd",
+					"liquidation_market_id": "btc:usd",
+					"keeper_reward_percentage": "0.000000000000000000",
+					"check_collateralization_index_count": "1",
+					"conversion_factor": "8"
+				}]`,
+			},
 		},
 		{
-			name: "un-allowed change",
-			allowed: AllowedAssetParam{
-				Denom: "usdx",
-				Limit: true,
+			name:     "succeeds if nothing is changed",
+			expected: true,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyCollateralParams),
+				MultiSubparamsRequirements: s.cdpCollateralRequirements,
 			},
-			current:       testAP,
-			incoming:      newCoinidAP,
-			expectAllowed: false,
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "CollateralParams",
+				Value:    fmt.Sprintf("[%s, %s]", unchangedBnbValue, unchangedBtcValue),
+			},
 		},
 		{
-			name: "allowed no change",
-			allowed: AllowedAssetParam{
-				Denom: "usdx",
-				Limit: true,
+			name:     "fails if changed records are not the same length as existing records",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyCollateralParams),
+				MultiSubparamsRequirements: s.cdpCollateralRequirements,
 			},
-			current:       testAP,
-			incoming:      testAP, // no change
-			expectAllowed: true,
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "CollateralParams",
+				Value:    fmt.Sprintf("[%s]", unchangedBnbValue),
+			},
 		},
 		{
-			name: "un-allowed change with allowed change",
-			allowed: AllowedAssetParam{
-				Denom: "usdx",
-				Limit: true,
+			name:     "fails if incoming records are missing a existing record",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyCollateralParams),
+				MultiSubparamsRequirements: s.cdpCollateralRequirements,
 			},
-			current:       testAP,
-			incoming:      newCoinidAndLimitAP,
-			expectAllowed: false,
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "CollateralParams",
+				// same length as existing records but missing one with the correct key/value pair
+				Value: fmt.Sprintf("[%s, %s]", unchangedBnbValue, unchangedBnbValue),
+			},
 		},
-		// TODO {
-		// 	name: "nil Int values",
-		// 	allowed: AllowedCollateralParam{
-		// 		Denom:     "btc",
-		// 		DebtLimit: true,
-		// 	},
-		// 	incoming:    cdptypes.CollateralParam{}, // nil sdk.Int types
-		// 	current:     testCP,
-		// 	expectAllowed: false,
-		// },
+		{
+			name:     "fails when changing an attribute that is not allowed",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyCollateralParams),
+				MultiSubparamsRequirements: s.cdpCollateralRequirements,
+			},
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "CollateralParams",
+				// changed liquidation_ratio, which is not whitelisted
+				Value: fmt.Sprintf("[%s, %s]", unchangedBnbValue, `{
+					"denom": "btc",
+					"type": "btc-a",
+					"liquidation_ratio": "1.2",
+					"debt_limit": { "denom": "usdx", "amount": "100" },
+					"stability_fee": "1.01",
+					"auction_size": "1000",
+					"liquidation_penalty": "0.1",
+					"spot_market_id": "btc:usd",
+					"liquidation_market_id": "btc:usd",
+					"keeper_reward_percentage": "0.12",
+					"check_collateralization_index_count": "1",
+					"conversion_factor": "8"
+				}`),
+			},
+		},
+		{
+			name:     "fails when requirements does not include an existing record",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyCollateralParams),
+				MultiSubparamsRequirements: []types.SubparamRequirement{s.cdpCollateralRequirements[0]},
+			},
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "CollateralParams",
+				Value:    fmt.Sprintf("[%s, %s]", unchangedBnbValue, unchangedBtcValue),
+			},
+		},
+		{
+			name:     "fails when changes has missing key",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyCollateralParams),
+				MultiSubparamsRequirements: []types.SubparamRequirement{s.cdpCollateralRequirements[0]},
+			},
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "CollateralParams",
+				// missing check_collateralization_index_count
+				Value: fmt.Sprintf("[%s, %s]", unchangedBnbValue, `{
+					"denom": "btc",
+					"type": "btc-a",
+					"liquidation_ratio": "1.500000000000000000",
+					"debt_limit": { "denom": "usdx", "amount": "100" },
+					"stability_fee": "1.010000000000000000",
+					"auction_size": "1000",
+					"liquidation_penalty": "0.100000000000000000",
+					"spot_market_id": "btc:usd",
+					"liquidation_market_id": "btc:usd",
+					"keeper_reward_percentage": "0.12",
+					"conversion_factor": "8"
+				}`),
+			},
+		},
+		{
+			name:     "fails when changes has same keys length but an unknown key",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyCollateralParams),
+				MultiSubparamsRequirements: []types.SubparamRequirement{s.cdpCollateralRequirements[0]},
+			},
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "CollateralParams",
+				// missspelled denom key
+				Value: fmt.Sprintf("[%s, %s]", unchangedBnbValue, `{
+					"denoms": "btc",
+					"type": "btc-a",
+					"liquidation_ratio": "1.500000000000000000",
+					"debt_limit": { "denom": "usdx", "amount": "100" },
+					"stability_fee": "1.010000000000000000",
+					"auction_size": "1000",
+					"liquidation_penalty": "0.100000000000000000",
+					"spot_market_id": "btc:usd",
+					"liquidation_market_id": "btc:usd",
+					"keeper_reward_percentage": "0.12",
+					"check_collateralization_index_count": "1",
+					"conversion_factor": "8"
+				}`),
+			},
+		},
+		{
+			name:     "fails when attr is not allowed and has different value",
+			expected: false,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyCollateralParams),
+				MultiSubparamsRequirements: []types.SubparamRequirement{s.cdpCollateralRequirements[0]},
+			},
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "CollateralParams",
+				// liquidation_ratio changed value but is not allowed
+				Value: fmt.Sprintf("[%s, %s]", unchangedBnbValue, `{
+					"denom": "btc",
+					"type": "btc-a",
+					"liquidation_ratio": "1.510000000000000000",
+					"debt_limit": { "denom": "usdx", "amount": "100" },
+					"stability_fee": "1.010000000000000000",
+					"auction_size": "1000",
+					"liquidation_penalty": "0.100000000000000000",
+					"spot_market_id": "btc:usd",
+					"liquidation_market_id": "btc:usd",
+					"keeper_reward_percentage": "0.12",
+					"check_collateralization_index_count": "1",
+					"conversion_factor": "8"
+				}`),
+			},
+		},
+		{
+			name:     "succeeds when param attr is not allowed but is same",
+			expected: true,
+			permission: types.AllowedParamsChange{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyCollateralParams),
+				MultiSubparamsRequirements: s.cdpCollateralRequirements,
+			},
+			paramChange: paramsproposal.ParamChange{
+				Subspace: "cdp",
+				Key:      "CollateralParams",
+				// liquidation_ratio is not allowed but the same
+				// stability_fee is allowed but changed
+				Value: fmt.Sprintf("[%s, %s]", unchangedBnbValue, `{
+					"denom": "btc",
+					"type": "btc-a",
+					"liquidation_ratio": "1.500000000000000000",
+					"debt_limit": { "denom": "usdx", "amount": "100" },
+					"stability_fee": "1.020000000000000000",
+					"auction_size": "1000",
+					"liquidation_penalty": "0.100000000000000000",
+					"spot_market_id": "btc:usd",
+					"liquidation_market_id": "btc:usd",
+					"keeper_reward_percentage": "0.12",
+					"check_collateralization_index_count": "1",
+					"conversion_factor": "8"
+				}`),
+			},
+		},
 	}
 
 	for _, tc := range testcases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(
-				tc.expectAllowed,
-				tc.allowed.Allows(tc.current, tc.incoming),
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
+			s.Require().True(found)
+			subspace.Set(s.ctx, cdptypes.KeyCollateralParams, s.cdpCollateralParams)
+
+			permission := types.ParamsChangePermission{
+				AllowedParamsChanges: types.AllowedParamsChanges{tc.permission},
+			}
+			proposal := paramsproposal.NewParameterChangeProposal(
+				"A Title",
+				"A description of this proposal.",
+				[]paramsproposal.ParamChange{tc.paramChange},
+			)
+			s.Require().Equal(
+				tc.expected,
+				permission.Allows(s.ctx, s.pk, proposal),
 			)
 		})
 	}
 }
 
-func (suite *PermissionsTestSuite) TestAllowedMarket_Allows() {
-	testM := pricefeedtypes.Market{
-		MarketID:   "bnb:usd",
-		BaseAsset:  "bnb",
-		QuoteAsset: "usd",
-		Oracles:    []sdk.AccAddress{[]byte("a test address")},
-		Active:     true,
+func (s *ParamsChangeTestSuite) TestAllowedParamsChange_InvalidJSON() {
+	subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
+	s.Require().True(found)
+	subspace.Set(s.ctx, cdptypes.KeyDebtParam, s.cdpDebtParam)
+
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{{
+			Subspace:                   cdptypes.ModuleName,
+			Key:                        string(cdptypes.KeyDebtParam),
+			SingleSubparamAllowedAttrs: []string{"denom", "reference_asset", "conversion_factor", "debt_floor"},
+		}},
 	}
-	newOraclesM := testM
-	newOraclesM.Oracles = nil
+	proposal := paramsproposal.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		[]paramsproposal.ParamChange{
+			{
+				Subspace: "cdp",
+				Key:      "DebtParam",
+				Value:    `{badjson}`,
+			},
+		},
+	)
+	s.Require().Equal(
+		false,
+		permission.Allows(s.ctx, s.pk, proposal),
+	)
+}
 
-	newActiveM := testM
-	newActiveM.Active = false
+func (s *ParamsChangeTestSuite) TestAllowedParamsChange_InvalidJSONArray() {
+	subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
+	s.Require().True(found)
+	subspace.Set(s.ctx, cdptypes.KeyCollateralParams, s.cdpCollateralParams)
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{{
+			Subspace:                   cdptypes.ModuleName,
+			Key:                        string(cdptypes.KeyCollateralParams),
+			MultiSubparamsRequirements: s.cdpCollateralRequirements,
+		}},
+	}
+	proposal := paramsproposal.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		[]paramsproposal.ParamChange{
+			{
+				Subspace: "cdp",
+				Key:      string(cdptypes.KeyCollateralParams),
+				Value:    `[badjson]`,
+			},
+		},
+	)
+	s.Require().Equal(
+		false,
+		permission.Allows(s.ctx, s.pk, proposal),
+	)
+}
 
-	newOraclesAndActiveM := testM
-	newOraclesAndActiveM.Oracles = nil
-	newOraclesAndActiveM.Active = false
+func (s *ParamsChangeTestSuite) TestAllowedParamsChange_NoSubspaceData() {
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{{
+			Subspace:                   cdptypes.ModuleName,
+			Key:                        string(cdptypes.KeyDebtParam),
+			SingleSubparamAllowedAttrs: []string{"denom"},
+		}},
+	}
+	proposal := paramsproposal.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		[]paramsproposal.ParamChange{{
+			Subspace: cdptypes.ModuleName,
+			Key:      string(cdptypes.KeyDebtParam),
+			Value:    `{}`,
+		}},
+	)
+	s.Require().Panics(func() {
+		permission.Allows(s.ctx, s.pk, proposal)
+	})
+}
+
+func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoAllowedChanged() {
+	permission := types.ParamsChangePermission{}
+	proposal := paramsproposal.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		[]paramsproposal.ParamChange{
+			{
+				Key:      string(cdptypes.KeyDebtParam),
+				Subspace: cdptypes.ModuleName,
+				Value:    `{}`,
+			},
+		},
+	)
+	s.Require().False(permission.Allows(s.ctx, s.pk, proposal))
+}
+
+func (s *ParamsChangeTestSuite) TestParamsChangePermission_PassWhenOneAllowed() {
+	subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
+	s.Require().True(found)
+	subspace.Set(s.ctx, cdptypes.KeyDebtParam, s.cdpDebtParam)
+
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{
+			{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyDebtParam),
+				SingleSubparamAllowedAttrs: []string{"denom"},
+			},
+			{
+				Subspace:                   cdptypes.ModuleName,
+				Key:                        string(cdptypes.KeyDebtParam),
+				SingleSubparamAllowedAttrs: []string{"reference_asset"},
+			},
+		},
+	}
+	proposal := paramsproposal.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		// test success if one AllowedParamsChange is allowed and the other is not
+		[]paramsproposal.ParamChange{
+			{
+				Key:      string(cdptypes.KeyDebtParam),
+				Subspace: cdptypes.ModuleName,
+				Value: `{
+					"denom": "usdx",
+					"reference_asset": "usd2",
+					"conversion_factor": "6",
+					"debt_floor": "1000"
+				}`,
+			},
+		},
+	)
+	s.Require().True(permission.Allows(s.ctx, s.pk, proposal))
+}
+
+// Test subparam value with slice data unchanged comparision
+func (s *ParamsChangeTestSuite) TestParamsChangePermission_SliceSubparamComparision() {
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{{
+			Subspace: pricefeedtypes.ModuleName,
+			Key:      string(pricefeedtypes.KeyMarkets),
+			MultiSubparamsRequirements: []types.SubparamRequirement{
+				{
+					Key:                        "market_id",
+					Val:                        "xrp:usd",
+					AllowedSubparamAttrChanges: []string{"quote_asset", "oracles"},
+				},
+				{
+					Key:                        "market_id",
+					Val:                        "btc:usd",
+					AllowedSubparamAttrChanges: []string{"active"},
+				},
+			},
+		}},
+	}
+	_, oracles := app.GeneratePrivKeyAddressPairs(5)
 
 	testcases := []struct {
-		name          string
-		allowed       AllowedMarket
-		current       pricefeedtypes.Market
-		incoming      pricefeedtypes.Market
-		expectAllowed bool
+		name     string
+		expected bool
+		value    string
 	}{
 		{
-			name: "allowed change",
-			allowed: AllowedMarket{
-				MarketID: "bnb:usd",
-				Active:   true,
+			name:     "success changing allowed attrs",
+			expected: true,
+			value: fmt.Sprintf(`[{
+				"market_id": "xrp:usd",
+				"base_asset": "xrp",
+				"quote_asset": "usdx",
+				"oracles": [],
+				"active": true
 			},
-			current:       testM,
-			incoming:      newActiveM,
-			expectAllowed: true,
+			{
+				"market_id": "btc:usd",
+				"base_asset": "btc",
+				"quote_asset": "usd",
+				"oracles": ["%s"],
+				"active": false
+			}]`, oracles[1].String()),
 		},
 		{
-			name: "un-allowed change",
-			allowed: AllowedMarket{
-				MarketID: "bnb:usd",
-				Active:   true,
+			name:     "fails when changing not allowed attr (oracles)",
+			expected: false,
+			value: fmt.Sprintf(`[{
+				"market_id": "xrp:usd",
+				"base_asset": "xrp",
+				"quote_asset": "usdx",
+				"oracles": ["%s"],
+				"active": true
 			},
-			current:       testM,
-			incoming:      newOraclesM,
-			expectAllowed: false,
+			{
+				"market_id": "btc:usd",
+				"base_asset": "btc",
+				"quote_asset": "usd",
+				"oracles": ["%s"],
+				"active": false
+			}]`, oracles[0].String(), oracles[2].String()),
 		},
-		{
-			name: "allowed no change",
-			allowed: AllowedMarket{
-				MarketID: "bnb:usd",
-				Active:   true,
-			},
-			current:       testM,
-			incoming:      testM, // no change
-			expectAllowed: true,
-		},
-		{
-			name: "un-allowed change with allowed change",
-			allowed: AllowedMarket{
-				MarketID: "bnb:usd",
-				Active:   true,
-			},
-			current:       testM,
-			incoming:      newOraclesAndActiveM,
-			expectAllowed: false,
-		},
-		// TODO {
-		// 	name: "nil Int values",
-		// 	allowed: AllowedCollateralParam{
-		// 		Denom:     "btc",
-		// 		DebtLimit: true,
-		// 	},
-		// 	incoming:    cdptypes.CollateralParam{}, // nil sdk.Int types
-		// 	current:     testCP,
-		// 	expectAllowed: false,
-		// },
 	}
-
 	for _, tc := range testcases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(
-				tc.expectAllowed,
-				tc.allowed.Allows(tc.current, tc.incoming),
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			subspace, found := s.pk.GetSubspace(pricefeedtypes.ModuleName)
+			s.Require().True(found)
+			currentMs := pricefeedtypes.Markets{
+				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracles[0]}, Active: true},
+				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracles[1]}, Active: true},
+			}
+			subspace.Set(s.ctx, pricefeedtypes.KeyMarkets, &currentMs)
+
+			proposal := paramsproposal.NewParameterChangeProposal(
+				"A Title",
+				"A description of this proposal.",
+				[]paramsproposal.ParamChange{{
+					Subspace: pricefeedtypes.ModuleName,
+					Key:      string(pricefeedtypes.KeyMarkets),
+					Value:    tc.value,
+				}},
+			)
+			s.Require().Equal(
+				tc.expected,
+				permission.Allows(s.ctx, s.pk, proposal),
 			)
 		})
 	}
+}
+
+func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoSubparamRequirements() {
+	permission := types.ParamsChangePermission{
+		AllowedParamsChanges: types.AllowedParamsChanges{{
+			Subspace: cdptypes.ModuleName,
+			Key:      string(cdptypes.KeySurplusThreshold),
+		}},
+	}
+
+	testcases := []struct {
+		name     string
+		expected bool
+		changes  []paramsproposal.ParamChange
+	}{
+		{
+			name:     "success when changing allowed params",
+			expected: true,
+			changes: []paramsproposal.ParamChange{{
+				Subspace: cdptypes.ModuleName,
+				Key:      string(cdptypes.KeySurplusThreshold),
+				Value:    sdk.NewInt(120).String(),
+			}},
+		},
+		{
+			name:     "fail when changing not allowed params",
+			expected: false,
+			changes: []paramsproposal.ParamChange{{
+				Subspace: cdptypes.ModuleName,
+				Key:      string(cdptypes.KeySurplusLot),
+				Value:    sdk.NewInt(120).String(),
+			}},
+		},
+		{
+			name:     "fail if one change is not allowed",
+			expected: false,
+			changes: []paramsproposal.ParamChange{{
+				Subspace: cdptypes.ModuleName,
+				Key:      string(cdptypes.KeySurplusThreshold),
+				Value:    sdk.NewInt(120).String(),
+			},
+				{
+					Subspace: cdptypes.ModuleName,
+					Key:      string(cdptypes.KeySurplusLot),
+					Value:    sdk.NewInt(120).String(),
+				}},
+		},
+	}
+
+	for _, tc := range testcases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
+			s.Require().True(found)
+			subspace.Set(s.ctx, cdptypes.KeySurplusThreshold, sdk.NewInt(100))
+			subspace.Set(s.ctx, cdptypes.KeySurplusLot, sdk.NewInt(110))
+
+			proposal := paramsproposal.NewParameterChangeProposal(
+				"A Title",
+				"A description of this proposal.",
+				tc.changes,
+			)
+			s.Require().Equal(
+				tc.expected,
+				permission.Allows(s.ctx, s.pk, proposal),
+			)
+		})
+	}
+}
+
+func TestParamsChangeTestSuite(t *testing.T) {
+	suite.Run(t, new(ParamsChangeTestSuite))
 }

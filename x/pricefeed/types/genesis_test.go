@@ -31,7 +31,7 @@ func TestGenesisStateValidate(t *testing.T) {
 		{
 			msg: "valid genesis",
 			genesisState: NewGenesisState(
-				NewParams(Markets{
+				NewParams([]Market{
 					{"market", "xrp", "bnb", []sdk.AccAddress{addr}, true},
 				}),
 				[]PostedPrice{NewPostedPrice("xrp", addr, sdk.OneDec(), now)},
@@ -41,7 +41,7 @@ func TestGenesisStateValidate(t *testing.T) {
 		{
 			msg: "invalid param",
 			genesisState: NewGenesisState(
-				NewParams(Markets{
+				NewParams([]Market{
 					{"", "xrp", "bnb", []sdk.AccAddress{addr}, true},
 				}),
 				[]PostedPrice{NewPostedPrice("xrp", addr, sdk.OneDec(), now)},
@@ -51,7 +51,7 @@ func TestGenesisStateValidate(t *testing.T) {
 		{
 			msg: "dup market param",
 			genesisState: NewGenesisState(
-				NewParams(Markets{
+				NewParams([]Market{
 					{"market", "xrp", "bnb", []sdk.AccAddress{addr}, true},
 					{"market", "xrp", "bnb", []sdk.AccAddress{addr}, true},
 				}),
@@ -62,7 +62,7 @@ func TestGenesisStateValidate(t *testing.T) {
 		{
 			msg: "invalid posted price",
 			genesisState: NewGenesisState(
-				NewParams(Markets{}),
+				NewParams([]Market{}),
 				[]PostedPrice{NewPostedPrice("xrp", nil, sdk.OneDec(), now)},
 			),
 			expPass: false,
@@ -70,7 +70,7 @@ func TestGenesisStateValidate(t *testing.T) {
 		{
 			msg: "duplicated posted price",
 			genesisState: NewGenesisState(
-				NewParams(Markets{}),
+				NewParams([]Market{}),
 				[]PostedPrice{
 					NewPostedPrice("xrp", addr, sdk.OneDec(), now),
 					NewPostedPrice("xrp", addr, sdk.OneDec(), now),
@@ -81,11 +81,13 @@ func TestGenesisStateValidate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := tc.genesisState.Validate()
-		if tc.expPass {
-			require.NoError(t, err, tc.msg)
-		} else {
-			require.Error(t, err, tc.msg)
-		}
+		t.Run(tc.msg, func(t *testing.T) {
+			err := tc.genesisState.Validate()
+			if tc.expPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }

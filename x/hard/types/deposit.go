@@ -7,13 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Deposit defines an amount of coins deposited into a hard module account
-type Deposit struct {
-	Depositor sdk.AccAddress        `json:"depositor" yaml:"depositor"`
-	Amount    sdk.Coins             `json:"amount" yaml:"amount"`
-	Index     SupplyInterestFactors `json:"index" yaml:"index"`
-}
-
 // NewDeposit returns a new deposit
 func NewDeposit(depositor sdk.AccAddress, amount sdk.Coins, indexes SupplyInterestFactors) Deposit {
 	return Deposit{
@@ -30,7 +23,6 @@ func NewDeposit(depositor sdk.AccAddress, amount sdk.Coins, indexes SupplyIntere
 //
 // An error is returned if the deposit is in an invalid state.
 func (b Deposit) NormalizedDeposit() (sdk.DecCoins, error) {
-
 	normalized := sdk.NewDecCoins()
 
 	for _, coin := range b.Amount {
@@ -56,10 +48,10 @@ func (b Deposit) NormalizedDeposit() (sdk.DecCoins, error) {
 // Validate deposit validation
 func (d Deposit) Validate() error {
 	if d.Depositor.Empty() {
-		return fmt.Errorf("Depositor cannot be empty")
+		return fmt.Errorf("depositor cannot be empty")
 	}
 	if !d.Amount.IsValid() {
-		return fmt.Errorf("Invalid deposit coins: %s", d.Amount)
+		return fmt.Errorf("invalid deposit coins: %s", d.Amount)
 	}
 
 	if err := d.Index.Validate(); err != nil {
@@ -69,12 +61,9 @@ func (d Deposit) Validate() error {
 	return nil
 }
 
-func (d Deposit) String() string {
-	return fmt.Sprintf(`Deposit:
-	Depositor: %s
-	Amount: %s
-	Index: %s
-	`, d.Depositor, d.Amount, d.Index)
+// ToResponse converts Deposit to DepositResponse
+func (d Deposit) ToResponse() DepositResponse {
+	return NewDepositResponse(d.Depositor, d.Amount, d.Index)
 }
 
 // Deposits is a slice of Deposit
@@ -96,11 +85,27 @@ func (ds Deposits) Validate() error {
 	return nil
 }
 
-// SupplyInterestFactor defines an individual borrow interest factor
-type SupplyInterestFactor struct {
-	Denom string  `json:"denom" yaml:"denom"`
-	Value sdk.Dec `json:"value" yaml:"value"`
+// ToResponse converts Deposits to DepositResponses
+func (ds Deposits) ToResponse() DepositResponses {
+	var dResponses DepositResponses
+
+	for _, d := range ds {
+		dResponses = append(dResponses, d.ToResponse())
+	}
+	return dResponses
 }
+
+// NewDepositResponse returns a new DepositResponse
+func NewDepositResponse(depositor sdk.AccAddress, amount sdk.Coins, indexes SupplyInterestFactors) DepositResponse {
+	return DepositResponse{
+		Depositor: depositor.String(),
+		Amount:    amount,
+		Index:     indexes.ToResponse(),
+	}
+}
+
+// DepositResponses is a slice of DepositResponse
+type DepositResponses []DepositResponse
 
 // NewSupplyInterestFactor returns a new SupplyInterestFactor instance
 func NewSupplyInterestFactor(denom string, value sdk.Dec) SupplyInterestFactor {
@@ -122,9 +127,17 @@ func (sif SupplyInterestFactor) Validate() error {
 	return nil
 }
 
-func (sif SupplyInterestFactor) String() string {
-	return fmt.Sprintf(`[%s,%s]
-	`, sif.Denom, sif.Value)
+// ToResponse converts SupplyInterestFactor to SupplyInterestFactorResponse
+func (sif SupplyInterestFactor) ToResponse() SupplyInterestFactorResponse {
+	return NewSupplyInterestFactorResponse(sif.Denom, sif.Value)
+}
+
+// NewSupplyInterestFactorResponse returns a new SupplyInterestFactorResponse instance
+func NewSupplyInterestFactorResponse(denom string, value sdk.Dec) SupplyInterestFactorResponse {
+	return SupplyInterestFactorResponse{
+		Denom: denom,
+		Value: value.String(),
+	}
 }
 
 // SupplyInterestFactors is a slice of SupplyInterestFactor, because Amino won't marshal maps
@@ -172,10 +185,15 @@ func (sifs SupplyInterestFactors) Validate() error {
 	return nil
 }
 
-func (sifs SupplyInterestFactors) String() string {
-	out := ""
+// ToResponse converts SupplyInterestFactor to SupplyInterestFactorResponses
+func (sifs SupplyInterestFactors) ToResponse() SupplyInterestFactorResponses {
+	var sifResponses SupplyInterestFactorResponses
+
 	for _, sif := range sifs {
-		out += sif.String()
+		sifResponses = append(sifResponses, sif.ToResponse())
 	}
-	return out
+	return sifResponses
 }
+
+// SupplyInterestFactorResponses is a slice of SupplyInterestFactorResponse
+type SupplyInterestFactorResponses []SupplyInterestFactorResponse

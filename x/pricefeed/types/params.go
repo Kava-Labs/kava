@@ -2,24 +2,18 @@ package types
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Parameter keys
 var (
 	KeyMarkets     = []byte("Markets")
-	DefaultMarkets = Markets{}
+	DefaultMarkets = []Market{}
 )
 
-// Params params for pricefeed. Can be altered via governance
-type Params struct {
-	Markets Markets `json:"markets" yaml:"markets"` //  Array containing the markets supported by the pricefeed
-}
-
 // NewParams creates a new AssetParams object
-func NewParams(markets Markets) Params {
+func NewParams(markets []Market) Params {
 	return Params{
 		Markets: markets,
 	}
@@ -31,25 +25,16 @@ func DefaultParams() Params {
 }
 
 // ParamKeyTable Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 // pairs of pricefeed module's parameters.
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyMarkets, &p.Markets, validateMarketParams),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyMarkets, &p.Markets, validateMarketParams),
 	}
-}
-
-// String implements fmt.stringer
-func (p Params) String() string {
-	out := "Params:\n"
-	for _, a := range p.Markets {
-		out += fmt.Sprintf("%s\n", a.String())
-	}
-	return strings.TrimSpace(out)
 }
 
 // Validate ensure that params have valid values

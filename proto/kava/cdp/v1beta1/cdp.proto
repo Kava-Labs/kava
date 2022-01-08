@@ -1,0 +1,56 @@
+syntax = "proto3";
+package kava.cdp.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package                      = "github.com/kava-labs/kava/x/cdp/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// CDP defines the state of a single collateralized debt position.
+message CDP {
+  uint64 id    = 1 [(gogoproto.customname) = "ID"];
+  bytes  owner = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  string                    type             = 3;
+  cosmos.base.v1beta1.Coin  collateral       = 4 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin  principal        = 5 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin  accumulated_fees = 6 [(gogoproto.nullable) = false];
+  google.protobuf.Timestamp fees_updated     = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  string                    interest_factor  = 8 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// Deposit defines an amount of coins deposited by an account to a cdp
+message Deposit {
+  uint64 cdp_id    = 1 [(gogoproto.customname) = "CdpID"];
+  string depositor = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+}
+
+// TotalPrincipal defines the total principal of a given collateral type
+message TotalPrincipal {
+  string                   collateral_type = 1;
+  cosmos.base.v1beta1.Coin amount          = 2 [(gogoproto.nullable) = false];
+}
+
+// TotalCollateral defines the total collateral of a given collateral type
+message TotalCollateral {
+  string                   collateral_type = 1;
+  cosmos.base.v1beta1.Coin amount          = 2 [(gogoproto.nullable) = false];
+}
+
+// OwnerCDPIndex defines the cdp ids for a single cdp owner
+message OwnerCDPIndex {
+  repeated uint64 cdp_ids = 1 [(gogoproto.customname) = "CdpIDs"];
+}

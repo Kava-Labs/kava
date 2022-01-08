@@ -51,9 +51,10 @@ func TestMarketValidate(t *testing.T) {
 		{
 			"invalid market",
 			Market{
-				MarketID:   "market",
-				BaseAsset:  "xrp",
-				QuoteAsset: "BNB",
+				MarketID:  "market",
+				BaseAsset: "xrp",
+				// Denoms can be uppercase in v0.44
+				QuoteAsset: "BNB.",
 			},
 			false,
 		},
@@ -80,12 +81,14 @@ func TestMarketValidate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := tc.market.Validate()
-		if tc.expPass {
-			require.NoError(t, err)
-		} else {
-			require.Error(t, err)
-		}
+		t.Run(tc.msg, func(t *testing.T) {
+			err := tc.market.Validate()
+			if tc.expPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }
 
@@ -122,7 +125,7 @@ func TestPostedPriceValidate(t *testing.T) {
 			"invalid oracle",
 			PostedPrice{
 				MarketID:      "market",
-				OracleAddress: nil,
+				OracleAddress: sdk.AccAddress{},
 			},
 			false,
 		},
@@ -148,11 +151,13 @@ func TestPostedPriceValidate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := tc.postedPrice.Validate()
-		if tc.expPass {
-			require.NoError(t, err)
-		} else {
-			require.Error(t, err)
-		}
+		t.Run(tc.msg, func(t *testing.T) {
+			err := tc.postedPrice.Validate()
+			if tc.expPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }

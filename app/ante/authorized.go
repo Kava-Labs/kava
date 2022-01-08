@@ -3,18 +3,13 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 )
-
-var _ sigVerifiableTx = (*authtypes.StdTx)(nil) // assert StdTx implements SigVerifiableTx
-
-// SigVerifiableTx defines a Tx interface for all signature verification decorators
-type sigVerifiableTx interface {
-	GetSigners() []sdk.AccAddress
-}
 
 // AddressFetcher is a type signature for functions used by the AuthenticatedMempoolDecorator to get authorized addresses.
 type AddressFetcher func(sdk.Context) []sdk.AccAddress
+
+var _ sdk.AnteDecorator = AuthenticatedMempoolDecorator{}
 
 // AuthenticatedMempoolDecorator blocks all txs from reaching the mempool unless they're signed by one of the authorzed addresses.
 // It only runs before entry to mempool (CheckTx), and not in consensus (DeliverTx)
@@ -31,7 +26,7 @@ func NewAuthenticatedMempoolDecorator(fetchers ...AddressFetcher) AuthenticatedM
 func (amd AuthenticatedMempoolDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	// This is only for local mempool purposes, and thus is only run on check tx.
 	if ctx.IsCheckTx() && !simulate {
-		sigTx, ok := tx.(sigVerifiableTx)
+		sigTx, ok := tx.(authsigning.SigVerifiableTx)
 		if !ok {
 			return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "tx must be sig verifiable tx")
 		}

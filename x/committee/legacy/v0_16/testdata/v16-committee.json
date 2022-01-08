@@ -1,0 +1,311 @@
+{
+  "next_proposal_id": "1",
+  "committees": [
+    {
+      "@type": "/kava.committee.v1beta1.MemberCommittee",
+      "base_committee": {
+        "id": "1",
+        "description": "Kava Stability Committee",
+        "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
+        "permissions": [
+          {
+            "@type": "/kava.committee.v1beta1.ParamsChangePermission",
+            "allowed_params_changes": [
+              {
+                "subspace": "auction",
+                "key": "BidDuration",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "auction",
+                "key": "IncrementSurplus",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "auction",
+                "key": "IncrementDebt",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "auction",
+                "key": "IncrementCollateral",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "bep3",
+                "key": "AssetParams",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "cdp",
+                "key": "GlobalDebtLimit",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "cdp",
+                "key": "SurplusThreshold",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "cdp",
+                "key": "SurplusLot",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "cdp",
+                "key": "DebtThreshold",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "cdp",
+                "key": "DebtLot",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "cdp",
+                "key": "DistributionFrequency",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "cdp",
+                "key": "CollateralParams",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "cdp",
+                "key": "DebtParam",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "incentive",
+                "key": "Active",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "kavadist",
+                "key": "Active",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "pricefeed",
+                "key": "Markets",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "hard",
+                "key": "MoneyMarkets",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "hard",
+                "key": "MinimumBorrowUSDValue",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              }
+            ]
+          },
+          { "@type": "/kava.committee.v1beta1.TextPermission" }
+        ],
+        "vote_threshold": "0.500000000000000000",
+        "proposal_duration": "600s",
+        "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
+      }
+    },
+    {
+      "@type": "/kava.committee.v1beta1.MemberCommittee",
+      "base_committee": {
+        "id": "2",
+        "description": "Kava Safety Committee",
+        "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
+        "permissions": [
+          { "@type": "/kava.committee.v1beta1.SoftwareUpgradePermission" }
+        ],
+        "vote_threshold": "0.500000000000000000",
+        "proposal_duration": "604800s",
+        "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
+      }
+    },
+    {
+      "@type": "/kava.committee.v1beta1.MemberCommittee",
+      "base_committee": {
+        "id": "3",
+        "description": "Kava God Committee (testing only)",
+        "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
+        "permissions": [{ "@type": "/kava.committee.v1beta1.GodPermission" }],
+        "vote_threshold": "0.500000000000000000",
+        "proposal_duration": "604800s",
+        "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
+      }
+    },
+    {
+      "@type": "/kava.committee.v1beta1.TokenCommittee",
+      "base_committee": {
+        "id": "4",
+        "description": "Hard Governance Committee",
+        "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
+        "permissions": [
+          {
+            "@type": "/kava.committee.v1beta1.ParamsChangePermission",
+            "allowed_params_changes": [
+              {
+                "subspace": "hard",
+                "key": "MoneyMarkets",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "hard",
+                "key": "MinimumBorrowUSDValue",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "incentive",
+                "key": "HardSupplyRewardPeriods",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "incentive",
+                "key": "HardBorrowRewardPeriods",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "incentive",
+                "key": "HardDelegatorRewardPeriods",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              }
+            ]
+          }
+        ],
+        "vote_threshold": "0.500000000000000000",
+        "proposal_duration": "600s",
+        "tally_option": "TALLY_OPTION_DEADLINE"
+      },
+      "quorum": "0.330000000000000000",
+      "tally_denom": "hard"
+    },
+    {
+      "@type": "/kava.committee.v1beta1.TokenCommittee",
+      "base_committee": {
+        "id": "5",
+        "description": "Swp Governance Committee",
+        "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
+        "permissions": [
+          {
+            "@type": "/kava.committee.v1beta1.ParamsChangePermission",
+            "allowed_params_changes": [
+              {
+                "subspace": "swap",
+                "key": "AllowedPools",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "swap",
+                "key": "SwapFee",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "incentive",
+                "key": "HardDelegatorRewardPeriods",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              },
+              {
+                "subspace": "incentive",
+                "key": "SwapRewardPeriods",
+                "single_subparam_allowed_attrs": [],
+                "multi_subparams_requirements": []
+              }
+            ]
+          }
+        ],
+        "vote_threshold": "0.500000000000000000",
+        "proposal_duration": "600s",
+        "tally_option": "TALLY_OPTION_DEADLINE"
+      },
+      "quorum": "0.330000000000000000",
+      "tally_denom": "swp"
+    }
+  ],
+  "proposals": [
+    {
+      "content": {
+        "@type": "/kava.kavadist.v1beta1.CommunityPoolMultiSpendProposal",
+        "title": "Test",
+        "description": "Test",
+        "recipient_list": [
+          {
+            "address": "kava1ze7y9qwdddejmy7jlw4cymqqlt2wh05yhwmrv2",
+            "amount": [{ "denom": "ukava", "amount": "10" }]
+          }
+        ]
+      },
+      "id": "1",
+      "committee_id": "2",
+      "deadline": "2021-11-24T18:48:08.693415Z"
+    },
+    {
+      "content": {
+        "@type": "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
+        "title": "Community Pool Spend",
+        "description": "Fund the community pool.",
+        "recipient": "kava1ze7y9qwdddejmy7jlw4cymqqlt2wh05yhwmrv2",
+        "amount": [{ "denom": "ukava", "amount": "10" }]
+      },
+      "id": "1",
+      "committee_id": "2",
+      "deadline": "2021-11-24T18:49:44.219341Z"
+    },
+    {
+      "content": {
+        "@type": "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal",
+        "title": "Test",
+        "description": "Test",
+        "plan": {
+          "name": "Test",
+          "time": "0001-01-01T00:00:00Z",
+          "height": "100",
+          "info": "",
+          "upgraded_client_state": null
+        }
+      },
+      "id": "1",
+      "committee_id": "2",
+      "deadline": "2021-11-24T18:49:44.219693Z"
+    }
+  ],
+  "votes": [
+    {
+      "proposal_id": "1",
+      "voter": "kava1ze7y9qwdddejmy7jlw4cymqqlt2wh05yhwmrv2",
+      "vote_type": "VOTE_TYPE_YES"
+    },
+    {
+      "proposal_id": "1",
+      "voter": "kava1ze7y9qwdddejmy7jlw4cymqqlt2wh05yhwmrv2",
+      "vote_type": "VOTE_TYPE_ABSTAIN"
+    }
+  ]
+}

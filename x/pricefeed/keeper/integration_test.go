@@ -6,18 +6,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/pricefeed"
+	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 func NewPricefeedGenStateMulti() app.GenesisState {
-	pfGenesis := pricefeed.GenesisState{
-		Params: pricefeed.Params{
-			Markets: []pricefeed.Market{
+	pfGenesis := types.GenesisState{
+		Params: types.Params{
+			Markets: []types.Market{
 				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
-		PostedPrices: []pricefeed.PostedPrice{
+		PostedPrices: []types.PostedPrice{
 			{
 				MarketID:      "btc:usd",
 				OracleAddress: sdk.AccAddress{},
@@ -32,5 +32,5 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 			},
 		},
 	}
-	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
+	return app.GenesisState{types.ModuleName: types.ModuleCdc.LegacyAmino.MustMarshalJSON(pfGenesis)}
 }

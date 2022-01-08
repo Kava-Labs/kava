@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
@@ -15,7 +15,7 @@ import (
 )
 
 // define routes that get registered by the main application
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/cdp/accounts", getAccountsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/parameters", getParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/totalPrincipal", getTotalPrincipal(cliCtx)).Methods("GET")
@@ -27,7 +27,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/deposits/{%s}/{%s}", types.RestOwner, types.RestCollateralType), queryCdpDepositsHandlerFn(cliCtx)).Methods("GET")
 }
 
-func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryCdpHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -46,7 +46,7 @@ func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryCdpParams(owner, collateralType)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -63,7 +63,7 @@ func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryCdpsByCollateralTypeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryCdpsByCollateralTypeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -75,7 +75,7 @@ func queryCdpsByCollateralTypeHandlerFn(cliCtx context.CLIContext) http.HandlerF
 
 		params := types.NewQueryCdpsByCollateralTypeParams(collateralType)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -92,7 +92,7 @@ func queryCdpsByCollateralTypeHandlerFn(cliCtx context.CLIContext) http.HandlerF
 	}
 }
 
-func queryCdpsByRatioHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryCdpsByRatioHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -110,7 +110,7 @@ func queryCdpsByRatioHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewQueryCdpsByRatioParams(collateralType, ratioDec)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -127,7 +127,7 @@ func queryCdpsByRatioHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryCdpDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryCdpDepositsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -146,7 +146,7 @@ func queryCdpDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryCdpDeposits(owner, collateralType)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
@@ -163,7 +163,7 @@ func queryCdpDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func getParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func getParamsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -181,7 +181,7 @@ func getParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func getAccountsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func getAccountsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -199,7 +199,7 @@ func getAccountsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryCdpsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -251,7 +251,7 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewQueryCdpsParams(page, limit, cdpCollateralType, cdpOwner, cdpID, cdpRatio)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -269,7 +269,7 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func getTotalPrincipal(cliCtx context.CLIContext) http.HandlerFunc {
+func getTotalPrincipal(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -284,7 +284,7 @@ func getTotalPrincipal(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewQueryGetTotalPrincipalParams(cdpCollateralType)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -302,7 +302,7 @@ func getTotalPrincipal(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func getTotalCollateral(cliCtx context.CLIContext) http.HandlerFunc {
+func getTotalCollateral(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -317,7 +317,7 @@ func getTotalCollateral(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewQueryGetTotalCollateralParams(cdpCollateralType)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

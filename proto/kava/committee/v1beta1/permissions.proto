@@ -1,0 +1,55 @@
+syntax = "proto3";
+package kava.committee.v1beta1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/committee/types";
+
+// GodPermission allows any governance proposal. It is used mainly for testing.
+message GodPermission {
+  option (cosmos_proto.implements_interface) = "Permission";
+}
+
+// SoftwareUpgradePermission permission type for software upgrade proposals
+message SoftwareUpgradePermission {
+  option (cosmos_proto.implements_interface) = "Permission";
+}
+
+// TextPermission allows any text governance proposal.
+message TextPermission {
+  option (cosmos_proto.implements_interface) = "Permission";
+}
+
+// ParamsChangePermission allows any parameter or sub parameter change proposal.
+message ParamsChangePermission {
+  option (cosmos_proto.implements_interface)          = "Permission";
+  repeated AllowedParamsChange allowed_params_changes = 1
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "AllowedParamsChanges"];
+}
+
+// AllowedParamsChange contains data on the allowed parameter changes for subspace, key, and sub params requirements.
+message AllowedParamsChange {
+  string subspace = 1;
+  string key      = 2;
+
+  // Requirements for when the subparam value is a single record. This contains list of allowed attribute keys that can
+  // be changed on the subparam record.
+  repeated string single_subparam_allowed_attrs = 3;
+
+  // Requirements for when the subparam value is a list of records. The requirements contains requirements for each
+  // record in the list.
+  repeated SubparamRequirement multi_subparams_requirements = 4 [(gogoproto.nullable) = false];
+}
+
+// SubparamRequirement contains requirements for a single record in a subparam value list
+message SubparamRequirement {
+  // The required attr key of the param record.
+  string key = 1;
+
+  // The required param value for the param record key. The key and value is used to match to the target param record.
+  string val = 2;
+
+  // The sub param attrs that are allowed to be changed.
+  repeated string allowed_subparam_attr_changes = 3;
+}

@@ -1,8 +1,15 @@
 #!/usr/bin/make -f
 
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
+TM_PKG_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
+COSMOS_PKG_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
+PROJECT_NAME = kava
+DOCKER:=docker
+DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
+HTTPS_GIT := https://github.com/Kava-Labs/kava.git
+
 export GO111MODULE = on
 
 # process build tags
@@ -45,11 +52,11 @@ build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 # process linker flags
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=kava \
-		  -X github.com/cosmos/cosmos-sdk/version.ServerName=kvd \
-		  -X github.com/cosmos/cosmos-sdk/version.ClientName=kvcli \
+		  -X github.com/cosmos/cosmos-sdk/version.AppName=kava \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
+		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
+		  -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_PKG_VERSION)
 
 ifeq ($(WITH_CLEVELDB),yes)
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
@@ -64,19 +71,16 @@ all: install
 
 build: go.sum
 ifeq ($(OS), Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd.exe ./cmd/kvd
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvcli.exe ./cmd/kvcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kava.exe ./cmd/kava
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd ./cmd/kvd
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvcli ./cmd/kvcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kava ./cmd/kava
 endif
 
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
 install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvd
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvcli
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kava
 
 ########################################
 ### Tools & dependencies
@@ -133,6 +137,125 @@ localnet-start: build-linux localnet-stop
 localnet-stop:
 	docker-compose down
 
+# Launch a new single validator chain
+start:
+	./contrib/devnet/init-new-chain.sh
+	kava start
+
+###############################################################################
+###                                Protobuf                                 ###
+###############################################################################
+
+protoVer=v0.2
+protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
+containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
+containerProtoGenAny=$(PROJECT_NAME)-proto-gen-any-$(protoVer)
+containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
+containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
+
+proto-all: proto-gen proto-format proto-lint proto-swagger-gen
+
+proto-gen:
+	@echo "Generating Protobuf files"
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
+		sh ./scripts/protocgen.sh; fi
+
+proto-swagger-gen:
+	@echo "Generating Protobuf Swagger"
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
+		sh ./scripts/protoc-swagger-gen.sh; fi
+
+proto-format:
+	@echo "Formatting Protobuf files"
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
+		find ./ -not -path "./third_party/*" -name *.proto -exec clang-format -style=file -i {} \; ; fi
+
+proto-lint:
+	@$(DOCKER_BUF) lint --error-format=json
+
+proto-check-breaking:
+	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=upgrade-v44
+
+TM_URL = https://raw.githubusercontent.com/tendermint/tendermint/$(TM_PKG_VERSION)/proto/tendermint
+GOGO_PROTO_URL = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
+COSMOS_PROTO_URL = https://raw.githubusercontent.com/cosmos/cosmos-proto/master
+COSMOS_SDK_URL = https://raw.githubusercontent.com/cosmos/cosmos-sdk/$(COSMOS_PKG_VERSION)
+COSMOS_SDK_PROTO_URL = https://raw.githubusercontent.com/cosmos/cosmos-sdk/$(COSMOS_PKG_VERSION)/proto/cosmos
+COSMOS_SDK_BASE_PROTO_URL = $(COSMOS_SDK_PROTO_URL)/base
+GOOGLE_PROTO_URL = https://raw.githubusercontent.com/googleapis/googleapis/master/google/api
+PROTOBUF_GOOGLE_URL = https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf
+
+TM_CRYPTO_TYPES = third_party/proto/tendermint/crypto
+TM_ABCI_TYPES = third_party/proto/tendermint/abci
+TM_TYPES = third_party/proto/tendermint/types
+TM_VERSION = third_party/proto/tendermint/version
+TM_LIBS = third_party/proto/tendermint/libs/bits
+
+GOGO_PROTO_TYPES = third_party/proto/gogoproto
+COSMOS_PROTO_TYPES = third_party/proto/cosmos_proto
+GOOGLE_PROTO_TYPES = third_party/proto/google/api
+PROTOBUF_GOOGLE_TYPES = third_party/proto/google/protobuf
+
+SDK_ABCI_TYPES = third_party/proto/cosmos/base/abci/v1beta1
+SDK_QUERY_TYPES = third_party/proto/cosmos/base/query/v1beta1
+SDK_VESTING_TYPES = third_party/proto/cosmos/vesting/v1beta1
+SDK_AUTH_TYPES = third_party/proto/cosmos/auth/v1beta1
+SDK_COIN_TYPES = third_party/proto/cosmos/base/v1beta1
+
+proto-update-deps:
+	mkdir -p $(GOGO_PROTO_TYPES)
+	curl -sSL $(GOGO_PROTO_URL)/gogoproto/gogo.proto > $(GOGO_PROTO_TYPES)/gogo.proto
+
+	mkdir -p $(COSMOS_PROTO_TYPES)
+	curl -sSL $(COSMOS_PROTO_URL)/cosmos.proto > $(COSMOS_PROTO_TYPES)/cosmos.proto
+
+	mkdir -p $(TM_ABCI_TYPES)
+	curl -sSL $(TM_URL)/abci/types.proto > $(TM_ABCI_TYPES)/types.proto
+
+	mkdir -p $(TM_VERSION)
+	curl -sSL $(TM_URL)/version/types.proto > $(TM_VERSION)/types.proto
+
+	mkdir -p $(TM_TYPES)
+	curl -sSL $(TM_URL)/types/types.proto > $(TM_TYPES)/types.proto
+	curl -sSL $(TM_URL)/types/evidence.proto > $(TM_TYPES)/evidence.proto
+	curl -sSL $(TM_URL)/types/params.proto > $(TM_TYPES)/params.proto
+	curl -sSL $(TM_URL)/types/validator.proto > $(TM_TYPES)/validator.proto
+
+	mkdir -p $(TM_CRYPTO_TYPES)
+	curl -sSL $(TM_URL)/crypto/proof.proto > $(TM_CRYPTO_TYPES)/proof.proto
+	curl -sSL $(TM_URL)/crypto/keys.proto > $(TM_CRYPTO_TYPES)/keys.proto
+
+	mkdir -p $(TM_LIBS)
+	curl -sSL $(TM_URL)/libs/bits/types.proto > $(TM_LIBS)/types.proto
+
+	mkdir -p $(SDK_ABCI_TYPES)
+	curl -sSL $(COSMOS_SDK_BASE_PROTO_URL)/abci/v1beta1/abci.proto > $(SDK_ABCI_TYPES)/abci.proto
+
+	mkdir -p $(SDK_QUERY_TYPES)
+	curl -sSL $(COSMOS_SDK_BASE_PROTO_URL)/query/v1beta1/pagination.proto > $(SDK_QUERY_TYPES)/pagination.proto
+
+	mkdir -p $(SDK_COIN_TYPES)
+	curl -sSL $(COSMOS_SDK_BASE_PROTO_URL)/v1beta1/coin.proto > $(SDK_COIN_TYPES)/coin.proto
+
+	mkdir -p $(SDK_VESTING_TYPES)
+	curl -sSL $(COSMOS_SDK_PROTO_URL)/vesting/v1beta1/vesting.proto > $(SDK_VESTING_TYPES)/vesting.proto
+
+	mkdir -p $(SDK_AUTH_TYPES)
+	curl -sSL $(COSMOS_SDK_PROTO_URL)/auth/v1beta1/auth.proto > $(SDK_AUTH_TYPES)/auth.proto
+
+	mkdir -p $(GOOGLE_PROTO_TYPES)
+	curl -sSL $(GOOGLE_PROTO_URL)/annotations.proto > $(GOOGLE_PROTO_TYPES)/annotations.proto
+	curl -sSL $(GOOGLE_PROTO_URL)/http.proto > $(GOOGLE_PROTO_TYPES)/http.proto
+	curl -sSL $(GOOGLE_PROTO_URL)/httpbody.proto > $(GOOGLE_PROTO_TYPES)/httpbody.proto
+
+	mkdir -p $(PROTOBUF_GOOGLE_TYPES)
+	curl -sSL $(PROTOBUF_GOOGLE_URL)/any.proto > $(PROTOBUF_GOOGLE_TYPES)/any.proto
+
+	mkdir -p client/docs
+	curl -sSL $(COSMOS_SDK_URL)/client/docs/swagger-ui/swagger.yaml > client/docs/cosmos-swagger.yml
+
+.PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps
+
 ########################################
 ### Testing
 
@@ -160,10 +283,7 @@ test-basic: test
 	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
 
 test:
-	@go test $$(go list ./... | grep -v 'migrate\|contrib')
-
-test-rest:
-	rest_test/run_all_tests_from_make.sh
+	@go test $$(go list ./... | grep -v 'contrib')
 
 # Run cli integration tests
 # `-p 4` to use 4 cores, `-tags cli_test` to tell go not to ignore the cli package

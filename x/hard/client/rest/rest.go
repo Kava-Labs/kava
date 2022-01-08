@@ -3,7 +3,7 @@ package rest
 import (
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 )
@@ -17,7 +17,7 @@ const (
 )
 
 // RegisterRoutes registers hard-related REST handlers to a router
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterRoutes(cliCtx client.Context, r *mux.Router) {
 	registerQueryRoutes(cliCtx, r)
 	registerTxRoutes(cliCtx, r)
 }

@@ -1,0 +1,149 @@
+syntax = "proto3";
+package kava.bep3.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/kava-labs/kava/x/bep3/types";
+
+// Params defines the parameters for the bep3 module.
+message Params {
+  // asset_params define the parameters for each bep3 asset
+  repeated AssetParam asset_params = 1 [(gogoproto.castrepeated) = "AssetParams", (gogoproto.nullable) = false];
+}
+
+// AssetParam defines parameters for each bep3 asset.
+message AssetParam {
+  // denom represents the denominatin for this asset
+  string denom = 1;
+  // coin_id represents the registered coin type to use (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
+  int64 coin_id = 2 [(gogoproto.customname) = "CoinID"];
+  // supply_limit defines the maximum supply allowed for the asset - a total or time based rate limit
+  SupplyLimit supply_limit = 3 [(gogoproto.nullable) = false];
+  // active specifies if the asset is live or paused
+  bool active = 4;
+  // deputy_address the kava address of the deputy
+  bytes deputy_address = 5 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  // fixed_fee defines the fee for incoming swaps
+  string fixed_fee = 6 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  // min_swap_amount defines the minimum amount able to be swapped in a single message
+  string min_swap_amount = 7 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  // max_swap_amount defines the maximum amount able to be swapped in a single message
+  string max_swap_amount = 8 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  // min_block_lock defined the minimum blocks to lock
+  uint64 min_block_lock = 9;
+  // min_block_lock defined the maximum blocks to lock
+  uint64 max_block_lock = 10;
+}
+
+// SupplyLimit define the absolute and time-based limits for an assets's supply.
+message SupplyLimit {
+  // limit defines the total supply allowed
+  string limit = 1 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  // time_limited enables or disables time based supply limiting
+  bool time_limited = 2;
+  // time_period specifies the duration that time_based_limit is evalulated
+  google.protobuf.Duration time_period = 3 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  // time_based_limit defines the maximum supply that can be swapped within time_period
+  string time_based_limit = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// SwapStatus is the status of an AtomicSwap
+enum SwapStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // SWAP_STATUS_UNSPECIFIED represents an unspecified status
+  SWAP_STATUS_UNSPECIFIED = 0;
+  // SWAP_STATUS_OPEN represents an open swap
+  SWAP_STATUS_OPEN = 1;
+  // SWAP_STATUS_COMPLETED represents a completed swap
+  SWAP_STATUS_COMPLETED = 2;
+  // SWAP_STATUS_EXPIRED represents an expired swap
+  SWAP_STATUS_EXPIRED = 3;
+}
+
+// SwapDirection is the direction of an AtomicSwap
+enum SwapDirection {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // SWAP_DIRECTION_UNSPECIFIED represents unspecified or invalid swap direcation
+  SWAP_DIRECTION_UNSPECIFIED = 0;
+  // SWAP_DIRECTION_INCOMING represents is incoming swap (to the kava chain)
+  SWAP_DIRECTION_INCOMING = 1;
+  // SWAP_DIRECTION_OUTGOING represents an outgoing swap (from the kava chain)
+  SWAP_DIRECTION_OUTGOING = 2;
+}
+
+// AtomicSwap defines an atomic swap between chains for the pricefeed module.
+message AtomicSwap {
+  // amount represents the amount being swapped
+  repeated cosmos.base.v1beta1.Coin amount = 1
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  // random_number_hash represents the hash of the random number
+  bytes random_number_hash = 2 [(gogoproto.casttype) = "github.com/tendermint/tendermint/libs/bytes.HexBytes"];
+  // expire_height represents the height when the swap expires
+  uint64 expire_height = 3;
+  // timestamp represents the timestamp of the swap
+  int64 timestamp = 4;
+  // sender is the kava chain sender of the swap
+  bytes sender = 5 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  // recipient is the kava chain recipient of the swap
+  bytes recipient = 6 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  // sender_other_chain is the sender on the other chain
+  string sender_other_chain = 7;
+  // recipient_other_chain is the recipient on the other chain
+  string recipient_other_chain = 8;
+  // closed_block is the block when the swap is closed
+  int64 closed_block = 9;
+  // status represents the current status of the swap
+  SwapStatus status = 10;
+  // cross_chain identifies whether the atomic swap is cross chain
+  bool cross_chain = 11;
+  // direction identifies if the swap is incoming or outgoing
+  SwapDirection direction = 12;
+}
+
+// AssetSupply defines information about an asset's supply.
+message AssetSupply {
+  // incoming_supply represents the incoming supply of an asset
+  cosmos.base.v1beta1.Coin incoming_supply = 1 [(gogoproto.nullable) = false];
+  // outgoing_supply represents the outgoing supply of an asset
+  cosmos.base.v1beta1.Coin outgoing_supply = 2 [(gogoproto.nullable) = false];
+  // current_supply represents the current on-chain supply of an asset
+  cosmos.base.v1beta1.Coin current_supply = 3 [(gogoproto.nullable) = false];
+  // time_limited_current_supply represents the time limited current supply of an asset
+  cosmos.base.v1beta1.Coin time_limited_current_supply = 4 [(gogoproto.nullable) = false];
+  // time_elapsed represents the time elapsed
+  google.protobuf.Duration time_elapsed = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+}

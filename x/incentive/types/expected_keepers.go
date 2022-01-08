@@ -2,27 +2,25 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
-
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 )
 
 // ParamSubspace defines the expected Subspace interfacace
 type ParamSubspace interface {
-	GetParamSet(sdk.Context, params.ParamSet)
-	SetParamSet(sdk.Context, params.ParamSet)
-	WithKeyTable(params.KeyTable) params.Subspace
+	GetParamSet(sdk.Context, paramtypes.ParamSet)
+	SetParamSet(sdk.Context, paramtypes.ParamSet)
+	WithKeyTable(paramtypes.KeyTable) paramtypes.Subspace
 	HasKeyTable() bool
 }
 
-// SupplyKeeper defines the expected supply keeper for module accounts
-type SupplyKeeper interface {
-	GetModuleAccount(ctx sdk.Context, name string) supplyexported.ModuleAccountI
+// BankKeeper defines the expected interface needed to send coins
+type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 }
 
 // StakingKeeper defines the expected staking keeper for module accounts
@@ -45,6 +43,7 @@ type CdpKeeper interface {
 type HardKeeper interface {
 	GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (hardtypes.Deposit, bool)
 	GetBorrow(ctx sdk.Context, borrower sdk.AccAddress) (hardtypes.Borrow, bool)
+
 	GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
 	GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
 	GetBorrowedCoins(ctx sdk.Context) (coins sdk.Coins, found bool)
@@ -57,10 +56,11 @@ type SwapKeeper interface {
 	GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (shares sdk.Int, found bool)
 }
 
-// AccountKeeper defines the expected keeper interface for interacting with account
+// AccountKeeper expected interface for the account keeper (noalias)
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
-	SetAccount(ctx sdk.Context, acc authexported.Account)
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
+	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
 }
 
 // CDPHooks event hooks for other keepers to run code in response to CDP modifications

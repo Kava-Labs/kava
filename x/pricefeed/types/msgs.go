@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
+	time "time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -21,24 +21,11 @@ const (
 // ensure Msg interface compliance at compile time
 var _ sdk.Msg = &MsgPostPrice{}
 
-// MsgPostPrice struct representing a posted price message.
-// Used by oracles to input prices to the pricefeed
-type MsgPostPrice struct {
-	From     sdk.AccAddress `json:"from" yaml:"from"`           // client that sent in this address
-	MarketID string         `json:"market_id" yaml:"market_id"` // asset code used by exchanges/api
-	Price    sdk.Dec        `json:"price" yaml:"price"`         // price in decimal (max precision 18)
-	Expiry   time.Time      `json:"expiry" yaml:"expiry"`       // expiry time
-}
-
-// NewMsgPostPrice creates a new post price msg
-func NewMsgPostPrice(
-	from sdk.AccAddress,
-	assetCode string,
-	price sdk.Dec,
-	expiry time.Time) MsgPostPrice {
-	return MsgPostPrice{
+// NewMsgPostPrice returns a new MsgPostPrice
+func NewMsgPostPrice(from string, marketID string, price sdk.Dec, expiry time.Time) *MsgPostPrice {
+	return &MsgPostPrice{
 		From:     from,
-		MarketID: assetCode,
+		MarketID: marketID,
 		Price:    price,
 		Expiry:   expiry,
 	}
@@ -52,18 +39,22 @@ func (msg MsgPostPrice) Type() string { return TypeMsgPostPrice }
 
 // GetSignBytes Implements Msg.
 func (msg MsgPostPrice) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners Implements Msg.
 func (msg MsgPostPrice) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{from}
 }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgPostPrice) ValidateBasic() error {
-	if msg.From.Empty() {
+	if len(msg.From) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if strings.TrimSpace(msg.MarketID) == "" {

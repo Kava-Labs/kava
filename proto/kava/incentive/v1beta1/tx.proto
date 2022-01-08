@@ -1,0 +1,79 @@
+syntax = "proto3";
+package kava.incentive.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/incentive/types";
+
+// Msg defines the incentive Msg service.
+service Msg {
+  // ClaimUSDXMintingReward is a message type used to claim USDX minting rewards
+  rpc ClaimUSDXMintingReward(MsgClaimUSDXMintingReward) returns (MsgClaimUSDXMintingRewardResponse);
+
+  // ClaimHardReward is a message type used to claim Hard liquidity provider rewards
+  rpc ClaimHardReward(MsgClaimHardReward) returns (MsgClaimHardRewardResponse);
+
+  // ClaimDelegatorReward is a message type used to claim delegator rewards
+  rpc ClaimDelegatorReward(MsgClaimDelegatorReward) returns (MsgClaimDelegatorRewardResponse);
+
+  // ClaimSwapReward is a message type used to claim delegator rewards
+  rpc ClaimSwapReward(MsgClaimSwapReward) returns (MsgClaimSwapRewardResponse);
+}
+
+// Selection is a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a
+// denom.
+message Selection {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string denom           = 1;
+  string multiplier_name = 2;
+}
+
+// MsgClaimUSDXMintingReward message type used to claim USDX minting rewards
+message MsgClaimUSDXMintingReward {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string sender          = 1;
+  string multiplier_name = 2;
+}
+
+// MsgClaimUSDXMintingRewardResponse defines the Msg/ClaimUSDXMintingReward response type.
+message MsgClaimUSDXMintingRewardResponse {}
+
+// MsgClaimHardReward message type used to claim Hard liquidity provider rewards
+message MsgClaimHardReward {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string             sender          = 1;
+  repeated Selection denoms_to_claim = 2 [(gogoproto.castrepeated) = "Selections", (gogoproto.nullable) = false];
+}
+
+// MsgClaimHardRewardResponse defines the Msg/ClaimHardReward response type.
+message MsgClaimHardRewardResponse {}
+
+// MsgClaimDelegatorReward message type used to claim delegator rewards
+message MsgClaimDelegatorReward {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string             sender          = 1;
+  repeated Selection denoms_to_claim = 2 [(gogoproto.castrepeated) = "Selections", (gogoproto.nullable) = false];
+}
+
+// MsgClaimDelegatorRewardResponse defines the Msg/ClaimDelegatorReward response type.
+message MsgClaimDelegatorRewardResponse {}
+
+// MsgClaimSwapReward message type used to claim delegator rewards
+message MsgClaimSwapReward {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string             sender          = 1;
+  repeated Selection denoms_to_claim = 2 [(gogoproto.castrepeated) = "Selections", (gogoproto.nullable) = false];
+}
+
+// MsgClaimSwapRewardResponse defines the Msg/ClaimSwapReward response type.
+message MsgClaimSwapRewardResponse {}

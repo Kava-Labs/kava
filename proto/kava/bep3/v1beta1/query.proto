@@ -1,0 +1,160 @@
+syntax = "proto3";
+package kava.bep3.v1beta1;
+
+import "kava/bep3/v1beta1/bep3.proto";
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/duration.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+option go_package = "github.com/kava-labs/kava/x/bep3/types";
+
+// Query defines the gRPC querier service for bep3 module
+service Query {
+  // Params queries module params
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/bep3/v1beta1/params";
+  }
+
+  // AssetSupply queries info about an asset's supply
+  rpc AssetSupply(QueryAssetSupplyRequest) returns (QueryAssetSupplyResponse) {
+    option (google.api.http).get = "/kava/bep3/v1beta1/assetsupply/{denom}";
+  }
+
+  // AssetSupplies queries a list of asset supplies
+  rpc AssetSupplies(QueryAssetSuppliesRequest) returns (QueryAssetSuppliesResponse) {
+    option (google.api.http).get = "/kava/bep3/v1beta1/assetsupplies";
+  }
+
+  // AtomicSwap queries info about an atomic swap
+  rpc AtomicSwap(QueryAtomicSwapRequest) returns (QueryAtomicSwapResponse) {
+    option (google.api.http).get = "/kava/bep3/v1beta1/atomicswap/{swap_id}";
+  }
+
+  // AtomicSwaps queries a list of atomic swaps
+  rpc AtomicSwaps(QueryAtomicSwapsRequest) returns (QueryAtomicSwapsResponse) {
+    option (google.api.http).get = "/kava/bep3/v1beta1/atomicswaps";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/bep3 parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/bep3 parameters.
+message QueryParamsResponse {
+  // params represents the parameters of the module
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryAssetSupplyRequest is the request type for the Query/AssetSupply RPC method.
+message QueryAssetSupplyRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // denom filters the asset response for the specified denom
+  string denom = 1;
+}
+
+// AssetSupplyResponse defines information about an asset's supply.
+message AssetSupplyResponse {
+  // incoming_supply represents the incoming supply of an asset
+  cosmos.base.v1beta1.Coin incoming_supply = 1 [(gogoproto.nullable) = false];
+  // outgoing_supply represents the outgoing supply of an asset
+  cosmos.base.v1beta1.Coin outgoing_supply = 2 [(gogoproto.nullable) = false];
+  // current_supply represents the current on-chain supply of an asset
+  cosmos.base.v1beta1.Coin current_supply = 3 [(gogoproto.nullable) = false];
+  // time_limited_current_supply represents the time limited current supply of an asset
+  cosmos.base.v1beta1.Coin time_limited_current_supply = 4 [(gogoproto.nullable) = false];
+  // time_elapsed represents the time elapsed
+  google.protobuf.Duration time_elapsed = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+}
+
+// QueryAssetSupplyResponse is the response type for the Query/AssetSupply RPC method.
+message QueryAssetSupplyResponse {
+  // asset_supply represents the supply of the asset
+  AssetSupplyResponse asset_supply = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryAssetSuppliesRequest is the request type for the Query/AssetSupplies RPC method.
+message QueryAssetSuppliesRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+}
+
+// QueryAssetSuppliesResponse is the response type for the Query/AssetSupplies RPC method.
+message QueryAssetSuppliesResponse {
+  // asset_supplies represents the supplies of returned assets
+  repeated AssetSupplyResponse asset_supplies = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryAtomicSwapRequest is the request type for the Query/AtomicSwap RPC method.
+message QueryAtomicSwapRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // swap_id represents the id of the swap to query
+  string swap_id = 1;
+}
+
+// QueryAtomicSwapResponse is the response type for the Query/AtomicSwap RPC method.
+message QueryAtomicSwapResponse {
+  AtomicSwapResponse atomic_swap = 2 [(gogoproto.nullable) = false];
+}
+
+// AtomicSwapResponse represents the returned atomic swap properties
+message AtomicSwapResponse {
+  // id represents the id of the atomic swap
+  string id = 1;
+  // amount represents the amount being swapped
+  repeated cosmos.base.v1beta1.Coin amount = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  // random_number_hash represents the hash of the random number
+  string random_number_hash = 3;
+  // expire_height represents the height when the swap expires
+  uint64 expire_height = 4;
+  // timestamp represents the timestamp of the swap
+  int64 timestamp = 5;
+  // sender is the kava chain sender of the swap
+  string sender = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // recipient is the kava chain recipient of the swap
+  string recipient = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // sender_other_chain is the sender on the other chain
+  string sender_other_chain = 8;
+  // recipient_other_chain is the recipient on the other chain
+  string recipient_other_chain = 9;
+  // closed_block is the block when the swap is closed
+  int64 closed_block = 10;
+  // status represents the current status of the swap
+  SwapStatus status = 11;
+  // cross_chain identifies whether the atomic swap is cross chain
+  bool cross_chain = 12;
+  // direction identifies if the swap is incoming or outgoing
+  SwapDirection direction = 13;
+}
+
+// QueryAtomicSwapsRequest is the request type for the Query/AtomicSwaps RPC method.
+message QueryAtomicSwapsRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // involve filters by address
+  string involve = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // expiration filters by expiration block height
+  uint64 expiration = 2;
+  // status filters by swap status
+  SwapStatus status = 3;
+  // direction fitlers by swap direction
+  SwapDirection direction = 4;
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 5;
+}
+
+// QueryAtomicSwapsResponse is the response type for the Query/AtomicSwaps RPC method.
+message QueryAtomicSwapsResponse {
+  // atomic_swap represents the returned atomic swaps for the request
+  repeated AtomicSwapResponse atomic_swaps = 1 [(gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 3;
+}

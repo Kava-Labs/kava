@@ -1,0 +1,147 @@
+syntax = "proto3";
+package kava.pricefeed.v1beta1;
+
+import "kava/pricefeed/v1beta1/store.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package                    = "github.com/kava-labs/kava/x/pricefeed/types";
+option (gogoproto.equal_all)         = true;
+option (gogoproto.verbose_equal_all) = true;
+
+// Query defines the gRPC querier service for pricefeed module
+service Query {
+  // Params queries all parameters of the pricefeed module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1beta1/params";
+  }
+
+  // Price queries price details based on a market
+  rpc Price(QueryPriceRequest) returns (QueryPriceResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1beta1/prices/{market_id}";
+  }
+
+  // Prices queries all prices
+  rpc Prices(QueryPricesRequest) returns (QueryPricesResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1beta1/prices";
+  }
+
+  // RawPrices queries all raw prices based on a market
+  rpc RawPrices(QueryRawPricesRequest) returns (QueryRawPricesResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1beta1/rawprices/{market_id}";
+  }
+
+  // Oracles queries all oracles based on a market
+  rpc Oracles(QueryOraclesRequest) returns (QueryOraclesResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1beta1/oracles/{market_id}";
+  }
+
+  // Markets queries all markets
+  rpc Markets(QueryMarketsRequest) returns (QueryMarketsResponse) {
+    option (google.api.http).get = "/kava/pricefeed/v1beta1/markets";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/pricefeed
+// parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/pricefeed
+// parameters.
+message QueryParamsResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPriceRequest is the request type for the Query/PriceRequest RPC method.
+message QueryPriceRequest {
+  option (gogoproto.goproto_getters) = false;
+
+  string market_id = 1;
+}
+
+// QueryPriceResponse is the response type for the Query/Prices RPC method.
+message QueryPriceResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  CurrentPriceResponse price = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPricesRequest is the request type for the Query/Prices RPC method.
+message QueryPricesRequest {}
+
+// QueryPricesResponse is the response type for the Query/Prices RPC method.
+message QueryPricesResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  repeated CurrentPriceResponse prices = 1
+      [(gogoproto.castrepeated) = "CurrentPriceResponses", (gogoproto.nullable) = false];
+}
+
+// QueryRawPricesRequest is the request type for the Query/RawPrices RPC method.
+message QueryRawPricesRequest {
+  option (gogoproto.goproto_getters) = false;
+
+  string market_id = 1;
+}
+
+// QueryRawPricesResponse is the response type for the Query/RawPrices RPC
+// method.
+message QueryRawPricesResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  repeated PostedPriceResponse raw_prices = 1
+      [(gogoproto.castrepeated) = "PostedPriceResponses", (gogoproto.nullable) = false];
+}
+
+// QueryOraclesRequest is the request type for the Query/Oracles RPC method.
+message QueryOraclesRequest {
+  option (gogoproto.goproto_getters) = false;
+
+  string market_id = 1;
+}
+
+// QueryOraclesResponse is the response type for the Query/Oracles RPC method.
+message QueryOraclesResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  // List of oracle addresses
+  repeated string oracles = 1;
+}
+
+// QueryMarketsRequest is the request type for the Query/Markets RPC method.
+message QueryMarketsRequest {}
+
+// QueryMarketsResponse is the response type for the Query/Markets RPC method.
+message QueryMarketsResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  // List of markets
+  repeated MarketResponse markets = 1 [(gogoproto.castrepeated) = "MarketResponses", (gogoproto.nullable) = false];
+}
+
+// PostedPriceResponse defines a price for market posted by a specific oracle.
+message PostedPriceResponse {
+  string market_id      = 1 [(gogoproto.customname) = "MarketID"];
+  string oracle_address = 2;
+  string price = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  google.protobuf.Timestamp expiry = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+}
+
+// CurrentPriceResponse defines a current price for a particular market in the pricefeed
+// module.
+message CurrentPriceResponse {
+  string market_id = 1 [(gogoproto.customname) = "MarketID"];
+  string price = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+
+// MarketResponse defines an asset in the pricefeed.
+message MarketResponse {
+  string          market_id   = 1 [(gogoproto.customname) = "MarketID"];
+  string          base_asset  = 2;
+  string          quote_asset = 3;
+  repeated string oracles     = 4;
+  bool            active      = 5;
+}

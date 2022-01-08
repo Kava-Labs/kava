@@ -48,17 +48,17 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	modAccountDebt := k.getModAccountDebt(ctx, types.ModuleName)
 	debt = sdk.MinInt(debt, modAccountDebt)
 	debtCoin := sdk.NewCoin(k.GetDebtDenom(ctx), debt)
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(debtCoin))
+	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(debtCoin))
 	if err != nil {
 		return err
 	}
 
 	// liquidate deposits and send collateral from cdp to liquidator
 	for _, dep := range deposits {
-		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(dep.Amount))
-		if err != nil {
+		if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(dep.Amount)); err != nil {
 			return err
 		}
+
 		k.DeleteDeposit(ctx, dep.CdpID, dep.Depositor)
 
 		ctx.EventManager().EmitEvent(
@@ -119,7 +119,7 @@ func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, collateralType string, 
 
 // ValidateLiquidation validate that adding the input principal puts the cdp below the liquidation ratio
 func (k Keeper) ValidateLiquidation(ctx sdk.Context, collateral sdk.Coin, collateralType string, principal sdk.Coin, fees sdk.Coin) error {
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, collateralType, principal, fees, spot)
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, collateralType, principal, fees, liquidation)
 	if err != nil {
 		return err
 	}
@@ -131,8 +131,8 @@ func (k Keeper) ValidateLiquidation(ctx sdk.Context, collateral sdk.Coin, collat
 }
 
 func (k Keeper) getModAccountDebt(ctx sdk.Context, accountName string) sdk.Int {
-	macc := k.supplyKeeper.GetModuleAccount(ctx, accountName)
-	return macc.GetCoins().AmountOf(k.GetDebtDenom(ctx))
+	macc := k.accountKeeper.GetModuleAccount(ctx, accountName)
+	return k.bankKeeper.GetBalance(ctx, macc.GetAddress(), k.GetDebtDenom(ctx)).Amount
 }
 
 func (k Keeper) payoutKeeperLiquidationReward(ctx sdk.Context, keeper sdk.AccAddress, cdp types.CDP) (types.CDP, error) {
@@ -155,7 +155,7 @@ func (k Keeper) payoutKeeperLiquidationReward(ctx sdk.Context, keeper sdk.AccAdd
 	if !paidReward {
 		return cdp, nil
 	}
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, keeper, sdk.NewCoins(rewardCoin))
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, keeper, sdk.NewCoins(rewardCoin))
 	if err != nil {
 		return types.CDP{}, err
 	}

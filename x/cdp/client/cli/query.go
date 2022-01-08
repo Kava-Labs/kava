@@ -1,19 +1,17 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	supply "github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -27,26 +25,32 @@ const (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group nameservice queries under a subcommand
 	cdpQueryCmd := &cobra.Command{
 		Use:   "cdp",
 		Short: "Querying commands for the cdp module",
 	}
 
-	cdpQueryCmd.AddCommand(flags.GetCommands(
-		QueryCdpCmd(queryRoute, cdc),
-		QueryGetCdpsCmd(queryRoute, cdc),
-		QueryCdpDepositsCmd(queryRoute, cdc),
-		QueryParamsCmd(queryRoute, cdc),
-		QueryGetAccounts(queryRoute, cdc),
-	)...)
+	cmds := []*cobra.Command{
+		QueryCdpCmd(),
+		QueryGetCdpsCmd(),
+		QueryCdpDepositsCmd(),
+		QueryParamsCmd(),
+		QueryGetAccounts(),
+	}
+
+	for _, cmd := range cmds {
+		flags.AddQueryFlagsToCmd(cmd)
+	}
+
+	cdpQueryCmd.AddCommand(cmds...)
 
 	return cdpQueryCmd
 }
 
 // QueryCdpCmd returns the command handler for querying a particular cdp
-func QueryCdpCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func QueryCdpCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "cdp [owner-addr] [collateral-type]",
 		Short: "get info about a cdp",
@@ -55,41 +59,36 @@ func QueryCdpCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 Example:
 $ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw atom-a
-`, version.ClientName, types.ModuleName)),
+`, version.AppName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Prepare params for querier
-			ownerAddress, err := sdk.AccAddressFromBech32(args[0])
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			bz, err := cdc.MarshalJSON(types.QueryCdpParams{
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			_, err = sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.Cdp(context.Background(), &types.QueryCdpRequest{
+				Owner:          args[0],
 				CollateralType: args[1],
-				Owner:          ownerAddress,
 			})
 			if err != nil {
 				return err
 			}
 
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdp)
-			res, _, err := cliCtx.QueryWithData(route, bz)
-			if err != nil {
-				return err
-			}
-
-			// Decode and print results
-			var cdp types.AugmentedCDP
-			cdc.MustUnmarshalJSON(res, &cdp)
-			return cliCtx.PrintOutput(cdp)
+			return clientCtx.PrintProto(res)
 		},
 	}
 }
 
 // QueryGetCdpsCmd queries the cdps in the store
-func QueryGetCdpsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func QueryGetCdpsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cdps",
 		Short: "query cdps with optional filters",
@@ -103,25 +102,34 @@ $ kvcli q cdp cdps --page=2 --limit=100
 `,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			strCollateralType := viper.GetString(flagCollateralType)
-			strOwner := viper.GetString(flagOwner)
-			strID := viper.GetString(flagID)
-			strRatio := viper.GetString(flagRatio)
-			page := viper.GetInt(flags.FlagPage)
-			limit := viper.GetInt(flags.FlagLimit)
+			strCollateralType, err := cmd.Flags().GetString(flagCollateralType)
+			if err != nil {
+				return err
+			}
+			strOwner, err := cmd.Flags().GetString(flagOwner)
+			if err != nil {
+				return err
+			}
+			strID, err := cmd.Flags().GetString(flagID)
+			if err != nil {
+				return err
+			}
+			strRatio, err := cmd.Flags().GetString(flagRatio)
+			if err != nil {
+				return err
+			}
 
-			var (
-				cdpCollateralType string
-				cdpOwner          sdk.AccAddress
-				cdpID             uint64
-				cdpRatio          sdk.Dec
-			)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-			params := types.NewQueryCdpsParams(page, limit, cdpCollateralType, cdpOwner, cdpID, cdpRatio)
+			req := types.QueryCdpsRequest{
+				Pagination: pageReq,
+			}
 
 			if len(strCollateralType) != 0 {
-				cdpCollateralType = strings.ToLower(strings.TrimSpace(strCollateralType))
-				params.CollateralType = cdpCollateralType
+				req.CollateralType = strings.ToLower(strings.TrimSpace(strCollateralType))
 			}
 
 			if len(strOwner) != 0 {
@@ -129,7 +137,7 @@ $ kvcli q cdp cdps --page=2 --limit=100
 				if err != nil {
 					return fmt.Errorf("cannot parse address from cdp owner %s", strOwner)
 				}
-				params.Owner = cdpOwner
+				req.Owner = cdpOwner.String()
 			}
 
 			if len(strID) != 0 {
@@ -137,58 +145,46 @@ $ kvcli q cdp cdps --page=2 --limit=100
 				if err != nil {
 					return fmt.Errorf("cannot parse cdp ID %s", strID)
 				}
-				params.ID = cdpID
+				req.ID = cdpID
 			}
 
-			params.Ratio = sdk.ZeroDec()
 			if len(strRatio) != 0 {
 				cdpRatio, err := sdk.NewDecFromStr(strRatio)
 				if err != nil {
 					return fmt.Errorf("cannot parse cdp ratio %s", strRatio)
 				}
-				params.Ratio = cdpRatio
-			} else {
-				// Set to sdk.Dec(0) so that if not specified in params it doesn't panic when unmarshaled
-				params.Ratio = sdk.ZeroDec()
+				// ratio is also validated on server
+				req.Ratio = cdpRatio.String()
 			}
 
-			bz, err := cdc.MarshalJSON(params)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			queryClient := types.NewQueryClient(clientCtx)
 
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdps), bz)
+			res, err := queryClient.Cdps(context.Background(), &req)
 			if err != nil {
 				return err
 			}
 
-			// Decode and print results
-			var matchingCDPs types.AugmentedCDPs
-			cdc.MustUnmarshalJSON(res, &matchingCDPs)
-			if len(matchingCDPs) == 0 {
-				return fmt.Errorf("No matching CDPs found")
-			}
-
-			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(matchingCDPs) // nolint:errcheck
+			return clientCtx.PrintProto(res)
 		},
 	}
 
-	cmd.Flags().Int(flags.FlagPage, 1, "pagination page of CDPs to to query for")
-	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of CDPs to query for")
 	cmd.Flags().String(flagCollateralType, "", "(optional) filter by CDP collateral type")
 	cmd.Flags().String(flagOwner, "", "(optional) filter by CDP owner")
 	cmd.Flags().String(flagID, "", "(optional) filter by CDP ID")
 	cmd.Flags().String(flagRatio, "", "(optional) filter by CDP collateralization ratio threshold")
 
+	flags.AddPaginationFlagsToCmd(cmd, "cdps")
+
 	return cmd
 }
 
 // QueryCdpDepositsCmd returns the command handler for querying the deposits of a particular cdp
-func QueryCdpDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func QueryCdpDepositsCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "deposits [owner-addr] [collateral-type]",
 		Short: "get deposits for a cdp",
@@ -197,87 +193,80 @@ func QueryCdpDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 Example:
 $ %s query %s deposits kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw atom-a
-`, version.ClientName, types.ModuleName)),
+`, version.AppName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Prepare params for querier
-			ownerAddress, err := sdk.AccAddressFromBech32(args[0])
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			bz, err := cdc.MarshalJSON(types.QueryCdpParams{
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			_, err = sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.Deposits(context.Background(), &types.QueryDepositsRequest{
+				Owner:          args[0],
 				CollateralType: args[1],
-				Owner:          ownerAddress,
 			})
 			if err != nil {
 				return err
 			}
 
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdpDeposits)
-			res, _, err := cliCtx.QueryWithData(route, bz)
-			if err != nil {
-				return err
-			}
-
-			// Decode and print results
-			var deposits types.Deposits
-			cdc.MustUnmarshalJSON(res, &deposits)
-			return cliCtx.PrintOutput(deposits)
+			return clientCtx.PrintProto(res)
 		},
 	}
 }
 
 // QueryParamsCmd returns the command handler for cdp parameter querying
-func QueryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func QueryParamsCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "params",
 		Short: "get the cdp module parameters",
 		Long:  "get the current global cdp module parameters.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetParams)
-			res, _, err := cliCtx.QueryWithData(route, nil)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// Decode and print results
-			var out types.Params
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Params)
 		},
 	}
 }
 
 // QueryGetAccounts queries CDP module accounts
-func QueryGetAccounts(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func QueryGetAccounts() *cobra.Command {
 	return &cobra.Command{
 		Use:   "accounts",
 		Short: "get module accounts",
 		Long:  "get cdp module account addresses",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAccounts), nil)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
 
-			// Decode and print results
-			var out []supply.ModuleAccount
-			if err := cdc.UnmarshalJSON(res, &out); err != nil {
-				return fmt.Errorf("failed to unmarshal accounts: %w", err)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Accounts(context.Background(), &types.QueryAccountsRequest{})
+			if err != nil {
+				return err
 			}
-			return cliCtx.PrintOutput(out)
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 }

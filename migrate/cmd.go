@@ -1,39 +1,45 @@
 package migrate
 
 import (
+	"encoding/json"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/migrate/v0_15"
+	"github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/migrate/v0_16"
 )
 
 // MigrateGenesisCmd returns a command to execute genesis state migration.
-func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
+func MigrateGenesisCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "migrate [genesis-file]",
-		Short:   "Migrate genesis file from kava v0.14 to v0.15",
-		Long:    "Migrate the source genesis into the current version, sorts it, and print to STDOUT.",
-		Example: fmt.Sprintf(`%s migrate /path/to/genesis.json`, version.ServerName),
+		Short:   "Migrate genesis from v0.15 to v0.16",
+		Long:    "Migrate the source genesis into v0.16 and print to STDOUT.",
+		Example: fmt.Sprintf(`%s migrate /path/to/genesis.json`, version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
+			clientCtx := client.GetClientContextFromCmd(cmd)
 			importGenesis := args[0]
-			genDoc, err := tmtypes.GenesisDocFromFile(importGenesis)
+
+			oldGenDoc, err := tmtypes.GenesisDocFromFile(importGenesis)
 			if err != nil {
 				return fmt.Errorf("failed to read genesis document from file %s: %w", importGenesis, err)
 			}
 
-			newGenDoc := v0_15.Migrate(*genDoc)
+			newGenDoc, err := v0_16.Migrate(oldGenDoc, clientCtx)
+			if err != nil {
+				return fmt.Errorf("failed to run migration: %w", err)
+			}
 
-			bz, err := cdc.MarshalJSONIndent(newGenDoc, "", "  ")
+			bz, err := tmjson.Marshal(newGenDoc)
 			if err != nil {
 				return fmt.Errorf("failed to marshal genesis doc: %w", err)
 			}
@@ -51,28 +57,26 @@ func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func AssertInvariantsCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
+func AssertInvariantsCmd(config params.EncodingConfig) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "assert-invariants [genesis-file]",
 		Short:   "Validates that the input genesis file is valid and invariants pass",
 		Long:    "Reads the input genesis file into a genesis document, checks that the state is valid and asserts that all invariants pass.",
-		Example: fmt.Sprintf(`%s assert-invariants /path/to/genesis.json`, version.ServerName),
+		Example: fmt.Sprintf(`%s assert-invariants /path/to/genesis.json`, version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			importGenesis := args[0]
-			genDoc, err := tmtypes.GenesisDocFromFile(importGenesis)
+			genDoc, err := validateGenDoc(importGenesis)
 			if err != nil {
 				return fmt.Errorf("failed to read genesis document from file %s: %w", importGenesis, err)
 			}
+
 			tApp := app.NewTestAppFromSealed()
-			var newAppState genutil.AppMap
-			cdc := app.MakeCodec()
-			err = cdc.UnmarshalJSON(genDoc.AppState, &newAppState)
-			if err != nil {
-				return fmt.Errorf("failed to marchal app state from genesis doc: %s: %w", importGenesis, err)
+			var newAppState genutiltypes.AppMap
+			if err := json.Unmarshal(genDoc.AppState, &newAppState); err != nil {
+				return fmt.Errorf("failed to marshal app state from genesis doc: %s: %w", importGenesis, err)
 			}
-			err = app.ModuleBasics.ValidateGenesis(newAppState)
+			err = app.ModuleBasics.ValidateGenesis(config.Marshaler, config.TxConfig, newAppState)
 			if err != nil {
 				return fmt.Errorf("genesis doc did not pass validate genesis: %s: %w", importGenesis, err)
 			}
@@ -84,4 +88,20 @@ func AssertInvariantsCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 	}
 
 	return cmd
+}
+
+// validateGenDoc reads a genesis file and validates that it is a correct
+// Tendermint GenesisDoc. This function does not do any cosmos-related
+// validation.
+func validateGenDoc(importGenesisFile string) (*tmtypes.GenesisDoc, error) {
+	genDoc, err := tmtypes.GenesisDocFromFile(importGenesisFile)
+	if err != nil {
+		return nil, fmt.Errorf("%s. Make sure that"+
+			" you have correctly migrated all Tendermint consensus params, please see the"+
+			" chain migration guide at https://docs.cosmos.network/master/migrations/chain-upgrade-guide-040.html for more info",
+			err.Error(),
+		)
+	}
+
+	return genDoc, nil
 }

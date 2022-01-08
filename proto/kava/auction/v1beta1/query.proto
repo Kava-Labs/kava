@@ -1,0 +1,84 @@
+syntax = "proto3";
+package kava.auction.v1beta1;
+
+import "kava/auction/v1beta1/genesis.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/kava-labs/kava/x/auction/types";
+
+// Query defines the gRPC querier service for auction module
+service Query {
+  // Params queries all parameters of the auction module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/auction/v1beta1/params";
+  }
+
+  // Auction queries an individual Auction by auction ID
+  rpc Auction(QueryAuctionRequest) returns (QueryAuctionResponse) {
+    option (google.api.http).get = "/kava/auction/v1beta1/auctions/{auction_id}";
+  }
+
+  // Auctions queries auctions filtered by asset denom, owner address, phase, and auction type
+  rpc Auctions(QueryAuctionsRequest) returns (QueryAuctionsResponse) {
+    option (google.api.http).get = "/kava/auction/v1beta1/auctions";
+  }
+
+  // NextAuctionID queries the next auction ID
+  rpc NextAuctionID(QueryNextAuctionIDRequest) returns (QueryNextAuctionIDResponse) {
+    option (google.api.http).get = "/kava/auction/v1beta1/next-auction-id";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/auction parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/auction parameters.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryAuctionRequest is the request type for the Query/Auction RPC method.
+message QueryAuctionRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 auction_id = 1;
+}
+
+// QueryAuctionResponse is the response type for the Query/Auction RPC method.
+message QueryAuctionResponse {
+  google.protobuf.Any auction = 1;
+}
+
+// QueryAuctionsRequest is the request type for the Query/Auctions RPC method.
+message QueryAuctionsRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string type  = 1;
+  string owner = 2;
+  string denom = 3;
+  string phase = 4;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 5;
+}
+
+// QueryAuctionsResponse is the response type for the Query/Auctions RPC method.
+message QueryAuctionsResponse {
+  repeated google.protobuf.Any auctions = 1;
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryNextAuctionIDRequest defines the request type for querying x/auction next auction ID.
+message QueryNextAuctionIDRequest {}
+
+// QueryNextAuctionIDResponse defines the response type for querying x/auction next auction ID.
+message QueryNextAuctionIDResponse {
+  uint64 id = 1;
+}

@@ -1,0 +1,91 @@
+syntax = "proto3";
+package kava.cdp.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/kava-labs/kava/x/cdp/types";
+
+// Msg defines the cdp Msg service.
+service Msg {
+  // CreateCDP defines a method to create a new CDP.
+  rpc CreateCDP(MsgCreateCDP) returns (MsgCreateCDPResponse);
+  // Deposit defines a method to deposit to a CDP.
+  rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
+  // Withdraw defines a method to withdraw collateral from a CDP.
+  rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
+  // DrawDebt defines a method to draw debt from a CDP.
+  rpc DrawDebt(MsgDrawDebt) returns (MsgDrawDebtResponse);
+  // RepayDebt defines a method to repay debt from a CDP.
+  rpc RepayDebt(MsgRepayDebt) returns (MsgRepayDebtResponse);
+  // Liquidate defines a method to attempt to liquidate a CDP whos
+  // collateralization ratio is under its liquidation ratio.
+  rpc Liquidate(MsgLiquidate) returns (MsgLiquidateResponse);
+}
+
+// MsgCreateCDP defines a message to create a new CDP.
+message MsgCreateCDP {
+  string                   sender          = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin collateral      = 2 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin principal       = 3 [(gogoproto.nullable) = false];
+  string                   collateral_type = 4;
+}
+
+// MsgCreateCDPResponse defines the Msg/CreateCDP response type.
+message MsgCreateCDPResponse {
+  uint64 cdp_id = 1 [(gogoproto.customname) = "CdpID"];
+}
+
+// MsgDeposit defines a message to deposit to a CDP.
+message MsgDeposit {
+  string                   depositor       = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string                   owner           = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin collateral      = 3 [(gogoproto.nullable) = false];
+  string                   collateral_type = 4;
+}
+
+// MsgDepositResponse defines the Msg/Deposit response type.
+message MsgDepositResponse {}
+
+// MsgWithdraw defines a message to withdraw collateral from a CDP.
+message MsgWithdraw {
+  string                   depositor       = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string                   owner           = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin collateral      = 3 [(gogoproto.nullable) = false];
+  string                   collateral_type = 4;
+}
+
+// MsgWithdrawResponse defines the Msg/Withdraw response type.
+message MsgWithdrawResponse {}
+
+// MsgDrawDebt defines a message to draw debt from a CDP.
+message MsgDrawDebt {
+  string                   sender          = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string                   collateral_type = 2;
+  cosmos.base.v1beta1.Coin principal       = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgDrawDebtResponse defines the Msg/DrawDebt response type.
+message MsgDrawDebtResponse {}
+
+// MsgRepayDebt defines a message to repay debt from a CDP.
+message MsgRepayDebt {
+  string                   sender          = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string                   collateral_type = 2;
+  cosmos.base.v1beta1.Coin payment         = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgRepayDebtResponse defines the Msg/RepayDebt response type.
+message MsgRepayDebtResponse {}
+
+// MsgLiquidate defines a message to attempt to liquidate a CDP whos
+// collateralization ratio is under its liquidation ratio.
+message MsgLiquidate {
+  string keeper          = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string borrower        = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string collateral_type = 3;
+}
+
+// MsgLiquidateResponse defines the Msg/Liquidate response type.
+message MsgLiquidateResponse {}

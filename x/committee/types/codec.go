@@ -2,33 +2,45 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade"
+	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
-// ModuleCdc is a generic codec to be used throughout module
-var ModuleCdc *codec.Codec
+var (
+	amino = codec.NewLegacyAmino()
+
+	// ModuleCdc references the global x/committee module codec. Note, the codec should
+	// ONLY be used in certain instances of tests and for JSON encoding as Amino is
+	// still used for that purpose.
+	//
+	// The actual codec used for serialization should be provided to x/committee and
+	// defined at the application level.
+	ModuleCdc = codec.NewAminoCodec(amino)
+)
 
 func init() {
-	cdc := codec.New()
-	RegisterCodec(cdc)
-	ModuleCdc = cdc
-	// ModuleCdc is not sealed so that other modules can register their own pubproposal and/or permission types.
+	RegisterLegacyAminoCodec(amino)
+	cryptocodec.RegisterCrypto(amino)
+	// amino is not sealed so that other modules can register their own pubproposal and/or permission types.
 
 	// Register external module pubproposal types. Ideally these would be registered within the modules' types pkg init function.
 	// However registration happens here as a work-around.
 	RegisterProposalTypeCodec(distrtypes.CommunityPoolSpendProposal{}, "cosmos-sdk/CommunityPoolSpendProposal")
-	RegisterProposalTypeCodec(paramstypes.ParameterChangeProposal{}, "cosmos-sdk/ParameterChangeProposal")
+	RegisterProposalTypeCodec(proposaltypes.ParameterChangeProposal{}, "cosmos-sdk/ParameterChangeProposal")
 	RegisterProposalTypeCodec(govtypes.TextProposal{}, "cosmos-sdk/TextProposal")
-	RegisterProposalTypeCodec(upgrade.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal")
-	RegisterProposalTypeCodec(upgrade.CancelSoftwareUpgradeProposal{}, "cosmos-sdk/CancelSoftwareUpgradeProposal")
+	RegisterProposalTypeCodec(upgradetypes.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal")
+	RegisterProposalTypeCodec(upgradetypes.CancelSoftwareUpgradeProposal{}, "cosmos-sdk/CancelSoftwareUpgradeProposal")
 }
 
-// RegisterCodec registers the necessary types for the module
-func RegisterCodec(cdc *codec.Codec) {
-
+// RegisterLegacyAminoCodec registers all the necessary types and interfaces for the module.
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	// Proposals
 	cdc.RegisterInterface((*PubProposal)(nil), nil)
 	cdc.RegisterConcrete(CommitteeChangeProposal{}, "kava/CommitteeChangeProposal", nil)
@@ -43,25 +55,64 @@ func RegisterCodec(cdc *codec.Codec) {
 	// Permissions
 	cdc.RegisterInterface((*Permission)(nil), nil)
 	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
-	cdc.RegisterConcrete(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission", nil)
 	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
 	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
-	cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
+	cdc.RegisterConcrete(ParamsChangePermission{}, "kava/ParamsChangePermission", nil)
 
 	// Msgs
-	cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
-	cdc.RegisterConcrete(MsgVote{}, "kava/MsgVote", nil)
-}
-
-// RegisterPermissionTypeCodec allows external modules to register their own permission types on
-// the internal ModuleCdc. This allows the MsgSubmitProposal to be correctly Amino encoded and
-// decoded (when the msg contains a CommitteeChangeProposal).
-func RegisterPermissionTypeCodec(o interface{}, name string) {
-	ModuleCdc.RegisterConcrete(o, name, nil)
+	cdc.RegisterConcrete(&MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
+	cdc.RegisterConcrete(&MsgVote{}, "kava/MsgVote", nil)
 }
 
 // RegisterProposalTypeCodec allows external modules to register their own pubproposal types on the
 // internal ModuleCdc. This allows the MsgSubmitProposal to be correctly Amino encoded and decoded.
 func RegisterProposalTypeCodec(o interface{}, name string) {
 	ModuleCdc.RegisterConcrete(o, name, nil)
+}
+
+func RegisterInterfaces(registry types.InterfaceRegistry) {
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgSubmitProposal{},
+		&MsgVote{},
+	)
+
+	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+
+	registry.RegisterInterface(
+		"kava.committee.v1beta1.Committee",
+		(*Committee)(nil),
+		// TODO: Might not need the base one since we just use token and member, add some tests to test this out.
+		&BaseCommittee{},
+		&TokenCommittee{},
+		&MemberCommittee{},
+	)
+
+	registry.RegisterInterface(
+		"kava.committee.v1beta1.Permission",
+		(*Permission)(nil),
+		&GodPermission{},
+		&TextPermission{},
+		&SoftwareUpgradePermission{},
+		&ParamsChangePermission{},
+	)
+
+	// Need to register PubProposal here since we use this as alias for the x/gov Content interface for all the proposal implementations used in this module.
+	// Note that all proposals supported by x/committee needed to be registered here, including the proposals from x/gov.
+	registry.RegisterInterface(
+		"kava.committee.v1beta1.PubProposal",
+		(*PubProposal)(nil),
+		&Proposal{},
+		&distrtypes.CommunityPoolSpendProposal{},
+		&govtypes.TextProposal{},
+		&kavadisttypes.CommunityPoolMultiSpendProposal{},
+		&proposaltypes.ParameterChangeProposal{},
+		&upgradetypes.SoftwareUpgradeProposal{},
+		&upgradetypes.CancelSoftwareUpgradeProposal{},
+	)
+
+	registry.RegisterImplementations(
+		(*govtypes.Content)(nil),
+		&CommitteeChangeProposal{},
+		&CommitteeDeleteProposal{},
+	)
 }

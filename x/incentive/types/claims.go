@@ -15,22 +15,6 @@ const (
 	SwapClaimType                  = "swap"
 )
 
-// Claim is an interface for handling common claim actions
-type Claim interface {
-	GetOwner() sdk.AccAddress
-	GetReward() sdk.Coin
-	GetType() string
-}
-
-// Claims is a slice of Claim
-type Claims []Claim
-
-// BaseClaim is a common type shared by all Claims
-type BaseClaim struct {
-	Owner  sdk.AccAddress `json:"owner" yaml:"owner"`
-	Reward sdk.Coin       `json:"reward" yaml:"reward"`
-}
-
 // GetOwner is a getter for Claim Owner
 func (c BaseClaim) GetOwner() sdk.AccAddress { return c.Owner }
 
@@ -51,20 +35,6 @@ func (c BaseClaim) Validate() error {
 	return nil
 }
 
-// String implements fmt.Stringer
-func (c BaseClaim) String() string {
-	return fmt.Sprintf(`Claim:
-	Owner: %s,
-	Reward: %s,
-	`, c.Owner, c.Reward)
-}
-
-// BaseMultiClaim is a common type shared by all Claims with multiple reward denoms
-type BaseMultiClaim struct {
-	Owner  sdk.AccAddress `json:"owner" yaml:"owner"`
-	Reward sdk.Coins      `json:"reward" yaml:"reward"`
-}
-
 // GetOwner is a getter for Claim Owner
 func (c BaseMultiClaim) GetOwner() sdk.AccAddress { return c.Owner }
 
@@ -83,22 +53,6 @@ func (c BaseMultiClaim) Validate() error {
 		return fmt.Errorf("invalid reward amount: %s", c.Reward)
 	}
 	return nil
-}
-
-// String implements fmt.Stringer
-func (c BaseMultiClaim) String() string {
-	return fmt.Sprintf(`Claim:
-	Owner: %s,
-	Reward: %s,
-	`, c.Owner, c.Reward)
-}
-
-// -------------- Custom Claim Types --------------
-
-// USDXMintingClaim is for USDX minting rewards
-type USDXMintingClaim struct {
-	BaseClaim     `json:"base_claim" yaml:"base_claim"`
-	RewardIndexes RewardIndexes `json:"reward_indexes" yaml:"reward_indexes"`
 }
 
 // NewUSDXMintingClaim returns a new USDXMintingClaim
@@ -130,13 +84,6 @@ func (c USDXMintingClaim) Validate() error {
 	return c.BaseClaim.Validate()
 }
 
-// String implements fmt.Stringer
-func (c USDXMintingClaim) String() string {
-	return fmt.Sprintf(`%s
-	Reward Indexes: %s,
-	`, c.BaseClaim, c.RewardIndexes)
-}
-
 // HasRewardIndex check if a claim has a reward index for the input collateral type
 func (c USDXMintingClaim) HasRewardIndex(collateralType string) (int64, bool) {
 	for index, ri := range c.RewardIndexes {
@@ -160,13 +107,6 @@ func (cs USDXMintingClaims) Validate() error {
 	}
 
 	return nil
-}
-
-// HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
-type HardLiquidityProviderClaim struct {
-	BaseMultiClaim      `json:"base_claim" yaml:"base_claim"`
-	SupplyRewardIndexes MultiRewardIndexes `json:"supply_reward_indexes" yaml:"supply_reward_indexes"`
-	BorrowRewardIndexes MultiRewardIndexes `json:"borrow_reward_indexes" yaml:"borrow_reward_indexes"`
 }
 
 // NewHardLiquidityProviderClaim returns a new HardLiquidityProviderClaim
@@ -204,14 +144,6 @@ func (c HardLiquidityProviderClaim) Validate() error {
 	return c.BaseMultiClaim.Validate()
 }
 
-// String implements fmt.Stringer
-func (c HardLiquidityProviderClaim) String() string {
-	return fmt.Sprintf(`%s
-	Supply Reward Indexes: %s,
-	Borrow Reward Indexes: %s,
-	`, c.BaseMultiClaim, c.SupplyRewardIndexes, c.BorrowRewardIndexes)
-}
-
 // HasSupplyRewardIndex check if a claim has a supply reward index for the input collateral type
 func (c HardLiquidityProviderClaim) HasSupplyRewardIndex(denom string) (int64, bool) {
 	for index, ri := range c.SupplyRewardIndexes {
@@ -247,12 +179,6 @@ func (cs HardLiquidityProviderClaims) Validate() error {
 	return nil
 }
 
-// DelegatorClaim stores delegation rewards that can be claimed by owner
-type DelegatorClaim struct {
-	BaseMultiClaim `json:"base_claim" yaml:"base_claim"`
-	RewardIndexes  MultiRewardIndexes `json:"reward_indexes" yaml:"reward_indexes"`
-}
-
 // NewDelegatorClaim returns a new DelegatorClaim
 func NewDelegatorClaim(owner sdk.AccAddress, rewards sdk.Coins, rewardIndexes MultiRewardIndexes) DelegatorClaim {
 	return DelegatorClaim{
@@ -282,13 +208,6 @@ func (c DelegatorClaim) Validate() error {
 	return c.BaseMultiClaim.Validate()
 }
 
-// String implements fmt.Stringer
-func (c DelegatorClaim) String() string {
-	return fmt.Sprintf(`%s
-	Reward Indexes: %s,
-	`, c.BaseMultiClaim, c.RewardIndexes)
-}
-
 // HasRewardIndex checks if a DelegatorClaim has a reward index for the input collateral type
 func (c DelegatorClaim) HasRewardIndex(collateralType string) (int64, bool) {
 	for index, ri := range c.RewardIndexes {
@@ -312,12 +231,6 @@ func (cs DelegatorClaims) Validate() error {
 	}
 
 	return nil
-}
-
-// SwapClaim stores the swap rewards that can be claimed by owner
-type SwapClaim struct {
-	BaseMultiClaim `json:"base_claim" yaml:"base_claim"`
-	RewardIndexes  MultiRewardIndexes `json:"reward_indexes" yaml:"reward_indexes"`
 }
 
 // NewSwapClaim returns a new SwapClaim
@@ -348,13 +261,6 @@ func (c SwapClaim) Validate() error {
 	return c.BaseMultiClaim.Validate()
 }
 
-// String implements fmt.Stringer
-func (c SwapClaim) String() string {
-	return fmt.Sprintf(`%s
-	Reward Indexes: %s,
-	`, c.BaseMultiClaim, c.RewardIndexes)
-}
-
 // HasRewardIndex check if a claim has a reward index for the input pool ID.
 func (c SwapClaim) HasRewardIndex(poolID string) (int64, bool) {
 	for index, ri := range c.RewardIndexes {
@@ -381,22 +287,12 @@ func (cs SwapClaims) Validate() error {
 
 // ---------------------- Reward indexes are used internally in the store ----------------------
 
-// RewardIndex stores reward accumulation information
-type RewardIndex struct {
-	CollateralType string  `json:"collateral_type" yaml:"collateral_type"`
-	RewardFactor   sdk.Dec `json:"reward_factor" yaml:"reward_factor"`
-}
-
 // NewRewardIndex returns a new RewardIndex
 func NewRewardIndex(collateralType string, factor sdk.Dec) RewardIndex {
 	return RewardIndex{
 		CollateralType: collateralType,
 		RewardFactor:   factor,
 	}
-}
-
-func (ri RewardIndex) String() string {
-	return fmt.Sprintf(`Collateral Type: %s, RewardFactor: %s`, ri.CollateralType, ri.RewardFactor)
 }
 
 // Validate validates reward index
@@ -517,12 +413,6 @@ func (ris RewardIndexes) copy() RewardIndexes {
 	return newIndexes
 }
 
-// MultiRewardIndex stores reward accumulation information on multiple reward types
-type MultiRewardIndex struct {
-	CollateralType string        `json:"collateral_type" yaml:"collateral_type"`
-	RewardIndexes  RewardIndexes `json:"reward_indexes" yaml:"reward_indexes"`
-}
-
 // NewMultiRewardIndex returns a new MultiRewardIndex
 func NewMultiRewardIndex(collateralType string, indexes RewardIndexes) MultiRewardIndex {
 	return MultiRewardIndex{
@@ -539,10 +429,6 @@ func (mri MultiRewardIndex) GetFactorIndex(denom string) (int, bool) {
 		}
 	}
 	return -1, false
-}
-
-func (mri MultiRewardIndex) String() string {
-	return fmt.Sprintf(`Collateral Type: %s, Reward Indexes: %s`, mri.CollateralType, mri.RewardIndexes)
 }
 
 // Validate validates multi-reward index

@@ -7,12 +7,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
+	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 type KeeperTestSuite struct {
@@ -20,19 +20,19 @@ type KeeperTestSuite struct {
 
 	keeper keeper.Keeper
 	addrs  []sdk.AccAddress
-	app    app.TestApp
 	ctx    sdk.Context
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-	_, addrs := app.GeneratePrivKeyAddressPairs(10)
+	ctx := tApp.NewContext(true, tmprototypes.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates(
 		NewPricefeedGenStateMulti(),
 	)
 	suite.keeper = tApp.GetPriceFeedKeeper()
 	suite.ctx = ctx
+
+	_, addrs := app.GeneratePrivKeyAddressPairs(10)
 	suite.addrs = addrs
 }
 
@@ -52,8 +52,9 @@ func (suite *KeeperTestSuite) TestGetSetOracles() {
 
 func (suite *KeeperTestSuite) TestGetAuthorizedAddresses() {
 	_, oracles := app.GeneratePrivKeyAddressPairs(5)
-	params := pricefeed.Params{
-		Markets: []pricefeed.Market{
+
+	params := types.Params{
+		Markets: []types.Market{
 			{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: oracles[:3], Active: true},
 			{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: oracles[2:], Active: true},
 			{MarketID: "xrp:usd:30", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: nil, Active: true},

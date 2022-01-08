@@ -1,0 +1,29 @@
+syntax = "proto3";
+package kava.pricefeed.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package                    = "github.com/kava-labs/kava/x/pricefeed/types";
+option (gogoproto.equal_all)         = true;
+option (gogoproto.verbose_equal_all) = true;
+
+// Msg defines the pricefeed Msg service.
+service Msg {
+  // PostPrice defines a method for creating a new post price
+  rpc PostPrice(MsgPostPrice) returns (MsgPostPriceResponse);
+}
+
+// MsgPostPrice represents a method for creating a new post price
+message MsgPostPrice {
+  option (gogoproto.goproto_getters) = false;
+
+  // address of client
+  string from      = 1;
+  string market_id = 2 [(gogoproto.customname) = "MarketID"];
+  string price = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  google.protobuf.Timestamp expiry = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+}
+
+// MsgPostPriceResponse defines the Msg/PostPrice response type.
+message MsgPostPriceResponse {}

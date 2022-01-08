@@ -22,7 +22,12 @@ func (suite *AccumulateDelegatorRewardsTests) storedTimeEquals(denom string, exp
 func (suite *AccumulateDelegatorRewardsTests) storedIndexesEqual(denom string, expected types.RewardIndexes) {
 	storedIndexes, found := suite.keeper.GetDelegatorRewardIndexes(suite.ctx, denom)
 	suite.Equal(found, expected != nil)
-	suite.Equal(expected, storedIndexes)
+
+	if found {
+		suite.Equal(expected, storedIndexes)
+	} else {
+		suite.Empty(storedIndexes)
+	}
 }
 
 func TestAccumulateDelegatorRewards(t *testing.T) {
