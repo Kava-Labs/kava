@@ -4,7 +4,7 @@
 
 - We will be upgrading from chain-id "kava-8" to chain-id "kava-9".
 - The version of Kava for kava-9 is v0.16.0
-- The kava-7 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height __1803250__, which is approximately 14:00 UTC on January, 19 2022.  
+- The kava-8 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height __1803250__, which is approximately 14:00 UTC on January, 19 2022.  
 - kava-9 genesis time is set to January 19, 2022 at 16:00 UTC
 - The version of cosmos-sdk for kava-9 is v0.44.5
 - The version of tendermint for kava-9 v0.34.14
