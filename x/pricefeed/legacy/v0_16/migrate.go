@@ -1,6 +1,7 @@
 package v0_16
 
 import (
+	"github.com/cosmos/cosmos-sdk/types"
 	v015pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_15"
 	v016pricefeed "github.com/kava-labs/kava/x/pricefeed/types"
 )
@@ -23,7 +24,11 @@ func migrateParams(params v015pricefeed.Params) v016pricefeed.Params {
 }
 
 func addIbcMarkets(markets v016pricefeed.Markets) v016pricefeed.Markets {
-	oracles := markets[0].Oracles
+	var oracles []types.AccAddress
+
+	if len(markets) > 0 {
+		oracles = markets[0].Oracles
+	}
 
 	newMarkets := []v016pricefeed.Market{
 		{
