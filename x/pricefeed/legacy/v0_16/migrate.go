@@ -16,7 +16,93 @@ func migrateParams(params v015pricefeed.Params) v016pricefeed.Params {
 			Active:     market.Active,
 		}
 	}
+
+	markets = addIbcMarkets(markets)
+
 	return v016pricefeed.Params{Markets: markets}
+}
+
+func addIbcMarkets(markets v016pricefeed.Markets) v016pricefeed.Markets {
+	oracles := markets[0].Oracles
+
+	newMarkets := []v016pricefeed.Market{
+		{
+			MarketID:   "atom:usd",
+			BaseAsset:  "atom",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "atom:usd:30",
+			BaseAsset:  "atom",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "akt:usd",
+			BaseAsset:  "akt",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "akt:usd:30",
+			BaseAsset:  "akt",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "luna:usd",
+			BaseAsset:  "luna",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "luna:usd:30",
+			BaseAsset:  "luna",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "osmo:usd",
+			BaseAsset:  "osmo",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "osmo:usd:30",
+			BaseAsset:  "osmo",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "ust:usd",
+			BaseAsset:  "ust",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "ust:usd:30",
+			BaseAsset:  "ust",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+	}
+
+	for _, newMarket := range newMarkets {
+		markets = append(markets, newMarket)
+	}
+
+	return markets
 }
 
 func migratePostedPrices(oldPostedPrices v015pricefeed.PostedPrices) v016pricefeed.PostedPrices {
