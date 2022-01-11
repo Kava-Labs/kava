@@ -1,4 +1,4 @@
-# kava-8 Upgrade Instructions
+# kava-9 Upgrade Instructions
 
 ## Software Version and Key Dates
 
