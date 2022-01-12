@@ -21,6 +21,7 @@ import (
 	v016cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	v015committee "github.com/kava-labs/kava/x/committee/legacy/v0_15"
 	v016committee "github.com/kava-labs/kava/x/committee/types"
+	v016hardMigration "github.com/kava-labs/kava/x/hard/legacy/v0_16"
 	v016hardtypes "github.com/kava-labs/kava/x/hard/types"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
 	v016kavadist "github.com/kava-labs/kava/x/kavadist/types"
@@ -204,6 +205,16 @@ func migrateSubParamPermissions(permission v015committee.SubParamChangePermissio
 				},
 			}
 			requirements = append(requirements, requirement)
+
+			requirementAtom := v016committee.SubparamRequirement{
+				Key: "denom",
+				Val: v016hardMigration.UATOM_IBC_DENOM,
+				AllowedSubparamAttrChanges: []string{
+					"borrow_limit", "interest_rate_model",
+					"keeper_reward_percentage", "reserve_factor",
+				},
+			}
+			requirements = append(requirements, requirementAtom)
 		}
 
 		change.MultiSubparamsRequirements = requirements

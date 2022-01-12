@@ -380,6 +380,16 @@
                       "keeper_reward_percentage",
                       "reserve_factor"
                     ]
+                  },
+                  {
+                    "key": "denom",
+                    "val": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+                    "allowed_subparam_attr_changes": [
+                      "borrow_limit",
+                      "interest_rate_model",
+                      "keeper_reward_percentage",
+                      "reserve_factor"
+                    ]
                   }
                 ]
               }
