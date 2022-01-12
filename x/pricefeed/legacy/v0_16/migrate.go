@@ -6,6 +6,79 @@ import (
 	v016pricefeed "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
+var NewIBCMarkets = []v016pricefeed.Market{
+	{
+		MarketID:   "atom:usd",
+		BaseAsset:  "atom",
+		QuoteAsset: "usd",
+		Oracles:    nil,
+		Active:     true,
+	},
+	{
+		MarketID:   "atom:usd:30",
+		BaseAsset:  "atom",
+		QuoteAsset: "usd",
+		Oracles:    nil,
+		Active:     true,
+	},
+	{
+		MarketID:   "akt:usd",
+		BaseAsset:  "akt",
+		QuoteAsset: "usd",
+		Oracles:    nil,
+		Active:     true,
+	},
+	{
+		MarketID:   "akt:usd:30",
+		BaseAsset:  "akt",
+		QuoteAsset: "usd",
+		Oracles:    nil,
+		Active:     true,
+	},
+	{
+		MarketID:   "luna:usd",
+		BaseAsset:  "luna",
+		QuoteAsset: "usd",
+		Oracles:    nil,
+		Active:     true,
+	},
+	{
+		MarketID:   "luna:usd:30",
+		BaseAsset:  "luna",
+		QuoteAsset: "usd",
+		Oracles:    nil,
+		Active:     true,
+	},
+	{
+		MarketID:   "osmo:usd",
+		BaseAsset:  "osmo",
+		QuoteAsset: "usd",
+		Oracles:    nil,
+		Active:     true,
+	},
+	{
+		MarketID:   "osmo:usd:30",
+		BaseAsset:  "osmo",
+		QuoteAsset: "usd",
+		Oracles:    nil,
+		Active:     true,
+	},
+	{
+		MarketID:   "ust:usd",
+		BaseAsset:  "ust",
+		QuoteAsset: "usd",
+		Oracles:    nil,
+		Active:     true,
+	},
+	{
+		MarketID:   "ust:usd:30",
+		BaseAsset:  "ust",
+		QuoteAsset: "usd",
+		Oracles:    nil,
+		Active:     true,
+	},
+}
+
 func migrateParams(params v015pricefeed.Params) v016pricefeed.Params {
 	markets := make(v016pricefeed.Markets, len(params.Markets))
 	for i, market := range params.Markets {
@@ -30,80 +103,9 @@ func addIbcMarkets(markets v016pricefeed.Markets) v016pricefeed.Markets {
 		oracles = markets[0].Oracles
 	}
 
-	newMarkets := []v016pricefeed.Market{
-		{
-			MarketID:   "atom:usd",
-			BaseAsset:  "atom",
-			QuoteAsset: "usd",
-			Oracles:    oracles,
-			Active:     true,
-		},
-		{
-			MarketID:   "atom:usd:30",
-			BaseAsset:  "atom",
-			QuoteAsset: "usd",
-			Oracles:    oracles,
-			Active:     true,
-		},
-		{
-			MarketID:   "akt:usd",
-			BaseAsset:  "akt",
-			QuoteAsset: "usd",
-			Oracles:    oracles,
-			Active:     true,
-		},
-		{
-			MarketID:   "akt:usd:30",
-			BaseAsset:  "akt",
-			QuoteAsset: "usd",
-			Oracles:    oracles,
-			Active:     true,
-		},
-		{
-			MarketID:   "luna:usd",
-			BaseAsset:  "luna",
-			QuoteAsset: "usd",
-			Oracles:    oracles,
-			Active:     true,
-		},
-		{
-			MarketID:   "luna:usd:30",
-			BaseAsset:  "luna",
-			QuoteAsset: "usd",
-			Oracles:    oracles,
-			Active:     true,
-		},
-		{
-			MarketID:   "osmo:usd",
-			BaseAsset:  "osmo",
-			QuoteAsset: "usd",
-			Oracles:    oracles,
-			Active:     true,
-		},
-		{
-			MarketID:   "osmo:usd:30",
-			BaseAsset:  "osmo",
-			QuoteAsset: "usd",
-			Oracles:    oracles,
-			Active:     true,
-		},
-		{
-			MarketID:   "ust:usd",
-			BaseAsset:  "ust",
-			QuoteAsset: "usd",
-			Oracles:    oracles,
-			Active:     true,
-		},
-		{
-			MarketID:   "ust:usd:30",
-			BaseAsset:  "ust",
-			QuoteAsset: "usd",
-			Oracles:    oracles,
-			Active:     true,
-		},
-	}
-
-	for _, newMarket := range newMarkets {
+	for _, newMarket := range NewIBCMarkets {
+		// newMarket is a copy, should not affect other uses of NewIBCMarkets
+		newMarket.Oracles = oracles
 		markets = append(markets, newMarket)
 	}
 

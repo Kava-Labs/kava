@@ -59,8 +59,11 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015committee.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015committee.ModuleName], &genState)
 
+		var pricefeedGenState v015pricefeed.GenesisState
+		v15Codec.MustUnmarshalJSON(appState[v015pricefeed.ModuleName], &pricefeedGenState)
+
 		// replace migrated genstate with previous genstate
-		appState[v015committee.ModuleName] = v16Codec.MustMarshalJSON(v016committee.Migrate(genState))
+		appState[v015committee.ModuleName] = v16Codec.MustMarshalJSON(v016committee.Migrate(genState, pricefeedGenState))
 	}
 
 	// Migrate x/bep3
