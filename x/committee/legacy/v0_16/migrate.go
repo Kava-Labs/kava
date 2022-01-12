@@ -365,12 +365,6 @@ func migrateCommittee(committee v015committee.Committee, oldPricefeedState v015p
 		panic(fmt.Errorf("'%s' is not a valid committee", committee))
 	}
 
-	// Make some updates to the stability committee
-	if committee.GetID() == 1 {
-		// Add requirement to collatora params
-
-	}
-
 	// Convert the content into Any.
 	contentAny, err := codectypes.NewAnyWithValue(protoProposal)
 	if err != nil {
