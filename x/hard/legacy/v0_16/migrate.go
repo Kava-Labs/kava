@@ -11,7 +11,6 @@ import (
 const UATOM_IBC_DENOM = "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
 
 func migrateParams(params v015hard.Params) v016hard.Params {
-	// moneyMarkets := make([]v016hard.MoneyMarket, len(params.MoneyMarkets)+1)
 	var moneyMarkets []v016hard.MoneyMarket
 	for _, mm := range params.MoneyMarkets {
 		moneyMarket := v016hard.MoneyMarket{
@@ -92,7 +91,6 @@ func migratePrevAccTimes(oldPrevAccTimes v015hard.GenesisAccumulationTimes) v016
 			BorrowInterestFactor:     prevAccTime.BorrowInterestFactor,
 		}
 	}
-
 	return prevAccTimes
 }
 
