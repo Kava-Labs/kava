@@ -37,5 +37,12 @@ func Migrate(genDoc *tmtypes.GenesisDoc, ctx client.Context) (*tmtypes.GenesisDo
 
 	genDoc.GenesisTime = GenesisTime
 	genDoc.ChainID = ChainID
+
+	genDoc.InitialHeight = 1
+
+	genDoc.ConsensusParams.Version.AppVersion = 1
+	// Same as default, 1MB
+	genDoc.ConsensusParams.Evidence.MaxBytes = 1024 * 1024
+
 	return genDoc, nil
 }
