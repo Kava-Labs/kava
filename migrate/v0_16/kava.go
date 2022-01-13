@@ -49,8 +49,13 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015auction.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015auction.ModuleName], &genState)
 
+		migratedGenState := v016auction.Migrate(genState)
+		if err := migratedGenState.Validate(); err != nil {
+			panic(err)
+		}
+
 		// replace migrated genstate with previous genstate
-		appState[v015auction.ModuleName] = v16Codec.MustMarshalJSON(v016auction.Migrate(genState))
+		appState[v015auction.ModuleName] = v16Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Migrate x/committee
@@ -59,8 +64,13 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015committee.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015committee.ModuleName], &genState)
 
+		migratedGenState := v016committee.Migrate(genState)
+		if err := migratedGenState.Validate(); err != nil {
+			panic(err)
+		}
+
 		// replace migrated genstate with previous genstate
-		appState[v015committee.ModuleName] = v16Codec.MustMarshalJSON(v016committee.Migrate(genState))
+		appState[v015committee.ModuleName] = v16Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Migrate x/bep3
@@ -69,8 +79,13 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015bep3.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015bep3.ModuleName], &genState)
 
+		migratedGenState := v016bep3.Migrate(genState)
+		if err := migratedGenState.Validate(); err != nil {
+			panic(err)
+		}
+
 		// replace migrated genstate with previous genstate
-		appState[v015bep3.ModuleName] = v16Codec.MustMarshalJSON(v016bep3.Migrate(genState))
+		appState[v015bep3.ModuleName] = v16Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Migrate x/swap
@@ -79,8 +94,13 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015swap.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015swap.ModuleName], &genState)
 
+		migratedGenState := v016swap.Migrate(genState)
+		if err := migratedGenState.Validate(); err != nil {
+			panic(err)
+		}
+
 		// replace migrated genstate with previous genstate
-		appState[v015swap.ModuleName] = v16Codec.MustMarshalJSON(v016swap.Migrate(genState))
+		appState[v015swap.ModuleName] = v16Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Migrate x/kavadist
@@ -89,8 +109,13 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015kavadist.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015kavadist.ModuleName], &genState)
 
+		migratedGenState := v016kavadist.Migrate(genState)
+		if err := migratedGenState.Validate(); err != nil {
+			panic(err)
+		}
+
 		// replace migrated genstate with previous genstate
-		appState[v015kavadist.ModuleName] = v16Codec.MustMarshalJSON(v016kavadist.Migrate(genState))
+		appState[v015kavadist.ModuleName] = v16Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Migrate x/cdp
@@ -99,8 +124,13 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015cdp.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015cdp.ModuleName], &genState)
 
+		migratedGenState := v016cdp.Migrate(genState)
+		if err := migratedGenState.Validate(); err != nil {
+			panic(err)
+		}
+
 		// replace migrated genstate with previous genstate
-		appState[v015cdp.ModuleName] = v16Codec.MustMarshalJSON(v016cdp.Migrate(genState))
+		appState[v015cdp.ModuleName] = v16Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Migrate x/issuance
@@ -109,8 +139,13 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015issuance.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015issuance.ModuleName], &genState)
 
+		migratedGenState := v016issuance.Migrate(genState)
+		if err := migratedGenState.Validate(); err != nil {
+			panic(err)
+		}
+
 		// replace migrated genstate with previous genstate
-		appState[v015issuance.ModuleName] = v16Codec.MustMarshalJSON(v016issuance.Migrate(genState))
+		appState[v015issuance.ModuleName] = v16Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Migrate x/pricefeed
@@ -119,8 +154,13 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015pricefeed.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015pricefeed.ModuleName], &genState)
 
+		migratedGenState := v016pricefeed.Migrate(genState)
+		if err := migratedGenState.Validate(); err != nil {
+			panic(err)
+		}
+
 		// replace migrated genstate with previous genstate
-		appState[v015pricefeed.ModuleName] = v16Codec.MustMarshalJSON(v016pricefeed.Migrate(genState))
+		appState[v015pricefeed.ModuleName] = v16Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Migrate x/hard
@@ -129,8 +169,13 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015hard.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015hard.ModuleName], &genState)
 
+		migratedGenState := v016hard.Migrate(genState)
+		if err := migratedGenState.Validate(); err != nil {
+			panic(err)
+		}
+
 		// replace migrated genstate with previous genstate
-		appState[v015hard.ModuleName] = v16Codec.MustMarshalJSON(v016hard.Migrate(genState))
+		appState[v015hard.ModuleName] = v16Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Migrate x/incentive
@@ -139,8 +184,13 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		var genState v015incentive.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015incentive.ModuleName], &genState)
 
+		migratedGenState := v016incentive.Migrate(genState)
+		if err := migratedGenState.Validate(); err != nil {
+			panic(err)
+		}
+
 		// replace migrated genstate with previous genstate
-		appState[v015incentive.ModuleName] = v16Codec.MustMarshalJSON(v016incentive.Migrate(genState))
+		appState[v015incentive.ModuleName] = v16Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Remove x/validator-vesting
