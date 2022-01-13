@@ -62,7 +62,7 @@ type subspaceKeyPair struct {
 }
 
 // migrateSubParamPermissions converts v15 SubParamChangePermissions to v16 ParamsChangePermission
-func migrateSubParamPermissions(permission v015committee.SubParamChangePermission, isStabilityCommittee bool) *v016committee.ParamsChangePermission {
+func migrateSubParamPermissions(permission v015committee.SubParamChangePermission, committeeID uint64) *v016committee.ParamsChangePermission {
 	changes := v016committee.AllowedParamsChanges{}
 
 	// migrate allowed params
@@ -108,7 +108,7 @@ func migrateSubParamPermissions(permission v015committee.SubParamChangePermissio
 		}
 
 		// add new requirement for stability committee
-		if isStabilityCommittee {
+		if committeeID == 1 {
 			requirement := v016committee.SubparamRequirement{
 				Key: "type",
 				Val: "swp-a",
@@ -195,7 +195,7 @@ func migrateSubParamPermissions(permission v015committee.SubParamChangePermissio
 		}
 
 		// add new requirement for stability committee
-		if isStabilityCommittee {
+		if committeeID == 1 {
 			requirement := v016committee.SubparamRequirement{
 				Key: "denom",
 				Val: "swp",
@@ -215,6 +215,27 @@ func migrateSubParamPermissions(permission v015committee.SubParamChangePermissio
 				},
 			}
 			requirements = append(requirements, requirementAtom)
+		} else if committeeID == 3 {
+			// add new requirement for Hard Governance committee
+			requirementSwp := v016committee.SubparamRequirement{
+				Key: "denom",
+				Val: "swp",
+				AllowedSubparamAttrChanges: []string{
+					"borrow_limit", "interest_rate_model", "keeper_reward_percentage",
+					"reserve_factor", "spot_market_id",
+				},
+			}
+			requirements = append(requirements, requirementSwp)
+
+			requirementUatom := v016committee.SubparamRequirement{
+				Key: "denom",
+				Val: v016hardMigration.UATOM_IBC_DENOM,
+				AllowedSubparamAttrChanges: []string{
+					"borrow_limit", "interest_rate_model", "keeper_reward_percentage",
+					"reserve_factor", "spot_market_id",
+				},
+			}
+			requirements = append(requirements, requirementUatom)
 		}
 
 		change.MultiSubparamsRequirements = requirements
@@ -226,7 +247,7 @@ func migrateSubParamPermissions(permission v015committee.SubParamChangePermissio
 	}
 }
 
-func migratePermission(v015permission v015committee.Permission, isStabilityCommittee bool) *codectypes.Any {
+func migratePermission(v015permission v015committee.Permission, committeeID uint64) *codectypes.Any {
 	var protoProposal proto.Message
 
 	switch v015permission := v015permission.(type) {
@@ -257,7 +278,7 @@ func migratePermission(v015permission v015committee.Permission, isStabilityCommi
 		}
 	case v015committee.SubParamChangePermission:
 		{
-			protoProposal = migrateSubParamPermissions(v015permission, isStabilityCommittee)
+			protoProposal = migrateSubParamPermissions(v015permission, committeeID)
 		}
 	default:
 		panic(fmt.Errorf("'%s' is not a valid permission", v015permission))
@@ -292,8 +313,7 @@ func migrateCommittee(committee v015committee.Committee) *codectypes.Any {
 		{
 			permissions := make([]*codectypes.Any, len(committee.Permissions))
 			for i, permission := range committee.Permissions {
-				isStabilityCommittee := committee.GetID() == 1
-				permissions[i] = migratePermission(permission, isStabilityCommittee)
+				permissions[i] = migratePermission(permission, committee.GetID())
 			}
 
 			protoProposal = &v016committee.MemberCommittee{
@@ -312,7 +332,7 @@ func migrateCommittee(committee v015committee.Committee) *codectypes.Any {
 		{
 			permissions := make([]*codectypes.Any, len(committee.Permissions))
 			for i, permission := range committee.Permissions {
-				permissions[i] = migratePermission(permission, false)
+				permissions[i] = migratePermission(permission, committee.GetID())
 			}
 
 			protoProposal = &v016committee.TokenCommittee{
