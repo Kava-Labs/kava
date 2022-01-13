@@ -73,7 +73,12 @@
   },
   "atomic_swaps": [
     {
-      "amount": [{ "denom": "btcb", "amount": "1999955998" }],
+      "amount": [
+        {
+          "denom": "btcb",
+          "amount": "1999955998"
+        }
+      ],
       "random_number_hash": "6F1CF8F2E13A0C0F0A359F54E47E4E265D766B8E006D2F00BDF994ABDEF1E9E4",
       "expire_height": "838627",
       "timestamp": "1636034914",
@@ -87,7 +92,12 @@
       "direction": "SWAP_DIRECTION_INCOMING"
     },
     {
-      "amount": [{ "denom": "busd", "amount": "999595462080" }],
+      "amount": [
+        {
+          "denom": "busd",
+          "amount": "999595462080"
+        }
+      ],
       "random_number_hash": "BFB7CC82DA0E0C8556AC37843F5AB136B9A7A066054368F5948944282B414D83",
       "expire_height": "811799",
       "timestamp": "1635694492",
@@ -103,10 +113,22 @@
   ],
   "supplies": [
     {
-      "incoming_supply": { "denom": "bnb", "amount": "0" },
-      "outgoing_supply": { "denom": "bnb", "amount": "0" },
-      "current_supply": { "denom": "bnb", "amount": "30467559434006" },
-      "time_limited_current_supply": { "denom": "bnb", "amount": "0" },
+      "incoming_supply": {
+        "denom": "bnb",
+        "amount": "0"
+      },
+      "outgoing_supply": {
+        "denom": "bnb",
+        "amount": "0"
+      },
+      "current_supply": {
+        "denom": "bnb",
+        "amount": "30467559434006"
+      },
+      "time_limited_current_supply": {
+        "denom": "bnb",
+        "amount": "0"
+      },
       "time_elapsed": "0s"
     }
   ],
