@@ -593,7 +593,7 @@
       ]
     },
     "auction": {
-      "next_auction_id": "12",
+      "next_auction_id": "3896",
       "params": {
         "max_auction_duration": "172800s",
         "bid_duration": "600s",
@@ -1088,7 +1088,7 @@
       "previous_block_time": "1970-01-01T00:00:00Z"
     },
     "committee": {
-      "next_proposal_id": "1",
+      "next_proposal_id": "4",
       "committees": [
         {
           "@type": "/kava.committee.v1beta1.MemberCommittee",
@@ -1707,7 +1707,7 @@
             "recipient": "kava1ze7y9qwdddejmy7jlw4cymqqlt2wh05yhwmrv2",
             "amount": [{ "denom": "ukava", "amount": "10" }]
           },
-          "id": "1",
+          "id": "2",
           "committee_id": "2",
           "deadline": "2021-11-24T18:49:44.219341Z"
         },
@@ -1724,7 +1724,7 @@
               "upgraded_client_state": null
             }
           },
-          "id": "1",
+          "id": "3",
           "committee_id": "2",
           "deadline": "2021-11-24T18:49:44.219693Z"
         }
@@ -1939,6 +1939,30 @@
           "total_shares": "1398497336200"
         },
         {
+          "pool_id": "busd:usdx",
+          "reserves_a": {
+            "amount": "7038291919",
+            "denom": "busd"
+          },
+          "reserves_b": {
+            "amount": "72606256",
+            "denom": "usdx"
+          },
+          "total_shares": "699359418"
+        },
+        {
+          "pool_id": "hard:usdx",
+          "reserves_a": {
+            "amount": "11935938",
+            "denom": "hard"
+          },
+          "reserves_b": {
+            "amount": "8688979",
+            "denom": "usdx"
+          },
+          "total_shares": "9918771"
+        },
+        {
           "pool_id": "usdx:xrpb",
           "reserves_a": {
             "amount": "843639517257",
@@ -1955,22 +1979,22 @@
         {
           "depositor": "kava1l77xymdt2ya0rl2mludkny5aqmr67u88ymgdje",
           "pool_id": "usdx:xrpb",
-          "shares_owned": "29034728969"
+          "shares_owned": "7739661881008"
         },
         {
           "depositor": "kava1llqkrdr69wc76cuxpx6j06x9pt63f52f7mlcye",
           "pool_id": "busd:usdx",
-          "shares_owned": "24905307583"
+          "shares_owned": "699359418"
         },
         {
           "depositor": "kava1ll3ndyv333aet6mzqltu5wdepqhyme8umv34es",
           "pool_id": "hard:usdx",
-          "shares_owned": "708138421"
+          "shares_owned": "9918771"
         },
         {
           "depositor": "kava1ll3ndyv333aet6mzqltu5wdepqhyme8umv34es",
           "pool_id": "ukava:usdx",
-          "shares_owned": "3427014047"
+          "shares_owned": "1398497336200"
         }
       ]
     },
