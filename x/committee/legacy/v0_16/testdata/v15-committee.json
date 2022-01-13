@@ -404,29 +404,10 @@
       }
     },
     {
-      "type": "kava/MemberCommittee",
-      "value": {
-        "base_committee": {
-          "id": "3",
-          "description": "Kava God Committee (testing only)",
-          "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
-          "permissions": [
-            {
-              "type": "kava/GodPermission",
-              "value": {}
-            }
-          ],
-          "vote_threshold": "0.500000000000000000",
-          "proposal_duration": "604800000000000",
-          "tally_option": "FirstPastThePost"
-        }
-      }
-    },
-    {
       "type": "kava/TokenCommittee",
       "value": {
         "base_committee": {
-          "id": "4",
+          "id": "3",
           "description": "Hard Governance Committee",
           "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
           "permissions": [
@@ -544,7 +525,7 @@
       "type": "kava/TokenCommittee",
       "value": {
         "base_committee": {
-          "id": "5",
+          "id": "4",
           "description": "Swp Governance Committee",
           "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
           "permissions": [
@@ -588,6 +569,25 @@
         },
         "quorum": "0.330000000000000000",
         "tally_denom": "swp"
+      }
+    },
+    {
+      "type": "kava/MemberCommittee",
+      "value": {
+        "base_committee": {
+          "id": "5",
+          "description": "Kava God Committee (testing only)",
+          "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
+          "permissions": [
+            {
+              "type": "kava/GodPermission",
+              "value": {}
+            }
+          ],
+          "vote_threshold": "0.500000000000000000",
+          "proposal_duration": "604800000000000",
+          "tally_option": "FirstPastThePost"
+        }
       }
     }
   ],
