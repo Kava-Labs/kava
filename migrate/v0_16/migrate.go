@@ -41,8 +41,8 @@ func Migrate(genDoc *tmtypes.GenesisDoc, ctx client.Context) (*tmtypes.GenesisDo
 	genDoc.InitialHeight = 1
 
 	genDoc.ConsensusParams.Version.AppVersion = 1
-	// Same as default, 1MB
-	genDoc.ConsensusParams.Evidence.MaxBytes = 1024 * 1024
+
+	genDoc.ConsensusParams.Evidence.MaxBytes = 50000
 
 	return genDoc, nil
 }

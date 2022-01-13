@@ -11,7 +11,7 @@
     "evidence": {
       "max_age_num_blocks": "100000",
       "max_age_duration": "172800000000000",
-      "max_bytes": "1048576"
+      "max_bytes": "50000"
     },
     "validator": { "pub_key_types": ["ed25519"] },
     "version": {
