@@ -28,6 +28,11 @@ import (
 	v016pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
+const (
+	KavaStabilityCommitteeID  = 1
+	HardGovernanceCommitteeID = 3
+)
+
 // migrateWhitelist returns an string slice of json keys that should be whitelisted on the whitelist interface
 func migrateWhitelist(whitelist interface{}, ignoredTag string) []string {
 	allowed := []string{}
@@ -108,7 +113,7 @@ func migrateSubParamPermissions(permission v015committee.SubParamChangePermissio
 		}
 
 		// add new requirement for stability committee
-		if committeeID == 1 {
+		if committeeID == KavaStabilityCommitteeID {
 			requirement := v016committee.SubparamRequirement{
 				Key: "type",
 				Val: "swp-a",
@@ -195,7 +200,7 @@ func migrateSubParamPermissions(permission v015committee.SubParamChangePermissio
 		}
 
 		// add new requirement for stability committee
-		if committeeID == 1 {
+		if committeeID == KavaStabilityCommitteeID {
 			requirement := v016committee.SubparamRequirement{
 				Key: "denom",
 				Val: "swp",
@@ -215,7 +220,7 @@ func migrateSubParamPermissions(permission v015committee.SubParamChangePermissio
 				},
 			}
 			requirements = append(requirements, requirementAtom)
-		} else if committeeID == 3 {
+		} else if committeeID == HardGovernanceCommitteeID {
 			// add new requirement for Hard Governance committee
 			requirementSwp := v016committee.SubparamRequirement{
 				Key: "denom",
