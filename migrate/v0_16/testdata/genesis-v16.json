@@ -734,7 +734,10 @@
         {
           "@type": "/cosmos.auth.v1beta1.BaseAccount",
           "address": "kava1qqqvdyv8w0xdu7gjdtt598q78gtgqyukct4yz2",
-          "pub_key": null,
+          "pub_key": {
+            "@type": "/cosmos.crypto.secp256k1.PubKey",
+            "key": "A64VRmYpsMHDcT5tRBSiwCmdAogT0lsx6i/lEqUx8BUF"
+          },
           "account_number": "0",
           "sequence": "0"
         },

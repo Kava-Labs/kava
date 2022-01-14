@@ -948,7 +948,10 @@
                 "denom": "ukava"
               }
             ],
-            "public_key": null,
+            "public_key": {
+              "type": "tendermint/PubKeySecp256k1",
+              "value": "A64VRmYpsMHDcT5tRBSiwCmdAogT0lsx6i/lEqUx8BUF"
+            },
             "sequence": "0"
           }
         },
