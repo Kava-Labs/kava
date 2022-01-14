@@ -24,6 +24,8 @@ import (
 	v016hardtypes "github.com/kava-labs/kava/x/hard/types"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
 	v016kavadist "github.com/kava-labs/kava/x/kavadist/types"
+	v015pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_15"
+	v016pricefeedmigration "github.com/kava-labs/kava/x/pricefeed/legacy/v0_16"
 	v016pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
@@ -61,7 +63,11 @@ type subspaceKeyPair struct {
 }
 
 // migrateSubParamPermissions converts v15 SubParamChangePermissions to v16 ParamsChangePermission
-func migrateSubParamPermissions(permission v015committee.SubParamChangePermission, isStabilityCommittee bool) *v016committee.ParamsChangePermission {
+func migrateSubParamPermissions(
+	permission v015committee.SubParamChangePermission,
+	isStabilityCommittee bool,
+	oldPricefeedState v015pricefeed.GenesisState,
+) *v016committee.ParamsChangePermission {
 	changes := v016committee.AllowedParamsChanges{}
 
 	// migrate allowed params
@@ -171,6 +177,39 @@ func migrateSubParamPermissions(permission v015committee.SubParamChangePermissio
 			requirement.AllowedSubparamAttrChanges = allowed
 			requirements = append(requirements, requirement)
 		}
+
+		if isStabilityCommittee {
+			// Add permissions for existing pricefeed markets that are missing in allowed_markets
+		outer:
+			for _, oldPricefeedMarket := range oldPricefeedState.Params.Markets {
+				// Skip if this oldPricefeedMarket already exists in requirements
+				for _, marketRequirement := range requirements {
+					if marketRequirement.Val == oldPricefeedMarket.MarketID {
+						continue outer
+					}
+				}
+
+				requirement := v016committee.SubparamRequirement{
+					Key:                        "market_id",
+					Val:                        oldPricefeedMarket.MarketID,
+					AllowedSubparamAttrChanges: []string{"active"},
+				}
+
+				requirements = append(requirements, requirement)
+			}
+
+			// Add new IBC denoms for stability committee
+			for _, market := range v016pricefeedmigration.NewIBCMarkets {
+				requirement := v016committee.SubparamRequirement{
+					Key:                        "market_id",
+					Val:                        market.MarketID,
+					AllowedSubparamAttrChanges: []string{"active"},
+				}
+
+				requirements = append(requirements, requirement)
+			}
+		}
+
 		change.MultiSubparamsRequirements = requirements
 		changes = append(changes, change)
 	}
@@ -215,7 +254,11 @@ func migrateSubParamPermissions(permission v015committee.SubParamChangePermissio
 	}
 }
 
-func migratePermission(v015permission v015committee.Permission, isStabilityCommittee bool) *codectypes.Any {
+func migratePermission(
+	v015permission v015committee.Permission,
+	isStabilityCommittee bool,
+	oldPricefeedState v015pricefeed.GenesisState,
+) *codectypes.Any {
 	var protoProposal proto.Message
 
 	switch v015permission := v015permission.(type) {
@@ -246,7 +289,7 @@ func migratePermission(v015permission v015committee.Permission, isStabilityCommi
 		}
 	case v015committee.SubParamChangePermission:
 		{
-			protoProposal = migrateSubParamPermissions(v015permission, isStabilityCommittee)
+			protoProposal = migrateSubParamPermissions(v015permission, isStabilityCommittee, oldPricefeedState)
 		}
 	default:
 		panic(fmt.Errorf("'%s' is not a valid permission", v015permission))
@@ -274,7 +317,7 @@ func migrateTallyOption(oldTallyOption v015committee.TallyOption) v016committee.
 	}
 }
 
-func migrateCommittee(committee v015committee.Committee) *codectypes.Any {
+func migrateCommittee(committee v015committee.Committee, oldPricefeedState v015pricefeed.GenesisState) *codectypes.Any {
 	var protoProposal proto.Message
 	switch committee := committee.(type) {
 	case v015committee.MemberCommittee:
@@ -282,7 +325,7 @@ func migrateCommittee(committee v015committee.Committee) *codectypes.Any {
 			permissions := make([]*codectypes.Any, len(committee.Permissions))
 			for i, permission := range committee.Permissions {
 				isStabilityCommittee := committee.GetID() == 1
-				permissions[i] = migratePermission(permission, isStabilityCommittee)
+				permissions[i] = migratePermission(permission, isStabilityCommittee, oldPricefeedState)
 			}
 
 			protoProposal = &v016committee.MemberCommittee{
@@ -301,7 +344,7 @@ func migrateCommittee(committee v015committee.Committee) *codectypes.Any {
 		{
 			permissions := make([]*codectypes.Any, len(committee.Permissions))
 			for i, permission := range committee.Permissions {
-				permissions[i] = migratePermission(permission, false)
+				permissions[i] = migratePermission(permission, false, oldPricefeedState)
 			}
 
 			protoProposal = &v016committee.TokenCommittee{
@@ -322,12 +365,6 @@ func migrateCommittee(committee v015committee.Committee) *codectypes.Any {
 		panic(fmt.Errorf("'%s' is not a valid committee", committee))
 	}
 
-	// Make some updates to the stability committee
-	if committee.GetID() == 1 {
-		// Add requirement to collatora params
-
-	}
-
 	// Convert the content into Any.
 	contentAny, err := codectypes.NewAnyWithValue(protoProposal)
 	if err != nil {
@@ -337,10 +374,10 @@ func migrateCommittee(committee v015committee.Committee) *codectypes.Any {
 	return contentAny
 }
 
-func migrateCommittees(v015committees v015committee.Committees) []*codectypes.Any {
+func migrateCommittees(v015committees v015committee.Committees, oldPricefeedState v015pricefeed.GenesisState) []*codectypes.Any {
 	committees := make([]*codectypes.Any, len(v015committees))
 	for i, committee := range v015committees {
-		committees[i] = migrateCommittee(committee)
+		committees[i] = migrateCommittee(committee, oldPricefeedState)
 	}
 	return committees
 }
@@ -477,10 +514,13 @@ func migrateVotes(v15votes []v015committee.Vote) []v016committee.Vote {
 	return votes
 }
 
-func Migrate(oldState v015committee.GenesisState) *v016committee.GenesisState {
+func Migrate(
+	oldState v015committee.GenesisState,
+	oldPricefeedState v015pricefeed.GenesisState,
+) *v016committee.GenesisState {
 	newState := v016committee.GenesisState{
 		NextProposalID: oldState.NextProposalID,
-		Committees:     migrateCommittees(oldState.Committees),
+		Committees:     migrateCommittees(oldState.Committees, oldPricefeedState),
 		Proposals:      migrateProposals(oldState.Proposals),
 		Votes:          migrateVotes(oldState.Votes),
 	}

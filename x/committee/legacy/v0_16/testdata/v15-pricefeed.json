@@ -1,0 +1,312 @@
+{
+    "params": {
+        "markets": [
+            {
+                "market_id": "bnb:usd",
+                "base_asset": "bnb",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "bnb:usd:30",
+                "base_asset": "bnb",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "btc:usd",
+                "base_asset": "btc",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "btc:usd:30",
+                "base_asset": "btc",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "xrp:usd",
+                "base_asset": "xrp",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "xrp:usd:30",
+                "base_asset": "xrp",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "busd:usd",
+                "base_asset": "busd",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "busd:usd:30",
+                "base_asset": "busd",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "kava:usd",
+                "base_asset": "kava",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "kava:usd:30",
+                "base_asset": "kava",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "hard:usd",
+                "base_asset": "hard",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "hard:usd:30",
+                "base_asset": "hard",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "usdx:usd",
+                "base_asset": "usdx",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "usdx:usd:30",
+                "base_asset": "usdx",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "usdx:usd:720",
+                "base_asset": "usdx",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "swp:usd",
+                "base_asset": "swp",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            },
+            {
+                "market_id": "swp:usd:30",
+                "base_asset": "swp",
+                "quote_asset": "usd",
+                "oracles": [
+                    "kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl",
+                    "kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs",
+                    "kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg",
+                    "kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl",
+                    "kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp",
+                    "kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj",
+                    "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92",
+                    "kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn",
+                    "kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy",
+                    "kava13tpwqygswyzupqfggfgh9dmtgthgucn5wpfksh"
+                ],
+                "active": true
+            }
+        ]
+    }
+}

@@ -453,6 +453,76 @@
             "market_id": "bnb:usd:30",
             "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
             "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "atom",
+            "market_id": "atom:usd",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "atom",
+            "market_id": "atom:usd:30",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "akt",
+            "market_id": "akt:usd",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "akt",
+            "market_id": "akt:usd:30",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "luna",
+            "market_id": "luna:usd",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "luna",
+            "market_id": "luna:usd:30",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "osmo",
+            "market_id": "osmo:usd",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "osmo",
+            "market_id": "osmo:usd:30",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "ust",
+            "market_id": "ust:usd",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "ust",
+            "market_id": "ust:usd:30",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
           }
         ]
       },
@@ -1381,6 +1451,56 @@
                       {
                         "key": "market_id",
                         "val": "busd:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "atom:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "atom:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "akt:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "akt:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "luna:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "luna:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "osmo:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "osmo:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "ust:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "ust:usd:30",
                         "allowed_subparam_attr_changes": ["active"]
                       }
                     ]
