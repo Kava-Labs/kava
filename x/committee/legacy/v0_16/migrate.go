@@ -184,7 +184,7 @@ func migrateSubParamPermissions(
 			requirements = append(requirements, requirement)
 		}
 
-		if isStabilityCommittee {
+		if committeeID == KavaStabilityCommitteeID {
 			// Add permissions for existing pricefeed markets that are missing in allowed_markets
 		outer:
 			for _, oldPricefeedMarket := range oldPricefeedState.Params.Markets {
