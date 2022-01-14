@@ -55,12 +55,19 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 
 	// Migrate x/committee
 	if appState[v015committee.ModuleName] != nil {
+		if appState[v015pricefeed.ModuleName] == nil {
+			panic("pricefeed app state is missing, committee migration requires pricefeed app state")
+		}
+
+		var pricefeedGenState v015pricefeed.GenesisState
+		v15Codec.MustUnmarshalJSON(appState[v015pricefeed.ModuleName], &pricefeedGenState)
+
 		// unmarshal relative source genesis application state
 		var genState v015committee.GenesisState
 		v15Codec.MustUnmarshalJSON(appState[v015committee.ModuleName], &genState)
 
 		// replace migrated genstate with previous genstate
-		appState[v015committee.ModuleName] = v16Codec.MustMarshalJSON(v016committee.Migrate(genState))
+		appState[v015committee.ModuleName] = v16Codec.MustMarshalJSON(v016committee.Migrate(genState, pricefeedGenState))
 	}
 
 	// Migrate x/bep3

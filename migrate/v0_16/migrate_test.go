@@ -18,7 +18,6 @@ import (
 	v036supply "github.com/cosmos/cosmos-sdk/x/bank/legacy/v036"
 	v038bank "github.com/cosmos/cosmos-sdk/x/bank/legacy/v038"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	genutil "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -31,11 +30,16 @@ func TestMigrateGenesisDoc(t *testing.T) {
 	expected := getTestDataJSON("genesis-v16.json")
 	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis-v15.json"))
 	assert.NoError(t, err)
+
 	actualGenDoc, err := Migrate(genDoc, newClientContext())
 	assert.NoError(t, err)
+
 	actualJson, err := tmjson.Marshal(actualGenDoc)
 	assert.NoError(t, err)
+
 	assert.JSONEq(t, expected, string(actualJson))
+
+	assert.LessOrEqual(t, actualGenDoc.ConsensusParams.Evidence.MaxBytes, actualGenDoc.ConsensusParams.Block.MaxBytes)
 }
 
 func TestMigrateFull(t *testing.T) {
@@ -46,7 +50,7 @@ func TestMigrateFull(t *testing.T) {
 	assert.NoError(t, err)
 
 	encodingConfig := app.MakeEncodingConfig()
-	var appMap genutil.AppMap
+	var appMap genutiltypes.AppMap
 	err = tmjson.Unmarshal(newGenDoc.AppState, &appMap)
 	assert.NoError(t, err)
 	err = app.ModuleBasics.ValidateGenesis(encodingConfig.Marshaler, encodingConfig.TxConfig, appMap)

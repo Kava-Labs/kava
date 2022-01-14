@@ -293,6 +293,101 @@
                     "key": "market_id",
                     "val": "busd:usd:30",
                     "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "kava:usd",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "kava:usd:30",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "hard:usd",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "hard:usd:30",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "usdx:usd",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "usdx:usd:30",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "usdx:usd:720",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "swp:usd",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "swp:usd:30",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "atom:usd",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "atom:usd:30",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "akt:usd",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "akt:usd:30",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "luna:usd",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "luna:usd:30",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "osmo:usd",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "osmo:usd:30",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "ust:usd",
+                    "allowed_subparam_attr_changes": ["active"]
+                  },
+                  {
+                    "key": "market_id",
+                    "val": "ust:usd:30",
+                    "allowed_subparam_attr_changes": ["active"]
                   }
                 ]
               },

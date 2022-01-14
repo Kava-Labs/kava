@@ -23,15 +23,18 @@ import (
 	v016committee "github.com/kava-labs/kava/x/committee/types"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
 	v016kavadist "github.com/kava-labs/kava/x/kavadist/types"
+	v015pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_15"
+	v016pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 type migrateTestSuite struct {
 	suite.Suite
 
-	addresses   []sdk.AccAddress
-	v15genstate v015committee.GenesisState
-	cdc         codec.Codec
-	legacyCdc   *codec.LegacyAmino
+	addresses            []sdk.AccAddress
+	v15genstate          v015committee.GenesisState
+	v15pricefeedgenstate v015pricefeed.GenesisState
+	cdc                  codec.Codec
+	legacyCdc            *codec.LegacyAmino
 }
 
 func (s *migrateTestSuite) SetupTest() {
@@ -64,15 +67,67 @@ func (s *migrateTestSuite) TestMigrate_JSON() {
 	file := filepath.Join("testdata", "v15-committee.json")
 	data, err := ioutil.ReadFile(file)
 	s.Require().NoError(err)
+
 	err = s.legacyCdc.UnmarshalJSON(data, &s.v15genstate)
 	s.Require().NoError(err)
-	genstate := Migrate(s.v15genstate)
+
+	pricefeedFile := filepath.Join("testdata", "v15-pricefeed.json")
+	pricefeedData, err := ioutil.ReadFile(pricefeedFile)
+	s.Require().NoError(err)
+
+	err = s.legacyCdc.UnmarshalJSON(pricefeedData, &s.v15pricefeedgenstate)
+	s.Require().NoError(err)
+
+	genstate := Migrate(s.v15genstate, s.v15pricefeedgenstate)
 	actual := s.cdc.MustMarshalJSON(genstate)
 
 	file = filepath.Join("testdata", "v16-committee.json")
 	expected, err := ioutil.ReadFile(file)
+
 	s.Require().NoError(err)
 	s.Require().JSONEq(string(expected), string(actual))
+}
+
+func (s *migrateTestSuite) TestMigrate_PricefeedPermissions() {
+	file := filepath.Join("testdata", "v15-committee.json")
+	data, err := ioutil.ReadFile(file)
+	s.Require().NoError(err)
+
+	err = s.legacyCdc.UnmarshalJSON(data, &s.v15genstate)
+	s.Require().NoError(err)
+
+	pricefeedFile := filepath.Join("testdata", "v15-pricefeed.json")
+	pricefeedData, err := ioutil.ReadFile(pricefeedFile)
+	s.Require().NoError(err)
+
+	err = s.legacyCdc.UnmarshalJSON(pricefeedData, &s.v15pricefeedgenstate)
+	s.Require().NoError(err)
+
+	genstate := Migrate(s.v15genstate, s.v15pricefeedgenstate)
+
+	var uniqueMarkets = make(map[string]bool)
+
+	for _, permission := range genstate.GetCommittees()[0].GetPermissions() {
+		paramChangePermission, ok := permission.(v016committee.ParamsChangePermission)
+		if !ok {
+			continue
+		}
+
+		for _, allowedParamChanges := range paramChangePermission.AllowedParamsChanges {
+			if allowedParamChanges.Subspace == v016pricefeedtypes.ModuleName {
+				for _, req := range allowedParamChanges.MultiSubparamsRequirements {
+					_, found := uniqueMarkets[req.Val]
+					s.Require().Falsef(
+						found,
+						"pricefeed market MultiSubparamsRequirement for %v is duplicated",
+						req.Val,
+					)
+
+					uniqueMarkets[req.Val] = true
+				}
+			}
+		}
+	}
 }
 
 func (s *migrateTestSuite) TestMigrate_TokenCommittee() {
@@ -89,10 +144,12 @@ func (s *migrateTestSuite) TestMigrate_TokenCommittee() {
 		Quorum:     sdk.NewDec(40),
 		TallyDenom: "ukava",
 	}
+
 	expectedTokenCommittee, err := v016committee.NewTokenCommittee(1, "test", s.addresses, []v016committee.Permission{}, oldTokenCommittee.VoteThreshold, oldTokenCommittee.ProposalDuration, v016committee.TALLY_OPTION_DEADLINE, oldTokenCommittee.Quorum, oldTokenCommittee.TallyDenom)
 	s.Require().NoError(err)
+
 	s.v15genstate.Committees = []v015committee.Committee{oldTokenCommittee}
-	genState := Migrate(s.v15genstate)
+	genState := Migrate(s.v15genstate, s.v15pricefeedgenstate)
 	s.Require().Len(genState.Committees, 1)
 	s.Equal(expectedTokenCommittee, genState.GetCommittees()[0])
 }
@@ -136,7 +193,7 @@ func (s *migrateTestSuite) TestMigrate_Committee_TallyOption() {
 			expectedProposal, err := v016committee.NewMemberCommittee(2, "test", s.addresses, []v016committee.Permission{}, oldCommittee.VoteThreshold, oldCommittee.ProposalDuration, tc.v016tallyOption)
 			s.Require().NoError(err)
 			s.v15genstate.Committees = []v015committee.Committee{oldCommittee}
-			genState := Migrate(s.v15genstate)
+			genState := Migrate(s.v15genstate, s.v15pricefeedgenstate)
 			s.Require().Len(genState.Committees, 1)
 			s.Equal(expectedProposal.GetTallyOption(), genState.GetCommittees()[0].GetTallyOption())
 		})
@@ -212,7 +269,7 @@ func (s *migrateTestSuite) TestMigrate_Committee_Permissions() {
 			expectedProposal, err := v016committee.NewMemberCommittee(2, "test", s.addresses, []v016committee.Permission{tc.v016permission}, oldCommittee.VoteThreshold, oldCommittee.ProposalDuration, v016committee.TALLY_OPTION_FIRST_PAST_THE_POST)
 			s.Require().NoError(err)
 			s.v15genstate.Committees = []v015committee.Committee{oldCommittee}
-			genState := Migrate(s.v15genstate)
+			genState := Migrate(s.v15genstate, s.v15pricefeedgenstate)
 			s.Require().Len(genState.Committees, 1)
 			s.Equal(expectedProposal, genState.GetCommittees()[0])
 		})
@@ -323,7 +380,7 @@ func (s *migrateTestSuite) TestMigrate_Proposals() {
 			expectedProposal, err := v016committee.NewProposal(tc.v016proposal, 1, 2, deadline)
 			s.Require().NoError(err)
 			s.v15genstate.Proposals = []v015committee.Proposal{oldProposal}
-			genState := Migrate(s.v15genstate)
+			genState := Migrate(s.v15genstate, s.v15pricefeedgenstate)
 			s.Require().Len(genState.Proposals, 1)
 			s.Equal(expectedProposal, genState.Proposals[0])
 		})
@@ -371,7 +428,7 @@ func (s *migrateTestSuite) TestMigrate_Votes() {
 				VoteType:   tc.v016VoteType,
 			}
 			s.v15genstate.Votes = []v015committee.Vote{oldVote}
-			genState := Migrate(s.v15genstate)
+			genState := Migrate(s.v15genstate, s.v15pricefeedgenstate)
 			s.Require().Len(genState.Votes, 1)
 			s.Equal(expectedVote, genState.Votes[0])
 		})
