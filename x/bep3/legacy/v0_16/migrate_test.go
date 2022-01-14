@@ -62,31 +62,97 @@ func (s *migrateTestSuite) TestMigrate_JSON() {
 	s.Require().JSONEq(string(expected), string(actual))
 }
 
-func (s *migrateTestSuite) TestMigrate_Swaps_Status() {
+func (s *migrateTestSuite) TestMigrate_Swaps() {
+	type oldSwap struct {
+		ExpireHeight uint64
+		CloseBlock   int64
+		Status       v015bep3.SwapStatus
+		Direction    v015bep3.SwapDirection
+	}
+	type newSwap struct {
+		ExpireHeight uint64
+		CloseBlock   int64
+		Status       v016bep3.SwapStatus
+		Direction    v016bep3.SwapDirection
+	}
 	testcases := []struct {
-		name      string
-		oldStatus v015bep3.SwapStatus
-		newStatus v016bep3.SwapStatus
+		name    string
+		oldSwap oldSwap
+		newSwap newSwap
 	}{
 		{
-			name:      "null swap status",
-			oldStatus: v015bep3.NULL,
-			newStatus: v016bep3.SWAP_STATUS_UNSPECIFIED,
+			name: "invalid swap direction",
+			oldSwap: oldSwap{
+				Direction: v015bep3.INVALID,
+			},
+			newSwap: newSwap{
+				Direction: v016bep3.SWAP_DIRECTION_UNSPECIFIED,
+			},
 		},
 		{
-			name:      "open swap status",
-			oldStatus: v015bep3.Open,
-			newStatus: v016bep3.SWAP_STATUS_OPEN,
+			name: "invalid swap status",
+			oldSwap: oldSwap{
+				Status: v015bep3.NULL,
+			},
+			newSwap: newSwap{
+				Status: v016bep3.SWAP_STATUS_UNSPECIFIED,
+			},
 		},
 		{
-			name:      "completed swap status",
-			oldStatus: v015bep3.Completed,
-			newStatus: v016bep3.SWAP_STATUS_COMPLETED,
+			name: "incoming open swap",
+			oldSwap: oldSwap{
+				// expire and close not set in open swaps
+				Status:    v015bep3.Open,
+				Direction: v015bep3.Incoming,
+			},
+			newSwap: newSwap{
+				ExpireHeight: 1,
+				Status:       v016bep3.SWAP_STATUS_EXPIRED,
+				Direction:    v016bep3.SWAP_DIRECTION_INCOMING,
+			},
 		},
 		{
-			name:      "expired swap status",
-			oldStatus: v015bep3.Expired,
-			newStatus: v016bep3.SWAP_STATUS_EXPIRED,
+			name: "outgoing open swap",
+			oldSwap: oldSwap{
+				// expire and close not set in open swaps
+				Status:    v015bep3.Open,
+				Direction: v015bep3.Outgoing,
+			},
+			newSwap: newSwap{
+				ExpireHeight: 24687,
+				Status:       v016bep3.SWAP_STATUS_OPEN,
+				Direction:    v016bep3.SWAP_DIRECTION_OUTGOING,
+			},
+		},
+		{
+			name: "completed swap",
+			oldSwap: oldSwap{
+				ExpireHeight: 1000,
+				CloseBlock:   900,
+				Status:       v015bep3.Completed,
+				Direction:    v015bep3.Incoming,
+			},
+			newSwap: newSwap{
+				ExpireHeight: 1000,
+				CloseBlock:   1,
+				Status:       v016bep3.SWAP_STATUS_COMPLETED,
+				Direction:    v016bep3.SWAP_DIRECTION_INCOMING,
+			},
+		},
+		{
+			name: "expired swap",
+			oldSwap: oldSwap{
+				ExpireHeight: 1000,
+				CloseBlock:   900,
+				Status:       v015bep3.Expired,
+				Direction:    v015bep3.Incoming,
+			},
+			newSwap: newSwap{
+				ExpireHeight: 1,
+				CloseBlock:   900,
+				Status:       v016bep3.SWAP_STATUS_EXPIRED,
+				Direction:    v016bep3.SWAP_DIRECTION_INCOMING,
+			},
 		},
 	}
 
@@ -96,97 +162,32 @@ func (s *migrateTestSuite) TestMigrate_Swaps_Status() {
 				{
 					Amount:              sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(12))),
 					RandomNumberHash:    bytes.HexBytes{},
-					ExpireHeight:        360,
+					ExpireHeight:        tc.oldSwap.ExpireHeight,
 					Timestamp:           1110,
 					Sender:              s.addresses[0],
 					Recipient:           s.addresses[1],
 					RecipientOtherChain: s.addresses[0].String(),
 					SenderOtherChain:    s.addresses[1].String(),
-					ClosedBlock:         1,
-					Status:              tc.oldStatus,
+					ClosedBlock:         tc.oldSwap.CloseBlock,
+					Status:              tc.oldSwap.Status,
 					CrossChain:          true,
-					Direction:           v015bep3.Incoming,
+					Direction:           tc.oldSwap.Direction,
 				},
 			}
 			expectedSwaps := v016bep3.AtomicSwaps{
 				{
 					Amount:              sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(12))),
 					RandomNumberHash:    bytes.HexBytes{},
-					ExpireHeight:        360,
+					ExpireHeight:        tc.newSwap.ExpireHeight,
 					Timestamp:           1110,
 					Sender:              s.addresses[0],
 					Recipient:           s.addresses[1],
 					RecipientOtherChain: s.addresses[0].String(),
 					SenderOtherChain:    s.addresses[1].String(),
-					ClosedBlock:         1,
-					Status:              tc.newStatus,
+					ClosedBlock:         tc.newSwap.CloseBlock,
+					Status:              tc.newSwap.Status,
 					CrossChain:          true,
-					Direction:           v016bep3.SWAP_DIRECTION_INCOMING,
-				},
-			}
-			s.v15genstate.AtomicSwaps = oldSwaps
-			genState := Migrate(s.v15genstate)
-			s.Require().Len(genState.AtomicSwaps, 1)
-			s.Equal(expectedSwaps, genState.AtomicSwaps)
-		})
-	}
-}
-
-func (s *migrateTestSuite) TestMigrate_Swaps_Direction() {
-	testcases := []struct {
-		name         string
-		oldDirection v015bep3.SwapDirection
-		newDirection v016bep3.SwapDirection
-	}{
-		{
-			name:         "invalid swap direction",
-			oldDirection: v015bep3.INVALID,
-			newDirection: v016bep3.SWAP_DIRECTION_UNSPECIFIED,
-		},
-		{
-			name:         "income swap direction",
-			oldDirection: v015bep3.Incoming,
-			newDirection: v016bep3.SWAP_DIRECTION_INCOMING,
-		},
-		{
-			name:         "outgoing swap direction",
-			oldDirection: v015bep3.Outgoing,
-			newDirection: v016bep3.SWAP_DIRECTION_OUTGOING,
-		},
-	}
-
-	for _, tc := range testcases {
-		s.Run(tc.name, func() {
-			oldSwaps := v015bep3.AtomicSwaps{
-				{
-					Amount:              sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(12))),
-					RandomNumberHash:    bytes.HexBytes{},
-					ExpireHeight:        360,
-					Timestamp:           1110,
-					Sender:              s.addresses[0],
-					Recipient:           s.addresses[1],
-					RecipientOtherChain: s.addresses[0].String(),
-					SenderOtherChain:    s.addresses[1].String(),
-					ClosedBlock:         1,
-					Status:              v015bep3.Open,
-					CrossChain:          true,
-					Direction:           tc.oldDirection,
-				},
-			}
-			expectedSwaps := v016bep3.AtomicSwaps{
-				{
-					Amount:              sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(12))),
-					RandomNumberHash:    bytes.HexBytes{},
-					ExpireHeight:        360,
-					Timestamp:           1110,
-					Sender:              s.addresses[0],
-					Recipient:           s.addresses[1],
-					RecipientOtherChain: s.addresses[0].String(),
-					SenderOtherChain:    s.addresses[1].String(),
-					ClosedBlock:         1,
-					Status:              v016bep3.SWAP_STATUS_OPEN,
-					CrossChain:          true,
-					Direction:           tc.newDirection,
+					Direction:           tc.newSwap.Direction,
 				},
 			}
 			s.v15genstate.AtomicSwaps = oldSwaps
