@@ -30,11 +30,16 @@ func TestMigrateGenesisDoc(t *testing.T) {
 	expected := getTestDataJSON("genesis-v16.json")
 	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis-v15.json"))
 	assert.NoError(t, err)
+
 	actualGenDoc, err := Migrate(genDoc, newClientContext())
 	assert.NoError(t, err)
+
 	actualJson, err := tmjson.Marshal(actualGenDoc)
 	assert.NoError(t, err)
+
 	assert.JSONEq(t, expected, string(actualJson))
+
+	assert.LessOrEqual(t, actualGenDoc.ConsensusParams.Evidence.MaxBytes, actualGenDoc.ConsensusParams.Block.MaxBytes)
 }
 
 func TestMigrateFull(t *testing.T) {
