@@ -837,6 +837,23 @@
         {
           "type": "cosmos-sdk/ModuleAccount",
           "value": {
+            "address": "kava1j4yzhgjm00ch3h0p9kel7g8sp6g045qf8kzmmd",
+            "coins": [
+              {
+                "denom": "bnb",
+                "amount": "2"
+              }
+            ],
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0",
+            "name": "auction",
+            "permissions": ["minter", "burner"]
+          }
+        },
+        {
+          "type": "cosmos-sdk/ModuleAccount",
+          "value": {
             "address": "kava1a42xtwfzphuuu9mdp0es6633wu5mm8fhm789v3",
             "coins": [
               {

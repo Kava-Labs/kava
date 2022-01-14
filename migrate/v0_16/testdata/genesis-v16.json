@@ -673,6 +673,17 @@
         {
           "@type": "/cosmos.auth.v1beta1.ModuleAccount",
           "base_account": {
+            "address": "kava1j4yzhgjm00ch3h0p9kel7g8sp6g045qf8kzmmd",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "name": "auction",
+          "permissions": ["minter", "burner"]
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
             "address": "kava1a42xtwfzphuuu9mdp0es6633wu5mm8fhm789v3",
             "pub_key": null,
             "account_number": "0",
@@ -861,6 +872,12 @@
             { "denom": "hard", "amount": "1000000000000" },
             { "denom": "swp", "amount": "1000000000000" },
             { "denom": "ukava", "amount": "1000000000000" }
+          ]
+        },
+        {
+          "address": "kava1j4yzhgjm00ch3h0p9kel7g8sp6g045qf8kzmmd",
+          "coins": [
+            { "denom": "bnb", "amount": "2" }
           ]
         },
         {
