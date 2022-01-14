@@ -453,6 +453,20 @@
             "market_id": "bnb:usd:30",
             "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
             "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "btc",
+            "market_id": "btc:usd",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "btc",
+            "market_id": "btc:usd:30",
+            "oracles": ["kava1acge4tcvhf3q6fh53fgwaa7vsq40wvx6wn50em"],
+            "quote_asset": "usd"
           }
         ]
       },
