@@ -8,6 +8,7 @@ import (
 
 	v039auth "github.com/cosmos/cosmos-sdk/x/auth/legacy/v039"
 	v040auth "github.com/cosmos/cosmos-sdk/x/auth/legacy/v040"
+	v040authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	v036supply "github.com/cosmos/cosmos-sdk/x/bank/legacy/v036"
 	v038bank "github.com/cosmos/cosmos-sdk/x/bank/legacy/v038"
 	v040bank "github.com/cosmos/cosmos-sdk/x/bank/legacy/v040"
@@ -118,8 +119,13 @@ func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context, genesis
 		// delete deprecated x/auth genesis state
 		delete(appState, v039auth.ModuleName)
 
+		migratedGenState := MigrateAuthV040(authGenState, genesisTime)
+		if err := v040authtypes.ValidateGenesis(*migratedGenState); err != nil {
+			panic(err)
+		}
+
 		// Run our custom auth v40 migration on the v039 auth gen state
-		appState[v040auth.ModuleName] = v040Codec.MustMarshalJSON(MigrateAuthV040(authGenState, genesisTime))
+		appState[v040auth.ModuleName] = v040Codec.MustMarshalJSON(migratedGenState)
 	}
 
 	// Migrate x/crisis.

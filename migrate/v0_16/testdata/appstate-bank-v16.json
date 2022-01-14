@@ -57,11 +57,8 @@
       },
       {
         "@type": "/cosmos.auth.v1beta1.BaseAccount",
-        "address": "kava1agcvt07tcw0tglu0hmwdecsnuxp2yd45f3avgm",
-        "pub_key": {
-          "@type": "/cosmos.crypto.secp256k1.PubKey",
-          "key": "A7WkS5eJAiPE/gl7n4I5qa5JsREvQM5fkdgCEPhNfj0h"
-        },
+        "address": "kava1qqqvdyv8w0xdu7gjdtt598q78gtgqyukct4yz2",
+        "pub_key": null,
         "account_number": "0",
         "sequence": "0"
       },
@@ -238,7 +235,7 @@
         "coins": [{ "denom": "ukava", "amount": "1000000000000" }]
       },
       {
-        "address": "kava1agcvt07tcw0tglu0hmwdecsnuxp2yd45f3avgm",
+        "address": "kava1qqqvdyv8w0xdu7gjdtt598q78gtgqyukct4yz2",
         "coins": [
           { "denom": "bnb", "amount": "100000000000000" },
           { "denom": "ukava", "amount": "1000000000000" }

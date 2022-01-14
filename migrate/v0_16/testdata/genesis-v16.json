@@ -719,7 +719,7 @@
         },
         {
           "@type": "/cosmos.auth.v1beta1.BaseAccount",
-          "address": "kava1agcvt07tcw0tglu0hmwdecsnuxp2yd45f3avgm",
+          "address": "kava1qqqvdyv8w0xdu7gjdtt598q78gtgqyukct4yz2",
           "pub_key": null,
           "account_number": "0",
           "sequence": "0"
@@ -900,7 +900,7 @@
           "coins": [{ "denom": "ukava", "amount": "1000000000000" }]
         },
         {
-          "address": "kava1agcvt07tcw0tglu0hmwdecsnuxp2yd45f3avgm",
+          "address": "kava1qqqvdyv8w0xdu7gjdtt598q78gtgqyukct4yz2",
           "coins": [
             { "denom": "bnb", "amount": "100000000000000" },
             { "denom": "ukava", "amount": "1000000000000" }
@@ -1037,7 +1037,7 @@
               "time_based_limit": "0"
             },
             "active": true,
-            "deputy_address": "kava1agcvt07tcw0tglu0hmwdecsnuxp2yd45f3avgm",
+            "deputy_address": "kava1qqqvdyv8w0xdu7gjdtt598q78gtgqyukct4yz2",
             "fixed_fee": "1000",
             "min_swap_amount": "1001",
             "max_swap_amount": "500000000000",
