@@ -1,14 +1,19 @@
 package v0_16
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	v015hard "github.com/kava-labs/kava/x/hard/legacy/v0_15"
 	v016hard "github.com/kava-labs/kava/x/hard/types"
 )
 
+// Denom generated via: echo -n transfer/channel-0/uatom | shasum -a 256 | awk '{printf "ibc/%s",toupper($1)}'
+const UATOM_IBC_DENOM = "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
+
 func migrateParams(params v015hard.Params) v016hard.Params {
-	moneyMarkets := make([]v016hard.MoneyMarket, len(params.MoneyMarkets))
-	for i, mm := range params.MoneyMarkets {
-		moneyMarkets[i] = v016hard.MoneyMarket{
+	var moneyMarkets []v016hard.MoneyMarket
+	for _, mm := range params.MoneyMarkets {
+		moneyMarket := v016hard.MoneyMarket{
 			Denom: mm.Denom,
 			BorrowLimit: v016hard.BorrowLimit{
 				HasMaxLimit:  mm.BorrowLimit.HasMaxLimit,
@@ -26,7 +31,28 @@ func migrateParams(params v015hard.Params) v016hard.Params {
 			ReserveFactor:          mm.ReserveFactor,
 			KeeperRewardPercentage: mm.KeeperRewardPercentage,
 		}
+		moneyMarkets = append(moneyMarkets, moneyMarket)
 	}
+
+	atomMoneyMarket := v016hard.MoneyMarket{
+		Denom: UATOM_IBC_DENOM,
+		BorrowLimit: v016hard.BorrowLimit{
+			HasMaxLimit:  true,
+			MaximumLimit: sdk.NewDec(25000000000),
+			LoanToValue:  sdk.MustNewDecFromStr("0.5"),
+		},
+		SpotMarketID:     "atom:usd:30",
+		ConversionFactor: sdk.NewInt(1000000),
+		InterestRateModel: v016hard.InterestRateModel{
+			BaseRateAPY:    sdk.ZeroDec(),
+			BaseMultiplier: sdk.MustNewDecFromStr("0.05"),
+			Kink:           sdk.MustNewDecFromStr("0.8"),
+			JumpMultiplier: sdk.NewDec(5),
+		},
+		ReserveFactor:          sdk.MustNewDecFromStr("0.025"),
+		KeeperRewardPercentage: sdk.MustNewDecFromStr("0.02"),
+	}
+	moneyMarkets = append(moneyMarkets, atomMoneyMarket)
 
 	return v016hard.Params{
 		MoneyMarkets:          moneyMarkets,

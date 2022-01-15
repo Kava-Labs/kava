@@ -401,6 +401,24 @@
             },
             "reserve_factor": "0.100000000000000000",
             "keeper_reward_percentage": "0.010000000000000000"
+          },
+          {
+            "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+            "borrow_limit": {
+              "has_max_limit": true,
+              "maximum_limit": "25000000000.000000000000000000",
+              "loan_to_value": "0.500000000000000000"
+            },
+            "spot_market_id": "atom:usd:30",
+            "conversion_factor": "1000000",
+            "interest_rate_model": {
+              "base_rate_apy": "0.000000000000000000",
+              "base_multiplier": "0.050000000000000000",
+              "kink": "0.800000000000000000",
+              "jump_multiplier": "5.000000000000000000"
+            },
+            "reserve_factor": "0.025000000000000000",
+            "keeper_reward_percentage": "0.020000000000000000"
           }
         ],
         "minimum_borrow_usd_value": "10.000000000000000000"
@@ -1592,6 +1610,16 @@
                           "keeper_reward_percentage",
                           "reserve_factor"
                         ]
+                      },
+                      {
+                        "key": "denom",
+                        "val": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+                        "allowed_subparam_attr_changes": [
+                          "borrow_limit",
+                          "interest_rate_model",
+                          "keeper_reward_percentage",
+                          "reserve_factor"
+                        ]
                       }
                     ]
                   }
@@ -1619,23 +1647,9 @@
           }
         },
         {
-          "@type": "/kava.committee.v1beta1.MemberCommittee",
-          "base_committee": {
-            "id": "3",
-            "description": "Kava God Committee (testing only)",
-            "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
-            "permissions": [
-              { "@type": "/kava.committee.v1beta1.GodPermission" }
-            ],
-            "vote_threshold": "0.500000000000000000",
-            "proposal_duration": "604800s",
-            "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
-          }
-        },
-        {
           "@type": "/kava.committee.v1beta1.TokenCommittee",
           "base_committee": {
-            "id": "4",
+            "id": "3",
             "description": "Hard Governance Committee",
             "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
             "permissions": [
@@ -1747,6 +1761,28 @@
                           "reserve_factor",
                           "spot_market_id"
                         ]
+                      },
+                      {
+                        "key": "denom",
+                        "val": "swp",
+                        "allowed_subparam_attr_changes": [
+                          "borrow_limit",
+                          "interest_rate_model",
+                          "keeper_reward_percentage",
+                          "reserve_factor",
+                          "spot_market_id"
+                        ]
+                      },
+                      {
+                        "key": "denom",
+                        "val": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+                        "allowed_subparam_attr_changes": [
+                          "borrow_limit",
+                          "interest_rate_model",
+                          "keeper_reward_percentage",
+                          "reserve_factor",
+                          "spot_market_id"
+                        ]
                       }
                     ]
                   }
@@ -1763,7 +1799,7 @@
         {
           "@type": "/kava.committee.v1beta1.TokenCommittee",
           "base_committee": {
-            "id": "5",
+            "id": "4",
             "description": "Swp Governance Committee",
             "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
             "permissions": [
@@ -1803,6 +1839,20 @@
           },
           "quorum": "0.330000000000000000",
           "tally_denom": "swp"
+        },
+        {
+          "@type": "/kava.committee.v1beta1.MemberCommittee",
+          "base_committee": {
+            "id": "5",
+            "description": "Kava God Committee (testing only)",
+            "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
+            "permissions": [
+              { "@type": "/kava.committee.v1beta1.GodPermission" }
+            ],
+            "vote_threshold": "0.500000000000000000",
+            "proposal_duration": "604800s",
+            "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
+          }
         }
       ],
       "proposals": [
@@ -2127,10 +2177,7 @@
         "create_localhost": false,
         "next_client_sequence": "0",
         "params": {
-          "allowed_clients": [
-            "06-solomachine",
-            "07-tendermint"
-          ]
+          "allowed_clients": ["06-solomachine", "07-tendermint"]
         }
       },
       "connection_genesis": {

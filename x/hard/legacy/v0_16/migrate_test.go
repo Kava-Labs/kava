@@ -132,6 +132,24 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					ReserveFactor:          sdk.MustNewDecFromStr("0.5"),
 					KeeperRewardPercentage: sdk.MustNewDecFromStr("0.6"),
 				},
+				{
+					Denom: UATOM_IBC_DENOM,
+					BorrowLimit: v016hard.BorrowLimit{
+						HasMaxLimit:  true,
+						MaximumLimit: sdk.NewDec(25000000000),
+						LoanToValue:  sdk.MustNewDecFromStr("0.5"),
+					},
+					SpotMarketID:     "atom:usd:30",
+					ConversionFactor: sdk.NewInt(1000000),
+					InterestRateModel: v016hard.InterestRateModel{
+						BaseRateAPY:    sdk.ZeroDec(),
+						BaseMultiplier: sdk.MustNewDecFromStr("0.05"),
+						Kink:           sdk.MustNewDecFromStr("0.8"),
+						JumpMultiplier: sdk.NewDec(5),
+					},
+					ReserveFactor:          sdk.MustNewDecFromStr("0.025"),
+					KeeperRewardPercentage: sdk.MustNewDecFromStr("0.02"),
+				},
 			},
 		},
 		PreviousAccumulationTimes: v016hard.GenesisAccumulationTimes{

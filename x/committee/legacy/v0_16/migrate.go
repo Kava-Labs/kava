@@ -21,12 +21,18 @@ import (
 	v016cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	v015committee "github.com/kava-labs/kava/x/committee/legacy/v0_15"
 	v016committee "github.com/kava-labs/kava/x/committee/types"
+	v016hardMigration "github.com/kava-labs/kava/x/hard/legacy/v0_16"
 	v016hardtypes "github.com/kava-labs/kava/x/hard/types"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
 	v016kavadist "github.com/kava-labs/kava/x/kavadist/types"
 	v015pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_15"
 	v016pricefeedmigration "github.com/kava-labs/kava/x/pricefeed/legacy/v0_16"
 	v016pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
+)
+
+const (
+	KavaStabilityCommitteeID  = 1
+	HardGovernanceCommitteeID = 3
 )
 
 // migrateWhitelist returns an string slice of json keys that should be whitelisted on the whitelist interface
@@ -65,7 +71,7 @@ type subspaceKeyPair struct {
 // migrateSubParamPermissions converts v15 SubParamChangePermissions to v16 ParamsChangePermission
 func migrateSubParamPermissions(
 	permission v015committee.SubParamChangePermission,
-	isStabilityCommittee bool,
+	committeeID uint64,
 	oldPricefeedState v015pricefeed.GenesisState,
 ) *v016committee.ParamsChangePermission {
 	changes := v016committee.AllowedParamsChanges{}
@@ -113,7 +119,7 @@ func migrateSubParamPermissions(
 		}
 
 		// add new requirement for stability committee
-		if isStabilityCommittee {
+		if committeeID == KavaStabilityCommitteeID {
 			requirement := v016committee.SubparamRequirement{
 				Key: "type",
 				Val: "swp-a",
@@ -178,7 +184,7 @@ func migrateSubParamPermissions(
 			requirements = append(requirements, requirement)
 		}
 
-		if isStabilityCommittee {
+		if committeeID == KavaStabilityCommitteeID {
 			// Add permissions for existing pricefeed markets that are missing in allowed_markets
 		outer:
 			for _, oldPricefeedMarket := range oldPricefeedState.Params.Markets {
@@ -233,7 +239,7 @@ func migrateSubParamPermissions(
 		}
 
 		// add new requirement for stability committee
-		if isStabilityCommittee {
+		if committeeID == KavaStabilityCommitteeID {
 			requirement := v016committee.SubparamRequirement{
 				Key: "denom",
 				Val: "swp",
@@ -243,6 +249,37 @@ func migrateSubParamPermissions(
 				},
 			}
 			requirements = append(requirements, requirement)
+
+			requirementAtom := v016committee.SubparamRequirement{
+				Key: "denom",
+				Val: v016hardMigration.UATOM_IBC_DENOM,
+				AllowedSubparamAttrChanges: []string{
+					"borrow_limit", "interest_rate_model",
+					"keeper_reward_percentage", "reserve_factor",
+				},
+			}
+			requirements = append(requirements, requirementAtom)
+		} else if committeeID == HardGovernanceCommitteeID {
+			// add new requirement for Hard Governance committee
+			requirementSwp := v016committee.SubparamRequirement{
+				Key: "denom",
+				Val: "swp",
+				AllowedSubparamAttrChanges: []string{
+					"borrow_limit", "interest_rate_model", "keeper_reward_percentage",
+					"reserve_factor", "spot_market_id",
+				},
+			}
+			requirements = append(requirements, requirementSwp)
+
+			requirementUatom := v016committee.SubparamRequirement{
+				Key: "denom",
+				Val: v016hardMigration.UATOM_IBC_DENOM,
+				AllowedSubparamAttrChanges: []string{
+					"borrow_limit", "interest_rate_model", "keeper_reward_percentage",
+					"reserve_factor", "spot_market_id",
+				},
+			}
+			requirements = append(requirements, requirementUatom)
 		}
 
 		change.MultiSubparamsRequirements = requirements
@@ -256,7 +293,7 @@ func migrateSubParamPermissions(
 
 func migratePermission(
 	v015permission v015committee.Permission,
-	isStabilityCommittee bool,
+	committeeID uint64,
 	oldPricefeedState v015pricefeed.GenesisState,
 ) *codectypes.Any {
 	var protoProposal proto.Message
@@ -289,7 +326,7 @@ func migratePermission(
 		}
 	case v015committee.SubParamChangePermission:
 		{
-			protoProposal = migrateSubParamPermissions(v015permission, isStabilityCommittee, oldPricefeedState)
+			protoProposal = migrateSubParamPermissions(v015permission, committeeID, oldPricefeedState)
 		}
 	default:
 		panic(fmt.Errorf("'%s' is not a valid permission", v015permission))
@@ -324,8 +361,7 @@ func migrateCommittee(committee v015committee.Committee, oldPricefeedState v015p
 		{
 			permissions := make([]*codectypes.Any, len(committee.Permissions))
 			for i, permission := range committee.Permissions {
-				isStabilityCommittee := committee.GetID() == 1
-				permissions[i] = migratePermission(permission, isStabilityCommittee, oldPricefeedState)
+				permissions[i] = migratePermission(permission, committee.GetID(), oldPricefeedState)
 			}
 
 			protoProposal = &v016committee.MemberCommittee{
@@ -344,7 +380,7 @@ func migrateCommittee(committee v015committee.Committee, oldPricefeedState v015p
 		{
 			permissions := make([]*codectypes.Any, len(committee.Permissions))
 			for i, permission := range committee.Permissions {
-				permissions[i] = migratePermission(permission, false, oldPricefeedState)
+				permissions[i] = migratePermission(permission, committee.GetID(), oldPricefeedState)
 			}
 
 			protoProposal = &v016committee.TokenCommittee{
