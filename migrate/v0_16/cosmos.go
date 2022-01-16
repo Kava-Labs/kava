@@ -34,9 +34,9 @@ import (
 	v040staking "github.com/cosmos/cosmos-sdk/x/staking/legacy/v040"
 	v038upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/legacy/v038"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
-	ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
-	ibctypes "github.com/cosmos/ibc-go/modules/core/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
+	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
+	ibctypes "github.com/cosmos/ibc-go/v2/modules/core/types"
 
 	"github.com/kava-labs/kava/app"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
