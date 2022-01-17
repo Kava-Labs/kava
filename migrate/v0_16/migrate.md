@@ -4,13 +4,13 @@
 
 - We will be upgrading from chain-id "kava-8" to chain-id "kava-9".
 - The version of Kava for kava-9 is v0.16.0
-- The kava-8 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height __1803250__, which is approximately 14:00 UTC on January, 19 2022.  
+- The kava-8 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height __1803250__, which is approximately 14:00 UTC on January, 19 2022.
 - kava-9 genesis time is set to January 19, 2022 at 16:00 UTC
 - The version of cosmos-sdk for kava-9 is v0.44.5
 - The version of tendermint for kava-9 v0.34.14
-- The minimum version of golang for kava-9 is __1.16+__.
+- The minimum version of golang for kava-9 is __1.17+__.
 
-__NOTE__: As part of the upgrade to kava-9, the `kvd` and `kvcli` binaries were combined into a single blockchain binary named `kava`. When restarting the chain, be sure to use `kava start` and not the deprecated `kvd start`. 
+__NOTE__: As part of the upgrade to kava-9, the `kvd` and `kvcli` binaries were combined into a single blockchain binary named `kava`. When restarting the chain, be sure to use `kava start` and not the deprecated `kvd start`.
 
 ### Risks
 
@@ -30,7 +30,7 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ### Before the upgrade
 
-Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height __1803250__ as the final block height for kava-8. This height corresponds to approximately 14:00 UTC on January 19th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators. 
+Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height __1803250__ as the final block height for kava-8. This height corresponds to approximately 14:00 UTC on January 19th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators.
 
 ### On the day of the upgrade
 
@@ -41,7 +41,7 @@ Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height 
 1. Export State (this **MUST** be done using **v0.15.x**)
 
 ```sh
-# verify version before export: 
+# verify version before export:
 kvd version --long
 # name: kava
 # server_name: kvd
