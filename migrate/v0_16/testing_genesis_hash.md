@@ -16,6 +16,6 @@ wget https://kava-genesis-files.s3.amazonaws.com/kava-8/block-export-1627000.jso
 kava migrate block-export-1627000.json > block-export-1627000-migrated.json
 
 # calculate hash of migrated file
-shasum -a 256 block-export-1627000-migrated.json
+jq -S -c -M '' block-export-1627000-migrated.json | shasum -a 256
 ```
 
