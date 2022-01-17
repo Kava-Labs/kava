@@ -66,10 +66,9 @@ kvd export --for-zero-height --height 1803250 > export-genesis.json
   make install
 
   # verify versions
-  kvd version --long
+  kava version --long
   # name: kava
-  # server_name: kvd
-  # client_name: kvcli
+  # server_name: kava
   # version: v0.16.0
   # commit: [PLACEHOLDER]
   # build_tags: netgo,ledger
@@ -77,17 +76,17 @@ kvd export --for-zero-height --height 1803250 > export-genesis.json
 
 
   # Migrate genesis state
-  kvd migrate export-genesis.json > genesis.json
+  kava migrate export-genesis.json > genesis.json
 
   # Verify output of genesis migration
-  kvd validate-genesis genesis.json # should say it's valid
-  kvd assert-invariants genesis.json # should say invariants pass
+  kava validate-genesis genesis.json # should say it's valid
+  kava assert-invariants genesis.json # should say invariants pass
   jq -S -c -M '' genesis.json | shasum -a 256
   # [PLACEHOLDER]
 
   # Restart node with migrated genesis state
-  cp genesis.json ~/.kvd/config/genesis.json
-  kvd unsafe-reset-all
+  cp genesis.json ~/.kava/config/genesis.json
+  kava unsafe-reset-all
 
   # Restart node -
   # ! Be sure to remove --halt-time flag if it is set in systemd/docker
