@@ -63,7 +63,7 @@ func TestMigrateFull(t *testing.T) {
 
 func TestAccountBalances(t *testing.T) {
 	t.Skip() // avoid committing test data
-	app.SetSDKConfig()
+	setConfigIfUnsealed()
 
 	// load auth state from kava-8 with empty accounts removed (keeps size down)
 	authbz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-8-test-auth-state.json"))

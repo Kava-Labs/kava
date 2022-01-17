@@ -38,7 +38,6 @@ import (
 	ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibctypes "github.com/cosmos/ibc-go/modules/core/types"
 
-	"github.com/kava-labs/kava/app"
 	v015kavadist "github.com/kava-labs/kava/x/kavadist/legacy/v0_15"
 	v015validatorvesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_15"
 )
@@ -71,7 +70,7 @@ func migrateV043(appState genutiltypes.AppMap, clientCtx client.Context) genutil
 // migrateV040 migrates cosmos modules from v0.39 to a v0.40 genesis state.
 // This is based on the genutil/legacy/v40 migration logic but adapted to handle custom types from the kava module.
 func migrateV040(appState genutiltypes.AppMap, clientCtx client.Context, genesisTime time.Time) genutiltypes.AppMap {
-	app.SetSDKConfig()
+	setConfigIfUnsealed()
 	v039Codec := codec.NewLegacyAmino()
 	v039auth.RegisterLegacyAminoCodec(v039Codec)
 	v036gov.RegisterLegacyAminoCodec(v039Codec)
