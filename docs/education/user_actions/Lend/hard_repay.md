@@ -4,10 +4,10 @@ Repay tokens to the hard protocol
 
 ## Command
 ```
-kvcli tx hard repay <amount> <flags>
+kava tx hard repay <amount> <flags>
 ```
 
-Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```repay``` and finally follow up with required arguments or flags.
+Using ```kava``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```repay``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
@@ -18,9 +18,9 @@ position|name|expects
 
 ### Example
 ```
-kvcli tx hard repay 1000000000ukava --from <key>
-kvcli tx hard repay 1000000000ukava,25000000000bnb --from <key>
-kvcli tx hard repay 1000000000ukava,25000000000bnb --owner <owner-address> --from <key>
+kava tx hard repay 1000000000ukava --from <key>
+kava tx hard repay 1000000000ukava,25000000000bnb --from <key>
+kava tx hard repay 1000000000ukava,25000000000bnb --owner <owner-address> --from <key>
 ```
  
 ### Options

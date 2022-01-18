@@ -4,10 +4,10 @@ Add collateral to an existing cdp.
 
 ## Command
 ```
-kvcli tx cdp deposit <owner-addr> <collateral> <collateral-type> <flags>
+kava tx cdp deposit <owner-addr> <collateral> <collateral-type> <flags>
 ```
 
-Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```deposit``` and finally follow up with required arguments or flags.
+Using ```kava``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```deposit``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
@@ -20,7 +20,7 @@ position|name|expects
 
 ### Example
 ```
-kvcli tx cdp deposit kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 10000000uatom atom-a --from myKeyName
+kava tx cdp deposit kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 10000000uatom atom-a --from myKeyName
 ```
  
 ### Options

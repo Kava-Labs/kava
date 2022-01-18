@@ -1,7 +1,7 @@
 <!--
 title: committee
 -->
-## kvcli tx gov submit-proposal committee
+## kava tx gov submit-proposal committee
 
 Submit a governance proposal to change a committee.
 
@@ -61,7 +61,7 @@ and to delete a committee:
 ```
 
 ```
-kvcli tx gov submit-proposal committee [proposal-file] [deposit] [flags]
+kava tx gov submit-proposal committee [proposal-file] [deposit] [flags]
 ```
 
 ### Options

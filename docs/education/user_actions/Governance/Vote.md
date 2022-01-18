@@ -1,7 +1,7 @@
 <!--
 title: vote
 -->
-## kvcli tx committee vote
+## kava tx committee vote
 
 Vote for an active proposal
 
@@ -10,13 +10,13 @@ Vote for an active proposal
 Submit a ```[yes/no/abstain]``` vote for the proposal with id ```[proposal-id]```.
 
 ```
-kvcli tx committee vote [proposal-id] [vote] [flags]
+kava tx committee vote [proposal-id] [vote] [flags]
 ```
 
 ### Examples
 
 ```
-kvcli tx committee vote 2 yes
+kava tx committee vote 2 yes
 ```
 
 ### Options

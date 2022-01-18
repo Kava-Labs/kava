@@ -4,10 +4,10 @@ Swap an exact amount of token a for token b
 
 ## Command
 ```
-kvcli tx swap swap-exact-for-tokens <exactCoinA> <coinB> <slippage> <deadline> <flags>
+kava tx swap swap-exact-for-tokens <exactCoinA> <coinB> <slippage> <deadline> <flags>
 ```
 
-Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```swap```, then define the action which is ```swap-exact-for-tokens``` and finally follow up with required arguments or flags.
+Using ```kava``` call the ```tx``` subcommand followed by the module name which is```swap```, then define the action which is ```swap-exact-for-tokens``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
@@ -21,7 +21,7 @@ position|name|expects
 
 ### Example
 ```
-kvcli tx swap swap-exact-for-tokens 1000000ukava 5000000usdx 0.01 1624224736 --from <key>
+kava tx swap swap-exact-for-tokens 1000000ukava 5000000usdx 0.01 1624224736 --from <key>
 ```
  
 ### Options

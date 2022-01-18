@@ -4,10 +4,10 @@ Repay debt to an existing cdp
 
 ## Command
 ```
-kvcli tx cdp repay <collateral-name> <debt> <flags>
+kava tx cdp repay <collateral-name> <debt> <flags>
 ```
 
-Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```repay``` and finally follow up with required arguments or flags.
+Using ```kava``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```repay``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
@@ -19,7 +19,7 @@ position|name|expects
 
 ### Example
 ```
-kvcli tx cdp repay atom-a 1000usdx --from myKeyName
+kava tx cdp repay atom-a 1000usdx --from myKeyName
 ```
  
 ### Options

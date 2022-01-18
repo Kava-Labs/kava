@@ -1,7 +1,7 @@
 <!--
 title: param-change
 -->
-## kvcli tx gov submit-proposal param-change
+## kava tx gov submit-proposal param-change
 
 Submit a parameter change proposal
 
@@ -22,7 +22,7 @@ regardless.
 Example:
 
 ```
-$ kvcli tx gov submit-proposal param-change <path/to/proposal.json> --from=<key_or_address>
+$ kava tx gov submit-proposal param-change <path/to/proposal.json> --from=<key_or_address>
 ```
 
 Where proposal.json contains:
@@ -46,7 +46,7 @@ Where proposal.json contains:
 }
 ```
 ```
-kvcli tx gov submit-proposal param-change [proposal-file] [flags]
+kava tx gov submit-proposal param-change [proposal-file] [flags]
 ```
 
 ### Options

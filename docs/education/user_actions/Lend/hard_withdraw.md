@@ -4,10 +4,10 @@ Withdraw coins from hard
 
 ## Command
 ```
-kvcli tx hard withdraw <amount> <flags>
+kava tx hard withdraw <amount> <flags>
 ```
 
-Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```withdraw``` and finally follow up with required arguments or flags.
+Using ```kava``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```withdraw``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
@@ -18,7 +18,7 @@ position|name|expects
 
 ### Example
 ```
-kvcli tx hard withdraw 10000000bnb --from <key>
+kava tx hard withdraw 10000000bnb --from <key>
 ```
  
 ### Options
