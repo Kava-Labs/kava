@@ -4,10 +4,10 @@ Create a new cdp, depositing some collateral and drawing some debt.
 
 ## Command
 ```
-kvcli tx cdp create <collateral> <debt> <collateral-type> <flags>
+kava tx cdp create <collateral> <debt> <collateral-type> <flags>
 ```
 
-Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```create``` and finally follow up with required arguments or flags.
+Using ```kava``` call the ```tx``` subcommand followed by the module name which is```cdp```, then define the action which is ```create``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
@@ -20,7 +20,7 @@ position|name|expects
 
 ### Example
 ```
-kvcli tx cdp create 10000000uatom 1000usdx atom-a --from myKeyName
+kava tx cdp create 10000000uatom 1000usdx atom-a --from myKeyName
 ```
  
 ### Options

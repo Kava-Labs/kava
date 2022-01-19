@@ -4,10 +4,10 @@ Deposit coins to a swap liquidity pool
 
 ## Command
 ```
-kvcli tx swap deposit <tokenA> <tokenB> <slippage> <deadline> <flags>
+kava tx swap deposit <tokenA> <tokenB> <slippage> <deadline> <flags>
 ```
 
-Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```swap```, then define the action which is ```deposit``` and finally follow up with required arguments or flags.
+Using ```kava``` call the ```tx``` subcommand followed by the module name which is```swap```, then define the action which is ```deposit``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
@@ -22,7 +22,7 @@ position|name|expects
 
 ### Example
 ```
-kvcli tx swap deposit 10000000ukava 10000000usdx 0.01 1624224736 --from <key>
+kava tx swap deposit 10000000ukava 10000000usdx 0.01 1624224736 --from <key>
 ```
  
 ### Options

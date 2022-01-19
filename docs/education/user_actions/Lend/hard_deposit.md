@@ -4,10 +4,10 @@ Deposit coins to hard
 
 ## Command
 ```
-kvcli tx hard deposit <amount> <flags>
+kava tx hard deposit <amount> <flags>
 ```
 
-Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```deposit``` and finally follow up with required arguments or flags.
+Using ```kava``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```deposit``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
@@ -18,7 +18,7 @@ position|name|expects
 
 ### Example
 ```
-kvcli tx hard deposit 10000000bnb --from <key>
+kava tx hard deposit 10000000bnb --from <key>
 ```
  
 ### Options

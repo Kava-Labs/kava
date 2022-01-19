@@ -4,10 +4,10 @@ Withdraw coins from a swap liquidity pool
 
 ## Command
 ```
-kvcli tx swap withdraw <shares> <minCoinA> <minCoinB> <deadline> <flags>
+kava tx swap withdraw <shares> <minCoinA> <minCoinB> <deadline> <flags>
 ```
 
-Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```swap```, then define the action which is ```withdraw``` and finally follow up with required arguments or flags.
+Using ```kava``` call the ```tx``` subcommand followed by the module name which is```swap```, then define the action which is ```withdraw``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
@@ -22,7 +22,7 @@ position|name|expects
 
 ### Example
 ```
-kvcli tx swap withdraw 153000 10000000ukava 20000000usdx 176293740 --from <key>
+kava tx swap withdraw 153000 10000000ukava 20000000usdx 176293740 --from <key>
 ```
  
 ### Options

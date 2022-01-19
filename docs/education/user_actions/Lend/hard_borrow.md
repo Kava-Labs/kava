@@ -4,10 +4,10 @@ Borrow tokens from the hard protocol
 
 ## Command
 ```
-kvcli tx hard borrow <amount> <flags>
+kava tx hard borrow <amount> <flags>
 ```
 
-Using ```kvcli``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```borrow``` and finally follow up with required arguments or flags.
+Using ```kava``` call the ```tx``` subcommand followed by the module name which is```hard```, then define the action which is ```borrow``` and finally follow up with required arguments or flags.
 
 ### Arguments
 position|name|expects
@@ -18,7 +18,7 @@ position|name|expects
 
 ### Example
 ```
-kvcli tx hard borrow 1000000000ukava --from <key>
+kava tx hard borrow 1000000000ukava --from <key>
 ```
  
 ### Options
