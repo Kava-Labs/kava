@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -24,6 +25,7 @@ func TestNewApp(t *testing.T) {
 		nil,
 		MakeEncodingConfig(),
 		Options{},
+		simapp.EmptyAppOptions{},
 	)
 }
 

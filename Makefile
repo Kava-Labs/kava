@@ -139,8 +139,9 @@ localnet-stop:
 
 # Launch a new single validator chain
 start:
-	./contrib/devnet/init-new-chain.sh
-	kava start
+	mkdir -p contrib/devnet/home/data
+	cp contrib/devnet/home/config/priv_validator_state.json.example contrib/devnet/home/data/priv_validator_state.json
+	kava --home ./contrib/devnet/home start
 
 ###############################################################################
 ###                                Protobuf                                 ###

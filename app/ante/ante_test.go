@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -42,6 +43,7 @@ func TestAppAnteHandler(t *testing.T) {
 				MempoolEnableAuth:    true,
 				MempoolAuthAddresses: manual,
 			},
+			simapp.EmptyAppOptions{},
 		),
 	}
 

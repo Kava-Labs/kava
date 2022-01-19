@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -74,7 +75,7 @@ func NewTestAppFromSealed() TestApp {
 
 	encCfg := MakeEncodingConfig()
 
-	app := NewApp(log.NewNopLogger(), db, DefaultNodeHome, nil, encCfg, Options{})
+	app := NewApp(log.NewNopLogger(), db, DefaultNodeHome, nil, encCfg, Options{}, simapp.EmptyAppOptions{})
 	return TestApp{App: *app}
 }
 

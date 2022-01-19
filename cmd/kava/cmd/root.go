@@ -14,6 +14,7 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
+	ethermintserver "github.com/tharsis/ethermint/server"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
@@ -69,6 +70,7 @@ func NewRootCmd() *cobra.Command {
 // addSubCmds registers all the sub commands used by kava.
 func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, defaultNodeHome string) {
 	rootCmd.AddCommand(
+		// TODO: Need to wrap InitCmd with `ethermintclient.ValidateChainID`
 		genutilcli.InitCmd(app.ModuleBasics, defaultNodeHome),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		migrate.MigrateGenesisCmd(),
@@ -85,7 +87,9 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 	ac := appCreator{
 		encodingConfig: encodingConfig,
 	}
-	server.AddCommands(rootCmd, defaultNodeHome, ac.newApp, ac.appExport, ac.addStartCmdFlags)
+
+	// ethermintserver adds additional flags to start the JSON-RPC server for evm support
+	ethermintserver.AddCommands(rootCmd, defaultNodeHome, ac.newApp, ac.appExport, ac.addStartCmdFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
