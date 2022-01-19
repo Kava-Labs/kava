@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -24,9 +23,9 @@ type HandlerOptions struct {
 	BankKeeper       evmtypes.BankKeeper
 	IBCChannelKeeper channelkeeper.Keeper
 	EvmKeeper        evmante.EVMKeeper
-	FeegrantKeeper   ante.FeegrantKeeper
+	FeegrantKeeper   authante.FeegrantKeeper
 	SignModeHandler  authsigning.SignModeHandler
-	SigGasConsumer   ante.SignatureVerificationGasConsumer
+	SigGasConsumer   authante.SignatureVerificationGasConsumer
 	FeeMarketKeeper  evmtypes.FeeMarketKeeper
 	AddressFetchers  []AddressFetcher
 }
@@ -51,11 +50,6 @@ func (options HandlerOptions) Validate() error {
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if err := options.Validate(); err != nil {
 		return nil, err
-	}
-
-	sigGasConsumer := options.SigGasConsumer
-	if sigGasConsumer == nil {
-		sigGasConsumer = ante.DefaultSigVerificationGasConsumer
 	}
 
 	return func(
@@ -100,25 +94,26 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	decorators := []sdk.AnteDecorator{}
 
 	decorators = append(decorators,
-		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
-		ante.NewRejectExtensionOptionsDecorator(),
+		evmante.RejectMessagesDecorator{},   // reject MsgEthereumTxs
+		authante.NewSetUpContextDecorator(), // second decorator. SetUpContext must be called before other decorators
+		authante.NewRejectExtensionOptionsDecorator(),
 	)
 	if len(options.AddressFetchers) > 0 {
 		decorators = append(decorators, NewAuthenticatedMempoolDecorator(options.AddressFetchers...))
 	}
 	decorators = append(decorators,
-		ante.NewMempoolFeeDecorator(),
+		authante.NewMempoolFeeDecorator(),
 		NewVestingAccountDecorator(),
-		ante.NewValidateBasicDecorator(),
-		ante.NewTxTimeoutHeightDecorator(),
-		ante.NewValidateMemoDecorator(options.AccountKeeper),
-		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper),
-		ante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
-		ante.NewValidateSigCountDecorator(options.AccountKeeper),
-		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
-		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
-		ante.NewIncrementSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator
+		authante.NewValidateBasicDecorator(),
+		authante.NewTxTimeoutHeightDecorator(),
+		authante.NewValidateMemoDecorator(options.AccountKeeper),
+		authante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
+		authante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper),
+		authante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
+		authante.NewValidateSigCountDecorator(options.AccountKeeper),
+		authante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
+		authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		authante.NewIncrementSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator
 		ibcante.NewAnteDecorator(options.IBCChannelKeeper),
 	)
 	return sdk.ChainAnteDecorators(decorators...)

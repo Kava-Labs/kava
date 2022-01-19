@@ -14,6 +14,7 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
+	ethermintclient "github.com/tharsis/ethermint/client"
 	ethermintserver "github.com/tharsis/ethermint/server"
 
 	"github.com/kava-labs/kava/app"
@@ -70,8 +71,9 @@ func NewRootCmd() *cobra.Command {
 // addSubCmds registers all the sub commands used by kava.
 func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, defaultNodeHome string) {
 	rootCmd.AddCommand(
-		// TODO: Need to wrap InitCmd with `ethermintclient.ValidateChainID`
-		genutilcli.InitCmd(app.ModuleBasics, defaultNodeHome),
+		ethermintclient.ValidateChainID(
+			genutilcli.InitCmd(app.ModuleBasics, defaultNodeHome),
+		),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		migrate.MigrateGenesisCmd(),
 		migrate.AssertInvariantsCmd(encodingConfig),
