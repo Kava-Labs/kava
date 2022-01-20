@@ -209,7 +209,6 @@ proto-update-deps:
 	rsync -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(TENDERMINT_PATH)/proto third_party
 	rsync -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(COSMOS_SDK_PATH)/proto third_party
 	rsync -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(IBC_GO_PATH)/proto third_party
-	rsync -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(IBC_GO_PATH)/third_party/proto/confio third_party/proto
 
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps
 
