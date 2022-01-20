@@ -42,7 +42,7 @@ $BINARY collect-gentxs
 # Replace stake with ukava
 sed -in-place='' 's/stake/ukava/g' $DATA/config/genesis.json
 
-# Replace aphoton from ethermint with ukava
+# Replace the default evm denom of aphoton with ukava
 sed -in-place='' 's/aphoton/ukava/g' $DATA/config/genesis.json
 
 # Zero out the total supply so it gets recalculated during InitGenesis
