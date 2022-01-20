@@ -15,7 +15,9 @@ import (
 	"github.com/spf13/cobra"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	ethermintclient "github.com/tharsis/ethermint/client"
+	"github.com/tharsis/ethermint/crypto/hd"
 	ethermintserver "github.com/tharsis/ethermint/server"
+	servercfg "github.com/tharsis/ethermint/server/config"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
@@ -36,6 +38,7 @@ func NewRootCmd() *cobra.Command {
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
+		WithKeyringOptions(hd.EthSecp256k1Option()).
 		WithViper("") // TODO this sets the env prefix
 
 	rootCmd := &cobra.Command{
@@ -59,7 +62,9 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			return server.InterceptConfigsPreRunHandler(cmd, "", nil)
+			customAppTemplate, customAppConfig := servercfg.AppConfig("ukava")
+
+			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig)
 		},
 	}
 
@@ -79,6 +84,7 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		migrate.AssertInvariantsCmd(encodingConfig),
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		// TODO: Replace this with gen accounts that creates ethaccounts
 		simdcmd.AddGenesisAccountCmd(defaultNodeHome), // TODO use kava version with vesting accounts
 		tmcli.NewCompletionCmd(rootCmd, true),         // TODO add other shells, drop tmcli dependency, unhide?
 		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}), // TODO add

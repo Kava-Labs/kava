@@ -139,9 +139,8 @@ localnet-stop:
 
 # Launch a new single validator chain
 start:
-	mkdir -p contrib/devnet/home/data
-	cp contrib/devnet/home/config/priv_validator_state.json.example contrib/devnet/home/data/priv_validator_state.json
-	kava --home ./contrib/devnet/home start
+	./contrib/devnet/init-new-chain.sh
+	kava start
 
 ###############################################################################
 ###                                Protobuf                                 ###
@@ -190,6 +189,7 @@ TENDERMINT_PATH := $(shell go list -m -f '{{.Dir}}' github.com/tendermint/tender
 COSMOS_PROTO_PATH := $(shell go list -m -f '{{.Dir}}' github.com/cosmos/cosmos-proto)
 COSMOS_SDK_PATH := $(shell go list -m -f '{{.Dir}}' github.com/cosmos/cosmos-sdk)
 IBC_GO_PATH := $(shell go list -m -f '{{.Dir}}' github.com/cosmos/ibc-go/v3)
+ETHERMINT_PATH := $(shell go list -m -f '{{.Dir}}' github.com/tharsis/ethermint)
 
 proto-update-deps:
 	mkdir -p $(GOOGLE_PROTO_TYPES)
@@ -210,6 +210,7 @@ proto-update-deps:
 	rsync -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(TENDERMINT_PATH)/proto third_party
 	rsync -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(COSMOS_SDK_PATH)/proto third_party
 	rsync -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(IBC_GO_PATH)/proto third_party
+	rsync -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(ETHERMINT_PATH)/proto third_party
 	cp -f $(IBC_GO_PATH)/third_party/proto/proofs.proto third_party/proto/proofs.proto
 
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps

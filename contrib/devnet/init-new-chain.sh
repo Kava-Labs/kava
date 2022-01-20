@@ -16,7 +16,7 @@ rm -rf $DATA
 BINARY=kava
 
 # Create new data directory, overwriting any that alread existed
-chainID="kava-localnet"
+chainID="kavalocalnet_9000-1"
 $BINARY init validator --chain-id $chainID
 
 # hacky enable of rest api
@@ -41,6 +41,9 @@ $BINARY collect-gentxs
 
 # Replace stake with ukava
 sed -in-place='' 's/stake/ukava/g' $DATA/config/genesis.json
+
+# Replace aphoton from ethermint with ukava
+sed -in-place='' 's/aphoton/ukava/g' $DATA/config/genesis.json
 
 # Zero out the total supply so it gets recalculated during InitGenesis
 jq '.app_state.bank.supply = []' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
