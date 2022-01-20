@@ -120,7 +120,6 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 }
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
-	// TODO: Do we need to add the AuthenticatedMempoolDecorator here?
 	return sdk.ChainAnteDecorators(
 		evmante.NewEthSetUpContextDecorator(),                                         // outermost AnteDecorator. SetUpContext must be called first
 		evmante.NewEthMempoolFeeDecorator(options.EvmKeeper, options.FeeMarketKeeper), // Check eth effective gas price against minimal-gas-prices
