@@ -117,6 +117,33 @@ func (suite *grpcQueryTestSuite) TestGrpcPrices() {
 	suite.Contains(prices.Prices, expectedPrice, "all prices should include the tstusd price")
 }
 
+func (suite *grpcQueryTestSuite) TestGrpcPrices_NoPriceSet() {
+	params := types.NewParams([]types.Market{
+		{MarketID: "tst:usd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+		{MarketID: "other:usd", BaseAsset: "other", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+	})
+	suite.keeper.SetParams(suite.ctx, params)
+
+	_, err := suite.keeper.SetPrice(
+		suite.ctx, suite.addrs[2], "tst:usd",
+		sdk.MustNewDecFromStr("0.34"),
+		suite.now.Add(time.Hour*1))
+	suite.NoError(err)
+
+	err = suite.keeper.SetCurrentPrices(suite.ctx, "tst:usd")
+	suite.NoError(err)
+
+	// Set current price of "other:usd" with no individual prices in store
+	_ = suite.keeper.SetCurrentPrices(suite.ctx, "other:usd")
+
+	expectedPrice := types.NewCurrentPriceResponse("tst:usd", sdk.MustNewDecFromStr("0.34"))
+	prices, err := suite.queryServer.Prices(sdk.WrapSDKContext(suite.ctx), &types.QueryPricesRequest{})
+	suite.NoError(err)
+
+	suite.Equal(len(prices.Prices), 1)
+	suite.Equal(prices.Prices, types.CurrentPriceResponses{expectedPrice}, "should only contain tst:usd price")
+}
+
 func (suite *grpcQueryTestSuite) TestGrpcRawPrices() {
 	suite.setTestParams()
 	suite.setTstPrice()
