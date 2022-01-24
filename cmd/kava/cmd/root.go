@@ -6,9 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/server"
-	simdcmd "github.com/cosmos/cosmos-sdk/simapp/simd/cmd"
+
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
@@ -84,9 +83,8 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		migrate.AssertInvariantsCmd(encodingConfig),
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		// TODO: Replace this with gen accounts that creates ethaccounts
-		simdcmd.AddGenesisAccountCmd(defaultNodeHome), // TODO use kava version with vesting accounts
-		tmcli.NewCompletionCmd(rootCmd, true),         // TODO add other shells, drop tmcli dependency, unhide?
+		AddGenesisAccountCmd(defaultNodeHome),
+		tmcli.NewCompletionCmd(rootCmd, true), // TODO add other shells, drop tmcli dependency, unhide?
 		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}), // TODO add
 		debug.Cmd(),
 		config.Cmd(),
@@ -104,6 +102,7 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		StatusCommand(),
 		newQueryCmd(),
 		newTxCmd(),
-		keys.Commands(defaultNodeHome),
+		// Adds additional key commands for ethermint and changes signing algo to eth_secp256k1
+		ethermintclient.KeyCommands(app.DefaultNodeHome),
 	)
 }
