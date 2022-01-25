@@ -39,7 +39,7 @@ func (suite *Suite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	coins := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000000000000)))
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 
