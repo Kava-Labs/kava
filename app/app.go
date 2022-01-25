@@ -370,7 +370,7 @@ func NewApp(
 		appCodec,
 		keys[authtypes.StoreKey],
 		authSubspace,
-		ethermint.ProtoAccount, // use custom Ethermint account for contracts
+		ethermint.ProtoAccount,
 		mAccPerms,
 	)
 	app.bankKeeper = bankkeeper.NewBaseKeeper(
@@ -447,8 +447,6 @@ func NewApp(
 	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec, keys[feemarkettypes.StoreKey], feemarketSubspace,
 	)
-
-	// Create Ethermint keepers
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], evmSubspace,
 		app.accountKeeper, app.bankKeeper, app.stakingKeeper, app.feeMarketKeeper,
