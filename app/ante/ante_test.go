@@ -47,7 +47,7 @@ func TestAppAnteHandler(t *testing.T) {
 		),
 	}
 
-	chainID := "internal-test-chain"
+	chainID := "kavatest_1-1"
 	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainID(
 		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
 		chainID,

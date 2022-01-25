@@ -1,3 +1,4 @@
+// Sourced from https://github.com/tharsis/ethermint/blob/main/cmd/ethermintd/genaccounts.go
 package cmd
 
 import (

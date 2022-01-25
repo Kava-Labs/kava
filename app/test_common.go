@@ -42,8 +42,8 @@ import (
 )
 
 var (
-	emptyTime    time.Time
-	emptyChainID string
+	emptyTime   time.Time
+	testChainID = "kavatest_1-1"
 )
 
 // TestApp is a simple wrapper around an App. It exposes internal keepers for use in integration tests.
@@ -113,12 +113,12 @@ func (app *App) AppCodec() codec.Codec {
 
 // InitializeFromGenesisStates calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(emptyTime, emptyChainID, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(emptyTime, testChainID, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTime calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states and genesis Time
 func (tApp TestApp) InitializeFromGenesisStatesWithTime(genTime time.Time, genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(genTime, emptyChainID, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(genTime, testChainID, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTimeAndChainID calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states and genesis Time
@@ -142,10 +142,21 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainID(genTime time.T
 			Validators:    []abci.ValidatorUpdate{},
 			AppStateBytes: stateBytes,
 			ChainId:       chainID,
+			// Set consensus params, which is needed by x/feemarket
+			ConsensusParams: &abci.ConsensusParams{
+				Block: &abci.BlockParams{
+					MaxBytes: 200000,
+					MaxGas:   20000000,
+				},
+			},
 		},
 	)
 	tApp.Commit()
-	tApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: tApp.LastBlockHeight() + 1, Time: genTime}})
+	tApp.BeginBlock(abci.RequestBeginBlock{
+		Header: tmproto.Header{
+			Height: tApp.LastBlockHeight() + 1, Time: genTime, ChainID: chainID,
+		},
+	})
 	return tApp
 }
 
