@@ -119,7 +119,6 @@ import (
 )
 
 // TODO: set proposed upgrade time
-// TODO: remove in next upgrade
 var MultiSpendPropsalUpgradeTime = time.Date(2022, 1, 27, 16, 0, 0, 0, time.UTC)
 
 const (
