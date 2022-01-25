@@ -56,7 +56,9 @@ func (s queryServer) Prices(c context.Context, req *types.QueryPricesRequest) (*
 
 	var currentPrices types.CurrentPriceResponses
 	for _, cp := range s.keeper.GetCurrentPrices(ctx) {
-		currentPrices = append(currentPrices, types.CurrentPriceResponse(cp))
+		if cp.MarketID != "" {
+			currentPrices = append(currentPrices, types.CurrentPriceResponse(cp))
+		}
 	}
 
 	return &types.QueryPricesResponse{
