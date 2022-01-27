@@ -6,6 +6,7 @@ import (
 	stdlog "log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -116,6 +117,8 @@ import (
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
+
+var MultiSpendPropsalUpgradeTime = time.Date(2022, 2, 3, 16, 0, 0, 0, time.UTC)
 
 const (
 	appName     = "kava"
@@ -421,13 +424,23 @@ func NewApp(
 		scopedIBCKeeper,
 	)
 
+	app.kavadistKeeper = kavadistkeeper.NewKeeper(
+		appCodec,
+		keys[kavadisttypes.StoreKey],
+		kavadistSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+		app.distrKeeper,
+		app.ModuleAccountAddrs(),
+	)
+
 	govRouter := govtypes.NewRouter()
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper, MultiSpendPropsalUpgradeTime)).
 		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -456,15 +469,6 @@ func NewApp(
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
 	app.ibcKeeper.SetRouter(ibcRouter)
 
-	app.kavadistKeeper = kavadistkeeper.NewKeeper(
-		appCodec,
-		keys[kavadisttypes.StoreKey],
-		kavadistSubspace,
-		app.bankKeeper,
-		app.accountKeeper,
-		app.distrKeeper,
-		app.ModuleAccountAddrs(),
-	)
 	app.auctionKeeper = auctionkeeper.NewKeeper(
 		appCodec,
 		keys[auctiontypes.StoreKey],
