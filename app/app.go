@@ -118,8 +118,7 @@ import (
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
-// TODO: set proposed upgrade time
-var MultiSpendPropsalUpgradeTime = time.Date(2022, 1, 27, 16, 0, 0, 0, time.UTC)
+var MultiSpendPropsalUpgradeTime = time.Date(2022, 2, 3, 16, 0, 0, 0, time.UTC)
 
 const (
 	appName     = "kava"
