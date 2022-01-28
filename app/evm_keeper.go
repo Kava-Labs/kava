@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
@@ -10,12 +12,14 @@ import (
 // 12 decimal difference, so 1_000_000_000_000.
 var conversionMultiplier = sdk.NewInt(1_000_000_000_000)
 
+// EVMBankKeeper is a wrapper for bank keeper that converts between EVM and native decimals
 type EVMBankKeeper struct {
 	bankKeeper bankkeeper.Keeper
 }
 
 var _ evmtypes.BankKeeper = (*EVMBankKeeper)(nil)
 
+// NewEVMBankKeeper returns a wrapped bank keeper that converts between EVM and native decimals
 func NewEVMBankKeeper(bk bankkeeper.Keeper) EVMBankKeeper {
 	return EVMBankKeeper{
 		bankKeeper: bk,
@@ -36,6 +40,7 @@ func (bk EVMBankKeeper) SendCoinsFromModuleToAccount(ctx sdk.Context, senderModu
 
 func (bk EVMBankKeeper) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
 	actualAmt := convertCoinsFromEvm(amt)
+	fmt.Printf("SendCoinsFromAccountToModule: original %v, actualAmt: %v", amt, actualAmt)
 
 	return bk.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, actualAmt)
 }
@@ -59,15 +64,21 @@ func convertCoinToEvm(coin sdk.Coin) sdk.Coin {
 	return coin
 }
 
+// convertCoinFromEvm converts an EVM sdk.Coin with 18 decimals back to native 6 decimal sdk.Coin
 func convertCoinFromEvm(coin sdk.Coin) sdk.Coin {
 	coin.Amount = coin.Amount.Quo(conversionMultiplier)
+
+	if coin.IsZero() {
+		coin.Amount = sdk.OneInt()
+	}
 
 	return coin
 }
 
+// convertCoinFromEvm converts EVM sdk.Coins with 18 decimals back to native 6 decimal sdk.Coins
 func convertCoinsFromEvm(coins sdk.Coins) sdk.Coins {
-	for _, coin := range coins {
-		coin = convertCoinFromEvm(coin)
+	for i, coin := range coins {
+		coins[i] = convertCoinFromEvm(coin)
 	}
 
 	return coins
