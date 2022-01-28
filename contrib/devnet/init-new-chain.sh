@@ -1,4 +1,4 @@
-#! /bin/bash
+gasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasga#! /bin/bash
 set -e
 
 
@@ -34,12 +34,12 @@ $BINARY config keyring-backend test
 # Create validator keys and add account to genesis
 validatorKeyName="validator"
 printf "$validatorMnemonic\n" | $BINARY keys add $validatorKeyName --recover
-$BINARY add-genesis-account $validatorKeyName 2000000000ukava,100000000000bnb,100000000000000000000agas
+$BINARY add-genesis-account $validatorKeyName 9874000000000ukava,100000000000bnb
 
 # Create faucet keys and add account to genesis
 faucetKeyName="faucet"
 printf "$faucetMnemonic\n" | $BINARY keys add $faucetKeyName --recover
-$BINARY add-genesis-account $faucetKeyName 1000000000ukava,100000000000bnb,100000000000000000000agas
+$BINARY add-genesis-account $faucetKeyName 1345000000000ukava,100000000000bnb
 
 # Create a delegation tx for the validator and add to genesis
 $BINARY gentx $validatorKeyName 1000000000ukava --keyring-backend test --chain-id $chainID
@@ -49,7 +49,7 @@ $BINARY collect-gentxs
 sed -in-place='' 's/stake/ukava/g' $DATA/config/genesis.json
 
 # Replace the default evm denom of aphoton with ukava
-sed -in-place='' 's/aphoton/agas/g' $DATA/config/genesis.json
+sed -in-place='' 's/aphoton/ukava/g' $DATA/config/genesis.json
 
 # Zero out the total supply so it gets recalculated during InitGenesis
 jq '.app_state.bank.supply = []' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
