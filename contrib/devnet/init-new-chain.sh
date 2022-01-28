@@ -1,8 +1,5 @@
-gasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasgasga#! /bin/bash
+#! /bin/bash
 set -e
-
-
-
 
 validatorMnemonic="equip town gesture square tomorrow volume nephew minute witness beef rich gadget actress egg sing secret pole winter alarm law today check violin uncover"
 # kava1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkp40r02
