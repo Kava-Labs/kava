@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
@@ -40,7 +38,6 @@ func (bk EVMBankKeeper) SendCoinsFromModuleToAccount(ctx sdk.Context, senderModu
 
 func (bk EVMBankKeeper) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
 	actualAmt := convertCoinsFromEvm(amt)
-	fmt.Printf("SendCoinsFromAccountToModule: original %v, actualAmt: %v", amt, actualAmt)
 
 	return bk.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, actualAmt)
 }
