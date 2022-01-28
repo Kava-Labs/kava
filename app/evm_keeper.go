@@ -74,9 +74,12 @@ func convertCoinFromEvm(coin sdk.Coin) sdk.Coin {
 
 // convertCoinFromEvm converts EVM sdk.Coins with 18 decimals back to native 6 decimal sdk.Coins
 func convertCoinsFromEvm(coins sdk.Coins) sdk.Coins {
-	for i, coin := range coins {
-		coins[i] = convertCoinFromEvm(coin)
+	// Use a new sdk.Coins, do NOT modify in place as it is used afterwards
+	var newCoins sdk.Coins
+
+	for _, coin := range coins {
+		newCoins = append(newCoins, convertCoinFromEvm(coin))
 	}
 
-	return coins
+	return newCoins
 }
