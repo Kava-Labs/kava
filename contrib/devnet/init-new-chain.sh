@@ -31,12 +31,12 @@ $BINARY config keyring-backend test
 # Create validator keys and add account to genesis
 validatorKeyName="validator"
 printf "$validatorMnemonic\n" | $BINARY keys add $validatorKeyName --recover
-$BINARY add-genesis-account $validatorKeyName 9874000000000ukava,100000000000bnb
+$BINARY add-genesis-account $validatorKeyName 2000000000ukava,100000000000bnb
 
 # Create faucet keys and add account to genesis
 faucetKeyName="faucet"
 printf "$faucetMnemonic\n" | $BINARY keys add $faucetKeyName --recover
-$BINARY add-genesis-account $faucetKeyName 1345000000000ukava,100000000000bnb
+$BINARY add-genesis-account $faucetKeyName 1000000000ukava,100000000000bnb
 
 # Create a delegation tx for the validator and add to genesis
 $BINARY gentx $validatorKeyName 1000000000ukava --keyring-backend test --chain-id $chainID
