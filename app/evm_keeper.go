@@ -75,7 +75,7 @@ func convertCoinFromEvm(coin sdk.Coin) sdk.Coin {
 	coin.Amount = coin.Amount.Quo(conversionMultiplier)
 
 	if coin.IsZero() {
-		coin.Amount = sdk.OneInt()
+		panic("sdk.Coin conversion from EVM 18 decimals to 6 decimals is zero")
 	}
 
 	return coin
