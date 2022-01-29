@@ -12,7 +12,7 @@ var conversionMultiplier = sdk.NewInt(1_000_000_000_000)
 
 // EVMBankKeeper is a wrapper for bank keeper that converts between EVM and native decimals
 type EVMBankKeeper struct {
-	bankKeeper bankkeeper.Keeper
+	bankKeeper evmtypes.BankKeeper
 }
 
 var _ evmtypes.BankKeeper = (*EVMBankKeeper)(nil)
