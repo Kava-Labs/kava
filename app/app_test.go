@@ -71,7 +71,7 @@ func unmarshalJSONKeys(jsonBytes []byte) ([]string, error) {
 	}
 
 	keys := make([]string, 0, len(jsonMap))
-	for k, _ := range jsonMap {
+	for k := range jsonMap {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

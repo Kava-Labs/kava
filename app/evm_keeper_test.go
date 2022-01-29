@@ -13,7 +13,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
-	"github.com/tharsis/ethermint/x/evm/types"
+	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 )
 
 var conversionMultiplier int64 = 1_000_000_000_000
@@ -41,7 +41,7 @@ func (suite *evmKeeperTestSuite) SetupTest() {
 	suite.EVMKeeper = tApp.GetEVMKeeper()
 	suite.AccountKeeper = tApp.GetAccountKeeper()
 
-	suite.EVMKeeper.SetParams(ctx, types.NewParams("ukava", true, true, types.DefaultChainConfig()))
+	suite.EVMKeeper.SetParams(ctx, evmtypes.NewParams("ukava", true, true, evmtypes.DefaultChainConfig()))
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
 	suite.Addrs = addrs
@@ -53,11 +53,38 @@ func (suite *evmKeeperTestSuite) AddCoinsToAccount(addr sdk.AccAddress, coins sd
 	suite.AccountKeeper.SetAccount(suite.Ctx, acc)
 
 	err := suite.App.FundAccount(suite.Ctx, acc.GetAddress(), coins)
-	suite.Require().NoError(err)
+	suite.Require().NoError(err, "failed to fund account")
 }
 
 func TestEvmKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(evmKeeperTestSuite))
+}
+
+func (suite *evmKeeperTestSuite) TestIdempotentConversion() {
+	// Ethermint re-uses coins so this is to test that using the same set of
+	// coins does not change the value
+
+	// Make a duplicate set of coins to prevent possible references.
+	expCoins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 1234))
+	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 1234))
+
+	suite.EVMBankKeeper.MintCoins(suite.Ctx, evmtypes.ModuleName, coins)
+	suite.Require().Equal(expCoins, coins)
+
+	suite.EVMBankKeeper.MintCoins(suite.Ctx, evmtypes.ModuleName, coins)
+	suite.Require().Equal(expCoins, coins)
+
+	// Burn everything! (same qtys)
+	suite.EVMBankKeeper.BurnCoins(suite.Ctx, evmtypes.ModuleName, coins)
+	suite.Require().Equal(expCoins, coins)
+
+	suite.EVMBankKeeper.BurnCoins(suite.Ctx, evmtypes.ModuleName, coins)
+	suite.Require().Equal(expCoins, coins)
+
+	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, evmtypes.ModuleName)
+	bal := suite.BankKeeper.GetBalance(suite.Ctx, macc.GetAddress(), "ukava")
+
+	suite.Require().Equal(sdk.ZeroInt(), bal.Amount, "evm module account balance should end in 0")
 }
 
 func (suite *evmKeeperTestSuite) TestGetBalance() {
@@ -142,6 +169,7 @@ func (suite *evmKeeperTestSuite) TestSetBalance() {
 	// mints and burns coins.
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
+			// SetBalance mints/burns coins based on current and new balance
 			err := suite.EVMKeeper.SetBalance(suite.Ctx, addr, tt.giveEvmBalance)
 			suite.Require().NoError(err)
 
