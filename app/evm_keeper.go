@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 )
 
@@ -22,7 +21,7 @@ var _ evmtypes.BankKeeper = (*EVMBankKeeper)(nil)
 
 // NewEVMBankKeeper returns a wrapped bank keeper that converts between EVM (18)
 // and native decimals (6)
-func NewEVMBankKeeper(bk bankkeeper.Keeper) EVMBankKeeper {
+func NewEVMBankKeeper(bk evmtypes.BankKeeper) EVMBankKeeper {
 	return EVMBankKeeper{
 		bankKeeper: bk,
 	}
