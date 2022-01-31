@@ -65,8 +65,8 @@ func (suite *evmKeeperTestSuite) TestIdempotentConversion() {
 	// coins does not change the value
 
 	// Make a duplicate set of coins to prevent possible references.
-	expCoins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 1234))
-	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 1234))
+	expCoins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 1234_000_000_000_000))
+	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 1234_000_000_000_000))
 
 	suite.EVMBankKeeper.MintCoins(suite.Ctx, evmtypes.ModuleName, coins)
 	suite.Require().Equal(expCoins, coins)
