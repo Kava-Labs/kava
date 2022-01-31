@@ -32,16 +32,15 @@ type evmKeeperTestSuite struct {
 
 func (suite *evmKeeperTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
-	suite.Ctx = ctx
+	suite.Ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	suite.App = tApp
-	suite.BankKeeper = tApp.GetBankKeeper()
-	suite.EVMBankKeeper = app.NewEVMBankKeeper(tApp.GetBankKeeper())
-	suite.EVMKeeper = tApp.GetEVMKeeper()
-	suite.AccountKeeper = tApp.GetAccountKeeper()
+	suite.BankKeeper = suite.App.GetBankKeeper()
+	suite.EVMBankKeeper = app.NewEVMBankKeeper(suite.BankKeeper)
+	suite.EVMKeeper = suite.App.GetEVMKeeper()
+	suite.AccountKeeper = suite.App.GetAccountKeeper()
 
-	suite.EVMKeeper.SetParams(ctx, evmtypes.NewParams("ukava", true, true, evmtypes.DefaultChainConfig()))
+	suite.EVMKeeper.SetParams(suite.Ctx, evmtypes.NewParams("ukava", true, true, evmtypes.DefaultChainConfig()))
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
 	suite.Addrs = addrs
@@ -81,6 +80,7 @@ func (suite *evmKeeperTestSuite) TestIdempotentConversion() {
 	suite.EVMBankKeeper.BurnCoins(suite.Ctx, evmtypes.ModuleName, coins)
 	suite.Require().Equal(expCoins, coins)
 
+	// Check if balance is zero
 	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, evmtypes.ModuleName)
 	bal := suite.BankKeeper.GetBalance(suite.Ctx, macc.GetAddress(), "ukava")
 
