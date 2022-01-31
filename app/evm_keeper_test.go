@@ -131,36 +131,55 @@ func (suite *evmKeeperTestSuite) TestSetBalance() {
 		name              string
 		giveEvmBalance    *big.Int
 		wantCosmosBalance sdk.Int
+		wantPanic         bool
 	}{
 		{
-			"0ukava",
+			"mint to 0ukava",
 			big.NewInt(0 * conversionMultiplier),
 			sdk.NewInt(0),
+			false,
 		},
 		{
-			"1ukava",
+			"mint to 1ukava",
 			big.NewInt(1 * conversionMultiplier),
 			sdk.NewInt(1),
+			false,
 		},
 		{
-			"500ukava",
+			"mint to 500ukava",
 			big.NewInt(500 * conversionMultiplier),
 			sdk.NewInt(500),
+			false,
 		},
 		{
-			"50000ukava",
+			"mint to 50000ukava",
 			big.NewInt(50000 * conversionMultiplier),
 			sdk.NewInt(50000),
+			false,
 		},
 		{
-			"50ukava",
+			"burn to 50ukava",
 			big.NewInt(50 * conversionMultiplier),
 			sdk.NewInt(50),
+			false,
 		},
 		{
-			"0ukava",
+			"burn to 0ukava",
 			big.NewInt(0 * conversionMultiplier),
 			sdk.NewInt(0),
+			false,
+		},
+		{
+			"invalid 0.000000000001ukava",
+			big.NewInt(1),
+			sdk.ZeroInt(),
+			true,
+		},
+		{
+			"invalid 0.999999999999ukava",
+			big.NewInt(1*conversionMultiplier - 1),
+			sdk.ZeroInt(),
+			true,
 		},
 	}
 
@@ -169,9 +188,17 @@ func (suite *evmKeeperTestSuite) TestSetBalance() {
 	// mints and burns coins.
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
+			if tt.wantPanic {
+				suite.Require().Panics(func() {
+					suite.EVMKeeper.SetBalance(suite.Ctx, addr, tt.giveEvmBalance)
+				}, "set balance should fail if smaller than 1ukava")
+
+				return
+			}
+
 			// SetBalance mints/burns coins based on current and new balance
 			err := suite.EVMKeeper.SetBalance(suite.Ctx, addr, tt.giveEvmBalance)
-			suite.Require().NoError(err)
+			suite.Require().NoError(err, "set balance should not fail")
 
 			evmBal := suite.EVMKeeper.GetBalance(suite.Ctx, addr)
 			suite.Require().Equal(

@@ -81,7 +81,7 @@ func convertCoinFromEvm(coin sdk.Coin) sdk.Coin {
 	newCoin := sdk.NewCoin(coin.Denom, newAmount)
 
 	if newCoin.IsZero() {
-		panic(fmt.Sprintf("EVM coin (%v) is too small! Conversion from 18 to 6 decimals is zero", coin))
+		panic(fmt.Sprintf("EVM coin (%v with 18 decimals) is too small! Conversion from 18 to 6 decimals is zero", coin))
 	}
 
 	return newCoin
