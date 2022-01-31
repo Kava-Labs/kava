@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
@@ -63,27 +65,31 @@ func (bk EVMBankKeeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Co
 
 //____________________________________________________________________________
 
-// convertCoinToEvm converts a sdk.Coin with native decimals to an sdk.Coin with evm decimals
+// convertCoinToEvm converts a sdk.Coin with native decimals to an EVM sdk.Coin with 18 decimals
 func convertCoinToEvm(coin sdk.Coin) sdk.Coin {
-	coin.Amount = coin.Amount.Mul(conversionMultiplier)
+	// coin.Amount.BigInt() creates a copy of the underlying Int value via Int.Set
+	newAmount := sdk.NewIntFromBigInt(coin.Amount.BigInt()).Mul(conversionMultiplier)
+	newCoin := sdk.NewCoin(coin.Denom, newAmount)
 
-	return coin
+	return newCoin
 }
 
 // convertCoinFromEvm converts an EVM sdk.Coin with 18 decimals back to native 6 decimal sdk.Coin
 func convertCoinFromEvm(coin sdk.Coin) sdk.Coin {
-	coin.Amount = coin.Amount.Quo(conversionMultiplier)
+	// coin.Amount.BigInt() creates a copy of the underlying Int value via Int.Set
+	newAmount := sdk.NewIntFromBigInt(coin.Amount.BigInt()).Quo(conversionMultiplier)
+	newCoin := sdk.NewCoin(coin.Denom, newAmount)
 
-	if coin.IsZero() {
-		panic("sdk.Coin conversion from EVM 18 decimals to 6 decimals is zero")
+	if newCoin.IsZero() {
+		panic(fmt.Sprintf("EVM coin (%v) is too small! Conversion from 18 to 6 decimals is zero", coin))
 	}
 
-	return coin
+	return newCoin
 }
 
 // convertCoinFromEvm converts EVM sdk.Coins with 18 decimals back to native 6 decimal sdk.Coins
 func convertCoinsFromEvm(coins sdk.Coins) sdk.Coins {
-	// Use a new sdk.Coins, do NOT modify in place as it is used afterwards
+	// Use a new sdk.Coins for deep copy
 	var newCoins sdk.Coins
 
 	for _, coin := range coins {
