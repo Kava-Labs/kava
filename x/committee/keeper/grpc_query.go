@@ -113,13 +113,6 @@ func (s queryServer) Votes(c context.Context, req *types.QueryVotesRequest) (*ty
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	votes := s.keeper.GetVotesByProposal(ctx, req.ProposalId)
-	votesResp := types.QueryVotesResponse{
-		Votes: make([]types.QueryVoteResponse, len(votes)),
-	}
-	for i, vote := range votes {
-		votesResp.Votes[i] = s.votesResponseFromVote(vote)
-	}
 
 	var queryResults []types.QueryVoteResponse
 	store := ctx.KVStore(s.keeper.storeKey)
@@ -130,7 +123,7 @@ func (s queryServer) Votes(c context.Context, req *types.QueryVotesRequest) (*ty
 			return err
 		}
 
-		votes = append(votes, vote)
+		queryResults = append(queryResults, s.votesResponseFromVote(vote))
 		return nil
 	})
 	if err != nil {
