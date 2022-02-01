@@ -17,7 +17,7 @@ import (
 )
 
 func TestNewApp(t *testing.T) {
-
+	SetSDKConfig()
 	NewApp(
 		log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
 		db.NewMemDB(),
@@ -30,6 +30,7 @@ func TestNewApp(t *testing.T) {
 }
 
 func TestExport(t *testing.T) {
+	SetSDKConfig()
 	db := db.NewMemDB()
 	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), Options{}, simapp.EmptyAppOptions{})
 
