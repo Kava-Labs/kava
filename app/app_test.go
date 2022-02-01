@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -24,19 +25,20 @@ func TestNewApp(t *testing.T) {
 		nil,
 		MakeEncodingConfig(),
 		Options{},
+		simapp.EmptyAppOptions{},
 	)
 }
 
 func TestExport(t *testing.T) {
 	db := db.NewMemDB()
-	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), Options{})
+	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), Options{}, simapp.EmptyAppOptions{})
 
 	stateBytes, err := json.Marshal(NewDefaultGenesisState())
 	require.NoError(t, err)
 
 	initRequest := abci.RequestInitChain{
 		Time:            time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-		ChainId:         "kava-test",
+		ChainId:         "kavatest_1-1",
 		InitialHeight:   1,
 		ConsensusParams: tmtypes.TM2PB.ConsensusParams(tmtypes.DefaultConsensusParams()),
 		Validators:      nil,

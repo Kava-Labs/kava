@@ -20,12 +20,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -75,10 +74,21 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
+	evmante "github.com/tharsis/ethermint/app/ante"
+	srvflags "github.com/tharsis/ethermint/server/flags"
+	ethermint "github.com/tharsis/ethermint/types"
+	"github.com/tharsis/ethermint/x/evm"
+	evmrest "github.com/tharsis/ethermint/x/evm/client/rest"
+	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
+	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+	"github.com/tharsis/ethermint/x/feemarket"
+	feemarketkeeper "github.com/tharsis/ethermint/x/feemarket/keeper"
+	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
@@ -115,6 +125,7 @@ import (
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
+	validatorvestingtypes "github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 const (
@@ -154,6 +165,8 @@ var (
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
+		evm.AppModuleBasic{},
+		feemarket.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		auction.AppModuleBasic{},
 		issuance.AppModuleBasic{},
@@ -178,6 +191,7 @@ var (
 		stakingtypes.NotBondedPoolName:  {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:             {authtypes.Burner},
 		ibctransfertypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:             {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
 		auctiontypes.ModuleName:         nil,
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
@@ -230,6 +244,8 @@ type App struct {
 	crisisKeeper     crisiskeeper.Keeper
 	slashingKeeper   slashingkeeper.Keeper
 	ibcKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	evmKeeper        *evmkeeper.Keeper
+	feeMarketKeeper  feemarketkeeper.Keeper
 	upgradeKeeper    upgradekeeper.Keeper
 	evidenceKeeper   evidencekeeper.Keeper
 	transferKeeper   ibctransferkeeper.Keeper
@@ -275,6 +291,7 @@ func NewApp(
 	traceStore io.Writer,
 	encodingConfig kavaparams.EncodingConfig,
 	options Options,
+	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 
@@ -292,12 +309,13 @@ func NewApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey,
 		upgradetypes.StoreKey, evidencetypes.StoreKey, ibctransfertypes.StoreKey,
+		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		capabilitytypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	var app = &App{
@@ -336,6 +354,8 @@ func NewApp(
 	incentiveSubspace := app.paramsKeeper.Subspace(incentivetypes.ModuleName)
 	ibcSubspace := app.paramsKeeper.Subspace(ibchost.ModuleName)
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
+	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
+	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -350,7 +370,7 @@ func NewApp(
 		appCodec,
 		keys[authtypes.StoreKey],
 		authSubspace,
-		authtypes.ProtoBaseAccount,
+		ethermint.ProtoAccount,
 		mAccPerms,
 	)
 	app.bankKeeper = bankkeeper.NewBaseKeeper(
@@ -419,6 +439,18 @@ func NewApp(
 		app.stakingKeeper,
 		app.upgradeKeeper,
 		scopedIBCKeeper,
+	)
+
+	tracer := cast.ToString(appOpts.Get(srvflags.EVMTracer))
+
+	// Create Ethermint keepers
+	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
+		appCodec, keys[feemarkettypes.StoreKey], feemarketSubspace,
+	)
+	app.evmKeeper = evmkeeper.NewKeeper(
+		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], evmSubspace,
+		app.accountKeeper, app.bankKeeper, app.stakingKeeper, app.feeMarketKeeper,
+		tracer,
 	)
 
 	govRouter := govtypes.NewRouter()
@@ -575,6 +607,8 @@ func NewApp(
 		crisis.NewAppModule(&app.crisisKeeper, options.SkipGenesisInvariants),
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
+		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
+		feemarket.NewAppModule(app.feeMarketKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		transferModule,
@@ -610,6 +644,8 @@ func NewApp(
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
+		feemarkettypes.ModuleName,
+		evmtypes.ModuleName,
 		kavadisttypes.ModuleName,
 		// Auction begin blocker will close out expired auctions and pay debt back to cdp.
 		// It should be run before cdp begin blocker which cancels out debt with stable and starts more auctions.
@@ -620,6 +656,12 @@ func NewApp(
 		issuancetypes.ModuleName,
 		incentivetypes.ModuleName,
 		ibchost.ModuleName,
+		// Add all remaining modules with an empty begin blocker below since cosmos 0.45.0 requires it
+		swaptypes.ModuleName,
+		vestingtypes.ModuleName,
+		pricefeedtypes.ModuleName,
+		validatorvestingtypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -627,7 +669,31 @@ func NewApp(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
+		evmtypes.ModuleName,
+		// fee market module must go after evm module in order to retrieve the block gas used.
+		feemarkettypes.ModuleName,
 		pricefeedtypes.ModuleName,
+		// Add all remaining modules with an empty end blocker below since cosmos 0.45.0 requires it
+		capabilitytypes.ModuleName,
+		incentivetypes.ModuleName,
+		issuancetypes.ModuleName,
+		minttypes.ModuleName,
+		slashingtypes.ModuleName,
+		distrtypes.ModuleName,
+		auctiontypes.ModuleName,
+		bep3types.ModuleName,
+		cdptypes.ModuleName,
+		hardtypes.ModuleName,
+		committeetypes.ModuleName,
+		upgradetypes.ModuleName,
+		evidencetypes.ModuleName,
+		kavadisttypes.ModuleName,
+		swaptypes.ModuleName,
+		vestingtypes.ModuleName,
+		pricefeedtypes.ModuleName,
+		ibchost.ModuleName,
+		validatorvestingtypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -643,6 +709,7 @@ func NewApp(
 		ibchost.ModuleName,
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
+		evmtypes.ModuleName, feemarkettypes.ModuleName,
 		kavadisttypes.ModuleName,
 		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
@@ -655,6 +722,11 @@ func NewApp(
 		committeetypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
+		// Add all remaining modules with an empty end blocker below since cosmos 0.45.0 requires it
+		vestingtypes.ModuleName,
+		paramstypes.ModuleName,
+		upgradetypes.ModuleName,
+		validatorvestingtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -674,7 +746,8 @@ func NewApp(
 	// 	gov.NewAppModule(app.govKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
 	// 	mint.NewAppModule(app.mintKeeper),
 	// 	distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
-	// 	staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
+	//  staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.accountKeeper, app.bankKeeper),
+	//  evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 	// 	slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
 	// )
 	// app.sm.RegisterStoreDecoders()
@@ -693,15 +766,19 @@ func NewApp(
 			app.pricefeedKeeper.GetAuthorizedAddresses,
 		)
 	}
-	antehandler, err := ante.NewAnteHandler(
-		app.accountKeeper,
-		app.bankKeeper,
-		nil,
-		app.ibcKeeper.ChannelKeeper,
-		encodingConfig.TxConfig.SignModeHandler(),
-		authante.DefaultSigVerificationGasConsumer,
-		fetchers...,
-	)
+
+	anteOptions := ante.HandlerOptions{
+		AccountKeeper:    app.accountKeeper,
+		BankKeeper:       app.bankKeeper,
+		EvmKeeper:        app.evmKeeper,
+		IBCChannelKeeper: app.ibcKeeper.ChannelKeeper,
+		FeeMarketKeeper:  app.feeMarketKeeper,
+		SignModeHandler:  encodingConfig.TxConfig.SignModeHandler(),
+		SigGasConsumer:   evmante.DefaultSigVerificationGasConsumer,
+		AddressFetchers:  fetchers,
+	}
+
+	antehandler, err := ante.NewAnteHandler(anteOptions)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create antehandler: %s", err))
 	}
@@ -777,7 +854,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 
 	// Register legacy REST routes
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
-	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
+	evmrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
 	RegisterLegacyTxRoutes(clientCtx, apiSvr.Router)
 

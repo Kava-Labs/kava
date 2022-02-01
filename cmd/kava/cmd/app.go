@@ -86,6 +86,7 @@ func (ac appCreator) newApp(
 			MempoolEnableAuth:     mempoolEnableAuth,
 			MempoolAuthAddresses:  mempoolAuthAddresses,
 		},
+		appOpts,
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
 		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
@@ -118,13 +119,13 @@ func (ac appCreator) appExport(
 
 	var tempApp *app.App
 	if height != -1 {
-		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: true, InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))})
+		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: true, InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))}, appOpts)
 
 		if err := tempApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: false, InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))})
+		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: false, InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))}, appOpts)
 	}
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
 }

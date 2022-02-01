@@ -6,14 +6,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/server"
-	simdcmd "github.com/cosmos/cosmos-sdk/simapp/simd/cmd"
+
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
+	ethermintclient "github.com/tharsis/ethermint/client"
+	"github.com/tharsis/ethermint/crypto/hd"
+	ethermintserver "github.com/tharsis/ethermint/server"
+	servercfg "github.com/tharsis/ethermint/server/config"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
@@ -34,6 +37,7 @@ func NewRootCmd() *cobra.Command {
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
+		WithKeyringOptions(hd.EthSecp256k1Option()).
 		WithViper("") // TODO this sets the env prefix
 
 	rootCmd := &cobra.Command{
@@ -57,7 +61,9 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			return server.InterceptConfigsPreRunHandler(cmd, "", nil)
+			customAppTemplate, customAppConfig := servercfg.AppConfig("ukava")
+
+			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig)
 		},
 	}
 
@@ -69,14 +75,16 @@ func NewRootCmd() *cobra.Command {
 // addSubCmds registers all the sub commands used by kava.
 func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, defaultNodeHome string) {
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(app.ModuleBasics, defaultNodeHome),
+		ethermintclient.ValidateChainID(
+			genutilcli.InitCmd(app.ModuleBasics, defaultNodeHome),
+		),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		migrate.MigrateGenesisCmd(),
 		migrate.AssertInvariantsCmd(encodingConfig),
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		simdcmd.AddGenesisAccountCmd(defaultNodeHome), // TODO use kava version with vesting accounts
-		tmcli.NewCompletionCmd(rootCmd, true),         // TODO add other shells, drop tmcli dependency, unhide?
+		AddGenesisAccountCmd(defaultNodeHome),
+		tmcli.NewCompletionCmd(rootCmd, true), // TODO add other shells, drop tmcli dependency, unhide?
 		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}), // TODO add
 		debug.Cmd(),
 		config.Cmd(),
@@ -85,13 +93,16 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 	ac := appCreator{
 		encodingConfig: encodingConfig,
 	}
-	server.AddCommands(rootCmd, defaultNodeHome, ac.newApp, ac.appExport, ac.addStartCmdFlags)
+
+	// ethermintserver adds additional flags to start the JSON-RPC server for evm support
+	ethermintserver.AddCommands(rootCmd, defaultNodeHome, ac.newApp, ac.appExport, ac.addStartCmdFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		StatusCommand(),
 		newQueryCmd(),
 		newTxCmd(),
-		keys.Commands(defaultNodeHome),
+		// Adds additional key commands for ethermint and changes signing algo to eth_secp256k1
+		ethermintclient.KeyCommands(app.DefaultNodeHome),
 	)
 }
