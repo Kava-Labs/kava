@@ -36,6 +36,16 @@ func (suite *grpcQueryTestSuite) TestVote() {
 	suite.Require().Equal(vote.ProposalID, res.ProposalID)
 	suite.Require().Equal(vote.VoteType, res.VoteType)
 	suite.Require().Equal(vote.Voter.String(), res.Voter)
+
+	queryRes, err := queryClient.Votes(context.Background(), &types.QueryVotesRequest{
+		ProposalId: vote.ProposalID,
+	})
+
+	suite.Require().NoError(err)
+	suite.Require().Len(queryRes.Votes, 1)
+	suite.Require().Equal(vote.ProposalID, queryRes.Votes[0].ProposalID)
+	suite.Require().Equal(vote.VoteType, queryRes.Votes[0].VoteType)
+	suite.Require().Equal(vote.Voter.String(), queryRes.Votes[0].Voter)
 }
 
 func TestGrpcQueryTestSuite(t *testing.T) {
