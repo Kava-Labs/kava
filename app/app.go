@@ -784,11 +784,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
-	// register swagger API from root so that other applications can override easily
-	if apiConfig.Swagger {
-		// TODO where should old and new swagger docs be served? Should files be embedded in the binary?
-		panic("TODO: register swagger in app")
-	}
+	// Swagger API configuration is ignored
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
