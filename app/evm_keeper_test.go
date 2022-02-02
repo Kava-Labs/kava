@@ -9,6 +9,7 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/kava-labs/kava/app"
+	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -21,13 +22,14 @@ var conversionMultiplier int64 = 1_000_000_000_000
 type evmKeeperTestSuite struct {
 	suite.Suite
 
-	App           app.TestApp
-	Ctx           sdk.Context
-	EVMBankKeeper app.EVMBankKeeper
-	EVMKeeper     evmkeeper.Keeper
-	BankKeeper    bankkeeper.Keeper
-	AccountKeeper authkeeper.AccountKeeper
-	Addrs         []sdk.AccAddress
+	App             app.TestApp
+	Ctx             sdk.Context
+	EVMBankKeeper   app.EVMBankKeeper
+	EVMKeeper       evmkeeper.Keeper
+	BankKeeper      bankkeeper.Keeper
+	AccountKeeper   authkeeper.AccountKeeper
+	IncentiveKeeper incentivekeeper.Keeper
+	Addrs           []sdk.AccAddress
 }
 
 func (suite *evmKeeperTestSuite) SetupTest() {
@@ -39,10 +41,11 @@ func (suite *evmKeeperTestSuite) SetupTest() {
 	suite.EVMBankKeeper = app.NewEVMBankKeeper(suite.BankKeeper)
 	suite.EVMKeeper = suite.App.GetEVMKeeper()
 	suite.AccountKeeper = suite.App.GetAccountKeeper()
+	suite.IncentiveKeeper = suite.App.GetIncentiveKeeper()
 
 	suite.EVMKeeper.SetParams(suite.Ctx, evmtypes.NewParams("ukava", true, true, evmtypes.DefaultChainConfig()))
 
-	_, addrs := app.GeneratePrivKeyAddressPairs(3)
+	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 	suite.Addrs = addrs
 }
 
@@ -89,27 +92,38 @@ func (suite *evmKeeperTestSuite) TestIdempotentConversion() {
 
 func (suite *evmKeeperTestSuite) TestGetBalance() {
 	tests := []struct {
-		name        string
-		giveAddr    sdk.AccAddress
-		giveCoin    sdk.Coin
-		wantEvmCoin sdk.Coin
+		name                string
+		giveAddr            sdk.AccAddress
+		giveCoin            sdk.Coin
+		giveTimelockedCoins sdk.Coins
+		wantEvmCoin         sdk.Coin
 	}{
 		{
 			"0ukava",
 			suite.Addrs[0],
 			sdk.NewInt64Coin("ukava", 0),
+			sdk.Coins{},
 			sdk.NewInt64Coin("ukava", 0),
 		},
 		{
 			"1ukava",
 			suite.Addrs[1],
 			sdk.NewInt64Coin("ukava", 1),
+			sdk.Coins{},
 			sdk.NewInt64Coin("ukava", 1*conversionMultiplier),
 		},
 		{
 			"500ukava",
 			suite.Addrs[2],
 			sdk.NewInt64Coin("ukava", 500),
+			sdk.Coins{},
+			sdk.NewInt64Coin("ukava", 500*conversionMultiplier),
+		},
+		{
+			"only spendable balance 500ukava",
+			suite.Addrs[3],
+			sdk.NewInt64Coin("ukava", 500),
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 100)),
 			sdk.NewInt64Coin("ukava", 500*conversionMultiplier),
 		},
 	}
@@ -117,9 +131,12 @@ func (suite *evmKeeperTestSuite) TestGetBalance() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			suite.AddCoinsToAccount(tt.giveAddr, sdk.NewCoins(tt.giveCoin))
-			bal := suite.EVMKeeper.GetBalance(suite.Ctx, common.BytesToAddress(tt.giveAddr.Bytes()))
+			// TODO: Test that vesting accounts only return spendable coins
+			// err := suite.IncentiveKeeper.SendTimeLockedCoinsToAccount(suite.Ctx, minttypes.ModuleName, tt.giveAddr, tt.giveTimelockedCoins, 10000)
+			// suite.Require().NoError(err)
 
-			suite.Require().Equal(tt.wantEvmCoin.Amount.BigInt(), bal)
+			evmBal := suite.EVMKeeper.GetBalance(suite.Ctx, common.BytesToAddress(tt.giveAddr.Bytes()))
+			suite.Require().Equal(tt.wantEvmCoin.Amount.BigInt(), evmBal)
 		})
 	}
 }

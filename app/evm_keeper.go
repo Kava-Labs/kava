@@ -7,6 +7,13 @@ import (
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 )
 
+// ExpectedEVMBankKeeper the expected interface for the EVM bank keeper wrapper.
+type ExpectedEVMBankKeeper interface {
+	evmtypes.BankKeeper
+
+	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+}
+
 // Convertion between native gas KAVA (6) to EVM (18).
 // 12 decimal difference, so 1_000_000_000_000.
 var conversionMultiplier = sdk.NewInt(1_000_000_000_000)
@@ -14,24 +21,24 @@ var conversionMultiplier = sdk.NewInt(1_000_000_000_000)
 // EVMBankKeeper is a wrapper for bank keeper that converts between EVM (18) and
 // native decimals (6).
 type EVMBankKeeper struct {
-	bankKeeper evmtypes.BankKeeper
+	bankKeeper ExpectedEVMBankKeeper
 }
 
 var _ evmtypes.BankKeeper = (*EVMBankKeeper)(nil)
 
 // NewEVMBankKeeper returns a wrapped bank keeper that converts between EVM (18)
-// and native decimals (6)
-func NewEVMBankKeeper(bk evmtypes.BankKeeper) EVMBankKeeper {
+// and native decimals (6).
+func NewEVMBankKeeper(bk ExpectedEVMBankKeeper) EVMBankKeeper {
 	return EVMBankKeeper{
 		bankKeeper: bk,
 	}
 }
 
-// GetBalance returns the 18 decimal balance of a specific denomination for a
-// given account by address.
+// GetBalance returns the 18 decimal **spendable** balance of a specific
+// denomination for a given account by address.
 func (bk EVMBankKeeper) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin {
-	bal := bk.bankKeeper.GetBalance(ctx, addr, denom)
-	return convertCoinToEvm(bal)
+	bal := bk.bankKeeper.SpendableCoins(ctx, addr).AmountOf(denom)
+	return convertCoinToEvm(sdk.NewCoin(denom, bal))
 }
 
 // SendCoinsFromModuleToAccount transfers 18 decimal coins from a ModuleAccount
@@ -64,7 +71,8 @@ func (bk EVMBankKeeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Co
 
 //____________________________________________________________________________
 
-// convertCoinToEvm converts a sdk.Coin with native decimals to an EVM sdk.Coin with 18 decimals
+// convertCoinToEvm converts a sdk.Coin with native decimals to an EVM sdk.Coin
+// with 18 decimals.
 func convertCoinToEvm(coin sdk.Coin) sdk.Coin {
 	// coin.Amount.BigInt() creates a copy of the underlying Int value via Int.Set
 	newAmount := sdk.NewIntFromBigInt(coin.Amount.BigInt()).Mul(conversionMultiplier)
@@ -73,7 +81,8 @@ func convertCoinToEvm(coin sdk.Coin) sdk.Coin {
 	return newCoin
 }
 
-// convertCoinFromEvm converts an EVM sdk.Coin with 18 decimals back to native 6 decimal sdk.Coin
+// convertCoinFromEvm converts an EVM sdk.Coin with 18 decimals back to native 6
+// decimal sdk.Coin.
 func convertCoinFromEvm(coin sdk.Coin) sdk.Coin {
 	// coin.Amount.BigInt() creates a copy of the underlying Int value via Int.Set
 	newAmount := sdk.NewIntFromBigInt(coin.Amount.BigInt()).Quo(conversionMultiplier)
@@ -86,7 +95,8 @@ func convertCoinFromEvm(coin sdk.Coin) sdk.Coin {
 	return newCoin
 }
 
-// convertCoinFromEvm converts EVM sdk.Coins with 18 decimals back to native 6 decimal sdk.Coins
+// convertCoinFromEvm converts EVM sdk.Coins with 18 decimals back to native 6
+// decimal sdk.Coins.
 func convertCoinsFromEvm(coins sdk.Coins) sdk.Coins {
 	// Use a new sdk.Coins for deep copy
 	var newCoins sdk.Coins
