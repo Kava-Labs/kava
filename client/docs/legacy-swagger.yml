@@ -686,7 +686,7 @@ paths:
             properties:
               height:
                 type: string
-                example: 548883
+                example: "548883"
               result:
                 $ref: "#/definitions/AtomicSwapResponse"
         500:
@@ -756,7 +756,7 @@ paths:
             properties:
               height:
                 type: string
-                example: 548883
+                example: "548883"
               result:
                 type: object
                 $ref: "#/definitions/Bep3ParamsResponse"
@@ -2440,6 +2440,7 @@ paths:
                 type: string
                 example: "100"
               result:
+                type: array
                 items:
                   $ref: "#/definitions/SwapPoolStatsQueryResult"
         500:
@@ -2679,10 +2680,10 @@ definitions:
         example: 0b1e35e991bf052be230ae8dd3ff90b69a610160d28a9eb3c0701395f9d2b291
       expire_hieght:
         type: string
-        example: 532463
+        example: "532463"
       timestamp:
         type: string
-        example: 1589020884
+        example: "1589020884"
       sender:
         $ref: "#/definitions/Address"
       recipient:
@@ -2693,7 +2694,7 @@ definitions:
         $ref: "#/definitions/BinanceChainAddress2"
       closed_block:
         type: string
-        example: 532105
+        example: "532105"
       cross_chain:
         $ref: "#/definitions/CrossChain"
       direction:
@@ -2721,10 +2722,10 @@ definitions:
         example: kava1aphsdnz5hu2t5ty2au6znprug5kx3zpy6zwq29
       min_block_lock:
         type: string
-        example: 80
+        example: "80"
       max_block_lock:
         type: string
-        example: 3600
+        example: "3600"
       supported_assets:
         type: array
         items:
@@ -2737,7 +2738,7 @@ definitions:
         example: bnb
       coin_id:
         type: string
-        example: 714
+        example: "714"
       limit:
         type: string
         example: "100"
@@ -2892,7 +2893,7 @@ definitions:
     properties:
       id:
         type: string
-        example: 1
+        example: "1"
       owner:
         type: string
         example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
@@ -2918,7 +2919,7 @@ definitions:
     properties:
       cdp_id:
         type: string
-        example: 1
+        example: "1"
       depositor:
         type: string
         example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
@@ -3183,19 +3184,19 @@ definitions:
         example: true
       limit:
         type: string
-        example: 500000000
+        example: "500000000"
       time_period:
         type: string
-        example: 518400000000000
+        example: "518400000000000"
   AuctionParameters:
     type: object
     properties:
       max_auction_duration:
         type: string
-        example: 172800000000000
+        example: "172800000000000"
       bid_duration:
         type: string
-        example: 600000000000
+        example: "600000000000"
       increment_surplus:
         type: string
         example: "0.05"
@@ -3210,7 +3211,7 @@ definitions:
     properties:
       id:
         type: string
-        example: 1
+        example: "1"
       initiator:
         type: string
         example: liquidator
@@ -3296,7 +3297,7 @@ definitions:
     properties:
       proposal_id:
         type: string
-        example: 1
+        example: "1"
       proposer:
         type: string
         example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
@@ -3316,10 +3317,10 @@ definitions:
         $ref: "#/definitions/PubProposal"
       id:
         type: string
-        example: 1
+        example: "1"
       committee_id:
         type: string
-        example: 1
+        example: "1"
       deadline:
         type: string
         example: "2020-05-10T16:18:43.752522893Z"
@@ -3328,7 +3329,7 @@ definitions:
     properties:
       id:
         type: string
-        example: 1
+        example: "1"
       description:
         type: string
         example: description of committee
