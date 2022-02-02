@@ -3,6 +3,13 @@ info:
   title: Kava - gRPC Gateway docs
   description: A REST interface for state queries
   version: 1.0.0
+url: >-
+  https://raw.githubusercontent.com/Kava-Labs/kava/master/client/docs/swagger-ui/swagger.yaml
+host: api.data.kava.io
+schemes:
+  - https
+servers:
+  - url: 'https://api.data.kava.io'
 paths:
   /kava/auction/v1beta1/auctions:
     get:
