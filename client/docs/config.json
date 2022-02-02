@@ -5,6 +5,10 @@
     "description": "A REST interface for state queries",
     "version": "1.0.0"
   },
+  "externalDocs": {
+    "description": "GitHub",
+    "url": "https://github.com/Kava-Labs/kava"
+  },
   "host": "api.data.kava.io",
   "schemes": [
     "https"
@@ -31,7 +35,7 @@
       "url": "./tmp-swagger-gen/kava/bep3/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
-          "Query": "Bep3"
+          "Query": "BEP3"
         }
       },
       "operationIds": {
@@ -39,7 +43,7 @@
           {
             "type": "regex",
             "from": "(.*)",
-            "to": "Bep3$1"
+            "to": "BEP3$1"
           }
         ]
       }
@@ -48,7 +52,7 @@
       "url": "./tmp-swagger-gen/kava/cdp/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
-          "Query": "Cdp"
+          "Query": "CDP"
         }
       },
       "operationIds": {
@@ -56,7 +60,7 @@
           {
             "type": "regex",
             "from": "(.*)",
-            "to": "Cdp$1"
+            "to": "CDP$1"
           }
         ]
       }
@@ -65,7 +69,7 @@
       "url": "./tmp-swagger-gen/kava/committee/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
-          "Query": "Cdp"
+          "Query": "Committee"
         }
       },
       "operationIds": {
@@ -116,7 +120,7 @@
       "url": "./tmp-swagger-gen/kava/kavadist/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
-          "Query": "KavaDist"
+          "Query": "Kavadist"
         }
       },
       "operationIds": {
@@ -124,7 +128,7 @@
           {
             "type": "regex",
             "from": "(.*)",
-            "to": "KavaDist$1"
+            "to": "Kavadist$1"
           }
         ]
       }
@@ -170,7 +174,8 @@
       },
       "tags": {
         "rename": {
-          "Gaia REST": "KAVA Rest"
+          "Gaia REST": "KAVA Rest",
+          "Query": "Cosmos SDK"
         }
       },
       "paths": {

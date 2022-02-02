@@ -36,6 +36,7 @@ securityDefinitions:
 paths:
   /cdp:
     post:
+      deprecated: true
       summary: Create a cdp transaction
       tags:
         - CDP
@@ -52,26 +53,27 @@ paths:
             type: object
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               owner:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               collateral:
-                $ref: "#/definitions/CoinCollateral"
+                $ref: "#/definitions/LegacyCoinCollateral"
               principal:
-                $ref: "#/definitions/CoinPrincipal"
+                $ref: "#/definitions/LegacyCoinPrincipal"
               collateral_type:
-                $ref: "#/definitions/CollateralType"
+                $ref: "#/definitions/LegacyCollateralType"
       responses:
         200:
           description: Tx was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Server internal error
   /cdp/{owner}/{collateral_type}/deposits:
     post:
+      deprecated: true
       summary: Create a deposit to cdp transaction
       tags:
         - CDP
@@ -100,26 +102,27 @@ paths:
             type: object
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               owner:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               depositor:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               collateral:
-                $ref: "#/definitions/CoinCollateral"
+                $ref: "#/definitions/LegacyCoinCollateral"
               collateral_type:
-                $ref: "#/definitions/CollateralType"
+                $ref: "#/definitions/LegacyCollateralType"
       responses:
         200:
           description: Tx was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Server internal error
   /cdp/{owner}/{collateral_type}/withdraw:
     post:
+      deprecated: true
       summary: create a withdraw collateral transaction
       tags:
         - CDP
@@ -148,26 +151,27 @@ paths:
             type: object
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               owner:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               depositor:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               collateral:
-                $ref: "#/definitions/CoinCollateral"
+                $ref: "#/definitions/LegacyCoinCollateral"
               collateral_type:
-                $ref: "#/definitions/CollateralType"
+                $ref: "#/definitions/LegacyCollateralType"
       responses:
         200:
           description: Tx was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Server internal error
   /cdp/{owner}/{collateral_type}/draw:
     post:
+      deprecated: true
       summary: Create a draw debt transaction
       tags:
         - CDP
@@ -196,24 +200,25 @@ paths:
             type: object
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               owner:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               principal:
-                $ref: "#/definitions/CoinPrincipal"
+                $ref: "#/definitions/LegacyCoinPrincipal"
               collateral_type:
-                $ref: "#/definitions/CollateralType"
+                $ref: "#/definitions/LegacyCollateralType"
       responses:
         200:
           description: Tx was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Server internal error
   /cdp/{owner}/{collateral_type}/repay:
     post:
+      deprecated: true
       summary: Repay debt from a CDP
       tags:
         - CDP
@@ -242,24 +247,25 @@ paths:
             type: object
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               owner:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               payment:
-                $ref: "#/definitions/CoinPrincipal"
+                $ref: "#/definitions/LegacyCoinPrincipal"
               collateral_type:
-                $ref: "#/definitions/CollateralType"
+                $ref: "#/definitions/LegacyCollateralType"
       responses:
         200:
           description: Tx was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Server internal error
   /cdp/{owner}/{collateral_type}/liquidate:
     post:
+      deprecated: true
       summary: Attempt to liquidate a CDP whose collateralization ratio is under its liquidaiton ratio
       tags:
         - CDP
@@ -288,22 +294,23 @@ paths:
             type: object
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               owner:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               collateral_type:
-                $ref: "#/definitions/CollateralType"
+                $ref: "#/definitions/LegacyCollateralType"
       responses:
         200:
           description: Tx was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Server internal error
   /cdp/accounts:
     get:
+      deprecated: true
       summary: Get the cdp module accounts
       tags:
         - CDP
@@ -326,11 +333,11 @@ paths:
                     account_number:
                       type: number
                     address:
-                      $ref: "#/definitions/Address"
+                      $ref: "#/definitions/LegacyAddress"
                     coins:
                       type: array
                       items:
-                        $ref: "#/definitions/Coin"
+                        $ref: "#/definitions/LegacyCoin"
                     name:
                       type: string
                     permissions:
@@ -338,13 +345,14 @@ paths:
                       items:
                         type: string
                     public_key:
-                      $ref: "#/definitions/PublicKey"
+                      $ref: "#/definitions/LegacyPublicKey"
                     sequence:
                       type: number
         500:
           description: Server internal error
   /cdp/parameters:
     get:
+      deprecated: true
       summary: Get the parameters of the cdp module
       tags:
         - CDP
@@ -359,15 +367,15 @@ paths:
               collateral_params:
                 type: array
                 items:
-                  $ref: "#/definitions/CollateralParam"
+                  $ref: "#/definitions/LegacyCollateralParam"
               debt_params:
                 type: array
                 items:
-                  $ref: "#/definitions/DebtParam"
+                  $ref: "#/definitions/LegacyDebtParam"
               global_debt_limit:
                 type: array
                 items:
-                  $ref: "#/definitions/CoinCollateral"
+                  $ref: "#/definitions/LegacyCoinCollateral"
               surplus_auction_threshold:
                 type: string
                 example: "1000000000"
@@ -387,6 +395,7 @@ paths:
           description: Server internal error
   /cdp/cdps/cdp/{owner}/{collateral_type}:
     get:
+      deprecated: true
       summary: Get the cdp associated with the input owner address and collateral type
       tags:
         - CDP
@@ -409,11 +418,12 @@ paths:
         200:
           description: CDP associated with owner
           schema:
-            $ref: "#/definitions/CdpResponse"
+            $ref: "#/definitions/LegacyCdpResponse"
         500:
           description: Server internal error
   /cdp/cdps/collateralType/{collateral_type}:
     get:
+      deprecated: true
       summary: Get all cdps with collateral type equal to the input collateral type
       tags:
         - CDP
@@ -439,11 +449,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/CdpResponse"
+                  $ref: "#/definitions/LegacyCdpResponse"
         500:
           description: Server internal error
   /cdp/cdps/ratio/{collateral_type}/{ratio}:
     get:
+      deprecated: true
       summary: Get all cdps with collateral type equal to the input collateral type and collateralization ratio strictly less than the input ratio
       tags:
         - CDP
@@ -475,11 +486,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/CdpResponse"
+                  $ref: "#/definitions/LegacyCdpResponse"
         500:
           description: Server internal error
   /cdp/cdps/cdp/deposits/{owner}/{collateral_type}:
     get:
+      deprecated: true
       summary: Get the deposits associated with the cdp owned by an address for a collateral type
       tags:
         - CDP
@@ -510,11 +522,12 @@ paths:
               result:
                 type: array
                 items:
-                  $ref: "#/definitions/CdpDepositResponse"
+                  $ref: "#/definitions/LegacyCdpDepositResponse"
         500:
           description: Server internal error
   /cdp/cdps:
     get:
+      deprecated: true
       summary: Query all active cdps
       tags:
         - CDP
@@ -557,11 +570,12 @@ paths:
               result:
                 type: array
                 items:
-                  $ref: "#/definitions/CdpResponse"
+                  $ref: "#/definitions/LegacyCdpResponse"
         500:
           description: Internal Server Error
   /bep3/swap/create:
     post:
+      deprecated: true
       summary: Generate a create atomic swap transaction
       consumes:
         - application/json
@@ -575,34 +589,35 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               from:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               to:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               recipient_other_chain:
-                $ref: "#/definitions/BinanceChainAddress"
+                $ref: "#/definitions/LegacyBinanceChainAddress"
               sender_other_chain:
-                $ref: "#/definitions/BinanceChainAddress2"
+                $ref: "#/definitions/LegacyBinanceChainAddress2"
               random_number_hash:
-                $ref: "#/definitions/RandomNumberHash"
+                $ref: "#/definitions/LegacyRandomNumberHash"
               timestamp:
-                $ref: "#/definitions/Timestamp"
+                $ref: "#/definitions/LegacyTimestamp"
               height_span:
-                $ref: "#/definitions/HeightSpan"
+                $ref: "#/definitions/LegacyHeightSpan"
               cross_chain:
-                $ref: "#/definitions/CrossChain"
+                $ref: "#/definitions/LegacyCrossChain"
       responses:
         200:
           description: The transaction was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /bep3/swap/claim:
     post:
+      deprecated: true
       summary: Generate a claim atomic swap transaction
       consumes:
         - application/json
@@ -616,9 +631,9 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               from:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               swap_id:
                 type: string
                 example: "3ca20f0152f03b0aabe73e7aa1ddf78b9048ede5a9a73846e1ef53bebbfa4185"
@@ -629,13 +644,14 @@ paths:
         200:
           description: The transaction was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /bep3/swap/refund:
     post:
+      deprecated: true
       summary: Generate a refund atomic swap transaction
       consumes:
         - application/json
@@ -649,9 +665,9 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               from:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               swap_id:
                 type: string
                 example: "1b00244021ec239867e5b8c44bcd98e40f3148806a8c0a8fd3418872986becba"
@@ -659,13 +675,14 @@ paths:
         200:
           description: The transaction was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /bep3/swap/{swap-id}:
     get:
+      deprecated: true
       summary: Get the atomic swap object associated with the input swap ID
       tags:
         - BEP3
@@ -688,11 +705,12 @@ paths:
                 type: string
                 example: "548883"
               result:
-                $ref: "#/definitions/AtomicSwapResponse"
+                $ref: "#/definitions/LegacyAtomicSwapResponse"
         500:
           description: Server internal error
   /bep3/swaps:
     get:
+      deprecated: true
       summary: Get all atomic swaps
       tags:
         - BEP3
@@ -711,11 +729,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/AtomicSwapResponse"
+                  $ref: "#/definitions/LegacyAtomicSwapResponse"
         500:
           description: Server internal error
   /bep3/supply/{denom}:
     get:
+      deprecated: true
       summary: Get the asset supply for the input denom
       tags:
         - BEP3
@@ -738,11 +757,12 @@ paths:
                 example: "100"
               result:
                 type: object
-                $ref: "#/definitions/AssetSupplyResponse"
+                $ref: "#/definitions/LegacyAssetSupplyResponse"
         500:
           description: Server internal error
   /bep3/parameters:
     get:
+      deprecated: true
       summary: Get the current parameters of the BEP3 module
       tags:
         - BEP3
@@ -759,11 +779,12 @@ paths:
                 example: "548883"
               result:
                 type: object
-                $ref: "#/definitions/Bep3ParamsResponse"
+                $ref: "#/definitions/LegacyBep3ParamsResponse"
         500:
           description: Server internal error
   /auction/auctions/{id}/bids:
     post:
+      deprecated: true
       summary: Generate a place bid transaction
       consumes:
         - application/json
@@ -783,21 +804,22 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               amount:
-                $ref: "#/definitions/CoinBid"
+                $ref: "#/definitions/LegacyCoinBid"
 
       responses:
         200:
           description: The transaction was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /auction/parameters:
     get:
+      deprecated: true
       summary: Query auction parameters
       produces:
         - application/json
@@ -807,11 +829,12 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/AuctionParameters"
+            $ref: "#/definitions/LegacyAuctionParameters"
         500:
           description: Internal Server Error
   /auction/auctions:
     get:
+      deprecated: true
       summary: Query auctions
       description: Query all ongoing auctions
       produces:
@@ -830,11 +853,12 @@ paths:
               result:
                 type: array
                 items:
-                  $ref: "#/definitions/AuctionResponse"
+                  $ref: "#/definitions/LegacyAuctionResponse"
         500:
           description: Internal Server Error
   /auction/auctions/{id}:
     get:
+      deprecated: true
       summary: Query auction
       description: Query auction by id
       produces:
@@ -852,13 +876,14 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/AuctionResponse"
+            $ref: "#/definitions/LegacyAuctionResponse"
         400:
           description: invalid auction id
         500:
           description: Internal Server Error
   /pricefeed/postprice:
     post:
+      deprecated: true
       summary: Generate post price transaction
       consumes:
         - application/json
@@ -875,7 +900,7 @@ paths:
             type: object
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               market_id:
                 type: string
                 example: "xrp:usd"
@@ -889,13 +914,14 @@ paths:
         200:
           description: The transaction was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /pricefeed/parameters:
     get:
+      deprecated: true
       summary: Query pricefeed parameters
       produces:
         - application/json
@@ -905,11 +931,12 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/PricefeedParameters"
+            $ref: "#/definitions/LegacyPricefeedParameters"
         500:
           description: Internal Server Error
   /pricefeed/markets:
     get:
+      deprecated: true
       summary: Query markets in the pricefeed
       produces:
         - application/json
@@ -927,11 +954,12 @@ paths:
               result:
                 type: array
                 items:
-                  $ref: "#/definitions/Market"
+                  $ref: "#/definitions/LegacyMarket"
         500:
           description: Internal Server Error
   /pricefeed/oracles/{market_id}:
     get:
+      deprecated: true
       summary: Query markets in the pricefeed
       produces:
         - application/json
@@ -956,11 +984,12 @@ paths:
               result:
                 type: array
                 items:
-                  $ref: "#/definitions/Address"
+                  $ref: "#/definitions/LegacyAddress"
         500:
           description: Internal Server Error
   /pricefeed/rawprices/{market_id}:
     get:
+      deprecated: true
       summary: Query markets in the pricefeed
       produces:
         - application/json
@@ -985,12 +1014,13 @@ paths:
               result:
                 type: array
                 items:
-                  $ref: "#/definitions/PostedPrice"
+                  $ref: "#/definitions/LegacyPostedPrice"
 
         500:
           description: Internal Server Error
   /pricefeed/price/{market_id}:
     get:
+      deprecated: true
       summary: Query markets in the pricefeed
       produces:
         - application/json
@@ -1007,11 +1037,12 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/Price"
+            $ref: "#/definitions/LegacyPrice"
         500:
           description: Internal Server Error
   /incentive/claim-cdp:
     post:
+      deprecated: true
       summary: Claim USDX incentive rewards from earned from CDPs
       tags:
         - Incentive
@@ -1025,9 +1056,9 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               sender:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               multiplier_name:
                 type: string
                 example: "small"
@@ -1040,13 +1071,14 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /incentive/claim-hard:
     post:
+      deprecated: true
       summary: Claim Hard supply/borrow rewards
       tags:
         - Incentive
@@ -1060,9 +1092,9 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               sender:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               multiplier_name:
                 type: string
                 example: "small"
@@ -1075,13 +1107,14 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /incentive/claim-delegator:
     post:
+      deprecated: true
       summary: Claim Kava delegation rewards
       tags:
         - Incentive
@@ -1095,9 +1128,9 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               sender:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               multiplier_name:
                 type: string
                 example: "small"
@@ -1110,13 +1143,14 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /incentive/claim-swap:
     post:
+      deprecated: true
       summary: Claim Swap liquidity provider rewards
       tags:
         - Incentive
@@ -1130,9 +1164,9 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               sender:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               multiplier_name:
                 type: string
                 example: "small"
@@ -1145,13 +1179,14 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /incentive/rewards:
     get:
+      deprecated: true
       summary: Get earned Incentive rewards
       tags:
         - Incentive
@@ -1170,11 +1205,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/RewardResult"
+                  $ref: "#/definitions/LegacyRewardResult"
         500:
           description: Server internal error
   /incentive/parameters:
     get:
+      deprecated: true
       summary: Get the current parameters of the incentive module
       tags:
         - Incentive
@@ -1193,11 +1229,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/IncentiveParams"
+                  $ref: "#/definitions/LegacyIncentiveParams"
         500:
           description: Server internal error
   /vesting/circulatingsupply:
     get:
+      deprecated: true
       summary: Get the current circulating supply of KAVA
       tags:
         - Vesting
@@ -1218,6 +1255,7 @@ paths:
           description: Server internal error
   /vesting/totalsupply:
     get:
+      deprecated: true
       summary: Get the total supply of KAVA
       tags:
         - Vesting
@@ -1238,6 +1276,7 @@ paths:
           description: Server internal error
   /vesting/circulatingsupplyhard:
     get:
+      deprecated: true
       summary: Get the current circulating supply of HARD
       tags:
         - Vesting
@@ -1258,6 +1297,7 @@ paths:
           description: Server internal error
   /vesting/totalsupplyhard:
     get:
+      deprecated: true
       summary: Get the total supply of HARD
       tags:
         - Vesting
@@ -1278,6 +1318,7 @@ paths:
           description: Server internal error
   /vesting/circulatingsupplyswp:
     get:
+      deprecated: true
       summary: Get the current circulating supply of SWP
       tags:
         - Vesting
@@ -1298,6 +1339,7 @@ paths:
           description: Server internal error
   /vesting/circulatingsupplyusdx:
     get:
+      deprecated: true
       summary: Get the current circulating supply of USDX
       tags:
         - Vesting
@@ -1318,6 +1360,7 @@ paths:
           description: Server internal error
   /vesting/totalsupplyusdx:
     get:
+      deprecated: true
       summary: Get the total supply of USDX
       tags:
         - Vesting
@@ -1338,6 +1381,7 @@ paths:
           description: Server internal error
   /committee/committees/{committee-id}/proposals:
     post:
+      deprecated: true
       summary: Create a new proposal for a committee
       tags:
         - Committee
@@ -1356,21 +1400,22 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               pub_proposal:
-                $ref: "#/definitions/PubProposal"
+                $ref: "#/definitions/LegacyPubProposal"
               proposer:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
       responses:
         200:
           description: The transaction was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
     get:
+      deprecated: true
       summary: Query proposals
       description: Query all proposals for a committee
       produces:
@@ -1395,13 +1440,14 @@ paths:
               result:
                 type: array
                 items:
-                  $ref: "#/definitions/CommitteeProposal"
+                  $ref: "#/definitions/LegacyCommitteeProposal"
         400:
           description: Invalid query parameters
         500:
           description: Internal Server Error
   /committee/proposals/{proposal-id}/votes:
     post:
+      deprecated: true
       summary: Create a new vote for a proposal
       tags:
         - Committee
@@ -1420,9 +1466,9 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               voter:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               vote_type:
                 type: string
                 example: "yes"
@@ -1430,12 +1476,13 @@ paths:
         200:
           description: The transaction was successfully generated
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
     get:
+      deprecated: true
       summary: Query proposal votes
       description: Query proposal votes by proposal ID
       tags:
@@ -1460,13 +1507,14 @@ paths:
               result:
                 type: array
                 items:
-                  $ref: "#/definitions/CommitteeVote"
+                  $ref: "#/definitions/LegacyCommitteeVote"
         400:
           description: Invalid query parameters
         500:
           description: Internal Server Error
   /committee/committees:
     get:
+      deprecated: true
       summary: Query committees
       description: Query all committees
       tags:
@@ -1485,13 +1533,14 @@ paths:
               result:
                 type: array
                 items:
-                  $ref: "#/definitions/Committee"
+                  $ref: "#/definitions/LegacyCommittee"
         400:
           description: Invalid query parameters
         500:
           description: Internal Server Error
   /committee/committees/{committee-id}:
     get:
+      deprecated: true
       summary: Query committee
       description: Query committee by ID
       tags:
@@ -1515,13 +1564,14 @@ paths:
                 example: "100"
               result:
                 type: object
-                $ref: "#/definitions/Committee"
+                $ref: "#/definitions/LegacyCommittee"
         400:
           description: Invalid query parameters
         500:
           description: Internal Server Error
   /committee/proposals/{proposal-id}:
     get:
+      deprecated: true
       summary: Query proposal
       description: Query proposal by ID
       tags:
@@ -1545,13 +1595,14 @@ paths:
                 example: "100"
               result:
                 type: object
-                $ref: "#/definitions/CommitteeProposal"
+                $ref: "#/definitions/LegacyCommitteeProposal"
         400:
           description: Invalid query parameters
         500:
           description: Internal Server Error
   /committee/proposals/{proposal-id}/propser:
     get:
+      deprecated: true
       summary: Query proposer
       description: Query proposer by proposal ID
       tags:
@@ -1575,13 +1626,14 @@ paths:
                 example: "100"
               result:
                 type: object
-                $ref: "#/definitions/Proposer"
+                $ref: "#/definitions/LegacyProposer"
         400:
           description: Invalid query parameters
         500:
           description: Internal Server Error
   /committee/proposals/{proposal-id}/tally:
     get:
+      deprecated: true
       summary: Query proposal tally
       description: Query proposal tally by proposal ID
       tags:
@@ -1612,6 +1664,7 @@ paths:
           description: Internal Server Error
   /hard/deposit:
     post:
+      deprecated: true
       summary: Deposit funds to hard liquidity pool
       tags:
         - Hard
@@ -1625,22 +1678,23 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               depositor:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               amount:
-                $ref: "#/definitions/Coins"
+                $ref: "#/definitions/LegacyCoins"
       responses:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /hard/withdraw:
     post:
+      deprecated: true
       summary: Withdraw funds from hard liquidity pool
       tags:
         - Hard
@@ -1654,22 +1708,23 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               depositor:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               amount:
-                $ref: "#/definitions/Coins"
+                $ref: "#/definitions/LegacyCoins"
       responses:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /hard/borrow:
     post:
+      deprecated: true
       summary: Borrow funds from hard liquidity pool
       tags:
         - Hard
@@ -1683,22 +1738,23 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               depositor:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               amount:
-                $ref: "#/definitions/Coins"
+                $ref: "#/definitions/LegacyCoins"
       responses:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /hard/repay:
     post:
+      deprecated: true
       summary: Repay funds borrowed from hard liquidity pool
       tags:
         - Hard
@@ -1712,22 +1768,23 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               owner:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               amount:
-                $ref: "#/definitions/Coins"
+                $ref: "#/definitions/LegacyCoins"
       responses:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /hard/liquidate:
     post:
+      deprecated: true
       summary: Attempt to liquidate a borrower that is over their loan-to-value
       tags:
         - Hard
@@ -1741,20 +1798,21 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               borrower:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
       responses:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /hard/parameters:
     get:
+      deprecated: true
       summary: Get the current parameters of the hard module
       tags:
         - Hard
@@ -1773,11 +1831,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/HardParams"
+                  $ref: "#/definitions/LegacyHardParams"
         500:
           description: Server internal error
   /hard/total-deposited:
     get:
+      deprecated: true
       summary: Get total coins deposited to hard liquidity pools
       tags:
         - Hard
@@ -1803,11 +1862,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/Coin"
+                  $ref: "#/definitions/LegacyCoin"
         500:
           description: Server internal error
   /hard/total-borrowed:
     get:
+      deprecated: true
       summary: Get total coins borrowed from hard liquidity pools
       tags:
         - Hard
@@ -1833,11 +1893,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/Coin"
+                  $ref: "#/definitions/LegacyCoin"
         500:
           description: Server internal error
   /hard/reserves:
     get:
+      deprecated: true
       summary: Get total hard reserve coins
       tags:
         - Hard
@@ -1863,11 +1924,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/Coin"
+                  $ref: "#/definitions/LegacyCoin"
         500:
           description: Server internal error
   /hard/interest-rate:
     get:
+      deprecated: true
       summary: Get the hard module interest rates
       tags:
         - Hard
@@ -1893,11 +1955,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/MoneyMarketInterestRate"
+                  $ref: "#/definitions/LegacyMoneyMarketInterestRate"
         500:
           description: Server internal error
   /hard/accounts:
     get:
+      deprecated: true
       summary: Get the hard module accounts
       tags:
         - Hard
@@ -1920,11 +1983,11 @@ paths:
                     account_number:
                       type: number
                     address:
-                      $ref: "#/definitions/Address"
+                      $ref: "#/definitions/LegacyAddress"
                     coins:
                       type: array
                       items:
-                        $ref: "#/definitions/Coin"
+                        $ref: "#/definitions/LegacyCoin"
                     name:
                       type: string
                     permissions:
@@ -1932,13 +1995,14 @@ paths:
                       items:
                         type: string
                     public_key:
-                      $ref: "#/definitions/PublicKey"
+                      $ref: "#/definitions/LegacyPublicKey"
                     sequence:
                       type: number
         500:
           description: Server internal error
   /hard/deposits:
     get:
+      deprecated: true
       summary: Get hard deposits
       tags:
         - Hard
@@ -1980,11 +2044,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/HardDepositResponse"
+                  $ref: "#/definitions/LegacyHardDepositResponse"
         500:
           description: Server internal error
   /hard/borrows:
     get:
+      deprecated: true
       summary: Get hard borrows
       tags:
         - Hard
@@ -2026,11 +2091,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/HardBorrowResponse"
+                  $ref: "#/definitions/LegacyHardBorrowResponse"
         500:
           description: Server internal error
   /issuance/issue:
     post:
+      deprecated: true
       summary: Issue tokens
       tags:
         - Issuance
@@ -2044,24 +2110,25 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               sender:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               tokens:
-                $ref: "#/definitions/Coin"
+                $ref: "#/definitions/LegacyCoin"
               receiver:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
       responses:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /issuance/redeem:
     post:
+      deprecated: true
       summary: Redeem tokens
       tags:
         - Issuance
@@ -2075,22 +2142,23 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               sender:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               tokens:
-                $ref: "#/definitions/Coin"
+                $ref: "#/definitions/LegacyCoin"
       responses:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /issuance/block:
     post:
+      deprecated: true
       summary: Block an address from using an issued token
       tags:
         - Issuance
@@ -2104,25 +2172,26 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               sender:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               denom:
                 type: string
                 example: "usdt"
               blocked_address:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
       responses:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /issuance/unblock:
     post:
+      deprecated: true
       summary: Unblock an address from using an issued token
       tags:
         - Issuance
@@ -2136,25 +2205,26 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               sender:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               denom:
                 type: string
                 example: "usdt"
               address:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
       responses:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /issuance/pause:
     post:
+      deprecated: true
       summary: Set an issued token's pause status
       tags:
         - Issuance
@@ -2168,9 +2238,9 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               sender:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               denom:
                 type: string
                 example: "usdt"
@@ -2181,13 +2251,14 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /issuance/parameters:
     get:
+      deprecated: true
       summary: Get the current parameters of the Issuance module
       tags:
         - Issuance
@@ -2206,11 +2277,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/IssuanceParams"
+                  $ref: "#/definitions/LegacyIssuanceParams"
         500:
           description: Server internal error
   /swap/deposit:
     post:
+      deprecated: true
       summary: Deposit funds to swap liquidity pool
       tags:
         - Swap
@@ -2224,13 +2296,13 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               depositor:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               token_a:
-                $ref: "#/definitions/Coin"
+                $ref: "#/definitions/LegacyCoin"
               token_b:
-                $ref: "#/definitions/Coin"
+                $ref: "#/definitions/LegacyCoin"
               slippage:
                 type: string
                 example: "0.05"
@@ -2241,13 +2313,14 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /swap/withdraw:
     post:
+      deprecated: true
       summary: Withdraw funds from a swap liquidity pool
       tags:
         - Swap
@@ -2261,16 +2334,16 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               from:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               shares:
                 type: string
                 example: "5000"
               min_token_a:
-                $ref: "#/definitions/Coin"
+                $ref: "#/definitions/LegacyCoin"
               min_token_b:
-                $ref: "#/definitions/Coin"
+                $ref: "#/definitions/LegacyCoin"
               deadline:
                 type: string
                 example: "1628073801"
@@ -2278,13 +2351,14 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /swap/swapExactForTokens:
     post:
+      deprecated: true
       summary: Swap exact amount of input tokens for approximate amount of output tokens
       tags:
         - Swap
@@ -2298,13 +2372,13 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               requester:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               exact_token_a:
-                $ref: "#/definitions/Coin"
+                $ref: "#/definitions/LegacyCoin"
               token_b:
-                $ref: "#/definitions/Coin"
+                $ref: "#/definitions/LegacyCoin"
               slippage:
                 type: string
                 example: "0.05"
@@ -2315,13 +2389,14 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /swap/swapForExactTokens:
     post:
+      deprecated: true
       summary: Swap approximate amount of input tokens for exact amount of output tokens
       tags:
         - Swap
@@ -2335,13 +2410,13 @@ paths:
           schema:
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/LegacyBaseReq"
               requester:
-                $ref: "#/definitions/Address"
+                $ref: "#/definitions/LegacyAddress"
               token_a:
-                $ref: "#/definitions/Coin"
+                $ref: "#/definitions/LegacyCoin"
               exact_token_b:
-                $ref: "#/definitions/Coin"
+                $ref: "#/definitions/LegacyCoin"
               slippage:
                 type: string
                 example: "0.05"
@@ -2352,13 +2427,14 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/StdTx"
+            $ref: "#/definitions/LegacyStdTx"
         400:
           description: Invalid request
         500:
           description: Internal server error
   /swap/parameters:
     get:
+      deprecated: true
       summary: Get the current parameters of the swap module
       tags:
         - Swap
@@ -2377,11 +2453,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/SwapParams"
+                  $ref: "#/definitions/LegacySwapParams"
         500:
           description: Server internal error
   /swap/deposits:
     get:
+      deprecated: true
       summary: Get the current deposits of a liquidity pool
       tags:
         - Swap
@@ -2413,11 +2490,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/SwapDepositsQueryResult"
+                  $ref: "#/definitions/LegacySwapDepositsQueryResult"
         500:
           description: Server internal error
   /swap/pool:
     get:
+      deprecated: true
       summary: Get information about a liquidity pool by ID
       tags:
         - Swap
@@ -2442,11 +2520,12 @@ paths:
               result:
                 type: array
                 items:
-                  $ref: "#/definitions/SwapPoolStatsQueryResult"
+                  $ref: "#/definitions/LegacySwapPoolStatsQueryResult"
         500:
           description: Server internal error
   /swap/pools:
     get:
+      deprecated: true
       summary: Get information about all liquidity pools
       tags:
         - Swap
@@ -2465,11 +2544,12 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  $ref: "#/definitions/SwapPoolStatsQueryResult"
+                  $ref: "#/definitions/LegacySwapPoolStatsQueryResult"
         500:
           description: Server internal error
   /kavadist/parameters:
     get:
+      deprecated: true
       summary: Get the current kavadist parameter values
       tags:
         - Kavadist
@@ -2486,15 +2566,15 @@ paths:
               periods:
                 type: array
                 items:
-                  $ref: "#/definitions/KavadistPeriod"
+                  $ref: "#/definitions/LegacyKavadistPeriod"
         500:
           description: Internal Server Error
 
 definitions:
-  CrossChain:
+  LegacyCrossChain:
     type: boolean
     example: true
-  Msg:
+  LegacyMsg:
     type: object
     properties:
       type:
@@ -2512,36 +2592,36 @@ definitions:
           amount:
             type: array
             items:
-              $ref: "#/definitions/Coin"
-  Address:
+              $ref: "#/definitions/LegacyCoin"
+  LegacyAddress:
     type: string
     description: bech32 encoded address
     example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
-  Address2:
+  LegacyAddress2:
     type: string
     description: bech32 encoded address
     example: kava1atsrkjac6ulgmwhudfc36lnjfgv340vlvm757z
-  BinanceChainAddress:
+  LegacyBinanceChainAddress:
     type: string
     description: address on another chain (binance)
     example: bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7
-  BinanceChainAddress2:
+  LegacyBinanceChainAddress2:
     type: string
     description: address on another chain (binance)
     example: bnb10uypsspvl6jlxcx5xse02pag39l8xpe7a3468h
-  RandomNumberHash:
+  LegacyRandomNumberHash:
     type: string
     description: hex-encoded sha256 hash of a 64bit random number
     example: c0544b7f4b890a673ea3f61bdb4650fbfe2f3e56bda1b397d6d592fca7163c8c
-  Timestamp:
+  LegacyTimestamp:
     type: string
     description: unix timestamp
     example: "1585252531"
-  HeightSpan:
+  LegacyHeightSpan:
     type: string
     description: span of blocks for which an atomic swap is valid
     example: "3600"
-  Coin:
+  LegacyCoin:
     type: object
     properties:
       denom:
@@ -2550,11 +2630,11 @@ definitions:
       amount:
         type: string
         example: "50000"
-  Coins:
+  LegacyCoins:
     type: array
     items:
-      $ref: "#/definitions/Coins"
-  CoinBNB:
+      $ref: "#/definitions/LegacyCoins"
+  LegacyCoinBNB:
     type: object
     properties:
       denom:
@@ -2563,10 +2643,10 @@ definitions:
       amount:
         type: string
         example: "555555"
-  CollateralType:
+  LegacyCollateralType:
     type: string
     example: xrpb-a
-  CoinCollateral:
+  LegacyCoinCollateral:
     type: object
     properties:
       denom:
@@ -2575,7 +2655,7 @@ definitions:
       amount:
         type: string
         example: "10000000000"
-  CoinPrincipal:
+  LegacyCoinPrincipal:
     type: object
     properties:
       denom:
@@ -2584,7 +2664,7 @@ definitions:
       amount:
         type: string
         example: "10000000"
-  CoinBid:
+  LegacyCoinBid:
     type: object
     properties:
       denom:
@@ -2593,7 +2673,7 @@ definitions:
       amount:
         type: string
         example: "100000000"
-  Signature:
+  LegacySignature:
     type: object
     properties:
       signature:
@@ -2608,13 +2688,13 @@ definitions:
           value:
             type: string
             example: "Agey31h/NYpcy0sYm4liHMrXJMzbQUrgV4uHd/w09CXN"
-  StdTx:
+  LegacyStdTx:
     type: object
     properties:
       msg:
         type: array
         items:
-          $ref: "#/definitions/Msg"
+          $ref: "#/definitions/LegacyMsg"
       fee:
         type: object
         properties:
@@ -2624,14 +2704,14 @@ definitions:
           amount:
             type: array
             items:
-              $ref: "#/definitions/Coin"
+              $ref: "#/definitions/LegacyCoin"
       memo:
         type: string
       signatures:
         type: array
         items:
-          $ref: "#/definitions/Signature"
-  BaseReq:
+          $ref: "#/definitions/LegacySignature"
+  LegacyBaseReq:
     type: object
     properties:
       from:
@@ -2659,12 +2739,12 @@ definitions:
       fees:
         type: array
         items:
-          $ref: "#/definitions/Coin"
+          $ref: "#/definitions/LegacyCoin"
       simulate:
         type: boolean
         example: false
         description: Estimate gas for a transaction (cannot be used in conjunction with generate_only)
-  AtomicSwapResponse:
+  LegacyAtomicSwapResponse:
     type: object
     properties:
       id:
@@ -2674,7 +2754,7 @@ definitions:
         type: string
         example: Completed
       amount:
-        $ref: "#/definitions/CoinBNB"
+        $ref: "#/definitions/LegacyCoinBNB"
       random_number_hash:
         type: string
         example: 0b1e35e991bf052be230ae8dd3ff90b69a610160d28a9eb3c0701395f9d2b291
@@ -2685,36 +2765,36 @@ definitions:
         type: string
         example: "1589020884"
       sender:
-        $ref: "#/definitions/Address"
+        $ref: "#/definitions/LegacyAddress"
       recipient:
-        $ref: "#/definitions/Address2"
+        $ref: "#/definitions/LegacyAddress2"
       sender_other_chain:
-        $ref: "#/definitions/BinanceChainAddress"
+        $ref: "#/definitions/LegacyBinanceChainAddress"
       recipient_other_chain:
-        $ref: "#/definitions/BinanceChainAddress2"
+        $ref: "#/definitions/LegacyBinanceChainAddress2"
       closed_block:
         type: string
         example: "532105"
       cross_chain:
-        $ref: "#/definitions/CrossChain"
+        $ref: "#/definitions/LegacyCrossChain"
       direction:
         type: string
         example: Incoming
-  AssetSupplyResponse:
+  LegacyAssetSupplyResponse:
     type: object
     properties:
       denom:
         type: string
         example: bnb
       incoming_supply:
-        $ref: "#/definitions/CoinBNB"
+        $ref: "#/definitions/LegacyCoinBNB"
       outgoing_supply:
-        $ref: "#/definitions/CoinBNB"
+        $ref: "#/definitions/LegacyCoinBNB"
       current_supply:
-        $ref: "#/definitions/CoinBNB"
+        $ref: "#/definitions/LegacyCoinBNB"
       limit:
-        $ref: "#/definitions/CoinBNB"
-  Bep3ParamsResponse:
+        $ref: "#/definitions/LegacyCoinBNB"
+  LegacyBep3ParamsResponse:
     type: object
     properties:
       bnb_deputy_address:
@@ -2729,8 +2809,8 @@ definitions:
       supported_assets:
         type: array
         items:
-          $ref: "#/definitions/Bep3Asset"
-  Bep3Asset:
+          $ref: "#/definitions/LegacyBep3Asset"
+  LegacyBep3Asset:
     type: object
     properties:
       denom:
@@ -2745,60 +2825,60 @@ definitions:
       active:
         type: boolean
         example: true
-  RewardResult:
+  LegacyRewardResult:
     type: object
     properties:
       hard_claims:
         type: array
         items:
-          $ref: "#/definitions/HardLiquidityProviderClaim"
+          $ref: "#/definitions/LegacyHardLiquidityProviderClaim"
       usdx_minting_claims:
         type: array
         items:
-          $ref: "#/definitions/USDXMintingClaims"
-  HardLiquidityProviderClaim:
+          $ref: "#/definitions/LegacyUSDXMintingClaims"
+  LegacyHardLiquidityProviderClaim:
     type: object
     properties:
       base_claim:
-        $ref: "#/definitions/BaseMultiClaim"
+        $ref: "#/definitions/LegacyBaseMultiClaim"
       supply_reward_indexes:
         type: array
         items:
-          $ref: "#/definitions/MultiRewardIndex"
+          $ref: "#/definitions/LegacyMultiRewardIndex"
       borrow_reward_indexes:
         type: array
         items:
-          $ref: "#/definitions/MultiRewardIndex"
+          $ref: "#/definitions/LegacyMultiRewardIndex"
       delegator_reward_indexes:
         type: array
         items:
-          $ref: "#/definitions/RewardIndex"
-  USDXMintingClaims:
+          $ref: "#/definitions/LegacyRewardIndex"
+  LegacyUSDXMintingClaims:
     type: object
     properties:
       base_claim:
-        $ref: "#/definitions/BaseClaim"
+        $ref: "#/definitions/LegacyBaseClaim"
       reward_indexes:
         type: array
         items:
-          $ref: "#/definitions/RewardIndex"
-  BaseClaim:
+          $ref: "#/definitions/LegacyRewardIndex"
+  LegacyBaseClaim:
     type: object
     properties:
       owner:
-        $ref: "#/definitions/Address"
+        $ref: "#/definitions/LegacyAddress"
       reward:
-        $ref: "#/definitions/Coin"
-  BaseMultiClaim:
+        $ref: "#/definitions/LegacyCoin"
+  LegacyBaseMultiClaim:
     type: object
     properties:
       owner:
-        $ref: "#/definitions/Address"
+        $ref: "#/definitions/LegacyAddress"
       reward:
         type: array
         items:
-          $ref: "#/definitions/Coin"
-  MultiRewardIndex:
+          $ref: "#/definitions/LegacyCoin"
+  LegacyMultiRewardIndex:
     type: object
     properties:
       collateral_type:
@@ -2807,8 +2887,8 @@ definitions:
       reward_indexes:
         type: array
         items:
-          $ref: "#/definitions/RewardIndex"
-  RewardIndex:
+          $ref: "#/definitions/LegacyRewardIndex"
+  LegacyRewardIndex:
     type: object
     properties:
       collateral_type:
@@ -2817,33 +2897,33 @@ definitions:
       reward_factor:
         type: string
         example: "1.2581"
-  IncentiveParams:
+  LegacyIncentiveParams:
     type: object
     properties:
       usdx_minting_reward_periods:
         type: array
         items:
-          $ref: "#/definitions/RewardPeriod"
+          $ref: "#/definitions/LegacyRewardPeriod"
       hard_supply_reward_periods:
         type: array
         items:
-          $ref: "#/definitions/MultiRewardPeriod"
+          $ref: "#/definitions/LegacyMultiRewardPeriod"
       hard_borrow_reward_periods:
         type: array
         items:
-          $ref: "#/definitions/MultiRewardPeriod"
+          $ref: "#/definitions/LegacyMultiRewardPeriod"
       hard_delegator_reward_periods:
         type: array
         items:
-          $ref: "#/definitions/RewardPeriod"
+          $ref: "#/definitions/LegacyRewardPeriod"
       claim_multipliers:
         type: array
         items:
-          $ref: "#/definitions/Multiplier"
+          $ref: "#/definitions/LegacyMultiplier"
       claim_end:
         type: string
         example: "2022-02-05T23:45:55.761435272Z"
-  RewardPeriod:
+  LegacyRewardPeriod:
     type: object
     properties:
       active:
@@ -2859,8 +2939,8 @@ definitions:
         type: string
         example: "2024-02-05T23:45:55.761435272Z"
       rewards_per_second:
-        $ref: "#/definitions/Coin"
-  MultiRewardPeriod:
+        $ref: "#/definitions/LegacyCoin"
+  LegacyMultiRewardPeriod:
     type: object
     properties:
       active:
@@ -2878,8 +2958,8 @@ definitions:
       rewards_per_second:
         type: array
         items:
-          $ref: "#/definitions/Coin"
-  PubProposal:
+          $ref: "#/definitions/LegacyCoin"
+  LegacyPubProposal:
     type: object
     properties:
       title:
@@ -2888,7 +2968,7 @@ definitions:
       description:
         type: string
         example: "the description of the proposal"
-  CdpResponse:
+  LegacyCdpResponse:
     type: object
     properties:
       id:
@@ -2898,23 +2978,23 @@ definitions:
         type: string
         example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
       collateral:
-        $ref: "#/definitions/CoinCollateral"
+        $ref: "#/definitions/LegacyCoinCollateral"
       type:
         type: string
         example: "xrpb-a"
       principal:
-        $ref: "#/definitions/CoinPrincipal"
+        $ref: "#/definitions/LegacyCoinPrincipal"
       accumulated_fees:
-        $ref: "#/definitions/CoinPrincipal"
+        $ref: "#/definitions/LegacyCoinPrincipal"
       fees_updated:
         type: string
         example: "2020-02-05T23:45:55.761435272Z"
       collateral_value:
-        $ref: "#/definitions/CoinPrincipal"
+        $ref: "#/definitions/LegacyCoinPrincipal"
       collateralization_ratio:
         type: string
         example: "2.721734157907653857"
-  CdpDepositResponse:
+  LegacyCdpDepositResponse:
     type: object
     properties:
       cdp_id:
@@ -2924,16 +3004,16 @@ definitions:
         type: string
         example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
       amount:
-        $ref: "#/definitions/CoinCollateral"
+        $ref: "#/definitions/LegacyCoinCollateral"
     
-  PricefeedParameters:
+  LegacyPricefeedParameters:
     type: object
     properties:
       markets:
         type: array
         items:
-          $ref: "#/definitions/Market"
-  Price:
+          $ref: "#/definitions/LegacyMarket"
+  LegacyPrice:
     type: object
     properties:
       market_id:
@@ -2942,7 +3022,7 @@ definitions:
       price:
         type: string
         example: "0.298758999999999997"
-  PostedPrice:
+  LegacyPostedPrice:
     type: object
     properties:
       market_id:
@@ -2957,7 +3037,7 @@ definitions:
       expiry:
         type: string
         example: "2021-02-12T23:10:00Z"
-  Market:
+  LegacyMarket:
     type: object
     properties:
       market_id:
@@ -2973,21 +3053,21 @@ definitions:
         type: array
         x-nullable: true
         items:
-          $ref: "#/definitions/Address"
+          $ref: "#/definitions/LegacyAddress"
       active:
         type: boolean
         example: true
-  SwapParams:
+  LegacySwapParams:
     type: object
     properties:
       allowed_pools:
         type: array
         items:
-          $ref: "#/definitions/AllowedPool"
+          $ref: "#/definitions/LegacyAllowedPool"
       swap_fee:
         type: string
         example: "0.03"
-  AllowedPool:
+  LegacyAllowedPool:
     type: object
     properties:
       token_a:
@@ -2996,11 +3076,11 @@ definitions:
       token_b:
         type: string
         example: "usdx"
-  SwapDepositsQueryResult:
+  LegacySwapDepositsQueryResult:
     type: object
     properties:
       depositor:
-        $ref: "#/definitions/Address"
+        $ref: "#/definitions/LegacyAddress"
       pool_id:
         type: string
         example: "abc:xyz"
@@ -3008,36 +3088,36 @@ definitions:
         type: string
         example: "500"
       shares_value:
-        $ref: "#/definitions/Coins"
-  SwapPoolStatsQueryResult:
+        $ref: "#/definitions/LegacyCoins"
+  LegacySwapPoolStatsQueryResult:
     type: object
     properties:
       name:
         type: string
         example: "abc:xyz"
       coins:
-        $ref: "#/definitions/Coins"
+        $ref: "#/definitions/LegacyCoins"
       total_shares:
         type: string
         example: "500"
-  HardParams:
+  LegacyHardParams:
     type: object
     properties:
       money_markets:
         type: array
         items:
-          $ref: "#/definitions/MoneyMarket"
+          $ref: "#/definitions/LegacyMoneyMarket"
       minimum_borrow_usd_value:
         type: string
         example: "10"
-  MoneyMarket:
+  LegacyMoneyMarket:
     type: object
     properties:
       denom:
         type: string
         example: "bnb"
       borrow_limit:
-        $ref: "#/definitions/BorrowLimit"
+        $ref: "#/definitions/LegacyBorrowLimit"
       spot_market_id:
         type: string
         example: "bnb:usd"
@@ -3045,14 +3125,14 @@ definitions:
         type: string
         example: "100000000"
       interest_rate_model:
-        $ref: "#/definitions/InterestRateModel"
+        $ref: "#/definitions/LegacyInterestRateModel"
       reserve_factor:
         type: string
         example: "0.05"
       keeper_reward_percentage:
         type: string
         example: "0.05"
-  BorrowLimit:
+  LegacyBorrowLimit:
     type: object
     properties:
       has_max_limit:
@@ -3064,7 +3144,7 @@ definitions:
       loan_to_value:
         type: string
         example: "0.8"
-  InterestRateModel:
+  LegacyInterestRateModel:
     type: object
     properties:
       base_rate_apy:
@@ -3079,33 +3159,33 @@ definitions:
       jump_multiplier:
         type: string
         example: "0.5"
-  HardDepositResponse:
+  LegacyHardDepositResponse:
     type: object
     properties:
       depositor:
-        $ref: "#/definitions/Address"
+        $ref: "#/definitions/LegacyAddress"
       amount:
         type: array
         items:
-          $ref: "#/definitions/Coin"
+          $ref: "#/definitions/LegacyCoin"
       index:
         type: array
         items:
-          $ref: "#/definitions/SupplyInterestFactor"
-  HardBorrowResponse:
+          $ref: "#/definitions/LegacySupplyInterestFactor"
+  LegacyHardBorrowResponse:
     type: object
     properties:
       borrower:
-        $ref: "#/definitions/Address"
+        $ref: "#/definitions/LegacyAddress"
       amount:
         type: array
         items:
-          $ref: "#/definitions/Coin"
+          $ref: "#/definitions/LegacyCoin"
       index:
         type: array
         items:
-          $ref: "#/definitions/BorrowInterestFactor"
-  SupplyInterestFactor:
+          $ref: "#/definitions/LegacyBorrowInterestFactor"
+  LegacySupplyInterestFactor:
     type: object
     properties:
       denom:
@@ -3114,7 +3194,7 @@ definitions:
       value:
         type: string
         example: "0.1258"
-  BorrowInterestFactor:
+  LegacyBorrowInterestFactor:
     type: object
     properties:
       denom:
@@ -3123,7 +3203,7 @@ definitions:
       value:
         type: string
         example: "0.1258"
-  MoneyMarketInterestRate:
+  LegacyMoneyMarketInterestRate:
     type: object
     properties:
       denom:
@@ -3135,39 +3215,39 @@ definitions:
       borrow_interest_rate:
         type: string
         example: "5.25"
-  MultiplierName:
+  LegacyMultiplierName:
     type: string
     example: "small"
-  Multiplier:
+  LegacyMultiplier:
     type: object
     properties:
       name:
-        $ref: "#/definitions/MultiplierName"
+        $ref: "#/definitions/LegacyMultiplierName"
       months_lockup:
         type: string
         example: "12"
       factor:
         type: string
         example: "0.33"
-  IssuanceParams:
+  LegacyIssuanceParams:
     type: object
     properties:
       assets:
         type: array
         items:
-          $ref: "#/definitions/IssuanceAsset"
-  IssuanceAsset:
+          $ref: "#/definitions/LegacyIssuanceAsset"
+  LegacyIssuanceAsset:
     type: object
     properties:
       owner:
-        $ref: "#/definitions/Address"
+        $ref: "#/definitions/LegacyAddress"
       denom:
         type: string
         example: "btc"
       blocked_addresses:
         type: array
         items:
-          $ref: "#/definitions/Address"
+          $ref: "#/definitions/LegacyAddress"
       paused:
         type: boolean
         example: false
@@ -3175,8 +3255,8 @@ definitions:
         type: boolean
         example: true
       rate_limit:
-        $ref: "#/definitions/RateLimit"
-  RateLimit:
+        $ref: "#/definitions/LegacyRateLimit"
+  LegacyRateLimit:
     type: object
     properties:
       active:
@@ -3188,7 +3268,7 @@ definitions:
       time_period:
         type: string
         example: "518400000000000"
-  AuctionParameters:
+  LegacyAuctionParameters:
     type: object
     properties:
       max_auction_duration:
@@ -3206,7 +3286,7 @@ definitions:
       increment_collateral:
         type: string
         example: "0.05"
-  AuctionResponse:
+  LegacyAuctionResponse:
     type: object
     properties:
       id:
@@ -3216,11 +3296,11 @@ definitions:
         type: string
         example: liquidator
       lot:
-        $ref: "#/definitions/CoinCollateral"
+        $ref: "#/definitions/LegacyCoinCollateral"
       bidder:
-        $ref: "#/definitions/Address"
+        $ref: "#/definitions/LegacyAddress"
       bid:
-        $ref: "#/definitions/Coin"
+        $ref: "#/definitions/LegacyCoin"
       has_received_bids:
         type: boolean
         example: false
@@ -3236,7 +3316,7 @@ definitions:
       phase:
         type: string
         example: forward
-  CollateralParam:
+  LegacyCollateralParam:
     type: object
     properties:
       denom:
@@ -3249,7 +3329,7 @@ definitions:
         type: string
         example: "2.000000000000000000"
       debt_limit:
-        $ref: "#/definitions/CoinPrincipal"
+        $ref: "#/definitions/LegacyCoinPrincipal"
       stability_fee:
         type: string
         example: "1.000000001547126000"
@@ -3277,7 +3357,7 @@ definitions:
       conversion_factor:
         type: string
         example: "6"
-  DebtParam:
+  LegacyDebtParam:
     type: object
     properties:
       denom:
@@ -3292,7 +3372,7 @@ definitions:
       debt_floor:
         type: string
         example: "10000000"
-  Proposer:
+  LegacyProposer:
     type: object
     properties:
       proposal_id:
@@ -3301,7 +3381,7 @@ definitions:
       proposer:
         type: string
         example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
-  CommitteeVote:
+  LegacyCommitteeVote:
     type: object
     properties:
       voter:
@@ -3310,11 +3390,11 @@ definitions:
         type: string
       vote_type:
         type: string
-  CommitteeProposal:
+  LegacyCommitteeProposal:
     type: object
     properties:
       pub_proposal:
-        $ref: "#/definitions/PubProposal"
+        $ref: "#/definitions/LegacyPubProposal"
       id:
         type: string
         example: "1"
@@ -3324,7 +3404,7 @@ definitions:
       deadline:
         type: string
         example: "2020-05-10T16:18:43.752522893Z"
-  Committee:
+  LegacyCommittee:
     type: object
     properties:
       id:
@@ -3336,18 +3416,18 @@ definitions:
       members:
         type: array
         items:
-          $ref: "#/definitions/Address"
+          $ref: "#/definitions/LegacyAddress"
       permissions:
         type: array
         items:
-          $ref: "#/definitions/Permission"
+          $ref: "#/definitions/LegacyPermission"
       vote_threshold:
         type: string
         example: "0.5"
       proposal_duration:
         type: string
         example: "3600000000000"
-  Permission:
+  LegacyPermission:
     type: object
     properties:
       type:
@@ -3356,8 +3436,8 @@ definitions:
       allowed_params:
         type: array
         items:
-          $ref: "#/definitions/AllowedParam"
-  AllowedParam:
+          $ref: "#/definitions/LegacyAllowedParam"
+  LegacyAllowedParam:
     type: object
     properties:
       subspace:
@@ -3366,7 +3446,7 @@ definitions:
       key:
         type: string
         example: collateral_params
-  Redelegation:
+  LegacyRedelegation:
     type: object
     properties:
       delegator_address:
@@ -3378,15 +3458,15 @@ definitions:
       entries:
         type: array
         items:
-          $ref: "#/definitions/Redelegation"
-  PublicKey:
+          $ref: "#/definitions/LegacyRedelegation"
+  LegacyPublicKey:
     type: object
     properties:
       type:
         type: string
       value:
         type: string
-  KavadistPeriod:
+  LegacyKavadistPeriod:
     type: object
     properties:
       start:
