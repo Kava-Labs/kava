@@ -5,15 +5,9 @@
     "description": "A REST interface for state queries",
     "version": "1.0.0"
   },
-  "url": "https://raw.githubusercontent.com/Kava-Labs/kava/master/client/docs/swagger-ui/swagger.yaml",
   "host": "api.data.kava.io",
   "schemes": [
     "https"
-  ],
-  "servers": [
-    {
-      "url": "https://api.data.kava.io"
-    }
   ],
   "apis": [
     {
@@ -204,6 +198,12 @@
             "to": "Ibc$1"
           }
         ]
+      }
+    },
+    {
+      "url": "./client/docs/legacy-swagger.yml",
+      "dereference": {
+        "circular": "ignore"
       }
     }
   ]
