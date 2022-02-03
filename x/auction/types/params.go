@@ -43,6 +43,7 @@ func NewParams(
 	return Params{
 		MaxAuctionDuration:  maxAuctionDuration,
 		ForwardBidDuration:  forwardBidDuration,
+		ReverseBidDuration:  reverseBidDuration,
 		IncrementSurplus:    incrementSurplus,
 		IncrementDebt:       incrementDebt,
 		IncrementCollateral: incrementCollateral,

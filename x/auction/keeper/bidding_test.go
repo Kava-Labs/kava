@@ -488,7 +488,7 @@ func TestAuctionBidding(t *testing.T) {
 
 			// Check success/failure
 			if tc.expectPass {
-				require.Nil(t, err)
+				require.NoError(t, err)
 				// Check auction was found
 				newAuction, found := keeper.GetAuction(ctx, id)
 				require.True(t, found)
