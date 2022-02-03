@@ -537,7 +537,8 @@ Params defines the parameters for the issuance module.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `max_auction_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
-| `bid_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `forward_bid_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `reverse_bid_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
 | `increment_surplus` | [bytes](#bytes) |  |  |
 | `increment_debt` | [bytes](#bytes) |  |  |
 | `increment_collateral` | [bytes](#bytes) |  |  |

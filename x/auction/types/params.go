@@ -31,7 +31,12 @@ var (
 )
 
 // NewParams returns a new Params object.
-func NewParams(maxAuctionDuration, bidDuration time.Duration, incrementSurplus, incrementDebt, incrementCollateral sdk.Dec) Params {
+func NewParams(
+	maxAuctionDuration, forwardBidDuration, reverseBidDuration time.Duration,
+	incrementSurplus,
+	incrementDebt,
+	incrementCollateral sdk.Dec,
+) Params {
 	return Params{
 		MaxAuctionDuration:  maxAuctionDuration,
 		BidDuration:         bidDuration,
