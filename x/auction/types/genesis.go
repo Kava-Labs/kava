@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -56,7 +55,7 @@ func UnpackGenesisAuctions(genesisAuctionsAny []*types.Any) ([]GenesisAuction, e
 }
 
 // Ensure this type will unpack contained interface types correctly when it is unmarshalled.
-var _ codectypes.UnpackInterfacesMessage = &GenesisState{}
+var _ types.UnpackInterfacesMessage = &GenesisState{}
 
 // NewGenesisState returns a new genesis state object for auctions module.
 func NewGenesisState(nextID uint64, ap Params, ga []GenesisAuction) (*GenesisState, error) {
