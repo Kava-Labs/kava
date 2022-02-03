@@ -312,7 +312,7 @@ func TestAuctionBidding(t *testing.T) {
 			[]bidArgs{{buyer, c("token2", 99)}},
 			bidArgs{buyer, c("token2", 100)}, // min bid at default 5% is 104
 			nil,
-			someTime.Add(types.DefaultForwardBidDuration),
+			someTime.Add(types.DefaultReverseBidDuration), // Converts to a reverse bid when max reached
 			buyer,
 			c("token2", 100),
 			true,
