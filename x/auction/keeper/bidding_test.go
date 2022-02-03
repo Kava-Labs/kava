@@ -259,6 +259,18 @@ func TestAuctionBidding(t *testing.T) {
 			false,
 		},
 		{
+			"collateral [forward]: convert to reverse (reach maxBid)",
+			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
+			[]bidArgs{{buyer, c("token2", 10)}},
+			bidArgs{secondBuyer, c("token2", 100)},
+			nil,
+			someTime.Add(types.DefaultReverseBidDuration),
+			secondBuyer,
+			c("token2", 100),
+			true,
+			false,
+		},
+		{
 			"collateral [forward]: invalid bid denom",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			nil,
