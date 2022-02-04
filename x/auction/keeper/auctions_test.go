@@ -77,7 +77,7 @@ func (suite *auctionTestSuite) TestDebtAuctionBasic() {
 	suite.CheckAccountBalanceEqual(suite.ModAcc.GetAddress(), cs(c("token1", 20), c("debt", 100)))
 
 	// Close auction at just after auction expiry
-	ctx := suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(types.DefaultReverseBidDuration))
+	ctx := suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(types.DefaultForwardBidDuration))
 	suite.NoError(suite.Keeper.CloseAuction(ctx, auctionID))
 	// Check seller's coins increased
 	suite.CheckAccountBalanceEqual(seller, cs(c("token1", 80), c("token2", 110)))
@@ -103,7 +103,7 @@ func (suite *auctionTestSuite) TestDebtAuctionDebtRemaining() {
 	suite.CheckAccountBalanceEqual(buyerAddr, cs(c("token1", 10), c("debt", 90)))
 
 	// Close auction at just after auction expiry
-	ctx := suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(types.DefaultReverseBidDuration))
+	ctx := suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(types.DefaultForwardBidDuration))
 	suite.NoError(suite.Keeper.CloseAuction(ctx, auctionID))
 	// Check seller's coins increased
 	suite.CheckAccountBalanceEqual(seller, cs(c("token1", 90), c("token2", 110)))
