@@ -1,16 +1,24 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Kava - gRPC Gateway docs",
+    "title": "Kava - Legacy REST and gRPC Gateway docs",
     "description": "A REST interface for state queries",
     "version": "1.0.0"
   },
+  "externalDocs": {
+    "description": "GitHub",
+    "url": "https://github.com/Kava-Labs/kava"
+  },
+  "host": "api.data.kava.io",
+  "schemes": [
+    "https"
+  ],
   "apis": [
     {
-      "url": "./tmp-swagger-gen/kava/cdp/v1beta1/query.swagger.json",
+      "url": "./tmp-swagger-gen/kava/auction/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
-          "Query": "Cdp"
+          "Query": "Auction"
         }
       },
       "operationIds": {
@@ -18,24 +26,7 @@
           {
             "type": "regex",
             "from": "(.*)",
-            "to": "Cdp$1"
-          }
-        ]
-      }
-    },
-    {
-      "url": "./tmp-swagger-gen/kava/kavadist/v1beta1/query.swagger.json",
-      "tags": {
-        "rename": {
-          "Query": "KavaDist"
-        }
-      },
-      "operationIds": {
-        "rename": [
-          {
-            "type": "regex",
-            "from": "(.*)",
-            "to": "KavaDist$1"
+            "to": "Auction$1"
           }
         ]
       }
@@ -44,7 +35,7 @@
       "url": "./tmp-swagger-gen/kava/bep3/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
-          "Query": "Bep3"
+          "Query": "BEP3"
         }
       },
       "operationIds": {
@@ -52,7 +43,92 @@
           {
             "type": "regex",
             "from": "(.*)",
-            "to": "Bep3$1"
+            "to": "BEP3$1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/kava/cdp/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "CDP"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "CDP$1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/kava/committee/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Committee"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Committee$1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/kava/hard/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Hard"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Hard$1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/kava/issuance/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Issuance"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Issuance$1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/kava/kavadist/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Kavadist"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Kavadist$1"
           }
         ]
       }
@@ -96,13 +172,44 @@
       "dereference": {
         "circular": "ignore"
       },
+      "tags": {
+        "rename": {
+          "Gaia REST": "KAVA Rest",
+          "Query": "Cosmos SDK"
+        }
+      },
       "paths": {
         "exclude": [
           "^/cosmos/authz/.*",
           "^/cosmos/feegrant/.*"
         ]
       }
+    },
+    {
+      "url": "./client/docs/ibc-go-swagger.yml",
+      "dereference": {
+        "circular": "ignore"
+      },
+      "tags": {
+        "rename": {
+          "Query": "IBC"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Ibc$1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "./client/docs/legacy-swagger.yml",
+      "dereference": {
+        "circular": "ignore"
+      }
     }
   ]
 }
-
