@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -487,7 +486,7 @@ func TestAuctionBidding(t *testing.T) {
 
 			// Check success/failure
 			if tc.expectPass {
-				require.Nil(t, err)
+				require.NoError(t, err)
 				// Check auction was found
 				newAuction, found := keeper.GetAuction(ctx, id)
 				require.True(t, found)
@@ -526,8 +525,8 @@ func TestAuctionBidding(t *testing.T) {
 
 			} else {
 				// Check expected error code type
-				require.NotNil(t, err, "PlaceBid did not return an error") // catch nil values before they cause a panic below
-				require.True(t, errors.Is(err, tc.expectedError))
+				require.Error(t, err, "PlaceBid did not return an error")
+				require.ErrorIs(t, err, tc.expectedError)
 
 				// Check auction values
 				newAuction, found := keeper.GetAuction(ctx, id)
