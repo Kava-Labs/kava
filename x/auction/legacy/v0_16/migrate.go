@@ -6,7 +6,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	v015auction "github.com/kava-labs/kava/x/auction/legacy/v0_15"
-	v016auction "github.com/kava-labs/kava/x/auction/types"
+	v016auction "github.com/kava-labs/kava/x/auction/legacy/v0_16/types"
 )
 
 func migrateBaseAuction(auction v015auction.BaseAuction) v016auction.BaseAuction {

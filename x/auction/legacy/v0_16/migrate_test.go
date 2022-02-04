@@ -12,7 +12,7 @@ import (
 
 	app "github.com/kava-labs/kava/app"
 	v015auction "github.com/kava-labs/kava/x/auction/legacy/v0_15"
-	v016auction "github.com/kava-labs/kava/x/auction/types"
+	v016auction "github.com/kava-labs/kava/x/auction/legacy/v0_16/types"
 )
 
 type migrateTestSuite struct {
