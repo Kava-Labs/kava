@@ -14,7 +14,7 @@ The monthly storage requirements for a node are as follows. These are estimated 
 - A default pruning node (`pruning = “default”`) grows at a rate of ~25 GB per month
 
 ## Install Go
-Kava is built using Go and requires Go version 1.13+. In this example, you will be installing Go on a fresh install of ubuntu 20.04.
+Kava is built using Go and requires Go version 1.17+. In this example, you will be installing Go on a fresh install of ubuntu 20.04.
 
 ```bash
 # Update ubuntu
