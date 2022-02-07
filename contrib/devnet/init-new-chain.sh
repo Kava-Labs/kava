@@ -1,9 +1,6 @@
 #! /bin/bash
 set -e
 
-
-
-
 validatorMnemonic="equip town gesture square tomorrow volume nephew minute witness beef rich gadget actress egg sing secret pole winter alarm law today check violin uncover"
 # kava1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkp40r02
 # 0xedaa1e944aeac85a8b2ac41fa741b3b20b783136
@@ -34,12 +31,12 @@ $BINARY config keyring-backend test
 # Create validator keys and add account to genesis
 validatorKeyName="validator"
 printf "$validatorMnemonic\n" | $BINARY keys add $validatorKeyName --recover
-$BINARY add-genesis-account $validatorKeyName 2000000000ukava,100000000000bnb,100000000000000000000agas
+$BINARY add-genesis-account $validatorKeyName 2000000000ukava,100000000000bnb
 
 # Create faucet keys and add account to genesis
 faucetKeyName="faucet"
 printf "$faucetMnemonic\n" | $BINARY keys add $faucetKeyName --recover
-$BINARY add-genesis-account $faucetKeyName 1000000000ukava,100000000000bnb,100000000000000000000agas
+$BINARY add-genesis-account $faucetKeyName 1000000000ukava,100000000000bnb
 
 # Create a delegation tx for the validator and add to genesis
 $BINARY gentx $validatorKeyName 1000000000ukava --keyring-backend test --chain-id $chainID
@@ -49,7 +46,7 @@ $BINARY collect-gentxs
 sed -in-place='' 's/stake/ukava/g' $DATA/config/genesis.json
 
 # Replace the default evm denom of aphoton with ukava
-sed -in-place='' 's/aphoton/agas/g' $DATA/config/genesis.json
+sed -in-place='' 's/aphoton/ukava/g' $DATA/config/genesis.json
 
 # Zero out the total supply so it gets recalculated during InitGenesis
 jq '.app_state.bank.supply = []' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
