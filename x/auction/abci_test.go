@@ -37,7 +37,7 @@ func (suite *abciTestSuite) TestKeeper_BeginBlocker() {
 	suite.Require().NoError(suite.Keeper.PlaceBid(suite.Ctx, auctionID, buyer, c("token2", 30)))
 
 	// Run the beginblocker, simulating a block time 1ns before auction expiry
-	preExpiryTime := suite.Ctx.BlockTime().Add(types.DefaultBidDuration - 1)
+	preExpiryTime := suite.Ctx.BlockTime().Add(types.DefaultForwardBidDuration - 1)
 	auction.BeginBlocker(suite.Ctx.WithBlockTime(preExpiryTime), suite.Keeper)
 
 	// Check auction has not been closed yet
@@ -45,7 +45,7 @@ func (suite *abciTestSuite) TestKeeper_BeginBlocker() {
 	suite.True(found)
 
 	// Run the endblocker, simulating a block time equal to auction expiry
-	expiryTime := suite.Ctx.BlockTime().Add(types.DefaultBidDuration)
+	expiryTime := suite.Ctx.BlockTime().Add(types.DefaultForwardBidDuration)
 	auction.BeginBlocker(suite.Ctx.WithBlockTime(expiryTime), suite.Keeper)
 
 	// Check auction has been closed
