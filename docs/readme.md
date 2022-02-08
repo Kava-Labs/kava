@@ -25,15 +25,15 @@ make install
 
 ### Upgrade
 
-The scheduled mainnet upgrade to `kava-8` took place on August 30th, 2021 at 15:00 UTC. The current version of Kava for `kava-8` is [__v0.15.1__](https://github.com/Kava-Labs/kava/releases/tag/v0.15.1).
+The scheduled mainnet upgrade to `kava-9` took place on January 19th, 2022 at 15:00 UTC. The current version of Kava for `kava-9` is [__v0.16.1__](https://github.com/Kava-Labs/kava/releases/tag/v0.16.1).
 
-The canonical genesis file can be found [here](https://github.com/Kava-Labs/launch/tree/master/kava-8)
+The canonical genesis file can be found [here](https://github.com/Kava-Labs/launch/tree/master/kava-9)
 
 The canonical genesis file hash is
 
 ```
 jq -S -c -M '' genesis.json | shasum -a 256
-f0c90f0cbf96d230a83cd2309b8fd032e52d7fb933881541472df1bf2703a939  -
+5c688df5ae6cba9c9e5a9bab045eb367dd54ce9b7f5fab78cf3e636cf2e2b793  -
 ```
 
 For additional information about upgrades:
