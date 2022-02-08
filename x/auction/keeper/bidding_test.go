@@ -349,7 +349,7 @@ func TestAuctionBidding(t *testing.T) {
 			[]bidArgs{{buyer, c("token2", 900)}},
 			bidArgs{buyer, c("token2", 1000)}, // buyer only has enough to cover the increase from previous bid
 			nil,
-			someTime.Add(types.DefaultBidDuration),
+			someTime.Add(types.DefaultForwardBidDuration),
 			buyer,
 			c("token2", 1000),
 			true,
@@ -433,7 +433,7 @@ func TestAuctionBidding(t *testing.T) {
 			[]bidArgs{{buyer, c("token2", 1000)}},
 			bidArgs{buyer, c("token1", 100)}, // buyer has already bid all of their token2
 			nil,
-			someTime.Add(types.DefaultBidDuration),
+			someTime.Add(types.DefaultReverseBidDuration),
 			buyer,
 			c("token2", 1000),
 			true,
