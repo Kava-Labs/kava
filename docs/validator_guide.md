@@ -24,6 +24,9 @@ sudo apt upgrade -y
 # Install packages necessary to run go and jq for pretty formatting command line outputs
 sudo apt install build-essential jq -y
 
+# Install git
+sudo apt install git
+
 # Install go
 wget https://dl.google.com/go/go1.17.6.linux-amd64.tar.gz (or latest version at https://golang.org/dl/)
 sudo tar -xvf go1.17.6.linux-amd64.tar.gz
@@ -68,7 +71,7 @@ kava version --long
 ## Configuring Your Node
 Next, download the correct genesis file and sync your node with the Kava mainnet. To download the genesis file:
 ```bash
-# First, initialize kvd. Replace <name> with the public name of your node
+# First, initialize kava. Replace <name> with the public name of your node
 kava init --chain-id kava-9 <name>
 # Download the genesis file
 wget https://kava-genesis-files.s3.amazonaws.com/kava-9/genesis.json -O ~/.kava/config/genesis.json
