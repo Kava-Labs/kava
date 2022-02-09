@@ -72,6 +72,11 @@ module.exports = {
             {
               title: "Protocol Reference",
               path: "https://pkg.go.dev/github.com/kava-labs/kava?tab=subdirectories"
+            },
+            {
+              title: "FAQ", 
+              path: "/education/FAQ/",
+              directory: true,
             }
           ]
         }
