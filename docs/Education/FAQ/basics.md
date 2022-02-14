@@ -1,20 +1,24 @@
 ## The Basics
 
 ### What is Kava Protocol? 
-Kava Chain is a decentralized, permissionless, censorship-resistant blockchain built with the Cosmos SDK. This means it operates much like other Cosmos ecosystem blockchains, and is designed to be interoperable between chains. [Learn more about Cosmos](https://cosmos.network/). [Learn more about Kava.](https://medium.com/kava-labs/kava-protocol-101-ce3beb0fa8b8)  
+Kava Chain is a decentralized, permissionless, censorship-resistant blockchain built with the Cosmos SDK. This means it operates much like other Cosmos ecosystem blockchains, and is designed to be interoperable between chains.
+
+[Learn more about Cosmos](https://cosmos.network/). 
+
+[Learn more about Kava.](https://medium.com/kava-labs/kava-protocol-101-ce3beb0fa8b8)  
 ‍  
 Kava Protocol is the set of rules and behaviors built into the Kava Chain that enables advanced Decentralized Finance (DeFi) functionality like permissionless borrowing and lending.  
 ‍  
-The KAVA token is an asset on the Kava Chain. Kava Chain is secured by its token KAVA and it is used across the full chain as a transport and a store of value. It is given as a reward for minting USDX on the Kava app.
+The KAVA token is an asset on the Kava Chain. Kava Chain is secured by its token KAVA and it is used across the full chain as a transport and a store of value.
 
-### What is Hard Protocol?
-Hard Protocol is an application that runs on Kava Chain. It does not have its own blockchain. It builds upon the Kava Protocol and adds new functionality, expanding the Kava Ecosystem to include an autonomous money market protocol.  
+### What is Lend Protocol?
+Lend Protocol is an application that runs on Kava Chain. It does not have its own blockchain. It builds upon the Kava Protocol and adds new functionality, expanding the Kava Ecosystem to include an autonomous money market protocol.  
   
-The HARD token is an asset on the Kava Chain. It is given as a reward for supplying and borrowing on the Hard app.
+The HARD token is an asset on the Kava Chain. It is given as a reward for supplying and borrowing on the Lend app.
 
 ### What tokens and assets can be use on the Kava Blockchain? 
 **Native assets**  
-Native assets are tokens that originate on the Kava Chain. These currently include KAVA, HARD, and USDX.  
+Native assets are tokens that originate on the Kava Chain. These currently include KAVA, HARD, SWP and USDX.  
   
 KAVA and HARD are governance tokens, meaning holders can vote on the rules of the protocols. KAVA is also used as a Proof of Stake staking asset, which ensures the finality and safety of loans on the protocol and also acts as the ‘lender of last resort’ in certain situations. USDX is a stable coin loosely pegged to the US Dollar. It is minted when a Kava CDP is opened. The exact value of USDX is determined by market forces. [Read more.](https://https//medium.com/kava-labs/usdx-stability-mechanics-12bf23ed957b.com/kava-labs/usdx-stability-mechanics-12bf23ed957b)  
   
@@ -32,7 +36,7 @@ represents BTC which has been tokenized on Binance Chain. This BNB token has als
 ### How do I access Kava? 
 The Kava Platform or Kava Web App, which is live at [app.kava.io](https://app.kava.io/), is a user-friendly hub for interacting with the protocol.  
   
-Similarly, the Hard Platform or Hard Web App can be found at [app.hard.kava.io](https://app.hard.kava.io/).
+Similarly, the Lend Platform or Lend Web App can be found at [app.hard.kava.io](https://app.hard.kava.io/).
 
 ### Where can I learn more? 
 Here are great introductory readings: [Kava](https://medium.com/kava-labs/kava-protocol-101-ce3beb0fa8b8), [Hard](https://medium.com/kava-labs/introducing-harvest-io-the-worlds-first-cross-chain-money-market-a27535a5d91a).  

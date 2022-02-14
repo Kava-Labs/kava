@@ -19,9 +19,10 @@ When repaying a CDP, the remaining debt balance cannot be below 10 USDX.
 If you try to repay your original principal only, the transaction will fail if the remaining interest would leave a debt balance of less than 10 USDX.  
   
 If you need to purchase additional USDX to fully close out a position:  
-- Purchase on Bitmax  
+- Swap an asset for USDX on Kava Swap
+- Purchase USDX on AscendEx  
 - Peer-to-peer transaction through [Kava TipBot](https://kavatipbot.com/)  
-- Purchase on Kava AMM (coming soon)
+
 ### I have enough balance, but it says I can't transfer because my balance is too low
 Check if your balance contains vested (“locked”) coins or not. If so, you need to wait for the vesting period to complete.
 ### I got an error during a transaction
@@ -50,5 +51,5 @@ Please contact our team through [Discord](https://discord.com/invite/kQzh3Uv), [
 Check the #validator-announcements channel in Discord for information regarding the potential need for an update.  
   
 Feel free to message us and we will set up a private channel on Telegram or Slack.
-### Somebody from the Kava/Hard team/support messaged me in Telegram. Are they legitimate team members? 
+### Somebody from Kava support messaged me in Telegram. Are they legitimate team members?
 Kava team members never message first. Please report at @notoscam and block the account. The scammer might also imitate the account of a team member changing the letters in the username. If you need assistance, find the team member in the chat user list and send them a direct message.
