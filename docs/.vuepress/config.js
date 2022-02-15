@@ -14,11 +14,11 @@ module.exports = {
           children: [
             {
               title: "Get Started",
-              path: "/education/getting_started.html"
+              path: "/Education/getting_started.html"
             },
             {
               title: "Building Modules",
-              path: "/education/hello_kava.html"
+              path: "/Education/hello_kava.html"
             },
             {
               title: "Javascript SDK",
@@ -62,7 +62,7 @@ module.exports = {
             },
             {
               title: "CLI Docs",
-              path: "/education/user_actions/",
+              path: "/Education/user_actions/",
               directory: true,
             },
             {
@@ -72,6 +72,11 @@ module.exports = {
             {
               title: "Protocol Reference",
               path: "https://pkg.go.dev/github.com/kava-labs/kava?tab=subdirectories"
+            },
+            {
+              title: "FAQ", 
+              path: "/Education/FAQ/",
+              directory: true,
             }
           ]
         }
