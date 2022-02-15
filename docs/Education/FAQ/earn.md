@@ -2,10 +2,10 @@
 
 ### Why use Mint/Lend? 
 **Borrowing**  
-Mint and Lend protocols let users take out loans in a decentralized fashion. This democratizes finance by removing the barrier to entry, lowering friction, and removing gatekeepers.  
+Mint and Lend let users take out loans in a decentralized fashion. This democratizes finance by removing the barrier to entry, lowering friction, and removing gatekeepers. 
   
 **Lending**  
-The Mint, Swap and Lend protocols let users turn their idle cryptocurrencies into interest-producing assets safely and transparently.  
+Mint, Lend, and Swap let users turn their idle cryptocurrencies into interest-producing assets safely and transparently.  
   
 **Rewards**  
 As the protocols scale, numerous rewards are available to early adopters.DeFi applications - developers are encouraged to build new apps, integrations, and protocols in the Kava ecosystem for new business use cases.
@@ -18,20 +18,23 @@ Like most Proof of Stake (PoS) blockchains, KAVA holders can ‘stake’ their K
 Use your assets as collateral to borrow other assets, then using those to earn returns by trading or with other DeFi pursuits. Users can borrow USDX on Kava and other assets on Lend.  
   
 **Lending**  
-Supply assets to the Lend Protocol and automatically earn rewards in HARD tokens.  
+Supply assets to Kava Lend and automatically earn rewards in HARD tokens.  
   
 **Rewards**  
-Kava Protocol  
+Kava Mint  
 
-[Trust wallet guide](https://medium.com/kava-labs/borrow-usdx-on-kavas-web-app-using-trust-wallet-8540ba61f7a4). [Minting rewards](https://medium.com/kava-labs/usdx-minting-rewards-explained-82d0b74897a2#Reward%20Calculation).  
+[Trust wallet guide](https://medium.com/kava-labs/borrow-usdx-on-kavas-web-app-using-trust-wallet-8540ba61f7a4).
+
+[Minting rewards](https://medium.com/kava-labs/usdx-minting-rewards-explained-82d0b74897a2#Reward%20Calculation).  
+
 Available assets include: BNB, BTCB, BUSD-A, BUSD-B, XRPB, KAVA, UST, and HARD.  
   
-Lend Protocol  
-Supply assets to the Lend Protocol to earn KAVA and HARD rewards. [Guide](https://medium.com/kava-labs/supply-and-earn-on-hard-money-market-from-binance-com-e3f54acf4b19).  
+Kava Lend   
+Supply assets to Kava Lend to earn KAVA and HARD rewards. [Guide](https://medium.com/kava-labs/supply-and-earn-on-hard-money-market-from-binance-com-e3f54acf4b19).   
   
 Available assets include: USDX, KAVA, HARD, BNB, BUSD, BTCB, SWP, ATOM, and XRPB.  
   
-KAVA rewards have a vesting period of 21 days. HARD rewards have a vesting period of 1 month or 12 months. If you choose 12 months, the reward amount increases.  
+KAVA, HARD, and SWP rewards have a vesting period of either 1 month or 12 months. If you choose 12 months, the reward amount increases.  
   
 Users can earn rewards by:  
 - Supplying an asset to Lend.  
