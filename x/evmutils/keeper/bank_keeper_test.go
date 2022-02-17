@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
@@ -12,8 +11,6 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/x/evmutils/types"
@@ -38,7 +35,7 @@ func (suite *evmKeeperTestSuite) SetupTest() {
 	suite.app = tApp
 	suite.bk = tApp.GetBankKeeper()
 	suite.ak = tApp.GetAccountKeeper()
-	suite.evmBankKeeper = keeper.NewEvmBankKeeper(tApp.GetEvmUtilsKeeper(), tApp.GetBankKeeper(), tApp.GetAccountKeeper())
+	suite.evmBankKeeper = keeper.NewEvmBankKeeper(tApp.GetBankKeeper())
 	suite.evmModuleAddr = suite.ak.GetModuleAddress(evmtypes.ModuleName)
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(4)
