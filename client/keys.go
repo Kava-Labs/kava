@@ -54,7 +54,6 @@ The pass backend requires GnuPG: https://gnupg.org/
 	// support adding Ethereum supported keys
 	addCmd := keys.AddKeyCommand()
 
-	// update the default signing algorithm value to "eth_secp256k1"
 	algoFlag := addCmd.Flag(flags.FlagKeyAlgorithm)
 	algoFlag.DefValue = string(cosmoshd.Secp256k1Type)
 	err := algoFlag.Value.Set(string(cosmoshd.Secp256k1Type))
