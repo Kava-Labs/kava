@@ -81,7 +81,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 	evmante "github.com/tharsis/ethermint/app/ante"
 	srvflags "github.com/tharsis/ethermint/server/flags"
-	ethermint "github.com/tharsis/ethermint/types"
 	"github.com/tharsis/ethermint/x/evm"
 	evmrest "github.com/tharsis/ethermint/x/evm/client/rest"
 	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
@@ -370,7 +369,7 @@ func NewApp(
 		appCodec,
 		keys[authtypes.StoreKey],
 		authSubspace,
-		ethermint.ProtoAccount,
+		authtypes.ProtoBaseAccount,
 		mAccPerms,
 	)
 	app.bankKeeper = bankkeeper.NewBaseKeeper(
