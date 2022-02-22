@@ -105,6 +105,7 @@ import (
 	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	evmutils "github.com/kava-labs/kava/x/evmutils"
 	evmutilskeeper "github.com/kava-labs/kava/x/evmutils/keeper"
 	evmutilstypes "github.com/kava-labs/kava/x/evmutils/types"
 	"github.com/kava-labs/kava/x/hard"
@@ -180,6 +181,7 @@ var (
 		committee.AppModuleBasic{},
 		incentive.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
+		evmutils.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -630,6 +632,7 @@ func NewApp(
 		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
+		evmutils.NewAppModule(),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -666,7 +669,7 @@ func NewApp(
 		vestingtypes.ModuleName,
 		pricefeedtypes.ModuleName,
 		validatorvestingtypes.ModuleName,
-		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName, evmutilstypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -698,7 +701,7 @@ func NewApp(
 		pricefeedtypes.ModuleName,
 		ibchost.ModuleName,
 		validatorvestingtypes.ModuleName,
-		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName, evmutilstypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -732,6 +735,7 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
+		evmutilstypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
