@@ -20,6 +20,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
+	kavaclient "github.com/kava-labs/kava/client"
 	"github.com/kava-labs/kava/migrate"
 )
 
@@ -102,7 +103,6 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		StatusCommand(),
 		newQueryCmd(),
 		newTxCmd(),
-		// Adds additional key commands for ethermint and changes signing algo to eth_secp256k1
-		ethermintclient.KeyCommands(app.DefaultNodeHome),
+		kavaclient.KeyCommands(app.DefaultNodeHome),
 	)
 }
