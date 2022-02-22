@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
@@ -11,6 +12,8 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/x/evmutils/types"
@@ -597,6 +600,6 @@ func (suite *evmKeeperTestSuite) TestMintCoins() {
 	}
 }
 
-func TestEvmKeeperTestSuite(t *testing.T) {
+func TestEvmBankKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(evmKeeperTestSuite))
 }
