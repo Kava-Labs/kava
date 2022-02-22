@@ -10,17 +10,14 @@ RUN apk add bash git make libc-dev gcc linux-headers eudev-dev jq curl
 WORKDIR /root/kava
 # default home directory is /root
 
-# Speed up later builds by caching the dependencies
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
-
 # Add source files
 COPY . .
 
 #ENV LEDGER_ENABLED False
-# Mount build container cache, persisted between builder invocations
+
+# Mount go build and mod caches as container caches, persisted between builder invocations
 RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
     make install
 
 FROM alpine:3.15
