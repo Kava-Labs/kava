@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
-	cosmoshd "github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/libs/cli"
@@ -53,13 +52,6 @@ The pass backend requires GnuPG: https://gnupg.org/
 
 	// support adding Ethereum supported keys
 	addCmd := keys.AddKeyCommand()
-
-	algoFlag := addCmd.Flag(flags.FlagKeyAlgorithm)
-	algoFlag.DefValue = string(cosmoshd.Secp256k1Type)
-	err := algoFlag.Value.Set(string(cosmoshd.Secp256k1Type))
-	if err != nil {
-		panic(err)
-	}
 	addCmd.Flags().Bool(ethFlag, false, "use default evm coin-type (60) and key signing algorithm (\"eth_secp256k1\")")
 
 	addCmd.RunE = runAddCmd
