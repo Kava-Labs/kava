@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	// EvmDenom is the gas denom used by evm
+	// EvmDenom is the gas denom used by the evm
 	EvmDenom = "akava"
 
 	// CosmosDenom is the gas denom used by the kava app
@@ -22,8 +22,8 @@ var ConversionMultiplier = sdk.NewInt(1_000_000_000_000)
 
 // EvmBankKeeper is a BankKeeper wrapper for the x/evm module to allow the use
 // of the 18 decimal akava coin on the evm.
-// This keeper uses both the ukava coin and a separate akava coin to
-// manage the extra percision needed by the evm.
+// This keeper uses both the ukava coin and a separate akava coin to manage the
+// extra percision needed by the evm.
 type EvmBankKeeper struct {
 	bk types.BankKeeper
 }
@@ -47,10 +47,9 @@ func (k EvmBankKeeper) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom st
 	return sdk.NewCoin(EvmDenom, total)
 }
 
-// SendCoinsFromModuleToAccount transfers 18 decimal coins from a ModuleAccount
-// to an AccAddress. It will panic if the module account does not exist. An
-// error is returned if the recipient address is black-listed or if sending the
-// tokens fails.
+// SendCoinsFromModuleToAccount transfers akava coins from a ModuleAccount to an AccAddress.
+// It will panic if the module account does not exist. An error is returned if the recipient
+// address is black-listed or if sending the tokens fails.
 func (k EvmBankKeeper) SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
 	coins, err := splitAkavaCoins(amt)
 	if err != nil {
@@ -64,8 +63,8 @@ func (k EvmBankKeeper) SendCoinsFromModuleToAccount(ctx sdk.Context, senderModul
 	return k.convertAkavaToUkava(ctx, recipientAddr)
 }
 
-// SendCoinsFromAccountToModule transfers akava coins from an AccAddress to
-// a ModuleAccount. It will panic if the module account does not exist.
+// SendCoinsFromAccountToModule transfers akava coins from an AccAddress to a ModuleAccount.
+// It will panic if the module account does not exist.
 func (k EvmBankKeeper) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
 	coins, err := splitAkavaCoins(amt)
 	if err != nil {
@@ -105,14 +104,14 @@ func (k EvmBankKeeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coi
 	return k.bk.BurnCoins(ctx, moduleName, coins)
 }
 
-// validateEvmCoins validates that the coins coming from evm is valid and the required denom (akava)
+// validateEvmCoins validates the coins from evm is valid and is the EvmDenom (akava).
 func validateEvmCoins(coins sdk.Coins) error {
 	// validate that coins are non-negative, sorted, and no dup denoms
 	if err := coins.Validate(); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, coins.String())
 	}
 
-	// validate that we don't have non akava denoms
+	// validate that coin denom is akava
 	if len(coins) > 1 || coins[0].Denom != EvmDenom {
 		errMsg := fmt.Sprintf("invalid evm coin denom, only %s is supported", EvmDenom)
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, errMsg)
@@ -121,7 +120,7 @@ func validateEvmCoins(coins sdk.Coins) error {
 	return nil
 }
 
-// convertOneUkavaToAkava converts 1 ukava to akava for a given account by address.
+// convertOneUkavaToAkava converts 1 ukava to akava for a given AccAddress.
 func (k EvmBankKeeper) convertOneUkavaToAkava(ctx sdk.Context, addr sdk.AccAddress) error {
 	coinsToBurn := sdk.NewCoins(sdk.NewCoin(CosmosDenom, sdk.OneInt()))
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, coinsToBurn); err != nil {
@@ -143,7 +142,7 @@ func (k EvmBankKeeper) convertOneUkavaToAkava(ctx sdk.Context, addr sdk.AccAddre
 	return nil
 }
 
-// convertAkavaToUkava converts all available akava to ukava for a given account by address.
+// convertAkavaToUkava converts all available akava to ukava for a given AccAddress.
 func (k EvmBankKeeper) convertAkavaToUkava(ctx sdk.Context, addr sdk.AccAddress) error {
 	akava := k.bk.GetBalance(ctx, addr, EvmDenom)
 	coins, err := splitAkavaCoins(sdk.NewCoins(akava))
@@ -191,7 +190,6 @@ func splitAkavaCoins(coins sdk.Coins) (sdk.Coins, error) {
 		return splitCoins, err
 	}
 
-	// split the akava coins into the  ukava and the remaining akava
 	// note: we should always have 1 coin here since coins cannot have dup denoms after we validate.
 	coin := coins[0]
 	remainingBalance := coin.Amount.Mod(ConversionMultiplier)
@@ -203,7 +201,7 @@ func splitAkavaCoins(coins sdk.Coins) (sdk.Coins, error) {
 		splitCoins = append(splitCoins, sdk.NewCoin(CosmosDenom, ukavaAmount))
 	}
 
-	splitCoins.Sort()
+	splitCoins = splitCoins.Sort()
 
 	return splitCoins, nil
 }
