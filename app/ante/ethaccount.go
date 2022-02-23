@@ -74,7 +74,7 @@ func NewSetEthAccountDecoratorEVM(ak authante.AccountKeeper) SetEthAccountDecora
 // AnteHandle checks if each signer has a base account and converts the account to EthAccount if so
 func (sead SetEthAccountDecoratorEVM) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	for _, msg := range tx.GetMsgs() {
-		// increment sequence of all signers
+		// for all signers, convert BaseAccount to EthAccount
 		for _, addr := range msg.GetSigners() {
 			acc := sead.ak.GetAccount(ctx, addr)
 
