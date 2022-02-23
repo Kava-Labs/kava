@@ -114,6 +114,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		authante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		authante.NewIncrementSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator
+		NewSetEthAccountDecorator(options.AccountKeeper),              // only update account type if sig verification has passed
 		ibcante.NewAnteDecorator(options.IBCChannelKeeper),
 	)
 	return sdk.ChainAnteDecorators(decorators...)
@@ -130,6 +131,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		evmante.NewEthGasConsumeDecorator(options.EvmKeeper),
 		evmante.NewCanTransferDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 		evmante.NewEthIncrementSenderSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator.
+		NewSetEthAccountDecoratorEVM(options.AccountKeeper),
 	)
 }
 
