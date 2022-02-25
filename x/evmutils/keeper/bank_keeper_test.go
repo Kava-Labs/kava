@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/evmutils/keeper"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -16,6 +15,7 @@ import (
 	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
+	"github.com/kava-labs/kava/x/evmutils/keeper"
 	"github.com/kava-labs/kava/x/evmutils/types"
 )
 
@@ -596,6 +596,144 @@ func (suite *evmKeeperTestSuite) TestMintCoins() {
 			// check akava
 			akavaActual := suite.bk.GetBalance(suite.ctx, suite.evmModuleAddr, "akava")
 			suite.Require().Equal(tt.akava, akavaActual.Amount)
+		})
+	}
+}
+
+func (suite *evmKeeperTestSuite) TestValidateEvmCoins() {
+	tests := []struct {
+		name      string
+		coins     sdk.Coins
+		shouldErr bool
+	}{
+		{
+			"valid coins",
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 500)),
+			false,
+		},
+		{
+			"dup coins",
+			sdk.Coins{sdk.NewInt64Coin("akava", 500), sdk.NewInt64Coin("akava", 500)},
+			true,
+		},
+		{
+			"not evm coins",
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 500)),
+			true,
+		},
+		{
+			"negative coins",
+			sdk.Coins{sdk.Coin{Denom: "akava", Amount: sdk.NewInt(-500)}},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			err := keeper.ValidateEvmCoins(tt.coins)
+			if tt.shouldErr {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NoError(err)
+			}
+		})
+	}
+}
+
+func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava_Success() {
+	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 100))
+	err := suite.app.FundAccount(suite.ctx, suite.addrs[0], coins)
+	suite.Require().NoError(err)
+
+	err = suite.evmBankKeeper.ConvertOneUkavaToAkava(suite.ctx, suite.addrs[0])
+	suite.Require().NoError(err)
+
+	akava := suite.bk.GetBalance(suite.ctx, suite.addrs[0], "akava")
+	suite.Require().Equal(keeper.ConversionMultiplier.Add(sdk.NewInt(100)), akava.Amount)
+	ukava := suite.bk.GetBalance(suite.ctx, suite.addrs[0], "ukava")
+	suite.Require().Equal(sdk.NewInt(9), ukava.Amount)
+}
+
+func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava_NotEnough() {
+	coins := sdk.NewCoins(sdk.NewInt64Coin("akava", 100))
+	err := suite.app.FundAccount(suite.ctx, suite.addrs[0], coins)
+	suite.Require().NoError(err)
+	err = suite.evmBankKeeper.ConvertOneUkavaToAkava(suite.ctx, suite.addrs[0])
+	suite.Require().Error(err)
+}
+
+func (suite *evmKeeperTestSuite) TestConvertAkavaToUkava_Success() {
+	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 8_000_000_000_123))
+	err := suite.app.FundAccount(suite.ctx, suite.addrs[0], coins)
+	suite.Require().NoError(err)
+	err = suite.evmBankKeeper.ConvertAkavaToUkava(suite.ctx, suite.addrs[0])
+	suite.Require().NoError(err)
+
+	akava := suite.bk.GetBalance(suite.ctx, suite.addrs[0], "akava")
+	suite.Require().Equal(sdk.NewInt(123), akava.Amount)
+	ukava := suite.bk.GetBalance(suite.ctx, suite.addrs[0], "ukava")
+	suite.Require().Equal(sdk.NewInt(18), ukava.Amount)
+}
+
+func (suite *evmKeeperTestSuite) TestConvertAkavaToUkava_NotEnough() {
+	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 100))
+	err := suite.app.FundAccount(suite.ctx, suite.addrs[0], coins)
+	suite.Require().NoError(err)
+	err = suite.evmBankKeeper.ConvertAkavaToUkava(suite.ctx, suite.addrs[0])
+	suite.Require().NoError(err)
+
+	ukava := suite.bk.GetBalance(suite.ctx, suite.addrs[0], "ukava")
+	suite.Require().Equal(sdk.NewInt(10), ukava.Amount)
+	akava := suite.bk.GetBalance(suite.ctx, suite.addrs[0], "akava")
+	suite.Require().Equal(sdk.NewInt(100), akava.Amount)
+}
+
+func (suite *evmKeeperTestSuite) TestSplitAkavaCoins() {
+	tests := []struct {
+		name          string
+		coins         sdk.Coins
+		expectedCoins sdk.Coins
+		shouldErr     bool
+	}{
+		{
+			"invalid coins",
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 500)),
+			nil,
+			true,
+		},
+		{
+			"empty coins",
+			sdk.NewCoins(),
+			sdk.NewCoins(),
+			false,
+		},
+		{
+			"ukava & akava coins",
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 8_000_000_000_123)),
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 8), sdk.NewInt64Coin("akava", 123)),
+			false,
+		},
+		{
+			"only akava",
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 10_123)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 10_123)),
+			false,
+		},
+		{
+			"only ukava",
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 5_000_000_000_000)),
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 5)),
+			false,
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			coins, err := keeper.SplitAkavaCoins(tt.coins)
+			if tt.shouldErr {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NoError(err)
+				suite.Require().Equal(tt.expectedCoins, coins)
+			}
 		})
 	}
 }

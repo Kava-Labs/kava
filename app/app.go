@@ -454,9 +454,10 @@ func NewApp(
 	)
 
 	evmBankKeeper := evmutilskeeper.NewEvmBankKeeper(app.bankKeeper)
+	evmAccountKeeper := evmutilskeeper.NewEvmAccountKeeper(app.accountKeeper)
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], evmSubspace,
-		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
+		evmAccountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
 		tracer,
 	)
 
