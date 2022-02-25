@@ -7,21 +7,21 @@ import (
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 )
 
-type EVMAuthKeeper struct {
+type EVMAccountKeeper struct {
 	authkeeper.AccountKeeper
 	proto func() authtypes.AccountI
 }
 
-var _ evmtypes.AccountKeeper = (*EVMAuthKeeper)(nil)
+var _ evmtypes.AccountKeeper = (*EVMAccountKeeper)(nil)
 
-func NewEVMAuthKeeper(ak authkeeper.AccountKeeper, accountProto func() authtypes.AccountI) EVMAuthKeeper {
-	return EVMAuthKeeper{
+func NewEVMAccountKeeper(ak authkeeper.AccountKeeper, accountProto func() authtypes.AccountI) EVMAccountKeeper {
+	return EVMAccountKeeper{
 		AccountKeeper: ak,
 		proto:         accountProto,
 	}
 }
 
-func (ak EVMAuthKeeper) NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI {
+func (ak EVMAccountKeeper) NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI {
 	acc := ak.proto()
 	err := acc.SetAddress(addr)
 	if err != nil {

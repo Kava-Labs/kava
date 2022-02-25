@@ -81,6 +81,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 	evmante "github.com/tharsis/ethermint/app/ante"
 	srvflags "github.com/tharsis/ethermint/server/flags"
+	etherminttypes "github.com/tharsis/ethermint/types"
 	"github.com/tharsis/ethermint/x/evm"
 	evmrest "github.com/tharsis/ethermint/x/evm/client/rest"
 	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
@@ -446,9 +447,10 @@ func NewApp(
 	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec, keys[feemarkettypes.StoreKey], feemarketSubspace,
 	)
+	evmAccountKeeper := NewEVMAccountKeeper(app.accountKeeper, etherminttypes.ProtoAccount)
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], evmSubspace,
-		NewEVMAuthKeeper(app.accountKeeper, authtypes.ProtoBaseAccount),
+		evmAccountKeeper,
 		NewEVMBankKeeper(app.bankKeeper),
 		app.stakingKeeper,
 		app.feeMarketKeeper,
@@ -770,14 +772,15 @@ func NewApp(
 	}
 
 	anteOptions := ante.HandlerOptions{
-		AccountKeeper:    app.accountKeeper,
-		BankKeeper:       app.bankKeeper,
-		EvmKeeper:        app.evmKeeper,
-		IBCChannelKeeper: app.ibcKeeper.ChannelKeeper,
-		FeeMarketKeeper:  app.feeMarketKeeper,
-		SignModeHandler:  encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:   evmante.DefaultSigVerificationGasConsumer,
-		AddressFetchers:  fetchers,
+		KavaAccountKeeper: app.accountKeeper,
+		EVMAccountKeeper:  evmAccountKeeper,
+		BankKeeper:        app.bankKeeper,
+		EvmKeeper:         app.evmKeeper,
+		IBCChannelKeeper:  app.ibcKeeper.ChannelKeeper,
+		FeeMarketKeeper:   app.feeMarketKeeper,
+		SignModeHandler:   encodingConfig.TxConfig.SignModeHandler(),
+		SigGasConsumer:    evmante.DefaultSigVerificationGasConsumer,
+		AddressFetchers:   fetchers,
 	}
 
 	antehandler, err := ante.NewAnteHandler(anteOptions)
