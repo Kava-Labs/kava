@@ -15,8 +15,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, gs *types.GenesisState) 
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
 	}
 
-	accounts := keeper.GetAllAccounts(ctx)
-	for _, account := range accounts {
+	for _, account := range gs.Accounts {
 		keeper.SetAccount(ctx, account)
 	}
 }
