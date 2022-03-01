@@ -58,7 +58,7 @@ func (suite *Suite) FundAccountWithKava(addr sdk.AccAddress, coins sdk.Coins) {
 func (suite *Suite) FundModuleAccountWithKava(moduleName string, coins sdk.Coins) {
 	ukava := coins.AmountOf("ukava")
 	if ukava.IsPositive() {
-		err := suite.BankKeeper.MintCoins(suite.Ctx, moduleName, sdk.NewCoins(sdk.NewCoin("ukava", ukava)))
+		err := suite.App.FundModuleAccount(suite.Ctx, moduleName, sdk.NewCoins(sdk.NewCoin("ukava", ukava)))
 		suite.Require().NoError(err)
 	}
 	akava := coins.AmountOf("akava")
