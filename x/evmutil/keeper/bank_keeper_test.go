@@ -31,29 +31,29 @@ func (suite *evmKeeperTestSuite) TestGetBalance_ReturnsSpendable() {
 
 	now := tmtime.Now()
 	endTime := now.Add(24 * time.Hour)
-	bacc := authtypes.NewBaseAccountWithAddress(suite.Suite.Addrs[0])
+	bacc := authtypes.NewBaseAccountWithAddress(suite.Addrs[0])
 	vacc := vesting.NewContinuousVestingAccount(bacc, startingCoins, now.Unix(), endTime.Unix())
 	suite.AccountKeeper.SetAccount(suite.Ctx, vacc)
 
-	err := suite.App.FundAccount(suite.Ctx, suite.Suite.Addrs[0], startingCoins)
+	err := suite.App.FundAccount(suite.Ctx, suite.Addrs[0], startingCoins)
 	suite.Require().NoError(err)
-	err = suite.Keeper.SetBalance(suite.Ctx, suite.Suite.Addrs[0], startingAkava)
+	err = suite.Keeper.SetBalance(suite.Ctx, suite.Addrs[0], startingAkava)
 	suite.Require().NoError(err)
 
-	coin := suite.EvmBankKeeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0], "akava")
+	coin := suite.EvmBankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "akava")
 	suite.Require().Equal(startingAkava, coin.Amount)
 
 	ctx := suite.Ctx.WithBlockTime(now.Add(12 * time.Hour))
-	coin = suite.EvmBankKeeper.GetBalance(ctx, suite.Suite.Addrs[0], "akava")
+	coin = suite.EvmBankKeeper.GetBalance(ctx, suite.Addrs[0], "akava")
 	suite.Require().Equal(sdk.NewIntFromUint64(5_000_000_000_100), coin.Amount)
 }
 
 func (suite *evmKeeperTestSuite) TestGetBalance_NotEvmDenom() {
 	suite.Require().Panics(func() {
-		suite.EvmBankKeeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0], "ukava")
+		suite.EvmBankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
 	})
 	suite.Require().Panics(func() {
-		suite.EvmBankKeeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0], "busd")
+		suite.EvmBankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "busd")
 	})
 }
 
@@ -106,8 +106,8 @@ func (suite *evmKeeperTestSuite) TestGetBalance() {
 		suite.Run(tt.name, func() {
 			suite.SetupTest()
 
-			suite.Suite.FundAccountWithKava(suite.Suite.Addrs[0], tt.startingAmount)
-			coin := suite.EvmBankKeeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0], "akava")
+			suite.FundAccountWithKava(suite.Addrs[0], tt.startingAmount)
+			coin := suite.EvmBankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "akava")
 			suite.Require().Equal(tt.expAmount, coin.Amount)
 		})
 	}
@@ -218,13 +218,13 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromModuleToAccount() {
 		suite.Run(tt.name, func() {
 			suite.SetupTest()
 
-			suite.Suite.FundAccountWithKava(suite.Suite.Addrs[0], tt.startingAccBal)
-			suite.Suite.FundModuleAccountWithKava(evmtypes.ModuleName, startingModuleCoins)
+			suite.FundAccountWithKava(suite.Addrs[0], tt.startingAccBal)
+			suite.FundModuleAccountWithKava(evmtypes.ModuleName, startingModuleCoins)
 
 			// fund our module with some ukava to account for converting extra akava back to ukava
-			suite.Suite.FundModuleAccountWithKava(types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin("ukava", 10)))
+			suite.FundModuleAccountWithKava(types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin("ukava", 10)))
 
-			err := suite.EvmBankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, evmtypes.ModuleName, suite.Suite.Addrs[0], tt.sendCoins)
+			err := suite.EvmBankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, evmtypes.ModuleName, suite.Addrs[0], tt.sendCoins)
 			if tt.hasErr {
 				suite.Require().Error(err)
 				return
@@ -233,11 +233,11 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromModuleToAccount() {
 			}
 
 			// check ukava
-			ukavaSender := suite.BankKeeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0], "ukava")
+			ukavaSender := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
 			suite.Require().Equal(tt.expAccBal.AmountOf("ukava").Int64(), ukavaSender.Amount.Int64())
 
 			// check akava
-			actualAkava := suite.Keeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0])
+			actualAkava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
 			suite.Require().Equal(tt.expAccBal.AmountOf("akava").Int64(), actualAkava.Int64())
 		})
 	}
@@ -326,9 +326,9 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromAccountToModule() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			suite.SetupTest()
-			suite.Suite.FundAccountWithKava(suite.Suite.Addrs[0], startingAccCoins)
+			suite.FundAccountWithKava(suite.Addrs[0], startingAccCoins)
 
-			err := suite.EvmBankKeeper.SendCoinsFromAccountToModule(suite.Ctx, suite.Suite.Addrs[0], evmtypes.ModuleName, tt.sendCoins)
+			err := suite.EvmBankKeeper.SendCoinsFromAccountToModule(suite.Ctx, suite.Addrs[0], evmtypes.ModuleName, tt.sendCoins)
 			if tt.hasErr {
 				suite.Require().Error(err)
 				return
@@ -337,11 +337,11 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromAccountToModule() {
 			}
 
 			// check ukava
-			ukavaSender := suite.BankKeeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0], "ukava")
+			ukavaSender := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
 			suite.Require().Equal(tt.expUkava, ukavaSender.Amount)
 
 			// check akava
-			actualAkava := suite.Keeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0])
+			actualAkava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
 			suite.Require().Equal(tt.expAkava, actualAkava)
 		})
 	}
@@ -441,7 +441,7 @@ func (suite *evmKeeperTestSuite) TestBurnCoins() {
 				sdk.NewCoin("ukava", startingUkava),
 				sdk.NewCoin("akava", tt.akavaStart),
 			)
-			suite.Suite.FundModuleAccountWithKava(evmtypes.ModuleName, startingCoins)
+			suite.FundModuleAccountWithKava(evmtypes.ModuleName, startingCoins)
 
 			err := suite.EvmBankKeeper.BurnCoins(suite.Ctx, evmtypes.ModuleName, tt.burnCoins)
 			if tt.hasErr {
@@ -551,7 +551,7 @@ func (suite *evmKeeperTestSuite) TestMintCoins() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			suite.SetupTest()
-			suite.Suite.FundModuleAccountWithKava(evmtypes.ModuleName, sdk.NewCoins(sdk.NewCoin("akava", tt.akavaStart)))
+			suite.FundModuleAccountWithKava(evmtypes.ModuleName, sdk.NewCoins(sdk.NewCoin("akava", tt.akavaStart)))
 
 			err := suite.EvmBankKeeper.MintCoins(suite.Ctx, evmtypes.ModuleName, tt.mintCoins)
 			if tt.hasErr {
@@ -613,14 +613,14 @@ func (suite *evmKeeperTestSuite) TestValidateEvmCoins() {
 
 func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava_Success() {
 	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 100))
-	suite.Suite.FundAccountWithKava(suite.Suite.Addrs[0], coins)
+	suite.FundAccountWithKava(suite.Addrs[0], coins)
 
-	err := suite.EvmBankKeeper.ConvertOneUkavaToAkava(suite.Ctx, suite.Suite.Addrs[0])
+	err := suite.EvmBankKeeper.ConvertOneUkavaToAkava(suite.Ctx, suite.Addrs[0])
 	suite.Require().NoError(err)
 
-	akava := suite.Keeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0])
+	akava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
 	suite.Require().Equal(keeper.ConversionMultiplier.Add(sdk.NewInt(100)), akava)
-	ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0], "ukava")
+	ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
 	suite.Require().Equal(sdk.NewInt(9), ukava.Amount)
 	moduleKava := suite.BankKeeper.GetBalance(suite.Ctx, suite.AccountKeeper.GetModuleAddress(types.ModuleName), "ukava")
 	suite.Require().Equal(sdk.OneInt(), moduleKava.Amount)
@@ -628,8 +628,8 @@ func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava_Success() {
 
 func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava_NotEnough() {
 	coins := sdk.NewCoins(sdk.NewInt64Coin("akava", 100))
-	suite.Suite.FundAccountWithKava(suite.Suite.Addrs[0], coins)
-	err := suite.EvmBankKeeper.ConvertOneUkavaToAkava(suite.Ctx, suite.Suite.Addrs[0])
+	suite.FundAccountWithKava(suite.Addrs[0], coins)
+	err := suite.EvmBankKeeper.ConvertOneUkavaToAkava(suite.Ctx, suite.Addrs[0])
 	suite.Require().Error(err)
 	moduleKava := suite.BankKeeper.GetBalance(suite.Ctx, suite.AccountKeeper.GetModuleAddress(types.ModuleName), "ukava")
 	suite.Require().Equal(sdk.ZeroInt(), moduleKava.Amount)
@@ -637,15 +637,15 @@ func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava_NotEnough() {
 
 func (suite *evmKeeperTestSuite) TestConvertAkavaToUkava_Success() {
 	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 8_000_000_000_123))
-	suite.Suite.FundAccountWithKava(suite.Suite.Addrs[0], coins)
+	suite.FundAccountWithKava(suite.Addrs[0], coins)
 	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin("ukava", 10)))
 	suite.Require().NoError(err)
-	err = suite.EvmBankKeeper.ConvertAkavaToUkava(suite.Ctx, suite.Suite.Addrs[0])
+	err = suite.EvmBankKeeper.ConvertAkavaToUkava(suite.Ctx, suite.Addrs[0])
 	suite.Require().NoError(err)
 
-	akava := suite.Keeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0])
+	akava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
 	suite.Require().Equal(sdk.NewInt(123), akava)
-	ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0], "ukava")
+	ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
 	suite.Require().Equal(sdk.NewInt(18), ukava.Amount)
 	moduleKava := suite.BankKeeper.GetBalance(suite.Ctx, suite.AccountKeeper.GetModuleAddress(types.ModuleName), "ukava")
 	suite.Require().Equal(sdk.NewInt(2), moduleKava.Amount)
@@ -653,13 +653,13 @@ func (suite *evmKeeperTestSuite) TestConvertAkavaToUkava_Success() {
 
 func (suite *evmKeeperTestSuite) TestConvertAkavaToUkava_NotEnough() {
 	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 100))
-	suite.Suite.FundAccountWithKava(suite.Suite.Addrs[0], coins)
-	err := suite.EvmBankKeeper.ConvertAkavaToUkava(suite.Ctx, suite.Suite.Addrs[0])
+	suite.FundAccountWithKava(suite.Addrs[0], coins)
+	err := suite.EvmBankKeeper.ConvertAkavaToUkava(suite.Ctx, suite.Addrs[0])
 	suite.Require().NoError(err)
 
-	ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0], "ukava")
+	ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
 	suite.Require().Equal(sdk.NewInt(10), ukava.Amount)
-	akava := suite.Keeper.GetBalance(suite.Ctx, suite.Suite.Addrs[0])
+	akava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
 	suite.Require().Equal(sdk.NewInt(100), akava)
 }
 
