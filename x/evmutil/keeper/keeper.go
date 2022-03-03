@@ -10,11 +10,14 @@ import (
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
+// Keeper of the evmutil store.
+// This keeper stores additional data related to evm accounts.
 type Keeper struct {
 	cdc      codec.Codec
 	storeKey sdk.StoreKey
 }
 
+// NewKeeper creates an evmutil keeper.
 func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey) Keeper {
 	return Keeper{
 		cdc:      cdc,
@@ -22,7 +25,7 @@ func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey) Keeper {
 	}
 }
 
-// GetAllAccounts returns all the account balances for the given account address.
+// GetAllAccounts returns all accounts.
 func (k Keeper) GetAllAccounts(ctx sdk.Context) (accounts []types.Account) {
 	k.IterateAllAccounts(ctx, func(account types.Account) bool {
 		accounts = append(accounts, account)
@@ -49,6 +52,7 @@ func (k Keeper) IterateAllAccounts(ctx sdk.Context, cb func(types.Account) bool)
 	}
 }
 
+// GetAccount returns the account for a given address.
 func (k Keeper) GetAccount(ctx sdk.Context, addr sdk.AccAddress) *types.Account {
 	store := ctx.KVStore(k.storeKey)
 	var account types.Account
@@ -62,7 +66,7 @@ func (k Keeper) GetAccount(ctx sdk.Context, addr sdk.AccAddress) *types.Account 
 	return &account
 }
 
-// SetBalance sets the total balance of akava for a given account by address.
+// SetAccount sets the account for a given address.
 func (k Keeper) SetAccount(ctx sdk.Context, account types.Account) error {
 	if err := account.Validate(); err != nil {
 		return err
@@ -133,6 +137,12 @@ func (k Keeper) AddBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Int) er
 
 // RemoveBalance decrements the akava balance of an address.
 func (k Keeper) RemoveBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Int) error {
+	if amt.IsNegative() {
+		return fmt.Errorf("cannot remove a negative amount from balance: %d", amt)
+	}
+	if amt.IsZero() {
+		return nil
+	}
 	bal := k.GetBalance(ctx, addr)
 	finalBal := bal.Sub(amt)
 	if finalBal.IsNegative() {

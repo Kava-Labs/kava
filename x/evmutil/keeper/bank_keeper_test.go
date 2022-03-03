@@ -611,56 +611,84 @@ func (suite *evmKeeperTestSuite) TestValidateEvmCoins() {
 	}
 }
 
-func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava_Success() {
-	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 100))
-	suite.FundAccountWithKava(suite.Addrs[0], coins)
+func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava() {
+	tests := []struct {
+		name          string
+		startingCoins sdk.Coins
+		expectedCoins sdk.Coins
+		success       bool
+	}{
+		{
+			"not enough ukava",
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100)),
+			false,
+		},
+		{
+			"converts 1 ukava to akava",
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 100)),
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 9), sdk.NewInt64Coin("akava", 1_000_000_000_100)),
+			true,
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			suite.FundAccountWithKava(suite.Addrs[0], tt.startingCoins)
+			err := suite.EvmBankKeeper.ConvertOneUkavaToAkava(suite.Ctx, suite.Addrs[0])
+			moduleKava := suite.BankKeeper.GetBalance(suite.Ctx, suite.AccountKeeper.GetModuleAddress(types.ModuleName), "ukava")
+			if tt.success {
+				suite.Require().NoError(err)
+				suite.Require().Equal(sdk.OneInt(), moduleKava.Amount)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Equal(sdk.ZeroInt(), moduleKava.Amount)
+			}
 
-	err := suite.EvmBankKeeper.ConvertOneUkavaToAkava(suite.Ctx, suite.Addrs[0])
-	suite.Require().NoError(err)
-
-	akava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
-	suite.Require().Equal(keeper.ConversionMultiplier.Add(sdk.NewInt(100)), akava)
-	ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
-	suite.Require().Equal(sdk.NewInt(9), ukava.Amount)
-	moduleKava := suite.BankKeeper.GetBalance(suite.Ctx, suite.AccountKeeper.GetModuleAddress(types.ModuleName), "ukava")
-	suite.Require().Equal(sdk.OneInt(), moduleKava.Amount)
+			akava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
+			suite.Require().Equal(tt.expectedCoins.AmountOf("akava"), akava)
+			ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
+			suite.Require().Equal(tt.expectedCoins.AmountOf("ukava"), ukava.Amount)
+		})
+	}
 }
 
-func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava_NotEnough() {
-	coins := sdk.NewCoins(sdk.NewInt64Coin("akava", 100))
-	suite.FundAccountWithKava(suite.Addrs[0], coins)
-	err := suite.EvmBankKeeper.ConvertOneUkavaToAkava(suite.Ctx, suite.Addrs[0])
-	suite.Require().Error(err)
-	moduleKava := suite.BankKeeper.GetBalance(suite.Ctx, suite.AccountKeeper.GetModuleAddress(types.ModuleName), "ukava")
-	suite.Require().Equal(sdk.ZeroInt(), moduleKava.Amount)
-}
+func (suite *evmKeeperTestSuite) TestConvertAkavaToUkava() {
+	tests := []struct {
+		name          string
+		startingCoins sdk.Coins
+		expectedCoins sdk.Coins
+	}{
+		{
+			"not enough ukava",
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100), sdk.NewInt64Coin("ukava", 0)),
+		},
+		{
+			"converts akava for 1 ukava",
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 1_000_000_000_003)),
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 11), sdk.NewInt64Coin("akava", 3)),
+		},
+		{
+			"converts more than 1 ukava of akava",
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 8_000_000_000_123)),
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 18), sdk.NewInt64Coin("akava", 123)),
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			suite.SetupTest()
 
-func (suite *evmKeeperTestSuite) TestConvertAkavaToUkava_Success() {
-	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 8_000_000_000_123))
-	suite.FundAccountWithKava(suite.Addrs[0], coins)
-	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin("ukava", 10)))
-	suite.Require().NoError(err)
-	err = suite.EvmBankKeeper.ConvertAkavaToUkava(suite.Ctx, suite.Addrs[0])
-	suite.Require().NoError(err)
-
-	akava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
-	suite.Require().Equal(sdk.NewInt(123), akava)
-	ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
-	suite.Require().Equal(sdk.NewInt(18), ukava.Amount)
-	moduleKava := suite.BankKeeper.GetBalance(suite.Ctx, suite.AccountKeeper.GetModuleAddress(types.ModuleName), "ukava")
-	suite.Require().Equal(sdk.NewInt(2), moduleKava.Amount)
-}
-
-func (suite *evmKeeperTestSuite) TestConvertAkavaToUkava_NotEnough() {
-	coins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 100))
-	suite.FundAccountWithKava(suite.Addrs[0], coins)
-	err := suite.EvmBankKeeper.ConvertAkavaToUkava(suite.Ctx, suite.Addrs[0])
-	suite.Require().NoError(err)
-
-	ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
-	suite.Require().Equal(sdk.NewInt(10), ukava.Amount)
-	akava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
-	suite.Require().Equal(sdk.NewInt(100), akava)
+			err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin("ukava", 10)))
+			suite.Require().NoError(err)
+			suite.FundAccountWithKava(suite.Addrs[0], tt.startingCoins)
+			err = suite.EvmBankKeeper.ConvertAkavaToUkava(suite.Ctx, suite.Addrs[0])
+			suite.Require().NoError(err)
+			akava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
+			suite.Require().Equal(tt.expectedCoins.AmountOf("akava"), akava)
+			ukava := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
+			suite.Require().Equal(tt.expectedCoins.AmountOf("ukava"), ukava.Amount)
+		})
+	}
 }
 
 func (suite *evmKeeperTestSuite) TestSplitAkavaCoins() {
