@@ -6,6 +6,7 @@ require (
 	github.com/cosmos/cosmos-proto v0.0.0-20211020182451-c7ca7198c2f8
 	github.com/cosmos/cosmos-sdk v0.45.0
 	github.com/cosmos/ibc-go/v3 v3.0.0-alpha2
+	github.com/ethereum/go-ethereum v1.10.11
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
@@ -56,7 +57,6 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/dvsekhvalnov/jose2go v0.0.0-20200901110807-248326c1351b // indirect
 	github.com/edsrzf/mmap-go v1.0.0 // indirect
-	github.com/ethereum/go-ethereum v1.10.11 // indirect
 	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff // indirect
@@ -160,6 +160,7 @@ replace (
 	github.com/tecbot/gorocksdb => github.com/cosmos/gorocksdb v1.2.0
 	// Make sure that only one version of tendermint is imported
 	github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.34.15
+	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.10.0-alpha1.0.20220228231126-eacdb2811ee2
 	// Make sure that we use grpc compatible with cosmos
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
