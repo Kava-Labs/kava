@@ -105,6 +105,9 @@ import (
 	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	evmutil "github.com/kava-labs/kava/x/evmutil"
+	evmutilkeeper "github.com/kava-labs/kava/x/evmutil/keeper"
+	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	"github.com/kava-labs/kava/x/hard"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
@@ -178,6 +181,7 @@ var (
 		committee.AppModuleBasic{},
 		incentive.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
+		evmutil.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -192,6 +196,7 @@ var (
 		govtypes.ModuleName:             {authtypes.Burner},
 		ibctransfertypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		evmtypes.ModuleName:             {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		evmutiltypes.ModuleName:         nil,
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
 		auctiontypes.ModuleName:         nil,
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
@@ -245,6 +250,7 @@ type App struct {
 	slashingKeeper   slashingkeeper.Keeper
 	ibcKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	evmKeeper        *evmkeeper.Keeper
+	evmutilKeeper    evmutilkeeper.Keeper
 	feeMarketKeeper  feemarketkeeper.Keeper
 	upgradeKeeper    upgradekeeper.Keeper
 	evidenceKeeper   evidencekeeper.Keeper
@@ -313,7 +319,7 @@ func NewApp(
 		capabilitytypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
-		committeetypes.StoreKey, incentivetypes.StoreKey,
+		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -447,9 +453,16 @@ func NewApp(
 	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec, keys[feemarkettypes.StoreKey], feemarketSubspace,
 	)
+
+	app.evmutilKeeper = evmutilkeeper.NewKeeper(
+		app.appCodec,
+		keys[evmutiltypes.StoreKey],
+	)
+
+	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], evmSubspace,
-		app.accountKeeper, NewEVMBankKeeper(app.bankKeeper), app.stakingKeeper, app.feeMarketKeeper,
+		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
 		tracer,
 	)
 
@@ -625,6 +638,7 @@ func NewApp(
 		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
+		evmutil.NewAppModule(app.evmutilKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -661,7 +675,7 @@ func NewApp(
 		vestingtypes.ModuleName,
 		pricefeedtypes.ModuleName,
 		validatorvestingtypes.ModuleName,
-		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName, evmutiltypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -693,7 +707,7 @@ func NewApp(
 		pricefeedtypes.ModuleName,
 		ibchost.ModuleName,
 		validatorvestingtypes.ModuleName,
-		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName, evmutiltypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -727,6 +741,7 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
+		evmutiltypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
