@@ -82,6 +82,8 @@ github.com/DataDog/zstd v1.4.8 h1:Rpmta4xZ/MgZnriKNd24iZMhGpP5dvUcs/uqfBapKZY=
 github.com/DataDog/zstd v1.4.8/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
 github.com/HdrHistogram/hdrhistogram-go v1.1.0/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
 github.com/HdrHistogram/hdrhistogram-go v1.1.2/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
+github.com/Kava-Labs/ethermint v0.10.0-alpha1.0.20220228231126-eacdb2811ee2 h1:yveMQLG6WUVjqTQo98YfkI1VOcoZrlzDVSFKSuDJGTo=
+github.com/Kava-Labs/ethermint v0.10.0-alpha1.0.20220228231126-eacdb2811ee2/go.mod h1:3JcZ/PG/6OdZVLH6lWvRDZLGwg+CnjaPBk239vIC+Ak=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Microsoft/go-winio v0.5.0 h1:Elr9Wn+sGKPlkaBvwu4mTrxtmOp3F3yV9qhaHbXGjwU=
 github.com/Microsoft/go-winio v0.5.0/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
@@ -1051,8 +1053,6 @@ github.com/tendermint/tendermint v0.34.15/go.mod h1:/7EDAw02rD7GT8syC317cX9ZhZTC
 github.com/tendermint/tm-db v0.6.4/go.mod h1:dptYhIpJ2M5kUuenLr+Yyf3zQOv1SgBZcl8/BmWlMBw=
 github.com/tendermint/tm-db v0.6.6 h1:EzhaOfR0bdKyATqcd5PNeyeq8r+V4bRPHBfyFdD9kGM=
 github.com/tendermint/tm-db v0.6.6/go.mod h1:wP8d49A85B7/erz/r4YbKssKw6ylsO/hKtFk7E1aWZI=
-github.com/tharsis/ethermint v0.10.0-alpha1 h1:FLCWcOuLFIPp3YHmHGaXbWef4K6+1gBOVzUYYtFy4ZY=
-github.com/tharsis/ethermint v0.10.0-alpha1/go.mod h1:3JcZ/PG/6OdZVLH6lWvRDZLGwg+CnjaPBk239vIC+Ak=
 github.com/tidwall/gjson v1.6.7/go.mod h1:zeFuBCIqD4sN/gmqBzZ4j7Jd6UcA2Fc56x7QFsv+8fI=
 github.com/tidwall/match v1.0.3/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
 github.com/tidwall/pretty v1.0.2/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=

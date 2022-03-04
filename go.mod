@@ -160,6 +160,7 @@ replace (
 	github.com/tecbot/gorocksdb => github.com/cosmos/gorocksdb v1.2.0
 	// Make sure that only one version of tendermint is imported
 	github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.34.15
+	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.10.0-alpha1.0.20220228231126-eacdb2811ee2
 	// Make sure that we use grpc compatible with cosmos
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
