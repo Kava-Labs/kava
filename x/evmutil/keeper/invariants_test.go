@@ -3,12 +3,13 @@ package keeper_test
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type invariantTestSuite struct {
@@ -30,13 +31,13 @@ func (suite *invariantTestSuite) SetupValidState() {
 	for i := 0; i < 4; i++ {
 		suite.Keeper.SetAccount(suite.Ctx, *types.NewAccount(
 			suite.Addrs[i],
-			sdk.NewInt(5e11),
+			keeper.ConversionMultiplier.QuoRaw(2),
 		))
 	}
 	suite.FundModuleAccountWithKava(
 		types.ModuleName,
 		sdk.NewCoins(
-			sdk.NewCoin("ukava", sdk.NewInt(2)),
+			sdk.NewCoin("ukava", sdk.NewInt(2)), // ( sum of all minor balances ) / conversion multiplier
 		),
 	)
 }
@@ -91,5 +92,28 @@ func (suite *invariantTestSuite) TestBalancesInvariant() {
 
 	message, broken := suite.runInvariant("balances", keeper.BalancesInvariant)
 	suite.Equal("evmutil: balances broken invariant\nminor balances do not match module account\n", message)
+	suite.Equal(true, broken)
+}
+
+func (suite *invariantTestSuite) TestSmallBalances() {
+	// default state is valid
+	_, broken := suite.runInvariant("small-balances", keeper.SmallBalancesInvariant)
+	suite.Equal(false, broken)
+
+	suite.SetupValidState()
+	_, broken = suite.runInvariant("small-balances", keeper.SmallBalancesInvariant)
+	suite.Equal(false, broken)
+
+	// increase minor balance at least above conversion multiplier
+	suite.Keeper.AddBalance(suite.Ctx, suite.Addrs[0], keeper.ConversionMultiplier)
+	// add same number of ukava to avoid breaking other invariants
+	amt := sdk.NewCoins(sdk.NewInt64Coin(keeper.CosmosDenom, 1))
+	suite.Require().NoError(
+		suite.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, amt),
+	)
+	suite.BankKeeper.SendCoinsFromModuleToModule(suite.Ctx, minttypes.ModuleName, types.ModuleName, amt)
+
+	message, broken := suite.runInvariant("small-balances", keeper.SmallBalancesInvariant)
+	suite.Equal("evmutil: small balances broken invariant\nminor balances not all less than overflow\n", message)
 	suite.Equal(true, broken)
 }
