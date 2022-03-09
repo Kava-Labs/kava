@@ -8,14 +8,14 @@ import (
 
 // RegisterInvariants registers the swap module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, bankK EvmBankKeeper, k Keeper) {
-	ir.RegisterRoute(types.ModuleName, "balances", BalancesInvariant(bankK, k))
+	ir.RegisterRoute(types.ModuleName, "fully-backed", FullyBackedInvariant(bankK, k))
 	ir.RegisterRoute(types.ModuleName, "small-balances", SmallBalancesInvariant(bankK, k))
 }
 
 // AllInvariants runs all invariants of the swap module
 func AllInvariants(bankK EvmBankKeeper, k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		if res, stop := BalancesInvariant(bankK, k)(ctx); stop {
+		if res, stop := FullyBackedInvariant(bankK, k)(ctx); stop {
 			return res, stop
 		}
 		res, stop := SmallBalancesInvariant(bankK, k)(ctx)
@@ -23,10 +23,10 @@ func AllInvariants(bankK EvmBankKeeper, k Keeper) sdk.Invariant {
 	}
 }
 
-// BalancesInvariant ensures all minor balances are backed exactly by the coins in the module account.
-func BalancesInvariant(bankK EvmBankKeeper, k Keeper) sdk.Invariant {
+// FullyBackedInvariant ensures all minor balances are backed exactly by the coins in the module account.
+func FullyBackedInvariant(bankK EvmBankKeeper, k Keeper) sdk.Invariant {
 	broken := false
-	message := sdk.FormatInvariant(types.ModuleName, "balances broken", "minor balances do not match module account")
+	message := sdk.FormatInvariant(types.ModuleName, "fully backed broken", "minor balances do not match module account")
 
 	return func(ctx sdk.Context) (string, bool) {
 

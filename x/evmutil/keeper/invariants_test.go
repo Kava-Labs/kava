@@ -77,21 +77,21 @@ func (suite *invariantTestSuite) runInvariant(route string, invariant func(bankK
 	return dMessage, dBroken
 }
 
-func (suite *invariantTestSuite) TestBalancesInvariant() {
+func (suite *invariantTestSuite) TestFullyBackedInvariant() {
 
 	// default state is valid
-	_, broken := suite.runInvariant("balances", keeper.BalancesInvariant)
+	_, broken := suite.runInvariant("fully-backed", keeper.FullyBackedInvariant)
 	suite.Equal(false, broken)
 
 	suite.SetupValidState()
-	_, broken = suite.runInvariant("balances", keeper.BalancesInvariant)
+	_, broken = suite.runInvariant("fully-backed", keeper.FullyBackedInvariant)
 	suite.Equal(false, broken)
 
 	// break invariant by decreasing minor balances without decreasing module balance
 	suite.Keeper.RemoveBalance(suite.Ctx, suite.Addrs[0], sdk.OneInt())
 
-	message, broken := suite.runInvariant("balances", keeper.BalancesInvariant)
-	suite.Equal("evmutil: balances broken invariant\nminor balances do not match module account\n", message)
+	message, broken := suite.runInvariant("fully-backed", keeper.FullyBackedInvariant)
+	suite.Equal("evmutil: fully backed broken invariant\nminor balances do not match module account\n", message)
 	suite.Equal(true, broken)
 }
 
