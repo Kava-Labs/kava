@@ -1,19 +1,20 @@
 package keeper
 
 import (
-	"github.com/kava-labs/kava/x/evmutil/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
 // RegisterInvariants registers the swap module invariants
-func RegisterInvariants(ir sdk.InvariantRegistry, bankK EvmBankKeeper, k Keeper) {
+func RegisterInvariants(ir sdk.InvariantRegistry, bankK types.BankKeeper, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "fully-backed", FullyBackedInvariant(bankK, k))
 	ir.RegisterRoute(types.ModuleName, "small-balances", SmallBalancesInvariant(bankK, k))
 }
 
 // AllInvariants runs all invariants of the swap module
-func AllInvariants(bankK EvmBankKeeper, k Keeper) sdk.Invariant {
+func AllInvariants(bankK types.BankKeeper, k Keeper) sdk.Invariant { // TODO why?
 	return func(ctx sdk.Context) (string, bool) {
 		if res, stop := FullyBackedInvariant(bankK, k)(ctx); stop {
 			return res, stop
@@ -24,7 +25,7 @@ func AllInvariants(bankK EvmBankKeeper, k Keeper) sdk.Invariant {
 }
 
 // FullyBackedInvariant ensures all minor balances are backed exactly by the coins in the module account.
-func FullyBackedInvariant(bankK EvmBankKeeper, k Keeper) sdk.Invariant {
+func FullyBackedInvariant(bankK types.BankKeeper, k Keeper) sdk.Invariant {
 	broken := false
 	message := sdk.FormatInvariant(types.ModuleName, "fully backed broken", "minor balances do not match module account")
 
@@ -36,16 +37,16 @@ func FullyBackedInvariant(bankK EvmBankKeeper, k Keeper) sdk.Invariant {
 			return false
 		})
 
-		bankAddr := bankK.GetModuleAddress(types.ModuleName)
-		bankBalance := bankK.GetBalance(ctx, bankAddr, EvmDenom)
+		bankAddr := authtypes.NewModuleAddress(types.ModuleName)
+		bankBalance := bankK.GetBalance(ctx, bankAddr, CosmosDenom).Amount.Mul(ConversionMultiplier)
 
-		broken = !totalMinorBalances.Equal(bankBalance.Amount)
+		broken = !totalMinorBalances.Equal(bankBalance)
 
 		return message, broken
 	}
 }
 
-func SmallBalancesInvariant(_ EvmBankKeeper, k Keeper) sdk.Invariant {
+func SmallBalancesInvariant(_ types.BankKeeper, k Keeper) sdk.Invariant {
 	broken := false
 	message := sdk.FormatInvariant(types.ModuleName, "small balances broken", "minor balances not all less than overflow")
 

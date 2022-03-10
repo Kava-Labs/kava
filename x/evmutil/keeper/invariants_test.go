@@ -24,7 +24,7 @@ func TestInvariantTestSuite(t *testing.T) {
 func (suite *invariantTestSuite) SetupTest() {
 	suite.Suite.SetupTest()
 	suite.invariants = make(map[string]map[string]sdk.Invariant)
-	keeper.RegisterInvariants(suite, suite.EvmBankKeeper, suite.Keeper)
+	keeper.RegisterInvariants(suite, suite.BankKeeper, suite.Keeper)
 }
 
 func (suite *invariantTestSuite) SetupValidState() {
@@ -53,17 +53,17 @@ func (suite *invariantTestSuite) RegisterRoute(moduleName string, route string, 
 	suite.invariants[moduleName][route] = invariant
 }
 
-func (suite *invariantTestSuite) runInvariant(route string, invariant func(bankKeeper keeper.EvmBankKeeper, k keeper.Keeper) sdk.Invariant) (string, bool) {
+func (suite *invariantTestSuite) runInvariant(route string, invariant func(bankKeeper types.BankKeeper, k keeper.Keeper) sdk.Invariant) (string, bool) {
 	ctx := suite.Ctx
 	registeredInvariant := suite.invariants[types.ModuleName][route]
 	suite.Require().NotNil(registeredInvariant)
 
 	// direct call
-	dMessage, dBroken := invariant(suite.EvmBankKeeper, suite.Keeper)(ctx)
+	dMessage, dBroken := invariant(suite.BankKeeper, suite.Keeper)(ctx)
 	// registered call
 	rMessage, rBroken := registeredInvariant(ctx)
 	// all call
-	aMessage, aBroken := keeper.AllInvariants(suite.EvmBankKeeper, suite.Keeper)(ctx)
+	aMessage, aBroken := keeper.AllInvariants(suite.BankKeeper, suite.Keeper)(ctx)
 
 	// require matching values for direct call and registered call
 	suite.Require().Equal(dMessage, rMessage, "expected registered invariant message to match")
