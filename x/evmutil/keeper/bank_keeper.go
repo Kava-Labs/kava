@@ -71,7 +71,12 @@ func (k EvmBankKeeper) SendCoinsFromModuleToAccount(ctx sdk.Context, senderModul
 		}
 	}
 
-	if err := k.akavaKeeper.SendBalance(ctx, k.GetModuleAddress(senderModule), recipientAddr, akava); err != nil {
+	senderAddr := k.GetModuleAddress(senderModule)
+	if err := k.ConvertOneUkavaToAkavaIfNeeded(ctx, senderAddr, akava); err != nil {
+		return err
+	}
+
+	if err := k.akavaKeeper.SendBalance(ctx, senderAddr, recipientAddr, akava); err != nil {
 		return err
 	}
 
@@ -86,21 +91,22 @@ func (k EvmBankKeeper) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr 
 		return err
 	}
 
-	// convert 1 ukava to akava if sender account does not have enough akava to cover
-	akavaBal := k.akavaKeeper.GetBalance(ctx, senderAddr)
-	if akavaBal.LT(akavaNeeded) {
-		if err := k.ConvertOneUkavaToAkava(ctx, senderAddr); err != nil {
-			return err
-		}
-	}
-
 	if ukava.IsPositive() {
 		if err := k.bk.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, sdk.NewCoins(ukava)); err != nil {
 			return err
 		}
 	}
 
-	return k.akavaKeeper.SendBalance(ctx, senderAddr, k.GetModuleAddress(recipientModule), akavaNeeded)
+	if err := k.ConvertOneUkavaToAkavaIfNeeded(ctx, senderAddr, akavaNeeded); err != nil {
+		return err
+	}
+
+	recipientAddr := k.GetModuleAddress(recipientModule)
+	if err := k.akavaKeeper.SendBalance(ctx, senderAddr, recipientAddr, akavaNeeded); err != nil {
+		return err
+	}
+
+	return k.ConvertAkavaToUkava(ctx, recipientAddr)
 }
 
 // MintCoins mints akava coins by minting the equivalent ukava coins and any remaining akava coins.
@@ -117,7 +123,12 @@ func (k EvmBankKeeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coi
 		}
 	}
 
-	return k.akavaKeeper.AddBalance(ctx, k.GetModuleAddress(moduleName), akava)
+	recipientAddr := k.GetModuleAddress(moduleName)
+	if err := k.akavaKeeper.AddBalance(ctx, recipientAddr, akava); err != nil {
+		return err
+	}
+
+	return k.ConvertAkavaToUkava(ctx, recipientAddr)
 }
 
 // BurnCoins burns akava coins by burning the equivalent ukava coins and any remaining akava coins.
@@ -134,11 +145,22 @@ func (k EvmBankKeeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coi
 		}
 	}
 
-	return k.akavaKeeper.RemoveBalance(ctx, k.GetModuleAddress(moduleName), akava)
+	moduleAddr := k.GetModuleAddress(moduleName)
+	if err := k.ConvertOneUkavaToAkavaIfNeeded(ctx, moduleAddr, akava); err != nil {
+		return err
+	}
+
+	return k.akavaKeeper.RemoveBalance(ctx, moduleAddr, akava)
 }
 
-// ConvertOneUkavaToAkava converts 1 ukava to akava for a given AccAddress.
-func (k EvmBankKeeper) ConvertOneUkavaToAkava(ctx sdk.Context, addr sdk.AccAddress) error {
+// ConvertOneUkavaToAkavaIfNeeded converts 1 ukava to akava for an address if
+// its akava balance is smaller than the akavaNeeded amount.
+func (k EvmBankKeeper) ConvertOneUkavaToAkavaIfNeeded(ctx sdk.Context, addr sdk.AccAddress, akavaNeeded sdk.Int) error {
+	akavaBal := k.akavaKeeper.GetBalance(ctx, addr)
+	if akavaBal.GTE(akavaNeeded) {
+		return nil
+	}
+
 	ukavaToStore := sdk.NewCoins(sdk.NewCoin(CosmosDenom, sdk.OneInt()))
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, ukavaToStore); err != nil {
 		return err
@@ -174,7 +196,8 @@ func (k EvmBankKeeper) ConvertAkavaToUkava(ctx sdk.Context, addr sdk.AccAddress)
 		return err
 	}
 
-	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, sdk.NewCoins(ukava)); err != nil {
+	fromAddr := k.GetModuleAddress(types.ModuleName)
+	if err := k.bk.SendCoins(ctx, fromAddr, addr, sdk.NewCoins(ukava)); err != nil {
 		return err
 	}
 

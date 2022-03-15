@@ -174,7 +174,7 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromModuleToAccount() {
 		},
 		{
 			"errors if not enough total akava to cover",
-			sdk.NewCoins(sdk.NewInt64Coin("akava", 90_000_000_001_000)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100_000_000_001_000)),
 			sdk.Coins{},
 			sdk.Coins{},
 			true,
@@ -209,6 +209,19 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromModuleToAccount() {
 			sdk.NewCoins(
 				sdk.NewInt64Coin("akava", 90),
 				sdk.NewInt64Coin("ukava", 19),
+			),
+			false,
+		},
+		{
+			"swap 1 ukava for akava if module account doesn't have enough akava",
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 99_000_000_001_000)),
+			sdk.NewCoins(
+				sdk.NewInt64Coin("akava", 200),
+				sdk.NewInt64Coin("ukava", 1),
+			),
+			sdk.NewCoins(
+				sdk.NewInt64Coin("akava", 1200),
+				sdk.NewInt64Coin("ukava", 100),
 			),
 			false,
 		},
@@ -248,46 +261,49 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromAccountToModule() {
 		sdk.NewInt64Coin("akava", 200),
 		sdk.NewInt64Coin("ukava", 100),
 	)
+	startingModuleCoins := sdk.NewCoins(
+		sdk.NewInt64Coin("akava", 100_000_000_000),
+	)
 	tests := []struct {
-		name      string
-		sendCoins sdk.Coins
-		expUkava  sdk.Int
-		expAkava  sdk.Int
-		hasErr    bool
+		name           string
+		sendCoins      sdk.Coins
+		expSenderCoins sdk.Coins
+		expModuleCoins sdk.Coins
+		hasErr         bool
 	}{
 		{
 			"send more than 1 ukava",
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 12_000_000_000_010)),
-			sdk.NewInt(88),
-			sdk.NewInt(190),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 190), sdk.NewInt64Coin("ukava", 88)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100_000_000_010), sdk.NewInt64Coin("ukava", 12)),
 			false,
 		},
 		{
 			"send less than 1 ukava",
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 122)),
-			sdk.NewInt(100),
-			sdk.NewInt(78),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 78), sdk.NewInt64Coin("ukava", 100)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100_000_000_122), sdk.NewInt64Coin("ukava", 0)),
 			false,
 		},
 		{
 			"send an exact amount of ukava",
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 98_000_000_000_000)),
-			sdk.NewInt(2),
-			sdk.NewInt(200),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 200), sdk.NewInt64Coin("ukava", 2)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100_000_000_000), sdk.NewInt64Coin("ukava", 98)),
 			false,
 		},
 		{
 			"send no akava",
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 0)),
-			sdk.NewInt(100),
-			sdk.NewInt(200),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 200), sdk.NewInt64Coin("ukava", 100)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100_000_000_000), sdk.NewInt64Coin("ukava", 0)),
 			false,
 		},
 		{
 			"errors if sending other coins",
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 500), sdk.NewInt64Coin("busd", 1000)),
-			sdk.NewInt(100),
-			sdk.NewInt(200),
+			sdk.Coins{},
+			sdk.Coins{},
 			true,
 		},
 		{
@@ -296,29 +312,36 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromAccountToModule() {
 				sdk.NewInt64Coin("akava", 12_000_000_000_000),
 				sdk.NewInt64Coin("akava", 2_000_000_000_000),
 			},
-			sdk.NewInt(100),
-			sdk.NewInt(200),
+			sdk.Coins{},
+			sdk.Coins{},
 			true,
 		},
 		{
 			"errors if not enough total akava to cover",
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 100_000_000_001_000)),
-			sdk.NewInt(100),
-			sdk.NewInt(200),
+			sdk.Coins{},
+			sdk.Coins{},
 			true,
 		},
 		{
 			"errors if not enough ukava to cover",
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 200_000_000_000_000)),
-			sdk.NewInt(100),
-			sdk.NewInt(200),
+			sdk.Coins{},
+			sdk.Coins{},
 			true,
 		},
 		{
 			"converts 1 ukava to akava if not enough akava to cover",
-			sdk.NewCoins(sdk.NewInt64Coin("akava", 99_900_000_000_000)),
-			sdk.NewInt(0),
-			sdk.NewInt(100_000_000_200),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 99_001_000_000_000)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 999_000_000_200), sdk.NewInt64Coin("ukava", 0)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 101_000_000_000), sdk.NewInt64Coin("ukava", 99)),
+			false,
+		},
+		{
+			"converts receiver's akava to ukava if there's enough akava after the transfer",
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 5_900_000_000_200)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100_000_000_000), sdk.NewInt64Coin("ukava", 94)),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 200), sdk.NewInt64Coin("ukava", 6)),
 			false,
 		},
 	}
@@ -327,6 +350,7 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromAccountToModule() {
 		suite.Run(tt.name, func() {
 			suite.SetupTest()
 			suite.FundAccountWithKava(suite.Addrs[0], startingAccCoins)
+			suite.FundModuleAccountWithKava(evmtypes.ModuleName, startingModuleCoins)
 
 			err := suite.EvmBankKeeper.SendCoinsFromAccountToModule(suite.Ctx, suite.Addrs[0], evmtypes.ModuleName, tt.sendCoins)
 			if tt.hasErr {
@@ -336,13 +360,18 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromAccountToModule() {
 				suite.Require().NoError(err)
 			}
 
-			// check ukava
+			// check sender balance
 			ukavaSender := suite.BankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
-			suite.Require().Equal(tt.expUkava, ukavaSender.Amount)
-
-			// check akava
+			suite.Require().Equal(tt.expSenderCoins.AmountOf("ukava").Int64(), ukavaSender.Amount.Int64())
 			actualAkava := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
-			suite.Require().Equal(tt.expAkava, actualAkava)
+			suite.Require().Equal(tt.expSenderCoins.AmountOf("akava").Int64(), actualAkava.Int64())
+
+			// check module balance
+			moduleAddr := suite.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
+			ukavaSender = suite.BankKeeper.GetBalance(suite.Ctx, moduleAddr, "ukava")
+			suite.Require().Equal(tt.expModuleCoins.AmountOf("ukava").Int64(), ukavaSender.Amount.Int64())
+			actualAkava = suite.Keeper.GetBalance(suite.Ctx, moduleAddr)
+			suite.Require().Equal(tt.expModuleCoins.AmountOf("akava").Int64(), actualAkava.Int64())
 		})
 	}
 }
@@ -418,8 +447,8 @@ func (suite *evmKeeperTestSuite) TestBurnCoins() {
 		},
 		{
 			"errors if not enough akava to cover burn",
-			sdk.NewCoins(sdk.NewInt64Coin("akava", 10_999_000_000_000)),
-			sdk.NewInt(100),
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 100_999_000_000_000)),
+			sdk.NewInt(0),
 			sdk.NewInt(99_000_000_000),
 			true,
 			sdk.NewInt(99_000_000_000),
@@ -431,6 +460,14 @@ func (suite *evmKeeperTestSuite) TestBurnCoins() {
 			sdk.ZeroInt(),
 			true,
 			sdk.ZeroInt(),
+		},
+		{
+			"converts 1 ukava to akava if not enough akava to cover",
+			sdk.NewCoins(sdk.NewInt64Coin("akava", 12_021_000_000_002)),
+			sdk.NewInt(87),
+			sdk.NewInt(980_000_000_000),
+			false,
+			sdk.NewInt(1_000_000_002),
 		},
 	}
 
@@ -539,10 +576,10 @@ func (suite *evmKeeperTestSuite) TestMintCoins() {
 			sdk.NewInt(100),
 		},
 		{
-			"does not convert akava balance to ukava if it exceeds 1 ukava",
+			"convert akava balance to ukava if it exceeds 1 ukava",
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 10_999_000_000_000)),
-			sdk.NewInt(10),
-			sdk.NewInt(2_001_200_000_001),
+			sdk.NewInt(12),
+			sdk.NewInt(1_200_000_001),
 			false,
 			sdk.NewInt(1_002_200_000_001),
 		},
@@ -551,6 +588,7 @@ func (suite *evmKeeperTestSuite) TestMintCoins() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			suite.SetupTest()
+			suite.FundModuleAccountWithKava(types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin("ukava", 10)))
 			suite.FundModuleAccountWithKava(evmtypes.ModuleName, sdk.NewCoins(sdk.NewCoin("akava", tt.akavaStart)))
 
 			err := suite.EvmBankKeeper.MintCoins(suite.Ctx, evmtypes.ModuleName, tt.mintCoins)
@@ -611,7 +649,8 @@ func (suite *evmKeeperTestSuite) TestValidateEvmCoins() {
 	}
 }
 
-func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava() {
+func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkavaIfNeeded() {
+	akavaNeeded := sdk.NewInt(200)
 	tests := []struct {
 		name          string
 		startingCoins sdk.Coins
@@ -619,7 +658,7 @@ func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava() {
 		success       bool
 	}{
 		{
-			"not enough ukava",
+			"not enough ukava for conversion",
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 100)),
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 100)),
 			false,
@@ -630,15 +669,25 @@ func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkava() {
 			sdk.NewCoins(sdk.NewInt64Coin("ukava", 9), sdk.NewInt64Coin("akava", 1_000_000_000_100)),
 			true,
 		},
+		{
+			"conversion not needed",
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 200)),
+			sdk.NewCoins(sdk.NewInt64Coin("ukava", 10), sdk.NewInt64Coin("akava", 200)),
+			true,
+		},
 	}
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
+			suite.SetupTest()
+
 			suite.FundAccountWithKava(suite.Addrs[0], tt.startingCoins)
-			err := suite.EvmBankKeeper.ConvertOneUkavaToAkava(suite.Ctx, suite.Addrs[0])
+			err := suite.EvmBankKeeper.ConvertOneUkavaToAkavaIfNeeded(suite.Ctx, suite.Addrs[0], akavaNeeded)
 			moduleKava := suite.BankKeeper.GetBalance(suite.Ctx, suite.AccountKeeper.GetModuleAddress(types.ModuleName), "ukava")
 			if tt.success {
 				suite.Require().NoError(err)
-				suite.Require().Equal(sdk.OneInt(), moduleKava.Amount)
+				if tt.startingCoins.AmountOf("akava").LT(akavaNeeded) {
+					suite.Require().Equal(sdk.OneInt(), moduleKava.Amount)
+				}
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal(sdk.ZeroInt(), moduleKava.Amount)
