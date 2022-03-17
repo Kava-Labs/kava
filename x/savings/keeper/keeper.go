@@ -11,17 +11,17 @@ import (
 	"github.com/kava-labs/kava/x/savings/types"
 )
 
-// Keeper struct for pricefeed module
+// Keeper struct for savings module
 type Keeper struct {
 	// key used to access the stores from Context
 	key sdk.StoreKey
 	// Codec for binary encoding/decoding
 	cdc codec.Codec
-	// The reference to the Paramstore to get and set pricefeed specific params
+	// The reference to the Paramstore to get and set savings specific params
 	paramSubspace paramtypes.Subspace
 }
 
-// NewKeeper returns a new keeper for the pricefeed module.
+// NewKeeper returns a new keeper for the savings module.
 func NewKeeper(
 	cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace,
 ) Keeper {
