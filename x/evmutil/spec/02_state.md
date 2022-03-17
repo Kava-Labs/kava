@@ -18,6 +18,7 @@ message GenesisState {
 ## Account
 
 An `Account` is a struct representing the excess `akava` balance of an address.
+
 Since an address's total `akava` balance is derived from its `ukava` balance and the excess `akava` balance stored by the `Account` struct, the `akava` balance here should never exceed 1 `ukava` (10^12 `akava`).
 
 ```protobuf
