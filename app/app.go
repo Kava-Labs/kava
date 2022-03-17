@@ -111,6 +111,9 @@ import (
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
+	savings "github.com/kava-labs/kava/x/savings"
+	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 	"github.com/kava-labs/kava/x/swap"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
@@ -164,6 +167,7 @@ var (
 		hard.AppModuleBasic{},
 		committee.AppModuleBasic{},
 		incentive.AppModuleBasic{},
+		savings.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 	)
 
@@ -186,6 +190,7 @@ var (
 		cdptypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		hardtypes.ModuleAccountName:     {authtypes.Minter},
+		savingstypes.ModuleAccountName:  nil,
 	}
 )
 
@@ -243,6 +248,7 @@ type App struct {
 	hardKeeper       hardkeeper.Keeper
 	committeeKeeper  committeekeeper.Keeper
 	incentiveKeeper  incentivekeeper.Keeper
+	savingsKeeper    savingskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -295,7 +301,7 @@ func NewApp(
 		capabilitytypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
-		committeetypes.StoreKey, incentivetypes.StoreKey,
+		committeetypes.StoreKey, incentivetypes.StoreKey, savingstypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -334,6 +340,7 @@ func NewApp(
 	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
 	hardSubspace := app.paramsKeeper.Subspace(hardtypes.ModuleName)
 	incentiveSubspace := app.paramsKeeper.Subspace(incentivetypes.ModuleName)
+	savingsSubspace := app.paramsKeeper.Subspace(savingstypes.ModuleName)
 	ibcSubspace := app.paramsKeeper.Subspace(ibchost.ModuleName)
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 
@@ -519,7 +526,6 @@ func NewApp(
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 	)
-
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
 		keys[incentivetypes.StoreKey],
@@ -531,7 +537,11 @@ func NewApp(
 		app.stakingKeeper,
 		&swapKeeper,
 	)
-
+	app.savingsKeeper = savingskeeper.NewKeeper(
+		appCodec,
+		keys[savingstypes.StoreKey],
+		savingsSubspace,
+	)
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -590,6 +600,7 @@ func NewApp(
 		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
+		savings.NewAppModule(app.savingsKeeper, app.accountKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -645,6 +656,7 @@ func NewApp(
 		kavadisttypes.ModuleName,
 		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
+		savingstypes.ModuleName,
 		bep3types.ModuleName,
 		pricefeedtypes.ModuleName,
 		swaptypes.ModuleName,
