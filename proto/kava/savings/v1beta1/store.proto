@@ -11,4 +11,5 @@ option (gogoproto.verbose_equal_all) = true;
 
 // Params defines the parameters for the savings module.
 message Params {
+    repeated string supported_denoms  = 1;
 }
