@@ -54,6 +54,24 @@ func (suite *keeperTestSuite) TestGetAllAccounts() {
 	}
 }
 
+func (suite *keeperTestSuite) TestSetAccount_ZeroBalance() {
+	existingAccount := types.Account{
+		Address: suite.Addrs[0],
+		Balance: sdk.NewInt(100),
+	}
+	err := suite.Keeper.SetAccount(suite.Ctx, existingAccount)
+	suite.Require().NoError(err)
+	err = suite.Keeper.SetAccount(suite.Ctx, types.Account{
+		Address: suite.Addrs[0],
+		Balance: sdk.ZeroInt(),
+	})
+	suite.Require().NoError(err)
+	bal := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
+	suite.Require().Equal(sdk.ZeroInt(), bal)
+	expAcct := suite.Keeper.GetAccount(suite.Ctx, suite.Addrs[0])
+	suite.Require().Nil(expAcct)
+}
+
 func (suite *keeperTestSuite) TestSetAccount() {
 	existingAccount := types.Account{
 		Address: suite.Addrs[0],
@@ -206,6 +224,12 @@ func (suite *keeperTestSuite) TestSetBalance() {
 			sdk.NewInt(100),
 			false,
 		},
+		{
+			"zero balance",
+			suite.Addrs[0],
+			sdk.ZeroInt(),
+			true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -219,6 +243,11 @@ func (suite *keeperTestSuite) TestSetBalance() {
 				suite.Require().NoError(err)
 				expBal := suite.Keeper.GetBalance(suite.Ctx, tt.address)
 				suite.Require().Equal(expBal, tt.balance)
+
+				if tt.balance.IsZero() {
+					account := suite.Keeper.GetAccount(suite.Ctx, tt.address)
+					suite.Require().Nil(account)
+				}
 			} else {
 				suite.Require().Error(err)
 				expBal := suite.Keeper.GetBalance(suite.Ctx, existingAccount.Address)
