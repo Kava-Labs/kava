@@ -541,6 +541,8 @@ func NewApp(
 		appCodec,
 		keys[savingstypes.StoreKey],
 		savingsSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
 	)
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
@@ -600,7 +602,7 @@ func NewApp(
 		hard.NewAppModule(app.hardKeeper, app.accountKeeper, app.bankKeeper, app.pricefeedKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
-		savings.NewAppModule(app.savingsKeeper, app.accountKeeper),
+		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
