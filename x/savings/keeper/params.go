@@ -17,3 +17,16 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
+
+// IsDenomSupported returns a boolean indicating if a denom is supported
+func (k Keeper) IsDenomSupported(ctx sdk.Context, denom string) bool {
+	var p types.Params
+	k.paramSubspace.GetParamSet(ctx, &p)
+
+	for _, supportedDenom := range p.SupportedDenoms {
+		if supportedDenom == denom {
+			return true
+		}
+	}
+	return false
+}
