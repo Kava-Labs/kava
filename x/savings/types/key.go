@@ -21,6 +21,5 @@ const (
 )
 
 var (
-// Add store prefixes here
-// IndexPrefix = []byte{0x00}
+	DepositsKeyPrefix = []byte{0x01}
 )

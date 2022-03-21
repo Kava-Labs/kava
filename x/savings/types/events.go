@@ -1,8 +1,9 @@
 package types
 
 const (
-	EventTypePlaceholder = "placeholder"
+	EventTypeSavingsDeposit = "deposit_savings"
 
 	AttributeValueCategory = ModuleName
-	AttributePlaceholderID = "placeholder_id"
+	AttributeKeyAmount     = "amount"
+	AttributeKeyDepositor  = "depositor"
 )
