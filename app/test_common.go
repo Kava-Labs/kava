@@ -37,6 +37,7 @@ import (
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
+	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 )
 
@@ -99,6 +100,7 @@ func (tApp TestApp) GetCDPKeeper() cdpkeeper.Keeper             { return tApp.cd
 func (tApp TestApp) GetHardKeeper() hardkeeper.Keeper           { return tApp.hardKeeper }
 func (tApp TestApp) GetCommitteeKeeper() committeekeeper.Keeper { return tApp.committeeKeeper }
 func (tApp TestApp) GetIncentiveKeeper() incentivekeeper.Keeper { return tApp.incentiveKeeper }
+func (tApp TestApp) GetSavingsKeeper() savingskeeper.Keeper     { return tApp.savingsKeeper }
 
 // LegacyAmino returns the app's amino codec.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
