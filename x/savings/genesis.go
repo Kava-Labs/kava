@@ -1,6 +1,8 @@
 package savings
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/savings/keeper"
@@ -8,8 +10,14 @@ import (
 )
 
 // InitGenesis initializes genesis state
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak types.AccountKeeper, gs types.GenesisState) {
 	k.SetParams(ctx, gs.Params)
+
+	// check if the module account exists
+	SavingsModuleAccount := ak.GetModuleAccount(ctx, types.ModuleAccountName)
+	if SavingsModuleAccount == nil {
+		panic(fmt.Sprintf("%s module account has not been set", SavingsModuleAccount))
+	}
 }
 
 // ExportGenesis returns a GenesisState for a given context and keeper
