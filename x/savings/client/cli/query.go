@@ -75,9 +75,9 @@ func queryDepositsCmd() *cobra.Command {
 		Short: "query savings module deposits with optional filters",
 		Long:  "query for all savings module deposits or a specific deposit using flags",
 		Example: fmt.Sprintf(`%[1]s q %[2]s deposits
-%[1]s q %[2]s unsynced-deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --denom bnb
-%[1]s q %[2]s unsynced-deposits --denom ukava
-%[1]s q %[2]s unsynced-deposits --denom btcb`, version.AppName, types.ModuleName),
+%[1]s q %[2]s deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --denom bnb
+%[1]s q %[2]s deposits --denom ukava
+%[1]s q %[2]s deposits --denom btcb`, version.AppName, types.ModuleName),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
