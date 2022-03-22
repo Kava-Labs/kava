@@ -14,7 +14,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, bankK types.BankKeeper, k Keep
 }
 
 // AllInvariants runs all invariants of the swap module
-func AllInvariants(bankK types.BankKeeper, k Keeper) sdk.Invariant { // TODO why?
+func AllInvariants(bankK types.BankKeeper, k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		if res, stop := FullyBackedInvariant(bankK, k)(ctx); stop {
 			return res, stop
@@ -46,6 +46,7 @@ func FullyBackedInvariant(bankK types.BankKeeper, k Keeper) sdk.Invariant {
 	}
 }
 
+// SmallBalancesInvariant ensures all minor balances are less than the overflow amount, beyond this they should be converted to the major denom.
 func SmallBalancesInvariant(_ types.BankKeeper, k Keeper) sdk.Invariant {
 	broken := false
 	message := sdk.FormatInvariant(types.ModuleName, "small balances broken", "minor balances not all less than overflow")
