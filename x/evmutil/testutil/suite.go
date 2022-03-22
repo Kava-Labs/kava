@@ -2,16 +2,15 @@ package testutil
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/app"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
-
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
-	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
 type Suite struct {
@@ -19,7 +18,7 @@ type Suite struct {
 
 	App           app.TestApp
 	Ctx           sdk.Context
-	BankKeeper    types.BankKeeper
+	BankKeeper    bankkeeper.Keeper
 	AccountKeeper authkeeper.AccountKeeper
 	Keeper        keeper.Keeper
 	EvmBankKeeper keeper.EvmBankKeeper
