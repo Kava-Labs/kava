@@ -20,14 +20,11 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	}
 
 	currDeposit, foundDeposit := k.GetDeposit(ctx, depositor)
-	var amount sdk.Coins
+	amount := coins
 	if foundDeposit {
-		amount = currDeposit.Amount.Add(coins...)
-	} else {
-		amount = coins
+		amount = amount.Add(currDeposit.Amount...)
 	}
 	deposit := types.NewDeposit(depositor, amount)
-
 	k.SetDeposit(ctx, deposit)
 
 	ctx.EventManager().EmitEvent(

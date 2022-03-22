@@ -5,12 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/savings/keeper"
@@ -58,7 +57,6 @@ func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
 
 	_, f = suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"))
 	suite.Require().False(f)
-
 }
 
 func (suite *KeeperTestSuite) TestIterateDeposits() {
