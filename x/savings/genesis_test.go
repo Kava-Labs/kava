@@ -37,7 +37,9 @@ func (suite *GenesisTestSuite) SetupTest() {
 }
 
 func (suite *GenesisTestSuite) TestInitGenesis() {
-	params := types.NewParams()
+	params := types.NewParams(
+		[]string{"btc", "ukava", "bnb"},
+	)
 	savingsGenesis := types.NewGenesisState(params)
 
 	suite.NotPanics(
