@@ -10,7 +10,7 @@ import (
 )
 
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
-// governance module.
+// savings module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 

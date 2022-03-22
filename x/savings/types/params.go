@@ -12,7 +12,7 @@ func NewParams() Params {
 	return Params{}
 }
 
-// DefaultParams default params for pricefeed
+// DefaultParams default params for savings
 func DefaultParams() Params {
 	return NewParams()
 }
@@ -23,7 +23,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
-// pairs of pricefeed module's parameters.
+// pairs of savings module's parameters.
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{}
 }
