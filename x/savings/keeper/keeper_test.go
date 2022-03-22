@@ -9,9 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
-
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/savings/keeper"
 	"github.com/kava-labs/kava/x/savings/types"
@@ -44,8 +41,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
 	dep := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))))
-
-	_, f := suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"))
 	suite.Require().False(f)
 
 	suite.keeper.SetDeposit(suite.ctx, dep)
@@ -55,10 +50,6 @@ func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
 	suite.Require().Equal(dep, testDeposit)
 
 	suite.Require().NotPanics(func() { suite.keeper.DeleteDeposit(suite.ctx, dep) })
-
-	_, f = suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"))
-	suite.Require().False(f)
-
 }
 
 func (suite *KeeperTestSuite) TestIterateDeposits() {
@@ -100,5 +91,3 @@ func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
-}
