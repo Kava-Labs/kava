@@ -1,0 +1,30 @@
+syntax = "proto3";
+package kava.savings.v1beta1;
+
+import "kava/savings/v1beta1/store.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package                    = "github.com/kava-labs/kava/x/savings/types";
+option (gogoproto.equal_all)         = true;
+option (gogoproto.verbose_equal_all) = true;
+
+// Query defines the gRPC querier service for savings module
+service Query {
+  // Params queries all parameters of the savings module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/savings/v1beta1/params";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/savings
+// parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/savings
+// parameters.
+message QueryParamsResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  Params params = 1 [(gogoproto.nullable) = false];
+}

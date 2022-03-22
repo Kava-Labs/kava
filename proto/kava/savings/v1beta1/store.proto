@@ -1,0 +1,11 @@
+syntax = "proto3";
+package kava.savings.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package                    = "github.com/kava-labs/kava/x/savings/types";
+option (gogoproto.equal_all)         = true;
+option (gogoproto.verbose_equal_all) = true;
+
+// Params defines the parameters for the savings module.
+message Params {}
