@@ -14,8 +14,10 @@ import (
 
 func (suite *KeeperTestSuite) TestDeposit() {
 	type args struct {
+		allowedDenoms             []string
 		depositor                 sdk.AccAddress
-		amount                    sdk.Coins
+		initialDepositorBalance   sdk.Coins
+		depositAmount             sdk.Coins
 		numberDeposits            int
 		expectedAccountBalance    sdk.Coins
 		expectedModAccountBalance sdk.Coins
@@ -34,8 +36,10 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		{
 			"valid",
 			args{
+				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
@@ -49,8 +53,10 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		{
 			"valid multi deposit",
 			args{
+				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
 				numberDeposits:            2,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(800)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
@@ -64,8 +70,10 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		{
 			"invalid deposit denom",
 			args{
+				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoins(sdk.NewCoin("fake", sdk.NewInt(100))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("fake", sdk.NewInt(100))),
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -79,8 +87,10 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		{
 			"insufficient funds",
 			args{
+				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10000))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10000))),
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -101,17 +111,10 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			authGS := app.NewFundedGenStateWithCoins(
 				tApp.AppCodec(),
-				[]sdk.Coins{
-					sdk.NewCoins(
-						sdk.NewCoin("bnb", sdk.NewInt(1000)),
-						sdk.NewCoin("btcb", sdk.NewInt(1000)),
-					),
-				},
+				[]sdk.Coins{tc.args.initialDepositorBalance},
 				[]sdk.AccAddress{tc.args.depositor},
 			)
-			savingsGS := types.NewGenesisState(types.NewParams(
-				[]string{"bnb", "btcb", "ukava"},
-			))
+			savingsGS := types.NewGenesisState(types.NewParams(tc.args.allowedDenoms))
 
 			tApp.InitializeFromGenesisStates(authGS,
 				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&savingsGS)},
@@ -124,7 +127,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			// run the test
 			var err error
 			for i := 0; i < tc.args.numberDeposits; i++ {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.amount)
+				err = suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.depositAmount)
 			}
 
 			// verify results
