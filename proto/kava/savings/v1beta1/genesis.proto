@@ -10,6 +10,6 @@ option (gogoproto.verbose_equal_all) = true;
 
 // GenesisState defines the savings module's genesis state.
 message GenesisState {
-  // params defines all the paramaters of the module.
+  // params defines all the parameters of the module.
   Params params = 1 [(gogoproto.nullable) = false];
 }
