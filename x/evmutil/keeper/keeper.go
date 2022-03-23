@@ -74,6 +74,14 @@ func (k Keeper) SetAccount(ctx sdk.Context, account types.Account) error {
 	store := ctx.KVStore(k.storeKey)
 	accountKey := types.AccountStoreKey(account.Address)
 
+	// make sure we remove accounts with zero balance
+	if !account.Balance.IsPositive() {
+		if store.Has(accountKey) {
+			store.Delete(accountKey)
+		}
+		return nil
+	}
+
 	bz, err := k.cdc.Marshal(&account)
 	if err != nil {
 		panic(err)
