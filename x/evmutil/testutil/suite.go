@@ -39,6 +39,11 @@ func (suite *Suite) SetupTest() {
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 	suite.Addrs = addrs
+
+	evmGenesis := evmtypes.DefaultGenesisState()
+	evmGenesis.Params.EvmDenom = "akava"
+	gs := app.GenesisState{evmtypes.ModuleName: suite.App.AppCodec().MustMarshalJSON(evmGenesis)}
+	suite.App.InitializeFromGenesisStates(gs)
 }
 
 func (suite *Suite) FundAccountWithKava(addr sdk.AccAddress, coins sdk.Coins) {
