@@ -39,7 +39,6 @@ func (s queryServer) Params(c context.Context, req *types.QueryParamsRequest) (*
 
 func (s queryServer) Deposits(ctx context.Context, req *types.QueryDepositsRequest) (*types.QueryDepositsResponse, error) {
 	if req == nil {
-		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)

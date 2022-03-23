@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/savings/types"
 )
@@ -43,7 +44,7 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 	for _, coin := range coins {
 		supported := k.IsDenomSupported(ctx, coin.Denom)
 		if supported == false {
-			return types.ErrInvalidDepositDenom
+			return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, ": %s", coin.Denom)
 		}
 	}
 

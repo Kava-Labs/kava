@@ -605,7 +605,6 @@ func NewApp(
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 	)
 
-	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
