@@ -54,7 +54,6 @@ func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
 	suite.Require().Equal(dep, testDeposit)
 
 	suite.Require().NotPanics(func() { suite.keeper.DeleteDeposit(suite.ctx, dep) })
-
 	_, f = suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"))
 	suite.Require().False(f)
 }
