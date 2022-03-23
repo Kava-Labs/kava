@@ -93,14 +93,16 @@ type AppModule struct {
 
 	keeper        keeper.Keeper
 	accountKeeper authkeeper.AccountKeeper
+	bankKeeper    types.BankKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper keeper.Keeper, accountKeeper authkeeper.AccountKeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, accountKeeper authkeeper.AccountKeeper, bankKeeper types.BankKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 		accountKeeper:  accountKeeper,
+		bankKeeper:     bankKeeper,
 	}
 }
 
@@ -135,7 +137,7 @@ func (AppModule) ConsensusVersion() uint64 {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	// TODO:
-	// types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	// types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 }
 

@@ -6,8 +6,6 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
 option go_package                    = "github.com/kava-labs/kava/x/savings/types";
-option (gogoproto.equal_all)         = true;
-option (gogoproto.verbose_equal_all) = true;
 
 // Query defines the gRPC querier service for savings module
 service Query {
