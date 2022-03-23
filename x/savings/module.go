@@ -18,7 +18,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/x/savings/client/cli"
-	"github.com/kava-labs/kava/x/savings/client/rest"
 	"github.com/kava-labs/kava/x/savings/keeper"
 	"github.com/kava-labs/kava/x/savings/types"
 )
@@ -65,7 +64,7 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 
 // RegisterRESTRoutes registers REST routes for the module.
 func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterRoutes(clientCtx, rtr)
+	// intentionally left blank
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
@@ -126,7 +125,9 @@ func (AppModule) QuerierRoute() string {
 
 // LegacyQuerierHandler returns no sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
+		return []byte{}, nil
+	}
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
