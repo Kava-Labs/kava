@@ -17,7 +17,8 @@ message Params {
 message Deposit {
     string depositor = 1 [
       (cosmos_proto.scalar) = "cosmos.AddressBytes",
-      (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"];
+      (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    ];
 
     repeated cosmos.base.v1beta1.Coin amount = 2
         [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
