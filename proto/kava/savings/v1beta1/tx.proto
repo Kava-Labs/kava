@@ -5,12 +5,12 @@ import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package                    = "github.com/kava-labs/kava/x/savings/types";
+option go_package = "github.com/kava-labs/kava/x/savings/types";
 
 // Msg defines the savings Msg service.
 service Msg {
-    // Deposit defines a method for depositing funds to the savings module account
-    rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
+  // Deposit defines a method for depositing funds to the savings module account
+  rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
 }
 
 // MsgDeposit defines the Msg/Deposit request type.
