@@ -17,15 +17,15 @@ import (
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
-type evmKeeperTestSuite struct {
+type evmBankKeeperTestSuite struct {
 	testutil.Suite
 }
 
-func (suite *evmKeeperTestSuite) SetupTest() {
+func (suite *evmBankKeeperTestSuite) SetupTest() {
 	suite.Suite.SetupTest()
 }
 
-func (suite *evmKeeperTestSuite) TestGetBalance_ReturnsSpendable() {
+func (suite *evmBankKeeperTestSuite) TestGetBalance_ReturnsSpendable() {
 	startingCoins := sdk.NewCoins(sdk.NewInt64Coin("ukava", 10))
 	startingAkava := sdk.NewInt(100)
 
@@ -48,7 +48,7 @@ func (suite *evmKeeperTestSuite) TestGetBalance_ReturnsSpendable() {
 	suite.Require().Equal(sdk.NewIntFromUint64(5_000_000_000_100), coin.Amount)
 }
 
-func (suite *evmKeeperTestSuite) TestGetBalance_NotEvmDenom() {
+func (suite *evmBankKeeperTestSuite) TestGetBalance_NotEvmDenom() {
 	suite.Require().Panics(func() {
 		suite.EvmBankKeeper.GetBalance(suite.Ctx, suite.Addrs[0], "ukava")
 	})
@@ -57,7 +57,7 @@ func (suite *evmKeeperTestSuite) TestGetBalance_NotEvmDenom() {
 	})
 }
 
-func (suite *evmKeeperTestSuite) TestGetBalance() {
+func (suite *evmBankKeeperTestSuite) TestGetBalance() {
 	tests := []struct {
 		name           string
 		startingAmount sdk.Coins
@@ -113,7 +113,7 @@ func (suite *evmKeeperTestSuite) TestGetBalance() {
 	}
 }
 
-func (suite *evmKeeperTestSuite) TestSendCoinsFromModuleToAccount() {
+func (suite *evmBankKeeperTestSuite) TestSendCoinsFromModuleToAccount() {
 	startingModuleCoins := sdk.NewCoins(
 		sdk.NewInt64Coin("akava", 200),
 		sdk.NewInt64Coin("ukava", 100),
@@ -256,7 +256,7 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromModuleToAccount() {
 	}
 }
 
-func (suite *evmKeeperTestSuite) TestSendCoinsFromAccountToModule() {
+func (suite *evmBankKeeperTestSuite) TestSendCoinsFromAccountToModule() {
 	startingAccCoins := sdk.NewCoins(
 		sdk.NewInt64Coin("akava", 200),
 		sdk.NewInt64Coin("ukava", 100),
@@ -376,7 +376,7 @@ func (suite *evmKeeperTestSuite) TestSendCoinsFromAccountToModule() {
 	}
 }
 
-func (suite *evmKeeperTestSuite) TestBurnCoins() {
+func (suite *evmBankKeeperTestSuite) TestBurnCoins() {
 	startingUkava := sdk.NewInt(100)
 	tests := []struct {
 		name       string
@@ -499,7 +499,7 @@ func (suite *evmKeeperTestSuite) TestBurnCoins() {
 	}
 }
 
-func (suite *evmKeeperTestSuite) TestMintCoins() {
+func (suite *evmBankKeeperTestSuite) TestMintCoins() {
 	tests := []struct {
 		name       string
 		mintCoins  sdk.Coins
@@ -610,7 +610,7 @@ func (suite *evmKeeperTestSuite) TestMintCoins() {
 	}
 }
 
-func (suite *evmKeeperTestSuite) TestValidateEvmCoins() {
+func (suite *evmBankKeeperTestSuite) TestValidateEvmCoins() {
 	tests := []struct {
 		name      string
 		coins     sdk.Coins
@@ -649,7 +649,7 @@ func (suite *evmKeeperTestSuite) TestValidateEvmCoins() {
 	}
 }
 
-func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkavaIfNeeded() {
+func (suite *evmBankKeeperTestSuite) TestConvertOneUkavaToAkavaIfNeeded() {
 	akavaNeeded := sdk.NewInt(200)
 	tests := []struct {
 		name          string
@@ -701,7 +701,7 @@ func (suite *evmKeeperTestSuite) TestConvertOneUkavaToAkavaIfNeeded() {
 	}
 }
 
-func (suite *evmKeeperTestSuite) TestConvertAkavaToUkava() {
+func (suite *evmBankKeeperTestSuite) TestConvertAkavaToUkava() {
 	tests := []struct {
 		name          string
 		startingCoins sdk.Coins
@@ -740,7 +740,7 @@ func (suite *evmKeeperTestSuite) TestConvertAkavaToUkava() {
 	}
 }
 
-func (suite *evmKeeperTestSuite) TestSplitAkavaCoins() {
+func (suite *evmBankKeeperTestSuite) TestSplitAkavaCoins() {
 	tests := []struct {
 		name          string
 		coins         sdk.Coins
@@ -793,5 +793,5 @@ func (suite *evmKeeperTestSuite) TestSplitAkavaCoins() {
 }
 
 func TestEvmBankKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(evmKeeperTestSuite))
+	suite.Run(t, new(evmBankKeeperTestSuite))
 }
