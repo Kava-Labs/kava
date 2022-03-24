@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
@@ -190,4 +191,8 @@ func (suite *grpcQueryTestSuite) addDeposits() {
 			suite.Require().NoError(err)
 		})
 	}
+}
+
+func TestGrpcQueryTestSuite(t *testing.T) {
+	suite.Run(t, new(grpcQueryTestSuite))
 }

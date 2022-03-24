@@ -125,9 +125,7 @@ func (AppModule) QuerierRoute() string {
 
 // LegacyQuerierHandler returns no sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
-		return []byte{}, nil
-	}
+	return nil
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
