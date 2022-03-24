@@ -31,7 +31,7 @@ type validatorInfo struct {
 type resultStatus struct {
 	NodeInfo      p2p.DefaultNodeInfo `json:"node_info"`
 	SyncInfo      ctypes.SyncInfo     `json:"sync_info"`
-	ValidatorInfo validatorInfo       `json:"validator_info`
+	ValidatorInfo validatorInfo       `json:"validator_info"`
 }
 
 // StatusCommand returns the command to return the status of the network.
