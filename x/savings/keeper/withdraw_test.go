@@ -17,7 +17,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 		allowedDenoms             []string
 		depositor                 sdk.AccAddress
 		initialDepositorBalance   sdk.Coins
-		initialModAccountBalance  sdk.Coins
 		depositAmount             sdk.Coins
 		withdrawAmount            sdk.Coins
 		expectedAccountBalance    sdk.Coins
@@ -41,7 +40,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				initialModAccountBalance:  sdk.Coins(nil),
 				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
 				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
@@ -52,6 +50,60 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				expectPass:   true,
 				expectDelete: false,
 				contains:     "",
+			},
+		},
+		{
+			"valid: full withdraw",
+			args{
+				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.Coins{},
+				expectedDepositCoins:      sdk.Coins{},
+			},
+			errArgs{
+				expectPass:   true,
+				expectDelete: true,
+				contains:     "",
+			},
+		},
+		{
+			"valid: withdraw exceeds deposit but is adjusted to match max deposit",
+			args{
+				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(300))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.Coins{},
+				expectedDepositCoins:      sdk.Coins{},
+			},
+			errArgs{
+				expectPass:   true,
+				expectDelete: true,
+				contains:     "",
+			},
+		},
+		{
+			"invalid: withdraw non-supplied coin type",
+			args{
+				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
+				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("btcb", sdk.NewInt(200))),
+				expectedAccountBalance:    sdk.Coins{},
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
+				expectedDepositCoins:      sdk.Coins{},
+			},
+			errArgs{
+				expectPass:   false,
+				expectDelete: false,
+				contains:     "invalid withdraw denom",
 			},
 		},
 	}
@@ -74,11 +126,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
-
-			// Mint coins to savings module account
 			bankKeeper := tApp.GetBankKeeper()
-			// err := bankKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModAccountBalance)
-			// suite.Require().NoError(err)
 
 			err := suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.depositAmount)
 			suite.Require().NoError(err)
