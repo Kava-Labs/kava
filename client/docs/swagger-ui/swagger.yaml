@@ -1099,7 +1099,9 @@ paths:
                 properties:
                   max_auction_duration:
                     type: string
-                  bid_duration:
+                  forward_bid_duration:
+                    type: string
+                  reverse_bid_duration:
                     type: string
                   increment_surplus:
                     type: string
@@ -50359,7 +50361,9 @@ definitions:
     properties:
       max_auction_duration:
         type: string
-      bid_duration:
+      forward_bid_duration:
+        type: string
+      reverse_bid_duration:
         type: string
       increment_surplus:
         type: string
@@ -50745,7 +50749,9 @@ definitions:
         properties:
           max_auction_duration:
             type: string
-          bid_duration:
+          forward_bid_duration:
+            type: string
+          reverse_bid_duration:
             type: string
           increment_surplus:
             type: string
