@@ -146,7 +146,7 @@ start:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=v0.2
+protoVer=v0.3
 protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
 containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
 containerProtoGenAny=$(PROJECT_NAME)-proto-gen-any-$(protoVer)

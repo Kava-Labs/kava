@@ -36,6 +36,7 @@ buf protoc \
   --doc_out=./docs/core \
   --doc_opt=./docs/protodoc-markdown.tmpl,proto-docs.md \
   $(find "$(pwd)/proto" -maxdepth 5 -name '*.proto')
+go mod tidy
 
 # generate codec/testdata proto code
 # buf protoc -I "proto" -I "third_party/proto" -I "testutil/testdata" --gocosmos_out=plugins=grpc,\
