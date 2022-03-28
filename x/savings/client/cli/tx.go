@@ -43,7 +43,7 @@ func getCmdDeposit() *cobra.Command {
 		Use:   "deposit [amount]",
 		Short: "deposit coins to savings",
 		Example: fmt.Sprintf(
-			`%s tx %s deposit 10000000bnb --from <key>`, version.AppName, types.ModuleName,
+			`%s tx %s deposit 10000000ukava,100000000usdx --from <key>`, version.AppName, types.ModuleName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -69,7 +69,7 @@ func getCmdWithdraw() *cobra.Command {
 		Use:   "withdraw [amount]",
 		Short: "withdraw coins from savings",
 		Example: fmt.Sprintf(
-			`%s tx %s withdraw 10000000bnb --from <key>`, version.AppName, types.ModuleName,
+			`%s tx %s withdraw 10000000ukava,100000000usdx --from <key>`, version.AppName, types.ModuleName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
