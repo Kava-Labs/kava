@@ -8,7 +8,7 @@ order: 1
 
 In order to use the EVM and be compatible with existing clients, the gas denom used by the EVM must be in 18 decimals. Since `ukava` has 6 decimals of precision, it cannot be used as the EVM gas denom directly.
 
-Thus, in order to use the Kava token on the EVM, the `evmutil` module provides an `EvmBankKeeper` that enables the usage of `akava` on the EVM by using an account's `ukava` balance and its excess `akava` balance in the module store.
+In order to use the Kava token on the EVM, the `evmutil` module provides an `EvmBankKeeper` that is responsible for the conversion of `ukava` and `akava`. A user's `akava` balance is stored in the `evmutil` store, while it's `ukava` balance remains stored in the cosmos-sdk `bank` module.
 
 ## `EvmBankKeeper` Overview
 
