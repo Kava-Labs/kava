@@ -7,7 +7,7 @@ import "google/api/annotations.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 
-option go_package                    = "github.com/kava-labs/kava/x/savings/types";
+option go_package = "github.com/kava-labs/kava/x/savings/types";
 
 // Query defines the gRPC querier service for savings module
 service Query {
@@ -20,7 +20,6 @@ service Query {
   rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
     option (google.api.http).get = "/kava/savings/v1beta1/deposits";
   }
-
 }
 
 // QueryParamsRequest defines the request type for querying x/savings
