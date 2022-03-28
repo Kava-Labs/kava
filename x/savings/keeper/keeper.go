@@ -78,6 +78,15 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, cb func(deposit types.Deposit) 
 	}
 }
 
+// GetAllDeposits returns all Deposits from the store
+func (k Keeper) GetAllDeposits(ctx sdk.Context) (deposits types.Deposits) {
+	k.IterateDeposits(ctx, func(deposit types.Deposit) bool {
+		deposits = append(deposits, deposit)
+		return false
+	})
+	return
+}
+
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
