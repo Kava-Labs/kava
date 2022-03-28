@@ -30,7 +30,7 @@ Since the EVM denom `akava` is required to use the `EvmBankKeeper`, it is necess
 
 ### `akava` Balance Calculation
 
-The `akava` balance of an account is derived from an account's **spendable** `ukava` balance times 10^12 (to derive its `ukava` equivalent), plus the account's excess `akava` balance that can be accessed by the module `Keeper`.
+The `akava` balance of an account is derived from an account's **spendable** `ukava` balance times 10^12 (to derive its `akava` equivalent), plus the account's excess `akava` balance that can be accessed by the module `Keeper`.
 
 ### Conversions Between `akava` & `ukava`
 
