@@ -26,6 +26,7 @@ func GetTxCmd() *cobra.Command {
 
 	cmds := []*cobra.Command{
 		getCmdDeposit(),
+		getCmdWithdraw(),
 	}
 
 	for _, cmd := range cmds {
@@ -42,7 +43,7 @@ func getCmdDeposit() *cobra.Command {
 		Use:   "deposit [amount]",
 		Short: "deposit coins to savings",
 		Example: fmt.Sprintf(
-			`%s tx %s savings 10000000bnb --from <key>`, version.AppName, types.ModuleName,
+			`%s tx %s deposit 10000000ukava,100000000usdx --from <key>`, version.AppName, types.ModuleName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -55,6 +56,32 @@ func getCmdDeposit() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgDeposit(clientCtx.GetFromAddress(), amount)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+}
+
+func getCmdWithdraw() *cobra.Command {
+	return &cobra.Command{
+		Use:   "withdraw [amount]",
+		Short: "withdraw coins from savings",
+		Example: fmt.Sprintf(
+			`%s tx %s withdraw 10000000ukava,100000000usdx --from <key>`, version.AppName, types.ModuleName,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinsNormalized(args[0])
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgWithdraw(clientCtx.GetFromAddress(), amount)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
