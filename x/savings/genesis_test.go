@@ -11,6 +11,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/savings"
 	"github.com/kava-labs/kava/x/savings/keeper"
 	"github.com/kava-labs/kava/x/savings/types"
 )
@@ -36,11 +37,19 @@ func (suite *GenesisTestSuite) SetupTest() {
 	suite.addrs = addrs
 }
 
-func (suite *GenesisTestSuite) TestInitGenesis() {
+func (suite *GenesisTestSuite) TestInitExportGenesis() {
 	params := types.NewParams(
 		[]string{"btc", "ukava", "bnb"},
 	)
-	savingsGenesis := types.NewGenesisState(params)
+
+	deposits := types.Deposits{
+		types.NewDeposit(
+			suite.addrs[0],
+			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e8))), // 100 ukava
+		),
+	}
+
+	savingsGenesis := types.NewGenesisState(params, deposits)
 
 	suite.NotPanics(
 		func() {
@@ -50,6 +59,12 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 			)
 		},
 	)
+
+	expectedDeposits := suite.keeper.GetAllDeposits(suite.ctx)
+	expectedGenesis := savingsGenesis
+	expectedGenesis.Deposits = expectedDeposits
+	exportedGenesis := savings.ExportGenesis(suite.ctx, suite.keeper)
+	suite.Equal(expectedGenesis, exportedGenesis)
 }
 
 func TestGenesisTestSuite(t *testing.T) {
