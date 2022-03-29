@@ -111,7 +111,9 @@ func (am AppModule) Name() string {
 }
 
 // RegisterInvariants register module invariants
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	keeper.RegisterInvariants(ir, am.keeper)
+}
 
 // Route module message route name
 func (am AppModule) Route() sdk.Route {
