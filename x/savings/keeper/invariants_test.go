@@ -43,22 +43,6 @@ func (suite *invariantTestSuite) SetupTest() {
 
 	suite.invariants = make(map[string]map[string]sdk.Invariant)
 	keeper.RegisterInvariants(suite, suite.keeper)
-
-	savingsGenesis := types.GenesisState{
-		Params: types.NewParams([]string{"ukava"}),
-	}
-	savingsGenState := app.GenesisState{types.ModuleName: suite.tApp.AppCodec().MustMarshalJSON(&savingsGenesis)}
-
-	suite.tApp.InitializeFromGenesisStates(
-		savingsGenState,
-		app.NewFundedGenStateWithSameCoins(
-			suite.tApp.AppCodec(),
-			cs(
-				c("ukava", 10000000000),
-			),
-			addrs,
-		),
-	)
 }
 
 func (suite *invariantTestSuite) RegisterRoute(moduleName string, route string, invariant sdk.Invariant) {
