@@ -33,7 +33,6 @@ func (suite *invariantTestSuite) SetupTest() {
 
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	// tApp.InitializeFromGenesisStates()
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	suite.addrs = addrs
