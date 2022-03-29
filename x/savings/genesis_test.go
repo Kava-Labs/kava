@@ -42,20 +42,26 @@ func (suite *GenesisTestSuite) TestInitExportGenesis() {
 		[]string{"btc", "ukava", "bnb"},
 	)
 
+	depositAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e8)))
+
 	deposits := types.Deposits{
 		types.NewDeposit(
 			suite.addrs[0],
-			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e8))), // 100 ukava
+			depositAmt, // 100 ukava
 		),
 	}
-
 	savingsGenesis := types.NewGenesisState(params, deposits)
 
+	authBuilder := app.NewAuthBankGenesisBuilder().
+		WithSimpleModuleAccount(types.ModuleAccountName, depositAmt)
+
+	cdc := suite.app.AppCodec()
 	suite.NotPanics(
 		func() {
 			suite.app.InitializeFromGenesisStatesWithTime(
 				suite.genTime,
-				app.GenesisState{types.ModuleName: suite.app.AppCodec().MustMarshalJSON(&savingsGenesis)},
+				authBuilder.BuildMarshalled(cdc),
+				app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&savingsGenesis)},
 			)
 		},
 	)
