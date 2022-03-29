@@ -10,4 +10,6 @@ option go_package = "github.com/kava-labs/kava/x/savings/types";
 message GenesisState {
   // params defines all the parameters of the module.
   Params params = 1 [(gogoproto.nullable) = false];
+
+  repeated Deposit deposits = 2 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
 }

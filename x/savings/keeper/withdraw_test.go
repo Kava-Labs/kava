@@ -117,7 +117,10 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				[]sdk.Coins{tc.args.initialDepositorBalance},
 				[]sdk.AccAddress{tc.args.depositor},
 			)
-			savingsGS := types.NewGenesisState(types.NewParams(tc.args.allowedDenoms))
+			savingsGS := types.NewGenesisState(
+				types.NewParams(tc.args.allowedDenoms),
+				types.Deposits{},
+			)
 
 			tApp.InitializeFromGenesisStates(authGS,
 				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&savingsGS)},

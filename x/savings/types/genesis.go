@@ -1,9 +1,10 @@
 package types
 
 // NewGenesisState creates a new genesis state for the savings module
-func NewGenesisState(p Params) GenesisState {
+func NewGenesisState(p Params, deposits Deposits) GenesisState {
 	return GenesisState{
-		Params: p,
+		Params:   p,
+		Deposits: deposits,
 	}
 }
 
@@ -11,11 +12,17 @@ func NewGenesisState(p Params) GenesisState {
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
 		DefaultParams(),
+		Deposits{},
 	)
 }
 
 // Validate performs basic validation of genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
-	return gs.Params.Validate()
+
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+
+	return gs.Deposits.Validate()
 }
