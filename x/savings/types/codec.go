@@ -13,6 +13,8 @@ import (
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
 // savings module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&MsgDeposit{}, "savings/MsgDeposit", nil)
+	cdc.RegisterConcrete(&MsgWithdraw{}, "savings/MsgWithdraw", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
