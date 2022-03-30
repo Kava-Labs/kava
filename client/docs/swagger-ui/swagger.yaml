@@ -5,7 +5,7 @@ info:
   version: 1.0.0
 externalDocs:
   description: GitHub
-  url: 'https://github.com/Kava-Labs/kava'
+  url: https://github.com/Kava-Labs/kava
 host: api.data.kava.io
 schemes:
   - https
@@ -490,7 +490,7 @@ paths:
           format: boolean
       tags:
         - Auction
-  '/kava/auction/v1beta1/auctions/{auction_id}':
+  /kava/auction/v1beta1/auctions/{auction_id}:
     get:
       summary: Auction queries an individual Auction by auction ID
       operationId: AuctionAuction
@@ -1430,7 +1430,7 @@ paths:
                       format: byte
       tags:
         - BEP3
-  '/kava/bep3/v1beta1/assetsupply/{denom}':
+  /kava/bep3/v1beta1/assetsupply/{denom}:
     get:
       summary: AssetSupply queries info about an asset's supply
       operationId: BEP3AssetSupply
@@ -1551,7 +1551,7 @@ paths:
           type: string
       tags:
         - BEP3
-  '/kava/bep3/v1beta1/atomicswap/{swap_id}':
+  /kava/bep3/v1beta1/atomicswap/{swap_id}:
     get:
       summary: AtomicSwap queries info about an atomic swap
       operationId: BEP3AtomicSwap
@@ -2876,7 +2876,7 @@ paths:
           format: boolean
       tags:
         - CDP
-  '/kava/cdp/v1beta1/cdps/deposits/{owner}/{collateral_type}':
+  /kava/cdp/v1beta1/cdps/deposits/{owner}/{collateral_type}:
     get:
       summary: >-
         Deposits queries deposits associated with the CDP owned by an address
@@ -3121,7 +3121,7 @@ paths:
           type: string
       tags:
         - CDP
-  '/kava/cdp/v1beta1/cdps/{owner}/{collateral_type}':
+  /kava/cdp/v1beta1/cdps/{owner}/{collateral_type}:
     get:
       summary: Cdp queries a CDP with the input owner address and collateral type.
       operationId: CDPCdp
@@ -4567,7 +4567,7 @@ paths:
                         }
       tags:
         - Committee
-  '/kava/committee/v1beta1/committees/{committee_id}':
+  /kava/committee/v1beta1/committees/{committee_id}:
     get:
       summary: Committee queries a committee based on committee ID.
       operationId: CommitteeCommittee
@@ -5569,7 +5569,7 @@ paths:
           format: uint64
       tags:
         - Committee
-  '/kava/committee/v1beta1/proposals/{proposal_id}':
+  /kava/committee/v1beta1/proposals/{proposal_id}:
     get:
       summary: Deposits queries a proposal based on proposal ID.
       operationId: CommitteeProposal
@@ -5963,7 +5963,7 @@ paths:
           format: uint64
       tags:
         - Committee
-  '/kava/committee/v1beta1/proposals/{proposal_id}/tally':
+  /kava/committee/v1beta1/proposals/{proposal_id}/tally:
     get:
       summary: Tally queries the tally of a single proposal ID.
       operationId: CommitteeTally
@@ -6190,7 +6190,7 @@ paths:
           format: uint64
       tags:
         - Committee
-  '/kava/committee/v1beta1/proposals/{proposal_id}/votes':
+  /kava/committee/v1beta1/proposals/{proposal_id}/votes:
     get:
       summary: Votes queries all votes for a single proposal ID.
       operationId: CommitteeVotes
@@ -6507,7 +6507,7 @@ paths:
           format: boolean
       tags:
         - Committee
-  '/kava/committee/v1beta1/proposals/{proposal_id}/votes/{voter}':
+  /kava/committee/v1beta1/proposals/{proposal_id}/votes/{voter}:
     get:
       summary: Vote queries the vote of a single voter for a single proposal ID.
       operationId: CommitteeVote
@@ -8061,7 +8061,7 @@ paths:
           format: boolean
       tags:
         - Hard
-  '/kava/hard/v1beta1/interest-factors/{denom}':
+  /kava/hard/v1beta1/interest-factors/{denom}:
     get:
       summary: InterestFactors queries hard module interest factors.
       operationId: HardInterestFactors
@@ -8288,7 +8288,7 @@ paths:
           type: string
       tags:
         - Hard
-  '/kava/hard/v1beta1/interest-rate/{denom}':
+  /kava/hard/v1beta1/interest-rate/{denom}:
     get:
       summary: InterestRate queries the hard module interest rates.
       operationId: HardInterestRate
@@ -8768,7 +8768,7 @@ paths:
                         }
       tags:
         - Hard
-  '/kava/hard/v1beta1/reserves/{denom}':
+  /kava/hard/v1beta1/reserves/{denom}:
     get:
       summary: Reserves queries total hard reserve coins.
       operationId: HardReserves
@@ -8996,7 +8996,7 @@ paths:
           type: string
       tags:
         - Hard
-  '/kava/hard/v1beta1/total-borrowed/{denom}':
+  /kava/hard/v1beta1/total-borrowed/{denom}:
     get:
       summary: TotalBorrowed queries total coins borrowed from hard liquidity pools.
       operationId: HardTotalBorrowed
@@ -9224,7 +9224,7 @@ paths:
           type: string
       tags:
         - Hard
-  '/kava/hard/v1beta1/total-deposited/{denom}':
+  /kava/hard/v1beta1/total-deposited/{denom}:
     get:
       summary: TotalDeposited queries total coins deposited to hard liquidity pools.
       operationId: HardTotalDeposited
@@ -10287,11 +10287,11 @@ paths:
                         start:
                           type: string
                           format: date-time
-                          title: 'example "2020-03-01T15:20:00Z"'
+                          title: example "2020-03-01T15:20:00Z"
                         end:
                           type: string
                           format: date-time
-                          title: 'example "2020-06-01T15:20:00Z"'
+                          title: example "2020-06-01T15:20:00Z"
                         inflation:
                           type: string
                           format: byte
@@ -10387,7 +10387,7 @@ paths:
                       format: byte
       tags:
         - Pricefeed
-  '/kava/pricefeed/v1beta1/oracles/{market_id}':
+  /kava/pricefeed/v1beta1/oracles/{market_id}:
     get:
       summary: Oracles queries all oracles based on a market
       operationId: PricefeedOracles
@@ -10548,7 +10548,7 @@ paths:
                       format: byte
       tags:
         - Pricefeed
-  '/kava/pricefeed/v1beta1/prices/{market_id}':
+  /kava/pricefeed/v1beta1/prices/{market_id}:
     get:
       summary: Price queries price details based on a market
       operationId: PricefeedPrice
@@ -10602,7 +10602,7 @@ paths:
           type: string
       tags:
         - Pricefeed
-  '/kava/pricefeed/v1beta1/rawprices/{market_id}':
+  /kava/pricefeed/v1beta1/rawprices/{market_id}:
     get:
       summary: RawPrices queries all raw prices based on a market
       operationId: PricefeedRawPrices
@@ -11096,7 +11096,7 @@ paths:
                     type: string
                   listen_addr:
                     type: string
-                    example: '192.168.56.1:26656'
+                    example: 192.168.56.1:26656
                   version:
                     description: Tendermint version
                     type: string
@@ -11110,7 +11110,7 @@ paths:
                         example: 'on'
                       rpc_address:
                         type: string
-                        example: 'tcp://0.0.0.0:26657'
+                        example: tcp://0.0.0.0:26657
         '500':
           description: Failed to query node status
   /syncing:
@@ -11374,7 +11374,7 @@ paths:
                                 7uTC74QlknqYWEwg7Vn6M8Om7FuZ0EO4bjvuj6rwH1mTUJrRuMMZvAAqT9VjNgP0RA/TDp6u/92AqrZfXJSpBQ==
         '500':
           description: Server internal error
-  '/blocks/{height}':
+  /blocks/{height}:
     get:
       summary: Get a block at a certain height
       tags:
@@ -11664,7 +11664,7 @@ paths:
                       example: '1000'
         '500':
           description: Server internal error
-  '/validatorsets/{height}':
+  /validatorsets/{height}:
     get:
       summary: Get a validator set a certain height
       tags:
@@ -11711,7 +11711,7 @@ paths:
           description: Block at height not available
         '500':
           description: Server internal error
-  '/txs/{hash}':
+  /txs/{hash}:
     get:
       deprecated: true
       summary: Get a Tx by hash
@@ -12270,7 +12270,7 @@ paths:
           description: The tx was malformated
         '500':
           description: Server internal error
-  '/bank/balances/{address}':
+  /bank/balances/{address}:
     get:
       deprecated: true
       summary: Get the account balances
@@ -12301,7 +12301,7 @@ paths:
                   example: '50'
         '500':
           description: Server internal error
-  '/bank/accounts/{address}/transfers':
+  /bank/accounts/{address}/transfers:
     post:
       deprecated: true
       summary: Send coins from one account to another
@@ -12334,7 +12334,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -12459,7 +12459,7 @@ paths:
                       example: '50'
         '500':
           description: Internal Server Error
-  '/bank/total/{denomination}':
+  /bank/total/{denomination}:
     parameters:
       - in: path
         name: denomination
@@ -12483,7 +12483,7 @@ paths:
           description: Invalid coin denomination
         '500':
           description: Internal Server Error
-  '/auth/accounts/{address}':
+  /auth/accounts/{address}:
     get:
       deprecated: true
       summary: Get the account information on blockchain
@@ -12535,7 +12535,7 @@ paths:
                     type: string
         '500':
           description: Server internel error
-  '/staking/delegators/{delegatorAddr}/delegations':
+  /staking/delegators/{delegatorAddr}/delegations:
     parameters:
       - in: path
         name: delegatorAddr
@@ -12595,7 +12595,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -12707,7 +12707,7 @@ paths:
           description: Key password is wrong
         '500':
           description: Internal Server Error
-  '/staking/delegators/{delegatorAddr}/delegations/{validatorAddr}':
+  /staking/delegators/{delegatorAddr}/delegations/{validatorAddr}:
     parameters:
       - in: path
         name: delegatorAddr
@@ -12753,7 +12753,7 @@ paths:
           description: Invalid delegator address or validator address
         '500':
           description: Internal Server Error
-  '/staking/delegators/{delegatorAddr}/unbonding_delegations':
+  /staking/delegators/{delegatorAddr}/unbonding_delegations:
     parameters:
       - in: path
         name: delegatorAddr
@@ -12810,7 +12810,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -12922,7 +12922,7 @@ paths:
           description: Key password is wrong
         '500':
           description: Internal Server Error
-  '/staking/delegators/{delegatorAddr}/unbonding_delegations/{validatorAddr}':
+  /staking/delegators/{delegatorAddr}/unbonding_delegations/{validatorAddr}:
     parameters:
       - in: path
         name: delegatorAddr
@@ -13003,7 +13003,7 @@ paths:
               $ref: '#/definitions/Redelegation'
         '500':
           description: Internal Server Error
-  '/staking/delegators/{delegatorAddr}/redelegations':
+  /staking/delegators/{delegatorAddr}/redelegations:
     parameters:
       - in: path
         name: delegatorAddr
@@ -13030,7 +13030,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -13138,7 +13138,7 @@ paths:
           description: Invalid delegator address or redelegation request body
         '500':
           description: Internal Server Error
-  '/staking/delegators/{delegatorAddr}/validators':
+  /staking/delegators/{delegatorAddr}/validators:
     parameters:
       - in: path
         name: delegatorAddr
@@ -13221,7 +13221,7 @@ paths:
           description: Invalid delegator address
         '500':
           description: Internal Server Error
-  '/staking/delegators/{delegatorAddr}/validators/{validatorAddr}':
+  /staking/delegators/{delegatorAddr}/validators/{validatorAddr}:
     parameters:
       - in: path
         name: delegatorAddr
@@ -13402,7 +13402,7 @@ paths:
                       example: '1970-01-01T00:00:00Z'
         '500':
           description: Internal Server Error
-  '/staking/validators/{validatorAddr}':
+  /staking/validators/{validatorAddr}:
     parameters:
       - in: path
         name: validatorAddr
@@ -13483,7 +13483,7 @@ paths:
           description: Invalid validator address
         '500':
           description: Internal Server Error
-  '/staking/validators/{validatorAddr}/delegations':
+  /staking/validators/{validatorAddr}/delegations:
     parameters:
       - in: path
         name: validatorAddr
@@ -13525,7 +13525,7 @@ paths:
           description: Invalid validator address
         '500':
           description: Internal Server Error
-  '/staking/validators/{validatorAddr}/unbonding_delegations':
+  /staking/validators/{validatorAddr}/unbonding_delegations:
     parameters:
       - in: path
         name: validatorAddr
@@ -13664,7 +13664,7 @@ paths:
           description: Invalid validator public key for one of the validators
         '500':
           description: Internal Server Error
-  '/slashing/validators/{validatorAddr}/unjail':
+  /slashing/validators/{validatorAddr}/unjail:
     post:
       deprecated: true
       summary: Unjail a jailed validator
@@ -13850,7 +13850,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -14067,7 +14067,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -14191,7 +14191,7 @@ paths:
           description: Invalid proposal body
         '500':
           description: Internal Server Error
-  '/gov/proposals/{proposalId}':
+  /gov/proposals/{proposalId}:
     get:
       deprecated: true
       summary: Query a proposal
@@ -14256,7 +14256,7 @@ paths:
           description: Invalid proposal id
         '500':
           description: Internal Server Error
-  '/gov/proposals/{proposalId}/proposer':
+  /gov/proposals/{proposalId}/proposer:
     get:
       deprecated: true
       summary: Query proposer
@@ -14285,7 +14285,7 @@ paths:
           description: Invalid proposal ID
         '500':
           description: Internal Server Error
-  '/gov/proposals/{proposalId}/deposits':
+  /gov/proposals/{proposalId}/deposits:
     get:
       deprecated: true
       summary: Query deposits
@@ -14362,7 +14362,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -14466,7 +14466,7 @@ paths:
           description: Key password is wrong
         '500':
           description: Internal Server Error
-  '/gov/proposals/{proposalId}/deposits/{depositor}':
+  /gov/proposals/{proposalId}/deposits/{depositor}:
     get:
       deprecated: true
       summary: Query deposit
@@ -14517,7 +14517,7 @@ paths:
           description: Found no deposit
         '500':
           description: Internal Server Error
-  '/gov/proposals/{proposalId}/votes':
+  /gov/proposals/{proposalId}/votes:
     get:
       deprecated: true
       summary: Query voters
@@ -14586,7 +14586,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -14682,7 +14682,7 @@ paths:
           description: Key password is wrong
         '500':
           description: Internal Server Error
-  '/gov/proposals/{proposalId}/votes/{voter}':
+  /gov/proposals/{proposalId}/votes/{voter}:
     get:
       deprecated: true
       summary: Query vote
@@ -14722,7 +14722,7 @@ paths:
           description: Found no vote
         '500':
           description: Internal Server Error
-  '/gov/proposals/{proposalId}/tally':
+  /gov/proposals/{proposalId}/tally:
     get:
       deprecated: true
       summary: Get a proposal's tally result at the current time
@@ -14854,7 +14854,7 @@ paths:
           description: Found no voting parameters
         '500':
           description: Internal Server Error
-  '/distribution/delegators/{delegatorAddr}/rewards':
+  /distribution/delegators/{delegatorAddr}/rewards:
     parameters:
       - in: path
         name: delegatorAddr
@@ -14937,7 +14937,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -15026,7 +15026,7 @@ paths:
           description: Key password is wrong
         '500':
           description: Internal Server Error
-  '/distribution/delegators/{delegatorAddr}/rewards/{validatorAddr}':
+  /distribution/delegators/{delegatorAddr}/rewards/{validatorAddr}:
     parameters:
       - in: path
         name: delegatorAddr
@@ -15090,7 +15090,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -15179,7 +15179,7 @@ paths:
           description: Key password is wrong
         '500':
           description: Internal Server Error
-  '/distribution/delegators/{delegatorAddr}/withdraw_address':
+  /distribution/delegators/{delegatorAddr}/withdraw_address:
     parameters:
       - in: path
         name: delegatorAddr
@@ -15232,7 +15232,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -15325,7 +15325,7 @@ paths:
           description: Key password is wrong
         '500':
           description: Internal Server Error
-  '/distribution/validators/{validatorAddr}':
+  /distribution/validators/{validatorAddr}:
     parameters:
       - in: path
         name: validatorAddr
@@ -15377,7 +15377,7 @@ paths:
           description: Invalid validator address
         '500':
           description: Internal Server Error
-  '/distribution/validators/{validatorAddr}/outstanding_rewards':
+  /distribution/validators/{validatorAddr}/outstanding_rewards:
     parameters:
       - in: path
         name: validatorAddr
@@ -15408,7 +15408,7 @@ paths:
                   example: '50'
         '500':
           description: Internal Server Error
-  '/distribution/validators/{validatorAddr}/rewards':
+  /distribution/validators/{validatorAddr}/rewards:
     parameters:
       - in: path
         name: validatorAddr
@@ -15466,7 +15466,7 @@ paths:
                     description: Sender address or Keybase name to generate a transaction
                   memo:
                     type: string
-                    example: "Sent via Cosmos Voyager \U0001F680"
+                    example: Sent via Cosmos Voyager 🚀
                   chain_id:
                     type: string
                     example: Cosmos-Hub
@@ -16113,7 +16113,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/auth/v1beta1/accounts/{address}':
+  /cosmos/auth/v1beta1/accounts/{address}:
     get:
       summary: Account returns account details based on address.
       operationId: Account
@@ -16717,7 +16717,7 @@ paths:
                         }
       tags:
         - Cosmos SDK
-  '/cosmos/bank/v1beta1/balances/{address}':
+  /cosmos/bank/v1beta1/balances/{address}:
     get:
       summary: AllBalances queries the balance of all coins for a single account.
       operationId: AllBalances
@@ -16853,7 +16853,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/bank/v1beta1/balances/{address}/{denom}':
+  /cosmos/bank/v1beta1/balances/{address}/{denom}:
     get:
       summary: Balance queries the balance of a single coin for a single account.
       operationId: Balance
@@ -16916,7 +16916,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/bank/v1beta1/denom_owners/{denom}':
+  /cosmos/bank/v1beta1/denom_owners/{denom}:
     get:
       summary: >-
         DenomOwners queries for all account addresses that own a particular
@@ -17270,7 +17270,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/bank/v1beta1/denoms_metadata/{denom}':
+  /cosmos/bank/v1beta1/denoms_metadata/{denom}:
     get:
       summary: DenomsMetadata queries the client metadata of a given coin denomination.
       operationId: DenomMetadata
@@ -17584,7 +17584,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/bank/v1beta1/supply/{denom}':
+  /cosmos/bank/v1beta1/supply/{denom}:
     get:
       summary: SupplyOf queries the supply of a single coin.
       operationId: SupplyOf
@@ -18400,7 +18400,7 @@ paths:
                         }
       tags:
         - Service
-  '/cosmos/base/tendermint/v1beta1/blocks/{height}':
+  /cosmos/base/tendermint/v1beta1/blocks/{height}:
     get:
       summary: GetBlockByHeight queries block for given height.
       operationId: GetBlockByHeight
@@ -20115,7 +20115,7 @@ paths:
           format: boolean
       tags:
         - Service
-  '/cosmos/base/tendermint/v1beta1/validatorsets/{height}':
+  /cosmos/base/tendermint/v1beta1/validatorsets/{height}:
     get:
       summary: GetValidatorSetByHeight queries validator-set at a given height.
       operationId: GetValidatorSetByHeight
@@ -20650,7 +20650,7 @@ paths:
                       format: byte
       tags:
         - Cosmos SDK
-  '/cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards':
+  /cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards:
     get:
       summary: |-
         DelegationTotalRewards queries the total rewards accrued by a each
@@ -20743,7 +20743,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards/{validator_address}':
+  /cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards/{validator_address}:
     get:
       summary: DelegationRewards queries the total rewards accrued by a delegation.
       operationId: DelegationRewards
@@ -20810,7 +20810,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/distribution/v1beta1/delegators/{delegator_address}/validators':
+  /cosmos/distribution/v1beta1/delegators/{delegator_address}/validators:
     get:
       summary: DelegatorValidators queries the validators of a delegator.
       operationId: DelegatorValidators
@@ -20860,7 +20860,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/distribution/v1beta1/delegators/{delegator_address}/withdraw_address':
+  /cosmos/distribution/v1beta1/delegators/{delegator_address}/withdraw_address:
     get:
       summary: DelegatorWithdrawAddress queries withdraw address of a delegator.
       operationId: DelegatorWithdrawAddress
@@ -20956,7 +20956,7 @@ paths:
                       format: byte
       tags:
         - Cosmos SDK
-  '/cosmos/distribution/v1beta1/validators/{validator_address}/commission':
+  /cosmos/distribution/v1beta1/validators/{validator_address}/commission:
     get:
       summary: ValidatorCommission queries accumulated commission for a validator.
       operationId: ValidatorCommission
@@ -21021,7 +21021,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/distribution/v1beta1/validators/{validator_address}/outstanding_rewards':
+  /cosmos/distribution/v1beta1/validators/{validator_address}/outstanding_rewards:
     get:
       summary: ValidatorOutstandingRewards queries rewards of a validator address.
       operationId: ValidatorOutstandingRewards
@@ -21093,7 +21093,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/distribution/v1beta1/validators/{validator_address}/slashes':
+  /cosmos/distribution/v1beta1/validators/{validator_address}/slashes:
     get:
       summary: ValidatorSlashes queries slash events of a validator.
       operationId: ValidatorSlashes
@@ -21704,7 +21704,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/evidence/v1beta1/evidence/{evidence_hash}':
+  /cosmos/evidence/v1beta1/evidence/{evidence_hash}:
     get:
       summary: Evidence queries evidence based on evidence hash.
       operationId: Evidence
@@ -22086,7 +22086,7 @@ paths:
           format: byte
       tags:
         - Cosmos SDK
-  '/cosmos/gov/v1beta1/params/{params_type}':
+  /cosmos/gov/v1beta1/params/{params_type}:
     get:
       summary: Params queries all parameters of the gov module.
       operationId: GovParams
@@ -22932,7 +22932,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/gov/v1beta1/proposals/{proposal_id}':
+  /cosmos/gov/v1beta1/proposals/{proposal_id}:
     get:
       summary: Proposal queries proposal details based on ProposalID.
       operationId: Proposal
@@ -23395,7 +23395,7 @@ paths:
           format: uint64
       tags:
         - Cosmos SDK
-  '/cosmos/gov/v1beta1/proposals/{proposal_id}/deposits':
+  /cosmos/gov/v1beta1/proposals/{proposal_id}/deposits:
     get:
       summary: Deposits queries all deposits of a single proposal.
       operationId: Deposits
@@ -23712,7 +23712,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/gov/v1beta1/proposals/{proposal_id}/deposits/{depositor}':
+  /cosmos/gov/v1beta1/proposals/{proposal_id}/deposits/{depositor}:
     get:
       summary: >-
         Deposit queries single deposit information based proposalID,
@@ -23960,7 +23960,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/gov/v1beta1/proposals/{proposal_id}/tally':
+  /cosmos/gov/v1beta1/proposals/{proposal_id}/tally:
     get:
       summary: TallyResult queries the tally of a proposal vote.
       operationId: TallyResult
@@ -24185,7 +24185,7 @@ paths:
           format: uint64
       tags:
         - Cosmos SDK
-  '/cosmos/gov/v1beta1/proposals/{proposal_id}/votes':
+  /cosmos/gov/v1beta1/proposals/{proposal_id}/votes:
     get:
       summary: Votes queries votes of a given proposal.
       operationId: Votes
@@ -24531,9 +24531,9 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/gov/v1beta1/proposals/{proposal_id}/votes/{voter}':
+  /cosmos/gov/v1beta1/proposals/{proposal_id}/votes/{voter}:
     get:
-      summary: 'Vote queries voted information based on proposalID, voterAddr.'
+      summary: Vote queries voted information based on proposalID, voterAddr.
       operationId: Vote
       responses:
         '200':
@@ -25245,7 +25245,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/slashing/v1beta1/signing_infos/{cons_address}':
+  /cosmos/slashing/v1beta1/signing_infos/{cons_address}:
     get:
       summary: SigningInfo queries the signing info of given cons address
       operationId: SigningInfo
@@ -25344,7 +25344,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/delegations/{delegator_addr}':
+  /cosmos/staking/v1beta1/delegations/{delegator_addr}:
     get:
       summary: >-
         DelegatorDelegations queries all delegations of a given delegator
@@ -25682,7 +25682,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/delegators/{delegator_addr}/redelegations':
+  /cosmos/staking/v1beta1/delegators/{delegator_addr}/redelegations:
     get:
       summary: Redelegations queries redelegations of given address.
       operationId: Redelegations
@@ -26090,7 +26090,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/delegators/{delegator_addr}/unbonding_delegations':
+  /cosmos/staking/v1beta1/delegators/{delegator_addr}/unbonding_delegations:
     get:
       summary: >-
         DelegatorUnbondingDelegations queries all unbonding delegations of a
@@ -26430,7 +26430,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/delegators/{delegator_addr}/validators':
+  /cosmos/staking/v1beta1/delegators/{delegator_addr}/validators:
     get:
       summary: |-
         DelegatorValidators queries all validators info for given delegator
@@ -27029,7 +27029,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/delegators/{delegator_addr}/validators/{validator_addr}':
+  /cosmos/staking/v1beta1/delegators/{delegator_addr}/validators/{validator_addr}:
     get:
       summary: |-
         DelegatorValidator queries validator info for given delegator validator
@@ -27554,7 +27554,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/historical_info/{height}':
+  /cosmos/staking/v1beta1/historical_info/{height}:
     get:
       summary: HistoricalInfo queries the historical info for given height.
       operationId: HistoricalInfo
@@ -29200,7 +29200,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/validators/{validator_addr}':
+  /cosmos/staking/v1beta1/validators/{validator_addr}:
     get:
       summary: Validator queries validator info for given validator address.
       operationId: Validator
@@ -29718,7 +29718,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/validators/{validator_addr}/delegations':
+  /cosmos/staking/v1beta1/validators/{validator_addr}/delegations:
     get:
       summary: ValidatorDelegations queries delegate info for given validator.
       operationId: ValidatorDelegations
@@ -30051,7 +30051,7 @@ paths:
           format: boolean
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}':
+  /cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}:
     get:
       summary: Delegation queries delegate info for given validator delegator pair.
       operationId: Delegation
@@ -30314,7 +30314,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}/unbonding_delegation':
+  /cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}/unbonding_delegation:
     get:
       summary: |-
         UnbondingDelegation queries unbonding info for given validator delegator
@@ -30580,7 +30580,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/staking/v1beta1/validators/{validator_addr}/unbonding_delegations':
+  /cosmos/staking/v1beta1/validators/{validator_addr}/unbonding_delegations:
     get:
       summary: >-
         ValidatorUnbondingDelegations queries unbonding delegations of a
@@ -31502,7 +31502,7 @@ paths:
                     description: Response code.
                   data:
                     type: string
-                    description: 'Result bytes, if any.'
+                    description: Result bytes, if any.
                   raw_log:
                     type: string
                     description: >-
@@ -31988,7 +31988,7 @@ paths:
               RPC method.
       tags:
         - Service
-  '/cosmos/tx/v1beta1/txs/{hash}':
+  /cosmos/tx/v1beta1/txs/{hash}:
     get:
       summary: GetTx fetches a tx by hash.
       operationId: GetTx
@@ -32188,13 +32188,13 @@ paths:
                         }
       parameters:
         - name: hash
-          description: 'hash is the tx hash to query, encoded as a hex string.'
+          description: hash is the tx hash to query, encoded as a hex string.
           in: path
           required: true
           type: string
       tags:
         - Service
-  '/cosmos/upgrade/v1beta1/applied_plan/{name}':
+  /cosmos/upgrade/v1beta1/applied_plan/{name}:
     get:
       summary: AppliedPlan queries a previously applied upgrade plan by its name.
       operationId: AppliedPlan
@@ -33072,7 +33072,7 @@ paths:
           type: string
       tags:
         - Cosmos SDK
-  '/cosmos/upgrade/v1beta1/upgraded_consensus_state/{last_height}':
+  /cosmos/upgrade/v1beta1/upgraded_consensus_state/{last_height}:
     get:
       summary: |-
         UpgradedConsensusState queries the consensus state that will serve
@@ -33420,7 +33420,7 @@ paths:
           format: boolean
       tags:
         - IBC
-  '/ibc/apps/transfer/v1/denom_traces/{hash}':
+  /ibc/apps/transfer/v1/denom_traces/{hash}:
     get:
       summary: DenomTrace queries a denomination trace information.
       operationId: IbcDenomTrace
@@ -34231,7 +34231,7 @@ paths:
           format: boolean
       tags:
         - IBC
-  '/ibc/core/client/v1/client_states/{client_id}':
+  /ibc/core/client/v1/client_states/{client_id}:
     get:
       summary: ClientState queries an IBC light client.
       operationId: IbcClientState
@@ -34651,7 +34651,7 @@ paths:
           type: string
       tags:
         - IBC
-  '/ibc/core/client/v1/client_status/{client_id}':
+  /ibc/core/client/v1/client_status/{client_id}:
     get:
       summary: Status queries the status of an IBC client.
       operationId: IbcClientStatus
@@ -34865,7 +34865,7 @@ paths:
           type: string
       tags:
         - IBC
-  '/ibc/core/client/v1/consensus_states/{client_id}':
+  /ibc/core/client/v1/consensus_states/{client_id}:
     get:
       summary: |-
         ConsensusStates queries all the consensus state associated with a given
@@ -35370,7 +35370,7 @@ paths:
           format: boolean
       tags:
         - IBC
-  '/ibc/core/client/v1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}':
+  /ibc/core/client/v1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}:
     get:
       summary: >-
         ConsensusState queries a consensus state associated with a client state
@@ -36567,7 +36567,7 @@ paths:
                         }
       tags:
         - IBC
-  '/ibc/core/connection/v1/client_connections/{client_id}':
+  /ibc/core/connection/v1/client_connections/{client_id}:
     get:
       summary: |-
         ClientConnections queries the connection paths associated with a client
@@ -37215,7 +37215,7 @@ paths:
           format: boolean
       tags:
         - IBC
-  '/ibc/core/connection/v1/connections/{connection_id}':
+  /ibc/core/connection/v1/connections/{connection_id}:
     get:
       summary: Connection queries an IBC connection end.
       operationId: IbcConnection
@@ -37556,7 +37556,7 @@ paths:
           type: string
       tags:
         - IBC
-  '/ibc/core/connection/v1/connections/{connection_id}/client_state':
+  /ibc/core/connection/v1/connections/{connection_id}/client_state:
     get:
       summary: |-
         ConnectionClientState queries the client state associated with the
@@ -37989,7 +37989,7 @@ paths:
           type: string
       tags:
         - IBC
-  '/ibc/core/connection/v1/connections/{connection_id}/consensus_state/revision/{revision_number}/height/{revision_height}':
+  /ibc/core/connection/v1/connections/{connection_id}/consensus_state/revision/{revision_number}/height/{revision_height}:
     get:
       summary: |-
         ConnectionConsensusState queries the consensus state associated with the
@@ -38808,7 +38808,7 @@ paths:
           format: boolean
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}:
     get:
       summary: Channel queries an IBC Channel.
       operationId: IbcChannel
@@ -39135,7 +39135,7 @@ paths:
           type: string
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/client_state':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/client_state:
     get:
       summary: >-
         ChannelClientState queries for the client state for the channel
@@ -39575,7 +39575,7 @@ paths:
           type: string
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/consensus_state/revision/{revision_number}/height/{revision_height}':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/consensus_state/revision/{revision_number}/height/{revision_height}:
     get:
       summary: |-
         ChannelConsensusState queries for the consensus state for the channel
@@ -40012,7 +40012,7 @@ paths:
           format: uint64
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/next_sequence':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/next_sequence:
     get:
       summary: >-
         NextSequenceReceive returns the next receive sequence for a given
@@ -40266,7 +40266,7 @@ paths:
           type: string
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements:
     get:
       summary: >-
         PacketAcknowledgements returns all the packet acknowledgements
@@ -40618,7 +40618,7 @@ paths:
           format: boolean
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}:
     get:
       summary: PacketAcknowledgement queries a stored packet acknowledgement hash.
       operationId: IbcPacketAcknowledgement
@@ -40880,7 +40880,7 @@ paths:
           format: uint64
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments:
     get:
       summary: |-
         PacketCommitments returns all the packet commitments hashes associated
@@ -41230,7 +41230,7 @@ paths:
           format: boolean
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks:
     get:
       summary: >-
         UnreceivedAcks returns all the unreceived IBC acknowledgements
@@ -41494,7 +41494,7 @@ paths:
           minItems: 1
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_commitment_sequences}/unreceived_packets':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_commitment_sequences}/unreceived_packets:
     get:
       summary: >-
         UnreceivedPackets returns all the unreceived IBC packets associated with
@@ -41758,7 +41758,7 @@ paths:
           minItems: 1
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{sequence}':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{sequence}:
     get:
       summary: PacketCommitment queries a stored packet commitment hash.
       operationId: IbcPacketCommitment
@@ -42021,7 +42021,7 @@ paths:
           format: uint64
       tags:
         - IBC
-  '/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_receipts/{sequence}':
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_receipts/{sequence}:
     get:
       summary: >-
         PacketReceipt queries if a given packet sequence has been received on
@@ -42288,7 +42288,7 @@ paths:
           format: uint64
       tags:
         - IBC
-  '/ibc/core/channel/v1/connections/{connection}/channels':
+  /ibc/core/channel/v1/connections/{connection}/channels:
     get:
       summary: |-
         ConnectionChannels queries all the channels associated with a connection
@@ -42844,7 +42844,7 @@ paths:
           description: Invalid request
         '500':
           description: Server internal error
-  '/cdp/{owner}/{collateral_type}/deposits':
+  /cdp/{owner}/{collateral_type}/deposits:
     post:
       deprecated: true
       summary: Create a deposit to cdp transaction
@@ -43011,7 +43011,7 @@ paths:
           description: Invalid request
         '500':
           description: Server internal error
-  '/cdp/{owner}/{collateral_type}/withdraw':
+  /cdp/{owner}/{collateral_type}/withdraw:
     post:
       deprecated: true
       summary: create a withdraw collateral transaction
@@ -43178,7 +43178,7 @@ paths:
           description: Invalid request
         '500':
           description: Server internal error
-  '/cdp/{owner}/{collateral_type}/draw':
+  /cdp/{owner}/{collateral_type}/draw:
     post:
       deprecated: true
       summary: Create a draw debt transaction
@@ -43341,7 +43341,7 @@ paths:
           description: Invalid request
         '500':
           description: Server internal error
-  '/cdp/{owner}/{collateral_type}/repay':
+  /cdp/{owner}/{collateral_type}/repay:
     post:
       deprecated: true
       summary: Repay debt from a CDP
@@ -43504,7 +43504,7 @@ paths:
           description: Invalid request
         '500':
           description: Server internal error
-  '/cdp/{owner}/{collateral_type}/liquidate':
+  /cdp/{owner}/{collateral_type}/liquidate:
     post:
       deprecated: true
       summary: >-
@@ -43767,10 +43767,10 @@ paths:
                       example: 0
                     spot_market_id:
                       type: string
-                      example: 'xrp:usd'
+                      example: xrp:usd
                     liquidation_market_id:
                       type: string
-                      example: 'xrp:usd:30'
+                      example: xrp:usd:30
                     keeper_reward_percentage:
                       type: string
                       example: '0.05'
@@ -43825,7 +43825,7 @@ paths:
                 example: false
         '500':
           description: Server internal error
-  '/cdp/cdps/cdp/{owner}/{collateral_type}':
+  /cdp/cdps/cdp/{owner}/{collateral_type}:
     get:
       deprecated: true
       summary: Get the cdp associated with the input owner address and collateral type
@@ -43905,7 +43905,7 @@ paths:
                 example: '2.721734157907653857'
         '500':
           description: Server internal error
-  '/cdp/cdps/collateralType/{collateral_type}':
+  /cdp/cdps/collateralType/{collateral_type}:
     get:
       deprecated: true
       summary: Get all cdps with collateral type equal to the input collateral type
@@ -43988,7 +43988,7 @@ paths:
                       example: '2.721734157907653857'
         '500':
           description: Server internal error
-  '/cdp/cdps/ratio/{collateral_type}/{ratio}':
+  /cdp/cdps/ratio/{collateral_type}/{ratio}:
     get:
       deprecated: true
       summary: >-
@@ -44081,7 +44081,7 @@ paths:
                       example: '2.721734157907653857'
         '500':
           description: Server internal error
-  '/cdp/cdps/cdp/deposits/{owner}/{collateral_type}':
+  /cdp/cdps/cdp/deposits/{owner}/{collateral_type}:
     get:
       deprecated: true
       summary: >-
@@ -44683,7 +44683,7 @@ paths:
           description: Invalid request
         '500':
           description: Internal server error
-  '/bep3/swap/{swap-id}':
+  /bep3/swap/{swap-id}:
     get:
       deprecated: true
       summary: Get the atomic swap object associated with the input swap ID
@@ -44839,7 +44839,7 @@ paths:
                       example: Incoming
         '500':
           description: Server internal error
-  '/bep3/supply/{denom}':
+  /bep3/supply/{denom}:
     get:
       deprecated: true
       summary: Get the asset supply for the input denom
@@ -44954,7 +44954,7 @@ paths:
                           example: true
         '500':
           description: Server internal error
-  '/auction/auctions/{id}/bids':
+  /auction/auctions/{id}/bids:
     post:
       deprecated: true
       summary: Generate a place bid transaction
@@ -45200,7 +45200,7 @@ paths:
                       example: forward
         '500':
           description: Internal Server Error
-  '/auction/auctions/{id}':
+  /auction/auctions/{id}:
     get:
       deprecated: true
       summary: Query auction
@@ -45331,7 +45331,7 @@ paths:
                       conjunction with generate_only)
               market_id:
                 type: string
-                example: 'xrp:usd'
+                example: xrp:usd
               price:
                 type: string
                 example: '0.298464000000000007'
@@ -45434,7 +45434,7 @@ paths:
                   properties:
                     market_id:
                       type: string
-                      example: 'xrp:usd'
+                      example: xrp:usd
                     base_asset:
                       type: string
                       example: xrp
@@ -45477,7 +45477,7 @@ paths:
                   properties:
                     market_id:
                       type: string
-                      example: 'xrp:usd'
+                      example: xrp:usd
                     base_asset:
                       type: string
                       example: xrp
@@ -45496,7 +45496,7 @@ paths:
                       example: true
         '500':
           description: Internal Server Error
-  '/pricefeed/oracles/{market_id}':
+  /pricefeed/oracles/{market_id}:
     get:
       deprecated: true
       summary: Query markets in the pricefeed
@@ -45510,7 +45510,7 @@ paths:
           description: the market id of the market
           required: true
           type: string
-          x-example: 'xrp:usd'
+          x-example: xrp:usd
       responses:
         '200':
           description: OK
@@ -45528,7 +45528,7 @@ paths:
                   example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
         '500':
           description: Internal Server Error
-  '/pricefeed/rawprices/{market_id}':
+  /pricefeed/rawprices/{market_id}:
     get:
       deprecated: true
       summary: Query markets in the pricefeed
@@ -45542,7 +45542,7 @@ paths:
           description: the market id of the market
           required: true
           type: string
-          x-example: 'xrp:usd'
+          x-example: xrp:usd
       responses:
         '200':
           description: OK
@@ -45559,7 +45559,7 @@ paths:
                   properties:
                     market_id:
                       type: string
-                      example: 'xrp:usd'
+                      example: xrp:usd
                     oracle_address:
                       type: string
                       example: kava10cw2m04528dwlc44k0myd7strj3eq5jr6s8pxs
@@ -45571,7 +45571,7 @@ paths:
                       example: '2021-02-12T23:10:00Z'
         '500':
           description: Internal Server Error
-  '/pricefeed/price/{market_id}':
+  /pricefeed/price/{market_id}:
     get:
       deprecated: true
       summary: Query markets in the pricefeed
@@ -45585,7 +45585,7 @@ paths:
           description: the market id of the market
           required: true
           type: string
-          x-example: 'xrp:usd'
+          x-example: xrp:usd
       responses:
         '200':
           description: OK
@@ -45594,7 +45594,7 @@ paths:
             properties:
               market_id:
                 type: string
-                example: 'xrp:usd'
+                example: xrp:usd
               price:
                 type: string
                 example: '0.298758999999999997'
@@ -46602,7 +46602,7 @@ paths:
                 example: '200000000'
         '500':
           description: Server internal error
-  '/committee/committees/{committee-id}/proposals':
+  /committee/committees/{committee-id}/proposals:
     post:
       deprecated: true
       summary: Create a new proposal for a committee
@@ -46802,7 +46802,7 @@ paths:
           description: Invalid query parameters
         '500':
           description: Internal Server Error
-  '/committee/proposals/{proposal-id}/votes':
+  /committee/proposals/{proposal-id}/votes:
     post:
       deprecated: true
       summary: Create a new vote for a proposal
@@ -47048,7 +47048,7 @@ paths:
           description: Invalid query parameters
         '500':
           description: Internal Server Error
-  '/committee/committees/{committee-id}':
+  /committee/committees/{committee-id}:
     get:
       deprecated: true
       summary: Query committee
@@ -47116,7 +47116,7 @@ paths:
           description: Invalid query parameters
         '500':
           description: Internal Server Error
-  '/committee/proposals/{proposal-id}':
+  /committee/proposals/{proposal-id}:
     get:
       deprecated: true
       summary: Query proposal
@@ -47165,7 +47165,7 @@ paths:
           description: Invalid query parameters
         '500':
           description: Internal Server Error
-  '/committee/proposals/{proposal-id}/propser':
+  /committee/proposals/{proposal-id}/propser:
     get:
       deprecated: true
       summary: Query proposer
@@ -47202,7 +47202,7 @@ paths:
           description: Invalid query parameters
         '500':
           description: Internal Server Error
-  '/committee/proposals/{proposal-id}/tally':
+  /committee/proposals/{proposal-id}/tally:
     get:
       deprecated: true
       summary: Query proposal tally
@@ -47966,7 +47966,7 @@ paths:
                                 example: '0.8'
                           spot_market_id:
                             type: string
-                            example: 'bnb:usd'
+                            example: bnb:usd
                           conversion_factor:
                             type: string
                             example: '100000000'
@@ -49841,7 +49841,7 @@ paths:
           description: Pool ID
           required: false
           type: string
-          x-example: 'abc:xyz'
+          x-example: abc:xyz
       responses:
         '200':
           description: Liquidity pool deposits
@@ -49872,7 +49872,7 @@ paths:
           description: Pool ID
           required: true
           type: string
-          x-example: 'abc:xyz'
+          x-example: abc:xyz
       responses:
         '200':
           description: Liquidity pool statistics
@@ -49935,10 +49935,10 @@ paths:
                   properties:
                     start:
                       type: string
-                      example: '2020-06-01:14:00:00Z'
+                      example: 2020-06-01:14:00:00Z
                     end:
                       type: string
-                      example: '2020-06-01:14:00:00Z'
+                      example: 2020-06-01:14:00:00Z
                     inflation:
                       type: string
                       example: '1.000000001167363430'
@@ -54650,11 +54650,11 @@ definitions:
             start:
               type: string
               format: date-time
-              title: 'example "2020-03-01T15:20:00Z"'
+              title: example "2020-03-01T15:20:00Z"
             end:
               type: string
               format: date-time
-              title: 'example "2020-06-01T15:20:00Z"'
+              title: example "2020-06-01T15:20:00Z"
             inflation:
               type: string
               format: byte
@@ -54672,11 +54672,11 @@ definitions:
       start:
         type: string
         format: date-time
-        title: 'example "2020-03-01T15:20:00Z"'
+        title: example "2020-03-01T15:20:00Z"
       end:
         type: string
         format: date-time
-        title: 'example "2020-06-01T15:20:00Z"'
+        title: example "2020-06-01T15:20:00Z"
       inflation:
         type: string
         format: byte
@@ -54724,11 +54724,11 @@ definitions:
                 start:
                   type: string
                   format: date-time
-                  title: 'example "2020-03-01T15:20:00Z"'
+                  title: example "2020-03-01T15:20:00Z"
                 end:
                   type: string
                   format: date-time
-                  title: 'example "2020-06-01T15:20:00Z"'
+                  title: example "2020-06-01T15:20:00Z"
                 inflation:
                   type: string
                   format: byte
@@ -56085,7 +56085,7 @@ definitions:
         description: Sender address or Keybase name to generate a transaction
       memo:
         type: string
-        example: "Sent via Cosmos Voyager \U0001F680"
+        example: Sent via Cosmos Voyager 🚀
       chain_id:
         type: string
         example: Cosmos-Hub
@@ -63900,7 +63900,7 @@ definitions:
         properties:
           rate:
             type: string
-            description: 'rate is the commission rate charged to delegators, as a fraction.'
+            description: rate is the commission rate charged to delegators, as a fraction.
           max_rate:
             type: string
             description: >-
@@ -63921,7 +63921,7 @@ definitions:
     properties:
       rate:
         type: string
-        description: 'rate is the commission rate charged to delegators, as a fraction.'
+        description: rate is the commission rate charged to delegators, as a fraction.
       max_rate:
         type: string
         description: >-
@@ -67308,7 +67308,7 @@ definitions:
         description: Response code.
       data:
         type: string
-        description: 'Result bytes, if any.'
+        description: Result bytes, if any.
       raw_log:
         type: string
         description: |-
@@ -67731,7 +67731,7 @@ definitions:
             description: Response code.
           data:
             type: string
-            description: 'Result bytes, if any.'
+            description: Result bytes, if any.
           raw_log:
             type: string
             description: |-
@@ -68058,7 +68058,7 @@ definitions:
             description: Response code.
           data:
             type: string
-            description: 'Result bytes, if any.'
+            description: Result bytes, if any.
           raw_log:
             type: string
             description: |-
@@ -68333,7 +68333,7 @@ definitions:
               description: Response code.
             data:
               type: string
-              description: 'Result bytes, if any.'
+              description: Result bytes, if any.
             raw_log:
               type: string
               description: |-
@@ -70134,7 +70134,7 @@ definitions:
             index:
               type: boolean
               format: boolean
-          description: 'EventAttribute is a single key-value pair, associated with an event.'
+          description: EventAttribute is a single key-value pair, associated with an event.
     description: >-
       Event allows application developers to attach additional information to
 
@@ -70154,7 +70154,7 @@ definitions:
       index:
         type: boolean
         format: boolean
-    description: 'EventAttribute is a single key-value pair, associated with an event.'
+    description: EventAttribute is a single key-value pair, associated with an event.
   cosmos.upgrade.v1beta1.ModuleVersion:
     type: object
     properties:
@@ -74081,7 +74081,7 @@ definitions:
           this channel will travel
       version:
         type: string
-        title: 'opaque channel version, which is agreed upon during the handshake'
+        title: opaque channel version, which is agreed upon during the handshake
     description: |-
       Channel defines pipeline for exactly-once packet delivery between specific
       modules on separate blockchains, which has at least one end capable of
@@ -74156,7 +74156,7 @@ definitions:
           this channel will travel
       version:
         type: string
-        title: 'opaque channel version, which is agreed upon during the handshake'
+        title: opaque channel version, which is agreed upon during the handshake
       port_id:
         type: string
         title: port identifier
@@ -74680,7 +74680,7 @@ definitions:
               this channel will travel
           version:
             type: string
-            title: 'opaque channel version, which is agreed upon during the handshake'
+            title: opaque channel version, which is agreed upon during the handshake
         description: >-
           Channel defines pipeline for exactly-once packet delivery between
           specific
@@ -76359,7 +76359,7 @@ definitions:
           properties:
             market_id:
               type: string
-              example: 'xrp:usd'
+              example: xrp:usd
             base_asset:
               type: string
               example: xrp
@@ -76381,7 +76381,7 @@ definitions:
     properties:
       market_id:
         type: string
-        example: 'xrp:usd'
+        example: xrp:usd
       price:
         type: string
         example: '0.298758999999999997'
@@ -76390,7 +76390,7 @@ definitions:
     properties:
       market_id:
         type: string
-        example: 'xrp:usd'
+        example: xrp:usd
       oracle_address:
         type: string
         example: kava10cw2m04528dwlc44k0myd7strj3eq5jr6s8pxs
@@ -76405,7 +76405,7 @@ definitions:
     properties:
       market_id:
         type: string
-        example: 'xrp:usd'
+        example: xrp:usd
       base_asset:
         type: string
         example: xrp
@@ -76457,7 +76457,7 @@ definitions:
         example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
       pool_id:
         type: string
-        example: 'abc:xyz'
+        example: abc:xyz
       shares_owned:
         type: string
         example: '500'
@@ -76468,7 +76468,7 @@ definitions:
     properties:
       name:
         type: string
-        example: 'abc:xyz'
+        example: abc:xyz
       coins:
         $ref: '#/definitions/LegacyCoins'
       total_shares:
@@ -76499,7 +76499,7 @@ definitions:
                   example: '0.8'
             spot_market_id:
               type: string
-              example: 'bnb:usd'
+              example: bnb:usd
             conversion_factor:
               type: string
               example: '100000000'
@@ -76547,7 +76547,7 @@ definitions:
             example: '0.8'
       spot_market_id:
         type: string
-        example: 'bnb:usd'
+        example: bnb:usd
       conversion_factor:
         type: string
         example: '100000000'
@@ -76886,10 +76886,10 @@ definitions:
         example: 0
       spot_market_id:
         type: string
-        example: 'xrp:usd'
+        example: xrp:usd
       liquidation_market_id:
         type: string
-        example: 'xrp:usd:30'
+        example: xrp:usd:30
       keeper_reward_percentage:
         type: string
         example: '0.05'
@@ -77044,10 +77044,10 @@ definitions:
     properties:
       start:
         type: string
-        example: '2020-06-01:14:00:00Z'
+        example: 2020-06-01:14:00:00Z
       end:
         type: string
-        example: '2020-06-01:14:00:00Z'
+        example: 2020-06-01:14:00:00Z
       inflation:
         type: string
         example: '1.000000001167363430'
