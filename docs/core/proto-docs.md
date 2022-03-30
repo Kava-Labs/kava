@@ -375,6 +375,8 @@
 - [kava/savings/v1beta1/tx.proto](#kava/savings/v1beta1/tx.proto)
     - [MsgDeposit](#kava.savings.v1beta1.MsgDeposit)
     - [MsgDepositResponse](#kava.savings.v1beta1.MsgDepositResponse)
+    - [MsgWithdraw](#kava.savings.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.savings.v1beta1.MsgWithdrawResponse)
   
     - [Msg](#kava.savings.v1beta1.Msg)
   
@@ -5086,6 +5088,7 @@ GenesisState defines the savings module's genesis state.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#kava.savings.v1beta1.Params) |  | params defines all the parameters of the module. |
+| `deposits` | [Deposit](#kava.savings.v1beta1.Deposit) | repeated |  |
 
 
 
@@ -5222,6 +5225,32 @@ MsgDepositResponse defines the Msg/Deposit response type.
 
 
 
+
+<a name="kava.savings.v1beta1.MsgWithdraw"></a>
+
+### MsgWithdraw
+MsgWithdraw defines the Msg/Withdraw request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.savings.v1beta1.MsgWithdrawResponse"></a>
+
+### MsgWithdrawResponse
+MsgWithdrawResponse defines the Msg/Withdraw response type.
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -5237,6 +5266,7 @@ Msg defines the savings Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Deposit` | [MsgDeposit](#kava.savings.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.savings.v1beta1.MsgDepositResponse) | Deposit defines a method for depositing funds to the savings module account | |
+| `Withdraw` | [MsgWithdraw](#kava.savings.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.savings.v1beta1.MsgWithdrawResponse) | Withdraw defines a method for withdrawing funds to the savings module account | |
 
  <!-- end services -->
 

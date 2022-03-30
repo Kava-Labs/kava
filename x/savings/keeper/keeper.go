@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -37,6 +38,11 @@ func NewKeeper(
 		accountKeeper: ak,
 		bankKeeper:    bk,
 	}
+}
+
+// GetSavingsModuleAccount returns the savings ModuleAccount
+func (k Keeper) GetSavingsModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	return k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 }
 
 // GetDeposit returns a deposit from the store for a particular depositor address, deposit denom
