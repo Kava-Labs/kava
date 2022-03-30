@@ -20,6 +20,7 @@ type Keeper struct {
 	paramSubspace paramtypes.Subspace
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
+	hooks         types.SavingsHooks
 }
 
 // NewKeeper returns a new keeper for the savings module.
@@ -37,7 +38,17 @@ func NewKeeper(
 		paramSubspace: paramstore,
 		accountKeeper: ak,
 		bankKeeper:    bk,
+		hooks:         nil,
 	}
+}
+
+// SetHooks adds hooks to the keeper.
+func (k *Keeper) SetHooks(hooks types.MultiSavingsHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set savings hooks twice")
+	}
+	k.hooks = hooks
+	return k
 }
 
 // GetSavingsModuleAccount returns the savings ModuleAccount
