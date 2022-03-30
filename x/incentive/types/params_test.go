@@ -81,6 +81,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods: types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:  types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:       types.DefaultMultiRewardPeriods,
+				SavingsRewardPeriods:    types.DefaultMultiRewardPeriods,
 				ClaimMultipliers: types.MultipliersPerDenoms{
 					{
 						Denom: "hard",
@@ -111,6 +112,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:   types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:        types.DefaultMultiRewardPeriods,
+				SavingsRewardPeriods:     types.DefaultMultiRewardPeriods,
 				ClaimMultipliers:         types.DefaultMultipliers,
 				ClaimEnd:                 time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
@@ -127,6 +129,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:   types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:        types.DefaultMultiRewardPeriods,
+				SavingsRewardPeriods:     types.DefaultMultiRewardPeriods,
 				ClaimMultipliers:         types.DefaultMultipliers,
 				ClaimEnd:                 time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
@@ -143,6 +146,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
 				DelegatorRewardPeriods:   types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:        types.DefaultMultiRewardPeriods,
+				SavingsRewardPeriods:     types.DefaultMultiRewardPeriods,
 				ClaimMultipliers:         types.DefaultMultipliers,
 				ClaimEnd:                 time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
@@ -159,6 +163,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:   types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
 				SwapRewardPeriods:        types.DefaultMultiRewardPeriods,
+				SavingsRewardPeriods:     types.DefaultMultiRewardPeriods,
 				ClaimMultipliers:         types.DefaultMultipliers,
 				ClaimEnd:                 time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
@@ -175,6 +180,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:   types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:        types.MultiRewardPeriods{rewardMultiPeriodWithInvalidRewardsPerSecond},
+				SavingsRewardPeriods:     types.DefaultMultiRewardPeriods,
 				ClaimMultipliers:         types.DefaultMultipliers,
 				ClaimEnd:                 time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
@@ -191,6 +197,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				HardBorrowRewardPeriods:  types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:   types.DefaultMultiRewardPeriods,
 				SwapRewardPeriods:        types.DefaultMultiRewardPeriods,
+				SavingsRewardPeriods:     types.DefaultMultiRewardPeriods,
 				ClaimMultipliers: types.MultipliersPerDenoms{
 					{
 						Denom: "hard",
