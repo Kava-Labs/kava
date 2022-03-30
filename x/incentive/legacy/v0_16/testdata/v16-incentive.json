@@ -82,6 +82,7 @@
         ]
       }
     ],
+    "savings_reward_periods": [],
     "claim_multipliers": [
       {
         "denom": "hard",
