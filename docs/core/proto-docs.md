@@ -248,6 +248,7 @@
     - [MultiRewardIndexesProto](#kava.incentive.v1beta1.MultiRewardIndexesProto)
     - [RewardIndex](#kava.incentive.v1beta1.RewardIndex)
     - [RewardIndexesProto](#kava.incentive.v1beta1.RewardIndexesProto)
+    - [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim)
     - [SwapClaim](#kava.incentive.v1beta1.SwapClaim)
     - [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim)
   
@@ -268,6 +269,8 @@
     - [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse)
     - [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward)
     - [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse)
+    - [MsgClaimSavingsReward](#kava.incentive.v1beta1.MsgClaimSavingsReward)
+    - [MsgClaimSavingsRewardResponse](#kava.incentive.v1beta1.MsgClaimSavingsRewardResponse)
     - [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward)
     - [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse)
     - [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward)
@@ -3687,6 +3690,22 @@ RewardIndexesProto defines a Protobuf wrapper around a RewardIndexes slice
 
 
 
+<a name="kava.incentive.v1beta1.SavingsClaim"></a>
+
+### SavingsClaim
+SavingsClaim stores the savings rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.SwapClaim"></a>
 
 ### SwapClaim
@@ -3968,6 +3987,32 @@ MsgClaimHardRewardResponse defines the Msg/ClaimHardReward response type.
 
 
 
+<a name="kava.incentive.v1beta1.MsgClaimSavingsReward"></a>
+
+### MsgClaimSavingsReward
+MsgClaimSavingsReward message type used to claim savings rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSavingsRewardResponse"></a>
+
+### MsgClaimSavingsRewardResponse
+MsgClaimSavingsRewardResponse defines the Msg/ClaimSavingsReward response type.
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.MsgClaimSwapReward"></a>
 
 ### MsgClaimSwapReward
@@ -4054,6 +4099,7 @@ Msg defines the incentive Msg service.
 | `ClaimHardReward` | [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward) | [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse) | ClaimHardReward is a message type used to claim Hard liquidity provider rewards | |
 | `ClaimDelegatorReward` | [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward) | [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse) | ClaimDelegatorReward is a message type used to claim delegator rewards | |
 | `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim delegator rewards | |
+| `ClaimSavingsReward` | [MsgClaimSavingsReward](#kava.incentive.v1beta1.MsgClaimSavingsReward) | [MsgClaimSavingsRewardResponse](#kava.incentive.v1beta1.MsgClaimSavingsRewardResponse) | ClaimSavingsReward is a message type used to claim savings rewards | |
 
  <!-- end services -->
 

@@ -18,6 +18,9 @@ service Msg {
 
   // ClaimSwapReward is a message type used to claim delegator rewards
   rpc ClaimSwapReward(MsgClaimSwapReward) returns (MsgClaimSwapRewardResponse);
+
+  // ClaimSavingsReward is a message type used to claim savings rewards
+  rpc ClaimSavingsReward(MsgClaimSavingsReward) returns (MsgClaimSavingsRewardResponse);
 }
 
 // Selection is a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a
@@ -77,3 +80,15 @@ message MsgClaimSwapReward {
 
 // MsgClaimSwapRewardResponse defines the Msg/ClaimSwapReward response type.
 message MsgClaimSwapRewardResponse {}
+
+// MsgClaimSavingsReward message type used to claim savings rewards
+message MsgClaimSavingsReward {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string             sender          = 1;
+  repeated Selection denoms_to_claim = 2 [(gogoproto.castrepeated) = "Selections", (gogoproto.nullable) = false];
+}
+
+// MsgClaimSavingsRewardResponse defines the Msg/ClaimSavingsReward response type.
+message MsgClaimSavingsRewardResponse {}
