@@ -25,3 +25,9 @@ type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
 }
+
+// SavingsHooks event hooks for other keepers to run code in response to Savings modifications
+type SavingsHooks interface {
+	AfterSavingsDepositCreated(ctx sdk.Context, deposit Deposit)
+	BeforeSavingsDepositModified(ctx sdk.Context, deposit Deposit, incomingDenoms []string)
+}

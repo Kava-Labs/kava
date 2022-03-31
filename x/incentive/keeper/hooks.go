@@ -6,6 +6,7 @@ import (
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
@@ -18,6 +19,7 @@ var _ cdptypes.CDPHooks = Hooks{}
 var _ hardtypes.HARDHooks = Hooks{}
 var _ stakingtypes.StakingHooks = Hooks{}
 var _ swaptypes.SwapHooks = Hooks{}
+var _ savingstypes.SavingsHooks = Hooks{}
 
 // Hooks create new incentive hooks
 func (k Keeper) Hooks() Hooks { return Hooks{k} }
@@ -160,4 +162,16 @@ func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor
 
 func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharesOwned sdk.Int) {
 	h.k.SynchronizeSwapReward(ctx, poolID, depositor, sharesOwned)
+}
+
+// ------------------- Savings Module Hooks -------------------
+
+// AfterSavingsDepositCreated function that runs after a deposit is created
+func (h Hooks) AfterSavingsDepositCreated(ctx sdk.Context, deposit savingstypes.Deposit) {
+	// TODO: InitializeSavingsReward
+}
+
+// BeforeSavingsDepositModified function that runs before a deposit is modified
+func (h Hooks) BeforeSavingsDepositModified(ctx sdk.Context, deposit savingstypes.Deposit, incomingDenoms []string) {
+	// TODO: SynchronizeSavingsReward
 }
