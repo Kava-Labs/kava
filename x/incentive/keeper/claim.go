@@ -207,3 +207,9 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	)
 	return nil
 }
+
+// ClaimSavingsReward is a stub method for MsgServer interface compliance
+func (k Keeper) ClaimSavingsReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
+	// TODO: implement savings claim logic
+	return nil
+}
