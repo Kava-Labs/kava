@@ -72,8 +72,11 @@ message Params {
   repeated MultiRewardPeriod swap_reward_periods = 5
       [(gogoproto.castrepeated) = "MultiRewardPeriods", (gogoproto.nullable) = false];
 
-  repeated MultipliersPerDenom claim_multipliers = 6
+  repeated MultiRewardPeriod savings_reward_periods = 6
+      [(gogoproto.castrepeated) = "MultiRewardPeriods", (gogoproto.nullable) = false];
+
+  repeated MultipliersPerDenom claim_multipliers = 7
       [(gogoproto.castrepeated) = "MultipliersPerDenoms", (gogoproto.nullable) = false];
 
-  google.protobuf.Timestamp claim_end = 7 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  google.protobuf.Timestamp claim_end = 8 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
