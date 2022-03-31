@@ -10,6 +10,7 @@ var (
 	DefaultHardClaims         = HardLiquidityProviderClaims{}
 	DefaultDelegatorClaims    = DelegatorClaims{}
 	DefaultSwapClaims         = SwapClaims{}
+	DefaultSavingsClaims      = SavingsClaims{}
 	DefaultGenesisRewardState = NewGenesisRewardState(
 		AccumulationTimes{},
 		MultiRewardIndexes{},
@@ -19,8 +20,8 @@ var (
 // NewGenesisState returns a new genesis state
 func NewGenesisState(
 	params Params,
-	usdxState, hardSupplyState, hardBorrowState, delegatorState, swapState GenesisRewardState,
-	c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims,
+	usdxState, hardSupplyState, hardBorrowState, delegatorState, swapState, savingsState GenesisRewardState,
+	c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims, savingsc SavingsClaims,
 ) GenesisState {
 	return GenesisState{
 		Params: params,
@@ -30,11 +31,13 @@ func NewGenesisState(
 		HardBorrowRewardState: hardBorrowState,
 		DelegatorRewardState:  delegatorState,
 		SwapRewardState:       swapState,
+		SavingsRewardState:    savingsState,
 
 		USDXMintingClaims:           c,
 		HardLiquidityProviderClaims: hc,
 		DelegatorClaims:             dc,
 		SwapClaims:                  sc,
+		SavingsClaims:               savingsc,
 	}
 }
 
@@ -47,10 +50,12 @@ func DefaultGenesisState() GenesisState {
 		HardBorrowRewardState:       DefaultGenesisRewardState,
 		DelegatorRewardState:        DefaultGenesisRewardState,
 		SwapRewardState:             DefaultGenesisRewardState,
+		SavingsRewardState:          DefaultGenesisRewardState,
 		USDXMintingClaims:           DefaultUSDXClaims,
 		HardLiquidityProviderClaims: DefaultHardClaims,
 		DelegatorClaims:             DefaultDelegatorClaims,
 		SwapClaims:                  DefaultSwapClaims,
+		SavingsClaims:               DefaultSavingsClaims,
 	}
 }
 
@@ -76,6 +81,9 @@ func (gs GenesisState) Validate() error {
 	if err := gs.SwapRewardState.Validate(); err != nil {
 		return err
 	}
+	if err := gs.SavingsRewardState.Validate(); err != nil {
+		return err
+	}
 
 	if err := gs.USDXMintingClaims.Validate(); err != nil {
 		return err
@@ -86,7 +94,10 @@ func (gs GenesisState) Validate() error {
 	if err := gs.DelegatorClaims.Validate(); err != nil {
 		return err
 	}
-	return gs.SwapClaims.Validate()
+	if err := gs.SwapClaims.Validate(); err != nil {
+		return err
+	}
+	return gs.SavingsClaims.Validate()
 }
 
 // NewGenesisRewardState returns a new GenesisRewardState
