@@ -74,13 +74,12 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
-	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 	evmante "github.com/tharsis/ethermint/app/ante"
-	srvflags "github.com/tharsis/ethermint/server/flags"
+	ethermintconfig "github.com/tharsis/ethermint/server/config"
 	ethermint "github.com/tharsis/ethermint/types"
 	"github.com/tharsis/ethermint/x/evm"
 	evmrest "github.com/tharsis/ethermint/x/evm/client/rest"
@@ -213,7 +212,6 @@ var (
 var _ servertypes.Application = (*App)(nil)
 
 // Options bundles several configuration params for an App.
-// The zero value can be used as a sensible default.
 type Options struct {
 	SkipLoadLatest        bool
 	SkipUpgradeHeights    map[int64]bool
@@ -221,6 +219,14 @@ type Options struct {
 	InvariantCheckPeriod  uint
 	MempoolEnableAuth     bool
 	MempoolAuthAddresses  []sdk.AccAddress
+	EVMTrace              string
+	EVMMaxGasWanted       uint64
+}
+
+// DefaultOptions is a sensible default Options value.
+var DefaultOptions = Options{
+	EVMTrace:        ethermintconfig.DefaultEVMTracer,
+	EVMMaxGasWanted: ethermintconfig.DefaultMaxTxGasWanted,
 }
 
 // App is the Kava ABCI application.
@@ -297,7 +303,6 @@ func NewApp(
 	traceStore io.Writer,
 	encodingConfig kavaparams.EncodingConfig,
 	options Options,
-	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 
@@ -447,8 +452,6 @@ func NewApp(
 		scopedIBCKeeper,
 	)
 
-	tracer := cast.ToString(appOpts.Get(srvflags.EVMTracer))
-
 	// Create Ethermint keepers
 	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec, keys[feemarkettypes.StoreKey], feemarketSubspace,
@@ -463,7 +466,7 @@ func NewApp(
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], evmSubspace,
 		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
-		tracer,
+		options.EVMTrace,
 	)
 
 	govRouter := govtypes.NewRouter()
@@ -790,7 +793,7 @@ func NewApp(
 		FeeMarketKeeper: app.feeMarketKeeper,
 		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 		SigGasConsumer:  evmante.DefaultSigVerificationGasConsumer,
-		MaxTxGasWanted:  0, // TODO options.EVMMaxGasWanted,
+		MaxTxGasWanted:  options.EVMMaxGasWanted,
 		AddressFetchers: fetchers,
 	}
 
