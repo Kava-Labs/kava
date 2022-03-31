@@ -112,6 +112,20 @@ func InitGenesis(
 	for _, mri := range gs.SwapRewardState.MultiRewardIndexes {
 		k.SetSwapRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
 	}
+
+	// Savings
+	for _, claim := range gs.SavingsClaims {
+		k.SetSavingsClaim(ctx, claim)
+	}
+	for _, gat := range gs.SavingsRewardState.AccumulationTimes {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+			panic(err.Error())
+		}
+		k.SetSavingsRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+	}
+	for _, mri := range gs.SavingsRewardState.MultiRewardIndexes {
+		k.SetSavingsRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
+	}
 }
 
 // ExportGenesis export genesis state for incentive module
@@ -131,10 +145,13 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	swapClaims := k.GetAllSwapClaims(ctx)
 	swapRewardState := getSwapGenesisRewardState(ctx, k)
 
+	savingsClaims := k.GetAllSavingsClaims(ctx)
+	savingsRewardState := getSavingsGenesisRewardState(ctx, k)
+
 	return types.NewGenesisState(
 		params,
 		usdxRewardState, hardSupplyRewardState, hardBorrowRewardState, delegatorRewardState, swapRewardState,
-		usdxClaims, hardClaims, delegatorClaims, swapClaims,
+		savingsRewardState, usdxClaims, hardClaims, delegatorClaims, swapClaims, savingsClaims,
 	)
 }
 
@@ -217,6 +234,22 @@ func getSwapGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.Gene
 
 	var mris types.MultiRewardIndexes
 	keeper.IterateSwapRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
+		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
+		return false
+	})
+
+	return types.NewGenesisRewardState(ats, mris)
+}
+
+func getSavingsGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
+	var ats types.AccumulationTimes
+	keeper.IterateSavingsRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
+		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
+		return false
+	})
+
+	var mris types.MultiRewardIndexes
+	keeper.IterateSavingsRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
 		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
 		return false
 	})
