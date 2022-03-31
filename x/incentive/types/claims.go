@@ -314,10 +314,10 @@ func (c SavingsClaim) Validate() error {
 	return c.BaseMultiClaim.Validate()
 }
 
-// HasRewardIndex check if a claim has a reward index for the input pool ID.
-func (c SavingsClaim) HasRewardIndex(poolID string) (int64, bool) {
+// HasRewardIndex check if a claim has a reward index for the input denom
+func (c SavingsClaim) HasRewardIndex(denom string) (int64, bool) {
 	for index, ri := range c.RewardIndexes {
-		if ri.CollateralType == poolID {
+		if ri.CollateralType == denom {
 			return int64(index), true
 		}
 	}
