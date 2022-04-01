@@ -137,6 +137,60 @@ func TestClaims_Validate(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("SavingsClaims", func(t *testing.T) {
+
+		validRewardIndexes := RewardIndexes{}.With("ukava", d("0.002"))
+		validMultiRewardIndexes := MultiRewardIndexes{}.With("btcb/usdx", validRewardIndexes)
+		invalidRewardIndexes := RewardIndexes{}.With("ukava", d("-0.002"))
+		invalidMultiRewardIndexes := MultiRewardIndexes{}.With("btcb/usdx", invalidRewardIndexes)
+
+		testCases := []struct {
+			name    string
+			claims  SavingsClaims
+			expPass bool
+		}{
+			{
+				name: "valid",
+				claims: SavingsClaims{
+					NewSavingsClaim(owner, cs(c("bnb", 1)), validMultiRewardIndexes),
+				},
+				expPass: true,
+			},
+			{
+				name: "invalid owner",
+				claims: SavingsClaims{
+					NewSavingsClaim(nil, cs(c("bnb", 1)), validMultiRewardIndexes),
+				},
+				expPass: false,
+			},
+			{
+				name: "invalid reward",
+				claims: SavingsClaims{
+					NewSavingsClaim(owner, sdk.Coins{sdk.Coin{Denom: "invalid😫"}}, validMultiRewardIndexes),
+				},
+				expPass: false,
+			},
+			{
+				name: "invalid indexes",
+				claims: SavingsClaims{
+					NewSavingsClaim(nil, cs(c("bnb", 1)), invalidMultiRewardIndexes),
+				},
+				expPass: false,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				err := tc.claims.Validate()
+				if tc.expPass {
+					require.NoError(t, err)
+				} else {
+					require.Error(t, err)
+				}
+			})
+		}
+	})
 }
 
 func TestRewardIndexes(t *testing.T) {

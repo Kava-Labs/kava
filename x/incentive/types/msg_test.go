@@ -145,7 +145,8 @@ func TestMsgClaim_Validate(t *testing.T) {
 		msgClaimHardReward := types.NewMsgClaimHardReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim)
 		msgClaimDelegatorReward := types.NewMsgClaimDelegatorReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim)
 		msgClaimSwapReward := types.NewMsgClaimSwapReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim)
-		msgs := []sdk.Msg{&msgClaimHardReward, &msgClaimDelegatorReward, &msgClaimSwapReward}
+		msgClaimSavingsReward := types.NewMsgClaimSavingsReward(tc.msgArgs.sender, tc.msgArgs.denomsToClaim)
+		msgs := []sdk.Msg{&msgClaimHardReward, &msgClaimDelegatorReward, &msgClaimSwapReward, &msgClaimSavingsReward}
 		for _, msg := range msgs {
 			t.Run(tc.name, func(t *testing.T) {
 

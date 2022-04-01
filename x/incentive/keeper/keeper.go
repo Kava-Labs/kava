@@ -323,6 +323,55 @@ func (k Keeper) GetAllSwapClaims(ctx sdk.Context) types.SwapClaims {
 	return cs
 }
 
+// GetSavingsClaim returns the claim in the store corresponding the the input address.
+func (k Keeper) GetSavingsClaim(ctx sdk.Context, addr sdk.AccAddress) (types.SavingsClaim, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsClaimKeyPrefix)
+	bz := store.Get(addr)
+	if bz == nil {
+		return types.SavingsClaim{}, false
+	}
+	var c types.SavingsClaim
+	k.cdc.MustUnmarshal(bz, &c)
+	return c, true
+}
+
+// SetSavingsClaim sets the claim in the store corresponding to the input address.
+func (k Keeper) SetSavingsClaim(ctx sdk.Context, c types.SavingsClaim) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsClaimKeyPrefix)
+	bz := k.cdc.MustMarshal(&c)
+	store.Set(c.Owner, bz)
+}
+
+// DeleteSavingsClaim deletes the claim in the store corresponding to the input address.
+func (k Keeper) DeleteSavingsClaim(ctx sdk.Context, owner sdk.AccAddress) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsClaimKeyPrefix)
+	store.Delete(owner)
+}
+
+// IterateSavingsClaims iterates over all savings claim objects in the store and preforms a callback function
+func (k Keeper) IterateSavingsClaims(ctx sdk.Context, cb func(c types.SavingsClaim) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsClaimKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var c types.SavingsClaim
+		k.cdc.MustUnmarshal(iterator.Value(), &c)
+		if cb(c) {
+			break
+		}
+	}
+}
+
+// GetAllSavingsClaims returns all savings claim objects in the store
+func (k Keeper) GetAllSavingsClaims(ctx sdk.Context) types.SavingsClaims {
+	cs := types.SavingsClaims{}
+	k.IterateSavingsClaims(ctx, func(c types.SavingsClaim) (stop bool) {
+		cs = append(cs, c)
+		return false
+	})
+	return cs
+}
+
 // SetHardSupplyRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetHardSupplyRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
@@ -608,6 +657,81 @@ func (k Keeper) SetSwapRewardAccrualTime(ctx sdk.Context, poolID string, blockTi
 
 func (k Keeper) IterateSwapRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		poolID := string(iterator.Key())
+		var accrualTime time.Time
+		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
+			panic(err)
+		}
+		if cb(poolID, accrualTime) {
+			break
+		}
+	}
+}
+
+// SetSavingsRewardIndexes stores the global reward indexes that rewards for an individual denom type
+func (k Keeper) SetSavingsRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRewardIndexesKeyPrefix)
+	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
+		RewardIndexes: indexes,
+	})
+	store.Set([]byte(denom), bz)
+}
+
+// GetSavingsRewardIndexes fetches the global reward indexes that track rewards for an individual denom type
+func (k Keeper) GetSavingsRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRewardIndexesKeyPrefix)
+	bz := store.Get([]byte(denom))
+	if bz == nil {
+		return types.RewardIndexes{}, false
+	}
+	var proto types.RewardIndexesProto
+	k.cdc.MustUnmarshal(bz, &proto)
+	return proto.RewardIndexes, true
+}
+
+// IterateSavingsRewardIndexes iterates over all savings reward index objects in the store and preforms a callback function
+func (k Keeper) IterateSavingsRewardIndexes(ctx sdk.Context, cb func(poolID string, indexes types.RewardIndexes) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRewardIndexesKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var proto types.RewardIndexesProto
+		k.cdc.MustUnmarshal(iterator.Value(), &proto)
+		if cb(string(iterator.Key()), proto.RewardIndexes) {
+			break
+		}
+	}
+}
+
+// GetSavingsRewardAccrualTime fetches the last time rewards were accrued for an individual denom type
+func (k Keeper) GetSavingsRewardAccrualTime(ctx sdk.Context, poolID string) (blockTime time.Time, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSavingsRewardAccrualTimeKeyPrefix)
+	b := store.Get([]byte(poolID))
+	if b == nil {
+		return time.Time{}, false
+	}
+	if err := blockTime.UnmarshalBinary(b); err != nil {
+		panic(err)
+	}
+	return blockTime, true
+}
+
+// SetSavingsRewardAccrualTime stores the last time rewards were accrued for a savings deposit denom type
+func (k Keeper) SetSavingsRewardAccrualTime(ctx sdk.Context, poolID string, blockTime time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSavingsRewardAccrualTimeKeyPrefix)
+	bz, err := blockTime.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
+	store.Set([]byte(poolID), bz)
+}
+
+// IterateSavingsRewardAccrualTimesiterates over all the previous savings reward accrual times in the store
+func (k Keeper) IterateSavingsRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSavingsRewardAccrualTimeKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
