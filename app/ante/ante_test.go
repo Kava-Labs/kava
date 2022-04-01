@@ -6,7 +6,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -32,6 +31,11 @@ func TestAppAnteHandler(t *testing.T) {
 	manualKeys := testPrivKeys[6:]
 
 	encodingConfig := app.MakeEncodingConfig()
+
+	opts := app.DefaultOptions
+	opts.MempoolEnableAuth = true
+	opts.MempoolAuthAddresses = manual
+
 	tApp := app.TestApp{
 		App: *app.NewApp(
 			log.NewNopLogger(),
@@ -39,11 +43,7 @@ func TestAppAnteHandler(t *testing.T) {
 			app.DefaultNodeHome,
 			nil,
 			encodingConfig,
-			app.Options{
-				MempoolEnableAuth:    true,
-				MempoolAuthAddresses: manual,
-			},
-			simapp.EmptyAppOptions{},
+			opts,
 		),
 	}
 

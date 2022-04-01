@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -24,15 +23,14 @@ func TestNewApp(t *testing.T) {
 		DefaultNodeHome,
 		nil,
 		MakeEncodingConfig(),
-		Options{},
-		simapp.EmptyAppOptions{},
+		DefaultOptions,
 	)
 }
 
 func TestExport(t *testing.T) {
 	SetSDKConfig()
 	db := db.NewMemDB()
-	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), Options{}, simapp.EmptyAppOptions{})
+	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), DefaultOptions)
 
 	stateBytes, err := json.Marshal(NewDefaultGenesisState())
 	require.NoError(t, err)
