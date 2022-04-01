@@ -43,21 +43,21 @@ message GenesisState {
 
   GenesisRewardState swap_reward_state = 6 [(gogoproto.nullable) = false];
 
-  GenesisRewardState savings_reward_state = 7 [(gogoproto.nullable) = false];
-
-  repeated USDXMintingClaim usdx_minting_claims = 8 [
+  repeated USDXMintingClaim usdx_minting_claims = 7 [
     (gogoproto.customname)   = "USDXMintingClaims",
     (gogoproto.castrepeated) = "USDXMintingClaims",
     (gogoproto.nullable)     = false
   ];
 
-  repeated HardLiquidityProviderClaim hard_liquidity_provider_claims = 9
+  repeated HardLiquidityProviderClaim hard_liquidity_provider_claims = 8
       [(gogoproto.castrepeated) = "HardLiquidityProviderClaims", (gogoproto.nullable) = false];
 
-  repeated DelegatorClaim delegator_claims = 10
+  repeated DelegatorClaim delegator_claims = 9
       [(gogoproto.castrepeated) = "DelegatorClaims", (gogoproto.nullable) = false];
 
-  repeated SwapClaim swap_claims = 11 [(gogoproto.castrepeated) = "SwapClaims", (gogoproto.nullable) = false];
+  repeated SwapClaim swap_claims = 10 [(gogoproto.castrepeated) = "SwapClaims", (gogoproto.nullable) = false];
+
+  GenesisRewardState savings_reward_state = 11 [(gogoproto.nullable) = false];
 
   repeated SavingsClaim savings_claims = 12 [(gogoproto.castrepeated) = "SavingsClaims", (gogoproto.nullable) = false];
 }
