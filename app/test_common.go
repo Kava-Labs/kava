@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -23,7 +22,6 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -36,6 +34,7 @@ import (
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	evmutilkeeper "github.com/kava-labs/kava/x/evmutil/keeper"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
@@ -77,7 +76,7 @@ func NewTestAppFromSealed() TestApp {
 
 	encCfg := MakeEncodingConfig()
 
-	app := NewApp(log.NewNopLogger(), db, DefaultNodeHome, nil, encCfg, Options{}, simapp.EmptyAppOptions{})
+	app := NewApp(log.NewNopLogger(), db, DefaultNodeHome, nil, encCfg, DefaultOptions)
 	return TestApp{App: *app}
 }
 

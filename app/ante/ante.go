@@ -8,26 +8,26 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	ibcante "github.com/cosmos/ibc-go/v3/modules/core/ante"
+	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	evmante "github.com/tharsis/ethermint/app/ante"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
-
-	channelkeeper "github.com/cosmos/ibc-go/v3/modules/core/04-channel/keeper"
-	ibcante "github.com/cosmos/ibc-go/v3/modules/core/ante"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
 // channel keeper, EVM Keeper and Fee Market Keeper.
 type HandlerOptions struct {
-	AccountKeeper    evmtypes.AccountKeeper
-	BankKeeper       evmtypes.BankKeeper
-	IBCChannelKeeper channelkeeper.Keeper
-	EvmKeeper        evmante.EVMKeeper
-	FeegrantKeeper   authante.FeegrantKeeper
-	SignModeHandler  authsigning.SignModeHandler
-	SigGasConsumer   authante.SignatureVerificationGasConsumer
-	FeeMarketKeeper  evmtypes.FeeMarketKeeper
-	AddressFetchers  []AddressFetcher
+	AccountKeeper   evmtypes.AccountKeeper
+	BankKeeper      evmtypes.BankKeeper
+	IBCKeeper       *ibckeeper.Keeper
+	EvmKeeper       evmante.EVMKeeper
+	FeegrantKeeper  authante.FeegrantKeeper
+	SignModeHandler authsigning.SignModeHandler
+	SigGasConsumer  authante.SignatureVerificationGasConsumer
+	FeeMarketKeeper evmtypes.FeeMarketKeeper
+	MaxTxGasWanted  uint64
+	AddressFetchers []AddressFetcher
 }
 
 func (options HandlerOptions) Validate() error {
@@ -114,7 +114,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		authante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		authante.NewIncrementSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator
-		ibcante.NewAnteDecorator(options.IBCChannelKeeper),
+		ibcante.NewAnteDecorator(options.IBCKeeper),
 	)
 	return sdk.ChainAnteDecorators(decorators...)
 }
@@ -126,7 +126,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		evmante.NewEthValidateBasicDecorator(options.EvmKeeper),
 		evmante.NewEthSigVerificationDecorator(options.EvmKeeper),
 		evmante.NewEthAccountVerificationDecorator(options.AccountKeeper, options.BankKeeper, options.EvmKeeper),
-		evmante.NewEthGasConsumeDecorator(options.EvmKeeper),
+		evmante.NewEthGasConsumeDecorator(options.EvmKeeper, options.MaxTxGasWanted),
 		evmante.NewCanTransferDecorator(options.EvmKeeper),
 		evmante.NewEthIncrementSenderSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator.
 	)

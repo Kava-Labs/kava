@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/cosmos/cosmos-proto v0.0.0-20211020182451-c7ca7198c2f8
 	github.com/cosmos/cosmos-sdk v0.45.1
-	github.com/cosmos/ibc-go/v3 v3.0.0-rc1
+	github.com/cosmos/ibc-go/v3 v3.0.0
 	github.com/ethereum/go-ethereum v1.10.16
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/mock v1.6.0
@@ -13,14 +13,14 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.4.1
-	github.com/spf13/cobra v1.3.0
-	github.com/stretchr/testify v1.7.0
+	github.com/spf13/cobra v1.4.0
+	github.com/stretchr/testify v1.7.1
 	github.com/tendermint/tendermint v0.34.15
 	github.com/tendermint/tm-db v0.6.7
-	github.com/tharsis/ethermint v0.10.0-alpha1
+	github.com/tharsis/ethermint v0.12.2
 	google.golang.org/genproto v0.0.0-20220211171837-173942840c17
 	google.golang.org/grpc v1.44.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.28.0
 	sigs.k8s.io/yaml v1.2.0
 )
 
@@ -158,7 +158,7 @@ replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	// Make sure that only one version of tendermint is imported
 	github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.34.15
-	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.10.0-alpha1.0.20220318152328-ec8850e407f7
+	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.10.0-alpha1.0.20220330230123-b3b3bf2103bf
 	// Make sure that we use grpc compatible with cosmos
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )

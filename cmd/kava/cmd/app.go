@@ -18,6 +18,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/libs/log"
 	db "github.com/tendermint/tm-db"
+	ethermintflags "github.com/tharsis/ethermint/server/flags"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
@@ -85,8 +86,9 @@ func (ac appCreator) newApp(
 			InvariantCheckPeriod:  cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
 			MempoolEnableAuth:     mempoolEnableAuth,
 			MempoolAuthAddresses:  mempoolAuthAddresses,
+			EVMTrace:              cast.ToString(appOpts.Get(ethermintflags.EVMTracer)),
+			EVMMaxGasWanted:       cast.ToUint64(appOpts.Get(ethermintflags.EVMMaxTxGasWanted)),
 		},
-		appOpts,
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
 		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
@@ -117,15 +119,19 @@ func (ac appCreator) appExport(
 		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
 
+	options := app.DefaultOptions
+	options.SkipLoadLatest = true
+	options.InvariantCheckPeriod = cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
+
 	var tempApp *app.App
 	if height != -1 {
-		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: true, InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))}, appOpts)
+		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, options)
 
 		if err := tempApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, app.Options{SkipLoadLatest: false, InvariantCheckPeriod: cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))}, appOpts)
+		tempApp = app.NewApp(logger, db, homePath, traceStore, ac.encodingConfig, options)
 	}
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
 }
