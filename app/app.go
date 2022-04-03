@@ -132,7 +132,7 @@ import (
 
 const (
 	appName     = "kava"
-	upgradeName = "v44"
+	upgradeName = "testnet-evm-alpha-2"
 )
 
 var (
@@ -739,7 +739,7 @@ func NewApp(
 		committeetypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
-		// Add all remaining modules with an empty end blocker below since cosmos 0.45.0 requires it
+		// Add all remaining modules with an empty InitGenesis below since cosmos 0.45.0 requires it
 		vestingtypes.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
@@ -807,6 +807,15 @@ func NewApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
+	app.upgradeKeeper.SetUpgradeHandler(
+		upgradeName,
+		func(ctx sdk.Context, _ upgradetypes.Plan, previousModuleVersions module.VersionMap) (module.VersionMap, error) {
+			return app.mm.RunMigrations(ctx, app.configurator, previousModuleVersions)
+		},
+	)
+
+	// TODO if we need modules added/removed, add upgrade store loader
+
 	// load store
 	if !options.SkipLoadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -836,8 +845,6 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
-
-	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
