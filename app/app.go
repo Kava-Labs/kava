@@ -92,6 +92,10 @@ import (
 	feemarketkeeper "github.com/tharsis/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
+	"github.com/kava-labs/kava-bridge/x/bridge"
+	bridgekeeper "github.com/kava-labs/kava-bridge/x/bridge/keeper"
+	bridgetypes "github.com/kava-labs/kava-bridge/x/bridge/types"
+
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/auction"
@@ -189,6 +193,7 @@ var (
 		savings.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
+		bridge.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -283,6 +288,8 @@ type App struct {
 	incentiveKeeper  incentivekeeper.Keeper
 	savingsKeeper    savingskeeper.Keeper
 
+	bridgeKeeper bridgekeeper.Keeper
+
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -336,7 +343,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey,
+		savingstypes.StoreKey, bridgetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
