@@ -3819,9 +3819,9 @@ Params
 | `hard_borrow_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
 | `delegator_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
 | `swap_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
-| `savings_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
 | `claim_multipliers` | [MultipliersPerDenom](#kava.incentive.v1beta1.MultipliersPerDenom) | repeated |  |
 | `claim_end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `savings_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
 
 
 
@@ -3913,6 +3913,8 @@ GenesisState is the state that must be provided at genesis.
 | `hard_liquidity_provider_claims` | [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim) | repeated |  |
 | `delegator_claims` | [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim) | repeated |  |
 | `swap_claims` | [SwapClaim](#kava.incentive.v1beta1.SwapClaim) | repeated |  |
+| `savings_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `savings_claims` | [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim) | repeated |  |
 
 
 

@@ -223,6 +223,10 @@
       }
     ]
   },
+  "savings_reward_state": {
+    "accumulation_times": [],
+    "multi_reward_indexes": []
+  },
   "usdx_minting_claims": [
     {
       "base_claim": {
@@ -328,5 +332,6 @@
         }
       ]
     }
-  ]
+  ],
+  "savings_claims": []
 }

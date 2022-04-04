@@ -56,4 +56,8 @@ message GenesisState {
       [(gogoproto.castrepeated) = "DelegatorClaims", (gogoproto.nullable) = false];
 
   repeated SwapClaim swap_claims = 10 [(gogoproto.castrepeated) = "SwapClaims", (gogoproto.nullable) = false];
+
+  GenesisRewardState savings_reward_state = 11 [(gogoproto.nullable) = false];
+
+  repeated SavingsClaim savings_claims = 12 [(gogoproto.castrepeated) = "SavingsClaims", (gogoproto.nullable) = false];
 }
