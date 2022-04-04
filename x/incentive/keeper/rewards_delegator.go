@@ -9,33 +9,6 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// AccumulateDelegatorRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
-// The provided rewardPeriod must be valid to avoid panics in calculating time durations.
-func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-
-	previousAccrualTime, found := k.GetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
-	}
-
-	indexes, found := k.GetDelegatorRewardIndexes(ctx, rewardPeriod.CollateralType)
-	if !found {
-		indexes = types.RewardIndexes{}
-	}
-
-	acc := types.NewAccumulator(previousAccrualTime, indexes)
-
-	totalSource := k.getDelegatorTotalSourceShares(ctx, rewardPeriod.CollateralType)
-
-	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
-
-	k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
-	if len(acc.Indexes) > 0 {
-		// the store panics when setting empty or nil indexes
-		k.SetDelegatorRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
-	}
-}
-
 // getDelegatorTotalSourceShares fetches the sum of all source shares for a delegator reward.
 // In the case of delegation, this is the total tokens staked to bonded validators.
 func (k Keeper) getDelegatorTotalSourceShares(ctx sdk.Context, denom string) sdk.Dec {

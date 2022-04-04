@@ -10,30 +10,47 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// AccumulateHardBorrowRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
+// AccumulateRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
-func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
+func (k Keeper) AccumulateRewards(ctx sdk.Context, sourceID types.SourceID, rewardPeriod types.MultiRewardPeriod) {
 
-	previousAccrualTime, found := k.GetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType)
+	previousAccrualTime, found := k.GetLastAccrual(ctx, sourceID, rewardPeriod.CollateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()
 	}
 
-	indexes, found := k.GetHardBorrowRewardIndexes(ctx, rewardPeriod.CollateralType)
+	indexes, found := k.GetRewardIndexes(ctx, sourceID, rewardPeriod.CollateralType)
 	if !found {
 		indexes = types.RewardIndexes{}
 	}
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalSource := k.getHardBorrowTotalSourceShares(ctx, rewardPeriod.CollateralType)
+	totalSource := k.getTotalSourceShares(ctx, sourceID, rewardPeriod.CollateralType)
 
 	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
 
-	k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
+	k.SetLastAccrual(ctx, sourceID, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
-		k.SetHardBorrowRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
+		k.SetRewardIndexes(ctx, sourceID, rewardPeriod.CollateralType, acc.Indexes)
+	}
+}
+
+func (k Keeper) getTotalSourceShares(ctx sdk.Context, sourceID types.SourceID, sourceSubID string) sdk.Dec {
+	switch sourceID {
+	case types.HardBorrow:
+		return k.getHardBorrowTotalSourceShares(ctx, sourceSubID)
+	case types.HardSupply:
+		return k.getHardSupplyTotalSourceShares(ctx, sourceSubID)
+	case types.Delegator:
+		return k.getDelegatorTotalSourceShares(ctx, sourceSubID)
+	case types.Swap:
+		return k.getSwapTotalSourceShares(ctx, sourceSubID)
+	case types.USDXMinting:
+		return k.getUSDXTotalSourceShares(ctx, sourceSubID)
+	default:
+		panic("unhandled source ID")
 	}
 }
 
@@ -74,7 +91,7 @@ func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bor
 
 	var borrowRewardIndexes types.MultiRewardIndexes
 	for _, coin := range borrow.Amount {
-		globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+		globalRewardIndexes, found := k.GetRewardIndexes(ctx, types.HardBorrow, coin.Denom)
 		if !found {
 			globalRewardIndexes = types.RewardIndexes{}
 		}
@@ -110,7 +127,7 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 // It returns the claim without setting in the store.
 // The public methods for accessing and modifying claims are preferred over this one. Direct modification of claims is easy to get wrong.
 func (k Keeper) synchronizeSingleHardBorrowReward(ctx sdk.Context, claim types.HardLiquidityProviderClaim, denom string, sourceShares sdk.Dec) types.HardLiquidityProviderClaim {
-	globalRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, denom)
+	globalRewardIndexes, found := k.GetRewardIndexes(ctx, types.HardBorrow, denom)
 	if !found {
 		// The global factor is only not found if
 		// - the borrowed denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
@@ -158,7 +175,7 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	uniqueBorrowDenoms := setDifference(borrowDenoms, borrowRewardIndexDenoms)
 
 	for _, denom := range uniqueBorrowDenoms {
-		globalBorrowRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, denom)
+		globalBorrowRewardIndexes, found := k.GetRewardIndexes(ctx, types.HardBorrow, denom)
 		if !found {
 			globalBorrowRewardIndexes = types.RewardIndexes{}
 		}

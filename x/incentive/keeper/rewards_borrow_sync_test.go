@@ -34,7 +34,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenGlo
 	suite.storeHardClaim(claim)
 
 	globalIndexes := increaseAllRewardFactors(nonEmptyMultiRewardIndexes)
-	suite.storeGlobalBorrowIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, globalIndexes)
 
 	borrow := NewBorrowBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(claim.BorrowRewardIndexes)...).
@@ -58,7 +58,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUnchangedWhenG
 	}
 	suite.storeHardClaim(claim)
 
-	suite.storeGlobalBorrowIndexes(unchangingIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, unchangingIndexes)
 
 	borrow := NewBorrowBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(unchangingIndexes)...).
@@ -82,7 +82,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	suite.storeHardClaim(claim)
 
 	globalIndexes := appendUniqueMultiRewardIndex(nonEmptyMultiRewardIndexes)
-	suite.storeGlobalBorrowIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, globalIndexes)
 
 	borrow := NewBorrowBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
@@ -107,7 +107,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	suite.storeHardClaim(claim)
 
 	globalIndexes := appendUniqueRewardIndexToFirstItem(nonEmptyMultiRewardIndexes)
-	suite.storeGlobalBorrowIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, globalIndexes)
 
 	borrow := NewBorrowBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
@@ -146,7 +146,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenGlobal
 	}
 	suite.storeHardClaim(claim)
 
-	suite.storeGlobalBorrowIndexes(types.MultiRewardIndexes{
+	suite.storeGlobalIndexes(types.HardBorrow, types.MultiRewardIndexes{
 		{
 			CollateralType: "borrowdenom",
 			RewardIndexes: types.RewardIndexes{
@@ -218,7 +218,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRew
 			},
 		},
 	}
-	suite.storeGlobalBorrowIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, globalIndexes)
 
 	borrow := NewBorrowBuilder(claim.Owner).
 		WithSourceShares("rewarded", 1e9).
@@ -276,7 +276,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRew
 			},
 		},
 	}
-	suite.storeGlobalBorrowIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, globalIndexes)
 
 	borrow := NewBorrowBuilder(claim.Owner).
 		WithSourceShares("borrowed", 1e9).

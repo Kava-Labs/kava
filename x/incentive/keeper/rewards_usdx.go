@@ -9,36 +9,6 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// AccumulateUSDXMintingRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
-// The provided rewardPeriod must be valid to avoid panics in calculating time durations.
-func (k Keeper) AccumulateUSDXMintingRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) {
-	previousAccrualTime, found := k.GetPreviousUSDXMintingAccrualTime(ctx, rewardPeriod.CollateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
-	}
-
-	factor, found := k.GetUSDXMintingRewardFactor(ctx, rewardPeriod.CollateralType)
-	if !found {
-		factor = sdk.ZeroDec()
-	}
-	// wrap in RewardIndexes for compatibility with Accumulator
-	indexes := types.RewardIndexes{}.With(types.USDXMintingRewardDenom, factor)
-
-	acc := types.NewAccumulator(previousAccrualTime, indexes)
-
-	totalSource := k.getUSDXTotalSourceShares(ctx, rewardPeriod.CollateralType)
-
-	acc.Accumulate(types.NewMultiRewardPeriodFromRewardPeriod(rewardPeriod), totalSource, ctx.BlockTime())
-
-	k.SetPreviousUSDXMintingAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
-
-	factor, found = acc.Indexes.Get(types.USDXMintingRewardDenom)
-	if !found {
-		panic("could not find factor that should never be missing when accumulating usdx rewards")
-	}
-	k.SetUSDXMintingRewardFactor(ctx, rewardPeriod.CollateralType, factor)
-}
-
 // getUSDXTotalSourceShares fetches the sum of all source shares for a usdx minting reward.
 // In the case of usdx minting, this is the total debt from all cdps of a particular type, divided by the cdp interest factor.
 // This gives the "pre interest" value of the total debt.

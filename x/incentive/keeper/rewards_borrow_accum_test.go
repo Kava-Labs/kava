@@ -13,24 +13,6 @@ type AccumulateBorrowRewardsTests struct {
 	unitTester
 }
 
-func (suite *AccumulateBorrowRewardsTests) storedTimeEquals(denom string, expected time.Time) {
-	storedTime, found := suite.keeper.GetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom)
-	suite.True(found)
-	suite.Equal(expected, storedTime)
-}
-
-func (suite *AccumulateBorrowRewardsTests) storedIndexesEqual(denom string, expected types.RewardIndexes) {
-	storedIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, denom)
-	suite.Equal(found, expected != nil)
-
-	if found {
-		suite.Equal(expected, storedIndexes)
-	} else {
-		// Can't compare Equal for types.RewardIndexes(nil) vs types.RewardIndexes{}
-		suite.Empty(storedIndexes)
-	}
-}
-
 func TestAccumulateBorrowRewards(t *testing.T) {
 	suite.Run(t, new(AccumulateBorrowRewardsTests))
 }
@@ -41,7 +23,7 @@ func (suite *AccumulateBorrowRewardsTests) TestStateUpdatedWhenBlockTimeHasIncre
 	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil)
 
-	suite.storeGlobalBorrowIndexes(types.MultiRewardIndexes{
+	suite.storeGlobalIndexes(types.HardBorrow, types.MultiRewardIndexes{
 		{
 			CollateralType: denom,
 			RewardIndexes: types.RewardIndexes{
@@ -57,7 +39,7 @@ func (suite *AccumulateBorrowRewardsTests) TestStateUpdatedWhenBlockTimeHasIncre
 		},
 	})
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, previousAccrualTime)
+	suite.keeper.SetLastAccrual(suite.ctx, types.HardBorrow, denom, previousAccrualTime)
 
 	newAccrualTime := previousAccrualTime.Add(1 * time.Hour)
 	suite.ctx = suite.ctx.WithBlockTime(newAccrualTime)
@@ -70,12 +52,12 @@ func (suite *AccumulateBorrowRewardsTests) TestStateUpdatedWhenBlockTimeHasIncre
 		cs(c("hard", 2000), c("ukava", 1000)), // same denoms as in global indexes
 	)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateRewards(suite.ctx, types.HardBorrow, period)
 
 	// check time and factors
 
-	suite.storedTimeEquals(denom, newAccrualTime)
-	suite.storedIndexesEqual(denom, types.RewardIndexes{
+	suite.storedTimeEquals(types.HardBorrow, denom, newAccrualTime)
+	suite.storedIndexesEqual(types.HardBorrow, denom, types.RewardIndexes{
 		{
 			CollateralType: "hard",
 			RewardFactor:   d("7.22"),
@@ -108,9 +90,9 @@ func (suite *AccumulateBorrowRewardsTests) TestStateUnchangedWhenBlockTimeHasNot
 			},
 		},
 	}
-	suite.storeGlobalBorrowIndexes(previousIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, previousAccrualTime)
+	suite.keeper.SetLastAccrual(suite.ctx, types.HardBorrow, denom, previousAccrualTime)
 
 	suite.ctx = suite.ctx.WithBlockTime(previousAccrualTime)
 
@@ -122,14 +104,14 @@ func (suite *AccumulateBorrowRewardsTests) TestStateUnchangedWhenBlockTimeHasNot
 		cs(c("hard", 2000), c("ukava", 1000)), // same denoms as in global indexes
 	)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateRewards(suite.ctx, types.HardBorrow, period)
 
 	// check time and factors
 
-	suite.storedTimeEquals(denom, previousAccrualTime)
+	suite.storedTimeEquals(types.HardBorrow, denom, previousAccrualTime)
 	expected, f := previousIndexes.Get(denom)
 	suite.True(f)
-	suite.storedIndexesEqual(denom, expected)
+	suite.storedIndexesEqual(types.HardBorrow, denom, expected)
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
@@ -153,9 +135,9 @@ func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenSourceSharesAre
 			},
 		},
 	}
-	suite.storeGlobalBorrowIndexes(previousIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, previousAccrualTime)
+	suite.keeper.SetLastAccrual(suite.ctx, types.HardBorrow, denom, previousAccrualTime)
 
 	firstAccrualTime := previousAccrualTime.Add(7 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
@@ -168,14 +150,14 @@ func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenSourceSharesAre
 		cs(c("hard", 2000), c("ukava", 1000)), // same denoms as in global indexes
 	)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateRewards(suite.ctx, types.HardBorrow, period)
 
 	// check time and factors
 
-	suite.storedTimeEquals(denom, firstAccrualTime)
+	suite.storedTimeEquals(types.HardBorrow, denom, firstAccrualTime)
 	expected, f := previousIndexes.Get(denom)
 	suite.True(f)
-	suite.storedIndexesEqual(denom, expected)
+	suite.storedIndexesEqual(types.HardBorrow, denom, expected)
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestStateAddedWhenStateDoesNotExist() {
@@ -199,17 +181,17 @@ func (suite *AccumulateBorrowRewardsTests) TestStateAddedWhenStateDoesNotExist()
 
 	// After the first accumulation only the current block time should be stored.
 	// The indexes will be empty as no time has passed since the previous block because it didn't exist.
-	suite.storedTimeEquals(denom, firstAccrualTime)
-	suite.storedIndexesEqual(denom, nil)
+	suite.storedTimeEquals(types.HardBorrow, denom, firstAccrualTime)
+	suite.storedIndexesEqual(types.HardBorrow, denom, nil)
 
 	secondAccrualTime := firstAccrualTime.Add(10 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(secondAccrualTime)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateRewards(suite.ctx, types.HardBorrow, period)
 
 	// After the second accumulation both current block time and indexes should be stored.
-	suite.storedTimeEquals(denom, secondAccrualTime)
-	suite.storedIndexesEqual(denom, types.RewardIndexes{
+	suite.storedTimeEquals(types.HardBorrow, denom, secondAccrualTime)
+	suite.storedIndexesEqual(types.HardBorrow, denom, types.RewardIndexes{
 		{
 			CollateralType: "hard",
 			RewardFactor:   d("0.02"),
@@ -242,11 +224,11 @@ func (suite *AccumulateBorrowRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 	// No increment and no previous indexes stored, results in an updated of nil. Setting this in the state panics.
 	// Check there is no panic.
 	suite.NotPanics(func() {
-		suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+		suite.keeper.AccumulateRewards(suite.ctx, types.HardBorrow, period)
 	})
 
-	suite.storedTimeEquals(denom, accrualTime)
-	suite.storedIndexesEqual(denom, nil)
+	suite.storedTimeEquals(types.HardBorrow, denom, accrualTime)
+	suite.storedIndexesEqual(types.HardBorrow, denom, nil)
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
@@ -270,9 +252,9 @@ func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenBeforeStartTime
 			},
 		},
 	}
-	suite.storeGlobalBorrowIndexes(previousIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, previousAccrualTime)
+	suite.keeper.SetLastAccrual(suite.ctx, types.HardBorrow, denom, previousAccrualTime)
 
 	firstAccrualTime := previousAccrualTime.Add(10 * time.Second)
 
@@ -286,13 +268,13 @@ func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenBeforeStartTime
 
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
 
-	suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+	suite.keeper.AccumulateRewards(suite.ctx, types.HardBorrow, period)
 
 	// The accrual time should be updated, but the indexes unchanged
-	suite.storedTimeEquals(denom, firstAccrualTime)
+	suite.storedTimeEquals(types.HardBorrow, denom, firstAccrualTime)
 	expectedIndexes, f := previousIndexes.Get(denom)
 	suite.True(f)
-	suite.storedIndexesEqual(denom, expectedIndexes)
+	suite.storedIndexesEqual(types.HardBorrow, denom, expectedIndexes)
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {
@@ -302,7 +284,7 @@ func (suite *AccumulateBorrowRewardsTests) TestPanicWhenCurrentTimeLessThanPrevi
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil)
 
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, previousAccrualTime)
+	suite.keeper.SetLastAccrual(suite.ctx, types.HardBorrow, denom, previousAccrualTime)
 
 	firstAccrualTime := time.Time{}
 
@@ -317,6 +299,6 @@ func (suite *AccumulateBorrowRewardsTests) TestPanicWhenCurrentTimeLessThanPrevi
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
 
 	suite.Panics(func() {
-		suite.keeper.AccumulateHardBorrowRewards(suite.ctx, period)
+		suite.keeper.AccumulateRewards(suite.ctx, types.HardBorrow, period)
 	})
 }

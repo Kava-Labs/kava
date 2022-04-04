@@ -48,84 +48,57 @@ func InitGenesis(
 	for _, claim := range gs.USDXMintingClaims {
 		k.SetUSDXMintingClaim(ctx, claim)
 	}
-	for _, gat := range gs.USDXRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
-			panic(err.Error())
-		}
-		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
-	}
-	for _, mri := range gs.USDXRewardState.MultiRewardIndexes {
-		factor, found := mri.RewardIndexes.Get(types.USDXMintingRewardDenom)
-		if !found || len(mri.RewardIndexes) != 1 {
-			panic(fmt.Sprintf("USDX Minting reward factors must only have denom %s", types.USDXMintingRewardDenom))
-		}
-		k.SetUSDXMintingRewardFactor(ctx, mri.CollateralType, factor)
+	if err := setRewardState(ctx, k, types.USDXMinting, gs.USDXRewardState); err != nil {
+		panic(err)
 	}
 
 	// Hard Supply / Borrow
 	for _, claim := range gs.HardLiquidityProviderClaims {
 		k.SetHardLiquidityProviderClaim(ctx, claim)
 	}
-	for _, gat := range gs.HardSupplyRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
-			panic(err.Error())
-		}
-		k.SetPreviousHardSupplyRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+	if err := setRewardState(ctx, k, types.HardBorrow, gs.HardBorrowRewardState); err != nil {
+		panic(err)
 	}
-	for _, mri := range gs.HardSupplyRewardState.MultiRewardIndexes {
-		k.SetHardSupplyRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
-	}
-	for _, gat := range gs.HardBorrowRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
-			panic(err.Error())
-		}
-		k.SetPreviousHardBorrowRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
-	}
-	for _, mri := range gs.HardBorrowRewardState.MultiRewardIndexes {
-		k.SetHardBorrowRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
+	if err := setRewardState(ctx, k, types.HardSupply, gs.HardSupplyRewardState); err != nil {
+		panic(err)
 	}
 
 	// Delegator
 	for _, claim := range gs.DelegatorClaims {
 		k.SetDelegatorClaim(ctx, claim)
 	}
-	for _, gat := range gs.DelegatorRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
-			panic(err.Error())
-		}
-		k.SetPreviousDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
-	}
-	for _, mri := range gs.DelegatorRewardState.MultiRewardIndexes {
-		k.SetDelegatorRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
+	if err := setRewardState(ctx, k, types.Delegator, gs.DelegatorRewardState); err != nil {
+		panic(err)
 	}
 
 	// Swap
 	for _, claim := range gs.SwapClaims {
 		k.SetSwapClaim(ctx, claim)
 	}
-	for _, gat := range gs.SwapRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
-			panic(err.Error())
-		}
-		k.SetSwapRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
-	}
-	for _, mri := range gs.SwapRewardState.MultiRewardIndexes {
-		k.SetSwapRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
+	if err := setRewardState(ctx, k, types.Swap, gs.SwapRewardState); err != nil {
+		panic(err)
 	}
 
 	// Savings
 	for _, claim := range gs.SavingsClaims {
 		k.SetSavingsClaim(ctx, claim)
 	}
-	for _, gat := range gs.SavingsRewardState.AccumulationTimes {
+	if err := setRewardState(ctx, k, types.Savings, gs.SavingsRewardState); err != nil {
+		panic(err)
+	}
+}
+
+func setRewardState(ctx sdk.Context, k keeper.Keeper, sourceID types.SourceID, rewardState types.GenesisRewardState) error {
+	for _, gat := range rewardState.AccumulationTimes {
 		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
-			panic(err.Error())
+			return err
 		}
-		k.SetSavingsRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+		k.SetLastAccrual(ctx, sourceID, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
-	for _, mri := range gs.SavingsRewardState.MultiRewardIndexes {
-		k.SetSavingsRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
+	for _, mri := range rewardState.MultiRewardIndexes {
+		k.SetRewardIndexes(ctx, sourceID, mri.CollateralType, mri.RewardIndexes)
 	}
+	return nil
 }
 
 // ExportGenesis export genesis state for incentive module
@@ -133,20 +106,20 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	params := k.GetParams(ctx)
 
 	usdxClaims := k.GetAllUSDXMintingClaims(ctx)
-	usdxRewardState := getUSDXMintingGenesisRewardState(ctx, k)
+	usdxRewardState := getGenesisRewardState(ctx, k)
 
 	hardClaims := k.GetAllHardLiquidityProviderClaims(ctx)
-	hardSupplyRewardState := getHardSupplyGenesisRewardState(ctx, k)
-	hardBorrowRewardState := getHardBorrowGenesisRewardState(ctx, k)
+	hardSupplyRewardState := getGenesisRewardState(ctx, k, types.HardSupply)
+	hardBorrowRewardState := getGenesisRewardState(ctx, k, types.HardBorrow)
 
 	delegatorClaims := k.GetAllDelegatorClaims(ctx)
-	delegatorRewardState := getDelegatorGenesisRewardState(ctx, k)
+	delegatorRewardState := getGenesisRewardState(ctx, k, types.Delegator)
 
 	swapClaims := k.GetAllSwapClaims(ctx)
-	swapRewardState := getSwapGenesisRewardState(ctx, k)
+	swapRewardState := getGenesisRewardState(ctx, k, types.Swap)
 
 	savingsClaims := k.GetAllSavingsClaims(ctx)
-	savingsRewardState := getSavingsGenesisRewardState(ctx, k)
+	savingsRewardState := getGenesisRewardState(ctx, k, types.Savings)
 
 	return types.NewGenesisState(
 		params,
@@ -155,101 +128,15 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	)
 }
 
-func getUSDXMintingGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
+func getGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper, sourceID types.SourceID) types.GenesisRewardState {
 	var ats types.AccumulationTimes
-	keeper.IterateUSDXMintingAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
+	keeper.IterateLastAccruals(ctx, sourceID, func(ctype string, accTime time.Time) bool {
 		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
 		return false
 	})
 
 	var mris types.MultiRewardIndexes
-	keeper.IterateUSDXMintingRewardFactors(ctx, func(ctype string, factor sdk.Dec) bool {
-		mris = append(
-			mris,
-			types.NewMultiRewardIndex(
-				ctype,
-				types.RewardIndexes{types.NewRewardIndex(types.USDXMintingRewardDenom, factor)},
-			),
-		)
-		return false
-	})
-
-	return types.NewGenesisRewardState(ats, mris)
-}
-
-func getHardSupplyGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
-	var ats types.AccumulationTimes
-	keeper.IterateHardSupplyRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
-		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
-		return false
-	})
-
-	var mris types.MultiRewardIndexes
-	keeper.IterateHardSupplyRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
-		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
-		return false
-	})
-
-	return types.NewGenesisRewardState(ats, mris)
-}
-
-func getHardBorrowGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
-	var ats types.AccumulationTimes
-	keeper.IterateHardBorrowRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
-		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
-		return false
-	})
-
-	var mris types.MultiRewardIndexes
-	keeper.IterateHardBorrowRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
-		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
-		return false
-	})
-
-	return types.NewGenesisRewardState(ats, mris)
-}
-
-func getDelegatorGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
-	var ats types.AccumulationTimes
-	keeper.IterateDelegatorRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
-		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
-		return false
-	})
-
-	var mris types.MultiRewardIndexes
-	keeper.IterateDelegatorRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
-		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
-		return false
-	})
-
-	return types.NewGenesisRewardState(ats, mris)
-}
-
-func getSwapGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
-	var ats types.AccumulationTimes
-	keeper.IterateSwapRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
-		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
-		return false
-	})
-
-	var mris types.MultiRewardIndexes
-	keeper.IterateSwapRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
-		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
-		return false
-	})
-
-	return types.NewGenesisRewardState(ats, mris)
-}
-
-func getSavingsGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
-	var ats types.AccumulationTimes
-	keeper.IterateSavingsRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
-		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
-		return false
-	})
-
-	var mris types.MultiRewardIndexes
-	keeper.IterateSavingsRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
+	keeper.IterateRewardIndexes(ctx, sourceID, func(ctype string, indexes types.RewardIndexes) bool {
 		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
 		return false
 	})

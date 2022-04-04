@@ -13,9 +13,10 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	db "github.com/tendermint/tm-db"
 
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
@@ -72,24 +73,9 @@ func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, bk types.B
 	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk)
 }
 
-func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {
+func (suite *unitTester) storeGlobalIndexes(sourceID types.SourceID, indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
-		suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
-	}
-}
-func (suite *unitTester) storeGlobalSupplyIndexes(indexes types.MultiRewardIndexes) {
-	for _, i := range indexes {
-		suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
-	}
-}
-func (suite *unitTester) storeGlobalDelegatorIndexes(multiRewardIndexes types.MultiRewardIndexes) {
-	// Hardcoded to use bond denom
-	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
-	suite.keeper.SetDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
-}
-func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes) {
-	for _, i := range indexes {
-		suite.keeper.SetSwapRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
+		suite.keeper.SetRewardIndexes(suite.ctx, sourceID, i.CollateralType, i.RewardIndexes)
 	}
 }
 
@@ -101,6 +87,24 @@ func (suite *unitTester) storeDelegatorClaim(claim types.DelegatorClaim) {
 }
 func (suite *unitTester) storeSwapClaim(claim types.SwapClaim) {
 	suite.keeper.SetSwapClaim(suite.ctx, claim)
+}
+
+func (suite *AccumulateBorrowRewardsTests) storedTimeEquals(sourceID types.SourceID, denom string, expected time.Time) {
+	storedTime, found := suite.keeper.GetLastAccrual(suite.ctx, sourceID, denom)
+	suite.True(found)
+	suite.Equal(expected, storedTime)
+}
+
+func (suite *AccumulateBorrowRewardsTests) storedIndexesEqual(sourceID types.SourceID, denom string, expected types.RewardIndexes) {
+	storedIndexes, found := suite.keeper.GetRewardIndexes(suite.ctx, sourceID, denom)
+	suite.Equal(found, expected != nil)
+
+	if found {
+		suite.Equal(expected, storedIndexes)
+	} else {
+		// Can't compare Equal for types.RewardIndexes(nil) vs types.RewardIndexes{}
+		suite.Empty(storedIndexes)
+	}
 }
 
 // fakeParamSubspace is a stub paramSpace to simplify keeper unit test setup.

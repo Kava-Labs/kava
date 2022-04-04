@@ -17,6 +17,17 @@ const (
 	QuerierRoute = ModuleName
 )
 
+type SourceID string
+
+const (
+	USDXMinting SourceID = "usdx_minting"
+	HardSupply  SourceID = "hard_supply"
+	HardBorrow  SourceID = "hard_borrow"
+	Delegator   SourceID = "delegator"
+	Swap        SourceID = "swap"
+	Savings     SourceID = "savings"
+)
+
 // Key Prefixes
 var (
 	USDXMintingClaimKeyPrefix                     = []byte{0x01} // prefix for keys that store USDX minting claims
@@ -36,4 +47,21 @@ var (
 	SavingsClaimKeyPrefix                         = []byte{0x15} // prefix for keys that store savings claims
 	SavingsRewardIndexesKeyPrefix                 = []byte{0x16} // prefix for key that stores savings reward indexes
 	PreviousSavingsRewardAccrualTimeKeyPrefix     = []byte{0x17} // prefix for key that stores the previous time savings rewards accrued
+
+	RewardIndexesKeyPrefix = []byte{0x18} // prefix for key that stores reward indexes
+	LastAccrualKeyPrefix   = []byte{0x19} // prefix for key that stores the previous time rewards accrued
 )
+
+func GetSourceIDKey(id SourceID) []byte {
+	const keyLength = 16
+	if len(id) > keyLength {
+		panic("SourceID longer than allowed key length")
+	}
+	key := make([]byte, keyLength)
+	copy(key, id) // TODO test
+	return []byte(key)
+}
+
+func GetFullSourceIDKey(id SourceID, subID string) []byte {
+	return append(GetSourceIDKey(id), []byte(subID)...)
+}

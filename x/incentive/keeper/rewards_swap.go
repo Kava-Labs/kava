@@ -8,33 +8,6 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// AccumulateSwapRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
-// The provided rewardPeriod must be valid to avoid panics in calculating time durations.
-func (k Keeper) AccumulateSwapRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-
-	previousAccrualTime, found := k.GetSwapRewardAccrualTime(ctx, rewardPeriod.CollateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
-	}
-
-	indexes, found := k.GetSwapRewardIndexes(ctx, rewardPeriod.CollateralType)
-	if !found {
-		indexes = types.RewardIndexes{}
-	}
-
-	acc := types.NewAccumulator(previousAccrualTime, indexes)
-
-	totalSource := k.getSwapTotalSourceShares(ctx, rewardPeriod.CollateralType)
-
-	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
-
-	k.SetSwapRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
-	if len(acc.Indexes) > 0 {
-		// the store panics when setting empty or nil indexes
-		k.SetSwapRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
-	}
-}
-
 // getSwapTotalSourceShares fetches the sum of all source shares for a swap reward.
 // In the case of swap, these are the total (swap module) shares in a particular pool.
 func (k Keeper) getSwapTotalSourceShares(ctx sdk.Context, poolID string) sdk.Dec {

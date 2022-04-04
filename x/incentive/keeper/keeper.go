@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -97,83 +98,34 @@ func (k Keeper) GetAllUSDXMintingClaims(ctx sdk.Context) types.USDXMintingClaims
 	return cs
 }
 
-// GetPreviousUSDXMintingAccrualTime returns the last time a collateral type accrued USDX minting rewards
-func (k Keeper) GetPreviousUSDXMintingAccrualTime(ctx sdk.Context, ctype string) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix)
-	b := store.Get([]byte(ctype))
-	if b == nil {
-		return time.Time{}, false
-	}
-	if err := blockTime.UnmarshalBinary(b); err != nil {
-		panic(err)
-	}
-	return blockTime, true
-}
-
-// SetPreviousUSDXMintingAccrualTime sets the last time a collateral type accrued USDX minting rewards
-func (k Keeper) SetPreviousUSDXMintingAccrualTime(ctx sdk.Context, ctype string, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix)
-	bz, err := blockTime.MarshalBinary()
-	if err != nil {
-		panic(err)
-	}
-	store.Set([]byte(ctype), bz)
-}
-
-// IterateUSDXMintingAccrualTimes iterates over all previous USDX minting accrual times and preforms a callback function
-func (k Keeper) IterateUSDXMintingAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var accrualTime time.Time
-		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
-			panic(err)
-		}
-		denom := string(iterator.Key())
-		if cb(denom, accrualTime) {
-			break
-		}
-	}
-}
-
 // GetUSDXMintingRewardFactor returns the current reward factor for an individual collateral type
-func (k Keeper) GetUSDXMintingRewardFactor(ctx sdk.Context, ctype string) (factor sdk.Dec, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.USDXMintingRewardFactorKeyPrefix)
-	bz := store.Get([]byte(ctype))
-	if bz == nil {
+func (k Keeper) GetUSDXMintingRewardFactor(ctx sdk.Context, ctype string) (sdk.Dec, bool) {
+	indexes, found := k.GetRewardIndexes(ctx, types.USDXMinting, ctype)
+	if !found {
 		return sdk.ZeroDec(), false
 	}
-	if err := factor.Unmarshal(bz); err != nil {
-		panic(err)
+	factor, found := indexes.Get(types.USDXMintingRewardDenom)
+	if !found || len(indexes) != 1 {
+		panic(fmt.Sprintf("USDX Minting reward factors must only have denom %s", types.USDXMintingRewardDenom))
 	}
 	return factor, true
 }
 
 // SetUSDXMintingRewardFactor sets the current reward factor for an individual collateral type
 func (k Keeper) SetUSDXMintingRewardFactor(ctx sdk.Context, ctype string, factor sdk.Dec) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.USDXMintingRewardFactorKeyPrefix)
-	bz, err := factor.Marshal()
-	if err != nil {
-		panic(err)
-	}
-	store.Set([]byte(ctype), bz)
+	indexes := types.RewardIndexes{types.NewRewardIndex(types.USDXMintingRewardDenom, factor)}
+	k.SetRewardIndexes(ctx, types.USDXMinting, ctype, indexes)
 }
 
 // IterateUSDXMintingRewardFactors iterates over all USDX Minting reward factor objects in the store and preforms a callback function
 func (k Keeper) IterateUSDXMintingRewardFactors(ctx sdk.Context, cb func(denom string, factor sdk.Dec) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.USDXMintingRewardFactorKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var factor sdk.Dec
-		if err := factor.Unmarshal(iterator.Value()); err != nil {
-			panic(err)
+	k.IterateRewardIndexes(ctx, types.USDXMinting, func(denom string, indexes types.RewardIndexes) bool {
+		factor, found := indexes.Get(types.USDXMintingRewardDenom)
+		if !found || len(indexes) != 1 {
+			panic(fmt.Sprintf("USDX Minting reward factors must only have denom %s", types.USDXMintingRewardDenom))
 		}
-		if cb(string(iterator.Key()), factor) {
-			break
-		}
-	}
+		return cb(denom, factor)
+	})
 }
 
 // GetHardLiquidityProviderClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
@@ -372,32 +324,31 @@ func (k Keeper) GetAllSavingsClaims(ctx sdk.Context) types.SavingsClaims {
 	return cs
 }
 
-// SetHardSupplyRewardIndexes sets the current reward indexes for an individual denom
-func (k Keeper) SetHardSupplyRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
+// SetRewardIndexes stores the global reward indexes that track total rewards to a source.
+func (k Keeper) SetRewardIndexes(ctx sdk.Context, sourceID types.SourceID, sourceSubID string, indexes types.RewardIndexes) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardIndexesKeyPrefix)
 	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
 		RewardIndexes: indexes,
 	})
-	store.Set([]byte(denom), bz)
+	store.Set(types.GetFullSourceIDKey(sourceID, sourceSubID), bz)
 }
 
-// GetHardSupplyRewardIndexes gets the current reward indexes for an individual denom
-func (k Keeper) GetHardSupplyRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
-	bz := store.Get([]byte(denom))
+// GetRewardIndexes fetches the global reward indexes that track total rewards to a source
+func (k Keeper) GetRewardIndexes(ctx sdk.Context, sourceID types.SourceID, sourceSubID string) (types.RewardIndexes, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardIndexesKeyPrefix)
+	bz := store.Get(types.GetFullSourceIDKey(sourceID, sourceSubID))
 	if bz == nil {
 		return types.RewardIndexes{}, false
 	}
 	var proto types.RewardIndexesProto
 	k.cdc.MustUnmarshal(bz, &proto)
-
 	return proto.RewardIndexes, true
 }
 
-// IterateHardSupplyRewardIndexes iterates over all Hard supply reward index objects in the store and preforms a callback function
-func (k Keeper) IterateHardSupplyRewardIndexes(ctx sdk.Context, cb func(denom string, indexes types.RewardIndexes) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+// IterateRewardIndexes iterates over all reward index objects in the store and preforms a callback function
+func (k Keeper) IterateRewardIndexes(ctx sdk.Context, sourceID types.SourceID, cb func(sourceSubID string, indexes types.RewardIndexes) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardIndexesKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, types.GetSourceIDKey(sourceID))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var proto types.RewardIndexesProto
@@ -408,153 +359,10 @@ func (k Keeper) IterateHardSupplyRewardIndexes(ctx sdk.Context, cb func(denom st
 	}
 }
 
-func (k Keeper) IterateHardSupplyRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var accrualTime time.Time
-		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
-			panic(err)
-		}
-		denom := string(iterator.Key())
-		if cb(denom, accrualTime) {
-			break
-		}
-	}
-}
-
-// SetHardBorrowRewardIndexes sets the current reward indexes for an individual denom
-func (k Keeper) SetHardBorrowRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardIndexesKeyPrefix)
-	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
-		RewardIndexes: indexes,
-	})
-	store.Set([]byte(denom), bz)
-}
-
-// GetHardBorrowRewardIndexes gets the current reward indexes for an individual denom
-func (k Keeper) GetHardBorrowRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardIndexesKeyPrefix)
-	bz := store.Get([]byte(denom))
-	if bz == nil {
-		return types.RewardIndexes{}, false
-	}
-	var proto types.RewardIndexesProto
-	k.cdc.MustUnmarshal(bz, &proto)
-
-	return proto.RewardIndexes, true
-}
-
-// IterateHardBorrowRewardIndexes iterates over all Hard borrow reward index objects in the store and preforms a callback function
-func (k Keeper) IterateHardBorrowRewardIndexes(ctx sdk.Context, cb func(denom string, indexes types.RewardIndexes) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardIndexesKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var proto types.RewardIndexesProto
-		k.cdc.MustUnmarshal(iterator.Value(), &proto)
-		if cb(string(iterator.Key()), proto.RewardIndexes) {
-			break
-		}
-	}
-}
-
-func (k Keeper) IterateHardBorrowRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardBorrowRewardAccrualTimeKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		denom := string(iterator.Key())
-		var accrualTime time.Time
-		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
-			panic(err)
-		}
-		if cb(denom, accrualTime) {
-			break
-		}
-	}
-}
-
-// GetDelegatorRewardIndexes gets the current reward indexes for an individual denom
-func (k Keeper) GetDelegatorRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
-	bz := store.Get([]byte(denom))
-	if bz == nil {
-		return types.RewardIndexes{}, false
-	}
-	var proto types.RewardIndexesProto
-	k.cdc.MustUnmarshal(bz, &proto)
-
-	return proto.RewardIndexes, true
-}
-
-// SetDelegatorRewardIndexes sets the current reward indexes for an individual denom
-func (k Keeper) SetDelegatorRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
-	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
-		RewardIndexes: indexes,
-	})
-	store.Set([]byte(denom), bz)
-}
-
-// IterateDelegatorRewardIndexes iterates over all delegator reward index objects in the store and preforms a callback function
-func (k Keeper) IterateDelegatorRewardIndexes(ctx sdk.Context, cb func(denom string, indexes types.RewardIndexes) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var proto types.RewardIndexesProto
-		k.cdc.MustUnmarshal(iterator.Value(), &proto)
-		if cb(string(iterator.Key()), proto.RewardIndexes) {
-			break
-		}
-	}
-}
-
-func (k Keeper) IterateDelegatorRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousDelegatorRewardAccrualTimeKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		denom := string(iterator.Key())
-		var accrualTime time.Time
-		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
-			panic(err)
-		}
-		if cb(denom, accrualTime) {
-			break
-		}
-	}
-}
-
-// GetPreviousHardSupplyRewardAccrualTime returns the last time a denom accrued Hard protocol supply-side rewards
-func (k Keeper) GetPreviousHardSupplyRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
-	bz := store.Get([]byte(denom))
-	if bz == nil {
-		return time.Time{}, false
-	}
-	if err := blockTime.UnmarshalBinary(bz); err != nil {
-		panic(err)
-	}
-	return blockTime, true
-}
-
-// SetPreviousHardSupplyRewardAccrualTime sets the last time a denom accrued Hard protocol supply-side rewards
-func (k Keeper) SetPreviousHardSupplyRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
-	bz, err := blockTime.MarshalBinary()
-	if err != nil {
-		panic(err)
-	}
-	store.Set([]byte(denom), bz)
-}
-
-// GetPreviousHardBorrowRewardAccrualTime returns the last time a denom accrued Hard protocol borrow-side rewards
-func (k Keeper) GetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardBorrowRewardAccrualTimeKeyPrefix)
-	b := store.Get([]byte(denom))
+// GetLastAccrual fetches the last time rewards were accrued for a source.
+func (k Keeper) GetLastAccrual(ctx sdk.Context, sourceID types.SourceID, sourceSubID string) (blockTime time.Time, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.LastAccrualKeyPrefix)
+	b := store.Get(types.GetFullSourceIDKey(sourceID, sourceSubID))
 	if b == nil {
 		return time.Time{}, false
 	}
@@ -564,183 +372,28 @@ func (k Keeper) GetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom st
 	return blockTime, true
 }
 
-// SetPreviousHardBorrowRewardAccrualTime sets the last time a denom accrued Hard protocol borrow-side rewards
-func (k Keeper) SetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardBorrowRewardAccrualTimeKeyPrefix)
+// SetLastAccrual stores the last time rewards were accrued for a swap pool.
+func (k Keeper) SetLastAccrual(ctx sdk.Context, sourceID types.SourceID, sourceSubID string, blockTime time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.LastAccrualKeyPrefix)
 	bz, err := blockTime.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
-	store.Set([]byte(denom), bz)
+	store.Set(types.GetFullSourceIDKey(sourceID, sourceSubID), bz)
 }
 
-// GetPreviousDelegatorRewardAccrualTime returns the last time a denom accrued protocol delegator rewards
-func (k Keeper) GetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousDelegatorRewardAccrualTimeKeyPrefix)
-	bz := store.Get([]byte(denom))
-	if bz == nil {
-		return time.Time{}, false
-	}
-	if err := blockTime.UnmarshalBinary(bz); err != nil {
-		panic(err)
-	}
-	return blockTime, true
-}
-
-// SetPreviousDelegatorRewardAccrualTime sets the last time a denom accrued protocol delegator rewards
-func (k Keeper) SetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousDelegatorRewardAccrualTimeKeyPrefix)
-	bz, err := blockTime.MarshalBinary()
-	if err != nil {
-		panic(err)
-	}
-	store.Set([]byte(denom), bz)
-}
-
-// SetSwapRewardIndexes stores the global reward indexes that track total rewards to a swap pool.
-func (k Keeper) SetSwapRewardIndexes(ctx sdk.Context, poolID string, indexes types.RewardIndexes) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
-	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
-		RewardIndexes: indexes,
-	})
-	store.Set([]byte(poolID), bz)
-}
-
-// GetSwapRewardIndexes fetches the global reward indexes that track total rewards to a swap pool.
-func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolID string) (types.RewardIndexes, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
-	bz := store.Get([]byte(poolID))
-	if bz == nil {
-		return types.RewardIndexes{}, false
-	}
-	var proto types.RewardIndexesProto
-	k.cdc.MustUnmarshal(bz, &proto)
-	return proto.RewardIndexes, true
-}
-
-// IterateSwapRewardIndexes iterates over all swap reward index objects in the store and preforms a callback function
-func (k Keeper) IterateSwapRewardIndexes(ctx sdk.Context, cb func(poolID string, indexes types.RewardIndexes) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+// IterateLastAccruals steps through previous accrual times for each source.
+func (k Keeper) IterateLastAccruals(ctx sdk.Context, sourceID types.SourceID, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.LastAccrualKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, types.GetSourceIDKey(sourceID))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var proto types.RewardIndexesProto
-		k.cdc.MustUnmarshal(iterator.Value(), &proto)
-		if cb(string(iterator.Key()), proto.RewardIndexes) {
-			break
-		}
-	}
-}
-
-// GetSwapRewardAccrualTime fetches the last time rewards were accrued for a swap pool.
-func (k Keeper) GetSwapRewardAccrualTime(ctx sdk.Context, poolID string) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
-	b := store.Get([]byte(poolID))
-	if b == nil {
-		return time.Time{}, false
-	}
-	if err := blockTime.UnmarshalBinary(b); err != nil {
-		panic(err)
-	}
-	return blockTime, true
-}
-
-// SetSwapRewardAccrualTime stores the last time rewards were accrued for a swap pool.
-func (k Keeper) SetSwapRewardAccrualTime(ctx sdk.Context, poolID string, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
-	bz, err := blockTime.MarshalBinary()
-	if err != nil {
-		panic(err)
-	}
-	store.Set([]byte(poolID), bz)
-}
-
-func (k Keeper) IterateSwapRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSwapRewardAccrualTimeKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		poolID := string(iterator.Key())
+		sourceSubID := string(iterator.Key())
 		var accrualTime time.Time
 		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
 			panic(err)
 		}
-		if cb(poolID, accrualTime) {
-			break
-		}
-	}
-}
-
-// SetSavingsRewardIndexes stores the global reward indexes that rewards for an individual denom type
-func (k Keeper) SetSavingsRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRewardIndexesKeyPrefix)
-	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
-		RewardIndexes: indexes,
-	})
-	store.Set([]byte(denom), bz)
-}
-
-// GetSavingsRewardIndexes fetches the global reward indexes that track rewards for an individual denom type
-func (k Keeper) GetSavingsRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRewardIndexesKeyPrefix)
-	bz := store.Get([]byte(denom))
-	if bz == nil {
-		return types.RewardIndexes{}, false
-	}
-	var proto types.RewardIndexesProto
-	k.cdc.MustUnmarshal(bz, &proto)
-	return proto.RewardIndexes, true
-}
-
-// IterateSavingsRewardIndexes iterates over all savings reward index objects in the store and preforms a callback function
-func (k Keeper) IterateSavingsRewardIndexes(ctx sdk.Context, cb func(poolID string, indexes types.RewardIndexes) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRewardIndexesKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var proto types.RewardIndexesProto
-		k.cdc.MustUnmarshal(iterator.Value(), &proto)
-		if cb(string(iterator.Key()), proto.RewardIndexes) {
-			break
-		}
-	}
-}
-
-// GetSavingsRewardAccrualTime fetches the last time rewards were accrued for an individual denom type
-func (k Keeper) GetSavingsRewardAccrualTime(ctx sdk.Context, poolID string) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSavingsRewardAccrualTimeKeyPrefix)
-	b := store.Get([]byte(poolID))
-	if b == nil {
-		return time.Time{}, false
-	}
-	if err := blockTime.UnmarshalBinary(b); err != nil {
-		panic(err)
-	}
-	return blockTime, true
-}
-
-// SetSavingsRewardAccrualTime stores the last time rewards were accrued for a savings deposit denom type
-func (k Keeper) SetSavingsRewardAccrualTime(ctx sdk.Context, poolID string, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSavingsRewardAccrualTimeKeyPrefix)
-	bz, err := blockTime.MarshalBinary()
-	if err != nil {
-		panic(err)
-	}
-	store.Set([]byte(poolID), bz)
-}
-
-// IterateSavingsRewardAccrualTimesiterates over all the previous savings reward accrual times in the store
-func (k Keeper) IterateSavingsRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSavingsRewardAccrualTimeKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		poolID := string(iterator.Key())
-		var accrualTime time.Time
-		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
-			panic(err)
-		}
-		if cb(poolID, accrualTime) {
+		if cb(sourceSubID, accrualTime) {
 			break
 		}
 	}

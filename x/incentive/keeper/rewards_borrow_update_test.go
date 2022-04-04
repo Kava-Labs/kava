@@ -25,7 +25,7 @@ func (suite *UpdateHardBorrowIndexDenomsTests) TestClaimIndexesAreRemovedForDeno
 		BorrowRewardIndexes: nonEmptyMultiRewardIndexes,
 	}
 	suite.storeHardClaim(claim)
-	suite.storeGlobalBorrowIndexes(claim.BorrowRewardIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, claim.BorrowRewardIndexes)
 
 	// remove one denom from the indexes already in the borrow
 	expectedIndexes := claim.BorrowRewardIndexes[1:]
@@ -48,7 +48,7 @@ func (suite *UpdateHardBorrowIndexDenomsTests) TestClaimIndexesAreAddedForNewlyB
 	}
 	suite.storeHardClaim(claim)
 	globalIndexes := appendUniqueMultiRewardIndex(claim.BorrowRewardIndexes)
-	suite.storeGlobalBorrowIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, globalIndexes)
 
 	borrow := NewBorrowBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
@@ -70,7 +70,7 @@ func (suite *UpdateHardBorrowIndexDenomsTests) TestClaimIndexesAreUnchangedWhenB
 	suite.storeHardClaim(claim)
 	// Set global indexes with same denoms but different values.
 	// UpdateHardBorrowIndexDenoms should ignore the new values.
-	suite.storeGlobalBorrowIndexes(increaseAllRewardFactors(claim.BorrowRewardIndexes))
+	suite.storeGlobalIndexes(types.HardBorrow, increaseAllRewardFactors(claim.BorrowRewardIndexes))
 
 	borrow := NewBorrowBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(claim.BorrowRewardIndexes)...).
@@ -90,7 +90,7 @@ func (suite *UpdateHardBorrowIndexDenomsTests) TestEmptyClaimIndexesAreAddedForN
 		BorrowRewardIndexes: nonEmptyMultiRewardIndexes,
 	}
 	suite.storeHardClaim(claim)
-	suite.storeGlobalBorrowIndexes(claim.BorrowRewardIndexes)
+	suite.storeGlobalIndexes(types.HardBorrow, claim.BorrowRewardIndexes)
 
 	// add a denom to the borrowed amount that is not in the global or claim's indexes
 	expectedIndexes := appendUniqueEmptyMultiRewardIndex(claim.BorrowRewardIndexes)

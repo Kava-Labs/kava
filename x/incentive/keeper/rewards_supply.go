@@ -9,33 +9,6 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// AccumulateHardSupplyRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
-// The provided rewardPeriod must be valid to avoid panics in calculating time durations.
-func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-
-	previousAccrualTime, found := k.GetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
-	}
-
-	indexes, found := k.GetHardSupplyRewardIndexes(ctx, rewardPeriod.CollateralType)
-	if !found {
-		indexes = types.RewardIndexes{}
-	}
-
-	acc := types.NewAccumulator(previousAccrualTime, indexes)
-
-	totalSource := k.getHardSupplyTotalSourceShares(ctx, rewardPeriod.CollateralType)
-
-	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
-
-	k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
-	if len(acc.Indexes) > 0 {
-		// the store panics when setting empty or nil indexes
-		k.SetHardSupplyRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
-	}
-}
-
 // getHardSupplyTotalSourceShares fetches the sum of all source shares for a supply reward.
 // In the case of hard supply, this is the total supplied divided by the supply interest factor.
 // This gives the "pre interest" value of the total supplied.
