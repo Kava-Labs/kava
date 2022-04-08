@@ -64,6 +64,17 @@ func (k Keeper) GetDelegatorRewardPeriods(ctx sdk.Context, denom string) (types.
 	return types.MultiRewardPeriod{}, false
 }
 
+// GetSavingsRewardPeriods returns the reward period with the specified collateral type if it's found in the params
+func (k Keeper) GetSavingsRewardPeriods(ctx sdk.Context, denom string) (types.MultiRewardPeriod, bool) {
+	params := k.GetParams(ctx)
+	for _, rp := range params.SavingsRewardPeriods {
+		if rp.CollateralType == denom {
+			return rp, true
+		}
+	}
+	return types.MultiRewardPeriod{}, false
+}
+
 // GetMultiplierByDenom fetches a multiplier from the params matching the denom and name.
 func (k Keeper) GetMultiplierByDenom(ctx sdk.Context, denom string, name string) (types.Multiplier, bool) {
 	params := k.GetParams(ctx)

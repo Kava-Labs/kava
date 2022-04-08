@@ -252,3 +252,26 @@ func NewStandardMoneyMarket(denom string) hardtypes.MoneyMarket {
 		sdk.ZeroDec(),
 	)
 }
+
+// WithInitializedSavingsRewardPeriod sets the genesis time as the previous accumulation time for the specified period.
+// This can be helpful in tests. With no prev time set, the first block accrues no rewards as it just sets the prev time to the current.
+func (builder IncentiveGenesisBuilder) WithInitializedSavingsRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
+	builder.Params.SavingsRewardPeriods = append(builder.Params.SavingsRewardPeriods, period)
+
+	accumulationTimeForPeriod := types.NewAccumulationTime(period.CollateralType, builder.genesisTime)
+	builder.SavingsRewardState.AccumulationTimes = append(
+		builder.SavingsRewardState.AccumulationTimes,
+		accumulationTimeForPeriod,
+	)
+
+	builder.SavingsRewardState.MultiRewardIndexes = builder.SavingsRewardState.MultiRewardIndexes.With(
+		period.CollateralType,
+		newZeroRewardIndexesFromCoins(period.RewardsPerSecond...),
+	)
+
+	return builder
+}
+
+func (builder IncentiveGenesisBuilder) WithSimpleSavingsRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) IncentiveGenesisBuilder {
+	return builder.WithInitializedSavingsRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
+}
