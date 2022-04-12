@@ -210,6 +210,49 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 
 // ClaimSavingsReward is a stub method for MsgServer interface compliance
 func (k Keeper) ClaimSavingsReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
-	// TODO: implement savings claim logic
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
+	}
+
+	claimEnd := k.GetClaimEnd(ctx)
+
+	if ctx.BlockTime().After(claimEnd) {
+		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
+	}
+
+	k.SynchronizeSavingsClaim(ctx, owner)
+
+	syncedClaim, found := k.GetSavingsClaim(ctx, owner)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
+	}
+
+	amt := syncedClaim.Reward.AmountOf(denom)
+
+	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
+	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
+	if rewardCoins.IsZero() {
+		return types.ErrZeroClaim
+	}
+	length := k.GetPeriodLength(ctx.BlockTime(), multiplier.MonthsLockup)
+
+	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
+	if err != nil {
+		return err
+	}
+
+	// remove claimed coins (NOT reward coins)
+	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
+	k.SetSavingsClaim(ctx, syncedClaim)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeClaim,
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claimingCoins.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
+		),
+	)
 	return nil
 }
