@@ -21,13 +21,14 @@ type Keeper struct {
 	hardKeeper    types.HardKeeper
 	stakingKeeper types.StakingKeeper
 	swapKeeper    types.SwapKeeper
+	savingsKeeper types.SavingsKeeper
 }
 
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc codec.Codec, key sdk.StoreKey, paramstore types.ParamSubspace, bk types.BankKeeper,
 	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
-	swpk types.SwapKeeper,
+	swpk types.SwapKeeper, svk types.SavingsKeeper,
 ) Keeper {
 
 	if !paramstore.HasKeyTable() {
@@ -44,6 +45,7 @@ func NewKeeper(
 		hardKeeper:    hk,
 		stakingKeeper: stk,
 		swapKeeper:    swpk,
+		savingsKeeper: svk,
 	}
 }
 

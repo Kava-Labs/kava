@@ -34,7 +34,7 @@ func (suite *AccumulateUSDXRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	cType := "bnb-a"
 
 	cdpKeeper := newFakeCDPKeeper().addTotalPrincipal(i(1e6)).addInterestFactor(d("1"))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil)
 
 	suite.storeGlobalUSDXIndexes(types.RewardIndexes{
 		{
@@ -68,7 +68,7 @@ func (suite *AccumulateUSDXRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 	cType := "bnb-a"
 
 	cdpKeeper := newFakeCDPKeeper().addTotalPrincipal(i(1e6)).addInterestFactor(d("1"))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil)
 
 	previousIndexes := types.RewardIndexes{
 		{
@@ -104,7 +104,7 @@ func (suite *AccumulateUSDXRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 	cType := "bnb-a"
 
 	cdpKeeper := newFakeCDPKeeper() // zero total borrows
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil)
 
 	previousIndexes := types.RewardIndexes{
 		{
@@ -141,7 +141,7 @@ func (suite *AccumulateUSDXRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 	cType := "bnb-a"
 
 	cdpKeeper := newFakeCDPKeeper().addTotalPrincipal(i(1e6)).addInterestFactor(d("1"))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil)
 
 	period := types.NewRewardPeriod(
 		true,
@@ -174,7 +174,7 @@ func (suite *AccumulateUSDXRewardsTests) TestNoAccumulationWhenBeforeStartTime()
 	cType := "bnb-a"
 
 	cdpKeeper := newFakeCDPKeeper().addTotalPrincipal(i(1e6)).addInterestFactor(d("1"))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil)
 
 	previousIndexes := types.RewardIndexes{
 		{
@@ -211,7 +211,7 @@ func (suite *AccumulateUSDXRewardsTests) TestPanicWhenCurrentTimeLessThanPreviou
 	cType := "bnb-a"
 
 	cdpKeeper := newFakeCDPKeeper().addTotalPrincipal(i(1e6)).addInterestFactor(d("1"))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil)
 
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, cType, previousAccrualTime)

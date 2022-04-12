@@ -7,6 +7,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
 // ParamSubspace defines the expected Subspace interfacace
@@ -54,6 +55,12 @@ type HardKeeper interface {
 type SwapKeeper interface {
 	GetPoolShares(ctx sdk.Context, poolID string) (shares sdk.Int, found bool)
 	GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (shares sdk.Int, found bool)
+}
+
+// SavingsKeeper defines the required methods needed by this module's keeper
+type SavingsKeeper interface {
+	GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (savingstypes.Deposit, bool)
+	GetSavingsModuleAccountBalances(ctx sdk.Context) sdk.Coins
 }
 
 // AccountKeeper expected interface for the account keeper (noalias)
