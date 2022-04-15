@@ -92,6 +92,11 @@ func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes
 		suite.keeper.SetSwapRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
+func (suite *unitTester) storeGlobalSavingsIndexes(indexes types.MultiRewardIndexes) {
+	for _, i := range indexes {
+		suite.keeper.SetSavingsRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
+	}
+}
 
 func (suite *unitTester) storeHardClaim(claim types.HardLiquidityProviderClaim) {
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
@@ -101,6 +106,9 @@ func (suite *unitTester) storeDelegatorClaim(claim types.DelegatorClaim) {
 }
 func (suite *unitTester) storeSwapClaim(claim types.SwapClaim) {
 	suite.keeper.SetSwapClaim(suite.ctx, claim)
+}
+func (suite *unitTester) storeSavingsClaim(claim types.SavingsClaim) {
+	suite.keeper.SetSavingsClaim(suite.ctx, claim)
 }
 
 // fakeParamSubspace is a stub paramSpace to simplify keeper unit test setup.
