@@ -21,12 +21,19 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	}
 
 	currDeposit, foundDeposit := k.GetDeposit(ctx, depositor)
-	amount := coins
+
+	deposit := types.NewDeposit(depositor, coins)
 	if foundDeposit {
-		amount = amount.Add(currDeposit.Amount...)
+		deposit.Amount = deposit.Amount.Add(currDeposit.Amount...)
+		k.hooks.BeforeSavingsDepositModified(ctx, deposit, getDenoms(coins))
+
 	}
-	deposit := types.NewDeposit(depositor, amount)
+
 	k.SetDeposit(ctx, deposit)
+
+	if !foundDeposit {
+		k.hooks.AfterSavingsDepositCreated(ctx, deposit)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -55,4 +62,12 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdk.Int) {
 	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	return k.bankKeeper.GetBalance(ctx, macc.GetAddress(), depositDenom).Amount
+}
+
+func getDenoms(coins sdk.Coins) []string {
+	denoms := []string{}
+	for _, coin := range coins {
+		denoms = append(denoms, coin.Denom)
+	}
+	return denoms
 }
