@@ -24,10 +24,10 @@ func migrateKavaAppState(appState genutiltypes.AppMap, clientCtx client.Context)
 		// V17 Auction migration changes
 		// - Replace singular default auction `Duration` param with
 		// directional duration params
-		genState.DefaultForwardBidDuration = v017auction.DefaultForwardBidDuration
-		genState.DefaultReverseBidDuration = v017auction.DefaultReverseBidDuration
+		genState.Params.ForwardBidDuration = v017auction.DefaultForwardBidDuration
+		genState.Params.ReverseBidDuration = v017auction.DefaultReverseBidDuration
 
 		// replace previous genesis state with migrated genesis state
-		appState[v017auction.ModuleName] = v17Codec.MustMarshalJSON(v017auction.Migrate(genState))
+		appState[v017auction.ModuleName] = v17Codec.MustMarshalJSON(&genState)
 	}
 }
