@@ -347,7 +347,7 @@ func executeSavingsRewardsQuery(cliCtx client.Context, params types.QueryRewards
 		return types.SavingsClaims{}, err
 	}
 
-	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetSwapRewards)
+	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetSavingsRewards)
 	res, height, err := cliCtx.QueryWithData(route, bz)
 	if err != nil {
 		return types.SavingsClaims{}, err
