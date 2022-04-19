@@ -1,0 +1,18 @@
+{
+  "genesis_time": "2022-01-19T16:00:00Z",
+  "chain_id": "kava-9",
+  "initial_height": "1",
+  "app_state": {
+      "auction": {
+          "next_auction_id": "12",
+          "params": {
+          "max_auction_duration": "172800s",
+          "bid_duration": "600s",
+          "increment_surplus": "0.010000000000000000",
+          "increment_debt": "0.010000000000000000",
+          "increment_collateral": "0.010000000000000000"
+          },
+          "auctions": []
+      }
+  }
+}

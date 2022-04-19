@@ -5,10 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/stretchr/testify/require"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/migrate"
-	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/cosmos-sdk/client"
 )
 
 func TestMigrateGenesisCmd_V16_Success(t *testing.T) {
