@@ -218,6 +218,7 @@ var (
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		hardtypes.ModuleAccountName:     {authtypes.Minter},
 		savingstypes.ModuleAccountName:  nil,
+		bridgetypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -387,6 +388,7 @@ func NewApp(
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
+	bridgeSubspace := app.paramsKeeper.Subspace(bridgetypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -500,6 +502,23 @@ func NewApp(
 		app.accountKeeper,
 		app.distrKeeper,
 		app.ModuleAccountAddrs(),
+	)
+
+	// BridgeKeeper must be assigned before EvmKeeper hooks are set
+	app.bridgeKeeper = bridgekeeper.NewKeeper(
+		appCodec,
+		keys[bridgetypes.StoreKey],
+		bridgeSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+		app.evmKeeper,
+	)
+
+	app.evmKeeper = app.evmKeeper.SetHooks(
+		evmkeeper.NewMultiEvmHooks(
+			app.bridgeKeeper.WithdrawHooks(),
+			app.bridgeKeeper.ConversionHooks(),
+		),
 	)
 
 	govRouter := govtypes.NewRouter()
@@ -675,6 +694,7 @@ func NewApp(
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
+		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
 	)
 
 	app.mm.SetOrderBeginBlockers(
@@ -711,7 +731,16 @@ func NewApp(
 		vestingtypes.ModuleName,
 		pricefeedtypes.ModuleName,
 		validatorvestingtypes.ModuleName,
-		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName, evmutiltypes.ModuleName, savingstypes.ModuleName,
+		authtypes.ModuleName,
+		banktypes.ModuleName,
+		govtypes.ModuleName,
+		crisistypes.ModuleName,
+		genutiltypes.ModuleName,
+		ibctransfertypes.ModuleName,
+		paramstypes.ModuleName,
+		evmutiltypes.ModuleName,
+		savingstypes.ModuleName,
+		bridgetypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -744,7 +773,16 @@ func NewApp(
 		pricefeedtypes.ModuleName,
 		ibchost.ModuleName,
 		validatorvestingtypes.ModuleName,
-		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName, evmutiltypes.ModuleName, savingstypes.ModuleName,
+		authtypes.ModuleName,
+		banktypes.ModuleName,
+		govtypes.ModuleName,
+		crisistypes.ModuleName,
+		genutiltypes.ModuleName,
+		ibctransfertypes.ModuleName,
+		paramstypes.ModuleName,
+		evmutiltypes.ModuleName,
+		savingstypes.ModuleName,
+		bridgetypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -782,6 +820,7 @@ func NewApp(
 		validatorvestingtypes.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
+		bridgetypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
