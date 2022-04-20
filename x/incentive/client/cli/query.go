@@ -24,6 +24,7 @@ const (
 	typeHard        = "hard"
 	typeUSDXMinting = "usdx-minting"
 	typeSwap        = "swap"
+	typeSavings     = "savings"
 )
 
 var rewardTypes = []string{typeDelegator, typeHard, typeUSDXMinting, typeSwap}
@@ -64,13 +65,15 @@ func queryRewardsCmd() *cobra.Command {
 			$ %s query %s rewards --type usdx-minting
 			$ %s query %s rewards --type delegator
 			$ %s query %s rewards --type swap
+			$ %s query %s rewards --type savings
 			$ %s query %s rewards --type hard --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
 			$ %s query %s rewards --type hard --unsynced
 			`,
 				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
 				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
 				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
-				version.AppName, types.ModuleName, version.AppName, types.ModuleName)),
+				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
+				version.AppName, types.ModuleName)),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
@@ -121,6 +124,13 @@ func queryRewardsCmd() *cobra.Command {
 					return err
 				}
 				return cliCtx.PrintObjectLegacy(claims)
+			case typeSavings:
+				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+				claims, err := executeSavingsRewardsQuery(cliCtx, params)
+				if err != nil {
+					return err
+				}
+				return cliCtx.PrintObjectLegacy(claims)
 			default:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
 
@@ -137,6 +147,10 @@ func queryRewardsCmd() *cobra.Command {
 					return err
 				}
 				swapClaims, err := executeSwapRewardsQuery(cliCtx, params)
+				if err != nil {
+					return err
+				}
+				savingsClaims, err := executeSavingsRewardsQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
@@ -157,6 +171,11 @@ func queryRewardsCmd() *cobra.Command {
 				}
 				if len(swapClaims) > 0 {
 					if err := cliCtx.PrintObjectLegacy(swapClaims); err != nil {
+						return err
+					}
+				}
+				if len(savingsClaims) > 0 {
+					if err := cliCtx.PrintObjectLegacy(savingsClaims); err != nil {
 						return err
 					}
 				}
@@ -317,6 +336,28 @@ func executeSwapRewardsQuery(cliCtx client.Context, params types.QueryRewardsPar
 	var claims types.SwapClaims
 	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
 		return types.SwapClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
+	}
+
+	return claims, nil
+}
+
+func executeSavingsRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.SavingsClaims, error) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
+	if err != nil {
+		return types.SavingsClaims{}, err
+	}
+
+	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetSavingsRewards)
+	res, height, err := cliCtx.QueryWithData(route, bz)
+	if err != nil {
+		return types.SavingsClaims{}, err
+	}
+
+	cliCtx = cliCtx.WithHeight(height)
+
+	var claims types.SavingsClaims
+	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
+		return types.SavingsClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
 	}
 
 	return claims, nil

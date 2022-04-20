@@ -51,7 +51,7 @@ func SolvencyInvariant(k Keeper) sdk.Invariant {
 	message := sdk.FormatInvariant(types.ModuleName, "module solvency broken", "total deposited amount does not match module account")
 
 	return func(ctx sdk.Context) (string, bool) {
-		balance := k.bankKeeper.GetAllBalances(ctx, k.GetSavingsModuleAccount(ctx).GetAddress())
+		balance := k.GetSavingsModuleAccountBalances(ctx)
 
 		deposited := sdk.Coins{}
 		k.IterateDeposits(ctx, func(deposit types.Deposit) bool {

@@ -60,7 +60,7 @@ func (suite *unitTester) SetupSuite() {
 
 func (suite *unitTester) SetupTest() {
 	suite.ctx = NewTestContext(suite.incentiveStoreKey)
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil)
 }
 
 func (suite *unitTester) TearDownTest() {
@@ -68,8 +68,8 @@ func (suite *unitTester) TearDownTest() {
 	suite.ctx = sdk.Context{}
 }
 
-func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, bk types.BankKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper) keeper.Keeper {
-	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk)
+func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, bk types.BankKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper, svk types.SavingsKeeper) keeper.Keeper {
+	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk, svk)
 }
 
 func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {

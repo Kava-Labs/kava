@@ -526,6 +526,13 @@ func NewApp(
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 	)
+	savingsKeeper := savingskeeper.NewKeeper(
+		appCodec,
+		keys[savingstypes.StoreKey],
+		savingsSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+	)
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
 		keys[incentivetypes.StoreKey],
@@ -536,13 +543,7 @@ func NewApp(
 		app.accountKeeper,
 		app.stakingKeeper,
 		&swapKeeper,
-	)
-	savingsKeeper := savingskeeper.NewKeeper(
-		appCodec,
-		keys[savingstypes.StoreKey],
-		savingsSubspace,
-		app.accountKeeper,
-		app.bankKeeper,
+		&savingsKeeper,
 	)
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
