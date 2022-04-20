@@ -5,6 +5,7 @@ import (
 
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -28,4 +29,8 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 		},
 	}
 	appState[evmtypes.ModuleName] = codec.MustMarshalJSON(evmGenState)
+
+	// x/feemarket
+	feemarketState := feemarkettypes.DefaultGenesisState()
+	appState[feemarkettypes.ModuleName] = codec.MustMarshalJSON(feemarketState)
 }

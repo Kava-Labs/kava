@@ -13,6 +13,7 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -52,6 +53,14 @@ func TestMigrateEvm(t *testing.T) {
 		ChainConfig:  evmtypes.DefaultChainConfig(),
 		ExtraEIPs:    []int64{},
 	})
+}
+
+func TestMigrateFeeMarket(t *testing.T) {
+	appMap, ctx := migrateToV16AndGetAppMap(t)
+	var genstate feemarkettypes.GenesisState
+	err := ctx.Codec.UnmarshalJSON(appMap[feemarkettypes.ModuleName], &genstate)
+	assert.NoError(t, err)
+	assert.Equal(t, genstate, *feemarkettypes.DefaultGenesisState())
 }
 
 func migrateToV16AndGetAppMap(t *testing.T) (genutiltypes.AppMap, client.Context) {
