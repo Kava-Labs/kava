@@ -35,19 +35,20 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 	appState[evmtypes.ModuleName] = codec.MustMarshalJSON(evmGenState)
 
 	// x/bridge
-	bridgeGenState := &bridgetypes.GenesisState{
+	bridgeGenState := bridgetypes.NewGenesisState(
 		// Start with no ERC20 tokens that can be bridged, no relayer set.
-		Params: bridgetypes.NewParams(
+		bridgetypes.NewParams(
 			false, // bridge disabled
 			bridgetypes.EnabledERC20Tokens{},
 			nil, // no relayer
 			bridgetypes.ConversionPairs{},
 		),
 		// No ERC20 tokens have been bridged yet.
-		ERC20BridgePairs:     bridgetypes.ERC20BridgePairs{},
-		NextWithdrawSequence: sdk.OneInt(),
-	}
-	appState[bridgetypes.ModuleName] = codec.MustMarshalJSON(bridgeGenState)
+		bridgetypes.ERC20BridgePairs{},
+		// NextWithdrawSequence starts at 1
+		sdk.OneInt(),
+	)
+	appState[bridgetypes.ModuleName] = codec.MustMarshalJSON(&bridgeGenState)
 
 	// x/feemarket
 	feemarketState := feemarkettypes.DefaultGenesisState()
