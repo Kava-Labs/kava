@@ -54,17 +54,9 @@ func (k Keeper) InitializeSavingsReward(ctx sdk.Context, deposit savingstypes.De
 		}
 		rewardIndexes = rewardIndexes.With(coin.Denom, globalRewardIndexes)
 	}
-
 	claim.RewardIndexes = rewardIndexes
-	k.SetSavingsClaim(ctx, claim)
-}
 
-func (k Keeper) SynchronizeSavingsClaim(ctx sdk.Context, owner sdk.AccAddress) {
-	deposit, found := k.savingsKeeper.GetDeposit(ctx, owner)
-	if !found {
-		return
-	}
-	k.SynchronizeSavingsReward(ctx, deposit, []string{})
+	k.SetSavingsClaim(ctx, claim)
 }
 
 // SynchronizeSavingsReward updates the claim object by adding any accumulated rewards
@@ -84,10 +76,12 @@ func (k Keeper) SynchronizeSavingsReward(ctx sdk.Context, deposit savingstypes.D
 		claim.RewardIndexes = claim.RewardIndexes.With(denom, globalRewardIndexes)
 	}
 
-	// Source shares for savings deposits is the deposit amount
-	for _, coin := range deposit.Amount {
-		claim = k.synchronizeSingleSavingsReward(ctx, claim, coin.Denom, coin.Amount.ToDec())
+	// Existing denoms have their reward indexes + reward amount synced
+	existingDenoms := setDifference(getDenoms(deposit.Amount), incomingDenoms)
+	for _, denom := range existingDenoms {
+		claim = k.synchronizeSingleSavingsReward(ctx, claim, denom, deposit.Amount.AmountOf(denom).ToDec())
 	}
+
 	k.SetSavingsClaim(ctx, claim)
 }
 
@@ -144,4 +138,14 @@ func (k Keeper) GetSynchronizedSavingsClaim(ctx sdk.Context, owner sdk.AccAddres
 	}
 
 	return claim, true
+}
+
+// SynchronizeSavingsClaim syncs a savings reward claim from its store
+func (k Keeper) SynchronizeSavingsClaim(ctx sdk.Context, owner sdk.AccAddress) {
+	deposit, found := k.savingsKeeper.GetDeposit(ctx, owner)
+	if !found {
+		return
+	}
+
+	k.SynchronizeSavingsReward(ctx, deposit, []string{})
 }
