@@ -46,7 +46,7 @@ func (k Keeper) InitializeSavingsReward(ctx sdk.Context, deposit savingstypes.De
 		claim = types.NewSavingsClaim(deposit.Depositor, sdk.Coins{}, nil)
 	}
 
-	var rewardIndexes types.MultiRewardIndexes
+	rewardIndexes := claim.RewardIndexes
 	for _, coin := range deposit.Amount {
 		globalRewardIndexes, found := k.GetSavingsRewardIndexes(ctx, coin.Denom)
 		if !found {

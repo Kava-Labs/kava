@@ -89,8 +89,6 @@ func (suite *InitializeSavingsRewardTests) TestClaimUpdatedWhenClaimExistsAndNoR
 		},
 	}
 
-	newDenom := "test"
-
 	claim := types.SavingsClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
 			Owner:  arbitraryAddress(),
@@ -106,10 +104,13 @@ func (suite *InitializeSavingsRewardTests) TestClaimUpdatedWhenClaimExistsAndNoR
 	suite.storeSavingsClaim(claim)
 
 	// no global indexes stored as the new denom is not rewarded
+	newDenom := "test"
 	deposit := savingstypes.NewDeposit(claim.Owner, sdk.NewCoins(sdk.NewCoin(newDenom, sdk.OneInt())))
 	suite.keeper.InitializeSavingsReward(suite.ctx, deposit)
 
-	syncedClaim, _ := suite.keeper.GetSavingsClaim(suite.ctx, claim.Owner)
+	syncedClaim, found := suite.keeper.GetSavingsClaim(suite.ctx, claim.Owner)
+	suite.True(found)
+
 	// The preexisting indexes shouldn't be changed. It doesn't strictly need the new denom either.
 	expectedIndexes := types.MultiRewardIndexes{
 		{
