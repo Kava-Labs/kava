@@ -85,14 +85,14 @@ func (k Keeper) SynchronizeSavingsReward(ctx sdk.Context, deposit savingstypes.D
 	k.SetSavingsClaim(ctx, claim)
 }
 
-// synchronizeSingleSavingsReward synchronizes a single rewarded savings denom in a hard claim.
+// synchronizeSingleSavingsReward synchronizes a single rewarded savings denom in a savings claim.
 // It returns the claim without setting in the store.
 // The public methods for accessing and modifying claims are preferred over this one. Direct modification of claims is easy to get wrong.
 func (k Keeper) synchronizeSingleSavingsReward(ctx sdk.Context, claim types.SavingsClaim, denom string, sourceShares sdk.Dec) types.SavingsClaim {
 	globalRewardIndexes, found := k.GetSavingsRewardIndexes(ctx, denom)
 	if !found {
 		// The global factor is only not found if
-		// - the supply denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+		// - the savings denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
 		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
 		// If not found we could either skip this sync, or assume the global factor is zero.
 		// Skipping will avoid storing unnecessary factors in the claim for non rewarded denoms.

@@ -27,7 +27,6 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryGetSwapRewards(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetSavingsRewards:
 			return queryGetSavingsRewards(ctx, req, k, legacyQuerierCdc)
-
 		case types.QueryGetRewardFactors:
 			return queryGetRewardFactors(ctx, req, k, legacyQuerierCdc)
 		default:
