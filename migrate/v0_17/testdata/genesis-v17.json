@@ -559,6 +559,16 @@
       ],
       "previous_block_time": "1970-01-01T00:00:00Z"
     },
+    "bridge": {
+      "params": {
+        "bridge_enabled": false,
+        "enabled_erc20_tokens": [],
+        "relayer": "",
+        "enabled_conversion_pairs": []
+      },
+      "erc20_bridge_pairs": [],
+      "next_withdraw_sequence": "1"
+    },
     "capability": { "index": "1", "owners": [] },
     "cdp": {
       "params": {
