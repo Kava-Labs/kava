@@ -50,7 +50,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 	for _, coin := range coins {
 		supported := k.IsDenomSupported(ctx, coin.Denom)
-		if supported == false {
+		if !supported {
 			return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, ": %s", coin.Denom)
 		}
 	}
