@@ -25,7 +25,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	deposit := types.NewDeposit(depositor, coins)
 	if foundDeposit {
 		deposit.Amount = deposit.Amount.Add(currDeposit.Amount...)
-		k.hooks.BeforeSavingsDepositModified(ctx, deposit, getDenoms(coins))
+		k.hooks.BeforeSavingsDepositModified(ctx, deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
 
 	}
 
@@ -62,6 +62,22 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdk.Int) {
 	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	return k.bankKeeper.GetBalance(ctx, macc.GetAddress(), depositDenom).Amount
+}
+
+// Set setDifference: A - B
+func setDifference(a, b []string) (diff []string) {
+	m := make(map[string]bool)
+
+	for _, item := range b {
+		m[item] = true
+	}
+
+	for _, item := range a {
+		if _, ok := m[item]; !ok {
+			diff = append(diff, item)
+		}
+	}
+	return
 }
 
 func getDenoms(coins sdk.Coins) []string {
