@@ -10,9 +10,6 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/kava-labs/kava/app"
 	tmtypes "github.com/tendermint/tendermint/types"
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
-
-	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
 
 var (
@@ -38,7 +35,7 @@ func Migrate(genDoc *tmtypes.GenesisDoc, ctx client.Context) (*tmtypes.GenesisDo
 		return nil, fmt.Errorf("failed to marchal app state from genesis doc:  %w", err)
 	}
 
-	migrateNewModules(appState, ctx)
+	migrateAppState(appState, ctx)
 
 	genDoc.AppState, err = json.Marshal(appState)
 	if err != nil {
@@ -50,23 +47,4 @@ func Migrate(genDoc *tmtypes.GenesisDoc, ctx client.Context) (*tmtypes.GenesisDo
 	genDoc.InitialHeight = 1
 
 	return genDoc, nil
-}
-
-func migrateNewModules(appState genutiltypes.AppMap, clientCtx client.Context) {
-	// x/emvutil
-	evmUtilGenState := evmutiltypes.NewGenesisState([]evmutiltypes.Account{})
-	appState[evmutiltypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(evmUtilGenState)
-
-	// x/evm
-	evmGenState := &evmtypes.GenesisState{
-		Accounts: []evmtypes.GenesisAccount{},
-		Params: evmtypes.Params{
-			EvmDenom:     "akava",
-			EnableCreate: true,
-			EnableCall:   true,
-			ChainConfig:  evmtypes.DefaultChainConfig(),
-			ExtraEIPs:    nil,
-		},
-	}
-	appState[evmtypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(evmGenState)
 }
