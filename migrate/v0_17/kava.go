@@ -39,7 +39,7 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 		bridgetypes.NewParams(
 			false,                            // Bridge disabled
 			bridgetypes.EnabledERC20Tokens{}, // No bridge ERC20 tokens
-			sdk.AccAddress{},                 // No relayer
+			nil,                              // No relayer
 			bridgetypes.ConversionPairs{},    // No conversion pairs
 		),
 		bridgetypes.ERC20BridgePairs{}, // Empty state as there has been no ERC20 contracts deployed
