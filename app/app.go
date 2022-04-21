@@ -25,6 +25,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -168,6 +171,7 @@ var (
 		ibc.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
+		authzmodule.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		evm.AppModuleBasic{},
@@ -257,6 +261,7 @@ type App struct {
 	distrKeeper      distrkeeper.Keeper
 	govKeeper        govkeeper.Keeper
 	paramsKeeper     paramskeeper.Keeper
+	authzKeeper      authzkeeper.Keeper
 	crisisKeeper     crisiskeeper.Keeper
 	slashingKeeper   slashingkeeper.Keeper
 	ibcKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
@@ -326,7 +331,7 @@ func NewApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey,
 		upgradetypes.StoreKey, evidencetypes.StoreKey, ibctransfertypes.StoreKey,
-		evmtypes.StoreKey, feemarkettypes.StoreKey,
+		evmtypes.StoreKey, feemarkettypes.StoreKey, authzkeeper.StoreKey,
 		capabilitytypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
@@ -406,6 +411,9 @@ func NewApp(
 		app.bankKeeper,
 		stakingSubspace,
 	)
+
+	app.authzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.BaseApp.MsgServiceRouter())
+
 	app.mintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		keys[minttypes.StoreKey],
@@ -646,6 +654,7 @@ func NewApp(
 		transferModule,
 		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
 		params.NewAppModule(app.paramsKeeper),
+		authzmodule.NewAppModule(appCodec, app.authzKeeper, app.accountKeeper, app.bankKeeper, app.interfaceRegistry),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.bankKeeper),
@@ -677,6 +686,7 @@ func NewApp(
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
+		authz.ModuleName,
 		feemarkettypes.ModuleName,
 		evmtypes.ModuleName,
 		kavadisttypes.ModuleName,
@@ -702,6 +712,7 @@ func NewApp(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
+		authz.ModuleName,
 		evmtypes.ModuleName,
 		// fee market module must go after evm module in order to retrieve the block gas used.
 		feemarkettypes.ModuleName,
@@ -741,6 +752,7 @@ func NewApp(
 		minttypes.ModuleName,
 		ibchost.ModuleName,
 		evidencetypes.ModuleName,
+		authz.ModuleName,
 		ibctransfertypes.ModuleName,
 		evmtypes.ModuleName, feemarkettypes.ModuleName,
 		kavadisttypes.ModuleName,
