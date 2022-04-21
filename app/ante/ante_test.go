@@ -31,6 +31,11 @@ func TestAppAnteHandler(t *testing.T) {
 	manualKeys := testPrivKeys[6:]
 
 	encodingConfig := app.MakeEncodingConfig()
+
+	opts := app.DefaultOptions
+	opts.MempoolEnableAuth = true
+	opts.MempoolAuthAddresses = manual
+
 	tApp := app.TestApp{
 		App: *app.NewApp(
 			log.NewNopLogger(),
@@ -38,14 +43,11 @@ func TestAppAnteHandler(t *testing.T) {
 			app.DefaultNodeHome,
 			nil,
 			encodingConfig,
-			app.Options{
-				MempoolEnableAuth:    true,
-				MempoolAuthAddresses: manual,
-			},
+			opts,
 		),
 	}
 
-	chainID := "internal-test-chain"
+	chainID := "kavatest_1-1"
 	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainID(
 		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
 		chainID,

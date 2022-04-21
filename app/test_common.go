@@ -22,17 +22,19 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
 
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
+	evmutilkeeper "github.com/kava-labs/kava/x/evmutil/keeper"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
@@ -42,8 +44,8 @@ import (
 )
 
 var (
-	emptyTime    time.Time
-	emptyChainID string
+	emptyTime   time.Time
+	testChainID = "kavatest_1-1"
 )
 
 // TestApp is a simple wrapper around an App. It exposes internal keepers for use in integration tests.
@@ -75,7 +77,7 @@ func NewTestAppFromSealed() TestApp {
 
 	encCfg := MakeEncodingConfig()
 
-	app := NewApp(log.NewNopLogger(), db, DefaultNodeHome, nil, encCfg, Options{})
+	app := NewApp(log.NewNopLogger(), db, DefaultNodeHome, nil, encCfg, DefaultOptions)
 	return TestApp{App: *app}
 }
 
@@ -100,6 +102,8 @@ func (tApp TestApp) GetCDPKeeper() cdpkeeper.Keeper             { return tApp.cd
 func (tApp TestApp) GetHardKeeper() hardkeeper.Keeper           { return tApp.hardKeeper }
 func (tApp TestApp) GetCommitteeKeeper() committeekeeper.Keeper { return tApp.committeeKeeper }
 func (tApp TestApp) GetIncentiveKeeper() incentivekeeper.Keeper { return tApp.incentiveKeeper }
+func (tApp TestApp) GetEvmutilKeeper() evmutilkeeper.Keeper     { return tApp.evmutilKeeper }
+func (tApp TestApp) GetEvmKeeper() *evmkeeper.Keeper            { return tApp.evmKeeper }
 func (tApp TestApp) GetSavingsKeeper() savingskeeper.Keeper     { return tApp.savingsKeeper }
 
 // LegacyAmino returns the app's amino codec.
@@ -114,12 +118,12 @@ func (app *App) AppCodec() codec.Codec {
 
 // InitializeFromGenesisStates calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(emptyTime, emptyChainID, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(emptyTime, testChainID, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTime calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states and genesis Time
 func (tApp TestApp) InitializeFromGenesisStatesWithTime(genTime time.Time, genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(genTime, emptyChainID, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(genTime, testChainID, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTimeAndChainID calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states and genesis Time
@@ -143,10 +147,21 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainID(genTime time.T
 			Validators:    []abci.ValidatorUpdate{},
 			AppStateBytes: stateBytes,
 			ChainId:       chainID,
+			// Set consensus params, which is needed by x/feemarket
+			ConsensusParams: &abci.ConsensusParams{
+				Block: &abci.BlockParams{
+					MaxBytes: 200000,
+					MaxGas:   20000000,
+				},
+			},
 		},
 	)
 	tApp.Commit()
-	tApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: tApp.LastBlockHeight() + 1, Time: genTime}})
+	tApp.BeginBlock(abci.RequestBeginBlock{
+		Header: tmproto.Header{
+			Height: tApp.LastBlockHeight() + 1, Time: genTime, ChainID: chainID,
+		},
+	})
 	return tApp
 }
 

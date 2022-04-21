@@ -16,27 +16,28 @@ import (
 )
 
 func TestNewApp(t *testing.T) {
-
+	SetSDKConfig()
 	NewApp(
 		log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
 		db.NewMemDB(),
 		DefaultNodeHome,
 		nil,
 		MakeEncodingConfig(),
-		Options{},
+		DefaultOptions,
 	)
 }
 
 func TestExport(t *testing.T) {
+	SetSDKConfig()
 	db := db.NewMemDB()
-	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), Options{})
+	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), DefaultOptions)
 
 	stateBytes, err := json.Marshal(NewDefaultGenesisState())
 	require.NoError(t, err)
 
 	initRequest := abci.RequestInitChain{
 		Time:            time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-		ChainId:         "kava-test",
+		ChainId:         "kavatest_1-1",
 		InitialHeight:   1,
 		ConsensusParams: tmtypes.TM2PB.ConsensusParams(tmtypes.DefaultConsensusParams()),
 		Validators:      nil,
@@ -69,7 +70,7 @@ func unmarshalJSONKeys(jsonBytes []byte) ([]string, error) {
 	}
 
 	keys := make([]string, 0, len(jsonMap))
-	for k, _ := range jsonMap {
+	for k := range jsonMap {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

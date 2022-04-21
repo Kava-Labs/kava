@@ -178,6 +178,10 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/evmutil/v1beta1/genesis.proto](#kava/evmutil/v1beta1/genesis.proto)
+    - [Account](#kava.evmutil.v1beta1.Account)
+    - [GenesisState](#kava.evmutil.v1beta1.GenesisState)
+  
 - [kava/hard/v1beta1/hard.proto](#kava/hard/v1beta1/hard.proto)
     - [Borrow](#kava.hard.v1beta1.Borrow)
     - [BorrowInterestFactor](#kava.hard.v1beta1.BorrowInterestFactor)
@@ -2698,6 +2702,53 @@ Msg defines the committee Msg service
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `SubmitProposal` | [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse) | SubmitProposal defines a method for submitting a committee proposal | |
 | `Vote` | [MsgVote](#kava.committee.v1beta1.MsgVote) | [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse) | Vote defines a method for voting on a proposal | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/evmutil/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/evmutil/v1beta1/genesis.proto
+
+
+
+<a name="kava.evmutil.v1beta1.Account"></a>
+
+### Account
+BalanceAccount defines an account in the evmutil module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [bytes](#bytes) |  |  |
+| `balance` | [string](#string) |  | balance indicates the amount of akava owned by the address. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the evmutil module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `accounts` | [Account](#kava.evmutil.v1beta1.Account) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
 
  <!-- end services -->
 
