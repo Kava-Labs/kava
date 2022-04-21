@@ -29,8 +29,6 @@ func TestMigrateGenesisDoc(t *testing.T) {
 	assert.JSONEq(t, expected, string(actualJson))
 
 	assert.LessOrEqual(t, actualGenDoc.ConsensusParams.Evidence.MaxBytes, actualGenDoc.ConsensusParams.Block.MaxBytes)
-
-	// Test x/auction migration
 }
 
 func getTestDataJSON(filename string) string {
