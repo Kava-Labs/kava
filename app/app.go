@@ -694,7 +694,7 @@ func NewApp(
 		vestingtypes.ModuleName,
 		pricefeedtypes.ModuleName,
 		validatorvestingtypes.ModuleName,
-		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName, evmutiltypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName, evmutiltypes.ModuleName, savingstypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -726,7 +726,7 @@ func NewApp(
 		pricefeedtypes.ModuleName,
 		ibchost.ModuleName,
 		validatorvestingtypes.ModuleName,
-		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName, evmutiltypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName, paramstypes.ModuleName, evmutiltypes.ModuleName, savingstypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -762,6 +762,7 @@ func NewApp(
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
 		evmutiltypes.ModuleName,
+		savingstypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
