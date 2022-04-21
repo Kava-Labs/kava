@@ -219,7 +219,7 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, auction *types.SurplusAuction, 
 		auction.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
 		auction.HasReceivedBids = true
 	}
-	auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
+	auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).ForwardBidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -241,7 +241,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, auction *types.Collat
 		return auction, sdkerrors.Wrapf(types.ErrInvalidBidDenom, "%s ≠ %s", bid.Denom, auction.Bid.Denom)
 	}
 	if auction.IsReversePhase() {
-		panic("cannot place forward bid on auction in reverse phase")
+		panic("cannot place reverse bid on auction in forward phase")
 	}
 	minNewBidAmt := auction.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -295,7 +295,13 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, auction *types.Collat
 		auction.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
 		auction.HasReceivedBids = true
 	}
-	auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
+
+	// If this forward bid converts this to a reverse, increase timeout with ReverseBidDuration
+	if auction.IsReversePhase() {
+		auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).ReverseBidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
+	} else {
+		auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).ForwardBidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -317,7 +323,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, auction *types.Collat
 		return auction, sdkerrors.Wrapf(types.ErrInvalidLotDenom, "%s ≠ %s", lot.Denom, auction.Lot.Denom)
 	}
 	if !auction.IsReversePhase() {
-		panic("cannot place reverse bid on auction in forward phase")
+		panic("cannot place forward bid on auction in reverse phase")
 	}
 	maxNewLotAmt := auction.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -369,7 +375,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, auction *types.Collat
 		auction.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
 		auction.HasReceivedBids = true
 	}
-	auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
+	auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).ReverseBidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -443,7 +449,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, auction *types.DebtAuction, bidder
 		auction.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
 		auction.HasReceivedBids = true
 	}
-	auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
+	auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).ForwardBidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

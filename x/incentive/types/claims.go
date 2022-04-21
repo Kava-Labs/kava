@@ -13,6 +13,7 @@ const (
 	HardLiquidityProviderClaimType = "hard_liquidity_provider"
 	DelegatorClaimType             = "delegator_claim"
 	SwapClaimType                  = "swap"
+	SavingsClaimType               = "savings"
 )
 
 // GetOwner is a getter for Claim Owner
@@ -276,6 +277,58 @@ type SwapClaims []SwapClaim
 
 // Validate checks if all the claims are valid.
 func (cs SwapClaims) Validate() error {
+	for _, c := range cs {
+		if err := c.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// NewSavingsClaim returns a new SavingsClaim
+func NewSavingsClaim(owner sdk.AccAddress, rewards sdk.Coins, rewardIndexes MultiRewardIndexes) SavingsClaim {
+	return SavingsClaim{
+		BaseMultiClaim: BaseMultiClaim{
+			Owner:  owner,
+			Reward: rewards,
+		},
+		RewardIndexes: rewardIndexes,
+	}
+}
+
+// GetType returns the claim's type
+func (c SavingsClaim) GetType() string { return SavingsClaimType }
+
+// GetReward returns the claim's reward coin
+func (c SavingsClaim) GetReward() sdk.Coins { return c.Reward }
+
+// GetOwner returns the claim's owner
+func (c SavingsClaim) GetOwner() sdk.AccAddress { return c.Owner }
+
+// Validate performs a basic check of a SavingsClaim fields
+func (c SavingsClaim) Validate() error {
+	if err := c.RewardIndexes.Validate(); err != nil {
+		return err
+	}
+	return c.BaseMultiClaim.Validate()
+}
+
+// HasRewardIndex check if a claim has a reward index for the input denom
+func (c SavingsClaim) HasRewardIndex(denom string) (int64, bool) {
+	for index, ri := range c.RewardIndexes {
+		if ri.CollateralType == denom {
+			return int64(index), true
+		}
+	}
+	return 0, false
+}
+
+// SavingsClaims slice of SavingsClaim
+type SavingsClaims []SavingsClaim
+
+// Validate checks if all the claims are valid.
+func (cs SavingsClaims) Validate() error {
 	for _, c := range cs {
 		if err := c.Validate(); err != nil {
 			return err

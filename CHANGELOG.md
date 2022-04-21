@@ -34,6 +34,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [Unreleased]
+
+### State Machine Breaking
+[\#1158](https://github.com/Kava-Labs/kava/pull/1158) Split existing auction `bid_duration` parameter into `forward_bid_duration` and `reverse_bid_duration`
+
+## [v0.16.1](https://github.com/Kava-Labs/kava/releases/tag/v0.16.1)
+
+### State Machine Breaking
+
+[\#1152](https://github.com/Kava-Labs/kava/pull/1152) Fix MultiSpend Proposal With Async Upgrade Time 
+
+## [v0.16.0](https://github.com/Kava-Labs/kava/releases/tag/v0.16.0)
+
+### State Machine Breaking
+[\#1106](https://github.com/Kava-Labs/kava/pull/1106) Upgrades app to cosmos-sdk v0.44.x and adds IBC and ICS-20 modules. 
+
 ## [v0.13.0]
 
 * Hard Protocol - Introduces borrowing functionality to HARD protocol. See full [spec](https://github.com/Kava-Labs/kava/tree/master/x/hard/spec)

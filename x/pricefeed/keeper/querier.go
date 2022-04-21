@@ -57,7 +57,16 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQue
 
 func queryPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, sdkErr error) {
 	currentPrices := keeper.GetCurrentPrices(ctx)
-	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, currentPrices)
+
+	// Filter out invalid markets without a price
+	var validCurrentPrices types.CurrentPrices
+	for _, cp := range currentPrices {
+		if cp.MarketID != "" {
+			validCurrentPrices = append(validCurrentPrices, types.CurrentPrice(cp))
+		}
+	}
+
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, validCurrentPrices)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

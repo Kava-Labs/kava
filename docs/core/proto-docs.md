@@ -252,6 +252,7 @@
     - [MultiRewardIndexesProto](#kava.incentive.v1beta1.MultiRewardIndexesProto)
     - [RewardIndex](#kava.incentive.v1beta1.RewardIndex)
     - [RewardIndexesProto](#kava.incentive.v1beta1.RewardIndexesProto)
+    - [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim)
     - [SwapClaim](#kava.incentive.v1beta1.SwapClaim)
     - [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim)
   
@@ -272,6 +273,8 @@
     - [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse)
     - [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward)
     - [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse)
+    - [MsgClaimSavingsReward](#kava.incentive.v1beta1.MsgClaimSavingsReward)
+    - [MsgClaimSavingsRewardResponse](#kava.incentive.v1beta1.MsgClaimSavingsRewardResponse)
     - [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward)
     - [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse)
     - [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward)
@@ -360,6 +363,29 @@
     - [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse)
   
     - [Msg](#kava.pricefeed.v1beta1.Msg)
+  
+- [kava/savings/v1beta1/store.proto](#kava/savings/v1beta1/store.proto)
+    - [Deposit](#kava.savings.v1beta1.Deposit)
+    - [Params](#kava.savings.v1beta1.Params)
+  
+- [kava/savings/v1beta1/genesis.proto](#kava/savings/v1beta1/genesis.proto)
+    - [GenesisState](#kava.savings.v1beta1.GenesisState)
+  
+- [kava/savings/v1beta1/query.proto](#kava/savings/v1beta1/query.proto)
+    - [QueryDepositsRequest](#kava.savings.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.savings.v1beta1.QueryDepositsResponse)
+    - [QueryParamsRequest](#kava.savings.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.savings.v1beta1.QueryParamsResponse)
+  
+    - [Query](#kava.savings.v1beta1.Query)
+  
+- [kava/savings/v1beta1/tx.proto](#kava/savings/v1beta1/tx.proto)
+    - [MsgDeposit](#kava.savings.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.savings.v1beta1.MsgDepositResponse)
+    - [MsgWithdraw](#kava.savings.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.savings.v1beta1.MsgWithdrawResponse)
+  
+    - [Msg](#kava.savings.v1beta1.Msg)
   
 - [kava/swap/v1beta1/swap.proto](#kava/swap/v1beta1/swap.proto)
     - [AllowedPool](#kava.swap.v1beta1.AllowedPool)
@@ -541,7 +567,8 @@ Params defines the parameters for the issuance module.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `max_auction_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
-| `bid_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `forward_bid_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `reverse_bid_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
 | `increment_surplus` | [bytes](#bytes) |  |  |
 | `increment_debt` | [bytes](#bytes) |  |  |
 | `increment_collateral` | [bytes](#bytes) |  |  |
@@ -3714,6 +3741,22 @@ RewardIndexesProto defines a Protobuf wrapper around a RewardIndexes slice
 
 
 
+<a name="kava.incentive.v1beta1.SavingsClaim"></a>
+
+### SavingsClaim
+SavingsClaim stores the savings rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.SwapClaim"></a>
 
 ### SwapClaim
@@ -3829,6 +3872,7 @@ Params
 | `swap_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
 | `claim_multipliers` | [MultipliersPerDenom](#kava.incentive.v1beta1.MultipliersPerDenom) | repeated |  |
 | `claim_end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `savings_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
 
 
 
@@ -3920,6 +3964,8 @@ GenesisState is the state that must be provided at genesis.
 | `hard_liquidity_provider_claims` | [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim) | repeated |  |
 | `delegator_claims` | [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim) | repeated |  |
 | `swap_claims` | [SwapClaim](#kava.incentive.v1beta1.SwapClaim) | repeated |  |
+| `savings_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `savings_claims` | [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim) | repeated |  |
 
 
 
@@ -3988,6 +4034,32 @@ MsgClaimHardReward message type used to claim Hard liquidity provider rewards
 
 ### MsgClaimHardRewardResponse
 MsgClaimHardRewardResponse defines the Msg/ClaimHardReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSavingsReward"></a>
+
+### MsgClaimSavingsReward
+MsgClaimSavingsReward message type used to claim savings rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimSavingsRewardResponse"></a>
+
+### MsgClaimSavingsRewardResponse
+MsgClaimSavingsRewardResponse defines the Msg/ClaimSavingsReward response type.
 
 
 
@@ -4080,6 +4152,7 @@ Msg defines the incentive Msg service.
 | `ClaimHardReward` | [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward) | [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse) | ClaimHardReward is a message type used to claim Hard liquidity provider rewards | |
 | `ClaimDelegatorReward` | [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward) | [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse) | ClaimDelegatorReward is a message type used to claim delegator rewards | |
 | `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim delegator rewards | |
+| `ClaimSavingsReward` | [MsgClaimSavingsReward](#kava.incentive.v1beta1.MsgClaimSavingsReward) | [MsgClaimSavingsRewardResponse](#kava.incentive.v1beta1.MsgClaimSavingsRewardResponse) | ClaimSavingsReward is a message type used to claim savings rewards | |
 
  <!-- end services -->
 
@@ -5047,6 +5120,253 @@ Msg defines the pricefeed Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `PostPrice` | [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice) | [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse) | PostPrice defines a method for creating a new post price | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/savings/v1beta1/store.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/savings/v1beta1/store.proto
+
+
+
+<a name="kava.savings.v1beta1.Deposit"></a>
+
+### Deposit
+Deposit defines an amount of coins deposited into a savings module account.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.savings.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the savings module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `supported_denoms` | [string](#string) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/savings/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/savings/v1beta1/genesis.proto
+
+
+
+<a name="kava.savings.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the savings module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.savings.v1beta1.Params) |  | params defines all the parameters of the module. |
+| `deposits` | [Deposit](#kava.savings.v1beta1.Deposit) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/savings/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/savings/v1beta1/query.proto
+
+
+
+<a name="kava.savings.v1beta1.QueryDepositsRequest"></a>
+
+### QueryDepositsRequest
+QueryDepositsRequest defines the request type for querying x/savings
+deposits.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="kava.savings.v1beta1.QueryDepositsResponse"></a>
+
+### QueryDepositsResponse
+QueryDepositsResponse defines the response type for querying x/savings
+deposits.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [Deposit](#kava.savings.v1beta1.Deposit) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="kava.savings.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/savings
+parameters.
+
+
+
+
+
+
+<a name="kava.savings.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/savings
+parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.savings.v1beta1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.savings.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for savings module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.savings.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.savings.v1beta1.QueryParamsResponse) | Params queries all parameters of the savings module. | GET|/kava/savings/v1beta1/params|
+| `Deposits` | [QueryDepositsRequest](#kava.savings.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.savings.v1beta1.QueryDepositsResponse) | Deposits queries savings deposits. | GET|/kava/savings/v1beta1/deposits|
+
+ <!-- end services -->
+
+
+
+<a name="kava/savings/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/savings/v1beta1/tx.proto
+
+
+
+<a name="kava.savings.v1beta1.MsgDeposit"></a>
+
+### MsgDeposit
+MsgDeposit defines the Msg/Deposit request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.savings.v1beta1.MsgDepositResponse"></a>
+
+### MsgDepositResponse
+MsgDepositResponse defines the Msg/Deposit response type.
+
+
+
+
+
+
+<a name="kava.savings.v1beta1.MsgWithdraw"></a>
+
+### MsgWithdraw
+MsgWithdraw defines the Msg/Withdraw request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.savings.v1beta1.MsgWithdrawResponse"></a>
+
+### MsgWithdrawResponse
+MsgWithdrawResponse defines the Msg/Withdraw response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.savings.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the savings Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Deposit` | [MsgDeposit](#kava.savings.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.savings.v1beta1.MsgDepositResponse) | Deposit defines a method for depositing funds to the savings module account | |
+| `Withdraw` | [MsgWithdraw](#kava.savings.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.savings.v1beta1.MsgWithdrawResponse) | Withdraw defines a method for withdrawing funds to the savings module account | |
 
  <!-- end services -->
 

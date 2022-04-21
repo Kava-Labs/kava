@@ -52,7 +52,7 @@ kvd version --long
 # go: go version go1.17.1 linux/amd64
 
 # export genesis using v0.15.x
-kvd export --for-zero-height --height 1803250 > export-genesis.json
+kvd export --for-zero-height --height 1803249 > export-genesis.json
 ```
 
 **Note:** This can take a while!

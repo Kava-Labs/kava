@@ -56,7 +56,8 @@ func (suite *Suite) SetupTest(numAddrs int) {
 
 	params := types.NewParams(
 		types.DefaultMaxAuctionDuration,
-		types.DefaultBidDuration,
+		types.DefaultForwardBidDuration,
+		types.DefaultReverseBidDuration,
 		types.DefaultIncrement,
 		types.DefaultIncrement,
 		types.DefaultIncrement,

@@ -6,4 +6,6 @@ lint:
     - cosmos_proto
     - gogoproto
     - google
+    - ibc
     - tendermint
+    - proofs.proto

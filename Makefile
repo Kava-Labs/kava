@@ -146,7 +146,7 @@ start:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=v0.2
+protoVer=v0.3
 protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
 containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
 containerProtoGenAny=$(PROJECT_NAME)-proto-gen-any-$(protoVer)
@@ -174,7 +174,7 @@ proto-lint:
 	@$(DOCKER_BUF) lint --error-format=json
 
 proto-check-breaking:
-	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=upgrade-v44
+	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=master
 
 GOOGLE_PROTO_URL = https://raw.githubusercontent.com/googleapis/googleapis/master/google/api
 PROTOBUF_GOOGLE_URL = https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf
@@ -202,6 +202,7 @@ proto-update-deps:
 
 	mkdir -p client/docs
 	cp $(COSMOS_SDK_PATH)/client/docs/swagger-ui/swagger.yaml client/docs/cosmos-swagger.yml
+	cp $(IBC_GO_PATH)/docs/client/swagger-ui/swagger.yaml client/docs/ibc-go-swagger.yml
 
 	mkdir -p $(COSMOS_PROTO_TYPES)
 	cp $(COSMOS_PROTO_PATH)/cosmos.proto $(COSMOS_PROTO_TYPES)/cosmos.proto
@@ -266,18 +267,3 @@ start-remote-sims:
 		-—container-override environment=[{SIM_NAME=master-$(VERSION)}]
 
 .PHONY: all build-linux install clean build test test-cli test-all test-rest test-basic start-remote-sims
-
-########################################
-### Documentation
-
-# Start docs site at localhost:8080
-docs-develop:
-	@cd docs && \
-	npm install && \
-	npm run serve
-
-# Build the site into docs/.vuepress/dist
-docs-build:
-	@cd docs && \
-	npm install && \
-	npm run build

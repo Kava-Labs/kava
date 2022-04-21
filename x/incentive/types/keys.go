@@ -33,4 +33,7 @@ var (
 	SwapClaimKeyPrefix                            = []byte{0x12} // prefix for keys that store swap claims
 	SwapRewardIndexesKeyPrefix                    = []byte{0x13} // prefix for key that stores swap reward indexes
 	PreviousSwapRewardAccrualTimeKeyPrefix        = []byte{0x14} // prefix for key that stores the previous time swap rewards accrued
+	SavingsClaimKeyPrefix                         = []byte{0x15} // prefix for keys that store savings claims
+	SavingsRewardIndexesKeyPrefix                 = []byte{0x16} // prefix for key that stores savings reward indexes
+	PreviousSavingsRewardAccrualTimeKeyPrefix     = []byte{0x17} // prefix for key that stores the previous time savings rewards accrued
 )

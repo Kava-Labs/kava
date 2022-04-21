@@ -123,6 +123,9 @@ import (
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
+	savings "github.com/kava-labs/kava/x/savings"
+	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 	"github.com/kava-labs/kava/x/swap"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
@@ -179,6 +182,7 @@ var (
 		hard.AppModuleBasic{},
 		committee.AppModuleBasic{},
 		incentive.AppModuleBasic{},
+		savings.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
 	)
@@ -204,6 +208,7 @@ var (
 		cdptypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		hardtypes.ModuleAccountName:     {authtypes.Minter},
+		savingstypes.ModuleAccountName:  nil,
 	}
 )
 
@@ -271,6 +276,7 @@ type App struct {
 	hardKeeper       hardkeeper.Keeper
 	committeeKeeper  committeekeeper.Keeper
 	incentiveKeeper  incentivekeeper.Keeper
+	savingsKeeper    savingskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -325,6 +331,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
+		savingstypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -363,6 +370,7 @@ func NewApp(
 	cdpSubspace := app.paramsKeeper.Subspace(cdptypes.ModuleName)
 	hardSubspace := app.paramsKeeper.Subspace(hardtypes.ModuleName)
 	incentiveSubspace := app.paramsKeeper.Subspace(incentivetypes.ModuleName)
+	savingsSubspace := app.paramsKeeper.Subspace(savingstypes.ModuleName)
 	ibcSubspace := app.paramsKeeper.Subspace(ibchost.ModuleName)
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
@@ -469,6 +477,16 @@ func NewApp(
 		options.EVMTrace,
 	)
 
+	app.kavadistKeeper = kavadistkeeper.NewKeeper(
+		appCodec,
+		keys[kavadisttypes.StoreKey],
+		kavadistSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+		app.distrKeeper,
+		app.ModuleAccountAddrs(),
+	)
+
 	govRouter := govtypes.NewRouter()
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
@@ -506,15 +524,6 @@ func NewApp(
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
 	app.ibcKeeper.SetRouter(ibcRouter)
 
-	app.kavadistKeeper = kavadistkeeper.NewKeeper(
-		appCodec,
-		keys[kavadisttypes.StoreKey],
-		kavadistSubspace,
-		app.bankKeeper,
-		app.accountKeeper,
-		app.distrKeeper,
-		app.ModuleAccountAddrs(),
-	)
 	app.auctionKeeper = auctionkeeper.NewKeeper(
 		appCodec,
 		keys[auctiontypes.StoreKey],
@@ -568,7 +577,13 @@ func NewApp(
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 	)
-
+	savingsKeeper := savingskeeper.NewKeeper(
+		appCodec,
+		keys[savingstypes.StoreKey],
+		savingsSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+	)
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
 		keys[incentivetypes.StoreKey],
@@ -579,8 +594,8 @@ func NewApp(
 		app.accountKeeper,
 		app.stakingKeeper,
 		&swapKeeper,
+		&savingsKeeper,
 	)
-
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -607,6 +622,7 @@ func NewApp(
 	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
 	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
+	app.savingsKeeper = *savingsKeeper.SetHooks(savingstypes.NewMultiSavingsHooks(app.incentiveKeeper.Hooks()))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
@@ -642,9 +658,9 @@ func NewApp(
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
+		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 	)
 
-	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
@@ -730,6 +746,7 @@ func NewApp(
 		kavadisttypes.ModuleName,
 		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
+		savingstypes.ModuleName,
 		bep3types.ModuleName,
 		pricefeedtypes.ModuleName,
 		swaptypes.ModuleName,

@@ -45,6 +45,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					DefaultMultiRewardPeriods,
 					DefaultMultiRewardPeriods,
 					DefaultMultiRewardPeriods,
+					DefaultMultiRewardPeriods,
 					MultipliersPerDenoms{
 						{
 							Denom: "ukava",

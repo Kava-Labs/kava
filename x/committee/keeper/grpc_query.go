@@ -66,14 +66,15 @@ func (s queryServer) Proposals(c context.Context, req *types.QueryProposalsReque
 
 	ctx := sdk.UnwrapSDKContext(c)
 	proposals := s.keeper.GetProposalsByCommittee(ctx, req.CommitteeId)
-	proposalsResp := types.QueryProposalsResponse{
-		Proposals: make([]types.QueryProposalResponse, len(proposals)),
-	}
-	for i, proposal := range proposals {
-		proposalsResp.Proposals[i] = s.proposalResponseFromProposal(proposal)
+	var proposalsResp []types.QueryProposalResponse
+
+	for _, proposal := range proposals {
+		proposalsResp = append(proposalsResp, s.proposalResponseFromProposal(proposal))
 	}
 
-	return &proposalsResp, nil
+	return &types.QueryProposalsResponse{
+		Proposals: proposalsResp,
+	}, nil
 }
 
 // Proposal implements the Query/Proposal gRPC method
@@ -113,13 +114,6 @@ func (s queryServer) Votes(c context.Context, req *types.QueryVotesRequest) (*ty
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	votes := s.keeper.GetVotesByProposal(ctx, req.ProposalId)
-	votesResp := types.QueryVotesResponse{
-		Votes: make([]types.QueryVoteResponse, len(votes)),
-	}
-	for i, vote := range votes {
-		votesResp.Votes[i] = s.votesResponseFromVote(vote)
-	}
 
 	var queryResults []types.QueryVoteResponse
 	store := ctx.KVStore(s.keeper.storeKey)
@@ -130,7 +124,7 @@ func (s queryServer) Votes(c context.Context, req *types.QueryVotesRequest) (*ty
 			return err
 		}
 
-		votes = append(votes, vote)
+		queryResults = append(queryResults, s.votesResponseFromVote(vote))
 		return nil
 	})
 	if err != nil {

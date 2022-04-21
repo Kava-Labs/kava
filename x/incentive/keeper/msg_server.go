@@ -90,3 +90,21 @@ func (k msgServer) ClaimSwapReward(goCtx context.Context, msg *types.MsgClaimSwa
 
 	return &types.MsgClaimSwapRewardResponse{}, nil
 }
+
+func (k msgServer) ClaimSavingsReward(goCtx context.Context, msg *types.MsgClaimSavingsReward) (*types.MsgClaimSavingsRewardResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, selection := range msg.DenomsToClaim {
+		err := k.keeper.ClaimSavingsReward(ctx, sender, sender, selection.Denom, selection.MultiplierName)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &types.MsgClaimSavingsRewardResponse{}, nil
+}

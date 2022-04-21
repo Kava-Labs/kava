@@ -32,7 +32,7 @@ func (suite *InitializeHardSupplyRewardTests) TestClaimIndexesAreSetWhenClaimExi
 	globalIndexes := nonEmptyMultiRewardIndexes
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
 		Build()
 
@@ -46,7 +46,7 @@ func (suite *InitializeHardSupplyRewardTests) TestClaimIndexesAreSetWhenClaimDoe
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
 	owner := arbitraryAddress()
-	deposit := NewDepositBuilder(owner).
+	deposit := NewHardDepositBuilder(owner).
 		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
 		Build()
 
@@ -66,7 +66,7 @@ func (suite *InitializeHardSupplyRewardTests) TestClaimIndexesAreSetEmptyForMiss
 	// This happens when a deposit denom has no rewards associated with it.
 	expectedIndexes := appendUniqueEmptyMultiRewardIndex(globalIndexes)
 	depositedDenoms := extractCollateralTypes(expectedIndexes)
-	deposit := NewDepositBuilder(owner).
+	deposit := NewHardDepositBuilder(owner).
 		WithArbitrarySourceShares(depositedDenoms...).
 		Build()
 

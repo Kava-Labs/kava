@@ -15,15 +15,18 @@ var emptyDec = sdk.Dec{}
 const (
 	// DefaultMaxAuctionDuration max length of auction
 	DefaultMaxAuctionDuration time.Duration = 2 * 24 * time.Hour
-	// DefaultBidDuration how long an auction gets extended when someone bids
-	DefaultBidDuration time.Duration = 1 * time.Hour
+	// DefaultForwardBidDuration how long an auction gets extended when someone bids for a forward auction
+	DefaultForwardBidDuration time.Duration = 8 * time.Hour
+	// DefaultReverseBidDuration how long an auction gets extended when someone bids for a reverse auction
+	DefaultReverseBidDuration time.Duration = 1 * time.Hour
 )
 
 var (
 	// DefaultIncrement is the smallest percent change a new bid must have from the old one
 	DefaultIncrement sdk.Dec = sdk.MustNewDecFromStr("0.05")
 	// ParamStoreKeyParams Param store key for auction params
-	KeyBidDuration         = []byte("BidDuration")
+	KeyForwardBidDuration  = []byte("ForwardBidDuration")
+	KeyReverseBidDuration  = []byte("ReverseBidDuration")
 	KeyMaxAuctionDuration  = []byte("MaxAuctionDuration")
 	KeyIncrementSurplus    = []byte("IncrementSurplus")
 	KeyIncrementDebt       = []byte("IncrementDebt")
@@ -31,10 +34,16 @@ var (
 )
 
 // NewParams returns a new Params object.
-func NewParams(maxAuctionDuration, bidDuration time.Duration, incrementSurplus, incrementDebt, incrementCollateral sdk.Dec) Params {
+func NewParams(
+	maxAuctionDuration, forwardBidDuration, reverseBidDuration time.Duration,
+	incrementSurplus,
+	incrementDebt,
+	incrementCollateral sdk.Dec,
+) Params {
 	return Params{
 		MaxAuctionDuration:  maxAuctionDuration,
-		BidDuration:         bidDuration,
+		ForwardBidDuration:  forwardBidDuration,
+		ReverseBidDuration:  reverseBidDuration,
 		IncrementSurplus:    incrementSurplus,
 		IncrementDebt:       incrementDebt,
 		IncrementCollateral: incrementCollateral,
@@ -45,7 +54,8 @@ func NewParams(maxAuctionDuration, bidDuration time.Duration, incrementSurplus, 
 func DefaultParams() Params {
 	return NewParams(
 		DefaultMaxAuctionDuration,
-		DefaultBidDuration,
+		DefaultForwardBidDuration,
+		DefaultReverseBidDuration,
 		DefaultIncrement,
 		DefaultIncrement,
 		DefaultIncrement,
@@ -60,7 +70,8 @@ func ParamKeyTable() paramtypes.KeyTable {
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs.
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyBidDuration, &p.BidDuration, validateBidDurationParam),
+		paramtypes.NewParamSetPair(KeyForwardBidDuration, &p.ForwardBidDuration, validateBidDurationParam),
+		paramtypes.NewParamSetPair(KeyReverseBidDuration, &p.ReverseBidDuration, validateBidDurationParam),
 		paramtypes.NewParamSetPair(KeyMaxAuctionDuration, &p.MaxAuctionDuration, validateMaxAuctionDurationParam),
 		paramtypes.NewParamSetPair(KeyIncrementSurplus, &p.IncrementSurplus, validateIncrementSurplusParam),
 		paramtypes.NewParamSetPair(KeyIncrementDebt, &p.IncrementDebt, validateIncrementDebtParam),
@@ -70,7 +81,11 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-	if err := validateBidDurationParam(p.BidDuration); err != nil {
+	if err := validateBidDurationParam(p.ForwardBidDuration); err != nil {
+		return err
+	}
+
+	if err := validateBidDurationParam(p.ReverseBidDuration); err != nil {
 		return err
 	}
 
@@ -78,8 +93,12 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if p.BidDuration > p.MaxAuctionDuration {
-		return errors.New("bid duration param cannot be larger than max auction duration")
+	if p.ForwardBidDuration > p.MaxAuctionDuration {
+		return errors.New("forward bid duration param cannot be larger than max auction duration")
+	}
+
+	if p.ReverseBidDuration > p.MaxAuctionDuration {
+		return errors.New("reverse bid duration param cannot be larger than max auction duration")
 	}
 
 	if err := validateIncrementSurplusParam(p.IncrementSurplus); err != nil {
