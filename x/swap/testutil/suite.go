@@ -20,6 +20,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+	ethermint "github.com/tharsis/ethermint/types"
 )
 
 var defaultSwapFee = sdk.MustNewDecFromStr("0.003")
@@ -103,7 +104,7 @@ func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) a
 // CreateVestingAccount creates a new vesting account from the provided balance and vesting balance
 func (suite *Suite) CreateVestingAccount(initialBalance sdk.Coins, vestingBalance sdk.Coins) authtypes.AccountI {
 	acc := suite.CreateAccount(initialBalance)
-	bacc := acc.(*authtypes.BaseAccount)
+	bacc := acc.(*ethermint.EthAccount)
 
 	periods := vestingtypes.Periods{
 		vestingtypes.Period{
@@ -111,7 +112,7 @@ func (suite *Suite) CreateVestingAccount(initialBalance sdk.Coins, vestingBalanc
 			Amount: vestingBalance,
 		},
 	}
-	vacc := vestingtypes.NewPeriodicVestingAccount(bacc, initialBalance, time.Now().Unix(), periods) // TODO is initialBalance correct for originalVesting?
+	vacc := vestingtypes.NewPeriodicVestingAccount(bacc.BaseAccount, initialBalance, time.Now().Unix(), periods) // TODO is initialBalance correct for originalVesting?
 
 	return vacc
 }

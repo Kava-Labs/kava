@@ -1,0 +1,52 @@
+syntax = "proto3";
+package kava.savings.v1beta1;
+
+import "kava/savings/v1beta1/store.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+option go_package = "github.com/kava-labs/kava/x/savings/types";
+
+// Query defines the gRPC querier service for savings module
+service Query {
+  // Params queries all parameters of the savings module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/savings/v1beta1/params";
+  }
+
+  // Deposits queries savings deposits.
+  rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
+    option (google.api.http).get = "/kava/savings/v1beta1/deposits";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/savings
+// parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/savings
+// parameters.
+message QueryParamsResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDepositsRequest defines the request type for querying x/savings
+// deposits.
+message QueryDepositsRequest {
+  string denom = 1;
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+// QueryDepositsResponse defines the response type for querying x/savings
+// deposits.
+message QueryDepositsResponse {
+  repeated Deposit deposits = 1 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

@@ -16,6 +16,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgClaimHardReward{}, "incentive/MsgClaimHardReward", nil)
 	cdc.RegisterConcrete(&MsgClaimDelegatorReward{}, "incentive/MsgClaimDelegatorReward", nil)
 	cdc.RegisterConcrete(&MsgClaimSwapReward{}, "incentive/MsgClaimSwapReward", nil)
+	cdc.RegisterConcrete(&MsgClaimSavingsReward{}, "incentive/MsgClaimSavingsReward", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -24,6 +25,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgClaimHardReward{},
 		&MsgClaimDelegatorReward{},
 		&MsgClaimSwapReward{},
+		&MsgClaimSavingsReward{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

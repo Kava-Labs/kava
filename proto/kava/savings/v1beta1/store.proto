@@ -1,0 +1,25 @@
+syntax = "proto3";
+package kava.savings.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package                      = "github.com/kava-labs/kava/x/savings/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Params defines the parameters for the savings module.
+message Params {
+  repeated string supported_denoms = 1;
+}
+
+// Deposit defines an amount of coins deposited into a savings module account.
+message Deposit {
+  string depositor = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+
+  repeated cosmos.base.v1beta1.Coin amount = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}

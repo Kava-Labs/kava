@@ -29,7 +29,7 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestClaimIndexesAreRemovedForDeno
 
 	// remove one denom from the indexes already in the deposit
 	expectedIndexes := claim.SupplyRewardIndexes[1:]
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(expectedIndexes)...).
 		Build()
 
@@ -50,7 +50,7 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestClaimIndexesAreAddedForNewlyS
 	globalIndexes := appendUniqueMultiRewardIndex(claim.SupplyRewardIndexes)
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
 		Build()
 
@@ -72,7 +72,7 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestClaimIndexesAreUnchangedWhenS
 	// UpdateHardSupplyIndexDenoms should ignore the new values.
 	suite.storeGlobalSupplyIndexes(increaseAllRewardFactors(claim.SupplyRewardIndexes))
 
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(claim.SupplyRewardIndexes)...).
 		Build()
 
@@ -95,7 +95,7 @@ func (suite *UpdateHardSupplyIndexDenomsTests) TestEmptyClaimIndexesAreAddedForN
 	// add a denom to the deposited amount that is not in the global or claim's indexes
 	expectedIndexes := appendUniqueEmptyMultiRewardIndex(claim.SupplyRewardIndexes)
 	depositedDenoms := extractCollateralTypes(expectedIndexes)
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithArbitrarySourceShares(depositedDenoms...).
 		Build()
 

@@ -14,15 +14,15 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
-	"github.com/kava-labs/kava/migrate/v0_16"
+	"github.com/kava-labs/kava/migrate/v0_17"
 )
 
 // MigrateGenesisCmd returns a command to execute genesis state migration.
 func MigrateGenesisCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "migrate [genesis-file]",
-		Short:   "Migrate genesis from v0.15 to v0.16",
-		Long:    "Migrate the source genesis into v0.16 and print to STDOUT.",
+		Short:   "Migrate genesis from v0.16 to v0.17",
+		Long:    "Migrate the source genesis into v0.17 and print to STDOUT.",
 		Example: fmt.Sprintf(`%s migrate /path/to/genesis.json`, version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -34,7 +34,7 @@ func MigrateGenesisCmd() *cobra.Command {
 				return fmt.Errorf("failed to read genesis document from file %s: %w", importGenesis, err)
 			}
 
-			newGenDoc, err := v0_16.Migrate(oldGenDoc, clientCtx)
+			newGenDoc, err := v0_17.Migrate(oldGenDoc, clientCtx)
 			if err != nil {
 				return fmt.Errorf("failed to run migration: %w", err)
 			}

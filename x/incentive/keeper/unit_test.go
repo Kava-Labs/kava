@@ -60,7 +60,7 @@ func (suite *unitTester) SetupSuite() {
 
 func (suite *unitTester) SetupTest() {
 	suite.ctx = NewTestContext(suite.incentiveStoreKey)
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil)
 }
 
 func (suite *unitTester) TearDownTest() {
@@ -68,8 +68,8 @@ func (suite *unitTester) TearDownTest() {
 	suite.ctx = sdk.Context{}
 }
 
-func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, bk types.BankKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper) keeper.Keeper {
-	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk)
+func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, bk types.BankKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper, svk types.SavingsKeeper) keeper.Keeper {
+	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk, svk)
 }
 
 func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {
@@ -92,6 +92,11 @@ func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes
 		suite.keeper.SetSwapRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
+func (suite *unitTester) storeGlobalSavingsIndexes(indexes types.MultiRewardIndexes) {
+	for _, i := range indexes {
+		suite.keeper.SetSavingsRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
+	}
+}
 
 func (suite *unitTester) storeHardClaim(claim types.HardLiquidityProviderClaim) {
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
@@ -101,6 +106,9 @@ func (suite *unitTester) storeDelegatorClaim(claim types.DelegatorClaim) {
 }
 func (suite *unitTester) storeSwapClaim(claim types.SwapClaim) {
 	suite.keeper.SetSwapClaim(suite.ctx, claim)
+}
+func (suite *unitTester) storeSavingsClaim(claim types.SavingsClaim) {
+	suite.keeper.SetSavingsClaim(suite.ctx, claim)
 }
 
 // fakeParamSubspace is a stub paramSpace to simplify keeper unit test setup.

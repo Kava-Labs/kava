@@ -1,0 +1,32 @@
+syntax = "proto3";
+package kava.evmutil.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/kava-labs/kava/x/evmutil/types";
+
+// GenesisState defines the evmutil module's genesis state.
+message GenesisState {
+  option (gogoproto.goproto_getters) = false;
+
+  repeated Account accounts = 1 [(gogoproto.nullable) = false];
+}
+
+// BalanceAccount defines an account in the evmutil module.
+message Account {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes address = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+
+  // balance indicates the amount of akava owned by the address.
+  string balance = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+}

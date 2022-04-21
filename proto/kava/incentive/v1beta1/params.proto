@@ -76,4 +76,7 @@ message Params {
       [(gogoproto.castrepeated) = "MultipliersPerDenoms", (gogoproto.nullable) = false];
 
   google.protobuf.Timestamp claim_end = 7 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+
+  repeated MultiRewardPeriod savings_reward_periods = 8
+      [(gogoproto.castrepeated) = "MultiRewardPeriods", (gogoproto.nullable) = false];
 }
