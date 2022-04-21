@@ -2209,6 +2209,16 @@
       "params": { "receive_enabled": true, "send_enabled": true },
       "port_id": "transfer"
     },
-    "upgrade": {}
+    "upgrade": {},
+    "feemarket": {
+      "params": {
+        "no_base_fee": false,
+        "base_fee_change_denominator": 8,
+        "elasticity_multiplier": 2,
+        "enable_height": "0",
+        "base_fee": "1000000000"
+      },
+      "block_gas": "0"
+    }
   }
 }
