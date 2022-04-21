@@ -15,23 +15,34 @@
     - [GenesisState](#kava.auction.v1beta1.GenesisState)
     - [Params](#kava.auction.v1beta1.Params)
   
-- [kava/auction/v1beta1/query.proto](#kava/auction/v1beta1/query.proto)
-    - [QueryAuctionRequest](#kava.auction.v1beta1.QueryAuctionRequest)
-    - [QueryAuctionResponse](#kava.auction.v1beta1.QueryAuctionResponse)
-    - [QueryAuctionsRequest](#kava.auction.v1beta1.QueryAuctionsRequest)
-    - [QueryAuctionsResponse](#kava.auction.v1beta1.QueryAuctionsResponse)
-    - [QueryNextAuctionIDRequest](#kava.auction.v1beta1.QueryNextAuctionIDRequest)
-    - [QueryNextAuctionIDResponse](#kava.auction.v1beta1.QueryNextAuctionIDResponse)
-    - [QueryParamsRequest](#kava.auction.v1beta1.QueryParamsRequest)
-    - [QueryParamsResponse](#kava.auction.v1beta1.QueryParamsResponse)
+- [kava/auction/v1beta2/auction.proto](#kava/auction/v1beta2/auction.proto)
+    - [BaseAuction](#kava.auction.v1beta2.BaseAuction)
+    - [CollateralAuction](#kava.auction.v1beta2.CollateralAuction)
+    - [DebtAuction](#kava.auction.v1beta2.DebtAuction)
+    - [SurplusAuction](#kava.auction.v1beta2.SurplusAuction)
+    - [WeightedAddresses](#kava.auction.v1beta2.WeightedAddresses)
   
-    - [Query](#kava.auction.v1beta1.Query)
+- [kava/auction/v1beta2/genesis.proto](#kava/auction/v1beta2/genesis.proto)
+    - [GenesisState](#kava.auction.v1beta2.GenesisState)
+    - [Params](#kava.auction.v1beta2.Params)
   
-- [kava/auction/v1beta1/tx.proto](#kava/auction/v1beta1/tx.proto)
-    - [MsgPlaceBid](#kava.auction.v1beta1.MsgPlaceBid)
-    - [MsgPlaceBidResponse](#kava.auction.v1beta1.MsgPlaceBidResponse)
+- [kava/auction/v1beta2/query.proto](#kava/auction/v1beta2/query.proto)
+    - [QueryAuctionRequest](#kava.auction.v1beta2.QueryAuctionRequest)
+    - [QueryAuctionResponse](#kava.auction.v1beta2.QueryAuctionResponse)
+    - [QueryAuctionsRequest](#kava.auction.v1beta2.QueryAuctionsRequest)
+    - [QueryAuctionsResponse](#kava.auction.v1beta2.QueryAuctionsResponse)
+    - [QueryNextAuctionIDRequest](#kava.auction.v1beta2.QueryNextAuctionIDRequest)
+    - [QueryNextAuctionIDResponse](#kava.auction.v1beta2.QueryNextAuctionIDResponse)
+    - [QueryParamsRequest](#kava.auction.v1beta2.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.auction.v1beta2.QueryParamsResponse)
   
-    - [Msg](#kava.auction.v1beta1.Msg)
+    - [Query](#kava.auction.v1beta2.Query)
+  
+- [kava/auction/v1beta2/tx.proto](#kava/auction/v1beta2/tx.proto)
+    - [MsgPlaceBid](#kava.auction.v1beta2.MsgPlaceBid)
+    - [MsgPlaceBidResponse](#kava.auction.v1beta2.MsgPlaceBidResponse)
+  
+    - [Msg](#kava.auction.v1beta2.Msg)
   
 - [kava/bep3/v1beta1/bep3.proto](#kava/bep3/v1beta1/bep3.proto)
     - [AssetParam](#kava.bep3.v1beta1.AssetParam)
@@ -567,6 +578,168 @@ Params defines the parameters for the issuance module.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `max_auction_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `bid_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `increment_surplus` | [bytes](#bytes) |  |  |
+| `increment_debt` | [bytes](#bytes) |  |  |
+| `increment_collateral` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/auction/v1beta2/auction.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/auction/v1beta2/auction.proto
+
+
+
+<a name="kava.auction.v1beta2.BaseAuction"></a>
+
+### BaseAuction
+BaseAuction defines common attributes of all auctions
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+| `initiator` | [string](#string) |  |  |
+| `lot` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `bidder` | [bytes](#bytes) |  |  |
+| `bid` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `has_received_bids` | [bool](#bool) |  |  |
+| `end_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `max_end_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta2.CollateralAuction"></a>
+
+### CollateralAuction
+CollateralAuction is a two phase auction.
+Initially, in forward auction phase, bids can be placed up to a max bid.
+Then it switches to a reverse auction phase, where the initial amount up for auction is bid down.
+Unsold Lot is sent to LotReturns, being divided among the addresses by weight.
+Collateral auctions are normally used to sell off collateral seized from CDPs.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_auction` | [BaseAuction](#kava.auction.v1beta2.BaseAuction) |  |  |
+| `corresponding_debt` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `max_bid` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `lot_returns` | [WeightedAddresses](#kava.auction.v1beta2.WeightedAddresses) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta2.DebtAuction"></a>
+
+### DebtAuction
+DebtAuction is a reverse auction that mints what it pays out.
+It is normally used to acquire pegged asset to cover the CDP system's debts that were not covered by selling
+collateral.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_auction` | [BaseAuction](#kava.auction.v1beta2.BaseAuction) |  |  |
+| `corresponding_debt` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta2.SurplusAuction"></a>
+
+### SurplusAuction
+SurplusAuction is a forward auction that burns what it receives from bids.
+It is normally used to sell off excess pegged asset acquired by the CDP system.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_auction` | [BaseAuction](#kava.auction.v1beta2.BaseAuction) |  |  |
+
+
+
+
+
+
+<a name="kava.auction.v1beta2.WeightedAddresses"></a>
+
+### WeightedAddresses
+WeightedAddresses is a type for storing some addresses and associated weights.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `addresses` | [bytes](#bytes) | repeated |  |
+| `weights` | [bytes](#bytes) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/auction/v1beta2/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/auction/v1beta2/genesis.proto
+
+
+
+<a name="kava.auction.v1beta2.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the auction module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `next_auction_id` | [uint64](#uint64) |  |  |
+| `params` | [Params](#kava.auction.v1beta2.Params) |  |  |
+| `auctions` | [google.protobuf.Any](#google.protobuf.Any) | repeated | Genesis auctions |
+
+
+
+
+
+
+<a name="kava.auction.v1beta2.Params"></a>
+
+### Params
+Params defines the parameters for the issuance module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `max_auction_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
 | `forward_bid_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
 | `reverse_bid_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
 | `increment_surplus` | [bytes](#bytes) |  |  |
@@ -587,14 +760,14 @@ Params defines the parameters for the issuance module.
 
 
 
-<a name="kava/auction/v1beta1/query.proto"></a>
+<a name="kava/auction/v1beta2/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/auction/v1beta1/query.proto
+## kava/auction/v1beta2/query.proto
 
 
 
-<a name="kava.auction.v1beta1.QueryAuctionRequest"></a>
+<a name="kava.auction.v1beta2.QueryAuctionRequest"></a>
 
 ### QueryAuctionRequest
 QueryAuctionRequest is the request type for the Query/Auction RPC method.
@@ -609,7 +782,7 @@ QueryAuctionRequest is the request type for the Query/Auction RPC method.
 
 
 
-<a name="kava.auction.v1beta1.QueryAuctionResponse"></a>
+<a name="kava.auction.v1beta2.QueryAuctionResponse"></a>
 
 ### QueryAuctionResponse
 QueryAuctionResponse is the response type for the Query/Auction RPC method.
@@ -624,7 +797,7 @@ QueryAuctionResponse is the response type for the Query/Auction RPC method.
 
 
 
-<a name="kava.auction.v1beta1.QueryAuctionsRequest"></a>
+<a name="kava.auction.v1beta2.QueryAuctionsRequest"></a>
 
 ### QueryAuctionsRequest
 QueryAuctionsRequest is the request type for the Query/Auctions RPC method.
@@ -643,7 +816,7 @@ QueryAuctionsRequest is the request type for the Query/Auctions RPC method.
 
 
 
-<a name="kava.auction.v1beta1.QueryAuctionsResponse"></a>
+<a name="kava.auction.v1beta2.QueryAuctionsResponse"></a>
 
 ### QueryAuctionsResponse
 QueryAuctionsResponse is the response type for the Query/Auctions RPC method.
@@ -659,7 +832,7 @@ QueryAuctionsResponse is the response type for the Query/Auctions RPC method.
 
 
 
-<a name="kava.auction.v1beta1.QueryNextAuctionIDRequest"></a>
+<a name="kava.auction.v1beta2.QueryNextAuctionIDRequest"></a>
 
 ### QueryNextAuctionIDRequest
 QueryNextAuctionIDRequest defines the request type for querying x/auction next auction ID.
@@ -669,7 +842,7 @@ QueryNextAuctionIDRequest defines the request type for querying x/auction next a
 
 
 
-<a name="kava.auction.v1beta1.QueryNextAuctionIDResponse"></a>
+<a name="kava.auction.v1beta2.QueryNextAuctionIDResponse"></a>
 
 ### QueryNextAuctionIDResponse
 QueryNextAuctionIDResponse defines the response type for querying x/auction next auction ID.
@@ -684,7 +857,7 @@ QueryNextAuctionIDResponse defines the response type for querying x/auction next
 
 
 
-<a name="kava.auction.v1beta1.QueryParamsRequest"></a>
+<a name="kava.auction.v1beta2.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
 QueryParamsRequest defines the request type for querying x/auction parameters.
@@ -694,7 +867,7 @@ QueryParamsRequest defines the request type for querying x/auction parameters.
 
 
 
-<a name="kava.auction.v1beta1.QueryParamsResponse"></a>
+<a name="kava.auction.v1beta2.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
 QueryParamsResponse defines the response type for querying x/auction parameters.
@@ -702,7 +875,7 @@ QueryParamsResponse defines the response type for querying x/auction parameters.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.auction.v1beta1.Params) |  |  |
+| `params` | [Params](#kava.auction.v1beta2.Params) |  |  |
 
 
 
@@ -715,30 +888,30 @@ QueryParamsResponse defines the response type for querying x/auction parameters.
  <!-- end HasExtensions -->
 
 
-<a name="kava.auction.v1beta1.Query"></a>
+<a name="kava.auction.v1beta2.Query"></a>
 
 ### Query
 Query defines the gRPC querier service for auction module
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#kava.auction.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.auction.v1beta1.QueryParamsResponse) | Params queries all parameters of the auction module. | GET|/kava/auction/v1beta1/params|
-| `Auction` | [QueryAuctionRequest](#kava.auction.v1beta1.QueryAuctionRequest) | [QueryAuctionResponse](#kava.auction.v1beta1.QueryAuctionResponse) | Auction queries an individual Auction by auction ID | GET|/kava/auction/v1beta1/auctions/{auction_id}|
-| `Auctions` | [QueryAuctionsRequest](#kava.auction.v1beta1.QueryAuctionsRequest) | [QueryAuctionsResponse](#kava.auction.v1beta1.QueryAuctionsResponse) | Auctions queries auctions filtered by asset denom, owner address, phase, and auction type | GET|/kava/auction/v1beta1/auctions|
-| `NextAuctionID` | [QueryNextAuctionIDRequest](#kava.auction.v1beta1.QueryNextAuctionIDRequest) | [QueryNextAuctionIDResponse](#kava.auction.v1beta1.QueryNextAuctionIDResponse) | NextAuctionID queries the next auction ID | GET|/kava/auction/v1beta1/next-auction-id|
+| `Params` | [QueryParamsRequest](#kava.auction.v1beta2.QueryParamsRequest) | [QueryParamsResponse](#kava.auction.v1beta2.QueryParamsResponse) | Params queries all parameters of the auction module. | GET|/kava/auction/v1beta2/params|
+| `Auction` | [QueryAuctionRequest](#kava.auction.v1beta2.QueryAuctionRequest) | [QueryAuctionResponse](#kava.auction.v1beta2.QueryAuctionResponse) | Auction queries an individual Auction by auction ID | GET|/kava/auction/v1beta2/auctions/{auction_id}|
+| `Auctions` | [QueryAuctionsRequest](#kava.auction.v1beta2.QueryAuctionsRequest) | [QueryAuctionsResponse](#kava.auction.v1beta2.QueryAuctionsResponse) | Auctions queries auctions filtered by asset denom, owner address, phase, and auction type | GET|/kava/auction/v1beta2/auctions|
+| `NextAuctionID` | [QueryNextAuctionIDRequest](#kava.auction.v1beta2.QueryNextAuctionIDRequest) | [QueryNextAuctionIDResponse](#kava.auction.v1beta2.QueryNextAuctionIDResponse) | NextAuctionID queries the next auction ID | GET|/kava/auction/v1beta2/next-auction-id|
 
  <!-- end services -->
 
 
 
-<a name="kava/auction/v1beta1/tx.proto"></a>
+<a name="kava/auction/v1beta2/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## kava/auction/v1beta1/tx.proto
+## kava/auction/v1beta2/tx.proto
 
 
 
-<a name="kava.auction.v1beta1.MsgPlaceBid"></a>
+<a name="kava.auction.v1beta2.MsgPlaceBid"></a>
 
 ### MsgPlaceBid
 MsgPlaceBid represents a message used by bidders to place bids on auctions
@@ -755,7 +928,7 @@ MsgPlaceBid represents a message used by bidders to place bids on auctions
 
 
 
-<a name="kava.auction.v1beta1.MsgPlaceBidResponse"></a>
+<a name="kava.auction.v1beta2.MsgPlaceBidResponse"></a>
 
 ### MsgPlaceBidResponse
 MsgPlaceBidResponse defines the Msg/PlaceBid response type.
@@ -771,14 +944,14 @@ MsgPlaceBidResponse defines the Msg/PlaceBid response type.
  <!-- end HasExtensions -->
 
 
-<a name="kava.auction.v1beta1.Msg"></a>
+<a name="kava.auction.v1beta2.Msg"></a>
 
 ### Msg
 Msg defines the auction Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `PlaceBid` | [MsgPlaceBid](#kava.auction.v1beta1.MsgPlaceBid) | [MsgPlaceBidResponse](#kava.auction.v1beta1.MsgPlaceBidResponse) | PlaceBid message type used by bidders to place bids on auctions | |
+| `PlaceBid` | [MsgPlaceBid](#kava.auction.v1beta2.MsgPlaceBid) | [MsgPlaceBidResponse](#kava.auction.v1beta2.MsgPlaceBidResponse) | PlaceBid message type used by bidders to place bids on auctions | |
 
  <!-- end services -->
 
