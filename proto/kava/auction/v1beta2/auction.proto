@@ -1,12 +1,12 @@
 syntax = "proto3";
-package kava.auction.v1beta1;
+package kava.auction.v1beta2;
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-option go_package = "github.com/kava-labs/kava/x/auction/legacy/v0_16";
+option go_package = "github.com/kava-labs/kava/x/auction/types";
 
 option (gogoproto.goproto_getters_all) = false;
 
