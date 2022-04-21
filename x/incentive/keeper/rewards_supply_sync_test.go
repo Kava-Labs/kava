@@ -32,7 +32,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenGlo
 
 	globalIndexes := increaseAllRewardFactors(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalSupplyIndexes(globalIndexes)
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(claim.SupplyRewardIndexes)...).
 		Build()
 
@@ -56,7 +56,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUnchangedWhenG
 
 	suite.storeGlobalSupplyIndexes(unchangingIndexes)
 
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(unchangingIndexes)...).
 		Build()
 
@@ -80,7 +80,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	globalIndexes := appendUniqueMultiRewardIndex(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
 		Build()
 
@@ -105,7 +105,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenNew
 	globalIndexes := appendUniqueRewardIndexToFirstItem(nonEmptyMultiRewardIndexes)
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithArbitrarySourceShares(extractCollateralTypes(globalIndexes)...).
 		Build()
 
@@ -154,7 +154,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenGlobal
 		},
 	})
 
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithSourceShares("depositdenom", 1e9).
 		Build()
 
@@ -216,7 +216,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenNewRew
 	}
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithSourceShares("rewarded", 1e9).
 		WithSourceShares("newlyrewarded", 1e9).
 		Build()
@@ -274,7 +274,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenNewRew
 	}
 	suite.storeGlobalSupplyIndexes(globalIndexes)
 
-	deposit := NewDepositBuilder(claim.Owner).
+	deposit := NewHardDepositBuilder(claim.Owner).
 		WithSourceShares("deposited", 1e9).
 		Build()
 
@@ -289,26 +289,26 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenNewRew
 	)
 }
 
-// DepositBuilder is a tool for creating a hard deposit in tests.
+// HardDepositBuilder is a tool for creating a hard deposit in tests.
 // The builder inherits from hard.Deposit, so fields can be accessed directly if a helper method doesn't exist.
-type DepositBuilder struct {
+type HardDepositBuilder struct {
 	hardtypes.Deposit
 }
 
-// NewDepositBuilder creates a DepositBuilder containing an empty deposit.
-func NewDepositBuilder(depositor sdk.AccAddress) DepositBuilder {
-	return DepositBuilder{
+// NewHardDepositBuilder creates a HardDepositBuilder containing an empty deposit.
+func NewHardDepositBuilder(depositor sdk.AccAddress) HardDepositBuilder {
+	return HardDepositBuilder{
 		Deposit: hardtypes.Deposit{
 			Depositor: depositor,
 		}}
 }
 
 // Build assembles and returns the final deposit.
-func (builder DepositBuilder) Build() hardtypes.Deposit { return builder.Deposit }
+func (builder HardDepositBuilder) Build() hardtypes.Deposit { return builder.Deposit }
 
 // WithSourceShares adds a deposit amount and factor such that the source shares for this deposit is equal to specified.
 // With a factor of 1, the deposit amount is the source shares. This picks an arbitrary factor to ensure factors are accounted for in production code.
-func (builder DepositBuilder) WithSourceShares(denom string, shares int64) DepositBuilder {
+func (builder HardDepositBuilder) WithSourceShares(denom string, shares int64) HardDepositBuilder {
 	if !builder.Amount.AmountOf(denom).Equal(sdk.ZeroInt()) {
 		panic("adding to amount with existing denom not implemented")
 	}
@@ -328,7 +328,7 @@ func (builder DepositBuilder) WithSourceShares(denom string, shares int64) Depos
 }
 
 // WithArbitrarySourceShares adds arbitrary deposit amounts and indexes for each specified denom.
-func (builder DepositBuilder) WithArbitrarySourceShares(denoms ...string) DepositBuilder {
+func (builder HardDepositBuilder) WithArbitrarySourceShares(denoms ...string) HardDepositBuilder {
 	const arbitraryShares = 1e9
 	for _, denom := range denoms {
 		builder = builder.WithSourceShares(denom, arbitraryShares)

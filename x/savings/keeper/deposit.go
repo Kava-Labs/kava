@@ -21,12 +21,19 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	}
 
 	currDeposit, foundDeposit := k.GetDeposit(ctx, depositor)
-	amount := coins
+
+	deposit := types.NewDeposit(depositor, coins)
 	if foundDeposit {
-		amount = amount.Add(currDeposit.Amount...)
+		deposit.Amount = deposit.Amount.Add(currDeposit.Amount...)
+		k.hooks.BeforeSavingsDepositModified(ctx, deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
+
 	}
-	deposit := types.NewDeposit(depositor, amount)
+
 	k.SetDeposit(ctx, deposit)
+
+	if !foundDeposit {
+		k.hooks.AfterSavingsDepositCreated(ctx, deposit)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -43,7 +50,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 	for _, coin := range coins {
 		supported := k.IsDenomSupported(ctx, coin.Denom)
-		if supported == false {
+		if !supported {
 			return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, ": %s", coin.Denom)
 		}
 	}
@@ -55,4 +62,28 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdk.Int) {
 	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	return k.bankKeeper.GetBalance(ctx, macc.GetAddress(), depositDenom).Amount
+}
+
+// Set setDifference: A - B
+func setDifference(a, b []string) (diff []string) {
+	m := make(map[string]bool)
+
+	for _, item := range b {
+		m[item] = true
+	}
+
+	for _, item := range a {
+		if _, ok := m[item]; !ok {
+			diff = append(diff, item)
+		}
+	}
+	return
+}
+
+func getDenoms(coins sdk.Coins) []string {
+	denoms := []string{}
+	for _, coin := range coins {
+		denoms = append(denoms, coin.Denom)
+	}
+	return denoms
 }
