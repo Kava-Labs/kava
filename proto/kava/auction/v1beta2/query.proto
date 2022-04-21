@@ -1,7 +1,7 @@
 syntax = "proto3";
-package kava.auction.v1beta1;
+package kava.auction.v1beta2;
 
-import "kava/auction/v1beta1/genesis.proto";
+import "kava/auction/v1beta2/genesis.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -13,22 +13,22 @@ option go_package = "github.com/kava-labs/kava/x/auction/types";
 service Query {
   // Params queries all parameters of the auction module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/kava/auction/v1beta1/params";
+    option (google.api.http).get = "/kava/auction/v1beta2/params";
   }
 
   // Auction queries an individual Auction by auction ID
   rpc Auction(QueryAuctionRequest) returns (QueryAuctionResponse) {
-    option (google.api.http).get = "/kava/auction/v1beta1/auctions/{auction_id}";
+    option (google.api.http).get = "/kava/auction/v1beta2/auctions/{auction_id}";
   }
 
   // Auctions queries auctions filtered by asset denom, owner address, phase, and auction type
   rpc Auctions(QueryAuctionsRequest) returns (QueryAuctionsResponse) {
-    option (google.api.http).get = "/kava/auction/v1beta1/auctions";
+    option (google.api.http).get = "/kava/auction/v1beta2/auctions";
   }
 
   // NextAuctionID queries the next auction ID
   rpc NextAuctionID(QueryNextAuctionIDRequest) returns (QueryNextAuctionIDResponse) {
-    option (google.api.http).get = "/kava/auction/v1beta1/next-auction-id";
+    option (google.api.http).get = "/kava/auction/v1beta2/next-auction-id";
   }
 }
 

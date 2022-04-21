@@ -18,4 +18,3 @@ kava migrate block-export-1627000.json > block-export-1627000-migrated.json
 # calculate hash of migrated file
 jq -S -c -M '' block-export-1627000-migrated.json | shasum -a 256
 ```
-

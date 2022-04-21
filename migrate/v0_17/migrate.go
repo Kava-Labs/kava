@@ -15,9 +15,9 @@ import (
 )
 
 var (
-	// Configure go live time for the next version of the chain
+	// TODO: Configure go live time for the next version of the chain
 	GenesisTime = time.Date(2022, 5, 11, 16, 0, 0, 0, time.UTC)
-	// Configure the id of the next version of the chain
+	// TODO: Configure the id of the next version of the chain
 	ChainID = "kava-10"
 )
 
@@ -35,13 +35,15 @@ func Migrate(genDoc *tmtypes.GenesisDoc, ctx client.Context) (*tmtypes.GenesisDo
 
 	var appState genutiltypes.AppMap
 	var err error
+
 	if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
-		return nil, fmt.Errorf("failed to marchal app state from genesis doc:  %w", err)
+		return nil, fmt.Errorf("failed to marshal app state from genesis doc:  %w", err)
 	}
 
 	migrateKavaAppState(appState, ctx)
 
 	genDoc.AppState, err = json.Marshal(appState)
+
 	if err != nil {
 		return nil, err
 	}
