@@ -20,6 +20,7 @@ import (
 
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
+	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 )
 
 func TestMigrateGenesisDoc(t *testing.T) {
@@ -59,7 +60,7 @@ func TestMigrateEvm(t *testing.T) {
 	})
 }
 
-func TestMigrateXAuction(t *testing.T) {
+func TestMigrateAuction(t *testing.T) {
 	appMap, ctx := migrateToV17AndGetAppMap(t)
 	var genstate auctiontypes.GenesisState
 	err := ctx.Codec.UnmarshalJSON(appMap[auctiontypes.ModuleName], &genstate)
@@ -99,6 +100,17 @@ func TestMigrateBridge(t *testing.T) {
 		Relayer:                sdk.AccAddress{},
 		EnabledConversionPairs: bridgetypes.ConversionPairs{},
 	})
+}
+
+func TestMigrateIncentive(t *testing.T) {
+	appMap, ctx := migrateToV17AndGetAppMap(t)
+	var genstate incentivetypes.GenesisState
+	err := ctx.Codec.UnmarshalJSON(appMap[incentivetypes.ModuleName], &genstate)
+	assert.NoError(t, err)
+	assert.Len(t, genstate.SavingsClaims, 0)
+	assert.Len(t, genstate.SavingsRewardState.AccumulationTimes, 0)
+	assert.Len(t, genstate.SavingsRewardState.MultiRewardIndexes, 0)
+	assert.Len(t, genstate.Params.SavingsRewardPeriods, 0)
 }
 
 func migrateToV17AndGetAppMap(t *testing.T) (genutiltypes.AppMap, client.Context) {
