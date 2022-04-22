@@ -21,3 +21,6 @@ build
 node_modules
 docs/node_modules
 docs/.vuepress/dist
+
+# Ignore macOS file system metadata
+.DS_Store

@@ -18,6 +18,7 @@ import (
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
+	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
 
@@ -56,6 +57,14 @@ func TestMigrateEvm(t *testing.T) {
 		ChainConfig:  evmtypes.DefaultChainConfig(),
 		ExtraEIPs:    []int64{},
 	})
+}
+
+func TestMigrateXAuction(t *testing.T) {
+	appMap, ctx := migrateToV17AndGetAppMap(t)
+	var genstate auctiontypes.GenesisState
+	err := ctx.Codec.UnmarshalJSON(appMap[auctiontypes.ModuleName], &genstate)
+	assert.NoError(t, err)
+	assert.Len(t, genstate.Auctions, 3)
 }
 
 func TestMigrateFeeMarket(t *testing.T) {

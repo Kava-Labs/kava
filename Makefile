@@ -251,6 +251,10 @@ test:
 test-cli: build
 	@go test ./cli_test -tags cli_test -v -p 4
 
+# Run tests for migration cli command
+test-migrate:
+	@go test -v -count=1 ./migrate/...
+
 # Kick start lots of sims on an AWS cluster.
 # This submits an AWS Batch job to run a lot of sims, each within a docker image. Results are uploaded to S3
 start-remote-sims:
