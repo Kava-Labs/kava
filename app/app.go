@@ -811,6 +811,9 @@ func NewApp(
 		hardtypes.ModuleName,
 		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
+		evmutiltypes.ModuleName,
+		savingstypes.ModuleName,
+		bridgetypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
 		// Add all remaining modules with an empty InitGenesis below since cosmos 0.45.0 requires it
@@ -818,9 +821,6 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
-		evmutiltypes.ModuleName,
-		savingstypes.ModuleName,
-		bridgetypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
