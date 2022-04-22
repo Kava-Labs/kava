@@ -22,7 +22,8 @@
       "next_auction_id": "12",
       "params": {
         "max_auction_duration": "172800s",
-        "bid_duration": "600s",
+        "forward_bid_duration": "86400s",
+        "reverse_bid_duration": "3600s",
         "increment_surplus": "0.010000000000000000",
         "increment_debt": "0.010000000000000000",
         "increment_collateral": "0.010000000000000000"

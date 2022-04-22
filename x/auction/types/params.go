@@ -16,7 +16,7 @@ const (
 	// DefaultMaxAuctionDuration max length of auction
 	DefaultMaxAuctionDuration time.Duration = 2 * 24 * time.Hour
 	// DefaultForwardBidDuration how long an auction gets extended when someone bids for a forward auction
-	DefaultForwardBidDuration time.Duration = 8 * time.Hour
+	DefaultForwardBidDuration time.Duration = 24 * time.Hour
 	// DefaultReverseBidDuration how long an auction gets extended when someone bids for a reverse auction
 	DefaultReverseBidDuration time.Duration = 1 * time.Hour
 )
