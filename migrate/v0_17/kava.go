@@ -15,18 +15,13 @@ import (
 
 	bridgetypes "github.com/kava-labs/kava-bridge/x/bridge/types"
 	v016auction "github.com/kava-labs/kava/x/auction/legacy/v0_16"
-	v017auction "github.com/kava-labs/kava/x/auction/types"
+	v017auction "github.com/kava-labs/kava/x/auction/legacy/v0_17"
+	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 )
 
 func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 	interfaceRegistry := types.NewInterfaceRegistry()
-	interfaceRegistry.RegisterInterface(
-		"kava.auction.v1beta1.GenesisAuction",
-		(*v017auction.GenesisAuction)(nil),
-		&v017auction.SurplusAuction{},
-		&v017auction.DebtAuction{},
-		&v017auction.CollateralAuction{},
-	)
+	v016auction.RegisterInterfaces(interfaceRegistry)
 	v16Codec := codec.NewProtoCodec(interfaceRegistry)
 
 	codec := clientCtx.Codec
@@ -70,32 +65,13 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 	appState[authz.ModuleName] = codec.MustMarshalJSON(authzState)
 
 	// x/auction
-	if appState[v017auction.ModuleName] != nil {
+	if appState[auctiontypes.ModuleName] != nil {
 		var v16GenState v016auction.GenesisState
-		v16Codec.MustUnmarshalJSON(appState[v017auction.ModuleName], &v16GenState)
+		v16Codec.MustUnmarshalJSON(appState[auctiontypes.ModuleName], &v16GenState)
 
-		migratedState := migrateAuctionGenState(v16GenState)
+		migratedState := v017auction.Migrate(v16GenState)
 		encodedState := codec.MustMarshalJSON(migratedState)
 
-		appState[v017auction.ModuleName] = encodedState
-	}
-}
-
-func migrateParams(params v016auction.Params) v017auction.Params {
-	return v017auction.Params{
-		MaxAuctionDuration:  params.MaxAuctionDuration,
-		ForwardBidDuration:  v017auction.DefaultForwardBidDuration,
-		ReverseBidDuration:  v017auction.DefaultReverseBidDuration,
-		IncrementSurplus:    params.IncrementSurplus,
-		IncrementDebt:       params.IncrementDebt,
-		IncrementCollateral: params.IncrementCollateral,
-	}
-}
-
-func migrateAuctionGenState(oldState v016auction.GenesisState) *v017auction.GenesisState {
-	return &v017auction.GenesisState{
-		NextAuctionId: oldState.NextAuctionId,
-		Params:        migrateParams(oldState.Params),
-		Auctions:      oldState.Auctions,
+		appState[auctiontypes.ModuleName] = encodedState
 	}
 }
