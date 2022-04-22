@@ -11,6 +11,14 @@ evmFaucetMnemonic="hundred flash cattle inquiry gorilla quick enact lazy galaxy 
 # 0x3C854F92F726A7897C8B23F55B2D6E2C482EF3E0
 # kava18jz5lyhhy6ncjlyty064kttw93yzaulq7rlptu
 
+userMnemonic="news tornado sponsor drastic dolphin awful plastic select true lizard width idle ability pigeon runway lift oppose isolate maple aspect safe jungle author hole"
+# 0x7Bbf300890857b8c241b219C6a489431669b3aFA
+# kava10wlnqzyss4accfqmyxwx5jy5x9nfkwh6qm7n4t
+
+relayerMnemonic="never reject sniff east arctic funny twin feed upper series stay shoot vivid adapt defense economy pledge fetch invite approve ceiling admit gloom exit"
+# 0xa2F728F997f62F47D4262a70947F6c36885dF9fa
+# kava15tmj37vh7ch504px9fcfglmvx6y9m70646ev8t
+
 DATA=~/.kava
 # remove any old state and config
 rm -rf $DATA
@@ -47,6 +55,14 @@ evmFaucetKeyName="evm-faucet"
 printf "$evmFaucetMnemonic\n" | $BINARY keys add $evmFaucetKeyName --eth --recover
 $BINARY add-genesis-account $evmFaucetKeyName 1000000000ukava
 
+userKeyName="user"
+printf "$userMnemonic\n" | $BINARY keys add $userKeyName --eth --recover
+$BINARY add-genesis-account $userKeyName 1000000000ukava
+
+relayerKeyName="relayer"
+printf "$relayerMnemonic\n" | $BINARY keys add $relayerKeyName --eth --recover
+$BINARY add-genesis-account $relayerKeyName 1000000000ukava
+
 # Create a delegation tx for the validator and add to genesis
 $BINARY gentx $validatorKeyName 1000000000ukava --keyring-backend test --chain-id $chainID
 $BINARY collect-gentxs
@@ -59,3 +75,35 @@ sed -in-place='' 's/aphoton/akava/g' $DATA/config/genesis.json
 
 # Zero out the total supply so it gets recalculated during InitGenesis
 jq '.app_state.bank.supply = []' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+
+# Enable bridge
+jq '.app_state.bridge.params.bridge_enabled = true' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+
+# Set relayer to devnet relayer address
+jq '.app_state.bridge.params.relayer = "kava15tmj37vh7ch504px9fcfglmvx6y9m70646ev8t"' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+
+# Set enabled erc20 tokens to match local geth testnet
+jq '.app_state.bridge.params.enabled_erc20_tokens = [
+    {
+        address: "0x6098c27D41ec6dc280c2200A737D443b0AaA2E8F",
+        name: "Wrapped ETH",
+        symbol: "WETH",
+        decimals: 18,
+        minimum_withdraw_amount: "10000000000000000"
+    },
+    {
+        address: "0x4Fb48E68842bb59f07569c623ACa5826b600F8F7",
+        name: "USDC",
+        symbol: "USDC",
+        decimals: 6,
+        minimum_withdraw_amount: "10000000"
+    }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+
+# Set enabled conversion pairs - weth address is the first contract bridge module
+# deploys
+jq '.app_state.bridge.params.enabled_conversion_pairs = [
+    {
+        kava_erc20_address: "0x404F9466d758eA33eA84CeBE9E444b06533b369e",
+        denom: "erc20/weth",
+    }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+
