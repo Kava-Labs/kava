@@ -5,10 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	bridgetypes "github.com/kava-labs/kava-bridge/x/bridge/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -71,6 +73,22 @@ func TestMigrateAuthz(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, genstate, authz.GenesisState{
 		Authorization: []authz.GrantAuthorization{},
+	})
+}
+
+func TestMigrateBridge(t *testing.T) {
+	appMap, ctx := migrateToV17AndGetAppMap(t)
+	var genstate bridgetypes.GenesisState
+	err := ctx.Codec.UnmarshalJSON(appMap[bridgetypes.ModuleName], &genstate)
+	assert.NoError(t, err)
+
+	assert.Len(t, genstate.ERC20BridgePairs, 0)
+	assert.Equal(t, genstate.NextWithdrawSequence, sdk.OneInt())
+	assert.Equal(t, genstate.Params, bridgetypes.Params{
+		BridgeEnabled:          false,
+		EnabledERC20Tokens:     bridgetypes.EnabledERC20Tokens{},
+		Relayer:                sdk.AccAddress{},
+		EnabledConversionPairs: bridgetypes.ConversionPairs{},
 	})
 }
 

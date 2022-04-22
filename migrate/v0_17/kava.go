@@ -3,12 +3,15 @@ package v0_17
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
+
+	bridgetypes "github.com/kava-labs/kava-bridge/x/bridge/types"
 )
 
 func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
@@ -30,6 +33,19 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 		},
 	}
 	appState[evmtypes.ModuleName] = codec.MustMarshalJSON(evmGenState)
+
+	// x/bridge
+	bridgeGenState := bridgetypes.NewGenesisState(
+		bridgetypes.NewParams(
+			false,                            // Bridge disabled
+			bridgetypes.EnabledERC20Tokens{}, // No bridge ERC20 tokens
+			nil,                              // No relayer
+			bridgetypes.ConversionPairs{},    // No conversion pairs
+		),
+		bridgetypes.ERC20BridgePairs{}, // Empty state as there has been no ERC20 contracts deployed
+		sdk.OneInt(),                   // NextWithdrawSequence starts at 1
+	)
+	appState[bridgetypes.ModuleName] = codec.MustMarshalJSON(&bridgeGenState)
 
 	// x/feemarket
 	feemarketState := feemarkettypes.DefaultGenesisState()
