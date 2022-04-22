@@ -141,8 +141,7 @@ import (
 )
 
 const (
-	appName     = "kava"
-	upgradeName = "testnet-evm-alpha-2"
+	appName = "kava"
 )
 
 var (
@@ -879,15 +878,6 @@ func NewApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.upgradeKeeper.SetUpgradeHandler(
-		upgradeName,
-		func(ctx sdk.Context, _ upgradetypes.Plan, previousModuleVersions module.VersionMap) (module.VersionMap, error) {
-			return app.mm.RunMigrations(ctx, app.configurator, previousModuleVersions)
-		},
-	)
-
-	// TODO if we need modules added/removed, add upgrade store loader
-
 	// load store
 	if !options.SkipLoadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -917,6 +907,10 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
+
+	// Store current module versions in kava-10 to setup future in-place upgrades.
+	// During in-place migrations, the old module versions in the store will be referenced to determine which migrations to run.
+	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
