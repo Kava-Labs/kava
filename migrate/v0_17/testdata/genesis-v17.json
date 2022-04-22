@@ -1745,7 +1745,8 @@
             ]
           }
         ],
-        "claim_end": "2025-01-01T00:00:00Z"
+        "claim_end": "2025-01-01T00:00:00Z",
+        "savings_reward_periods": []
       },
       "usdx_reward_state": {
         "accumulation_times": [
@@ -1947,6 +1948,11 @@
           ]
         }
       ],
+      "savings_claims": [],
+      "savings_reward_state": {
+        "accumulation_times": [],
+        "multi_reward_indexes": []
+      },
       "swap_claims": [
         {
           "base_claim": {
