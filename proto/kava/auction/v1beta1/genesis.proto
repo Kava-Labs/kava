@@ -22,11 +22,13 @@ message GenesisState {
 
 // Params defines the parameters for the issuance module.
 message Params {
+  reserved 2;
+  reserved "bid_duration";
 
   google.protobuf.Duration max_auction_duration = 1 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 
-  google.protobuf.Duration forward_bid_duration = 2 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-  google.protobuf.Duration reverse_bid_duration = 6 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  google.protobuf.Duration forward_bid_duration = 6 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  google.protobuf.Duration reverse_bid_duration = 7 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 
   bytes increment_surplus = 3
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
