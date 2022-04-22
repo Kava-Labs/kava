@@ -698,6 +698,7 @@ func NewApp(
 		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
 	)
 
+	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
@@ -714,7 +715,6 @@ func NewApp(
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
-		authz.ModuleName,
 		feemarkettypes.ModuleName,
 		evmtypes.ModuleName,
 		kavadisttypes.ModuleName,
@@ -739,6 +739,7 @@ func NewApp(
 		genutiltypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		paramstypes.ModuleName,
+		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
@@ -749,7 +750,6 @@ func NewApp(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
-		authz.ModuleName,
 		evmtypes.ModuleName,
 		// fee market module must go after evm module in order to retrieve the block gas used.
 		feemarkettypes.ModuleName,
@@ -778,6 +778,7 @@ func NewApp(
 		genutiltypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		paramstypes.ModuleName,
+		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
