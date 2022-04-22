@@ -521,24 +521,6 @@ func NewApp(
 		),
 	)
 
-	govRouter := govtypes.NewRouter()
-	govRouter.
-		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
-		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
-	app.govKeeper = govkeeper.NewKeeper(
-		appCodec,
-		keys[govtypes.StoreKey],
-		govSubspace,
-		app.accountKeeper,
-		app.bankKeeper,
-		&app.stakingKeeper,
-		govRouter,
-	)
-
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
@@ -646,6 +628,25 @@ func NewApp(
 		app.paramsKeeper,
 		app.accountKeeper,
 		app.bankKeeper,
+	)
+	// create gov keeper with router
+	// NOTE this must be done after any keepers referenced in the gov router (ie committee) are defined
+	govRouter := govtypes.NewRouter()
+	govRouter.
+		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
+		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
+	app.govKeeper = govkeeper.NewKeeper(
+		appCodec,
+		keys[govtypes.StoreKey],
+		govSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		&app.stakingKeeper,
+		govRouter,
 	)
 
 	// register the staking hooks
