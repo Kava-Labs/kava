@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -33,7 +34,7 @@ func TestMigrateGenesisDoc(t *testing.T) {
 }
 
 func TestMigrateEvmUtil(t *testing.T) {
-	appMap, ctx := migrateToV16AndGetAppMap(t)
+	appMap, ctx := migrateToV17AndGetAppMap(t)
 	var genstate evmutiltypes.GenesisState
 	err := ctx.Codec.UnmarshalJSON(appMap[evmutiltypes.ModuleName], &genstate)
 	assert.NoError(t, err)
@@ -41,7 +42,7 @@ func TestMigrateEvmUtil(t *testing.T) {
 }
 
 func TestMigrateEvm(t *testing.T) {
-	appMap, ctx := migrateToV16AndGetAppMap(t)
+	appMap, ctx := migrateToV17AndGetAppMap(t)
 	var genstate evmtypes.GenesisState
 	err := ctx.Codec.UnmarshalJSON(appMap[evmtypes.ModuleName], &genstate)
 	assert.NoError(t, err)
@@ -56,14 +57,24 @@ func TestMigrateEvm(t *testing.T) {
 }
 
 func TestMigrateFeeMarket(t *testing.T) {
-	appMap, ctx := migrateToV16AndGetAppMap(t)
+	appMap, ctx := migrateToV17AndGetAppMap(t)
 	var genstate feemarkettypes.GenesisState
 	err := ctx.Codec.UnmarshalJSON(appMap[feemarkettypes.ModuleName], &genstate)
 	assert.NoError(t, err)
 	assert.Equal(t, genstate, *feemarkettypes.DefaultGenesisState())
 }
 
-func migrateToV16AndGetAppMap(t *testing.T) (genutiltypes.AppMap, client.Context) {
+func TestMigrateAuthz(t *testing.T) {
+	appMap, ctx := migrateToV17AndGetAppMap(t)
+	var genstate authz.GenesisState
+	err := ctx.Codec.UnmarshalJSON(appMap[authz.ModuleName], &genstate)
+	assert.NoError(t, err)
+	assert.Equal(t, genstate, authz.GenesisState{
+		Authorization: []authz.GrantAuthorization{},
+	})
+}
+
+func migrateToV17AndGetAppMap(t *testing.T) (genutiltypes.AppMap, client.Context) {
 	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "genesis-v16.json"))
 	assert.NoError(t, err)
 

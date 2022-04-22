@@ -3,6 +3,7 @@ package v0_17
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 
+	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
@@ -33,4 +34,8 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 	// x/feemarket
 	feemarketState := feemarkettypes.DefaultGenesisState()
 	appState[feemarkettypes.ModuleName] = codec.MustMarshalJSON(feemarketState)
+
+	// x/authz
+	authzState := authz.DefaultGenesisState()
+	appState[authz.ModuleName] = codec.MustMarshalJSON(authzState)
 }
