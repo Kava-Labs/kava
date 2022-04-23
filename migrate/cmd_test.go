@@ -24,7 +24,8 @@ func newCmdContext() context.Context {
 	config := app.MakeEncodingConfig()
 	clientCtx := client.Context{}.
 		WithCodec(config.Marshaler).
-		WithLegacyAmino(config.Amino)
+		WithLegacyAmino(config.Amino).
+		WithInterfaceRegistry(config.InterfaceRegistry)
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
 	return ctx
