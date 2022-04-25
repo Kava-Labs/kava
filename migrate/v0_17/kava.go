@@ -18,6 +18,7 @@ import (
 	v017auction "github.com/kava-labs/kava/x/auction/legacy/v0_17"
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
 func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
@@ -83,4 +84,8 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 
 		appState[incentivetypes.ModuleName] = codec.MustMarshalJSON(&incentiveState)
 	}
+
+	// x/savings
+	savingsState := savingstypes.DefaultGenesisState()
+	appState[savingstypes.ModuleName] = codec.MustMarshalJSON(&savingsState)
 }
