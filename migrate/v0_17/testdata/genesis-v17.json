@@ -2239,6 +2239,12 @@
     },
     "authz": {
       "authorization": []
+    },
+    "savings": {
+      "deposits": [],
+      "params": {
+        "supported_denoms": []
+      }
     }
   }
 }

@@ -20,6 +20,7 @@ import (
 	v017bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_17"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
 func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
@@ -85,6 +86,10 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 
 		appState[incentivetypes.ModuleName] = codec.MustMarshalJSON(&incentiveState)
 	}
+
+	// x/savings
+	savingsState := savingstypes.DefaultGenesisState()
+	appState[savingstypes.ModuleName] = codec.MustMarshalJSON(&savingsState)
 
 	// x/bep3
 	if appState[bep3types.ModuleName] != nil {
