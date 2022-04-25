@@ -141,8 +141,7 @@ import (
 )
 
 const (
-	appName     = "kava"
-	upgradeName = "testnet-evm-alpha-2"
+	appName = "kava"
 )
 
 var (
@@ -420,9 +419,11 @@ func NewApp(
 		app.bankKeeper,
 		stakingSubspace,
 	)
-
-	app.authzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.BaseApp.MsgServiceRouter())
-
+	app.authzKeeper = authzkeeper.NewKeeper(
+		keys[authzkeeper.StoreKey],
+		appCodec,
+		app.BaseApp.MsgServiceRouter(),
+	)
 	app.mintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		keys[minttypes.StoreKey],
@@ -637,7 +638,8 @@ func NewApp(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
+		AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
 		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -680,7 +682,6 @@ func NewApp(
 		evidence.NewAppModule(app.evidenceKeeper),
 		transferModule,
 		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
-		params.NewAppModule(app.paramsKeeper),
 		authzmodule.NewAppModule(appCodec, app.authzKeeper, app.accountKeeper, app.bankKeeper, app.interfaceRegistry),
 		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
@@ -698,6 +699,7 @@ func NewApp(
 		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
 	)
 
+	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
@@ -714,7 +716,6 @@ func NewApp(
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
-		authz.ModuleName,
 		feemarkettypes.ModuleName,
 		evmtypes.ModuleName,
 		kavadisttypes.ModuleName,
@@ -739,6 +740,7 @@ func NewApp(
 		genutiltypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		paramstypes.ModuleName,
+		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
@@ -749,7 +751,6 @@ func NewApp(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
-		authz.ModuleName,
 		evmtypes.ModuleName,
 		// fee market module must go after evm module in order to retrieve the block gas used.
 		feemarkettypes.ModuleName,
@@ -771,16 +772,14 @@ func NewApp(
 		kavadisttypes.ModuleName,
 		swaptypes.ModuleName,
 		vestingtypes.ModuleName,
-		pricefeedtypes.ModuleName,
 		ibchost.ModuleName,
 		validatorvestingtypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
-		govtypes.ModuleName,
-		crisistypes.ModuleName,
 		genutiltypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		paramstypes.ModuleName,
+		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
@@ -800,7 +799,8 @@ func NewApp(
 		evidencetypes.ModuleName,
 		authz.ModuleName,
 		ibctransfertypes.ModuleName,
-		evmtypes.ModuleName, feemarkettypes.ModuleName,
+		evmtypes.ModuleName,
+		feemarkettypes.ModuleName,
 		kavadisttypes.ModuleName,
 		auctiontypes.ModuleName,
 		issuancetypes.ModuleName,
@@ -813,7 +813,6 @@ func NewApp(
 		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,
-		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
@@ -884,15 +883,6 @@ func NewApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.upgradeKeeper.SetUpgradeHandler(
-		upgradeName,
-		func(ctx sdk.Context, _ upgradetypes.Plan, previousModuleVersions module.VersionMap) (module.VersionMap, error) {
-			return app.mm.RunMigrations(ctx, app.configurator, previousModuleVersions)
-		},
-	)
-
-	// TODO if we need modules added/removed, add upgrade store loader
-
 	// load store
 	if !options.SkipLoadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -922,6 +912,10 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
+
+	// Store current module versions in kava-10 to setup future in-place upgrades.
+	// During in-place migrations, the old module versions in the store will be referenced to determine which migrations to run.
+	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
