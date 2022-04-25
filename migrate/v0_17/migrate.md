@@ -4,11 +4,11 @@
 
 - We will be upgrading from chain-id "kava-9" to chain-id "kava_2222-10".
 - The version of Kava for kava-10 is v0.17.0
-- The kava-9 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height __TBD__, which is approximately 15:00 UTC on May, 10 2022.
+- The kava-9 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height **TBD**, which is approximately 15:00 UTC on May, 10 2022.
 - kava-10 genesis time is set to May 10, 2022 at 15:00 UTC
 - The version of cosmos-sdk for kava-10 is v0.45.3
 - The version of tendermint for kava-10 v0.34.19
-- The minimum version of golang for kava-10 is __1.17+__.
+- The minimum version of golang for kava-10 is **1.17+**.
 
 ### Risks
 
@@ -28,13 +28,13 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ### Before the upgrade
 
-Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height __TBD__ as the final block height for kava-9. This height corresponds to approximately 15:00 UTC on March 10th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators.
+Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height **TBD** as the final block height for kava-9. This height corresponds to approximately 15:00 UTC on March 10th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators.
 
 ### On the day of the upgrade
 
-**The kava chain is expected to halt at block height __TBD__, at approximately 15:00 UTC, and restart with new software at 18:00 UTC March 11th. Do not stop your node and begin the upgrade before 15:00UTC on March 10th, or you may go offline and be unable to recover until after the upgrade!**
+**The kava chain is expected to halt at block height **TBD**, at approximately 15:00 UTC, and restart with new software at 17:00 UTC March 10th. Do not stop your node and begin the upgrade before 15:00 UTC on March 10th, or you may go offline and be unable to recover until after the upgrade!**
 
-**Make sure the kvd process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
+**Make sure the kava process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
 1. Export State (this **MUST** be done using **v0.16.x**)
 
@@ -44,7 +44,7 @@ kava version --long
 # name: kava
 # server_name: kava
 # version: 0.16.0 (any 0.16 version is fine)
-# commit: c2257c409659e2a6c1c8907fe5ae596c5e46f19d
+# commit: 184ef2ad4127517828a4a04cc2c51594b66ac012
 # build_tags: netgo,ledger
 # go: go version go1.17.1 linux/amd64
 
