@@ -58,6 +58,15 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 	)
 	appState[bridgetypes.ModuleName] = codec.MustMarshalJSON(&bridgeGenState)
 
+	// x/savings
+	savingsGenState := savingstypes.NewGenesisState(
+		savingstypes.Params{
+			SupportedDenoms: []string{},
+		},
+		make(savingstypes.Deposits, 0),
+	)
+	appState[savingstypes.ModuleName] = codec.MustMarshalJSON(&savingsGenState)
+
 	// x/feemarket
 	feemarketState := feemarkettypes.DefaultGenesisState()
 	appState[feemarkettypes.ModuleName] = codec.MustMarshalJSON(feemarketState)
@@ -84,8 +93,4 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 
 		appState[incentivetypes.ModuleName] = codec.MustMarshalJSON(&incentiveState)
 	}
-
-	// x/savings
-	savingsState := savingstypes.DefaultGenesisState()
-	appState[savingstypes.ModuleName] = codec.MustMarshalJSON(&savingsState)
 }
