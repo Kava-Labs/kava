@@ -92,4 +92,4 @@ kvd export --for-zero-height --height 1413139 > export-genesis.json
 
 ### Coordination
 
-If the kava-10 chain does not launch by March 10, 2022 at 20:00 UTC, the launch should be considered a failure and validators should refer to the [rollback](./rollback.md) instructions to restart the previous kava-9 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
+If the kava-10 chain does not launch by March 10, 2022 at 21:00 UTC, the launch should be considered a failure and validators should refer to the [rollback](./rollback.md) instructions to restart the previous kava-9 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
