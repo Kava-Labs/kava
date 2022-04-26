@@ -33,9 +33,10 @@ func Migrate(genDoc *tmtypes.GenesisDoc, ctx client.Context) (*tmtypes.GenesisDo
 	var appState genutiltypes.AppMap
 	var err error
 	if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
-		return nil, fmt.Errorf("failed to marchal app state from genesis doc:  %w", err)
+		return nil, fmt.Errorf("failed to unmarshal app state from genesis doc:  %w", err)
 	}
 
+	MigrateCosmosAppState(appState, ctx, GenesisTime)
 	migrateAppState(appState, ctx)
 
 	genDoc.AppState, err = json.Marshal(appState)
