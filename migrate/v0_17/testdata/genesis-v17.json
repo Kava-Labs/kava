@@ -1629,6 +1629,12 @@
         "params": { "max_expected_time_per_block": "30000000000" }
       }
     },
+    "savings": {
+      "params": {
+        "supported_denoms": []
+      },
+      "deposits": []
+    },
     "incentive": {
       "params": {
         "usdx_minting_reward_periods": [
@@ -2239,12 +2245,6 @@
     },
     "authz": {
       "authorization": []
-    },
-    "savings": {
-      "deposits": [],
-      "params": {
-        "supported_denoms": []
-      }
     }
   }
 }
