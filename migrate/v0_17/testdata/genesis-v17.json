@@ -1,6 +1,6 @@
 {
   "genesis_time": "2022-05-10T17:00:00Z",
-  "chain_id": "kava-2222-10",
+  "chain_id": "kava_2222-10",
   "initial_height": "1",
   "consensus_params": {
     "block": {
