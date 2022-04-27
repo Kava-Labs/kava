@@ -96,9 +96,8 @@ func AssertInvariantsCmd(config params.EncodingConfig) *cobra.Command {
 func validateGenDoc(importGenesisFile string) (*tmtypes.GenesisDoc, error) {
 	genDoc, err := tmtypes.GenesisDocFromFile(importGenesisFile)
 	if err != nil {
-		return nil, fmt.Errorf("%s. Make sure that"+
-			" you have correctly migrated all Tendermint consensus params, please see the"+
-			" chain migration guide at https://docs.cosmos.network/master/migrations/chain-upgrade-guide-040.html for more info",
+		return nil, fmt.Errorf(
+			"%s. Make sure that you have correctly migrated all Tendermint consensus params.",
 			err.Error(),
 		)
 	}

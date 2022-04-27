@@ -9,14 +9,14 @@
       ],
       "closed_block": "838115",
       "cross_chain": true,
-      "direction": "Incoming",
+      "direction": "SWAP_DIRECTION_INCOMING",
       "expire_height": "838627",
       "random_number_hash": "6F1CF8F2E13A0C0F0A359F54E47E4E265D766B8E006D2F00BDF994ABDEF1E9E4",
       "recipient": "kava1fl2hs6y9vz986g5v52pdan9ga923n9mn5cxxkw",
       "recipient_other_chain": "bnb1xz3xqf4p2ygrw9lhp5g5df4ep4nd20vsywnmpr",
       "sender": "kava14qsmvzprqvhwmgql9fr0u3zv9n2qla8zhnm5pc",
       "sender_other_chain": "bnb19k9wuv2j7c7ck8tmc7kav0r0cnt3esmkrpf25x",
-      "status": "Completed",
+      "status": "SWAP_STATUS_COMPLETED",
       "timestamp": "1636034914"
     },
     {
@@ -28,14 +28,14 @@
       ],
       "closed_block": "1712118",
       "cross_chain": true,
-      "direction": "Outgoing",
+      "direction": "SWAP_DIRECTION_OUTGOING",
       "expire_height": "1736797",
       "random_number_hash": "280EB832A37F2265CC82F3957CE603AAD57BAD7038B876A1F28953AFA29FA1C3",
       "recipient": "kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6",
       "recipient_other_chain": "bnb18nsgj50zvc4uq93w4j0ltz5gaxhwv7aq4qnq0p",
       "sender": "kava1zw6gg4ztvly7zf25pa33mclav3spvj3ympxxna",
       "sender_other_chain": "bnb1jh7uv2rm6339yue8k4mj9406k3509kr4wt5nxn",
-      "status": "Completed",
+      "status": "SWAP_STATUS_COMPLETED",
       "timestamp": "1641976566"
     },
     {
@@ -47,14 +47,14 @@
       ],
       "closed_block": "787122",
       "cross_chain": true,
-      "direction": "Incoming",
+      "direction": "SWAP_DIRECTION_INCOMING",
       "expire_height": "811799",
       "random_number_hash": "BFB7CC82DA0E0C8556AC37843F5AB136B9A7A066054368F5948944282B414D83",
       "recipient": "kava1eufgf0w9d7hf5mgtek4zr2upkxag9stmzx6unl",
       "recipient_other_chain": "bnb10zq89008gmedc6rrwzdfukjk94swynd7dl97w8",
       "sender": "kava1hh4x3a4suu5zyaeauvmv7ypf7w9llwlfufjmuu",
       "sender_other_chain": "bnb1vl3wn4x8kqajg2j9wxa5y5amgzdxchutkxr6at",
-      "status": "Expired",
+      "status": "SWAP_STATUS_EXPIRED",
       "timestamp": "1635694492"
     },
     {
@@ -66,14 +66,14 @@
       ],
       "closed_block": "787122",
       "cross_chain": true,
-      "direction": "Outgoing",
+      "direction": "SWAP_DIRECTION_OUTGOING",
       "expire_height": "811799",
       "random_number_hash": "BFB7CC82DA0E0C8556AC37843F5AB136B9A7A066054368F5948944282B414D83",
       "recipient": "kava1hh4x3a4suu5zyaeauvmv7ypf7w9llwlfufjmuu",
       "recipient_other_chain": "bnb1vl3wn4x8kqajg2j9wxa5y5amgzdxchutkxr6at",
       "sender": "kava1eufgf0w9d7hf5mgtek4zr2upkxag9stmzx6unl",
       "sender_other_chain": "bnb10zq89008gmedc6rrwzdfukjk94swynd7dl97w8",
-      "status": "Expired",
+      "status": "SWAP_STATUS_EXPIRED",
       "timestamp": "1635694492"
     },
     {
@@ -85,14 +85,14 @@
       ],
       "closed_block": "0",
       "cross_chain": true,
-      "direction": "Outgoing",
+      "direction": "SWAP_DIRECTION_OUTGOING",
       "expire_height": "1730589",
       "random_number_hash": "A74EA1AB58D312FDF1E872D18583CACCF294E639DDA4F303939E9ADCEC081D93",
       "recipient": "kava14qsmvzprqvhwmgql9fr0u3zv9n2qla8zhnm5pc",
       "recipient_other_chain": "bnb1lhk5ndlgf5wz55t8k35cqj6h9l3m4l5ek2w7q6",
       "sender": "kava1d2u28azje7rhqyjtxc2ex8q0cxxpw7dfm7ltq5",
       "sender_other_chain": "bnb1xz3xqf4p2ygrw9lhp5g5df4ep4nd20vsywnmpr",
-      "status": "Open",
+      "status": "SWAP_STATUS_OPEN",
       "timestamp": "1641934114"
     },
     {
@@ -104,14 +104,14 @@
       ],
       "closed_block": "0",
       "cross_chain": true,
-      "direction": "Incoming",
+      "direction": "SWAP_DIRECTION_INCOMING",
       "expire_height": "1740000",
       "random_number_hash": "39E9ADCEC081D93A74EA1A83CACCF294E639DDA4F3039B58D312FDF1E872D185",
       "recipient": "kava1d2u28azje7rhqyjtxc2ex8q0cxxpw7dfm7ltq5",
       "recipient_other_chain": "bnb1xz3xqf4p2ygrw9lhp5g5df4ep4nd20vsywnmpr",
       "sender": "kava14qsmvzprqvhwmgql9fr0u3zv9n2qla8zhnm5pc",
       "sender_other_chain": "bnb1lhk5ndlgf5wz55t8k35cqj6h9l3m4l5ek2w7q6",
-      "status": "Open",
+      "status": "SWAP_STATUS_OPEN",
       "timestamp": "1641934114"
     }
   ],
@@ -131,7 +131,7 @@
           "limit": "100000000000",
           "time_based_limit": "0",
           "time_limited": false,
-          "time_period": "0"
+          "time_period": "0s"
         }
       },
       {
@@ -148,7 +148,7 @@
           "limit": "2000000000000000",
           "time_based_limit": "0",
           "time_limited": false,
-          "time_period": "0"
+          "time_period": "0s"
         }
       },
       {
@@ -165,7 +165,7 @@
           "limit": "100000000000000",
           "time_based_limit": "0",
           "time_limited": false,
-          "time_period": "0"
+          "time_period": "0s"
         }
       },
       {
@@ -182,7 +182,7 @@
           "limit": "2000000000000000",
           "time_based_limit": "0",
           "time_limited": false,
-          "time_period": "0"
+          "time_period": "0s"
         }
       }
     ]
@@ -202,7 +202,7 @@
         "amount": "0",
         "denom": "bnb"
       },
-      "time_elapsed": "0",
+      "time_elapsed": "0s",
       "time_limited_current_supply": {
         "amount": "0",
         "denom": "bnb"

@@ -465,7 +465,12 @@
       },
       "atomic_swaps": [
         {
-          "amount": [{ "amount": "1999955998", "denom": "btcb" }],
+          "amount": [
+            {
+              "amount": "1999955998",
+              "denom": "btcb"
+            }
+          ],
           "closed_block": "1",
           "cross_chain": true,
           "direction": "SWAP_DIRECTION_INCOMING",
@@ -479,7 +484,12 @@
           "timestamp": "1636034914"
         },
         {
-          "amount": [{ "amount": "19000000000", "denom": "bnb" }],
+          "amount": [
+            {
+              "amount": "19000000000",
+              "denom": "bnb"
+            }
+          ],
           "closed_block": "1",
           "cross_chain": true,
           "direction": "SWAP_DIRECTION_OUTGOING",
@@ -493,7 +503,12 @@
           "timestamp": "1641976566"
         },
         {
-          "amount": [{ "amount": "999595462080", "denom": "busd" }],
+          "amount": [
+            {
+              "amount": "999595462080",
+              "denom": "busd"
+            }
+          ],
           "closed_block": "787122",
           "cross_chain": true,
           "direction": "SWAP_DIRECTION_INCOMING",
@@ -507,7 +522,12 @@
           "timestamp": "1635694492"
         },
         {
-          "amount": [{ "amount": "999595462080", "denom": "busd" }],
+          "amount": [
+            {
+              "amount": "999595462080",
+              "denom": "busd"
+            }
+          ],
           "closed_block": "787122",
           "cross_chain": true,
           "direction": "SWAP_DIRECTION_OUTGOING",
@@ -521,7 +541,12 @@
           "timestamp": "1635694492"
         },
         {
-          "amount": [{ "amount": "1000000", "denom": "btcb" }],
+          "amount": [
+            {
+              "amount": "1000000",
+              "denom": "btcb"
+            }
+          ],
           "closed_block": "0",
           "cross_chain": true,
           "direction": "SWAP_DIRECTION_OUTGOING",
@@ -535,7 +560,12 @@
           "timestamp": "1641934114"
         },
         {
-          "amount": [{ "amount": "1000000", "denom": "btcb" }],
+          "amount": [
+            {
+              "amount": "1000000",
+              "denom": "btcb"
+            }
+          ],
           "closed_block": "0",
           "cross_chain": true,
           "direction": "SWAP_DIRECTION_INCOMING",
