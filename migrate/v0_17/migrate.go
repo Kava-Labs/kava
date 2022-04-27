@@ -15,7 +15,7 @@ import (
 var (
 	// TODO: needs verification before release
 	GenesisTime = time.Date(2022, 5, 10, 17, 0, 0, 0, time.UTC)
-	ChainID     = "kava-2222-10"
+	ChainID     = "kava_2222-10"
 )
 
 func setConfigIfUnsealed() {
