@@ -24,10 +24,13 @@ func AllInvariants(bankK types.BankKeeper, k Keeper) sdk.Invariant {
 	}
 }
 
-// FullyBackedInvariant ensures all minor balances are backed exactly by the coins in the module account.
+// FullyBackedInvariant ensures all minor balances are backed by the coins in the module account.
+//
+// The module balance can be greater than the sum of all minor balances. This can happen in rare cases
+// where the evm module burns tokens.
 func FullyBackedInvariant(bankK types.BankKeeper, k Keeper) sdk.Invariant {
 	broken := false
-	message := sdk.FormatInvariant(types.ModuleName, "fully backed broken", "minor balances do not match module account")
+	message := sdk.FormatInvariant(types.ModuleName, "fully backed broken", "sum of minor balances greater than module account")
 
 	return func(ctx sdk.Context) (string, bool) {
 
@@ -40,7 +43,7 @@ func FullyBackedInvariant(bankK types.BankKeeper, k Keeper) sdk.Invariant {
 		bankAddr := authtypes.NewModuleAddress(types.ModuleName)
 		bankBalance := bankK.GetBalance(ctx, bankAddr, CosmosDenom).Amount.Mul(ConversionMultiplier)
 
-		broken = !totalMinorBalances.Equal(bankBalance)
+		broken = totalMinorBalances.GT(bankBalance)
 
 		return message, broken
 	}

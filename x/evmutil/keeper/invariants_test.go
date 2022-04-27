@@ -87,11 +87,11 @@ func (suite *invariantTestSuite) TestFullyBackedInvariant() {
 	_, broken = suite.runInvariant("fully-backed", keeper.FullyBackedInvariant)
 	suite.Equal(false, broken)
 
-	// break invariant by decreasing minor balances without decreasing module balance
-	suite.Keeper.RemoveBalance(suite.Ctx, suite.Addrs[0], sdk.OneInt())
+	// break invariant by increasing total minor balances above module balance
+	suite.Keeper.AddBalance(suite.Ctx, suite.Addrs[0], sdk.OneInt())
 
 	message, broken := suite.runInvariant("fully-backed", keeper.FullyBackedInvariant)
-	suite.Equal("evmutil: fully backed broken invariant\nminor balances do not match module account\n", message)
+	suite.Equal("evmutil: fully backed broken invariant\nsum of minor balances greater than module account\n", message)
 	suite.Equal(true, broken)
 }
 
