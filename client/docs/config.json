@@ -168,6 +168,23 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/kava/savings/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Savings"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Savings$1"
+          }
+        ]
+      }
+    },
+    {
       "url": "./client/docs/cosmos-swagger.yml",
       "dereference": {
         "circular": "ignore"
