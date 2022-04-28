@@ -19,6 +19,7 @@ import (
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	v017bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_17"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
@@ -100,4 +101,49 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 
 		appState[bep3types.ModuleName] = codec.MustMarshalJSON(migratedState)
 	}
+
+	if appState[committeetypes.ModuleName] != nil {
+		var genState committeetypes.GenesisState
+		codec.MustUnmarshalJSON(appState[committeetypes.ModuleName], &genState)
+
+		migratedState := adjustCommitteePermissions(genState)
+
+		appState[committeetypes.ModuleName] = codec.MustMarshalJSON(&migratedState)
+	}
+}
+
+func adjustCommitteePermissions(genState committeetypes.GenesisState) committeetypes.GenesisState {
+	// TODO fix committees
+	// stability
+	//  auction bid
+	//  savings module and incentive?
+	//  hard - same
+	//    missing ibc/79
+	//    extra swp
+	//  cdp
+	//    missing ibc/B44
+
+	// swap, safety - nothing
+
+	// hard
+	//  permission have extra swp
+	//  params have extra ibc/79
+
+	var newCommittees committeetypes.Committees
+	for _, committee := range genState.GetCommittees() {
+		// switch committee.GetDescription() {
+		// case "Hard Governance Committee":
+		// 	committee = fixHardPermissions(committee)
+		// case "Kava Stability Committee":
+		// 	committee = fixStabilityPermissions(committee)
+		// }
+		newCommittees = append(newCommittees, committee)
+	}
+
+	packedCommittees, err := committeetypes.PackCommittees(newCommittees)
+	if err != nil {
+		panic("TODO") // TODO
+	}
+	genState.Committees = packedCommittees
+	return genState
 }
