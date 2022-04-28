@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -141,7 +142,8 @@ import (
 )
 
 const (
-	appName = "kava"
+	appName     = "kava"
+	upgradeName = "testnet-evm-alpha-3"
 )
 
 var (
@@ -888,6 +890,30 @@ func NewApp(
 		if err := app.LoadLatestVersion(); err != nil {
 			panic(fmt.Sprintf("failed to load latest version: %s", err))
 		}
+	}
+
+	app.upgradeKeeper.SetUpgradeHandler(
+		upgradeName,
+		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			delete(fromVM, authz.ModuleName)
+			delete(fromVM, bridgetypes.ModuleName)
+			delete(fromVM, savingstypes.ModuleName)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		},
+	)
+
+	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
+	}
+
+	if upgradeInfo.Name == upgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{
+			Added: []string{authz.ModuleName, savingstypes.ModuleName, bridgetypes.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
