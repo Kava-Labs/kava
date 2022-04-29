@@ -8,6 +8,7 @@ import (
 	bridgetypes "github.com/kava-labs/kava-bridge/x/bridge/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -122,6 +123,29 @@ func TestMigrateSavings(t *testing.T) {
 	assert.Len(t, genstate.Deposits, 0)
 	assert.Equal(t, genstate.Params, savingstypes.Params{
 		SupportedDenoms: []string{},
+	})
+}
+
+func TestMigrateFull(t *testing.T) {
+	t.Skip()
+
+	// File: https://s3.us-west-2.amazonaws.com/levi.testing.kava.io/kava-9-4-19-export-genesis.json
+	// Height: 1145621
+	genDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "kava-9-4-19-export-genesis.json"))
+	assert.NoError(t, err)
+	ctx := newClientContext()
+	newGenDoc, err := Migrate(genDoc, ctx)
+	assert.NoError(t, err)
+
+	var appMap genutiltypes.AppMap
+	err = tmjson.Unmarshal(newGenDoc.AppState, &appMap)
+	assert.NoError(t, err)
+	config := app.MakeEncodingConfig()
+	err = app.ModuleBasics.ValidateGenesis(ctx.Codec, config.TxConfig, appMap)
+	assert.NoError(t, err)
+	tApp := app.NewTestApp()
+	require.NotPanics(t, func() {
+		tApp.InitializeFromGenesisStatesWithTimeAndChainID(newGenDoc.GenesisTime, newGenDoc.ChainID, app.GenesisState(appMap))
 	})
 }
 
