@@ -83,7 +83,7 @@ kvd export --for-zero-height --height 1411461 > export-genesis.json
 
   # Restart node with migrated genesis state
   cp genesis.json ~/.kava/config/genesis.json
-  kava unsafe-reset-all
+  kava tendermint unsafe-reset-all
 
   # Restart node -
   # ! Be sure to remove --halt-time flag if it is set in systemd/docker
