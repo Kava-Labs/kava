@@ -709,12 +709,6 @@
                 "allowed_params_changes": [
                   {
                     "subspace": "auction",
-                    "key": "BidDuration",
-                    "single_subparam_allowed_attrs": [],
-                    "multi_subparams_requirements": []
-                  },
-                  {
-                    "subspace": "auction",
                     "key": "IncrementSurplus",
                     "single_subparam_allowed_attrs": [],
                     "multi_subparams_requirements": []
@@ -881,6 +875,17 @@
                       {
                         "key": "type",
                         "val": "swp-a",
+                        "allowed_subparam_attr_changes": [
+                          "auction_size",
+                          "check_collateralization_index_count",
+                          "debt_limit",
+                          "keeper_reward_percentage",
+                          "stability_fee"
+                        ]
+                      },
+                      {
+                        "key": "type",
+                        "val": "ust-a",
                         "allowed_subparam_attr_changes": [
                           "auction_size",
                           "check_collateralization_index_count",
@@ -1181,8 +1186,31 @@
                           "keeper_reward_percentage",
                           "reserve_factor"
                         ]
+                      },
+                      {
+                        "key": "denom",
+                        "val": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098",
+                        "allowed_subparam_attr_changes": [
+                          "borrow_limit",
+                          "interest_rate_model",
+                          "keeper_reward_percentage",
+                          "reserve_factor",
+                          "spot_market_id"
+                        ]
                       }
                     ]
+                  },
+                  {
+                    "subspace": "auction",
+                    "key": "ForwardBidDuration",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "auction",
+                    "key": "ReverseBidDuration",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
                   }
                 ]
               },
@@ -1337,6 +1365,17 @@
                       {
                         "key": "denom",
                         "val": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+                        "allowed_subparam_attr_changes": [
+                          "borrow_limit",
+                          "interest_rate_model",
+                          "keeper_reward_percentage",
+                          "reserve_factor",
+                          "spot_market_id"
+                        ]
+                      },
+                      {
+                        "key": "denom",
+                        "val": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098",
                         "allowed_subparam_attr_changes": [
                           "borrow_limit",
                           "interest_rate_model",
