@@ -62,6 +62,8 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 
 	// x/feemarket
 	feemarketState := feemarkettypes.DefaultGenesisState()
+	// disable fee market and use minimum-gas-price instead of dynamic base fee
+	feemarketState.Params.NoBaseFee = true
 	appState[feemarkettypes.ModuleName] = codec.MustMarshalJSON(feemarketState)
 
 	// x/authz

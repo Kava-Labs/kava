@@ -75,7 +75,10 @@ func TestMigrateFeeMarket(t *testing.T) {
 	var genstate feemarkettypes.GenesisState
 	err := ctx.Codec.UnmarshalJSON(appMap[feemarkettypes.ModuleName], &genstate)
 	assert.NoError(t, err)
-	assert.Equal(t, genstate, *feemarkettypes.DefaultGenesisState())
+
+	expectedState := feemarkettypes.DefaultGenesisState()
+	expectedState.Params.NoBaseFee = true
+	assert.Equal(t, expectedState, &genstate)
 }
 
 func TestMigrateAuthz(t *testing.T) {
