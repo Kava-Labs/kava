@@ -2259,7 +2259,7 @@
     "upgrade": {},
     "feemarket": {
       "params": {
-        "no_base_fee": false,
+        "no_base_fee": true,
         "base_fee_change_denominator": 8,
         "elasticity_multiplier": 2,
         "enable_height": "0",
