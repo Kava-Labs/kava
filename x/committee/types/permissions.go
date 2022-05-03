@@ -112,6 +112,49 @@ func (perm ParamsChangePermission) Allows(ctx sdk.Context, pk ParamKeeper, p Pub
 
 type AllowedParamsChanges []AllowedParamsChange
 
+// Get searches the allowedParamsChange slice for the first item matching a subspace and key.
+// It returns false if not found.
+func (changes AllowedParamsChanges) Get(subspace, key string) (AllowedParamsChange, bool) {
+	for _, apc := range changes {
+		if apc.Subspace == subspace && apc.Key == key {
+			return apc, true
+		}
+	}
+	return AllowedParamsChange{}, false
+}
+
+// Set adds a new AllowedParamsChange, overwriting the first exiting item with matching subspace and key.
+func (changes *AllowedParamsChanges) Set(newChange AllowedParamsChange) {
+	for i, apc := range *changes {
+		if apc.Subspace == newChange.Subspace && apc.Key == newChange.Key {
+			(*changes)[i] = newChange
+			return
+		}
+	}
+	*changes = append(*changes, newChange)
+}
+
+// Delete removes the first AllowedParamsChange matching subspace and key.
+func (changes *AllowedParamsChanges) Delete(subspace, key string) {
+	var found bool
+	var foundAt int
+
+	for i, apc := range *changes {
+		if apc.Subspace == subspace && apc.Key == key {
+			found = true
+			foundAt = i
+			break
+		}
+	}
+	if !found {
+		return
+	}
+	*changes = append(
+		(*changes)[:foundAt],
+		(*changes)[foundAt+1:]...,
+	)
+}
+
 // filterByParamChange returns all targeted AllowedParamsChange that matches a given ParamChange's subspace and key.
 func (changes AllowedParamsChanges) filterByParamChange(paramChange paramsproposal.ParamChange) AllowedParamsChanges {
 	filtered := []AllowedParamsChange{}

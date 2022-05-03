@@ -19,6 +19,7 @@ import (
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	v017bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_17"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
@@ -101,5 +102,15 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 		migratedState := v017bep3.Migrate(v16GenState)
 
 		appState[bep3types.ModuleName] = codec.MustMarshalJSON(migratedState)
+	}
+
+	// x/committee
+	if appState[committeetypes.ModuleName] != nil {
+		var genState committeetypes.GenesisState
+		codec.MustUnmarshalJSON(appState[committeetypes.ModuleName], &genState)
+
+		migratedState := migrateCommitteePermissions(genState)
+
+		appState[committeetypes.ModuleName] = codec.MustMarshalJSON(&migratedState)
 	}
 }
