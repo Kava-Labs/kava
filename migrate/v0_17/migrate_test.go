@@ -51,15 +51,21 @@ func TestMigrateEvm(t *testing.T) {
 	appMap, ctx := migrateToV17AndGetAppMap(t)
 	var genstate evmtypes.GenesisState
 	err := ctx.Codec.UnmarshalJSON(appMap[evmtypes.ModuleName], &genstate)
+
+	expectedChainConfig := evmtypes.DefaultChainConfig()
+	expectedChainConfig.LondonBlock = nil
+	expectedChainConfig.ArrowGlacierBlock = nil
+	expectedChainConfig.MergeForkBlock = nil
+
 	assert.NoError(t, err)
 	assert.Len(t, genstate.Accounts, 0)
-	assert.Equal(t, genstate.Params, evmtypes.Params{
+	assert.Equal(t, evmtypes.Params{
 		EvmDenom:     "akava",
 		EnableCreate: true,
 		EnableCall:   true,
-		ChainConfig:  evmtypes.DefaultChainConfig(),
+		ChainConfig:  expectedChainConfig,
 		ExtraEIPs:    []int64{},
-	})
+	}, genstate.Params)
 }
 
 func TestMigrateAuction(t *testing.T) {
