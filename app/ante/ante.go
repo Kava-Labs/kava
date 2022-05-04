@@ -104,6 +104,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	decorators = append(decorators,
 		authante.NewMempoolFeeDecorator(),
 		NewVestingAccountDecorator(),
+		NewAuthzLimiterDecorator(sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{})),
 		authante.NewValidateBasicDecorator(),
 		authante.NewTxTimeoutHeightDecorator(),
 		authante.NewValidateMemoDecorator(options.AccountKeeper),
