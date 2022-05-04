@@ -12,7 +12,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	ethermintclient "github.com/tharsis/ethermint/client"
 	"github.com/tharsis/ethermint/crypto/hd"
@@ -65,15 +64,7 @@ func NewRootCmd() *cobra.Command {
 
 			customAppTemplate, customAppConfig := servercfg.AppConfig("ukava")
 
-			err = server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig)
-			if err != nil {
-				return err
-			}
-			ctx := server.GetServerContextFromCmd(cmd)
-			v := viper.GetViper()
-			*v = *ctx.Viper
-
-			return nil
+			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig)
 		},
 	}
 
