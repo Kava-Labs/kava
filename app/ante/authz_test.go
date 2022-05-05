@@ -139,7 +139,7 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 			expectedErr: sdkerrors.ErrUnauthorized,
 		},
 		{
-			name: "when a MsgExec contains a blocked msg surrounded by valid msgs, it is still blocked",
+			name: "blocked msg surrounded by valid msgs is still blocked",
 			msgs: []sdk.Msg{
 				newMsgGrant(
 					testAddresses[0],
@@ -156,6 +156,42 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 							sdk.NewCoins(sdk.NewInt64Coin("ukava", 100e6)),
 						),
 						&evmtypes.MsgEthereumTx{},
+					},
+				),
+			},
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
+		},
+		{
+			name: "a nested MsgExec containing a blocked msg is still blocked",
+			msgs: []sdk.Msg{
+				newMsgExec(
+					testAddresses[1],
+					[]sdk.Msg{
+						newMsgExec(
+							testAddresses[2],
+							[]sdk.Msg{
+								&evmtypes.MsgEthereumTx{},
+							},
+						),
+					},
+				),
+			},
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
+		},
+		{
+			name: "a nested MsgGrant containing a blocked msg is still blocked",
+			msgs: []sdk.Msg{
+				newMsgExec(
+					testAddresses[1],
+					[]sdk.Msg{
+						newMsgGrant(
+							testAddresses[0],
+							testAddresses[1],
+							authz.NewGenericAuthorization(sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{})),
+							distantFuture,
+						),
 					},
 				),
 			},

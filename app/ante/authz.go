@@ -1,6 +1,8 @@
 package ante
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -20,28 +22,52 @@ func NewAuthzLimiterDecorator(disabledMsgTypes ...string) AuthzLimiterDecorator 
 }
 
 func (ald AuthzLimiterDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	for _, msgI := range tx.GetMsgs() {
-		switch msg := msgI.(type) {
-		case *authz.MsgGrant:
-			authorization := msg.GetAuthorization()
-			for _, typeUrl := range ald.disabledMsgTypes {
-				if authorization.MsgTypeURL() == typeUrl {
-					return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "cannot authz grant msg type %s", typeUrl)
-				}
+	err = ald.checkForDisabledMsg(tx.GetMsgs(), true)
+	if err != nil {
+		return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%v", err)
+	}
+	return next(ctx, tx, simulate)
+}
+
+func (ald AuthzLimiterDecorator) checkForDisabledMsg(msgs []sdk.Msg, searchOnlyInAuthzMsgs bool) error {
+	for _, msg := range msgs {
+		typeURL := sdk.MsgTypeURL(msg)
+		switch {
+		case !searchOnlyInAuthzMsgs && ald.isDisabled(typeURL):
+			return fmt.Errorf("found disabled msg type: %s", typeURL)
+
+		case typeURL == sdk.MsgTypeURL(&authz.MsgGrant{}):
+			m, ok := msg.(*authz.MsgGrant)
+			if !ok {
+				panic("unexpected msg type")
 			}
-		case *authz.MsgExec:
-			innerMsgs, err := msg.GetMessages()
+			authorization := m.GetAuthorization()
+			if ald.isDisabled(authorization.MsgTypeURL()) {
+				return fmt.Errorf("found disabled msg type: %s", typeURL)
+			}
+
+		case typeURL == sdk.MsgTypeURL(&authz.MsgExec{}):
+			m, ok := msg.(*authz.MsgExec)
+			if !ok {
+				panic("unexpected msg type")
+			}
+			innerMsgs, err := m.GetMessages()
 			if err != nil {
-				return ctx, err
+				return err
 			}
-			for _, innerMsg := range innerMsgs {
-				for _, typeUrl := range ald.disabledMsgTypes {
-					if sdk.MsgTypeURL(innerMsg) == typeUrl {
-						return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "cannot authz exec msg type %s", typeUrl)
-					}
-				}
+			if err := ald.checkForDisabledMsg(innerMsgs, false); err != nil {
+				return err
 			}
 		}
 	}
-	return next(ctx, tx, simulate)
+	return nil
+}
+
+func (ald AuthzLimiterDecorator) isDisabled(msgTypeURL string) bool {
+	for _, disabledType := range ald.disabledMsgTypes {
+		if msgTypeURL == disabledType {
+			return true
+		}
+	}
+	return false
 }
