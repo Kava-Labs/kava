@@ -76,6 +76,14 @@ sed -in-place='' 's/aphoton/akava/g' $DATA/config/genesis.json
 # Zero out the total supply so it gets recalculated during InitGenesis
 jq '.app_state.bank.supply = []' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
 
+# Disable fee market
+jq '.app_state.feemarket.params.no_base_fee = true' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+
+# Disable london fork
+jq '.app_state.evm.params.chain_config.london_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+jq '.app_state.evm.params.chain_config.arrow_glacier_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+jq '.app_state.evm.params.chain_config.merge_fork_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+
 # Enable bridge
 jq '.app_state.bridge.params.bridge_enabled = true' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
 
