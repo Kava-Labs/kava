@@ -16,8 +16,6 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 }
 
 func migrateParamsStore(ctx sdk.Context, paramstore paramtypes.Subspace) {
-	paramstore.WithKeyTable(types.ParamKeyTable())
 	paramstore.Set(ctx, types.KeyForwardBidDuration, types.DefaultForwardBidDuration)
 	paramstore.Set(ctx, types.KeyReverseBidDuration, types.DefaultReverseBidDuration)
-
 }
