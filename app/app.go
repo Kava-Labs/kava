@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -887,30 +886,16 @@ func NewApp(
 
 	app.upgradeKeeper.SetUpgradeHandler(
 		upgradeName,
-		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+			fromVM := app.mm.GetVersionMap()
+			fromVM[incentivetypes.ModuleName] = 1
+			fromVM[auctiontypes.ModuleName] = 1
+			delete(fromVM, authz.ModuleName)
+			delete(fromVM, bridgetypes.ModuleName)
+			delete(fromVM, savingstypes.ModuleName)
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
-
-	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if upgradeInfo.Name == upgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := store.StoreUpgrades{
-			Added: []string{
-				authz.ModuleName,
-				savingstypes.ModuleName,
-				bridgetypes.ModuleName,
-				incentivetypes.ModuleName,
-				auctiontypes.ModuleName,
-			},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
 
 	// load store
 	if !options.SkipLoadLatest {
@@ -941,6 +926,8 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
+
+	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
