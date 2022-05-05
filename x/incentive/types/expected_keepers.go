@@ -14,6 +14,8 @@ import (
 type ParamSubspace interface {
 	GetParamSet(sdk.Context, paramtypes.ParamSet)
 	SetParamSet(sdk.Context, paramtypes.ParamSet)
+	Get(ctx sdk.Context, key []byte, ptr interface{})
+	Set(ctx sdk.Context, key []byte, param interface{})
 	WithKeyTable(paramtypes.KeyTable) paramtypes.Subspace
 	HasKeyTable() bool
 }
