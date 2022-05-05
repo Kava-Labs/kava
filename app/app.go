@@ -885,19 +885,9 @@ func NewApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	// load store
-	if !options.SkipLoadLatest {
-		if err := app.LoadLatestVersion(); err != nil {
-			panic(fmt.Sprintf("failed to load latest version: %s", err))
-		}
-	}
-
 	app.upgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			delete(fromVM, authz.ModuleName)
-			delete(fromVM, bridgetypes.ModuleName)
-			delete(fromVM, savingstypes.ModuleName)
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
@@ -909,11 +899,24 @@ func NewApp(
 
 	if upgradeInfo.Name == upgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
-			Added: []string{authz.ModuleName, savingstypes.ModuleName, bridgetypes.ModuleName},
+			Added: []string{
+				authz.ModuleName,
+				savingstypes.ModuleName,
+				bridgetypes.ModuleName,
+				incentivetypes.ModuleName,
+				auctiontypes.ModuleName,
+			},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	// load store
+	if !options.SkipLoadLatest {
+		if err := app.LoadLatestVersion(); err != nil {
+			panic(fmt.Sprintf("failed to load latest version: %s", err))
+		}
 	}
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
@@ -938,10 +941,6 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
-
-	// Store current module versions in kava-10 to setup future in-place upgrades.
-	// During in-place migrations, the old module versions in the store will be referenced to determine which migrations to run.
-	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
