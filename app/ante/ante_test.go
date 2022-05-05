@@ -1,6 +1,7 @@
 package ante_test
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -8,18 +9,27 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmdb "github.com/tendermint/tm-db"
+	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/app"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-func TestAppAnteHandler(t *testing.T) {
+func TestMain(m *testing.M) {
+	app.SetSDKConfig()
+	os.Exit(m.Run())
+}
+
+func TestAppAnteHandler_AuthorizedMempool(t *testing.T) {
 	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(10)
 	unauthed := testAddresses[0:2]
 	unauthedKeys := testPrivKeys[0:2]
@@ -176,4 +186,81 @@ func newBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app
 		PreviousBlockTime: bep3types.DefaultPreviousBlockTime,
 	}
 	return app.GenesisState{bep3types.ModuleName: cdc.MustMarshalJSON(&bep3Genesis)}
+}
+
+func TestAppAnteHandler_RejectMsgsInAuthz(t *testing.T) {
+	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(10)
+
+	newMsgGrant := func(msgTypeUrl string) *authz.MsgGrant {
+		msg, err := authz.NewMsgGrant(
+			testAddresses[0],
+			testAddresses[1],
+			authz.NewGenericAuthorization(msgTypeUrl),
+			time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC),
+		)
+		if err != nil {
+			panic(err)
+		}
+		return msg
+	}
+
+	chainID := "kavatest_1-1"
+	encodingConfig := app.MakeEncodingConfig()
+
+	testcases := []struct {
+		name         string
+		msg          sdk.Msg
+		expectedCode uint32
+	}{
+		{
+			name:         "MsgEthereumTx is blocked",
+			msg:          newMsgGrant(sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{})),
+			expectedCode: sdkerrors.ErrUnauthorized.ABCICode(),
+		},
+		{
+			name:         "MsgCreateVestingAccount is blocked",
+			msg:          newMsgGrant(sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{})),
+			expectedCode: sdkerrors.ErrUnauthorized.ABCICode(),
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			tApp := app.NewTestApp()
+
+			tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainID(
+				time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+				chainID,
+			)
+
+			stdTx, err := helpers.GenTx(
+				encodingConfig.TxConfig,
+				[]sdk.Msg{tc.msg},
+				sdk.NewCoins(), // no fee
+				helpers.DefaultGenTxGas,
+				chainID,
+				[]uint64{0},
+				[]uint64{0},
+				testPrivKeys[0],
+			)
+			require.NoError(t, err)
+			txBytes, err := encodingConfig.TxConfig.TxEncoder()(stdTx)
+			require.NoError(t, err)
+
+			resCheckTx := tApp.CheckTx(
+				abci.RequestCheckTx{
+					Tx:   txBytes,
+					Type: abci.CheckTxType_New,
+				},
+			)
+			require.Equal(t, resCheckTx.Code, tc.expectedCode, resCheckTx.Log)
+
+			resDeliverTx := tApp.DeliverTx(
+				abci.RequestDeliverTx{
+					Tx: txBytes,
+				},
+			)
+			require.Equal(t, resDeliverTx.Code, tc.expectedCode, resDeliverTx.Log)
+		})
+	}
 }
