@@ -29,6 +29,12 @@ func (ald AuthzLimiterDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 	return next(ctx, tx, simulate)
 }
 
+// checkForDisabledMsg iterates through the msgs and returns an error if it finds any unauthorized msgs.
+//
+// When searchOnlyInAuthzMsgs is enabled, only authz MsgGrant and MsgExec are blocked, if they contain unauthorized msg types.
+// Otherwise any msg matching the disabled types are blocked, regardless of being in an authz msg or not.
+//
+// This method is recursive as MsgExec's can wrap other MsgExecs.
 func (ald AuthzLimiterDecorator) checkForDisabledMsg(msgs []sdk.Msg, searchOnlyInAuthzMsgs bool) error {
 	for _, msg := range msgs {
 		typeURL := sdk.MsgTypeURL(msg)
@@ -43,7 +49,7 @@ func (ald AuthzLimiterDecorator) checkForDisabledMsg(msgs []sdk.Msg, searchOnlyI
 			}
 			authorization := m.GetAuthorization()
 			if ald.isDisabled(authorization.MsgTypeURL()) {
-				return fmt.Errorf("found disabled msg type: %s", typeURL)
+				return fmt.Errorf("found disabled msg type in MsgGrant: %s", authorization.MsgTypeURL())
 			}
 
 		case typeURL == sdk.MsgTypeURL(&authz.MsgExec{}):
