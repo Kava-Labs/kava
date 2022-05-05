@@ -52,13 +52,20 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			name: "normal msg is not blocked",
+			name: "a non blocked msg is not blocked",
 			msgs: []sdk.Msg{
 				banktypes.NewMsgSend(
 					testAddresses[0],
 					testAddresses[1],
 					sdk.NewCoins(sdk.NewInt64Coin("ukava", 100e6)),
 				),
+			},
+			checkTx: false,
+		},
+		{
+			name: "a blocked msg is not blocked when not wrapped in MsgExec",
+			msgs: []sdk.Msg{
+				&evmtypes.MsgEthereumTx{},
 			},
 			checkTx: false,
 		},
