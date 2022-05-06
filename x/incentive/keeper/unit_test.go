@@ -131,6 +131,14 @@ func (subspace *fakeParamSubspace) WithKeyTable(paramtypes.KeyTable) paramtypes.
 	return paramtypes.Subspace{}
 }
 
+func (subspace *fakeParamSubspace) Get(ctx sdk.Context, key []byte, ptr interface{}) {
+
+}
+
+func (subspace *fakeParamSubspace) Set(ctx sdk.Context, key []byte, param interface{}) {
+
+}
+
 // fakeSwapKeeper is a stub swap keeper.
 // It can be used to return values to the incentive keeper without having to initialize a full swap keeper.
 type fakeSwapKeeper struct {
