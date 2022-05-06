@@ -85,10 +85,15 @@ kvd export --for-zero-height --height 1412300 > export-genesis.json
   cp genesis.json ~/.kava/config/genesis.json
   kava tendermint unsafe-reset-all
 
+  # Update app.toml - see section below
+
   # Restart node -
   # ! Be sure to remove --halt-time flag if it is set in systemd/docker
   kava start
 ```
+
+kava v0.17 requires changes to app.toml
+- See [default app.toml](app.toml)
 
 ### Coordination
 
