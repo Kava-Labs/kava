@@ -2,10 +2,10 @@
 set -e
 
 validatorMnemonic="equip town gesture square tomorrow volume nephew minute witness beef rich gadget actress egg sing secret pole winter alarm law today check violin uncover"
-# kava1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkp40r02
+# kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
 
 faucetMnemonic="crash sort dwarf disease change advice attract clump avoid mobile clump right junior axis book fresh mask tube front require until face effort vault"
-# kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz
+# kava1adkm6svtzjsxxvg7g6rshg6kj9qwej8gwqadqd
 
 evmFaucetMnemonic="hundred flash cattle inquiry gorilla quick enact lazy galaxy apple bitter liberty print sun hurdle oak town cash because round chalk marriage response success"
 # 0x3C854F92F726A7897C8B23F55B2D6E2C482EF3E0
@@ -75,6 +75,14 @@ sed -in-place='' 's/aphoton/akava/g' $DATA/config/genesis.json
 
 # Zero out the total supply so it gets recalculated during InitGenesis
 jq '.app_state.bank.supply = []' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+
+# Disable fee market
+jq '.app_state.feemarket.params.no_base_fee = true' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+
+# Disable london fork
+jq '.app_state.evm.params.chain_config.london_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+jq '.app_state.evm.params.chain_config.arrow_glacier_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+jq '.app_state.evm.params.chain_config.merge_fork_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
 
 # Enable bridge
 jq '.app_state.bridge.params.bridge_enabled = true' $DATA/config/genesis.json | sponge $DATA/config/genesis.json

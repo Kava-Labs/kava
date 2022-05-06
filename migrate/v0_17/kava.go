@@ -36,13 +36,18 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 	appState[evmutiltypes.ModuleName] = codec.MustMarshalJSON(evmUtilGenState)
 
 	// x/evm
+	evmChainConfig := evmtypes.DefaultChainConfig()
+	evmChainConfig.LondonBlock = nil
+	evmChainConfig.ArrowGlacierBlock = nil
+	evmChainConfig.MergeForkBlock = nil
+
 	evmGenState := &evmtypes.GenesisState{
 		Accounts: []evmtypes.GenesisAccount{},
 		Params: evmtypes.Params{
 			EvmDenom:     "akava",
 			EnableCreate: true,
 			EnableCall:   true,
-			ChainConfig:  evmtypes.DefaultChainConfig(),
+			ChainConfig:  evmChainConfig,
 			ExtraEIPs:    nil,
 		},
 	}
