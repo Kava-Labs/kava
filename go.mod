@@ -162,7 +162,7 @@ replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	// Make sure that only one version of tendermint is imported
 	github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.34.19
-	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.14.0-kava-v17
+	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.14.0-kava-v17.2
 	// Make sure that we use grpc compatible with cosmos
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
