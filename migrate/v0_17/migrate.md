@@ -28,11 +28,11 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ### Before the upgrade
 
-Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height **1412300** as the final block height for kava-9. This height corresponds to approximately 14:00 UTC on March 10th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators.
+Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height **1412300** as the final block height for kava-9. This height corresponds to approximately 14:00 UTC on May 10th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators.
 
 ### On the day of the upgrade
 
-**The kava chain is expected to halt at block height **1412300**, at approximately 14:00 UTC, and restart with new software at 17:00 UTC March 10th. Do not stop your node and begin the upgrade before 14:00 UTC on March 10th, or you may go offline and be unable to recover until after the upgrade!**
+**The kava chain is expected to halt at block height **1412300**, at approximately 14:00 UTC, and restart with new software at 17:00 UTC May 10th. Do not stop your node and begin the upgrade before 14:00 UTC on May 10th, or you may go offline and be unable to recover until after the upgrade!**
 
 **Make sure the kava process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
@@ -92,4 +92,4 @@ kvd export --for-zero-height --height 1412300 > export-genesis.json
 
 ### Coordination
 
-If the kava-10 chain does not launch by March 10, 2022 at 21:00 UTC, the launch should be considered a failure and validators should refer to the [rollback](./rollback.md) instructions to restart the previous kava-9 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
+If the kava-10 chain does not launch by May 10, 2022 at 21:00 UTC, the launch should be considered a failure and validators should refer to the [rollback](./rollback.md) instructions to restart the previous kava-9 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
