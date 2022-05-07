@@ -9,7 +9,6 @@ import (
 
 // Deposit deposit
 func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
-
 	err := k.ValidateDeposit(ctx, coins)
 	if err != nil {
 		return err

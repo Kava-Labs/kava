@@ -97,8 +97,7 @@ func (s QueryServer) TotalCollateral(c context.Context, req *types.QueryTotalCol
 
 	// collect collateral types for each denom
 	for _, collateralParam := range params.CollateralParams {
-		denomCollateralTypes[collateralParam.Denom] =
-			append(denomCollateralTypes[collateralParam.Denom], collateralParam.Type)
+		denomCollateralTypes[collateralParam.Denom] = append(denomCollateralTypes[collateralParam.Denom], collateralParam.Type)
 	}
 
 	// sort collateral types alphabetically

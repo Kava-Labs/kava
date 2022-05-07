@@ -48,7 +48,8 @@ func (s queryServer) Price(c context.Context, req *types.QueryPriceRequest) (*ty
 	}
 
 	return &types.QueryPriceResponse{
-		Price: types.CurrentPriceResponse(currentPrice)}, nil
+		Price: types.CurrentPriceResponse(currentPrice),
+	}, nil
 }
 
 func (s queryServer) Prices(c context.Context, req *types.QueryPricesRequest) (*types.QueryPricesResponse, error) {

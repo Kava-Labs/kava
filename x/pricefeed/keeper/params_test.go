@@ -66,6 +66,7 @@ func (suite *KeeperTestSuite) TestGetAuthorizedAddresses() {
 
 	suite.Require().ElementsMatch(oracles, actualOracles)
 }
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }

@@ -365,6 +365,7 @@ func TestMinTime(t *testing.T) {
 		})
 	}
 }
+
 func TestMaxTime(t *testing.T) {
 	type args struct {
 		t1, t2 time.Time

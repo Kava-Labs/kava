@@ -31,7 +31,6 @@ type PostProposalReq struct {
 
 func postProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		// Parse and validate url params
 		vars := mux.Vars(r)
 		if len(vars[RestCommitteeID]) == 0 {
@@ -78,7 +77,6 @@ type PostVoteReq struct {
 
 func postVoteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		// Parse and validate url params
 		vars := mux.Vars(r)
 		if len(vars[RestProposalID]) == 0 {
@@ -148,7 +146,6 @@ func ProposalRESTHandler(cliCtx client.Context) govrest.ProposalRESTHandler {
 
 func postGovProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		// Parse and validate http request body
 		var req PostGovProposalReq
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {

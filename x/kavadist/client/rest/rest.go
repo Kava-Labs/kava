@@ -28,6 +28,7 @@ func ProposalRESTHandler(cliCtx client.Context) govrest.ProposalRESTHandler {
 		Handler:  postProposalHandlerFn(cliCtx),
 	}
 }
+
 func postProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CommunityPoolMultiSpendProposalReq

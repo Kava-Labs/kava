@@ -3,7 +3,6 @@ package types_test
 import (
 	"fmt"
 	"math/big"
-
 	"testing"
 
 	types "github.com/kava-labs/kava/x/swap/types"
@@ -387,7 +386,8 @@ func TestBasePool_ReservesOnlyDepletedWithLastShare(t *testing.T) {
 		{i(5), i(5)},
 		{i(100), i(100)},
 		{i(100), i(10000000)},
-		{i(1e5), i(5e6)}, {i(1e6), i(5e6)},
+		{i(1e5), i(5e6)},
+		{i(1e6), i(5e6)},
 		{i(1e15), i(7e15)},
 		{i(1), i(6e18)},
 		{i(1.345678e18), i(4.313456e18)},

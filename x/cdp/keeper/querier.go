@@ -68,7 +68,6 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQu
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
-
 }
 
 // query deposits on a particular cdp
@@ -96,7 +95,6 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, leg
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
-
 }
 
 // query cdps with matching denom and ratio LESS THAN the input ratio
@@ -264,8 +262,7 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 
 	// collect collateral types for each denom
 	for _, collateralParam := range params.CollateralParams {
-		denomCollateralTypes[collateralParam.Denom] =
-			append(denomCollateralTypes[collateralParam.Denom], collateralParam.Type)
+		denomCollateralTypes[collateralParam.Denom] = append(denomCollateralTypes[collateralParam.Denom], collateralParam.Type)
 	}
 
 	// sort collateral types alphabetically

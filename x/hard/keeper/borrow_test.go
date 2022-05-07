@@ -427,7 +427,6 @@ func (suite *KeeperTestSuite) TestBorrow() {
 }
 
 func (suite *KeeperTestSuite) TestValidateBorrow() {
-
 	blockDuration := time.Second * 3600 * 24 // long blocks to accumulate larger interest
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)

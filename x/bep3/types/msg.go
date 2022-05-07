@@ -38,7 +38,8 @@ var (
 // NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
 func NewMsgCreateAtomicSwap(from, to string, recipientOtherChain,
 	senderOtherChain string, randomNumberHash tmbytes.HexBytes, timestamp int64,
-	amount sdk.Coins, heightSpan uint64) MsgCreateAtomicSwap {
+	amount sdk.Coins, heightSpan uint64,
+) MsgCreateAtomicSwap {
 	return MsgCreateAtomicSwap{
 		From:                from,
 		To:                  to,

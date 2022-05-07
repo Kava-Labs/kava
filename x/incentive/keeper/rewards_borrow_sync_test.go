@@ -45,6 +45,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenGlo
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
 }
+
 func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUnchangedWhenGlobalIndexesUnchanged() {
 	// It should be safe to call SynchronizeHardBorrowReward multiple times
 
@@ -69,6 +70,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUnchangedWhenG
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 	suite.Equal(unchangingIndexes, syncedClaim.BorrowRewardIndexes)
 }
+
 func (suite *SynchronizeHardBorrowRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardAdded() {
 	// When a new reward is added (via gov) for a hard borrow denom the user has already borrowed, and the claim is synced;
 	// Then the new reward's index should be added to the claim.
@@ -235,6 +237,7 @@ func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRew
 		syncedClaim.Reward,
 	)
 }
+
 func (suite *SynchronizeHardBorrowRewardTests) TestRewardIsIncrementedWhenNewRewardDenomAdded() {
 	// When a new reward coin is added (via gov) to an already rewarded borrow denom (that the user has already borrowed), and the claim is synced;
 	// Then the user earns rewards for the time since the reward was added
@@ -304,7 +307,8 @@ func NewBorrowBuilder(borrower sdk.AccAddress) BorrowBuilder {
 	return BorrowBuilder{
 		Borrow: hardtypes.Borrow{
 			Borrower: borrower,
-		}}
+		},
+	}
 }
 
 // Build assembles and returns the final borrow.
@@ -500,6 +504,7 @@ func TestCalculateRewards(t *testing.T) {
 		})
 	}
 }
+
 func TestCalculateSingleReward(t *testing.T) {
 	type expected struct {
 		err    error

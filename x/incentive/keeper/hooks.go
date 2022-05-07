@@ -15,11 +15,13 @@ type Hooks struct {
 	k Keeper
 }
 
-var _ cdptypes.CDPHooks = Hooks{}
-var _ hardtypes.HARDHooks = Hooks{}
-var _ stakingtypes.StakingHooks = Hooks{}
-var _ swaptypes.SwapHooks = Hooks{}
-var _ savingstypes.SavingsHooks = Hooks{}
+var (
+	_ cdptypes.CDPHooks         = Hooks{}
+	_ hardtypes.HARDHooks       = Hooks{}
+	_ stakingtypes.StakingHooks = Hooks{}
+	_ swaptypes.SwapHooks       = Hooks{}
+	_ savingstypes.SavingsHooks = Hooks{}
+)
 
 // Hooks create new incentive hooks
 func (k Keeper) Hooks() Hooks { return Hooks{k} }

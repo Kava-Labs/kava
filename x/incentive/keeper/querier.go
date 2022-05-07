@@ -262,7 +262,6 @@ func queryGetSavingsRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, le
 }
 
 func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-
 	var usdxFactors types.RewardIndexes
 	k.IterateUSDXMintingRewardFactors(ctx, func(collateralType string, factor sdk.Dec) (stop bool) {
 		usdxFactors = usdxFactors.With(collateralType, factor)

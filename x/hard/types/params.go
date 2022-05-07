@@ -61,7 +61,8 @@ func (bl BorrowLimit) Equal(blCompareTo BorrowLimit) bool {
 
 // NewMoneyMarket returns a new MoneyMarket
 func NewMoneyMarket(denom string, borrowLimit BorrowLimit, spotMarketID string, conversionFactor sdk.Int,
-	interestRateModel InterestRateModel, reserveFactor, keeperRewardPercentage sdk.Dec) MoneyMarket {
+	interestRateModel InterestRateModel, reserveFactor, keeperRewardPercentage sdk.Dec,
+) MoneyMarket {
 	return MoneyMarket{
 		Denom:                  denom,
 		BorrowLimit:            borrowLimit,

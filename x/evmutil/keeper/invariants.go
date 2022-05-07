@@ -33,7 +33,6 @@ func FullyBackedInvariant(bankK types.BankKeeper, k Keeper) sdk.Invariant {
 	message := sdk.FormatInvariant(types.ModuleName, "fully backed broken", "sum of minor balances greater than module account")
 
 	return func(ctx sdk.Context) (string, bool) {
-
 		totalMinorBalances := sdk.ZeroInt()
 		k.IterateAllAccounts(ctx, func(acc types.Account) bool {
 			totalMinorBalances = totalMinorBalances.Add(acc.Balance)
@@ -55,7 +54,6 @@ func SmallBalancesInvariant(_ types.BankKeeper, k Keeper) sdk.Invariant {
 	message := sdk.FormatInvariant(types.ModuleName, "small balances broken", "minor balances not all less than overflow")
 
 	return func(ctx sdk.Context) (string, bool) {
-
 		k.IterateAllAccounts(ctx, func(account types.Account) bool {
 			if account.Balance.GTE(ConversionMultiplier) {
 				broken = true

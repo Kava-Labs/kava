@@ -39,7 +39,6 @@ func (suite *GenesisTestSuite) SetupTest() {
 }
 
 func (suite *GenesisTestSuite) Test_InitExportGenesis() {
-
 	loanToValue, _ := sdk.NewDecFromStr("0.6")
 	params := types.NewParams(
 		types.MoneyMarkets{

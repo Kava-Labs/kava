@@ -16,7 +16,6 @@ import (
 
 // getProposalVoteMap collects up votes into a map indexed by proposalID
 func getProposalVoteMap(k keeper.Keeper, ctx sdk.Context) map[uint64]([]types.Vote) {
-
 	proposalVoteMap := map[uint64]([]types.Vote){}
 
 	k.IterateProposals(ctx, func(p types.Proposal) bool {

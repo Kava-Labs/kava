@@ -15,7 +15,8 @@ import (
 // CreateAtomicSwap creates a new atomic swap.
 func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, timestamp int64, heightSpan uint64,
 	sender, recipient sdk.AccAddress, senderOtherChain, recipientOtherChain string,
-	amount sdk.Coins, crossChain bool) error {
+	amount sdk.Coins, crossChain bool,
+) error {
 	// Confirm that this is not a duplicate swap
 	swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 	_, found := k.GetAtomicSwap(ctx, swapID)

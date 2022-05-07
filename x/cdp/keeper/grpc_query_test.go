@@ -217,6 +217,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryCdp() {
 		})
 	}
 }
+
 func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 	suite.addCdp()
 

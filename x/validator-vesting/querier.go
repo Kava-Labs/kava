@@ -59,7 +59,6 @@ func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, bk types.
 }
 
 func getCirculatingSupply(blockTime time.Time, totalSupply sdk.Int) sdk.Int {
-
 	vestingDates := []time.Time{
 		time.Date(2022, 2, 5, 14, 0, 0, 0, time.UTC),
 		time.Date(2022, 5, 5, 14, 0, 0, 0, time.UTC),

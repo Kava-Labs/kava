@@ -9,10 +9,13 @@ const MaxDenomsToClaim = 1000
 
 // ensure Msg interface compliance at compile time
 var _ sdk.Msg = &MsgClaimUSDXMintingReward{}
-var _ sdk.Msg = &MsgClaimHardReward{}
-var _ sdk.Msg = &MsgClaimDelegatorReward{}
-var _ sdk.Msg = &MsgClaimSwapReward{}
-var _ sdk.Msg = &MsgClaimSavingsReward{}
+
+var (
+	_ sdk.Msg = &MsgClaimHardReward{}
+	_ sdk.Msg = &MsgClaimDelegatorReward{}
+	_ sdk.Msg = &MsgClaimSwapReward{}
+	_ sdk.Msg = &MsgClaimSavingsReward{}
+)
 
 // NewMsgClaimUSDXMintingReward returns a new MsgClaimUSDXMintingReward.
 func NewMsgClaimUSDXMintingReward(sender string, multiplierName string) MsgClaimUSDXMintingReward {

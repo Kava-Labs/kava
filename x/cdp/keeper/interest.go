@@ -9,9 +9,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
-var (
-	scalingFactor = 1e18
-)
+var scalingFactor = 1e18
 
 // AccumulateInterest calculates the new interest that has accrued for the input collateral type based on the total amount of principal
 // that has been created with that collateral type and the amount of time that has passed since interest was last accumulated

@@ -31,7 +31,6 @@ func TestUSDXIntegration(t *testing.T) {
 
 // SetupTest is run automatically before each suite test
 func (suite *USDXIntegrationTests) SetupTest() {
-
 	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
 
 	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
@@ -104,7 +103,6 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing(
 }
 
 func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncing() {
-
 	user := suite.addrs[0]
 	initialCollateral := c("bnb", 1e9)
 
@@ -152,7 +150,6 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncin
 }
 
 func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOverPayments() {
-
 	userA := suite.addrs[0]
 	userB := suite.addrs[1]
 

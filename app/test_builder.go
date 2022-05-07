@@ -84,7 +84,6 @@ func (builder *AuthBankGenesisBuilder) WithSimpleModuleAccount(moduleName string
 
 // WithSimplePeriodicVestingAccount adds a periodic vesting account to the genesis state.
 func (builder *AuthBankGenesisBuilder) WithSimplePeriodicVestingAccount(address sdk.AccAddress, balance sdk.Coins, periods vestingtypes.Periods, firstPeriodStartTimestamp int64) *AuthBankGenesisBuilder {
-
 	vestingAccount := newPeriodicVestingAccount(address, periods, firstPeriodStartTimestamp)
 
 	return builder.

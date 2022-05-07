@@ -20,6 +20,7 @@ func (suite *usdxRewardsUnitTester) storeGlobalUSDXIndexes(indexes types.RewardI
 		suite.keeper.SetUSDXMintingRewardFactor(suite.ctx, ri.CollateralType, ri.RewardFactor)
 	}
 }
+
 func (suite *usdxRewardsUnitTester) storeClaim(claim types.USDXMintingClaim) {
 	suite.keeper.SetUSDXMintingClaim(suite.ctx, claim)
 }
@@ -85,6 +86,7 @@ type SynchronizeUSDXMintingRewardTests struct {
 func TestSynchronizeUSDXMintingReward(t *testing.T) {
 	suite.Run(t, new(SynchronizeUSDXMintingRewardTests))
 }
+
 func (suite *SynchronizeUSDXMintingRewardTests) TestRewardUnchangedWhenGlobalIndexesUnchanged() {
 	unchangingRewardIndexes := nonEmptyRewardIndexes
 	collateralType := extractFirstCollateralType(unchangingRewardIndexes)
@@ -247,7 +249,8 @@ func NewCDPBuilder(owner sdk.AccAddress, collateralType string) CDPBuilder {
 			AccumulatedFees: c(cdptypes.DefaultStableDenom, 0),
 			// zero value of sdk.Dec causes nil pointer panics
 			InterestFactor: sdk.OneDec(),
-		}}
+		},
+	}
 }
 
 // Build assembles and returns the final deposit.

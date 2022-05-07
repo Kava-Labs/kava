@@ -25,6 +25,7 @@ var rewardPeriodWithInvalidRewardsPerSecond = types.NewRewardPeriod(
 	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
 	sdk.Coin{Denom: "INVALID!@#😫", Amount: sdk.ZeroInt()},
 )
+
 var rewardMultiPeriodWithInvalidRewardsPerSecond = types.NewMultiRewardPeriod(
 	true,
 	"bnb",
@@ -32,6 +33,7 @@ var rewardMultiPeriodWithInvalidRewardsPerSecond = types.NewMultiRewardPeriod(
 	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
 	sdk.Coins{sdk.Coin{Denom: "INVALID!@#😫", Amount: sdk.ZeroInt()}},
 )
+
 var validMultiRewardPeriod = types.NewMultiRewardPeriod(
 	true,
 	"bnb",
@@ -39,6 +41,7 @@ var validMultiRewardPeriod = types.NewMultiRewardPeriod(
 	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
 	sdk.NewCoins(sdk.NewInt64Coin("swap", 1e9)),
 )
+
 var validRewardPeriod = types.NewRewardPeriod(
 	true,
 	"bnb-a",
@@ -76,7 +79,8 @@ func (suite *ParamTestSuite) TestParamValidation() {
 						time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 						time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
 						sdk.NewCoin(types.USDXMintingRewardDenom, sdk.NewInt(122354)),
-					)},
+					),
+				},
 				HardSupplyRewardPeriods: types.DefaultMultiRewardPeriods,
 				HardBorrowRewardPeriods: types.DefaultMultiRewardPeriods,
 				DelegatorRewardPeriods:  types.DefaultMultiRewardPeriods,

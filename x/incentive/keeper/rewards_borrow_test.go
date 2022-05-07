@@ -274,7 +274,6 @@ func (suite *BorrowRewardsTestSuite) TestAccumulateHardBorrowRewards() {
 }
 
 func (suite *BorrowRewardsTestSuite) TestInitializeHardBorrowRewards() {
-
 	type args struct {
 		moneyMarketRewardDenoms          map[string]sdk.Coins
 		deposit                          sdk.Coins

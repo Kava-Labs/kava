@@ -1,3 +1,4 @@
+//go:build cli_test
 // +build cli_test
 
 package clitest
@@ -1137,7 +1138,8 @@ func TestKvCLIMultisignSortSignatures(t *testing.T) {
 
 	// Multisign, keys in different order
 	success, stdout, _ = f.TxMultisign(unsignedTxFile.Name(), keyFooBarBaz, []string{
-		bazSignatureFile.Name(), fooSignatureFile.Name()})
+		bazSignatureFile.Name(), fooSignatureFile.Name(),
+	})
 	require.True(t, success)
 
 	// Write the output to disk
@@ -1205,13 +1207,15 @@ func TestKvCLIMultisign(t *testing.T) {
 
 	// Does not work in offline mode
 	success, stdout, _ = f.TxMultisign(unsignedTxFile.Name(), keyFooBarBaz, []string{
-		fooSignatureFile.Name(), barSignatureFile.Name()}, "--offline")
+		fooSignatureFile.Name(), barSignatureFile.Name(),
+	}, "--offline")
 	require.Contains(t, "couldn't verify signature", stdout)
 	require.False(t, success)
 
 	// Success multisign
 	success, stdout, _ = f.TxMultisign(unsignedTxFile.Name(), keyFooBarBaz, []string{
-		fooSignatureFile.Name(), barSignatureFile.Name()})
+		fooSignatureFile.Name(), barSignatureFile.Name(),
+	})
 	require.True(t, success)
 
 	// Write the output to disk

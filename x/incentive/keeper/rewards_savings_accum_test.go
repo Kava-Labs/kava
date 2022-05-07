@@ -51,7 +51,8 @@ func (suite *SavingsRewardsTestSuite) SetupApp() {
 }
 
 func (suite *SavingsRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder,
-	savingsGenesis savingstypes.GenesisState) {
+	savingsGenesis savingstypes.GenesisState,
+) {
 	suite.SetupApp()
 
 	suite.app.InitializeFromGenesisStatesWithTime(

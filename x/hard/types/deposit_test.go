@@ -113,5 +113,4 @@ func TestDeposit_NormalizedDeposit(t *testing.T) {
 			}
 		})
 	}
-
 }

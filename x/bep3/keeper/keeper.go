@@ -25,7 +25,8 @@ type Keeper struct {
 
 // NewKeeper creates a bep3 keeper
 func NewKeeper(cdc codec.Codec, key sdk.StoreKey, sk types.BankKeeper, ak types.AccountKeeper,
-	paramstore paramtypes.Subspace, maccs map[string]bool) Keeper {
+	paramstore paramtypes.Subspace, maccs map[string]bool,
+) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -160,7 +161,8 @@ func (k Keeper) RemoveFromLongtermStorage(ctx sdk.Context, atomicSwap types.Atom
 // IterateAtomicSwapsLongtermStorage provides an iterator over AtomicSwaps ordered by deletion height.
 // For each AtomicSwap cb will be called. If cb returns true the iterator will close and stop.
 func (k Keeper) IterateAtomicSwapsLongtermStorage(ctx sdk.Context, inclusiveCutoffTime uint64,
-	cb func(swapID []byte) (stop bool)) {
+	cb func(swapID []byte) (stop bool),
+) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
 	iterator := store.Iterator(
 		nil, // start at the very start of the prefix store

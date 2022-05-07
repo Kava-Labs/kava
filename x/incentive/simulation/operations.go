@@ -44,7 +44,6 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-
 		return simulation.NewOperationMsgBasic(types.ModuleName,
 			"no-operation (no accounts currently have fulfillable claims)", "", false, nil), nil, nil
 	}

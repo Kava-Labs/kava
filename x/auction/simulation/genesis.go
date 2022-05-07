@@ -36,6 +36,7 @@ func GenBidDuration(r *rand.Rand) time.Duration {
 	}
 	return d
 }
+
 func GenMaxAuctionDuration(r *rand.Rand) time.Duration {
 	d, err := RandomPositiveDuration(r, MaxBidDuration, AverageBlockTime*200)
 	if err != nil {
@@ -48,12 +49,13 @@ func GenIncrementCollateral(r *rand.Rand) sdk.Dec {
 	return simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1"))
 }
 
-var GenIncrementDebt = GenIncrementCollateral
-var GenIncrementSurplus = GenIncrementCollateral
+var (
+	GenIncrementDebt    = GenIncrementCollateral
+	GenIncrementSurplus = GenIncrementCollateral
+)
 
 // RandomizedGenState generates a random GenesisState for auction
 func RandomizedGenState(simState *module.SimulationState) {
-
 	p := types.NewParams(
 		GenMaxAuctionDuration(simState.Rand),
 		GenBidDuration(simState.Rand),
@@ -80,7 +82,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 			sdk.NewInt64Coin("debt", 100), // same as usdx
 		),
 	}
-	var startingID = auctionGenesis.NextAuctionID
+	startingID := auctionGenesis.NextAuctionID
 	var ok bool
 	var totalAuctionCoins sdk.Coins
 	for i, a := range auctions {

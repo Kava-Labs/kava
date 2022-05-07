@@ -794,16 +794,18 @@ func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoSubparamRequirement
 		{
 			name:     "fail if one change is not allowed",
 			expected: false,
-			changes: []paramsproposal.ParamChange{{
-				Subspace: cdptypes.ModuleName,
-				Key:      string(cdptypes.KeySurplusThreshold),
-				Value:    sdk.NewInt(120).String(),
-			},
+			changes: []paramsproposal.ParamChange{
+				{
+					Subspace: cdptypes.ModuleName,
+					Key:      string(cdptypes.KeySurplusThreshold),
+					Value:    sdk.NewInt(120).String(),
+				},
 				{
 					Subspace: cdptypes.ModuleName,
 					Key:      string(cdptypes.KeySurplusLot),
 					Value:    sdk.NewInt(120).String(),
-				}},
+				},
+			},
 		},
 	}
 
@@ -834,7 +836,6 @@ func TestParamsChangeTestSuite(t *testing.T) {
 }
 
 func TestAllowedParamsChanges_Get(t *testing.T) {
-
 	exampleAPCs := types.AllowedParamsChanges{
 		{
 			Subspace:                   "subspaceA",
@@ -907,7 +908,6 @@ func TestAllowedParamsChanges_Get(t *testing.T) {
 }
 
 func TestAllowedParamsChanges_Set(t *testing.T) {
-
 	exampleAPCs := types.AllowedParamsChanges{
 		{
 			Subspace:                   "subspaceA",
@@ -1029,7 +1029,6 @@ func TestAllowedParamsChanges_Set(t *testing.T) {
 }
 
 func TestAllowedParamsChanges_Delete(t *testing.T) {
-
 	exampleAPCs := types.AllowedParamsChanges{
 		{
 			Subspace:                   "subspaceA",

@@ -66,7 +66,7 @@ func (suite *MsgServerTestSuite) SetupTest() {
 	suite.app.InitializeFromGenesisStates(
 		app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(testGenesis)},
 		// TODO: not used?
-		//NewDistributionGenesisWithPool(suite.communityPoolAmt),
+		// NewDistributionGenesisWithPool(suite.communityPoolAmt),
 	)
 	suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: firstBlockTime})
 }
@@ -118,7 +118,6 @@ func (suite *MsgServerTestSuite) TestSubmitProposalMsg_Invalid() {
 		suite.keeper.GetProposalsByCommittee(suite.ctx, committeeID),
 		"proposal found when none should exist",
 	)
-
 }
 
 func (suite *MsgServerTestSuite) TestSubmitProposalMsg_ValidUpgrade() {

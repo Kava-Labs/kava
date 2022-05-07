@@ -14,8 +14,10 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
-const restSwapID = "swap-id"
-const restDenom = "denom"
+const (
+	restSwapID = "swap-id"
+	restDenom  = "denom"
+)
 
 func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/swap/{%s}", types.ModuleName, restSwapID), queryAtomicSwapHandlerFn(cliCtx)).Methods("GET")
@@ -23,7 +25,6 @@ func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/supply/{%s}", types.ModuleName, restDenom), queryAssetSupplyHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/supplies", types.ModuleName), queryAssetSuppliesHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
-
 }
 
 func queryAtomicSwapHandlerFn(cliCtx client.Context) http.HandlerFunc {

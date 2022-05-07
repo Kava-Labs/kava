@@ -38,7 +38,8 @@ var (
 
 // NewParams returns a new params object
 func NewParams(usdxMinting RewardPeriods, hardSupply, hardBorrow, delegator, swap,
-	savings MultiRewardPeriods, multipliers MultipliersPerDenoms, claimEnd time.Time) Params {
+	savings MultiRewardPeriods, multipliers MultipliersPerDenoms, claimEnd time.Time,
+) Params {
 	return Params{
 		USDXMintingRewardPeriods: usdxMinting,
 		HardSupplyRewardPeriods:  hardSupply,
@@ -86,7 +87,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-
 	if err := validateMultipliersPerDenomParam(p.ClaimMultipliers); err != nil {
 		return err
 	}

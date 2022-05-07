@@ -12,9 +12,7 @@ const (
 	StoreKey = "utilevm" // cannot be emvutil due to collision with x/evm
 )
 
-var (
-	AccountStoreKeyPrefix = []byte{0x00} // prefix for keys that store accounts
-)
+var AccountStoreKeyPrefix = []byte{0x00} // prefix for keys that store accounts
 
 // AccountStoreKey turns an address to a key used to get the account from the store
 func AccountStoreKey(addr sdk.AccAddress) []byte {

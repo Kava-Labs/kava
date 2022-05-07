@@ -211,7 +211,6 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			tx, err := helpers.GenTx(
 				txConfig,
 				tc.msgs,

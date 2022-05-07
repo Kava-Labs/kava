@@ -29,14 +29,17 @@ func usdxMintingGenerator(req PostClaimReq) (sdk.Msg, error) {
 	msg := types.NewMsgClaimUSDXMintingReward(req.Sender.String(), req.DenomsToClaim[0].MultiplierName)
 	return &msg, nil
 }
+
 func hardGenerator(req PostClaimReq) (sdk.Msg, error) {
 	msg := types.NewMsgClaimHardReward(req.Sender.String(), req.DenomsToClaim)
 	return &msg, nil
 }
+
 func delegatorGenerator(req PostClaimReq) (sdk.Msg, error) {
 	msg := types.NewMsgClaimDelegatorReward(req.Sender.String(), req.DenomsToClaim)
 	return &msg, nil
 }
+
 func swapGenerator(req PostClaimReq) (sdk.Msg, error) {
 	msg := types.NewMsgClaimSwapReward(req.Sender.String(), req.DenomsToClaim)
 	return &msg, nil

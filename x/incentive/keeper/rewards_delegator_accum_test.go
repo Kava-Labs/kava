@@ -35,7 +35,6 @@ func TestAccumulateDelegatorRewards(t *testing.T) {
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased() {
-
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil)
 
@@ -86,7 +85,6 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateUpdatedWhenBlockTimeHasIn
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
-
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil)
 
@@ -130,7 +128,6 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateUnchangedWhenBlockTimeHas
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
-
 	stakingKeeper := newFakeStakingKeeper() // zero total bonded
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil)
 
@@ -175,7 +172,6 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenSourceShares
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestStateAddedWhenStateDoesNotExist() {
-
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil)
 
@@ -217,7 +213,6 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateAddedWhenStateDoesNotExis
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestNoPanicWhenStateDoesNotExist() {
-
 	stakingKeeper := newFakeStakingKeeper()
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil)
 
@@ -244,7 +239,6 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoPanicWhenStateDoesNotExist()
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
-
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil)
 
@@ -289,7 +283,6 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenBeforeStartT
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {
-
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil)
 

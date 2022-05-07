@@ -35,7 +35,6 @@ func TestSupplyIntegration(t *testing.T) {
 
 // SetupTest is run automatically before each suite test
 func (suite *SupplyIntegrationTests) SetupTest() {
-
 	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
 
 	suite.genesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
@@ -278,13 +277,11 @@ func (suite *SupplyRewardsTestSuite) TestAccumulateHardSupplyRewards() {
 			} else {
 				suite.Require().False(found)
 			}
-
 		})
 	}
 }
 
 func (suite *SupplyRewardsTestSuite) TestInitializeHardSupplyRewards() {
-
 	type args struct {
 		moneyMarketRewardDenoms          map[string]sdk.Coins
 		deposit                          sdk.Coins
@@ -626,7 +623,6 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 				multiRewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(blockCtx, tc.args.deposit.Denom)
 				if found {
 					suite.keeper.AccumulateHardSupplyRewards(blockCtx, multiRewardPeriod)
-
 				}
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))

@@ -60,7 +60,6 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 // AccrueInterest applies accrued interest to total borrows and reserves by calculating
 // interest from the last checkpoint time and writing the updated values to the store.
 func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
-
 	previousAccrualTime, found := k.GetPreviousAccrualTime(ctx, denom)
 	if !found {
 		k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())

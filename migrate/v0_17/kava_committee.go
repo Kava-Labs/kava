@@ -8,7 +8,6 @@ import (
 )
 
 func migrateCommitteePermissions(genState committeetypes.GenesisState) committeetypes.GenesisState {
-
 	var newCommittees committeetypes.Committees
 	for _, committee := range genState.GetCommittees() {
 		switch committee.GetDescription() {

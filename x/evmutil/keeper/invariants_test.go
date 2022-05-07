@@ -78,7 +78,6 @@ func (suite *invariantTestSuite) runInvariant(route string, invariant func(bankK
 }
 
 func (suite *invariantTestSuite) TestFullyBackedInvariant() {
-
 	// default state is valid
 	_, broken := suite.runInvariant("fully-backed", keeper.FullyBackedInvariant)
 	suite.Equal(false, broken)
