@@ -92,9 +92,9 @@ import (
 	feemarketkeeper "github.com/tharsis/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
-	"github.com/kava-labs/kava-bridge/x/bridge"
-	bridgekeeper "github.com/kava-labs/kava-bridge/x/bridge/keeper"
-	bridgetypes "github.com/kava-labs/kava-bridge/x/bridge/types"
+	//"github.com/kava-labs/kava-bridge/x/bridge"
+	//bridgekeeper "github.com/kava-labs/kava-bridge/x/bridge/keeper"
+	//bridgetypes "github.com/kava-labs/kava-bridge/x/bridge/types"
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
@@ -192,7 +192,7 @@ var (
 		savings.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
-		bridge.AppModuleBasic{},
+		//bridge.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -217,7 +217,7 @@ var (
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		hardtypes.ModuleAccountName:     {authtypes.Minter},
 		savingstypes.ModuleAccountName:  nil,
-		bridgetypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
+		//bridgetypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -288,7 +288,7 @@ type App struct {
 	incentiveKeeper  incentivekeeper.Keeper
 	savingsKeeper    savingskeeper.Keeper
 
-	bridgeKeeper bridgekeeper.Keeper
+	//bridgeKeeper bridgekeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -343,7 +343,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey, bridgetypes.StoreKey,
+		savingstypes.StoreKey, //bridgetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -387,7 +387,7 @@ func NewApp(
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
-	bridgeSubspace := app.paramsKeeper.Subspace(bridgetypes.ModuleName)
+	//bridgeSubspace := app.paramsKeeper.Subspace(bridgetypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -506,21 +506,21 @@ func NewApp(
 	)
 
 	// BridgeKeeper must be assigned before EvmKeeper hooks are set
-	app.bridgeKeeper = bridgekeeper.NewKeeper(
-		appCodec,
-		keys[bridgetypes.StoreKey],
-		bridgeSubspace,
-		app.bankKeeper,
-		app.accountKeeper,
-		app.evmKeeper,
-	)
+	//app.bridgeKeeper = bridgekeeper.NewKeeper(
+	//	appCodec,
+	//	keys[bridgetypes.StoreKey],
+	//	bridgeSubspace,
+	//	app.bankKeeper,
+	//	app.accountKeeper,
+	//	app.evmKeeper,
+	//)
 
-	app.evmKeeper = app.evmKeeper.SetHooks(
-		evmkeeper.NewMultiEvmHooks(
-			app.bridgeKeeper.WithdrawHooks(),
-			app.bridgeKeeper.ConversionHooks(),
-		),
-	)
+	//app.evmKeeper = app.evmKeeper.SetHooks(
+	//	evmkeeper.NewMultiEvmHooks(
+	//		app.bridgeKeeper.WithdrawHooks(),
+	//		app.bridgeKeeper.ConversionHooks(),
+	//	),
+	//)
 
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
@@ -696,7 +696,7 @@ func NewApp(
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
-		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
+		//bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -743,7 +743,7 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
-		bridgetypes.ModuleName,
+		//bridgetypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -782,7 +782,7 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
-		bridgetypes.ModuleName,
+		//bridgetypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -813,7 +813,7 @@ func NewApp(
 		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,
-		bridgetypes.ModuleName,
+		//bridgetypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
 		// Add all remaining modules with an empty InitGenesis below since cosmos 0.45.0 requires it
