@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -141,7 +142,8 @@ import (
 )
 
 const (
-	appName = "kava"
+	appName     = "kava"
+	upgradeName = "testnet-evm-alpha-3"
 )
 
 var (
@@ -881,6 +883,77 @@ func NewApp(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
+
+	//
+	// Upgrade
+	//
+	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(err)
+	}
+
+	if upgradeInfo.Name == upgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{authz.ModuleName, bridgetypes.ModuleName, savingstypes.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	app.upgradeKeeper.SetUpgradeHandler(
+		upgradeName,
+		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			//
+			// Assertions
+			//
+			if fromVM[auctiontypes.ModuleName] != 1 {
+				return nil, fmt.Errorf("invalid auction module version: %d", fromVM[auctiontypes.ModuleName])
+			}
+			if fromVM[incentivetypes.ModuleName] != 1 {
+				return nil, fmt.Errorf("invalid incentive module version: %d", fromVM[incentivetypes.ModuleName])
+			}
+
+			//
+			// Run Migrations
+			//
+			versionMap, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+			if err != nil {
+				return nil, err
+			}
+
+			//
+			// Evm -- Disable london fork
+			//
+			evmParams := app.evmKeeper.GetParams(ctx)
+
+			evmParams.ChainConfig.LondonBlock = nil
+			evmParams.ChainConfig.ArrowGlacierBlock = nil
+			evmParams.ChainConfig.MergeForkBlock = nil
+
+			if err := evmParams.Validate(); err != nil {
+				return nil, fmt.Errorf("invalid evm params: %w", err)
+			}
+			app.evmKeeper.SetParams(ctx, evmParams)
+
+			//
+			// Fee Market -- Disable base fee
+			//
+			feeMarketParams := app.feeMarketKeeper.GetParams(ctx)
+
+			feeMarketParams.NoBaseFee = true
+
+			if err := feeMarketParams.Validate(); err != nil {
+				return nil, fmt.Errorf("invalid fee market params: %w", err)
+			}
+			app.feeMarketKeeper.SetParams(ctx, feeMarketParams)
+
+			//
+			// Return migrate versino map
+			//
+			return versionMap, err
+		},
+	)
 
 	// load store
 	if !options.SkipLoadLatest {
