@@ -14,8 +14,10 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-const multiplierFlag = "multiplier"
-const multiplierFlagShort = "m"
+const (
+	multiplierFlag      = "multiplier"
+	multiplierFlagShort = "m"
+)
 
 // GetTxCmd returns the transaction cli commands for the incentive module
 func GetTxCmd() *cobra.Command {
@@ -42,7 +44,6 @@ func GetTxCmd() *cobra.Command {
 }
 
 func getCmdClaimCdp() *cobra.Command {
-
 	cmd := &cobra.Command{
 		Use:     "claim-cdp [multiplier]",
 		Short:   "claim USDX minting rewards using a given multiplier",

@@ -103,7 +103,6 @@ func (suite *invariantTestSuite) runInvariant(route string, invariant func(k kee
 }
 
 func (suite *invariantTestSuite) TestPoolRecordsInvariant() {
-
 	// default state is valid
 	message, broken := suite.runInvariant("pool-records", keeper.PoolRecordsInvariant)
 	suite.Equal("swap: validate pool records broken invariant\npool record invalid\n", message)

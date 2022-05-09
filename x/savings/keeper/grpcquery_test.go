@@ -61,7 +61,6 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 			addrs,
 		),
 	)
-
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryParams() {

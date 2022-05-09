@@ -68,7 +68,8 @@ func DefaultParams() Params {
 // NewCollateralParam returns a new CollateralParam
 func NewCollateralParam(
 	denom, ctype string, liqRatio sdk.Dec, debtLimit sdk.Coin, stabilityFee sdk.Dec, auctionSize sdk.Int,
-	liqPenalty sdk.Dec, spotMarketID, liquidationMarketID string, keeperReward sdk.Dec, checkIndexCount sdk.Int, conversionFactor sdk.Int) CollateralParam {
+	liqPenalty sdk.Dec, spotMarketID, liquidationMarketID string, keeperReward sdk.Dec, checkIndexCount sdk.Int, conversionFactor sdk.Int,
+) CollateralParam {
 	return CollateralParam{
 		Denom:                            denom,
 		Type:                             ctype,

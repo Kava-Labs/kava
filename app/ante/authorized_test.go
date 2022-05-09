@@ -12,9 +12,7 @@ import (
 	"github.com/kava-labs/kava/app/ante"
 )
 
-var (
-	_ sdk.AnteHandler = (&MockAnteHandler{}).AnteHandle
-)
+var _ sdk.AnteHandler = (&MockAnteHandler{}).AnteHandle
 
 type MockAnteHandler struct {
 	WasCalled bool

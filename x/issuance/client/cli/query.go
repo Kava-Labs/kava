@@ -30,7 +30,6 @@ func GetQueryCmd() *cobra.Command {
 	issuanceQueryCmd.AddCommand(cmds...)
 
 	return issuanceQueryCmd
-
 }
 
 // GetCmdQueryParams queries the issuance module parameters

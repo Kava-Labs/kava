@@ -33,7 +33,6 @@ func GetTxCmd() *cobra.Command {
 	txCmd.AddCommand(cmds...)
 
 	return txCmd
-
 }
 
 // GetCmdPlaceBid cli command for placing bids on auctions

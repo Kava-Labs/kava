@@ -41,6 +41,7 @@ func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetWhenClaimExi
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
 }
+
 func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetWhenClaimDoesNotExist() {
 	globalIndexes := nonEmptyMultiRewardIndexes
 	suite.storeGlobalBorrowIndexes(globalIndexes)
@@ -56,8 +57,8 @@ func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetWhenClaimDoe
 	suite.True(found)
 	suite.Equal(globalIndexes, syncedClaim.BorrowRewardIndexes)
 }
-func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetEmptyForMissingIndexes() {
 
+func (suite *InitializeHardBorrowRewardTests) TestClaimIndexesAreSetEmptyForMissingIndexes() {
 	globalIndexes := nonEmptyMultiRewardIndexes
 	suite.storeGlobalBorrowIndexes(globalIndexes)
 

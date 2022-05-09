@@ -20,7 +20,6 @@ func newTestModuleCodec() codec.Codec {
 }
 
 func TestGenesisState_Validate(t *testing.T) {
-
 	arbitraryTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	validAuction := &CollateralAuction{
 		BaseAuction: BaseAuction{
@@ -82,7 +81,6 @@ func TestGenesisState_Validate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			err := tc.genesis.Validate()
 			if tc.expectPass {
 				require.NoError(t, err)
@@ -91,11 +89,9 @@ func TestGenesisState_Validate(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestGenesisState_UnmarshalAnys(t *testing.T) {
-
 	cdc := newTestModuleCodec()
 
 	arbitraryTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)

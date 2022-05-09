@@ -10,7 +10,8 @@ import (
 // NewGenesisState returns a new genesis state
 func NewGenesisState(
 	params Params, prevAccumulationTimes GenesisAccumulationTimes, deposits Deposits,
-	borrows Borrows, totalSupplied, totalBorrowed, totalReserves sdk.Coins) GenesisState {
+	borrows Borrows, totalSupplied, totalBorrowed, totalReserves sdk.Coins,
+) GenesisState {
 	return GenesisState{
 		Params:                    params,
 		PreviousAccumulationTimes: prevAccumulationTimes,
@@ -38,7 +39,6 @@ func DefaultGenesisState() GenesisState {
 // Validate performs basic validation of genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
-
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}

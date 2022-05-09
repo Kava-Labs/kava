@@ -31,7 +31,6 @@ func NewAccumulator(previousAccrual time.Time, indexes RewardIndexes) *Accumulat
 //
 // totalSourceShares is the sum of all users' source shares. For example:total btcb supplied to hard, total usdx borrowed from all bnb CDPs, or total shares in a swap pool.
 func (acc *Accumulator) Accumulate(period MultiRewardPeriod, totalSourceShares sdk.Dec, currentTime time.Time) {
-
 	accumulationDuration := acc.getTimeElapsedWithinLimits(acc.PreviousAccumulationTime, currentTime, period.Start, period.End)
 
 	indexesIncrement := acc.calculateNewRewards(period.RewardsPerSecond, totalSourceShares, accumulationDuration)

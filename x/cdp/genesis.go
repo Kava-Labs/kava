@@ -11,7 +11,6 @@ import (
 
 // InitGenesis sets initial genesis state for cdp module
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, pk types.PricefeedKeeper, ak types.AccountKeeper, gs types.GenesisState) {
-
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
 	}
@@ -85,7 +84,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, pk types.PricefeedKeeper, ak 
 	for _, d := range gs.Deposits {
 		k.SetDeposit(ctx, d)
 	}
-
 }
 
 // ExportGenesis export genesis state for cdp module

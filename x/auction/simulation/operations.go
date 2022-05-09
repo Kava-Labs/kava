@@ -122,7 +122,8 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 
 func generateBidAmount(
 	r *rand.Rand, params types.Params, auc types.Auction,
-	bidder authexported.Account, blockTime time.Time) (sdk.Coin, error) {
+	bidder authexported.Account, blockTime time.Time,
+) (sdk.Coin, error) {
 	bidderBalance := bidder.SpendableCoins(blockTime)
 
 	switch a := auc.(type) {

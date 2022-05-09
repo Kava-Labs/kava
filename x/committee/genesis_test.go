@@ -33,7 +33,6 @@ func (suite *GenesisTestSuite) SetupTest() {
 }
 
 func (suite *GenesisTestSuite) TestInitGenesis() {
-
 	memberCom := types.MustNewMemberCommittee(
 		1,
 		"This member committee is for testing.",

@@ -53,7 +53,6 @@ func (suite *DrawTestSuite) SetupTest() {
 }
 
 func (suite *DrawTestSuite) TestAddRepayPrincipal() {
-
 	err := suite.keeper.AddPrincipal(suite.ctx, suite.addrs[0], "xrp-a", c("usdx", 10000000))
 	suite.NoError(err)
 
@@ -125,7 +124,6 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	bk = suite.app.GetBankKeeper()
 	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
 	suite.Equal(sdk.Coins{}, bk.GetAllBalances(suite.ctx, acc.GetAddress()))
-
 }
 
 func (suite *DrawTestSuite) TestRepayPrincipalOverpay() {

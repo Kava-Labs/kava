@@ -105,7 +105,7 @@ func (s *migrateTestSuite) TestMigrate_PricefeedPermissions() {
 
 	genstate := Migrate(s.v15genstate, s.v15pricefeedgenstate)
 
-	var uniqueMarkets = make(map[string]bool)
+	uniqueMarkets := make(map[string]bool)
 
 	for _, permission := range genstate.GetCommittees()[0].GetPermissions() {
 		paramChangePermission, ok := permission.(v016committee.ParamsChangePermission)

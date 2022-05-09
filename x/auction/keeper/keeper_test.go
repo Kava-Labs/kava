@@ -124,7 +124,6 @@ func TestIterateAuctionsByTime(t *testing.T) {
 		if v.endTime.Before(cutoffTime) || v.endTime.Equal(cutoffTime) { // endTime ≤ cutoffTime
 			expectedIndex = append(expectedIndex, v.auctionID)
 		}
-
 	}
 	var readIndex []uint64
 	keeper.IterateAuctionsByTime(ctx, cutoffTime, func(id uint64) bool {

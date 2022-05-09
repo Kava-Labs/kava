@@ -39,7 +39,6 @@ func (suite *ParamsTestSuite) SetupTest() {
 }
 
 func (suite *ParamsTestSuite) TestParamValidation() {
-
 	type args struct {
 		assetParams types.AssetParams
 	}
@@ -83,10 +82,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "valid multi asset",
 			args: args{
-				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
-					types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
+				assetParams: types.AssetParams{
+					types.NewAssetParam(
+						"bnb", 714, suite.supply[0], true,
+						suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 					types.NewAssetParam(
 						"btcb", 0, suite.supply[1], true,
 						suite.addr, sdk.NewInt(1000), sdk.NewInt(10000000), sdk.NewInt(100000000000),
@@ -213,10 +213,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "duplicate denom",
 			args: args{
-				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
-					types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
+				assetParams: types.AssetParams{
+					types.NewAssetParam(
+						"bnb", 714, suite.supply[0], true,
+						suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 					types.NewAssetParam(
 						"bnb", 0, suite.supply[0], true,
 						suite.addr, sdk.NewInt(1000), sdk.NewInt(10000000), sdk.NewInt(100000000000),

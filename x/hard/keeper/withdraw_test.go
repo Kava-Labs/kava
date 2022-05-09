@@ -207,7 +207,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 			}
 		})
-
 	}
 }
 

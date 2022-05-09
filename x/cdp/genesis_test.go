@@ -168,7 +168,6 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 }
 
 func (suite *GenesisTestSuite) Test_InitExportGenesis() {
-
 	cdps := types.CDPs{
 		{
 			ID:              2,

@@ -115,6 +115,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUnchangedWhenGlobalIndexesUnch
 	// claim should have the same rewards and indexes as before
 	suite.Equal(claim, syncedClaim)
 }
+
 func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardAdded() {
 	// When a new reward is added (via gov) for a pool the user has already deposited to, and the claim is synced;
 	// Then the user earns rewards for the time since the reward was added, and the indexes are added to the claim.

@@ -124,7 +124,6 @@ func (k Keeper) GetDeposit(ctx sdk.Context, cdpID uint64, depositor sdk.AccAddre
 	}
 	k.cdc.MustUnmarshal(bz, &deposit)
 	return deposit, true
-
 }
 
 // SetDeposit sets the deposit in the store
@@ -133,7 +132,6 @@ func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 	bz := k.cdc.MustMarshal(&deposit)
 
 	store.Set(types.DepositKey(deposit.CdpID, deposit.Depositor), bz)
-
 }
 
 // DeleteDeposit deletes a deposit from the store

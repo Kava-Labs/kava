@@ -18,7 +18,6 @@ var (
 
 // RandomizedGenState generates a random GenesisState for incentive module
 func RandomizedGenState(simState *module.SimulationState) {
-
 	// New genesis state holds valid, linked reward periods, claim periods, and claim period IDs
 	incentiveGenesis := types.DefaultGenesisState()
 

@@ -25,7 +25,8 @@ type Keeper struct {
 }
 
 func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, router govtypes.Router,
-	paramKeeper types.ParamKeeper, ak types.AccountKeeper, sk types.BankKeeper) Keeper {
+	paramKeeper types.ParamKeeper, ak types.AccountKeeper, sk types.BankKeeper,
+) Keeper {
 	// Logic in the keeper methods assume the set of gov handlers is fixed.
 	// So the gov router must be sealed so no handlers can be added or removed after the keeper is created.
 	router.Seal()

@@ -78,6 +78,7 @@ func (suite *KeeperTestSuite) TestRemoveAtomicSwap() {
 	_, found = suite.keeper.GetAtomicSwap(suite.ctx, atomicSwap.GetSwapID())
 	suite.False(found)
 }
+
 func (suite *KeeperTestSuite) TestIterateAtomicSwaps() {
 	suite.ResetChain()
 
@@ -324,7 +325,6 @@ func (suite *KeeperTestSuite) TestGetSetAssetSupply() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllAssetSupplies() {
-
 	// Put asset supply in store
 	assetSupply := types.NewAssetSupply(c("bnb", 0), c("bnb", 0), c("bnb", 50000), c("bnb", 0), time.Duration(0))
 	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, "bnb")

@@ -197,7 +197,6 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			true,
 		},
 		{
-
 			"outgoing swap amount not greater than fixed fee",
 			currentTmTime,
 			args{
@@ -453,21 +452,20 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				suite.NotNil(actualSwap)
 
 				// Confirm swap contents
-				expectedSwap :=
-					types.AtomicSwap{
-						Amount:              tc.args.coins,
-						RandomNumberHash:    tc.args.randomNumberHash,
-						ExpireHeight:        uint64(suite.ctx.BlockHeight()) + tc.args.heightSpan,
-						Timestamp:           tc.args.timestamp,
-						Sender:              tc.args.sender,
-						Recipient:           tc.args.recipient,
-						SenderOtherChain:    tc.args.senderOtherChain,
-						RecipientOtherChain: tc.args.recipientOtherChain,
-						ClosedBlock:         0,
-						Status:              types.SWAP_STATUS_OPEN,
-						CrossChain:          tc.args.crossChain,
-						Direction:           tc.args.direction,
-					}
+				expectedSwap := types.AtomicSwap{
+					Amount:              tc.args.coins,
+					RandomNumberHash:    tc.args.randomNumberHash,
+					ExpireHeight:        uint64(suite.ctx.BlockHeight()) + tc.args.heightSpan,
+					Timestamp:           tc.args.timestamp,
+					Sender:              tc.args.sender,
+					Recipient:           tc.args.recipient,
+					SenderOtherChain:    tc.args.senderOtherChain,
+					RecipientOtherChain: tc.args.recipientOtherChain,
+					ClosedBlock:         0,
+					Status:              types.SWAP_STATUS_OPEN,
+					CrossChain:          tc.args.crossChain,
+					Direction:           tc.args.direction,
+				}
 				suite.Equal(expectedSwap, actualSwap)
 			} else {
 				suite.Error(err)

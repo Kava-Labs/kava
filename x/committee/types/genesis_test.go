@@ -57,8 +57,9 @@ func TestGenesisState_Validate(t *testing.T) {
 				"hard",
 			),
 		},
-		types.Proposals{types.MustNewProposal(
-			govtypes.NewTextProposal("A Title", "A description of this proposal."), 1, 1, testTime.Add(7*24*time.Hour)),
+		types.Proposals{
+			types.MustNewProposal(
+				govtypes.NewTextProposal("A Title", "A description of this proposal."), 1, 1, testTime.Add(7*24*time.Hour)),
 		},
 		[]types.Vote{
 			{ProposalID: 1, Voter: addresses[0], VoteType: types.VOTE_TYPE_YES},

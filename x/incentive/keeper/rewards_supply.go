@@ -12,7 +12,6 @@ import (
 // AccumulateHardSupplyRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
 func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-
 	previousAccrualTime, found := k.GetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()
@@ -93,7 +92,6 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 	}
 
 	for _, normedDeposit := range normalizedDeposit {
-
 		claim = k.synchronizeSingleHardSupplyReward(ctx, claim, normedDeposit.Denom, normedDeposit.Amount)
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)

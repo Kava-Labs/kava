@@ -29,7 +29,6 @@ func TestMsgClaim_Validate(t *testing.T) {
 		msgArgs msgArgs
 		expect  expectedErr
 	}{
-
 		{
 			name: "normal multiplier is valid",
 			msgArgs: msgArgs{
@@ -149,7 +148,6 @@ func TestMsgClaim_Validate(t *testing.T) {
 		msgs := []sdk.Msg{&msgClaimHardReward, &msgClaimDelegatorReward, &msgClaimSwapReward, &msgClaimSavingsReward}
 		for _, msg := range msgs {
 			t.Run(tc.name, func(t *testing.T) {
-
 				err := msg.ValidateBasic()
 				if tc.expect.pass {
 					require.NoError(t, err)

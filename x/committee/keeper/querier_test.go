@@ -192,7 +192,6 @@ func (suite *QuerierTestSuite) TestQueryVote() {
 }
 
 func (suite *QuerierTestSuite) TestQueryTally() {
-
 	ctx := suite.ctx.WithIsCheckTx(false)
 
 	// Expected result
@@ -236,6 +235,7 @@ func (p *TestParams) ParamSetPairs() paramstypes.ParamSetPairs {
 		paramstypes.NewParamSetPair([]byte(paramKey), &p.TestKey, func(interface{}) error { return nil }),
 	}
 }
+
 func (suite *QuerierTestSuite) TestQueryRawParams() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 

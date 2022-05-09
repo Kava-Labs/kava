@@ -43,7 +43,6 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 // ------------------------------------------
 
 func queryCommittees(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-
 	committees := keeper.GetCommittees(ctx)
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, committees)
@@ -128,7 +127,6 @@ func queryNextProposalID(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 func queryVotes(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryProposalParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
-
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}

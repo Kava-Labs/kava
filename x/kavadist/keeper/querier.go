@@ -42,7 +42,6 @@ func queryGetBalance(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQue
 	acc := k.accountKeeper.GetModuleAccount(ctx, types.KavaDistMacc)
 	balance := k.bankKeeper.GetAllBalances(ctx, acc.GetAddress())
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, balance)
-
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

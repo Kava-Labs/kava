@@ -16,9 +16,7 @@ import (
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-var (
-	proposalPassPercentage = 0.9
-)
+var proposalPassPercentage = 0.9
 
 type AccountKeeper interface {
 	GetAccount(sdk.Context, sdk.AccAddress) authexported.Account
@@ -27,8 +25,8 @@ type AccountKeeper interface {
 // WeightedOperations creates an operation (with weight) for each type of proposal generator.
 // Custom proposal generators can be added for more control over types of proposal submitted, eg to increase likelyhood of particular cdp param changes.
 func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak AccountKeeper,
-	k keeper.Keeper, wContents []simulation.WeightedProposalContent) simulation.WeightedOperations {
-
+	k keeper.Keeper, wContents []simulation.WeightedProposalContent,
+) simulation.WeightedOperations {
 	var wops simulation.WeightedOperations
 
 	for _, wContent := range wContents {
@@ -59,7 +57,6 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak Acc
 // For each submit proposal msg, future ops for the vote messages are generated. Sometimes it doesn't run enough votes to allow the proposal to timeout - the likelihood of this happening is controlled by a parameter.
 func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keeper, contentSim simulation.ContentSimulatorFn) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-
 		// 1) Send  a submit proposal msg
 
 		committees := k.GetCommittees(ctx)
@@ -176,8 +173,8 @@ func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keep
 
 func SimulateMsgVote(k keeper.Keeper, ak AccountKeeper, voter sdk.AccAddress, proposalID uint64, voteType types.VoteType) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		opMsg simulation.OperationMsg, fOps []simulation.FutureOperation, err error) {
-
+		opMsg simulation.OperationMsg, fOps []simulation.FutureOperation, err error,
+	) {
 		msg := types.NewMsgVote(voter, proposalID, voteType)
 
 		account := ak.GetAccount(ctx, voter)

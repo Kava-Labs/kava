@@ -80,7 +80,6 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 }
 
 func queryGetPool(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-
 	var params types.QueryPoolParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -90,7 +89,6 @@ func queryGetPool(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 	hasPoolParam := len(params.Pool) > 0
 	if !hasPoolParam {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "must specify pool param")
-
 	}
 
 	pool, err := k.loadDenominatedPool(ctx, params.Pool)

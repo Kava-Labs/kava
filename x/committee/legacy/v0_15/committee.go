@@ -239,7 +239,8 @@ type MemberCommittee struct {
 
 // NewMemberCommittee instantiates a new instance of MemberCommittee
 func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) MemberCommittee {
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption,
+) MemberCommittee {
 	return MemberCommittee{
 		BaseCommittee: BaseCommittee{
 			ID:               id,
@@ -276,7 +277,8 @@ type TokenCommittee struct {
 
 // NewTokenCommittee instantiates a new instance of TokenCommittee
 func NewTokenCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) TokenCommittee {
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string,
+) TokenCommittee {
 	return TokenCommittee{
 		BaseCommittee: BaseCommittee{
 			ID:               id,

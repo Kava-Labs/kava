@@ -30,7 +30,6 @@ func NewKeeper(
 	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
 	swpk types.SwapKeeper, svk types.SavingsKeeper,
 ) Keeper {
-
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -66,7 +65,6 @@ func (k Keeper) SetUSDXMintingClaim(ctx sdk.Context, c types.USDXMintingClaim) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.USDXMintingClaimKeyPrefix)
 	bz := k.cdc.MustMarshal(&c)
 	store.Set(c.Owner, bz)
-
 }
 
 // DeleteUSDXMintingClaim deletes the claim in the store corresponding to the input address, collateral type, and id

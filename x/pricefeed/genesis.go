@@ -42,7 +42,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
-
 	// Get the params for markets and oracles
 	params := k.GetParams(ctx)
 

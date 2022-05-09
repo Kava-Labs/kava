@@ -16,9 +16,7 @@ import (
 	"github.com/tharsis/ethermint/crypto/hd"
 )
 
-var (
-	ethFlag = "eth"
-)
+var ethFlag = "eth"
 
 // KeyCommands registers a sub-tree of commands to interact with
 // local private key storage.

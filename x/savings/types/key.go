@@ -20,6 +20,4 @@ const (
 	ModuleAccountName = ModuleName
 )
 
-var (
-	DepositsKeyPrefix = []byte{0x01}
-)
+var DepositsKeyPrefix = []byte{0x01}

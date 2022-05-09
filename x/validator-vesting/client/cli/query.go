@@ -34,7 +34,6 @@ func GetQueryCmd() *cobra.Command {
 
 	valVestingQueryCmd.AddCommand(cmds...)
 	return valVestingQueryCmd
-
 }
 
 func queryCirculatingSupply() *cobra.Command {

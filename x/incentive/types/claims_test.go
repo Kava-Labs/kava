@@ -22,7 +22,6 @@ func TestClaims_Validate(t *testing.T) {
 	owner := sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
 
 	t.Run("USDXMintingClaims", func(t *testing.T) {
-
 		testCases := []struct {
 			name    string
 			claims  USDXMintingClaims
@@ -85,7 +84,6 @@ func TestClaims_Validate(t *testing.T) {
 		}
 	})
 	t.Run("SwapClaims", func(t *testing.T) {
-
 		validRewardIndexes := RewardIndexes{}.With("swap", d("0.002"))
 		validMultiRewardIndexes := MultiRewardIndexes{}.With("btcb/usdx", validRewardIndexes)
 		invalidRewardIndexes := RewardIndexes{}.With("swap", d("-0.002"))
@@ -139,7 +137,6 @@ func TestClaims_Validate(t *testing.T) {
 	})
 
 	t.Run("SavingsClaims", func(t *testing.T) {
-
 		validRewardIndexes := RewardIndexes{}.With("ukava", d("0.002"))
 		validMultiRewardIndexes := MultiRewardIndexes{}.With("btcb/usdx", validRewardIndexes)
 		invalidRewardIndexes := RewardIndexes{}.With("ukava", d("-0.002"))
@@ -195,7 +192,7 @@ func TestClaims_Validate(t *testing.T) {
 
 func TestRewardIndexes(t *testing.T) {
 	t.Run("With", func(t *testing.T) {
-		var arbitraryDec = sdk.MustNewDecFromStr("0.1")
+		arbitraryDec := sdk.MustNewDecFromStr("0.1")
 
 		type args struct {
 			denom  string
@@ -246,7 +243,7 @@ func TestRewardIndexes(t *testing.T) {
 		}
 	})
 	t.Run("Get", func(t *testing.T) {
-		var arbitraryDec = sdk.MustNewDecFromStr("0.1")
+		arbitraryDec := sdk.MustNewDecFromStr("0.1")
 
 		type expected struct {
 			factor sdk.Dec
@@ -291,7 +288,6 @@ func TestRewardIndexes(t *testing.T) {
 		}
 	})
 	t.Run("Mul", func(t *testing.T) {
-
 		testcases := []struct {
 			name          string
 			rewardIndexes RewardIndexes
@@ -411,7 +407,6 @@ func TestRewardIndexes(t *testing.T) {
 		}
 	})
 	t.Run("Add", func(t *testing.T) {
-
 		testcases := []struct {
 			name          string
 			rewardIndexes RewardIndexes

@@ -36,7 +36,6 @@ func GetTxCmd() *cobra.Command {
 	issuanceTxCmd.AddCommand(cmds...)
 
 	return issuanceTxCmd
-
 }
 
 func GetCmdIssueTokens() *cobra.Command {

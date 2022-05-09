@@ -8,9 +8,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-var (
-	zero = sdk.ZeroInt()
-)
+var zero = sdk.ZeroInt()
 
 // calculateInitialShares calculates initial shares as sqrt(A*B), the geometric mean of A and B
 func calculateInitialShares(reservesA, reservesB sdk.Int) sdk.Int {

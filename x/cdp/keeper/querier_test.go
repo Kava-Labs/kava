@@ -152,7 +152,6 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 	}
 	_, err = suite.querier(ctx, []string{types.QueryGetCdp}, query)
 	suite.Error(err)
-
 }
 
 func (suite *QuerierTestSuite) TestQueryCdpsByCollateralType() {
@@ -282,7 +281,6 @@ func (suite *QuerierTestSuite) TestQueryDeposits() {
 	var d types.Deposits
 	suite.Nil(suite.legacyAmino.UnmarshalJSON(bz, &d))
 	suite.Equal(deposits, d)
-
 }
 
 func (suite *QuerierTestSuite) TestQueryAccounts() {

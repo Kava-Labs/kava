@@ -122,7 +122,6 @@ func (sif SupplyInterestFactor) Validate() error {
 	}
 	if sif.Value.IsNegative() {
 		return fmt.Errorf("supply interest factor value cannot be negative: %s", sif)
-
 	}
 	return nil
 }

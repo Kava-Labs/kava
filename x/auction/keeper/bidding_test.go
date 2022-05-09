@@ -25,11 +25,10 @@ const (
 )
 
 func TestAuctionBidding(t *testing.T) {
-
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 
-	someTime := time.Date(0001, time.January, 1, 0, 0, 0, 0, time.UTC)
+	someTime := time.Date(0o001, time.January, 1, 0, 0, 0, 0, time.UTC)
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	buyer := addrs[0]

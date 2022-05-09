@@ -112,7 +112,8 @@ type AllowedCollateralParam struct {
 func NewAllowedCollateralParam(
 	ctype string, denom, liqRatio, debtLimit,
 	stabilityFee, auctionSize, liquidationPenalty,
-	prefix, spotMarket, liquidationMarket, conversionFactor, keeperReward, ltvIndexCount bool) AllowedCollateralParam {
+	prefix, spotMarket, liquidationMarket, conversionFactor, keeperReward, ltvIndexCount bool,
+) AllowedCollateralParam {
 	return AllowedCollateralParam{
 		Type:                             ctype,
 		Denom:                            denom,

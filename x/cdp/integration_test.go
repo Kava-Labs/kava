@@ -108,6 +108,7 @@ func NewPricefeedGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 	}
 	return app.GenesisState{pricefeedtypes.ModuleName: cdc.MustMarshalJSON(&pfGenesis)}
 }
+
 func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 	cdpGenesis := types.GenesisState{
 		Params: types.Params{

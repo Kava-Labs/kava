@@ -250,6 +250,7 @@ func unslashedBondedValidator(address sdk.ValAddress) stakingtypes.Validator {
 		DelegatorShares: i(1e12).ToDec(),
 	}
 }
+
 func unslashedNotBondedValidator(address sdk.ValAddress) stakingtypes.Validator {
 	return stakingtypes.Validator{
 		OperatorAddress: address.String(),
@@ -268,7 +269,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenValAddrIsNil()
 	validatorAddresses := generateValidatorAddresses(4)
 	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
-			//bonded
+			// bonded
 			{
 				DelegatorAddress: delegator.String(),
 				ValidatorAddress: validatorAddresses[0].String(),
@@ -305,13 +306,14 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenValAddrIsNil()
 		suite.keeper.GetTotalDelegated(suite.ctx, delegator, nil, false),
 	)
 }
+
 func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenExcludingAValidator() {
 	// when valAddr is x, get total delegated to bonded validators excluding those to x
 	delegator := arbitraryAddress()
 	validatorAddresses := generateValidatorAddresses(4)
 	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
-			//bonded
+			// bonded
 			{
 				DelegatorAddress: delegator.String(),
 				ValidatorAddress: validatorAddresses[0].String(),
@@ -348,13 +350,14 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenExcludingAVali
 		suite.keeper.GetTotalDelegated(suite.ctx, delegator, validatorAddresses[0], false),
 	)
 }
+
 func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenIncludingAValidator() {
 	// when valAddr is x, get total delegated to bonded validators including those to x
 	delegator := arbitraryAddress()
 	validatorAddresses := generateValidatorAddresses(4)
 	stakingKeeper := &fakeStakingKeeper{
 		delegations: stakingtypes.Delegations{
-			//bonded
+			// bonded
 			{
 				DelegatorAddress: delegator.String(),
 				ValidatorAddress: validatorAddresses[0].String(),

@@ -1,9 +1,7 @@
 package types
 
-var (
-	// DefaultSupplies is used to set default asset supplies in default genesis state
-	DefaultSupplies = []AssetSupply{}
-)
+// DefaultSupplies is used to set default asset supplies in default genesis state
+var DefaultSupplies = []AssetSupply{}
 
 // NewGenesisState returns a new GenesisState
 func NewGenesisState(params Params, supplies []AssetSupply) GenesisState {

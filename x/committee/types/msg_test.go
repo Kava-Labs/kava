@@ -45,7 +45,6 @@ func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-
 			err := tc.msg.ValidateBasic()
 
 			if tc.expectPass {
@@ -98,7 +97,6 @@ func TestMsgVote_ValidateBasic(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-
 			err := tc.msg.ValidateBasic()
 
 			if tc.expectPass {

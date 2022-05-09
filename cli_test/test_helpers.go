@@ -367,8 +367,8 @@ func (f *Fixtures) TxEncode(fileName string, flags ...string) (bool, string, str
 
 // TxMultisign is kvcli tx multisign
 func (f *Fixtures) TxMultisign(fileName, name string, signaturesFiles []string,
-	flags ...string) (bool, string, string) {
-
+	flags ...string,
+) (bool, string, string) {
 	cmd := fmt.Sprintf("%s tx multisign --keyring-backend=test %v %s %s %s", f.KvcliBinary, f.Flags(),
 		fileName, name, strings.Join(signaturesFiles, " "),
 	)
@@ -425,7 +425,6 @@ func (f *Fixtures) TxGovVote(proposalID int, option gov.VoteOption, from string,
 func (f *Fixtures) TxGovSubmitParamChangeProposal(
 	from, proposalPath string, deposit sdk.Coin, flags ...string,
 ) (bool, string, string) {
-
 	cmd := fmt.Sprintf(
 		"%s tx gov submit-proposal param-change %s --keyring-backend=test --from=%s %v",
 		f.KvcliBinary, proposalPath, from, f.Flags(),
@@ -439,7 +438,6 @@ func (f *Fixtures) TxGovSubmitParamChangeProposal(
 func (f *Fixtures) TxGovSubmitCommunityPoolSpendProposal(
 	from, proposalPath string, deposit sdk.Coin, flags ...string,
 ) (bool, string, string) {
-
 	cmd := fmt.Sprintf(
 		"%s tx gov submit-proposal community-pool-spend %s --keyring-backend=test --from=%s %v",
 		f.KvcliBinary, proposalPath, from, f.Flags(),

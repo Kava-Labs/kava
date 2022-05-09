@@ -122,7 +122,6 @@ func (bif BorrowInterestFactor) Validate() error {
 	}
 	if bif.Value.IsNegative() {
 		return fmt.Errorf("borrow interest factor value cannot be negative: %s", bif)
-
 	}
 	return nil
 }

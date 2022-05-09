@@ -146,7 +146,6 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 }
 
 func (suite *InterestTestSuite) TestAccumulateInterest() {
-
 	type args struct {
 		ctype                   string
 		initialTime             time.Time
@@ -385,7 +384,6 @@ func (suite *InterestTestSuite) TestSynchronizeInterest() {
 
 			suite.Require().Equal(tc.args.expectedFees, cdp.AccumulatedFees)
 			suite.Require().Equal(tc.args.expectedFeesUpdatedTime, cdp.FeesUpdated)
-
 		})
 	}
 }
@@ -532,7 +530,6 @@ func (suite *InterestTestSuite) TestMultipleCDPInterest() {
 			}
 
 			suite.Require().Equal(tc.args.expectedSumOfCDPPrincipal, sumOfCDPPrincipal)
-
 		})
 	}
 }
@@ -640,7 +637,6 @@ func (suite *InterestTestSuite) TestCalculateCDPInterest() {
 			newInterest := suite.keeper.CalculateNewInterest(suite.ctx, cdp)
 
 			suite.Require().Equal(tc.args.expectedFees, newInterest)
-
 		})
 	}
 }
@@ -665,7 +661,6 @@ func (suite *InterestTestSuite) TestSyncInterestForRiskyCDPs() {
 
 	oneYearInSeconds := 31536000
 	testCases := []test{
-
 		{
 			"1 year",
 			args{

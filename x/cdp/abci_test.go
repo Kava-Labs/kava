@@ -120,6 +120,7 @@ func (suite *ModuleTestSuite) setPrice(price sdk.Dec, market string) {
 	suite.NoError(err)
 	suite.Equal(price, pp.Price)
 }
+
 func (suite *ModuleTestSuite) TestBeginBlock() {
 	suite.createCdps()
 	ak := suite.app.GetAccountKeeper()
@@ -147,7 +148,6 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 
 	acc = ak.GetModuleAccount(suite.ctx, auctiontypes.ModuleName)
 	suite.Equal(int64(71955653865), bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
-
 }
 
 func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {

@@ -83,7 +83,7 @@ func TestResetPeriodVestingAccount_SingleVestingPeriod_Vesting(t *testing.T) {
 	expectedEndtime := newVestingStartTime.Add(15 * 24 * time.Hour).Unix()
 	// new period length changed, amount unchanged
 	expectedPeriods := []vestingtypes.Period{
-		vestingtypes.Period{
+		{
 			Length: 15 * 24 * 60 * 60, // 15 days
 			Amount: balance,
 		},
@@ -156,11 +156,11 @@ func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
 	expectedEndtime := newVestingStartTime.Add(30 * 24 * time.Hour).Unix()
 	// new period length changed, amount unchanged
 	expectedPeriods := []vestingtypes.Period{
-		vestingtypes.Period{
+		{
 			Length: 15 * 24 * 60 * 60, // 15 days
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},
-		vestingtypes.Period{
+		{
 			Length: 15 * 24 * 60 * 60, // 15 days
 			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
 		},

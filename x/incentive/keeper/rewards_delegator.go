@@ -12,7 +12,6 @@ import (
 // AccumulateDelegatorRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
 func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-
 	previousAccrualTime, found := k.GetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()

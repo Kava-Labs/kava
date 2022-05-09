@@ -242,7 +242,8 @@ func (c BaseCommittee) Validate() error {
 
 // NewMemberCommittee instantiates a new instance of MemberCommittee
 func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) (*MemberCommittee, error) {
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption,
+) (*MemberCommittee, error) {
 	permissionsAny, err := PackPermissions(permissions)
 	if err != nil {
 		return nil, err
@@ -262,7 +263,8 @@ func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress,
 
 // MustNewMemberCommittee instantiates a new instance of MemberCommittee and panics on error
 func MustNewMemberCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption) *MemberCommittee {
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption,
+) *MemberCommittee {
 	committee, err := NewMemberCommittee(id, description, members, permissions, threshold, duration, tallyOption)
 	if err != nil {
 		panic(err)
@@ -275,7 +277,8 @@ func (c MemberCommittee) GetType() string { return MemberCommitteeType }
 
 // NewTokenCommittee instantiates a new instance of TokenCommittee
 func NewTokenCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) (*TokenCommittee, error) {
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string,
+) (*TokenCommittee, error) {
 	permissionsAny, err := PackPermissions(permissions)
 	if err != nil {
 		return nil, err
@@ -297,7 +300,8 @@ func NewTokenCommittee(id uint64, description string, members []sdk.AccAddress, 
 
 // MustNewTokenCommittee instantiates a new instance of TokenCommittee and panics on error
 func MustNewTokenCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string) *TokenCommittee {
+	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string,
+) *TokenCommittee {
 	committee, err := NewTokenCommittee(id, description, members, permissions, threshold, duration, tallyOption, quorum, tallyDenom)
 	if err != nil {
 		panic(err)
