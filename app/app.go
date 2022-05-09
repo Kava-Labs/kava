@@ -903,16 +903,20 @@ func NewApp(
 
 	app.upgradeKeeper.SetUpgradeHandler(
 		upgradeName,
-		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
 			//
-			// Assertions
+			// Initialize Version Map
 			//
-			if fromVM[auctiontypes.ModuleName] != 1 {
-				return nil, fmt.Errorf("invalid auction module version: %d", fromVM[auctiontypes.ModuleName])
-			}
-			if fromVM[incentivetypes.ModuleName] != 1 {
-				return nil, fmt.Errorf("invalid incentive module version: %d", fromVM[incentivetypes.ModuleName])
-			}
+			fromVM := app.mm.GetVersionMap()
+
+			// Downgrade incentive, auction to ensure migrations run
+			fromVM[incentivetypes.ModuleName] = 1
+			fromVM[auctiontypes.ModuleName] = 1
+
+			// Remove these modules, so init genesis runs
+			delete(fromVM, authz.ModuleName)
+			delete(fromVM, bridgetypes.ModuleName)
+			delete(fromVM, savingstypes.ModuleName)
 
 			//
 			// Run Migrations
