@@ -989,8 +989,6 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 		panic(err)
 	}
 
-	// Store current module versions in kava-10 to setup future in-place upgrades.
-	// During in-place migrations, the old module versions in the store will be referenced to determine which migrations to run.
 	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
