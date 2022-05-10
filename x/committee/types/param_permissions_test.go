@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -832,4 +833,272 @@ func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoSubparamRequirement
 
 func TestParamsChangeTestSuite(t *testing.T) {
 	suite.Run(t, new(ParamsChangeTestSuite))
+}
+
+func TestAllowedParamsChanges_Get(t *testing.T) {
+	exampleAPCs := types.AllowedParamsChanges{
+		{
+			Subspace:                   "subspaceA",
+			Key:                        "key1",
+			SingleSubparamAllowedAttrs: []string{"attribute1"},
+		},
+		{
+			Subspace:                   "subspaceA",
+			Key:                        "key2",
+			SingleSubparamAllowedAttrs: []string{"attribute2"},
+		},
+	}
+
+	type args struct {
+		subspace, key string
+	}
+	testCases := []struct {
+		name  string
+		apcs  types.AllowedParamsChanges
+		args  args
+		found bool
+		out   types.AllowedParamsChange
+	}{
+		{
+			name: "when element exists it is found",
+			apcs: exampleAPCs,
+			args: args{
+				subspace: "subspaceA",
+				key:      "key2",
+			},
+			found: true,
+			out:   exampleAPCs[1],
+		},
+		{
+			name: "when element doesn't exist it isn't found",
+			apcs: exampleAPCs,
+			args: args{
+				subspace: "subspaceB",
+				key:      "key1",
+			},
+			found: false,
+		},
+		{
+			name: "when slice is nil, no elements are found",
+			apcs: nil,
+			args: args{
+				subspace: "",
+				key:      "",
+			},
+			found: false,
+		},
+		{
+			name: "when slice is empty, no elements are found",
+			apcs: types.AllowedParamsChanges{},
+			args: args{
+				subspace: "subspaceA",
+				key:      "key1",
+			},
+			found: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			out, found := tc.apcs.Get(tc.args.subspace, tc.args.key)
+			require.Equal(t, tc.found, found)
+			require.Equal(t, tc.out, out)
+		})
+	}
+}
+
+func TestAllowedParamsChanges_Set(t *testing.T) {
+	exampleAPCs := types.AllowedParamsChanges{
+		{
+			Subspace:                   "subspaceA",
+			Key:                        "key1",
+			SingleSubparamAllowedAttrs: []string{"attribute1"},
+		},
+		{
+			Subspace:                   "subspaceA",
+			Key:                        "key2",
+			SingleSubparamAllowedAttrs: []string{"attribute2"},
+		},
+	}
+
+	type args struct {
+		subspace, key string
+	}
+	testCases := []struct {
+		name string
+		apcs types.AllowedParamsChanges
+		arg  types.AllowedParamsChange
+		out  types.AllowedParamsChanges
+	}{
+		{
+			name: "when element isn't present it is added",
+			apcs: exampleAPCs,
+			arg: types.AllowedParamsChange{
+				Subspace:                   "subspaceB",
+				Key:                        "key1",
+				SingleSubparamAllowedAttrs: []string{"attribute1"},
+			},
+			out: append(exampleAPCs, types.AllowedParamsChange{
+				Subspace:                   "subspaceB",
+				Key:                        "key1",
+				SingleSubparamAllowedAttrs: []string{"attribute1"},
+			}),
+		},
+		{
+			name: "when element matches, it is overwritten",
+			apcs: exampleAPCs,
+			arg: types.AllowedParamsChange{
+				Subspace:                   "subspaceA",
+				Key:                        "key2",
+				SingleSubparamAllowedAttrs: []string{"attribute3"},
+			},
+			out: types.AllowedParamsChanges{
+				{
+					Subspace:                   "subspaceA",
+					Key:                        "key1",
+					SingleSubparamAllowedAttrs: []string{"attribute1"},
+				},
+				{
+					Subspace:                   "subspaceA",
+					Key:                        "key2",
+					SingleSubparamAllowedAttrs: []string{"attribute3"},
+				},
+			},
+		},
+		{
+			name: "when element matches, it is overwritten",
+			apcs: exampleAPCs,
+			arg: types.AllowedParamsChange{
+				Subspace:                   "subspaceA",
+				Key:                        "key2",
+				SingleSubparamAllowedAttrs: []string{"attribute3"},
+			},
+			out: types.AllowedParamsChanges{
+				{
+					Subspace:                   "subspaceA",
+					Key:                        "key1",
+					SingleSubparamAllowedAttrs: []string{"attribute1"},
+				},
+				{
+					Subspace:                   "subspaceA",
+					Key:                        "key2",
+					SingleSubparamAllowedAttrs: []string{"attribute3"},
+				},
+			},
+		},
+		{
+			name: "when slice is nil, elements are added",
+			apcs: nil,
+			arg: types.AllowedParamsChange{
+				Subspace:                   "subspaceA",
+				Key:                        "key2",
+				SingleSubparamAllowedAttrs: []string{"attribute3"},
+			},
+			out: types.AllowedParamsChanges{
+				{
+					Subspace:                   "subspaceA",
+					Key:                        "key2",
+					SingleSubparamAllowedAttrs: []string{"attribute3"},
+				},
+			},
+		},
+		{
+			name: "when slice is empty, elements are added",
+			apcs: types.AllowedParamsChanges{},
+			arg: types.AllowedParamsChange{
+				Subspace:                   "subspaceA",
+				Key:                        "key2",
+				SingleSubparamAllowedAttrs: []string{"attribute3"},
+			},
+			out: types.AllowedParamsChanges{
+				{
+					Subspace:                   "subspaceA",
+					Key:                        "key2",
+					SingleSubparamAllowedAttrs: []string{"attribute3"},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			(&tc.apcs).Set(tc.arg)
+			require.Equal(t, tc.out, tc.apcs)
+		})
+	}
+}
+
+func TestAllowedParamsChanges_Delete(t *testing.T) {
+	exampleAPCs := types.AllowedParamsChanges{
+		{
+			Subspace:                   "subspaceA",
+			Key:                        "key1",
+			SingleSubparamAllowedAttrs: []string{"attribute1"},
+		},
+		{
+			Subspace:                   "subspaceA",
+			Key:                        "key2",
+			SingleSubparamAllowedAttrs: []string{"attribute2"},
+		},
+	}
+
+	type args struct {
+		subspace, key string
+	}
+	testCases := []struct {
+		name string
+		apcs types.AllowedParamsChanges
+		args args
+		out  types.AllowedParamsChanges
+	}{
+		{
+			name: "when element exists it is removed",
+			apcs: exampleAPCs,
+			args: args{
+				subspace: "subspaceA",
+				key:      "key2",
+			},
+			out: types.AllowedParamsChanges{
+				{
+					Subspace:                   "subspaceA",
+					Key:                        "key1",
+					SingleSubparamAllowedAttrs: []string{"attribute1"},
+				},
+			},
+		},
+		{
+			name: "when element doesn't exist, none are removed",
+			apcs: exampleAPCs,
+			args: args{
+				subspace: "subspaceB",
+				key:      "key1",
+			},
+			out: exampleAPCs,
+		},
+		{
+			name: "when slice is nil, nothing happens",
+			apcs: nil,
+			args: args{
+				subspace: "subspaceA",
+				key:      "key1",
+			},
+			out: nil,
+		},
+		{
+			name: "when slice is empty, nothing happens",
+			apcs: types.AllowedParamsChanges{},
+			args: args{
+				subspace: "subspaceA",
+				key:      "key1",
+			},
+			out: types.AllowedParamsChanges{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			(&tc.apcs).Delete(tc.args.subspace, tc.args.key)
+			require.Equal(t, tc.out, tc.apcs)
+		})
+	}
 }

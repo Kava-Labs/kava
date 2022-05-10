@@ -1562,6 +1562,51 @@
                       },
                       {
                         "key": "market_id",
+                        "val": "kava:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "kava:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "hard:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "hard:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "usdx:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "usdx:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "usdx:usd:720",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "swp:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "swp:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
                         "val": "atom:usd",
                         "allowed_subparam_attr_changes": ["active"]
                       },
@@ -1762,7 +1807,7 @@
                   },
                   {
                     "subspace": "incentive",
-                    "key": "HardDelegatorRewardPeriods",
+                    "key": "DelegatorRewardPeriods",
                     "single_subparam_allowed_attrs": [],
                     "multi_subparams_requirements": []
                   },
@@ -1873,7 +1918,8 @@
                     ]
                   }
                 ]
-              }
+              },
+              { "@type": "/kava.committee.v1beta1.TextPermission" }
             ],
             "vote_threshold": "0.500000000000000000",
             "proposal_duration": "600s",
@@ -1906,7 +1952,7 @@
                   },
                   {
                     "subspace": "incentive",
-                    "key": "HardDelegatorRewardPeriods",
+                    "key": "DelegatorRewardPeriods",
                     "single_subparam_allowed_attrs": [],
                     "multi_subparams_requirements": []
                   },
@@ -1917,7 +1963,8 @@
                     "multi_subparams_requirements": []
                   }
                 ]
-              }
+              },
+              { "@type": "/kava.committee.v1beta1.TextPermission" }
             ],
             "vote_threshold": "0.500000000000000000",
             "proposal_duration": "600s",

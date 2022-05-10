@@ -1,6 +1,6 @@
 {
   "genesis_time": "2022-05-10T17:00:00Z",
-  "chain_id": "kava-2222-10",
+  "chain_id": "kava_2222-10",
   "initial_height": "1",
   "consensus_params": {
     "block": {
@@ -709,12 +709,6 @@
                 "allowed_params_changes": [
                   {
                     "subspace": "auction",
-                    "key": "BidDuration",
-                    "single_subparam_allowed_attrs": [],
-                    "multi_subparams_requirements": []
-                  },
-                  {
-                    "subspace": "auction",
                     "key": "IncrementSurplus",
                     "single_subparam_allowed_attrs": [],
                     "multi_subparams_requirements": []
@@ -888,6 +882,17 @@
                           "keeper_reward_percentage",
                           "stability_fee"
                         ]
+                      },
+                      {
+                        "key": "type",
+                        "val": "ust-a",
+                        "allowed_subparam_attr_changes": [
+                          "auction_size",
+                          "check_collateralization_index_count",
+                          "debt_limit",
+                          "keeper_reward_percentage",
+                          "stability_fee"
+                        ]
                       }
                     ]
                   },
@@ -988,6 +993,51 @@
                       {
                         "key": "market_id",
                         "val": "busd:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "kava:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "kava:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "hard:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "hard:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "usdx:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "usdx:usd:30",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "usdx:usd:720",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "swp:usd",
+                        "allowed_subparam_attr_changes": ["active"]
+                      },
+                      {
+                        "key": "market_id",
+                        "val": "swp:usd:30",
                         "allowed_subparam_attr_changes": ["active"]
                       },
                       {
@@ -1136,8 +1186,31 @@
                           "keeper_reward_percentage",
                           "reserve_factor"
                         ]
+                      },
+                      {
+                        "key": "denom",
+                        "val": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098",
+                        "allowed_subparam_attr_changes": [
+                          "borrow_limit",
+                          "interest_rate_model",
+                          "keeper_reward_percentage",
+                          "reserve_factor",
+                          "spot_market_id"
+                        ]
                       }
                     ]
+                  },
+                  {
+                    "subspace": "auction",
+                    "key": "ForwardBidDuration",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
+                  },
+                  {
+                    "subspace": "auction",
+                    "key": "ReverseBidDuration",
+                    "single_subparam_allowed_attrs": [],
+                    "multi_subparams_requirements": []
                   }
                 ]
               },
@@ -1192,7 +1265,7 @@
                   },
                   {
                     "subspace": "incentive",
-                    "key": "HardDelegatorRewardPeriods",
+                    "key": "DelegatorRewardPeriods",
                     "single_subparam_allowed_attrs": [],
                     "multi_subparams_requirements": []
                   },
@@ -1299,11 +1372,23 @@
                           "reserve_factor",
                           "spot_market_id"
                         ]
+                      },
+                      {
+                        "key": "denom",
+                        "val": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098",
+                        "allowed_subparam_attr_changes": [
+                          "borrow_limit",
+                          "interest_rate_model",
+                          "keeper_reward_percentage",
+                          "reserve_factor",
+                          "spot_market_id"
+                        ]
                       }
                     ]
                   }
                 ]
-              }
+              },
+              { "@type": "/kava.committee.v1beta1.TextPermission" }
             ],
             "vote_threshold": "0.500000000000000000",
             "proposal_duration": "600s",
@@ -1336,7 +1421,7 @@
                   },
                   {
                     "subspace": "incentive",
-                    "key": "HardDelegatorRewardPeriods",
+                    "key": "DelegatorRewardPeriods",
                     "single_subparam_allowed_attrs": [],
                     "multi_subparams_requirements": []
                   },
@@ -1347,7 +1432,8 @@
                     "multi_subparams_requirements": []
                   }
                 ]
-              }
+              },
+              { "@type": "/kava.committee.v1beta1.TextPermission" }
             ],
             "vote_threshold": "0.500000000000000000",
             "proposal_duration": "600s",
@@ -1471,9 +1557,9 @@
           "istanbul_block": "0",
           "muir_glacier_block": "0",
           "berlin_block": "0",
-          "london_block": "0",
-          "arrow_glacier_block": "0",
-          "merge_fork_block": "0"
+          "london_block": null,
+          "arrow_glacier_block": null,
+          "merge_fork_block": null
         }
       }
     },
@@ -2259,7 +2345,7 @@
     "upgrade": {},
     "feemarket": {
       "params": {
-        "no_base_fee": false,
+        "no_base_fee": true,
         "base_fee_change_denominator": 8,
         "elasticity_multiplier": 2,
         "enable_height": "0",

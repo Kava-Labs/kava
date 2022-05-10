@@ -19,6 +19,7 @@ import (
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	v017bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_17"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
@@ -35,13 +36,18 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 	appState[evmutiltypes.ModuleName] = codec.MustMarshalJSON(evmUtilGenState)
 
 	// x/evm
+	evmChainConfig := evmtypes.DefaultChainConfig()
+	evmChainConfig.LondonBlock = nil
+	evmChainConfig.ArrowGlacierBlock = nil
+	evmChainConfig.MergeForkBlock = nil
+
 	evmGenState := &evmtypes.GenesisState{
 		Accounts: []evmtypes.GenesisAccount{},
 		Params: evmtypes.Params{
 			EvmDenom:     "akava",
 			EnableCreate: true,
 			EnableCall:   true,
-			ChainConfig:  evmtypes.DefaultChainConfig(),
+			ChainConfig:  evmChainConfig,
 			ExtraEIPs:    nil,
 		},
 	}
@@ -62,6 +68,8 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 
 	// x/feemarket
 	feemarketState := feemarkettypes.DefaultGenesisState()
+	// disable fee market and use minimum-gas-price instead of dynamic base fee
+	feemarketState.Params.NoBaseFee = true
 	appState[feemarkettypes.ModuleName] = codec.MustMarshalJSON(feemarketState)
 
 	// x/authz
@@ -99,5 +107,15 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 		migratedState := v017bep3.Migrate(v16GenState)
 
 		appState[bep3types.ModuleName] = codec.MustMarshalJSON(migratedState)
+	}
+
+	// x/committee
+	if appState[committeetypes.ModuleName] != nil {
+		var genState committeetypes.GenesisState
+		codec.MustUnmarshalJSON(appState[committeetypes.ModuleName], &genState)
+
+		migratedState := migrateCommitteePermissions(genState)
+
+		appState[committeetypes.ModuleName] = codec.MustMarshalJSON(&migratedState)
 	}
 }
