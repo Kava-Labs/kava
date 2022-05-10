@@ -793,16 +793,18 @@ func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoSubparamRequirement
 		{
 			name:     "fail if one change is not allowed",
 			expected: false,
-			changes: []paramsproposal.ParamChange{{
-				Subspace: cdptypes.ModuleName,
-				Key:      string(cdptypes.KeySurplusThreshold),
-				Value:    sdk.NewInt(120).String(),
-			},
+			changes: []paramsproposal.ParamChange{
+				{
+					Subspace: cdptypes.ModuleName,
+					Key:      string(cdptypes.KeySurplusThreshold),
+					Value:    sdk.NewInt(120).String(),
+				},
 				{
 					Subspace: cdptypes.ModuleName,
 					Key:      string(cdptypes.KeySurplusLot),
 					Value:    sdk.NewInt(120).String(),
-				}},
+				},
+			},
 		},
 	}
 

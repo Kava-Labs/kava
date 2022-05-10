@@ -24,7 +24,8 @@ type Keeper struct {
 
 // NewKeeper returns a new auction keeper.
 func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, paramstore paramtypes.Subspace,
-	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper) Keeper {
+	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper,
+) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -81,7 +82,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 func (k Keeper) SetNextAuctionID(ctx sdk.Context, id uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.NextAuctionIDKey)
 	store.Set(types.NextAuctionIDKey, types.Uint64ToBytes(id))
-
 }
 
 // GetNextAuctionID reads the next available global ID from store

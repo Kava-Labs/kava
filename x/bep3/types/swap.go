@@ -15,7 +15,8 @@ import (
 // NewAtomicSwap returns a new AtomicSwap
 func NewAtomicSwap(amount sdk.Coins, randomNumberHash tmbytes.HexBytes, expireHeight uint64, timestamp int64,
 	sender, recipient sdk.AccAddress, senderOtherChain, recipientOtherChain string, closedBlock int64,
-	status SwapStatus, crossChain bool, direction SwapDirection) AtomicSwap {
+	status SwapStatus, crossChain bool, direction SwapDirection,
+) AtomicSwap {
 	return AtomicSwap{
 		Amount:              amount,
 		RandomNumberHash:    randomNumberHash,

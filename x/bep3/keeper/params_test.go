@@ -63,7 +63,6 @@ func (suite *ParamsTestSuite) TestGetSetDeputyAddress() {
 	addr, err := suite.keeper.GetDeputyAddress(suite.ctx, "bnb")
 	suite.Require().NoError(err)
 	suite.Equal(suite.addrs[1], addr)
-
 }
 
 func (suite *ParamsTestSuite) TestGetDeputyFixedFee() {

@@ -168,10 +168,12 @@ func TestAppImportExport(t *testing.T) {
 	storeKeysPrefixes := []StoreKeysPrefixes{
 		{app.keys[baseapp.MainStoreKey], newApp.keys[baseapp.MainStoreKey], [][]byte{}},
 		{app.keys[auth.StoreKey], newApp.keys[auth.StoreKey], [][]byte{}},
-		{app.keys[staking.StoreKey], newApp.keys[staking.StoreKey],
+		{
+			app.keys[staking.StoreKey], newApp.keys[staking.StoreKey],
 			[][]byte{
 				staking.UnbondingQueueKey, staking.RedelegationQueueKey, staking.ValidatorQueueKey,
-			}}, // ordering may change but it doesn't matter
+			},
+		}, // ordering may change but it doesn't matter
 		{app.keys[slashing.StoreKey], newApp.keys[slashing.StoreKey], [][]byte{}},
 		{app.keys[mint.StoreKey], newApp.keys[mint.StoreKey], [][]byte{}},
 		{app.keys[distr.StoreKey], newApp.keys[distr.StoreKey], [][]byte{}},
@@ -320,7 +322,6 @@ func TestAppStateDeterminism(t *testing.T) {
 func AppStateFn(cdc *codec.Codec, simManager *module.SimulationManager) simulation.AppStateFn {
 	return func(r *rand.Rand, accs []simulation.Account, config simulation.Config,
 	) (appState json.RawMessage, simAccs []simulation.Account, chainID string, genesisTimestamp time.Time) {
-
 		if simapp.FlagGenesisTimeValue == 0 {
 			genesisTimestamp = time.Unix(r.Int63n(190288396800), 0) // 1st Jan year 8000
 		} else {

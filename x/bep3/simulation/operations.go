@@ -133,7 +133,6 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		}
 		// The maximum amount for outgoing swaps is limited by the asset's current supply
 		if recipient.Address.Equals(asset.DeputyAddress) {
-
 			if maximumAmount.GT(assetSupply.CurrentSupply.Amount.Sub(assetSupply.OutgoingSupply.Amount)) {
 				maximumAmount = assetSupply.CurrentSupply.Amount.Sub(assetSupply.OutgoingSupply.Amount)
 			}
@@ -330,7 +329,8 @@ func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID [
 
 // findValidAccountAssetSupplyPair finds an account for which the callback func returns true
 func findValidAccountAssetPair(accounts []simulation.Account, assets types.AssetParams,
-	cb func(simulation.Account, types.AssetParam) bool) (simulation.Account, types.AssetParam, bool) {
+	cb func(simulation.Account, types.AssetParam) bool,
+) (simulation.Account, types.AssetParam, bool) {
 	for _, asset := range assets {
 		for _, acc := range accounts {
 			if isValid := cb(acc, asset); isValid {

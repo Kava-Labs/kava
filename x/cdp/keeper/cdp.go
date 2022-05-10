@@ -173,7 +173,6 @@ func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom strin
 
 // GetCdpID returns the id of the cdp corresponding to a specific owner and collateral denom
 func (k Keeper) GetCdpID(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (uint64, bool) {
-
 	cdpIDs, found := k.GetCdpIdsByOwner(ctx, owner)
 	if !found {
 		return 0, false
@@ -185,7 +184,6 @@ func (k Keeper) GetCdpID(ctx sdk.Context, owner sdk.AccAddress, collateralType s
 		}
 	}
 	return 0, false
-
 }
 
 // GetCdpIdsByOwner returns all the ids of cdps corresponding to a particular owner
@@ -256,7 +254,6 @@ func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) error {
 	}
 	store.Delete(types.CdpKey(cdp.Type, cdp.ID))
 	return nil
-
 }
 
 // GetAllCdps returns all cdps from the store

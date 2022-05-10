@@ -117,7 +117,6 @@ func BenchmarkCdpIteration(b *testing.B) {
 			}
 		})
 	}
-
 }
 
 var errResult error

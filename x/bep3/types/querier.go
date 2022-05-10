@@ -70,7 +70,8 @@ type QueryAtomicSwaps struct {
 
 // NewQueryAtomicSwaps creates a new instance of QueryAtomicSwaps
 func NewQueryAtomicSwaps(page, limit int, involve sdk.AccAddress, expiration uint64,
-	status SwapStatus, direction SwapDirection) QueryAtomicSwaps {
+	status SwapStatus, direction SwapDirection,
+) QueryAtomicSwaps {
 	return QueryAtomicSwaps{
 		Page:       page,
 		Limit:      limit,

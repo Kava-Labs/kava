@@ -150,7 +150,7 @@ func (suite *evmBankKeeperTestSuite) TestSendCoinsFromModuleToAccount() {
 			sdk.NewCoins(sdk.NewInt64Coin("akava", 98_000_000_000_000)),
 			sdk.Coins{},
 			sdk.NewCoins(
-				sdk.NewInt64Coin("akava", 00),
+				sdk.NewInt64Coin("akava", 0o0),
 				sdk.NewInt64Coin("ukava", 98),
 			),
 			false,

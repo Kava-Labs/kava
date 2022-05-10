@@ -51,7 +51,8 @@ func (k Keeper) SetPrice(
 	oracle sdk.AccAddress,
 	marketID string,
 	price sdk.Dec,
-	expiry time.Time) (types.PostedPrice, error) {
+	expiry time.Time,
+) (types.PostedPrice, error) {
 	// If the expiry is less than or equal to the current blockheight, we consider the price valid
 	if !expiry.After(ctx.BlockTime()) {
 		return types.PostedPrice{}, types.ErrExpired

@@ -340,7 +340,6 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				}, tc.name)
 			}
 		})
-
 	}
 }
 

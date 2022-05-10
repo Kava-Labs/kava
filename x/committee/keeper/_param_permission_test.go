@@ -260,8 +260,8 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 			)
 		})
 	}
-
 }
+
 func TestPermissionTestSuite(t *testing.T) {
 	suite.Run(t, new(PermissionTestSuite))
 }

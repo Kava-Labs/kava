@@ -12,7 +12,6 @@ import (
 
 // RegisterInvariants registers all staking invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
-
 	ir.RegisterRoute(types.ModuleName, "module-account",
 		ModuleAccountInvariants(k))
 	ir.RegisterRoute(types.ModuleName, "valid-auctions",
@@ -24,7 +23,6 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 // ModuleAccountInvariants checks that the module account's coins matches those stored in auctions
 func ModuleAccountInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-
 		totalAuctionCoins := sdk.NewCoins()
 		k.IterateAuctions(ctx, func(auction types.Auction) bool {
 			a, ok := auction.(types.GenesisAuction)

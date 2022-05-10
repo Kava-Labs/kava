@@ -62,7 +62,6 @@ func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
 
 	_, f = suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"))
 	suite.Require().False(f)
-
 }
 
 func (suite *KeeperTestSuite) TestIterateDeposits() {

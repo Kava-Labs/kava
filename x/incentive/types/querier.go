@@ -50,7 +50,8 @@ type QueryGetRewardFactorsResponse struct {
 
 // NewQueryGetRewardFactorsResponse returns a new instance of QueryAllRewardFactorsResponse
 func NewQueryGetRewardFactorsResponse(usdxMintingFactors RewardIndexes, supplyFactors,
-	hardBorrowFactors, delegatorFactors, swapFactors, savingsFactors MultiRewardIndexes) QueryGetRewardFactorsResponse {
+	hardBorrowFactors, delegatorFactors, swapFactors, savingsFactors MultiRewardIndexes,
+) QueryGetRewardFactorsResponse {
 	return QueryGetRewardFactorsResponse{
 		USDXMintingRewardFactors: usdxMintingFactors,
 		HardSupplyRewardFactors:  supplyFactors,

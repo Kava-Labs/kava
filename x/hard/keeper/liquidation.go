@@ -73,7 +73,8 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 
 // SeizeDeposits seizes a list of deposits and sends them to auction
 func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit types.Deposit,
-	borrow types.Borrow, dDenoms, bDenoms []string) error {
+	borrow types.Borrow, dDenoms, bDenoms []string,
+) error {
 	liqMap, err := k.LoadLiquidationData(ctx, deposit, borrow)
 	if err != nil {
 		return err
@@ -146,7 +147,8 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 
 // StartAuctions attempts to start auctions for seized assets
 func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows, deposits sdk.Coins,
-	depositCoinValues, borrowCoinValues types.ValuationMap, ltv sdk.Dec, liqMap map[string]LiqData) (sdk.Coins, error) {
+	depositCoinValues, borrowCoinValues types.ValuationMap, ltv sdk.Dec, liqMap map[string]LiqData,
+) (sdk.Coins, error) {
 	// Sort keys to ensure deterministic behavior
 	bKeys := borrowCoinValues.GetSortedKeys()
 	dKeys := depositCoinValues.GetSortedKeys()
@@ -387,7 +389,6 @@ func (k Keeper) LoadLiquidationData(ctx sdk.Context, deposit types.Deposit, borr
 		mm, found := k.GetMoneyMarket(ctx, denom)
 		if !found {
 			return liqMap, sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
-
 		}
 
 		priceData, err := k.pricefeedKeeper.GetCurrentPrice(ctx, mm.SpotMarketID)

@@ -35,7 +35,8 @@ func (suite *DepositTestSuite) SetupTest() {
 		cdc,
 		[]sdk.Coins{
 			cs(c("xrp", 500000000), c("btc", 500000000)),
-			cs(c("xrp", 200000000))},
+			cs(c("xrp", 200000000)),
+		},
 		addrs[0:2],
 	)
 	tApp.InitializeFromGenesisStates(

@@ -41,6 +41,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenGlo
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 	suite.Equal(globalIndexes, syncedClaim.SupplyRewardIndexes)
 }
+
 func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUnchangedWhenGlobalIndexesUnchanged() {
 	// It should be safe to call SynchronizeHardSupplyReward multiple times
 
@@ -65,6 +66,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUnchangedWhenG
 	syncedClaim, _ := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, claim.Owner)
 	suite.Equal(unchangingIndexes, syncedClaim.SupplyRewardIndexes)
 }
+
 func (suite *SynchronizeHardSupplyRewardTests) TestClaimIndexesAreUpdatedWhenNewRewardAdded() {
 	// When a new reward is added (via gov) for a hard deposit denom the user has already deposited, and the claim is synced;
 	// Then the new reward's index should be added to the claim.
@@ -231,6 +233,7 @@ func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenNewRew
 		syncedClaim.Reward,
 	)
 }
+
 func (suite *SynchronizeHardSupplyRewardTests) TestRewardIsIncrementedWhenNewRewardDenomAdded() {
 	// When a new reward coin is added (via gov) to an already rewarded deposit denom (that the user has already deposited), and the claim is synced;
 	// Then the user earns rewards for the time since the reward was added
@@ -300,7 +303,8 @@ func NewHardDepositBuilder(depositor sdk.AccAddress) HardDepositBuilder {
 	return HardDepositBuilder{
 		Deposit: hardtypes.Deposit{
 			Depositor: depositor,
-		}}
+		},
+	}
 }
 
 // Build assembles and returns the final deposit.

@@ -112,7 +112,8 @@ func (cs USDXMintingClaims) Validate() error {
 
 // NewHardLiquidityProviderClaim returns a new HardLiquidityProviderClaim
 func NewHardLiquidityProviderClaim(owner sdk.AccAddress, rewards sdk.Coins,
-	supplyRewardIndexes, borrowRewardIndexes MultiRewardIndexes) HardLiquidityProviderClaim {
+	supplyRewardIndexes, borrowRewardIndexes MultiRewardIndexes,
+) HardLiquidityProviderClaim {
 	return HardLiquidityProviderClaim{
 		BaseMultiClaim: BaseMultiClaim{
 			Owner:  owner,

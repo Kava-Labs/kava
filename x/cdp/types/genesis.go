@@ -11,7 +11,8 @@ import (
 // NewGenesisState returns a new genesis state
 func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64,
 	debtDenom, govDenom string, prevAccumTimes GenesisAccumulationTimes,
-	totalPrincipals GenesisTotalPrincipals) GenesisState {
+	totalPrincipals GenesisTotalPrincipals,
+) GenesisState {
 	return GenesisState{
 		Params:                    params,
 		CDPs:                      cdps,
@@ -41,7 +42,6 @@ func DefaultGenesisState() GenesisState {
 // Validate performs basic validation of genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
-
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}

@@ -14,7 +14,7 @@ import (
 // v40 cosmos auth module genesis state, returning a copy of the original state where all
 // periodic vesting accounts have been zeroed out.
 func MigrateAuthV040(authGenState v040auth.GenesisState, genesisTime time.Time, ctx client.Context) *v040auth.GenesisState {
-	var anyAccounts = make([]*codectypes.Any, len(authGenState.Accounts))
+	anyAccounts := make([]*codectypes.Any, len(authGenState.Accounts))
 	for i, anyAcc := range authGenState.Accounts {
 		// Only need to make modifications to vesting accounts
 		if anyAcc.TypeUrl != "/cosmos.vesting.v1beta1.PeriodicVestingAccount" {

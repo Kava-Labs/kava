@@ -324,7 +324,6 @@ func NewApp(
 	options Options,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
@@ -349,7 +348,7 @@ func NewApp(
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
-	var app = &App{
+	app := &App{
 		BaseApp:           bApp,
 		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,

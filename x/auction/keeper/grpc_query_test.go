@@ -117,7 +117,6 @@ func TestGrpcAuctionsFilter(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.giveName, func(t *testing.T) {
-
 			res, err := qs.Auctions(sdk.WrapSDKContext(ctx), &tc.giveRequest)
 			require.NoError(t, err)
 

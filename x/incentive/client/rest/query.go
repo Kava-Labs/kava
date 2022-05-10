@@ -183,7 +183,6 @@ func executeSwapRewardsQuery(w http.ResponseWriter, cliCtx client.Context, param
 }
 
 func executeAllRewardQueries(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
-
 	paramsBz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))

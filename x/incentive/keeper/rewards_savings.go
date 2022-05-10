@@ -11,7 +11,6 @@ import (
 
 // AccumulateSavingsRewards calculates new rewards to distribute this block and updates the global indexes
 func (k Keeper) AccumulateSavingsRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-
 	previousAccrualTime, found := k.GetSavingsRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()

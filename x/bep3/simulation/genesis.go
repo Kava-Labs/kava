@@ -78,7 +78,6 @@ func GenMaxBlockLock(r *rand.Rand, minBlockLock uint64) uint64 {
 
 // GenSupportedAssets gets randomized SupportedAssets
 func GenSupportedAssets(r *rand.Rand) types.AssetParams {
-
 	numAssets := (r.Intn(10) + 1)
 	assets := make(types.AssetParams, numAssets+1)
 	for i := 0; i < numAssets; i++ {
@@ -113,7 +112,8 @@ func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 			Limit:          limit,
 			TimeLimited:    timeLimited,
 			TimePeriod:     time.Hour * 24,
-			TimeBasedLimit: timeBasedLimit},
+			TimeBasedLimit: timeBasedLimit,
+		},
 		Active:        true,
 		DeputyAddress: GenRandBnbDeputy(r).Address,
 		FixedFee:      GenRandFixedFee(r),
@@ -146,7 +146,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 }
 
 func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState {
-
 	supportedAssets := GenSupportedAssets(simState.Rand)
 	supplies := types.AssetSupplies{}
 	for _, asset := range supportedAssets {

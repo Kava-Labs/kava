@@ -13,7 +13,6 @@ import (
 // AccumulateHardBorrowRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
 func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-
 	previousAccrualTime, found := k.GetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()
@@ -100,7 +99,6 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 	}
 
 	for _, normedBorrow := range normalizedBorrows {
-
 		claim = k.synchronizeSingleHardBorrowReward(ctx, claim, normedBorrow.Denom, normedBorrow.Amount)
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)

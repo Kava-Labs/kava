@@ -97,7 +97,6 @@ func (s queryServer) Deposits(c context.Context, req *types.QueryDepositsRequest
 		store,
 		req.Pagination,
 		func(key []byte, value []byte, accumulate bool) (bool, error) {
-
 			var record types.ShareRecord
 			err := s.keeper.cdc.Unmarshal(value, &record)
 			if err != nil {

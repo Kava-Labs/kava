@@ -16,16 +16,18 @@ import (
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
-var _, testAddrs = app.GeneratePrivKeyAddressPairs(2)
-var testTime = time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-var testAuction = types.NewCollateralAuction(
-	"seller",
-	c("lotdenom", 10),
-	testTime,
-	c("biddenom", 1000),
-	types.WeightedAddresses{Addresses: testAddrs, Weights: []sdk.Int{sdk.OneInt(), sdk.OneInt()}},
-	c("debt", 1000),
-).WithID(3).(types.GenesisAuction)
+var (
+	_, testAddrs = app.GeneratePrivKeyAddressPairs(2)
+	testTime     = time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+	testAuction  = types.NewCollateralAuction(
+		"seller",
+		c("lotdenom", 10),
+		testTime,
+		c("biddenom", 1000),
+		types.WeightedAddresses{Addresses: testAddrs, Weights: []sdk.Int{sdk.OneInt(), sdk.OneInt()}},
+		c("debt", 1000),
+	).WithID(3).(types.GenesisAuction)
+)
 
 func TestInitGenesis(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {

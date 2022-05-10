@@ -148,7 +148,6 @@ func TestGenesisState_Validate(t *testing.T) {
 }
 
 func TestGenesisAccumulationTimes_Validate(t *testing.T) {
-
 	testCases := []struct {
 		name    string
 		gats    AccumulationTimes

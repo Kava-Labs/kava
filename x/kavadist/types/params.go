@@ -129,7 +129,7 @@ func validatePeriodsParams(i interface{}) error {
 			return fmt.Errorf("start or end time cannot be zero: %s", pr)
 		}
 
-		//TODO: validate period Inflation?
+		// TODO: validate period Inflation?
 	}
 
 	return nil

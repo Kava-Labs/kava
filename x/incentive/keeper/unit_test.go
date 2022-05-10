@@ -36,7 +36,6 @@ func NewTestContext(requiredStoreKeys ...sdk.StoreKey) sdk.Context {
 	}
 
 	return sdk.NewContext(cms, tmprototypes.Header{}, false, log.NewNopLogger())
-
 }
 
 // unitTester is a wrapper around suite.Suite, with common functionality for keeper unit tests.
@@ -55,7 +54,6 @@ func (suite *unitTester) SetupSuite() {
 	suite.cdc = tApp.AppCodec()
 
 	suite.incentiveStoreKey = sdk.NewKVStoreKey(types.StoreKey)
-
 }
 
 func (suite *unitTester) SetupTest() {
@@ -77,21 +75,25 @@ func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndex
 		suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
+
 func (suite *unitTester) storeGlobalSupplyIndexes(indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
 		suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
+
 func (suite *unitTester) storeGlobalDelegatorIndexes(multiRewardIndexes types.MultiRewardIndexes) {
 	// Hardcoded to use bond denom
 	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
 	suite.keeper.SetDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
 }
+
 func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
 		suite.keeper.SetSwapRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
+
 func (suite *unitTester) storeGlobalSavingsIndexes(indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
 		suite.keeper.SetSavingsRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
@@ -101,12 +103,15 @@ func (suite *unitTester) storeGlobalSavingsIndexes(indexes types.MultiRewardInde
 func (suite *unitTester) storeHardClaim(claim types.HardLiquidityProviderClaim) {
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
 }
+
 func (suite *unitTester) storeDelegatorClaim(claim types.DelegatorClaim) {
 	suite.keeper.SetDelegatorClaim(suite.ctx, claim)
 }
+
 func (suite *unitTester) storeSwapClaim(claim types.SwapClaim) {
 	suite.keeper.SetSwapClaim(suite.ctx, claim)
 }
+
 func (suite *unitTester) storeSavingsClaim(claim types.SavingsClaim) {
 	suite.keeper.SetSavingsClaim(suite.ctx, claim)
 }
@@ -119,24 +124,25 @@ type fakeParamSubspace struct {
 func (subspace *fakeParamSubspace) GetParamSet(_ sdk.Context, ps paramtypes.ParamSet) {
 	*(ps.(*types.Params)) = subspace.params
 }
+
 func (subspace *fakeParamSubspace) SetParamSet(_ sdk.Context, ps paramtypes.ParamSet) {
 	subspace.params = *(ps.(*types.Params))
 }
+
 func (subspace *fakeParamSubspace) HasKeyTable() bool {
 	// return true so the keeper does not try to call WithKeyTable, which does nothing
 	return true
 }
+
 func (subspace *fakeParamSubspace) WithKeyTable(paramtypes.KeyTable) paramtypes.Subspace {
 	// return an non-functional subspace to satisfy the interface
 	return paramtypes.Subspace{}
 }
 
 func (subspace *fakeParamSubspace) Get(ctx sdk.Context, key []byte, ptr interface{}) {
-
 }
 
 func (subspace *fakeParamSubspace) Set(ctx sdk.Context, key []byte, param interface{}) {
-
 }
 
 // fakeSwapKeeper is a stub swap keeper.
@@ -154,10 +160,12 @@ func newFakeSwapKeeper() *fakeSwapKeeper {
 		depositShares: map[string](map[string]sdk.Int){},
 	}
 }
+
 func (k *fakeSwapKeeper) addPool(id string, shares sdk.Int) *fakeSwapKeeper {
 	k.poolShares[id] = shares
 	return k
 }
+
 func (k *fakeSwapKeeper) addDeposit(poolID string, depositor sdk.AccAddress, shares sdk.Int) *fakeSwapKeeper {
 	if k.depositShares[poolID] == nil {
 		k.depositShares[poolID] = map[string]sdk.Int{}
@@ -165,10 +173,12 @@ func (k *fakeSwapKeeper) addDeposit(poolID string, depositor sdk.AccAddress, sha
 	k.depositShares[poolID][depositor.String()] = shares
 	return k
 }
+
 func (k *fakeSwapKeeper) GetPoolShares(_ sdk.Context, poolID string) (sdk.Int, bool) {
 	shares, ok := k.poolShares[poolID]
 	return shares, ok
 }
+
 func (k *fakeSwapKeeper) GetDepositorSharesAmount(_ sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
 	shares, found := k.depositShares[poolID][depositor.String()]
 	return shares, found
@@ -207,6 +217,7 @@ func (k *fakeHardKeeper) addTotalBorrow(coin sdk.Coin, factor sdk.Dec) *fakeHard
 	k.borrows.interestFactors[coin.Denom] = factor
 	return k
 }
+
 func (k *fakeHardKeeper) addTotalSupply(coin sdk.Coin, factor sdk.Dec) *fakeHardKeeper {
 	k.deposits.total = k.deposits.total.Add(coin)
 	k.deposits.interestFactors[coin.Denom] = factor
@@ -219,23 +230,28 @@ func (k *fakeHardKeeper) GetBorrowedCoins(_ sdk.Context) (sdk.Coins, bool) {
 	}
 	return k.borrows.total, true
 }
+
 func (k *fakeHardKeeper) GetSuppliedCoins(_ sdk.Context) (sdk.Coins, bool) {
 	if k.deposits.total == nil {
 		return nil, false
 	}
 	return k.deposits.total, true
 }
+
 func (k *fakeHardKeeper) GetBorrowInterestFactor(_ sdk.Context, denom string) (sdk.Dec, bool) {
 	f, ok := k.borrows.interestFactors[denom]
 	return f, ok
 }
+
 func (k *fakeHardKeeper) GetSupplyInterestFactor(_ sdk.Context, denom string) (sdk.Dec, bool) {
 	f, ok := k.deposits.interestFactors[denom]
 	return f, ok
 }
+
 func (k *fakeHardKeeper) GetBorrow(_ sdk.Context, _ sdk.AccAddress) (hardtypes.Borrow, bool) {
 	panic("unimplemented")
 }
+
 func (k *fakeHardKeeper) GetDeposit(_ sdk.Context, _ sdk.AccAddress) (hardtypes.Deposit, bool) {
 	panic("unimplemented")
 }
@@ -272,9 +288,11 @@ func (k *fakeStakingKeeper) TotalBondedTokens(_ sdk.Context) sdk.Int {
 	}
 	return total
 }
+
 func (k *fakeStakingKeeper) GetDelegatorDelegations(_ sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) []stakingtypes.Delegation {
 	return k.delegations
 }
+
 func (k *fakeStakingKeeper) GetValidator(_ sdk.Context, addr sdk.ValAddress) (stakingtypes.Validator, bool) {
 	for _, val := range k.validators {
 		if val.GetOperator().Equals(addr) {
@@ -283,6 +301,7 @@ func (k *fakeStakingKeeper) GetValidator(_ sdk.Context, addr sdk.ValAddress) (st
 	}
 	return stakingtypes.Validator{}, false
 }
+
 func (k *fakeStakingKeeper) GetValidatorDelegations(_ sdk.Context, valAddr sdk.ValAddress) []stakingtypes.Delegation {
 	var delegations stakingtypes.Delegations
 	for _, d := range k.delegations {
@@ -313,6 +332,7 @@ func (k *fakeCDPKeeper) addInterestFactor(f sdk.Dec) *fakeCDPKeeper {
 	k.interestFactor = &f
 	return k
 }
+
 func (k *fakeCDPKeeper) addTotalPrincipal(p sdk.Int) *fakeCDPKeeper {
 	k.totalPrincipal = p
 	return k
@@ -324,12 +344,15 @@ func (k *fakeCDPKeeper) GetInterestFactor(_ sdk.Context, collateralType string) 
 	}
 	return sdk.Dec{}, false
 }
+
 func (k *fakeCDPKeeper) GetTotalPrincipal(_ sdk.Context, collateralType string, principalDenom string) sdk.Int {
 	return k.totalPrincipal
 }
+
 func (k *fakeCDPKeeper) GetCdpByOwnerAndCollateralType(_ sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool) {
 	return cdptypes.CDP{}, false
 }
+
 func (k *fakeCDPKeeper) GetCollateral(_ sdk.Context, collateralType string) (cdptypes.CollateralParam, bool) {
 	return cdptypes.CollateralParam{}, false
 }
@@ -347,9 +370,11 @@ func arbitraryAddress() sdk.AccAddress {
 	_, addresses := app.GeneratePrivKeyAddressPairs(1)
 	return addresses[0]
 }
+
 func arbitraryValidatorAddress() sdk.ValAddress {
 	return generateValidatorAddresses(1)[0]
 }
+
 func generateValidatorAddresses(n int) []sdk.ValAddress {
 	_, addresses := app.GeneratePrivKeyAddressPairs(n)
 	var valAddresses []sdk.ValAddress

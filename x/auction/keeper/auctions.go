@@ -46,7 +46,6 @@ func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin
 
 // StartDebtAuction starts a new debt (reverse) auction.
 func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin, debt sdk.Coin) (uint64, error) {
-
 	auction := types.NewDebtAuction(
 		buyer,
 		bid,
@@ -132,7 +131,6 @@ func (k Keeper) StartCollateralAuction(
 
 // PlaceBid places a bid on any auction.
 func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddress, newAmount sdk.Coin) error {
-
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAuctionNotFound, "%d", auctionID)

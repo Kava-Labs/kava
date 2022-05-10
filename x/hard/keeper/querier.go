@@ -82,7 +82,6 @@ func queryGetModAccounts(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 	}
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, response)
-
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -91,7 +90,6 @@ func queryGetModAccounts(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 }
 
 func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-
 	var params types.QueryDepositsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -163,7 +161,6 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 }
 
 func queryGetUnsyncedDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-
 	var params types.QueryUnsyncedDepositsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -219,7 +216,6 @@ func queryGetUnsyncedDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 }
 
 func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-
 	var params types.QueryBorrowsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -291,7 +287,6 @@ func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQue
 }
 
 func queryGetUnsyncedBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-
 	var params types.QueryUnsyncedBorrowsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {

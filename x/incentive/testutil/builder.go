@@ -205,9 +205,11 @@ func NewHardGenesisBuilder() HardGenesisBuilder {
 		GenesisState: hardtypes.DefaultGenesisState(),
 	}
 }
+
 func (builder HardGenesisBuilder) Build() hardtypes.GenesisState {
 	return builder.GenesisState
 }
+
 func (builder HardGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) app.GenesisState {
 	built := builder.Build()
 
@@ -215,10 +217,12 @@ func (builder HardGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) app.Genes
 		hardtypes.ModuleName: cdc.MustMarshalJSON(&built),
 	}
 }
+
 func (builder HardGenesisBuilder) WithGenesisTime(genTime time.Time) HardGenesisBuilder {
 	builder.genesisTime = genTime
 	return builder
 }
+
 func (builder HardGenesisBuilder) WithInitializedMoneyMarket(market hardtypes.MoneyMarket) HardGenesisBuilder {
 	builder.Params.MoneyMarkets = append(builder.Params.MoneyMarkets, market)
 
@@ -228,10 +232,12 @@ func (builder HardGenesisBuilder) WithInitializedMoneyMarket(market hardtypes.Mo
 	)
 	return builder
 }
+
 func (builder HardGenesisBuilder) WithMinBorrow(minUSDValue sdk.Dec) HardGenesisBuilder {
 	builder.Params.MinimumBorrowUSDValue = minUSDValue
 	return builder
 }
+
 func NewStandardMoneyMarket(denom string) hardtypes.MoneyMarket {
 	return hardtypes.NewMoneyMarket(
 		denom,
