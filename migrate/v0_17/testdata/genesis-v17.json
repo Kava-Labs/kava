@@ -161,10 +161,10 @@
             "delegated_vesting": [],
             "end_time": "1665767828"
           },
-          "start_time": "1652202000",
+          "start_time": "1653498000",
           "vesting_periods": [
             {
-              "length": "13565828",
+              "length": "12269828",
               "amount": [{ "denom": "swp", "amount": "14791312" }]
             }
           ]
