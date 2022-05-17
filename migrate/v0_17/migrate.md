@@ -3,9 +3,9 @@
 ## Software Version and Key Dates
 
 - We will be upgrading from chain-id "kava-9" to chain-id "kava_2222-10".
-- The version of Kava for kava-10 is v0.17.0
-- The kava-9 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height **1412300**, which is approximately 14:00 UTC on May, 10 2022.
-- kava-10 genesis time is set to May 10, 2022 at 17:00 UTC
+- The version of Kava for kava-10 is v0.17.1
+- The kava-9 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height **1610471**, which is approximately 15:00 UTC on May, 25 2022.
+- kava-10 genesis time is set to May 25, 2022 at 17:00 UTC
 - The version of cosmos-sdk for kava-10 is v0.45.3
 - The version of tendermint for kava-10 v0.34.19
 - The minimum version of golang for kava-10 is **1.17+**.
@@ -28,11 +28,11 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ### Before the upgrade
 
-Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height **1412300** as the final block height for kava-9. This height corresponds to approximately 14:00 UTC on May 10th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators.
+Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height **1610471** as the final block height for kava-9. This height corresponds to approximately 15:00 UTC on May 25th. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators.
 
 ### On the day of the upgrade
 
-**The kava chain is expected to halt at block height **1412300**, at approximately 14:00 UTC, and restart with new software at 17:00 UTC May 10th. Do not stop your node and begin the upgrade before 14:00 UTC on May 10th, or you may go offline and be unable to recover until after the upgrade!**
+**The kava chain is expected to halt at block height **1610471**, at approximately 15:00 UTC, and restart with new software at 17:00 UTC May 25th. Do not stop your node and begin the upgrade before 15:00 UTC on May 25th, or you may go offline and be unable to recover until after the upgrade!**
 
 **Make sure the kava process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
@@ -49,7 +49,7 @@ kava version --long
 # go: go version go1.17.1 linux/amd64
 
 # export genesis using v0.16.x
-kvd export --for-zero-height --height 1412300 > export-genesis.json
+kvd export --for-zero-height --height 1610471 > export-genesis.json
 ```
 
 **Note:** This can take a while!
@@ -59,14 +59,14 @@ kvd export --for-zero-height --height 1412300 > export-genesis.json
 ```sh
   # in the `kava` folder
   git pull
-  git checkout v0.17.0
+  git checkout v0.17.1
   make install
 
   # verify versions
   kava version --long
   # name: kava
   # server_name: kava
-  # version: v0.17.0
+  # version: v0.17.1
   # commit: [TBD]
   # build_tags: netgo,ledger
   # go: go version go1.17.1 linux/amd64
@@ -92,4 +92,4 @@ kvd export --for-zero-height --height 1412300 > export-genesis.json
 
 ### Coordination
 
-If the kava-10 chain does not launch by May 10, 2022 at 21:00 UTC, the launch should be considered a failure and validators should refer to the [rollback](./rollback.md) instructions to restart the previous kava-9 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
+If the kava-10 chain does not launch by May 25, 2022 at 21:00 UTC, the launch should be considered a failure and validators should refer to the [rollback](./rollback.md) instructions to restart the previous kava-9 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
