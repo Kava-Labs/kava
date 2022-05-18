@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2022-05-10T17:00:00Z",
+  "genesis_time": "2022-05-25T17:00:00Z",
   "chain_id": "kava_2222-10",
   "initial_height": "1",
   "consensus_params": {
@@ -161,10 +161,10 @@
             "delegated_vesting": [],
             "end_time": "1665767828"
           },
-          "start_time": "1652202000",
+          "start_time": "1653498000",
           "vesting_periods": [
             {
-              "length": "13565828",
+              "length": "12269828",
               "amount": [{ "denom": "swp", "amount": "14791312" }]
             }
           ]
