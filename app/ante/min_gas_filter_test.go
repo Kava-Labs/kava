@@ -81,8 +81,8 @@ func TestEvmMinGasFilter(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, mmd.WasCalled)
 
+			assert.NoError(t, mmd.CalledCtx.MinGasPrices().Validate())
 			assert.Equal(t, tc.expectedMinGasPrices, mmd.CalledCtx.MinGasPrices())
-
 		})
 	}
 }
