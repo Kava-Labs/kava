@@ -92,8 +92,12 @@ kvd export --for-zero-height --height 1412300 > export-genesis.json
   kava start
 ```
 
-kava v0.17 requires changes to app.toml
-- See [default app.toml](app.toml)
+kava v0.17 requires changes to app.toml:
+
+- There are 3 new sections - `evm`, `json-rpc`, `tls`. see the [default app.toml](app.toml)
+- There is one addition to Base Configuration: `iavl-cache-size`.
+- It is recommended to add a min gas price for evm txs in `akava` (where 1ukava = 10^12akava). eg `minimum-gas-prices = "0.001ukava;1000000000akava"`
+
 
 ### Coordination
 
