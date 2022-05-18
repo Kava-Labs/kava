@@ -103,6 +103,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		decorators = append(decorators, NewAuthenticatedMempoolDecorator(options.AddressFetchers...))
 	}
 	decorators = append(decorators,
+		NewEvmMinGasFilter(options.EvmKeeper), // filter out evm denom from min-gas-prices
 		authante.NewMempoolFeeDecorator(),
 		NewVestingAccountDecorator(),
 		NewAuthzLimiterDecorator(
