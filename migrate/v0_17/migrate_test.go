@@ -20,6 +20,7 @@ import (
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
+	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -66,6 +67,14 @@ func TestMigrateEvm(t *testing.T) {
 		ChainConfig:  expectedChainConfig,
 		ExtraEIPs:    []int64{},
 	}, genstate.Params)
+}
+
+func TestMigrateCDP(t *testing.T) {
+	appMap, ctx := migrateToV17AndGetAppMap(t)
+	var genstate cdptypes.GenesisState
+	err := ctx.Codec.UnmarshalJSON(appMap[cdptypes.ModuleName], &genstate)
+	assert.NoError(t, err)
+	assert.Equal(t, genstate.Params.GlobalDebtLimit, sdk.NewCoin("usdx", sdk.NewInt(393000000000000)))
 }
 
 func TestMigrateAuction(t *testing.T) {

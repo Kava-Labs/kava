@@ -19,6 +19,7 @@ import (
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	v017bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_17"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
+	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -75,6 +76,17 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 	// x/authz
 	authzState := authz.DefaultGenesisState()
 	appState[authz.ModuleName] = codec.MustMarshalJSON(authzState)
+
+	// x/cdp
+	if appState[cdptypes.ModuleName] != nil {
+		var genState cdptypes.GenesisState
+		codec.MustUnmarshalJSON(appState[cdptypes.ModuleName], &genState)
+
+		genState.Params.GlobalDebtLimit = sdk.NewCoin("usdx", sdk.NewInt(393000000000000))
+		encodedState := codec.MustMarshalJSON(&genState)
+
+		appState[cdptypes.ModuleName] = encodedState
+	}
 
 	// x/auction
 	if appState[auctiontypes.ModuleName] != nil {
