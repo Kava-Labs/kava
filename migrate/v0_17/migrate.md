@@ -3,7 +3,7 @@
 ## Software Version and Key Dates
 
 - We will be upgrading from chain-id "kava-9" to chain-id "kava_2222-10".
-- The version of Kava for kava-10 is v0.17.2
+- The version of Kava for kava-10 is v0.17.3
 - The kava-9 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height **1610471**, which is approximately 15:00 UTC on May, 25 2022.
 - kava-10 genesis time is set to May 25, 2022 at 17:00 UTC
 - The version of cosmos-sdk for kava-10 is v0.45.3
@@ -59,14 +59,14 @@ kava export --for-zero-height --height 1610471 > export-genesis.json
 ```sh
   # in the `kava` folder
   git pull
-  git checkout v0.17.2
+  git checkout v0.17.3
   make install
 
   # verify versions
   kava version --long
   # name: kava
   # server_name: kava
-  # version: v0.17.2
+  # version: v0.17.3
   # commit: [TBD]
   # build_tags: netgo,ledger
   # go: go version go1.17.1 linux/amd64
