@@ -49,7 +49,7 @@ kava version --long
 # go: go version go1.17.1 linux/amd64
 
 # export genesis using v0.16.x
-kvd export --for-zero-height --height 1610471 > export-genesis.json
+kava export --for-zero-height --height 1610471 > export-genesis.json
 ```
 
 **Note:** This can take a while!
