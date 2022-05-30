@@ -10,13 +10,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+	ethermint "github.com/tharsis/ethermint/types"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/app"
@@ -263,4 +267,72 @@ func TestAppAnteHandler_RejectMsgsInAuthz(t *testing.T) {
 			require.Equal(t, resDeliverTx.Code, tc.expectedCode, resDeliverTx.Log)
 		})
 	}
+}
+
+func TestAppAnteHandler_ConvertEthAccount(t *testing.T) {
+	chainID := "kavatest_1-1"
+	encodingConfig := app.MakeEncodingConfig()
+	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(10)
+
+	tApp := app.NewTestApp()
+
+	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainID(
+		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+		chainID,
+		app.NewAuthBankGenesisBuilder().
+			WithAccounts(&ethermint.EthAccount{
+				BaseAccount: authtypes.NewBaseAccount(
+					testAddresses[0],
+					nil, // no pubkey set
+					0,
+					0,
+				),
+				CodeHash: common.BytesToHash(evmtypes.EmptyCodeHash).String(), // ethermint stores the codehash with a 0x prefix
+			}).
+			WithBalances(banktypes.Balance{
+				Address: testAddresses[0].String(),
+				Coins:   sdk.NewCoins(sdk.NewInt64Coin("ukava", 1e9)),
+			}).
+			BuildMarshalled(encodingConfig.Marshaler),
+	)
+	accKeeper := tApp.GetAccountKeeper()
+
+	stdTx, err := helpers.GenTx(
+		encodingConfig.TxConfig,
+		[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
+		sdk.NewCoins(), // no fee
+		helpers.DefaultGenTxGas,
+		chainID,
+		[]uint64{0},
+		[]uint64{0},
+		testPrivKeys[0],
+	)
+	require.NoError(t, err)
+	txBytes, err := encodingConfig.TxConfig.TxEncoder()(stdTx)
+	require.NoError(t, err)
+
+	// Ensure CheckTx passes
+	// For implementation simplicity, this also changes the account type. Shouldn't matter.
+	resCheckTx := tApp.CheckTx(
+		abci.RequestCheckTx{
+			Tx:   txBytes,
+			Type: abci.CheckTxType_New,
+		},
+	)
+	require.Equal(t, uint32(sdkerrors.SuccessABCICode), resCheckTx.Code, resCheckTx.Log)
+
+	checkCtx := tApp.NewContext(true, tmproto.Header{Height: 1})
+	acc := accKeeper.GetAccount(checkCtx, testAddresses[0])
+	require.IsType(t, (*authtypes.BaseAccount)(nil), acc)
+
+	resDeliverTx := tApp.DeliverTx(
+		abci.RequestDeliverTx{
+			Tx: txBytes,
+		},
+	)
+	require.Equal(t, uint32(sdkerrors.SuccessABCICode), resDeliverTx.Code, resDeliverTx.Log)
+
+	ctx := tApp.NewContext(false, tmproto.Header{Height: 1})
+	acc = accKeeper.GetAccount(ctx, testAddresses[0])
+	require.IsType(t, (*authtypes.BaseAccount)(nil), acc)
 }

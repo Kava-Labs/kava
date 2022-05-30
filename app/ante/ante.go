@@ -119,6 +119,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		authante.NewValidateSigCountDecorator(options.AccountKeeper),
 		authante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		NewConvertEthAccounts(options.AccountKeeper),                  // TODO only activate after upgrade height
 		authante.NewIncrementSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator
 		ibcante.NewAnteDecorator(options.IBCKeeper),
 	)
