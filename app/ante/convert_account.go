@@ -12,10 +12,11 @@ import (
 )
 
 type AccountKeeper interface {
-	authante.AccountKeeper // TODO inline?
+	authante.AccountKeeper
 }
 
-// ConvertEthAccounts converts non contract eth accounts to base accounts, and calls the next ante handle with an updated context
+// ConvertEthAccounts converts non contract eth accounts to base accounts, and calls the next ante handle with an updated context.
+// This should run after signature verification to ensure only owners can convert accounts.
 type ConvertEthAccounts struct {
 	ak AccountKeeper
 }
@@ -31,13 +32,8 @@ func (cea ConvertEthAccounts) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	if !ok {
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "invalid tx type")
 	}
-	pubkeys, err := sigTx.GetPubKeys() // TODO is this needed?
-	if err != nil {
-		return ctx, err
-	}
 	signers := sigTx.GetSigners()
-
-	for i := range pubkeys {
+	for i := range signers {
 		if err := convertAccount(ctx, cea.ak, signers[i]); err != nil {
 			return ctx, err
 		}
