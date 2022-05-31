@@ -40,7 +40,7 @@ func TestConvertEthAccounts(t *testing.T) {
 			tx: mustGenTx(
 				encodingConfig.TxConfig,
 				[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
-				sdk.NewCoins(), // no fee
+				sdk.NewCoins(),
 				helpers.DefaultGenTxGas,
 				chainID,
 				[]uint64{0},
@@ -54,14 +54,14 @@ func TestConvertEthAccounts(t *testing.T) {
 			name: "base account is left unchanged",
 			account: authtypes.NewBaseAccount(
 				testAddresses[0],
-				nil, // no pubkey set
+				nil,
 				0,
 				0,
 			),
 			tx: mustGenTx(
 				encodingConfig.TxConfig,
 				[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
-				sdk.NewCoins(), // no fee
+				sdk.NewCoins(),
 				helpers.DefaultGenTxGas,
 				chainID,
 				[]uint64{0},
@@ -71,7 +71,7 @@ func TestConvertEthAccounts(t *testing.T) {
 			expectedErr: nil,
 			expectedAccount: authtypes.NewBaseAccount(
 				testAddresses[0],
-				nil, // no pubkey set
+				nil,
 				0,
 				0,
 			),
@@ -81,7 +81,7 @@ func TestConvertEthAccounts(t *testing.T) {
 			account: &ethermint.EthAccount{
 				BaseAccount: authtypes.NewBaseAccount(
 					testAddresses[0],
-					nil, // no pubkey set
+					nil,
 					0,
 					0,
 				),
@@ -90,7 +90,7 @@ func TestConvertEthAccounts(t *testing.T) {
 			tx: mustGenTx(
 				encodingConfig.TxConfig,
 				[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
-				sdk.NewCoins(), // no fee
+				sdk.NewCoins(),
 				helpers.DefaultGenTxGas,
 				chainID,
 				[]uint64{0},
@@ -100,18 +100,17 @@ func TestConvertEthAccounts(t *testing.T) {
 			expectedErr: nil,
 			expectedAccount: authtypes.NewBaseAccount(
 				testAddresses[0],
-				nil, // no pubkey set
+				nil,
 				0,
 				0,
 			),
 		},
 		{
 			name: "contract eth account is left unchanged",
-			// This test case isn't super important as it's impossible to create a valid signature from a contract account, so the tx would never reach this antehandler.
 			account: &ethermint.EthAccount{
 				BaseAccount: authtypes.NewBaseAccount(
 					testAddresses[0],
-					nil, // no pubkey set
+					nil,
 					0,
 					0,
 				),
@@ -120,7 +119,7 @@ func TestConvertEthAccounts(t *testing.T) {
 			tx: mustGenTx(
 				encodingConfig.TxConfig,
 				[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
-				sdk.NewCoins(), // no fee
+				sdk.NewCoins(),
 				helpers.DefaultGenTxGas,
 				chainID,
 				[]uint64{0},
@@ -131,7 +130,7 @@ func TestConvertEthAccounts(t *testing.T) {
 			expectedAccount: &ethermint.EthAccount{
 				BaseAccount: authtypes.NewBaseAccount(
 					testAddresses[0],
-					nil, // no pubkey set
+					nil,
 					0,
 					0,
 				),
@@ -157,17 +156,17 @@ func TestConvertEthAccounts(t *testing.T) {
 
 			handler := ante.NewConvertEthAccounts(tApp.GetAccountKeeper())
 
-			mmd := MockAnteHandler{}
+			mah := MockAnteHandler{}
 
 			ctx := tApp.NewContext(false, tmproto.Header{Height: 1})
 
-			_, err := handler.AnteHandle(ctx, tc.tx, false, mmd.AnteHandle)
+			_, err := handler.AnteHandle(ctx, tc.tx, false, mah.AnteHandle)
 			if tc.expectedErr != nil {
 				require.ErrorIs(t, err, tc.expectedErr)
-				require.False(t, mmd.WasCalled)
+				require.False(t, mah.WasCalled)
 			} else {
 				require.NoError(t, err)
-				require.True(t, mmd.WasCalled)
+				require.True(t, mah.WasCalled)
 			}
 
 			actualAcc := tApp.GetAccountKeeper().GetAccount(ctx, testAddresses[0])

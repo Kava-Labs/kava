@@ -167,7 +167,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTi
 			InitialHeight: initialHeight,
 		},
 	)
-	// TODO remove Commit, as tendermint doesn't call it between InitChain and BeginBlock
 	tApp.Commit()
 	tApp.BeginBlock(abci.RequestBeginBlock{
 		Header: tmproto.Header{

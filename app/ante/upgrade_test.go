@@ -3,17 +3,14 @@ package ante_test
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
-	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/ante"
 )
 
 func TestActivateAfterDecorator_AnteHandle(t *testing.T) {
 
-	tApp := app.NewTestApp()
 	var upgradeHeight int64 = 1000
 
 	testCases := []struct {
@@ -42,14 +39,14 @@ func TestActivateAfterDecorator_AnteHandle(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			wrappedDecorator := &MockAnteDecorator{}
 			decorator := ante.ActivateAfter(wrappedDecorator, upgradeHeight)
-			mmd := MockAnteHandler{}
+			mah := MockAnteHandler{}
 
-			ctx := tApp.NewContext(true, tmproto.Header{Height: tc.height, Time: tmtime.Now()})
+			ctx := sdk.Context{}.WithBlockHeight(tc.height)
 
-			_, err := decorator.AnteHandle(ctx, nil, false, mmd.AnteHandle)
+			_, err := decorator.AnteHandle(ctx, nil, false, mah.AnteHandle)
 			require.NoError(t, err)
 
-			require.True(t, mmd.WasCalled)
+			require.True(t, mah.WasCalled)
 			shouldHaveRan := tc.height >= upgradeHeight
 			require.Equal(t, shouldHaveRan, wrappedDecorator.WasCalled)
 		})

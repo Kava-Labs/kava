@@ -6,6 +6,8 @@ import (
 
 var _ sdk.AnteDecorator = ActivateAfterDecorator{}
 
+// ActivateAfterDecorator wraps a ante decorator, disabling it before a block height.
+// It can be used to modify the antehandler in asynchronous chain upgrades.
 type ActivateAfterDecorator struct {
 	WrappedDecorator sdk.AnteDecorator
 	upgradeHeight    int64
