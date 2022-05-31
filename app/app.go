@@ -870,6 +870,7 @@ func NewApp(
 		SigGasConsumer:  evmante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  options.EVMMaxGasWanted,
 		AddressFetchers: fetchers,
+		UpgradeHeight:   FixDefaultAccountUpgradeHeight,
 	}
 
 	antehandler, err := ante.NewAnteHandler(anteOptions)

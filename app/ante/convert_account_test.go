@@ -159,7 +159,7 @@ func TestConvertEthAccounts(t *testing.T) {
 
 			mmd := MockAnteHandler{}
 
-			ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+			ctx := tApp.NewContext(false, tmproto.Header{Height: 1})
 
 			_, err := handler.AnteHandle(ctx, tc.tx, false, mmd.AnteHandle)
 			if tc.expectedErr != nil {

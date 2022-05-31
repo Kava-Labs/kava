@@ -276,9 +276,10 @@ func TestAppAnteHandler_ConvertEthAccount(t *testing.T) {
 
 	tApp := app.NewTestApp()
 
-	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainID(
+	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
 		chainID,
+		app.FixDefaultAccountUpgradeHeight-2,
 		app.NewAuthBankGenesisBuilder().
 			WithAccounts(&ethermint.EthAccount{
 				BaseAccount: authtypes.NewBaseAccount(
@@ -295,7 +296,6 @@ func TestAppAnteHandler_ConvertEthAccount(t *testing.T) {
 			}).
 			BuildMarshalled(encodingConfig.Marshaler),
 	)
-	accKeeper := tApp.GetAccountKeeper()
 
 	stdTx, err := helpers.GenTx(
 		encodingConfig.TxConfig,
@@ -311,20 +311,34 @@ func TestAppAnteHandler_ConvertEthAccount(t *testing.T) {
 	txBytes, err := encodingConfig.TxConfig.TxEncoder()(stdTx)
 	require.NoError(t, err)
 
-	// Ensure CheckTx passes
-	// For implementation simplicity, this also changes the account type. Shouldn't matter.
-	resCheckTx := tApp.CheckTx(
-		abci.RequestCheckTx{
-			Tx:   txBytes,
-			Type: abci.CheckTxType_New,
-		},
+	// Check accounts not converted before upgrade height
+	checkAccountIsConverted(t, testAddresses[0], tApp, txBytes, (*ethermint.EthAccount)(nil))
+
+	// Advance to upgrade height
+	tApp.EndBlock(abci.RequestEndBlock{Height: app.FixDefaultAccountUpgradeHeight - 1})
+	tApp.Commit()
+	tApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: app.FixDefaultAccountUpgradeHeight, ChainID: chainID}})
+
+	stdTx, err = helpers.GenTx(
+		encodingConfig.TxConfig,
+		[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
+		sdk.NewCoins(), // no fee
+		helpers.DefaultGenTxGas,
+		chainID,
+		[]uint64{0},
+		[]uint64{1},
+		testPrivKeys[0],
 	)
-	require.Equal(t, uint32(sdkerrors.SuccessABCICode), resCheckTx.Code, resCheckTx.Log)
+	require.NoError(t, err)
+	txBytes, err = encodingConfig.TxConfig.TxEncoder()(stdTx)
+	require.NoError(t, err)
 
-	checkCtx := tApp.NewContext(true, tmproto.Header{Height: 1})
-	acc := accKeeper.GetAccount(checkCtx, testAddresses[0])
-	require.IsType(t, (*authtypes.BaseAccount)(nil), acc)
+	// Ensure CheckTx passes
+	// Check account converted at upgrade height
+	checkAccountIsConverted(t, testAddresses[0], tApp, txBytes, (*authtypes.BaseAccount)(nil))
+}
 
+func checkAccountIsConverted(t *testing.T, fromAddress sdk.AccAddress, tApp app.TestApp, txBytes []byte, expectedAccountType interface{}) {
 	resDeliverTx := tApp.DeliverTx(
 		abci.RequestDeliverTx{
 			Tx: txBytes,
@@ -332,7 +346,7 @@ func TestAppAnteHandler_ConvertEthAccount(t *testing.T) {
 	)
 	require.Equal(t, uint32(sdkerrors.SuccessABCICode), resDeliverTx.Code, resDeliverTx.Log)
 
-	ctx := tApp.NewContext(false, tmproto.Header{Height: 1})
-	acc = accKeeper.GetAccount(ctx, testAddresses[0])
-	require.IsType(t, (*authtypes.BaseAccount)(nil), acc)
+	ctx := tApp.NewContext(false, tmproto.Header{Height: tApp.LastBlockHeight() + 1})
+	acc := tApp.GetAccountKeeper().GetAccount(ctx, fromAddress)
+	require.IsType(t, expectedAccountType, acc)
 }
