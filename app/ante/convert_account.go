@@ -15,6 +15,8 @@ type AccountKeeper interface {
 	authante.AccountKeeper
 }
 
+var _ sdk.AnteDecorator = ConvertEthAccounts{}
+
 // ConvertEthAccounts converts non contract eth accounts to base accounts, and calls the next ante handle with an updated context.
 // This should run after signature verification to ensure only owners can convert accounts.
 type ConvertEthAccounts struct {
