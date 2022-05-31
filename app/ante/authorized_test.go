@@ -25,6 +25,19 @@ func (mah *MockAnteHandler) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool
 	return ctx, nil
 }
 
+var _ sdk.AnteDecorator = &MockAnteDecorator{}
+
+type MockAnteDecorator struct {
+	WasCalled bool
+	CalledCtx sdk.Context
+}
+
+func (mad *MockAnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+	mad.WasCalled = true
+	mad.CalledCtx = ctx
+	return next(ctx, tx, simulate)
+}
+
 func mockAddressFetcher(addresses ...sdk.AccAddress) ante.AddressFetcher {
 	return func(sdk.Context) []sdk.AccAddress { return addresses }
 }
