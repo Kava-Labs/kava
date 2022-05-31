@@ -98,6 +98,10 @@ kava v0.17 requires changes to app.toml:
 - There is one addition to Base Configuration: `iavl-cache-size`.
 - It is recommended to add a min gas price for evm txs in `akava` (where 1ukava = 10^12akava). eg `minimum-gas-prices = "0.001ukava;1000000000akava"`
 
+kava v0.17 requires changes to config.toml:
+
+- Depending on your setup, you will need to update the `seeds` and/or `persistent_peers` values in config.toml. These can be found [here](https://docs.google.com/spreadsheets/d/1s3LXLPFJazzdmwKdRv909pe_-ZV_Xbt2uCCNrhoOyIE).
+
 
 ### Coordination
 
