@@ -141,7 +141,7 @@ import (
 
 const (
 	appName                        = "kava"
-	FixDefaultAccountUpgradeHeight = 84000 // TODO
+	FixDefaultAccountUpgradeHeight = 138592
 )
 
 var (
@@ -870,6 +870,7 @@ func NewApp(
 		SigGasConsumer:  evmante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  options.EVMMaxGasWanted,
 		AddressFetchers: fetchers,
+		UpgradeHeight:   FixDefaultAccountUpgradeHeight,
 	}
 
 	antehandler, err := ante.NewAnteHandler(anteOptions)
