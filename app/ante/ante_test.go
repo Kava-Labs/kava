@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -269,7 +270,7 @@ func TestAppAnteHandler_RejectMsgsInAuthz(t *testing.T) {
 	}
 }
 
-func TestAppAnteHandler_ConvertEthAccount(t *testing.T) {
+func TestAppAnteHandler_ConvertEthAccount_DeliverTx(t *testing.T) {
 	chainID := "kavatest_1-1"
 	encodingConfig := app.MakeEncodingConfig()
 	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(10)
@@ -297,56 +298,128 @@ func TestAppAnteHandler_ConvertEthAccount(t *testing.T) {
 			BuildMarshalled(encodingConfig.Marshaler),
 	)
 
-	stdTx, err := helpers.GenTx(
+	txBytes := mustGenerateAndEncodeTx(
 		encodingConfig.TxConfig,
 		[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
-		sdk.NewCoins(), // no fee
-		helpers.DefaultGenTxGas,
 		chainID,
 		[]uint64{0},
 		[]uint64{0},
 		testPrivKeys[0],
 	)
-	require.NoError(t, err)
-	txBytes, err := encodingConfig.TxConfig.TxEncoder()(stdTx)
-	require.NoError(t, err)
 
 	// Check accounts not converted before upgrade height
-	checkAccountIsConverted(t, testAddresses[0], tApp, txBytes, (*ethermint.EthAccount)(nil))
+	checkAccountAfterDeliverTx(t, tApp, testAddresses[0], txBytes, (*ethermint.EthAccount)(nil))
 
 	// Advance to upgrade height
 	tApp.EndBlock(abci.RequestEndBlock{Height: app.FixDefaultAccountUpgradeHeight - 1})
 	tApp.Commit()
 	tApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: app.FixDefaultAccountUpgradeHeight, ChainID: chainID}})
 
-	stdTx, err = helpers.GenTx(
+	txBytes = mustGenerateAndEncodeTx(
 		encodingConfig.TxConfig,
 		[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
-		sdk.NewCoins(), // no fee
-		helpers.DefaultGenTxGas,
 		chainID,
 		[]uint64{0},
 		[]uint64{1},
 		testPrivKeys[0],
 	)
-	require.NoError(t, err)
-	txBytes, err = encodingConfig.TxConfig.TxEncoder()(stdTx)
-	require.NoError(t, err)
 
-	// Ensure CheckTx passes
 	// Check account converted at upgrade height
-	checkAccountIsConverted(t, testAddresses[0], tApp, txBytes, (*authtypes.BaseAccount)(nil))
+	checkAccountAfterDeliverTx(t, tApp, testAddresses[0], txBytes, (*authtypes.BaseAccount)(nil))
 }
 
-func checkAccountIsConverted(t *testing.T, fromAddress sdk.AccAddress, tApp app.TestApp, txBytes []byte, expectedAccountType interface{}) {
+func TestAppAnteHandler_ConvertEthAccount_CheckTx(t *testing.T) {
+	chainID := "kavatest_1-1"
+	encodingConfig := app.MakeEncodingConfig()
+	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(10)
+
+	tApp := app.NewTestApp()
+
+	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
+		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+		chainID,
+		app.FixDefaultAccountUpgradeHeight-1,
+		app.NewAuthBankGenesisBuilder().
+			WithAccounts(&ethermint.EthAccount{
+				BaseAccount: authtypes.NewBaseAccount(
+					testAddresses[0],
+					nil, // no pubkey set
+					0,
+					0,
+				),
+				CodeHash: common.BytesToHash(evmtypes.EmptyCodeHash).String(), // ethermint stores the codehash with a 0x prefix
+			}).
+			WithBalances(banktypes.Balance{
+				Address: testAddresses[0].String(),
+				Coins:   sdk.NewCoins(sdk.NewInt64Coin("ukava", 1e9)),
+			}).
+			BuildMarshalled(encodingConfig.Marshaler),
+	)
+
+	txBytes := mustGenerateAndEncodeTx(
+		encodingConfig.TxConfig,
+		[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
+		chainID,
+		[]uint64{0},
+		[]uint64{0},
+		testPrivKeys[0],
+	)
+
+	// Check account not converted before upgrade height
+	checkAccountAfterCheckTx(t, tApp, testAddresses[0], txBytes, (*ethermint.EthAccount)(nil))
+
+	// Advance to upgrade height. Note CheckTx uses the last committed height.
+	tApp.EndBlock(abci.RequestEndBlock{Height: app.FixDefaultAccountUpgradeHeight})
+	tApp.Commit()
+
+	// Check account not converted at upgrade height
+	checkAccountAfterCheckTx(t, tApp, testAddresses[0], txBytes, (*ethermint.EthAccount)(nil))
+}
+
+func checkAccountAfterDeliverTx(t *testing.T, tApp app.TestApp, address sdk.AccAddress, tx []byte, expectedAccountType interface{}) {
 	resDeliverTx := tApp.DeliverTx(
 		abci.RequestDeliverTx{
-			Tx: txBytes,
+			Tx: tx,
 		},
 	)
 	require.Equal(t, uint32(sdkerrors.SuccessABCICode), resDeliverTx.Code, resDeliverTx.Log)
 
-	ctx := tApp.NewContext(false, tmproto.Header{Height: tApp.LastBlockHeight() + 1})
-	acc := tApp.GetAccountKeeper().GetAccount(ctx, fromAddress)
+	ctx := tApp.NewContext(false, tmproto.Header{})
+	acc := tApp.GetAccountKeeper().GetAccount(ctx, address)
 	require.IsType(t, expectedAccountType, acc)
+}
+
+func checkAccountAfterCheckTx(t *testing.T, tApp app.TestApp, address sdk.AccAddress, tx []byte, expectedAccountType interface{}) {
+	resCheckTx := tApp.CheckTx(
+		abci.RequestCheckTx{
+			Tx:   tx,
+			Type: abci.CheckTxType_New,
+		},
+	)
+	require.Equal(t, uint32(sdkerrors.SuccessABCICode), resCheckTx.Code, resCheckTx.Log)
+
+	ctx := tApp.NewContext(true, tmproto.Header{})
+	acc := tApp.GetAccountKeeper().GetAccount(ctx, address)
+	require.IsType(t, expectedAccountType, acc)
+}
+
+func mustGenerateAndEncodeTx(txConfig client.TxConfig, msgs []sdk.Msg, chainID string, accNums, accSeqs []uint64, priv ...cryptotypes.PrivKey) []byte {
+	stdTx, err := helpers.GenTx(
+		txConfig,
+		msgs,
+		sdk.NewCoins(), // no fee
+		helpers.DefaultGenTxGas,
+		chainID,
+		accNums,
+		accSeqs,
+		priv...,
+	)
+	if err != nil {
+		panic(err)
+	}
+	txBytes, err := txConfig.TxEncoder()(stdTx)
+	if err != nil {
+		panic(err)
+	}
+	return txBytes
 }
