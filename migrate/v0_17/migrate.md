@@ -79,7 +79,7 @@ kava export --for-zero-height --height 1610471 > export-genesis.json
   kava validate-genesis genesis.json # should say it's valid
   kava assert-invariants genesis.json # should say invariants pass
   jq -S -c -M '' genesis.json | shasum -a 256
-  # [PLACEHOLDER]
+  # 3bc9829faf3beae2892ff1dfb7158f41a3f0cff303b4798777a559250a4dc815
 
   # Restart node with migrated genesis state
   cp genesis.json ~/.kava/config/genesis.json
