@@ -91,6 +91,10 @@ import (
 	feemarketkeeper "github.com/tharsis/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
+	"github.com/kava-labs/kava-bridge/x/bridge"
+	bridgekeeper "github.com/kava-labs/kava-bridge/x/bridge/keeper"
+	bridgetypes "github.com/kava-labs/kava-bridge/x/bridge/types"
+
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/auction"
@@ -106,9 +110,6 @@ import (
 	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
-	earn "github.com/kava-labs/kava/x/earn"
-	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
-	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutil "github.com/kava-labs/kava/x/evmutil"
 	evmutilkeeper "github.com/kava-labs/kava/x/evmutil/keeper"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
@@ -125,9 +126,6 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
-	"github.com/kava-labs/kava/x/liquid"
-	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
-	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -142,7 +140,8 @@ import (
 )
 
 const (
-	appName = "kava"
+	appName                        = "kava"
+	FixDefaultAccountUpgradeHeight = 138592
 )
 
 var (
@@ -193,8 +192,7 @@ var (
 		savings.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
-		liquid.AppModuleBasic{},
-		earn.AppModuleBasic{},
+		bridge.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -209,7 +207,7 @@ var (
 		govtypes.ModuleName:             {authtypes.Burner},
 		ibctransfertypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		evmtypes.ModuleName:             {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		evmutiltypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
+		evmutiltypes.ModuleName:         nil,
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
 		auctiontypes.ModuleName:         nil,
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
@@ -219,12 +217,12 @@ var (
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		hardtypes.ModuleAccountName:     {authtypes.Minter},
 		savingstypes.ModuleAccountName:  nil,
-		liquidtypes.ModuleAccountName:   {authtypes.Minter, authtypes.Burner},
-		earntypes.ModuleAccountName:     nil,
+		bridgetypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
 	}
 )
 
 // Verify app interface at compile time
+// var _ simapp.App = (*App)(nil) // TODO
 var _ servertypes.Application = (*App)(nil)
 
 // Options bundles several configuration params for an App.
@@ -289,8 +287,8 @@ type App struct {
 	committeeKeeper  committeekeeper.Keeper
 	incentiveKeeper  incentivekeeper.Keeper
 	savingsKeeper    savingskeeper.Keeper
-	liquidKeeper     liquidkeeper.Keeper
-	earnKeeper       earnkeeper.Keeper
+
+	bridgeKeeper bridgekeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -344,7 +342,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey, earntypes.StoreKey,
+		savingstypes.StoreKey, bridgetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -388,8 +386,7 @@ func NewApp(
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
-	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
-	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
+	bridgeSubspace := app.paramsKeeper.Subspace(bridgetypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -404,7 +401,7 @@ func NewApp(
 		appCodec,
 		keys[authtypes.StoreKey],
 		authSubspace,
-		authtypes.ProtoBaseAccount,
+		newProtoAccount,
 		mAccPerms,
 	)
 	app.bankKeeper = bankkeeper.NewBaseKeeper(
@@ -488,9 +485,6 @@ func NewApp(
 	app.evmutilKeeper = evmutilkeeper.NewKeeper(
 		app.appCodec,
 		keys[evmutiltypes.StoreKey],
-		evmutilSubspace,
-		app.bankKeeper,
-		app.accountKeeper,
 	)
 
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
@@ -500,8 +494,6 @@ func NewApp(
 		options.EVMTrace,
 	)
 
-	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
-
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
 		keys[kavadisttypes.StoreKey],
@@ -510,6 +502,23 @@ func NewApp(
 		app.accountKeeper,
 		app.distrKeeper,
 		app.ModuleAccountAddrs(),
+	)
+
+	// BridgeKeeper must be assigned before EvmKeeper hooks are set
+	app.bridgeKeeper = bridgekeeper.NewKeeper(
+		appCodec,
+		keys[bridgetypes.StoreKey],
+		bridgeSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+		app.evmKeeper,
+	)
+
+	app.evmKeeper = app.evmKeeper.SetHooks(
+		evmkeeper.NewMultiEvmHooks(
+			app.bridgeKeeper.WithdrawHooks(),
+			app.bridgeKeeper.ConversionHooks(),
+		),
 	)
 
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
@@ -591,12 +600,6 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
-	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
-		appCodec,
-		app.accountKeeper,
-		app.bankKeeper,
-		&app.stakingKeeper,
-	)
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
 		keys[incentivetypes.StoreKey],
@@ -609,17 +612,6 @@ func NewApp(
 		&swapKeeper,
 		&savingsKeeper,
 	)
-	app.earnKeeper = earnkeeper.NewKeeper(
-		appCodec,
-		keys[earntypes.StoreKey],
-		earnSubspace,
-		app.accountKeeper,
-		app.bankKeeper,
-		app.liquidKeeper,
-		&hardKeeper,
-		&savingsKeeper,
-	)
-
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -703,8 +695,7 @@ func NewApp(
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
-		liquid.NewAppModule(app.liquidKeeper),
-		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
+		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -751,8 +742,7 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
-		liquidtypes.ModuleName,
-		earntypes.ModuleName,
+		bridgetypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -791,8 +781,7 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
-		liquidtypes.ModuleName,
-		earntypes.ModuleName,
+		bridgetypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -823,7 +812,7 @@ func NewApp(
 		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,
-		earntypes.ModuleName,
+		bridgetypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
 		// Add all remaining modules with an empty InitGenesis below since cosmos 0.45.0 requires it
@@ -831,7 +820,6 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
-		liquidtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -839,10 +827,6 @@ func NewApp(
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
-
-	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
-	// It needs to be called after `app.mm` and `app.configurator` are set.
-	app.RegisterUpgradeHandlers()
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//
@@ -886,6 +870,7 @@ func NewApp(
 		SigGasConsumer:  evmante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  options.EVMMaxGasWanted,
 		AddressFetchers: fetchers,
+		UpgradeHeight:   FixDefaultAccountUpgradeHeight,
 	}
 
 	antehandler, err := ante.NewAnteHandler(anteOptions)
@@ -994,12 +979,9 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
 	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
-	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
-	liquidMaccAddr := app.accountKeeper.GetModuleAddress(liquidtypes.ModuleName)
-
 	for addr := range modAccAddrs {
-		// Set the kavadist and earn module account address as unblocked
-		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() || addr == liquidMaccAddr.String() {
+		// Set the kavadist module account address as unblocked
+		if addr == kavadistMaccAddr.String() {
 			modAccAddrs[addr] = false
 		}
 	}

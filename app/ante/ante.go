@@ -29,6 +29,7 @@ type HandlerOptions struct {
 	FeeMarketKeeper evmtypes.FeeMarketKeeper
 	MaxTxGasWanted  uint64
 	AddressFetchers []AddressFetcher
+	UpgradeHeight   int64
 }
 
 func (options HandlerOptions) Validate() error {
@@ -47,12 +48,6 @@ func (options HandlerOptions) Validate() error {
 	return nil
 }
 
-// cosmosHandlerOptions extends HandlerOptions to provide some Cosmos specific configurations
-type cosmosHandlerOptions struct {
-	HandlerOptions
-	isEIP712 bool
-}
-
 // NewAnteHandler returns an 'AnteHandler' that will run actions before a tx is sent to a module's handler.
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if err := options.Validate(); err != nil {
@@ -69,24 +64,11 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		txWithExtensions, ok := tx.(authante.HasExtensionOptionsTx)
 		if ok {
 			opts := txWithExtensions.GetExtensionOptions()
-			if len(opts) > 1 {
-				return ctx, sdkerrors.Wrap(
-					sdkerrors.ErrInvalidRequest,
-					"rejecting tx with more than 1 extension option",
-				)
-			}
-
-			if len(opts) == 1 {
+			if len(opts) > 0 {
 				switch typeURL := opts[0].GetTypeUrl(); typeURL {
 				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
 					// handle as *evmtypes.MsgEthereumTx
 					anteHandler = newEthAnteHandler(options)
-				case "/ethermint.types.v1.ExtensionOptionsWeb3Tx":
-					// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
-					anteHandler = newCosmosAnteHandler(cosmosHandlerOptions{
-						HandlerOptions: options,
-						isEIP712:       true,
-					})
 				default:
 					return ctx, sdkerrors.Wrapf(
 						sdkerrors.ErrUnknownExtensionOptions,
@@ -101,10 +83,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		// handle as totally normal Cosmos SDK tx
 		switch tx.(type) {
 		case sdk.Tx:
-			anteHandler = newCosmosAnteHandler(cosmosHandlerOptions{
-				HandlerOptions: options,
-				isEIP712:       false,
-			})
+			anteHandler = newCosmosAnteHandler(options)
 		default:
 			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid transaction type: %T", tx)
 		}
@@ -113,27 +92,17 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	}, nil
 }
 
-func newCosmosAnteHandler(options cosmosHandlerOptions) sdk.AnteHandler {
+func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	decorators := []sdk.AnteDecorator{}
 
 	decorators = append(decorators,
 		evmante.RejectMessagesDecorator{},   // reject MsgEthereumTxs
 		authante.NewSetUpContextDecorator(), // second decorator. SetUpContext must be called before other decorators
+		authante.NewRejectExtensionOptionsDecorator(),
 	)
-
-	if !options.isEIP712 {
-		decorators = append(decorators, authante.NewRejectExtensionOptionsDecorator())
-	}
-
 	if len(options.AddressFetchers) > 0 {
 		decorators = append(decorators, NewAuthenticatedMempoolDecorator(options.AddressFetchers...))
 	}
-
-	var sigVerification sdk.AnteDecorator = authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler)
-	if options.isEIP712 {
-		sigVerification = evmante.NewEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler, options.EvmKeeper)
-	}
-
 	decorators = append(decorators,
 		NewEvmMinGasFilter(options.EvmKeeper), // filter out evm denom from min-gas-prices
 		authante.NewMempoolFeeDecorator(),
@@ -150,7 +119,8 @@ func newCosmosAnteHandler(options cosmosHandlerOptions) sdk.AnteHandler {
 		authante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
 		authante.NewValidateSigCountDecorator(options.AccountKeeper),
 		authante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
-		sigVerification,
+		authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		ActivateAfter(NewConvertEthAccounts(options.AccountKeeper), options.UpgradeHeight),
 		authante.NewIncrementSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator
 		ibcante.NewAnteDecorator(options.IBCKeeper),
 	)

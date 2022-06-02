@@ -7,12 +7,16 @@ import (
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	db "github.com/tendermint/tm-db"
+	ethermint "github.com/tharsis/ethermint/types"
 )
 
 func TestNewApp(t *testing.T) {
@@ -76,4 +80,33 @@ func unmarshalJSONKeys(jsonBytes []byte) ([]string, error) {
 	sort.Strings(keys)
 
 	return keys, nil
+}
+
+func TestAsyncUpgrade_DefaultAccountType(t *testing.T) {
+	_, addrs := GeneratePrivKeyAddressPairs(3)
+
+	tApp := NewTestApp()
+	tApp.InitializeFromGenesisStates(
+		NewAuthBankGenesisBuilder().
+			WithSimpleAccount(addrs[0], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1e9))).
+			BuildMarshalled(tApp.AppCodec()),
+	)
+	accountKeeper := tApp.GetAccountKeeper()
+	bankKeeper := tApp.GetBankKeeper()
+
+	// create a default account before upgrade height and check it's an eth account
+	ctx := tApp.NewContext(false, tmproto.Header{Height: 1})
+
+	bankKeeper.SendCoins(ctx, addrs[0], addrs[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1e6)))
+	acc := accountKeeper.GetAccount(ctx, addrs[1])
+	_, ok := acc.(*ethermint.EthAccount)
+	require.True(t, ok)
+
+	// create a default account after upgrade height and check it's a base account
+	ctx = tApp.NewContext(false, tmproto.Header{Height: FixDefaultAccountUpgradeHeight})
+
+	bankKeeper.SendCoins(ctx, addrs[0], addrs[2], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1e6)))
+	acc = accountKeeper.GetAccount(ctx, addrs[2])
+	_, ok = acc.(*authtypes.BaseAccount)
+	require.True(t, ok)
 }
