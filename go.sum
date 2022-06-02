@@ -100,8 +100,8 @@ github.com/DataDog/zstd v1.4.5/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t
 github.com/DataDog/zstd v1.4.8/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
 github.com/HdrHistogram/hdrhistogram-go v1.1.0/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
 github.com/HdrHistogram/hdrhistogram-go v1.1.2/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
-github.com/Kava-Labs/ethermint v0.14.0-kava-v17.3 h1:4+Lg+qmJAL8ey9ns85WqxQkYCCKvN8RyuoxQ7CHJRPU=
-github.com/Kava-Labs/ethermint v0.14.0-kava-v17.3/go.mod h1:k6rs7PRm04GhQZhCmwYLJGQ5czvgbZqcrqpR630+Rik=
+github.com/Kava-Labs/ethermint v0.14.0-kava-v17.4 h1:cH8Z2T8CjR/jwi7SPBzP4iUgI06/v71dY16rgThAapQ=
+github.com/Kava-Labs/ethermint v0.14.0-kava-v17.4/go.mod h1:k6rs7PRm04GhQZhCmwYLJGQ5czvgbZqcrqpR630+Rik=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver v1.4.2/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF078ddwwvV3Y=
@@ -775,8 +775,8 @@ github.com/jwilder/encoding v0.0.0-20170811194829-b4e1701a28ef/go.mod h1:Ct9fl0F
 github.com/kami-zh/go-capturer v0.0.0-20171211120116-e492ea43421d/go.mod h1:P2viExyCEfeWGU259JnaQ34Inuec4R38JCyBx2edgD0=
 github.com/karalabe/usb v0.0.0-20190919080040-51dc0efba356/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
 github.com/karalabe/usb v0.0.2/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
-github.com/kava-labs/cosmos-sdk v0.45.4-kava.1 h1:nGL6b6eracc8+FGWbJ/NexFGorI8j6DBMwZ6KvEqteA=
-github.com/kava-labs/cosmos-sdk v0.45.4-kava.1/go.mod h1:WOqtDxN3eCCmnYLVla10xG7lEXkFjpTaqm2a2WasgCc=
+github.com/kava-labs/cosmos-sdk v0.45.4-kava.2 h1:fWklMkj7kP7JEarZN/4WrGIBhjo3cud9jCIpXAyLnHE=
+github.com/kava-labs/cosmos-sdk v0.45.4-kava.2/go.mod h1:WOqtDxN3eCCmnYLVla10xG7lEXkFjpTaqm2a2WasgCc=
 github.com/kava-labs/kava-bridge v0.2.0 h1:5t9AsPUy9Riwi+gRLgozhv0dut/xQcvRF+yIB+wLuo8=
 github.com/kava-labs/kava-bridge v0.2.0/go.mod h1:APqFV9V/rmkm3MnJ27R/CGOjteCX+3mVuRTYE70v7Yw=
 github.com/kava-labs/tm-db v0.6.7-kava.1 h1:7cVYlvWx1yP+gGdaAWcfm6NwMLzf4z6DxXguWn3+O3w=

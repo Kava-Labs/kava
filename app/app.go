@@ -83,7 +83,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 	evmante "github.com/tharsis/ethermint/app/ante"
 	ethermintconfig "github.com/tharsis/ethermint/server/config"
-	ethermint "github.com/tharsis/ethermint/types"
 	"github.com/tharsis/ethermint/x/evm"
 	evmrest "github.com/tharsis/ethermint/x/evm/client/rest"
 	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
@@ -141,7 +140,8 @@ import (
 )
 
 const (
-	appName = "kava"
+	appName                        = "kava"
+	FixDefaultAccountUpgradeHeight = 138592
 )
 
 var (
@@ -401,7 +401,7 @@ func NewApp(
 		appCodec,
 		keys[authtypes.StoreKey],
 		authSubspace,
-		ethermint.ProtoAccount,
+		newProtoAccount,
 		mAccPerms,
 	)
 	app.bankKeeper = bankkeeper.NewBaseKeeper(
@@ -870,6 +870,7 @@ func NewApp(
 		SigGasConsumer:  evmante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  options.EVMMaxGasWanted,
 		AddressFetchers: fetchers,
+		UpgradeHeight:   FixDefaultAccountUpgradeHeight,
 	}
 
 	antehandler, err := ante.NewAnteHandler(anteOptions)
