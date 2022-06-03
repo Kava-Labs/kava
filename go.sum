@@ -100,8 +100,8 @@ github.com/DataDog/zstd v1.4.5/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t
 github.com/DataDog/zstd v1.4.8/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
 github.com/HdrHistogram/hdrhistogram-go v1.1.0/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
 github.com/HdrHistogram/hdrhistogram-go v1.1.2/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
-github.com/Kava-Labs/ethermint v0.14.0-kava-v17.2 h1:pSNFamcVLZDD4IjaBtNDT5ZngjVs2+0Jt7HKDzSpaEY=
-github.com/Kava-Labs/ethermint v0.14.0-kava-v17.2/go.mod h1:k6rs7PRm04GhQZhCmwYLJGQ5czvgbZqcrqpR630+Rik=
+github.com/Kava-Labs/ethermint v0.14.1-0.20220602161957-53634108d68e h1:Thxro7tEuIGV6FGeLZvTUHssEBPGXMCO62tIcLg/BCo=
+github.com/Kava-Labs/ethermint v0.14.1-0.20220602161957-53634108d68e/go.mod h1:k6rs7PRm04GhQZhCmwYLJGQ5czvgbZqcrqpR630+Rik=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver v1.4.2/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF078ddwwvV3Y=

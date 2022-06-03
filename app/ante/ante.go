@@ -68,6 +68,9 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
 					// handle as *evmtypes.MsgEthereumTx
 					anteHandler = newEthAnteHandler(options)
+				case "/ethermint.types.v1.ExtensionOptionsWeb3Tx":
+					// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
+					anteHandler = newCosmosAnteHandler(options, true)
 				default:
 					return ctx, sdkerrors.Wrapf(
 						sdkerrors.ErrUnknownExtensionOptions,
@@ -82,7 +85,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		// handle as totally normal Cosmos SDK tx
 		switch tx.(type) {
 		case sdk.Tx:
-			anteHandler = newCosmosAnteHandler(options)
+			anteHandler = newCosmosAnteHandler(options, false)
 		default:
 			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid transaction type: %T", tx)
 		}
@@ -91,17 +94,28 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	}, nil
 }
 
-func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
+func newCosmosAnteHandler(options HandlerOptions, isEIP712 bool) sdk.AnteHandler {
 	decorators := []sdk.AnteDecorator{}
 
 	decorators = append(decorators,
 		evmante.RejectMessagesDecorator{},   // reject MsgEthereumTxs
 		authante.NewSetUpContextDecorator(), // second decorator. SetUpContext must be called before other decorators
-		authante.NewRejectExtensionOptionsDecorator(),
 	)
+
+	if !isEIP712 {
+		decorators = append(decorators, authante.NewRejectExtensionOptionsDecorator())
+	}
+
 	if len(options.AddressFetchers) > 0 {
 		decorators = append(decorators, NewAuthenticatedMempoolDecorator(options.AddressFetchers...))
 	}
+
+	var sigVerification sdk.AnteDecorator
+	sigVerification = authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler)
+	if isEIP712 {
+		sigVerification = evmante.NewEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler)
+	}
+
 	decorators = append(decorators,
 		NewEvmMinGasFilter(options.EvmKeeper), // filter out evm denom from min-gas-prices
 		authante.NewMempoolFeeDecorator(),
@@ -118,7 +132,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		authante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
 		authante.NewValidateSigCountDecorator(options.AccountKeeper),
 		authante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
-		authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		sigVerification,
 		authante.NewIncrementSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator
 		ibcante.NewAnteDecorator(options.IBCKeeper),
 	)
