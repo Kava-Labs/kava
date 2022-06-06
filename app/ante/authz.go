@@ -8,6 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 )
 
+var _ sdk.AnteDecorator = AuthzLimiterDecorator{}
+
 // AuthzLimiterDecorator blocks certain msg types from being granted or executed within authz.
 type AuthzLimiterDecorator struct {
 	// disabledMsgTypes is the type urls of the msgs to block.

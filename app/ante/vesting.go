@@ -6,6 +6,8 @@ import (
 	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 )
 
+var _ sdk.AnteDecorator = VestingAccountDecorator{}
+
 // VestingAccountDecorator blocks MsgCreateVestingAccount from reaching the mempool
 type VestingAccountDecorator struct{}
 
