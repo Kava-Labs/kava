@@ -30,10 +30,6 @@ func NewConvertEthAccounts(ak AccountKeeper) ConvertEthAccounts {
 }
 
 func (cea ConvertEthAccounts) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	if ctx.IsCheckTx() || ctx.IsReCheckTx() {
-		return next(ctx, tx, simulate)
-	}
-
 	sigTx, ok := tx.(authsigning.SigVerifiableTx)
 	if !ok {
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "invalid tx type")
