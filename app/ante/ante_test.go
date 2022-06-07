@@ -373,7 +373,7 @@ func TestAppAnteHandler_ConvertEthAccount_CheckTx(t *testing.T) {
 	tApp.Commit()
 
 	// Check account not converted at upgrade height
-	checkAccountAfterCheckTx(t, tApp, testAddresses[0], txBytes, (*ethermint.EthAccount)(nil))
+	checkAccountAfterCheckTx(t, tApp, testAddresses[0], txBytes, (*authtypes.BaseAccount)(nil))
 }
 
 func checkAccountAfterDeliverTx(t *testing.T, tApp app.TestApp, address sdk.AccAddress, tx []byte, expectedAccountType interface{}) {
