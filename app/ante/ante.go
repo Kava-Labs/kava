@@ -110,8 +110,7 @@ func newCosmosAnteHandler(options HandlerOptions, isEIP712 bool) sdk.AnteHandler
 		decorators = append(decorators, NewAuthenticatedMempoolDecorator(options.AddressFetchers...))
 	}
 
-	var sigVerification sdk.AnteDecorator
-	sigVerification = authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler)
+	var sigVerification sdk.AnteDecorator = authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler)
 	if isEIP712 {
 		sigVerification = evmante.NewEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler)
 	}
