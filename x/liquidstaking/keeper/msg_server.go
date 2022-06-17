@@ -28,7 +28,12 @@ func (k msgServer) MintDerivative(goCtx context.Context, msg *types.MsgMintDeriv
 		return nil, err
 	}
 
-	err = k.keeper.MintDerivative(ctx, validator, msg.Amount)
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.keeper.MintDerivative(ctx, sender, validator, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -40,6 +45,8 @@ func (k msgServer) MintDerivative(goCtx context.Context, msg *types.MsgMintDeriv
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Validator),
 		),
 	)
+
+	// TODO: add amount to response
 	return &types.MsgMintDerivativeResponse{}, nil
 }
 

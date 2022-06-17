@@ -19,6 +19,7 @@ type Keeper struct {
 	paramSubspace paramtypes.Subspace
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
+	stakingKeeper types.StakingKeeper
 	hooks         types.LiquidStakingHooks
 }
 
@@ -50,49 +51,49 @@ func (k *Keeper) SetHooks(hooks types.MultiLiquidStakingHooks) *Keeper {
 	return k
 }
 
-// GetDerivative returns a derivative from the store for a particular validator address
-func (k Keeper) GetDerivative(ctx sdk.Context, validator sdk.ValAddress) (types.Derivative, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DerivativesKeyPrefix)
+// GetDelegationHolder returns a DelegationHolder from the store for a particular validator address
+func (k Keeper) GetDelegationHolder(ctx sdk.Context, validator sdk.ValAddress) (types.DelegationHolder, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegationHoldersKeyPrefix)
 	bz := store.Get(validator.Bytes())
 	if len(bz) == 0 {
-		return types.Derivative{}, false
+		return types.DelegationHolder{}, false
 	}
-	var derivative types.Derivative
-	k.cdc.MustUnmarshal(bz, &derivative)
-	return derivative, true
+	var delegationHolder types.DelegationHolder
+	k.cdc.MustUnmarshal(bz, &delegationHolder)
+	return delegationHolder, true
 }
 
-// SetDerivative sets the input derivative in the store
-func (k Keeper) SetDerivative(ctx sdk.Context, derivative types.Derivative) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DerivativesKeyPrefix)
-	bz := k.cdc.MustMarshal(&derivative)
-	store.Set(derivative.Validator.Bytes(), bz)
+// SetDelegationHolder sets the input DelegationHolder in the store
+func (k Keeper) SetDelegationHolder(ctx sdk.Context, delegationHolder types.DelegationHolder) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegationHoldersKeyPrefix)
+	bz := k.cdc.MustMarshal(&delegationHolder)
+	store.Set(delegationHolder.Validator.Bytes(), bz)
 }
 
-// DeleteDerivative deletes a derivative from the store
-func (k Keeper) DeleteDerivative(ctx sdk.Context, derivitive types.Derivative) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DerivativesKeyPrefix)
-	store.Delete(derivitive.Validator.Bytes())
+// DeleteDelegationHolder deletes a DelegationHolder from the store
+func (k Keeper) DeleteDelegationHolder(ctx sdk.Context, delegationHolder types.DelegationHolder) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegationHoldersKeyPrefix)
+	store.Delete(delegationHolder.Validator.Bytes())
 }
 
-// IterateDerivatives iterates over all derivative objects in the store and performs a callback function
-func (k Keeper) IterateDerivatives(ctx sdk.Context, cb func(derivative types.Derivative) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DerivativesKeyPrefix)
+// IterateDelegationHolders iterates over all DelegationHolder objects in the store and performs a callback function
+func (k Keeper) IterateDelegationHolders(ctx sdk.Context, cb func(delegationHolder types.DelegationHolder) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegationHoldersKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var derivative types.Derivative
-		k.cdc.MustUnmarshal(iterator.Value(), &derivative)
-		if cb(derivative) {
+		var delegationHolder types.DelegationHolder
+		k.cdc.MustUnmarshal(iterator.Value(), &delegationHolder)
+		if cb(delegationHolder) {
 			break
 		}
 	}
 }
 
-// GetAllDerivatives returns all derivatives from the store
-func (k Keeper) GetAllDerivatives(ctx sdk.Context) (derivatives types.Derivatives) {
-	k.IterateDerivatives(ctx, func(derivative types.Derivative) bool {
-		derivatives = append(derivatives, derivative)
+// GetAllDelegationHolders returns all DelegationHolders from the store
+func (k Keeper) GetAllDelegationHolders(ctx sdk.Context) (delegationHolders types.DelegationHolders) {
+	k.IterateDelegationHolders(ctx, func(delegationHolder types.DelegationHolder) bool {
+		delegationHolders = append(delegationHolders, delegationHolder)
 		return false
 	})
 	return
