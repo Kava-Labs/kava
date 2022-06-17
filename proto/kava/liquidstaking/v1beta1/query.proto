@@ -15,9 +15,9 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/kava/liquidstaking/v1beta1/params";
   }
-  // Derivatives queries liquidsavings derivatives.
-  rpc Derivatives(QueryDerivativesRequest) returns (QueryDerivativesResponse) {
-    option (google.api.http).get = "/kava/liquidstaking/v1beta1/derivatives";
+  // DelegationHolders queries liquidsavings DelegationHolders.
+  rpc DelegationHolders(QueryDelegationHoldersRequest) returns (QueryDelegationHoldersResponse) {
+    option (google.api.http).get = "/kava/liquidstaking/v1beta1/delegationHolders";
   }
 }
 
@@ -33,18 +33,18 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryDerivativesRequest defines the request type for querying x/liquidstaking
-// derivatives.
-message QueryDerivativesRequest {
+// QueryDelegationHoldersRequest defines the request type for querying x/liquidstaking
+// delegation holders.
+message QueryDelegationHoldersRequest {
   string validator = 1;
 
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
-// QueryDerivativesResponse defines the response type for querying x/liquidstaking
-// derivatives.
-message QueryDerivativesResponse {
-  repeated Derivative derivatives = 1 [(gogoproto.castrepeated) = "Derivatives", (gogoproto.nullable) = false];
+// QueryDelegationHoldersResponse defines the response type for querying x/liquidstaking
+// delegation holders.
+message QueryDelegationHoldersResponse {
+  repeated DelegationHolder delegationHolders = 1 [(gogoproto.castrepeated) = "DelegationHolders", (gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

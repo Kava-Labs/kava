@@ -12,19 +12,21 @@ option (gogoproto.goproto_getters_all) = false;
 message Params {
 }
 
-// Derivative defines a derivative
-message Derivative {
+// DelegationHolder defines a DelegationHolder
+message DelegationHolder {
 
-// DelegationHolder
   // module account address
-  // validator address
-  // kava delegation share amount
+  bytes module_account = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
 
-  string validator = 1 [
+  // validator's address
+  string validator = 2 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
     (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.ValAddress"
   ];
 
-  cosmos.base.v1beta1.Coin amount = 2  [(gogoproto.nullable) = false];
+  // kava delegation share amount
+  cosmos.base.v1beta1.Coin delegations = 3  [(gogoproto.nullable) = false];
 }
-
