@@ -108,25 +108,25 @@ func (m *QueryParamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryParamsResponse proto.InternalMessageInfo
 
-// QueryDerivativesRequest defines the request type for querying x/liquidstaking
-// derivatives.
-type QueryDerivativesRequest struct {
+// QueryDelegationHoldersRequest defines the request type for querying x/liquidstaking
+// delegation holders.
+type QueryDelegationHoldersRequest struct {
 	Validator  string             `protobuf:"bytes,1,opt,name=validator,proto3" json:"validator,omitempty"`
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryDerivativesRequest) Reset()         { *m = QueryDerivativesRequest{} }
-func (m *QueryDerivativesRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryDerivativesRequest) ProtoMessage()    {}
-func (*QueryDerivativesRequest) Descriptor() ([]byte, []int) {
+func (m *QueryDelegationHoldersRequest) Reset()         { *m = QueryDelegationHoldersRequest{} }
+func (m *QueryDelegationHoldersRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryDelegationHoldersRequest) ProtoMessage()    {}
+func (*QueryDelegationHoldersRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5d94773bc8bc995f, []int{2}
 }
-func (m *QueryDerivativesRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryDelegationHoldersRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryDerivativesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryDelegationHoldersRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryDerivativesRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryDelegationHoldersRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -136,51 +136,51 @@ func (m *QueryDerivativesRequest) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *QueryDerivativesRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryDerivativesRequest.Merge(m, src)
+func (m *QueryDelegationHoldersRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDelegationHoldersRequest.Merge(m, src)
 }
-func (m *QueryDerivativesRequest) XXX_Size() int {
+func (m *QueryDelegationHoldersRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryDerivativesRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryDerivativesRequest.DiscardUnknown(m)
+func (m *QueryDelegationHoldersRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDelegationHoldersRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryDerivativesRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryDelegationHoldersRequest proto.InternalMessageInfo
 
-func (m *QueryDerivativesRequest) GetValidator() string {
+func (m *QueryDelegationHoldersRequest) GetValidator() string {
 	if m != nil {
 		return m.Validator
 	}
 	return ""
 }
 
-func (m *QueryDerivativesRequest) GetPagination() *query.PageRequest {
+func (m *QueryDelegationHoldersRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-// QueryDerivativesResponse defines the response type for querying x/liquidstaking
-// derivatives.
-type QueryDerivativesResponse struct {
-	Derivatives Derivatives         `protobuf:"bytes,1,rep,name=derivatives,proto3,castrepeated=Derivatives" json:"derivatives"`
-	Pagination  *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+// QueryDelegationHoldersResponse defines the response type for querying x/liquidstaking
+// delegation holders.
+type QueryDelegationHoldersResponse struct {
+	DelegationHolders DelegationHolders   `protobuf:"bytes,1,rep,name=delegationHolders,proto3,castrepeated=DelegationHolders" json:"delegationHolders"`
+	Pagination        *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryDerivativesResponse) Reset()         { *m = QueryDerivativesResponse{} }
-func (m *QueryDerivativesResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryDerivativesResponse) ProtoMessage()    {}
-func (*QueryDerivativesResponse) Descriptor() ([]byte, []int) {
+func (m *QueryDelegationHoldersResponse) Reset()         { *m = QueryDelegationHoldersResponse{} }
+func (m *QueryDelegationHoldersResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryDelegationHoldersResponse) ProtoMessage()    {}
+func (*QueryDelegationHoldersResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5d94773bc8bc995f, []int{3}
 }
-func (m *QueryDerivativesResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryDelegationHoldersResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryDerivativesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryDelegationHoldersResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryDerivativesResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryDelegationHoldersResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -190,26 +190,26 @@ func (m *QueryDerivativesResponse) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *QueryDerivativesResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryDerivativesResponse.Merge(m, src)
+func (m *QueryDelegationHoldersResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDelegationHoldersResponse.Merge(m, src)
 }
-func (m *QueryDerivativesResponse) XXX_Size() int {
+func (m *QueryDelegationHoldersResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryDerivativesResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryDerivativesResponse.DiscardUnknown(m)
+func (m *QueryDelegationHoldersResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDelegationHoldersResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryDerivativesResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryDelegationHoldersResponse proto.InternalMessageInfo
 
-func (m *QueryDerivativesResponse) GetDerivatives() Derivatives {
+func (m *QueryDelegationHoldersResponse) GetDelegationHolders() DelegationHolders {
 	if m != nil {
-		return m.Derivatives
+		return m.DelegationHolders
 	}
 	return nil
 }
 
-func (m *QueryDerivativesResponse) GetPagination() *query.PageResponse {
+func (m *QueryDelegationHoldersResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
@@ -219,8 +219,8 @@ func (m *QueryDerivativesResponse) GetPagination() *query.PageResponse {
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "kava.liquidstaking.v1beta1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "kava.liquidstaking.v1beta1.QueryParamsResponse")
-	proto.RegisterType((*QueryDerivativesRequest)(nil), "kava.liquidstaking.v1beta1.QueryDerivativesRequest")
-	proto.RegisterType((*QueryDerivativesResponse)(nil), "kava.liquidstaking.v1beta1.QueryDerivativesResponse")
+	proto.RegisterType((*QueryDelegationHoldersRequest)(nil), "kava.liquidstaking.v1beta1.QueryDelegationHoldersRequest")
+	proto.RegisterType((*QueryDelegationHoldersResponse)(nil), "kava.liquidstaking.v1beta1.QueryDelegationHoldersResponse")
 }
 
 func init() {
@@ -228,37 +228,38 @@ func init() {
 }
 
 var fileDescriptor_5d94773bc8bc995f = []byte{
-	// 472 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x41, 0x8b, 0xd4, 0x30,
-	0x18, 0x6d, 0xc6, 0x75, 0x60, 0x33, 0xb7, 0xec, 0x82, 0xb5, 0x2c, 0x9d, 0xa5, 0xc8, 0xae, 0x2e,
-	0x98, 0xb0, 0xbb, 0x9e, 0x3c, 0xc9, 0x20, 0x8a, 0x37, 0xed, 0x51, 0x58, 0x24, 0xdd, 0x09, 0x31,
-	0x6c, 0xa7, 0xe9, 0x34, 0x69, 0x71, 0x4f, 0x82, 0x27, 0x8f, 0x82, 0x78, 0xf7, 0xaa, 0x3f, 0xc3,
-	0xd3, 0x82, 0x97, 0x01, 0x2f, 0x9e, 0x54, 0x66, 0xfc, 0x21, 0xd2, 0x24, 0xda, 0x8e, 0xa3, 0x1d,
-	0xbd, 0x35, 0x5f, 0xde, 0x7b, 0xdf, 0x7b, 0xdf, 0x97, 0xc2, 0xbd, 0x33, 0x5a, 0x51, 0x92, 0x8a,
-	0x69, 0x29, 0xc6, 0x4a, 0xd3, 0x33, 0x91, 0x71, 0x52, 0x1d, 0x26, 0x4c, 0xd3, 0x43, 0x32, 0x2d,
-	0x59, 0x71, 0x8e, 0xf3, 0x42, 0x6a, 0x89, 0x82, 0x1a, 0x87, 0x97, 0x70, 0xd8, 0xe1, 0x82, 0x6d,
-	0x2e, 0xb9, 0x34, 0x30, 0x52, 0x7f, 0x59, 0x46, 0xb0, 0xc3, 0xa5, 0xe4, 0x29, 0x23, 0x34, 0x17,
-	0x84, 0x66, 0x99, 0xd4, 0x54, 0x0b, 0x99, 0x29, 0x77, 0x7b, 0xf5, 0x54, 0xaa, 0x89, 0x54, 0x4f,
-	0x2c, 0xcd, 0x1e, 0xdc, 0xd5, 0x81, 0x3d, 0x91, 0x84, 0x2a, 0x66, 0x3d, 0xfc, 0x72, 0x94, 0x53,
-	0x2e, 0x32, 0xa3, 0xe3, 0xb0, 0x5d, 0xf6, 0x95, 0x96, 0x05, 0xb3, 0xb8, 0x68, 0x1b, 0xa2, 0x47,
-	0xb5, 0xd2, 0x43, 0x5a, 0xd0, 0x89, 0x8a, 0xd9, 0xb4, 0x64, 0x4a, 0x47, 0x27, 0x70, 0x6b, 0xa9,
-	0xaa, 0x72, 0x99, 0x29, 0x86, 0xee, 0xc0, 0x7e, 0x6e, 0x2a, 0x3e, 0xd8, 0x05, 0xd7, 0x07, 0x47,
-	0x11, 0xfe, 0x7b, 0x78, 0x6c, 0xb9, 0xa3, 0x8d, 0x8b, 0x2f, 0x43, 0x2f, 0x76, 0xbc, 0xdb, 0x1b,
-	0x2f, 0xdf, 0x0e, 0xbd, 0xe8, 0x39, 0xbc, 0x62, 0xe4, 0xef, 0xb2, 0x42, 0x54, 0x54, 0x8b, 0x8a,
-	0xfd, 0xec, 0x8c, 0x76, 0xe0, 0x66, 0x45, 0x53, 0x31, 0xa6, 0x5a, 0x16, 0xa6, 0xcb, 0x66, 0xdc,
-	0x14, 0xd0, 0x3d, 0x08, 0x9b, 0xa4, 0x7e, 0xcf, 0x98, 0xd8, 0xc3, 0x6e, 0x48, 0xf5, 0x58, 0xb0,
-	0x5d, 0x4d, 0xe3, 0x81, 0x33, 0xa7, 0x1c, 0xb7, 0x98, 0xd1, 0x07, 0x00, 0xfd, 0x55, 0x07, 0x2e,
-	0xe5, 0x09, 0x1c, 0x8c, 0x9b, 0xb2, 0x0f, 0x76, 0x2f, 0x99, 0x2e, 0x1d, 0x51, 0x1b, 0x95, 0xd1,
-	0x56, 0x1d, 0xf7, 0xfd, 0xd7, 0xe1, 0xa0, 0xad, 0xdc, 0xd6, 0x43, 0xf7, 0xff, 0x90, 0x61, 0x7f,
-	0x6d, 0x06, 0xeb, 0xad, 0x1d, 0xe2, 0xe8, 0x63, 0x0f, 0x5e, 0x36, 0x21, 0xd0, 0x1b, 0x00, 0xfb,
-	0x76, 0xdc, 0x08, 0x77, 0xf9, 0x5c, 0xdd, 0x74, 0x40, 0xfe, 0x19, 0x6f, 0x1d, 0x44, 0x07, 0x2f,
-	0x3e, 0x7d, 0x7f, 0xdd, 0xbb, 0x86, 0x22, 0xd2, 0xf1, 0xc2, 0xec, 0xb6, 0xd1, 0x3b, 0x00, 0xdb,
-	0x73, 0x40, 0xc7, 0x6b, 0x9b, 0xad, 0xbe, 0x88, 0xe0, 0xd6, 0xff, 0x91, 0x9c, 0x4d, 0x62, 0x6c,
-	0xde, 0x40, 0xfb, 0x5d, 0x36, 0x5b, 0x6b, 0x19, 0x3d, 0xb8, 0x98, 0x87, 0x60, 0x36, 0x0f, 0xc1,
-	0xb7, 0x79, 0x08, 0x5e, 0x2d, 0x42, 0x6f, 0xb6, 0x08, 0xbd, 0xcf, 0x8b, 0xd0, 0x7b, 0x4c, 0xb8,
-	0xd0, 0x4f, 0xcb, 0x04, 0x9f, 0xca, 0x89, 0x11, 0xbb, 0x99, 0xd2, 0x44, 0x59, 0xd9, 0x67, 0xbf,
-	0x09, 0xeb, 0xf3, 0x9c, 0xa9, 0xa4, 0x6f, 0x7e, 0xad, 0xe3, 0x1f, 0x01, 0x00, 0x00, 0xff, 0xff,
-	0x05, 0x00, 0xc4, 0xce, 0x43, 0x04, 0x00, 0x00,
+	// 481 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x93, 0x4f, 0x6f, 0xd3, 0x30,
+	0x18, 0xc6, 0xe3, 0x32, 0x2a, 0xcd, 0x3b, 0xcd, 0xec, 0xd0, 0x45, 0x23, 0x9d, 0x22, 0x34, 0xa6,
+	0x89, 0xd9, 0x5a, 0x11, 0x07, 0x76, 0x42, 0x15, 0xe2, 0xcf, 0x0d, 0x72, 0x44, 0x42, 0xc8, 0x59,
+	0x2c, 0x63, 0x2d, 0x8d, 0xd3, 0xd8, 0xa9, 0xd8, 0x15, 0x09, 0x89, 0x23, 0x12, 0xe2, 0xce, 0x99,
+	0x6f, 0xc1, 0x6d, 0xc7, 0x49, 0x5c, 0x38, 0xc1, 0xd4, 0xf0, 0x41, 0x50, 0x6c, 0x43, 0xb7, 0x86,
+	0xa6, 0x68, 0xb7, 0xc6, 0x7e, 0xde, 0xe7, 0xfd, 0x3d, 0xaf, 0xdf, 0xc2, 0x9d, 0x63, 0x3a, 0xa1,
+	0x24, 0x15, 0xe3, 0x52, 0x24, 0x4a, 0xd3, 0x63, 0x91, 0x71, 0x32, 0x39, 0x88, 0x99, 0xa6, 0x07,
+	0x64, 0x5c, 0xb2, 0xe2, 0x04, 0xe7, 0x85, 0xd4, 0x12, 0xf9, 0xb5, 0x0e, 0x5f, 0xd2, 0x61, 0xa7,
+	0xf3, 0x37, 0xb8, 0xe4, 0xd2, 0xc8, 0x48, 0xfd, 0xcb, 0x56, 0xf8, 0x5b, 0x5c, 0x4a, 0x9e, 0x32,
+	0x42, 0x73, 0x41, 0x68, 0x96, 0x49, 0x4d, 0xb5, 0x90, 0x99, 0x72, 0xb7, 0x9b, 0x47, 0x52, 0x8d,
+	0xa4, 0x7a, 0x65, 0xcb, 0xec, 0x87, 0xbb, 0xda, 0xb3, 0x5f, 0x24, 0xa6, 0x8a, 0x59, 0x86, 0xbf,
+	0x44, 0x39, 0xe5, 0x22, 0x33, 0x3e, 0x4e, 0xdb, 0x86, 0xaf, 0xb4, 0x2c, 0x98, 0xd5, 0x85, 0x1b,
+	0x10, 0x3d, 0xaf, 0x9d, 0x9e, 0xd1, 0x82, 0x8e, 0x54, 0xc4, 0xc6, 0x25, 0x53, 0x3a, 0x7c, 0x09,
+	0x6f, 0x5c, 0x3a, 0x55, 0xb9, 0xcc, 0x14, 0x43, 0x0f, 0x60, 0x37, 0x37, 0x27, 0x3d, 0xb0, 0x0d,
+	0x76, 0xd7, 0x06, 0x21, 0x5e, 0x1c, 0x1e, 0xdb, 0xda, 0xe1, 0xca, 0xe9, 0x8f, 0xbe, 0x17, 0xb9,
+	0xba, 0xc3, 0x95, 0xf7, 0x9f, 0xfb, 0x5e, 0xf8, 0x0e, 0xc0, 0x9b, 0xc6, 0xff, 0x21, 0x4b, 0x19,
+	0x37, 0xd8, 0x4f, 0x64, 0x9a, 0xb0, 0xe2, 0x0f, 0x00, 0xda, 0x82, 0xab, 0x13, 0x9a, 0x8a, 0x84,
+	0x6a, 0x59, 0x98, 0x66, 0xab, 0xd1, 0xec, 0x00, 0x3d, 0x82, 0x70, 0x16, 0xb8, 0xd7, 0x31, 0x2c,
+	0x3b, 0xd8, 0xcd, 0xaa, 0x9e, 0x0e, 0xb6, 0x2f, 0x34, 0x43, 0xe1, 0xcc, 0x39, 0x47, 0x17, 0x2a,
+	0xc3, 0x73, 0x00, 0x83, 0x45, 0x1c, 0x2e, 0x72, 0x09, 0xd7, 0x93, 0xf9, 0xcb, 0x1e, 0xd8, 0xbe,
+	0xb6, 0xbb, 0x36, 0xb8, 0xd3, 0x96, 0x7e, 0xde, 0x71, 0xb8, 0x59, 0xcf, 0xe1, 0xcb, 0xcf, 0xfe,
+	0x7a, 0xb3, 0x57, 0xb3, 0x03, 0x7a, 0xfc, 0x8f, 0x84, 0xb7, 0x97, 0x26, 0xb4, 0xcc, 0x17, 0x23,
+	0x0e, 0xaa, 0x0e, 0xbc, 0x6e, 0x22, 0xa2, 0x4f, 0x00, 0x76, 0xed, 0x9b, 0x20, 0xdc, 0x46, 0xde,
+	0x5c, 0x07, 0x9f, 0xfc, 0xb7, 0xde, 0x12, 0x84, 0x7b, 0x6f, 0xbf, 0xfd, 0xfa, 0xd8, 0xb9, 0x85,
+	0x42, 0xd2, 0xb2, 0x86, 0x76, 0x25, 0xd0, 0x57, 0x00, 0x9b, 0x33, 0x41, 0xf7, 0x97, 0xb6, 0x5c,
+	0xb4, 0x3b, 0xfe, 0xe1, 0x55, 0x4a, 0x1d, 0xf8, 0x3d, 0x03, 0x4e, 0xd0, 0x7e, 0x1b, 0x78, 0xe3,
+	0xb9, 0x86, 0x4f, 0x4f, 0xa7, 0x01, 0x38, 0x9b, 0x06, 0xe0, 0x7c, 0x1a, 0x80, 0x0f, 0x55, 0xe0,
+	0x9d, 0x55, 0x81, 0xf7, 0xbd, 0x0a, 0xbc, 0x17, 0x84, 0x0b, 0xfd, 0xba, 0x8c, 0xf1, 0x91, 0x1c,
+	0x19, 0xcb, 0xfd, 0x94, 0xc6, 0xca, 0x9a, 0xbf, 0x99, 0xb3, 0xd7, 0x27, 0x39, 0x53, 0x71, 0xd7,
+	0xfc, 0x2f, 0xef, 0xfe, 0x0e, 0x00, 0x00, 0xff, 0xff, 0x29, 0xfe, 0x05, 0x65, 0x80, 0x04, 0x00,
+	0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -275,8 +276,8 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Params queries all parameters of the liquidstaking module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	// Derivatives queries liquidsavings derivatives.
-	Derivatives(ctx context.Context, in *QueryDerivativesRequest, opts ...grpc.CallOption) (*QueryDerivativesResponse, error)
+	// DelegationHolders queries liquidsavings DelegationHolders.
+	DelegationHolders(ctx context.Context, in *QueryDelegationHoldersRequest, opts ...grpc.CallOption) (*QueryDelegationHoldersResponse, error)
 }
 
 type queryClient struct {
@@ -296,9 +297,9 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) Derivatives(ctx context.Context, in *QueryDerivativesRequest, opts ...grpc.CallOption) (*QueryDerivativesResponse, error) {
-	out := new(QueryDerivativesResponse)
-	err := c.cc.Invoke(ctx, "/kava.liquidstaking.v1beta1.Query/Derivatives", in, out, opts...)
+func (c *queryClient) DelegationHolders(ctx context.Context, in *QueryDelegationHoldersRequest, opts ...grpc.CallOption) (*QueryDelegationHoldersResponse, error) {
+	out := new(QueryDelegationHoldersResponse)
+	err := c.cc.Invoke(ctx, "/kava.liquidstaking.v1beta1.Query/DelegationHolders", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -309,8 +310,8 @@ func (c *queryClient) Derivatives(ctx context.Context, in *QueryDerivativesReque
 type QueryServer interface {
 	// Params queries all parameters of the liquidstaking module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	// Derivatives queries liquidsavings derivatives.
-	Derivatives(context.Context, *QueryDerivativesRequest) (*QueryDerivativesResponse, error)
+	// DelegationHolders queries liquidsavings DelegationHolders.
+	DelegationHolders(context.Context, *QueryDelegationHoldersRequest) (*QueryDelegationHoldersResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -320,8 +321,8 @@ type UnimplementedQueryServer struct {
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
 }
-func (*UnimplementedQueryServer) Derivatives(ctx context.Context, req *QueryDerivativesRequest) (*QueryDerivativesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Derivatives not implemented")
+func (*UnimplementedQueryServer) DelegationHolders(ctx context.Context, req *QueryDelegationHoldersRequest) (*QueryDelegationHoldersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelegationHolders not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -346,20 +347,20 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_Derivatives_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryDerivativesRequest)
+func _Query_DelegationHolders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryDelegationHoldersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).Derivatives(ctx, in)
+		return srv.(QueryServer).DelegationHolders(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/kava.liquidstaking.v1beta1.Query/Derivatives",
+		FullMethod: "/kava.liquidstaking.v1beta1.Query/DelegationHolders",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Derivatives(ctx, req.(*QueryDerivativesRequest))
+		return srv.(QueryServer).DelegationHolders(ctx, req.(*QueryDelegationHoldersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -373,8 +374,8 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_Params_Handler,
 		},
 		{
-			MethodName: "Derivatives",
-			Handler:    _Query_Derivatives_Handler,
+			MethodName: "DelegationHolders",
+			Handler:    _Query_DelegationHolders_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -437,7 +438,7 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryDerivativesRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryDelegationHoldersRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -447,12 +448,12 @@ func (m *QueryDerivativesRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryDerivativesRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryDelegationHoldersRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryDerivativesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryDelegationHoldersRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -479,7 +480,7 @@ func (m *QueryDerivativesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryDerivativesResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryDelegationHoldersResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -489,12 +490,12 @@ func (m *QueryDerivativesResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryDerivativesResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryDelegationHoldersResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryDerivativesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryDelegationHoldersResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -511,10 +512,10 @@ func (m *QueryDerivativesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Derivatives) > 0 {
-		for iNdEx := len(m.Derivatives) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.DelegationHolders) > 0 {
+		for iNdEx := len(m.DelegationHolders) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.Derivatives[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.DelegationHolders[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -559,7 +560,7 @@ func (m *QueryParamsResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryDerivativesRequest) Size() (n int) {
+func (m *QueryDelegationHoldersRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -576,14 +577,14 @@ func (m *QueryDerivativesRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryDerivativesResponse) Size() (n int) {
+func (m *QueryDelegationHoldersResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.Derivatives) > 0 {
-		for _, e := range m.Derivatives {
+	if len(m.DelegationHolders) > 0 {
+		for _, e := range m.DelegationHolders {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -734,7 +735,7 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryDerivativesRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryDelegationHoldersRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -757,10 +758,10 @@ func (m *QueryDerivativesRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryDerivativesRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryDelegationHoldersRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryDerivativesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryDelegationHoldersRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -852,7 +853,7 @@ func (m *QueryDerivativesRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryDerivativesResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryDelegationHoldersResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -875,15 +876,15 @@ func (m *QueryDerivativesResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryDerivativesResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryDelegationHoldersResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryDerivativesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryDelegationHoldersResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Derivatives", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field DelegationHolders", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -910,8 +911,8 @@ func (m *QueryDerivativesResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Derivatives = append(m.Derivatives, Derivative{})
-			if err := m.Derivatives[len(m.Derivatives)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.DelegationHolders = append(m.DelegationHolders, DelegationHolder{})
+			if err := m.DelegationHolders[len(m.DelegationHolders)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

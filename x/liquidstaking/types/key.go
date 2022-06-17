@@ -20,4 +20,4 @@ const (
 	ModuleAccountName = ModuleName
 )
 
-var DerivativesKeyPrefix = []byte{0x01}
+var DelegationHoldersKeyPrefix = []byte{0x01}
