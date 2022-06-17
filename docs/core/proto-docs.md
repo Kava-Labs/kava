@@ -331,15 +331,15 @@
     - [Query](#kava.kavadist.v1beta1.Query)
   
 - [kava/liquidstaking/v1beta1/store.proto](#kava/liquidstaking/v1beta1/store.proto)
-    - [Derivative](#kava.liquidstaking.v1beta1.Derivative)
+    - [DelegationHolder](#kava.liquidstaking.v1beta1.DelegationHolder)
     - [Params](#kava.liquidstaking.v1beta1.Params)
   
 - [kava/liquidstaking/v1beta1/genesis.proto](#kava/liquidstaking/v1beta1/genesis.proto)
     - [GenesisState](#kava.liquidstaking.v1beta1.GenesisState)
   
 - [kava/liquidstaking/v1beta1/query.proto](#kava/liquidstaking/v1beta1/query.proto)
-    - [QueryDerivativesRequest](#kava.liquidstaking.v1beta1.QueryDerivativesRequest)
-    - [QueryDerivativesResponse](#kava.liquidstaking.v1beta1.QueryDerivativesResponse)
+    - [QueryDelegationHoldersRequest](#kava.liquidstaking.v1beta1.QueryDelegationHoldersRequest)
+    - [QueryDelegationHoldersResponse](#kava.liquidstaking.v1beta1.QueryDelegationHoldersResponse)
     - [QueryParamsRequest](#kava.liquidstaking.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.liquidstaking.v1beta1.QueryParamsResponse)
   
@@ -4731,16 +4731,17 @@ Query defines the gRPC querier service.
 
 
 
-<a name="kava.liquidstaking.v1beta1.Derivative"></a>
+<a name="kava.liquidstaking.v1beta1.DelegationHolder"></a>
 
-### Derivative
-Derivative defines a derivative
+### DelegationHolder
+DelegationHolder defines a DelegationHolder
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `validator` | [string](#string) |  |  |
-| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `module_account` | [bytes](#bytes) |  | module account address |
+| `validator` | [string](#string) |  | validator's address |
+| `delegations` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | kava delegation share amount |
 
 
 
@@ -4782,7 +4783,7 @@ GenesisState defines the liquidstaking module's genesis state.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#kava.liquidstaking.v1beta1.Params) |  | params defines all the parameters of the liquidstaking module. |
-| `derivatives` | [Derivative](#kava.liquidstaking.v1beta1.Derivative) | repeated |  |
+| `delegation_holders` | [DelegationHolder](#kava.liquidstaking.v1beta1.DelegationHolder) | repeated |  |
 
 
 
@@ -4805,11 +4806,11 @@ GenesisState defines the liquidstaking module's genesis state.
 
 
 
-<a name="kava.liquidstaking.v1beta1.QueryDerivativesRequest"></a>
+<a name="kava.liquidstaking.v1beta1.QueryDelegationHoldersRequest"></a>
 
-### QueryDerivativesRequest
-QueryDerivativesRequest defines the request type for querying x/liquidstaking
-derivatives.
+### QueryDelegationHoldersRequest
+QueryDelegationHoldersRequest defines the request type for querying x/liquidstaking
+delegation holders.
 
 
 | Field | Type | Label | Description |
@@ -4822,16 +4823,16 @@ derivatives.
 
 
 
-<a name="kava.liquidstaking.v1beta1.QueryDerivativesResponse"></a>
+<a name="kava.liquidstaking.v1beta1.QueryDelegationHoldersResponse"></a>
 
-### QueryDerivativesResponse
-QueryDerivativesResponse defines the response type for querying x/liquidstaking
-derivatives.
+### QueryDelegationHoldersResponse
+QueryDelegationHoldersResponse defines the response type for querying x/liquidstaking
+delegation holders.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `derivatives` | [Derivative](#kava.liquidstaking.v1beta1.Derivative) | repeated |  |
+| `delegationHolders` | [DelegationHolder](#kava.liquidstaking.v1beta1.DelegationHolder) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
 
 
@@ -4880,7 +4881,7 @@ Query defines the gRPC querier service for liquidstaking module
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.liquidstaking.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.liquidstaking.v1beta1.QueryParamsResponse) | Params queries all parameters of the liquidstaking module. | GET|/kava/liquidstaking/v1beta1/params|
-| `Derivatives` | [QueryDerivativesRequest](#kava.liquidstaking.v1beta1.QueryDerivativesRequest) | [QueryDerivativesResponse](#kava.liquidstaking.v1beta1.QueryDerivativesResponse) | Derivatives queries liquidsavings derivatives. | GET|/kava/liquidstaking/v1beta1/derivatives|
+| `DelegationHolders` | [QueryDelegationHoldersRequest](#kava.liquidstaking.v1beta1.QueryDelegationHoldersRequest) | [QueryDelegationHoldersResponse](#kava.liquidstaking.v1beta1.QueryDelegationHoldersResponse) | DelegationHolders queries liquidsavings DelegationHolders. | GET|/kava/liquidstaking/v1beta1/delegationHolders|
 
  <!-- end services -->
 
