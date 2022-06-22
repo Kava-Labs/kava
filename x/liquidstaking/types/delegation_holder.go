@@ -7,11 +7,10 @@ import (
 )
 
 // NewDelegationHolder returns a new DelegationHolder
-func NewDelegationHolder(macc sdk.AccAddress, validator sdk.ValAddress, delegations sdk.Coin) DelegationHolder {
+func NewDelegationHolder(macc sdk.AccAddress, validator sdk.ValAddress) DelegationHolder {
 	return DelegationHolder{
 		ModuleAccount: macc,
 		Validator:     validator,
-		Delegations:   delegations,
 	}
 }
 
@@ -22,9 +21,6 @@ func (d DelegationHolder) Validate() error {
 	}
 	if d.Validator.Empty() {
 		return fmt.Errorf("validator cannot be empty")
-	}
-	if !d.Delegations.IsValid() {
-		return fmt.Errorf("invalid delegation coins: %s", d.Delegations)
 	}
 
 	return nil

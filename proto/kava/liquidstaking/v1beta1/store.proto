@@ -9,8 +9,7 @@ option go_package                      = "github.com/kava-labs/kava/x/liquidstak
 option (gogoproto.goproto_getters_all) = false;
 
 // Params defines the parameters for the liquidstaking module.
-message Params {
-}
+message Params {}
 
 // DelegationHolder defines a DelegationHolder
 message DelegationHolder {
@@ -26,7 +25,4 @@ message DelegationHolder {
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
     (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.ValAddress"
   ];
-
-  // kava delegation share amount
-  cosmos.base.v1beta1.Coin delegations = 3  [(gogoproto.nullable) = false];
 }

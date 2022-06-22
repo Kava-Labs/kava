@@ -44,7 +44,8 @@ message QueryDelegationHoldersRequest {
 // QueryDelegationHoldersResponse defines the response type for querying x/liquidstaking
 // delegation holders.
 message QueryDelegationHoldersResponse {
-  repeated DelegationHolder delegationHolders = 1 [(gogoproto.castrepeated) = "DelegationHolders", (gogoproto.nullable) = false];
+  repeated DelegationHolder delegationHolders = 1
+      [(gogoproto.castrepeated) = "DelegationHolders", (gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

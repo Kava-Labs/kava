@@ -9,6 +9,7 @@ option go_package = "github.com/kava-labs/kava/x/liquidstaking/types";
 // GenesisState defines the liquidstaking module's genesis state.
 message GenesisState {
   // params defines all the parameters of the liquidstaking module.
-  Params params = 1 [(gogoproto.nullable) = false];
-  repeated DelegationHolder delegation_holders = 2 [(gogoproto.castrepeated) = "DelegationHolders", (gogoproto.nullable) = false];
+  Params                    params             = 1 [(gogoproto.nullable) = false];
+  repeated DelegationHolder delegation_holders = 2
+      [(gogoproto.castrepeated) = "DelegationHolders", (gogoproto.nullable) = false];
 }

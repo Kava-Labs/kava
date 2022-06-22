@@ -4741,7 +4741,6 @@ DelegationHolder defines a DelegationHolder
 | ----- | ---- | ----- | ----------- |
 | `module_account` | [bytes](#bytes) |  | module account address |
 | `validator` | [string](#string) |  | validator's address |
-| `delegations` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | kava delegation share amount |
 
 
 
