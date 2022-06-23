@@ -363,6 +363,15 @@ func (ri RewardIndex) Validate() error {
 // RewardIndexes slice of RewardIndex
 type RewardIndexes []RewardIndex
 
+// NewRewardIndexesFromCoins is a helper function to initialize a RewardIndexes slice with values from a DecCoins slice.
+func NewRewardIndexesFromDecCoins(coins sdk.DecCoins) RewardIndexes {
+	var indexes RewardIndexes
+	for _, coin := range coins {
+		indexes = append(indexes, NewRewardIndex(coin.Denom, coin.Amount))
+	}
+	return indexes
+}
+
 // GetRewardIndex fetches a RewardIndex by its denom
 func (ris RewardIndexes) GetRewardIndex(denom string) (RewardIndex, bool) {
 	for _, ri := range ris {

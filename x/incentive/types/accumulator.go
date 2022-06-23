@@ -100,3 +100,18 @@ func newRewardIndexesFromCoins(coins sdk.Coins) RewardIndexes {
 	}
 	return indexes
 }
+
+func CalculatePerSecondRewards(period MultiRewardPeriod, previousTime, currentTime time.Time) (sdk.DecCoins, time.Time) {
+	duration := (&Accumulator{}).getTimeElapsedWithinLimits(previousTime, currentTime, period.Start, period.End)
+
+	upTo := minTime(period.End, currentTime)
+
+	durationSeconds := int64(math.RoundToEven(duration.Seconds()))
+	if durationSeconds <= 0 {
+		// If the duration is zero, there will be no increment.
+		// So return an empty increment instead of one full of zeros.
+		return nil, upTo // TODO
+
+	}
+	return sdk.NewDecCoinsFromCoins(period.RewardsPerSecond...).MulDec(sdk.NewDec(durationSeconds)), upTo
+}

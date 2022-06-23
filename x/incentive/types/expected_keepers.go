@@ -5,6 +5,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -61,6 +62,10 @@ type SwapKeeper interface {
 type SavingsKeeper interface {
 	GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (savingstypes.Deposit, bool)
 	GetSavingsModuleAccountBalances(ctx sdk.Context) sdk.Coins
+}
+
+type LiquidStakingKeeper interface {
+	CollectStakingRewardsByDenom(ctx sdk.Context, derivativeDenom string, destinationModAccount string) (sdk.Coins, error)
 }
 
 // AccountKeeper expected interface for the account keeper (noalias)
