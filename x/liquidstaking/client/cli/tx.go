@@ -57,12 +57,12 @@ func getCmdMintDerivative() *cobra.Command {
 				return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 			}
 
-			amount, err := sdk.ParseCoinNormalized(args[1])
+			shares, err := sdk.NewDecFromStr(args[1])
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgMintDerivative(clientCtx.GetFromAddress(), valAddr, amount)
+			msg := types.NewMsgMintDerivative(clientCtx.GetFromAddress(), valAddr, shares)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

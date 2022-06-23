@@ -42,7 +42,7 @@ func TestMintDerivative(t *testing.T) {
 	msgMint := types.NewMsgMintDerivative(
 		addrs[0],
 		sdk.ValAddress(addrs[0]),
-		sdk.NewInt64Coin("stake", 1e6),
+		sdk.NewDec(1e6),
 	)
 	_, err = tApp.MsgServiceRouter().Handler(&msgMint)(ctx, &msgMint)
 	require.NoError(t, err)

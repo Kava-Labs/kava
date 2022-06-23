@@ -12,11 +12,11 @@ var (
 )
 
 // NewMsgMintDerivative returns a new MsgMintDerivative
-func NewMsgMintDerivative(sender sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) MsgMintDerivative {
+func NewMsgMintDerivative(sender sdk.AccAddress, validator sdk.ValAddress, shares sdk.Dec) MsgMintDerivative {
 	return MsgMintDerivative{
 		Sender:    sender.String(),
 		Validator: validator.String(),
-		Amount:    amount,
+		Shares:    shares,
 	}
 }
 
@@ -38,8 +38,8 @@ func (msg MsgMintDerivative) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount %s", msg.Amount)
+	if msg.Shares.IsNil() || msg.Shares.LTE(sdk.ZeroDec()) {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "amount %s", msg.Shares)
 	}
 	return nil
 }
