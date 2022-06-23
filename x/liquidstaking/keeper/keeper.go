@@ -14,31 +14,36 @@ import (
 
 // Keeper struct for savings module
 type Keeper struct {
-	key           sdk.StoreKey
-	cdc           codec.Codec
+	key sdk.StoreKey
+	cdc codec.Codec
+
 	paramSubspace paramtypes.Subspace
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	stakingKeeper types.StakingKeeper
-	hooks         types.LiquidStakingHooks
+
+	accountKeeper      types.AccountKeeper
+	bankKeeper         types.BankKeeper
+	stakingKeeper      types.StakingKeeper
+	distributionKeeper types.DistributionKeeper
+	hooks              types.LiquidStakingHooks
 }
 
 // NewKeeper returns a new keeper for the liquidstaking module.
 func NewKeeper(
 	cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace,
-	ak types.AccountKeeper, bk types.BankKeeper,
+	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, dk types.DistributionKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		cdc:           cdc,
-		key:           key,
-		paramSubspace: paramstore,
-		accountKeeper: ak,
-		bankKeeper:    bk,
-		hooks:         nil,
+		cdc:                cdc,
+		key:                key,
+		paramSubspace:      paramstore,
+		accountKeeper:      ak,
+		bankKeeper:         bk,
+		stakingKeeper:      sk,
+		distributionKeeper: dk,
+		hooks:              nil,
 	}
 }
 

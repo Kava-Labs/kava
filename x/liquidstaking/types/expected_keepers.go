@@ -84,6 +84,11 @@ type StakingKeeper interface {
 
 }
 
+type DistributionKeeper interface {
+	GetDelegatorWithdrawAddr(ctx sdk.Context, delAddr sdk.AccAddress) sdk.AccAddress
+	WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error)
+}
+
 // LiquidStakingHooks event hooks for other keepers to run code in response to LiquidStaking modifications
 type LiquidStakingHooks interface {
 }
