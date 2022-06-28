@@ -408,7 +408,7 @@ func (suite *IntegrationTester) VestingPeriodsEqual(address sdk.AccAddress, expe
 // x/incentive
 
 func (suite *IntegrationTester) SwapRewardEquals(owner sdk.AccAddress, expected sdk.Coins) {
-	claim, found := suite.App.GetIncentiveKeeper().GetSwapClaim(suite.Ctx, owner)
+	claim, found := suite.App.GetIncentiveKeeper().GetClaim(suite.Ctx, types.RewardTypeSwap, owner)
 	suite.Require().Truef(found, "expected swap claim to be found for %s", owner)
 	suite.Equalf(expected, claim.Reward, "expected swap claim reward to be %s, but got %s", expected, claim.Reward)
 }

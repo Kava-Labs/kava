@@ -287,38 +287,38 @@ func (k Keeper) GetAllDelegatorClaims(ctx sdk.Context) types.DelegatorClaims {
 	return cs
 }
 
-// GetSwapClaim returns the claim in the store corresponding the the input address.
-func (k Keeper) GetSwapClaim(ctx sdk.Context, addr sdk.AccAddress) (types.SwapClaim, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapClaimKeyPrefix)
-	bz := store.Get(addr)
+// GetClaim returns the claim in the store corresponding the the input address.
+func (k Keeper) GetClaim(ctx sdk.Context, id types.RewardType, addr sdk.AccAddress) (types.Claim, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
+	bz := store.Get(types.NewClaimKey(id, addr))
 	if bz == nil {
-		return types.SwapClaim{}, false
+		return types.Claim{}, false
 	}
-	var c types.SwapClaim
+	var c types.Claim
 	k.cdc.MustUnmarshal(bz, &c)
 	return c, true
 }
 
-// SetSwapClaim sets the claim in the store corresponding to the input address.
-func (k Keeper) SetSwapClaim(ctx sdk.Context, c types.SwapClaim) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapClaimKeyPrefix)
+// SetClaim sets the claim in the store corresponding to the input address.
+func (k Keeper) SetClaim(ctx sdk.Context, id types.RewardType, c types.Claim) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
 	bz := k.cdc.MustMarshal(&c)
-	store.Set(c.Owner, bz)
+	store.Set(types.NewClaimKey(id, c.Owner), bz)
 }
 
-// DeleteSwapClaim deletes the claim in the store corresponding to the input address.
-func (k Keeper) DeleteSwapClaim(ctx sdk.Context, owner sdk.AccAddress) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapClaimKeyPrefix)
-	store.Delete(owner)
+// DeleteClaim deletes the claim in the store corresponding to the input address.
+func (k Keeper) DeleteClaim(ctx sdk.Context, id types.RewardType, owner sdk.AccAddress) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
+	store.Delete(types.NewClaimKey(id, owner))
 }
 
-// IterateSwapClaims iterates over all claim  objects in the store and preforms a callback function
-func (k Keeper) IterateSwapClaims(ctx sdk.Context, cb func(c types.SwapClaim) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapClaimKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+// IterateClaims iterates over all claim  objects in the store and preforms a callback function
+func (k Keeper) IterateClaims(ctx sdk.Context, id types.RewardType, cb func(c types.Claim) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{byte(id)}) // TODO iterator prefix
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var c types.SwapClaim
+		var c types.Claim
 		k.cdc.MustUnmarshal(iterator.Value(), &c)
 		if cb(c) {
 			break
@@ -326,10 +326,10 @@ func (k Keeper) IterateSwapClaims(ctx sdk.Context, cb func(c types.SwapClaim) (s
 	}
 }
 
-// GetAllSwapClaims returns all Claim objects in the store
-func (k Keeper) GetAllSwapClaims(ctx sdk.Context) types.SwapClaims {
-	cs := types.SwapClaims{}
-	k.IterateSwapClaims(ctx, func(c types.SwapClaim) (stop bool) {
+// GetAllClaims returns all Claim objects in the store
+func (k Keeper) GetAllClaims(ctx sdk.Context, id types.RewardType) []types.Claim {
+	cs := []types.Claim{}
+	k.IterateClaims(ctx, id, func(c types.Claim) (stop bool) {
 		cs = append(cs, c)
 		return false
 	})
@@ -659,19 +659,23 @@ func (k Keeper) SetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom str
 	store.Set([]byte(denom), bz)
 }
 
-// SetSwapRewardIndexes stores the global reward indexes that track total rewards to a swap pool.
-func (k Keeper) SetSwapRewardIndexes(ctx sdk.Context, poolID string, indexes types.RewardIndexes) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
+// SetGlobalIndexes stores the global reward indexes that track total rewards to a swap pool.
+func (k Keeper) SetGlobalIndexes(ctx sdk.Context, rewardType types.RewardType, rewardID string, indexes types.RewardIndexes) {
+	if len(rewardID) == 0 {
+		panic("invalid reward ID")
+	}
+
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GlobalIndexesKeyPrefix)
 	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
 		RewardIndexes: indexes,
 	})
-	store.Set([]byte(poolID), bz)
+	store.Set(types.NewGlobalIndexesKey(rewardType, rewardID), bz)
 }
 
-// GetSwapRewardIndexes fetches the global reward indexes that track total rewards to a swap pool.
-func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolID string) (types.RewardIndexes, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
-	bz := store.Get([]byte(poolID))
+// GetGlobalIndexes fetches the global reward indexes that track total rewards to a swap pool.
+func (k Keeper) GetGlobalIndexes(ctx sdk.Context, rewardType types.RewardType, rewardID string) (types.RewardIndexes, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GlobalIndexesKeyPrefix)
+	bz := store.Get(types.NewGlobalIndexesKey(rewardType, rewardID))
 	if bz == nil {
 		return types.RewardIndexes{}, false
 	}
@@ -680,15 +684,15 @@ func (k Keeper) GetSwapRewardIndexes(ctx sdk.Context, poolID string) (types.Rewa
 	return proto.RewardIndexes, true
 }
 
-// IterateSwapRewardIndexes iterates over all swap reward index objects in the store and preforms a callback function
-func (k Keeper) IterateSwapRewardIndexes(ctx sdk.Context, cb func(poolID string, indexes types.RewardIndexes) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapRewardIndexesKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+// IterateGlobalIndexes iterates over all swap reward index objects in the store and preforms a callback function
+func (k Keeper) IterateGlobalIndexes(ctx sdk.Context, rewardType types.RewardType, cb func(poolID string, indexes types.RewardIndexes) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GlobalIndexesKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{byte(rewardType)}) // TODO
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var proto types.RewardIndexesProto
 		k.cdc.MustUnmarshal(iterator.Value(), &proto)
-		if cb(string(iterator.Key()), proto.RewardIndexes) {
+		if cb(string(iterator.Key()[1:]), proto.RewardIndexes) {
 			break
 		}
 	}

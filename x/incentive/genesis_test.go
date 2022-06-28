@@ -252,8 +252,8 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				types.MultiRewardIndexes{{CollateralType: "ukava", RewardIndexes: types.RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.2")}}}},
 			),
 		},
-		types.SwapClaims{
-			types.NewSwapClaim(
+		[]types.Claim{
+			types.NewClaim(
 				suite.addrs[3],
 				nil,
 				types.MultiRewardIndexes{{CollateralType: "btcb/usdx", RewardIndexes: types.RewardIndexes{{CollateralType: "swap", RewardFactor: d("0.0")}}}},

@@ -7,6 +7,7 @@ import (
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/x/incentive/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
@@ -161,11 +162,11 @@ func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, 
 // ------------------- Swap Module Hooks -------------------
 
 func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, _ sdk.Int) {
-	h.k.InitializeSwapReward(ctx, poolID, depositor)
+	h.k.InitializeReward(ctx, types.RewardTypeSwap, poolID, depositor)
 }
 
 func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharesOwned sdk.Int) {
-	h.k.SynchronizeSwapReward(ctx, poolID, depositor, sharesOwned)
+	h.k.SynchronizeReward(ctx, types.RewardTypeSwap, poolID, depositor, sharesOwned)
 }
 
 // ------------------- Savings Module Hooks -------------------

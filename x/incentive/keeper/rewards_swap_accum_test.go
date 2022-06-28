@@ -20,7 +20,7 @@ func (suite *AccumulateSwapRewardsTests) storedTimeEquals(poolID string, expecte
 }
 
 func (suite *AccumulateSwapRewardsTests) storedIndexesEqual(poolID string, expected types.RewardIndexes) {
-	storedIndexes, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, poolID)
+	storedIndexes, found := suite.keeper.GetGlobalIndexes(suite.ctx, types.RewardTypeSwap, poolID)
 	suite.Equal(found, expected != nil)
 	if found {
 		suite.Equal(expected, storedIndexes)
@@ -39,21 +39,23 @@ func (suite *AccumulateSwapRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
-	suite.storeGlobalSwapIndexes(types.MultiRewardIndexes{
-		{
-			CollateralType: pool,
-			RewardIndexes: types.RewardIndexes{
-				{
-					CollateralType: "swap",
-					RewardFactor:   d("0.02"),
-				},
-				{
-					CollateralType: "ukava",
-					RewardFactor:   d("0.04"),
+	suite.storeGlobalIndexes(
+		types.RewardTypeSwap,
+		types.MultiRewardIndexes{
+			{
+				CollateralType: pool,
+				RewardIndexes: types.RewardIndexes{
+					{
+						CollateralType: "swap",
+						RewardFactor:   d("0.02"),
+					},
+					{
+						CollateralType: "ukava",
+						RewardFactor:   d("0.04"),
+					},
 				},
 			},
-		},
-	})
+		})
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetSwapRewardAccrualTime(suite.ctx, pool, previousAccrualTime)
 
@@ -106,7 +108,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 			},
 		},
 	}
-	suite.storeGlobalSwapIndexes(previousIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetSwapRewardAccrualTime(suite.ctx, pool, previousAccrualTime)
 
@@ -151,7 +153,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 			},
 		},
 	}
-	suite.storeGlobalSwapIndexes(previousIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetSwapRewardAccrualTime(suite.ctx, pool, previousAccrualTime)
 
@@ -268,7 +270,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenBeforeStartTime()
 			},
 		},
 	}
-	suite.storeGlobalSwapIndexes(previousIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetSwapRewardAccrualTime(suite.ctx, pool, previousAccrualTime)
 

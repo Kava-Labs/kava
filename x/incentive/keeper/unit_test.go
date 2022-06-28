@@ -101,9 +101,9 @@ func (suite *unitTester) storeGlobalDelegatorIndexes(multiRewardIndexes types.Mu
 	suite.keeper.SetDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
 }
 
-func (suite *unitTester) storeGlobalSwapIndexes(indexes types.MultiRewardIndexes) {
+func (suite *unitTester) storeGlobalIndexes(rewardType types.RewardType, indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
-		suite.keeper.SetSwapRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
+		suite.keeper.SetGlobalIndexes(suite.ctx, rewardType, i.CollateralType, i.RewardIndexes)
 	}
 }
 
@@ -127,8 +127,8 @@ func (suite *unitTester) storeDelegatorClaim(claim types.DelegatorClaim) {
 	suite.keeper.SetDelegatorClaim(suite.ctx, claim)
 }
 
-func (suite *unitTester) storeSwapClaim(claim types.SwapClaim) {
-	suite.keeper.SetSwapClaim(suite.ctx, claim)
+func (suite *unitTester) storeClaim(rewardType types.RewardType, claim types.Claim) {
+	suite.keeper.SetClaim(suite.ctx, rewardType, claim)
 }
 
 func (suite *unitTester) storeSavingsClaim(claim types.SavingsClaim) {

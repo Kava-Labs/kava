@@ -125,3 +125,16 @@ message EarnClaim {
   repeated MultiRewardIndex reward_indexes = 2
       [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
 }
+
+message Claim {
+  bytes owner = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+
+  repeated cosmos.base.v1beta1.Coin reward = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+
+  repeated MultiRewardIndex reward_indexes = 3
+      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+}

@@ -82,39 +82,39 @@ func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
 	suite.Require().Equal(len(suite.addrs), len(claims))
 }
 
-func (suite *KeeperTestSuite) TestGetSetDeleteSwapClaims() {
+func (suite *KeeperTestSuite) TestGetSetDeleteClaims() {
 	suite.SetupApp()
-	c := types.NewSwapClaim(suite.addrs[0], arbitraryCoins(), nonEmptyMultiRewardIndexes)
+	c := types.NewClaim(suite.addrs[0], arbitraryCoins(), nonEmptyMultiRewardIndexes)
 
-	_, found := suite.keeper.GetSwapClaim(suite.ctx, suite.addrs[0])
+	_, found := suite.keeper.GetClaim(suite.ctx, types.RewardTypeSwap, suite.addrs[0])
 	suite.Require().False(found)
 
 	suite.Require().NotPanics(func() {
-		suite.keeper.SetSwapClaim(suite.ctx, c)
+		suite.keeper.SetClaim(suite.ctx, types.RewardTypeSwap, c)
 	})
-	testC, found := suite.keeper.GetSwapClaim(suite.ctx, suite.addrs[0])
+	testC, found := suite.keeper.GetClaim(suite.ctx, types.RewardTypeSwap, suite.addrs[0])
 	suite.Require().True(found)
 	suite.Require().Equal(c, testC)
 
 	suite.Require().NotPanics(func() {
-		suite.keeper.DeleteSwapClaim(suite.ctx, suite.addrs[0])
+		suite.keeper.DeleteClaim(suite.ctx, types.RewardTypeSwap, suite.addrs[0])
 	})
-	_, found = suite.keeper.GetSwapClaim(suite.ctx, suite.addrs[0])
+	_, found = suite.keeper.GetClaim(suite.ctx, types.RewardTypeSwap, suite.addrs[0])
 	suite.Require().False(found)
 }
 
-func (suite *KeeperTestSuite) TestIterateSwapClaims() {
+func (suite *KeeperTestSuite) TestIterateClaims() {
 	suite.SetupApp()
-	claims := types.SwapClaims{
-		types.NewSwapClaim(suite.addrs[0], arbitraryCoins(), nonEmptyMultiRewardIndexes),
-		types.NewSwapClaim(suite.addrs[1], nil, nil), // different claim to the first
+	claims := []types.Claim{
+		types.NewClaim(suite.addrs[0], arbitraryCoins(), nonEmptyMultiRewardIndexes),
+		types.NewClaim(suite.addrs[1], nil, nil), // different claim to the first
 	}
 	for _, claim := range claims {
-		suite.keeper.SetSwapClaim(suite.ctx, claim)
+		suite.keeper.SetClaim(suite.ctx, types.RewardTypeSwap, claim)
 	}
 
-	var actualClaims types.SwapClaims
-	suite.keeper.IterateSwapClaims(suite.ctx, func(c types.SwapClaim) bool {
+	var actualClaims []types.Claim
+	suite.keeper.IterateClaims(suite.ctx, types.RewardTypeSwap, func(c types.Claim) bool {
 		actualClaims = append(actualClaims, c)
 		return false
 	})
@@ -122,7 +122,7 @@ func (suite *KeeperTestSuite) TestIterateSwapClaims() {
 	suite.Require().Equal(claims, actualClaims)
 }
 
-func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
+func (suite *KeeperTestSuite) TestGetSetGlobalIndexes() {
 	testCases := []struct {
 		name      string
 		poolName  string
@@ -193,10 +193,10 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 		suite.Run(tc.name, func() {
 			suite.SetupApp()
 
-			_, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, tc.poolName)
+			_, found := suite.keeper.GetGlobalIndexes(suite.ctx, types.RewardTypeSwap, tc.poolName)
 			suite.False(found)
 
-			setFunc := func() { suite.keeper.SetSwapRewardIndexes(suite.ctx, tc.poolName, tc.indexes) }
+			setFunc := func() { suite.keeper.SetGlobalIndexes(suite.ctx, types.RewardTypeSwap, tc.poolName, tc.indexes) }
 			if tc.panics {
 				suite.Panics(setFunc)
 				return
@@ -204,14 +204,14 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardIndexes() {
 				suite.NotPanics(setFunc)
 			}
 
-			storedIndexes, found := suite.keeper.GetSwapRewardIndexes(suite.ctx, tc.poolName)
+			storedIndexes, found := suite.keeper.GetGlobalIndexes(suite.ctx, types.RewardTypeSwap, tc.poolName)
 			suite.True(found)
 			suite.Equal(tc.wantIndex, storedIndexes)
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestIterateSwapRewardIndexes() {
+func (suite *KeeperTestSuite) TestIterateGlobalIndexes() {
 	suite.SetupApp()
 	multiIndexes := types.MultiRewardIndexes{
 		{
@@ -238,11 +238,11 @@ func (suite *KeeperTestSuite) TestIterateSwapRewardIndexes() {
 		},
 	}
 	for _, mi := range multiIndexes {
-		suite.keeper.SetSwapRewardIndexes(suite.ctx, mi.CollateralType, mi.RewardIndexes)
+		suite.keeper.SetGlobalIndexes(suite.ctx, types.RewardTypeSwap, mi.CollateralType, mi.RewardIndexes)
 	}
 
 	var actualMultiIndexes types.MultiRewardIndexes
-	suite.keeper.IterateSwapRewardIndexes(suite.ctx, func(poolID string, i types.RewardIndexes) bool {
+	suite.keeper.IterateGlobalIndexes(suite.ctx, types.RewardTypeSwap, func(poolID string, i types.RewardIndexes) bool {
 		actualMultiIndexes = actualMultiIndexes.With(poolID, i)
 		return false
 	})

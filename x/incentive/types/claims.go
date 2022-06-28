@@ -8,6 +8,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// RewardType is the id of some rewards
+type RewardType int
+
+const (
+	RewardTypeUnidentified RewardType = iota
+	RewardTypeUSDX
+	RewardTypeHardSupply
+	RewardTypeHardBorrow
+	RewardTypeSwap
+	RewardTypeSavings
+)
+
 const (
 	USDXMintingClaimType           = "usdx_minting"
 	HardLiquidityProviderClaimType = "hard_liquidity_provider"
@@ -55,6 +67,14 @@ func (c BaseMultiClaim) Validate() error {
 		return fmt.Errorf("invalid reward amount: %s", c.Reward)
 	}
 	return nil
+}
+
+func NewClaim(owner sdk.AccAddress, reward sdk.Coins, rewardIndexes MultiRewardIndexes) Claim {
+	return Claim{
+		Owner:         owner,
+		Reward:        reward,
+		RewardIndexes: rewardIndexes,
+	}
 }
 
 // NewUSDXMintingClaim returns a new USDXMintingClaim

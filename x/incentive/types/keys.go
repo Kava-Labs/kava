@@ -1,5 +1,7 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 const (
 	// ModuleName The name that will be used throughout the module
 	ModuleName = "incentive"
@@ -39,4 +41,17 @@ var (
 	EarnClaimKeyPrefix                            = []byte{0x18} // prefix for keys that store earn claims
 	EarnRewardIndexesKeyPrefix                    = []byte{0x19} // prefix for key that stores earn reward indexes
 	PreviousEarnRewardAccrualTimeKeyPrefix        = []byte{0x20} // prefix for key that stores the previous time earn rewards accrued
+
+	ClaimsKeyPrefix        = []byte{0x21}
+	GlobalIndexesKeyPrefix = []byte{0x22}
 )
+
+func NewClaimKey(id RewardType, owner sdk.AccAddress) []byte {
+	// TODO better encoding scheme
+	return append([]byte{byte(id)}, owner.Bytes()...)
+}
+
+func NewGlobalIndexesKey(rewardType RewardType, rewardID string) []byte {
+	// TODO better encoding scheme
+	return append([]byte{byte(rewardType)}, []byte(rewardID)...)
+}

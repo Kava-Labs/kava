@@ -191,28 +191,28 @@ func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 	}
 	owner := len(params.Owner) > 0
 
-	var claims types.SwapClaims
+	var claims []types.Claim
 	switch {
 	case owner:
-		claim, found := k.GetSwapClaim(ctx, params.Owner)
+		claim, found := k.GetClaim(ctx, types.RewardTypeSwap, params.Owner)
 		if found {
 			claims = append(claims, claim)
 		}
 	default:
-		claims = k.GetAllSwapClaims(ctx)
+		claims = k.GetAllClaims(ctx, types.RewardTypeSwap)
 	}
 
-	var paginatedClaims types.SwapClaims
+	var paginatedClaims []types.Claim
 	startH, endH := client.Paginate(len(claims), params.Page, params.Limit, 100)
 	if startH < 0 || endH < 0 {
-		paginatedClaims = types.SwapClaims{}
+		paginatedClaims = []types.Claim{}
 	} else {
 		paginatedClaims = claims[startH:endH]
 	}
 
 	if !params.Unsynchronized {
 		for i, claim := range paginatedClaims {
-			syncedClaim, found := k.GetSynchronizedSwapClaim(ctx, claim.Owner)
+			syncedClaim, found := k.GetSynchronizedClaim(ctx, types.RewardTypeSwap, claim.Owner)
 			if !found {
 				panic("previously found claim should still be found")
 			}
@@ -344,7 +344,7 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 	})
 
 	var swapFactors types.MultiRewardIndexes
-	k.IterateSwapRewardIndexes(ctx, func(poolID string, indexes types.RewardIndexes) (stop bool) {
+	k.IterateGlobalIndexes(ctx, types.RewardTypeSwap, func(poolID string, indexes types.RewardIndexes) (stop bool) {
 		swapFactors = swapFactors.With(poolID, indexes)
 		return false
 	})

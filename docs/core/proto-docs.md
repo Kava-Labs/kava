@@ -307,6 +307,7 @@
 - [kava/incentive/v1beta1/claims.proto](#kava/incentive/v1beta1/claims.proto)
     - [BaseClaim](#kava.incentive.v1beta1.BaseClaim)
     - [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim)
+    - [Claim](#kava.incentive.v1beta1.Claim)
     - [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim)
     - [EarnClaim](#kava.incentive.v1beta1.EarnClaim)
     - [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim)
@@ -4448,6 +4449,23 @@ BaseMultiClaim is a claim with multiple reward coin types
 | ----- | ---- | ----- | ----------- |
 | `owner` | [bytes](#bytes) |  |  |
 | `reward` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.Claim"></a>
+
+### Claim
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [bytes](#bytes) |  |  |
+| `reward` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
 
 
 

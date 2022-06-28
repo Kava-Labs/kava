@@ -34,11 +34,9 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIn
 	originalReward := arbitraryCoins()
 	poolID := "base:quote"
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  arbitraryAddress(),
 			Reward: originalReward,
-		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
 				CollateralType: poolID,
@@ -51,7 +49,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIn
 			},
 		},
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap, claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -64,13 +62,13 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIn
 			},
 		},
 	}
-	suite.storeGlobalSwapIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap,globalIndexes)
 
 	userShares := i(1e9)
 
-	suite.keeper.SynchronizeSwapReward(suite.ctx, poolID, claim.Owner, userShares)
+	suite.keeper.SynchronizeReward(suite.ctx,types.RewardTypeSwap, poolID, claim.Owner, userShares)
 
-	syncedClaim, _ := suite.keeper.GetSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx,types.RewardTypeSwap, claim.Owner)
 	// indexes updated from global
 	suite.Equal(globalIndexes, syncedClaim.RewardIndexes)
 	// new reward is (new index - old index) * user shares
@@ -96,22 +94,20 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUnchangedWhenGlobalIndexesUnch
 		},
 	}
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  arbitraryAddress(),
 			Reward: arbitraryCoins(),
-		},
 		RewardIndexes: unchangingIndexes,
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap,claim)
 
-	suite.storeGlobalSwapIndexes(unchangingIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap,unchangingIndexes)
 
 	userShares := i(1e9)
 
-	suite.keeper.SynchronizeSwapReward(suite.ctx, poolID, claim.Owner, userShares)
+	suite.keeper.SynchronizeReward(suite.ctx,types.RewardTypeSwap, poolID, claim.Owner, userShares)
 
-	syncedClaim, _ := suite.keeper.GetSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx,types.RewardTypeSwap, claim.Owner)
 	// claim should have the same rewards and indexes as before
 	suite.Equal(claim, syncedClaim)
 }
@@ -123,11 +119,9 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardAdded() {
 	originalReward := arbitraryCoins()
 	newlyRewardPoolID := "newlyRewardedPool"
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  arbitraryAddress(),
 			Reward: originalReward,
-		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
 				CollateralType: "currentlyRewardedPool",
@@ -140,7 +134,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardAdded() {
 			},
 		},
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap,claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -164,13 +158,13 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardAdded() {
 			},
 		},
 	}
-	suite.storeGlobalSwapIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap,globalIndexes)
 
 	userShares := i(1e9)
 
-	suite.keeper.SynchronizeSwapReward(suite.ctx, newlyRewardPoolID, claim.Owner, userShares)
+	suite.keeper.SynchronizeReward(suite.ctx,types.RewardTypeSwap, newlyRewardPoolID, claim.Owner, userShares)
 
-	syncedClaim, _ := suite.keeper.GetSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx,types.RewardTypeSwap, claim.Owner)
 	// the new indexes should be added to the claim, but the old ones should be unchanged
 	newlyRewrdedIndexes, _ := globalIndexes.Get(newlyRewardPoolID)
 	expectedIndexes := claim.RewardIndexes.With(newlyRewardPoolID, newlyRewrdedIndexes)
@@ -187,23 +181,21 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUnchangedWhenNoReward() {
 	// When a pool is not rewarded but the user has deposited to that pool, and the claim is synced;
 	// Then the claim should be the same.
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  arbitraryAddress(),
 			Reward: arbitraryCoins(),
-		},
 		RewardIndexes: nonEmptyMultiRewardIndexes,
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap,claim)
 
 	poolID := "nonRewardPool"
 	// No global indexes stored as this pool is not rewarded
 
 	userShares := i(1e9)
 
-	suite.keeper.SynchronizeSwapReward(suite.ctx, poolID, claim.Owner, userShares)
+	suite.keeper.SynchronizeReward(suite.ctx,types.RewardTypeSwap, poolID, claim.Owner, userShares)
 
-	syncedClaim, _ := suite.keeper.GetSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx,types.RewardTypeSwap, claim.Owner)
 	suite.Equal(claim, syncedClaim)
 }
 
@@ -214,11 +206,9 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardDenomAdded
 	originalReward := arbitraryCoins()
 	poolID := "base:quote"
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  arbitraryAddress(),
 			Reward: originalReward,
-		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
 				CollateralType: poolID,
@@ -231,7 +221,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardDenomAdded
 			},
 		},
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap,claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -250,13 +240,13 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardDenomAdded
 			},
 		},
 	}
-	suite.storeGlobalSwapIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap,globalIndexes)
 
 	userShares := i(1e9)
 
-	suite.keeper.SynchronizeSwapReward(suite.ctx, poolID, claim.Owner, userShares)
+	suite.keeper.SynchronizeReward(suite.ctx,types.RewardTypeSwap, poolID, claim.Owner, userShares)
 
-	syncedClaim, _ := suite.keeper.GetSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx,types.RewardTypeSwap, claim.Owner)
 	// indexes should have the new reward denom added
 	suite.Equal(globalIndexes, syncedClaim.RewardIndexes)
 	// new reward is (new index - old index) * shares
@@ -274,11 +264,9 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesIncrea
 
 	poolID := "base:quote"
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  arbitraryAddress(),
 			Reward: arbitraryCoins(),
-		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
 				CollateralType: poolID,
@@ -291,7 +279,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesIncrea
 			},
 		},
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap,claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -304,13 +292,13 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesIncrea
 			},
 		},
 	}
-	suite.storeGlobalSwapIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap,globalIndexes)
 
 	userShares := i(0)
 
-	suite.keeper.SynchronizeSwapReward(suite.ctx, poolID, claim.Owner, userShares)
+	suite.keeper.SynchronizeReward(suite.ctx,types.RewardTypeSwap, poolID, claim.Owner, userShares)
 
-	syncedClaim, _ := suite.keeper.GetSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx,types.RewardTypeSwap, claim.Owner)
 	// indexes updated from global
 	suite.Equal(globalIndexes, syncedClaim.RewardIndexes)
 	// reward is unchanged
@@ -325,11 +313,9 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUnchangedWhenNo
 		addDeposit(poolID_1, owner, i(1e9))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  owner,
 			Reward: nil,
-		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
 				CollateralType: poolID_1,
@@ -337,11 +323,11 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUnchangedWhenNo
 			},
 		},
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap,claim)
 
 	// no global indexes for any pool
 
-	syncedClaim, f := suite.keeper.GetSynchronizedSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, f := suite.keeper.GetSynchronizedClaim(suite.ctx, types.RewardTypeSwap, claim.Owner)
 	suite.True(f)
 
 	// indexes are unchanged
@@ -358,11 +344,9 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 	// owner has no shares in any pool
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, newFakeSwapKeeper(), nil, nil, nil)
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  owner,
 			Reward: arbitraryCoins(),
-		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
 				CollateralType: poolID_1,
@@ -375,7 +359,7 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 			},
 		},
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap,claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -397,9 +381,9 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 			},
 		},
 	}
-	suite.storeGlobalSwapIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap,globalIndexes)
 
-	syncedClaim, f := suite.keeper.GetSynchronizedSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, f := suite.keeper.GetSynchronizedClaim(suite.ctx, types.RewardTypeSwap,  claim.Owner)
 	suite.True(f)
 
 	// indexes updated from global
@@ -418,11 +402,9 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 		addDeposit(poolID_2, owner, i(1e9))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  owner,
 			Reward: arbitraryCoins(),
-		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
 				CollateralType: poolID_1,
@@ -435,7 +417,7 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 			},
 		},
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap,claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -457,9 +439,9 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 			},
 		},
 	}
-	suite.storeGlobalSwapIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap,globalIndexes)
 
-	syncedClaim, f := suite.keeper.GetSynchronizedSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, f := suite.keeper.GetSynchronizedClaim(suite.ctx, types.RewardTypeSwap,  claim.Owner)
 	suite.True(f)
 
 	// indexes updated from global

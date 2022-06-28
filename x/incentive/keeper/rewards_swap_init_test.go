@@ -35,9 +35,9 @@ func (suite *InitializeSwapRewardTests) TestClaimAddedWhenClaimDoesNotExistAndNo
 
 	owner := arbitraryAddress()
 
-	suite.keeper.InitializeSwapReward(suite.ctx, poolID, owner)
+	suite.keeper.InitializeReward(suite.ctx, types.RewardTypeSwap, poolID, owner)
 
-	syncedClaim, found := suite.keeper.GetSwapClaim(suite.ctx, owner)
+	syncedClaim, found := suite.keeper.GetClaim(suite.ctx, types.RewardTypeSwap, owner)
 	suite.True(found)
 	// A new claim should have empty indexes. It doesn't strictly need the poolID either.
 	expectedIndexes := types.MultiRewardIndexes{{
@@ -66,13 +66,13 @@ func (suite *InitializeSwapRewardTests) TestClaimAddedWhenClaimDoesNotExistAndRe
 			},
 		},
 	}
-	suite.storeGlobalSwapIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap, globalIndexes)
 
 	owner := arbitraryAddress()
 
-	suite.keeper.InitializeSwapReward(suite.ctx, poolID, owner)
+	suite.keeper.InitializeReward(suite.ctx,types.RewardTypeSwap, poolID, owner)
 
-	syncedClaim, found := suite.keeper.GetSwapClaim(suite.ctx, owner)
+	syncedClaim, found := suite.keeper.GetClaim(suite.ctx,types.RewardTypeSwap, owner)
 	suite.True(found)
 	// a new claim should start with the current global indexes
 	suite.Equal(globalIndexes, syncedClaim.RewardIndexes)
@@ -94,11 +94,9 @@ func (suite *InitializeSwapRewardTests) TestClaimUpdatedWhenClaimExistsAndNoRewa
 
 	newPoolID := "btcb:usdx"
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  arbitraryAddress(),
 			Reward: arbitraryCoins(),
-		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
 				CollateralType: preexistingPoolID,
@@ -106,13 +104,13 @@ func (suite *InitializeSwapRewardTests) TestClaimUpdatedWhenClaimExistsAndNoRewa
 			},
 		},
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap, claim)
 
 	// no global indexes stored as the new pool is not rewarded
 
-	suite.keeper.InitializeSwapReward(suite.ctx, newPoolID, claim.Owner)
+	suite.keeper.InitializeReward(suite.ctx, types.RewardTypeSwap, newPoolID, claim.Owner)
 
-	syncedClaim, _ := suite.keeper.GetSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx,types.RewardTypeSwap, claim.Owner)
 	// The preexisting indexes shouldn't be changed. It doesn't strictly need the new poolID either.
 	expectedIndexes := types.MultiRewardIndexes{
 		{
@@ -149,11 +147,9 @@ func (suite *InitializeSwapRewardTests) TestClaimUpdatedWhenClaimExistsAndReward
 		},
 	}
 
-	claim := types.SwapClaim{
-		BaseMultiClaim: types.BaseMultiClaim{
+	claim := types.Claim{
 			Owner:  arbitraryAddress(),
 			Reward: arbitraryCoins(),
-		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
 				CollateralType: preexistingPoolID,
@@ -161,7 +157,7 @@ func (suite *InitializeSwapRewardTests) TestClaimUpdatedWhenClaimExistsAndReward
 			},
 		},
 	}
-	suite.storeSwapClaim(claim)
+	suite.storeClaim(types.RewardTypeSwap,claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -173,11 +169,11 @@ func (suite *InitializeSwapRewardTests) TestClaimUpdatedWhenClaimExistsAndReward
 			RewardIndexes:  newIndexes,
 		},
 	}
-	suite.storeGlobalSwapIndexes(globalIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeSwap, globalIndexes)
 
-	suite.keeper.InitializeSwapReward(suite.ctx, newPoolID, claim.Owner)
+	suite.keeper.InitializeReward(suite.ctx, types.RewardTypeSwap,newPoolID, claim.Owner)
 
-	syncedClaim, _ := suite.keeper.GetSwapClaim(suite.ctx, claim.Owner)
+	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx, types.RewardTypeSwap,claim.Owner)
 	// only the indexes for the new pool should be updated
 	expectedIndexes := types.MultiRewardIndexes{
 		{
