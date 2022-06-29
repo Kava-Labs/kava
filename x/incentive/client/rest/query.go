@@ -59,18 +59,17 @@ func queryRewardsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			}
 		}
 
-		params := types.NewQueryRewardsParams(page, limit, owner, unsynced)
+		params := types.NewQueryRewardsParams(page, limit, 0, owner, unsynced) // TODO
 		switch strings.ToLower(rewardType) {
 		case "hard":
 			executeHardRewardsQuery(w, cliCtx, params)
 		case "usdx_minting":
 			executeUSDXMintingRewardsQuery(w, cliCtx, params)
-		case "delegator":
-			executeDelegatorRewardsQuery(w, cliCtx, params)
-		case "swap":
-			executeSwapRewardsQuery(w, cliCtx, params)
 		case "earn":
 			executeEarnRewardsQuery(w, cliCtx, params)
+		case "swap", "delegator":
+			// TODO add to reward type to params
+			executeRewardsQuery(w, cliCtx, params)
 		default:
 			executeAllRewardQueries(w, cliCtx, params)
 		}
@@ -151,31 +150,14 @@ func executeUSDXMintingRewardsQuery(w http.ResponseWriter, cliCtx client.Context
 	rest.PostProcessResponse(w, cliCtx, res)
 }
 
-func executeDelegatorRewardsQuery(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
+func executeRewardsQuery(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
 	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 		return
 	}
 
-	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetDelegatorRewards), bz)
-	if err != nil {
-		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-	rest.PostProcessResponse(w, cliCtx, res)
-}
-
-func executeSwapRewardsQuery(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
-	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-	if err != nil {
-		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-		return
-	}
-
-	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetSwapRewards), bz)
+	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetRewards), bz)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

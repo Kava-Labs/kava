@@ -104,8 +104,8 @@ func (suite *GenesisTestSuite) SetupTest() {
 		types.DefaultGenesisRewardState,
 		types.DefaultUSDXClaims,
 		types.DefaultHardClaims,
-		types.DefaultDelegatorClaims,
-		types.DefaultSwapClaims,
+		types.DefaultClaims,
+		types.DefaultClaims,
 		types.DefaultSavingsClaims,
 		types.DefaultEarnClaims,
 	)
@@ -245,8 +245,8 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				types.MultiRewardIndexes{{CollateralType: "bnb", RewardIndexes: types.RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.0")}}}},
 			),
 		},
-		types.DelegatorClaims{
-			types.NewDelegatorClaim(
+		[]types.Claim{
+			types.NewClaim(
 				suite.addrs[2],
 				cs(c("hard", 5)),
 				types.MultiRewardIndexes{{CollateralType: "ukava", RewardIndexes: types.RewardIndexes{{CollateralType: "hard", RewardFactor: d("0.2")}}}},

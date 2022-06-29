@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -109,60 +111,17 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 // ClaimDelegatorReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
-	claim, found := k.GetDelegatorClaim(ctx, owner)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
-	}
-
-	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
-	}
-
-	claimEnd := k.GetClaimEnd(ctx)
-
-	if ctx.BlockTime().After(claimEnd) {
-		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
-	}
-
-	syncedClaim, err := k.SynchronizeDelegatorClaim(ctx, claim)
-	if err != nil {
-		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
-	}
-
-	amt := syncedClaim.Reward.AmountOf(denom)
-
-	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
-	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
-	if rewardCoins.IsZero() {
-		return types.ErrZeroClaim
-	}
-
-	length := k.GetPeriodLength(ctx.BlockTime(), multiplier.MonthsLockup)
-
-	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
-	if err != nil {
-		return err
-	}
-
-	// remove claimed coins (NOT reward coins)
-	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
-	k.SetDelegatorClaim(ctx, syncedClaim)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, claimingCoins.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
-		),
-	)
-	return nil
+	return k.ClaimReward(ctx, types.RewardTypeDelegator, owner, receiver, denom, multiplierName)
 }
 
 // ClaimSwapReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
+	return k.ClaimReward(ctx, types.RewardTypeSwap, owner, receiver, denom, multiplierName)
+}
+
+func (k Keeper) ClaimReward(ctx sdk.Context, rewardType types.RewardType, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
+
 	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
@@ -174,7 +133,7 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
 	}
 
-	syncedClaim, found := k.GetSynchronizedClaim(ctx, types.RewardTypeSwap, owner)
+	syncedClaim, found := k.GetSynchronizedClaim(ctx, rewardType, owner)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
@@ -195,14 +154,14 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 
 	// remove claimed coins (NOT reward coins)
 	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
-	k.SetClaim(ctx, types.RewardTypeSwap, syncedClaim)
+	k.SetClaim(ctx, rewardType, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
 			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimAmount, claimingCoins.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimType, "RewardTypeSwap"), // TODO add string method
+			sdk.NewAttribute(types.AttributeKeyClaimType, fmt.Sprintf("%d", rewardType)), // TODO add string method
 		),
 	)
 	return nil

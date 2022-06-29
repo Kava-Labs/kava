@@ -8,7 +8,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -74,127 +73,127 @@ func queryRewardsCmd() *cobra.Command {
 				version.AppName, types.ModuleName)),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
+			// cliCtx, err := client.GetClientQueryContext(cmd)
+			// if err != nil {
+			// 	return err
+			// }
 
-			page, _ := cmd.Flags().GetInt(flags.FlagPage)
-			limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
-			strOwner, _ := cmd.Flags().GetString(flagOwner)
-			strType, _ := cmd.Flags().GetString(flagType)
-			boolUnsynced, _ := cmd.Flags().GetBool(flagUnsynced)
+			// page, _ := cmd.Flags().GetInt(flags.FlagPage)
+			// limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
+			// strOwner, _ := cmd.Flags().GetString(flagOwner)
+			// strType, _ := cmd.Flags().GetString(flagType)
+			// boolUnsynced, _ := cmd.Flags().GetBool(flagUnsynced)
 
-			// Prepare params for querier
-			var owner sdk.AccAddress
-			if strOwner != "" {
-				if owner, err = sdk.AccAddressFromBech32(strOwner); err != nil {
-					return err
-				}
-			}
+			// // Prepare params for querier
+			// var owner sdk.AccAddress
+			// if strOwner != "" {
+			// 	if owner, err = sdk.AccAddressFromBech32(strOwner); err != nil {
+			// 		return err
+			// 	}
+			// }
 
-			switch strings.ToLower(strType) {
-			case typeHard:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeHardRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			case typeUSDXMinting:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeUSDXMintingRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			case typeDelegator:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeDelegatorRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			case typeSwap:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeSwapRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			case typeSavings:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeSavingsRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			case typeEarn:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeEarnRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			default:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+			// switch strings.ToLower(strType) {
+			// case typeHard:
+			// 	params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+			// 	claims, err := executeHardRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	return cliCtx.PrintObjectLegacy(claims)
+			// case typeUSDXMinting:
+			// 	params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+			// 	claims, err := executeUSDXMintingRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	return cliCtx.PrintObjectLegacy(claims)
+			// case typeDelegator:
+			// 	params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+			// 	claims, err := executeDelegatorRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	return cliCtx.PrintObjectLegacy(claims)
+			// case typeSwap:
+			// 	params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+			// 	claims, err := executeSwapRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	return cliCtx.PrintObjectLegacy(claims)
+			// case typeSavings:
+			// 	params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+			// 	claims, err := executeSavingsRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	return cliCtx.PrintObjectLegacy(claims)
+			// case typeEarn:
+			// 	params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+			// 	claims, err := executeEarnRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	return cliCtx.PrintObjectLegacy(claims)
+			// default:
+			// 	params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
 
-				hardClaims, err := executeHardRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				usdxMintingClaims, err := executeUSDXMintingRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				delegatorClaims, err := executeDelegatorRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				swapClaims, err := executeSwapRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				savingsClaims, err := executeSavingsRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				earnClaims, err := executeEarnRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
+			// 	hardClaims, err := executeHardRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	usdxMintingClaims, err := executeUSDXMintingRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	delegatorClaims, err := executeDelegatorRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	swapClaims, err := executeSwapRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	savingsClaims, err := executeSavingsRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	earnClaims, err := executeEarnRewardsQuery(cliCtx, params)
+			// 	if err != nil {
+			// 		return err
+			// 	}
 
-				if len(hardClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(hardClaims); err != nil {
-						return err
-					}
-				}
-				if len(usdxMintingClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(usdxMintingClaims); err != nil {
-						return err
-					}
-				}
-				if len(delegatorClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(delegatorClaims); err != nil {
-						return err
-					}
-				}
-				if len(swapClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(swapClaims); err != nil {
-						return err
-					}
-				}
-				if len(savingsClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(savingsClaims); err != nil {
-						return err
-					}
-				}
-				if len(earnClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(earnClaims); err != nil {
-						return err
-					}
-				}
-			}
+			// 	if len(hardClaims) > 0 {
+			// 		if err := cliCtx.PrintObjectLegacy(hardClaims); err != nil {
+			// 			return err
+			// 		}
+			// 	}
+			// 	if len(usdxMintingClaims) > 0 {
+			// 		if err := cliCtx.PrintObjectLegacy(usdxMintingClaims); err != nil {
+			// 			return err
+			// 		}
+			// 	}
+			// 	if len(delegatorClaims) > 0 {
+			// 		if err := cliCtx.PrintObjectLegacy(delegatorClaims); err != nil {
+			// 			return err
+			// 		}
+			// 	}
+			// 	if len(swapClaims) > 0 {
+			// 		if err := cliCtx.PrintObjectLegacy(swapClaims); err != nil {
+			// 			return err
+			// 		}
+			// 	}
+			// 	if len(savingsClaims) > 0 {
+			// 		if err := cliCtx.PrintObjectLegacy(savingsClaims); err != nil {
+			// 			return err
+			// 		}
+			// 	}
+			// 	if len(earnClaims) > 0 {
+			// 		if err := cliCtx.PrintObjectLegacy(earnClaims); err != nil {
+			// 			return err
+			// 		}
+			// 	}
+			// }
 			return nil
 		},
 	}
@@ -312,35 +311,13 @@ func executeUSDXMintingRewardsQuery(cliCtx client.Context, params types.QueryRew
 	return claims, nil
 }
 
-func executeDelegatorRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.DelegatorClaims, error) {
-	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-	if err != nil {
-		return types.DelegatorClaims{}, err
-	}
-
-	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetDelegatorRewards)
-	res, height, err := cliCtx.QueryWithData(route, bz)
-	if err != nil {
-		return types.DelegatorClaims{}, err
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-
-	var claims types.DelegatorClaims
-	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
-		return types.DelegatorClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
-	}
-
-	return claims, nil
-}
-
-func executeSwapRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.SwapClaims, error) {
+func executeRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.SwapClaims, error) {
 	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		return types.SwapClaims{}, err
 	}
 
-	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetSwapRewards)
+	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetRewards)
 	res, height, err := cliCtx.QueryWithData(route, bz)
 	if err != nil {
 		return types.SwapClaims{}, err

@@ -87,7 +87,12 @@ func InitGenesis(
 
 	// Delegator
 	for _, claim := range gs.DelegatorClaims {
-		k.SetDelegatorClaim(ctx, claim)
+		c := types.Claim{
+			Owner:         claim.Owner,
+			Reward:        claim.Reward,
+			RewardIndexes: claim.RewardIndexes,
+		}
+		k.SetClaim(ctx, types.RewardTypeDelegator, c)
 	}
 	for _, gat := range gs.DelegatorRewardState.AccumulationTimes {
 		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
@@ -96,7 +101,7 @@ func InitGenesis(
 		k.SetPreviousDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
 	for _, mri := range gs.DelegatorRewardState.MultiRewardIndexes {
-		k.SetDelegatorRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
+		k.SetGlobalIndexes(ctx, types.RewardTypeDelegator, mri.CollateralType, mri.RewardIndexes)
 	}
 
 	// Swap
@@ -158,7 +163,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	hardSupplyRewardState := getHardSupplyGenesisRewardState(ctx, k)
 	hardBorrowRewardState := getHardBorrowGenesisRewardState(ctx, k)
 
-	delegatorClaims := k.GetAllDelegatorClaims(ctx)
+	delegatorClaims := k.GetAllClaims(ctx, types.RewardTypeDelegator)
 	delegatorRewardState := getDelegatorGenesisRewardState(ctx, k)
 
 	swapClaims := k.GetAllClaims(ctx, types.RewardTypeSwap)
@@ -241,7 +246,7 @@ func getDelegatorGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types
 	})
 
 	var mris types.MultiRewardIndexes
-	keeper.IterateDelegatorRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
+	keeper.IterateGlobalIndexes(ctx, types.RewardTypeDelegator, func(ctype string, indexes types.RewardIndexes) bool {
 		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
 		return false
 	})

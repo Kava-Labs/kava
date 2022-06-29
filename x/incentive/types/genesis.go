@@ -8,8 +8,7 @@ import (
 var (
 	DefaultUSDXClaims         = USDXMintingClaims{}
 	DefaultHardClaims         = HardLiquidityProviderClaims{}
-	DefaultDelegatorClaims    = DelegatorClaims{}
-	DefaultSwapClaims         = []Claim{}
+	DefaultClaims             = []Claim{}
 	DefaultSavingsClaims      = SavingsClaims{}
 	DefaultGenesisRewardState = NewGenesisRewardState(
 		AccumulationTimes{},
@@ -22,7 +21,7 @@ var (
 func NewGenesisState(
 	params Params,
 	usdxState, hardSupplyState, hardBorrowState, delegatorState, swapState, savingsState, earnState GenesisRewardState,
-	c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc []Claim, savingsc SavingsClaims,
+	c USDXMintingClaims, hc HardLiquidityProviderClaims, dc, sc []Claim, savingsc SavingsClaims,
 	earnc EarnClaims,
 ) GenesisState {
 
@@ -36,6 +35,18 @@ func NewGenesisState(
 			RewardIndexes: c.RewardIndexes,
 		})
 	}
+
+	var dClaims DelegatorClaims
+	for _, c := range dc {
+		dClaims = append(dClaims, DelegatorClaim{
+			BaseMultiClaim: BaseMultiClaim{
+				Owner:  c.Owner,
+				Reward: c.Reward,
+			},
+			RewardIndexes: c.RewardIndexes,
+		})
+	}
+
 	return GenesisState{
 		Params: params,
 
@@ -49,7 +60,7 @@ func NewGenesisState(
 
 		USDXMintingClaims:           c,
 		HardLiquidityProviderClaims: hc,
-		DelegatorClaims:             dc,
+		DelegatorClaims:             dClaims,
 		SwapClaims:                  swapClaims,
 		SavingsClaims:               savingsc,
 		EarnClaims:                  earnc,
@@ -69,7 +80,7 @@ func DefaultGenesisState() GenesisState {
 		EarnRewardState:             DefaultGenesisRewardState,
 		USDXMintingClaims:           DefaultUSDXClaims,
 		HardLiquidityProviderClaims: DefaultHardClaims,
-		DelegatorClaims:             DefaultDelegatorClaims,
+		DelegatorClaims:             DelegatorClaims{},
 		SwapClaims:                  SwapClaims{},
 		SavingsClaims:               DefaultSavingsClaims,
 		EarnClaims:                  DefaultEarnClaims,

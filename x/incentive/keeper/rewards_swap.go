@@ -139,6 +139,9 @@ func (k Keeper) GetSourceShares(ctx sdk.Context, rewardType types.RewardType, re
 			shares = sdk.ZeroInt()
 		}
 		return shares
+	case types.RewardTypeDelegator:
+		return k.GetTotalDelegated(ctx, owner, nil, false).RoundInt()
+
 	// TODO add other reward types
 	default:
 		panic("unknown")

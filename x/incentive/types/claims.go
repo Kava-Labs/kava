@@ -16,6 +16,7 @@ const (
 	RewardTypeUSDX
 	RewardTypeHardSupply
 	RewardTypeHardBorrow
+	RewardTypeDelegator
 	RewardTypeSwap
 	RewardTypeSavings
 )

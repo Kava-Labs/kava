@@ -238,55 +238,6 @@ func (k Keeper) GetAllHardLiquidityProviderClaims(ctx sdk.Context) types.HardLiq
 	return cs
 }
 
-// GetDelegatorClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
-func (k Keeper) GetDelegatorClaim(ctx sdk.Context, addr sdk.AccAddress) (types.DelegatorClaim, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorClaimKeyPrefix)
-	bz := store.Get(addr)
-	if bz == nil {
-		return types.DelegatorClaim{}, false
-	}
-	var c types.DelegatorClaim
-	k.cdc.MustUnmarshal(bz, &c)
-	return c, true
-}
-
-// SetDelegatorClaim sets the claim in the store corresponding to the input address, collateral type, and id
-func (k Keeper) SetDelegatorClaim(ctx sdk.Context, c types.DelegatorClaim) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorClaimKeyPrefix)
-	bz := k.cdc.MustMarshal(&c)
-	store.Set(c.Owner, bz)
-}
-
-// DeleteDelegatorClaim deletes the claim in the store corresponding to the input address, collateral type, and id
-func (k Keeper) DeleteDelegatorClaim(ctx sdk.Context, owner sdk.AccAddress) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorClaimKeyPrefix)
-	store.Delete(owner)
-}
-
-// IterateDelegatorClaims iterates over all claim  objects in the store and preforms a callback function
-func (k Keeper) IterateDelegatorClaims(ctx sdk.Context, cb func(c types.DelegatorClaim) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorClaimKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var c types.DelegatorClaim
-		k.cdc.MustUnmarshal(iterator.Value(), &c)
-		if cb(c) {
-			break
-		}
-	}
-}
-
-// GetAllDelegatorClaims returns all DelegatorClaim objects in the store
-func (k Keeper) GetAllDelegatorClaims(ctx sdk.Context) types.DelegatorClaims {
-	cs := types.DelegatorClaims{}
-	k.IterateDelegatorClaims(ctx, func(c types.DelegatorClaim) (stop bool) {
-		cs = append(cs, c)
-		return false
-	})
-	return cs
-}
-
 // GetClaim returns the claim in the store corresponding the the input address.
 func (k Keeper) GetClaim(ctx sdk.Context, id types.RewardType, addr sdk.AccAddress) (types.Claim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
@@ -533,42 +484,6 @@ func (k Keeper) IterateHardBorrowRewardAccrualTimes(ctx sdk.Context, cb func(str
 			panic(err)
 		}
 		if cb(denom, accrualTime) {
-			break
-		}
-	}
-}
-
-// GetDelegatorRewardIndexes gets the current reward indexes for an individual denom
-func (k Keeper) GetDelegatorRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
-	bz := store.Get([]byte(denom))
-	if bz == nil {
-		return types.RewardIndexes{}, false
-	}
-	var proto types.RewardIndexesProto
-	k.cdc.MustUnmarshal(bz, &proto)
-
-	return proto.RewardIndexes, true
-}
-
-// SetDelegatorRewardIndexes sets the current reward indexes for an individual denom
-func (k Keeper) SetDelegatorRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
-	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
-		RewardIndexes: indexes,
-	})
-	store.Set([]byte(denom), bz)
-}
-
-// IterateDelegatorRewardIndexes iterates over all delegator reward index objects in the store and preforms a callback function
-func (k Keeper) IterateDelegatorRewardIndexes(ctx sdk.Context, cb func(denom string, indexes types.RewardIndexes) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var proto types.RewardIndexesProto
-		k.cdc.MustUnmarshal(iterator.Value(), &proto)
-		if cb(string(iterator.Key()), proto.RewardIndexes) {
 			break
 		}
 	}

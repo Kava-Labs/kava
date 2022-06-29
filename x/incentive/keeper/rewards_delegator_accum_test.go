@@ -19,10 +19,9 @@ func (suite *AccumulateDelegatorRewardsTests) storedTimeEquals(denom string, exp
 	suite.Equal(expected, storedTime)
 }
 
-func (suite *AccumulateDelegatorRewardsTests) storedIndexesEqual(denom string, expected types.RewardIndexes) {
-	storedIndexes, found := suite.keeper.GetDelegatorRewardIndexes(suite.ctx, denom)
+func (suite *AccumulateDelegatorRewardsTests) storedIndexesEqual(rewardType types.RewardType, poolID string, expected types.RewardIndexes) {
+	storedIndexes, found := suite.keeper.GetGlobalIndexes(suite.ctx, rewardType, poolID)
 	suite.Equal(found, expected != nil)
-
 	if found {
 		suite.Equal(expected, storedIndexes)
 	} else {
@@ -38,21 +37,22 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateUpdatedWhenBlockTimeHasIn
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
 
-	suite.storeGlobalDelegatorIndexes(types.MultiRewardIndexes{
-		{
-			CollateralType: types.BondDenom,
-			RewardIndexes: types.RewardIndexes{
-				{
-					CollateralType: "hard",
-					RewardFactor:   d("0.02"),
-				},
-				{
-					CollateralType: "ukava",
-					RewardFactor:   d("0.04"),
+	suite.storeGlobalIndexes(types.RewardTypeDelegator,
+		types.MultiRewardIndexes{
+			{
+				CollateralType: types.BondDenom,
+				RewardIndexes: types.RewardIndexes{
+					{
+						CollateralType: "hard",
+						RewardFactor:   d("0.02"),
+					},
+					{
+						CollateralType: "ukava",
+						RewardFactor:   d("0.04"),
+					},
 				},
 			},
-		},
-	})
+		})
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, types.BondDenom, previousAccrualTime)
 
@@ -72,7 +72,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateUpdatedWhenBlockTimeHasIn
 	// check time and factors
 
 	suite.storedTimeEquals(types.BondDenom, newAccrualTime)
-	suite.storedIndexesEqual(types.BondDenom, types.RewardIndexes{
+	suite.storedIndexesEqual(types.RewardTypeDelegator, types.BondDenom, types.RewardIndexes{
 		{
 			CollateralType: "hard",
 			RewardFactor:   d("7.22"),
@@ -103,7 +103,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateUnchangedWhenBlockTimeHas
 			},
 		},
 	}
-	suite.storeGlobalDelegatorIndexes(previousIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeDelegator, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, types.BondDenom, previousAccrualTime)
 
@@ -124,7 +124,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateUnchangedWhenBlockTimeHas
 	suite.storedTimeEquals(types.BondDenom, previousAccrualTime)
 	expected, f := previousIndexes.Get(types.BondDenom)
 	suite.True(f)
-	suite.storedIndexesEqual(types.BondDenom, expected)
+	suite.storedIndexesEqual(types.RewardTypeDelegator, types.BondDenom, expected)
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
@@ -146,7 +146,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenSourceShares
 			},
 		},
 	}
-	suite.storeGlobalDelegatorIndexes(previousIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeDelegator, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, types.BondDenom, previousAccrualTime)
 
@@ -168,7 +168,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenSourceShares
 	suite.storedTimeEquals(types.BondDenom, firstAccrualTime)
 	expected, f := previousIndexes.Get(types.BondDenom)
 	suite.True(f)
-	suite.storedIndexesEqual(types.BondDenom, expected)
+	suite.storedIndexesEqual(types.RewardTypeDelegator, types.BondDenom, expected)
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestStateAddedWhenStateDoesNotExist() {
@@ -191,7 +191,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateAddedWhenStateDoesNotExis
 	// After the first accumulation only the current block time should be stored.
 	// The indexes will be empty as no time has passed since the previous block because it didn't exist.
 	suite.storedTimeEquals(types.BondDenom, firstAccrualTime)
-	suite.storedIndexesEqual(types.BondDenom, nil)
+	suite.storedIndexesEqual(types.RewardTypeDelegator, types.BondDenom, nil)
 
 	secondAccrualTime := firstAccrualTime.Add(10 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(secondAccrualTime)
@@ -200,7 +200,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateAddedWhenStateDoesNotExis
 
 	// After the second accumulation both current block time and indexes should be stored.
 	suite.storedTimeEquals(types.BondDenom, secondAccrualTime)
-	suite.storedIndexesEqual(types.BondDenom, types.RewardIndexes{
+	suite.storedIndexesEqual(types.RewardTypeDelegator, types.BondDenom, types.RewardIndexes{
 		{
 			CollateralType: "hard",
 			RewardFactor:   d("0.02"),
@@ -235,7 +235,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoPanicWhenStateDoesNotExist()
 	})
 
 	suite.storedTimeEquals(types.BondDenom, accrualTime)
-	suite.storedIndexesEqual(types.BondDenom, nil)
+	suite.storedIndexesEqual(types.RewardTypeDelegator, types.BondDenom, nil)
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
@@ -257,7 +257,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenBeforeStartT
 			},
 		},
 	}
-	suite.storeGlobalDelegatorIndexes(previousIndexes)
+	suite.storeGlobalIndexes(types.RewardTypeDelegator, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, types.BondDenom, previousAccrualTime)
 
@@ -279,7 +279,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenBeforeStartT
 	suite.storedTimeEquals(types.BondDenom, firstAccrualTime)
 	expectedIndexes, f := previousIndexes.Get(types.BondDenom)
 	suite.True(f)
-	suite.storedIndexesEqual(types.BondDenom, expectedIndexes)
+	suite.storedIndexesEqual(types.RewardTypeDelegator, types.BondDenom, expectedIndexes)
 }
 
 func (suite *AccumulateDelegatorRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {

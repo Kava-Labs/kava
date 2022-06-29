@@ -19,8 +19,8 @@ func (suite *AccumulateSwapRewardsTests) storedTimeEquals(poolID string, expecte
 	suite.Equal(expected, storedTime)
 }
 
-func (suite *AccumulateSwapRewardsTests) storedIndexesEqual(poolID string, expected types.RewardIndexes) {
-	storedIndexes, found := suite.keeper.GetGlobalIndexes(suite.ctx, types.RewardTypeSwap, poolID)
+func (suite *AccumulateSwapRewardsTests) storedIndexesEqual(rewardType types.RewardType, poolID string, expected types.RewardIndexes) {
+	storedIndexes, found := suite.keeper.GetGlobalIndexes(suite.ctx, rewardType, poolID)
 	suite.Equal(found, expected != nil)
 	if found {
 		suite.Equal(expected, storedIndexes)
@@ -75,7 +75,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	// check time and factors
 
 	suite.storedTimeEquals(pool, newAccrualTime)
-	suite.storedIndexesEqual(pool, types.RewardIndexes{
+	suite.storedIndexesEqual(types.RewardTypeSwap, pool, types.RewardIndexes{
 		{
 			CollateralType: "swap",
 			RewardFactor:   d("7.22"),
@@ -129,7 +129,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 	suite.storedTimeEquals(pool, previousAccrualTime)
 	expected, f := previousIndexes.Get(pool)
 	suite.True(f)
-	suite.storedIndexesEqual(pool, expected)
+	suite.storedIndexesEqual(types.RewardTypeSwap, pool, expected)
 }
 
 func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
@@ -175,7 +175,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 	suite.storedTimeEquals(pool, firstAccrualTime)
 	expected, f := previousIndexes.Get(pool)
 	suite.True(f)
-	suite.storedIndexesEqual(pool, expected)
+	suite.storedIndexesEqual(types.RewardTypeSwap, pool, expected)
 }
 
 func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
@@ -200,7 +200,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 	// After the first accumulation only the current block time should be stored.
 	// The indexes will be empty as no time has passed since the previous block because it didn't exist.
 	suite.storedTimeEquals(pool, firstAccrualTime)
-	suite.storedIndexesEqual(pool, nil)
+	suite.storedIndexesEqual(types.RewardTypeSwap, pool, nil)
 
 	secondAccrualTime := firstAccrualTime.Add(10 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(secondAccrualTime)
@@ -209,7 +209,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 
 	// After the second accumulation both current block time and indexes should be stored.
 	suite.storedTimeEquals(pool, secondAccrualTime)
-	suite.storedIndexesEqual(pool, types.RewardIndexes{
+	suite.storedIndexesEqual(types.RewardTypeSwap, pool, types.RewardIndexes{
 		{
 			CollateralType: "swap",
 			RewardFactor:   d("0.02"),
@@ -246,7 +246,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 	})
 
 	suite.storedTimeEquals(pool, accrualTime)
-	suite.storedIndexesEqual(pool, nil)
+	suite.storedIndexesEqual(types.RewardTypeSwap, pool, nil)
 }
 
 func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
@@ -292,7 +292,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenBeforeStartTime()
 	suite.storedTimeEquals(pool, firstAccrualTime)
 	expectedIndexes, f := previousIndexes.Get(pool)
 	suite.True(f)
-	suite.storedIndexesEqual(pool, expectedIndexes)
+	suite.storedIndexesEqual(types.RewardTypeSwap, pool, expectedIndexes)
 }
 
 func (suite *AccumulateSwapRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {

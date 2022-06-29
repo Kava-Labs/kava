@@ -29,12 +29,12 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryGetHardRewards(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetUSDXMintingRewards:
 			return queryGetUSDXMintingRewards(ctx, req, k, legacyQuerierCdc)
-		case types.QueryGetDelegatorRewards:
-			return queryGetDelegatorRewards(ctx, req, k, legacyQuerierCdc)
-		case types.QueryGetSwapRewards:
-			return queryGetSwapRewards(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetSavingsRewards:
 			return queryGetSavingsRewards(ctx, req, k, legacyQuerierCdc)
+
+		case types.QueryGetRewards:
+			return queryGetClaims(ctx, req, k, legacyQuerierCdc)
+
 		case types.QueryGetRewardFactors:
 			return queryGetRewardFactors(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetEarnRewards:
@@ -142,48 +142,7 @@ func queryGetUSDXMintingRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper
 	return bz, nil
 }
 
-func queryGetDelegatorRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	var params types.QueryRewardsParams
-	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-	owner := len(params.Owner) > 0
-
-	var delegatorClaims types.DelegatorClaims
-	switch {
-	case owner:
-		delegatorClaim, foundDelegatorClaim := k.GetDelegatorClaim(ctx, params.Owner)
-		if foundDelegatorClaim {
-			delegatorClaims = append(delegatorClaims, delegatorClaim)
-		}
-	default:
-		delegatorClaims = k.GetAllDelegatorClaims(ctx)
-	}
-
-	var paginatedDelegatorClaims types.DelegatorClaims
-	startH, endH := client.Paginate(len(delegatorClaims), params.Page, params.Limit, 100)
-	if startH < 0 || endH < 0 {
-		paginatedDelegatorClaims = types.DelegatorClaims{}
-	} else {
-		paginatedDelegatorClaims = delegatorClaims[startH:endH]
-	}
-
-	if !params.Unsynchronized {
-		for i, claim := range paginatedDelegatorClaims {
-			paginatedDelegatorClaims[i] = k.SimulateDelegatorSynchronization(ctx, claim)
-		}
-	}
-
-	// Marshal Hard claims
-	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, paginatedDelegatorClaims)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, nil
-}
-
-func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryRewardsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -194,12 +153,12 @@ func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 	var claims []types.Claim
 	switch {
 	case owner:
-		claim, found := k.GetClaim(ctx, types.RewardTypeSwap, params.Owner)
+		claim, found := k.GetClaim(ctx, params.RewardType, params.Owner)
 		if found {
 			claims = append(claims, claim)
 		}
 	default:
-		claims = k.GetAllClaims(ctx, types.RewardTypeSwap)
+		claims = k.GetAllClaims(ctx, params.RewardType)
 	}
 
 	var paginatedClaims []types.Claim
@@ -212,7 +171,7 @@ func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 
 	if !params.Unsynchronized {
 		for i, claim := range paginatedClaims {
-			syncedClaim, found := k.GetSynchronizedClaim(ctx, types.RewardTypeSwap, claim.Owner)
+			syncedClaim, found := k.GetSynchronizedClaim(ctx, params.RewardType, claim.Owner)
 			if !found {
 				panic("previously found claim should still be found")
 			}
@@ -337,15 +296,9 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 		return false
 	})
 
-	var delegatorFactors types.MultiRewardIndexes
-	k.IterateDelegatorRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
-		delegatorFactors = delegatorFactors.With(denom, indexes)
-		return false
-	})
-
-	var swapFactors types.MultiRewardIndexes
+	var factors types.MultiRewardIndexes
 	k.IterateGlobalIndexes(ctx, types.RewardTypeSwap, func(poolID string, indexes types.RewardIndexes) (stop bool) {
-		swapFactors = swapFactors.With(poolID, indexes)
+		factors = factors.With(poolID, indexes)
 		return false
 	})
 
@@ -365,8 +318,7 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 		usdxFactors,
 		supplyFactors,
 		borrowFactors,
-		delegatorFactors,
-		swapFactors,
+		factors,
 		savingsFactors,
 		earnFactors,
 	)

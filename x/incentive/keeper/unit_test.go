@@ -98,7 +98,7 @@ func (suite *unitTester) storeGlobalSupplyIndexes(indexes types.MultiRewardIndex
 func (suite *unitTester) storeGlobalDelegatorIndexes(multiRewardIndexes types.MultiRewardIndexes) {
 	// Hardcoded to use bond denom
 	multiRewardIndex, _ := multiRewardIndexes.GetRewardIndex(types.BondDenom)
-	suite.keeper.SetDelegatorRewardIndexes(suite.ctx, types.BondDenom, multiRewardIndex.RewardIndexes)
+	suite.keeper.SetGlobalIndexes(suite.ctx, types.RewardTypeDelegator, types.BondDenom, multiRewardIndex.RewardIndexes)
 }
 
 func (suite *unitTester) storeGlobalIndexes(rewardType types.RewardType, indexes types.MultiRewardIndexes) {
@@ -123,9 +123,9 @@ func (suite *unitTester) storeHardClaim(claim types.HardLiquidityProviderClaim) 
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
 }
 
-func (suite *unitTester) storeDelegatorClaim(claim types.DelegatorClaim) {
-	suite.keeper.SetDelegatorClaim(suite.ctx, claim)
-}
+// func (suite *unitTester) storeDelegatorClaim(claim types.DelegatorClaim) {
+// 	suite.keeper.SetDelegatorClaim(suite.ctx, claim)
+// }
 
 func (suite *unitTester) storeClaim(rewardType types.RewardType, claim types.Claim) {
 	suite.keeper.SetClaim(suite.ctx, rewardType, claim)

@@ -6,6 +6,7 @@ import (
 
 // Querier routes for the incentive module
 const (
+	QueryGetRewards            = "rewards"
 	QueryGetHardRewards        = "hard-rewards"
 	QueryGetUSDXMintingRewards = "usdx-minting-rewards"
 	QueryGetDelegatorRewards   = "delegator-rewards"
@@ -26,15 +27,17 @@ const (
 type QueryRewardsParams struct {
 	Page           int            `json:"page" yaml:"page"`
 	Limit          int            `json:"limit" yaml:"limit"`
+	RewardType     RewardType     `json:"reward_type" yaml:"reward_type"`
 	Owner          sdk.AccAddress `json:"owner" yaml:"owner"`
 	Unsynchronized bool           `json:"unsynchronized" yaml:"unsynchronized"`
 }
 
 // NewQueryRewardsParams returns QueryRewardsParams
-func NewQueryRewardsParams(page, limit int, owner sdk.AccAddress, unsynchronized bool) QueryRewardsParams {
+func NewQueryRewardsParams(page, limit int, rewardType RewardType, owner sdk.AccAddress, unsynchronized bool) QueryRewardsParams {
 	return QueryRewardsParams{
 		Page:           page,
 		Limit:          limit,
+		RewardType:     rewardType,
 		Owner:          owner,
 		Unsynchronized: unsynchronized,
 	}
@@ -53,44 +56,14 @@ type QueryGetRewardFactorsResponse struct {
 
 // NewQueryGetRewardFactorsResponse returns a new instance of QueryAllRewardFactorsResponse
 func NewQueryGetRewardFactorsResponse(usdxMintingFactors RewardIndexes, supplyFactors,
-	hardBorrowFactors, delegatorFactors, swapFactors, savingsFactors, earnFactors MultiRewardIndexes,
+	hardBorrowFactors, allFactors, savingsFactors, earnFactors MultiRewardIndexes,
 ) QueryGetRewardFactorsResponse {
 	return QueryGetRewardFactorsResponse{
 		USDXMintingRewardFactors: usdxMintingFactors,
 		HardSupplyRewardFactors:  supplyFactors,
 		HardBorrowRewardFactors:  hardBorrowFactors,
-		DelegatorRewardFactors:   delegatorFactors,
-		SwapRewardFactors:        swapFactors,
+		SwapRewardFactors:        allFactors, // This now includes all normal factors
 		SavingsRewardFactors:     savingsFactors,
 		EarnRewardFactors:        earnFactors,
-	}
-}
-
-// APY contains the APY for a given collateral type
-type APY struct {
-	CollateralType string  `json:"collateral_type" yaml:"collateral_type"`
-	APY            sdk.Dec `json:"apy" yaml:"apy"`
-}
-
-// NewAPY returns a new instance of APY
-func NewAPY(collateralType string, apy sdk.Dec) APY {
-	return APY{
-		CollateralType: collateralType,
-		APY:            apy,
-	}
-}
-
-// APYs is a slice of APY
-type APYs []APY
-
-// QueryGetAPYsResponse holds the response to a APY query
-type QueryGetAPYsResponse struct {
-	Earn []APY `json:"earn" yaml:"earn"`
-}
-
-// NewQueryGetAPYsResponse returns a new instance of QueryGetAPYsResponse
-func NewQueryGetAPYsResponse(earn []APY) QueryGetAPYsResponse {
-	return QueryGetAPYsResponse{
-		Earn: earn,
 	}
 }
