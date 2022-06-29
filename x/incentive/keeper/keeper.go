@@ -6,46 +6,54 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 // Keeper keeper for the incentive module
 type Keeper struct {
-	cdc           codec.Codec
-	key           sdk.StoreKey
-	paramSubspace types.ParamSubspace
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	cdpKeeper     types.CdpKeeper
-	hardKeeper    types.HardKeeper
-	stakingKeeper types.StakingKeeper
-	swapKeeper    types.SwapKeeper
-	savingsKeeper types.SavingsKeeper
+	cdc                 codec.Codec
+	key                 sdk.StoreKey
+	paramSubspace       types.ParamSubspace
+	accountKeeper       types.AccountKeeper
+	bankKeeper          types.BankKeeper
+	cdpKeeper           types.CdpKeeper
+	hardKeeper          types.HardKeeper
+	stakingKeeper       types.StakingKeeper
+	swapKeeper          types.SwapKeeper
+	savingsKeeper       types.SavingsKeeper
+	liquidStakingKeeper types.LiquidStakingKeeper
 }
 
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc codec.Codec, key sdk.StoreKey, paramstore types.ParamSubspace, bk types.BankKeeper,
 	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
-	swpk types.SwapKeeper, svk types.SavingsKeeper,
+	swpk types.SwapKeeper, svk types.SavingsKeeper, lsk types.LiquidStakingKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		accountKeeper: ak,
-		cdc:           cdc,
-		key:           key,
-		paramSubspace: paramstore,
-		bankKeeper:    bk,
-		cdpKeeper:     cdpk,
-		hardKeeper:    hk,
-		stakingKeeper: stk,
-		swapKeeper:    swpk,
-		savingsKeeper: svk,
+		accountKeeper:       ak,
+		cdc:                 cdc,
+		key:                 key,
+		paramSubspace:       paramstore,
+		bankKeeper:          bk,
+		cdpKeeper:           cdpk,
+		hardKeeper:          hk,
+		stakingKeeper:       stk,
+		swapKeeper:          swpk,
+		savingsKeeper:       svk,
+		liquidStakingKeeper: lsk,
 	}
+}
+
+// Logger returns a module-specific logger.
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
 // GetUSDXMintingClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found

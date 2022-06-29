@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/server"
 
+	simappcmd "github.com/cosmos/cosmos-sdk/simapp/simd/cmd"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
@@ -87,8 +88,9 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		migrate.AssertInvariantsCmd(encodingConfig),
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		AddGenesisAccountCmd(defaultNodeHome),
-		tmcli.NewCompletionCmd(rootCmd, true), // TODO add other shells, drop tmcli dependency, unhide?
+
+		simappcmd.AddGenesisAccountCmd(defaultNodeHome), // TODO
+		tmcli.NewCompletionCmd(rootCmd, true),           // TODO add other shells, drop tmcli dependency, unhide?
 		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}), // TODO add
 		debug.Cmd(),
 		config.Cmd(),

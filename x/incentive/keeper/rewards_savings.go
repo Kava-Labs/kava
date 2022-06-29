@@ -1,9 +1,12 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -11,30 +14,65 @@ import (
 
 // AccumulateSavingsRewards calculates new rewards to distribute this block and updates the global indexes
 func (k Keeper) AccumulateSavingsRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-	previousAccrualTime, found := k.GetSavingsRewardAccrualTime(ctx, rewardPeriod.CollateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
-	}
 
+	// Collect rewards to distribute // TODO separate from distribution?
+	rewards := k.collectDerivativeStakingRewards(ctx, rewardPeriod)
+
+	rewards = rewards.Add(k.collectPerSecondRewards(ctx, rewardPeriod)...)
+
+	// Distribute rewards by incrementing indexes
 	indexes, found := k.GetSavingsRewardIndexes(ctx, rewardPeriod.CollateralType)
 	if !found {
 		indexes = types.RewardIndexes{}
 	}
 
-	acc := types.NewAccumulator(previousAccrualTime, indexes)
-
-	savingsMacc := k.accountKeeper.GetModuleAccount(ctx, savingstypes.ModuleName)
-	maccCoins := k.bankKeeper.GetAllBalances(ctx, savingsMacc.GetAddress())
-	denomBalance := maccCoins.AmountOf(rewardPeriod.CollateralType)
-
-	acc.Accumulate(rewardPeriod, denomBalance.ToDec(), ctx.BlockTime())
-
-	k.SetSavingsRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
-
-	if len(acc.Indexes) > 0 {
-		// the store panics when setting empty or nil indexes
-		k.SetSavingsRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
+	totalSourceShares := k.getSavingsTotalSourceShares(ctx, rewardPeriod.CollateralType)
+	var increment types.RewardIndexes
+	if totalSourceShares.GT(sdk.ZeroDec()) {
+		// leave as nil if no source shares
+		increment = types.NewRewardIndexesFromDecCoins(rewards).Quo(totalSourceShares)
 	}
+	updatedIndexes := indexes.Add(increment)
+
+	if len(updatedIndexes) > 0 {
+		// the store panics when setting empty or nil indexes
+		k.SetSavingsRewardIndexes(ctx, rewardPeriod.CollateralType, updatedIndexes)
+	}
+}
+
+// getSavingsTotalSourceShares fetches the sum of all source shares for a savings reward.
+// In the case of savings, this is the total tokens locked in savings.
+func (k Keeper) getSavingsTotalSourceShares(ctx sdk.Context, denom string) sdk.Dec {
+	savingsModAddr := authtypes.NewModuleAddress(savingstypes.ModuleAccountName)
+	balance := k.bankKeeper.GetAllBalances(ctx, savingsModAddr).AmountOf(denom)
+
+	return balance.ToDec()
+}
+
+func (k Keeper) collectDerivativeStakingRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) sdk.DecCoins {
+	rewards, err := k.liquidStakingKeeper.CollectStakingRewardsByDenom(ctx, rewardPeriod.CollateralType, types.IncentiveMacc)
+	if err != nil {
+		if !errors.Is(err, distrtypes.ErrNoValidatorDistInfo) && !errors.Is(err, distrtypes.ErrEmptyDelegationDistInfo) {
+			panic(err) // TODO
+		}
+		// otherwise there's no validator or delegation yet
+		rewards = nil
+	}
+	return sdk.NewDecCoinsFromCoins(rewards...)
+}
+
+func (k Keeper) collectPerSecondRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) sdk.DecCoins {
+	previousAccrualTime, found := k.GetSavingsRewardAccrualTime(ctx, rewardPeriod.CollateralType)
+	if !found {
+		previousAccrualTime = ctx.BlockTime()
+	}
+
+	rewards, accumulatedTo := types.CalculatePerSecondRewards(rewardPeriod, previousAccrualTime, ctx.BlockTime())
+
+	k.SetSavingsRewardAccrualTime(ctx, rewardPeriod.CollateralType, accumulatedTo)
+
+	// Don't need to move funds as they're assumed to be in the IncentiveMacc module account already.
+	return rewards
 }
 
 // InitializeSavingsReward initializes a savings claim by creating the claim and

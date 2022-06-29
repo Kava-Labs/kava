@@ -2,9 +2,12 @@
 set -e
 
 validatorMnemonic="equip town gesture square tomorrow volume nephew minute witness beef rich gadget actress egg sing secret pole winter alarm law today check violin uncover"
+# 0x4A59E9DDB116A04C5D40082D67C738D5C56DF124
 # kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+# kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 
 faucetMnemonic="crash sort dwarf disease change advice attract clump avoid mobile clump right junior axis book fresh mask tube front require until face effort vault"
+# 0xEB6DBD418B14A063311E46870BA3569140ECC8E8
 # kava1adkm6svtzjsxxvg7g6rshg6kj9qwej8gwqadqd
 
 evmFaucetMnemonic="hundred flash cattle inquiry gorilla quick enact lazy galaxy apple bitter liberty print sun hurdle oak town cash because round chalk marriage response success"
@@ -37,6 +40,7 @@ sed -in-place='' 's/tracer = ""/tracer = "json"/g' $DATA/config/app.toml
 
 # Set client chain id
 sed -in-place='' 's/chain-id = ""/chain-id = "kavalocalnet_8888-1"/g' $DATA/config/client.toml
+$BINARY config broadcast-mode block
 
 # avoid having to use password for keys
 $BINARY config keyring-backend test
@@ -115,3 +119,47 @@ jq '.app_state.bridge.params.enabled_conversion_pairs = [
         denom: "erc20/weth",
     }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
 
+
+# Enable liquid staking rewards
+jq '.app_state.savings.params.supported_denoms = ["ukava-kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0"]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+jq '.app_state.bank.balances += [{
+        "address": "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+        "coins": [{"denom": "swp", "amount": "1000000000"}]
+    }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+jq '.app_state.incentive.params.savings_reward_periods = [
+        {
+            "active": true,
+            "collateral_type": "ukava-kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0",
+            "start": "1970-01-01T00:00:01Z",
+            "end": "2050-01-01T00:00:01Z",
+            "rewards_per_second": [
+                {
+                    "denom": "swp",
+                    "amount": "5"
+                }
+            ],
+        }
+    ]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+jq '.app_state.incentive.params.claim_multipliers = [
+        {
+            "denom": "ukava",
+            "multipliers": [
+                {
+                    "name": "large",
+                    "months_lockup": 2,
+                    "factor": "1.000000000000000000"
+                }
+            ]
+        },
+        {
+            "denom": "swp",
+            "multipliers": [
+                {
+                    "name": "large",
+                    "months_lockup": 5,
+                    "factor": "1.000000000000000000"
+                }
+            ]
+        }
+    ]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+jq '.app_state.incentive.params.claim_end = "2050-01-01T00:00:00Z"' $DATA/config/genesis.json | sponge $DATA/config/genesis.json

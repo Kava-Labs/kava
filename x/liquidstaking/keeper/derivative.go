@@ -77,19 +77,20 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	if err != nil {
 		return err
 	}
+	returnCoins := sdk.NewCoins(sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), returnAmount))
 
 	if validator.IsBonded() {
 		k.bondedTokensToNotBonded(ctx, returnAmount)
 	}
 
 	// Note: UndelegateCoinsFromModuleToAccount is internally calling TrackUndelegation for vesting account
-	err = k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.NotBondedPoolName, delegatorAddr, sdk.Coins{liquidCoin})
+	err = k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.NotBondedPoolName, delegatorAddr, returnCoins)
 	if err != nil {
 		return err
 	}
 
 	// send coins to module account
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddr, delegationHolder.ModuleAccount.String(), sdk.Coins{liquidCoin})
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddr, types.ModuleAccountName, returnCoins)
 	if err != nil {
 		return err
 	}
@@ -100,7 +101,8 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	}
 
 	// delegate from module account
-	_, err = k.stakingKeeper.Delegate(ctx, delegationHolder.ModuleAccount, liquidCoin.Amount, stakingtypes.Unbonded, validator, true)
+	moduleAccAddress := authtypes.NewModuleAddress(types.ModuleAccountName)
+	_, err = k.stakingKeeper.Delegate(ctx, moduleAccAddress, returnAmount, stakingtypes.Unbonded, validator, true)
 	if err != nil {
 		return err
 	}
@@ -134,7 +136,7 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, validator sdk.ValAddress, coin s
 }
 
 func (k Keeper) GetLiquidStakingTokenDenom(ctx sdk.Context, valAddr sdk.ValAddress) string {
-	return fmt.Sprintf("%s-%s", k.stakingKeeper.BondDenom(ctx), valAddr.String())
+	return types.GetLiquidStakingTokenDenom(k.stakingKeeper.BondDenom(ctx), valAddr)
 }
 
 // bondedTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
