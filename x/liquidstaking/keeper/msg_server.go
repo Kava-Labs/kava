@@ -53,12 +53,17 @@ func (k msgServer) MintDerivative(goCtx context.Context, msg *types.MsgMintDeriv
 func (k msgServer) BurnDerivative(goCtx context.Context, msg *types.MsgBurnDerivative) (*types.MsgBurnDerivativeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
 	validator, err := sdk.ValAddressFromBech32(msg.Validator)
 	if err != nil {
 		return nil, err
 	}
 
-	err = k.keeper.BurnDerivative(ctx, validator, msg.Amount)
+	err = k.keeper.BurnDerivative(ctx, sender, validator, msg.Amount)
 	if err != nil {
 		return nil, err
 	}

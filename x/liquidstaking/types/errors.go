@@ -19,4 +19,6 @@ var (
 	ErrNotEnoughDelegationShares       = sdkerrors.New(ModuleName, 8, "not enough delegation shares")
 	ErrExceedingFreeVestingDelegations = sdkerrors.New(ModuleName, 9, "trying to exceed vested free delegation for vesting account")
 	ErrInvalidLiquidCoinDenom          = sdkerrors.New(ModuleName, 10, "invalid liquid staking coin denom")
+	ErrNotEnoughBalance                = sdkerrors.New(ModuleName, 11, "insufficient balance of liquid staking coin")
+	ErrInvalidDerivativeDenom          = sdkerrors.New(ModuleName, 12, "invalid derivative denom")
 )
