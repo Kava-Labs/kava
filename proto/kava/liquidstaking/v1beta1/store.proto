@@ -14,14 +14,8 @@ message Params {}
 // DelegationHolder defines a DelegationHolder
 message DelegationHolder {
 
-  // module account address
-  bytes module_account = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
-  ];
-
   // validator's address
-  string validator = 2 [
+  string validator = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
     (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.ValAddress"
   ];

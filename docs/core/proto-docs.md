@@ -4739,7 +4739,6 @@ DelegationHolder defines a DelegationHolder
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `module_account` | [bytes](#bytes) |  | module account address |
 | `validator` | [string](#string) |  | validator's address |
 
 
