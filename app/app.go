@@ -221,7 +221,7 @@ var (
 		hardtypes.ModuleAccountName:          {authtypes.Minter},
 		savingstypes.ModuleAccountName:       nil,
 		bridgetypes.ModuleName:               {authtypes.Minter, authtypes.Burner},
-		liquidstakingtypes.ModuleAccountName: nil, // TODO minter/burner?
+		liquidstakingtypes.ModuleAccountName: {authtypes.Burner}, // TODO minter/burner?
 	}
 )
 

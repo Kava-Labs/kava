@@ -162,7 +162,7 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 
 	// Create a delegation for an equivalent amount of KAVA tokens from the user
 	returnCoin := sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), returnAmount)
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, delegatorAddr, sdk.NewCoins(returnCoin))
+	err = k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.NotBondedPoolName, delegatorAddr, sdk.NewCoins(returnCoin))
 	if err != nil {
 		return err
 	}

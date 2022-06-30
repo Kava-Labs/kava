@@ -14,6 +14,8 @@ import (
 	"github.com/kava-labs/kava/x/liquidstaking/types"
 )
 
+var d = sdk.MustNewDecFromStr
+
 func TestMintDerivative(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 
@@ -53,4 +55,60 @@ func TestMintDerivative(t *testing.T) {
 	require.Equal(t, sdk.NewInt64Coin(denom, 1e6), bal)
 
 	// delegation
+}
+
+func TestBurnDerivative(t *testing.T) {
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+
+	tApp := app.NewTestApp()
+
+	gen := app.NewAuthBankGenesisBuilder().
+		WithSimpleAccount(addrs[0], sdk.NewCoins(sdk.NewInt64Coin("stake", 1e9))).
+		BuildMarshalled(tApp.AppCodec())
+	tApp.InitializeFromGenesisStates(gen)
+
+	ctx := tApp.NewContext(false, tmproto.Header{Height: 1})
+
+	msgCreate, err := stakingtypes.NewMsgCreateValidator(
+		sdk.ValAddress(addrs[0]),
+		ed25519.GenPrivKey().PubKey(),
+		sdk.NewInt64Coin("stake", 1e9),
+		stakingtypes.Description{},
+		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		sdk.NewInt(1e6),
+	)
+	require.NoError(t, err)
+
+	_, err = tApp.MsgServiceRouter().Handler(msgCreate)(ctx, msgCreate)
+	require.NoError(t, err)
+
+	msgMint := types.NewMsgMintDerivative(
+		addrs[0],
+		sdk.ValAddress(addrs[0]),
+		sdk.NewDec(1e6),
+	)
+	_, err = tApp.MsgServiceRouter().Handler(&msgMint)(ctx, &msgMint)
+	require.NoError(t, err)
+
+	denom := fmt.Sprintf("%s-%s", "stake", sdk.ValAddress(addrs[0]).String())
+	bal := tApp.GetBankKeeper().GetBalance(ctx, addrs[0], denom)
+
+	expectedBal := sdk.NewInt64Coin(denom, 1e6)
+	require.Equal(t, expectedBal, bal)
+
+	msgBurn := types.NewMsgBurnDerivative(
+		addrs[0],
+		sdk.ValAddress(addrs[0]),
+		expectedBal,
+	)
+	_, err = tApp.MsgServiceRouter().Handler(&msgBurn)(ctx, &msgBurn)
+	require.NoError(t, err)
+
+	bal = tApp.GetBankKeeper().GetBalance(ctx, addrs[0], denom)
+	expectedBal = sdk.NewInt64Coin(denom, 0)
+	require.Equal(t, expectedBal, bal)
+
+	delegation, found := tApp.GetStakingKeeper().GetDelegation(ctx, addrs[0], sdk.ValAddress(addrs[0]))
+	require.True(t, found)
+	require.Equal(t, d("1000000000"), delegation.Shares)
 }
