@@ -330,6 +330,24 @@
   
     - [Query](#kava.kavadist.v1beta1.Query)
   
+- [kava/liquidstaking/v1beta1/store.proto](#kava/liquidstaking/v1beta1/store.proto)
+    - [Params](#kava.liquidstaking.v1beta1.Params)
+  
+- [kava/liquidstaking/v1beta1/genesis.proto](#kava/liquidstaking/v1beta1/genesis.proto)
+    - [GenesisState](#kava.liquidstaking.v1beta1.GenesisState)
+  
+- [kava/liquidstaking/v1beta1/query.proto](#kava/liquidstaking/v1beta1/query.proto)
+    - [QueryParamsRequest](#kava.liquidstaking.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.liquidstaking.v1beta1.QueryParamsResponse)
+  
+    - [Query](#kava.liquidstaking.v1beta1.Query)
+  
+- [kava/liquidstaking/v1beta1/tx.proto](#kava/liquidstaking/v1beta1/tx.proto)
+    - [MsgMintDerivative](#kava.liquidstaking.v1beta1.MsgMintDerivative)
+    - [MsgMintDerivativeResponse](#kava.liquidstaking.v1beta1.MsgMintDerivativeResponse)
+  
+    - [Msg](#kava.liquidstaking.v1beta1.Msg)
+  
 - [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
@@ -4696,6 +4714,169 @@ Query defines the gRPC querier service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse) | Params queries the parameters of x/kavadist module. | GET|/kava/kavadist/v1beta1/parameters|
 | `Balance` | [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/kavadist module. | GET|/kava/kavadist/v1beta1/balance|
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquidstaking/v1beta1/store.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquidstaking/v1beta1/store.proto
+
+
+
+<a name="kava.liquidstaking.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the liquidstaking module.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquidstaking/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquidstaking/v1beta1/genesis.proto
+
+
+
+<a name="kava.liquidstaking.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the liquidstaking module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.liquidstaking.v1beta1.Params) |  | params defines all the parameters of the liquidstaking module. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquidstaking/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquidstaking/v1beta1/query.proto
+
+
+
+<a name="kava.liquidstaking.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/liquidstaking
+parameters.
+
+
+
+
+
+
+<a name="kava.liquidstaking.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/liquidstaking
+parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.liquidstaking.v1beta1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.liquidstaking.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for liquidstaking module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.liquidstaking.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.liquidstaking.v1beta1.QueryParamsResponse) | Params queries all parameters of the liquidstaking module. | GET|/kava/liquidstaking/v1beta1/params|
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquidstaking/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquidstaking/v1beta1/tx.proto
+
+
+
+<a name="kava.liquidstaking.v1beta1.MsgMintDerivative"></a>
+
+### MsgMintDerivative
+MsgMintDerivative defines the Msg/MintDerivative request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `validator` | [string](#string) |  |  |
+| `shares` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="kava.liquidstaking.v1beta1.MsgMintDerivativeResponse"></a>
+
+### MsgMintDerivativeResponse
+MsgMintDerivativeResponse defines the Msg/MintDerivative response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.liquidstaking.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the liquidstaking Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `MintDerivative` | [MsgMintDerivative](#kava.liquidstaking.v1beta1.MsgMintDerivative) | [MsgMintDerivativeResponse](#kava.liquidstaking.v1beta1.MsgMintDerivativeResponse) | MintDerivative defines a method for minting deriviatives | |
 
  <!-- end services -->
 
