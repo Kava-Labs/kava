@@ -126,6 +126,9 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+	"github.com/kava-labs/kava/x/liquidstaking"
+	liquidstakingkeeper "github.com/kava-labs/kava/x/liquidstaking/keeper"
+	liquidstakingtypes "github.com/kava-labs/kava/x/liquidstaking/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -192,31 +195,33 @@ var (
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
 		bridge.AppModuleBasic{},
+		liquidstaking.AppModuleBasic{},
 	)
 
 	// module account permissions
 	// If these are changed, the permissions stored in accounts
 	// must also be migrated during a chain upgrade.
 	mAccPerms = map[string][]string{
-		authtypes.FeeCollectorName:      nil,
-		distrtypes.ModuleName:           nil,
-		minttypes.ModuleName:            {authtypes.Minter},
-		stakingtypes.BondedPoolName:     {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName:  {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:             {authtypes.Burner},
-		ibctransfertypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
-		evmtypes.ModuleName:             {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		evmutiltypes.ModuleName:         nil,
-		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
-		auctiontypes.ModuleName:         nil,
-		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
-		bep3types.ModuleName:            {authtypes.Burner, authtypes.Minter},
-		swaptypes.ModuleName:            nil,
-		cdptypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
-		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
-		hardtypes.ModuleAccountName:     {authtypes.Minter},
-		savingstypes.ModuleAccountName:  nil,
-		bridgetypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
+		authtypes.FeeCollectorName:           nil,
+		distrtypes.ModuleName:                nil,
+		minttypes.ModuleName:                 {authtypes.Minter},
+		stakingtypes.BondedPoolName:          {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:       {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:                  {authtypes.Burner},
+		ibctransfertypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:                  {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		evmutiltypes.ModuleName:              nil,
+		kavadisttypes.KavaDistMacc:           {authtypes.Minter},
+		auctiontypes.ModuleName:              nil,
+		issuancetypes.ModuleAccountName:      {authtypes.Minter, authtypes.Burner},
+		bep3types.ModuleName:                 {authtypes.Burner, authtypes.Minter},
+		swaptypes.ModuleName:                 nil,
+		cdptypes.ModuleName:                  {authtypes.Minter, authtypes.Burner},
+		cdptypes.LiquidatorMacc:              {authtypes.Minter, authtypes.Burner},
+		hardtypes.ModuleAccountName:          {authtypes.Minter},
+		savingstypes.ModuleAccountName:       nil,
+		bridgetypes.ModuleName:               {authtypes.Minter, authtypes.Burner},
+		liquidstakingtypes.ModuleAccountName: nil,
 	}
 )
 
@@ -257,35 +262,36 @@ type App struct {
 	memKeys map[string]*sdk.MemoryStoreKey
 
 	// keepers from all the modules
-	accountKeeper    authkeeper.AccountKeeper
-	bankKeeper       bankkeeper.Keeper
-	capabilityKeeper *capabilitykeeper.Keeper
-	stakingKeeper    stakingkeeper.Keeper
-	mintKeeper       mintkeeper.Keeper
-	distrKeeper      distrkeeper.Keeper
-	govKeeper        govkeeper.Keeper
-	paramsKeeper     paramskeeper.Keeper
-	authzKeeper      authzkeeper.Keeper
-	crisisKeeper     crisiskeeper.Keeper
-	slashingKeeper   slashingkeeper.Keeper
-	ibcKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	evmKeeper        *evmkeeper.Keeper
-	evmutilKeeper    evmutilkeeper.Keeper
-	feeMarketKeeper  feemarketkeeper.Keeper
-	upgradeKeeper    upgradekeeper.Keeper
-	evidenceKeeper   evidencekeeper.Keeper
-	transferKeeper   ibctransferkeeper.Keeper
-	kavadistKeeper   kavadistkeeper.Keeper
-	auctionKeeper    auctionkeeper.Keeper
-	issuanceKeeper   issuancekeeper.Keeper
-	bep3Keeper       bep3keeper.Keeper
-	pricefeedKeeper  pricefeedkeeper.Keeper
-	swapKeeper       swapkeeper.Keeper
-	cdpKeeper        cdpkeeper.Keeper
-	hardKeeper       hardkeeper.Keeper
-	committeeKeeper  committeekeeper.Keeper
-	incentiveKeeper  incentivekeeper.Keeper
-	savingsKeeper    savingskeeper.Keeper
+	accountKeeper       authkeeper.AccountKeeper
+	bankKeeper          bankkeeper.Keeper
+	capabilityKeeper    *capabilitykeeper.Keeper
+	stakingKeeper       stakingkeeper.Keeper
+	mintKeeper          mintkeeper.Keeper
+	distrKeeper         distrkeeper.Keeper
+	govKeeper           govkeeper.Keeper
+	paramsKeeper        paramskeeper.Keeper
+	authzKeeper         authzkeeper.Keeper
+	crisisKeeper        crisiskeeper.Keeper
+	slashingKeeper      slashingkeeper.Keeper
+	ibcKeeper           *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	evmKeeper           *evmkeeper.Keeper
+	evmutilKeeper       evmutilkeeper.Keeper
+	feeMarketKeeper     feemarketkeeper.Keeper
+	upgradeKeeper       upgradekeeper.Keeper
+	evidenceKeeper      evidencekeeper.Keeper
+	transferKeeper      ibctransferkeeper.Keeper
+	kavadistKeeper      kavadistkeeper.Keeper
+	auctionKeeper       auctionkeeper.Keeper
+	issuanceKeeper      issuancekeeper.Keeper
+	bep3Keeper          bep3keeper.Keeper
+	pricefeedKeeper     pricefeedkeeper.Keeper
+	swapKeeper          swapkeeper.Keeper
+	cdpKeeper           cdpkeeper.Keeper
+	hardKeeper          hardkeeper.Keeper
+	committeeKeeper     committeekeeper.Keeper
+	incentiveKeeper     incentivekeeper.Keeper
+	savingsKeeper       savingskeeper.Keeper
+	liquidstakingKeeper liquidstakingkeeper.Keeper
 
 	bridgeKeeper bridgekeeper.Keeper
 
@@ -341,7 +347,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey, bridgetypes.StoreKey,
+		savingstypes.StoreKey, bridgetypes.StoreKey, liquidstakingtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -386,6 +392,7 @@ func NewApp(
 	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
 	bridgeSubspace := app.paramsKeeper.Subspace(bridgetypes.ModuleName)
+	liquidstakingSubspace := app.paramsKeeper.Subspace(liquidstakingtypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -599,6 +606,14 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
+	app.liquidstakingKeeper = liquidstakingkeeper.NewKeeper(
+		appCodec,
+		keys[liquidstakingtypes.StoreKey],
+		liquidstakingSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		&app.stakingKeeper,
+	)
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
 		keys[incentivetypes.StoreKey],
@@ -695,6 +710,7 @@ func NewApp(
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
+		liquidstaking.NewAppModule(app.liquidstakingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -742,6 +758,7 @@ func NewApp(
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
+		liquidstakingtypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -781,6 +798,7 @@ func NewApp(
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
+		liquidstakingtypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -808,7 +826,8 @@ func NewApp(
 		swaptypes.ModuleName,
 		cdptypes.ModuleName, // reads market prices, so must run after pricefeed genesis
 		hardtypes.ModuleName,
-		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
+		liquidstakingtypes.ModuleName, // TODO probably run before incentive and after staking?
+		incentivetypes.ModuleName,     // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,
 		bridgetypes.ModuleName,
