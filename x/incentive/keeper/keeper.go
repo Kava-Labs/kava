@@ -589,6 +589,13 @@ func (k Keeper) SetGlobalIndexes(ctx sdk.Context, rewardType types.RewardType, r
 
 // GetGlobalIndexes fetches the global reward indexes that track total rewards to a swap pool.
 func (k Keeper) GetGlobalIndexes(ctx sdk.Context, rewardType types.RewardType, rewardID string) (types.RewardIndexes, bool) {
+	/*
+		Instead, this could call out to our existing claim stores, and return an interface value.
+		Or, we provide different stores to the Distributor constructor, each wraps GetXClaim with GetClaim that returns a concrete type or interface.
+
+		Ideally want the Distributor service to control it's own store schema. Queries go through it, not directly to store.
+	*/
+
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GlobalIndexesKeyPrefix)
 	bz := store.Get(types.NewGlobalIndexesKey(rewardType, rewardID))
 	if bz == nil {
