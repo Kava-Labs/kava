@@ -1,0 +1,25 @@
+syntax = "proto3";
+package kava.liquidstaking.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/kava-labs/kava/x/liquidstaking/types";
+
+// Msg defines the liquidstaking Msg service.
+service Msg {
+
+  // MintDerivative defines a method for minting deriviatives
+  rpc MintDerivative(MsgMintDerivative) returns (MsgMintDerivativeResponse);
+}
+
+// MsgMintDerivative defines the Msg/MintDerivative request type.
+message MsgMintDerivative {
+  string sender    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string validator = 2;
+  bytes  shares = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+
+// MsgMintDerivativeResponse defines the Msg/MintDerivative response type.
+message MsgMintDerivativeResponse {}
