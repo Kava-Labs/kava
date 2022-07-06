@@ -47,6 +47,12 @@ func (options HandlerOptions) Validate() error {
 	return nil
 }
 
+// cosmosHandlerOptions extends HandlerOptions to provide some Cosmos specific configurations
+type cosmosHandlerOptions struct {
+	HandlerOptions
+	isEIP712 bool
+}
+
 // NewAnteHandler returns an 'AnteHandler' that will run actions before a tx is sent to a module's handler.
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if err := options.Validate(); err != nil {
@@ -70,7 +76,10 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 					anteHandler = newEthAnteHandler(options)
 				case "/ethermint.types.v1.ExtensionOptionsWeb3Tx":
 					// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
-					anteHandler = newCosmosAnteHandler(options, true)
+					anteHandler = newCosmosAnteHandler(cosmosHandlerOptions{
+						HandlerOptions: options,
+						isEIP712:       true,
+					})
 				default:
 					return ctx, sdkerrors.Wrapf(
 						sdkerrors.ErrUnknownExtensionOptions,
@@ -85,7 +94,10 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		// handle as totally normal Cosmos SDK tx
 		switch tx.(type) {
 		case sdk.Tx:
-			anteHandler = newCosmosAnteHandler(options, false)
+			anteHandler = newCosmosAnteHandler(cosmosHandlerOptions{
+				HandlerOptions: options,
+				isEIP712:       false,
+			})
 		default:
 			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid transaction type: %T", tx)
 		}
@@ -94,7 +106,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	}, nil
 }
 
-func newCosmosAnteHandler(options HandlerOptions, isEIP712 bool) sdk.AnteHandler {
+func newCosmosAnteHandler(options cosmosHandlerOptions) sdk.AnteHandler {
 	decorators := []sdk.AnteDecorator{}
 
 	decorators = append(decorators,
@@ -102,7 +114,7 @@ func newCosmosAnteHandler(options HandlerOptions, isEIP712 bool) sdk.AnteHandler
 		authante.NewSetUpContextDecorator(), // second decorator. SetUpContext must be called before other decorators
 	)
 
-	if !isEIP712 {
+	if !options.isEIP712 {
 		decorators = append(decorators, authante.NewRejectExtensionOptionsDecorator())
 	}
 
@@ -111,7 +123,7 @@ func newCosmosAnteHandler(options HandlerOptions, isEIP712 bool) sdk.AnteHandler
 	}
 
 	var sigVerification sdk.AnteDecorator = authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler)
-	if isEIP712 {
+	if options.isEIP712 {
 		sigVerification = evmante.NewEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler)
 	}
 

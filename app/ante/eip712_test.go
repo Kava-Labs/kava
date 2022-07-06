@@ -418,7 +418,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			name:           "fails when convertion more erc20 usdc than balance",
 			usdcDepositAmt: 51_000,
 			usdxToMintAmt:  100,
-			errMsg:         "internal", // this fails on ethermint's EstimateGas call when trying to lock erc20 tokens, which throws an internal error
+			errMsg:         "evm transaction execution failed",
 		},
 		{
 			name:           "fails when minting more usdx than allowed",
