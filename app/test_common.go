@@ -46,8 +46,9 @@ import (
 )
 
 var (
-	emptyTime   time.Time
-	testChainID = "kavatest_1-1"
+	emptyTime            time.Time
+	testChainID                = "kavatest_1-1"
+	defaultInitialHeight int64 = 1
 )
 
 // TestApp is a simple wrapper around an App. It exposes internal keepers for use in integration tests.
@@ -120,18 +121,27 @@ func (app *App) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
-// InitializeFromGenesisStates calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
+// InitializeFromGenesisStates calls InitChain on the app using the provided genesis states.
+// If any module genesis states are missing, defaults are used.
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(emptyTime, testChainID, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(emptyTime, testChainID, defaultInitialHeight, genesisStates...)
 }
 
-// InitializeFromGenesisStatesWithTime calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states and genesis Time
+// InitializeFromGenesisStatesWithTime calls InitChain on the app using the provided genesis states and time.
+// If any module genesis states are missing, defaults are used.
 func (tApp TestApp) InitializeFromGenesisStatesWithTime(genTime time.Time, genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainID(genTime, testChainID, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTime, testChainID, defaultInitialHeight, genesisStates...)
 }
 
-// InitializeFromGenesisStatesWithTimeAndChainID calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states and genesis Time
+// InitializeFromGenesisStatesWithTimeAndChainID calls InitChain on the app using the provided genesis states, time, and chain id.
+// If any module genesis states are missing, defaults are used.
 func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainID(genTime time.Time, chainID string, genesisStates ...GenesisState) TestApp {
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTime, chainID, defaultInitialHeight, genesisStates...)
+}
+
+// InitializeFromGenesisStatesWithTimeAndChainIDAndHeight calls InitChain on the app using the provided genesis states and other parameters.
+// If any module genesis states are missing, defaults are used.
+func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTime time.Time, chainID string, initialHeight int64, genesisStates ...GenesisState) TestApp {
 	// Create a default genesis state and overwrite with provided values
 	genesisState := NewDefaultGenesisState()
 	for _, state := range genesisStates {
@@ -158,6 +168,7 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainID(genTime time.T
 					MaxGas:   20000000,
 				},
 			},
+			InitialHeight: initialHeight,
 		},
 	)
 	tApp.Commit()
