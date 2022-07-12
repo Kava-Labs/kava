@@ -12,12 +12,12 @@ func NewParams() Params {
 	return Params{}
 }
 
-// DefaultParams returns default params for swap module
+// DefaultParams returns default params for earn module
 func DefaultParams() Params {
 	return NewParams()
 }
 
-// ParamKeyTable for swap module.
+// ParamKeyTable for earn module.
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }

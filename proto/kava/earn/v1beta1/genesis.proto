@@ -7,7 +7,7 @@ import "gogoproto/gogo.proto";
 
 // GenesisState defines the earn module's genesis state.
 message GenesisState {
-  // params defines all the paramaters related to swap
+  // params defines all the paramaters related to earn
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
