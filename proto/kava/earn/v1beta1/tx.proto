@@ -1,0 +1,7 @@
+syntax = "proto3";
+package kava.earn.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/earn/types";
+
+// Msg defines the earn Msg service.
+service Msg {}
