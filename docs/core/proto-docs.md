@@ -178,12 +178,15 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/earn/v1beta1/strategy.proto](#kava/earn/v1beta1/strategy.proto)
+    - [VaultStrategy](#kava.earn.v1beta1.VaultStrategy)
+  
+    - [StrategyType](#kava.earn.v1beta1.StrategyType)
+  
 - [kava/earn/v1beta1/vault.proto](#kava/earn/v1beta1/vault.proto)
     - [AllowedVault](#kava.earn.v1beta1.AllowedVault)
     - [VaultRecord](#kava.earn.v1beta1.VaultRecord)
     - [VaultShareRecord](#kava.earn.v1beta1.VaultShareRecord)
-  
-    - [StrategyType](#kava.earn.v1beta1.StrategyType)
   
 - [kava/earn/v1beta1/genesis.proto](#kava/earn/v1beta1/genesis.proto)
     - [GenesisState](#kava.earn.v1beta1.GenesisState)
@@ -2727,6 +2730,52 @@ Msg defines the committee Msg service
 
 
 
+<a name="kava/earn/v1beta1/strategy.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/strategy.proto
+
+
+
+<a name="kava.earn.v1beta1.VaultStrategy"></a>
+
+### VaultStrategy
+VaultStrategy is a single strategy for a vault. This contains additional
+information about the strategy such as the status.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `strategy_type` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.earn.v1beta1.StrategyType"></a>
+
+### StrategyType
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| STRATEGY_TYPE_UNKNOWN | 0 |  |
+| STRATEGY_TYPE_KAVA_STAKERS | 1 |  |
+| STRATEGY_TYPE_STABLECOIN_STAKERS | 2 | USDC / BUSD vaults use the same strategy but with the denom set in VaultRecord |
+| STRATEGY_TYPE_KAVA_FOUNDATION | 3 |  |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="kava/earn/v1beta1/vault.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -2737,15 +2786,14 @@ Msg defines the committee Msg service
 <a name="kava.earn.v1beta1.AllowedVault"></a>
 
 ### AllowedVault
-AllowedVault defines a vault that is allowed to be created. These can be
+AllowedVault is a vault that is allowed to be created. These can be
 modified via parameter governance.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `denom` | [string](#string) |  |  |
-| `strategy_type` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  |  |
-| `max_supply` | [uint64](#uint64) |  | TODO: Do we want a max supply limit? |
+| `denom` | [string](#string) |  | Denom is the only supported denomination of the vault for deposits and withdrawals. |
+| `vault_strategies` | [VaultStrategy](#kava.earn.v1beta1.VaultStrategy) | repeated | Strategies are the vault strategies to use for this vault. There must be at least one. |
 
 
 
@@ -2755,7 +2803,7 @@ modified via parameter governance.
 <a name="kava.earn.v1beta1.VaultRecord"></a>
 
 ### VaultRecord
-
+VaultRecord is the state of a vault.
 
 
 | Field | Type | Label | Description |
@@ -2784,19 +2832,6 @@ VaultShareRecord defines the shares owned by a depositor and vault.
 
 
  <!-- end messages -->
-
-
-<a name="kava.earn.v1beta1.StrategyType"></a>
-
-### StrategyType
-
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| KAVA_STAKERS | 0 |  |
-| STABLECOIN_STAKERS | 1 | USDC / BUSD vaults use the same strategy but with the denom set in VaultRecord |
-| KAVA_FOUNDATION | 2 |  |
-
 
  <!-- end enums -->
 
