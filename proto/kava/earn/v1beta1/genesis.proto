@@ -3,13 +3,20 @@ package kava.earn.v1beta1;
 
 option go_package = "github.com/kava-labs/kava/x/earn/types";
 
+import "kava/earn/v1beta1/vault.proto";
 import "gogoproto/gogo.proto";
 
-// GenesisState defines the earn module's genesis state.
+// GenesisState defines the swap module's genesis state.
 message GenesisState {
   // params defines all the paramaters related to earn
   Params params = 1 [(gogoproto.nullable) = false];
+  // vault_records defines the available vaults
+  repeated VaultRecord vault_records = 2 [(gogoproto.castrepeated) = "VaultRecords", (gogoproto.nullable) = false];
+  // share_records defines the owned shares of each vault
+  repeated VaultShareRecord vault_share_records = 3
+      [(gogoproto.castrepeated) = "VaultShareRecords", (gogoproto.nullable) = false];
 }
 
-// Params defines the parameters for the earn module.
-message Params {}
+message Params {
+  repeated AllowedVault allowed_vaults = 1 [(gogoproto.castrepeated) = "AllowedVaults", (gogoproto.nullable) = false];
+}

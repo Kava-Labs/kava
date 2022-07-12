@@ -1,0 +1,43 @@
+syntax = "proto3";
+package kava.earn.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/earn/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+// AllowedVault defines a vault that is allowed to be created. These can be
+// modified via parameter governance.
+message AllowedVault {
+  string denom = 1;
+
+  StrategyType strategy_type = 2;
+
+  // TODO: Do we want a max supply limit?
+  uint64 max_supply = 3;
+}
+
+message VaultRecord {
+  string                   denom        = 1;
+  cosmos.base.v1beta1.Coin total_supply = 2 [(gogoproto.nullable) = false];
+}
+
+enum StrategyType {
+  KAVA_STAKERS = 0;
+  // USDC / BUSD vaults use the same strategy but with the denom set in VaultRecord
+  STABLECOIN_STAKERS = 1;
+  KAVA_FOUNDATION    = 2;
+}
+
+// VaultShareRecord defines the shares owned by a depositor and vault.
+message VaultShareRecord {
+  // depositor represents the owner of the shares
+  bytes depositor = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  // amount_supplied represents the total amount a depositor has supplied to the
+  // vault. The vault is determined by the coin denom.
+  cosmos.base.v1beta1.Coin amount_supplied = 2;
+}
