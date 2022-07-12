@@ -2735,7 +2735,7 @@ GenesisState defines the earn module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.earn.v1beta1.Params) |  | params defines all the paramaters related to swap |
+| `params` | [Params](#kava.earn.v1beta1.Params) |  | params defines all the paramaters related to earn |
 
 
 
