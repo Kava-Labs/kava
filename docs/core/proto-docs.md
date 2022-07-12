@@ -178,6 +178,13 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/earn/v1beta1/vault.proto](#kava/earn/v1beta1/vault.proto)
+    - [AllowedVault](#kava.earn.v1beta1.AllowedVault)
+    - [VaultRecord](#kava.earn.v1beta1.VaultRecord)
+    - [VaultShareRecord](#kava.earn.v1beta1.VaultShareRecord)
+  
+    - [StrategyType](#kava.earn.v1beta1.StrategyType)
+  
 - [kava/earn/v1beta1/genesis.proto](#kava/earn/v1beta1/genesis.proto)
     - [GenesisState](#kava.earn.v1beta1.GenesisState)
     - [Params](#kava.earn.v1beta1.Params)
@@ -2720,6 +2727,85 @@ Msg defines the committee Msg service
 
 
 
+<a name="kava/earn/v1beta1/vault.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/vault.proto
+
+
+
+<a name="kava.earn.v1beta1.AllowedVault"></a>
+
+### AllowedVault
+AllowedVault defines a vault that is allowed to be created. These can be
+modified via parameter governance.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `strategy_type` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  |  |
+| `max_supply` | [uint64](#uint64) |  | TODO: Do we want a max supply limit? |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultRecord"></a>
+
+### VaultRecord
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `total_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultShareRecord"></a>
+
+### VaultShareRecord
+VaultShareRecord defines the shares owned by a depositor and vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [bytes](#bytes) |  | depositor represents the owner of the shares |
+| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount_supplied represents the total amount a depositor has supplied to the vault. The vault is determined by the coin denom. |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="kava.earn.v1beta1.StrategyType"></a>
+
+### StrategyType
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| KAVA_STAKERS | 0 |  |
+| STABLECOIN_STAKERS | 1 | USDC / BUSD vaults use the same strategy but with the denom set in VaultRecord |
+| KAVA_FOUNDATION | 2 |  |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="kava/earn/v1beta1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -2730,12 +2816,14 @@ Msg defines the committee Msg service
 <a name="kava.earn.v1beta1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the earn module's genesis state.
+GenesisState defines the swap module's genesis state.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#kava.earn.v1beta1.Params) |  | params defines all the paramaters related to earn |
+| `vault_records` | [VaultRecord](#kava.earn.v1beta1.VaultRecord) | repeated | vault_records defines the available vaults |
+| `vault_share_records` | [VaultShareRecord](#kava.earn.v1beta1.VaultShareRecord) | repeated | share_records defines the owned shares of each vault |
 
 
 
@@ -2745,7 +2833,12 @@ GenesisState defines the earn module's genesis state.
 <a name="kava.earn.v1beta1.Params"></a>
 
 ### Params
-Params defines the parameters for the earn module.
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allowed_vaults` | [AllowedVault](#kava.earn.v1beta1.AllowedVault) | repeated |  |
 
 
 
