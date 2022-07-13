@@ -16,9 +16,3 @@ enum StrategyType {
   STRATEGY_TYPE_STABLECOIN_STAKERS = 2;
   STRATEGY_TYPE_KAVA_FOUNDATION    = 3;
 }
-
-// VaultStrategy is a single strategy for a vault. This contains additional
-// information about the strategy such as the status.
-message VaultStrategy {
-  StrategyType strategy_type = 1;
-}

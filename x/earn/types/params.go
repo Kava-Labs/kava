@@ -1,20 +1,27 @@
 package types
 
 import (
+	fmt "fmt"
+
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Parameter keys and default values
-var ()
+var (
+	KeyAllowedVaults     = []byte("AllowedVaults")
+	DefaultAllowedVaults = AllowedVaults{}
+)
 
 // NewParams returns a new params object
-func NewParams() Params {
-	return Params{}
+func NewParams(allowedVaults AllowedVaults) Params {
+	return Params{
+		AllowedVaults: allowedVaults,
+	}
 }
 
 // DefaultParams returns default params for earn module
 func DefaultParams() Params {
-	return NewParams()
+	return NewParams(DefaultAllowedVaults)
 }
 
 // ParamKeyTable for earn module.
@@ -25,7 +32,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		// paramtypes.NewParamSetPair(...),
+		paramtypes.NewParamSetPair(KeyAllowedVaults, p.AllowedVaults, validateAllowedVaultsParams),
 	}
 }
 
@@ -33,4 +40,13 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 func (p Params) Validate() error {
 	// TODO:
 	return nil
+}
+
+func validateAllowedVaultsParams(i interface{}) error {
+	p, ok := i.(AllowedVaults)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return p.Validate()
 }
