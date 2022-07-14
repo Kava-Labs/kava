@@ -42,14 +42,23 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 		)
 	}
 
+	// Send coins back to account
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
+		ctx,
+		types.ModuleName,
+		from,
+		sdk.NewCoins(amount),
+	); err != nil {
+		return err
+	}
+
 	// Decrement VaultRecord and VaultShareRecord supplies
 	vaultRecord.TotalSupply = vaultRecord.TotalSupply.Sub(amount)
 	vaultShareRecord.AmountSupplied = vaultShareRecord.AmountSupplied.Sub(amount)
 
-	// Update VaultRecord and VaultShareRecord
-	// TODO: Delete records if supplies are zero
-	k.SetVaultRecord(ctx, vaultRecord)
-	k.SetVaultShareRecord(ctx, vaultShareRecord)
+	// Update VaultRecord and VaultShareRecord, deletes if zero supply
+	k.updateVaultRecord(ctx, vaultRecord)
+	k.updateVaultShareRecord(ctx, vaultShareRecord)
 
 	// Get the strategy for the vault
 	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)

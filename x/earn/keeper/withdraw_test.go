@@ -157,3 +157,71 @@ func (suite *withdrawTestSuite) TestWithdraw_InvalidVault() {
 		sdk.NewCoins(),
 	)
 }
+
+func (suite *withdrawTestSuite) TestWithdraw_FullBalance() {
+	vaultDenom := "busd"
+	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
+	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 100)
+
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+
+	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
+
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	suite.Require().NoError(err)
+
+	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), withdrawAmount)
+	suite.Require().NoError(err)
+
+	// No net changes in balances
+	suite.AccountBalanceEqual(
+		acc.GetAddress(),
+		sdk.NewCoins(startBalance),
+	)
+
+	suite.ModuleAccountBalanceEqual(
+		sdk.NewCoins(),
+	)
+}
+
+func (suite *withdrawTestSuite) TestWithdraw_Partial() {
+	vaultDenom := "busd"
+	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
+	partialWithdrawAmount := sdk.NewInt64Coin(vaultDenom, 50)
+
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+
+	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
+
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	suite.Require().NoError(err)
+
+	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), partialWithdrawAmount)
+	suite.Require().NoError(err)
+
+	suite.AccountBalanceEqual(
+		acc.GetAddress(),
+		sdk.NewCoins(startBalance.Sub(depositAmount).Add(partialWithdrawAmount)),
+	)
+
+	// Second withdraw for remaining 50
+	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), partialWithdrawAmount)
+	suite.Require().NoError(err)
+
+	// No more balance to withdraw
+	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), partialWithdrawAmount)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(types.ErrVaultRecordNotFound, err, "vault record should be deleted after no more supplied")
+
+	// // No net changes in balances
+	suite.AccountBalanceEqual(
+		acc.GetAddress(),
+		sdk.NewCoins(startBalance),
+	)
+
+	suite.ModuleAccountBalanceEqual(
+		sdk.NewCoins(),
+	)
+}
