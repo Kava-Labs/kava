@@ -60,5 +60,14 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 		return err
 	}
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeVaultWithdraw,
+			sdk.NewAttribute(types.AttributeKeyVaultDenom, amount.Denom),
+			sdk.NewAttribute(types.AttributeKeyOwner, from.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.Amount.String()),
+		),
+	)
+
 	return nil
 }

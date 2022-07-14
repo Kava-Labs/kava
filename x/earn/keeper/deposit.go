@@ -61,5 +61,14 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 		return err
 	}
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeVaultDeposit,
+			sdk.NewAttribute(types.AttributeKeyVaultDenom, amount.Denom),
+			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.Amount.String()),
+		),
+	)
+
 	return nil
 }
