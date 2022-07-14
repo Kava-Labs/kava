@@ -1,9 +1,13 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/earn/types"
 )
 
+// Strategy is the interface that must be implemented by a strategy.
 type Strategy interface {
 	// GetName returns the name of the strategy.
 	GetName() string
@@ -35,4 +39,13 @@ type Strategy interface {
 	// the amount of liquidated denominated in GetDenom(). This should be only
 	// called during use of emergency via governance.
 	LiquidateAll() (amount sdk.Coin, err error)
+}
+
+func (k *Keeper) GetStrategy(strategyType types.StrategyType) (Strategy, error) {
+	switch strategyType {
+	case types.STRATEGY_TYPE_STABLECOIN_STAKERS:
+		return (*StableCoinStrategy)(k), nil
+	default:
+		return nil, fmt.Errorf("unknown strategy type: %s", strategyType)
+	}
 }

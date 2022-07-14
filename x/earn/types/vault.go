@@ -1,8 +1,28 @@
 package types
 
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+// NewVaultRecord returns a new VaultRecord with 0 supply.
+func NewVaultRecord(vaultDenom string) VaultRecord {
+	return VaultRecord{
+		Denom:       vaultDenom,
+		TotalSupply: sdk.NewCoin(vaultDenom, sdk.ZeroInt()),
+	}
+}
+
 type VaultRecords []VaultRecord
 
 type VaultShareRecords []VaultShareRecord
+
+// NewVaultShareRecord returns a new VaultShareRecord with 0 supply.
+func NewVaultShareRecord(depositor sdk.AccAddress, vaultDenom string) VaultShareRecord {
+	return VaultShareRecord{
+		Depositor:      depositor,
+		AmountSupplied: sdk.NewCoin(vaultDenom, sdk.ZeroInt()),
+	}
+}
 
 type AllowedVaults []AllowedVault
 
