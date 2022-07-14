@@ -32,14 +32,13 @@ func ParamKeyTable() paramtypes.KeyTable {
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyAllowedVaults, p.AllowedVaults, validateAllowedVaultsParams),
+		paramtypes.NewParamSetPair(KeyAllowedVaults, &p.AllowedVaults, validateAllowedVaultsParams),
 	}
 }
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-	// TODO:
-	return nil
+	return p.AllowedVaults.Validate()
 }
 
 func validateAllowedVaultsParams(i interface{}) error {
