@@ -115,3 +115,9 @@ jq '.app_state.bridge.params.enabled_conversion_pairs = [
         denom: "erc20/weth",
     }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
 
+# Add earn vault
+jq '.app_state.earn.params.allowed_vaults =  [
+    {
+        denom: "ukava",
+        vault_strategy: 2,
+    }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
