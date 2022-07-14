@@ -63,12 +63,13 @@ func (suite *Suite) RemoveCoinsFromModule(amount sdk.Coins) {
 	suite.Require().NoError(err)
 }
 
-// CreateAccount creates a new account from the provided balance
-func (suite *Suite) CreateAccount(initialBalance sdk.Coins) authtypes.AccountI {
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+// CreateAccount creates a new account from the provided balance, using index
+// to create different new addresses.
+func (suite *Suite) CreateAccount(initialBalance sdk.Coins, index int) authtypes.AccountI {
+	_, addrs := app.GeneratePrivKeyAddressPairs(index + 1)
 	ak := suite.App.GetAccountKeeper()
 
-	acc := ak.NewAccountWithAddress(suite.Ctx, addrs[0])
+	acc := ak.NewAccountWithAddress(suite.Ctx, addrs[index])
 	ak.SetAccount(suite.Ctx, acc)
 
 	err := simapp.FundAccount(suite.BankKeeper, suite.Ctx, acc.GetAddress(), initialBalance)
