@@ -5,6 +5,8 @@ import (
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
+// Deposit adds the provided amount from a depositor to a vault. The vault is
+// specified by the denom in the amount.
 func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
 	// Get AllowedVault, if not found (not a valid vault), return error
 	allowedVault, found := k.GetAllowedVault(ctx, amount.Denom)

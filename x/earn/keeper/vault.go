@@ -7,32 +7,91 @@ import (
 )
 
 type ViewVaultKeeper interface {
-	// GetTotalSupplied returns the total balance supplied to the. This
+	// GetVaultTotalSupplied returns the total balance supplied to a vault. This
 	// may not necessarily be the current value of the vault, as it is the sum
 	// of the supplied denom.
 	GetVaultTotalSupplied(ctx sdk.Context, denom string) (sdk.Coin, error)
 
-	// GetTotalValue returns the total **value** of all coins in this vault,
+	// GetVaultTotalValue returns the total **value** of all coins in a vault,
 	// i.e. the realizable total value denominated by GetDenom() if the vault
 	// were to liquidate its entire strategies.
 	GetVaultTotalValue(ctx sdk.Context, denom string) (sdk.Coin, error)
 
-	// GetAccountSupplied returns the supplied amount for a single address
+	// GetVaultAccountSupplied returns the supplied amount for a single address
 	// within the vault.
 	GetVaultAccountSupplied(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error)
 
-	// GetAccountValue returns the value of a single address within the vault
+	// GetVaultAccountValue returns the value of a single address within a vault
 	// if the account were to withdraw their entire balance.
 	GetVaultAccountValue(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error)
+}
 
-	// GetStrategy returns the strategy the vault is associated with.
-	GetVaultStrategy(ctx sdk.Context, denom string) Strategy
+var _ ViewVaultKeeper = (*Keeper)(nil)
 
-	// Deposit a coin into a vault. The coin denom determines the vault.
-	Deposit(ctx sdk.Context, acc sdk.AccAddress, amount sdk.Coin) error
+// GetVaultTotalSupplied returns the total balance supplied to the vault. This
+// may not necessarily be the current value of the vault, as it is the sum
+// of the supplied denom and the value may be higher due to accumulated APYs.
+func (k *Keeper) GetVaultTotalSupplied(ctx sdk.Context, denom string) (sdk.Coin, error) {
+	vault, found := k.GetVaultRecord(ctx, denom)
+	if !found {
+		return sdk.Coin{}, types.ErrVaultRecordNotFound
+	}
 
-	// Withdraw a coin from a vault. The coin denom determines the vault.
-	Withdraw(ctx sdk.Context, acc sdk.AccAddress, amount sdk.Coin) error
+	return vault.TotalSupply, nil
+}
+
+// GetTotalValue returns the total **value** of all coins in this vault,
+// i.e. the realizable total value denominated by GetDenom() if the vault
+// were to liquidate its entire strategies.
+func (k *Keeper) GetVaultTotalValue(ctx sdk.Context, denom string) (sdk.Coin, error) {
+	enabledVault, found := k.GetAllowedVault(ctx, denom)
+	if !found {
+		return sdk.Coin{}, types.ErrVaultRecordNotFound
+	}
+
+	strategy, err := k.GetStrategy(enabledVault.VaultStrategy)
+	if err != nil {
+		return sdk.Coin{}, types.ErrInvalidVaultStrategy
+	}
+
+	return strategy.GetEstimatedTotalAssets(enabledVault.Denom)
+}
+
+// GetVaultAccountSupplied returns the supplied amount for a single address
+// within a vault.
+func (k *Keeper) GetVaultAccountSupplied(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error) {
+	vaultShareRecord, found := k.GetVaultShareRecord(ctx, denom, acc)
+	if !found {
+		return sdk.Coin{}, types.ErrVaultShareRecordNotFound
+	}
+
+	return vaultShareRecord.AmountSupplied, nil
+}
+
+// GetVaultAccountValue returns the value of a single address within a vault
+// if the account were to withdraw their entire balance.
+func (k *Keeper) GetVaultAccountValue(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error) {
+	totalSupplied, err := k.GetVaultTotalSupplied(ctx, denom)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+
+	accSupplied, err := k.GetVaultAccountSupplied(ctx, denom, acc)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+
+	vaultTotalValue, err := k.GetVaultTotalValue(ctx, denom)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+
+	// percent of vault account ownership = accountSupply / totalSupply
+	// value of vault account ownership = percentOwned * totalValue
+	vaultShare := accSupplied.Amount.Quo(totalSupplied.Amount)
+	shareValue := vaultTotalValue.Amount.Mul(vaultShare)
+
+	return sdk.NewCoin(denom, shareValue), nil
 }
 
 // ----------------------------------------------------------------------------
