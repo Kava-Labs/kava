@@ -76,6 +76,11 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 			_, found = suite.StakingKeeper.GetDelegation(suite.Ctx, moduleAccAddress, validatorAddr)
 			suite.False(found)
 
+			// Get pre-mint total supply and delegator balance of the validator-specific liquid token
+			liquidTokenDenom := suite.Keeper.GetLiquidStakingTokenDenom(suite.Ctx, validatorAddr)
+			delegatorBalancePre := suite.BankKeeper.GetBalance(suite.Ctx, delegatorAddr, liquidTokenDenom)
+			totalSupplyPre := suite.BankKeeper.GetSupply(suite.Ctx, liquidTokenDenom)
+
 			// Create and deliver MintDerivative msg
 			msgMint := types.NewMsgMintDerivative(
 				delegatorAddr,
@@ -96,6 +101,14 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 			delegation, found = suite.StakingKeeper.GetDelegation(suite.Ctx, moduleAccAddress, validatorAddr)
 			suite.True(found)
 			suite.Equal(delegation.GetShares(), shares)
+
+			// Confirm that the total supply of the validator-specific liquid tokens has increased as expected
+			totalSupplyPost := suite.BankKeeper.GetSupply(suite.Ctx, liquidTokenDenom)
+			suite.Equal(totalSupplyPost.Sub(totalSupplyPre).Amount, tc.amount.Amount)
+
+			// Confirm that the delegator's balances the validator-specific liquid token has increased as expected
+			delegatorBalancePost := suite.BankKeeper.GetBalance(suite.Ctx, delegatorAddr, liquidTokenDenom)
+			suite.Equal(delegatorBalancePost.Sub(delegatorBalancePre).Amount, tc.amount.Amount)
 		})
 	}
 }

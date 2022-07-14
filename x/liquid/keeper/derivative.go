@@ -49,6 +49,15 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 
 	liquidTokenDenom := k.GetLiquidStakingTokenDenom(ctx, valAddr)
 	liquidToken := sdk.NewCoin(liquidTokenDenom, amount.Amount)
+	err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.Coins{liquidToken})
+	if err != nil {
+		return err
+	}
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegatorAddr, sdk.Coins{liquidToken})
+	if err != nil {
+		return err
+	}
 
 	// Validate unbond share amount
 	shares, err := validator.SharesFromTokens(amount.Amount)
