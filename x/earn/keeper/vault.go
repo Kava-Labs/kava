@@ -6,6 +6,7 @@ import (
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
+// ViewVaultKeeper defines the read-only methods used for querying vaults.
 type ViewVaultKeeper interface {
 	// GetVaultTotalSupplied returns the total balance supplied to a vault. This
 	// may not necessarily be the current value of the vault, as it is the sum

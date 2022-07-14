@@ -24,6 +24,8 @@ func (k Keeper) GetAllowedVaults(ctx sdk.Context) types.AllowedVaults {
 	return k.GetParams(ctx).AllowedVaults
 }
 
+// GetAllowedVault returns a single vault from the module params specified by
+// the denom.
 func (k Keeper) GetAllowedVault(ctx sdk.Context, vaultDenom string) (types.AllowedVault, bool) {
 	for _, allowedVault := range k.GetAllowedVaults(ctx) {
 		if allowedVault.Denom == vaultDenom {

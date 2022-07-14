@@ -10,11 +10,11 @@ type StableCoinStrategy Keeper
 var _ Strategy = (*StableCoinStrategy)(nil)
 
 func (s *StableCoinStrategy) GetName() string {
-	return "stablecoin"
+	return "Stablecoin Stakers"
 }
 
 func (s *StableCoinStrategy) GetDescription() string {
-	return "Mint USDX from stablecoin, then supply the USDX to Lend"
+	return "Mints USDX from stablecoin, then supplies the USDX to Lend"
 }
 
 func (s *StableCoinStrategy) GetSupportedDenoms() []string {
