@@ -112,6 +112,19 @@ func (k *Keeper) GetVaultRecord(ctx sdk.Context, vaultDenom string) (types.Vault
 	return record, true
 }
 
+func (k *Keeper) updateVaultRecord(ctx sdk.Context, vaultRecord types.VaultRecord) {
+	if vaultRecord.TotalSupply.IsZero() {
+		k.DeleteVaultRecord(ctx, vaultRecord.Denom)
+	} else {
+		k.SetVaultRecord(ctx, vaultRecord)
+	}
+}
+
+func (k *Keeper) DeleteVaultRecord(ctx sdk.Context, vaultDenom string) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	store.Delete(types.VaultKey(vaultDenom))
+}
+
 func (k *Keeper) SetVaultRecord(ctx sdk.Context, record types.VaultRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
 	bz := k.cdc.MustMarshal(&record)
@@ -137,6 +150,23 @@ func (k *Keeper) GetVaultShareRecord(
 	k.cdc.MustUnmarshal(bz, &record)
 
 	return record, true
+}
+
+func (k *Keeper) updateVaultShareRecord(ctx sdk.Context, record types.VaultShareRecord) {
+	if record.AmountSupplied.IsZero() {
+		k.DeleteVaultShareRecord(ctx, record.AmountSupplied.Denom, record.Depositor)
+	} else {
+		k.SetVaultShareRecord(ctx, record)
+	}
+}
+
+func (k *Keeper) DeleteVaultShareRecord(
+	ctx sdk.Context,
+	vaultDenom string,
+	acc sdk.AccAddress,
+) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	store.Delete(types.DepositorVaultSharesKey(acc, vaultDenom))
 }
 
 func (k *Keeper) SetVaultShareRecord(
