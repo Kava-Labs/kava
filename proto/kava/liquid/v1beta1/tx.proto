@@ -18,7 +18,7 @@ service Msg {
 message MsgMintDerivative {
   string sender    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string validator = 2;
-  bytes  shares = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
 
 // MsgMintDerivativeResponse defines the Msg/MintDerivative response type.

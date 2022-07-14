@@ -13,7 +13,7 @@ import (
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
 // liquid module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	// TODO
+	cdc.RegisterConcrete(&MsgMintDerivative{}, "liquid/MsgMintDerivative", nil)
 }
 
 // RegisterInterfaces registers proto messages under their interfaces for unmarshalling,

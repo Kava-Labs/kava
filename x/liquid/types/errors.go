@@ -15,7 +15,7 @@ var (
 	ErrInvalidBurnAmount               = sdkerrors.Register(ModuleName, 4, "invalid burn amount")
 	ErrNoValidatorFound                = sdkerrors.New(ModuleName, 5, "validator does not exist")
 	ErrNoDelegatorForAddress           = sdkerrors.New(ModuleName, 6, "delegator does not contain delegation")
-	ErrOnlyBondDenomAllowdForTokenize  = sdkerrors.New(ModuleName, 7, "only bond denom is allowed for tokenize")
+	ErrOnlyBondDenomAllowedForTokenize = sdkerrors.New(ModuleName, 7, "only bond denom is allowed for tokenize")
 	ErrNotEnoughDelegationShares       = sdkerrors.New(ModuleName, 8, "not enough delegation shares")
 	ErrExceedingFreeVestingDelegations = sdkerrors.New(ModuleName, 9, "trying to exceed vested free delegation for vesting account")
 	ErrInvalidLiquidCoinDenom          = sdkerrors.New(ModuleName, 10, "invalid liquid staking coin denom")

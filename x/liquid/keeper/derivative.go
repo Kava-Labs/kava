@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -10,7 +11,7 @@ import (
 )
 
 // MintDerivative mints a new derivative
-func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec) error {
+func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) error {
 
 	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
@@ -22,8 +23,12 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 		return types.ErrNoDelegatorForAddress
 	}
 
+	if amount.Denom != k.stakingKeeper.BondDenom(ctx) {
+		return types.ErrOnlyBondDenomAllowedForTokenize
+	}
+
 	delegationAmount := validator.Tokens.ToDec().Mul(delegation.GetShares()).Quo(validator.DelegatorShares)
-	if shares.GT(delegationAmount) {
+	if amount.Amount.GT(sdk.Int(delegationAmount)) {
 		return types.ErrNotEnoughDelegationShares
 	}
 
@@ -35,46 +40,62 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 			// the tokenize share amount and execute further tokenize share process
 			// tokenize share is reducing unlocked tokens delegation from the vesting account and further process
 			// is not causing issues
-			delFree := acc.GetDelegatedFree().AmountOf(k.stakingKeeper.BondDenom(ctx))
-			if delFree.LT(shares.RoundInt()) {
+			delFree := acc.GetDelegatedFree().AmountOf(amount.Denom)
+			if delFree.LT(amount.Amount) {
 				return types.ErrExceedingFreeVestingDelegations
 			}
 		}
 	}
 
-	liquidCoinDenom := k.GetLiquidStakingTokenDenom(ctx, valAddr)
-	liquidCoin := sdk.NewCoin(liquidCoinDenom, shares.RoundInt())
+	liquidTokenDenom := k.GetLiquidStakingTokenDenom(ctx, valAddr)
+	liquidToken := sdk.NewCoin(liquidTokenDenom, amount.Amount)
+
+	// Validate unbond share amount
+	shares, err := validator.SharesFromTokens(amount.Amount)
+	if err != nil {
+		return err
+	}
+
+	sharesTruncated, err := validator.SharesFromTokensTruncated(amount.Amount)
+	if err != nil {
+		return err
+	}
+
+	delShares := delegation.GetShares()
+	if sharesTruncated.GT(delShares) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid shares amount")
+	}
+
+	// Cap the shares at the delegation's shares. Shares could be greater due to rounding,
+	// however we don't truncate shares because we want to allow for full delegation withdraw.
+	if shares.GT(delShares) {
+		shares = delShares
+	}
 
 	returnAmount, err := k.stakingKeeper.Unbond(ctx, delegatorAddr, valAddr, shares)
 	if err != nil {
 		return err
 	}
-	returnCoins := sdk.NewCoins(sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), returnAmount))
 
 	if validator.IsBonded() {
 		k.bondedTokensToNotBonded(ctx, returnAmount)
 	}
 
 	// Note: UndelegateCoinsFromModuleToAccount is internally calling TrackUndelegation for vesting account
-	err = k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.NotBondedPoolName, delegatorAddr, returnCoins)
+	err = k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.NotBondedPoolName, delegatorAddr, sdk.Coins{amount})
 	if err != nil {
 		return err
 	}
 
 	// send coins to module account
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddr, types.ModuleAccountName, returnCoins)
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddr, types.ModuleAccountName, sdk.Coins{amount})
 	if err != nil {
 		return err
 	}
 
-	validator, found = k.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
-		return types.ErrNoValidatorFound
-	}
-
 	// delegate from module account
 	moduleAccAddress := authtypes.NewModuleAddress(types.ModuleAccountName)
-	_, err = k.stakingKeeper.Delegate(ctx, moduleAccAddress, returnAmount, stakingtypes.Unbonded, validator, true)
+	_, err = k.stakingKeeper.Delegate(ctx, moduleAccAddress, amount.Amount, stakingtypes.Unbonded, validator, true)
 	if err != nil {
 		return err
 	}
@@ -82,7 +103,7 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeMintDerivative,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, liquidCoin.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, liquidToken.String()),
 			sdk.NewAttribute(types.AttributeKeyValidator, validator.String()),
 			sdk.NewAttribute(types.AttributeKeyModuleAccount, moduleAccAddress.String()),
 		),

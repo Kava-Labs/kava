@@ -33,7 +33,7 @@ func (k msgServer) MintDerivative(goCtx context.Context, msg *types.MsgMintDeriv
 		return nil, err
 	}
 
-	err = k.keeper.MintDerivative(ctx, sender, validator, msg.Shares)
+	err = k.keeper.MintDerivative(ctx, sender, validator, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
