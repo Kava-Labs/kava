@@ -10,6 +10,7 @@ import (
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	var p types.Params
 	k.paramSubspace.GetParamSet(ctx, &p)
+
 	return p
 }
 

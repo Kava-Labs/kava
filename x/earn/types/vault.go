@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -24,13 +26,29 @@ func NewVaultShareRecord(depositor sdk.AccAddress, vaultDenom string) VaultShare
 	}
 }
 
+// NewAllowedVaults returns a new AllowedVaults with the given denom and strategy type.
+func NewAllowedVault(denom string, strategyType StrategyType) AllowedVault {
+	return AllowedVault{
+		Denom:         denom,
+		VaultStrategy: strategyType,
+	}
+}
+
 type AllowedVaults []AllowedVault
 
 func (a AllowedVaults) Validate() error {
+	denoms := make(map[string]bool)
+
 	for _, v := range a {
 		if err := v.Validate(); err != nil {
 			return err
 		}
+
+		if denoms[v.Denom] {
+			return fmt.Errorf("duplicate vault denom %s", v.Denom)
+		}
+
+		denoms[v.Denom] = true
 	}
 	return nil
 }
