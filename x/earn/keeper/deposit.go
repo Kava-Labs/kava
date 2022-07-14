@@ -12,6 +12,10 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 		return types.ErrInvalidVaultDenom
 	}
 
+	if amount.IsZero() {
+		return types.ErrInsufficientAmount
+	}
+
 	// Check if VaultRecord exists, create if not exist
 	vaultRecord, found := k.GetVaultRecord(ctx, amount.Denom)
 	if !found {
@@ -56,11 +60,6 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	if err := strategy.Deposit(amount); err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin) error {
 
 	return nil
 }

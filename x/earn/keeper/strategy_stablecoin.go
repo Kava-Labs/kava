@@ -7,6 +7,8 @@ import sdk "github.com/cosmos/cosmos-sdk/types"
 // 2. Supply USDX to Lend
 type StableCoinStrategy Keeper
 
+var _ Strategy = (*StableCoinStrategy)(nil)
+
 func (s *StableCoinStrategy) GetName() string {
 	return "stablecoin"
 }
@@ -20,9 +22,11 @@ func (s *StableCoinStrategy) GetSupportedDenoms() []string {
 }
 
 func (s *StableCoinStrategy) GetEstimatedTotalAssets(denom string) (sdk.Coin, error) {
-	// Amount of USDX in Lend
+	// 1. Get amount of USDX in Lend
 
-	// Convert USDX to denom in Mint
+	// 2. Get denom amount if repaying minted USDX
+
+	// 3. Get denom amount if using Kava Swap for remaining extra USDX from supply APY
 
 	return sdk.Coin{}, nil
 }
