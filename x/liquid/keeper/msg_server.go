@@ -46,6 +46,38 @@ func (k msgServer) MintDerivative(goCtx context.Context, msg *types.MsgMintDeriv
 		),
 	)
 
-	// TODO: add amount to response
-	return &types.MsgMintDerivativeResponse{}, nil
+	return &types.MsgMintDerivativeResponse{
+		// Construct coin here to avoid returning a deterministic value from MintDerivative method
+		Amount: sdk.NewCoin(k.keeper.GetLiquidStakingTokenDenom(ctx, validator), msg.Amount.Amount),
+	}, nil
+}
+
+func (k msgServer) BurnDerivative(goCtx context.Context, msg *types.MsgBurnDerivative) (*types.MsgBurnDerivativeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	validator, err := sdk.ValAddressFromBech32(msg.Validator)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.keeper.BurnDerivative(ctx, sender, validator, msg.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Validator),
+		),
+	)
+	return &types.MsgBurnDerivativeResponse{
+		Amount: msg.Amount,
+	}, nil
 }

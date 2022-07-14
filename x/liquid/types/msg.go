@@ -56,3 +56,50 @@ func (msg MsgMintDerivative) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{sender}
 }
+
+// NewMsgBurnDerivative returns a new MsgBurnDerivative
+func NewMsgBurnDerivative(sender sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) MsgBurnDerivative {
+	return MsgBurnDerivative{
+		Sender:    sender.String(),
+		Validator: validator.String(),
+		Amount:    amount,
+	}
+}
+
+// Route return the message type used for routing the message.
+func (msg MsgBurnDerivative) Route() string { return RouterKey }
+
+// Type returns a human-readable string for the message, intended for utilization within tags.
+func (msg MsgBurnDerivative) Type() string { return "burn_derivative" }
+
+// ValidateBasic does a simple validation check that doesn't require access to any other information.
+func (msg MsgBurnDerivative) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	_, err = sdk.ValAddressFromBech32(msg.Validator)
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+	if msg.Amount.IsNil() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "amount %s", msg.Amount)
+	}
+	return nil
+}
+
+// GetSignBytes gets the canonical byte representation of the Msg.
+func (msg MsgBurnDerivative) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners returns the addresses of signers that must sign.
+func (msg MsgBurnDerivative) GetSigners() []sdk.AccAddress {
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
+}
