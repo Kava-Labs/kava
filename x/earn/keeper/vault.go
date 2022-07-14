@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -34,6 +35,55 @@ type ViewVaultKeeper interface {
 	Withdraw(ctx sdk.Context, acc sdk.AccAddress, amount sdk.Coin) error
 }
 
-func (k *Keeper) GetVaultRecord(ctx sdk.Context, strategy Strategy) (types.VaultRecord, error) {
-	return types.VaultRecord{}, nil
+// ----------------------------------------------------------------------------
+// VaultRecord
+
+func (k *Keeper) GetVaultRecord(ctx sdk.Context, vaultDenom string) (types.VaultRecord, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+
+	bz := store.Get(types.VaultKey(vaultDenom))
+	if bz == nil {
+		return types.VaultRecord{}, false
+	}
+
+	var record types.VaultRecord
+	k.cdc.MustUnmarshal(bz, &record)
+
+	return record, true
+}
+
+func (k *Keeper) SetVaultRecord(ctx sdk.Context, record types.VaultRecord) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	bz := k.cdc.MustMarshal(&record)
+	store.Set(types.VaultKey(record.Denom), bz)
+}
+
+// ----------------------------------------------------------------------------
+// VaultShare
+
+func (k *Keeper) GetVaultShareRecord(
+	ctx sdk.Context,
+	vaultDenom string,
+	acc sdk.AccAddress,
+) (types.VaultShareRecord, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+
+	bz := store.Get(types.DepositorVaultSharesKey(acc, vaultDenom))
+	if bz == nil {
+		return types.VaultShareRecord{}, false
+	}
+
+	var record types.VaultShareRecord
+	k.cdc.MustUnmarshal(bz, &record)
+
+	return record, true
+}
+
+func (k *Keeper) SetVaultShareRecord(
+	ctx sdk.Context,
+	record types.VaultShareRecord,
+) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	bz := k.cdc.MustMarshal(&record)
+	store.Set(types.DepositorVaultSharesKey(record.Depositor, record.AmountSupplied.Denom), bz)
 }

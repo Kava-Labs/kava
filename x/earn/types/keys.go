@@ -24,8 +24,8 @@ const (
 
 // key prefixes for store
 var (
-	VaultKeyPrefix   = []byte{0x01} // denom -> vault
-	VaultSharePrefix = []byte{0x02}
+	VaultRecordKeyPrefix = []byte{0x01} // denom -> vault
+	VaultSharePrefix     = []byte{0x02}
 
 	sep = []byte("|")
 )

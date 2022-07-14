@@ -26,3 +26,15 @@ func (s *StableCoinStrategy) GetEstimatedTotalAssets(denom string) (sdk.Coin, er
 
 	return sdk.Coin{}, nil
 }
+
+func (s *StableCoinStrategy) Deposit(amount sdk.Coin) error {
+	return nil
+}
+
+func (s *StableCoinStrategy) Withdraw(amount sdk.Coin) error {
+	return nil
+}
+
+func (s *StableCoinStrategy) LiquidateAll() (amount sdk.Coin, err error) {
+	return sdk.Coin{}, nil
+}
