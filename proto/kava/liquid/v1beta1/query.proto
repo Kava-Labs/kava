@@ -1,0 +1,30 @@
+syntax = "proto3";
+package kava.liquid.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "kava/liquid/v1beta1/store.proto";
+
+option go_package = "github.com/kava-labs/kava/x/liquid/types";
+
+// Query defines the gRPC querier service for liquid module
+service Query {
+  // Params queries all parameters of the liquid module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/liquid/v1beta1/params";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/liquid
+// parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/liquid
+// parameters.
+message QueryParamsResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  Params params = 1 [(gogoproto.nullable) = false];
+}

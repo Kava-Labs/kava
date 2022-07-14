@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.App = tApp
 	suite.Ctx = ctx
-	suite.Keeper = tApp.GetLiquidStakingKeeper()
+	suite.Keeper = tApp.GetLiquidKeeper()
 	suite.StakingKeeper = tApp.GetStakingKeeper()
 	suite.BankKeeper = tApp.GetBankKeeper()
 }

@@ -1,12 +1,12 @@
 syntax = "proto3";
-package kava.liquidstaking.v1beta1;
+package kava.liquid.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package                      = "github.com/kava-labs/kava/x/liquidstaking/types";
+option go_package                      = "github.com/kava-labs/kava/x/liquid/types";
 option (gogoproto.goproto_getters_all) = false;
 
-// Params defines the parameters for the liquidstaking module.
+// Params defines the parameters for the liquid module.
 message Params {}
