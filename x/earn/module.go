@@ -17,6 +17,7 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/kava-labs/kava/x/earn/client/cli"
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -75,12 +76,12 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux 
 
 // GetTxCmd returns the root tx command for the module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil // TODO: cli.GetTxCmd()
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil // TODO: cli.GetQueryCmd()
+	return cli.GetQueryCmd()
 }
 
 //____________________________________________________________________________
