@@ -7,6 +7,8 @@ import (
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
+// Withdraw removes the amount of supplied tokens from a vault and transfers it
+// back to the account.
 func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin) error {
 	// Get AllowedVault, if not found (not a valid vault), return error
 	allowedVault, found := k.GetAllowedVault(ctx, amount.Denom)

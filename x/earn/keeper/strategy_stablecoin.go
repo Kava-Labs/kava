@@ -39,6 +39,9 @@ func (s *StableCoinStrategy) Withdraw(amount sdk.Coin) error {
 	return nil
 }
 
+// LiquidateAll liquidates all assets in the strategy, this should be called
+// only in case of emergency or when all assets should be moved to a new
+// strategy.
 func (s *StableCoinStrategy) LiquidateAll() (amount sdk.Coin, err error) {
 	return sdk.Coin{}, nil
 }
