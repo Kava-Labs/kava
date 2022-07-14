@@ -10,6 +10,14 @@ var (
 	_ sdk.Msg = &MsgWithdraw{}
 )
 
+// NewMsgDeposit returns a new MsgDeposit.
+func NewMsgDeposit(depositor string, amount sdk.Coin) *MsgDeposit {
+	return &MsgDeposit{
+		Depositor: depositor,
+		Amount:    amount,
+	}
+}
+
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDeposit) ValidateBasic() error {
 	if msg.Depositor == "" {
@@ -37,6 +45,14 @@ func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
 	}
 
 	return []sdk.AccAddress{depositor}
+}
+
+// NewMsgWithdraw returns a new MsgWithdraw.
+func NewMsgWithdraw(from string, amount sdk.Coin) *MsgWithdraw {
+	return &MsgWithdraw{
+		From:   from,
+		Amount: amount,
+	}
 }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
