@@ -1,4 +1,4 @@
-package liquidstaking
+package liquid
 
 import (
 	"context"
@@ -17,9 +17,9 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/kava-labs/kava/x/liquidstaking/client/cli"
-	"github.com/kava-labs/kava/x/liquidstaking/keeper"
-	"github.com/kava-labs/kava/x/liquidstaking/types"
+	"github.com/kava-labs/kava/x/liquid/client/cli"
+	"github.com/kava-labs/kava/x/liquid/keeper"
+	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 var (

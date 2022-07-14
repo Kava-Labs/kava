@@ -11,7 +11,7 @@ import (
 )
 
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
-// liquidstaking module.
+// liquid module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	// TODO
 }

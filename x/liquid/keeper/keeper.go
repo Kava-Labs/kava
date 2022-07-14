@@ -8,7 +8,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/kava-labs/kava/x/liquidstaking/types"
+	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 // Keeper struct for savings module
@@ -23,7 +23,7 @@ type Keeper struct {
 	stakingKeeper types.StakingKeeper
 }
 
-// NewKeeper returns a new keeper for the liquidstaking module.
+// NewKeeper returns a new keeper for the liquid module.
 func NewKeeper(
 	cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace,
 	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper,

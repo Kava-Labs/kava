@@ -1,13 +1,13 @@
 package types
 
-// NewGenesisState creates a new genesis state for the liquidstaking module
+// NewGenesisState creates a new genesis state for the liquid module
 func NewGenesisState(p Params) GenesisState {
 	return GenesisState{
 		Params: p,
 	}
 }
 
-// DefaultGenesisState defines default GenesisState for liquidstaking
+// DefaultGenesisState defines default GenesisState for liquid
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
 		DefaultParams(),

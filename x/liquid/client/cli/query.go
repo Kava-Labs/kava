@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
-	"github.com/kava-labs/kava/x/liquidstaking/types"
+	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 // flags for cli queries
@@ -19,9 +19,9 @@ const (
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd() *cobra.Command {
-	liquidstakingQueryCmd := &cobra.Command{
+	liquidQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the liquidstaking module",
+		Short:                      "Querying commands for the liquid module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -35,17 +35,17 @@ func GetQueryCmd() *cobra.Command {
 		flags.AddQueryFlagsToCmd(cmd)
 	}
 
-	liquidstakingQueryCmd.AddCommand(cmds...)
+	liquidQueryCmd.AddCommand(cmds...)
 
-	return liquidstakingQueryCmd
+	return liquidQueryCmd
 }
 
-// GetCmdQueryParams queries the liquidstaking module parameters
+// GetCmdQueryParams queries the liquid module parameters
 func GetCmdQueryParams() *cobra.Command {
 	return &cobra.Command{
 		Use:   "params",
-		Short: "get the liquidstaking module parameters",
-		Long:  "Get the current global liquidstaking module parameters.",
+		Short: "get the liquid module parameters",
+		Long:  "Get the current global liquid module parameters.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)

@@ -12,14 +12,14 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/kava-labs/kava/x/liquidstaking/types"
+	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd() *cobra.Command {
-	liquidstakingTxCmd := &cobra.Command{
+	liquidTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "liquidstaking transactions subcommands",
+		Short:                      "liquid transactions subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -33,9 +33,9 @@ func GetTxCmd() *cobra.Command {
 		flags.AddTxFlagsToCmd(cmd)
 	}
 
-	liquidstakingTxCmd.AddCommand(cmds...)
+	liquidTxCmd.AddCommand(cmds...)
 
-	return liquidstakingTxCmd
+	return liquidTxCmd
 }
 
 func getCmdMintDerivative() *cobra.Command {

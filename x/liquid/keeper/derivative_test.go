@@ -5,7 +5,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/kava-labs/kava/x/liquidstaking/types"
+	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 var d = sdk.MustNewDecFromStr

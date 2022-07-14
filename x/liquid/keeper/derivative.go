@@ -6,7 +6,7 @@ import (
 	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/kava-labs/kava/x/liquidstaking/types"
+	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 // MintDerivative mints a new derivative

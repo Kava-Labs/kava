@@ -5,14 +5,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/liquidstaking/types"
+	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 type msgServer struct {
 	keeper Keeper
 }
 
-// NewMsgServerImpl returns an implementation of the liquidstaking MsgServer interface
+// NewMsgServerImpl returns an implementation of the liquid MsgServer interface
 // for the provided Keeper.
 func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &msgServer{keeper: keeper}
