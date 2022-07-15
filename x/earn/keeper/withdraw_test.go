@@ -215,7 +215,7 @@ func (suite *withdrawTestSuite) TestWithdraw_Partial() {
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(types.ErrVaultRecordNotFound, err, "vault record should be deleted after no more supplied")
 
-	// // No net changes in balances
+	// No net changes in balances
 	suite.AccountBalanceEqual(
 		acc.GetAddress(),
 		sdk.NewCoins(startBalance),

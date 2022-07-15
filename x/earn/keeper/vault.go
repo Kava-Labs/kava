@@ -130,9 +130,9 @@ func (k *Keeper) GetVaultRecord(
 	return record, true
 }
 
-// updateVaultRecord updates the vault record in state for a given denom. This
+// UpdateVaultRecord updates the vault record in state for a given denom. This
 // deletes it if the supply is zero and updates the state if supply is non-zero.
-func (k *Keeper) updateVaultRecord(
+func (k *Keeper) UpdateVaultRecord(
 	ctx sdk.Context,
 	vaultRecord types.VaultRecord,
 ) {
@@ -179,10 +179,10 @@ func (k *Keeper) GetVaultShareRecord(
 	return record, true
 }
 
-// updateVaultShareRecord updates the vault share record in state for a given
+// UpdateVaultShareRecord updates the vault share record in state for a given
 // denom and account. This deletes it if the supply is zero and updates the
 // state if supply is non-zero.
-func (k *Keeper) updateVaultShareRecord(
+func (k *Keeper) UpdateVaultShareRecord(
 	ctx sdk.Context,
 	record types.VaultShareRecord,
 ) {
