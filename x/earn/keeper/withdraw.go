@@ -57,8 +57,8 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 	vaultShareRecord.AmountSupplied = vaultShareRecord.AmountSupplied.Sub(amount)
 
 	// Update VaultRecord and VaultShareRecord, deletes if zero supply
-	k.updateVaultRecord(ctx, vaultRecord)
-	k.updateVaultShareRecord(ctx, vaultShareRecord)
+	k.UpdateVaultRecord(ctx, vaultRecord)
+	k.UpdateVaultShareRecord(ctx, vaultShareRecord)
 
 	// Get the strategy for the vault
 	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
