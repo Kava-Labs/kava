@@ -3,30 +3,25 @@ package keeper
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 // StableCoinStrategy defines the stablecoin strategy:
-// 1. Mint USDX from stablecoin (USDC, BUSD, USTD, DAI)
-// 2. Supply USDX to Lend
+// 1. Supply USDX to Lend
 type StableCoinStrategy Keeper
 
 var _ Strategy = (*StableCoinStrategy)(nil)
 
 func (s *StableCoinStrategy) GetName() string {
-	return "Stablecoin Stakers"
+	return "USDX"
 }
 
 func (s *StableCoinStrategy) GetDescription() string {
-	return "Mints USDX from stablecoin, then supplies the USDX to Lend"
+	return "Supplies the USDX to Lend"
 }
 
 func (s *StableCoinStrategy) GetSupportedDenoms() []string {
-	return []string{"busd", "usdc", "usdt", "dai"}
+	return []string{"usdx"}
 }
 
 func (s *StableCoinStrategy) GetEstimatedTotalAssets(denom string) (sdk.Coin, error) {
 	// 1. Get amount of USDX in Lend
-
-	// 2. Get denom amount if repaying minted USDX
-
-	// 3. Get denom amount if using Kava Swap for remaining extra USDX from supply APY
 
 	return sdk.Coin{}, nil
 }
