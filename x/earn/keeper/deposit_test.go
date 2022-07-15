@@ -67,7 +67,7 @@ func (suite *depositTestSuite) TestDeposit_Exceed() {
 
 	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(sdkerrors.ErrInsufficientFunds, err)
+	suite.Require().ErrorIs(err, sdkerrors.ErrInsufficientFunds)
 
 	// No changes in balances
 
@@ -92,7 +92,7 @@ func (suite *depositTestSuite) TestDeposit_Zero() {
 
 	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(types.ErrInsufficientAmount, err)
+	suite.Require().ErrorIs(err, types.ErrInsufficientAmount)
 
 	// No changes in balances
 
@@ -117,7 +117,7 @@ func (suite *depositTestSuite) TestDeposit_InvalidVault() {
 
 	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(types.ErrInvalidVaultDenom, err)
+	suite.Require().ErrorIs(err, types.ErrInvalidVaultDenom)
 
 	// No changes in balances
 

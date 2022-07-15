@@ -35,7 +35,7 @@ func (suite *withdrawTestSuite) TestWithdraw_NoVaultRecord() {
 	// Withdraw without having any prior deposits
 	err := suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), withdrawAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(types.ErrVaultRecordNotFound, err)
+	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound)
 
 	// No balance changes
 	suite.AccountBalanceEqual(
@@ -67,7 +67,7 @@ func (suite *withdrawTestSuite) TestWithdraw_NoVaultShareRecord() {
 	// Withdraw from acc2 without having any prior deposits
 	err = suite.Keeper.Withdraw(suite.Ctx, acc2.GetAddress(), acc2WithdrawAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(types.ErrVaultShareRecordNotFound, err)
+	suite.Require().ErrorIs(err, types.ErrVaultShareRecordNotFound)
 
 	// No balance changes in acc2
 	suite.AccountBalanceEqual(
@@ -95,7 +95,7 @@ func (suite *withdrawTestSuite) TestWithdraw_ExceedBalance() {
 
 	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), withdrawAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(types.ErrInvalidShares, err)
+	suite.Require().ErrorIs(err, types.ErrInvalidShares)
 
 	// Balances still the same after deposit
 	suite.AccountBalanceEqual(
@@ -119,7 +119,7 @@ func (suite *withdrawTestSuite) TestWithdraw_Zero() {
 
 	err := suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), withdrawAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(types.ErrInsufficientAmount, err)
+	suite.Require().ErrorIs(err, types.ErrInsufficientAmount)
 
 	// No changes in balances
 
@@ -144,7 +144,7 @@ func (suite *withdrawTestSuite) TestWithdraw_InvalidVault() {
 
 	err := suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), withdrawAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(types.ErrInvalidVaultDenom, err)
+	suite.Require().ErrorIs(err, types.ErrInvalidVaultDenom)
 
 	// No changes in balances
 
@@ -213,7 +213,7 @@ func (suite *withdrawTestSuite) TestWithdraw_Partial() {
 	// No more balance to withdraw
 	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), partialWithdrawAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(types.ErrVaultRecordNotFound, err, "vault record should be deleted after no more supplied")
+	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound, "vault record should be deleted after no more supplied")
 
 	// No net changes in balances
 	suite.AccountBalanceEqual(
