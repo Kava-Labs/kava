@@ -113,14 +113,49 @@ func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue() {
-	// TODO: After strategy implemented
+	vaultDenom := "usdx"
+	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
+
+	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
+
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	suite.Require().NoError(err)
+
+	suite.T().Skip("TODO: After strategy GetEstimatedTotalAssets implemented")
+
+	_, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc.GetAddress())
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrVaultShareRecordNotFound)
 }
 
-func (suite *vaultTestSuite) TestGetVaultAccountValue_NotFound() {
+func (suite *vaultTestSuite) TestGetVaultAccountValue_VaultNotFound() {
 	vaultDenom := "usdx"
 	acc := suite.CreateAccount(sdk.NewCoins(), 0)
 
-	_, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, vaultDenom, acc.GetAddress())
+	_, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc.GetAddress())
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound)
+}
+
+func (suite *vaultTestSuite) TestGetVaultAccountValue_ShareNotFound() {
+	vaultDenom := "usdx"
+	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
+
+	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
+	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1)
+
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+
+	// Deposit from acc1 so that vault record exists
+	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount)
+	suite.Require().NoError(err)
+
+	// Query from acc2 with no share record
+	_, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc2.GetAddress())
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, types.ErrVaultShareRecordNotFound)
 }
