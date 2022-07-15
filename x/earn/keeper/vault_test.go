@@ -41,6 +41,35 @@ func (suite *vaultTestSuite) TestGetVaultTotalSupplied() {
 	suite.Equal(depositAmount, vaultTotalSupplied)
 }
 
+func (suite *vaultTestSuite) TestGetVaultTotalSupplied_NotFound() {
+	vaultDenom := "usdx"
+
+	_, err := suite.Keeper.GetVaultTotalSupplied(suite.Ctx, vaultDenom)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound)
+}
+
+func (suite *vaultTestSuite) TestGetVaultTotalValue() {
+	// TODO: After strategy implemented GetEstimatedTotalAssets
+}
+
+func (suite *vaultTestSuite) TestGetVaultTotalValue_NotFound() {
+	vaultDenom := "usdx"
+
+	_, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound)
+}
+
+func (suite *vaultTestSuite) TestGetVaultTotalValue_InvalidStrategy() {
+	vaultDenom := "usdx"
+	suite.CreateVault(vaultDenom, 99999) // not valid strategy type
+
+	_, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrInvalidVaultStrategy)
+}
+
 func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
@@ -56,11 +85,11 @@ func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 
 	_, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, vaultDenom, acc1.GetAddress())
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(types.ErrVaultShareRecordNotFound, err)
+	suite.Require().ErrorIs(err, types.ErrVaultShareRecordNotFound)
 
 	_, err = suite.Keeper.GetVaultAccountSupplied(suite.Ctx, vaultDenom, acc2.GetAddress())
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(types.ErrVaultShareRecordNotFound, err)
+	suite.Require().ErrorIs(err, types.ErrVaultShareRecordNotFound)
 
 	// Deposits from both accounts
 
@@ -85,6 +114,15 @@ func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue() {
 	// TODO: After strategy implemented
+}
+
+func (suite *vaultTestSuite) TestGetVaultAccountValue_NotFound() {
+	vaultDenom := "usdx"
+	acc := suite.CreateAccount(sdk.NewCoins(), 0)
+
+	_, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, vaultDenom, acc.GetAddress())
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrVaultShareRecordNotFound)
 }
 
 // ----------------------------------------------------------------------------
