@@ -32,7 +32,10 @@ var _ ViewVaultKeeper = (*Keeper)(nil)
 // GetVaultTotalSupplied returns the total balance supplied to the vault. This
 // may not necessarily be the current value of the vault, as it is the sum
 // of the supplied denom and the value may be higher due to accumulated APYs.
-func (k *Keeper) GetVaultTotalSupplied(ctx sdk.Context, denom string) (sdk.Coin, error) {
+func (k *Keeper) GetVaultTotalSupplied(
+	ctx sdk.Context,
+	denom string,
+) (sdk.Coin, error) {
 	vault, found := k.GetVaultRecord(ctx, denom)
 	if !found {
 		return sdk.Coin{}, types.ErrVaultRecordNotFound
@@ -44,7 +47,10 @@ func (k *Keeper) GetVaultTotalSupplied(ctx sdk.Context, denom string) (sdk.Coin,
 // GetTotalValue returns the total **value** of all coins in this vault,
 // i.e. the realizable total value denominated by GetDenom() if the vault
 // were to liquidate its entire strategies.
-func (k *Keeper) GetVaultTotalValue(ctx sdk.Context, denom string) (sdk.Coin, error) {
+func (k *Keeper) GetVaultTotalValue(
+	ctx sdk.Context,
+	denom string,
+) (sdk.Coin, error) {
 	enabledVault, found := k.GetAllowedVault(ctx, denom)
 	if !found {
 		return sdk.Coin{}, types.ErrVaultRecordNotFound
@@ -60,7 +66,11 @@ func (k *Keeper) GetVaultTotalValue(ctx sdk.Context, denom string) (sdk.Coin, er
 
 // GetVaultAccountSupplied returns the supplied amount for a single address
 // within a vault.
-func (k *Keeper) GetVaultAccountSupplied(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error) {
+func (k *Keeper) GetVaultAccountSupplied(
+	ctx sdk.Context,
+	denom string,
+	acc sdk.AccAddress,
+) (sdk.Coin, error) {
 	vaultShareRecord, found := k.GetVaultShareRecord(ctx, denom, acc)
 	if !found {
 		return sdk.Coin{}, types.ErrVaultShareRecordNotFound
@@ -71,7 +81,11 @@ func (k *Keeper) GetVaultAccountSupplied(ctx sdk.Context, denom string, acc sdk.
 
 // GetVaultAccountValue returns the value of a single address within a vault
 // if the account were to withdraw their entire balance.
-func (k *Keeper) GetVaultAccountValue(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error) {
+func (k *Keeper) GetVaultAccountValue(
+	ctx sdk.Context,
+	denom string,
+	acc sdk.AccAddress,
+) (sdk.Coin, error) {
 	totalSupplied, err := k.GetVaultTotalSupplied(ctx, denom)
 	if err != nil {
 		return sdk.Coin{}, err
@@ -96,9 +110,13 @@ func (k *Keeper) GetVaultAccountValue(ctx sdk.Context, denom string, acc sdk.Acc
 }
 
 // ----------------------------------------------------------------------------
-// VaultRecord
+// VaultRecord -- vault total supplies
 
-func (k *Keeper) GetVaultRecord(ctx sdk.Context, vaultDenom string) (types.VaultRecord, bool) {
+// GetVaultRecord returns the vault record for a given denom.
+func (k *Keeper) GetVaultRecord(
+	ctx sdk.Context,
+	vaultDenom string,
+) (types.VaultRecord, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
 
 	bz := store.Get(types.VaultKey(vaultDenom))
@@ -112,7 +130,12 @@ func (k *Keeper) GetVaultRecord(ctx sdk.Context, vaultDenom string) (types.Vault
 	return record, true
 }
 
-func (k *Keeper) updateVaultRecord(ctx sdk.Context, vaultRecord types.VaultRecord) {
+// updateVaultRecord updates the vault record in state for a given denom. This
+// deletes it if the supply is zero and updates the state if supply is non-zero.
+func (k *Keeper) updateVaultRecord(
+	ctx sdk.Context,
+	vaultRecord types.VaultRecord,
+) {
 	if vaultRecord.TotalSupply.IsZero() {
 		k.DeleteVaultRecord(ctx, vaultRecord.Denom)
 	} else {
@@ -120,11 +143,13 @@ func (k *Keeper) updateVaultRecord(ctx sdk.Context, vaultRecord types.VaultRecor
 	}
 }
 
+// DeleteVaultRecord deletes the vault record for a given denom.
 func (k *Keeper) DeleteVaultRecord(ctx sdk.Context, vaultDenom string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
 	store.Delete(types.VaultKey(vaultDenom))
 }
 
+// SetVaultRecord sets the vault record for a given denom.
 func (k *Keeper) SetVaultRecord(ctx sdk.Context, record types.VaultRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
 	bz := k.cdc.MustMarshal(&record)
@@ -132,8 +157,10 @@ func (k *Keeper) SetVaultRecord(ctx sdk.Context, record types.VaultRecord) {
 }
 
 // ----------------------------------------------------------------------------
-// VaultShare
+// VaultShare -- user shares per vault
 
+// GetVaultShareRecord returns the vault share record for a given denom and
+// account.
 func (k *Keeper) GetVaultShareRecord(
 	ctx sdk.Context,
 	vaultDenom string,
@@ -152,7 +179,13 @@ func (k *Keeper) GetVaultShareRecord(
 	return record, true
 }
 
-func (k *Keeper) updateVaultShareRecord(ctx sdk.Context, record types.VaultShareRecord) {
+// updateVaultShareRecord updates the vault share record in state for a given
+// denom and account. This deletes it if the supply is zero and updates the
+// state if supply is non-zero.
+func (k *Keeper) updateVaultShareRecord(
+	ctx sdk.Context,
+	record types.VaultShareRecord,
+) {
 	if record.AmountSupplied.IsZero() {
 		k.DeleteVaultShareRecord(ctx, record.AmountSupplied.Denom, record.Depositor)
 	} else {
@@ -160,6 +193,8 @@ func (k *Keeper) updateVaultShareRecord(ctx sdk.Context, record types.VaultShare
 	}
 }
 
+// DeleteVaultShareRecord deletes the vault share record for a given denom and
+// account.
 func (k *Keeper) DeleteVaultShareRecord(
 	ctx sdk.Context,
 	vaultDenom string,
@@ -169,6 +204,7 @@ func (k *Keeper) DeleteVaultShareRecord(
 	store.Delete(types.DepositorVaultSharesKey(acc, vaultDenom))
 }
 
+// SetVaultShareRecord sets the vault share record for a given denom and account.
 func (k *Keeper) SetVaultShareRecord(
 	ctx sdk.Context,
 	record types.VaultShareRecord,
