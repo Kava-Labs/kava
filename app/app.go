@@ -998,9 +998,11 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
 	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
+	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
+
 	for addr := range modAccAddrs {
-		// Set the kavadist module account address as unblocked
-		if addr == kavadistMaccAddr.String() {
+		// Set the kavadist and earn module account address as unblocked
+		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() {
 			modAccAddrs[addr] = false
 		}
 	}
