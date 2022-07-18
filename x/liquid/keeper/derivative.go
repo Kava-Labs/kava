@@ -28,7 +28,7 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	}
 
 	delegationAmount := validator.Tokens.ToDec().Mul(delegation.GetShares()).Quo(validator.DelegatorShares)
-	if amount.Amount.GT(sdk.Int(delegationAmount)) {
+	if amount.Amount.ToDec().GT(delegationAmount) {
 		return types.ErrNotEnoughDelegationShares
 	}
 
@@ -145,6 +145,9 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	// (moduleAccountTotalDelegation * redeemAmount) / totalIssue
 	maccAddr := k.accountKeeper.GetModuleAddress(types.ModuleAccountName)
 	delegation, found := k.stakingKeeper.GetDelegation(ctx, maccAddr, valAddr)
+	if !found {
+		return types.ErrNotEnoughDelegationShares
+	}
 	shareDenomSupply := k.bankKeeper.GetSupply(ctx, amount.Denom)
 	shares := delegation.Shares.Mul(amount.Amount.ToDec()).QuoInt(shareDenomSupply.Amount)
 
