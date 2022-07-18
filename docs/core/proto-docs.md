@@ -2752,7 +2752,7 @@ Msg defines the committee Msg service
 | Name | Number | Description |
 | ---- | ------ | ----------- |
 | STRATEGY_TYPE_UNKNOWN | 0 |  |
-| STRATEGY_TYPE_LEND | 1 |  |
+| STRATEGY_TYPE_HARD | 1 |  |
 | STRATEGY_TYPE_SAVINGS | 2 |  |
 
 

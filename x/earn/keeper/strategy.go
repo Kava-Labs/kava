@@ -43,8 +43,8 @@ type Strategy interface {
 
 func (k *Keeper) GetStrategy(strategyType types.StrategyType) (Strategy, error) {
 	switch strategyType {
-	case types.STRATEGY_TYPE_LEND:
-		return (*LendStrategy)(k), nil
+	case types.STRATEGY_TYPE_HARD:
+		return (*HardStrategy)(k), nil
 	case types.STRATEGY_TYPE_SAVINGS:
 		panic("unimplemented")
 	default:

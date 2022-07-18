@@ -5,24 +5,24 @@ import (
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
-// LendStrategy defines the strategy that deposits assets to Lend
-type LendStrategy Keeper
+// HardStrategy defines the strategy that deposits assets to Hard
+type HardStrategy Keeper
 
-var _ Strategy = (*LendStrategy)(nil)
+var _ Strategy = (*HardStrategy)(nil)
 
-func (s *LendStrategy) GetName() string {
+func (s *HardStrategy) GetName() string {
 	return "Lend"
 }
 
-func (s *LendStrategy) GetDescription() string {
+func (s *HardStrategy) GetDescription() string {
 	return "Supplies assets to Lend"
 }
 
-func (s *LendStrategy) GetSupportedDenoms() []string {
+func (s *HardStrategy) GetSupportedDenoms() []string {
 	return []string{"usdx"}
 }
 
-func (s *LendStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (sdk.Coin, error) {
+func (s *HardStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (sdk.Coin, error) {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	borrow, found := s.hardKeeper.GetSyncedBorrow(ctx, macc.GetAddress())
 	if !found {
@@ -30,6 +30,7 @@ func (s *LendStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (s
 		return sdk.NewCoin(denom, sdk.ZeroInt()), nil
 	}
 
+	// Only return the borrow for the provided denom.
 	for _, coin := range borrow.Amount {
 		if coin.Denom == denom {
 			return coin, nil
@@ -40,12 +41,12 @@ func (s *LendStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (s
 	return sdk.NewCoin(denom, sdk.ZeroInt()), nil
 }
 
-func (s *LendStrategy) Deposit(ctx sdk.Context, amount sdk.Coin) error {
+func (s *HardStrategy) Deposit(ctx sdk.Context, amount sdk.Coin) error {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	return s.hardKeeper.Deposit(ctx, macc.GetAddress(), sdk.NewCoins(amount))
 }
 
-func (s *LendStrategy) Withdraw(ctx sdk.Context, amount sdk.Coin) error {
+func (s *HardStrategy) Withdraw(ctx sdk.Context, amount sdk.Coin) error {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	return s.hardKeeper.Withdraw(ctx, macc.GetAddress(), sdk.NewCoins(amount))
 }
@@ -53,7 +54,7 @@ func (s *LendStrategy) Withdraw(ctx sdk.Context, amount sdk.Coin) error {
 // LiquidateAll liquidates all assets in the strategy, this should be called
 // only in case of emergency or when all assets should be moved to a new
 // strategy.
-func (s *LendStrategy) LiquidateAll(ctx sdk.Context, denom string) (amount sdk.Coin, err error) {
+func (s *HardStrategy) LiquidateAll(ctx sdk.Context, denom string) (amount sdk.Coin, err error) {
 	totalAssets, err := s.GetEstimatedTotalAssets(ctx, denom)
 	if err != nil {
 		return sdk.Coin{}, err
