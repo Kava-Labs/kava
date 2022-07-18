@@ -8,11 +8,14 @@ import (
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/types"
 
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
+
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	BankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -26,8 +29,12 @@ type Suite struct {
 	Keeper        keeper.Keeper
 	App           app.TestApp
 	Ctx           sdk.Context
-	BankKeeper    BankKeeper.Keeper
+	BankKeeper    bankkeeper.Keeper
 	AccountKeeper authkeeper.AccountKeeper
+
+	// Strategy Keepers
+	HardKeeper    hardkeeper.Keeper
+	SavingsKeeper savingskeeper.Keeper
 }
 
 // SetupTest instantiates a new app, keepers, and sets suite state
@@ -40,6 +47,9 @@ func (suite *Suite) SetupTest() {
 	suite.Keeper = tApp.GetEarnKeeper()
 	suite.BankKeeper = tApp.GetBankKeeper()
 	suite.AccountKeeper = tApp.GetAccountKeeper()
+
+	suite.HardKeeper = tApp.GetHardKeeper()
+	suite.SavingsKeeper = tApp.GetSavingsKeeper()
 }
 
 // GetEvents returns emitted events on the sdk context
@@ -96,12 +106,12 @@ func (suite *Suite) CreateVault(vaultDenom string, vaultStrategy types.StrategyT
 	vault := types.NewAllowedVault(vaultDenom, vaultStrategy)
 	suite.Require().NoError(vault.Validate())
 
-	// allowedVaults := suite.Keeper.GetAllowedVaults(suite.Ctx)
-	// allowedVaults = append(allowedVaults, vault)
+	allowedVaults := suite.Keeper.GetAllowedVaults(suite.Ctx)
+	allowedVaults = append(allowedVaults, vault)
 
 	suite.Keeper.SetParams(
 		suite.Ctx,
-		types.NewParams(types.AllowedVaults{vault}),
+		types.NewParams(allowedVaults),
 	)
 }
 
@@ -119,6 +129,29 @@ func (suite *Suite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 	)
 	suite.Equal(coins, balance, fmt.Sprintf("expected module account balance to equal coins %s, but got %s", coins, balance))
 }
+
+// ----------------------------------------------------------------------------
+// Hard
+
+func (suite *Suite) HardDepositAmountEqual(expected sdk.Coins) {
+	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
+
+	hardDeposit, found := suite.HardKeeper.GetSyncedDeposit(suite.Ctx, macc.GetAddress())
+	if expected.IsZero() {
+		suite.Require().False(found)
+		return
+	}
+
+	suite.Require().True(found, "hard should have a deposit")
+	suite.Require().Equalf(
+		expected,
+		hardDeposit.Amount,
+		"hard should have a deposit with the amount %v",
+		expected,
+	)
+}
+
+// ----------------------------------------------------------------------------
 
 // EventsContains asserts that the expected event is in the provided events
 func (suite *Suite) EventsContains(events sdk.Events, expectedEvent sdk.Event) {

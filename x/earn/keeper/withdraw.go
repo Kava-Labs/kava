@@ -42,7 +42,19 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 		)
 	}
 
-	// Send coins back to account
+	// Get the strategy for the vault
+	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
+	if err != nil {
+		return err
+	}
+
+	// Deposit to the strategy
+	if err := strategy.Withdraw(ctx, amount); err != nil {
+		return err
+	}
+
+	// Send coins back to account, must withdraw from strategy first or the
+	// module account may not have any funds to send.
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx,
 		types.ModuleName,
@@ -59,17 +71,6 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 	// Update VaultRecord and VaultShareRecord, deletes if zero supply
 	k.UpdateVaultRecord(ctx, vaultRecord)
 	k.UpdateVaultShareRecord(ctx, vaultShareRecord)
-
-	// Get the strategy for the vault
-	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
-	if err != nil {
-		return err
-	}
-
-	// Deposit to the strategy
-	if err := strategy.Withdraw(ctx, amount); err != nil {
-		return err
-	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

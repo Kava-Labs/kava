@@ -27,12 +27,10 @@ type BankKeeper interface {
 
 // HardKeeper defines the expected interface needed for the hard strategy.
 type HardKeeper interface {
-	// State modification methods
 	Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error
 	Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error
 
-	// Read only methods
-	GetSyncedBorrow(ctx sdk.Context, borrower sdk.AccAddress) (hardtypes.Borrow, bool)
+	GetSyncedDeposit(ctx sdk.Context, depositor sdk.AccAddress) (hardtypes.Deposit, bool)
 }
 
 // SavingsKeeper defines the expected interface needed for the savings strategy.
