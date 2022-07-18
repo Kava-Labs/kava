@@ -34,7 +34,7 @@ func TestMsgServerTestSuite(t *testing.T) {
 
 func (suite *msgServerTestSuite) TestDeposit() {
 	vaultDenom := "usdx"
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_LEND)
 
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
@@ -85,7 +85,7 @@ func (suite *msgServerTestSuite) TestDeposit() {
 
 func (suite *msgServerTestSuite) TestWithdraw() {
 	vaultDenom := "usdx"
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_LEND)
 
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)

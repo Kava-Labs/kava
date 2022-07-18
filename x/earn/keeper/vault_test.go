@@ -28,7 +28,7 @@ func (suite *vaultTestSuite) TestGetVaultTotalSupplied() {
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_LEND)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -76,7 +76,7 @@ func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 	deposit1Amount := sdk.NewInt64Coin(vaultDenom, 100)
 	deposit2Amount := sdk.NewInt64Coin(vaultDenom, 100)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_LEND)
 
 	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1)
@@ -119,7 +119,7 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_LEND)
 
 	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
 	suite.Require().NoError(err)
@@ -148,7 +148,7 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue_ShareNotFound() {
 	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_LEND)
 
 	// Deposit from acc1 so that vault record exists
 	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount)

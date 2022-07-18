@@ -43,11 +43,9 @@ type Strategy interface {
 
 func (k *Keeper) GetStrategy(strategyType types.StrategyType) (Strategy, error) {
 	switch strategyType {
-	case types.STRATEGY_TYPE_STABLECOIN_STAKERS:
+	case types.STRATEGY_TYPE_LEND:
 		return (*StableCoinStrategy)(k), nil
-	case types.STRATEGY_TYPE_KAVA_STAKERS:
-		panic("unimplemented")
-	case types.STRATEGY_TYPE_KAVA_FOUNDATION:
+	case types.STRATEGY_TYPE_SAVINGS:
 		panic("unimplemented")
 	default:
 		return nil, fmt.Errorf("unknown strategy type: %s", strategyType)

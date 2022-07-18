@@ -2752,9 +2752,8 @@ Msg defines the committee Msg service
 | Name | Number | Description |
 | ---- | ------ | ----------- |
 | STRATEGY_TYPE_UNKNOWN | 0 |  |
-| STRATEGY_TYPE_KAVA_STAKERS | 1 |  |
-| STRATEGY_TYPE_STABLECOIN_STAKERS | 2 | USDC / BUSD vaults use the same strategy but with the denom set in VaultRecord |
-| STRATEGY_TYPE_KAVA_FOUNDATION | 3 |  |
+| STRATEGY_TYPE_LEND | 1 |  |
+| STRATEGY_TYPE_SAVINGS | 2 |  |
 
 
  <!-- end enums -->
