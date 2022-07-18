@@ -343,6 +343,8 @@
     - [Query](#kava.liquid.v1beta1.Query)
   
 - [kava/liquid/v1beta1/tx.proto](#kava/liquid/v1beta1/tx.proto)
+    - [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative)
+    - [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse)
     - [MsgMintDerivative](#kava.liquid.v1beta1.MsgMintDerivative)
     - [MsgMintDerivativeResponse](#kava.liquid.v1beta1.MsgMintDerivativeResponse)
   
@@ -4836,6 +4838,38 @@ Query defines the gRPC querier service for liquid module
 
 
 
+<a name="kava.liquid.v1beta1.MsgBurnDerivative"></a>
+
+### MsgBurnDerivative
+MsgBurnDerivative defines the Msg/BurnDerivative request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `validator` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.MsgBurnDerivativeResponse"></a>
+
+### MsgBurnDerivativeResponse
+MsgBurnDerivativeResponse defines the Msg/BurnDerivative response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
 <a name="kava.liquid.v1beta1.MsgMintDerivative"></a>
 
 ### MsgMintDerivative
@@ -4859,6 +4893,11 @@ MsgMintDerivative defines the Msg/MintDerivative request type.
 MsgMintDerivativeResponse defines the Msg/MintDerivative response type.
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
 
 
 
@@ -4877,6 +4916,7 @@ Msg defines the liquid Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `MintDerivative` | [MsgMintDerivative](#kava.liquid.v1beta1.MsgMintDerivative) | [MsgMintDerivativeResponse](#kava.liquid.v1beta1.MsgMintDerivativeResponse) | MintDerivative defines a method for minting deriviatives | |
+| `BurnDerivative` | [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative) | [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse) | BurnDerivative defines a method for burning deriviatives | |
 
  <!-- end services -->
 
