@@ -59,7 +59,7 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	}
 
 	// Deposit to the strategy
-	if err := strategy.Deposit(amount); err != nil {
+	if err := strategy.Deposit(ctx, amount); err != nil {
 		return err
 	}
 
