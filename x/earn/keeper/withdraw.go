@@ -67,7 +67,7 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 	}
 
 	// Deposit to the strategy
-	if err := strategy.Withdraw(amount); err != nil {
+	if err := strategy.Withdraw(ctx, amount); err != nil {
 		return err
 	}
 

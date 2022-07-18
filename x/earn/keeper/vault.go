@@ -61,7 +61,7 @@ func (k *Keeper) GetVaultTotalValue(
 		return sdk.Coin{}, types.ErrInvalidVaultStrategy
 	}
 
-	return strategy.GetEstimatedTotalAssets(enabledVault.Denom)
+	return strategy.GetEstimatedTotalAssets(ctx, enabledVault.Denom)
 }
 
 // GetVaultAccountSupplied returns the supplied amount for a single address

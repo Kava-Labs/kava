@@ -25,20 +25,20 @@ type Strategy interface {
 	//
 	// **Note:** This may not reflect the true value as it may become outdated
 	// from market changes.
-	GetEstimatedTotalAssets(denom string) (sdk.Coin, error)
+	GetEstimatedTotalAssets(ctx sdk.Context, denom string) (sdk.Coin, error)
 
 	// Deposit the specified amount of coins into this strategy. The amount
 	// must be denominated in GetDenom().
-	Deposit(amount sdk.Coin) error
+	Deposit(ctx sdk.Context, amount sdk.Coin) error
 
 	// Withdraw the specified amount of coins from this strategy. The amount
 	// must be denominated in GetDenom().
-	Withdraw(amount sdk.Coin) error
+	Withdraw(ctx sdk.Context, amount sdk.Coin) error
 
 	// LiquidateAll liquidates all of the entire strategy's positions, returning
 	// the amount of liquidated denominated in GetDenom(). This should be only
 	// called during use of emergency via governance.
-	LiquidateAll() (amount sdk.Coin, err error)
+	LiquidateAll(ctx sdk.Context, denom string) (amount sdk.Coin, err error)
 }
 
 func (k *Keeper) GetStrategy(strategyType types.StrategyType) (Strategy, error) {
