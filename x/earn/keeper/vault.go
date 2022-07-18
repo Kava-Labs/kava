@@ -47,6 +47,8 @@ func (k *Keeper) GetVaultTotalSupplied(
 // GetTotalValue returns the total **value** of all coins in this vault,
 // i.e. the realizable total value denominated by GetDenom() if the vault
 // were to liquidate its entire strategies.
+//
+// **Note:** This does not include the tokens held in bank by the module account.
 func (k *Keeper) GetVaultTotalValue(
 	ctx sdk.Context,
 	denom string,

@@ -38,7 +38,7 @@ func (suite *depositTestSuite) TestDeposit_Balances() {
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_LEND)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -61,7 +61,7 @@ func (suite *depositTestSuite) TestDeposit_Exceed() {
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 1001)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_LEND)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -86,7 +86,7 @@ func (suite *depositTestSuite) TestDeposit_Zero() {
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 0)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_LEND)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
