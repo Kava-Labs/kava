@@ -9,11 +9,8 @@ import (
 
 // Strategy is the interface that must be implemented by a strategy.
 type Strategy interface {
-	// GetName returns the name of the strategy.
-	GetName() string
-
-	// GetDescription returns the description of the strategy.
-	GetDescription() string
+	// GetStrategyType returns the strategy type
+	GetStrategyType() types.StrategyType
 
 	// GetSupportedDenoms returns a slice of supported denom for this strategy.
 	// For example, stablecoin stakers strategy supports both "busd" and "usdc".

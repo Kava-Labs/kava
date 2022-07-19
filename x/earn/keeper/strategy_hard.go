@@ -10,12 +10,8 @@ type HardStrategy Keeper
 
 var _ Strategy = (*HardStrategy)(nil)
 
-func (s *HardStrategy) GetName() string {
-	return "Lend"
-}
-
-func (s *HardStrategy) GetDescription() string {
-	return "Supplies assets to Lend"
+func (s *HardStrategy) GetStrategyType() types.StrategyType {
+	return types.STRATEGY_TYPE_HARD
 }
 
 func (s *HardStrategy) GetSupportedDenoms() []string {
