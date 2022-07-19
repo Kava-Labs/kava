@@ -7,9 +7,6 @@ import (
 
 	"github.com/kava-labs/kava/x/earn/testutil"
 	"github.com/kava-labs/kava/x/earn/types"
-	"github.com/kava-labs/kava/x/hard"
-
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -21,37 +18,6 @@ type strategyHardTestSuite struct {
 func (suite *strategyHardTestSuite) SetupTest() {
 	suite.Suite.SetupTest()
 	suite.Keeper.SetParams(suite.Ctx, types.DefaultParams())
-
-	usdxMoneyMarket := hardtypes.NewMoneyMarket(
-		"usdx",
-		hardtypes.NewBorrowLimit(
-			true,
-			sdk.MustNewDecFromStr("20000000"),
-			sdk.MustNewDecFromStr("1"),
-		),
-		"usdx:usd",
-		sdk.NewInt(1000000),
-		hardtypes.NewInterestRateModel(
-			sdk.MustNewDecFromStr("0.05"),
-			sdk.MustNewDecFromStr("2"),
-			sdk.MustNewDecFromStr("0.8"),
-			sdk.MustNewDecFromStr("10"),
-		),
-		sdk.MustNewDecFromStr("0.05"),
-		sdk.ZeroDec(),
-	)
-
-	suite.HardKeeper.SetParams(
-		suite.Ctx,
-		hardtypes.NewParams(
-			hardtypes.MoneyMarkets{
-				usdxMoneyMarket,
-			},
-			sdk.NewDec(10),
-		))
-
-	suite.HardKeeper.SetMoneyMarket(suite.Ctx, "usdx", usdxMoneyMarket)
-	hard.BeginBlocker(suite.Ctx, suite.HardKeeper)
 }
 
 func TestStrategyLendTestSuite(t *testing.T) {

@@ -8,8 +8,10 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/types"
+	"github.com/kava-labs/kava/x/hard"
 
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 
@@ -72,10 +74,44 @@ func (suite *Suite) SetupTest() {
 		},
 	}
 
+	hardGS := hardtypes.NewGenesisState(hardtypes.NewParams(
+		hardtypes.MoneyMarkets{
+			hardtypes.NewMoneyMarket(
+				"usdx",
+				hardtypes.NewBorrowLimit(
+					true,
+					sdk.MustNewDecFromStr("20000000"),
+					sdk.MustNewDecFromStr("1"),
+				),
+				"usdx:usd",
+				sdk.NewInt(1000000),
+				hardtypes.NewInterestRateModel(
+					sdk.MustNewDecFromStr("0.05"),
+					sdk.MustNewDecFromStr("2"),
+					sdk.MustNewDecFromStr("0.8"),
+					sdk.MustNewDecFromStr("10"),
+				),
+				sdk.MustNewDecFromStr("0.05"),
+				sdk.ZeroDec(),
+			),
+		},
+		sdk.NewDec(10),
+	),
+		hardtypes.DefaultAccumulationTimes,
+		hardtypes.DefaultDeposits,
+		hardtypes.DefaultBorrows,
+		hardtypes.DefaultTotalSupplied,
+		hardtypes.DefaultTotalBorrowed,
+		hardtypes.DefaultTotalReserves,
+	)
+
 	tApp := app.NewTestApp()
 
 	tApp.InitializeFromGenesisStates(
-		app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+		app.GenesisState{
+			pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS),
+			hardtypes.ModuleName:      tApp.AppCodec().MustMarshalJSON(&hardGS),
+		},
 	)
 
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
@@ -88,6 +124,8 @@ func (suite *Suite) SetupTest() {
 
 	suite.HardKeeper = tApp.GetHardKeeper()
 	suite.SavingsKeeper = tApp.GetSavingsKeeper()
+
+	hard.BeginBlocker(suite.Ctx, suite.HardKeeper)
 }
 
 // GetEvents returns emitted events on the sdk context
