@@ -24,20 +24,20 @@ func (s *HardStrategy) GetSupportedDenoms() []string {
 
 func (s *HardStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (sdk.Coin, error) {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
-	borrow, found := s.hardKeeper.GetSyncedDeposit(ctx, macc.GetAddress())
+	deposit, found := s.hardKeeper.GetSyncedDeposit(ctx, macc.GetAddress())
 	if !found {
-		// Return 0 if no borrow exists for module account
+		// Return 0 if no deposit exists for module account
 		return sdk.NewCoin(denom, sdk.ZeroInt()), nil
 	}
 
-	// Only return the borrow for the provided denom.
-	for _, coin := range borrow.Amount {
+	// Only return the deposit for the vault denom.
+	for _, coin := range deposit.Amount {
 		if coin.Denom == denom {
 			return coin, nil
 		}
 	}
 
-	// Return 0 if no borrow exists for the denom
+	// Return 0 if no deposit exists for the vault denom
 	return sdk.NewCoin(denom, sdk.ZeroInt()), nil
 }
 
