@@ -12,9 +12,9 @@ type Strategy interface {
 	// GetStrategyType returns the strategy type
 	GetStrategyType() types.StrategyType
 
-	// GetSupportedDenoms returns a slice of supported denom for this strategy.
-	// For example, stablecoin stakers strategy supports both "busd" and "usdc".
-	GetSupportedDenoms() []string
+	// IsDenomSupported returns true if the denom is supported for this
+	// strategy. For example, the hard strategy supports "usdx".
+	IsDenomSupported(string) bool
 
 	// GetEstimatedTotalAssets returns the estimated total assets denominated in
 	// GetDenom() of this strategy. This is the value if the strategy were to
@@ -33,6 +33,7 @@ type Strategy interface {
 	Withdraw(ctx sdk.Context, amount sdk.Coin) error
 }
 
+// GetStrategy returns the strategy for the given strategy type.
 func (k *Keeper) GetStrategy(strategyType types.StrategyType) (Strategy, error) {
 	switch strategyType {
 	case types.STRATEGY_TYPE_HARD:

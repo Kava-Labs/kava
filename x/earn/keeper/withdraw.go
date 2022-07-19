@@ -50,6 +50,9 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 		return err
 	}
 
+	// Not necessary to check if amount denom is allowed for the strategy, as
+	// there would be no vault record if it weren't allowed.
+
 	// Deposit to the strategy
 	if err := strategy.Withdraw(ctx, amount); err != nil {
 		return fmt.Errorf("failed to withdraw from strategy: %w", err)
