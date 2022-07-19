@@ -50,10 +50,8 @@ func (suite *depositTestSuite) TestDeposit_Balances() {
 		sdk.NewCoins(startBalance.Sub(depositAmount)), // Account decreases by deposit
 	)
 
-	// TODO: Module account balance will be zero when strategies are implemented
-	suite.ModuleAccountBalanceEqual(
-		sdk.NewCoins(depositAmount),
-	)
+	suite.VaultTotalValuesEqual(sdk.NewCoins(depositAmount))
+	suite.VaultTotalSuppliedEqual(sdk.NewCoins(depositAmount))
 }
 
 func (suite *depositTestSuite) TestDeposit_Exceed() {
