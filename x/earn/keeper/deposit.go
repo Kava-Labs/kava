@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
@@ -23,6 +24,21 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	if !found {
 		// Create a new VaultRecord with 0 supply
 		vaultRecord = types.NewVaultRecord(amount.Denom)
+	}
+
+	// Get the strategy for the vault
+	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
+	if err != nil {
+		return err
+	}
+
+	// Check if this denom is allowed for the strategy
+	if !strategy.IsDenomSupported(amount.Denom) {
+		return sdkerrors.Wrapf(
+			types.ErrStrategyDenomNotSupported,
+			"%s",
+			amount.Denom,
+		)
 	}
 
 	// Transfer amount to module account
@@ -51,12 +67,6 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	// Update VaultRecord and VaultShareRecord
 	k.SetVaultRecord(ctx, vaultRecord)
 	k.SetVaultShareRecord(ctx, vaultShareRecord)
-
-	// Get the strategy for the vault
-	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
-	if err != nil {
-		return err
-	}
 
 	// Deposit to the strategy
 	if err := strategy.Deposit(ctx, amount); err != nil {
