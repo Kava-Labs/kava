@@ -36,8 +36,9 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	if !strategy.IsDenomSupported(amount.Denom) {
 		return sdkerrors.Wrapf(
 			types.ErrStrategyDenomNotSupported,
-			"%s",
+			"denom %s is not supported by the strategy %s",
 			amount.Denom,
+			strategy.GetStrategyType(),
 		)
 	}
 
