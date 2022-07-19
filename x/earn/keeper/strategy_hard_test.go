@@ -71,6 +71,8 @@ func (suite *strategyHardTestSuite) TestDeposit_SingleAcc() {
 	suite.Require().NoError(err)
 
 	suite.HardDepositAmountEqual(sdk.NewCoins(depositAmount))
+	suite.VaultTotalValuesEqual(sdk.NewCoins(depositAmount))
+	suite.VaultTotalSuppliedEqual(sdk.NewCoins(depositAmount))
 
 	// Query vault total
 	totalValue, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
@@ -95,7 +97,10 @@ func (suite *strategyHardTestSuite) TestDeposit_SingleAcc_MultipleDeposits() {
 	err = suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
 	suite.Require().NoError(err)
 
-	suite.HardDepositAmountEqual(sdk.NewCoins(depositAmount.Add(depositAmount)))
+	expectedVaultBalance := sdk.NewCoins(depositAmount.Add(depositAmount))
+	suite.HardDepositAmountEqual(expectedVaultBalance)
+	suite.VaultTotalValuesEqual(expectedVaultBalance)
+	suite.VaultTotalSuppliedEqual(expectedVaultBalance)
 
 	// Query vault total
 	totalValue, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
@@ -128,6 +133,8 @@ func (suite *strategyHardTestSuite) TestDeposit_MultipleAcc_MultipleDeposits() {
 	}
 
 	suite.HardDepositAmountEqual(sdk.NewCoins(expectedTotalValue))
+	suite.VaultTotalValuesEqual(sdk.NewCoins(expectedTotalValue))
+	suite.VaultTotalSuppliedEqual(sdk.NewCoins(expectedTotalValue))
 
 	// Query vault total
 	totalValue, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
@@ -202,8 +209,45 @@ func (suite *strategyHardTestSuite) TestWithdraw() {
 	suite.Require().NoError(err)
 
 	suite.HardDepositAmountEqual(sdk.NewCoins())
+	suite.VaultTotalValuesEqual(sdk.NewCoins())
+	suite.VaultTotalSuppliedEqual(sdk.NewCoins())
 
 	totalValue, err = suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
 	suite.Require().NoError(err)
 	suite.Equal(sdk.NewInt64Coin(vaultDenom, 0), totalValue)
+
+	// Withdraw again
+	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound, "vault should be deleted when no more supply")
+}
+
+func (suite *strategyHardTestSuite) TestWithdraw_OnlyWithdrawOwnSupply() {
+	vaultDenom := "usdx"
+	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
+
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
+
+	// Deposits from 2 accounts
+	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0).GetAddress()
+	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1).GetAddress()
+	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount)
+	suite.Require().NoError(err)
+
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount)
+	suite.Require().NoError(err)
+
+	// Withdraw
+	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount)
+	suite.Require().NoError(err)
+
+	// Withdraw again
+	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(
+		err,
+		types.ErrVaultShareRecordNotFound,
+		"should only be able to withdraw the account's own supply",
+	)
 }
