@@ -3,12 +3,14 @@ package testutil
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/types"
 
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -39,7 +41,43 @@ type Suite struct {
 
 // SetupTest instantiates a new app, keepers, and sets suite state
 func (suite *Suite) SetupTest() {
+	// Pricefeed required for withdrawing from hard
+	pricefeedGS := pricefeedtypes.GenesisState{
+		Params: pricefeedtypes.Params{
+			Markets: []pricefeedtypes.Market{
+				{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+			},
+		},
+		PostedPrices: []pricefeedtypes.PostedPrice{
+			{
+				MarketID:      "usdx:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("1.00"),
+				Expiry:        time.Now().Add(100 * time.Hour),
+			},
+			{
+				MarketID:      "kava:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("2.00"),
+				Expiry:        time.Now().Add(100 * time.Hour),
+			},
+			{
+				MarketID:      "bnb:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("10.00"),
+				Expiry:        time.Now().Add(100 * time.Hour),
+			},
+		},
+	}
+
 	tApp := app.NewTestApp()
+
+	tApp.InitializeFromGenesisStates(
+		app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+	)
+
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	suite.Ctx = ctx
@@ -128,6 +166,37 @@ func (suite *Suite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 		suite.AccountKeeper.GetModuleAddress(types.ModuleAccountName),
 	)
 	suite.Equal(coins, balance, fmt.Sprintf("expected module account balance to equal coins %s, but got %s", coins, balance))
+}
+
+// ----------------------------------------------------------------------------
+// Earn
+
+func (suite *Suite) VaultTotalValuesEqual(expected sdk.Coins) {
+	for _, coin := range expected {
+		vaultBal, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, coin.Denom)
+		suite.Require().NoError(err, "failed to get vault balance")
+		suite.Require().Equal(coin, vaultBal)
+	}
+}
+
+func (suite *Suite) VaultTotalSuppliedEqual(expected sdk.Coins) {
+	for _, coin := range expected {
+		vaultBal, err := suite.Keeper.GetVaultTotalSupplied(suite.Ctx, coin.Denom)
+		suite.Require().NoError(err, "failed to get vault balance")
+		suite.Require().Equal(coin, vaultBal)
+	}
+}
+
+func (suite *Suite) AccountTotalSuppliedEqual(accs []sdk.AccAddress, supplies []sdk.Coins) {
+	for i, acc := range accs {
+		coins := supplies[i]
+
+		for _, coin := range coins {
+			accVaultBal, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, coin.Denom, acc)
+			suite.Require().NoError(err)
+			suite.Require().Equal(coin, accVaultBal)
+		}
+	}
 }
 
 // ----------------------------------------------------------------------------

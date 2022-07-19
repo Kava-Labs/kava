@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -50,7 +52,7 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 
 	// Deposit to the strategy
 	if err := strategy.Withdraw(ctx, amount); err != nil {
-		return err
+		return fmt.Errorf("failed to withdraw from strategy: %w", err)
 	}
 
 	// Send coins back to account, must withdraw from strategy first or the
