@@ -50,20 +50,3 @@ func (s *HardStrategy) Withdraw(ctx sdk.Context, amount sdk.Coin) error {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	return s.hardKeeper.Withdraw(ctx, macc.GetAddress(), sdk.NewCoins(amount))
 }
-
-// LiquidateAll liquidates all assets in the strategy, this should be called
-// only in case of emergency or when all assets should be moved to a new
-// strategy.
-func (s *HardStrategy) LiquidateAll(ctx sdk.Context, denom string) (amount sdk.Coin, err error) {
-	totalAssets, err := s.GetEstimatedTotalAssets(ctx, denom)
-	if err != nil {
-		return sdk.Coin{}, err
-	}
-
-	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
-	if err := s.hardKeeper.Withdraw(ctx, macc.GetAddress(), sdk.NewCoins(totalAssets)); err != nil {
-		return sdk.Coin{}, err
-	}
-
-	return totalAssets, nil
-}

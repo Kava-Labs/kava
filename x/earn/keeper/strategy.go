@@ -34,11 +34,6 @@ type Strategy interface {
 	// Withdraw the specified amount of coins from this strategy. The amount
 	// must be denominated in GetDenom().
 	Withdraw(ctx sdk.Context, amount sdk.Coin) error
-
-	// LiquidateAll liquidates all of the entire strategy's positions, returning
-	// the amount of liquidated denominated in GetDenom(). This should be only
-	// called during use of emergency via governance.
-	LiquidateAll(ctx sdk.Context, denom string) (amount sdk.Coin, err error)
 }
 
 func (k *Keeper) GetStrategy(strategyType types.StrategyType) (Strategy, error) {
