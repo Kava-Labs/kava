@@ -124,11 +124,9 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue() {
 	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
 	suite.Require().NoError(err)
 
-	suite.T().Skip("TODO: After strategy GetEstimatedTotalAssets implemented")
-
-	_, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc.GetAddress())
-	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrVaultShareRecordNotFound)
+	accValue, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc.GetAddress())
+	suite.Require().NoError(err)
+	suite.Equal(depositAmount, accValue, "value should be same as deposit amount")
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue_VaultNotFound() {

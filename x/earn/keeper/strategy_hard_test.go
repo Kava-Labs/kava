@@ -24,6 +24,21 @@ func TestStrategyLendTestSuite(t *testing.T) {
 	suite.Run(t, new(strategyHardTestSuite))
 }
 
+func (suite *strategyHardTestSuite) TestGetSupportedDenoms() {
+	strategy, err := suite.Keeper.GetStrategy(types.STRATEGY_TYPE_HARD)
+	suite.Require().NoError(err)
+
+	suite.ElementsMatch([]string{"usdx"}, strategy.GetSupportedDenoms())
+	suite.Equal(types.STRATEGY_TYPE_HARD, strategy.GetStrategyType())
+}
+
+func (suite *strategyHardTestSuite) TestGetStrategyType() {
+	strategy, err := suite.Keeper.GetStrategy(types.STRATEGY_TYPE_HARD)
+	suite.Require().NoError(err)
+
+	suite.Equal(types.STRATEGY_TYPE_HARD, strategy.GetStrategyType())
+}
+
 func (suite *strategyHardTestSuite) TestDeposit_SingleAcc() {
 	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
