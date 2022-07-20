@@ -23,10 +23,14 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenesisState defines the earn module's genesis state.
+// GenesisState defines the swap module's genesis state.
 type GenesisState struct {
 	// params defines all the paramaters related to earn
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	// vault_records defines the available vaults
+	VaultRecords VaultRecords `protobuf:"bytes,2,rep,name=vault_records,json=vaultRecords,proto3,castrepeated=VaultRecords" json:"vault_records"`
+	// share_records defines the owned shares of each vault
+	VaultShareRecords VaultShareRecords `protobuf:"bytes,3,rep,name=vault_share_records,json=vaultShareRecords,proto3,castrepeated=VaultShareRecords" json:"vault_share_records"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -69,65 +73,47 @@ func (m *GenesisState) GetParams() Params {
 	return Params{}
 }
 
-// Params defines the parameters for the earn module.
-type Params struct {
-}
-
-func (m *Params) Reset()         { *m = Params{} }
-func (m *Params) String() string { return proto.CompactTextString(m) }
-func (*Params) ProtoMessage()    {}
-func (*Params) Descriptor() ([]byte, []int) {
-	return fileDescriptor_514fe130cb964f8c, []int{1}
-}
-func (m *Params) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *Params) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Params.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
+func (m *GenesisState) GetVaultRecords() VaultRecords {
+	if m != nil {
+		return m.VaultRecords
 	}
-}
-func (m *Params) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Params.Merge(m, src)
-}
-func (m *Params) XXX_Size() int {
-	return m.Size()
-}
-func (m *Params) XXX_DiscardUnknown() {
-	xxx_messageInfo_Params.DiscardUnknown(m)
+	return nil
 }
 
-var xxx_messageInfo_Params proto.InternalMessageInfo
+func (m *GenesisState) GetVaultShareRecords() VaultShareRecords {
+	if m != nil {
+		return m.VaultShareRecords
+	}
+	return nil
+}
 
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "kava.earn.v1beta1.GenesisState")
-	proto.RegisterType((*Params)(nil), "kava.earn.v1beta1.Params")
 }
 
 func init() { proto.RegisterFile("kava/earn/v1beta1/genesis.proto", fileDescriptor_514fe130cb964f8c) }
 
 var fileDescriptor_514fe130cb964f8c = []byte{
-	// 195 bytes of a gzipped FileDescriptorProto
+	// 293 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0xcf, 0x4e, 0x2c, 0x4b,
 	0xd4, 0x4f, 0x4d, 0x2c, 0xca, 0xd3, 0x2f, 0x33, 0x4c, 0x4a, 0x2d, 0x49, 0x34, 0xd4, 0x4f, 0x4f,
 	0xcd, 0x4b, 0x2d, 0xce, 0x2c, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x04, 0x29, 0xd0,
-	0x03, 0x29, 0xd0, 0x83, 0x2a, 0x90, 0x12, 0x49, 0xcf, 0x4f, 0xcf, 0x07, 0xcb, 0xea, 0x83, 0x58,
-	0x10, 0x85, 0x4a, 0xee, 0x5c, 0x3c, 0xee, 0x10, 0x9d, 0xc1, 0x25, 0x89, 0x25, 0xa9, 0x42, 0xe6,
-	0x5c, 0x6c, 0x05, 0x89, 0x45, 0x89, 0xb9, 0xc5, 0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0xdc, 0x46, 0x92,
-	0x7a, 0x18, 0x26, 0xe9, 0x05, 0x80, 0x15, 0x38, 0xb1, 0x9c, 0xb8, 0x27, 0xcf, 0x10, 0x04, 0x55,
-	0xae, 0xc4, 0xc1, 0xc5, 0x06, 0x15, 0x77, 0x38, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6,
-	0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39,
-	0x86, 0x28, 0xb5, 0xf4, 0xcc, 0x92, 0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0x7d, 0x90, 0xb1,
-	0xba, 0x39, 0x89, 0x49, 0xc5, 0x60, 0x96, 0x7e, 0x05, 0xc4, 0x37, 0x25, 0x95, 0x05, 0xa9, 0xc5,
-	0x49, 0x6c, 0x60, 0xb7, 0x19, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x8c, 0x51, 0x81, 0x77, 0xe7,
-	0x00, 0x00, 0x00,
+	0x03, 0x29, 0xd0, 0x83, 0x2a, 0x90, 0x92, 0xc5, 0xd4, 0x53, 0x96, 0x58, 0x9a, 0x53, 0x02, 0xd1,
+	0x21, 0x25, 0x87, 0x29, 0x5d, 0x90, 0x58, 0x94, 0x98, 0x0b, 0x35, 0x51, 0x4a, 0x24, 0x3d, 0x3f,
+	0x3d, 0x1f, 0xcc, 0xd4, 0x07, 0xb1, 0x20, 0xa2, 0x4a, 0x93, 0x98, 0xb8, 0x78, 0xdc, 0x21, 0x36,
+	0x07, 0x97, 0x24, 0x96, 0xa4, 0x0a, 0x99, 0x73, 0xb1, 0x41, 0xb4, 0x49, 0x30, 0x2a, 0x30, 0x6a,
+	0x70, 0x1b, 0x49, 0xea, 0x61, 0xb8, 0x44, 0x2f, 0x00, 0xac, 0xc0, 0x89, 0xe5, 0xc4, 0x3d, 0x79,
+	0x86, 0x20, 0xa8, 0x72, 0xa1, 0x48, 0x2e, 0x5e, 0xb0, 0x73, 0xe2, 0x8b, 0x52, 0x93, 0xf3, 0x8b,
+	0x52, 0x8a, 0x25, 0x98, 0x14, 0x98, 0x35, 0xb8, 0x8d, 0xe4, 0xb0, 0xe8, 0x0f, 0x03, 0xa9, 0x0b,
+	0x02, 0x2b, 0x73, 0x12, 0x01, 0x19, 0xb2, 0xea, 0xbe, 0x3c, 0x0f, 0x92, 0x60, 0x71, 0x10, 0x4f,
+	0x19, 0x12, 0x4f, 0x28, 0x8f, 0x4b, 0x18, 0x62, 0x74, 0x71, 0x46, 0x62, 0x51, 0x2a, 0xdc, 0x02,
+	0x66, 0xb0, 0x05, 0xca, 0xb8, 0x2c, 0x08, 0x06, 0x29, 0x86, 0xda, 0x22, 0x09, 0xb5, 0x45, 0x10,
+	0x5d, 0xa6, 0x38, 0x48, 0xb0, 0x0c, 0x5d, 0xc8, 0xc9, 0xe1, 0xc4, 0x23, 0x39, 0xc6, 0x0b, 0x8f,
+	0xe4, 0x18, 0x1f, 0x3c, 0x92, 0x63, 0x9c, 0xf0, 0x58, 0x8e, 0xe1, 0xc2, 0x63, 0x39, 0x86, 0x1b,
+	0x8f, 0xe5, 0x18, 0xa2, 0xd4, 0xd2, 0x33, 0x4b, 0x32, 0x4a, 0x93, 0xf4, 0x92, 0xf3, 0x73, 0xf5,
+	0x41, 0xd6, 0xea, 0xe6, 0x24, 0x26, 0x15, 0x83, 0x59, 0xfa, 0x15, 0x90, 0xb0, 0x2f, 0xa9, 0x2c,
+	0x48, 0x2d, 0x4e, 0x62, 0x03, 0x87, 0xae, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x97, 0x15, 0xe4,
+	0xfa, 0xe8, 0x01, 0x00, 0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -150,6 +136,34 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.VaultShareRecords) > 0 {
+		for iNdEx := len(m.VaultShareRecords) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.VaultShareRecords[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.VaultRecords) > 0 {
+		for iNdEx := len(m.VaultRecords) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.VaultRecords[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
 	{
 		size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -160,29 +174,6 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0xa
-	return len(dAtA) - i, nil
-}
-
-func (m *Params) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Params) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
 	return len(dAtA) - i, nil
 }
 
@@ -205,15 +196,18 @@ func (m *GenesisState) Size() (n int) {
 	_ = l
 	l = m.Params.Size()
 	n += 1 + l + sovGenesis(uint64(l))
-	return n
-}
-
-func (m *Params) Size() (n int) {
-	if m == nil {
-		return 0
+	if len(m.VaultRecords) > 0 {
+		for _, e := range m.VaultRecords {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
 	}
-	var l int
-	_ = l
+	if len(m.VaultShareRecords) > 0 {
+		for _, e := range m.VaultShareRecords {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -285,56 +279,74 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipGenesis(dAtA[iNdEx:])
-			if err != nil {
-				return err
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VaultRecords", wireType)
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
 				return ErrInvalidLengthGenesis
 			}
-			if (iNdEx + skippy) > l {
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Params) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowGenesis
+			m.VaultRecords = append(m.VaultRecords, VaultRecord{})
+			if err := m.VaultRecords[len(m.VaultRecords)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
-			if iNdEx >= l {
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VaultShareRecords", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
+			m.VaultShareRecords = append(m.VaultShareRecords, VaultShareRecord{})
+			if err := m.VaultShareRecords[len(m.VaultShareRecords)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Params: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipGenesis(dAtA[iNdEx:])
