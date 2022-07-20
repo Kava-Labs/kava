@@ -1,0 +1,15 @@
+syntax = "proto3";
+package kava.earn.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/earn/types";
+
+import "gogoproto/gogo.proto";
+
+// GenesisState defines the earn module's genesis state.
+message GenesisState {
+  // params defines all the paramaters related to earn
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// Params defines the parameters for the earn module.
+message Params {}

@@ -178,6 +178,19 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/earn/v1beta1/genesis.proto](#kava/earn/v1beta1/genesis.proto)
+    - [GenesisState](#kava.earn.v1beta1.GenesisState)
+    - [Params](#kava.earn.v1beta1.Params)
+  
+- [kava/earn/v1beta1/query.proto](#kava/earn/v1beta1/query.proto)
+    - [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse)
+  
+    - [Query](#kava.earn.v1beta1.Query)
+  
+- [kava/earn/v1beta1/tx.proto](#kava/earn/v1beta1/tx.proto)
+    - [Msg](#kava.earn.v1beta1.Msg)
+  
 - [kava/evmutil/v1beta1/genesis.proto](#kava/evmutil/v1beta1/genesis.proto)
     - [Account](#kava.evmutil.v1beta1.Account)
     - [GenesisState](#kava.evmutil.v1beta1.GenesisState)
@@ -2702,6 +2715,123 @@ Msg defines the committee Msg service
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `SubmitProposal` | [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse) | SubmitProposal defines a method for submitting a committee proposal | |
 | `Vote` | [MsgVote](#kava.committee.v1beta1.MsgVote) | [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse) | Vote defines a method for voting on a proposal | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/genesis.proto
+
+
+
+<a name="kava.earn.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the earn module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.earn.v1beta1.Params) |  | params defines all the paramaters related to earn |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the earn module.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/query.proto
+
+
+
+<a name="kava.earn.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/earn parameters.
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/earn parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.earn.v1beta1.Params) |  | params represents the earn module parameters |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.earn.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for earn module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse) | Params queries all parameters of the earn module. | GET|/kava/earn/v1beta1/params|
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/tx.proto
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.earn.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the earn Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
 
  <!-- end services -->
 
