@@ -31,7 +31,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type AllowedVault struct {
 	// Denom is the only supported denomination of the vault for deposits and withdrawals.
 	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
-	// VaultStrategy is the strategies to use for this vault.
+	// VaultStrategy is the strategy used for this vault.
 	VaultStrategy StrategyType `protobuf:"varint,2,opt,name=vault_strategy,json=vaultStrategy,proto3,enum=kava.earn.v1beta1.StrategyType" json:"vault_strategy,omitempty"`
 }
 
