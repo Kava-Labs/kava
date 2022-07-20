@@ -14,7 +14,7 @@ message AllowedVault {
   // Denom is the only supported denomination of the vault for deposits and withdrawals.
   string denom = 1;
 
-  // VaultStrategy is the strategies to use for this vault.
+  // VaultStrategy is the strategy used for this vault.
   StrategyType vault_strategy = 2;
 }
 

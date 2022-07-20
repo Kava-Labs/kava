@@ -136,6 +136,37 @@ func (k *Keeper) SetVaultRecord(ctx sdk.Context, record types.VaultRecord) {
 	store.Set(types.VaultKey(record.Denom), bz)
 }
 
+// IterateVaultRecords iterates over all vault objects in the store and performs
+// a callback function.
+func (k Keeper) IterateVaultRecords(
+	ctx sdk.Context,
+	cb func(record types.VaultRecord) (stop bool),
+) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var record types.VaultRecord
+		k.cdc.MustUnmarshal(iterator.Value(), &record)
+		if cb(record) {
+			break
+		}
+	}
+}
+
+// GetAllVaultRecords returns all vault records from the store.
+func (k Keeper) GetAllVaultRecords(ctx sdk.Context) types.VaultRecords {
+	var records types.VaultRecords
+
+	k.IterateVaultRecords(ctx, func(record types.VaultRecord) bool {
+		records = append(records, record)
+		return false
+	})
+
+	return records
+}
+
 // ----------------------------------------------------------------------------
 // VaultShare -- user shares per vault
 
