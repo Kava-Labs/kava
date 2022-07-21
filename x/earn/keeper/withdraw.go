@@ -46,7 +46,7 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 
 	// Percent of vault account value the account is withdrawing
 	// This is the total account value, not just the supplied amount.
-	withdrawAmountPercent := wantAmount.Amount.Quo(vaultAccValue.Amount)
+	withdrawAmountPercent := wantAmount.Amount.ToDec().Quo(vaultAccValue.Amount.ToDec())
 
 	// Check if account is not withdrawing more than they have
 	// account value < want withdraw amount
@@ -91,7 +91,10 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 	// wantAmount       = 10hard
 	// withdrawAmountPercent = 10hard / 20hard = 0.5
 	// sharesWithdrawn = 0.5 * 10hard = 5hard
-	sharesWithdrawn := vaultShareRecord.AmountSupplied.Amount.Mul(withdrawAmountPercent)
+	sharesWithdrawn := vaultShareRecord.AmountSupplied.Amount.
+		ToDec().
+		Mul(withdrawAmountPercent).
+		TruncateInt()
 
 	// Decrement VaultRecord and VaultShareRecord supplies
 	vaultRecord.TotalSupply.Amount = vaultRecord.TotalSupply.Amount.Sub(sharesWithdrawn)
