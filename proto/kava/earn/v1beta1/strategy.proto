@@ -3,9 +3,9 @@ package kava.earn.v1beta1;
 
 option go_package = "github.com/kava-labs/kava/x/earn/types";
 
-import "gogoproto/gogo.proto";
-import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
 
 enum StrategyType {
   option (gogoproto.goproto_enum_prefix) = false;

@@ -198,6 +198,8 @@
     - [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse)
     - [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse)
+    - [QueryTotalDepositedRequest](#kava.earn.v1beta1.QueryTotalDepositedRequest)
+    - [QueryTotalDepositedResponse](#kava.earn.v1beta1.QueryTotalDepositedResponse)
     - [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest)
     - [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse)
     - [VaultResponse](#kava.earn.v1beta1.VaultResponse)
@@ -2983,6 +2985,36 @@ QueryParamsResponse defines the response type for querying x/earn parameters.
 
 
 
+<a name="kava.earn.v1beta1.QueryTotalDepositedRequest"></a>
+
+### QueryTotalDepositedRequest
+QueryTotalDepositedRequest is the request type for the Query/TotalDeposited RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | denom represents the vault denom to query total deposited amount for. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryTotalDepositedResponse"></a>
+
+### QueryTotalDepositedResponse
+QueryTotalDepositedResponse is the response type for the Query/TotalDeposited RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `supplied_coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
 <a name="kava.earn.v1beta1.QueryVaultsRequest"></a>
 
 ### QueryVaultsRequest
@@ -3047,6 +3079,7 @@ Query defines the gRPC querier service for earn module
 | `Params` | [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse) | Params queries all parameters of the earn module. | GET|/kava/earn/v1beta1/params|
 | `Vaults` | [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest) | [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse) | Vaults queries vaults based on vault denom | GET|/kava/earn/v1beta1/vaults|
 | `Deposits` | [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on owner address and vault | GET|/kava/earn/v1beta1/deposits|
+| `TotalDeposited` | [QueryTotalDepositedRequest](#kava.earn.v1beta1.QueryTotalDepositedRequest) | [QueryTotalDepositedResponse](#kava.earn.v1beta1.QueryTotalDepositedResponse) | TotalDeposited queries total deposited amount for each vault. | GET|/kava/earn/v1beta1/total-deposited/{denom}|
 
  <!-- end services -->
 

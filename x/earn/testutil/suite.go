@@ -185,9 +185,12 @@ func (suite *Suite) CreateVault(vaultDenom string, vaultStrategy types.StrategyT
 	allowedVaults := suite.Keeper.GetAllowedVaults(suite.Ctx)
 	allowedVaults = append(allowedVaults, vault)
 
+	params := types.NewParams(allowedVaults)
+	suite.Require().NoError(params.Validate())
+
 	suite.Keeper.SetParams(
 		suite.Ctx,
-		types.NewParams(allowedVaults),
+		params,
 	)
 }
 

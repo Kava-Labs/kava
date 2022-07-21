@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -126,36 +127,33 @@ func (s queryServer) Deposits(
 			return nil, status.Error(codes.NotFound, "Vault record for denom not found")
 		}
 
+		deposits := []types.DepositResponse{}
 		store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.VaultSharePrefix)
 
-		deposits := []types.DepositResponse{}
-		pageRes, err := query.FilteredPaginate(
+		pageRes, err := query.Paginate(
 			store,
 			req.Pagination,
-			func(key []byte, value []byte, accumulate bool) (bool, error) {
+			func(key []byte, value []byte) error {
 				var record types.VaultShareRecord
 				err := s.keeper.cdc.Unmarshal(value, &record)
 				if err != nil {
-					return false, err
+					return err
 				}
 
-				if accumulate {
-					value, err := s.keeper.GetVaultAccountValue(sdkCtx, req.Denom, record.Depositor)
-					if err != nil {
-						return false, err
-					}
-
-					// only add to results if paginate tells us to
-					deposits = append(deposits, types.DepositResponse{
-						Depositor:       record.Depositor.String(),
-						Denom:           req.Denom,
-						AccountSupplied: record.AmountSupplied.Amount,
-						AccountValue:    value.Amount,
-					})
+				accValue, err := s.keeper.GetVaultAccountValue(sdkCtx, req.Denom, record.Depositor)
+				if err != nil {
+					return err
 				}
 
-				// inform paginate that were was a match on this key
-				return true, nil
+				// only add to results if paginate tells us to
+				deposits = append(deposits, types.DepositResponse{
+					Depositor:       record.Depositor.String(),
+					Denom:           req.Denom,
+					AccountSupplied: record.AmountSupplied.Amount,
+					AccountValue:    accValue.Amount,
+				})
+
+				return nil
 			},
 		)
 
@@ -176,9 +174,8 @@ func (s queryServer) Deposits(
 			return nil, status.Error(codes.InvalidArgument, "Invalid address")
 		}
 
-		vaults := s.keeper.GetAllowedVaults(sdkCtx)
-
 		deposits := []types.DepositResponse{}
+		vaults := s.keeper.GetAllowedVaults(sdkCtx)
 
 		for _, vault := range vaults {
 			deposit, found := s.keeper.GetVaultShareRecord(sdkCtx, vault.Denom, owner)
@@ -207,37 +204,33 @@ func (s queryServer) Deposits(
 	}
 
 	// All accounts, all vaults
-	vaults := s.keeper.GetAllowedVaults(sdkCtx)
-
-	store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.VaultSharePrefix)
 	deposits := []types.DepositResponse{}
-	pageRes, err := query.FilteredPaginate(
+	store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.VaultSharePrefix)
+
+	pageRes, err := query.Paginate(
 		store,
 		req.Pagination,
-		func(key []byte, value []byte, accumulate bool) (bool, error) {
+		func(key []byte, value []byte) error {
 			var record types.VaultShareRecord
 			err := s.keeper.cdc.Unmarshal(value, &record)
 			if err != nil {
-				return false, err
+				return err
 			}
 
-			if accumulate {
-				value, err := s.keeper.GetVaultAccountValue(sdkCtx, req.Denom, record.Depositor)
-				if err != nil {
-					return false, err
-				}
-
-				// only add to results if paginate tells us to
-				deposits = append(deposits, types.DepositResponse{
-					Depositor:       record.Depositor.String(),
-					Denom:           req.Denom,
-					AccountSupplied: record.AmountSupplied.Amount,
-					AccountValue:    value.Amount,
-				})
+			accValue, err := s.keeper.GetVaultAccountValue(sdkCtx, record.AmountSupplied.Denom, record.Depositor)
+			if err != nil {
+				return err
 			}
 
-			// inform paginate that were was a match on this key
-			return true, nil
+			// only add to results if paginate tells us to
+			deposits = append(deposits, types.DepositResponse{
+				Depositor:       record.Depositor.String(),
+				Denom:           record.AmountSupplied.Denom,
+				AccountSupplied: record.AmountSupplied.Amount,
+				AccountValue:    accValue.Amount,
+			})
+
+			return nil
 		},
 	)
 
@@ -248,5 +241,43 @@ func (s queryServer) Deposits(
 	return &types.QueryDepositsResponse{
 		Deposits:   deposits,
 		Pagination: pageRes,
+	}, nil
+}
+
+// Deposits implements the gRPC service handler for querying x/earn deposits.
+func (s queryServer) TotalDeposited(
+	ctx context.Context,
+	req *types.QueryTotalDepositedRequest,
+) (*types.QueryTotalDepositedResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	// Single vault
+	if req.Denom != "" {
+		totalSupplied, err := s.keeper.GetVaultTotalSupplied(sdkCtx, req.Denom)
+		if err != nil {
+			return nil, err
+		}
+
+		return &types.QueryTotalDepositedResponse{
+			SuppliedCoins: sdk.NewCoins(totalSupplied),
+		}, nil
+	}
+
+	coins := sdk.NewCoins()
+	vaults := s.keeper.GetAllVaultRecords(sdkCtx)
+
+	for _, vault := range vaults {
+		fmt.Printf("vault %v - %v \n", vault.Denom, vault.TotalSupply)
+		coins = coins.Add(vault.TotalSupply)
+	}
+
+	fmt.Printf("total coins for %v vaults: %v \n", len(vaults), coins)
+
+	return &types.QueryTotalDepositedResponse{
+		SuppliedCoins: coins,
 	}, nil
 }
