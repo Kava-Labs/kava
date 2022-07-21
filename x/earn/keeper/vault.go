@@ -82,8 +82,8 @@ func (k *Keeper) GetVaultAccountValue(
 		return sdk.Coin{}, err
 	}
 
-	// percent of vault account ownership = accountSupply / totalSupply
-	// value of vault account ownership = percentOwned * totalValue
+	// Percent of vault account ownership = accountSupply / totalSupply
+	// Value of vault account ownership = percentOwned * totalValue
 	vaultShare := accSupplied.Amount.ToDec().Quo(totalSupplied.Amount.ToDec())
 	shareValueDec := vaultTotalValue.Amount.ToDec().Mul(vaultShare)
 
