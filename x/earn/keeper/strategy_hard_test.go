@@ -24,37 +24,11 @@ func TestStrategyLendTestSuite(t *testing.T) {
 	suite.Run(t, new(strategyHardTestSuite))
 }
 
-func (suite *strategyHardTestSuite) TestGetSupportedDenoms() {
-	strategy, err := suite.Keeper.GetStrategy(types.STRATEGY_TYPE_HARD)
-	suite.Require().NoError(err)
-
-	suite.True(strategy.IsDenomSupported("usdx"))
-}
-
 func (suite *strategyHardTestSuite) TestGetStrategyType() {
 	strategy, err := suite.Keeper.GetStrategy(types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	suite.Equal(types.STRATEGY_TYPE_HARD, strategy.GetStrategyType())
-}
-
-func (suite *strategyHardTestSuite) TestDeposit_InvalidDenom() {
-	// Not supported by hard strategy
-	vaultDenom := "busd"
-	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
-	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
-
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
-
-	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
-
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
-	suite.Require().Error(err)
-	suite.Require().ErrorIs(
-		err,
-		types.ErrStrategyDenomNotSupported,
-		"strategy should only allow usdx deposits",
-	)
 }
 
 func (suite *strategyHardTestSuite) TestDeposit_SingleAcc() {
