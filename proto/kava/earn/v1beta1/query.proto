@@ -1,7 +1,8 @@
 syntax = "proto3";
 package kava.earn.v1beta1;
 
-option go_package = "github.com/kava-labs/kava/x/earn/types";
+option go_package                      = "github.com/kava-labs/kava/x/earn/types";
+option (gogoproto.goproto_getters_all) = false;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -26,16 +27,18 @@ service Query {
   rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
     option (google.api.http).get = "/kava/earn/v1beta1/deposits";
   }
+
+  // TotalDeposited queries total deposited amount for each vault.
+  rpc TotalDeposited(QueryTotalDepositedRequest) returns (QueryTotalDepositedResponse) {
+    option (google.api.http).get = "/kava/earn/v1beta1/total-deposited/{denom}";
+  }
 }
 
 // QueryParamsRequest defines the request type for querying x/earn parameters.
-message QueryParamsRequest {
-  option (gogoproto.goproto_getters) = false;
-}
+message QueryParamsRequest {}
 
 // QueryParamsResponse defines the response type for querying x/earn parameters.
 message QueryParamsResponse {
-  option (gogoproto.goproto_getters) = false;
 
   // params represents the earn module parameters
   Params params = 1 [(gogoproto.nullable) = false];
@@ -78,8 +81,6 @@ message VaultResponse {
 
 // QueryDepositsRequest is the request type for the Query/Deposits RPC method.
 message QueryDepositsRequest {
-  option (gogoproto.goproto_getters) = false;
-
   // owner optionally filters deposits by owner
   string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
@@ -92,8 +93,6 @@ message QueryDepositsRequest {
 
 // QueryDepositsResponse is the response type for the Query/Deposits RPC method.
 message QueryDepositsResponse {
-  option (gogoproto.goproto_getters) = false;
-
   // deposits returns the deposits matching the requested parameters
   repeated DepositResponse deposits = 1 [(gogoproto.nullable) = false];
 
@@ -103,8 +102,6 @@ message QueryDepositsResponse {
 
 // DepositResponse defines a single deposit query response type.
 message DepositResponse {
-  option (gogoproto.goproto_getters) = false;
-
   // depositor represents the owner of the deposit.
   string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
@@ -124,4 +121,16 @@ message DepositResponse {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable)   = false
   ];
+}
+
+// QueryTotalDepositedRequest is the request type for the Query/TotalDeposited RPC method.
+message QueryTotalDepositedRequest {
+  // denom represents the vault denom to query total deposited amount for.
+  string denom = 1;
+}
+
+// QueryTotalDepositedResponse is the response type for the Query/TotalDeposited RPC method.
+message QueryTotalDepositedResponse {
+  repeated cosmos.base.v1beta1.Coin supplied_coins = 1
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
