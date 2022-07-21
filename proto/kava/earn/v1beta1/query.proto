@@ -4,10 +4,11 @@ package kava.earn.v1beta1;
 option go_package                      = "github.com/kava-labs/kava/x/earn/types";
 option (gogoproto.goproto_getters_all) = false;
 
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
-import "cosmos_proto/cosmos.proto";
 import "kava/earn/v1beta1/params.proto";
 import "kava/earn/v1beta1/strategy.proto";
 
