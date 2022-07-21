@@ -183,7 +183,7 @@ func (s queryServer) Deposits(
 		for _, vault := range vaults {
 			deposit, found := s.keeper.GetVaultShareRecord(sdkCtx, vault.Denom, owner)
 			if !found {
-				// No deposit found for this vault, skip not error
+				// No deposit found for this vault, skip instead of returning error
 				continue
 			}
 
@@ -207,8 +207,46 @@ func (s queryServer) Deposits(
 	}
 
 	// All accounts, all vaults
+	vaults := s.keeper.GetAllowedVaults(sdkCtx)
+
+	store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.VaultSharePrefix)
+	deposits := []types.DepositResponse{}
+	pageRes, err := query.FilteredPaginate(
+		store,
+		req.Pagination,
+		func(key []byte, value []byte, accumulate bool) (bool, error) {
+			var record types.VaultShareRecord
+			err := s.keeper.cdc.Unmarshal(value, &record)
+			if err != nil {
+				return false, err
+			}
+
+			if accumulate {
+				value, err := s.keeper.GetVaultAccountValue(sdkCtx, req.Denom, record.Depositor)
+				if err != nil {
+					return false, err
+				}
+
+				// only add to results if paginate tells us to
+				deposits = append(deposits, types.DepositResponse{
+					Depositor:       record.Depositor.String(),
+					Denom:           req.Denom,
+					AccountSupplied: record.AmountSupplied.Amount,
+					AccountValue:    value.Amount,
+				})
+			}
+
+			// inform paginate that were was a match on this key
+			return true, nil
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &types.QueryDepositsResponse{
-		Deposits: nil,
+		Deposits:   deposits,
+		Pagination: pageRes,
 	}, nil
 }
