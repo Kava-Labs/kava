@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -51,14 +50,28 @@ func (s queryServer) Vaults(
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	allowedVaults := s.keeper.GetAllowedVaults(sdkCtx)
+	var queriedAllowedVaults types.AllowedVaults
+
+	if req.Denom != "" {
+		// Only 1 vault
+		allowedVault, found := s.keeper.GetAllowedVault(sdkCtx, req.Denom)
+		if !found {
+			return nil, status.Errorf(codes.NotFound, "vault not found with specified denom")
+		}
+
+		queriedAllowedVaults = types.AllowedVaults{allowedVault}
+	} else {
+		// All vaults
+		queriedAllowedVaults = s.keeper.GetAllowedVaults(sdkCtx)
+	}
 
 	vaults := []types.VaultResponse{}
 
-	for _, allowedVault := range allowedVaults {
+	for _, allowedVault := range queriedAllowedVaults {
 		totalSupplied, err := s.keeper.GetVaultTotalSupplied(sdkCtx, allowedVault.Denom)
 		if err != nil {
-			return nil, err
+			// No supply yet, no error just zero
+			totalSupplied = sdk.NewCoin(allowedVault.Denom, sdk.ZeroInt())
 		}
 
 		totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, allowedVault.Denom)
@@ -128,7 +141,7 @@ func (s queryServer) Deposits(
 		}
 
 		deposits := []types.DepositResponse{}
-		store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.VaultSharePrefix)
+		store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.VaultShareRecordKeyPrefix)
 
 		pageRes, err := query.Paginate(
 			store,
@@ -205,7 +218,7 @@ func (s queryServer) Deposits(
 
 	// All accounts, all vaults
 	deposits := []types.DepositResponse{}
-	store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.VaultSharePrefix)
+	store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.VaultShareRecordKeyPrefix)
 
 	pageRes, err := query.Paginate(
 		store,
@@ -271,11 +284,8 @@ func (s queryServer) TotalDeposited(
 	vaults := s.keeper.GetAllVaultRecords(sdkCtx)
 
 	for _, vault := range vaults {
-		fmt.Printf("vault %v - %v \n", vault.Denom, vault.TotalSupply)
 		coins = coins.Add(vault.TotalSupply)
 	}
-
-	fmt.Printf("total coins for %v vaults: %v \n", len(vaults), coins)
 
 	return &types.QueryTotalDepositedResponse{
 		SuppliedCoins: coins,
