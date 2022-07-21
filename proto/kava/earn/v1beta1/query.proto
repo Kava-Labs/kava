@@ -57,6 +57,7 @@ message QueryVaultsResponse {
   repeated VaultResponse vaults = 1 [(gogoproto.nullable) = false];
 }
 
+// VaultResponse is the response type for a vault.
 message VaultResponse {
   // denom represents the denom of the vault
   string denom = 1;

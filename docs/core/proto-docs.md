@@ -2755,13 +2755,13 @@ Msg defines the committee Msg service
 <a name="kava.earn.v1beta1.StrategyType"></a>
 
 ### StrategyType
-
+StrategyType is the type of strategy that a vault uses to optimize yields.
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| STRATEGY_TYPE_UNKNOWN | 0 |  |
-| STRATEGY_TYPE_HARD | 1 |  |
-| STRATEGY_TYPE_SAVINGS | 2 |  |
+| STRATEGY_TYPE_UNSPECIFIED | 0 | STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type. |
+| STRATEGY_TYPE_HARD | 1 | STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard module. |
+| STRATEGY_TYPE_SAVINGS | 2 | STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the Savings module. |
 
 
  <!-- end enums -->
@@ -2848,7 +2848,7 @@ VaultShareRecord defines the vault shares owned by a depositor.
 <a name="kava.earn.v1beta1.Params"></a>
 
 ### Params
-
+Params defines the parameters of the earn module.
 
 
 | Field | Type | Label | Description |
@@ -3048,7 +3048,7 @@ QueryVaultsResponse is the response type for the Query/Vaults RPC method.
 <a name="kava.earn.v1beta1.VaultResponse"></a>
 
 ### VaultResponse
-
+VaultResponse is the response type for a vault.
 
 
 | Field | Type | Label | Description |
