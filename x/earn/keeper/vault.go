@@ -6,29 +6,6 @@ import (
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
-// ViewVaultKeeper defines the read-only methods used for querying vaults.
-type ViewVaultKeeper interface {
-	// GetVaultTotalSupplied returns the total balance supplied to a vault. This
-	// may not necessarily be the current value of the vault, as it is the sum
-	// of the supplied denom.
-	GetVaultTotalSupplied(ctx sdk.Context, denom string) (sdk.Coin, error)
-
-	// GetVaultTotalValue returns the total **value** of all coins in a vault,
-	// i.e. the realizable total value denominated by GetDenom() if the vault
-	// were to liquidate its entire strategies.
-	GetVaultTotalValue(ctx sdk.Context, denom string) (sdk.Coin, error)
-
-	// GetVaultAccountSupplied returns the supplied amount for a single address
-	// within the vault.
-	GetVaultAccountSupplied(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error)
-
-	// GetVaultAccountValue returns the value of a single address within a vault
-	// if the account were to withdraw their entire balance.
-	GetVaultAccountValue(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error)
-}
-
-var _ ViewVaultKeeper = (*Keeper)(nil)
-
 // GetVaultTotalSupplied returns the total balance supplied to the vault. This
 // may not necessarily be the current value of the vault, as it is the sum
 // of the supplied denom and the value may be higher due to accumulated APYs.
