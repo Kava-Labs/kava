@@ -103,7 +103,7 @@ func (s queryServer) Deposits(
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	// Specific account and specific vault
+	// 1. Specific account and specific vault
 	if req.Owner != "" && req.Denom != "" {
 		owner, err := sdk.AccAddressFromBech32(req.Owner)
 		if err != nil {
@@ -133,8 +133,8 @@ func (s queryServer) Deposits(
 		}, nil
 	}
 
-	// Specific vault, all accounts
-	if req.Denom != "" {
+	// 2. All accounts, specific vault
+	if req.Owner == "" && req.Denom != "" {
 		_, found := s.keeper.GetVaultRecord(sdkCtx, req.Denom)
 		if !found {
 			return nil, status.Error(codes.NotFound, "Vault record for denom not found")
@@ -143,30 +143,39 @@ func (s queryServer) Deposits(
 		deposits := []types.DepositResponse{}
 		store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.VaultShareRecordKeyPrefix)
 
-		pageRes, err := query.Paginate(
+		pageRes, err := query.FilteredPaginate(
 			store,
 			req.Pagination,
-			func(key []byte, value []byte) error {
+			func(key []byte, value []byte, accumulate bool) (bool, error) {
 				var record types.VaultShareRecord
 				err := s.keeper.cdc.Unmarshal(value, &record)
 				if err != nil {
-					return err
+					return false, err
 				}
 
-				accValue, err := s.keeper.GetVaultAccountValue(sdkCtx, req.Denom, record.Depositor)
-				if err != nil {
-					return err
+				// Only those that match requested denom
+				if record.AmountSupplied.Denom != req.Denom {
+					// inform paginate that there was no match on this key
+					return false, nil
 				}
 
-				// only add to results if paginate tells us to
-				deposits = append(deposits, types.DepositResponse{
-					Depositor:       record.Depositor.String(),
-					Denom:           req.Denom,
-					AccountSupplied: record.AmountSupplied.Amount,
-					AccountValue:    accValue.Amount,
-				})
+				if accumulate {
+					accValue, err := s.keeper.GetVaultAccountValue(sdkCtx, req.Denom, record.Depositor)
+					if err != nil {
+						return false, err
+					}
 
-				return nil
+					// only add to results if paginate tells us to
+					deposits = append(deposits, types.DepositResponse{
+						Depositor:       record.Depositor.String(),
+						Denom:           req.Denom,
+						AccountSupplied: record.AmountSupplied.Amount,
+						AccountValue:    accValue.Amount,
+					})
+				}
+
+				// inform paginate that were was a match on this key
+				return true, nil
 			},
 		)
 
@@ -180,7 +189,7 @@ func (s queryServer) Deposits(
 		}, nil
 	}
 
-	// Specific account, all vaults
+	// 3. Specific account, all vaults
 	if req.Owner != "" && req.Denom == "" {
 		owner, err := sdk.AccAddressFromBech32(req.Owner)
 		if err != nil {
@@ -208,15 +217,15 @@ func (s queryServer) Deposits(
 				AccountSupplied: deposit.AmountSupplied.Amount,
 				AccountValue:    value.Amount,
 			})
-
-			return &types.QueryDepositsResponse{
-				Deposits:   deposits,
-				Pagination: nil,
-			}, nil
 		}
+
+		return &types.QueryDepositsResponse{
+			Deposits:   deposits,
+			Pagination: nil,
+		}, nil
 	}
 
-	// All accounts, all vaults
+	// 4. All accounts, all vaults
 	deposits := []types.DepositResponse{}
 	store := prefix.NewStore(sdkCtx.KVStore(s.keeper.key), types.VaultShareRecordKeyPrefix)
 

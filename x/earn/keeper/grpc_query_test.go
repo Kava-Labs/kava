@@ -6,6 +6,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/testutil"
@@ -124,6 +126,192 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 		},
 		res.Vaults[0],
 	)
+}
+
+func (suite *grpcQueryTestSuite) TestVaults_NotFound() {
+	_, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest("usdx"))
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, status.Errorf(codes.NotFound, "vault not found with specified denom"))
+}
+
+func (suite *grpcQueryTestSuite) TestDeposits() {
+	vault1Denom := "usdx"
+	vault2Denom := "busd"
+
+	// Add vaults
+	suite.CreateVault(vault1Denom, types.STRATEGY_TYPE_HARD)
+	suite.CreateVault(vault2Denom, types.STRATEGY_TYPE_HARD)
+
+	startBalance := sdk.NewCoins(
+		sdk.NewInt64Coin(vault1Denom, 1000),
+		sdk.NewInt64Coin(vault2Denom, 1000),
+	)
+	deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
+	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 200)
+
+	// Accounts
+	acc1 := suite.CreateAccount(startBalance, 0).GetAddress()
+	acc2 := suite.CreateAccount(startBalance, 1).GetAddress()
+
+	// Deposit into each vault from each account - 4 total deposits
+	err := suite.Keeper.Deposit(suite.Ctx, acc1, deposit1Amount)
+	suite.Require().NoError(err)
+	err = suite.Keeper.Deposit(suite.Ctx, acc1, deposit2Amount)
+	suite.Require().NoError(err)
+
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit1Amount)
+	suite.Require().NoError(err)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit2Amount)
+	suite.Require().NoError(err)
+
+	suite.Run("1) 1 vault for 1 account", func() {
+		// Query all deposits for account 1
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest(acc1.String(), vault1Denom, nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 1)
+		suite.Require().ElementsMatch(
+			[]types.DepositResponse{
+				{
+					Depositor:       acc1.String(),
+					Denom:           vault1Denom,
+					AccountSupplied: sdk.NewInt(100),
+					AccountValue:    sdk.NewInt(100),
+				},
+			},
+			res.Deposits,
+		)
+	})
+
+	suite.Run("invalid vault for 1 account", func() {
+		// Query all deposits for account 1
+		_, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest(acc1.String(), "notavaliddenom", nil),
+		)
+		suite.Require().Error(err)
+		suite.Require().ErrorIs(err, status.Errorf(codes.NotFound, "No deposit found for owner and denom"))
+	})
+
+	suite.Run("3) all vaults for 1 account", func() {
+		// Query all deposits for account 1
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest(acc1.String(), "", nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 2)
+		suite.Require().ElementsMatch(
+			[]types.DepositResponse{
+				{
+					Depositor:       acc1.String(),
+					Denom:           vault1Denom,
+					AccountSupplied: sdk.NewInt(100),
+					AccountValue:    sdk.NewInt(100),
+				},
+				{
+					Depositor:       acc1.String(),
+					Denom:           vault2Denom,
+					AccountSupplied: sdk.NewInt(200),
+					AccountValue:    sdk.NewInt(200),
+				},
+			},
+			res.Deposits,
+		)
+	})
+
+	suite.Run("2) all accounts, specific account", func() {
+		// Query all deposits for vault 1
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest("", vault1Denom, nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 2)
+		suite.Require().ElementsMatch(
+			[]types.DepositResponse{
+				{
+					Depositor:       acc1.String(),
+					Denom:           vault1Denom,
+					AccountSupplied: sdk.NewInt(100),
+					AccountValue:    sdk.NewInt(100),
+				},
+				{
+					Depositor:       acc2.String(),
+					Denom:           vault1Denom,
+					AccountSupplied: sdk.NewInt(100),
+					AccountValue:    sdk.NewInt(100),
+				},
+			},
+			res.Deposits,
+		)
+	})
+
+	suite.Run("4) all vaults and all accounts", func() {
+		// Query all deposits for all vaults
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest("", "", nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 4)
+		suite.Require().ElementsMatch(
+			[]types.DepositResponse{
+				{
+					Depositor:       acc1.String(),
+					Denom:           vault1Denom,
+					AccountSupplied: sdk.NewInt(100),
+					AccountValue:    sdk.NewInt(100),
+				},
+				{
+					Depositor:       acc2.String(),
+					Denom:           vault1Denom,
+					AccountSupplied: sdk.NewInt(100),
+					AccountValue:    sdk.NewInt(100),
+				},
+				{
+					Depositor:       acc1.String(),
+					Denom:           vault2Denom,
+					AccountSupplied: sdk.NewInt(200),
+					AccountValue:    sdk.NewInt(200),
+				},
+				{
+					Depositor:       acc2.String(),
+					Denom:           vault2Denom,
+					AccountSupplied: sdk.NewInt(200),
+					AccountValue:    sdk.NewInt(200),
+				},
+			},
+			res.Deposits,
+		)
+	})
+}
+
+func (suite *grpcQueryTestSuite) TestDeposits_NotFound() {
+	_, err := suite.queryClient.Deposits(
+		context.Background(),
+		types.NewQueryDepositsRequest("", "usdx", nil),
+	)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, status.Error(codes.NotFound, "Vault record for denom not found"))
+}
+
+func (suite *grpcQueryTestSuite) TestDeposits_InvalidAddress() {
+	_, err := suite.queryClient.Deposits(
+		context.Background(),
+		types.NewQueryDepositsRequest("asdf", "usdx", nil),
+	)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "Invalid address"))
+
+	_, err = suite.queryClient.Deposits(
+		context.Background(),
+		types.NewQueryDepositsRequest("asdf", "", nil),
+	)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "Invalid address"))
 }
 
 func (suite *grpcQueryTestSuite) TestTotalDeposited_NoSupply() {
