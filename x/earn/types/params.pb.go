@@ -23,6 +23,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// Params defines the parameters of the earn module.
 type Params struct {
 	AllowedVaults AllowedVaults `protobuf:"bytes,1,rep,name=allowed_vaults,json=allowedVaults,proto3,castrepeated=AllowedVaults" json:"allowed_vaults"`
 }
