@@ -147,7 +147,7 @@ func (k *Keeper) GetVaultShareRecord(
 	vaultDenom string,
 	acc sdk.AccAddress,
 ) (types.VaultShareRecord, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
 
 	bz := store.Get(types.DepositorVaultSharesKey(acc, vaultDenom))
 	if bz == nil {
@@ -181,7 +181,7 @@ func (k *Keeper) DeleteVaultShareRecord(
 	vaultDenom string,
 	acc sdk.AccAddress,
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
 	store.Delete(types.DepositorVaultSharesKey(acc, vaultDenom))
 }
 
@@ -190,7 +190,7 @@ func (k *Keeper) SetVaultShareRecord(
 	ctx sdk.Context,
 	record types.VaultShareRecord,
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
 	bz := k.cdc.MustMarshal(&record)
 	store.Set(types.DepositorVaultSharesKey(record.Depositor, record.AmountSupplied.Denom), bz)
 }
