@@ -3077,7 +3077,7 @@ Query defines the gRPC querier service for earn module
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse) | Params queries all parameters of the earn module. | GET|/kava/earn/v1beta1/params|
-| `Vaults` | [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest) | [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse) | Vaults queries vaults based on vault denom | GET|/kava/earn/v1beta1/vaults|
+| `Vaults` | [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest) | [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse) | Vaults queries vaults based on vault denom | GET|/kava/earn/v1beta1/vaults/{denom}|
 | `Deposits` | [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on owner address and vault | GET|/kava/earn/v1beta1/deposits|
 | `TotalDeposited` | [QueryTotalDepositedRequest](#kava.earn.v1beta1.QueryTotalDepositedRequest) | [QueryTotalDepositedResponse](#kava.earn.v1beta1.QueryTotalDepositedResponse) | TotalDeposited queries total deposited amount for each vault. | GET|/kava/earn/v1beta1/total-deposited/{denom}|
 
