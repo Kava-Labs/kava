@@ -10,7 +10,12 @@ import (
 )
 
 // InitGenesis initializes genesis state
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak types.AccountKeeper, gs types.GenesisState) {
+func InitGenesis(
+	ctx sdk.Context,
+	k keeper.Keeper,
+	ak types.AccountKeeper,
+	gs types.GenesisState,
+) {
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
 	}
@@ -21,5 +26,5 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak types.AccountKeeper, gs ty
 // ExportGenesis returns a GenesisState for a given context and keeper
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	params := k.GetParams(ctx)
-	return types.NewGenesisState(params)
+	return types.NewGenesisState(params, nil, nil)
 }
