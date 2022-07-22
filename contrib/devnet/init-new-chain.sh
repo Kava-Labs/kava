@@ -57,7 +57,7 @@ $BINARY add-genesis-account $evmFaucetKeyName 1000000000ukava
 
 userKeyName="user"
 printf "$userMnemonic\n" | $BINARY keys add $userKeyName --eth --recover
-$BINARY add-genesis-account $userKeyName 1000000000ukava
+$BINARY add-genesis-account $userKeyName 1000000000ukava,1000000000usdx
 
 relayerKeyName="relayer"
 printf "$relayerMnemonic\n" | $BINARY keys add $relayerKeyName --eth --recover
@@ -118,6 +118,6 @@ jq '.app_state.bridge.params.enabled_conversion_pairs = [
 # Add earn vault
 jq '.app_state.earn.params.allowed_vaults =  [
     {
-        denom: "ukava",
-        vault_strategy: 2,
+        denom: "usdx",
+        vault_strategy: 1,
     }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
