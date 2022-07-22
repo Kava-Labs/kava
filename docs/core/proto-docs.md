@@ -2808,13 +2808,13 @@ vault.
 <a name="kava.earn.v1beta1.VaultShareRecord"></a>
 
 ### VaultShareRecord
-VaultShareRecord defines the shares owned by a depositor and vault.
+VaultShareRecord defines the vault shares owned by a depositor.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `depositor` | [bytes](#bytes) |  | depositor represents the owner of the shares |
-| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount_supplied represents the total amount a depositor has supplied to the vault. The vault is determined by the coin denom. |
+| `depositor` | [bytes](#bytes) |  | Depositor represents the owner of the shares |
+| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | AmountSupplied represents the total amount a depositor has supplied to the vault. The vault is determined by the coin denom. |
 
 
 

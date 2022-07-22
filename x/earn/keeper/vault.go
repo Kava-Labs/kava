@@ -49,12 +49,11 @@ func (k *Keeper) GetVaultTotalValue(
 // within a vault.
 func (k *Keeper) GetVaultAccountSupplied(
 	ctx sdk.Context,
-	denom string,
 	acc sdk.AccAddress,
-) (sdk.Coin, error) {
-	vaultShareRecord, found := k.GetVaultShareRecord(ctx, denom, acc)
+) (sdk.Coins, error) {
+	vaultShareRecord, found := k.GetVaultShareRecord(ctx, acc)
 	if !found {
-		return sdk.Coin{}, types.ErrVaultShareRecordNotFound
+		return sdk.Coins{}, types.ErrVaultShareRecordNotFound
 	}
 
 	return vaultShareRecord.AmountSupplied, nil
@@ -72,7 +71,7 @@ func (k *Keeper) GetVaultAccountValue(
 		return sdk.Coin{}, err
 	}
 
-	accSupplied, err := k.GetVaultAccountSupplied(ctx, denom, acc)
+	accSupplied, err := k.GetVaultAccountSupplied(ctx, acc)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -84,7 +83,7 @@ func (k *Keeper) GetVaultAccountValue(
 
 	// Percent of vault account ownership = accountSupply / totalSupply
 	// Value of vault account ownership = percentOwned * totalValue
-	vaultShare := accSupplied.Amount.ToDec().Quo(totalSupplied.Amount.ToDec())
+	vaultShare := accSupplied.AmountOf(denom).ToDec().Quo(totalSupplied.Amount.ToDec())
 	shareValueDec := vaultTotalValue.Amount.ToDec().Mul(vaultShare)
 
 	return sdk.NewCoin(denom, shareValueDec.TruncateInt()), nil
@@ -144,12 +143,11 @@ func (k *Keeper) SetVaultRecord(ctx sdk.Context, record types.VaultRecord) {
 // account.
 func (k *Keeper) GetVaultShareRecord(
 	ctx sdk.Context,
-	vaultDenom string,
 	acc sdk.AccAddress,
 ) (types.VaultShareRecord, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
 
-	bz := store.Get(types.DepositorVaultSharesKey(acc, vaultDenom))
+	bz := store.Get(types.DepositorVaultSharesKey(acc))
 	if bz == nil {
 		return types.VaultShareRecord{}, false
 	}
@@ -168,7 +166,7 @@ func (k *Keeper) UpdateVaultShareRecord(
 	record types.VaultShareRecord,
 ) {
 	if record.AmountSupplied.IsZero() {
-		k.DeleteVaultShareRecord(ctx, record.AmountSupplied.Denom, record.Depositor)
+		k.DeleteVaultShareRecord(ctx, record.Depositor)
 	} else {
 		k.SetVaultShareRecord(ctx, record)
 	}
@@ -178,11 +176,10 @@ func (k *Keeper) UpdateVaultShareRecord(
 // account.
 func (k *Keeper) DeleteVaultShareRecord(
 	ctx sdk.Context,
-	vaultDenom string,
 	acc sdk.AccAddress,
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
-	store.Delete(types.DepositorVaultSharesKey(acc, vaultDenom))
+	store.Delete(types.DepositorVaultSharesKey(acc))
 }
 
 // SetVaultShareRecord sets the vault share record for a given denom and account.
@@ -192,5 +189,5 @@ func (k *Keeper) SetVaultShareRecord(
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
 	bz := k.cdc.MustMarshal(&record)
-	store.Set(types.DepositorVaultSharesKey(record.Depositor, record.AmountSupplied.Denom), bz)
+	store.Set(types.DepositorVaultSharesKey(record.Depositor), bz)
 }

@@ -39,7 +39,7 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 	}
 
 	// Get account share record for the vault
-	vaultShareRecord, found := k.GetVaultShareRecord(ctx, wantAmount.Denom, from)
+	vaultShareRecord, found := k.GetVaultShareRecord(ctx, from)
 	if !found {
 		return types.ErrVaultShareRecordNotFound
 	}
@@ -91,14 +91,15 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 	// wantAmount       = 10hard
 	// withdrawAmountPercent = 10hard / 20hard = 0.5
 	// sharesWithdrawn = 0.5 * 10hard = 5hard
-	sharesWithdrawn := vaultShareRecord.AmountSupplied.Amount.
+	vaultShareAmount := vaultShareRecord.AmountSupplied.AmountOf(wantAmount.Denom)
+	sharesWithdrawn := sdk.NewCoin(wantAmount.Denom, vaultShareAmount.
 		ToDec().
 		Mul(withdrawAmountPercent).
-		TruncateInt()
+		TruncateInt())
 
 	// Decrement VaultRecord and VaultShareRecord supplies
-	vaultRecord.TotalSupply.Amount = vaultRecord.TotalSupply.Amount.Sub(sharesWithdrawn)
-	vaultShareRecord.AmountSupplied.Amount = vaultShareRecord.AmountSupplied.Amount.Sub(sharesWithdrawn)
+	vaultRecord.TotalSupply = vaultRecord.TotalSupply.Sub(sharesWithdrawn)
+	vaultShareRecord.AmountSupplied = vaultShareRecord.AmountSupplied.Sub(sdk.NewCoins(sharesWithdrawn))
 
 	// Update VaultRecord and VaultShareRecord, deletes if zero supply
 	k.UpdateVaultRecord(ctx, vaultRecord)

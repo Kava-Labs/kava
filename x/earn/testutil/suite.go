@@ -229,11 +229,9 @@ func (suite *Suite) AccountTotalSuppliedEqual(accs []sdk.AccAddress, supplies []
 	for i, acc := range accs {
 		coins := supplies[i]
 
-		for _, coin := range coins {
-			accVaultBal, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, coin.Denom, acc)
-			suite.Require().NoError(err)
-			suite.Require().Equal(coin, accVaultBal)
-		}
+		accVaultBal, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, acc)
+		suite.Require().NoError(err)
+		suite.Require().True(coins.IsEqual(accVaultBal), "expected account vault balance to equal coins %s, but got %s", coins, accVaultBal)
 	}
 }
 

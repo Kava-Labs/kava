@@ -25,9 +25,7 @@ const (
 // key prefixes for store
 var (
 	VaultRecordKeyPrefix      = []byte{0x01} // denom -> vault
-	VaultShareRecordKeyPrefix = []byte{0x02} // depositor + vault denom -> vault share
-
-	sep = []byte("|")
+	VaultShareRecordKeyPrefix = []byte{0x02} // depositor address -> vault shares
 )
 
 // Vault returns a key generated from a vault denom
@@ -35,14 +33,7 @@ func VaultKey(denom string) []byte {
 	return []byte(denom)
 }
 
-// DepositorVaultSharesKey returns a key from a depositor and vault denom
-func DepositorVaultSharesKey(depositor sdk.AccAddress, vaultDenom string) []byte {
-	return createKey(depositor, sep, []byte(vaultDenom))
-}
-
-func createKey(bytes ...[]byte) (r []byte) {
-	for _, b := range bytes {
-		r = append(r, b...)
-	}
-	return
+// DepositorVaultSharesKey returns a key from a depositor address
+func DepositorVaultSharesKey(depositor sdk.AccAddress) []byte {
+	return depositor.Bytes()
 }

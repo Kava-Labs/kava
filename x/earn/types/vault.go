@@ -18,11 +18,12 @@ type VaultRecords []VaultRecord
 
 type VaultShareRecords []VaultShareRecord
 
-// NewVaultShareRecord returns a new VaultShareRecord with 0 supply.
-func NewVaultShareRecord(depositor sdk.AccAddress, vaultDenom string) VaultShareRecord {
+// NewVaultShareRecord returns a new VaultShareRecord with the provided supplied
+// coins.
+func NewVaultShareRecord(depositor sdk.AccAddress, supplied ...sdk.Coin) VaultShareRecord {
 	return VaultShareRecord{
 		Depositor:      depositor,
-		AmountSupplied: sdk.NewCoin(vaultDenom, sdk.ZeroInt()),
+		AmountSupplied: sdk.NewCoins(supplied...),
 	}
 }
 

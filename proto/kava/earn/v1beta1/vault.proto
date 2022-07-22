@@ -29,14 +29,15 @@ message VaultRecord {
   cosmos.base.v1beta1.Coin total_supply = 2 [(gogoproto.nullable) = false];
 }
 
-// VaultShareRecord defines the shares owned by a depositor and vault.
+// VaultShareRecord defines the vault shares owned by a depositor.
 message VaultShareRecord {
-  // depositor represents the owner of the shares
+  // Depositor represents the owner of the shares
   bytes depositor = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
     (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
-  // amount_supplied represents the total amount a depositor has supplied to the
+  // AmountSupplied represents the total amount a depositor has supplied to the
   // vault. The vault is determined by the coin denom.
-  cosmos.base.v1beta1.Coin amount_supplied = 2 [(gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin amount_supplied = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }

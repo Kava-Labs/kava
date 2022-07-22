@@ -53,10 +53,10 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	}
 
 	// Get VaultShareRecord for account, create if not exist
-	vaultShareRecord, found := k.GetVaultShareRecord(ctx, amount.Denom, depositor)
+	vaultShareRecord, found := k.GetVaultShareRecord(ctx, depositor)
 	if !found {
 		// Create a new empty VaultShareRecord with 0 supply
-		vaultShareRecord = types.NewVaultShareRecord(depositor, amount.Denom)
+		vaultShareRecord = types.NewVaultShareRecord(depositor)
 	}
 
 	// Increment VaultRecord supply
