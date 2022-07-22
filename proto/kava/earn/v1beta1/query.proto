@@ -21,7 +21,7 @@ service Query {
 
   // Vaults queries vaults based on vault denom
   rpc Vaults(QueryVaultsRequest) returns (QueryVaultsResponse) {
-    option (google.api.http).get = "/kava/earn/v1beta1/vaults";
+    option (google.api.http).get = "/kava/earn/v1beta1/vaults/{denom}";
   }
 
   // Deposits queries deposit details based on owner address and vault
