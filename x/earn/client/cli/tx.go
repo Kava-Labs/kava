@@ -16,7 +16,7 @@ import (
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd() *cobra.Command {
-	swapTxCmd := &cobra.Command{
+	earnTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
@@ -33,9 +33,9 @@ func GetTxCmd() *cobra.Command {
 		flags.AddTxFlagsToCmd(cmd)
 	}
 
-	swapTxCmd.AddCommand(cmds...)
+	earnTxCmd.AddCommand(cmds...)
 
-	return swapTxCmd
+	return earnTxCmd
 }
 
 func getCmdDeposit() *cobra.Command {

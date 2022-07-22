@@ -7,7 +7,7 @@ import "kava/earn/v1beta1/vault.proto";
 import "kava/earn/v1beta1/params.proto";
 import "gogoproto/gogo.proto";
 
-// GenesisState defines the swap module's genesis state.
+// GenesisState defines the earn module's genesis state.
 message GenesisState {
   // params defines all the paramaters related to earn
   Params params = 1 [(gogoproto.nullable) = false];

@@ -2871,7 +2871,7 @@ VaultShareRecord defines the shares owned by a depositor and vault.
 <a name="kava.earn.v1beta1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the swap module's genesis state.
+GenesisState defines the earn module's genesis state.
 
 
 | Field | Type | Label | Description |
