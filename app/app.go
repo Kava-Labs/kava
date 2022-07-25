@@ -111,6 +111,7 @@ import (
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	earn "github.com/kava-labs/kava/x/earn"
+	earnclient "github.com/kava-labs/kava/x/earn/client"
 	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutil "github.com/kava-labs/kava/x/evmutil"
@@ -169,6 +170,7 @@ var (
 			ibcclientclient.UpgradeProposalHandler,
 			kavadistclient.ProposalHandler,
 			committeeclient.ProposalHandler,
+			earnclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -655,7 +657,8 @@ func NewApp(
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
-		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
+		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper)).
+		AddRoute(earntypes.RouterKey, earn.NewCommunityPoolDepositProposalHandler(app.earnKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[govtypes.StoreKey],
