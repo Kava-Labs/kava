@@ -222,3 +222,34 @@ func (k *Keeper) SetVaultShareRecord(
 	bz := k.cdc.MustMarshal(&record)
 	store.Set(types.DepositorVaultSharesKey(record.Depositor), bz)
 }
+
+// IterateVaultShareRecords iterates over all vault share objects in the store
+// and performs a callback function.
+func (k Keeper) IterateVaultShareRecords(
+	ctx sdk.Context,
+	cb func(record types.VaultShareRecord) (stop bool),
+) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var record types.VaultShareRecord
+		k.cdc.MustUnmarshal(iterator.Value(), &record)
+		if cb(record) {
+			break
+		}
+	}
+}
+
+// GetAllVaultShareRecords returns all vault share records from the store.
+func (k Keeper) GetAllVaultShareRecords(ctx sdk.Context) types.VaultShareRecords {
+	var records types.VaultShareRecords
+
+	k.IterateVaultShareRecords(ctx, func(record types.VaultShareRecord) bool {
+		records = append(records, record)
+		return false
+	})
+
+	return records
+}
