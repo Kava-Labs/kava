@@ -21,7 +21,11 @@ func (vr *VaultRecord) Validate() error {
 	}
 
 	if vr.TotalSupply.Denom != vr.Denom {
-		return fmt.Errorf("total supply denom does not match vault record denom: %w", ErrInvalidVaultTotalSupply)
+		return fmt.Errorf(
+			"total supply denom %v does not match vault record denom %v",
+			vr.TotalSupply.Denom,
+			vr.Denom,
+		)
 	}
 
 	if vr.TotalSupply.IsNegative() {
@@ -80,18 +84,18 @@ type VaultShareRecords []VaultShareRecord
 
 // Validate returns an error if a slice of VaultRecords is invalid.
 func (vsrs VaultShareRecords) Validate() error {
-	denoms := make(map[string]bool)
+	addrs := make(map[string]bool)
 
 	for _, vr := range vsrs {
 		if err := vr.Validate(); err != nil {
 			return err
 		}
 
-		if denoms[vr.AmountSupplied.Denom] {
-			return fmt.Errorf("duplicate vault denom %s", vr.AmountSupplied.Denom)
+		if _, found := addrs[vr.Depositor.String()]; found {
+			return fmt.Errorf("duplicate address %s", vr.Depositor.String())
 		}
 
-		denoms[vr.AmountSupplied.Denom] = true
+		addrs[vr.Depositor.String()] = true
 	}
 
 	return nil
