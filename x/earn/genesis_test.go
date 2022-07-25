@@ -52,7 +52,7 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 				TotalSupply: sdk.NewInt64Coin("usdx", 1000000),
 			},
 			types.VaultRecord{
-				Denom:       "kava",
+				Denom:       "ukava",
 				TotalSupply: sdk.NewInt64Coin("ukava", 2000000),
 			},
 		},
@@ -105,7 +105,7 @@ func (suite *genesisTestSuite) Test_Marshall() {
 				TotalSupply: sdk.NewInt64Coin("usdx", 1000000),
 			},
 			types.VaultRecord{
-				Denom:       "kava",
+				Denom:       "ukava",
 				TotalSupply: sdk.NewInt64Coin("ukava", 2000000),
 			},
 		},
@@ -154,7 +154,7 @@ func (suite *genesisTestSuite) Test_LegacyJSONConversion() {
 				TotalSupply: sdk.NewInt64Coin("usdx", 1000000),
 			},
 			types.VaultRecord{
-				Denom:       "kava",
+				Denom:       "ukava",
 				TotalSupply: sdk.NewInt64Coin("ukava", 2000000),
 			},
 		},
