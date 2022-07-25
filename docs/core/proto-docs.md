@@ -2912,15 +2912,14 @@ GenesisState defines the earn module's genesis state.
 <a name="kava.earn.v1beta1.DepositResponse"></a>
 
 ### DepositResponse
-DepositResponse defines a single deposit query response type.
+DepositResponse defines a deposit query response type.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `depositor` | [string](#string) |  | depositor represents the owner of the deposit. |
-| `denom` | [string](#string) |  | denom represents the vault denom the deposit is for. |
-| `account_supplied` | [string](#string) |  | AccountSupplied represents the amount of denom supplied to the vault. |
-| `account_value` | [string](#string) |  | AccountValue represents the coin value of the depositor's share of the vault. |
+| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Amount represents the amount supplied to vaults. |
+| `value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Value represents the total accumulated value of denom coins supplied to vaults. This may be greater than or equal to amount_supplied depending on the strategy. |
 
 
 

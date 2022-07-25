@@ -137,23 +137,29 @@ func (suite *grpcQueryTestSuite) TestVaults_NotFound() {
 func (suite *grpcQueryTestSuite) TestDeposits() {
 	vault1Denom := "usdx"
 	vault2Denom := "busd"
+	vault3Denom := "kava"
 
 	// Add vaults
 	suite.CreateVault(vault1Denom, types.STRATEGY_TYPE_HARD)
 	suite.CreateVault(vault2Denom, types.STRATEGY_TYPE_HARD)
+	suite.CreateVault(vault3Denom, types.STRATEGY_TYPE_HARD)
 
 	startBalance := sdk.NewCoins(
 		sdk.NewInt64Coin(vault1Denom, 1000),
 		sdk.NewInt64Coin(vault2Denom, 1000),
+		sdk.NewInt64Coin(vault3Denom, 1000),
 	)
 	deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
 	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 200)
+	deposit3Amount := sdk.NewInt64Coin(vault3Denom, 200)
 
 	// Accounts
 	acc1 := suite.CreateAccount(startBalance, 0).GetAddress()
 	acc2 := suite.CreateAccount(startBalance, 1).GetAddress()
 
 	// Deposit into each vault from each account - 4 total deposits
+	// Acc 1: usdx + busd
+	// Acc 2: usdx + usdc
 	err := suite.Keeper.Deposit(suite.Ctx, acc1, deposit1Amount)
 	suite.Require().NoError(err)
 	err = suite.Keeper.Deposit(suite.Ctx, acc1, deposit2Amount)
@@ -161,7 +167,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 
 	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit1Amount)
 	suite.Require().NoError(err)
-	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit2Amount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit3Amount)
 	suite.Require().NoError(err)
 
 	suite.Run("1) 1 vault for 1 account", func() {
@@ -172,27 +178,28 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		)
 		suite.Require().NoError(err)
 		suite.Require().Len(res.Deposits, 1)
-		suite.Require().ElementsMatch(
+		suite.Require().ElementsMatchf(
 			[]types.DepositResponse{
 				{
-					Depositor:       acc1.String(),
-					Denom:           vault1Denom,
-					AccountSupplied: sdk.NewInt(100),
-					AccountValue:    sdk.NewInt(100),
+					Depositor: acc1.String(),
+					// Still includes all deposits
+					AmountSupplied: sdk.NewCoins(deposit1Amount, deposit2Amount),
+					Value:          sdk.NewCoins(deposit1Amount, deposit2Amount),
 				},
 			},
+			res.Deposits,
+			"deposits should match, got %v",
 			res.Deposits,
 		)
 	})
 
-	suite.Run("invalid vault for 1 account", func() {
-		// Query all deposits for account 1
+	suite.Run("1) invalid vault for 1 account", func() {
 		_, err := suite.queryClient.Deposits(
 			context.Background(),
 			types.NewQueryDepositsRequest(acc1.String(), "notavaliddenom", nil),
 		)
 		suite.Require().Error(err)
-		suite.Require().ErrorIs(err, status.Errorf(codes.NotFound, "No deposit found for owner and denom"))
+		suite.Require().ErrorIs(err, status.Errorf(codes.NotFound, "No deposit for denom notavaliddenom found for owner"))
 	})
 
 	suite.Run("3) all vaults for 1 account", func() {
@@ -202,47 +209,33 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 			types.NewQueryDepositsRequest(acc1.String(), "", nil),
 		)
 		suite.Require().NoError(err)
-		suite.Require().Len(res.Deposits, 2)
+		suite.Require().Len(res.Deposits, 1)
 		suite.Require().ElementsMatch(
 			[]types.DepositResponse{
 				{
-					Depositor:       acc1.String(),
-					Denom:           vault1Denom,
-					AccountSupplied: sdk.NewInt(100),
-					AccountValue:    sdk.NewInt(100),
-				},
-				{
-					Depositor:       acc1.String(),
-					Denom:           vault2Denom,
-					AccountSupplied: sdk.NewInt(200),
-					AccountValue:    sdk.NewInt(200),
+					Depositor:      acc1.String(),
+					AmountSupplied: sdk.NewCoins(deposit1Amount, deposit2Amount),
+					Value:          sdk.NewCoins(deposit1Amount, deposit2Amount),
 				},
 			},
 			res.Deposits,
 		)
 	})
 
-	suite.Run("2) all accounts, specific account", func() {
-		// Query all deposits for vault 1
+	suite.Run("2) all accounts, specific vault", func() {
+		// Query all deposits for vault 3
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest("", vault1Denom, nil),
+			types.NewQueryDepositsRequest("", vault3Denom, nil),
 		)
 		suite.Require().NoError(err)
-		suite.Require().Len(res.Deposits, 2)
+		suite.Require().Len(res.Deposits, 1)
 		suite.Require().ElementsMatch(
 			[]types.DepositResponse{
 				{
-					Depositor:       acc1.String(),
-					Denom:           vault1Denom,
-					AccountSupplied: sdk.NewInt(100),
-					AccountValue:    sdk.NewInt(100),
-				},
-				{
-					Depositor:       acc2.String(),
-					Denom:           vault1Denom,
-					AccountSupplied: sdk.NewInt(100),
-					AccountValue:    sdk.NewInt(100),
+					Depositor:      acc2.String(),
+					AmountSupplied: sdk.NewCoins(deposit1Amount, deposit3Amount),
+					Value:          sdk.NewCoins(deposit1Amount, deposit3Amount),
 				},
 			},
 			res.Deposits,
@@ -256,34 +249,22 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 			types.NewQueryDepositsRequest("", "", nil),
 		)
 		suite.Require().NoError(err)
-		suite.Require().Len(res.Deposits, 4)
-		suite.Require().ElementsMatch(
+		suite.Require().Len(res.Deposits, 2)
+		suite.Require().ElementsMatchf(
 			[]types.DepositResponse{
 				{
-					Depositor:       acc1.String(),
-					Denom:           vault1Denom,
-					AccountSupplied: sdk.NewInt(100),
-					AccountValue:    sdk.NewInt(100),
+					Depositor:      acc1.String(),
+					AmountSupplied: sdk.NewCoins(deposit1Amount, deposit2Amount),
+					Value:          sdk.NewCoins(deposit1Amount, deposit2Amount),
 				},
 				{
-					Depositor:       acc2.String(),
-					Denom:           vault1Denom,
-					AccountSupplied: sdk.NewInt(100),
-					AccountValue:    sdk.NewInt(100),
-				},
-				{
-					Depositor:       acc1.String(),
-					Denom:           vault2Denom,
-					AccountSupplied: sdk.NewInt(200),
-					AccountValue:    sdk.NewInt(200),
-				},
-				{
-					Depositor:       acc2.String(),
-					Denom:           vault2Denom,
-					AccountSupplied: sdk.NewInt(200),
-					AccountValue:    sdk.NewInt(200),
+					Depositor:      acc2.String(),
+					AmountSupplied: sdk.NewCoins(deposit1Amount, deposit3Amount),
+					Value:          sdk.NewCoins(deposit1Amount, deposit3Amount),
 				},
 			},
+			res.Deposits,
+			"deposits should match, got %v",
 			res.Deposits,
 		)
 	})

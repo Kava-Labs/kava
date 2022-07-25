@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -110,12 +111,16 @@ func (s queryServer) Deposits(
 			return nil, status.Error(codes.InvalidArgument, "Invalid address")
 		}
 
-		deposit, found := s.keeper.GetVaultShareRecord(sdkCtx, req.Denom, owner)
+		shareRecord, found := s.keeper.GetVaultShareRecord(sdkCtx, owner)
 		if !found {
-			return nil, status.Error(codes.NotFound, "No deposit found for owner and denom")
+			return nil, status.Error(codes.NotFound, "No deposit found for owner")
 		}
 
-		value, err := s.keeper.GetVaultAccountValue(sdkCtx, req.Denom, owner)
+		if shareRecord.AmountSupplied.AmountOf(req.Denom).IsZero() {
+			return nil, status.Error(codes.NotFound, fmt.Sprintf("No deposit for denom %s found for owner", req.Denom))
+		}
+
+		value, err := getAccountValue(sdkCtx, s.keeper, owner, shareRecord.AmountSupplied)
 		if err != nil {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
@@ -123,10 +128,9 @@ func (s queryServer) Deposits(
 		return &types.QueryDepositsResponse{
 			Deposits: []types.DepositResponse{
 				{
-					Depositor:       owner.String(),
-					Denom:           req.Denom,
-					AccountSupplied: deposit.AmountSupplied.Amount,
-					AccountValue:    value.Amount,
+					Depositor:      owner.String(),
+					AmountSupplied: shareRecord.AmountSupplied,
+					Value:          value,
 				},
 			},
 			Pagination: nil,
@@ -153,24 +157,23 @@ func (s queryServer) Deposits(
 					return false, err
 				}
 
-				// Only those that match requested denom
-				if record.AmountSupplied.Denom != req.Denom {
+				// Only those that have amount of requested denom
+				if record.AmountSupplied.AmountOf(req.Denom).IsZero() {
 					// inform paginate that there was no match on this key
 					return false, nil
 				}
 
 				if accumulate {
-					accValue, err := s.keeper.GetVaultAccountValue(sdkCtx, req.Denom, record.Depositor)
+					accValue, err := getAccountValue(sdkCtx, s.keeper, record.Depositor, record.AmountSupplied)
 					if err != nil {
 						return false, err
 					}
 
 					// only add to results if paginate tells us to
 					deposits = append(deposits, types.DepositResponse{
-						Depositor:       record.Depositor.String(),
-						Denom:           req.Denom,
-						AccountSupplied: record.AmountSupplied.Amount,
-						AccountValue:    accValue.Amount,
+						Depositor:      record.Depositor.String(),
+						AmountSupplied: record.AmountSupplied,
+						Value:          accValue,
 					})
 				}
 
@@ -197,27 +200,22 @@ func (s queryServer) Deposits(
 		}
 
 		deposits := []types.DepositResponse{}
-		vaults := s.keeper.GetAllowedVaults(sdkCtx)
 
-		for _, vault := range vaults {
-			deposit, found := s.keeper.GetVaultShareRecord(sdkCtx, vault.Denom, owner)
-			if !found {
-				// No deposit found for this vault, skip instead of returning error
-				continue
-			}
-
-			value, err := s.keeper.GetVaultAccountValue(sdkCtx, vault.Denom, owner)
-			if err != nil {
-				return nil, status.Error(codes.InvalidArgument, err.Error())
-			}
-
-			deposits = append(deposits, types.DepositResponse{
-				Depositor:       owner.String(),
-				Denom:           vault.Denom,
-				AccountSupplied: deposit.AmountSupplied.Amount,
-				AccountValue:    value.Amount,
-			})
+		accountShare, found := s.keeper.GetVaultShareRecord(sdkCtx, owner)
+		if !found {
+			return nil, status.Error(codes.NotFound, "No deposit found for owner")
 		}
+
+		value, err := getAccountValue(sdkCtx, s.keeper, owner, accountShare.AmountSupplied)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+
+		deposits = append(deposits, types.DepositResponse{
+			Depositor:      owner.String(),
+			AmountSupplied: accountShare.AmountSupplied,
+			Value:          value,
+		})
 
 		return &types.QueryDepositsResponse{
 			Deposits:   deposits,
@@ -239,17 +237,16 @@ func (s queryServer) Deposits(
 				return err
 			}
 
-			accValue, err := s.keeper.GetVaultAccountValue(sdkCtx, record.AmountSupplied.Denom, record.Depositor)
+			accValue, err := getAccountValue(sdkCtx, s.keeper, record.Depositor, record.AmountSupplied)
 			if err != nil {
 				return err
 			}
 
 			// only add to results if paginate tells us to
 			deposits = append(deposits, types.DepositResponse{
-				Depositor:       record.Depositor.String(),
-				Denom:           record.AmountSupplied.Denom,
-				AccountSupplied: record.AmountSupplied.Amount,
-				AccountValue:    accValue.Amount,
+				Depositor:      record.Depositor.String(),
+				AmountSupplied: record.AmountSupplied,
+				Value:          accValue,
 			})
 
 			return nil
@@ -299,4 +296,24 @@ func (s queryServer) TotalDeposited(
 	return &types.QueryTotalDepositedResponse{
 		SuppliedCoins: coins,
 	}, nil
+}
+
+func getAccountValue(
+	ctx sdk.Context,
+	keeper Keeper,
+	account sdk.AccAddress,
+	supplied sdk.Coins,
+) (sdk.Coins, error) {
+	value := sdk.NewCoins()
+
+	for _, coin := range supplied {
+		accValue, err := keeper.GetVaultAccountValue(ctx, coin.Denom, account)
+		if err != nil {
+			return nil, err
+		}
+
+		value = value.Add(sdk.NewCoin(coin.Denom, accValue.Amount))
+	}
+
+	return value, nil
 }
