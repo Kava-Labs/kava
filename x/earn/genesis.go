@@ -38,8 +38,13 @@ func InitGenesis(
 			panic(fmt.Sprintf("invalid vault record: %s", err))
 		}
 
-		if vaultRecord.TotalSupply.Amount.Equal(vaultTotalSupplies.AmountOf(vaultRecord.Denom)) {
-			panic(fmt.Sprintf("invalid vault record total supply: %s", vaultRecord.Denom))
+		if !vaultRecord.TotalSupply.Amount.Equal(vaultTotalSupplies.AmountOf(vaultRecord.Denom)) {
+			panic(fmt.Sprintf(
+				"invalid vault record total supply for %s, got %s but sum of vault shares is %s",
+				vaultRecord.Denom,
+				vaultRecord.TotalSupply.Amount,
+				vaultTotalSupplies.AmountOf(vaultRecord.Denom),
+			))
 		}
 
 		k.SetVaultRecord(ctx, vaultRecord)
