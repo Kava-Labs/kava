@@ -13,9 +13,8 @@ message CommunityPoolDepositProposal {
 
   string                       title          = 1 [(gogoproto.moretags) = "yaml:\"title\""];
   string                       description    = 2 [(gogoproto.moretags) = "yaml:\"description\""];
-  repeated cosmos.base.v1beta1.Coin amount = 3 [
+  cosmos.base.v1beta1.Coin amount = 3 [
   (gogoproto.nullable)     = false,
-  (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
   (gogoproto.moretags)     = "yaml:\"amount\""
   ];
 }
@@ -27,9 +26,8 @@ message CommunityPoolDepositProposalJSON {
   
     string                       title          = 1 [(gogoproto.moretags) = "yaml:\"title\""];
     string                       description    = 2 [(gogoproto.moretags) = "yaml:\"description\""];
-    repeated cosmos.base.v1beta1.Coin amount = 3 [
+    cosmos.base.v1beta1.Coin amount = 3 [
     (gogoproto.nullable)     = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
     (gogoproto.moretags)     = "yaml:\"amount\""
     ];
     repeated cosmos.base.v1beta1.Coin deposit = 4 [

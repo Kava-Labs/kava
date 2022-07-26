@@ -20,7 +20,7 @@ type (
 
 		Title       string         `json:"title" yaml:"title"`
 		Description string         `json:"description" yaml:"description"`
-		Amount      sdk.Coins      `json:"amount" yaml:"amount"`
+		Amount      sdk.Coin       `json:"amount" yaml:"amount"`
 		Deposit     sdk.Coins      `json:"deposit" yaml:"deposit"`
 		Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"`
 	}

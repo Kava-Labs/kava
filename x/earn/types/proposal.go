@@ -22,7 +22,7 @@ func init() {
 }
 
 // NewCommunityPoolMultiSpendProposal creates a new community pool deposit proposal.
-func NewCommunityPoolDepositProposal(title, description string, amount sdk.Coins) *CommunityPoolDepositProposal {
+func NewCommunityPoolDepositProposal(title, description string, amount sdk.Coin) *CommunityPoolDepositProposal {
 	return &CommunityPoolDepositProposal{
 		Title:       title,
 		Description: description,
