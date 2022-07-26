@@ -12,5 +12,4 @@ var (
 	ErrInsufficientValue        = sdkerrors.Register(ModuleName, 5, "insufficient vault account value")
 	ErrVaultRecordNotFound      = sdkerrors.Register(ModuleName, 6, "vault record not found")
 	ErrVaultShareRecordNotFound = sdkerrors.Register(ModuleName, 7, "vault share record not found")
-	ErrInvalidVaultTotalSupply  = sdkerrors.Register(ModuleName, 8, "invalid vault total supply")
 )

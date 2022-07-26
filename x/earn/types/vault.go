@@ -28,8 +28,8 @@ func (vr *VaultRecord) Validate() error {
 		)
 	}
 
-	if vr.TotalSupply.IsNegative() {
-		return fmt.Errorf("vault total supply is negative: %w", ErrInvalidVaultTotalSupply)
+	if err := vr.TotalSupply.Validate(); err != nil {
+		return fmt.Errorf("vault total supply is invalid: %w", err)
 	}
 
 	return nil
