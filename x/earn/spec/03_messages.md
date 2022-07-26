@@ -17,8 +17,44 @@ type MsgDeposit struct {
 
 The first deposit to a vault results in a `VaultRecord` being created. For each
 deposit, a `VaultShareRecord` is created or updated, depending on if the
-depositor has an existing deposit. The deposited tokens are converted to shares
-which are equal to the amount of assets they deposited.
+depositor has an existing deposit.
+
+The deposited tokens are converted to shares which depend on the share price to
+represent their proportional value of the vault. This uses the following
+equation:
+
+```go
+vaultTokens := shares * sharePrice
+```
+
+When a vault gets a first deposit, `sharePrice == 1`, so `shares == vaultTokens`
+
+Additional deposits will use the sharePrice to determine how many shares to
+issue to the depositor.
+
+```go
+sharePrice := vaultTokens / shares
+```
+
+```go
+issuedShares := depositAmount / sharePrice
+```
+
+Examples:
+
+* Depositing 100 tokens with a share price of 1:
+  ```go
+  // 100 Shares
+  issuedShares := 100 / 1
+  ```
+* Depositing 100 tokens with a share price of 1.1:
+  ```go
+  // 90.9090909091 Shares
+  issuedShares := 100 / 1.1
+  ```
+
+With no additional deposits, `shares` will always be constant but `vaultTokens`
+may increase from yield, causing the `sharePrice` to increase.
 
 ## MsgWithdraw
 

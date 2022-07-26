@@ -5,9 +5,9 @@
 Vaults are the only user facing interface. Users only need to deposit and
 withdraw from a vault.
 
-* Unlike yearn, vaults do not have any idle assets. The module does not hold
-  assets other than temporarily in the middle of a transaction when the user
-  first transfers to the module account, then is supplied.
+Vaults do not have any idle assets. The module does not hold assets other than
+temporarily in the middle of a transaction when the user first transfers to the
+module account, then is supplied.
 
 ## Strategies
 
