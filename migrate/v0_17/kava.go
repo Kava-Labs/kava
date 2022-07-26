@@ -33,7 +33,7 @@ func migrateAppState(appState genutiltypes.AppMap, clientCtx client.Context) {
 	codec := clientCtx.Codec
 
 	// x/emvutil
-	evmUtilGenState := evmutiltypes.NewGenesisState([]evmutiltypes.Account{})
+	evmUtilGenState := evmutiltypes.NewGenesisState([]evmutiltypes.Account{}, evmutiltypes.DefaultParams())
 	appState[evmutiltypes.ModuleName] = codec.MustMarshalJSON(evmUtilGenState)
 
 	// x/evm

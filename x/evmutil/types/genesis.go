@@ -7,9 +7,10 @@ import (
 )
 
 // NewGenesisState returns a new genesis state object for the module.
-func NewGenesisState(accounts []Account) *GenesisState {
+func NewGenesisState(accounts []Account, params Params) *GenesisState {
 	return &GenesisState{
 		Accounts: accounts,
+		Params:   params,
 	}
 }
 
@@ -17,6 +18,7 @@ func NewGenesisState(accounts []Account) *GenesisState {
 func DefaultGenesisState() *GenesisState {
 	return NewGenesisState(
 		[]Account{},
+		DefaultParams(),
 	)
 }
 
@@ -34,6 +36,11 @@ func (gs GenesisState) Validate() error {
 
 		seenAccounts[account.Address.String()] = true
 	}
+
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 

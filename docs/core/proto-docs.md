@@ -178,9 +178,27 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/evmutil/v1beta1/conversion_pair.proto](#kava/evmutil/v1beta1/conversion_pair.proto)
+    - [ConversionPair](#kava.evmutil.v1beta1.ConversionPair)
+  
 - [kava/evmutil/v1beta1/genesis.proto](#kava/evmutil/v1beta1/genesis.proto)
     - [Account](#kava.evmutil.v1beta1.Account)
     - [GenesisState](#kava.evmutil.v1beta1.GenesisState)
+    - [Params](#kava.evmutil.v1beta1.Params)
+  
+- [kava/evmutil/v1beta1/query.proto](#kava/evmutil/v1beta1/query.proto)
+    - [QueryParamsRequest](#kava.evmutil.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.evmutil.v1beta1.QueryParamsResponse)
+  
+    - [Query](#kava.evmutil.v1beta1.Query)
+  
+- [kava/evmutil/v1beta1/tx.proto](#kava/evmutil/v1beta1/tx.proto)
+    - [MsgConvertCoinToERC20](#kava.evmutil.v1beta1.MsgConvertCoinToERC20)
+    - [MsgConvertCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCoinToERC20Response)
+    - [MsgConvertERC20ToCoin](#kava.evmutil.v1beta1.MsgConvertERC20ToCoin)
+    - [MsgConvertERC20ToCoinResponse](#kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse)
+  
+    - [Msg](#kava.evmutil.v1beta1.Msg)
   
 - [kava/hard/v1beta1/hard.proto](#kava/hard/v1beta1/hard.proto)
     - [Borrow](#kava.hard.v1beta1.Borrow)
@@ -2707,6 +2725,39 @@ Msg defines the committee Msg service
 
 
 
+<a name="kava/evmutil/v1beta1/conversion_pair.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/evmutil/v1beta1/conversion_pair.proto
+
+
+
+<a name="kava.evmutil.v1beta1.ConversionPair"></a>
+
+### ConversionPair
+ConversionPair defines a Kava ERC20 address and corresponding denom that is
+allowed to be converted between ERC20 and sdk.Coin
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `kava_erc20_address` | [bytes](#bytes) |  | ERC20 address of the token on the Kava EVM |
+| `denom` | [string](#string) |  | Denom of the corresponding sdk.Coin |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="kava/evmutil/v1beta1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -2739,6 +2790,22 @@ GenesisState defines the evmutil module's genesis state.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `accounts` | [Account](#kava.evmutil.v1beta1.Account) | repeated |  |
+| `params` | [Params](#kava.evmutil.v1beta1.Params) |  | params defines all the parameters of the module. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.Params"></a>
+
+### Params
+Params defines the bridge module params
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `enabled_conversion_pairs` | [ConversionPair](#kava.evmutil.v1beta1.ConversionPair) | repeated | enabled_conversion_pairs defines the list of conversion pairs allowed to be converted between Kava ERC20 and sdk.Coin |
 
 
 
@@ -2749,6 +2816,140 @@ GenesisState defines the evmutil module's genesis state.
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/evmutil/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/evmutil/v1beta1/query.proto
+
+
+
+<a name="kava.evmutil.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/evmutil parameters.
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/evmutil parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.evmutil.v1beta1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.evmutil.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for evmutil module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.evmutil.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.evmutil.v1beta1.QueryParamsResponse) | Params queries all parameters of the evmutil module. | GET|/kava/evmutil/v1beta1/params|
+
+ <!-- end services -->
+
+
+
+<a name="kava/evmutil/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/evmutil/v1beta1/tx.proto
+
+
+
+<a name="kava.evmutil.v1beta1.MsgConvertCoinToERC20"></a>
+
+### MsgConvertCoinToERC20
+MsgConvertCoinToERC20 defines a conversion from sdk.Coin to Kava ERC20.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `initiator` | [string](#string) |  | Kava bech32 address initiating the conversion. |
+| `receiver` | [string](#string) |  | EVM 0x hex address that will receive the converted Kava ERC20 tokens. |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount is the sdk.Coin amount to convert. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.MsgConvertCoinToERC20Response"></a>
+
+### MsgConvertCoinToERC20Response
+MsgConvertCoinToERC20Response defines the response value from Msg/ConvertCoinToERC20.
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.MsgConvertERC20ToCoin"></a>
+
+### MsgConvertERC20ToCoin
+MsgConvertERC20ToCoin defines a conversion from Kava ERC20 to sdk.Coin.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `initiator` | [string](#string) |  | EVM 0x hex address initiating the conversion. |
+| `receiver` | [string](#string) |  | Kava bech32 address that will receive the converted sdk.Coin. |
+| `kava_erc20_address` | [string](#string) |  | EVM 0x hex address of the ERC20 contract. |
+| `amount` | [string](#string) |  | ERC20 token amount to convert. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse"></a>
+
+### MsgConvertERC20ToCoinResponse
+MsgConvertERC20ToCoinResponse defines the response value from
+Msg/MsgConvertERC20ToCoin.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.evmutil.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the bridge Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `ConvertCoinToERC20` | [MsgConvertCoinToERC20](#kava.evmutil.v1beta1.MsgConvertCoinToERC20) | [MsgConvertCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCoinToERC20Response) | ConvertCoinToERC20 defines a method for converting sdk.Coin to Kava ERC20. | |
+| `ConvertERC20ToCoin` | [MsgConvertERC20ToCoin](#kava.evmutil.v1beta1.MsgConvertERC20ToCoin) | [MsgConvertERC20ToCoinResponse](#kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse) | ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin. | |
 
  <!-- end services -->
 
