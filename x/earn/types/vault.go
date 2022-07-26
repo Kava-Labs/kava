@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewVaultRecord returns a new VaultRecord with 0 supply.
@@ -16,8 +17,8 @@ func NewVaultRecord(vaultDenom string) VaultRecord {
 
 // Validate returns an error if a VaultRecord is invalid.
 func (vr *VaultRecord) Validate() error {
-	if vr.Denom == "" {
-		return ErrInvalidVaultDenom
+	if err := sdk.ValidateDenom(vr.Denom); err != nil {
+		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
 	}
 
 	if vr.TotalSupply.Denom != vr.Denom {
@@ -129,8 +130,8 @@ func (a AllowedVaults) Validate() error {
 }
 
 func (a *AllowedVault) Validate() error {
-	if a.Denom == "" {
-		return ErrInvalidVaultDenom
+	if err := sdk.ValidateDenom(a.Denom); err != nil {
+		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
 	}
 
 	if a.VaultStrategy == STRATEGY_TYPE_UNSPECIFIED {

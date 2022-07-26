@@ -55,6 +55,19 @@ func TestVaultRecordValidate(t *testing.T) {
 			},
 		},
 		{
+			name: "invalid - invalid denom",
+			vaultRecords: types.VaultRecords{
+				{
+					Denom:       "",
+					TotalSupply: sdk.NewInt64Coin("ukava", 0),
+				},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "invalid denom",
+			},
+		},
+		{
 			name: "invalid - mismatch denom",
 			vaultRecords: types.VaultRecords{
 				{
@@ -153,6 +166,21 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 			},
 		},
 		{
+			name: "invalid - invalid address",
+			vaultRecords: types.VaultShareRecords{
+				{
+					Depositor: sdk.AccAddress{},
+					AmountSupplied: sdk.NewCoins(
+						sdk.NewInt64Coin("usdx", 0),
+					),
+				},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "depositor is empty",
+			},
+		},
+		{
 			name: "invalid - negative",
 			vaultRecords: types.VaultShareRecords{
 				{
@@ -227,6 +255,32 @@ func TestAllowedVaultsValidate(t *testing.T) {
 				contains:   "duplicate vault denom usdx",
 			},
 		},
+		{
+			name: "invalid - invalid denom",
+			vaultRecords: types.AllowedVaults{
+				{
+					Denom:         "",
+					VaultStrategy: types.STRATEGY_TYPE_HARD,
+				},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "invalid denom",
+			},
+		},
+		{
+			name: "invalid - invalid strategy",
+			vaultRecords: types.AllowedVaults{
+				{
+					Denom:         "usdx",
+					VaultStrategy: types.STRATEGY_TYPE_UNSPECIFIED,
+				},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "invalid vault strategy",
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -241,4 +295,16 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewVaultShareRecord(t *testing.T) {
+	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+
+	coins := sdk.NewCoins(
+		sdk.NewInt64Coin("usdx", 10),
+		sdk.NewInt64Coin("ukava", 5),
+	)
+
+	shareRecord := types.NewVaultShareRecord(addrs[0], coins...)
+	require.Equal(t, coins, shareRecord.AmountSupplied)
 }
