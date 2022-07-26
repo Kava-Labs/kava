@@ -1,14 +1,13 @@
 # Events
 
-The `x/bridge` module emits the events detailed in the [protobuf docs][proto-docs].
+The `x/earn` module emits the events detailed in the [protobuf docs][proto-docs].
 
-## EventBridgeEthereumToKava
+## EventTypeVaultDeposit
 
-Emitted on `MsgBridgeEthereumToKava`.
+Emitted on `MsgDeposit`.
 
-## EventBridgeKavaToEthereum
+## EventTypeVaultWithdraw
 
-Emitted when `Withdraw` is called on bridged ERC20.
+Emitted on `MsgWithdraw`.
 
-
-[proto-docs]: ../../../docs/core/proto-docs.md#bridge/v1beta1/event.proto
+[proto-docs]: ../../../docs/core/proto-docs.md#earn/v1beta1/event.proto

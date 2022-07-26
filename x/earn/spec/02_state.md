@@ -4,31 +4,44 @@
 
 The `x/earn` module keeps the following in state:
 
-| State Object    | Description            | Key                                          | Value                     |
-| --------------- | ---------------------- | -------------------------------------------- | ------------------------- |
-| Vault Positions | List of enabled vaults | `[]byte{1} + []byte(Ethereum ERC20 address)` | `[]byte{ERC20BridgePair}` |
+| State Object        | Description                 | Key                              | Value                      |
+| ------------------- | --------------------------- | -------------------------------- | -------------------------- |
+| Vault Records       | List of vault records       | `[]byte{1} + []byte(vaultDenom)` | `[]byte{VaultRecord}`      |
+| Vault Share Records | List of vault share records | `[]byte{2} + []byte(accAddress)` | `[]byte{VaultShareRecord}` |
 
-## ERC20 Bridge Pair
+## VaultRecord
 
-One-to-one mapping of bridged Ethereum ERC20 and Kava ERC20 tokens. Tokens
-bridged from the pair `ExternalERC20Address` will be minted on the ERC20 at
-`InternalERC20Address` on the Kava EVM.
+Vault records track the total supply of a vault in state.
 
 ```go
-// ERC20BridgePair defines an ERC20 token bridged between external and Kava EVM
-type ERC20BridgePair struct {
-	// external_erc20_address represents the external EVM ERC20 address
-	ExternalERC20Address []byte `protobuf:"bytes,1,opt,name=external_erc20_address,json=externalErc20Address,proto3" json:"external_erc20_address,omitempty"`
-	// internal_erc20_address represents the corresponding internal Kava EVM ERC20 address
-	InternalERC20Address []byte `protobuf:"bytes,2,opt,name=internal_erc20_address,json=internalErc20Address,proto3" json:"internal_erc20_address,omitempty"`
+// VaultRecord is the state of a vault and is used to store the state of a
+// vault.
+type VaultRecord struct {
+	// Denom is the only supported denomination of the vault for deposits and
+	// withdrawals.
+	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
+	// TotalSupply is the total supply of the vault, denominated **only** in the
+	// user deposit/withdrawal denom, must be the same as the Denom field.
+	TotalSupply types.Coin `protobuf:"bytes,2,opt,name=total_supply,json=totalSupply,proto3" json:"total_supply"`
 }
 ```
 
-## Withdraw Sequence
+## VaultShareRecord
 
-The withdraw sequence is a unique value associated with a unique withdraw. This
-is emitted in the `Withdraw` event for the relayer to determine the transaction
-order.
+Vault share records track the total amount of shares an account has for all
+vaults.
+
+```go
+// VaultShareRecord defines the vault shares owned by a depositor.
+type VaultShareRecord struct {
+	// Depositor represents the owner of the shares
+	Depositor github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=depositor,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"depositor,omitempty"`
+	// AmountSupplied represents the total amount a depositor has supplied to the
+	// vault. The vault is determined by the coin denom.
+	AmountSupplied github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=amount_supplied,json=amountSupplied,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount_supplied"`
+}
+
+```
 
 ## Genesis State
 
@@ -36,13 +49,13 @@ The `GenesisState` defines the state that must be persisted when the blockchain
 stops/restarts in order for normal function of the bridge module to resume.
 
 ```go
-// GenesisState defines the bridge module's genesis state.
+// GenesisState defines the earn module's genesis state.
 type GenesisState struct {
-	// params defines all the parameters of the module.
+	// params defines all the paramaters related to earn
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
-	// erc20_bridge_pairs defines all of the bridged erc20 tokens.
-	ERC20BridgePairs ERC20BridgePairs `protobuf:"bytes,2,rep,name=erc20_bridge_pairs,json=erc20BridgePairs,proto3,castrepeated=ERC20BridgePairs" json:"erc20_bridge_pairs"`
-	// next_withdraw_sequence defines the unique incrementing sequence per withdraw tx.
-	NextWithdrawSequence github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=next_withdraw_sequence,json=nextWithdrawSequence,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"next_withdraw_sequence"`
+	// vault_records defines the available vaults
+	VaultRecords VaultRecords `protobuf:"bytes,2,rep,name=vault_records,json=vaultRecords,proto3,castrepeated=VaultRecords" json:"vault_records"`
+	// share_records defines the owned shares of each vault
+	VaultShareRecords VaultShareRecords `protobuf:"bytes,3,rep,name=vault_share_records,json=vaultShareRecords,proto3,castrepeated=VaultShareRecords" json:"vault_share_records"`
 }
 ```
