@@ -19,12 +19,12 @@ const (
 	erc20BalanceOfMethod = "balanceOf"
 )
 
-// DeployTestMintableERC20Contract deploys an ERC20 contract on the EVM as the
+// DeployMintableERC20Contract deploys an ERC20 contract on the EVM as the
 // module account and returns the address of the contract. This contract has
 // minting permissions for the module account.
 // Derived from tharsis/evmos
 // https://github.com/tharsis/evmos/blob/ee54f496551df937915ff6f74a94732a35abc505/x/erc20/keeper/evm.go
-func (k Keeper) DeployTestMintableERC20Contract(
+func (k Keeper) DeployMintableERC20Contract(
 	ctx sdk.Context,
 	name string,
 	symbol string,

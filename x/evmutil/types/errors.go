@@ -6,9 +6,7 @@ import (
 
 // errors
 var (
-	ErrABIPack                 = sdkerrors.Register(ModuleName, 2, "contract ABI pack failed")
-	ErrEVMCall                 = sdkerrors.Register(ModuleName, 3, "EVM call unexpected error")
-	ErrConversionNotEnabled    = sdkerrors.Register(ModuleName, 4, "ERC20 token not enabled to convert to sdk.Coin")
-	ErrBalanceInvariance       = sdkerrors.Register(ModuleName, 5, "post EVM transfer balance invariant failed")
-	ErrUnexpectedContractEvent = sdkerrors.Register(ModuleName, 6, "unexpected contract event")
+	ErrABIPack              = sdkerrors.Register(ModuleName, 2, "contract ABI pack failed")
+	ErrABIUnpack            = sdkerrors.Register(ModuleName, 3, "contract ABI unpack failed")
+	ErrConversionNotEnabled = sdkerrors.Register(ModuleName, 4, "ERC20 token not enabled to convert to sdk.Coin")
 )
