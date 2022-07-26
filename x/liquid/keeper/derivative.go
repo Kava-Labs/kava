@@ -5,7 +5,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/kava-labs/kava/x/liquid/types"
 )
@@ -81,31 +80,8 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 		shares = delShares
 	}
 
-	returnAmount, err := k.stakingKeeper.Unbond(ctx, delegatorAddr, valAddr, shares)
-	if err != nil {
-		return err
-	}
-
-	if validator.IsBonded() {
-		k.bondedTokensToNotBonded(ctx, returnAmount)
-	}
-
-	// Note: UndelegateCoinsFromModuleToAccount is internally calling TrackUndelegation for vesting account
-	err = k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.NotBondedPoolName, delegatorAddr, sdk.Coins{amount})
-	if err != nil {
-		return err
-	}
-
-	// send coins to module account
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddr, types.ModuleAccountName, sdk.Coins{amount})
-	if err != nil {
-		return err
-	}
-
-	// delegate from module account
 	moduleAccAddress := authtypes.NewModuleAddress(types.ModuleAccountName)
-	_, err = k.stakingKeeper.Delegate(ctx, moduleAccAddress, amount.Amount, stakingtypes.Unbonded, validator, true)
-	if err != nil {
+	if err := k.transferDelegation(ctx, valAddr, delegatorAddr, moduleAccAddress, shares); err != nil {
 		return err
 	}
 
@@ -130,11 +106,6 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 		return types.ErrNotEnoughBalance
 	}
 
-	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
-		return types.ErrNoValidatorFound
-	}
-
 	// Confirm that the coin's denom matches the validator's specific liquidate staking coin denom
 	coinDenom := k.GetLiquidStakingTokenDenom(ctx, valAddr)
 	if coinDenom != amount.Denom {
@@ -151,17 +122,8 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	shareDenomSupply := k.bankKeeper.GetSupply(ctx, amount.Denom)
 	shares := delegation.Shares.Mul(amount.Amount.ToDec()).QuoInt(shareDenomSupply.Amount)
 
-	returnAmount, err := k.stakingKeeper.Unbond(ctx, maccAddr, valAddr, shares)
-	if err != nil {
-		return err
-	}
-
-	if validator.IsBonded() {
-		k.bondedTokensToNotBonded(ctx, returnAmount)
-	}
-
 	// Burn share amount from user's address
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddr, types.ModuleAccountName, sdk.NewCoins(amount))
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddr, types.ModuleAccountName, sdk.NewCoins(amount))
 	if err != nil {
 		return err
 	}
@@ -170,14 +132,7 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 		return err
 	}
 
-	// Create a delegation for an equivalent amount of KAVA tokens from the user
-	returnCoin := sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), returnAmount)
-	err = k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.NotBondedPoolName, delegatorAddr, sdk.NewCoins(returnCoin))
-	if err != nil {
-		return err
-	}
-	_, err = k.stakingKeeper.Delegate(ctx, delegatorAddr, returnAmount, stakingtypes.Unbonded, validator, true)
-	if err != nil {
+	if err := k.transferDelegation(ctx, valAddr, maccAddr, delegatorAddr, shares); err != nil {
 		return err
 	}
 
@@ -185,7 +140,7 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 		sdk.NewEvent(
 			types.EventTypeBurnDerivative,
 			sdk.NewAttribute(types.AttributeKeyAmountBurned, amount.String()),
-			sdk.NewAttribute(types.AttributeKeyAmountReturned, returnCoin.String()),
+			// sdk.NewAttribute(types.AttributeKeyAmountReturned, returnCoin.String()), // TODO
 			sdk.NewAttribute(types.AttributeKeyModuleAccount, maccAddr.String()),
 		),
 	)
@@ -197,10 +152,27 @@ func (k Keeper) GetLiquidStakingTokenDenom(ctx sdk.Context, valAddr sdk.ValAddre
 	return types.GetLiquidStakingTokenDenom(k.stakingKeeper.BondDenom(ctx), valAddr)
 }
 
-// bondedTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
-func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens sdk.Int) {
-	coins := sdk.NewCoins(sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), tokens))
-	if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, stakingtypes.BondedPoolName, stakingtypes.NotBondedPoolName, coins); err != nil {
-		panic(err)
+// transferDelegation moves some delegation shares between addresses, while keeping the same validator.
+//
+// Since the validator is the same, underlying staking tokens are not transferred between the bonded and not bonded pools.
+func (k Keeper) transferDelegation(ctx sdk.Context, valAddr sdk.ValAddress, fromDelegator, toDelegator sdk.AccAddress, shares sdk.Dec) error {
+	// TODO block if a redelegation exists
+	// TODO block if validator jailed or tombstoned?
+
+	returnAmount, err := k.stakingKeeper.Unbond(ctx, fromDelegator, valAddr, shares)
+	if err != nil {
+		return err
 	}
+
+	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
+	if !found {
+		return types.ErrNoValidatorFound
+	}
+
+	_, err = k.stakingKeeper.Delegate(ctx, toDelegator, returnAmount, validator.GetStatus(), validator, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
