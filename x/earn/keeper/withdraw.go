@@ -11,36 +11,51 @@ import (
 
 // Withdraw removes the amount of supplied tokens from a vault and transfers it
 // back to the account.
-func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin) error {
+func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.Coin) error {
 	// Get AllowedVault, if not found (not a valid vault), return error
-	allowedVault, found := k.GetAllowedVault(ctx, amount.Denom)
+	allowedVault, found := k.GetAllowedVault(ctx, wantAmount.Denom)
 	if !found {
 		return types.ErrInvalidVaultDenom
 	}
 
-	if amount.IsZero() {
+	if wantAmount.IsZero() {
 		return types.ErrInsufficientAmount
 	}
 
-	// Check if VaultRecord exists, return error if not exist as it's empty
-	vaultRecord, found := k.GetVaultRecord(ctx, amount.Denom)
+	// Check if VaultRecord exists
+	vaultRecord, found := k.GetVaultRecord(ctx, wantAmount.Denom)
 	if !found {
 		return types.ErrVaultRecordNotFound
 	}
 
-	// Get VaultShareRecord for account, create if not exist
-	vaultShareRecord, found := k.GetVaultShareRecord(ctx, amount.Denom, from)
+	// Get account value for vault
+	vaultAccValue, err := k.GetVaultAccountValue(ctx, wantAmount.Denom, from)
+	if err != nil {
+		return err
+	}
+
+	if vaultAccValue.IsZero() {
+		panic("vault account value is zero")
+	}
+
+	// Get account share record for the vault
+	vaultShareRecord, found := k.GetVaultShareRecord(ctx, from)
 	if !found {
 		return types.ErrVaultShareRecordNotFound
 	}
 
-	// Check if VaultShareRecord has enough supplied to withdraw
-	if vaultShareRecord.AmountSupplied.Amount.LT(amount.Amount) {
+	// Percent of vault account value the account is withdrawing
+	// This is the total account value, not just the supplied amount.
+	withdrawAmountPercent := wantAmount.Amount.ToDec().Quo(vaultAccValue.Amount.ToDec())
+
+	// Check if account is not withdrawing more than they have
+	// account value < want withdraw amount
+	if vaultAccValue.Amount.LT(wantAmount.Amount) {
 		return sdkerrors.Wrapf(
-			types.ErrInvalidShares,
-			"withdraw of %s shares greater than %s shares supplied",
-			amount,
-			vaultShareRecord.AmountSupplied,
+			types.ErrInsufficientValue,
+			"account vault value of %s is less than %s desired withdraw amount",
+			vaultAccValue,
+			wantAmount,
 		)
 	}
 
@@ -53,8 +68,8 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 	// Not necessary to check if amount denom is allowed for the strategy, as
 	// there would be no vault record if it weren't allowed.
 
-	// Deposit to the strategy
-	if err := strategy.Withdraw(ctx, amount); err != nil {
+	// Withdraw the wantAmount from the strategy
+	if err := strategy.Withdraw(ctx, wantAmount); err != nil {
 		return fmt.Errorf("failed to withdraw from strategy: %w", err)
 	}
 
@@ -64,14 +79,27 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 		ctx,
 		types.ModuleName,
 		from,
-		sdk.NewCoins(amount),
+		sdk.NewCoins(wantAmount),
 	); err != nil {
 		return err
 	}
 
+	// Shares withdrawn from vault
+	// For example:
+	// account supplied = 10hard
+	// account value    = 20hard
+	// wantAmount       = 10hard
+	// withdrawAmountPercent = 10hard / 20hard = 0.5
+	// sharesWithdrawn = 0.5 * 10hard = 5hard
+	vaultShareAmount := vaultShareRecord.AmountSupplied.AmountOf(wantAmount.Denom)
+	sharesWithdrawn := sdk.NewCoin(wantAmount.Denom, vaultShareAmount.
+		ToDec().
+		Mul(withdrawAmountPercent).
+		TruncateInt())
+
 	// Decrement VaultRecord and VaultShareRecord supplies
-	vaultRecord.TotalSupply = vaultRecord.TotalSupply.Sub(amount)
-	vaultShareRecord.AmountSupplied = vaultShareRecord.AmountSupplied.Sub(amount)
+	vaultRecord.TotalSupply = vaultRecord.TotalSupply.Sub(sharesWithdrawn)
+	vaultShareRecord.AmountSupplied = vaultShareRecord.AmountSupplied.Sub(sdk.NewCoins(sharesWithdrawn))
 
 	// Update VaultRecord and VaultShareRecord, deletes if zero supply
 	k.UpdateVaultRecord(ctx, vaultRecord)
@@ -80,9 +108,9 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, amount sdk.Coin)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeVaultWithdraw,
-			sdk.NewAttribute(types.AttributeKeyVaultDenom, amount.Denom),
+			sdk.NewAttribute(types.AttributeKeyVaultDenom, wantAmount.Denom),
 			sdk.NewAttribute(types.AttributeKeyOwner, from.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.Amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, wantAmount.Amount.String()),
 		),
 	)
 

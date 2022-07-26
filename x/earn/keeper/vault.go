@@ -6,29 +6,6 @@ import (
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
-// ViewVaultKeeper defines the read-only methods used for querying vaults.
-type ViewVaultKeeper interface {
-	// GetVaultTotalSupplied returns the total balance supplied to a vault. This
-	// may not necessarily be the current value of the vault, as it is the sum
-	// of the supplied denom.
-	GetVaultTotalSupplied(ctx sdk.Context, denom string) (sdk.Coin, error)
-
-	// GetVaultTotalValue returns the total **value** of all coins in a vault,
-	// i.e. the realizable total value denominated by GetDenom() if the vault
-	// were to liquidate its entire strategies.
-	GetVaultTotalValue(ctx sdk.Context, denom string) (sdk.Coin, error)
-
-	// GetVaultAccountSupplied returns the supplied amount for a single address
-	// within the vault.
-	GetVaultAccountSupplied(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error)
-
-	// GetVaultAccountValue returns the value of a single address within a vault
-	// if the account were to withdraw their entire balance.
-	GetVaultAccountValue(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error)
-}
-
-var _ ViewVaultKeeper = (*Keeper)(nil)
-
 // GetVaultTotalSupplied returns the total balance supplied to the vault. This
 // may not necessarily be the current value of the vault, as it is the sum
 // of the supplied denom and the value may be higher due to accumulated APYs.
@@ -72,12 +49,11 @@ func (k *Keeper) GetVaultTotalValue(
 // within a vault.
 func (k *Keeper) GetVaultAccountSupplied(
 	ctx sdk.Context,
-	denom string,
 	acc sdk.AccAddress,
-) (sdk.Coin, error) {
-	vaultShareRecord, found := k.GetVaultShareRecord(ctx, denom, acc)
+) (sdk.Coins, error) {
+	vaultShareRecord, found := k.GetVaultShareRecord(ctx, acc)
 	if !found {
-		return sdk.Coin{}, types.ErrVaultShareRecordNotFound
+		return sdk.Coins{}, types.ErrVaultShareRecordNotFound
 	}
 
 	return vaultShareRecord.AmountSupplied, nil
@@ -95,7 +71,7 @@ func (k *Keeper) GetVaultAccountValue(
 		return sdk.Coin{}, err
 	}
 
-	accSupplied, err := k.GetVaultAccountSupplied(ctx, denom, acc)
+	accSupplied, err := k.GetVaultAccountSupplied(ctx, acc)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -105,12 +81,12 @@ func (k *Keeper) GetVaultAccountValue(
 		return sdk.Coin{}, err
 	}
 
-	// percent of vault account ownership = accountSupply / totalSupply
-	// value of vault account ownership = percentOwned * totalValue
-	vaultShare := accSupplied.Amount.Quo(totalSupplied.Amount)
-	shareValue := vaultTotalValue.Amount.Mul(vaultShare)
+	// Percent of vault account ownership = accountSupply / totalSupply
+	// Value of vault account ownership = percentOwned * totalValue
+	vaultShare := accSupplied.AmountOf(denom).ToDec().Quo(totalSupplied.Amount.ToDec())
+	shareValueDec := vaultTotalValue.Amount.ToDec().Mul(vaultShare)
 
-	return sdk.NewCoin(denom, shareValue), nil
+	return sdk.NewCoin(denom, shareValueDec.TruncateInt()), nil
 }
 
 // ----------------------------------------------------------------------------
@@ -160,6 +136,37 @@ func (k *Keeper) SetVaultRecord(ctx sdk.Context, record types.VaultRecord) {
 	store.Set(types.VaultKey(record.Denom), bz)
 }
 
+// IterateVaultRecords iterates over all vault objects in the store and performs
+// a callback function.
+func (k Keeper) IterateVaultRecords(
+	ctx sdk.Context,
+	cb func(record types.VaultRecord) (stop bool),
+) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var record types.VaultRecord
+		k.cdc.MustUnmarshal(iterator.Value(), &record)
+		if cb(record) {
+			break
+		}
+	}
+}
+
+// GetAllVaultRecords returns all vault records from the store.
+func (k Keeper) GetAllVaultRecords(ctx sdk.Context) types.VaultRecords {
+	var records types.VaultRecords
+
+	k.IterateVaultRecords(ctx, func(record types.VaultRecord) bool {
+		records = append(records, record)
+		return false
+	})
+
+	return records
+}
+
 // ----------------------------------------------------------------------------
 // VaultShare -- user shares per vault
 
@@ -167,12 +174,11 @@ func (k *Keeper) SetVaultRecord(ctx sdk.Context, record types.VaultRecord) {
 // account.
 func (k *Keeper) GetVaultShareRecord(
 	ctx sdk.Context,
-	vaultDenom string,
 	acc sdk.AccAddress,
 ) (types.VaultShareRecord, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
 
-	bz := store.Get(types.DepositorVaultSharesKey(acc, vaultDenom))
+	bz := store.Get(types.DepositorVaultSharesKey(acc))
 	if bz == nil {
 		return types.VaultShareRecord{}, false
 	}
@@ -191,7 +197,7 @@ func (k *Keeper) UpdateVaultShareRecord(
 	record types.VaultShareRecord,
 ) {
 	if record.AmountSupplied.IsZero() {
-		k.DeleteVaultShareRecord(ctx, record.AmountSupplied.Denom, record.Depositor)
+		k.DeleteVaultShareRecord(ctx, record.Depositor)
 	} else {
 		k.SetVaultShareRecord(ctx, record)
 	}
@@ -201,11 +207,10 @@ func (k *Keeper) UpdateVaultShareRecord(
 // account.
 func (k *Keeper) DeleteVaultShareRecord(
 	ctx sdk.Context,
-	vaultDenom string,
 	acc sdk.AccAddress,
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
-	store.Delete(types.DepositorVaultSharesKey(acc, vaultDenom))
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
+	store.Delete(types.DepositorVaultSharesKey(acc))
 }
 
 // SetVaultShareRecord sets the vault share record for a given denom and account.
@@ -213,7 +218,38 @@ func (k *Keeper) SetVaultShareRecord(
 	ctx sdk.Context,
 	record types.VaultShareRecord,
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
 	bz := k.cdc.MustMarshal(&record)
-	store.Set(types.DepositorVaultSharesKey(record.Depositor, record.AmountSupplied.Denom), bz)
+	store.Set(types.DepositorVaultSharesKey(record.Depositor), bz)
+}
+
+// IterateVaultShareRecords iterates over all vault share objects in the store
+// and performs a callback function.
+func (k Keeper) IterateVaultShareRecords(
+	ctx sdk.Context,
+	cb func(record types.VaultShareRecord) (stop bool),
+) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var record types.VaultShareRecord
+		k.cdc.MustUnmarshal(iterator.Value(), &record)
+		if cb(record) {
+			break
+		}
+	}
+}
+
+// GetAllVaultShareRecords returns all vault share records from the store.
+func (k Keeper) GetAllVaultShareRecords(ctx sdk.Context) types.VaultShareRecords {
+	var records types.VaultShareRecords
+
+	k.IterateVaultShareRecords(ctx, func(record types.VaultShareRecord) bool {
+		records = append(records, record)
+		return false
+	})
+
+	return records
 }

@@ -1,6 +1,6 @@
 package types
 
-// Event types for swap module
+// Event types for earn module
 const (
 	AttributeValueCategory = ModuleName
 	EventTypeVaultDeposit  = "vault_deposit"

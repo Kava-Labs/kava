@@ -24,37 +24,11 @@ func TestStrategyLendTestSuite(t *testing.T) {
 	suite.Run(t, new(strategyHardTestSuite))
 }
 
-func (suite *strategyHardTestSuite) TestGetSupportedDenoms() {
-	strategy, err := suite.Keeper.GetStrategy(types.STRATEGY_TYPE_HARD)
-	suite.Require().NoError(err)
-
-	suite.True(strategy.IsDenomSupported("usdx"))
-}
-
 func (suite *strategyHardTestSuite) TestGetStrategyType() {
 	strategy, err := suite.Keeper.GetStrategy(types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	suite.Equal(types.STRATEGY_TYPE_HARD, strategy.GetStrategyType())
-}
-
-func (suite *strategyHardTestSuite) TestDeposit_InvalidDenom() {
-	// Not supported by hard strategy
-	vaultDenom := "busd"
-	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
-	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
-
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
-
-	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
-
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
-	suite.Require().Error(err)
-	suite.Require().ErrorIs(
-		err,
-		types.ErrStrategyDenomNotSupported,
-		"strategy should only allow usdx deposits",
-	)
 }
 
 func (suite *strategyHardTestSuite) TestDeposit_SingleAcc() {
@@ -249,4 +223,52 @@ func (suite *strategyHardTestSuite) TestWithdraw_OnlyWithdrawOwnSupply() {
 		types.ErrVaultShareRecordNotFound,
 		"should only be able to withdraw the account's own supply",
 	)
+}
+
+func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
+	vaultDenom := "usdx"
+	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
+
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
+
+	// Deposits from 2 accounts
+	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0).GetAddress()
+	err := suite.Keeper.Deposit(suite.Ctx, acc, depositAmount)
+	suite.Require().NoError(err)
+
+	// Direct hard deposit from module account to increase vault value
+	suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 10)))
+	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
+	suite.HardKeeper.Deposit(suite.Ctx, macc.GetAddress(), sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 10)))
+
+	// Query account value
+	accValue, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc)
+	suite.Require().NoError(err)
+	suite.Equal(depositAmount.AddAmount(sdk.NewInt(10)), accValue)
+
+	// Withdraw 10, 10 remaining
+	err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount)
+	suite.Require().NoError(err)
+
+	// Withdraw again -- too much
+	err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(
+		err,
+		types.ErrInsufficientValue,
+		"cannot withdraw more than account value",
+	)
+
+	// Half of remaining 10, 5 remaining
+	err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(vaultDenom, sdk.NewInt(5)))
+	suite.Require().NoError(err)
+
+	// Withdraw all
+	err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(vaultDenom, sdk.NewInt(5)))
+	suite.Require().NoError(err)
+
+	_, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound)
 }

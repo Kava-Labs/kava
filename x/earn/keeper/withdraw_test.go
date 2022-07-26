@@ -94,7 +94,7 @@ func (suite *withdrawTestSuite) TestWithdraw_ExceedBalance() {
 
 	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), withdrawAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrInvalidShares)
+	suite.Require().ErrorIs(err, types.ErrInsufficientValue)
 
 	// Balances still the same after deposit
 	suite.AccountBalanceEqual(

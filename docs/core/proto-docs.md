@@ -197,8 +197,16 @@
     - [CommunityPoolDepositProposalJSON](#kava.earn.v1beta1.CommunityPoolDepositProposalJSON)
   
 - [kava/earn/v1beta1/query.proto](#kava/earn/v1beta1/query.proto)
+    - [DepositResponse](#kava.earn.v1beta1.DepositResponse)
+    - [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse)
     - [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse)
+    - [QueryTotalDepositedRequest](#kava.earn.v1beta1.QueryTotalDepositedRequest)
+    - [QueryTotalDepositedResponse](#kava.earn.v1beta1.QueryTotalDepositedResponse)
+    - [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest)
+    - [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse)
+    - [VaultResponse](#kava.earn.v1beta1.VaultResponse)
   
     - [Query](#kava.earn.v1beta1.Query)
   
@@ -2751,13 +2759,13 @@ Msg defines the committee Msg service
 <a name="kava.earn.v1beta1.StrategyType"></a>
 
 ### StrategyType
-
+StrategyType is the type of strategy that a vault uses to optimize yields.
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| STRATEGY_TYPE_UNKNOWN | 0 |  |
-| STRATEGY_TYPE_HARD | 1 |  |
-| STRATEGY_TYPE_SAVINGS | 2 |  |
+| STRATEGY_TYPE_UNSPECIFIED | 0 | STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type. |
+| STRATEGY_TYPE_HARD | 1 | STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard module. |
+| STRATEGY_TYPE_SAVINGS | 2 | STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the Savings module. |
 
 
  <!-- end enums -->
@@ -2785,7 +2793,7 @@ modified via parameter governance.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  | Denom is the only supported denomination of the vault for deposits and withdrawals. |
-| `vault_strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | VaultStrategy is the strategies to use for this vault. |
+| `vault_strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | VaultStrategy is the strategy used for this vault. |
 
 
 
@@ -2812,13 +2820,13 @@ vault.
 <a name="kava.earn.v1beta1.VaultShareRecord"></a>
 
 ### VaultShareRecord
-VaultShareRecord defines the shares owned by a depositor and vault.
+VaultShareRecord defines the vault shares owned by a depositor.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `depositor` | [bytes](#bytes) |  | depositor represents the owner of the shares |
-| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount_supplied represents the total amount a depositor has supplied to the vault. The vault is determined by the coin denom. |
+| `depositor` | [bytes](#bytes) |  | Depositor represents the owner of the shares |
+| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | AmountSupplied represents the total amount a depositor has supplied to the vault. The vault is determined by the coin denom. |
 
 
 
@@ -2844,7 +2852,7 @@ VaultShareRecord defines the shares owned by a depositor and vault.
 <a name="kava.earn.v1beta1.Params"></a>
 
 ### Params
-
+Params defines the parameters of the earn module.
 
 
 | Field | Type | Label | Description |
@@ -2956,6 +2964,56 @@ CommunityPoolDepositProposalJSON defines a CommunityPoolDepositProposal with a d
 
 
 
+<a name="kava.earn.v1beta1.DepositResponse"></a>
+
+### DepositResponse
+DepositResponse defines a deposit query response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the owner of the deposit. |
+| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Amount represents the amount supplied to vaults. |
+| `value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Value represents the total accumulated value of denom coins supplied to vaults. This may be greater than or equal to amount_supplied depending on the strategy. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryDepositsRequest"></a>
+
+### QueryDepositsRequest
+QueryDepositsRequest is the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  | owner optionally filters deposits by owner |
+| `denom` | [string](#string) |  | denom optionally filters deposits by vault denom |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryDepositsResponse"></a>
+
+### QueryDepositsResponse
+QueryDepositsResponse is the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [DepositResponse](#kava.earn.v1beta1.DepositResponse) | repeated | deposits returns the deposits matching the requested parameters |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
 <a name="kava.earn.v1beta1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
@@ -2980,6 +3038,84 @@ QueryParamsResponse defines the response type for querying x/earn parameters.
 
 
 
+
+<a name="kava.earn.v1beta1.QueryTotalDepositedRequest"></a>
+
+### QueryTotalDepositedRequest
+QueryTotalDepositedRequest is the request type for the Query/TotalDeposited RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | denom represents the vault denom to query total deposited amount for. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryTotalDepositedResponse"></a>
+
+### QueryTotalDepositedResponse
+QueryTotalDepositedResponse is the response type for the Query/TotalDeposited RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `supplied_coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryVaultsRequest"></a>
+
+### QueryVaultsRequest
+QueryVaultsRequest is the request type for the Query/Vault RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | vault filters vault by denom |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryVaultsResponse"></a>
+
+### QueryVaultsResponse
+QueryVaultsResponse is the response type for the Query/Vaults RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `vaults` | [VaultResponse](#kava.earn.v1beta1.VaultResponse) | repeated | vaults represents the earn module vaults |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultResponse"></a>
+
+### VaultResponse
+VaultResponse is the response type for a vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | denom represents the denom of the vault |
+| `vault_strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | VaultStrategy is the strategy used for this vault. |
+| `total_supplied` | [string](#string) |  | TotalSupplied is the total amount of denom coins supplied to the vault. |
+| `total_value` | [string](#string) |  | TotalValue is the total value of denom coins supplied to the vault if the vault were to be liquidated. |
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -2995,6 +3131,9 @@ Query defines the gRPC querier service for earn module
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse) | Params queries all parameters of the earn module. | GET|/kava/earn/v1beta1/params|
+| `Vaults` | [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest) | [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse) | Vaults queries vaults based on vault denom | GET|/kava/earn/v1beta1/vaults/{denom}|
+| `Deposits` | [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on owner address and vault | GET|/kava/earn/v1beta1/deposits|
+| `TotalDeposited` | [QueryTotalDepositedRequest](#kava.earn.v1beta1.QueryTotalDepositedRequest) | [QueryTotalDepositedResponse](#kava.earn.v1beta1.QueryTotalDepositedResponse) | TotalDeposited queries total deposited amount for each vault. | GET|/kava/earn/v1beta1/total-deposited/{denom}|
 
  <!-- end services -->
 

@@ -27,7 +27,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-// Suite implements a test suite for the swap module integration tests
+// Suite implements a test suite for the earn module integration tests
 type Suite struct {
 	suite.Suite
 	Keeper        keeper.Keeper
@@ -94,6 +94,42 @@ func (suite *Suite) SetupTest() {
 				sdk.MustNewDecFromStr("0.05"),
 				sdk.ZeroDec(),
 			),
+			hardtypes.NewMoneyMarket(
+				"busd",
+				hardtypes.NewBorrowLimit(
+					true,
+					sdk.MustNewDecFromStr("20000000"),
+					sdk.MustNewDecFromStr("1"),
+				),
+				"busd:usd",
+				sdk.NewInt(1000000),
+				hardtypes.NewInterestRateModel(
+					sdk.MustNewDecFromStr("0.05"),
+					sdk.MustNewDecFromStr("2"),
+					sdk.MustNewDecFromStr("0.8"),
+					sdk.MustNewDecFromStr("10"),
+				),
+				sdk.MustNewDecFromStr("0.05"),
+				sdk.ZeroDec(),
+			),
+			hardtypes.NewMoneyMarket(
+				"kava",
+				hardtypes.NewBorrowLimit(
+					true,
+					sdk.MustNewDecFromStr("20000000"),
+					sdk.MustNewDecFromStr("1"),
+				),
+				"kava:usd",
+				sdk.NewInt(1000000),
+				hardtypes.NewInterestRateModel(
+					sdk.MustNewDecFromStr("0.05"),
+					sdk.MustNewDecFromStr("2"),
+					sdk.MustNewDecFromStr("0.8"),
+					sdk.MustNewDecFromStr("10"),
+				),
+				sdk.MustNewDecFromStr("0.05"),
+				sdk.ZeroDec(),
+			),
 		},
 		sdk.NewDec(10),
 	),
@@ -133,16 +169,16 @@ func (suite *Suite) GetEvents() sdk.Events {
 	return suite.Ctx.EventManager().Events()
 }
 
-// AddCoinsToModule adds coins to the swap module account
+// AddCoinsToModule adds coins to the earn module account
 func (suite *Suite) AddCoinsToModule(amount sdk.Coins) {
 	// Does not use suite.BankKeeper.MintCoins as module account would not have permission to mint
 	err := simapp.FundModuleAccount(suite.BankKeeper, suite.Ctx, types.ModuleName, amount)
 	suite.Require().NoError(err)
 }
 
-// RemoveCoinsFromModule removes coins to the swap module account
+// RemoveCoinsFromModule removes coins to the earn module account
 func (suite *Suite) RemoveCoinsFromModule(amount sdk.Coins) {
-	// Swap module does not have BurnCoins permission so we need to transfer to gov first to burn
+	// Earn module does not have BurnCoins permission so we need to transfer to gov first to burn
 	err := suite.BankKeeper.SendCoinsFromModuleToModule(suite.Ctx, types.ModuleAccountName, govtypes.ModuleName, amount)
 	suite.Require().NoError(err)
 	err = suite.BankKeeper.BurnCoins(suite.Ctx, govtypes.ModuleName, amount)
@@ -185,9 +221,12 @@ func (suite *Suite) CreateVault(vaultDenom string, vaultStrategy types.StrategyT
 	allowedVaults := suite.Keeper.GetAllowedVaults(suite.Ctx)
 	allowedVaults = append(allowedVaults, vault)
 
+	params := types.NewParams(allowedVaults)
+	suite.Require().NoError(params.Validate())
+
 	suite.Keeper.SetParams(
 		suite.Ctx,
-		types.NewParams(allowedVaults),
+		params,
 	)
 }
 
@@ -197,7 +236,7 @@ func (suite *Suite) AccountBalanceEqual(addr sdk.AccAddress, coins sdk.Coins) {
 	suite.Equal(coins, balance, fmt.Sprintf("expected account balance to equal coins %s, but got %s", coins, balance))
 }
 
-// ModuleAccountBalanceEqual asserts that the swap module account balance matches the provided coins
+// ModuleAccountBalanceEqual asserts that the earn module account balance matches the provided coins
 func (suite *Suite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 	balance := suite.BankKeeper.GetAllBalances(
 		suite.Ctx,
@@ -229,11 +268,9 @@ func (suite *Suite) AccountTotalSuppliedEqual(accs []sdk.AccAddress, supplies []
 	for i, acc := range accs {
 		coins := supplies[i]
 
-		for _, coin := range coins {
-			accVaultBal, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, coin.Denom, acc)
-			suite.Require().NoError(err)
-			suite.Require().Equal(coin, accVaultBal)
-		}
+		accVaultBal, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, acc)
+		suite.Require().NoError(err)
+		suite.Require().True(coins.IsEqual(accVaultBal), "expected account vault balance to equal coins %s, but got %s", coins, accVaultBal)
 	}
 }
 
