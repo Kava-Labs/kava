@@ -140,3 +140,26 @@ func (a *AllowedVault) Validate() error {
 
 	return nil
 }
+
+type VaultShares []VaultShare
+
+func (v VaultShares) AmountOf(denom string) sdk.Int {
+	for _, s := range v {
+		if s.Denom == denom {
+			return s.Amount
+		}
+	}
+
+	return sdk.ZeroInt()
+}
+
+func (v VaultShares) IsZero() bool {
+	for _, s := range v {
+		// If any amount is non-zero, false
+		if !s.Amount.IsZero() {
+			return false
+		}
+	}
+
+	return true
+}

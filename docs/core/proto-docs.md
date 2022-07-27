@@ -184,6 +184,7 @@
 - [kava/earn/v1beta1/vault.proto](#kava/earn/v1beta1/vault.proto)
     - [AllowedVault](#kava.earn.v1beta1.AllowedVault)
     - [VaultRecord](#kava.earn.v1beta1.VaultRecord)
+    - [VaultShare](#kava.earn.v1beta1.VaultShare)
     - [VaultShareRecord](#kava.earn.v1beta1.VaultShareRecord)
   
 - [kava/earn/v1beta1/params.proto](#kava/earn/v1beta1/params.proto)
@@ -2817,14 +2818,28 @@ modified via parameter governance.
 <a name="kava.earn.v1beta1.VaultRecord"></a>
 
 ### VaultRecord
-VaultRecord is the state of a vault and is used to store the state of a
-vault.
+VaultRecord is the state of a vault.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `denom` | [string](#string) |  | Denom is the only supported denomination of the vault for deposits and withdrawals. |
-| `total_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | TotalSupply is the total supply of the vault, denominated **only** in the user deposit/withdrawal denom, must be the same as the Denom field. |
+| `total_shares` | [VaultShare](#kava.earn.v1beta1.VaultShare) |  | TotalShares is the total distributed number of shares in the vault. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultShare"></a>
+
+### VaultShare
+VaultShare defines shares of a vault owned by a depositor.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `amount` | [string](#string) |  |  |
 
 
 
@@ -2840,7 +2855,7 @@ VaultShareRecord defines the vault shares owned by a depositor.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `depositor` | [bytes](#bytes) |  | Depositor represents the owner of the shares |
-| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | AmountSupplied represents the total amount a depositor has supplied to the vault. The vault is determined by the coin denom. |
+| `shares` | [VaultShare](#kava.earn.v1beta1.VaultShare) | repeated | Shares represent the vault shares owned by the depositor. |
 
 
 
