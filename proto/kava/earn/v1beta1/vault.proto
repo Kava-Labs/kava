@@ -18,15 +18,10 @@ message AllowedVault {
   StrategyType vault_strategy = 2;
 }
 
-// VaultRecord is the state of a vault and is used to store the state of a
-// vault.
+// VaultRecord is the state of a vault.
 message VaultRecord {
-  // Denom is the only supported denomination of the vault for deposits and
-  // withdrawals.
-  string denom = 1;
-  // TotalSupply is the total supply of the vault, denominated **only** in the
-  // user deposit/withdrawal denom, must be the same as the Denom field.
-  cosmos.base.v1beta1.Coin total_supply = 2 [(gogoproto.nullable) = false];
+  // TotalShares is the total distributed number of shares in the vault.
+  VaultShare total_shares = 1 [(gogoproto.nullable) = false];
 }
 
 // VaultShareRecord defines the vault shares owned by a depositor.
@@ -36,8 +31,16 @@ message VaultShareRecord {
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
     (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
-  // AmountSupplied represents the total amount a depositor has supplied to the
-  // vault. The vault is determined by the coin denom.
-  repeated cosmos.base.v1beta1.Coin amount_supplied = 2
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  // Shares represent the vault shares owned by the depositor.
+  repeated VaultShare shares = 2 [(gogoproto.castrepeated) = "VaultShares", (gogoproto.nullable) = false];
+}
+
+// VaultShare defines shares of a vault owned by a depositor.
+message VaultShare {
+  string denom  = 1;
+  string amount = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
 }
