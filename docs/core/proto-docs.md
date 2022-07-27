@@ -195,6 +195,8 @@
 - [kava/earn/v1beta1/proposal.proto](#kava/earn/v1beta1/proposal.proto)
     - [CommunityPoolDepositProposal](#kava.earn.v1beta1.CommunityPoolDepositProposal)
     - [CommunityPoolDepositProposalJSON](#kava.earn.v1beta1.CommunityPoolDepositProposalJSON)
+    - [CommunityPoolWithdrawProposal](#kava.earn.v1beta1.CommunityPoolWithdrawProposal)
+    - [CommunityPoolWithdrawProposalJSON](#kava.earn.v1beta1.CommunityPoolWithdrawProposalJSON)
   
 - [kava/earn/v1beta1/query.proto](#kava/earn/v1beta1/query.proto)
     - [DepositResponse](#kava.earn.v1beta1.DepositResponse)
@@ -2934,6 +2936,41 @@ CommunityPoolDepositProposal deposits from the community pool into an earn vault
 
 ### CommunityPoolDepositProposalJSON
 CommunityPoolDepositProposalJSON defines a CommunityPoolDepositProposal with a deposit
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.CommunityPoolWithdrawProposal"></a>
+
+### CommunityPoolWithdrawProposal
+CommunityPoolWithdrawProposal withdraws from an earn vault back to community pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.CommunityPoolWithdrawProposalJSON"></a>
+
+### CommunityPoolWithdrawProposalJSON
+CommunityPoolWithdrawProposalJSON defines a CommunityPoolWithdrawProposal with a deposit
 
 
 | Field | Type | Label | Description |
