@@ -137,7 +137,7 @@ func (suite *grpcQueryTestSuite) TestVaults_NotFound() {
 func (suite *grpcQueryTestSuite) TestDeposits() {
 	vault1Denom := "usdx"
 	vault2Denom := "busd"
-	vault3Denom := "kava"
+	vault3Denom := "ukava"
 
 	// Add vaults
 	suite.CreateVault(vault1Denom, types.STRATEGY_TYPE_HARD)

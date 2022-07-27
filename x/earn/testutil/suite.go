@@ -113,7 +113,7 @@ func (suite *Suite) SetupTest() {
 				sdk.ZeroDec(),
 			),
 			hardtypes.NewMoneyMarket(
-				"kava",
+				"ukava",
 				hardtypes.NewBorrowLimit(
 					true,
 					sdk.MustNewDecFromStr("20000000"),
