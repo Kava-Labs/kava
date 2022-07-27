@@ -10,11 +10,13 @@ import (
 )
 
 // NewCommunityPoolDepositProposalHandler
-func NewCommunityPoolDepositProposalHandler(k keeper.Keeper) govtypes.Handler {
+func NewProposalHandler(k keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
 		case *types.CommunityPoolDepositProposal:
 			return keeper.HandleCommunityPoolDepositProposal(ctx, k, c)
+		case *types.CommunityPoolWithdrawProposal:
+			return keeper.HandleCommunityPoolWithdrawProposal(ctx, k, c)
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized kavadist proposal content type: %T", c)
 		}

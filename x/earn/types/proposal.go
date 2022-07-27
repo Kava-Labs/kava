@@ -25,7 +25,7 @@ func init() {
 	govtypes.RegisterProposalType(ProposalTypeCommunityPoolDeposit)
 	govtypes.RegisterProposalTypeCodec(CommunityPoolDepositProposal{}, "kava/CommunityPoolDepositProposal")
 	govtypes.RegisterProposalType(ProposalTypeCommunityPoolWithdraw)
-	govtypes.RegisterProposalTypeCodec(CommunityPoolDepositProposal{}, "kava/CommunityPoolWithdrawProposal")
+	govtypes.RegisterProposalTypeCodec(CommunityPoolWithdrawProposal{}, "kava/CommunityPoolWithdrawProposal")
 }
 
 // NewCommunityPoolDepositProposal creates a new community pool deposit proposal.

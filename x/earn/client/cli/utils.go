@@ -22,3 +22,18 @@ func ParseCommunityPoolDepositProposalJSON(cdc codec.JSONCodec, proposalFile str
 
 	return proposal, nil
 }
+
+// ParseCommunityPoolWithdrawProposalJSON reads and parses a CommunityPoolWithdrawProposalJSON from a file.
+func ParseCommunityPoolWithdrawProposalJSON(cdc codec.JSONCodec, proposalFile string) (types.CommunityPoolWithdrawProposalJSON, error) {
+	proposal := types.CommunityPoolWithdrawProposalJSON{}
+	contents, err := ioutil.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+
+	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
+}

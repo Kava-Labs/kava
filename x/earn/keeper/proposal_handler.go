@@ -11,3 +11,7 @@ func HandleCommunityPoolDepositProposal(ctx sdk.Context, k Keeper, p *types.Comm
 	// deposit from community pool address (kava1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8m2splc)
 	return k.Deposit(ctx, k.accountKeeper.GetModuleAddress("distribution"), p.Amount)
 }
+
+func HandleCommunityPoolWithdrawProposal(ctx sdk.Context, k Keeper, p *types.CommunityPoolWithdrawProposal) error {
+	return k.Withdraw(ctx, k.accountKeeper.GetModuleAddress("distribution"), p.Amount)
+}

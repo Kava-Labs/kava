@@ -170,7 +170,8 @@ var (
 			ibcclientclient.UpgradeProposalHandler,
 			kavadistclient.ProposalHandler,
 			committeeclient.ProposalHandler,
-			earnclient.ProposalHandler,
+			earnclient.DepositProposalHandler,
+			earnclient.WithdrawProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -658,7 +659,7 @@ func NewApp(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
 		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper)).
-		AddRoute(earntypes.RouterKey, earn.NewCommunityPoolDepositProposalHandler(app.earnKeeper))
+		AddRoute(earntypes.RouterKey, earn.NewProposalHandler(app.earnKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[govtypes.StoreKey],
@@ -1002,10 +1003,11 @@ func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
 	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
 	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
+	distMaccAddr := app.accountKeeper.GetModuleAddress(distrtypes.ModuleName)
 
 	for addr := range modAccAddrs {
 		// Set the kavadist and earn module account address as unblocked
-		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() {
+		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() || addr == distMaccAddr.String() {
 			modAccAddrs[addr] = false
 		}
 	}

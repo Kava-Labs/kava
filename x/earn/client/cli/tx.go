@@ -163,3 +163,65 @@ Where proposal.json contains:
 
 	return cmd
 }
+
+// GetCmdSubmitCommunityPoolWithdrawProposal implements the command to submit a community-pool withdraw proposal
+func GetCmdSubmitCommunityPoolWithdrawProposal() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "community-pool-withdraw [proposal-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a community pool withdraw proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a community pool withdraw proposal along with an initial deposit.
+The proposal details must be supplied via a JSON file.
+
+Example:
+$ %s tx gov submit-proposal community-pool-withdraw <path/to/proposal.json> --from=<key_or_address>
+
+Where proposal.json contains:
+
+{
+  "title": "Community Pool Withdraw",
+  "description": "Withdraw some KAVA from community pool!",
+  "amount": [
+		{
+			"denom": "ukava",
+			"amount": "100000000000"
+		}
+	],
+	"deposit": [
+		{
+			"denom": "ukava",
+			"amount": "1000000000"
+		}
+	]
+}
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			proposal, err := ParseCommunityPoolWithdrawProposalJSON(clientCtx.Codec, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := types.NewCommunityPoolWithdrawProposal(proposal.Title, proposal.Description, proposal.Amount)
+			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			if err != nil {
+				return err
+			}
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	return cmd
+}

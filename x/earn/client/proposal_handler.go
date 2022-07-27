@@ -7,7 +7,8 @@ import (
 	"github.com/kava-labs/kava/x/earn/client/rest"
 )
 
-// community-pool multi-spend proposal handler
+// community-pool depsoit/withdraw proposal handlers
 var (
-	ProposalHandler = govclient.NewProposalHandler(cli.GetCmdSubmitCommunityPoolDepositProposal, rest.ProposalRESTHandler)
+	DepositProposalHandler  = govclient.NewProposalHandler(cli.GetCmdSubmitCommunityPoolDepositProposal, rest.DepositProposalRESTHandler)
+	WithdrawProposalHandler = govclient.NewProposalHandler(cli.GetCmdSubmitCommunityPoolWithdrawProposal, rest.WithdrawProposalRESTHandler)
 )
