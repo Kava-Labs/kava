@@ -16,6 +16,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgDeposit{}, "earn/MsgDeposit", nil)
 	cdc.RegisterConcrete(&MsgWithdraw{}, "earn/MsgWithdraw", nil)
 	cdc.RegisterConcrete(&CommunityPoolDepositProposal{}, "kava/CommunityPoolDepositProposal", nil)
+	cdc.RegisterConcrete(&CommunityPoolWithdrawProposal{}, "kava/CommunityPoolWithdrawProposal", nil)
+
 }
 
 // RegisterInterfaces registers proto messages under their interfaces for unmarshalling,
@@ -26,7 +28,9 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgWithdraw{},
 	)
 	registry.RegisterImplementations((*govtypes.Content)(nil),
-		&CommunityPoolDepositProposal{})
+		&CommunityPoolDepositProposal{},
+		&CommunityPoolWithdrawProposal{},
+	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
