@@ -43,3 +43,31 @@ func (suite *proposalTestSuite) TestCommunityDepositProposal() {
 	balance := suite.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
 	suite.Require().Equal(fundAmount.Sub(sdk.NewCoins(depositAmount)), balance)
 }
+
+func (suite *proposalTestSuite) TestCommunityWithdrawProposal() {
+	distKeeper := suite.App.GetDistrKeeper()
+	ctx := suite.Ctx
+	macc := distKeeper.GetDistributionAccount(ctx)
+	fundAmount := sdk.NewCoins(sdk.NewInt64Coin("ukava", 100000000))
+	depositAmount := sdk.NewCoin("ukava", sdk.NewInt(10000000))
+	suite.Require().NoError(suite.App.FundModuleAccount(ctx, macc.GetName(), fundAmount))
+	feePool := distKeeper.GetFeePool(ctx)
+	feePool.CommunityPool = sdk.NewDecCoinsFromCoins(fundAmount...)
+	distKeeper.SetFeePool(ctx, feePool)
+	// TODO update to STRATEGY_TYPE_SAVINGS once implemented
+	suite.CreateVault("ukava", types.STRATEGY_TYPE_HARD)
+	deposit := types.NewCommunityPoolDepositProposal("test title",
+		"desc", depositAmount)
+	err := keeper.HandleCommunityPoolDepositProposal(ctx, suite.Keeper, deposit)
+	suite.Require().NoError(err)
+
+	balance := suite.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
+	suite.Require().Equal(fundAmount.Sub(sdk.NewCoins(depositAmount)), balance)
+
+	withdraw := types.NewCommunityPoolWithdrawProposal("test title",
+		"desc", depositAmount)
+	err = keeper.HandleCommunityPoolWithdrawProposal(ctx, suite.Keeper, withdraw)
+	suite.Require().NoError(err)
+	balance = suite.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
+	suite.Require().Equal(fundAmount, balance)
+}
