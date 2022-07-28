@@ -26,10 +26,3 @@ func NewQueryDepositsRequest(
 		Pagination: pagination,
 	}
 }
-
-// NewQueryTotalDepositedRequest returns a new QueryTotalDepositedRequest
-func NewQueryTotalDepositedRequest(denom string) *QueryTotalDepositedRequest {
-	return &QueryTotalDepositedRequest{
-		Denom: denom,
-	}
-}

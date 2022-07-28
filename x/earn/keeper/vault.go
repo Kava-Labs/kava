@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -49,13 +51,13 @@ func (k *Keeper) GetVaultTotalValue(
 func (k *Keeper) GetVaultAccountShares(
 	ctx sdk.Context,
 	acc sdk.AccAddress,
-) (types.VaultShares, error) {
+) (types.VaultShares, bool) {
 	vaultShareRecord, found := k.GetVaultShareRecord(ctx, acc)
 	if !found {
-		return nil, types.ErrVaultShareRecordNotFound
+		return nil, false
 	}
 
-	return vaultShareRecord.Shares, nil
+	return vaultShareRecord.Shares, true
 }
 
 // GetVaultAccountValue returns the value of a single address within a vault
@@ -65,12 +67,15 @@ func (k *Keeper) GetVaultAccountValue(
 	denom string,
 	acc sdk.AccAddress,
 ) (sdk.Coin, error) {
-	accShares, err := k.GetVaultAccountShares(ctx, acc)
-	if err != nil {
-		return sdk.Coin{}, err
+	accShares, found := k.GetVaultAccountShares(ctx, acc)
+	if !found {
+		return sdk.Coin{}, fmt.Errorf("vault share record not found")
 	}
 
 	sharePrice, err := k.GetVaultPricePerShare(ctx, denom)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
 	value := accShares.AmountOf(denom).Mul(sharePrice)
 
 	return sdk.NewCoin(denom, value), nil

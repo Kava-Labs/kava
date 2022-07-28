@@ -23,7 +23,7 @@ func TestVaultTestSuite(t *testing.T) {
 	suite.Run(t, new(vaultTestSuite))
 }
 
-func (suite *vaultTestSuite) TestGetVaultTotalSupplied() {
+func (suite *vaultTestSuite) TestGetVaultTotalShares() {
 	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
@@ -35,18 +35,17 @@ func (suite *vaultTestSuite) TestGetVaultTotalSupplied() {
 	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
 	suite.Require().NoError(err)
 
-	vaultTotalSupplied, err := suite.Keeper.GetVaultTotalSupplied(suite.Ctx, vaultDenom)
-	suite.Require().NoError(err)
+	vaultTotalShares, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, vaultDenom)
+	suite.Require().True(found)
 
-	suite.Equal(depositAmount, vaultTotalSupplied)
+	suite.Equal(depositAmount, vaultTotalShares)
 }
 
-func (suite *vaultTestSuite) TestGetVaultTotalSupplied_NotFound() {
+func (suite *vaultTestSuite) TestGetVaultTotalShares_NotFound() {
 	vaultDenom := "usdx"
 
-	_, err := suite.Keeper.GetVaultTotalSupplied(suite.Ctx, vaultDenom)
-	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound)
+	_, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, vaultDenom)
+	suite.Require().False(found)
 }
 
 func (suite *vaultTestSuite) TestGetVaultTotalValue() {
@@ -83,17 +82,14 @@ func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 
 	// Before deposit, account supplied is 0
 
-	_, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, acc1.GetAddress())
-	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrVaultShareRecordNotFound)
+	_, found := suite.Keeper.GetVaultShareRecord(suite.Ctx, acc1.GetAddress())
+	suite.Require().False(found)
 
-	_, err = suite.Keeper.GetVaultAccountSupplied(suite.Ctx, acc2.GetAddress())
-	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrVaultShareRecordNotFound)
+	_, found = suite.Keeper.GetVaultShareRecord(suite.Ctx, acc2.GetAddress())
+	suite.Require().False(found)
 
 	// Deposits from both accounts
-
-	err = suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), deposit1Amount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), deposit1Amount)
 	suite.Require().NoError(err)
 
 	err = suite.Keeper.Deposit(suite.Ctx, acc2.GetAddress(), deposit2Amount)
@@ -101,15 +97,15 @@ func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 
 	// Check balances
 
-	vaultAcc1Supplied, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, acc1.GetAddress())
-	suite.Require().NoError(err)
+	vaultAcc1Supplied, found := suite.Keeper.GetVaultShareRecord(suite.Ctx, acc1.GetAddress())
+	suite.Require().True(found)
 
-	vaultAcc2Supplied, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, acc2.GetAddress())
-	suite.Require().NoError(err)
+	vaultAcc2Supplied, found := suite.Keeper.GetVaultShareRecord(suite.Ctx, acc2.GetAddress())
+	suite.Require().True(found)
 
 	// Account supply only includes the deposit from respective accounts
-	suite.Equal(sdk.NewCoins(deposit1Amount), vaultAcc1Supplied)
-	suite.Equal(sdk.NewCoins(deposit1Amount), vaultAcc2Supplied)
+	suite.Equal(deposit1Amount, vaultAcc1Supplied.Shares.AmountOf(vaultDenom))
+	suite.Equal(deposit1Amount, vaultAcc2Supplied.Shares.AmountOf(vaultDenom))
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue() {
@@ -164,12 +160,12 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue_ShareNotFound() {
 func (suite *vaultTestSuite) TestGetVaultRecord() {
 	record := types.NewVaultRecord("usdx")
 
-	_, found := suite.Keeper.GetVaultRecord(suite.Ctx, record.Denom)
+	_, found := suite.Keeper.GetVaultRecord(suite.Ctx, record.TotalShares.Denom)
 	suite.Require().False(found)
 
 	suite.Keeper.SetVaultRecord(suite.Ctx, record)
 
-	stateRecord, found := suite.Keeper.GetVaultRecord(suite.Ctx, record.Denom)
+	stateRecord, found := suite.Keeper.GetVaultRecord(suite.Ctx, record.TotalShares.Denom)
 	suite.Require().True(found)
 	suite.Require().Equal(record, stateRecord)
 }
@@ -177,30 +173,29 @@ func (suite *vaultTestSuite) TestGetVaultRecord() {
 func (suite *vaultTestSuite) TestUpdateVaultRecord() {
 	record := types.NewVaultRecord("usdx")
 
-	record.TotalSupply = sdk.NewInt64Coin("usdx", 100)
+	record.TotalShares = types.NewVaultShare("usdx", sdk.NewInt(100))
 
 	// Update vault
 	suite.Keeper.UpdateVaultRecord(suite.Ctx, record)
 
-	stateRecord, found := suite.Keeper.GetVaultRecord(suite.Ctx, record.Denom)
+	stateRecord, found := suite.Keeper.GetVaultRecord(suite.Ctx, record.TotalShares.Denom)
 	suite.Require().True(found, "vault record with supply should exist")
 	suite.Require().Equal(record, stateRecord)
 
 	// Remove supply
-	record.TotalSupply = sdk.NewInt64Coin("usdx", 0)
+	record.TotalShares = types.NewVaultShare("usdx", sdk.NewInt(0))
 	suite.Keeper.UpdateVaultRecord(suite.Ctx, record)
 
-	_, found = suite.Keeper.GetVaultRecord(suite.Ctx, record.Denom)
+	_, found = suite.Keeper.GetVaultRecord(suite.Ctx, record.TotalShares.Denom)
 	suite.Require().False(found, "vault record with 0 supply should be deleted")
 }
 
 func (suite *vaultTestSuite) TestGetVaultShareRecord() {
 	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
-	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	record := types.NewVaultShareRecord(acc.GetAddress())
+	record := types.NewVaultShareRecord(acc.GetAddress(), types.NewVaultShares())
 
 	// Check share doesn't exist before deposit
 
@@ -208,7 +203,9 @@ func (suite *vaultTestSuite) TestGetVaultShareRecord() {
 	suite.Require().False(found, "vault share record should not exist before deposit")
 
 	// Update share record
-	record.AmountSupplied = sdk.NewCoins(depositAmount)
+	record.Shares = types.NewVaultShares(
+		types.NewVaultShare(vaultDenom, sdk.NewInt(100)),
+	)
 	suite.Keeper.SetVaultShareRecord(suite.Ctx, record)
 
 	// Check share exists and matches set value
@@ -220,10 +217,11 @@ func (suite *vaultTestSuite) TestGetVaultShareRecord() {
 func (suite *vaultTestSuite) TestUpdateVaultShareRecord() {
 	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
-	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	record := types.NewVaultShareRecord(acc.GetAddress(), depositAmount)
+	record := types.NewVaultShareRecord(acc.GetAddress(), types.NewVaultShares(
+		types.NewVaultShare(vaultDenom, sdk.NewInt(100)),
+	))
 
 	// Update vault
 	suite.Keeper.UpdateVaultShareRecord(suite.Ctx, record)
@@ -233,7 +231,7 @@ func (suite *vaultTestSuite) TestUpdateVaultShareRecord() {
 	suite.Require().Equal(record, stateRecord)
 
 	// Remove supply
-	record.AmountSupplied = sdk.NewCoins()
+	record.Shares = types.NewVaultShares()
 	suite.Keeper.UpdateVaultShareRecord(suite.Ctx, record)
 
 	_, found = suite.Keeper.GetVaultShareRecord(suite.Ctx, acc.GetAddress())

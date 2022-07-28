@@ -199,8 +199,6 @@
     - [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse)
     - [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse)
-    - [QueryTotalDepositedRequest](#kava.earn.v1beta1.QueryTotalDepositedRequest)
-    - [QueryTotalDepositedResponse](#kava.earn.v1beta1.QueryTotalDepositedResponse)
     - [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest)
     - [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse)
     - [VaultResponse](#kava.earn.v1beta1.VaultResponse)
@@ -2951,7 +2949,7 @@ DepositResponse defines a deposit query response type.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `depositor` | [string](#string) |  | depositor represents the owner of the deposit. |
-| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Amount represents the amount supplied to vaults. |
+| `shares` | [VaultShare](#kava.earn.v1beta1.VaultShare) | repeated | Shares represent the issued shares from their corresponding vaults. |
 | `value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Value represents the total accumulated value of denom coins supplied to vaults. This may be greater than or equal to amount_supplied depending on the strategy. |
 
 
@@ -3017,36 +3015,6 @@ QueryParamsResponse defines the response type for querying x/earn parameters.
 
 
 
-<a name="kava.earn.v1beta1.QueryTotalDepositedRequest"></a>
-
-### QueryTotalDepositedRequest
-QueryTotalDepositedRequest is the request type for the Query/TotalDeposited RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `denom` | [string](#string) |  | denom represents the vault denom to query total deposited amount for. |
-
-
-
-
-
-
-<a name="kava.earn.v1beta1.QueryTotalDepositedResponse"></a>
-
-### QueryTotalDepositedResponse
-QueryTotalDepositedResponse is the response type for the Query/TotalDeposited RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `supplied_coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-
-
-
-
-
-
 <a name="kava.earn.v1beta1.QueryVaultsRequest"></a>
 
 ### QueryVaultsRequest
@@ -3087,7 +3055,7 @@ VaultResponse is the response type for a vault.
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  | denom represents the denom of the vault |
 | `vault_strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | VaultStrategy is the strategy used for this vault. |
-| `total_supplied` | [string](#string) |  | TotalSupplied is the total amount of denom coins supplied to the vault. |
+| `total_shares` | [string](#string) |  | TotalShares is the total amount of shares issued to depositors. |
 | `total_value` | [string](#string) |  | TotalValue is the total value of denom coins supplied to the vault if the vault were to be liquidated. |
 
 
@@ -3111,7 +3079,6 @@ Query defines the gRPC querier service for earn module
 | `Params` | [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse) | Params queries all parameters of the earn module. | GET|/kava/earn/v1beta1/params|
 | `Vaults` | [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest) | [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse) | Vaults queries vaults based on vault denom | GET|/kava/earn/v1beta1/vaults/{denom}|
 | `Deposits` | [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on owner address and vault | GET|/kava/earn/v1beta1/deposits|
-| `TotalDeposited` | [QueryTotalDepositedRequest](#kava.earn.v1beta1.QueryTotalDepositedRequest) | [QueryTotalDepositedResponse](#kava.earn.v1beta1.QueryTotalDepositedResponse) | TotalDeposited queries total deposited amount for each vault. | GET|/kava/earn/v1beta1/total-deposited/{denom}|
 
  <!-- end services -->
 
@@ -3146,6 +3113,11 @@ MsgDeposit represents a message for depositing assedts into a vault
 MsgDepositResponse defines the Msg/Deposit response type.
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `shares` | [VaultShare](#kava.earn.v1beta1.VaultShare) |  |  |
+
+
 
 
 
@@ -3170,6 +3142,11 @@ MsgWithdraw represents a message for withdrawing liquidity from a vault
 
 ### MsgWithdrawResponse
 MsgWithdrawResponse defines the Msg/Withdraw response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `shares` | [VaultShare](#kava.earn.v1beta1.VaultShare) |  |  |
 
 
 

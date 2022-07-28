@@ -28,34 +28,25 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 		return types.ErrVaultRecordNotFound
 	}
 
-	// Get account value for vault
-	vaultAccValue, err := k.GetVaultAccountValue(ctx, wantAmount.Denom, from)
-	if err != nil {
-		return err
-	}
-
-	if vaultAccValue.IsZero() {
-		panic("vault account value is zero")
-	}
-
 	// Get account share record for the vault
 	vaultShareRecord, found := k.GetVaultShareRecord(ctx, from)
 	if !found {
 		return types.ErrVaultShareRecordNotFound
 	}
 
-	// Percent of vault account value the account is withdrawing
-	// This is the total account value, not just the supplied amount.
-	withdrawAmountPercent := wantAmount.Amount.ToDec().Quo(vaultAccValue.Amount.ToDec())
+	withdrawShares, err := k.ConvertToShares(ctx, wantAmount)
+	if err != nil {
+		return fmt.Errorf("failed to convert assets to shares: %w", err)
+	}
 
-	// Check if account is not withdrawing more than they have
-	// account value < want withdraw amount
-	if vaultAccValue.Amount.LT(wantAmount.Amount) {
+	// Check if account is not withdrawing more shares than they have
+	if vaultShareRecord.Shares.AmountOf(wantAmount.Denom).LT(withdrawShares.Amount) {
 		return sdkerrors.Wrapf(
 			types.ErrInsufficientValue,
-			"account vault value of %s is less than %s desired withdraw amount",
-			vaultAccValue,
+			"account vault shares of %s is %s but withdraw shares is %s",
+			wantAmount.Denom,
 			wantAmount,
+			withdrawShares.Amount,
 		)
 	}
 
@@ -84,22 +75,9 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 		return err
 	}
 
-	// Shares withdrawn from vault
-	// For example:
-	// account supplied = 10hard
-	// account value    = 20hard
-	// wantAmount       = 10hard
-	// withdrawAmountPercent = 10hard / 20hard = 0.5
-	// sharesWithdrawn = 0.5 * 10hard = 5hard
-	vaultShareAmount := vaultShareRecord.AmountSupplied.AmountOf(wantAmount.Denom)
-	sharesWithdrawn := sdk.NewCoin(wantAmount.Denom, vaultShareAmount.
-		ToDec().
-		Mul(withdrawAmountPercent).
-		TruncateInt())
-
 	// Decrement VaultRecord and VaultShareRecord supplies
-	vaultRecord.TotalSupply = vaultRecord.TotalSupply.Sub(sharesWithdrawn)
-	vaultShareRecord.AmountSupplied = vaultShareRecord.AmountSupplied.Sub(sdk.NewCoins(sharesWithdrawn))
+	vaultRecord.TotalShares = vaultRecord.TotalShares.Sub(withdrawShares)
+	vaultShareRecord.Shares = vaultShareRecord.Shares.Sub(withdrawShares)
 
 	// Update VaultRecord and VaultShareRecord, deletes if zero supply
 	k.UpdateVaultRecord(ctx, vaultRecord)

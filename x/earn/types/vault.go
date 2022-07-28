@@ -10,30 +10,13 @@ import (
 // NewVaultRecord returns a new VaultRecord with 0 supply.
 func NewVaultRecord(vaultDenom string) VaultRecord {
 	return VaultRecord{
-		Denom:       vaultDenom,
-		TotalSupply: sdk.NewCoin(vaultDenom, sdk.ZeroInt()),
+		TotalShares: NewVaultShare(vaultDenom, sdk.ZeroInt()),
 	}
 }
 
 // Validate returns an error if a VaultRecord is invalid.
 func (vr *VaultRecord) Validate() error {
-	if err := sdk.ValidateDenom(vr.Denom); err != nil {
-		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
-	}
-
-	if vr.TotalSupply.Denom != vr.Denom {
-		return fmt.Errorf(
-			"total supply denom %v does not match vault record denom %v",
-			vr.TotalSupply.Denom,
-			vr.Denom,
-		)
-	}
-
-	if err := vr.TotalSupply.Validate(); err != nil {
-		return fmt.Errorf("vault total supply is invalid: %w", err)
-	}
-
-	return nil
+	return vr.TotalShares.Validate()
 }
 
 // VaultRecords is a slice of VaultRecord.
@@ -48,11 +31,11 @@ func (vrs VaultRecords) Validate() error {
 			return err
 		}
 
-		if denoms[vr.Denom] {
-			return fmt.Errorf("duplicate vault denom %s", vr.Denom)
+		if denoms[vr.TotalShares.Denom] {
+			return fmt.Errorf("duplicate vault denom %s", vr.TotalShares.Denom)
 		}
 
-		denoms[vr.Denom] = true
+		denoms[vr.TotalShares.Denom] = true
 	}
 
 	return nil
@@ -60,10 +43,10 @@ func (vrs VaultRecords) Validate() error {
 
 // NewVaultShareRecord returns a new VaultShareRecord with the provided supplied
 // coins.
-func NewVaultShareRecord(depositor sdk.AccAddress, supplied ...sdk.Coin) VaultShareRecord {
+func NewVaultShareRecord(depositor sdk.AccAddress, shares VaultShares) VaultShareRecord {
 	return VaultShareRecord{
-		Depositor:      depositor,
-		AmountSupplied: sdk.NewCoins(supplied...),
+		Depositor: depositor,
+		Shares:    shares,
 	}
 }
 
@@ -73,8 +56,8 @@ func (vsr VaultShareRecord) Validate() error {
 		return fmt.Errorf("depositor is empty")
 	}
 
-	if err := vsr.AmountSupplied.Validate(); err != nil {
-		return fmt.Errorf("invalid vault share record amount supplied: %w", err)
+	if err := vsr.Shares.Validate(); err != nil {
+		return fmt.Errorf("invalid vault share record shares: %w", err)
 	}
 
 	return nil
@@ -139,27 +122,4 @@ func (a *AllowedVault) Validate() error {
 	}
 
 	return nil
-}
-
-type VaultShares []VaultShare
-
-func (v VaultShares) AmountOf(denom string) sdk.Int {
-	for _, s := range v {
-		if s.Denom == denom {
-			return s.Amount
-		}
-	}
-
-	return sdk.ZeroInt()
-}
-
-func (v VaultShares) IsZero() bool {
-	for _, s := range v {
-		// If any amount is non-zero, false
-		if !s.Amount.IsZero() {
-			return false
-		}
-	}
-
-	return true
 }
