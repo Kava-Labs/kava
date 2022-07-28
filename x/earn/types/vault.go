@@ -59,7 +59,7 @@ func (a *AllowedVault) Validate() error {
 		return ErrInvalidVaultDenom
 	}
 
-	if a.VaultStrategy == STRATEGY_TYPE_UNKNOWN {
+	if a.VaultStrategy == STRATEGY_TYPE_UNSPECIFIED {
 		return ErrInvalidVaultStrategy
 	}
 

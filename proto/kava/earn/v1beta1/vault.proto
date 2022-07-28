@@ -3,9 +3,9 @@ package kava.earn.v1beta1;
 
 option go_package = "github.com/kava-labs/kava/x/earn/types";
 
-import "gogoproto/gogo.proto";
-import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
 import "kava/earn/v1beta1/strategy.proto";
 
 // AllowedVault is a vault that is allowed to be created. These can be
@@ -14,7 +14,7 @@ message AllowedVault {
   // Denom is the only supported denomination of the vault for deposits and withdrawals.
   string denom = 1;
 
-  // VaultStrategy is the strategies to use for this vault.
+  // VaultStrategy is the strategy used for this vault.
   StrategyType vault_strategy = 2;
 }
 

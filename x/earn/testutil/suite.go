@@ -94,6 +94,42 @@ func (suite *Suite) SetupTest() {
 				sdk.MustNewDecFromStr("0.05"),
 				sdk.ZeroDec(),
 			),
+			hardtypes.NewMoneyMarket(
+				"busd",
+				hardtypes.NewBorrowLimit(
+					true,
+					sdk.MustNewDecFromStr("20000000"),
+					sdk.MustNewDecFromStr("1"),
+				),
+				"busd:usd",
+				sdk.NewInt(1000000),
+				hardtypes.NewInterestRateModel(
+					sdk.MustNewDecFromStr("0.05"),
+					sdk.MustNewDecFromStr("2"),
+					sdk.MustNewDecFromStr("0.8"),
+					sdk.MustNewDecFromStr("10"),
+				),
+				sdk.MustNewDecFromStr("0.05"),
+				sdk.ZeroDec(),
+			),
+			hardtypes.NewMoneyMarket(
+				"kava",
+				hardtypes.NewBorrowLimit(
+					true,
+					sdk.MustNewDecFromStr("20000000"),
+					sdk.MustNewDecFromStr("1"),
+				),
+				"kava:usd",
+				sdk.NewInt(1000000),
+				hardtypes.NewInterestRateModel(
+					sdk.MustNewDecFromStr("0.05"),
+					sdk.MustNewDecFromStr("2"),
+					sdk.MustNewDecFromStr("0.8"),
+					sdk.MustNewDecFromStr("10"),
+				),
+				sdk.MustNewDecFromStr("0.05"),
+				sdk.ZeroDec(),
+			),
 		},
 		sdk.NewDec(10),
 	),
@@ -185,9 +221,12 @@ func (suite *Suite) CreateVault(vaultDenom string, vaultStrategy types.StrategyT
 	allowedVaults := suite.Keeper.GetAllowedVaults(suite.Ctx)
 	allowedVaults = append(allowedVaults, vault)
 
+	params := types.NewParams(allowedVaults)
+	suite.Require().NoError(params.Validate())
+
 	suite.Keeper.SetParams(
 		suite.Ctx,
-		types.NewParams(allowedVaults),
+		params,
 	)
 }
 

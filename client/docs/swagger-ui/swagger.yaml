@@ -6960,6 +6960,357 @@ paths:
           type: string
       tags:
         - Committee
+  /kava/earn/v1beta1/deposits:
+    get:
+      summary: Deposits queries deposit details based on owner address and vault
+      operationId: EarnDeposits
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              deposits:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    depositor:
+                      type: string
+                      description: depositor represents the owner of the deposit.
+                    denom:
+                      type: string
+                      description: denom represents the vault denom the deposit is for.
+                    account_supplied:
+                      type: string
+                      description: >-
+                        AccountSupplied represents the amount of denom supplied
+                        to the vault.
+                    account_value:
+                      type: string
+                      description: >-
+                        AccountValue represents the coin value of the
+                        depositor's share of the vault.
+                  description: >-
+                    DepositResponse defines a single deposit query response
+                    type.
+                title: >-
+                  deposits returns the deposits matching the requested
+                  parameters
+              pagination:
+                description: pagination defines the pagination in the response.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+            description: >-
+              QueryDepositsResponse is the response type for the Query/Deposits
+              RPC method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: owner
+          description: owner optionally filters deposits by owner.
+          in: query
+          required: false
+          type: string
+        - name: denom
+          description: denom optionally filters deposits by vault denom.
+          in: query
+          required: false
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+      tags:
+        - Earn
+  /kava/earn/v1beta1/params:
+    get:
+      summary: Params queries all parameters of the earn module.
+      operationId: EarnParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                title: params represents the earn module parameters
+                type: object
+                properties:
+                  allowed_vaults:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                          description: >-
+                            Denom is the only supported denomination of the
+                            vault for deposits and withdrawals.
+                        vault_strategy:
+                          description: VaultStrategy is the strategy used for this vault.
+                          type: string
+                          enum:
+                            - STRATEGY_TYPE_UNSPECIFIED
+                            - STRATEGY_TYPE_HARD
+                            - STRATEGY_TYPE_SAVINGS
+                          default: STRATEGY_TYPE_UNSPECIFIED
+                      description: >-
+                        AllowedVault is a vault that is allowed to be created.
+                        These can be
+
+                        modified via parameter governance.
+                description: Params defines the parameters of the earn module.
+            description: >-
+              QueryParamsResponse defines the response type for querying x/earn
+              parameters.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Earn
+  /kava/earn/v1beta1/total-deposited/{denom}:
+    get:
+      summary: TotalDeposited queries total deposited amount for each vault.
+      operationId: EarnTotalDeposited
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              supplied_coins:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                    amount:
+                      type: string
+                  description: >-
+                    Coin defines a token with a denomination and an amount.
+
+
+                    NOTE: The amount field is an Int which implements the custom
+                    method
+
+                    signatures required by gogoproto.
+            description: >-
+              QueryTotalDepositedResponse is the response type for the
+              Query/TotalDeposited RPC method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: denom
+          description: >-
+            denom represents the vault denom to query total deposited amount
+            for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - Earn
+  /kava/earn/v1beta1/vaults:
+    get:
+      summary: Vaults queries vaults based on vault denom
+      operationId: EarnVaults
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              vaults:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                      title: denom represents the denom of the vault
+                    vault_strategy:
+                      description: VaultStrategy is the strategy used for this vault.
+                      type: string
+                      enum:
+                        - STRATEGY_TYPE_UNSPECIFIED
+                        - STRATEGY_TYPE_HARD
+                        - STRATEGY_TYPE_SAVINGS
+                      default: STRATEGY_TYPE_UNSPECIFIED
+                    total_supplied:
+                      type: string
+                      description: >-
+                        TotalSupplied is the total amount of denom coins
+                        supplied to the vault.
+                    total_value:
+                      type: string
+                      description: >-
+                        TotalValue is the total value of denom coins supplied to
+                        the vault if the
+
+                        vault were to be liquidated.
+                  description: VaultResponse is the response type for a vault.
+                title: vaults represents the earn module vaults
+            description: >-
+              QueryVaultsResponse is the response type for the Query/Vaults RPC
+              method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: denom
+          description: vault filters vault by denom.
+          in: query
+          required: false
+          type: string
+      tags:
+        - Earn
   /kava/hard/v1beta1/accounts:
     get:
       summary: Accounts queries module accounts.
@@ -53848,6 +54199,245 @@ definitions:
        - VOTE_TYPE_YES: VOTE_TYPE_YES defines a yes vote option.
        - VOTE_TYPE_NO: VOTE_TYPE_NO defines a no vote option.
        - VOTE_TYPE_ABSTAIN: VOTE_TYPE_ABSTAIN defines an abstain vote option.
+  kava.earn.v1beta1.AllowedVault:
+    type: object
+    properties:
+      denom:
+        type: string
+        description: >-
+          Denom is the only supported denomination of the vault for deposits and
+          withdrawals.
+      vault_strategy:
+        description: VaultStrategy is the strategy used for this vault.
+        type: string
+        enum:
+          - STRATEGY_TYPE_UNSPECIFIED
+          - STRATEGY_TYPE_HARD
+          - STRATEGY_TYPE_SAVINGS
+        default: STRATEGY_TYPE_UNSPECIFIED
+    description: |-
+      AllowedVault is a vault that is allowed to be created. These can be
+      modified via parameter governance.
+  kava.earn.v1beta1.DepositResponse:
+    type: object
+    properties:
+      depositor:
+        type: string
+        description: depositor represents the owner of the deposit.
+      denom:
+        type: string
+        description: denom represents the vault denom the deposit is for.
+      account_supplied:
+        type: string
+        description: AccountSupplied represents the amount of denom supplied to the vault.
+      account_value:
+        type: string
+        description: >-
+          AccountValue represents the coin value of the depositor's share of the
+          vault.
+    description: DepositResponse defines a single deposit query response type.
+  kava.earn.v1beta1.Params:
+    type: object
+    properties:
+      allowed_vaults:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+              description: >-
+                Denom is the only supported denomination of the vault for
+                deposits and withdrawals.
+            vault_strategy:
+              description: VaultStrategy is the strategy used for this vault.
+              type: string
+              enum:
+                - STRATEGY_TYPE_UNSPECIFIED
+                - STRATEGY_TYPE_HARD
+                - STRATEGY_TYPE_SAVINGS
+              default: STRATEGY_TYPE_UNSPECIFIED
+          description: |-
+            AllowedVault is a vault that is allowed to be created. These can be
+            modified via parameter governance.
+    description: Params defines the parameters of the earn module.
+  kava.earn.v1beta1.QueryDepositsResponse:
+    type: object
+    properties:
+      deposits:
+        type: array
+        items:
+          type: object
+          properties:
+            depositor:
+              type: string
+              description: depositor represents the owner of the deposit.
+            denom:
+              type: string
+              description: denom represents the vault denom the deposit is for.
+            account_supplied:
+              type: string
+              description: >-
+                AccountSupplied represents the amount of denom supplied to the
+                vault.
+            account_value:
+              type: string
+              description: >-
+                AccountValue represents the coin value of the depositor's share
+                of the vault.
+          description: DepositResponse defines a single deposit query response type.
+        title: deposits returns the deposits matching the requested parameters
+      pagination:
+        description: pagination defines the pagination in the response.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+    description: >-
+      QueryDepositsResponse is the response type for the Query/Deposits RPC
+      method.
+  kava.earn.v1beta1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        title: params represents the earn module parameters
+        type: object
+        properties:
+          allowed_vaults:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                  description: >-
+                    Denom is the only supported denomination of the vault for
+                    deposits and withdrawals.
+                vault_strategy:
+                  description: VaultStrategy is the strategy used for this vault.
+                  type: string
+                  enum:
+                    - STRATEGY_TYPE_UNSPECIFIED
+                    - STRATEGY_TYPE_HARD
+                    - STRATEGY_TYPE_SAVINGS
+                  default: STRATEGY_TYPE_UNSPECIFIED
+              description: >-
+                AllowedVault is a vault that is allowed to be created. These can
+                be
+
+                modified via parameter governance.
+        description: Params defines the parameters of the earn module.
+    description: >-
+      QueryParamsResponse defines the response type for querying x/earn
+      parameters.
+  kava.earn.v1beta1.QueryTotalDepositedResponse:
+    type: object
+    properties:
+      supplied_coins:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+    description: >-
+      QueryTotalDepositedResponse is the response type for the
+      Query/TotalDeposited RPC method.
+  kava.earn.v1beta1.QueryVaultsResponse:
+    type: object
+    properties:
+      vaults:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+              title: denom represents the denom of the vault
+            vault_strategy:
+              description: VaultStrategy is the strategy used for this vault.
+              type: string
+              enum:
+                - STRATEGY_TYPE_UNSPECIFIED
+                - STRATEGY_TYPE_HARD
+                - STRATEGY_TYPE_SAVINGS
+              default: STRATEGY_TYPE_UNSPECIFIED
+            total_supplied:
+              type: string
+              description: >-
+                TotalSupplied is the total amount of denom coins supplied to the
+                vault.
+            total_value:
+              type: string
+              description: >-
+                TotalValue is the total value of denom coins supplied to the
+                vault if the
+
+                vault were to be liquidated.
+          description: VaultResponse is the response type for a vault.
+        title: vaults represents the earn module vaults
+    description: QueryVaultsResponse is the response type for the Query/Vaults RPC method.
+  kava.earn.v1beta1.StrategyType:
+    type: string
+    enum:
+      - STRATEGY_TYPE_UNSPECIFIED
+      - STRATEGY_TYPE_HARD
+      - STRATEGY_TYPE_SAVINGS
+    default: STRATEGY_TYPE_UNSPECIFIED
+    description: |-
+      StrategyType is the type of strategy that a vault uses to optimize yields.
+
+       - STRATEGY_TYPE_UNSPECIFIED: STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+       - STRATEGY_TYPE_HARD: STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+      module.
+       - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+      Savings module.
+  kava.earn.v1beta1.VaultResponse:
+    type: object
+    properties:
+      denom:
+        type: string
+        title: denom represents the denom of the vault
+      vault_strategy:
+        description: VaultStrategy is the strategy used for this vault.
+        type: string
+        enum:
+          - STRATEGY_TYPE_UNSPECIFIED
+          - STRATEGY_TYPE_HARD
+          - STRATEGY_TYPE_SAVINGS
+        default: STRATEGY_TYPE_UNSPECIFIED
+      total_supplied:
+        type: string
+        description: >-
+          TotalSupplied is the total amount of denom coins supplied to the
+          vault.
+      total_value:
+        type: string
+        description: >-
+          TotalValue is the total value of denom coins supplied to the vault if
+          the
+
+          vault were to be liquidated.
+    description: VaultResponse is the response type for a vault.
   kava.hard.v1beta1.BorrowInterestFactorResponse:
     type: object
     properties:
