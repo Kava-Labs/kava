@@ -48,11 +48,11 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 		vaultShareRecord = types.NewVaultShareRecord(depositor)
 	}
 
-	// Increment VaultRecord supply
-	vaultRecord.TotalSupply = vaultRecord.TotalSupply.Add(amount)
+	shares := k.ConvertToShares(amount)
 
-	// Increment VaultShareRecord supply
-	vaultShareRecord.AmountSupplied = vaultShareRecord.AmountSupplied.Add(amount)
+	// Increment VaultRecord total shares and account shares
+	vaultRecord.TotalShares = vaultRecord.TotalShares.Add(shares)
+	vaultShareRecord.Shares = vaultShareRecord.Shares.Add(shares)
 
 	// Update VaultRecord and VaultShareRecord
 	k.SetVaultRecord(ctx, vaultRecord)
