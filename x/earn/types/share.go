@@ -70,7 +70,21 @@ type VaultShares []VaultShare
 
 // NewVaultShares returns new VaultShares
 func NewVaultShares(shares ...VaultShare) VaultShares {
-	return VaultShares(shares)
+	newVaultShares := sanitizeVaultShares(shares)
+	if err := newVaultShares.Validate(); err != nil {
+		panic(fmt.Errorf("invalid coin set %s: %w", newVaultShares, err))
+	}
+
+	return newVaultShares
+}
+
+func sanitizeVaultShares(coins VaultShares) VaultShares {
+	newVaultShares := removeZeroShares(coins)
+	if len(newVaultShares) == 0 {
+		return VaultShares{}
+	}
+
+	return newVaultShares.Sort()
 }
 
 // Validate returns an error if a slice of VaultShares is invalid.

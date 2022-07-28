@@ -67,16 +67,26 @@ func (k *Keeper) GetVaultAccountValue(
 	denom string,
 	acc sdk.AccAddress,
 ) (sdk.Coin, error) {
+	totalVaultShares, found := k.GetVaultTotalShares(ctx, denom)
+	if !found {
+		return sdk.Coin{}, fmt.Errorf("vault denom %s not found", denom)
+	}
+
 	accShares, found := k.GetVaultAccountShares(ctx, acc)
 	if !found {
 		return sdk.Coin{}, fmt.Errorf("vault share record not found")
 	}
 
-	sharePrice, err := k.GetVaultPricePerShare(ctx, denom)
+	totalValue, err := k.GetVaultTotalValue(ctx, denom)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
-	value := accShares.AmountOf(denom).Mul(sharePrice)
+
+	// percentOwnership := accShares / totalVaultShares
+	// value := totalValue * percentOwnership
+	// value := totalValue * accShares / totalVaultShares
+	// Division must be last to avoid rounding errors and properly truncate.
+	value := totalValue.Amount.Mul(accShares.AmountOf(denom)).Quo(totalVaultShares.Amount)
 
 	return sdk.NewCoin(denom, value), nil
 }

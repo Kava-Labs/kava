@@ -8,9 +8,9 @@ import (
 )
 
 // NewVaultRecord returns a new VaultRecord with 0 supply.
-func NewVaultRecord(vaultDenom string) VaultRecord {
+func NewVaultRecord(vaultDenom string, amount sdk.Int) VaultRecord {
 	return VaultRecord{
-		TotalShares: NewVaultShare(vaultDenom, sdk.ZeroInt()),
+		TotalShares: NewVaultShare(vaultDenom, amount),
 	}
 }
 

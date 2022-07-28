@@ -173,7 +173,7 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "amount is not positive",
+				contains:   "invalid vault share record shares: vault share amount -5 is negative",
 			},
 		},
 	}

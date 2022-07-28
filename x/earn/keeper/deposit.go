@@ -24,7 +24,7 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	vaultRecord, found := k.GetVaultRecord(ctx, amount.Denom)
 	if !found {
 		// Create a new VaultRecord with 0 supply
-		vaultRecord = types.NewVaultRecord(amount.Denom)
+		vaultRecord = types.NewVaultRecord(amount.Denom, sdk.ZeroInt())
 	}
 
 	// Get the strategy for the vault
