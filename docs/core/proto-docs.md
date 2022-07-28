@@ -2752,9 +2752,8 @@ Msg defines the committee Msg service
 | Name | Number | Description |
 | ---- | ------ | ----------- |
 | STRATEGY_TYPE_UNKNOWN | 0 |  |
-| STRATEGY_TYPE_KAVA_STAKERS | 1 |  |
-| STRATEGY_TYPE_STABLECOIN_STAKERS | 2 | USDC / BUSD vaults use the same strategy but with the denom set in VaultRecord |
-| STRATEGY_TYPE_KAVA_FOUNDATION | 3 |  |
+| STRATEGY_TYPE_HARD | 1 |  |
+| STRATEGY_TYPE_SAVINGS | 2 |  |
 
 
  <!-- end enums -->
@@ -2809,13 +2808,13 @@ vault.
 <a name="kava.earn.v1beta1.VaultShareRecord"></a>
 
 ### VaultShareRecord
-VaultShareRecord defines the shares owned by a depositor and vault.
+VaultShareRecord defines the vault shares owned by a depositor.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `depositor` | [bytes](#bytes) |  | depositor represents the owner of the shares |
-| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount_supplied represents the total amount a depositor has supplied to the vault. The vault is determined by the coin denom. |
+| `depositor` | [bytes](#bytes) |  | Depositor represents the owner of the shares |
+| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | AmountSupplied represents the total amount a depositor has supplied to the vault. The vault is determined by the coin denom. |
 
 
 
@@ -2872,7 +2871,7 @@ VaultShareRecord defines the shares owned by a depositor and vault.
 <a name="kava.earn.v1beta1.GenesisState"></a>
 
 ### GenesisState
-GenesisState defines the swap module's genesis state.
+GenesisState defines the earn module's genesis state.
 
 
 | Field | Type | Label | Description |

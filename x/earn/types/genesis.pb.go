@@ -23,7 +23,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenesisState defines the swap module's genesis state.
+// GenesisState defines the earn module's genesis state.
 type GenesisState struct {
 	// params defines all the paramaters related to earn
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`

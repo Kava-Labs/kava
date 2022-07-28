@@ -34,11 +34,11 @@ func TestDepositTestSuite(t *testing.T) {
 }
 
 func (suite *depositTestSuite) TestDeposit_Balances() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -50,18 +50,16 @@ func (suite *depositTestSuite) TestDeposit_Balances() {
 		sdk.NewCoins(startBalance.Sub(depositAmount)), // Account decreases by deposit
 	)
 
-	// TODO: Module account balance will be zero when strategies are implemented
-	suite.ModuleAccountBalanceEqual(
-		sdk.NewCoins(depositAmount),
-	)
+	suite.VaultTotalValuesEqual(sdk.NewCoins(depositAmount))
+	suite.VaultTotalSuppliedEqual(sdk.NewCoins(depositAmount))
 }
 
 func (suite *depositTestSuite) TestDeposit_Exceed() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 1001)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -82,11 +80,11 @@ func (suite *depositTestSuite) TestDeposit_Exceed() {
 }
 
 func (suite *depositTestSuite) TestDeposit_Zero() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 0)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -107,7 +105,7 @@ func (suite *depositTestSuite) TestDeposit_Zero() {
 }
 
 func (suite *depositTestSuite) TestDeposit_InvalidVault() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 1001)
 

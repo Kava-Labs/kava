@@ -15,6 +15,10 @@ type Keeper struct {
 	paramSubspace paramtypes.Subspace
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
+
+	// Keepers used for strategies
+	hardKeeper    types.HardKeeper
+	savingsKeeper types.SavingsKeeper
 }
 
 // NewKeeper creates a new keeper
@@ -24,6 +28,8 @@ func NewKeeper(
 	paramstore paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	hardKeeper types.HardKeeper,
+	savingsKeeper types.SavingsKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -35,5 +41,7 @@ func NewKeeper(
 		paramSubspace: paramstore,
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
+		hardKeeper:    hardKeeper,
+		savingsKeeper: savingsKeeper,
 	}
 }

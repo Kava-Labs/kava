@@ -33,7 +33,7 @@ func TestGrpcQueryTestSuite(t *testing.T) {
 }
 
 func (suite *grpcQueryTestSuite) TestQueryParams() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 
 	res, err := suite.queryClient.Params(context.Background(), types.NewQueryParamsRequest())
 	suite.Require().NoError(err)
@@ -41,14 +41,14 @@ func (suite *grpcQueryTestSuite) TestQueryParams() {
 	suite.Require().ElementsMatch(types.DefaultParams().AllowedVaults, res.Params.AllowedVaults)
 
 	// Add vault to params
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	// Query again for added vault
 	res, err = suite.queryClient.Params(context.Background(), types.NewQueryParamsRequest())
 	suite.Require().NoError(err)
 	suite.Require().Equal(
 		types.AllowedVaults{
-			types.NewAllowedVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS),
+			types.NewAllowedVault(vaultDenom, types.STRATEGY_TYPE_HARD),
 		},
 		res.Params.AllowedVaults,
 	)

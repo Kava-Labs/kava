@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
@@ -25,6 +26,22 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 		vaultRecord = types.NewVaultRecord(amount.Denom)
 	}
 
+	// Get the strategy for the vault
+	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
+	if err != nil {
+		return err
+	}
+
+	// Check if this denom is allowed for the strategy
+	if !strategy.IsDenomSupported(amount.Denom) {
+		return sdkerrors.Wrapf(
+			types.ErrStrategyDenomNotSupported,
+			"denom %s is not supported by the strategy %s",
+			amount.Denom,
+			strategy.GetStrategyType(),
+		)
+	}
+
 	// Transfer amount to module account
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(
 		ctx,
@@ -36,10 +53,10 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	}
 
 	// Get VaultShareRecord for account, create if not exist
-	vaultShareRecord, found := k.GetVaultShareRecord(ctx, amount.Denom, depositor)
+	vaultShareRecord, found := k.GetVaultShareRecord(ctx, depositor)
 	if !found {
 		// Create a new empty VaultShareRecord with 0 supply
-		vaultShareRecord = types.NewVaultShareRecord(depositor, amount.Denom)
+		vaultShareRecord = types.NewVaultShareRecord(depositor)
 	}
 
 	// Increment VaultRecord supply
@@ -52,14 +69,8 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	k.SetVaultRecord(ctx, vaultRecord)
 	k.SetVaultShareRecord(ctx, vaultShareRecord)
 
-	// Get the strategy for the vault
-	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
-	if err != nil {
-		return err
-	}
-
 	// Deposit to the strategy
-	if err := strategy.Deposit(amount); err != nil {
+	if err := strategy.Deposit(ctx, amount); err != nil {
 		return err
 	}
 

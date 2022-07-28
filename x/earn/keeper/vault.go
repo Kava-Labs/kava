@@ -6,29 +6,6 @@ import (
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
-// ViewVaultKeeper defines the read-only methods used for querying vaults.
-type ViewVaultKeeper interface {
-	// GetVaultTotalSupplied returns the total balance supplied to a vault. This
-	// may not necessarily be the current value of the vault, as it is the sum
-	// of the supplied denom.
-	GetVaultTotalSupplied(ctx sdk.Context, denom string) (sdk.Coin, error)
-
-	// GetVaultTotalValue returns the total **value** of all coins in a vault,
-	// i.e. the realizable total value denominated by GetDenom() if the vault
-	// were to liquidate its entire strategies.
-	GetVaultTotalValue(ctx sdk.Context, denom string) (sdk.Coin, error)
-
-	// GetVaultAccountSupplied returns the supplied amount for a single address
-	// within the vault.
-	GetVaultAccountSupplied(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error)
-
-	// GetVaultAccountValue returns the value of a single address within a vault
-	// if the account were to withdraw their entire balance.
-	GetVaultAccountValue(ctx sdk.Context, denom string, acc sdk.AccAddress) (sdk.Coin, error)
-}
-
-var _ ViewVaultKeeper = (*Keeper)(nil)
-
 // GetVaultTotalSupplied returns the total balance supplied to the vault. This
 // may not necessarily be the current value of the vault, as it is the sum
 // of the supplied denom and the value may be higher due to accumulated APYs.
@@ -47,6 +24,10 @@ func (k *Keeper) GetVaultTotalSupplied(
 // GetTotalValue returns the total **value** of all coins in this vault,
 // i.e. the realizable total value denominated by GetDenom() if the vault
 // were to liquidate its entire strategies.
+//
+// **Note:** This does not include the tokens held in bank by the module
+// account. If it were to be included, also note that the module account is
+// unblocked and can receive funds from bank sends.
 func (k *Keeper) GetVaultTotalValue(
 	ctx sdk.Context,
 	denom string,
@@ -61,19 +42,18 @@ func (k *Keeper) GetVaultTotalValue(
 		return sdk.Coin{}, types.ErrInvalidVaultStrategy
 	}
 
-	return strategy.GetEstimatedTotalAssets(enabledVault.Denom)
+	return strategy.GetEstimatedTotalAssets(ctx, enabledVault.Denom)
 }
 
 // GetVaultAccountSupplied returns the supplied amount for a single address
 // within a vault.
 func (k *Keeper) GetVaultAccountSupplied(
 	ctx sdk.Context,
-	denom string,
 	acc sdk.AccAddress,
-) (sdk.Coin, error) {
-	vaultShareRecord, found := k.GetVaultShareRecord(ctx, denom, acc)
+) (sdk.Coins, error) {
+	vaultShareRecord, found := k.GetVaultShareRecord(ctx, acc)
 	if !found {
-		return sdk.Coin{}, types.ErrVaultShareRecordNotFound
+		return sdk.Coins{}, types.ErrVaultShareRecordNotFound
 	}
 
 	return vaultShareRecord.AmountSupplied, nil
@@ -91,7 +71,7 @@ func (k *Keeper) GetVaultAccountValue(
 		return sdk.Coin{}, err
 	}
 
-	accSupplied, err := k.GetVaultAccountSupplied(ctx, denom, acc)
+	accSupplied, err := k.GetVaultAccountSupplied(ctx, acc)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -101,12 +81,12 @@ func (k *Keeper) GetVaultAccountValue(
 		return sdk.Coin{}, err
 	}
 
-	// percent of vault account ownership = accountSupply / totalSupply
-	// value of vault account ownership = percentOwned * totalValue
-	vaultShare := accSupplied.Amount.Quo(totalSupplied.Amount)
-	shareValue := vaultTotalValue.Amount.Mul(vaultShare)
+	// Percent of vault account ownership = accountSupply / totalSupply
+	// Value of vault account ownership = percentOwned * totalValue
+	vaultShare := accSupplied.AmountOf(denom).ToDec().Quo(totalSupplied.Amount.ToDec())
+	shareValueDec := vaultTotalValue.Amount.ToDec().Mul(vaultShare)
 
-	return sdk.NewCoin(denom, shareValue), nil
+	return sdk.NewCoin(denom, shareValueDec.TruncateInt()), nil
 }
 
 // ----------------------------------------------------------------------------
@@ -163,12 +143,11 @@ func (k *Keeper) SetVaultRecord(ctx sdk.Context, record types.VaultRecord) {
 // account.
 func (k *Keeper) GetVaultShareRecord(
 	ctx sdk.Context,
-	vaultDenom string,
 	acc sdk.AccAddress,
 ) (types.VaultShareRecord, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
 
-	bz := store.Get(types.DepositorVaultSharesKey(acc, vaultDenom))
+	bz := store.Get(types.DepositorVaultSharesKey(acc))
 	if bz == nil {
 		return types.VaultShareRecord{}, false
 	}
@@ -187,7 +166,7 @@ func (k *Keeper) UpdateVaultShareRecord(
 	record types.VaultShareRecord,
 ) {
 	if record.AmountSupplied.IsZero() {
-		k.DeleteVaultShareRecord(ctx, record.AmountSupplied.Denom, record.Depositor)
+		k.DeleteVaultShareRecord(ctx, record.Depositor)
 	} else {
 		k.SetVaultShareRecord(ctx, record)
 	}
@@ -197,11 +176,10 @@ func (k *Keeper) UpdateVaultShareRecord(
 // account.
 func (k *Keeper) DeleteVaultShareRecord(
 	ctx sdk.Context,
-	vaultDenom string,
 	acc sdk.AccAddress,
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
-	store.Delete(types.DepositorVaultSharesKey(acc, vaultDenom))
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
+	store.Delete(types.DepositorVaultSharesKey(acc))
 }
 
 // SetVaultShareRecord sets the vault share record for a given denom and account.
@@ -209,7 +187,7 @@ func (k *Keeper) SetVaultShareRecord(
 	ctx sdk.Context,
 	record types.VaultShareRecord,
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultShareRecordKeyPrefix)
 	bz := k.cdc.MustMarshal(&record)
-	store.Set(types.DepositorVaultSharesKey(record.Depositor, record.AmountSupplied.Denom), bz)
+	store.Set(types.DepositorVaultSharesKey(record.Depositor), bz)
 }

@@ -24,11 +24,11 @@ func TestWithdrawTestSuite(t *testing.T) {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_NoVaultRecord() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -49,13 +49,13 @@ func (suite *withdrawTestSuite) TestWithdraw_NoVaultRecord() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_NoVaultShareRecord() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 
 	acc1DepositAmount := sdk.NewCoin(vaultDenom, sdk.NewInt(100))
 	acc2WithdrawAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	// Create deposit from acc1 so the VaultRecord exists in state
 	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
@@ -75,18 +75,17 @@ func (suite *withdrawTestSuite) TestWithdraw_NoVaultShareRecord() {
 		sdk.NewCoins(startBalance),
 	)
 
-	suite.ModuleAccountBalanceEqual(
-		sdk.NewCoins(acc1DepositAmount),
-	)
+	suite.VaultTotalValuesEqual(sdk.NewCoins(acc1DepositAmount))
+	suite.VaultTotalSuppliedEqual(sdk.NewCoins(acc1DepositAmount))
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_ExceedBalance() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 200)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -95,7 +94,7 @@ func (suite *withdrawTestSuite) TestWithdraw_ExceedBalance() {
 
 	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), withdrawAmount)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrInvalidShares)
+	suite.Require().ErrorIs(err, types.ErrInsufficientValue)
 
 	// Balances still the same after deposit
 	suite.AccountBalanceEqual(
@@ -103,17 +102,16 @@ func (suite *withdrawTestSuite) TestWithdraw_ExceedBalance() {
 		sdk.NewCoins(startBalance.Sub(depositAmount)),
 	)
 
-	suite.ModuleAccountBalanceEqual(
-		sdk.NewCoins(depositAmount),
-	)
+	suite.VaultTotalValuesEqual(sdk.NewCoins(depositAmount))
+	suite.VaultTotalSuppliedEqual(sdk.NewCoins(depositAmount))
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_Zero() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 0)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -134,7 +132,7 @@ func (suite *withdrawTestSuite) TestWithdraw_Zero() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_InvalidVault() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 1001)
 
@@ -159,12 +157,12 @@ func (suite *withdrawTestSuite) TestWithdraw_InvalidVault() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_FullBalance() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -186,12 +184,12 @@ func (suite *withdrawTestSuite) TestWithdraw_FullBalance() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_Partial() {
-	vaultDenom := "busd"
+	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	partialWithdrawAmount := sdk.NewInt64Coin(vaultDenom, 50)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_STABLECOIN_STAKERS)
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
