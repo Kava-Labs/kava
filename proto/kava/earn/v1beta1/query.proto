@@ -11,6 +11,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "kava/earn/v1beta1/params.proto";
 import "kava/earn/v1beta1/strategy.proto";
+import "kava/earn/v1beta1/vault.proto";
 
 // Query defines the gRPC querier service for earn module
 service Query {
@@ -28,11 +29,6 @@ service Query {
   rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
     option (google.api.http).get = "/kava/earn/v1beta1/deposits";
   }
-
-  // TotalDeposited queries total deposited amount for each vault.
-  rpc TotalDeposited(QueryTotalDepositedRequest) returns (QueryTotalDepositedResponse) {
-    option (google.api.http).get = "/kava/earn/v1beta1/total-deposited/{denom}";
-  }
 }
 
 // QueryParamsRequest defines the request type for querying x/earn parameters.
@@ -40,7 +36,6 @@ message QueryParamsRequest {}
 
 // QueryParamsResponse defines the response type for querying x/earn parameters.
 message QueryParamsResponse {
-
   // params represents the earn module parameters
   Params params = 1 [(gogoproto.nullable) = false];
 }
@@ -65,8 +60,8 @@ message VaultResponse {
   // VaultStrategy is the strategy used for this vault.
   StrategyType vault_strategy = 2;
 
-  // TotalSupplied is the total amount of denom coins supplied to the vault.
-  string total_supplied = 3 [
+  // TotalShares is the total amount of shares issued to depositors.
+  string total_shares = 3 [
     (cosmos_proto.scalar)  = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable)   = false
@@ -107,25 +102,12 @@ message DepositResponse {
   // depositor represents the owner of the deposit.
   string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
-  // Amount represents the amount supplied to vaults.
-  repeated cosmos.base.v1beta1.Coin amount_supplied = 2
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  // Shares represent the issued shares from their corresponding vaults.
+  repeated VaultShare shares = 2 [(gogoproto.castrepeated) = "VaultShares", (gogoproto.nullable) = false];
 
   // Value represents the total accumulated value of denom coins supplied to
   // vaults. This may be greater than or equal to amount_supplied depending on
   // the strategy.
   repeated cosmos.base.v1beta1.Coin value = 3
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
-}
-
-// QueryTotalDepositedRequest is the request type for the Query/TotalDeposited RPC method.
-message QueryTotalDepositedRequest {
-  // denom represents the vault denom to query total deposited amount for.
-  string denom = 1;
-}
-
-// QueryTotalDepositedResponse is the response type for the Query/TotalDeposited RPC method.
-message QueryTotalDepositedResponse {
-  repeated cosmos.base.v1beta1.Coin supplied_coins = 1
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }

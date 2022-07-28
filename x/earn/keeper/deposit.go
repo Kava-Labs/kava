@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -45,10 +47,13 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	vaultShareRecord, found := k.GetVaultShareRecord(ctx, depositor)
 	if !found {
 		// Create a new empty VaultShareRecord with 0 supply
-		vaultShareRecord = types.NewVaultShareRecord(depositor)
+		vaultShareRecord = types.NewVaultShareRecord(depositor, types.NewVaultShares())
 	}
 
-	shares := k.ConvertToShares(amount)
+	shares, err := k.ConvertToShares(ctx, amount)
+	if err != nil {
+		return fmt.Errorf("failed to convert assets to shares: %w", err)
+	}
 
 	// Increment VaultRecord total shares and account shares
 	vaultRecord.TotalShares = vaultRecord.TotalShares.Add(shares)

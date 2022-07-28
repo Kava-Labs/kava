@@ -25,8 +25,7 @@ func (suite *genesisTestSuite) Test_InitGenesis_ValidationPanic() {
 		},
 		types.VaultRecords{
 			{
-				Denom:       "",
-				TotalSupply: sdk.NewInt64Coin("usdx", 0),
+				TotalShares: types.NewVaultShare("", sdk.NewInt(1)),
 			},
 		},
 		types.VaultShareRecords{},
@@ -53,22 +52,26 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 		},
 		types.VaultRecords{
 			types.VaultRecord{
-				Denom:       "ukava",
-				TotalSupply: sdk.NewInt64Coin("ukava", 2000000),
+				TotalShares: types.NewVaultShare("ukava", sdk.NewInt(2000000)),
 			},
 			types.VaultRecord{
-				Denom:       "usdx",
-				TotalSupply: sdk.NewInt64Coin("usdx", 1000000),
+				TotalShares: types.NewVaultShare("usdx", sdk.NewInt(2000000)),
 			},
 		},
 		types.VaultShareRecords{
 			types.VaultShareRecord{
-				Depositor:      depositor_1,
-				AmountSupplied: sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000), sdk.NewInt64Coin("ukava", 1900000)),
+				Depositor: depositor_1,
+				Shares: types.NewVaultShares(
+					types.NewVaultShare("usdx", sdk.NewInt(500000)),
+					types.NewVaultShare("ukava", sdk.NewInt(1900000)),
+				),
 			},
 			types.VaultShareRecord{
-				Depositor:      depositor_2,
-				AmountSupplied: sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000), sdk.NewInt64Coin("ukava", 100000)),
+				Depositor: depositor_2,
+				Shares: types.NewVaultShares(
+					types.NewVaultShare("usdx", sdk.NewInt(500000)),
+					types.NewVaultShare("ukava", sdk.NewInt(1900000)),
+				),
 			},
 		},
 	)
@@ -107,22 +110,26 @@ func (suite *genesisTestSuite) Test_Marshall() {
 		},
 		types.VaultRecords{
 			types.VaultRecord{
-				Denom:       "ukava",
-				TotalSupply: sdk.NewInt64Coin("ukava", 2000000),
+				TotalShares: types.NewVaultShare("ukava", sdk.NewInt(2000000)),
 			},
 			types.VaultRecord{
-				Denom:       "usdx",
-				TotalSupply: sdk.NewInt64Coin("usdx", 1000000),
+				TotalShares: types.NewVaultShare("usdx", sdk.NewInt(2000000)),
 			},
 		},
 		types.VaultShareRecords{
 			types.VaultShareRecord{
-				Depositor:      depositor_1,
-				AmountSupplied: sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000), sdk.NewInt64Coin("ukava", 1900000)),
+				Depositor: depositor_1,
+				Shares: types.NewVaultShares(
+					types.NewVaultShare("usdx", sdk.NewInt(500000)),
+					types.NewVaultShare("ukava", sdk.NewInt(1900000)),
+				),
 			},
 			types.VaultShareRecord{
-				Depositor:      depositor_2,
-				AmountSupplied: sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000), sdk.NewInt64Coin("ukava", 100000)),
+				Depositor: depositor_2,
+				Shares: types.NewVaultShares(
+					types.NewVaultShare("usdx", sdk.NewInt(500000)),
+					types.NewVaultShare("ukava", sdk.NewInt(1900000)),
+				),
 			},
 		},
 	)
