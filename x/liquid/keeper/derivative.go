@@ -81,7 +81,7 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	}
 
 	moduleAccAddress := authtypes.NewModuleAddress(types.ModuleAccountName)
-	if err := k.transferDelegation(ctx, valAddr, delegatorAddr, moduleAccAddress, shares); err != nil {
+	if _, err := k.TransferDelegation(ctx, valAddr, delegatorAddr, moduleAccAddress, shares); err != nil {
 		return err
 	}
 
@@ -132,7 +132,7 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 		return err
 	}
 
-	if err := k.transferDelegation(ctx, valAddr, maccAddr, delegatorAddr, shares); err != nil {
+	if _, err := k.TransferDelegation(ctx, valAddr, maccAddr, delegatorAddr, shares); err != nil {
 		return err
 	}
 
@@ -152,27 +152,36 @@ func (k Keeper) GetLiquidStakingTokenDenom(ctx sdk.Context, valAddr sdk.ValAddre
 	return types.GetLiquidStakingTokenDenom(k.stakingKeeper.BondDenom(ctx), valAddr)
 }
 
-// transferDelegation moves some delegation shares between addresses, while keeping the same validator.
+// TransferDelegation moves some delegation shares between addresses, while keeping the same validator.
 //
 // Since the validator is the same, underlying staking tokens are not transferred between the bonded and not bonded pools.
-func (k Keeper) transferDelegation(ctx sdk.Context, valAddr sdk.ValAddress, fromDelegator, toDelegator sdk.AccAddress, shares sdk.Dec) error {
-	// TODO block if a redelegation exists
+// Vesting periods for delegated tokens will not be transferred to the new delegator.
+func (k Keeper) TransferDelegation(ctx sdk.Context, valAddr sdk.ValAddress, fromDelegator, toDelegator sdk.AccAddress, shares sdk.Dec) (sdk.Dec, error) {
 	// TODO block if validator jailed or tombstoned?
+
+	// Note if fromDelegator is the validator operator, and they transfer away more than the min self delegation, the validator will be jailed.
+
+	// Redelegations link a delegation to it's previous validator to propagate slashes from the old validator.
+	// If the delegation is transferred to a new owner, the redelegation object must be updated.
+	// For expediency all transfers with redelegations are blocked.
+	if invalid := k.stakingKeeper.HasReceivingRedelegation(ctx, fromDelegator, valAddr); invalid {
+		return sdk.Dec{}, types.ErrRedelegationsNotCompleted
+	}
 
 	returnAmount, err := k.stakingKeeper.Unbond(ctx, fromDelegator, valAddr, shares)
 	if err != nil {
-		return err
+		return sdk.Dec{}, err
 	}
 
 	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
-		return types.ErrNoValidatorFound
+		return sdk.Dec{}, types.ErrNoValidatorFound
 	}
 
-	_, err = k.stakingKeeper.Delegate(ctx, toDelegator, returnAmount, validator.GetStatus(), validator, false)
+	newShares, err := k.stakingKeeper.Delegate(ctx, toDelegator, returnAmount, validator.GetStatus(), validator, false)
 	if err != nil {
-		return err
+		return sdk.Dec{}, err
 	}
 
-	return nil
+	return newShares, nil
 }

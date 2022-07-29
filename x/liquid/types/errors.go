@@ -21,4 +21,5 @@ var (
 	ErrInvalidLiquidCoinDenom          = sdkerrors.New(ModuleName, 10, "invalid liquid staking coin denom")
 	ErrNotEnoughBalance                = sdkerrors.New(ModuleName, 11, "insufficient balance of liquid staking coin")
 	ErrInvalidDerivativeDenom          = sdkerrors.New(ModuleName, 12, "invalid derivative denom")
+	ErrRedelegationsNotCompleted       = sdkerrors.New(ModuleName, 12, "active redelegations cannot be transferred")
 )
