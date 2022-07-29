@@ -52,10 +52,10 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 		},
 		types.VaultRecords{
 			types.VaultRecord{
-				TotalShares: types.NewVaultShare("ukava", sdk.NewInt(2000000)),
+				TotalShares: types.NewVaultShare("ukava", sdk.NewInt(3800000)),
 			},
 			types.VaultRecord{
-				TotalShares: types.NewVaultShare("usdx", sdk.NewInt(2000000)),
+				TotalShares: types.NewVaultShare("usdx", sdk.NewInt(1000000)),
 			},
 		},
 		types.VaultShareRecords{
@@ -110,10 +110,10 @@ func (suite *genesisTestSuite) Test_Marshall() {
 		},
 		types.VaultRecords{
 			types.VaultRecord{
-				TotalShares: types.NewVaultShare("ukava", sdk.NewInt(2000000)),
+				TotalShares: types.NewVaultShare("ukava", sdk.NewInt(3800000)),
 			},
 			types.VaultRecord{
-				TotalShares: types.NewVaultShare("usdx", sdk.NewInt(2000000)),
+				TotalShares: types.NewVaultShare("usdx", sdk.NewInt(1000000)),
 			},
 		},
 		types.VaultShareRecords{

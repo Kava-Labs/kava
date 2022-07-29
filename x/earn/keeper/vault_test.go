@@ -38,7 +38,7 @@ func (suite *vaultTestSuite) TestGetVaultTotalShares() {
 	vaultTotalShares, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, vaultDenom)
 	suite.Require().True(found)
 
-	suite.Equal(depositAmount, vaultTotalShares)
+	suite.Equal(depositAmount.Amount, vaultTotalShares.Amount)
 }
 
 func (suite *vaultTestSuite) TestGetVaultTotalShares_NotFound() {
@@ -104,8 +104,8 @@ func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 	suite.Require().True(found)
 
 	// Account supply only includes the deposit from respective accounts
-	suite.Equal(deposit1Amount, vaultAcc1Supplied.Shares.AmountOf(vaultDenom))
-	suite.Equal(deposit1Amount, vaultAcc2Supplied.Shares.AmountOf(vaultDenom))
+	suite.Equal(deposit1Amount.Amount, vaultAcc1Supplied.Shares.AmountOf(vaultDenom))
+	suite.Equal(deposit1Amount.Amount, vaultAcc2Supplied.Shares.AmountOf(vaultDenom))
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue() {
@@ -131,7 +131,7 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue_VaultNotFound() {
 
 	_, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc.GetAddress())
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound)
+	suite.Require().Equal("vault for usdx not found", err.Error())
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue_ShareNotFound() {
@@ -151,5 +151,5 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue_ShareNotFound() {
 	// Query from acc2 with no share record
 	_, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc2.GetAddress())
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrVaultShareRecordNotFound)
+	suite.Require().Equal("account vault share record for usdx not found", err.Error())
 }

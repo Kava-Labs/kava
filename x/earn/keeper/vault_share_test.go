@@ -26,54 +26,49 @@ func TestVaultShareTestSuite(t *testing.T) {
 func (suite *vaultShareTestSuite) TestConvertToShares() {
 	vaultDenom := "usdx"
 
-	type step struct {
+	tests := []struct {
+		name          string
 		beforeConvert func()
 		giveAmount    sdk.Coin
 		wantShares    types.VaultShare
-	}
-
-	tests := []struct {
-		name  string
-		steps []step
 	}{
 		{
-			name: "initial 1:1",
-			steps: []step{
-				{
-					beforeConvert: func() {},
-					giveAmount:    sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
-					wantShares:    types.NewVaultShare(vaultDenom, sdk.NewInt(100)),
-				},
-			},
+			name:          "initial 1:1",
+			beforeConvert: func() {},
+			giveAmount:    sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
+			wantShares:    types.NewVaultShare(vaultDenom, sdk.NewInt(100)),
 		},
 		{
 			name: "value doubled",
-			steps: []step{
-				{
-					beforeConvert: func() {
-						// set total shares set total value for hard
-						// value is double than shares
-						// shares is 2x price now
-						suite.addTotalShareAndValue(vaultDenom, sdk.NewInt(100), sdk.NewInt(200))
-					},
-					giveAmount: sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
-					wantShares: types.NewVaultShare(vaultDenom, sdk.NewInt(50)),
-				},
+
+			beforeConvert: func() {
+				// set total shares set total value for hard
+				// value is double than shares
+				// shares is 2x price now
+				suite.addTotalShareAndValue(vaultDenom, sdk.NewInt(100), sdk.NewInt(200))
 			},
+			giveAmount: sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
+			wantShares: types.NewVaultShare(vaultDenom, sdk.NewInt(50)),
 		},
 		{
 			name: "truncate",
-			steps: []step{
-				{
-					beforeConvert: func() {
-						suite.addTotalShareAndValue(vaultDenom, sdk.NewInt(1000), sdk.NewInt(1001))
-					},
-					giveAmount: sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
-					// 100 * 100 / 101 = 99.0099something
-					// truncated to 99
-					wantShares: types.NewVaultShare(vaultDenom, sdk.NewInt(99)),
-				},
+
+			beforeConvert: func() {
+				suite.addTotalShareAndValue(vaultDenom, sdk.NewInt(1000), sdk.NewInt(1001))
 			},
+			giveAmount: sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
+			// 100 * 100 / 101 = 99.0099something
+			// truncated to 99
+			// This will be 0 if the value is truncated in the incorrect place,
+			// e.g. 100 * (0) == 0
+			wantShares: types.NewVaultShare(vaultDenom, sdk.NewInt(99)),
+		},
+		{
+			name: "multi step flow 1:1",
+
+			beforeConvert: func() {},
+			giveAmount:    sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
+			wantShares:    types.NewVaultShare(vaultDenom, sdk.NewInt(100)),
 		},
 	}
 
@@ -89,15 +84,13 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 			)
 			suite.Require().NoError(err)
 
-			for _, step := range tt.steps {
-				// Run any deposits or any other setup
-				step.beforeConvert()
+			// Run any deposits or any other setup
+			tt.beforeConvert()
 
-				issuedShares, err := suite.Keeper.ConvertToShares(suite.Ctx, step.giveAmount)
-				suite.Require().NoError(err)
+			issuedShares, err := suite.Keeper.ConvertToShares(suite.Ctx, tt.giveAmount)
+			suite.Require().NoError(err)
 
-				suite.Equal(step.wantShares, issuedShares)
-			}
+			suite.Equal(tt.wantShares, issuedShares)
 		})
 	}
 }
