@@ -73,10 +73,16 @@ func (s *genesisTestSuite) TestExportGenesis() {
 	for _, account := range accounts {
 		s.Keeper.SetAccount(s.Ctx, account)
 	}
-	s.Keeper.SetParams(s.Ctx, types.DefaultParams())
+	params := types.DefaultParams()
+	params.EnabledConversionPairs = []types.ConversionPair{
+		{
+			KavaERC20Address: testutil.MustNewInternalEVMAddressFromString("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2").Bytes(),
+			Denom:            "weth"},
+	}
+	s.Keeper.SetParams(s.Ctx, params)
 	gs := evmutil.ExportGenesis(s.Ctx, s.Keeper)
 	s.Require().Equal(gs.Accounts, accounts)
-	s.Require().Equal(gs.Params, types.DefaultParams())
+	s.Require().Equal(params, gs.Params)
 }
 
 func TestGenesisTestSuite(t *testing.T) {
