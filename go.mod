@@ -158,7 +158,7 @@ replace (
 	// Use the cosmos keyring code
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.45.4-kava.1
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.45.4-kava.3
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
 	// Use the cosmos modified protobufs
@@ -166,7 +166,7 @@ replace (
 	// Use rocksdb 7.1.2
 	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.1
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled
-	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.14.1-0.20220719185056-3850ec87320e
+	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.14.0-kava-v17.5
 	// Make sure that we use grpc compatible with cosmos
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
