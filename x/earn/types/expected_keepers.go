@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -39,4 +40,11 @@ type SavingsKeeper interface {
 	Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error
 
 	GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (savingstypes.Deposit, bool)
+}
+
+// DistributionKeeper defines the expected interface needed for community-pool deposits to earn vaults
+type DistributionKeeper interface {
+	GetFeePool(ctx sdk.Context) (feePool disttypes.FeePool)
+	SetFeePool(ctx sdk.Context, feePool disttypes.FeePool)
+	GetDistributionAccount(ctx sdk.Context) types.ModuleAccountI
 }

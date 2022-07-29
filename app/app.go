@@ -629,6 +629,7 @@ func NewApp(
 		app.bankKeeper,
 		hardKeeper,
 		savingsKeeper,
+		app.distrKeeper,
 	)
 
 	// create committee keeper with router
