@@ -232,7 +232,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
 
 	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
-	// Deposits from 2 accounts
+	// Deposits accounts
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0).GetAddress()
 	err := suite.Keeper.Deposit(suite.Ctx, acc, depositAmount)
 	suite.Require().NoError(err)
@@ -271,4 +271,75 @@ func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
 	_, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc)
 	suite.Require().Error(err)
 	suite.Require().Equal("vault for usdx not found", err.Error())
+}
+
+func (suite *strategyHardTestSuite) TestAccountShares() {
+	vaultDenom := "usdx"
+	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
+	suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1000)))
+
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
+
+	// Deposit from account1
+	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0).GetAddress()
+	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1).GetAddress()
+
+	// 1. acc1 deposit 100
+	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount)
+	suite.Require().NoError(err)
+
+	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
+	suite.Require().True(found)
+	suite.Equal(sdk.NewInt(100), acc1Shares.AmountOf(vaultDenom), "initial deposit 1:1 shares")
+
+	// 2. Direct hard deposit from module account to increase vault value
+	// Total value: 100 -> 110
+	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
+	err = suite.HardKeeper.Deposit(suite.Ctx, macc.GetAddress(), sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 10)))
+	suite.Require().NoError(err)
+
+	// 2. acc2 deposit 100
+	// share price is 10% more expensive now
+	// hard 110 -> 210
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount)
+	suite.Require().NoError(err)
+
+	acc2Value, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc2)
+	suite.Require().NoError(err)
+	suite.Equal(
+		sdk.NewInt(99),
+		acc2Value.Amount,
+		"value should be slightly less for same deposit amount but different share price",
+	)
+
+	// 100 * 100 / 110 = 90.9 = 90
+	acc2Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc2)
+	suite.Require().True(found)
+	suite.Equal(sdk.NewInt(90), acc2Shares.AmountOf(vaultDenom))
+
+	vaultTotalShares, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, vaultDenom)
+	suite.Require().True(found)
+	suite.Equal(sdk.NewInt(190), vaultTotalShares.Amount)
+
+	// Hard deposit again from module account to triple original value
+	// 210 -> 300
+	suite.HardKeeper.Deposit(suite.Ctx, macc.GetAddress(), sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 90)))
+
+	// Deposit again from acc1
+	err = suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount)
+	suite.Require().NoError(err)
+
+	acc1Shares, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
+	suite.Require().True(found)
+	// totalShares = 100 + 90            = 190
+	// totalValue  = 100 + 10 + 100 + 90 = 300
+	// sharesIssued = assetAmount * (shareCount / totalTokens)
+	// sharedIssued = 100 * 190 / 300 = 63.3 = 63
+	// total shares = 100 + 63 = 163
+	suite.Equal(
+		sdk.NewInt(163),
+		acc1Shares.AmountOf(vaultDenom),
+		"shares should consist of 100 of 1x share price and 63 of 3x share price",
+	)
 }

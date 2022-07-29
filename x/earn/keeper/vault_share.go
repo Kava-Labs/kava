@@ -25,8 +25,12 @@ func (k *Keeper) ConvertToShares(ctx sdk.Context, assets sdk.Coin) (types.VaultS
 	}
 
 	// sharePrice := totalTokens / shareCount
-	// issuedShares := amount * sharePrice
-	// issuedShares := amount * (totalTokens / shareCount)
+	// issuedShares = assetAmount / sharePrice
+	// issuedShares := assetAmount / (totalTokens / shareCount)
+	//               = assetAmount * (shareCount / totalTokens)
+	//
+	// multiply by reciprocal  of sharePrice to avoid two divisions and limit
+	// truncation to one time
 
 	// Per share is not used here as it loses decimal values and can cause a 0
 	// share count.
