@@ -69,12 +69,12 @@ func (k *Keeper) GetVaultAccountValue(
 ) (sdk.Coin, error) {
 	totalVaultShares, found := k.GetVaultTotalShares(ctx, denom)
 	if !found {
-		return sdk.Coin{}, fmt.Errorf("vault denom %s not found", denom)
+		return sdk.Coin{}, fmt.Errorf("vault for %s not found", denom)
 	}
 
 	accShares, found := k.GetVaultAccountShares(ctx, acc)
 	if !found {
-		return sdk.Coin{}, fmt.Errorf("vault share record not found")
+		return sdk.Coin{}, fmt.Errorf("account vault share record for %s not found", denom)
 	}
 
 	totalValue, err := k.GetVaultTotalValue(ctx, denom)

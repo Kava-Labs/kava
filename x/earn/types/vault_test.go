@@ -71,7 +71,7 @@ func TestVaultRecordValidate(t *testing.T) {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "negative coin amount",
+				contains:   "vault share amount -5 is negative",
 			},
 		},
 	}
@@ -166,9 +166,10 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 			vaultRecords: types.VaultShareRecords{
 				{
 					Depositor: addrs[0],
-					Shares: types.NewVaultShares(
+					// Direct slice, not NewVaultShares() which panics
+					Shares: types.VaultShares{
 						types.NewVaultShare("usdx", sdk.NewInt(-5)),
-					),
+					},
 				},
 			},
 			errArgs: errArgs{

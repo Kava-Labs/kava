@@ -270,5 +270,5 @@ func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
 
 	_, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound)
+	suite.Require().Equal("vault for usdx not found", err.Error())
 }
