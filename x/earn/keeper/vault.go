@@ -83,8 +83,8 @@ func (k *Keeper) GetVaultAccountValue(
 	}
 
 	// percentOwnership := accShares / totalVaultShares
-	// value := totalValue * percentOwnership
-	// value := totalValue * accShares / totalVaultShares
+	// accValue := totalValue * percentOwnership
+	// accValue := totalValue * accShares / totalVaultShares
 	// Division must be last to avoid rounding errors and properly truncate.
 	value := totalValue.Amount.Mul(accShares.AmountOf(denom)).Quo(totalVaultShares.Amount)
 
