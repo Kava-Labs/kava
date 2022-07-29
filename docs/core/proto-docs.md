@@ -178,6 +178,42 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/earn/v1beta1/strategy.proto](#kava/earn/v1beta1/strategy.proto)
+    - [StrategyType](#kava.earn.v1beta1.StrategyType)
+  
+- [kava/earn/v1beta1/vault.proto](#kava/earn/v1beta1/vault.proto)
+    - [AllowedVault](#kava.earn.v1beta1.AllowedVault)
+    - [VaultRecord](#kava.earn.v1beta1.VaultRecord)
+    - [VaultShareRecord](#kava.earn.v1beta1.VaultShareRecord)
+  
+- [kava/earn/v1beta1/params.proto](#kava/earn/v1beta1/params.proto)
+    - [Params](#kava.earn.v1beta1.Params)
+  
+- [kava/earn/v1beta1/genesis.proto](#kava/earn/v1beta1/genesis.proto)
+    - [GenesisState](#kava.earn.v1beta1.GenesisState)
+  
+- [kava/earn/v1beta1/query.proto](#kava/earn/v1beta1/query.proto)
+    - [DepositResponse](#kava.earn.v1beta1.DepositResponse)
+    - [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse)
+    - [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse)
+    - [QueryTotalDepositedRequest](#kava.earn.v1beta1.QueryTotalDepositedRequest)
+    - [QueryTotalDepositedResponse](#kava.earn.v1beta1.QueryTotalDepositedResponse)
+    - [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest)
+    - [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse)
+    - [VaultResponse](#kava.earn.v1beta1.VaultResponse)
+  
+    - [Query](#kava.earn.v1beta1.Query)
+  
+- [kava/earn/v1beta1/tx.proto](#kava/earn/v1beta1/tx.proto)
+    - [MsgDeposit](#kava.earn.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.earn.v1beta1.MsgDepositResponse)
+    - [MsgWithdraw](#kava.earn.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.earn.v1beta1.MsgWithdrawResponse)
+  
+    - [Msg](#kava.earn.v1beta1.Msg)
+  
 - [kava/evmutil/v1beta1/conversion_pair.proto](#kava/evmutil/v1beta1/conversion_pair.proto)
     - [ConversionPair](#kava.evmutil.v1beta1.ConversionPair)
   
@@ -2720,6 +2756,426 @@ Msg defines the committee Msg service
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `SubmitProposal` | [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse) | SubmitProposal defines a method for submitting a committee proposal | |
 | `Vote` | [MsgVote](#kava.committee.v1beta1.MsgVote) | [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse) | Vote defines a method for voting on a proposal | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/strategy.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/strategy.proto
+
+
+ <!-- end messages -->
+
+
+<a name="kava.earn.v1beta1.StrategyType"></a>
+
+### StrategyType
+StrategyType is the type of strategy that a vault uses to optimize yields.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| STRATEGY_TYPE_UNSPECIFIED | 0 | STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type. |
+| STRATEGY_TYPE_HARD | 1 | STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard module. |
+| STRATEGY_TYPE_SAVINGS | 2 | STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the Savings module. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/vault.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/vault.proto
+
+
+
+<a name="kava.earn.v1beta1.AllowedVault"></a>
+
+### AllowedVault
+AllowedVault is a vault that is allowed to be created. These can be
+modified via parameter governance.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | Denom is the only supported denomination of the vault for deposits and withdrawals. |
+| `vault_strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | VaultStrategy is the strategy used for this vault. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultRecord"></a>
+
+### VaultRecord
+VaultRecord is the state of a vault and is used to store the state of a
+vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | Denom is the only supported denomination of the vault for deposits and withdrawals. |
+| `total_supply` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | TotalSupply is the total supply of the vault, denominated **only** in the user deposit/withdrawal denom, must be the same as the Denom field. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultShareRecord"></a>
+
+### VaultShareRecord
+VaultShareRecord defines the vault shares owned by a depositor.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [bytes](#bytes) |  | Depositor represents the owner of the shares |
+| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | AmountSupplied represents the total amount a depositor has supplied to the vault. The vault is determined by the coin denom. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/params.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/params.proto
+
+
+
+<a name="kava.earn.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters of the earn module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allowed_vaults` | [AllowedVault](#kava.earn.v1beta1.AllowedVault) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/genesis.proto
+
+
+
+<a name="kava.earn.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the earn module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.earn.v1beta1.Params) |  | params defines all the paramaters related to earn |
+| `vault_records` | [VaultRecord](#kava.earn.v1beta1.VaultRecord) | repeated | vault_records defines the available vaults |
+| `vault_share_records` | [VaultShareRecord](#kava.earn.v1beta1.VaultShareRecord) | repeated | share_records defines the owned shares of each vault |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/query.proto
+
+
+
+<a name="kava.earn.v1beta1.DepositResponse"></a>
+
+### DepositResponse
+DepositResponse defines a deposit query response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the owner of the deposit. |
+| `amount_supplied` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Amount represents the amount supplied to vaults. |
+| `value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Value represents the total accumulated value of denom coins supplied to vaults. This may be greater than or equal to amount_supplied depending on the strategy. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryDepositsRequest"></a>
+
+### QueryDepositsRequest
+QueryDepositsRequest is the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  | owner optionally filters deposits by owner |
+| `denom` | [string](#string) |  | denom optionally filters deposits by vault denom |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryDepositsResponse"></a>
+
+### QueryDepositsResponse
+QueryDepositsResponse is the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [DepositResponse](#kava.earn.v1beta1.DepositResponse) | repeated | deposits returns the deposits matching the requested parameters |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/earn parameters.
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/earn parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.earn.v1beta1.Params) |  | params represents the earn module parameters |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryTotalDepositedRequest"></a>
+
+### QueryTotalDepositedRequest
+QueryTotalDepositedRequest is the request type for the Query/TotalDeposited RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | denom represents the vault denom to query total deposited amount for. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryTotalDepositedResponse"></a>
+
+### QueryTotalDepositedResponse
+QueryTotalDepositedResponse is the response type for the Query/TotalDeposited RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `supplied_coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryVaultsRequest"></a>
+
+### QueryVaultsRequest
+QueryVaultsRequest is the request type for the Query/Vault RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | vault filters vault by denom |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryVaultsResponse"></a>
+
+### QueryVaultsResponse
+QueryVaultsResponse is the response type for the Query/Vaults RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `vaults` | [VaultResponse](#kava.earn.v1beta1.VaultResponse) | repeated | vaults represents the earn module vaults |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultResponse"></a>
+
+### VaultResponse
+VaultResponse is the response type for a vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | denom represents the denom of the vault |
+| `vault_strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | VaultStrategy is the strategy used for this vault. |
+| `total_supplied` | [string](#string) |  | TotalSupplied is the total amount of denom coins supplied to the vault. |
+| `total_value` | [string](#string) |  | TotalValue is the total value of denom coins supplied to the vault if the vault were to be liquidated. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.earn.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for earn module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse) | Params queries all parameters of the earn module. | GET|/kava/earn/v1beta1/params|
+| `Vaults` | [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest) | [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse) | Vaults queries vaults based on vault denom | GET|/kava/earn/v1beta1/vaults/{denom}|
+| `Deposits` | [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on owner address and vault | GET|/kava/earn/v1beta1/deposits|
+| `TotalDeposited` | [QueryTotalDepositedRequest](#kava.earn.v1beta1.QueryTotalDepositedRequest) | [QueryTotalDepositedResponse](#kava.earn.v1beta1.QueryTotalDepositedResponse) | TotalDeposited queries total deposited amount for each vault. | GET|/kava/earn/v1beta1/total-deposited/{denom}|
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/tx.proto
+
+
+
+<a name="kava.earn.v1beta1.MsgDeposit"></a>
+
+### MsgDeposit
+MsgDeposit represents a message for depositing assedts into a vault
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the address to deposit funds from |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount represents the token to deposit. The vault corresponds to the denom of the amount coin. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.MsgDepositResponse"></a>
+
+### MsgDepositResponse
+MsgDepositResponse defines the Msg/Deposit response type.
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.MsgWithdraw"></a>
+
+### MsgWithdraw
+MsgWithdraw represents a message for withdrawing liquidity from a vault
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  | from represents the address we are withdrawing for |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount represents the token to withdraw. The vault corresponds to the denom of the amount coin. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.MsgWithdrawResponse"></a>
+
+### MsgWithdrawResponse
+MsgWithdrawResponse defines the Msg/Withdraw response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.earn.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the earn Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Deposit` | [MsgDeposit](#kava.earn.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.earn.v1beta1.MsgDepositResponse) | Deposit defines a method for depositing assets into a vault | |
+| `Withdraw` | [MsgWithdraw](#kava.earn.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.earn.v1beta1.MsgWithdrawResponse) | Withdraw defines a method for withdrawing assets into a vault | |
 
  <!-- end services -->
 

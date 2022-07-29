@@ -110,6 +110,9 @@ import (
 	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	earn "github.com/kava-labs/kava/x/earn"
+	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutil "github.com/kava-labs/kava/x/evmutil"
 	evmutilkeeper "github.com/kava-labs/kava/x/evmutil/keeper"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
@@ -192,6 +195,7 @@ var (
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
 		bridge.AppModuleBasic{},
+		earn.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -217,6 +221,7 @@ var (
 		hardtypes.ModuleAccountName:     {authtypes.Minter},
 		savingstypes.ModuleAccountName:  nil,
 		bridgetypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
+		earntypes.ModuleName:            nil,
 	}
 )
 
@@ -286,6 +291,7 @@ type App struct {
 	committeeKeeper  committeekeeper.Keeper
 	incentiveKeeper  incentivekeeper.Keeper
 	savingsKeeper    savingskeeper.Keeper
+	earnKeeper       earnkeeper.Keeper
 
 	bridgeKeeper bridgekeeper.Keeper
 
@@ -341,7 +347,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey, bridgetypes.StoreKey,
+		savingstypes.StoreKey, bridgetypes.StoreKey, earntypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -387,6 +393,7 @@ func NewApp(
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
 	bridgeSubspace := app.paramsKeeper.Subspace(bridgetypes.ModuleName)
 	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
+	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -617,6 +624,16 @@ func NewApp(
 		&swapKeeper,
 		&savingsKeeper,
 	)
+	app.earnKeeper = earnkeeper.NewKeeper(
+		appCodec,
+		keys[earntypes.StoreKey],
+		earnSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		hardKeeper,
+		savingsKeeper,
+	)
+
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -701,6 +718,7 @@ func NewApp(
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
+		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -748,6 +766,7 @@ func NewApp(
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
+		earntypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -787,6 +806,7 @@ func NewApp(
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
+		earntypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -818,6 +838,7 @@ func NewApp(
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,
 		bridgetypes.ModuleName,
+		earntypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
 		// Add all remaining modules with an empty InitGenesis below since cosmos 0.45.0 requires it
@@ -983,9 +1004,11 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
 	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
+	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
+
 	for addr := range modAccAddrs {
-		// Set the kavadist module account address as unblocked
-		if addr == kavadistMaccAddr.String() {
+		// Set the kavadist and earn module account address as unblocked
+		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() {
 			modAccAddrs[addr] = false
 		}
 	}
