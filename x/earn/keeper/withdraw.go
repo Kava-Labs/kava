@@ -39,14 +39,37 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 		return fmt.Errorf("failed to convert assets to shares: %w", err)
 	}
 
+	accCurrentShares := vaultShareRecord.Shares.AmountOf(wantAmount.Denom)
 	// Check if account is not withdrawing more shares than they have
-	if vaultShareRecord.Shares.AmountOf(wantAmount.Denom).LT(withdrawShares.Amount) {
+	if accCurrentShares.LT(withdrawShares.Amount) {
 		return sdkerrors.Wrapf(
 			types.ErrInsufficientValue,
-			"account vault shares of %s is %s but withdraw shares is %s",
+			"account has less %s vault shares than withdraw shares, %s < %s",
 			wantAmount.Denom,
-			wantAmount,
+			accCurrentShares,
 			withdrawShares.Amount,
+		)
+	}
+
+	// Convert shares to amount to get truncated true share value
+	withdrawAmount, err := k.ConvertToAssets(ctx, withdrawShares)
+	if err != nil {
+		return fmt.Errorf("failed to convert shares to assets: %w", err)
+	}
+
+	accountValue, err := k.GetVaultAccountValue(ctx, wantAmount.Denom, from)
+	if err != nil {
+		return fmt.Errorf("failed to get account value: %w", err)
+	}
+
+	// Check if withdrawAmount > account value
+	if withdrawAmount.Amount.GT(accountValue.Amount) {
+		return sdkerrors.Wrapf(
+			types.ErrInsufficientValue,
+			"account has less %s vault value than withdraw amount, %s < %s",
+			withdrawAmount.Denom,
+			accountValue.Amount,
+			withdrawAmount.Amount,
 		)
 	}
 
@@ -59,8 +82,8 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 	// Not necessary to check if amount denom is allowed for the strategy, as
 	// there would be no vault record if it weren't allowed.
 
-	// Withdraw the wantAmount from the strategy
-	if err := strategy.Withdraw(ctx, wantAmount); err != nil {
+	// Withdraw the withdrawAmount from the strategy
+	if err := strategy.Withdraw(ctx, withdrawAmount); err != nil {
 		return fmt.Errorf("failed to withdraw from strategy: %w", err)
 	}
 
@@ -70,7 +93,7 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 		ctx,
 		types.ModuleName,
 		from,
-		sdk.NewCoins(wantAmount),
+		sdk.NewCoins(withdrawAmount),
 	); err != nil {
 		return err
 	}
@@ -86,10 +109,10 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeVaultWithdraw,
-			sdk.NewAttribute(types.AttributeKeyVaultDenom, wantAmount.Denom),
+			sdk.NewAttribute(types.AttributeKeyVaultDenom, withdrawAmount.Denom),
 			sdk.NewAttribute(types.AttributeKeyOwner, from.String()),
 			sdk.NewAttribute(types.AttributeKeyShares, withdrawShares.Amount.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, wantAmount.Amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, withdrawAmount.Amount.String()),
 		),
 	)
 

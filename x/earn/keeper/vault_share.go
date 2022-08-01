@@ -46,3 +46,24 @@ func (k *Keeper) ConvertToShares(ctx sdk.Context, assets sdk.Coin) (types.VaultS
 
 	return types.NewVaultShare(assets.Denom, shareCount), nil
 }
+
+// ConvertToAssets converts a given amount of shares to tokens.
+func (k *Keeper) ConvertToAssets(ctx sdk.Context, share types.VaultShare) (sdk.Coin, error) {
+	totalVaultShares, found := k.GetVaultTotalShares(ctx, share.Denom)
+	if !found {
+		return sdk.Coin{}, fmt.Errorf("vault for %s not found", share.Denom)
+	}
+
+	totalValue, err := k.GetVaultTotalValue(ctx, share.Denom)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+
+	// percentOwnership := accShares / totalVaultShares
+	// accValue := totalValue * percentOwnership
+	// accValue := totalValue * accShares / totalVaultShares
+	// Division must be last to avoid rounding errors and properly truncate.
+	value := totalValue.Amount.Mul(share.Amount).Quo(totalVaultShares.Amount)
+
+	return sdk.NewCoin(share.Denom, value), nil
+}
