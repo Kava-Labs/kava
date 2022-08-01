@@ -73,6 +73,7 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 			types.EventTypeVaultDeposit,
 			sdk.NewAttribute(types.AttributeKeyVaultDenom, amount.Denom),
 			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
+			sdk.NewAttribute(types.AttributeKeyShares, shares.Amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.Amount.String()),
 		),
 	)

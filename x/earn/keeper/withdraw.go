@@ -88,6 +88,7 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 			types.EventTypeVaultWithdraw,
 			sdk.NewAttribute(types.AttributeKeyVaultDenom, wantAmount.Denom),
 			sdk.NewAttribute(types.AttributeKeyOwner, from.String()),
+			sdk.NewAttribute(types.AttributeKeyShares, withdrawShares.Amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, wantAmount.Amount.String()),
 		),
 	)
