@@ -238,6 +238,17 @@ func (v VaultShares) AmountOf(denom string) sdk.Int {
 	return sdk.ZeroInt()
 }
 
+// GetShare the single share of the given denom.
+func (v VaultShares) GetShare(denom string) VaultShare {
+	for _, s := range v {
+		if s.Denom == denom {
+			return s
+		}
+	}
+
+	return NewVaultShare(denom, sdk.ZeroInt())
+}
+
 // IsZero returns true if the VaultShares is empty.
 func (v VaultShares) IsZero() bool {
 	for _, s := range v {
