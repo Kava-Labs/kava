@@ -49,7 +49,13 @@ func (suite *vaultTestSuite) TestGetVaultTotalShares_NotFound() {
 }
 
 func (suite *vaultTestSuite) TestGetVaultTotalValue() {
-	// TODO: After strategy implemented GetEstimatedTotalAssets
+	vaultDenom := "usdx"
+
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
+
+	totalValue, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
+	suite.Require().NoError(err)
+	suite.Equal(sdk.NewInt(0), totalValue.Amount)
 }
 
 func (suite *vaultTestSuite) TestGetVaultTotalValue_NotFound() {
@@ -131,7 +137,7 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue_VaultNotFound() {
 
 	_, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc.GetAddress())
 	suite.Require().Error(err)
-	suite.Require().Equal("vault for usdx not found", err.Error())
+	suite.Require().Equal("account vault share record for usdx not found", err.Error())
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue_ShareNotFound() {

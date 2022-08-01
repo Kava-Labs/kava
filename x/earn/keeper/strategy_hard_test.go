@@ -268,8 +268,12 @@ func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
 	err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(vaultDenom, sdk.NewInt(5)))
 	suite.Require().NoError(err)
 
-	_, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc)
-	suite.Require().Error(err)
+	accValue, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc)
+	suite.Require().Errorf(
+		err,
+		"account should be deleted when all shares withdrawn but has %s value still",
+		accValue,
+	)
 	suite.Require().Equal("vault for usdx not found", err.Error())
 }
 
