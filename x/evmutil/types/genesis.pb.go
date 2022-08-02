@@ -106,7 +106,7 @@ func (m *Account) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Account proto.InternalMessageInfo
 
-// Params defines the bridge module params
+// Params defines the evmutil module params
 type Params struct {
 	// enabled_conversion_pairs defines the list of conversion pairs allowed to be
 	// converted between Kava ERC20 and sdk.Coin
