@@ -91,10 +91,6 @@ func getCmdConvertERC20ToCoin() *cobra.Command {
 				return err
 			}
 
-			if err := CanSignEthTx(clientCtx); err != nil {
-				return err
-			}
-
 			receiver, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return fmt.Errorf("receiver '%s' is not a bech32 address", args[0])
