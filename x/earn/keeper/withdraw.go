@@ -111,10 +111,13 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 
 	if isDust {
 		// Modify withdrawShares to subtract entire share balance for denom
+		// This does not modify the actual withdraw coin amount as the
+		// difference is < 1coin.
 		withdrawShares = vaultShareRecord.Shares.GetShare(withdrawAmount.Denom)
 	}
 
-	// Decrement VaultRecord and VaultShareRecord supplies
+	// Decrement VaultRecord and VaultShareRecord supplies - must delete same
+	// amounts
 	vaultShareRecord.Shares = vaultShareRecord.Shares.Sub(withdrawShares)
 	vaultRecord.TotalShares = vaultRecord.TotalShares.Sub(withdrawShares)
 
