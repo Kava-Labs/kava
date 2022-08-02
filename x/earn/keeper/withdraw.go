@@ -98,9 +98,25 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 		return err
 	}
 
+	// Check if new account balance of shares results in account share value
+	// of < 1 of a sdk.Coin. This share value is not able to be withdrawn and
+	// should just be removed.
+	isDust, err := k.ShareIsDust(
+		ctx,
+		vaultShareRecord.Shares.GetShare(withdrawAmount.Denom).Sub(withdrawShares),
+	)
+	if err != nil {
+		return err
+	}
+
+	if isDust {
+		// Modify withdrawShares to subtract entire share balance for denom
+		withdrawShares = vaultShareRecord.Shares.GetShare(withdrawAmount.Denom)
+	}
+
 	// Decrement VaultRecord and VaultShareRecord supplies
-	vaultRecord.TotalShares = vaultRecord.TotalShares.Sub(withdrawShares)
 	vaultShareRecord.Shares = vaultShareRecord.Shares.Sub(withdrawShares)
+	vaultRecord.TotalShares = vaultRecord.TotalShares.Sub(withdrawShares)
 
 	// Update VaultRecord and VaultShareRecord, deletes if zero supply
 	k.UpdateVaultRecord(ctx, vaultRecord)

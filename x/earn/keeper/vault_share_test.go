@@ -36,7 +36,7 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 			name:          "initial 1:1",
 			beforeConvert: func() {},
 			giveAmount:    sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
-			wantShares:    types.NewVaultShare(vaultDenom, sdk.NewInt(100)),
+			wantShares:    types.NewVaultShare(vaultDenom, sdk.NewDec(100)),
 		},
 		{
 			name: "value doubled",
@@ -45,30 +45,27 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 				// set total shares set total value for hard
 				// value is double than shares
 				// shares is 2x price now
-				suite.addTotalShareAndValue(vaultDenom, sdk.NewInt(100), sdk.NewInt(200))
+				suite.addTotalShareAndValue(vaultDenom, sdk.NewDec(100), sdk.NewInt(200))
 			},
 			giveAmount: sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
-			wantShares: types.NewVaultShare(vaultDenom, sdk.NewInt(50)),
+			wantShares: types.NewVaultShare(vaultDenom, sdk.NewDec(50)),
 		},
 		{
 			name: "truncate",
 
 			beforeConvert: func() {
-				suite.addTotalShareAndValue(vaultDenom, sdk.NewInt(1000), sdk.NewInt(1001))
+				suite.addTotalShareAndValue(vaultDenom, sdk.NewDec(1000), sdk.NewInt(1001))
 			},
 			giveAmount: sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
 			// 100 * 100 / 101 = 99.0099something
-			// truncated to 99
-			// This will be 0 if the value is truncated in the incorrect place,
-			// e.g. 100 * (0) == 0
-			wantShares: types.NewVaultShare(vaultDenom, sdk.NewInt(99)),
+			wantShares: types.NewVaultShare(vaultDenom, sdk.NewDec(100).MulInt64(1000).QuoInt64(1001)),
 		},
 		{
 			name: "multi step flow 1:1",
 
 			beforeConvert: func() {},
 			giveAmount:    sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
-			wantShares:    types.NewVaultShare(vaultDenom, sdk.NewInt(100)),
+			wantShares:    types.NewVaultShare(vaultDenom, sdk.NewDec(100)),
 		},
 	}
 
@@ -97,14 +94,14 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 
 func (suite *vaultShareTestSuite) addTotalShareAndValue(
 	vaultDenom string,
-	vaultShares sdk.Int,
+	vaultShares sdk.Dec,
 	hardDeposit sdk.Int,
 ) {
 	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
 
 	vaultRecord, found := suite.Keeper.GetVaultRecord(suite.Ctx, vaultDenom)
 	if !found {
-		vaultRecord = types.NewVaultRecord(vaultDenom, sdk.ZeroInt())
+		vaultRecord = types.NewVaultRecord(vaultDenom, sdk.ZeroDec())
 	}
 
 	// Add to vault record

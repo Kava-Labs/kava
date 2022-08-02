@@ -10,7 +10,7 @@ import (
 )
 
 // NewVaultShare returns a new VaultShare
-func NewVaultShare(denom string, amount sdk.Int) VaultShare {
+func NewVaultShare(denom string, amount sdk.Dec) VaultShare {
 	return VaultShare{
 		Denom:  denom,
 		Amount: amount,
@@ -47,7 +47,7 @@ func (share VaultShare) IsZero() bool {
 
 // IsNegative returns true if the share amount is negative and false otherwise.
 func (share VaultShare) IsNegative() bool {
-	return share.Amount.Sign() == -1
+	return share.Amount.IsNegative()
 }
 
 // Sub subtracts amounts of two vault shares with same denom. If the shares
@@ -228,14 +228,14 @@ func (shares VaultShares) negative() VaultShares {
 }
 
 // AmountOf returns the amount of shares of the given denom.
-func (v VaultShares) AmountOf(denom string) sdk.Int {
+func (v VaultShares) AmountOf(denom string) sdk.Dec {
 	for _, s := range v {
 		if s.Denom == denom {
 			return s.Amount
 		}
 	}
 
-	return sdk.ZeroInt()
+	return sdk.ZeroDec()
 }
 
 // GetShare the single share of the given denom.
@@ -246,7 +246,7 @@ func (v VaultShares) GetShare(denom string) VaultShare {
 		}
 	}
 
-	return NewVaultShare(denom, sdk.ZeroInt())
+	return NewVaultShare(denom, sdk.ZeroDec())
 }
 
 // IsZero returns true if the VaultShares is empty.

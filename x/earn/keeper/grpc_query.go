@@ -72,7 +72,7 @@ func (s queryServer) Vaults(
 		vaultTotalShares, found := s.keeper.GetVaultTotalShares(sdkCtx, allowedVault.Denom)
 		if !found {
 			// No supply yet, no error just zero
-			vaultTotalShares = types.NewVaultShare(allowedVault.Denom, sdk.ZeroInt())
+			vaultTotalShares = types.NewVaultShare(allowedVault.Denom, sdk.ZeroDec())
 		}
 
 		totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, allowedVault.Denom)
@@ -83,7 +83,7 @@ func (s queryServer) Vaults(
 		vaults = append(vaults, types.VaultResponse{
 			Denom:         allowedVault.Denom,
 			VaultStrategy: allowedVault.VaultStrategy,
-			TotalShares:   vaultTotalShares.Amount,
+			TotalShares:   vaultTotalShares.Amount.String(),
 			TotalValue:    totalValue.Amount,
 		})
 	}

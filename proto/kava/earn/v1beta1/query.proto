@@ -61,11 +61,7 @@ message VaultResponse {
   StrategyType vault_strategy = 2;
 
   // TotalShares is the total amount of shares issued to depositors.
-  string total_shares = 3 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false
-  ];
+  string total_shares = 3;
 
   // TotalValue is the total value of denom coins supplied to the vault if the
   // vault were to be liquidated.

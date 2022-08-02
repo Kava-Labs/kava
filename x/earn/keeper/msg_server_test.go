@@ -69,7 +69,7 @@ func (suite *msgServerTestSuite) TestDeposit() {
 			sdk.NewAttribute(types.AttributeKeyVaultDenom, depositAmount.Denom),
 			sdk.NewAttribute(types.AttributeKeyDepositor, acc.GetAddress().String()),
 			// Shares 1:1 to amount
-			sdk.NewAttribute(types.AttributeKeyShares, depositAmount.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyShares, depositAmount.Amount.ToDec().String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.Amount.String()),
 		),
 	)
@@ -122,7 +122,7 @@ func (suite *msgServerTestSuite) TestWithdraw() {
 			types.EventTypeVaultWithdraw,
 			sdk.NewAttribute(types.AttributeKeyVaultDenom, depositAmount.Denom),
 			sdk.NewAttribute(types.AttributeKeyOwner, acc.GetAddress().String()),
-			sdk.NewAttribute(types.AttributeKeyShares, depositAmount.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyShares, depositAmount.Amount.ToDec().String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.Amount.String()),
 		),
 	)
