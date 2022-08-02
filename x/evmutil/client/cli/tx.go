@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -79,13 +78,11 @@ func getCmdMsgConvertCoinToERC20() *cobra.Command {
 
 func getCmdConvertERC20ToCoin() *cobra.Command {
 	return &cobra.Command{
-		Use:   "convert-erc20-to-coin [Kava receiver address] [Kava ERC20 address or Denom] [amount]",
+		Use:   "convert-erc20-to-coin [Kava receiver address] [Kava ERC20 address] [amount]",
 		Short: "burns ERC20 tokens on Kava EVM co-chain and unlocks on Ethereum",
 		Example: fmt.Sprintf(`
 %[1]s tx %[2]s convert-erc20-to-coin 0x8223259205A3E31C54469fCbfc9F7Cf83D515ff6 0x21E360e198Cde35740e88572B59f2CAdE421E6b1 1000000000000000 --from <key>
-%[1]s tx %[2]s convert-erc20-to-coin kava10wlnqzyss4accfqmyxwx5jy5x9nfkwh6qm7n4t erc20/weth 1000000000000000 --from <key>
-`,
-			version.AppName, types.ModuleName,
+`, version.AppName, types.ModuleName,
 		),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -98,42 +95,32 @@ func getCmdConvertERC20ToCoin() *cobra.Command {
 				return err
 			}
 
-			receiver, err := ParseAddrFromHexOrBech32(args[0])
+			receiver, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return fmt.Errorf("receiver '%s' is not a bech32 address", args[0])
+			}
+
+			signer := clientCtx.GetFromAddress()
+			initiator, err := ParseAddrFromHexOrBech32(signer.String())
 			if err != nil {
 				return err
 			}
 
-			queryClient := types.NewQueryClient(clientCtx)
-			contractAddr, err := ParseOrQueryConversionPairAddress(queryClient, args[1])
-			if err != nil {
-				return err
-			}
-
-			amount, ok := new(big.Int).SetString(args[2], 10)
+			amount, ok := sdk.NewIntFromString(args[2])
 			if !ok {
 				return fmt.Errorf("amount '%s' is invalid", args[2])
 			}
 
-			data, err := PackContractCallData(
-				types.ERC20MintableBurnableContract.ABI,
-				"convertToCoin",
-				receiver,
-				amount,
-			)
-			if err != nil {
+			if common.IsHexAddress(args[1]) {
+				return fmt.Errorf("contractAddr '%s' is not a hex address", args[0])
+			}
+			contractAddr := types.NewInternalEVMAddress(common.HexToAddress(args[1]))
+			msg := types.NewMsgConvertERC20ToCoin(types.NewInternalEVMAddress(initiator), receiver, contractAddr, amount)
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			ethTx, err := CreateEthCallContractTx(
-				clientCtx,
-				&contractAddr,
-				data,
-			)
-			if err != nil {
-				return err
-			}
-
-			return GenerateOrBroadcastTx(clientCtx, ethTx)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 }
