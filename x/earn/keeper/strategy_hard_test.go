@@ -446,3 +446,43 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedTruncated() {
 	_, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc1)
 	suite.Require().Error(err)
 }
+
+func (suite *strategyHardTestSuite) TestWithdraw_ExpensiveShares() {
+	vaultDenom := "usdx"
+	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
+	suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 2000)))
+
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
+
+	// Deposit from account1
+	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0).GetAddress()
+
+	// 1. acc1 deposit 100
+	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount)
+	suite.Require().NoError(err)
+
+	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
+	suite.Require().True(found)
+	suite.Equal(sdk.NewDec(100), acc1Shares.AmountOf(vaultDenom), "initial deposit 1:1 shares")
+
+	// 2. Direct hard deposit from module account to increase vault value
+	// Total value: 100 -> 2000, shares now 10usdx each
+	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
+	err = suite.HardKeeper.Deposit(suite.Ctx, macc.GetAddress(), sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1900)))
+	suite.Require().NoError(err)
+
+	accBal, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc1)
+	suite.Require().NoError(err)
+	suite.Equal(sdk.NewInt(2000), accBal.Amount, "acc1 should have 2000 usdx")
+
+	// 3. Withdraw all from acc1 - including accumulated amount
+	err = suite.Keeper.Withdraw(suite.Ctx, acc1, sdk.NewInt64Coin(vaultDenom, 2000))
+	suite.Require().NoError(err)
+
+	acc1Shares, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
+	suite.Require().Falsef(found, "should have withdrawn entire shares but has %s", acc1Shares)
+
+	_, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc1)
+	suite.Require().Error(err)
+}
