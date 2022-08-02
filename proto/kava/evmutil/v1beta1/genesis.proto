@@ -36,7 +36,7 @@ message Account {
   ];
 }
 
-// Params defines the bridge module params
+// Params defines the evmutil module params
 message Params {
   // enabled_conversion_pairs defines the list of conversion pairs allowed to be
   // converted between Kava ERC20 and sdk.Coin

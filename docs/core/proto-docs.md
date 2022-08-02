@@ -3256,7 +3256,7 @@ GenesisState defines the evmutil module's genesis state.
 <a name="kava.evmutil.v1beta1.Params"></a>
 
 ### Params
-Params defines the bridge module params
+Params defines the evmutil module params
 
 
 | Field | Type | Label | Description |
