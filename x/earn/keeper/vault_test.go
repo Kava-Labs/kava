@@ -38,7 +38,7 @@ func (suite *vaultTestSuite) TestGetVaultTotalShares() {
 	vaultTotalShares, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, vaultDenom)
 	suite.Require().True(found)
 
-	suite.Equal(depositAmount.Amount, vaultTotalShares.Amount)
+	suite.Equal(depositAmount.Amount.ToDec(), vaultTotalShares.Amount)
 }
 
 func (suite *vaultTestSuite) TestGetVaultTotalShares_NotFound() {
@@ -110,8 +110,8 @@ func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 	suite.Require().True(found)
 
 	// Account supply only includes the deposit from respective accounts
-	suite.Equal(deposit1Amount.Amount, vaultAcc1Supplied.Shares.AmountOf(vaultDenom))
-	suite.Equal(deposit1Amount.Amount, vaultAcc2Supplied.Shares.AmountOf(vaultDenom))
+	suite.Equal(deposit1Amount.Amount.ToDec(), vaultAcc1Supplied.Shares.AmountOf(vaultDenom))
+	suite.Equal(deposit1Amount.Amount.ToDec(), vaultAcc2Supplied.Shares.AmountOf(vaultDenom))
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue() {

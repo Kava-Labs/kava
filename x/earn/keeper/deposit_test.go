@@ -51,7 +51,9 @@ func (suite *depositTestSuite) TestDeposit_Balances() {
 	)
 
 	suite.VaultTotalValuesEqual(sdk.NewCoins(depositAmount))
-	suite.VaultTotalSuppliedEqual(sdk.NewCoins(depositAmount))
+	suite.VaultTotalSharesEqual(types.NewVaultShares(
+		types.NewVaultShare(depositAmount.Denom, depositAmount.Amount.ToDec()),
+	))
 }
 
 func (suite *depositTestSuite) TestDeposit_Exceed() {

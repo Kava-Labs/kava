@@ -256,11 +256,11 @@ func (suite *Suite) VaultTotalValuesEqual(expected sdk.Coins) {
 	}
 }
 
-func (suite *Suite) VaultTotalSuppliedEqual(expected sdk.Coins) {
-	for _, coin := range expected {
-		vaultBal, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, coin.Denom)
-		suite.Require().Truef(found, "%s vault does not exist", coin.Denom)
-		suite.Require().Equal(coin.Amount, vaultBal.Amount)
+func (suite *Suite) VaultTotalSharesEqual(expected types.VaultShares) {
+	for _, share := range expected {
+		vaultBal, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, share.Denom)
+		suite.Require().Truef(found, "%s vault does not exist", share.Denom)
+		suite.Require().Equal(share.Amount, vaultBal.Amount)
 	}
 }
 

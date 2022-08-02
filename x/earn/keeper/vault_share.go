@@ -12,7 +12,7 @@ func (k *Keeper) ConvertToShares(ctx sdk.Context, assets sdk.Coin) (types.VaultS
 	totalShares, found := k.GetVaultTotalShares(ctx, assets.Denom)
 	if !found {
 		// No shares issued yet, so shares are issued 1:1
-		return types.NewVaultShare(assets.Denom, assets.Amount), nil
+		return types.NewVaultShare(assets.Denom, assets.Amount.ToDec()), nil
 	}
 
 	totalValue, err := k.GetVaultTotalValue(ctx, assets.Denom)
@@ -30,7 +30,7 @@ func (k *Keeper) ConvertToShares(ctx sdk.Context, assets sdk.Coin) (types.VaultS
 	//               = assetAmount * (shareCount / totalTokens)
 	//
 	// multiply by reciprocal  of sharePrice to avoid two divisions and limit
-	// truncation to one time
+	// rounding to one time
 
 	// Per share is not used here as it loses decimal values and can cause a 0
 	// share count.
@@ -38,7 +38,7 @@ func (k *Keeper) ConvertToShares(ctx sdk.Context, assets sdk.Coin) (types.VaultS
 	// For example:
 	// 100 * 100 / 101   == 10000 / 101 == 99
 	// 100 * (100 / 101) == 100 * 0     == 0
-	shareCount := assets.Amount.Mul(totalShares.Amount).Quo(totalValue.Amount)
+	shareCount := assets.Amount.ToDec().Mul(totalShares.Amount).QuoTruncate(totalValue.Amount.ToDec())
 
 	if shareCount.IsZero() {
 		return types.VaultShare{}, fmt.Errorf("share count is zero")
@@ -63,7 +63,18 @@ func (k *Keeper) ConvertToAssets(ctx sdk.Context, share types.VaultShare) (sdk.C
 	// accValue := totalValue * percentOwnership
 	// accValue := totalValue * accShares / totalVaultShares
 	// Division must be last to avoid rounding errors and properly truncate.
-	value := totalValue.Amount.Mul(share.Amount).Quo(totalVaultShares.Amount)
+	value := totalValue.Amount.ToDec().Mul(share.Amount).QuoTruncate(totalVaultShares.Amount)
 
-	return sdk.NewCoin(share.Denom, value), nil
+	return sdk.NewCoin(share.Denom, value.TruncateInt()), nil
+}
+
+// ShareIsDust returns true if the share value is less than 1 coin
+func (k *Keeper) ShareIsDust(ctx sdk.Context, share types.VaultShare) (bool, error) {
+	coin, err := k.ConvertToAssets(ctx, share)
+	if err != nil {
+		return false, err
+	}
+
+	// Truncated int, becomes zero if < 1
+	return coin.IsZero(), nil
 }

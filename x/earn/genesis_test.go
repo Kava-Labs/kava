@@ -25,7 +25,7 @@ func (suite *genesisTestSuite) Test_InitGenesis_ValidationPanic() {
 		},
 		types.VaultRecords{
 			{
-				TotalShares: types.NewVaultShare("", sdk.NewInt(1)),
+				TotalShares: types.NewVaultShare("", sdk.NewDec(1)),
 			},
 		},
 		types.VaultShareRecords{},
@@ -52,25 +52,25 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 		},
 		types.VaultRecords{
 			types.VaultRecord{
-				TotalShares: types.NewVaultShare("ukava", sdk.NewInt(3800000)),
+				TotalShares: types.NewVaultShare("ukava", sdk.NewDec(3800000)),
 			},
 			types.VaultRecord{
-				TotalShares: types.NewVaultShare("usdx", sdk.NewInt(1000000)),
+				TotalShares: types.NewVaultShare("usdx", sdk.NewDec(1000000)),
 			},
 		},
 		types.VaultShareRecords{
 			types.VaultShareRecord{
 				Depositor: depositor_1,
 				Shares: types.NewVaultShares(
-					types.NewVaultShare("usdx", sdk.NewInt(500000)),
-					types.NewVaultShare("ukava", sdk.NewInt(1900000)),
+					types.NewVaultShare("usdx", sdk.NewDec(500000)),
+					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
 				),
 			},
 			types.VaultShareRecord{
 				Depositor: depositor_2,
 				Shares: types.NewVaultShares(
-					types.NewVaultShare("usdx", sdk.NewInt(500000)),
-					types.NewVaultShare("ukava", sdk.NewInt(1900000)),
+					types.NewVaultShare("usdx", sdk.NewDec(500000)),
+					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
 				),
 			},
 		},
@@ -110,25 +110,25 @@ func (suite *genesisTestSuite) Test_Marshall() {
 		},
 		types.VaultRecords{
 			types.VaultRecord{
-				TotalShares: types.NewVaultShare("ukava", sdk.NewInt(3800000)),
+				TotalShares: types.NewVaultShare("ukava", sdk.NewDec(3800000)),
 			},
 			types.VaultRecord{
-				TotalShares: types.NewVaultShare("usdx", sdk.NewInt(1000000)),
+				TotalShares: types.NewVaultShare("usdx", sdk.NewDec(1000000)),
 			},
 		},
 		types.VaultShareRecords{
 			types.VaultShareRecord{
 				Depositor: depositor_1,
 				Shares: types.NewVaultShares(
-					types.NewVaultShare("usdx", sdk.NewInt(500000)),
-					types.NewVaultShare("ukava", sdk.NewInt(1900000)),
+					types.NewVaultShare("usdx", sdk.NewDec(500000)),
+					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
 				),
 			},
 			types.VaultShareRecord{
 				Depositor: depositor_2,
 				Shares: types.NewVaultShares(
-					types.NewVaultShare("usdx", sdk.NewInt(500000)),
-					types.NewVaultShare("ukava", sdk.NewInt(1900000)),
+					types.NewVaultShare("usdx", sdk.NewDec(500000)),
+					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
 				),
 			},
 		},
