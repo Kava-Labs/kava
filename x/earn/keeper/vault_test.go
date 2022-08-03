@@ -66,13 +66,12 @@ func (suite *vaultTestSuite) TestGetVaultTotalValue_NotFound() {
 	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound)
 }
 
-func (suite *vaultTestSuite) TestGetVaultTotalValue_InvalidStrategy() {
+func (suite *vaultTestSuite) TestInvalidVaultStrategy() {
 	vaultDenom := "usdx"
-	suite.CreateVault(vaultDenom, 99999) // not valid strategy type
 
-	_, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
-	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrInvalidVaultStrategy)
+	suite.PanicsWithValue("value from ParamSetPair is invalid: invalid strategy 99999", func() {
+		suite.CreateVault(vaultDenom, 99999) // not valid strategy type
+	})
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {

@@ -28,7 +28,7 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	}
 
 	// Get the strategy for the vault
-	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
+	strategy, err := k.GetStrategy(allowedVault.Strategies[0])
 	if err != nil {
 		return err
 	}

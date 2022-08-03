@@ -2788,7 +2788,7 @@ modified via parameter governance.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  | Denom is the only supported denomination of the vault for deposits and withdrawals. |
-| `vault_strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | VaultStrategy is the strategy used for this vault. |
+| `strategies` | [StrategyType](#kava.earn.v1beta1.StrategyType) | repeated | VaultStrategy is the strategy used for this vault. |
 
 
 
@@ -3036,7 +3036,7 @@ VaultResponse is the response type for a vault.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  | denom represents the denom of the vault |
-| `vault_strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | VaultStrategy is the strategy used for this vault. |
+| `strategies` | [StrategyType](#kava.earn.v1beta1.StrategyType) | repeated | VaultStrategy is the strategy used for this vault. |
 | `total_shares` | [string](#string) |  | TotalShares is the total amount of shares issued to depositors. |
 | `total_value` | [string](#string) |  | TotalValue is the total value of denom coins supplied to the vault if the vault were to be liquidated. |
 
@@ -3083,6 +3083,7 @@ MsgDeposit represents a message for depositing assedts into a vault
 | ----- | ---- | ----- | ----------- |
 | `depositor` | [string](#string) |  | depositor represents the address to deposit funds from |
 | `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount represents the token to deposit. The vault corresponds to the denom of the amount coin. |
+| `strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | Strategy is the vault strategy to use. |
 
 
 
@@ -3114,6 +3115,7 @@ MsgWithdraw represents a message for withdrawing liquidity from a vault
 | ----- | ---- | ----- | ----------- |
 | `from` | [string](#string) |  | from represents the address we are withdrawing for |
 | `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount represents the token to withdraw. The vault corresponds to the denom of the amount coin. |
+| `strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | Strategy is the vault strategy to use. |
 
 
 

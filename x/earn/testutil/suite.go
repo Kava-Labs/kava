@@ -216,13 +216,11 @@ func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) a
 // CreateVault adds a new vault to the keeper parameters
 func (suite *Suite) CreateVault(vaultDenom string, vaultStrategy types.StrategyType) {
 	vault := types.NewAllowedVault(vaultDenom, vaultStrategy)
-	suite.Require().NoError(vault.Validate())
 
 	allowedVaults := suite.Keeper.GetAllowedVaults(suite.Ctx)
 	allowedVaults = append(allowedVaults, vault)
 
 	params := types.NewParams(allowedVaults)
-	suite.Require().NoError(params.Validate())
 
 	suite.Keeper.SetParams(
 		suite.Ctx,
