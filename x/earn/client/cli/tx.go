@@ -40,13 +40,13 @@ func GetTxCmd() *cobra.Command {
 
 func getCmdDeposit() *cobra.Command {
 	return &cobra.Command{
-		Use:   "deposit [amount]",
+		Use:   "deposit [amount] [strategy]",
 		Short: "deposit coins to an earn vault",
 		Example: fmt.Sprintf(
-			`%s tx %s deposit 10000000ukava --from <key>`,
+			`%s tx %s deposit 10000000ukava hard --from <key>`,
 			version.AppName, types.ModuleName,
 		),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -58,8 +58,13 @@ func getCmdDeposit() *cobra.Command {
 				return err
 			}
 
+			strategy := types.NewStrategyTypeFromString(args[1])
+			if !strategy.IsValid() {
+				return fmt.Errorf("invalid strategy type: %s", args[1])
+			}
+
 			signer := clientCtx.GetFromAddress()
-			msg := types.NewMsgDeposit(signer.String(), amount)
+			msg := types.NewMsgDeposit(signer.String(), amount, strategy)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -71,13 +76,13 @@ func getCmdDeposit() *cobra.Command {
 
 func getCmdWithdraw() *cobra.Command {
 	return &cobra.Command{
-		Use:   "withdraw [amount]",
+		Use:   "withdraw [amount] [strategy]",
 		Short: "withdraw coins from an earn vault",
 		Example: fmt.Sprintf(
-			`%s tx %s withdraw 10000000ukava --from <key>`,
+			`%s tx %s withdraw 10000000ukava hard --from <key>`,
 			version.AppName, types.ModuleName,
 		),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -89,8 +94,13 @@ func getCmdWithdraw() *cobra.Command {
 				return err
 			}
 
+			strategy := types.NewStrategyTypeFromString(args[1])
+			if !strategy.IsValid() {
+				return fmt.Errorf("invalid strategy type: %s", args[1])
+			}
+
 			fromAddr := clientCtx.GetFromAddress()
-			msg := types.NewMsgWithdraw(fromAddr.String(), amount)
+			msg := types.NewMsgWithdraw(fromAddr.String(), amount, strategy)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
