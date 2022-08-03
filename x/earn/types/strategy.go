@@ -38,6 +38,14 @@ type StrategyTypes []StrategyType
 
 // Validate returns an error if StrategyTypes are invalid.
 func (strategies StrategyTypes) Validate() error {
+	if len(strategies) == 0 {
+		return fmt.Errorf("empty StrategyTypes")
+	}
+
+	if len(strategies) != 1 {
+		return fmt.Errorf("must have exactly one strategy type, multiple strategies are not supported")
+	}
+
 	uniqueStrategies := make(map[StrategyType]bool)
 
 	for _, strategy := range strategies {
