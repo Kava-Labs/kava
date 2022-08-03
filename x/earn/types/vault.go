@@ -86,15 +86,17 @@ func (vsrs VaultShareRecords) Validate() error {
 }
 
 // NewAllowedVaults returns a new AllowedVaults with the given denom and strategy type.
-func NewAllowedVault(denom string, strategyType StrategyType) AllowedVault {
+func NewAllowedVault(denom string, strategyTypes ...StrategyType) AllowedVault {
 	return AllowedVault{
-		Denom:         denom,
-		VaultStrategy: strategyType,
+		Denom:      denom,
+		Strategies: strategyTypes,
 	}
 }
 
+// AllowedVaults is a slice of AllowedVault.
 type AllowedVaults []AllowedVault
 
+// Validate returns an error if the AllowedVaults is invalid.
 func (a AllowedVaults) Validate() error {
 	denoms := make(map[string]bool)
 
@@ -109,17 +111,19 @@ func (a AllowedVaults) Validate() error {
 
 		denoms[v.Denom] = true
 	}
+
 	return nil
 }
 
+// Validate returns an error if the AllowedVault is invalid
 func (a *AllowedVault) Validate() error {
 	if err := sdk.ValidateDenom(a.Denom); err != nil {
 		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
 	}
 
-	if a.VaultStrategy == STRATEGY_TYPE_UNSPECIFIED {
-		return ErrInvalidVaultStrategy
+	if len(a.Strategies) != 1 {
+		return fmt.Errorf("must have exactly one strategy type, multiple strategies are not supported")
 	}
 
-	return nil
+	return a.Strategies.Validate()
 }

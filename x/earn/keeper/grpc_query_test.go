@@ -68,10 +68,10 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 		suite.Require().Len(res.Vaults, 1)
 		suite.Require().Equal(
 			types.VaultResponse{
-				Denom:         "usdx",
-				VaultStrategy: types.STRATEGY_TYPE_HARD,
-				TotalShares:   sdk.NewDec(0).String(),
-				TotalValue:    sdk.NewInt(0),
+				Denom:       "usdx",
+				Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
+				TotalShares: sdk.NewDec(0).String(),
+				TotalValue:  sdk.NewInt(0),
 			},
 			res.Vaults[0],
 		)
@@ -84,16 +84,16 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 		suite.Require().ElementsMatch(
 			[]types.VaultResponse{
 				{
-					Denom:         "usdx",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
-					TotalShares:   sdk.NewDec(0).String(),
-					TotalValue:    sdk.NewInt(0),
+					Denom:       "usdx",
+					Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					TotalShares: sdk.NewDec(0).String(),
+					TotalValue:  sdk.NewInt(0),
 				},
 				{
-					Denom:         "busd",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
-					TotalShares:   sdk.NewDec(0).String(),
-					TotalValue:    sdk.NewInt(0),
+					Denom:       "busd",
+					Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					TotalShares: sdk.NewDec(0).String(),
+					TotalValue:  sdk.NewInt(0),
 				},
 			},
 			res.Vaults,
@@ -119,10 +119,10 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 	suite.Require().Len(res.Vaults, 1)
 	suite.Require().Equal(
 		types.VaultResponse{
-			Denom:         "usdx",
-			VaultStrategy: types.STRATEGY_TYPE_HARD,
-			TotalShares:   depositAmount.Amount.ToDec().String(),
-			TotalValue:    depositAmount.Amount,
+			Denom:       "usdx",
+			Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
+			TotalShares: depositAmount.Amount.ToDec().String(),
+			TotalValue:  depositAmount.Amount,
 		},
 		res.Vaults[0],
 	)
