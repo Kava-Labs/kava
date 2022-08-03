@@ -38,6 +38,10 @@ func (k *Keeper) Deposit(
 	}
 
 	// Get the strategy for the vault
+	// NOTE: Currently always uses the first one, AllowedVaults are currently
+	// only valid with 1 and only 1 strategy so this is safe.
+	// If/When multiple strategies are supported and users can specify specific
+	// strategies, shares should be issued per-strategy instead of per-vault.
 	strategy, err := k.GetStrategy(allowedVault.Strategies[0])
 	if err != nil {
 		return err
