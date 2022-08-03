@@ -11,10 +11,11 @@ var (
 )
 
 // NewMsgDeposit returns a new MsgDeposit.
-func NewMsgDeposit(depositor string, amount sdk.Coin) *MsgDeposit {
+func NewMsgDeposit(depositor string, amount sdk.Coin, strategy StrategyType) *MsgDeposit {
 	return &MsgDeposit{
 		Depositor: depositor,
 		Amount:    amount,
+		Strategy:  strategy,
 	}
 }
 
@@ -26,6 +27,10 @@ func (msg MsgDeposit) ValidateBasic() error {
 
 	if err := msg.Amount.Validate(); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, err.Error())
+	}
+
+	if err := msg.Strategy.Validate(); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	return nil
@@ -48,10 +53,11 @@ func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw.
-func NewMsgWithdraw(from string, amount sdk.Coin) *MsgWithdraw {
+func NewMsgWithdraw(from string, amount sdk.Coin, strategy StrategyType) *MsgWithdraw {
 	return &MsgWithdraw{
-		From:   from,
-		Amount: amount,
+		From:     from,
+		Amount:   amount,
+		Strategy: strategy,
 	}
 }
 
@@ -63,6 +69,10 @@ func (msg MsgWithdraw) ValidateBasic() error {
 
 	if err := msg.Amount.Validate(); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, err.Error())
+	}
+
+	if err := msg.Strategy.Validate(); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	return nil
