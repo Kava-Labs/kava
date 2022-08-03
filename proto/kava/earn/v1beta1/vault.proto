@@ -15,7 +15,7 @@ message AllowedVault {
   string denom = 1;
 
   // VaultStrategy is the strategy used for this vault.
-  StrategyType vault_strategy = 2;
+  repeated StrategyType strategies = 2 [(gogoproto.castrepeated) = "StrategyTypes"];
 }
 
 // VaultRecord is the state of a vault.

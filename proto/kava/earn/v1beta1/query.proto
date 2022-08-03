@@ -58,7 +58,7 @@ message VaultResponse {
   string denom = 1;
 
   // VaultStrategy is the strategy used for this vault.
-  StrategyType vault_strategy = 2;
+  repeated StrategyType strategies = 2 [(gogoproto.castrepeated) = "StrategyTypes"];
 
   // TotalShares is the total amount of shares issued to depositors.
   string total_shares = 3;

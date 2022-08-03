@@ -81,10 +81,10 @@ func (s queryServer) Vaults(
 		}
 
 		vaults = append(vaults, types.VaultResponse{
-			Denom:         allowedVault.Denom,
-			VaultStrategy: allowedVault.VaultStrategy,
-			TotalShares:   vaultTotalShares.Amount.String(),
-			TotalValue:    totalValue.Amount,
+			Denom:       allowedVault.Denom,
+			Strategies:  allowedVault.Strategies,
+			TotalShares: vaultTotalShares.Amount.String(),
+			TotalValue:  totalValue.Amount,
 		})
 	}
 

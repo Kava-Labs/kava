@@ -74,7 +74,7 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 	}
 
 	// Get the strategy for the vault
-	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
+	strategy, err := k.GetStrategy(allowedVault.Strategies[0])
 	if err != nil {
 		return err
 	}
