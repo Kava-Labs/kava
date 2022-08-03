@@ -260,7 +260,7 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid vault strategy",
+				contains:   "invalid strategy STRATEGY_TYPE_UNSPECIFIED",
 			},
 		},
 	}
