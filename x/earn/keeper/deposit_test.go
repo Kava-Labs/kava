@@ -42,7 +42,7 @@ func (suite *depositTestSuite) TestDeposit_Balances() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	suite.AccountBalanceEqual(
@@ -65,7 +65,7 @@ func (suite *depositTestSuite) TestDeposit_Exceed() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, sdkerrors.ErrInsufficientFunds)
 
@@ -90,7 +90,7 @@ func (suite *depositTestSuite) TestDeposit_Zero() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, types.ErrInsufficientAmount)
 
@@ -115,7 +115,7 @@ func (suite *depositTestSuite) TestDeposit_InvalidVault() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, types.ErrInvalidVaultDenom)
 
@@ -129,4 +129,18 @@ func (suite *depositTestSuite) TestDeposit_InvalidVault() {
 	suite.ModuleAccountBalanceEqual(
 		sdk.NewCoins(),
 	)
+}
+
+func (suite *depositTestSuite) TestDeposit_InvalidStrategy() {
+	vaultDenom := "usdx"
+	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(vaultDenom, 1001)
+
+	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
+
+	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
+
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().Error(err)
+	suite.Require().ErrorIs(err, types.ErrInvalidVaultStrategy)
 }

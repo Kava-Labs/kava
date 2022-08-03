@@ -40,7 +40,7 @@ func (suite *strategyHardTestSuite) TestDeposit_SingleAcc() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	suite.HardDepositAmountEqual(sdk.NewCoins(depositAmount))
@@ -65,11 +65,11 @@ func (suite *strategyHardTestSuite) TestDeposit_SingleAcc_MultipleDeposits() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// Second deposit
-	err = suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	expectedVaultBalance := depositAmount.Add(depositAmount)
@@ -101,11 +101,11 @@ func (suite *strategyHardTestSuite) TestDeposit_MultipleAcc_MultipleDeposits() {
 	// 2 deposits each account
 	for i := 0; i < 2; i++ {
 		// Deposit from acc1
-		err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount)
+		err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 		suite.Require().NoError(err)
 
 		// Deposit from acc2
-		err = suite.Keeper.Deposit(suite.Ctx, acc2.GetAddress(), depositAmount)
+		err = suite.Keeper.Deposit(suite.Ctx, acc2.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 		suite.Require().NoError(err)
 	}
 
@@ -150,7 +150,7 @@ func (suite *strategyHardTestSuite) TestGetVaultTotalValue_NoDenomDeposit() {
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
 	// Deposit vault1
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// Query vault total, hard deposit exists for account, but amount in busd does not
@@ -173,7 +173,7 @@ func (suite *strategyHardTestSuite) TestWithdraw() {
 	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	suite.HardDepositAmountEqual(sdk.NewCoins(depositAmount))
@@ -184,7 +184,7 @@ func (suite *strategyHardTestSuite) TestWithdraw() {
 	suite.Equal(depositAmount, totalValue)
 
 	// Withdraw
-	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount)
+	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	suite.HardDepositAmountEqual(sdk.NewCoins())
@@ -196,7 +196,7 @@ func (suite *strategyHardTestSuite) TestWithdraw() {
 	suite.Equal(sdk.NewInt64Coin(vaultDenom, 0), totalValue)
 
 	// Withdraw again
-	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount)
+	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound, "vault should be deleted when no more supply")
 }
@@ -211,18 +211,18 @@ func (suite *strategyHardTestSuite) TestWithdraw_OnlyWithdrawOwnSupply() {
 	// Deposits from 2 accounts
 	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0).GetAddress()
 	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1).GetAddress()
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
-	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// Withdraw
-	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount)
+	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// Withdraw again
-	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount)
+	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(
 		err,
@@ -242,11 +242,11 @@ func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0).GetAddress()
 	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1).GetAddress()
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc, depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// Deposit from acc2 so the vault doesn't get deleted when withdrawing
-	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// Direct hard deposit from module account to increase vault value
@@ -260,11 +260,11 @@ func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
 	suite.Equal(depositAmount.AddAmount(sdk.NewInt(10)), accValue)
 
 	// Withdraw 100, 10 remaining
-	err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount)
+	err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// Withdraw 100 again -- too much
-	err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount)
+	err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(
 		err,
@@ -273,11 +273,11 @@ func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
 	)
 
 	// Half of remaining 10, 5 remaining
-	err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(vaultDenom, sdk.NewInt(5)))
+	err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(vaultDenom, sdk.NewInt(5)), types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// Withdraw all
-	err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(vaultDenom, sdk.NewInt(5)))
+	err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(vaultDenom, sdk.NewInt(5)), types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	accValue, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc)
@@ -302,7 +302,7 @@ func (suite *strategyHardTestSuite) TestAccountShares() {
 	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1).GetAddress()
 
 	// 1. acc1 deposit 100
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -318,7 +318,7 @@ func (suite *strategyHardTestSuite) TestAccountShares() {
 	// 2. acc2 deposit 100
 	// share price is 10% more expensive now
 	// hard 110 -> 210
-	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// 100 * 100 / 210 = 47.619047619 shares
@@ -347,7 +347,7 @@ func (suite *strategyHardTestSuite) TestAccountShares() {
 	suite.HardKeeper.Deposit(suite.Ctx, macc.GetAddress(), sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 90)))
 
 	// Deposit again from acc1
-	err = suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	acc1Shares, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -377,11 +377,11 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedAmount() {
 	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1).GetAddress()
 
 	// 1. acc1 deposit 100
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// acc2 deposit 100, just to make sure other deposits do not affect acc1
-	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -395,7 +395,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedAmount() {
 	suite.Require().NoError(err)
 
 	// 3. Withdraw all from acc1 - including accumulated amount
-	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdk.NewInt(10)))
+	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdk.NewInt(10)), types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	_, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -415,11 +415,11 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedTruncated() {
 	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1).GetAddress()
 
 	// 1. acc1 deposit 100
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// acc2 deposit 100, just to make sure other deposits do not affect acc1
-	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -437,7 +437,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedTruncated() {
 	suite.Equal(depositAmount.AddAmount(sdk.NewInt(5)), accBal, "acc1 should have 105 usdx")
 
 	// 3. Withdraw all from acc1 - including accumulated amount
-	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdk.NewInt(5)))
+	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdk.NewInt(5)), types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	acc1Shares, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -459,7 +459,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_ExpensiveShares() {
 	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0).GetAddress()
 
 	// 1. acc1 deposit 100
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -477,7 +477,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_ExpensiveShares() {
 	suite.Equal(sdk.NewInt(2000), accBal.Amount, "acc1 should have 2000 usdx")
 
 	// 3. Withdraw all from acc1 - including accumulated amount
-	err = suite.Keeper.Withdraw(suite.Ctx, acc1, sdk.NewInt64Coin(vaultDenom, 2000))
+	err = suite.Keeper.Withdraw(suite.Ctx, acc1, sdk.NewInt64Coin(vaultDenom, 2000), types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	acc1Shares, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)

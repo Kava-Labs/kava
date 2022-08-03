@@ -9,7 +9,12 @@ import (
 
 // Deposit adds the provided amount from a depositor to a vault. The vault is
 // specified by the denom in the amount.
-func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
+func (k *Keeper) Deposit(
+	ctx sdk.Context,
+	depositor sdk.AccAddress,
+	amount sdk.Coin,
+	depositStrategy types.StrategyType,
+) error {
 	// Get AllowedVault, if not found (not a valid vault), return error
 	allowedVault, found := k.GetAllowedVault(ctx, amount.Denom)
 	if !found {
@@ -18,6 +23,11 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 
 	if amount.IsZero() {
 		return types.ErrInsufficientAmount
+	}
+
+	// Check if deposit strategy is supported by vault
+	if !allowedVault.IsStrategyAllowed(depositStrategy) {
+		return types.ErrInvalidVaultStrategy
 	}
 
 	// Check if VaultRecord exists, create if not exist
