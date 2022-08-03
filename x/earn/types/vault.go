@@ -127,3 +127,15 @@ func (a *AllowedVault) Validate() error {
 
 	return a.Strategies.Validate()
 }
+
+// IsStrategyAllowed returns true if the given strategy type is allowed for the
+// vault.
+func (a *AllowedVault) IsStrategyAllowed(strategy StrategyType) bool {
+	for _, s := range a.Strategies {
+		if s == strategy {
+			return true
+		}
+	}
+
+	return false
+}
