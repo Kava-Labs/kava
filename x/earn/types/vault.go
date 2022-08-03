@@ -121,10 +121,6 @@ func (a *AllowedVault) Validate() error {
 		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
 	}
 
-	if len(a.Strategies) != 1 {
-		return fmt.Errorf("must have exactly one strategy type, multiple strategies are not supported")
-	}
-
 	return a.Strategies.Validate()
 }
 
