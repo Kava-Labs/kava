@@ -7180,6 +7180,30 @@ paths:
                                - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
                               Savings module.
                           description: VaultStrategy is the strategy used for this vault.
+                        is_private_vault:
+                          type: boolean
+                          format: boolean
+                          description: >-
+                            IsPrivateVault is true if the vault only allows
+                            depositors contained in
+
+                            AllowedDepositors.
+                        allowed_depositors:
+                          type: array
+                          items:
+                            type: string
+                            format: byte
+                          description: >-
+                            AllowedDepositors is a list of addresses that are
+                            allowed to deposit to
+
+                            this vault if IsPrivateVault is true. Addresses not
+                            contained in this list
+
+                            are not allowed to deposit into this vault. If
+                            IsPrivateVault is false,
+
+                            this should be empty and ignored.
                       description: >-
                         AllowedVault is a vault that is allowed to be created.
                         These can be
@@ -7250,6 +7274,29 @@ paths:
                            - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
                           Savings module.
                       description: VaultStrategy is the strategy used for this vault.
+                    is_private_vault:
+                      type: boolean
+                      format: boolean
+                      description: >-
+                        IsPrivateVault is true if the vault only allows
+                        depositors contained in
+
+                        AllowedDepositors.
+                    allowed_depositors:
+                      type: array
+                      items:
+                        type: string
+                      description: >-
+                        AllowedDepositors is a list of addresses that are
+                        allowed to deposit to
+
+                        this vault if IsPrivateVault is true. Addresses not
+                        contained in this list
+
+                        are not allowed to deposit into this vault. If
+                        IsPrivateVault is false,
+
+                        this should be empty and ignored.
                     total_shares:
                       type: string
                       description: >-
@@ -54212,6 +54259,30 @@ definitions:
              - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
             Savings module.
         description: VaultStrategy is the strategy used for this vault.
+      is_private_vault:
+        type: boolean
+        format: boolean
+        description: >-
+          IsPrivateVault is true if the vault only allows depositors contained
+          in
+
+          AllowedDepositors.
+      allowed_depositors:
+        type: array
+        items:
+          type: string
+          format: byte
+        description: >-
+          AllowedDepositors is a list of addresses that are allowed to deposit
+          to
+
+          this vault if IsPrivateVault is true. Addresses not contained in this
+          list
+
+          are not allowed to deposit into this vault. If IsPrivateVault is
+          false,
+
+          this should be empty and ignored.
     description: |-
       AllowedVault is a vault that is allowed to be created. These can be
       modified via parameter governance.
@@ -54287,6 +54358,30 @@ definitions:
                    - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
                   Savings module.
               description: VaultStrategy is the strategy used for this vault.
+            is_private_vault:
+              type: boolean
+              format: boolean
+              description: >-
+                IsPrivateVault is true if the vault only allows depositors
+                contained in
+
+                AllowedDepositors.
+            allowed_depositors:
+              type: array
+              items:
+                type: string
+                format: byte
+              description: >-
+                AllowedDepositors is a list of addresses that are allowed to
+                deposit to
+
+                this vault if IsPrivateVault is true. Addresses not contained in
+                this list
+
+                are not allowed to deposit into this vault. If IsPrivateVault is
+                false,
+
+                this should be empty and ignored.
           description: |-
             AllowedVault is a vault that is allowed to be created. These can be
             modified via parameter governance.
@@ -54399,6 +54494,30 @@ definitions:
                        - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
                       Savings module.
                   description: VaultStrategy is the strategy used for this vault.
+                is_private_vault:
+                  type: boolean
+                  format: boolean
+                  description: >-
+                    IsPrivateVault is true if the vault only allows depositors
+                    contained in
+
+                    AllowedDepositors.
+                allowed_depositors:
+                  type: array
+                  items:
+                    type: string
+                    format: byte
+                  description: >-
+                    AllowedDepositors is a list of addresses that are allowed to
+                    deposit to
+
+                    this vault if IsPrivateVault is true. Addresses not
+                    contained in this list
+
+                    are not allowed to deposit into this vault. If
+                    IsPrivateVault is false,
+
+                    this should be empty and ignored.
               description: >-
                 AllowedVault is a vault that is allowed to be created. These can
                 be
@@ -54438,6 +54557,29 @@ definitions:
                    - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
                   Savings module.
               description: VaultStrategy is the strategy used for this vault.
+            is_private_vault:
+              type: boolean
+              format: boolean
+              description: >-
+                IsPrivateVault is true if the vault only allows depositors
+                contained in
+
+                AllowedDepositors.
+            allowed_depositors:
+              type: array
+              items:
+                type: string
+              description: >-
+                AllowedDepositors is a list of addresses that are allowed to
+                deposit to
+
+                this vault if IsPrivateVault is true. Addresses not contained in
+                this list
+
+                are not allowed to deposit into this vault. If IsPrivateVault is
+                false,
+
+                this should be empty and ignored.
             total_shares:
               type: string
               description: TotalShares is the total amount of shares issued to depositors.
@@ -54491,6 +54633,29 @@ definitions:
              - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
             Savings module.
         description: VaultStrategy is the strategy used for this vault.
+      is_private_vault:
+        type: boolean
+        format: boolean
+        description: >-
+          IsPrivateVault is true if the vault only allows depositors contained
+          in
+
+          AllowedDepositors.
+      allowed_depositors:
+        type: array
+        items:
+          type: string
+        description: >-
+          AllowedDepositors is a list of addresses that are allowed to deposit
+          to
+
+          this vault if IsPrivateVault is true. Addresses not contained in this
+          list
+
+          are not allowed to deposit into this vault. If IsPrivateVault is
+          false,
+
+          this should be empty and ignored.
       total_shares:
         type: string
         description: TotalShares is the total amount of shares issued to depositors.
