@@ -15,6 +15,19 @@ message AllowedVault {
 
   // VaultStrategy is the strategy used for this vault.
   repeated StrategyType strategies = 2 [(gogoproto.castrepeated) = "StrategyTypes"];
+
+  // IsPrivateVault is true if the vault only allows depositors contained in
+  // AllowedDepositors.
+  bool is_private_vault = 3;
+
+  // AllowedDepositors is a list of addresses that are allowed to deposit to
+  // this vault if IsPrivateVault is true. Addresses not contained in this list
+  // are not allowed to deposit into this vault. If IsPrivateVault is false,
+  // this should be empty and ignored.
+  repeated bytes allowed_depositors = 4 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
 }
 
 // VaultRecord is the state of a vault.

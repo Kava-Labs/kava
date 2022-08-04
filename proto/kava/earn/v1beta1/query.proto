@@ -60,12 +60,22 @@ message VaultResponse {
   // VaultStrategy is the strategy used for this vault.
   repeated StrategyType strategies = 2 [(gogoproto.castrepeated) = "StrategyTypes"];
 
+  // IsPrivateVault is true if the vault only allows depositors contained in
+  // AllowedDepositors.
+  bool is_private_vault = 3;
+
+  // AllowedDepositors is a list of addresses that are allowed to deposit to
+  // this vault if IsPrivateVault is true. Addresses not contained in this list
+  // are not allowed to deposit into this vault. If IsPrivateVault is false,
+  // this should be empty and ignored.
+  repeated string allowed_depositors = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // TotalShares is the total amount of shares issued to depositors.
-  string total_shares = 3;
+  string total_shares = 5;
 
   // TotalValue is the total value of denom coins supplied to the vault if the
   // vault were to be liquidated.
-  string total_value = 4 [
+  string total_value = 6 [
     (cosmos_proto.scalar)  = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable)   = false

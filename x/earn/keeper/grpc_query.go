@@ -81,10 +81,12 @@ func (s queryServer) Vaults(
 		}
 
 		vaults = append(vaults, types.VaultResponse{
-			Denom:       allowedVault.Denom,
-			Strategies:  allowedVault.Strategies,
-			TotalShares: vaultTotalShares.Amount.String(),
-			TotalValue:  totalValue.Amount,
+			Denom:             allowedVault.Denom,
+			Strategies:        allowedVault.Strategies,
+			IsPrivateVault:    allowedVault.IsPrivateVault,
+			AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
+			TotalShares:       vaultTotalShares.Amount.String(),
+			TotalValue:        totalValue.Amount,
 		})
 	}
 
@@ -314,4 +316,13 @@ func getAccountValue(
 	}
 
 	return value, nil
+}
+
+func addressSliceToStringSlice(addresses []sdk.AccAddress) []string {
+	var strings []string
+	for _, address := range addresses {
+		strings = append(strings, address.String())
+	}
+
+	return strings
 }
