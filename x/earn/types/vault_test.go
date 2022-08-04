@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/kava-labs/kava/app"
@@ -208,12 +209,16 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "valid vault share records",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:      "usdx",
-					Strategies: []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 				{
-					Denom:      "busd",
-					Strategies: []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					Denom:             "busd",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 			},
 			errArgs: errArgs{
@@ -224,12 +229,16 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "invalid - duplicate denom",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:      "usdx",
-					Strategies: []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 				{
-					Denom:      "usdx",
-					Strategies: []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 			},
 			errArgs: errArgs{
@@ -241,8 +250,10 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "invalid - invalid denom",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:      "",
-					Strategies: []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					Denom:             "",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 			},
 			errArgs: errArgs{
@@ -254,13 +265,47 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "invalid - invalid strategy",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:      "usdx",
-					Strategies: []types.StrategyType{types.STRATEGY_TYPE_UNSPECIFIED},
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_UNSPECIFIED},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 			},
 			errArgs: errArgs{
 				expectPass: false,
 				contains:   "invalid strategy STRATEGY_TYPE_UNSPECIFIED",
+			},
+		},
+		{
+			name: "invalid - private with no allowed depositors",
+			vaultRecords: types.AllowedVaults{
+				{
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    true,
+					AllowedDepositors: []sdk.AccAddress{},
+				},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "private vaults require non-empty AllowedDepositors",
+			},
+		},
+		{
+			name: "invalid - public with allowed depositors",
+			vaultRecords: types.AllowedVaults{
+				{
+					Denom:          "usdx",
+					Strategies:     []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault: false,
+					AllowedDepositors: []sdk.AccAddress{
+						sdk.AccAddress("asdfasdf"),
+					},
+				},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "non-private vaults cannot have any AllowedDepositors",
 			},
 		},
 	}
@@ -277,6 +322,54 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestIsStrategyAllowed(t *testing.T) {
+	vault := types.NewAllowedVault(
+		"usdx",
+		[]types.StrategyType{types.STRATEGY_TYPE_HARD},
+		true,
+		[]sdk.AccAddress{},
+	)
+
+	require.True(t, vault.IsStrategyAllowed(types.STRATEGY_TYPE_HARD))
+	require.False(t, vault.IsStrategyAllowed(types.STRATEGY_TYPE_SAVINGS))
+	require.False(t, vault.IsStrategyAllowed(types.STRATEGY_TYPE_UNSPECIFIED))
+	require.False(t, vault.IsStrategyAllowed(12345))
+}
+
+func TestIsAccountAllowed_Private(t *testing.T) {
+	acc1 := sdk.AccAddress("acc1")
+	acc2 := sdk.AccAddress("acc2")
+	acc3 := sdk.AccAddress("acc3")
+
+	vault := types.NewAllowedVault(
+		"usdx",
+		[]types.StrategyType{types.STRATEGY_TYPE_HARD},
+		true,
+		[]sdk.AccAddress{acc1, acc2},
+	)
+
+	assert.True(t, vault.IsAccountAllowed(acc1))
+	assert.True(t, vault.IsAccountAllowed(acc2))
+	assert.False(t, vault.IsAccountAllowed(acc3))
+}
+
+func TestIsAccountAllowed_Public(t *testing.T) {
+	acc1 := sdk.AccAddress("acc1")
+	acc2 := sdk.AccAddress("acc2")
+	acc3 := sdk.AccAddress("acc3")
+
+	vault := types.NewAllowedVault(
+		"usdx",
+		[]types.StrategyType{types.STRATEGY_TYPE_HARD},
+		false,
+		[]sdk.AccAddress{},
+	)
+
+	assert.True(t, vault.IsAccountAllowed(acc1))
+	assert.True(t, vault.IsAccountAllowed(acc2))
+	assert.True(t, vault.IsAccountAllowed(acc3))
 }
 
 func TestNewVaultShareRecord(t *testing.T) {

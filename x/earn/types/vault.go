@@ -131,6 +131,23 @@ func (a *AllowedVault) IsStrategyAllowed(strategy StrategyType) bool {
 	return false
 }
 
+// IsAccountAllowed returns true if the given account is allowed to deposit into
+// the vault.
+func (a *AllowedVault) IsAccountAllowed(account sdk.AccAddress) bool {
+	// Anyone can deposit to non-private vaults
+	if !a.IsPrivateVault {
+		return true
+	}
+
+	for _, addr := range a.AllowedDepositors {
+		if addr.Equals(account) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // AllowedVaults is a slice of AllowedVault.
 type AllowedVaults []AllowedVault
 
