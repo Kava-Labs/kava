@@ -44,14 +44,14 @@ func (suite *grpcQueryTestSuite) TestQueryParams() {
 	suite.Require().ElementsMatch(types.DefaultParams().AllowedVaults, res.Params.AllowedVaults)
 
 	// Add vault to params
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
+	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
 	// Query again for added vault
 	res, err = suite.queryClient.Params(context.Background(), types.NewQueryParamsRequest())
 	suite.Require().NoError(err)
 	suite.Require().Equal(
 		types.AllowedVaults{
-			types.NewAllowedVault(vaultDenom, types.STRATEGY_TYPE_HARD),
+			types.NewAllowedVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil),
 		},
 		res.Params.AllowedVaults,
 	)
@@ -59,8 +59,8 @@ func (suite *grpcQueryTestSuite) TestQueryParams() {
 
 func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 	// Add vaults
-	suite.CreateVault("usdx", types.STRATEGY_TYPE_HARD)
-	suite.CreateVault("busd", types.STRATEGY_TYPE_HARD)
+	suite.CreateVault("usdx", types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+	suite.CreateVault("busd", types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
 	suite.Run("single", func() {
 		res, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest("usdx"))
@@ -68,10 +68,12 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 		suite.Require().Len(res.Vaults, 1)
 		suite.Require().Equal(
 			types.VaultResponse{
-				Denom:       "usdx",
-				Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
-				TotalShares: sdk.NewDec(0).String(),
-				TotalValue:  sdk.NewInt(0),
+				Denom:             "usdx",
+				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+				IsPrivateVault:    false,
+				AllowedDepositors: nil,
+				TotalShares:       sdk.NewDec(0).String(),
+				TotalValue:        sdk.NewInt(0),
 			},
 			res.Vaults[0],
 		)
@@ -84,16 +86,20 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 		suite.Require().ElementsMatch(
 			[]types.VaultResponse{
 				{
-					Denom:       "usdx",
-					Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
-					TotalShares: sdk.NewDec(0).String(),
-					TotalValue:  sdk.NewInt(0),
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: nil,
+					TotalShares:       sdk.NewDec(0).String(),
+					TotalValue:        sdk.NewInt(0),
 				},
 				{
-					Denom:       "busd",
-					Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
-					TotalShares: sdk.NewDec(0).String(),
-					TotalValue:  sdk.NewInt(0),
+					Denom:             "busd",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: nil,
+					TotalShares:       sdk.NewDec(0).String(),
+					TotalValue:        sdk.NewInt(0),
 				},
 			},
 			res.Vaults,
@@ -107,7 +113,7 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
+	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
@@ -119,10 +125,12 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 	suite.Require().Len(res.Vaults, 1)
 	suite.Require().Equal(
 		types.VaultResponse{
-			Denom:       "usdx",
-			Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
-			TotalShares: depositAmount.Amount.ToDec().String(),
-			TotalValue:  depositAmount.Amount,
+			Denom:             "usdx",
+			Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+			IsPrivateVault:    false,
+			AllowedDepositors: nil,
+			TotalShares:       depositAmount.Amount.ToDec().String(),
+			TotalValue:        depositAmount.Amount,
 		},
 		res.Vaults[0],
 	)
@@ -140,9 +148,9 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	vault3Denom := "kava"
 
 	// Add vaults
-	suite.CreateVault(vault1Denom, types.STRATEGY_TYPE_HARD)
-	suite.CreateVault(vault2Denom, types.STRATEGY_TYPE_HARD)
-	suite.CreateVault(vault3Denom, types.STRATEGY_TYPE_HARD)
+	suite.CreateVault(vault1Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+	suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+	suite.CreateVault(vault3Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
 	startBalance := sdk.NewCoins(
 		sdk.NewInt64Coin(vault1Denom, 1000),
