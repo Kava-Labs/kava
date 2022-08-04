@@ -903,7 +903,7 @@ func NewApp(
 
 // BeginBlocker contains app specific logic for the BeginBlock abci call.
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	if ctx.BlockHeight() == EthermintPatchUpgradeHeight {
+	if ctx.BlockHeight() == EthermintPatchUpgradeHeight-1 {
 		upgradePlan := upgradetypes.Plan{
 			Name:   EthermintPatchUpgradeName,
 			Height: EthermintPatchUpgradeHeight,
