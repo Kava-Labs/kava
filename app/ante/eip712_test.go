@@ -342,7 +342,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 	params.EIP712AllowedMsgs = []evmtypes.EIP712AllowedMsg{
 		{
 			MsgTypeUrl:       "/kava.evmutil.v1beta1.MsgConvertERC20ToCoin",
-			MsgValueTypeName: "MsgValueConvertERC20ToCoin",
+			MsgValueTypeName: "MsgValueEVMConvertERC20ToCoin",
 			ValueTypes: []evmtypes.EIP712MsgAttrType{
 				{Name: "initiator", Type: "string"},
 				{Name: "receiver", Type: "string"},
@@ -352,7 +352,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 		},
 		{
 			MsgTypeUrl:       "/kava.cdp.v1beta1.MsgCreateCDP",
-			MsgValueTypeName: "MsgValueCreateCDP",
+			MsgValueTypeName: "MsgValueCDPCreate",
 			ValueTypes: []evmtypes.EIP712MsgAttrType{
 				{Name: "sender", Type: "string"},
 				{Name: "collateral", Type: "Coin"},
@@ -361,8 +361,18 @@ func (suite *EIP712TestSuite) SetupTest() {
 			},
 		},
 		{
+			MsgTypeUrl:       "/kava.cdp.v1beta1.MsgDeposit",
+			MsgValueTypeName: "MsgValueCDPDeposit",
+			ValueTypes: []evmtypes.EIP712MsgAttrType{
+				{Name: "depositor", Type: "string"},
+				{Name: "owner", Type: "string"},
+				{Name: "collateral", Type: "Coin"},
+				{Name: "collateral_type", Type: "string"},
+			},
+		},
+		{
 			MsgTypeUrl:       "/kava.hard.v1beta1.MsgDeposit",
-			MsgValueTypeName: "MsgValueDeposit",
+			MsgValueTypeName: "MsgValueHardDeposit",
 			ValueTypes: []evmtypes.EIP712MsgAttrType{
 				{Name: "depositor", Type: "string"},
 				{Name: "amount", Type: "Coin[]"},
@@ -370,7 +380,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 		},
 		{
 			MsgTypeUrl:       "/kava.evmutil.v1beta1.MsgConvertCoinToERC20",
-			MsgValueTypeName: "MsgValueConvertCoinToERC20",
+			MsgValueTypeName: "MsgValueEVMConvertCoinToERC20",
 			ValueTypes: []evmtypes.EIP712MsgAttrType{
 				{Name: "initiator", Type: "string"},
 				{Name: "receiver", Type: "string"},
