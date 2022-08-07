@@ -3400,7 +3400,7 @@ Msg/MsgConvertERC20ToCoin.
 <a name="kava.evmutil.v1beta1.Msg"></a>
 
 ### Msg
-Msg defines the bridge Msg service.
+Msg defines the evmutil Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
