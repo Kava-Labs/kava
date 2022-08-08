@@ -14,6 +14,7 @@ import (
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -141,12 +142,23 @@ func (suite *Suite) SetupTest() {
 		hardtypes.DefaultTotalReserves,
 	)
 
+	savingsGS := savingstypes.NewGenesisState(
+		savingstypes.NewParams(
+			[]string{
+				"ukava",
+				"bkava",
+			},
+		),
+		nil,
+	)
+
 	tApp := app.NewTestApp()
 
 	tApp.InitializeFromGenesisStates(
 		app.GenesisState{
 			pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS),
 			hardtypes.ModuleName:      tApp.AppCodec().MustMarshalJSON(&hardGS),
+			savingstypes.ModuleName:   tApp.AppCodec().MustMarshalJSON(&savingsGS),
 		},
 	)
 
@@ -302,6 +314,27 @@ func (suite *Suite) HardDepositAmountEqual(expected sdk.Coins) {
 		expected,
 		hardDeposit.Amount,
 		"hard should have a deposit with the amount %v",
+		expected,
+	)
+}
+
+// ----------------------------------------------------------------------------
+// Savings
+
+func (suite *Suite) SavingsDepositAmountEqual(expected sdk.Coins) {
+	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
+
+	savingsDeposit, found := suite.SavingsKeeper.GetDeposit(suite.Ctx, macc.GetAddress())
+	if expected.IsZero() {
+		suite.Require().False(found)
+		return
+	}
+
+	suite.Require().True(found, "savings should have a deposit")
+	suite.Require().Equalf(
+		expected,
+		savingsDeposit.Amount,
+		"savings should have a deposit with the amount %v",
 		expected,
 	)
 }
