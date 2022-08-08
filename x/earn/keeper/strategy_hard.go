@@ -14,10 +14,6 @@ func (s *HardStrategy) GetStrategyType() types.StrategyType {
 	return types.STRATEGY_TYPE_HARD
 }
 
-func (s *HardStrategy) IsDenomSupported(denom string) bool {
-	return denom == "usdx"
-}
-
 func (s *HardStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (sdk.Coin, error) {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	deposit, found := s.hardKeeper.GetSyncedDeposit(ctx, macc.GetAddress())
