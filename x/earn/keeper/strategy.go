@@ -35,7 +35,7 @@ func (k *Keeper) GetStrategy(strategyType types.StrategyType) (Strategy, error) 
 	case types.STRATEGY_TYPE_HARD:
 		return (*HardStrategy)(k), nil
 	case types.STRATEGY_TYPE_SAVINGS:
-		panic("unimplemented")
+		return (*SavingsStrategy)(k), nil
 	default:
 		return nil, fmt.Errorf("unknown strategy type: %s", strategyType)
 	}
