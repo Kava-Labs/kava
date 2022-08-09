@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/x/earn/testutil"
@@ -60,13 +61,6 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 			// 100 * 100 / 101 = 99.0099something
 			wantShares: types.NewVaultShare(vaultDenom, sdk.NewDec(100).MulInt64(1000).QuoInt64(1001)),
 		},
-		{
-			name: "multi step flow 1:1",
-
-			beforeConvert: func() {},
-			giveAmount:    sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
-			wantShares:    types.NewVaultShare(vaultDenom, sdk.NewDec(100)),
-		},
 	}
 
 	for _, tt := range tests {
@@ -119,4 +113,20 @@ func (suite *vaultShareTestSuite) addTotalShareAndValue(
 		sdk.NewCoins(sdk.NewCoin(vaultDenom, hardDeposit)),
 	)
 	suite.Require().NoError(err)
+}
+
+func TestPrecisionMulQuoOrder(t *testing.T) {
+	assetAmount := sdk.NewDec(100)
+	totalShares := sdk.NewDec(100)
+	totalValue := sdk.NewDec(105)
+
+	// issuedShares =  assetAmount * (totalValue / totalShares)
+	//              = (assetAmount * totalShares) / totalValue
+	mulFirst := assetAmount.Mul(totalShares).QuoTruncate(totalValue)
+	quoFirst := assetAmount.Mul(totalShares.QuoTruncate(totalValue))
+
+	assert.Equal(t, sdk.MustNewDecFromStr("95.238095238095238095"), mulFirst)
+	assert.Equal(t, sdk.MustNewDecFromStr("95.238095238095238000"), quoFirst)
+
+	assert.NotEqual(t, mulFirst, quoFirst)
 }

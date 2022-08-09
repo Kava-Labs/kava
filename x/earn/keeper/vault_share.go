@@ -24,27 +24,29 @@ func (k *Keeper) ConvertToShares(ctx sdk.Context, assets sdk.Coin) (types.VaultS
 		return types.VaultShare{}, fmt.Errorf("total value of vault is zero")
 	}
 
-	// sharePrice := totalTokens / shareCount
-	// issuedShares = assetAmount / sharePrice
-	// issuedShares := assetAmount / (totalTokens / shareCount)
-	//               = assetAmount * (shareCount / totalTokens)
+	// sharePrice   = totalValue / totalShares
+	// issuedShares = assets / sharePrice
+	// issuedShares = assets / (totalValue / totalShares)
+	//              = assets * (totalShares / totalValue)
+	//              = (assets * totalShares) / totalValue
 	//
-	// multiply by reciprocal  of sharePrice to avoid two divisions and limit
-	// rounding to one time
+	// Multiply by reciprocal of sharePrice to avoid two divisions and limit
+	// rounding to one time. Per-share price is also not used as there is a loss
+	// of precision.
 
-	// Per share is not used here as it loses decimal values and can cause a 0
-	// share count.
-	// Division is done at the last step as decimals are truncated then.
+	// Division is done at the last step as there is a slight amount that is
+	// rounded down.
 	// For example:
-	// 100 * 100 / 101   == 10000 / 101 == 99
-	// 100 * (100 / 101) == 100 * 0     == 0
-	shareCount := assets.Amount.ToDec().Mul(totalShares.Amount).QuoTruncate(totalValue.Amount.ToDec())
+	// 100 * 100 / 105   == 10000 / 105                == 95.238095238095238095
+	// 100 * (100 / 105) == 100 * 0.952380952380952380 == 95.238095238095238000
+	//                    rounded down and truncated ^    loss of precision ^
+	issuedShares := assets.Amount.ToDec().Mul(totalShares.Amount).QuoTruncate(totalValue.Amount.ToDec())
 
-	if shareCount.IsZero() {
+	if issuedShares.IsZero() {
 		return types.VaultShare{}, fmt.Errorf("share count is zero")
 	}
 
-	return types.NewVaultShare(assets.Denom, shareCount), nil
+	return types.NewVaultShare(assets.Denom, issuedShares), nil
 }
 
 // ConvertToAssets converts a given amount of shares to tokens.

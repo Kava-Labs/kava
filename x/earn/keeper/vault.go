@@ -7,7 +7,7 @@ import (
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
-// GetVaultTotalSupplied returns the total balance supplied to the vault. This
+// GetVaultTotalShares returns the total balance supplied to the vault. This
 // may not necessarily be the current value of the vault, as it is the sum
 // of the supplied denom and the value may be higher due to accumulated APYs.
 func (k *Keeper) GetVaultTotalShares(
