@@ -167,3 +167,27 @@ func (suite *depositTestSuite) TestDeposit_PrivateVault() {
 	err = suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err, "private vault should allow deposits from allowed addresses")
 }
+
+func (suite *depositTestSuite) TestDeposit_bKava() {
+	vaultDenom := "bkava"
+	coinDenom := vaultDenom + "-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l"
+
+	startBalance := sdk.NewInt64Coin(coinDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(coinDenom, 100)
+
+	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
+
+	// vault denom is only "bkava" which has it's own special handler
+	suite.CreateVault(
+		vaultDenom,
+		types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
+		false,
+		[]sdk.AccAddress{},
+	)
+
+	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount, types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().NoError(
+		err,
+		"should be able to deposit bkava derivative denom in bkava vault",
+	)
+}

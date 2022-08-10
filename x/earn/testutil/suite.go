@@ -146,7 +146,7 @@ func (suite *Suite) SetupTest() {
 		savingstypes.NewParams(
 			[]string{
 				"ukava",
-				"bkava",
+				"bkava-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l",
 			},
 		),
 		nil,
