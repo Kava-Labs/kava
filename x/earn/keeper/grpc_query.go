@@ -51,20 +51,7 @@ func (s queryServer) Vaults(
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	var queriedAllowedVaults types.AllowedVaults
-
-	if req.Denom != "" {
-		// Only 1 vault
-		allowedVault, found := s.keeper.GetAllowedVault(sdkCtx, req.Denom)
-		if !found {
-			return nil, status.Errorf(codes.NotFound, "vault not found with specified denom")
-		}
-
-		queriedAllowedVaults = types.AllowedVaults{allowedVault}
-	} else {
-		// All vaults
-		queriedAllowedVaults = s.keeper.GetAllowedVaults(sdkCtx)
-	}
+	queriedAllowedVaults := s.keeper.GetAllowedVaults(sdkCtx)
 
 	vaults := []types.VaultResponse{}
 
@@ -95,6 +82,52 @@ func (s queryServer) Vaults(
 	}, nil
 }
 
+// Vaults implements the gRPC service handler for querying x/earn vaults.
+func (s queryServer) Vault(
+	ctx context.Context,
+	req *types.QueryVaultRequest,
+) (*types.QueryVaultResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	if req.Denom == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "empty denom")
+	}
+
+	// Only 1 vault
+	allowedVault, found := s.keeper.GetAllowedVault(sdkCtx, req.Denom)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "vault not found with specified denom")
+	}
+
+	vaultTotalShares, found := s.keeper.GetVaultTotalShares(sdkCtx, allowedVault.Denom)
+	if !found {
+		// No supply yet, no error just zero
+		vaultTotalShares = types.NewVaultShare(allowedVault.Denom, sdk.ZeroDec())
+	}
+
+	totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, allowedVault.Denom)
+	if err != nil {
+		return nil, err
+	}
+
+	vault := types.VaultResponse{
+		Denom:             allowedVault.Denom,
+		Strategies:        allowedVault.Strategies,
+		IsPrivateVault:    allowedVault.IsPrivateVault,
+		AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
+		TotalShares:       vaultTotalShares.Amount.String(),
+		TotalValue:        totalValue.Amount,
+	}
+
+	return &types.QueryVaultResponse{
+		Vault: vault,
+	}, nil
+}
+
 // Deposits implements the gRPC service handler for querying x/earn deposits.
 func (s queryServer) Deposits(
 	ctx context.Context,
@@ -107,17 +140,17 @@ func (s queryServer) Deposits(
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	// 1. Specific account and specific vault
-	if req.Owner != "" && req.Denom != "" {
+	if req.Depositor != "" && req.Denom != "" {
 		return s.getAccountVaultDeposit(sdkCtx, req)
 	}
 
 	// 2. All accounts, specific vault
-	if req.Owner == "" && req.Denom != "" {
+	if req.Depositor == "" && req.Denom != "" {
 		return s.getVaultAllDeposits(sdkCtx, req)
 	}
 
 	// 3. Specific account, all vaults
-	if req.Owner != "" && req.Denom == "" {
+	if req.Depositor != "" && req.Denom == "" {
 		return s.getAccountAllDeposits(sdkCtx, req)
 	}
 
@@ -131,12 +164,12 @@ func (s queryServer) getAccountVaultDeposit(
 	ctx sdk.Context,
 	req *types.QueryDepositsRequest,
 ) (*types.QueryDepositsResponse, error) {
-	owner, err := sdk.AccAddressFromBech32(req.Owner)
+	depositor, err := sdk.AccAddressFromBech32(req.Depositor)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "Invalid address")
 	}
 
-	shareRecord, found := s.keeper.GetVaultShareRecord(ctx, owner)
+	shareRecord, found := s.keeper.GetVaultShareRecord(ctx, depositor)
 	if !found {
 		return nil, status.Error(codes.NotFound, "No deposit found for owner")
 	}
@@ -145,7 +178,7 @@ func (s queryServer) getAccountVaultDeposit(
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("No deposit for denom %s found for owner", req.Denom))
 	}
 
-	value, err := getAccountValue(ctx, s.keeper, owner, shareRecord.Shares)
+	value, err := getAccountValue(ctx, s.keeper, depositor, shareRecord.Shares)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -153,7 +186,7 @@ func (s queryServer) getAccountVaultDeposit(
 	return &types.QueryDepositsResponse{
 		Deposits: []types.DepositResponse{
 			{
-				Depositor: owner.String(),
+				Depositor: depositor.String(),
 				Shares:    shareRecord.Shares,
 				Value:     value,
 			},
@@ -225,25 +258,25 @@ func (s queryServer) getAccountAllDeposits(
 	ctx sdk.Context,
 	req *types.QueryDepositsRequest,
 ) (*types.QueryDepositsResponse, error) {
-	owner, err := sdk.AccAddressFromBech32(req.Owner)
+	depositor, err := sdk.AccAddressFromBech32(req.Depositor)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "Invalid address")
 	}
 
 	deposits := []types.DepositResponse{}
 
-	accountShare, found := s.keeper.GetVaultShareRecord(ctx, owner)
+	accountShare, found := s.keeper.GetVaultShareRecord(ctx, depositor)
 	if !found {
-		return nil, status.Error(codes.NotFound, "No deposit found for owner")
+		return nil, status.Error(codes.NotFound, "No deposit found for depositor")
 	}
 
-	value, err := getAccountValue(ctx, s.keeper, owner, accountShare.Shares)
+	value, err := getAccountValue(ctx, s.keeper, depositor, accountShare.Shares)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	deposits = append(deposits, types.DepositResponse{
-		Depositor: owner.String(),
+		Depositor: depositor.String(),
 		Shares:    accountShare.Shares,
 		Value:     value,
 	})

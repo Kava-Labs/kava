@@ -20,12 +20,17 @@ service Query {
     option (google.api.http).get = "/kava/earn/v1beta1/params";
   }
 
-  // Vaults queries vaults based on vault denom
+  // Vaults queries all vaults
   rpc Vaults(QueryVaultsRequest) returns (QueryVaultsResponse) {
+    option (google.api.http).get = "/kava/earn/v1beta1/vaults";
+  }
+
+  // Vault queries a single vault based on the vault denom
+  rpc Vault(QueryVaultRequest) returns (QueryVaultResponse) {
     option (google.api.http).get = "/kava/earn/v1beta1/vaults/{denom}";
   }
 
-  // Deposits queries deposit details based on owner address and vault
+  // Deposits queries deposit details based on depositor address and vault
   rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
     option (google.api.http).get = "/kava/earn/v1beta1/deposits";
   }
@@ -40,16 +45,25 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryVaultsRequest is the request type for the Query/Vault RPC method.
-message QueryVaultsRequest {
-  // vault filters vault by denom
-  string denom = 1;
-}
+// QueryVaultsRequest is the request type for the Query/Vaults RPC method.
+message QueryVaultsRequest {}
 
 // QueryVaultsResponse is the response type for the Query/Vaults RPC method.
 message QueryVaultsResponse {
   // vaults represents the earn module vaults
   repeated VaultResponse vaults = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryVaultRequest is the request type for the Query/Vault RPC method.
+message QueryVaultRequest {
+  // vault filters vault by denom
+  string denom = 1;
+}
+
+// QueryVaultResponse is the response type for the Query/Vault RPC method.
+message QueryVaultResponse {
+  // vault represents the queried earn module vault
+  VaultResponse vault = 1 [(gogoproto.nullable) = false];
 }
 
 // VaultResponse is the response type for a vault.
@@ -84,8 +98,8 @@ message VaultResponse {
 
 // QueryDepositsRequest is the request type for the Query/Deposits RPC method.
 message QueryDepositsRequest {
-  // owner optionally filters deposits by owner
-  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // depositor optionally filters deposits by depositor
+  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // denom optionally filters deposits by vault denom
   string denom = 2;
