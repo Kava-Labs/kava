@@ -63,9 +63,8 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 	suite.CreateVault("busd", types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
 	suite.Run("single", func() {
-		res, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest("usdx"))
+		res, err := suite.queryClient.Vault(context.Background(), types.NewQueryVaultRequest("usdx"))
 		suite.Require().NoError(err)
-		suite.Require().Len(res.Vaults, 1)
 		suite.Require().Equal(
 			types.VaultResponse{
 				Denom:             "usdx",
@@ -75,12 +74,12 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 				TotalShares:       sdk.NewDec(0).String(),
 				TotalValue:        sdk.NewInt(0),
 			},
-			res.Vaults[0],
+			res.Vault,
 		)
 	})
 
 	suite.Run("all", func() {
-		res, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest(""))
+		res, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest())
 		suite.Require().NoError(err)
 		suite.Require().Len(res.Vaults, 2)
 		suite.Require().ElementsMatch(
@@ -120,7 +119,7 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
-	res, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest("usdx"))
+	res, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest())
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Vaults, 1)
 	suite.Require().Equal(
@@ -136,8 +135,8 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 	)
 }
 
-func (suite *grpcQueryTestSuite) TestVaults_NotFound() {
-	_, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest("usdx"))
+func (suite *grpcQueryTestSuite) TestVault_NotFound() {
+	_, err := suite.queryClient.Vault(context.Background(), types.NewQueryVaultRequest("usdx"))
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, status.Errorf(codes.NotFound, "vault not found with specified denom"))
 }
