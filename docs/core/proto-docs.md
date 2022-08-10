@@ -199,6 +199,8 @@
     - [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse)
     - [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse)
+    - [QueryVaultRequest](#kava.earn.v1beta1.QueryVaultRequest)
+    - [QueryVaultResponse](#kava.earn.v1beta1.QueryVaultResponse)
     - [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest)
     - [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse)
     - [VaultResponse](#kava.earn.v1beta1.VaultResponse)
@@ -2949,7 +2951,7 @@ QueryDepositsRequest is the request type for the Query/Deposits RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `owner` | [string](#string) |  | owner optionally filters deposits by owner |
+| `depositor` | [string](#string) |  | depositor optionally filters deposits by depositor |
 | `denom` | [string](#string) |  | denom optionally filters deposits by vault denom |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
 
@@ -2999,15 +3001,40 @@ QueryParamsResponse defines the response type for querying x/earn parameters.
 
 
 
-<a name="kava.earn.v1beta1.QueryVaultsRequest"></a>
+<a name="kava.earn.v1beta1.QueryVaultRequest"></a>
 
-### QueryVaultsRequest
-QueryVaultsRequest is the request type for the Query/Vault RPC method.
+### QueryVaultRequest
+QueryVaultRequest is the request type for the Query/Vault RPC method.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  | vault filters vault by denom |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryVaultResponse"></a>
+
+### QueryVaultResponse
+QueryVaultResponse is the response type for the Query/Vault RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `vault` | [VaultResponse](#kava.earn.v1beta1.VaultResponse) |  | vault represents the queried earn module vault |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryVaultsRequest"></a>
+
+### QueryVaultsRequest
+QueryVaultsRequest is the request type for the Query/Vaults RPC method.
 
 
 
@@ -3063,8 +3090,9 @@ Query defines the gRPC querier service for earn module
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse) | Params queries all parameters of the earn module. | GET|/kava/earn/v1beta1/params|
-| `Vaults` | [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest) | [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse) | Vaults queries vaults based on vault denom | GET|/kava/earn/v1beta1/vaults/{denom}|
-| `Deposits` | [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on owner address and vault | GET|/kava/earn/v1beta1/deposits|
+| `Vaults` | [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest) | [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse) | Vaults queries all vaults | GET|/kava/earn/v1beta1/vaults|
+| `Vault` | [QueryVaultRequest](#kava.earn.v1beta1.QueryVaultRequest) | [QueryVaultResponse](#kava.earn.v1beta1.QueryVaultResponse) | Vault queries a single vault based on the vault denom | GET|/kava/earn/v1beta1/vaults/{denom}|
+| `Deposits` | [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on depositor address and vault | GET|/kava/earn/v1beta1/deposits|
 
  <!-- end services -->
 
