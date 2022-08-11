@@ -452,7 +452,7 @@ func (suite *EIP712TestSuite) deployUSDCERC20(app app.TestApp, ctx sdk.Context) 
 		sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(0))),
 	)
 
-	contractAddr, err := suite.evmutilKeeper.DeployMintableERC20Contract(suite.ctx, "USDC", "USDC", uint8(18))
+	contractAddr, err := suite.evmutilKeeper.DeployTestMintableERC20Contract(suite.ctx, "USDC", "USDC", uint8(18))
 	suite.Require().NoError(err)
 	suite.Require().Greater(len(contractAddr.Address), 0)
 	return contractAddr
