@@ -33,17 +33,18 @@ func (k *Keeper) GetVaultTotalValue(
 	ctx sdk.Context,
 	denom string,
 ) (sdk.Coin, error) {
-	enabledVault, found := k.GetAllowedVault(ctx, denom)
+	allowedVault, found := k.GetAllowedVault(ctx, denom)
 	if !found {
 		return sdk.Coin{}, types.ErrVaultRecordNotFound
 	}
 
-	strategy, err := k.GetStrategy(enabledVault.Strategies[0])
+	strategy, err := k.GetStrategy(allowedVault.Strategies[0])
 	if err != nil {
 		return sdk.Coin{}, types.ErrInvalidVaultStrategy
 	}
 
-	return strategy.GetEstimatedTotalAssets(ctx, enabledVault.Denom)
+	// Denom can be different from allowedVault.Denom for bkava
+	return strategy.GetEstimatedTotalAssets(ctx, denom)
 }
 
 // GetVaultAccountSupplied returns the supplied amount for a single address
