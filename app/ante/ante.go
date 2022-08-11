@@ -69,7 +69,14 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		txWithExtensions, ok := tx.(authante.HasExtensionOptionsTx)
 		if ok {
 			opts := txWithExtensions.GetExtensionOptions()
-			if len(opts) > 0 {
+			if len(opts) > 1 {
+				return ctx, sdkerrors.Wrap(
+					sdkerrors.ErrInvalidRequest,
+					"rejecting tx with more than 1 extension option",
+				)
+			}
+
+			if len(opts) == 1 {
 				switch typeURL := opts[0].GetTypeUrl(); typeURL {
 				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
 					// handle as *evmtypes.MsgEthereumTx

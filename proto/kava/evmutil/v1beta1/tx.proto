@@ -21,7 +21,7 @@ service Msg {
 // MsgConvertCoinToERC20 defines a conversion from sdk.Coin to Kava ERC20.
 message MsgConvertCoinToERC20 {
   // Kava bech32 address initiating the conversion.
-  string initiator = 1;
+  string initiator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // EVM 0x hex address that will receive the converted Kava ERC20 tokens.
   string receiver = 2;
   // Amount is the sdk.Coin amount to convert.
@@ -36,7 +36,7 @@ message MsgConvertERC20ToCoin {
   // EVM 0x hex address initiating the conversion.
   string initiator = 1;
   // Kava bech32 address that will receive the converted sdk.Coin.
-  string receiver = 2;
+  string receiver = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // EVM 0x hex address of the ERC20 contract.
   string kava_erc20_address = 3 [(gogoproto.customname) = "KavaERC20Address"];
   // ERC20 token amount to convert.

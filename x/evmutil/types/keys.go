@@ -15,9 +15,6 @@ const (
 
 	// RouterKey Top level router key
 	RouterKey = ModuleName
-
-	// QuerierRoute should be set to module name
-	QuerierRoute = ModuleName
 )
 
 var AccountStoreKeyPrefix = []byte{0x00} // prefix for keys that store accounts
