@@ -123,7 +123,7 @@ func (msg MsgConvertERC20ToCoin) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver is not a valid bech32 address")
 	}
 
-	if msg.Amount.LTE(sdk.ZeroInt()) {
+	if !msg.Amount.IsNil() && msg.Amount.LTE(sdk.ZeroInt()) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "amount cannot be zero or less")
 	}
 

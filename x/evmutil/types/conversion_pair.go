@@ -3,9 +3,9 @@ package types
 import (
 	bytes "bytes"
 	"encoding/hex"
-	"errors"
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -24,8 +24,8 @@ func (pair ConversionPair) GetAddress() InternalEVMAddress {
 
 // Validate returns an error if the ConversionPair is invalid.
 func (pair ConversionPair) Validate() error {
-	if pair.Denom == "" {
-		return errors.New("denom cannot be empty")
+	if err := sdk.ValidateDenom(pair.Denom); err != nil {
+		return fmt.Errorf("conversion pair denom invalid: %v", err)
 	}
 
 	if len(pair.KavaERC20Address) != common.AddressLength {

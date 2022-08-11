@@ -217,7 +217,7 @@ func (suite *Suite) DeployERC20() types.InternalEVMAddress {
 		sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(0))),
 	)
 
-	contractAddr, err := suite.Keeper.DeployMintableERC20Contract(suite.Ctx, "USDC", "USDC", uint8(18))
+	contractAddr, err := suite.Keeper.DeployTestMintableERC20Contract(suite.Ctx, "USDC", "USDC", uint8(18))
 	suite.Require().NoError(err)
 	suite.Require().Greater(len(contractAddr.Address), 0)
 	return contractAddr
@@ -398,17 +398,6 @@ func attrsToMap(attrs []abci.EventAttribute) []sdk.Attribute {
 	}
 
 	return out
-}
-
-// MustNewExternalEVMAddressFromString returns a new ExternalEVMAddress from a
-// hex string. This will panic if the input hex string is invalid.
-func MustNewExternalEVMAddressFromString(addrStr string) types.ExternalEVMAddress {
-	addr, err := types.NewExternalEVMAddressFromString(addrStr)
-	if err != nil {
-		panic(err)
-	}
-
-	return addr
 }
 
 // MustNewInternalEVMAddressFromString returns a new InternalEVMAddress from a
