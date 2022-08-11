@@ -51,30 +51,37 @@ func (s queryServer) Vaults(
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	queriedAllowedVaults := s.keeper.GetAllowedVaults(sdkCtx)
-
 	vaults := []types.VaultResponse{}
 
-	for _, allowedVault := range queriedAllowedVaults {
-		vaultTotalShares, found := s.keeper.GetVaultTotalShares(sdkCtx, allowedVault.Denom)
+	var vaultRecordsErr error
+	s.keeper.IterateVaultRecords(sdkCtx, func(record types.VaultRecord) bool {
+		allowedVault, found := s.keeper.GetAllowedVault(sdkCtx, record.TotalShares.Denom)
 		if !found {
-			// No supply yet, no error just zero
-			vaultTotalShares = types.NewVaultShare(allowedVault.Denom, sdk.ZeroDec())
+			vaultRecordsErr = fmt.Errorf("vault record not found for vault record denom %s", record.TotalShares.Denom)
 		}
 
-		totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, allowedVault.Denom)
+		totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, record.TotalShares.Denom)
 		if err != nil {
-			return nil, err
+			vaultRecordsErr = err
+
+			// Stop iterating
+			return true
 		}
 
 		vaults = append(vaults, types.VaultResponse{
-			Denom:             allowedVault.Denom,
+			Denom:             record.TotalShares.Denom,
 			Strategies:        allowedVault.Strategies,
 			IsPrivateVault:    allowedVault.IsPrivateVault,
 			AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
-			TotalShares:       vaultTotalShares.Amount.String(),
+			TotalShares:       record.TotalShares.Amount.String(),
 			TotalValue:        totalValue.Amount,
 		})
+
+		return false
+	})
+
+	if vaultRecordsErr != nil {
+		return nil, vaultRecordsErr
 	}
 
 	return &types.QueryVaultsResponse{
@@ -103,15 +110,11 @@ func (s queryServer) Vault(
 		return nil, status.Errorf(codes.NotFound, "vault not found with specified denom")
 	}
 
-	var vaultTotalShares types.VaultShare
-
 	// Must be req.Denom and not allowedVault.Denom to get full "bkava" denom
 	vaultRecord, found := s.keeper.GetVaultRecord(sdkCtx, req.Denom)
 	if !found {
-		// No supply yet, no error just zero
-		vaultTotalShares = types.NewVaultShare(req.Denom, sdk.ZeroDec())
-	} else {
-		vaultTotalShares = vaultRecord.TotalShares
+		// No supply yet, no error just set it to zero
+		vaultRecord.TotalShares = types.NewVaultShare(req.Denom, sdk.ZeroDec())
 	}
 
 	totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, req.Denom)
@@ -121,11 +124,11 @@ func (s queryServer) Vault(
 
 	vault := types.VaultResponse{
 		// VaultRecord denom instead of AllowedVault.Denom for full bkava denom
-		Denom:             vaultTotalShares.Denom,
+		Denom:             vaultRecord.TotalShares.Denom,
 		Strategies:        allowedVault.Strategies,
 		IsPrivateVault:    allowedVault.IsPrivateVault,
 		AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
-		TotalShares:       vaultTotalShares.Amount.String(),
+		TotalShares:       vaultRecord.TotalShares.Amount.String(),
 		TotalValue:        totalValue.Amount,
 	}
 
