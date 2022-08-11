@@ -316,3 +316,46 @@ func (suite *grpcQueryTestSuite) TestDeposits_InvalidAddress() {
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "Invalid address"))
 }
+
+func (suite *grpcQueryTestSuite) TestVault_bKava() {
+	vaultDenom := "bkava"
+	coinDenom := vaultDenom + "-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l"
+
+	startBalance := sdk.NewInt64Coin(coinDenom, 1000)
+	depositAmount := sdk.NewInt64Coin(coinDenom, 100)
+
+	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
+
+	// vault denom is only "bkava" which has it's own special handler
+	suite.CreateVault(
+		vaultDenom,
+		types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
+		false,
+		[]sdk.AccAddress{},
+	)
+
+	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount, types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().NoError(
+		err,
+		"should be able to deposit bkava derivative denom in bkava vault",
+	)
+
+	res, err := suite.queryClient.Vault(
+		context.Background(),
+		types.NewQueryVaultRequest(coinDenom),
+	)
+	suite.Require().NoError(err)
+	suite.Require().Equal(
+		types.VaultResponse{
+			Denom: coinDenom,
+			Strategies: types.StrategyTypes{
+				types.STRATEGY_TYPE_SAVINGS,
+			},
+			IsPrivateVault:    false,
+			AllowedDepositors: []string(nil),
+			TotalShares:       "100.000000000000000000",
+			TotalValue:        sdk.NewInt(100),
+		},
+		res.Vault,
+	)
+}
