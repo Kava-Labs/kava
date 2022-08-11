@@ -103,19 +103,25 @@ func (s queryServer) Vault(
 		return nil, status.Errorf(codes.NotFound, "vault not found with specified denom")
 	}
 
-	vaultTotalShares, found := s.keeper.GetVaultTotalShares(sdkCtx, allowedVault.Denom)
+	var vaultTotalShares types.VaultShare
+
+	// Must be req.Denom and not allowedVault.Denom to get full "bkava" denom
+	vaultRecord, found := s.keeper.GetVaultRecord(sdkCtx, req.Denom)
 	if !found {
 		// No supply yet, no error just zero
-		vaultTotalShares = types.NewVaultShare(allowedVault.Denom, sdk.ZeroDec())
+		vaultTotalShares = types.NewVaultShare(req.Denom, sdk.ZeroDec())
+	} else {
+		vaultTotalShares = vaultRecord.TotalShares
 	}
 
-	totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, allowedVault.Denom)
+	totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, req.Denom)
 	if err != nil {
 		return nil, err
 	}
 
 	vault := types.VaultResponse{
-		Denom:             allowedVault.Denom,
+		// VaultRecord denom instead of AllowedVault.Denom for full bkava denom
+		Denom:             vaultTotalShares.Denom,
 		Strategies:        allowedVault.Strategies,
 		IsPrivateVault:    allowedVault.IsPrivateVault,
 		AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
