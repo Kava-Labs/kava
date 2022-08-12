@@ -250,9 +250,12 @@ func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
 	suite.Require().NoError(err)
 
 	// Direct hard deposit from module account to increase vault value
-	suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 20)))
+	err = suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 20)))
+	suite.Require().NoError(err)
+
 	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
-	suite.HardKeeper.Deposit(suite.Ctx, macc.GetAddress(), sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 20)))
+	err = suite.HardKeeper.Deposit(suite.Ctx, macc.GetAddress(), sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 20)))
+	suite.Require().NoError(err)
 
 	// Query account value
 	accValue, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc)
@@ -293,7 +296,8 @@ func (suite *strategyHardTestSuite) TestAccountShares() {
 	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
-	suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1000)))
+	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1000)))
+	suite.Require().NoError(err)
 
 	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
@@ -302,7 +306,7 @@ func (suite *strategyHardTestSuite) TestAccountShares() {
 	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1).GetAddress()
 
 	// 1. acc1 deposit 100
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
+	err = suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -344,7 +348,8 @@ func (suite *strategyHardTestSuite) TestAccountShares() {
 
 	// Hard deposit again from module account to triple original value
 	// 210 -> 300
-	suite.HardKeeper.Deposit(suite.Ctx, macc.GetAddress(), sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 90)))
+	err = suite.HardKeeper.Deposit(suite.Ctx, macc.GetAddress(), sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 90)))
+	suite.Require().NoError(err)
 
 	// Deposit again from acc1
 	err = suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
@@ -368,7 +373,8 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedAmount() {
 	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
-	suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1000)))
+	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1000)))
+	suite.Require().NoError(err)
 
 	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
@@ -377,7 +383,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedAmount() {
 	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1).GetAddress()
 
 	// 1. acc1 deposit 100
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
+	err = suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// acc2 deposit 100, just to make sure other deposits do not affect acc1
@@ -406,7 +412,8 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedTruncated() {
 	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
-	suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1000)))
+	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1000)))
+	suite.Require().NoError(err)
 
 	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
@@ -415,7 +422,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedTruncated() {
 	acc2 := suite.CreateAccount(sdk.NewCoins(startBalance), 1).GetAddress()
 
 	// 1. acc1 deposit 100
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
+	err = suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// acc2 deposit 100, just to make sure other deposits do not affect acc1
@@ -451,7 +458,8 @@ func (suite *strategyHardTestSuite) TestWithdraw_ExpensiveShares() {
 	vaultDenom := "usdx"
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
-	suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 2000)))
+	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 2000)))
+	suite.Require().NoError(err)
 
 	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
@@ -459,7 +467,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_ExpensiveShares() {
 	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0).GetAddress()
 
 	// 1. acc1 deposit 100
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
+	err = suite.Keeper.Deposit(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
