@@ -81,28 +81,7 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 	suite.Run("all", func() {
 		res, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest())
 		suite.Require().NoError(err)
-		suite.Require().Len(res.Vaults, 2)
-		suite.Require().ElementsMatch(
-			[]types.VaultResponse{
-				{
-					Denom:             "usdx",
-					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
-					IsPrivateVault:    false,
-					AllowedDepositors: nil,
-					TotalShares:       sdk.NewDec(0).String(),
-					TotalValue:        sdk.NewInt(0),
-				},
-				{
-					Denom:             "busd",
-					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
-					IsPrivateVault:    false,
-					AllowedDepositors: nil,
-					TotalShares:       sdk.NewDec(0).String(),
-					TotalValue:        sdk.NewInt(0),
-				},
-			},
-			res.Vaults,
-		)
+		suite.Require().Empty(res.Vaults)
 	})
 }
 
