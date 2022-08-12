@@ -126,6 +126,9 @@ func (k *Keeper) Withdraw(
 		withdrawShares = vaultShareRecord.Shares.GetShare(withdrawAmount.Denom)
 	}
 
+	// Call hook before record is modified
+	k.BeforeVaultDepositModified(ctx, wantAmount.Denom, from, vaultRecord.TotalShares.Amount)
+
 	// Decrement VaultRecord and VaultShareRecord supplies - must delete same
 	// amounts
 	vaultShareRecord.Shares = vaultShareRecord.Shares.Sub(withdrawShares)
