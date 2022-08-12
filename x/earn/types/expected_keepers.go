@@ -40,3 +40,9 @@ type SavingsKeeper interface {
 
 	GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (savingstypes.Deposit, bool)
 }
+
+// EarnHooks are event hooks called when a user's deposit to a earn vault changes.
+type EarnHooks interface {
+	AfterVaultDepositCreated(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharedOwned sdk.Dec)
+	BeforeVaultDepositModified(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharedOwned sdk.Dec)
+}

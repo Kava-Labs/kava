@@ -63,7 +63,8 @@ func (k *Keeper) Deposit(
 		return err
 	}
 
-	// Get VaultShareRecord for account, create if not exist
+	// Get VaultShareRecord for account, create if account has no deposits.
+	// This can still be found if the account has deposits for other vaults.
 	vaultShareRecord, found := k.GetVaultShareRecord(ctx, depositor)
 	if !found {
 		// Create a new empty VaultShareRecord with 0 supply
@@ -75,6 +76,12 @@ func (k *Keeper) Deposit(
 		return fmt.Errorf("failed to convert assets to shares: %w", err)
 	}
 
+	isNew := vaultShareRecord.Shares.AmountOf(amount.Denom).IsZero()
+	if !isNew {
+		// If deposits for this vault already exists
+		k.BeforeVaultDepositModified(ctx, amount.Denom, depositor, vaultRecord.TotalShares.Amount)
+	}
+
 	// Increment VaultRecord total shares and account shares
 	vaultRecord.TotalShares = vaultRecord.TotalShares.Add(shares)
 	vaultShareRecord.Shares = vaultShareRecord.Shares.Add(shares)
@@ -82,6 +89,11 @@ func (k *Keeper) Deposit(
 	// Update VaultRecord and VaultShareRecord
 	k.SetVaultRecord(ctx, vaultRecord)
 	k.SetVaultShareRecord(ctx, vaultShareRecord)
+
+	if isNew {
+		// If first deposit in this vault
+		k.AfterVaultDepositCreated(ctx, amount.Denom, depositor, shares.Amount)
+	}
 
 	// Deposit to the strategy
 	if err := strategy.Deposit(ctx, amount); err != nil {
