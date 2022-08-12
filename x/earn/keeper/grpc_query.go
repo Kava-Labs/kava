@@ -54,6 +54,9 @@ func (s queryServer) Vaults(
 	vaults := []types.VaultResponse{}
 
 	var vaultRecordsErr error
+
+	// Iterate over vault records instead of AllowedVaults to get all bkava-*
+	// vaults
 	s.keeper.IterateVaultRecords(sdkCtx, func(record types.VaultRecord) bool {
 		allowedVault, found := s.keeper.GetAllowedVault(sdkCtx, record.TotalShares.Denom)
 		if !found {
@@ -63,8 +66,7 @@ func (s queryServer) Vaults(
 		totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, record.TotalShares.Denom)
 		if err != nil {
 			vaultRecordsErr = err
-
-			// Stop iterating
+			// Stop iterating if error
 			return true
 		}
 
@@ -84,6 +86,8 @@ func (s queryServer) Vaults(
 		return nil, vaultRecordsErr
 	}
 
+	// Does not include vaults that have no deposits, only iterates over vault
+	// records which exists only for those with deposits.
 	return &types.QueryVaultsResponse{
 		Vaults: vaults,
 	}, nil
