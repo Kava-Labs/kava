@@ -3,8 +3,18 @@ package types // noalias
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
+
+// ParamSubspace defines the expected Subspace interface
+type ParamSubspace interface {
+	GetParamSet(sdk.Context, paramtypes.ParamSet)
+	SetParamSet(sdk.Context, paramtypes.ParamSet)
+	WithKeyTable(paramtypes.KeyTable) paramtypes.Subspace
+	HasKeyTable() bool
+}
 
 // BankKeeper defines the expected bank keeper
 type BankKeeper interface {
@@ -33,6 +43,8 @@ type AccountKeeper interface {
 
 // StakingKeeper defines the expected keeper interface for interacting with staking
 type StakingKeeper interface {
+	StakingHooks
+
 	Delegate(
 		ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdk.Int, tokenSrc stakingtypes.BondStatus,
 		validator stakingtypes.Validator, subtractAccount bool,
@@ -41,8 +53,6 @@ type StakingKeeper interface {
 	BondDenom(ctx sdk.Context) (res string)
 
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
-
-	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
 
 	// iterate through validators by operator address, execute func for each validator
 	IterateValidators(sdk.Context,
@@ -84,4 +94,15 @@ type StakingKeeper interface {
 	// TODO: staking methods
 
 	HasReceivingRedelegation(ctx sdk.Context, delAddr sdk.AccAddress, valDstAddr sdk.ValAddress) bool
+
+	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation types.Delegation, found bool)
+	SetDelegation(ctx sdk.Context, delegation stakingtypes.Delegation)
+	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation)
+}
+
+type StakingHooks interface {
+	AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
+	BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
+	BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
+	BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
 }

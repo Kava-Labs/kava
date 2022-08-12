@@ -21,5 +21,8 @@ var (
 	ErrInvalidLiquidCoinDenom          = sdkerrors.New(ModuleName, 10, "invalid liquid staking coin denom")
 	ErrNotEnoughBalance                = sdkerrors.New(ModuleName, 11, "insufficient balance of liquid staking coin")
 	ErrInvalidDerivativeDenom          = sdkerrors.New(ModuleName, 12, "invalid derivative denom")
-	ErrRedelegationsNotCompleted       = sdkerrors.New(ModuleName, 12, "active redelegations cannot be transferred")
+	ErrRedelegationsNotCompleted       = sdkerrors.New(ModuleName, 13, "active redelegations cannot be transferred")
+
+	ErrInvalidRequest             = sdkerrors.New(ModuleName, 14, "invalid request")
+	ErrSelfDelegationBelowMinimum = sdkerrors.Register(ModuleName, 15, "validator's self delegation must be greater than their minimum self delegation")
 )

@@ -5,18 +5,17 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/kava-labs/kava/x/liquid/types"
 )
 
-// Keeper struct for savings module
+// Keeper struct for the liquid module.
 type Keeper struct {
 	key sdk.StoreKey
 	cdc codec.Codec
 
-	paramSubspace paramtypes.Subspace
+	paramSubspace types.ParamSubspace
 
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
@@ -25,7 +24,7 @@ type Keeper struct {
 
 // NewKeeper returns a new keeper for the liquid module.
 func NewKeeper(
-	cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace,
+	cdc codec.Codec, key sdk.StoreKey, paramstore types.ParamSubspace,
 	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {

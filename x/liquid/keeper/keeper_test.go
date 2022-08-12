@@ -45,7 +45,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.BankKeeper = tApp.GetBankKeeper()
 }
 
-// CreateAccount creates a new account from the provided balance
+// CreateAccount creates a new account (with a fixed address) from the provided balance.
 func (suite *KeeperTestSuite) CreateAccount(initialBalance sdk.Coins) authtypes.AccountI {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 
@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address
 		selfDelegation,
 		stakingtypes.Description{},
 		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-		sdk.NewInt(1), // min valid self delegation to allow for testing edge cases
+		sdk.NewInt(1e6),
 	)
 	if err != nil {
 		return err
@@ -180,15 +180,16 @@ func (suite *KeeperTestSuite) CreateRedelegation(delegator sdk.AccAddress, fromV
 }
 
 // DelegationSharesEqual checks if a delegation has the specified shares.
-// It treats missing delegations as having zero shares as the staking module does.
+// It expects delegations with zero shares to not be stored in state.
 func (suite *KeeperTestSuite) DelegationSharesEqual(valAddr sdk.ValAddress, delegator sdk.AccAddress, shares sdk.Dec) bool {
-	delegatorShares := sdk.ZeroDec()
-
 	del, found := suite.StakingKeeper.GetDelegation(suite.Ctx, delegator, valAddr)
-	if found {
-		delegatorShares = del.Shares
+
+	if shares.IsZero() {
+		return suite.Falsef(found, "expected delegator to not be found, got %s shares", del.Shares)
+	} else {
+		res := suite.True(found, "expected delegator to be found")
+		return res && suite.Truef(shares.Equal(del.Shares), "expected %s delegator shares but got %s", shares, del.Shares)
 	}
-	return suite.Truef(shares.Equal(delegatorShares), "expected %s delegator shares but got %s", shares, delegatorShares)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
