@@ -12,6 +12,8 @@ type MsgDeposit struct {
 	// Amount represents the token to deposit. The vault corresponds to the denom
 	// of the amount coin.
 	Amount types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
+	// Strategy is the vault strategy to use.
+	Strategy StrategyType `protobuf:"varint,3,opt,name=strategy,proto3,enum=kava.earn.v1beta1.StrategyType" json:"strategy,omitempty"`
 }
 ```
 
@@ -68,6 +70,8 @@ type MsgWithdraw struct {
 	// Amount represents the token to withdraw. The vault corresponds to the denom
 	// of the amount coin.
 	Amount types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
+	// Strategy is the vault strategy to use.
+	Strategy StrategyType `protobuf:"varint,3,opt,name=strategy,proto3,enum=kava.earn.v1beta1.StrategyType" json:"strategy,omitempty"`
 }
 ```
 

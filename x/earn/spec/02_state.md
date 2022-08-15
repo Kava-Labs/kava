@@ -14,15 +14,10 @@ The `x/earn` module keeps the following in state:
 Vault records track the total supply of a vault in state.
 
 ```go
-// VaultRecord is the state of a vault and is used to store the state of a
-// vault.
+// VaultRecord is the state of a vault.
 type VaultRecord struct {
-	// Denom is the only supported denomination of the vault for deposits and
-	// withdrawals.
-	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
-	// TotalSupply is the total supply of the vault, denominated **only** in the
-	// user deposit/withdrawal denom, must be the same as the Denom field.
-	TotalSupply types.Coin `protobuf:"bytes,2,opt,name=total_supply,json=totalSupply,proto3" json:"total_supply"`
+	// TotalShares is the total distributed number of shares in the vault.
+	TotalShares VaultShare `protobuf:"bytes,1,opt,name=total_shares,json=totalShares,proto3" json:"total_shares"`
 }
 ```
 
@@ -36,11 +31,9 @@ vaults.
 type VaultShareRecord struct {
 	// Depositor represents the owner of the shares
 	Depositor github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=depositor,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"depositor,omitempty"`
-	// AmountSupplied represents the total amount a depositor has supplied to the
-	// vault. The vault is determined by the coin denom.
-	AmountSupplied github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=amount_supplied,json=amountSupplied,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount_supplied"`
+	// Shares represent the vault shares owned by the depositor.
+	Shares VaultShares `protobuf:"bytes,2,rep,name=shares,proto3,castrepeated=VaultShares" json:"shares"`
 }
-
 ```
 
 ## Genesis State
