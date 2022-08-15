@@ -613,7 +613,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 
 			gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20)))
 			txBuilder := suite.createTestEIP712CosmosTxBuilder(
-				suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*3), gasAmt, msgs,
+				suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*5), gasAmt, msgs,
 			)
 			if tc.updateTx != nil {
 				txBuilder = tc.updateTx(txBuilder, msgs)
