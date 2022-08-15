@@ -236,8 +236,6 @@ func (suite *ConversionTestSuite) TestConvertCoinToERC20_InsufficientBalance() {
 }
 
 func (suite *ConversionTestSuite) TestConvertCoinToERC20_NotEnabled() {
-	_ = suite.DeployERC20()
-	// First deploy is already in params, second is new address
 	contractAddr := suite.DeployERC20()
 
 	pair := types.NewConversionPair(
@@ -258,4 +256,90 @@ func (suite *ConversionTestSuite) TestConvertCoinToERC20_NotEnabled() {
 
 	suite.Require().Error(err)
 	suite.Require().Equal("erc20/notenabled: ERC20 token not enabled to convert to sdk.Coin", err.Error())
+}
+
+func (suite *ConversionTestSuite) TestConvertERC20ToCoin() {
+	contractAddr := suite.DeployERC20()
+
+	pair := types.NewConversionPair(
+		contractAddr,
+		"erc20/usdc",
+	)
+
+	totalAmt := big.NewInt(100)
+	userAddr := sdk.AccAddress(suite.Key1.PubKey().Address().Bytes())
+	userEvmAddr := types.NewInternalEVMAddress(common.BytesToAddress(suite.Key1.PubKey().Address()))
+
+	// Mint same initial balance for user account
+	err := suite.Keeper.MintERC20(
+		suite.Ctx,
+		pair.GetAddress(), // contractAddr
+		userEvmAddr,       //receiver
+		totalAmt,
+	)
+	suite.Require().NoError(err)
+
+	convertAmt := sdk.NewInt(50)
+	err = suite.Keeper.ConvertERC20ToCoin(
+		suite.Ctx,
+		userEvmAddr,
+		userAddr,
+		pair.GetAddress(),
+		convertAmt,
+	)
+	suite.Require().NoError(err)
+
+	// bank balance should decrease
+	bal := suite.App.GetBankKeeper().GetBalance(suite.Ctx, userAddr, pair.Denom)
+	suite.Require().Equal(convertAmt, bal.Amount, "conversion should decrease source balance")
+
+	// Module bal should also decrease
+	userBal := suite.GetERC20BalanceOf(
+		types.ERC20MintableBurnableContract.ABI,
+		pair.GetAddress(),
+		userEvmAddr,
+	)
+	suite.Require().Equal(
+		// String() due to non-equal struct values for 0
+		big.NewInt(50).String(),
+		userBal.String(),
+		"balance should decrease module account by unlock amount",
+	)
+
+	suite.EventsContains(suite.GetEvents(),
+		sdk.NewEvent(
+			types.EventTypeConvertERC20ToCoin,
+			sdk.NewAttribute(types.AttributeKeyERC20Address, pair.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyInitiator, userEvmAddr.String()),
+			sdk.NewAttribute(types.AttributeKeyReceiver, userAddr.String()),
+			sdk.NewAttribute(types.AttributeKeyAmount, sdk.NewCoin(pair.Denom, convertAmt).String()),
+		),
+	)
+}
+
+func (suite *ConversionTestSuite) TestConvertERC20ToCoin_EmptyContract() {
+	contractAddr := testutil.MustNewInternalEVMAddressFromString("0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3")
+	pair := types.NewConversionPair(
+		contractAddr,
+		"erc20/usdc",
+	)
+
+	userAddr := sdk.AccAddress(suite.Key1.PubKey().Address().Bytes())
+	userEvmAddr := types.NewInternalEVMAddress(common.BytesToAddress(suite.Key1.PubKey().Address()))
+	convertAmt := sdk.NewInt(100)
+
+	// Trying to convert erc20 from an empty contract should fail
+	err := suite.Keeper.ConvertERC20ToCoin(
+		suite.Ctx,
+		userEvmAddr,
+		userAddr,
+		pair.GetAddress(),
+		convertAmt,
+	)
+	suite.Require().Error(err)
+	suite.Require().ErrorContains(err, "contract call failed: method 'balanceOf'")
+
+	// bank balance should not change
+	bal := suite.App.GetBankKeeper().GetBalance(suite.Ctx, userAddr, pair.Denom)
+	suite.Require().Equal(sdk.ZeroInt(), bal.Amount)
 }

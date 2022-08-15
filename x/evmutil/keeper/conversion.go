@@ -4,6 +4,8 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
@@ -72,10 +74,6 @@ func (k Keeper) ConvertCoinToERC20(
 		return err
 	}
 
-	// todo: validate balances & events
-	// https://github.com/evmos/evmos/blob/7cf0bc4ab7a5fe9984271d3fe1c156151723ea1f/x/erc20/spec/03_state_transitions.md#21-erc20-to-coin
-	// https://github.com/evmos/evmos/blob/70b66e4aad2f3dc215f0f08ab80c5b95b5cf5135/x/erc20/keeper/msg_server.go#L362-L377
-
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeConvertCoinToERC20,
 		sdk.NewAttribute(types.AttributeKeyInitiator, initiatorAccount.String()),
@@ -114,10 +112,6 @@ func (k Keeper) ConvertERC20ToCoin(
 		return err
 	}
 
-	// todo: validate balances & events
-	// https://github.com/evmos/evmos/blob/7cf0bc4ab7a5fe9984271d3fe1c156151723ea1f/x/erc20/spec/03_state_transitions.md#21-erc20-to-coin
-	// https://github.com/evmos/evmos/blob/70b66e4aad2f3dc215f0f08ab80c5b95b5cf5135/x/erc20/keeper/msg_server.go#L362-L377
-
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeConvertERC20ToCoin,
 		sdk.NewAttribute(types.AttributeKeyERC20Address, contractAddr.String()),
@@ -137,7 +131,12 @@ func (k Keeper) UnlockERC20Tokens(
 	amount *big.Int,
 	receiver types.InternalEVMAddress,
 ) error {
-	_, err := k.CallEVM(
+	contractAddr := pair.GetAddress()
+	startBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, receiver)
+	if err != nil {
+		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+	}
+	res, err := k.CallEVM(
 		ctx,
 		types.ERC20MintableBurnableContract.ABI, // abi
 		types.ModuleEVMAddress,                  // from addr
@@ -147,6 +146,28 @@ func (k Keeper) UnlockERC20Tokens(
 		receiver.Address,
 		amount,
 	)
+	if err != nil {
+		return err
+	}
+
+	// validate end bal
+	endBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, receiver)
+	if err != nil {
+		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+	}
+	expectedEndBal := big.NewInt(0).Add(startBal, amount)
+	if expectedEndBal.Cmp(endBal) != 0 {
+		return sdkerrors.Wrapf(
+			types.ErrBalanceInvariance,
+			"invalid token balance - expected: %v, actual: %v",
+			expectedEndBal, endBal,
+		)
+	}
+
+	// Check for unexpected `Approval` event in logs
+	if err := k.monitorApprovalEvent(res); err != nil {
+		return err
+	}
 
 	return err
 }
@@ -159,16 +180,44 @@ func (k Keeper) LockERC20Tokens(
 	amount *big.Int,
 	initiator types.InternalEVMAddress,
 ) error {
-	_, err := k.CallEVM(
+	contractAddr := pair.GetAddress()
+	initiatorStartBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, initiator)
+	if err != nil {
+		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+	}
+
+	res, err := k.CallEVM(
 		ctx,
 		types.ERC20MintableBurnableContract.ABI, // abi
 		initiator.Address,                       // from addr
-		pair.GetAddress(),                       // contract addr
+		contractAddr,                            // contract addr
 		"transfer",                              // method
 		// Transfer ERC20 args
 		types.ModuleEVMAddress,
 		amount,
 	)
+	if err != nil {
+		return err
+	}
+
+	// validate end bal
+	initiatorEndBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, initiator)
+	if err != nil {
+		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+	}
+	expectedEndBal := big.NewInt(0).Sub(initiatorStartBal, amount)
+	if expectedEndBal.Cmp(initiatorEndBal) != 0 {
+		return sdkerrors.Wrapf(
+			types.ErrBalanceInvariance,
+			"invalid token balance - expected: %v, actual: %v",
+			expectedEndBal, initiatorEndBal,
+		)
+	}
+
+	// Check for unexpected `Approval` event in logs
+	if err := k.monitorApprovalEvent(res); err != nil {
+		return err
+	}
 
 	return err
 }
