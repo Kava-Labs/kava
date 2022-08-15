@@ -40,7 +40,7 @@ func (suite *StakingHooksTestSuite) SetupTest() {
 	stakingKeeper := stakingkeeper.NewKeeper(cdc, stakingKey, dummyStakingAccountKeeper{}, nil, createDummyParamSubspace())
 	suite.stakingKeeper = &stakingKeeper
 
-	keeper := keeper.NewKeeper(cdc, nil, createDummyParamSubspace(), nil, nil, suite.stakingKeeper)
+	keeper := keeper.NewDefaultKeeper(cdc, nil, createDummyParamSubspace(), nil, nil, suite.stakingKeeper)
 	suite.keeper = &keeper
 
 	suite.ctx = NewTestContext(stakingKey)

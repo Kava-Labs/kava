@@ -606,7 +606,7 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
-	app.liquidKeeper = liquidkeeper.NewKeeper(
+	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
 		appCodec,
 		keys[liquidtypes.StoreKey],
 		liquidSubspace,

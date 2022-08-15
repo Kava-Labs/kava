@@ -25,6 +25,8 @@ const (
 
 	// ModuleAccountName is the module account's name
 	ModuleAccountName = ModuleName
+
+	DefaultDerivativeDenom = "bkava"
 )
 
 var DelegationHoldersKeyPrefix = []byte{0x01}
