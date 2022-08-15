@@ -33,7 +33,7 @@ func TestConversionPairValidate(t *testing.T) {
 			"",
 			errArgs{
 				expectPass: false,
-				contains:   "denom cannot be empty",
+				contains:   "conversion pair denom invalid: invalid denom",
 			},
 		},
 		{

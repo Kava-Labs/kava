@@ -24,6 +24,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/tharsis/ethermint/server/config"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
@@ -127,4 +128,25 @@ func (k Keeper) CallEVMWithData(
 	}
 
 	return res, nil
+}
+
+// monitorApprovalEvent returns an error if the given transactions logs include
+// an unexpected `Approval` event
+func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error {
+	if res == nil || len(res.Logs) == 0 {
+		return nil
+	}
+
+	logApprovalSig := []byte("Approval(address,address,uint256)")
+	logApprovalSigHash := crypto.Keccak256Hash(logApprovalSig)
+
+	for _, log := range res.Logs {
+		if log.Topics[0] == logApprovalSigHash.Hex() {
+			return sdkerrors.Wrapf(
+				types.ErrUnexpectedContractEvent, "unexpected contract Approval event",
+			)
+		}
+	}
+
+	return nil
 }
