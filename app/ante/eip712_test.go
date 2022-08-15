@@ -560,7 +560,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
 				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20)))
 				return suite.createTestEIP712CosmosTxBuilder(
-					suite.testAddr, suite.testPrivKey, "kavatest_12-1", uint64(helpers.DefaultGenTxGas*2), gasAmt, msgs,
+					suite.testAddr, suite.testPrivKey, "kavatest_12-1", uint64(helpers.DefaultGenTxGas*10), gasAmt, msgs,
 				)
 			},
 		},
@@ -573,7 +573,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
 				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20)))
 				return suite.createTestEIP712CosmosTxBuilder(
-					suite.testAddr2, suite.testPrivKey2, ChainID, uint64(helpers.DefaultGenTxGas*2), gasAmt, msgs,
+					suite.testAddr2, suite.testPrivKey2, ChainID, uint64(helpers.DefaultGenTxGas*10), gasAmt, msgs,
 				)
 			},
 		},
@@ -613,7 +613,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 
 			gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20)))
 			txBuilder := suite.createTestEIP712CosmosTxBuilder(
-				suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*5), gasAmt, msgs,
+				suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*10), gasAmt, msgs,
 			)
 			if tc.updateTx != nil {
 				txBuilder = tc.updateTx(txBuilder, msgs)
@@ -699,7 +699,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 	// deliver deposit msg
 	gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20)))
 	txBuilder := suite.createTestEIP712CosmosTxBuilder(
-		suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*3), gasAmt, depositMsgs,
+		suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*10), gasAmt, depositMsgs,
 	)
 	txBytes, err := encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 	suite.Require().NoError(err)
@@ -744,7 +744,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 
 	// deliver withdraw msg
 	txBuilder = suite.createTestEIP712CosmosTxBuilder(
-		suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*3), gasAmt, withdrawMsgs,
+		suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*10), gasAmt, withdrawMsgs,
 	)
 	txBytes, err = encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 	suite.Require().NoError(err)
