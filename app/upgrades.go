@@ -5,6 +5,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
+	earntypes "github.com/kava-labs/kava/x/earn/types"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
 const UpgradeName = "kava-11"
@@ -24,7 +27,8 @@ func (app App) RegisterUpgradeHandlers() {
 	if upgradeInfo.Name == UpgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
-				// todo: add earn and savings module
+				savingstypes.StoreKey,
+				earntypes.StoreKey,
 			},
 		}
 
