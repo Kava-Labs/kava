@@ -106,7 +106,7 @@ func (shares VaultShares) Validate() error {
 	return nil
 }
 
-// AmountOf returns the amount of shares of the given denom.
+// Add adds two sets of VaultShares.
 func (shares VaultShares) Add(sharesB ...VaultShare) VaultShares {
 	return shares.safeAdd(sharesB)
 }
@@ -228,8 +228,8 @@ func (shares VaultShares) negative() VaultShares {
 }
 
 // AmountOf returns the amount of shares of the given denom.
-func (v VaultShares) AmountOf(denom string) sdk.Dec {
-	for _, s := range v {
+func (shares VaultShares) AmountOf(denom string) sdk.Dec {
+	for _, s := range shares {
 		if s.Denom == denom {
 			return s.Amount
 		}
@@ -239,8 +239,8 @@ func (v VaultShares) AmountOf(denom string) sdk.Dec {
 }
 
 // GetShare the single share of the given denom.
-func (v VaultShares) GetShare(denom string) VaultShare {
-	for _, s := range v {
+func (shares VaultShares) GetShare(denom string) VaultShare {
+	for _, s := range shares {
 		if s.Denom == denom {
 			return s
 		}
@@ -250,8 +250,8 @@ func (v VaultShares) GetShare(denom string) VaultShare {
 }
 
 // IsZero returns true if the VaultShares is empty.
-func (v VaultShares) IsZero() bool {
-	for _, s := range v {
+func (shares VaultShares) IsZero() bool {
+	for _, s := range shares {
 		// If any amount is non-zero, false
 		if !s.Amount.IsZero() {
 			return false
@@ -297,7 +297,7 @@ func removeZeroShares(shares VaultShares) VaultShares {
 // ----------------------------------------------------------------------------
 // VaultShares sort interface
 
-func (a VaultShares) Len() int { return len(a) }
+func (shares VaultShares) Len() int { return len(shares) }
 
 // Less implements sort.Interface for VaultShares
 func (shares VaultShares) Less(i, j int) bool { return shares[i].Denom < shares[j].Denom }
