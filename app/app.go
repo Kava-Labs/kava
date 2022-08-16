@@ -141,8 +141,12 @@ import (
 
 const (
 	appName                        = "kava"
-	FixDefaultAccountUpgradeHeight = 138592
-	EthermintPatchUpgradeName      = "v0.18.0"
+	FixDefaultAccountUpgradeHeight = 0
+
+	// v0.18.0 upgrade
+	Kava11UpgradeName   = "v0.19.0"
+	Kava11UpgradeHeight = 5
+	Kava11UpgradeInfo   = `'{"binaries":{"darwin/arm64":"https://github.com/kava-labs/kava/releases/download/v0.18.0/kava_0.18.0_Darwin_arm64.tar.gz","darwin/x86_64":"https://github.com/kava-labs/kava/releases/download/v0.18.0/kava_0.18.0_Darwin_x86_64.tar.gz","linux/arm64":"https://github.com/kava-labs/kava/releases/download/v0.18.0/kava_0.18.0_Linux_arm64.tar.gz","linux/x86_64":"https://github.com/kava-labs/kava/releases/download/v0.18.0/kava_0.18.0_Linux_x86_64.tar.gz"}}'`
 )
 
 var (
@@ -894,17 +898,27 @@ func NewApp(
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
 
-	app.upgradeKeeper.SetUpgradeHandler(
-		EthermintPatchUpgradeName,
-		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-		})
-
 	return app
 }
 
 // BeginBlocker contains app specific logic for the BeginBlock abci call.
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	if ctx.BlockHeight() == Kava11UpgradeHeight-1 {
+		upgradePlan := upgradetypes.Plan{
+			Name:   Kava11UpgradeName,
+			Height: Kava11UpgradeHeight,
+			Info:   Kava11UpgradeInfo,
+		}
+
+		if err := app.upgradeKeeper.ScheduleUpgrade(ctx, upgradePlan); err != nil {
+			panic(
+				fmt.Errorf(
+					"failed to schedule upgrade %s during BeginBlock at height %d: %w",
+					upgradePlan.Name, upgradePlan.Height, err,
+				),
+			)
+		}
+	}
 	return app.mm.BeginBlock(ctx, req)
 }
 
