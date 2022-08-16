@@ -854,6 +854,10 @@ func NewApp(
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
 
+	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
+	// It needs to be called after `app.mm` and `app.configurator` are set.
+	app.RegisterUpgradeHandlers()
+
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//
 	// NOTE: This is not required for apps that don't use the simulator for fuzz testing
