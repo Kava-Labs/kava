@@ -10,10 +10,13 @@ type SavingsStrategy Keeper
 
 var _ Strategy = (*SavingsStrategy)(nil)
 
+// GetStrategyType returns the strategy type
 func (s *SavingsStrategy) GetStrategyType() types.StrategyType {
 	return types.STRATEGY_TYPE_SAVINGS
 }
 
+// GetEstimatedTotalAssets returns the current value of all assets deposited
+// in savings.
 func (s *SavingsStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (sdk.Coin, error) {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	deposit, found := s.savingsKeeper.GetDeposit(ctx, macc.GetAddress())
@@ -33,11 +36,13 @@ func (s *SavingsStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string)
 	return sdk.NewCoin(denom, sdk.ZeroInt()), nil
 }
 
+// Deposit deposits the specified amount of coins into savings.
 func (s *SavingsStrategy) Deposit(ctx sdk.Context, amount sdk.Coin) error {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	return s.savingsKeeper.Deposit(ctx, macc.GetAddress(), sdk.NewCoins(amount))
 }
 
+// Withdraw withdraws the specified amount of coins from savings.
 func (s *SavingsStrategy) Withdraw(ctx sdk.Context, amount sdk.Coin) error {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	return s.savingsKeeper.Withdraw(ctx, macc.GetAddress(), sdk.NewCoins(amount))
