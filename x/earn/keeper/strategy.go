@@ -12,20 +12,18 @@ type Strategy interface {
 	// GetStrategyType returns the strategy type
 	GetStrategyType() types.StrategyType
 
-	// GetEstimatedTotalAssets returns the estimated total assets denominated in
-	// GetDenom() of this strategy. This is the value if the strategy were to
-	// liquidate all assets.
+	// GetEstimatedTotalAssets returns the estimated total assets of the
+	// strategy with the specified denom. This is the value if the strategy were
+	// to liquidate all assets.
 	//
 	// **Note:** This may not reflect the true value as it may become outdated
 	// from market changes.
 	GetEstimatedTotalAssets(ctx sdk.Context, denom string) (sdk.Coin, error)
 
-	// Deposit the specified amount of coins into this strategy. The amount
-	// must be denominated in GetDenom().
+	// Deposit the specified amount of coins into this strategy.
 	Deposit(ctx sdk.Context, amount sdk.Coin) error
 
-	// Withdraw the specified amount of coins from this strategy. The amount
-	// must be denominated in GetDenom().
+	// Withdraw the specified amount of coins from this strategy.
 	Withdraw(ctx sdk.Context, amount sdk.Coin) error
 }
 

@@ -31,9 +31,9 @@ func (k Keeper) GetAllowedVaults(ctx sdk.Context) types.AllowedVaults {
 	return k.GetParams(ctx).AllowedVaults
 }
 
-// getAllowedVault_Raw returns a single vault from the module params specified
+// getAllowedVaultRaw returns a single vault from the module params specified
 // by the denom.
-func (k Keeper) getAllowedVault_Raw(
+func (k Keeper) getAllowedVaultRaw(
 	ctx sdk.Context,
 	vaultDenom string,
 ) (types.AllowedVault, bool) {
@@ -55,8 +55,8 @@ func (k *Keeper) GetAllowedVault(
 	vaultDenom string,
 ) (types.AllowedVault, bool) {
 	if strings.HasPrefix(vaultDenom, bkavaPrefix) {
-		return k.getAllowedVault_Raw(ctx, bkavaDenom)
+		return k.getAllowedVaultRaw(ctx, bkavaDenom)
 	}
 
-	return k.getAllowedVault_Raw(ctx, vaultDenom)
+	return k.getAllowedVaultRaw(ctx, vaultDenom)
 }

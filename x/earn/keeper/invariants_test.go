@@ -111,10 +111,12 @@ func (suite *invariantTestSuite) TestVaultRecordsInvariant() {
 	suite.Equal(false, broken)
 
 	// broken with invalid vault record
-	suite.Keeper.SetVaultRecord(suite.Ctx, types.NewVaultRecord(
-		"invalid denom",
-		sdk.MustNewDecFromStr("101"),
-	))
+	suite.Keeper.SetVaultRecord(suite.Ctx, types.VaultRecord{
+		TotalShares: types.VaultShare{
+			Denom:  "invalid denom",
+			Amount: sdk.MustNewDecFromStr("101"),
+		},
+	})
 	message, broken = suite.runInvariant("vault-records", keeper.VaultRecordsInvariant)
 	suite.Equal("earn: validate vault records broken invariant\nvault record invalid\n", message)
 	suite.Equal(true, broken)

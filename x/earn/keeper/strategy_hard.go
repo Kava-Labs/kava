@@ -10,10 +10,13 @@ type HardStrategy Keeper
 
 var _ Strategy = (*HardStrategy)(nil)
 
+// GetStrategyType returns the strategy type
 func (s *HardStrategy) GetStrategyType() types.StrategyType {
 	return types.STRATEGY_TYPE_HARD
 }
 
+// GetEstimatedTotalAssets returns the current value of all assets deposited
+// in hard.
 func (s *HardStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (sdk.Coin, error) {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	deposit, found := s.hardKeeper.GetSyncedDeposit(ctx, macc.GetAddress())
@@ -33,11 +36,13 @@ func (s *HardStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (s
 	return sdk.NewCoin(denom, sdk.ZeroInt()), nil
 }
 
+// Deposit deposits the specified amount of coins into hard.
 func (s *HardStrategy) Deposit(ctx sdk.Context, amount sdk.Coin) error {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	return s.hardKeeper.Deposit(ctx, macc.GetAddress(), sdk.NewCoins(amount))
 }
 
+// Withdraw withdraws the specified amount of coins from hard.
 func (s *HardStrategy) Withdraw(ctx sdk.Context, amount sdk.Coin) error {
 	macc := s.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	return s.hardKeeper.Withdraw(ctx, macc.GetAddress(), sdk.NewCoins(amount))
