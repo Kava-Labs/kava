@@ -5,7 +5,7 @@ import (
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
-// SavingsStrategy defines the strategy that deposits assets to Avings
+// SavingsStrategy defines the strategy that deposits assets to x/savings
 type SavingsStrategy Keeper
 
 var _ Strategy = (*SavingsStrategy)(nil)
