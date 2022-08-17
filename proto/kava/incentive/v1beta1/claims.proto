@@ -115,3 +115,13 @@ message SavingsClaim {
   repeated MultiRewardIndex reward_indexes = 2
       [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
 }
+
+// SwapClaim stores the swap rewards that can be claimed by owner
+message EarnClaim {
+  option (cosmos_proto.implements_interface) = "Claim";
+
+  BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+
+  repeated MultiRewardIndex reward_indexes = 2
+      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+}

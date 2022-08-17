@@ -302,6 +302,7 @@
     - [BaseClaim](#kava.incentive.v1beta1.BaseClaim)
     - [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim)
     - [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim)
+    - [EarnClaim](#kava.incentive.v1beta1.EarnClaim)
     - [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim)
     - [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex)
     - [MultiRewardIndexesProto](#kava.incentive.v1beta1.MultiRewardIndexesProto)
@@ -326,6 +327,8 @@
 - [kava/incentive/v1beta1/tx.proto](#kava/incentive/v1beta1/tx.proto)
     - [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward)
     - [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse)
+    - [MsgClaimEarnReward](#kava.incentive.v1beta1.MsgClaimEarnReward)
+    - [MsgClaimEarnRewardResponse](#kava.incentive.v1beta1.MsgClaimEarnRewardResponse)
     - [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward)
     - [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse)
     - [MsgClaimSavingsReward](#kava.incentive.v1beta1.MsgClaimSavingsReward)
@@ -4353,6 +4356,22 @@ DelegatorClaim stores delegation rewards that can be claimed by owner
 
 
 
+<a name="kava.incentive.v1beta1.EarnClaim"></a>
+
+### EarnClaim
+SwapClaim stores the swap rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.HardLiquidityProviderClaim"></a>
 
 ### HardLiquidityProviderClaim
@@ -4657,6 +4676,8 @@ GenesisState is the state that must be provided at genesis.
 | `swap_claims` | [SwapClaim](#kava.incentive.v1beta1.SwapClaim) | repeated |  |
 | `savings_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
 | `savings_claims` | [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim) | repeated |  |
+| `earn_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `earn_claims` | [EarnClaim](#kava.incentive.v1beta1.EarnClaim) | repeated |  |
 
 
 
@@ -4699,6 +4720,32 @@ MsgClaimDelegatorReward message type used to claim delegator rewards
 
 ### MsgClaimDelegatorRewardResponse
 MsgClaimDelegatorRewardResponse defines the Msg/ClaimDelegatorReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimEarnReward"></a>
+
+### MsgClaimEarnReward
+MsgClaimEarnReward message type used to claim searn rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimEarnRewardResponse"></a>
+
+### MsgClaimEarnRewardResponse
+MsgClaimEarnRewardResponse defines the Msg/ClaimEarnReward response type.
 
 
 
@@ -4842,8 +4889,9 @@ Msg defines the incentive Msg service.
 | `ClaimUSDXMintingReward` | [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward) | [MsgClaimUSDXMintingRewardResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse) | ClaimUSDXMintingReward is a message type used to claim USDX minting rewards | |
 | `ClaimHardReward` | [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward) | [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse) | ClaimHardReward is a message type used to claim Hard liquidity provider rewards | |
 | `ClaimDelegatorReward` | [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward) | [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse) | ClaimDelegatorReward is a message type used to claim delegator rewards | |
-| `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim delegator rewards | |
+| `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim swap rewards | |
 | `ClaimSavingsReward` | [MsgClaimSavingsReward](#kava.incentive.v1beta1.MsgClaimSavingsReward) | [MsgClaimSavingsRewardResponse](#kava.incentive.v1beta1.MsgClaimSavingsRewardResponse) | ClaimSavingsReward is a message type used to claim savings rewards | |
+| `ClaimEarnReward` | [MsgClaimEarnReward](#kava.incentive.v1beta1.MsgClaimEarnReward) | [MsgClaimEarnRewardResponse](#kava.incentive.v1beta1.MsgClaimEarnRewardResponse) | ClaimEarnReward is a message type used to claim earn rewards | |
 
  <!-- end services -->
 

@@ -448,6 +448,82 @@ func (m *MsgClaimSavingsRewardResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgClaimSavingsRewardResponse proto.InternalMessageInfo
 
+// MsgClaimEarnReward message type used to claim searn rewards
+type MsgClaimEarnReward struct {
+	Sender        string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	DenomsToClaim Selections `protobuf:"bytes,2,rep,name=denoms_to_claim,json=denomsToClaim,proto3,castrepeated=Selections" json:"denoms_to_claim"`
+}
+
+func (m *MsgClaimEarnReward) Reset()         { *m = MsgClaimEarnReward{} }
+func (m *MsgClaimEarnReward) String() string { return proto.CompactTextString(m) }
+func (*MsgClaimEarnReward) ProtoMessage()    {}
+func (*MsgClaimEarnReward) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1cec058e3ff75d5, []int{11}
+}
+func (m *MsgClaimEarnReward) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgClaimEarnReward) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgClaimEarnReward.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgClaimEarnReward) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgClaimEarnReward.Merge(m, src)
+}
+func (m *MsgClaimEarnReward) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgClaimEarnReward) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgClaimEarnReward.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgClaimEarnReward proto.InternalMessageInfo
+
+// MsgClaimEarnRewardResponse defines the Msg/ClaimEarnReward response type.
+type MsgClaimEarnRewardResponse struct {
+}
+
+func (m *MsgClaimEarnRewardResponse) Reset()         { *m = MsgClaimEarnRewardResponse{} }
+func (m *MsgClaimEarnRewardResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgClaimEarnRewardResponse) ProtoMessage()    {}
+func (*MsgClaimEarnRewardResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1cec058e3ff75d5, []int{12}
+}
+func (m *MsgClaimEarnRewardResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgClaimEarnRewardResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgClaimEarnRewardResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgClaimEarnRewardResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgClaimEarnRewardResponse.Merge(m, src)
+}
+func (m *MsgClaimEarnRewardResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgClaimEarnRewardResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgClaimEarnRewardResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgClaimEarnRewardResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*Selection)(nil), "kava.incentive.v1beta1.Selection")
 	proto.RegisterType((*MsgClaimUSDXMintingReward)(nil), "kava.incentive.v1beta1.MsgClaimUSDXMintingReward")
@@ -460,44 +536,47 @@ func init() {
 	proto.RegisterType((*MsgClaimSwapRewardResponse)(nil), "kava.incentive.v1beta1.MsgClaimSwapRewardResponse")
 	proto.RegisterType((*MsgClaimSavingsReward)(nil), "kava.incentive.v1beta1.MsgClaimSavingsReward")
 	proto.RegisterType((*MsgClaimSavingsRewardResponse)(nil), "kava.incentive.v1beta1.MsgClaimSavingsRewardResponse")
+	proto.RegisterType((*MsgClaimEarnReward)(nil), "kava.incentive.v1beta1.MsgClaimEarnReward")
+	proto.RegisterType((*MsgClaimEarnRewardResponse)(nil), "kava.incentive.v1beta1.MsgClaimEarnRewardResponse")
 }
 
 func init() { proto.RegisterFile("kava/incentive/v1beta1/tx.proto", fileDescriptor_b1cec058e3ff75d5) }
 
 var fileDescriptor_b1cec058e3ff75d5 = []byte{
-	// 504 bytes of a gzipped FileDescriptorProto
+	// 525 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x95, 0x31, 0x6f, 0xd3, 0x40,
-	0x14, 0xc7, 0x7d, 0x2d, 0x54, 0xf4, 0x21, 0x88, 0x74, 0x0a, 0x21, 0x58, 0x60, 0x37, 0x61, 0xa0,
-	0x02, 0xd5, 0x56, 0x82, 0x10, 0x82, 0xb1, 0x14, 0x89, 0x25, 0x0c, 0x49, 0x91, 0x10, 0x12, 0x8a,
-	0x2e, 0xc9, 0x71, 0x9c, 0xb0, 0xef, 0x8c, 0xef, 0x9a, 0x16, 0x26, 0x26, 0xc4, 0xc8, 0x82, 0x84,
-	0x98, 0x3a, 0xf3, 0x49, 0x3a, 0x76, 0x64, 0x02, 0x94, 0x2c, 0xec, 0x7c, 0x01, 0x14, 0x27, 0x76,
-	0xa2, 0xc4, 0xc6, 0x84, 0x29, 0xdb, 0xdd, 0xbd, 0xff, 0x7b, 0xef, 0xf7, 0x9e, 0xde, 0xd3, 0x81,
-	0xfd, 0x8a, 0xf4, 0x89, 0xcb, 0x45, 0x97, 0x0a, 0xcd, 0xfb, 0xd4, 0xed, 0xd7, 0x3a, 0x54, 0x93,
-	0x9a, 0xab, 0x8f, 0x9c, 0x20, 0x94, 0x5a, 0xe2, 0xd2, 0x48, 0xe0, 0x24, 0x02, 0x67, 0x22, 0x30,
-	0x8b, 0x4c, 0x32, 0x19, 0x49, 0xdc, 0xd1, 0x69, 0xac, 0xae, 0xee, 0xc3, 0x66, 0x8b, 0x7a, 0xb4,
-	0xab, 0xb9, 0x14, 0xb8, 0x08, 0x67, 0x7b, 0x54, 0x48, 0xbf, 0x8c, 0xb6, 0xd0, 0xf6, 0x66, 0x73,
-	0x7c, 0xc1, 0x37, 0xa0, 0xe0, 0x1f, 0x78, 0x9a, 0x07, 0x1e, 0xa7, 0x61, 0x5b, 0x10, 0x9f, 0x96,
-	0xd7, 0x22, 0xfb, 0xc5, 0xe9, 0xf3, 0x63, 0xe2, 0xd3, 0xfb, 0xe7, 0x3e, 0x1c, 0xdb, 0xc6, 0xaf,
-	0x63, 0xdb, 0xa8, 0xbe, 0x80, 0x2b, 0x0d, 0xc5, 0x1e, 0x78, 0x84, 0xfb, 0x4f, 0x5a, 0x7b, 0x4f,
-	0x1b, 0x5c, 0x68, 0x2e, 0x58, 0x93, 0x1e, 0x92, 0xb0, 0x87, 0x4b, 0xb0, 0xa1, 0xa8, 0xe8, 0xd1,
-	0x70, 0x92, 0x66, 0x72, 0xfb, 0x9f, 0x3c, 0xd7, 0xa1, 0x92, 0x99, 0xa7, 0x49, 0x55, 0x20, 0x85,
-	0xa2, 0xd5, 0x4f, 0x08, 0x70, 0xac, 0x7a, 0x14, 0x19, 0xfe, 0x8a, 0xf1, 0x1c, 0x0a, 0x51, 0xdd,
-	0xaa, 0xad, 0x65, 0xbb, 0x3b, 0x72, 0x2a, 0xaf, 0x6d, 0xad, 0x6f, 0x9f, 0xaf, 0x57, 0x9c, 0xf4,
-	0xce, 0x3a, 0x49, 0x03, 0x77, 0xf1, 0xc9, 0x77, 0xdb, 0xf8, 0xfa, 0xc3, 0x86, 0xe4, 0x49, 0x35,
-	0x2f, 0x8c, 0xa3, 0xed, 0xcb, 0x08, 0x60, 0x06, 0xfe, 0x2a, 0x98, 0x8b, 0x58, 0x09, 0xf5, 0x17,
-	0x04, 0x97, 0x63, 0xf3, 0x1e, 0xf5, 0x28, 0x23, 0x5a, 0x86, 0xab, 0x82, 0x5e, 0x01, 0x3b, 0x83,
-	0x2d, 0xb5, 0xeb, 0xad, 0x43, 0x12, 0xac, 0x60, 0xd7, 0xa7, 0x58, 0x09, 0xf5, 0x67, 0x04, 0x97,
-	0x12, 0x33, 0xe9, 0x73, 0xc1, 0xd4, 0xaa, 0x80, 0xdb, 0x70, 0x2d, 0x95, 0x2c, 0x66, 0xaf, 0xff,
-	0x3e, 0x03, 0xeb, 0x0d, 0xc5, 0xf0, 0x7b, 0x04, 0xa5, 0x8c, 0xd5, 0xab, 0x65, 0x31, 0x65, 0x6e,
-	0x91, 0x79, 0x6f, 0x69, 0x97, 0x18, 0x08, 0xbf, 0x86, 0xc2, 0xfc, 0xd2, 0xdd, 0xcc, 0x8b, 0x36,
-	0xd5, 0x9a, 0xf5, 0x7f, 0xd7, 0x26, 0x29, 0xdf, 0x21, 0x28, 0xa6, 0xae, 0x8c, 0x9b, 0x17, 0x6c,
-	0xce, 0xc1, 0xbc, 0xbb, 0xa4, 0xc3, 0x42, 0xd5, 0x33, 0x43, 0x9f, 0x5b, 0xf5, 0x54, 0x9b, 0x5f,
-	0xf5, 0xe2, 0xd4, 0xe2, 0xb7, 0x80, 0x53, 0x26, 0x76, 0x27, 0x37, 0xd2, 0xac, 0xdc, 0xbc, 0xb3,
-	0x94, 0x3c, 0xce, 0xbd, 0xfb, 0xf0, 0x64, 0x60, 0xa1, 0xd3, 0x81, 0x85, 0x7e, 0x0e, 0x2c, 0xf4,
-	0x71, 0x68, 0x19, 0xa7, 0x43, 0xcb, 0xf8, 0x36, 0xb4, 0x8c, 0x67, 0xb7, 0x18, 0xd7, 0x2f, 0x0f,
-	0x3a, 0x4e, 0x57, 0xfa, 0xee, 0x28, 0xf4, 0x8e, 0x47, 0x3a, 0x2a, 0x3a, 0xb9, 0x47, 0x33, 0x1f,
-	0x98, 0x7e, 0x13, 0x50, 0xd5, 0xd9, 0x88, 0xbe, 0xa3, 0xdb, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff,
-	0x7e, 0x03, 0x15, 0xb3, 0xdf, 0x06, 0x00, 0x00,
+	0x14, 0xc7, 0x7d, 0xad, 0x5a, 0xd1, 0x87, 0x20, 0xd2, 0x29, 0x84, 0x60, 0x81, 0xdd, 0x84, 0x81,
+	0x0a, 0x54, 0x5b, 0x09, 0x42, 0x08, 0xc6, 0xd2, 0x4a, 0x2c, 0x61, 0x48, 0x8a, 0x84, 0x90, 0x50,
+	0x74, 0x49, 0x0e, 0x73, 0xc2, 0xbe, 0x33, 0xbe, 0x6b, 0x5a, 0x98, 0x98, 0x10, 0x23, 0x0b, 0x12,
+	0x62, 0xea, 0xcc, 0x27, 0xe9, 0xd8, 0x91, 0x09, 0x50, 0x22, 0x21, 0x3e, 0x06, 0x8a, 0x93, 0xd8,
+	0x56, 0x6d, 0x63, 0xd2, 0x29, 0x9b, 0xed, 0xf7, 0x7f, 0xef, 0xfd, 0xfe, 0x4f, 0x7e, 0x77, 0x60,
+	0xbe, 0x26, 0x43, 0x62, 0x33, 0xde, 0xa7, 0x5c, 0xb1, 0x21, 0xb5, 0x87, 0x8d, 0x1e, 0x55, 0xa4,
+	0x61, 0xab, 0x23, 0xcb, 0x0f, 0x84, 0x12, 0xb8, 0x32, 0x11, 0x58, 0x91, 0xc0, 0x9a, 0x09, 0xf4,
+	0xb2, 0x23, 0x1c, 0x11, 0x4a, 0xec, 0xc9, 0xd3, 0x54, 0x5d, 0xdf, 0x87, 0x8d, 0x0e, 0x75, 0x69,
+	0x5f, 0x31, 0xc1, 0x71, 0x19, 0xd6, 0x06, 0x94, 0x0b, 0xaf, 0x8a, 0x36, 0xd1, 0xd6, 0x46, 0x7b,
+	0xfa, 0x82, 0x6f, 0x41, 0xc9, 0x3b, 0x70, 0x15, 0xf3, 0x5d, 0x46, 0x83, 0x2e, 0x27, 0x1e, 0xad,
+	0xae, 0x84, 0xf1, 0xcb, 0xf1, 0xe7, 0x27, 0xc4, 0xa3, 0x0f, 0x2f, 0x7c, 0x3c, 0x36, 0xb5, 0x3f,
+	0xc7, 0xa6, 0x56, 0x7f, 0x09, 0xd7, 0x5a, 0xd2, 0x79, 0xe4, 0x12, 0xe6, 0x3d, 0xed, 0xec, 0x3e,
+	0x6b, 0x31, 0xae, 0x18, 0x77, 0xda, 0xf4, 0x90, 0x04, 0x03, 0x5c, 0x81, 0x75, 0x49, 0xf9, 0x80,
+	0x06, 0xb3, 0x36, 0xb3, 0xb7, 0xf3, 0xf4, 0xb9, 0x09, 0xb5, 0xdc, 0x3e, 0x6d, 0x2a, 0x7d, 0xc1,
+	0x25, 0xad, 0x7f, 0x46, 0x80, 0xe7, 0xaa, 0xc7, 0x61, 0xe0, 0x9f, 0x18, 0x2f, 0xa0, 0x14, 0xfa,
+	0x96, 0x5d, 0x25, 0xba, 0xfd, 0x49, 0x52, 0x75, 0x65, 0x73, 0x75, 0xeb, 0x62, 0xb3, 0x66, 0x65,
+	0x4f, 0xd6, 0x8a, 0x06, 0xb8, 0x83, 0x4f, 0x7e, 0x98, 0xda, 0xb7, 0x9f, 0x26, 0x44, 0x9f, 0x64,
+	0xfb, 0xd2, 0xb4, 0xda, 0xbe, 0x08, 0x01, 0x12, 0xf0, 0xd7, 0x41, 0x4f, 0x63, 0x45, 0xd4, 0x5f,
+	0x11, 0x5c, 0x9d, 0x87, 0x77, 0xa9, 0x4b, 0x1d, 0xa2, 0x44, 0xb0, 0x2c, 0xe8, 0x35, 0x30, 0x73,
+	0xd8, 0x32, 0xa7, 0xde, 0x39, 0x24, 0xfe, 0x12, 0x4e, 0x3d, 0xc6, 0x8a, 0xa8, 0xbf, 0x20, 0xb8,
+	0x12, 0x85, 0xc9, 0x90, 0x71, 0x47, 0x2e, 0x0b, 0xb8, 0x09, 0x37, 0x32, 0xc9, 0x32, 0x27, 0xbe,
+	0x47, 0x02, 0xbe, 0x84, 0x13, 0x8f, 0xb1, 0xe6, 0xd4, 0xcd, 0xdf, 0x6b, 0xb0, 0xda, 0x92, 0x0e,
+	0xfe, 0x80, 0xa0, 0x92, 0x73, 0x60, 0x34, 0xf2, 0x80, 0x72, 0x77, 0x5f, 0x7f, 0xb0, 0x70, 0xca,
+	0x1c, 0x08, 0xbf, 0x81, 0xd2, 0xd9, 0xa3, 0xe2, 0x76, 0x51, 0xb5, 0x58, 0xab, 0x37, 0xff, 0x5f,
+	0x1b, 0xb5, 0x7c, 0x8f, 0xa0, 0x9c, 0xb9, 0xe8, 0x76, 0x51, 0xb1, 0x33, 0x09, 0xfa, 0xfd, 0x05,
+	0x13, 0x52, 0xae, 0x13, 0xab, 0x5a, 0xe8, 0x3a, 0xd6, 0x16, 0xbb, 0x4e, 0xef, 0x1a, 0x7e, 0x07,
+	0x38, 0x63, 0xcf, 0xb6, 0x0b, 0x2b, 0x25, 0xe5, 0xfa, 0xbd, 0x85, 0xe4, 0x29, 0xbb, 0x89, 0x3d,
+	0x29, 0xb4, 0x1b, 0x6b, 0x8b, 0xed, 0xa6, 0x7f, 0xf4, 0x9d, 0xbd, 0x93, 0x91, 0x81, 0x4e, 0x47,
+	0x06, 0xfa, 0x35, 0x32, 0xd0, 0xa7, 0xb1, 0xa1, 0x9d, 0x8e, 0x0d, 0xed, 0xfb, 0xd8, 0xd0, 0x9e,
+	0xdf, 0x71, 0x98, 0x7a, 0x75, 0xd0, 0xb3, 0xfa, 0xc2, 0xb3, 0x27, 0x75, 0xb7, 0x5d, 0xd2, 0x93,
+	0xe1, 0x93, 0x7d, 0x94, 0xb8, 0xe9, 0xd5, 0x5b, 0x9f, 0xca, 0xde, 0x7a, 0x78, 0x6f, 0xdf, 0xfd,
+	0x1b, 0x00, 0x00, 0xff, 0xff, 0x28, 0x8b, 0x70, 0xee, 0x08, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -518,10 +597,12 @@ type MsgClient interface {
 	ClaimHardReward(ctx context.Context, in *MsgClaimHardReward, opts ...grpc.CallOption) (*MsgClaimHardRewardResponse, error)
 	// ClaimDelegatorReward is a message type used to claim delegator rewards
 	ClaimDelegatorReward(ctx context.Context, in *MsgClaimDelegatorReward, opts ...grpc.CallOption) (*MsgClaimDelegatorRewardResponse, error)
-	// ClaimSwapReward is a message type used to claim delegator rewards
+	// ClaimSwapReward is a message type used to claim swap rewards
 	ClaimSwapReward(ctx context.Context, in *MsgClaimSwapReward, opts ...grpc.CallOption) (*MsgClaimSwapRewardResponse, error)
 	// ClaimSavingsReward is a message type used to claim savings rewards
 	ClaimSavingsReward(ctx context.Context, in *MsgClaimSavingsReward, opts ...grpc.CallOption) (*MsgClaimSavingsRewardResponse, error)
+	// ClaimEarnReward is a message type used to claim earn rewards
+	ClaimEarnReward(ctx context.Context, in *MsgClaimEarnReward, opts ...grpc.CallOption) (*MsgClaimEarnRewardResponse, error)
 }
 
 type msgClient struct {
@@ -577,6 +658,15 @@ func (c *msgClient) ClaimSavingsReward(ctx context.Context, in *MsgClaimSavingsR
 	return out, nil
 }
 
+func (c *msgClient) ClaimEarnReward(ctx context.Context, in *MsgClaimEarnReward, opts ...grpc.CallOption) (*MsgClaimEarnRewardResponse, error) {
+	out := new(MsgClaimEarnRewardResponse)
+	err := c.cc.Invoke(ctx, "/kava.incentive.v1beta1.Msg/ClaimEarnReward", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// ClaimUSDXMintingReward is a message type used to claim USDX minting rewards
@@ -585,10 +675,12 @@ type MsgServer interface {
 	ClaimHardReward(context.Context, *MsgClaimHardReward) (*MsgClaimHardRewardResponse, error)
 	// ClaimDelegatorReward is a message type used to claim delegator rewards
 	ClaimDelegatorReward(context.Context, *MsgClaimDelegatorReward) (*MsgClaimDelegatorRewardResponse, error)
-	// ClaimSwapReward is a message type used to claim delegator rewards
+	// ClaimSwapReward is a message type used to claim swap rewards
 	ClaimSwapReward(context.Context, *MsgClaimSwapReward) (*MsgClaimSwapRewardResponse, error)
 	// ClaimSavingsReward is a message type used to claim savings rewards
 	ClaimSavingsReward(context.Context, *MsgClaimSavingsReward) (*MsgClaimSavingsRewardResponse, error)
+	// ClaimEarnReward is a message type used to claim earn rewards
+	ClaimEarnReward(context.Context, *MsgClaimEarnReward) (*MsgClaimEarnRewardResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -609,6 +701,9 @@ func (*UnimplementedMsgServer) ClaimSwapReward(ctx context.Context, req *MsgClai
 }
 func (*UnimplementedMsgServer) ClaimSavingsReward(ctx context.Context, req *MsgClaimSavingsReward) (*MsgClaimSavingsRewardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClaimSavingsReward not implemented")
+}
+func (*UnimplementedMsgServer) ClaimEarnReward(ctx context.Context, req *MsgClaimEarnReward) (*MsgClaimEarnRewardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClaimEarnReward not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -705,6 +800,24 @@ func _Msg_ClaimSavingsReward_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_ClaimEarnReward_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgClaimEarnReward)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ClaimEarnReward(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kava.incentive.v1beta1.Msg/ClaimEarnReward",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ClaimEarnReward(ctx, req.(*MsgClaimEarnReward))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.incentive.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -728,6 +841,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClaimSavingsReward",
 			Handler:    _Msg_ClaimSavingsReward_Handler,
+		},
+		{
+			MethodName: "ClaimEarnReward",
+			Handler:    _Msg_ClaimEarnReward_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1099,6 +1216,73 @@ func (m *MsgClaimSavingsRewardResponse) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgClaimEarnReward) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgClaimEarnReward) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgClaimEarnReward) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.DenomsToClaim) > 0 {
+		for iNdEx := len(m.DenomsToClaim) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.DenomsToClaim[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTx(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgClaimEarnRewardResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgClaimEarnRewardResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgClaimEarnRewardResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -1257,6 +1441,34 @@ func (m *MsgClaimSavingsReward) Size() (n int) {
 }
 
 func (m *MsgClaimSavingsRewardResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgClaimEarnReward) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.DenomsToClaim) > 0 {
+		for _, e := range m.DenomsToClaim {
+			l = e.Size()
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MsgClaimEarnRewardResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2190,6 +2402,172 @@ func (m *MsgClaimSavingsRewardResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgClaimSavingsRewardResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgClaimEarnReward) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgClaimEarnReward: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgClaimEarnReward: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DenomsToClaim", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DenomsToClaim = append(m.DenomsToClaim, Selection{})
+			if err := m.DenomsToClaim[len(m.DenomsToClaim)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgClaimEarnRewardResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgClaimEarnRewardResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgClaimEarnRewardResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
