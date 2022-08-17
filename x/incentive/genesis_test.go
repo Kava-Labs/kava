@@ -105,6 +105,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 		types.DefaultDelegatorClaims,
 		types.DefaultSwapClaims,
 		types.DefaultSavingsClaims,
+		types.DefaultEarnClaims,
 	)
 
 	cdc := suite.app.AppCodec()
@@ -252,6 +253,13 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				suite.addrs[3],
 				nil,
 				types.MultiRewardIndexes{{CollateralType: "ukava", RewardIndexes: types.RewardIndexes{{CollateralType: "ukava", RewardFactor: d("0.0")}}}},
+			),
+		},
+		types.EarnClaims{
+			types.NewEarnClaim(
+				suite.addrs[3],
+				nil,
+				types.MultiRewardIndexes{{CollateralType: "usdx", RewardIndexes: types.RewardIndexes{{CollateralType: "earn", RewardFactor: d("0.0")}}}},
 			),
 		},
 	)

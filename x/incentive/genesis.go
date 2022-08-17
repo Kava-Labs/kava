@@ -148,10 +148,15 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	savingsClaims := k.GetAllSavingsClaims(ctx)
 	savingsRewardState := getSavingsGenesisRewardState(ctx, k)
 
+	earnClaims := k.GetAllEarnClaims(ctx)
+	earnRewardState := getEarnGenesisRewardState(ctx, k)
+
 	return types.NewGenesisState(
 		params,
-		usdxRewardState, hardSupplyRewardState, hardBorrowRewardState, delegatorRewardState, swapRewardState,
-		savingsRewardState, usdxClaims, hardClaims, delegatorClaims, swapClaims, savingsClaims,
+		// Reward states
+		usdxRewardState, hardSupplyRewardState, hardBorrowRewardState, delegatorRewardState, swapRewardState, savingsRewardState, earnRewardState,
+		// Claims
+		usdxClaims, hardClaims, delegatorClaims, swapClaims, savingsClaims, earnClaims,
 	)
 }
 
