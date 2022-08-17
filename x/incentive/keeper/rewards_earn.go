@@ -1,310 +1,100 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
-	"sort"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive/types"
-
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
-// AccumulateEarnRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
+// AccumulateSwapRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
 func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-	if rewardPeriod.CollateralType == "bkava" {
-		k.accumulateEarnBkavaRewards(ctx, rewardPeriod)
-		return
-	}
-
-	k.accumulateEarnRewards(
-		ctx,
-		rewardPeriod.CollateralType,
-		rewardPeriod.Start,
-		rewardPeriod.End,
-		sdk.NewDecCoinsFromCoins(rewardPeriod.RewardsPerSecond...),
-	)
-}
-
-func GetProportionalRewardsPerSecond(
-	rewardPeriod types.MultiRewardPeriod,
-	totalBkavaSupply sdk.Int,
-	singleBkavaSupply sdk.Int,
-) sdk.DecCoins {
-	// Rate per bkava-xxx = rewardsPerSecond * % of bkava-xxx
-	//                    = rewardsPerSecond * (bkava-xxx / total bkava)
-	//                    = (rewardsPerSecond * bkava-xxx) / total bkava
-
-	newRate := sdk.NewDecCoins()
-
-	// Prevent division by zero, if there are no total shares then there are no
-	// rewards.
-	if totalBkavaSupply.IsZero() {
-		return newRate
-	}
-
-	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
-		scaledAmount := rewardCoin.Amount.ToDec().
-			Mul(singleBkavaSupply.ToDec()).
-			Quo(totalBkavaSupply.ToDec())
-
-		newRate = newRate.Add(sdk.NewDecCoinFromDec(rewardCoin.Denom, scaledAmount))
-	}
-
-	return newRate
-}
-
-// accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
-// *all* bkava vaults.
-func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-	// All bkava vault denoms
-	bkavaVaultsDenoms := make(map[string]bool)
-
-	// bkava vault denoms from earn records (non-empty vaults)
-	k.earnKeeper.IterateVaultRecords(ctx, func(record earntypes.VaultRecord) (stop bool) {
-		if k.liquidKeeper.IsDerivativeDenom(ctx, record.TotalShares.Denom) {
-			bkavaVaultsDenoms[record.TotalShares.Denom] = true
-		}
-
-		return false
-	})
-
-	// bkava vault denoms from past incentive indexes, may include vaults
-	// that were fully withdrawn.
-	k.IterateEarnRewardIndexes(ctx, func(vaultDenom string, indexes types.RewardIndexes) (stop bool) {
-		if k.liquidKeeper.IsDerivativeDenom(ctx, vaultDenom) {
-			bkavaVaultsDenoms[vaultDenom] = true
-		}
-
-		return false
-	})
-
-	totalBkavaSupply := k.liquidKeeper.GetTotalDerivativeSupply(ctx)
-
-	i := 0
-	sortedBkavaVaultsDenoms := make([]string, len(bkavaVaultsDenoms))
-	for vaultDenom := range bkavaVaultsDenoms {
-		sortedBkavaVaultsDenoms[i] = vaultDenom
-		i++
-	}
-
-	// Sort the vault denoms to ensure deterministic iteration order.
-	sort.Strings(sortedBkavaVaultsDenoms)
-
-	// Accumulate rewards for each bkava vault.
-	for _, bkavaDenom := range sortedBkavaVaultsDenoms {
-		k.accumulateBkavaEarnRewards(
-			ctx,
-			bkavaDenom,
-			rewardPeriod.Start,
-			rewardPeriod.End,
-			GetProportionalRewardsPerSecond(
-				rewardPeriod,
-				totalBkavaSupply,
-				k.liquidKeeper.GetDerivativeSupply(ctx, bkavaDenom),
-			),
-		)
-	}
-}
-
-func (k Keeper) accumulateBkavaEarnRewards(
-	ctx sdk.Context,
-	collateralType string,
-	periodStart time.Time,
-	periodEnd time.Time,
-	periodRewardsPerSecond sdk.DecCoins,
-) {
-	// Collect staking rewards for this validator, does not have any start/end
-	// period time restrictions.
-	stakingRewards := k.collectDerivativeStakingRewards(ctx, collateralType)
-
-	// Collect incentive rewards
-	// **Total rewards** for vault per second, NOT per share
-	perSecondRewards := k.collectPerSecondRewards(
-		ctx,
-		collateralType,
-		periodStart,
-		periodEnd,
-		periodRewardsPerSecond,
-	)
-
-	// **Total rewards** for vault per second, NOT per share
-	rewards := stakingRewards.Add(perSecondRewards...)
-
-	// Distribute rewards by incrementing indexes
-	indexes, found := k.GetEarnRewardIndexes(ctx, collateralType)
-	if !found {
-		indexes = types.RewardIndexes{}
-	}
-
-	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
-	var increment types.RewardIndexes
-	if totalSourceShares.GT(sdk.ZeroDec()) {
-		// Divide total rewards by total shares to get the reward **per share**
-		// Leave as nil if no source shares
-		increment = types.NewRewardIndexesFromCoins(rewards).Quo(totalSourceShares)
-	}
-	updatedIndexes := indexes.Add(increment)
-
-	if len(updatedIndexes) > 0 {
-		// the store panics when setting empty or nil indexes
-		k.SetEarnRewardIndexes(ctx, collateralType, updatedIndexes)
-	}
-}
-
-func (k Keeper) collectDerivativeStakingRewards(ctx sdk.Context, collateralType string) sdk.DecCoins {
-	rewards, err := k.liquidKeeper.CollectStakingRewardsByDenom(ctx, collateralType, types.IncentiveMacc)
-	if err != nil {
-		if !errors.Is(err, distrtypes.ErrNoValidatorDistInfo) &&
-			!errors.Is(err, distrtypes.ErrEmptyDelegationDistInfo) {
-			panic(fmt.Sprintf("failed to collect staking rewards for %s: %s", collateralType, err))
-		}
-
-		// otherwise there's no validator or delegation yet
-		rewards = nil
-	}
-	return sdk.NewDecCoinsFromCoins(rewards...)
-}
-
-func (k Keeper) collectPerSecondRewards(
-	ctx sdk.Context,
-	collateralType string,
-	periodStart time.Time,
-	periodEnd time.Time,
-	periodRewardsPerSecond sdk.DecCoins,
-) sdk.DecCoins {
-	previousAccrualTime, found := k.GetEarnRewardAccrualTime(ctx, collateralType)
+	previousAccrualTime, found := k.GetSwapRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()
 	}
 
-	rewards, accumulatedTo := types.CalculatePerSecondRewards(
-		periodStart,
-		periodEnd,
-		periodRewardsPerSecond,
-		previousAccrualTime,
-		ctx.BlockTime(),
-	)
-
-	k.SetEarnRewardAccrualTime(ctx, collateralType, accumulatedTo)
-
-	// Don't need to move funds as they're assumed to be in the IncentiveMacc module account already.
-	return rewards
-}
-
-func (k Keeper) accumulateEarnRewards(
-	ctx sdk.Context,
-	collateralType string,
-	periodStart time.Time,
-	periodEnd time.Time,
-	periodRewardsPerSecond sdk.DecCoins,
-) {
-	previousAccrualTime, found := k.GetEarnRewardAccrualTime(ctx, collateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
-	}
-
-	indexes, found := k.GetEarnRewardIndexes(ctx, collateralType)
+	indexes, found := k.GetSwapRewardIndexes(ctx, rewardPeriod.CollateralType)
 	if !found {
 		indexes = types.RewardIndexes{}
 	}
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
+	totalSource := k.getSwapTotalSourceShares(ctx, rewardPeriod.CollateralType)
 
-	acc.AccumulateDecCoins(
-		periodStart,
-		periodEnd,
-		periodRewardsPerSecond,
-		totalSourceShares,
-		ctx.BlockTime(),
-	)
+	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
 
-	k.SetEarnRewardAccrualTime(ctx, collateralType, acc.PreviousAccumulationTime)
+	k.SetSwapRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
-		k.SetEarnRewardIndexes(ctx, collateralType, acc.Indexes)
+		k.SetSwapRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
 	}
 }
 
-// getEarnTotalSourceShares fetches the sum of all source shares for a earn reward.
-// In the case of earn, these are the total (earn module) shares in a particular vault.
-func (k Keeper) getEarnTotalSourceShares(ctx sdk.Context, vaultDenom string) sdk.Dec {
-	totalShares, found := k.earnKeeper.GetVaultTotalShares(ctx, vaultDenom)
+// getSwapTotalSourceShares fetches the sum of all source shares for a swap reward.
+// In the case of swap, these are the total (swap module) shares in a particular pool.
+func (k Keeper) getEarnTotalSourceShares(ctx sdk.Context, poolID string) sdk.Dec {
+	totalShares, found := k.swapKeeper.GetPoolShares(ctx, poolID)
 	if !found {
-		return sdk.ZeroDec()
+		totalShares = sdk.ZeroInt()
 	}
-	return totalShares.Amount
+	return totalShares.ToDec()
 }
 
-// InitializeEarnReward creates a new claim with zero rewards and indexes matching the global indexes.
+// InitializeSwapReward creates a new claim with zero rewards and indexes matching the global indexes.
 // If the claim already exists it just updates the indexes.
-func (k Keeper) InitializeEarnReward(ctx sdk.Context, vaultDenom string, owner sdk.AccAddress) {
-	claim, found := k.GetEarnClaim(ctx, owner)
+func (k Keeper) InitializeEarnReward(ctx sdk.Context, poolID string, owner sdk.AccAddress) {
+	claim, found := k.GetSwapClaim(ctx, owner)
 	if !found {
-		claim = types.NewEarnClaim(owner, sdk.Coins{}, nil)
+		claim = types.NewSwapClaim(owner, sdk.Coins{}, nil)
 	}
 
-	globalRewardIndexes, found := k.GetEarnRewardIndexes(ctx, vaultDenom)
+	globalRewardIndexes, found := k.GetSwapRewardIndexes(ctx, poolID)
 	if !found {
 		globalRewardIndexes = types.RewardIndexes{}
 	}
-	claim.RewardIndexes = claim.RewardIndexes.With(vaultDenom, globalRewardIndexes)
+	claim.RewardIndexes = claim.RewardIndexes.With(poolID, globalRewardIndexes)
 
-	k.SetEarnClaim(ctx, claim)
+	k.SetSwapClaim(ctx, claim)
 }
 
-// SynchronizeEarnReward updates the claim object by adding any accumulated rewards
+// SynchronizeSwapReward updates the claim object by adding any accumulated rewards
 // and updating the reward index value.
-func (k Keeper) SynchronizeEarnReward(
-	ctx sdk.Context,
-	vaultDenom string,
-	owner sdk.AccAddress,
-	shares sdk.Dec,
-) {
-	claim, found := k.GetEarnClaim(ctx, owner)
+func (k Keeper) SynchronizeEarnReward(ctx sdk.Context, poolID string, owner sdk.AccAddress, shares sdk.Int) {
+	claim, found := k.GetSwapClaim(ctx, owner)
 	if !found {
 		return
 	}
-	claim = k.synchronizeEarnReward(ctx, claim, vaultDenom, owner, shares)
+	claim = k.synchronizeSwapReward(ctx, claim, poolID, owner, shares)
 
-	k.SetEarnClaim(ctx, claim)
+	k.SetSwapClaim(ctx, claim)
 }
 
-// synchronizeEarnReward updates the reward and indexes in a earn claim for one vault.
-func (k *Keeper) synchronizeEarnReward(
-	ctx sdk.Context,
-	claim types.EarnClaim,
-	vaultDenom string,
-	owner sdk.AccAddress,
-	shares sdk.Dec,
-) types.EarnClaim {
-	globalRewardIndexes, found := k.GetEarnRewardIndexes(ctx, vaultDenom)
+// synchronizeSwapReward updates the reward and indexes in a swap claim for one pool.
+func (k *Keeper) synchronizeEarnReward(ctx sdk.Context, claim types.EarnClaim, poolID string, owner sdk.AccAddress, shares sdk.Int) types.EarnClaim {
+	globalRewardIndexes, found := k.GetEarnRewardIndexes(ctx, poolID)
 	if !found {
 		// The global factor is only not found if
-		// - the vault has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
+		// - the pool has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
 		// - OR it was wrongly deleted from state (factors should never be removed while unsynced claims exist)
 		// If not found we could either skip this sync, or assume the global factor is zero.
-		// Skipping will avoid storing unnecessary factors in the claim for non rewarded vaults.
+		// Skipping will avoid storing unnecessary factors in the claim for non rewarded pools.
 		// And in the event a global factor is wrongly deleted, it will avoid this function panicking when calculating rewards.
 		return claim
 	}
 
-	userRewardIndexes, found := claim.RewardIndexes.Get(vaultDenom)
+	userRewardIndexes, found := claim.RewardIndexes.Get(poolID)
 	if !found {
 		// Normally the reward indexes should always be found.
-		// But if a vault was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that vault.
+		// But if a pool was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that pool.
 		// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
 		userRewardIndexes = types.RewardIndexes{}
 	}
 
-	newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, shares)
+	newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, shares.ToDec())
 	if err != nil {
 		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
 		// This panics if a global reward factor decreases or disappears between the old and new indexes.
@@ -312,26 +102,25 @@ func (k *Keeper) synchronizeEarnReward(
 	}
 
 	claim.Reward = claim.Reward.Add(newRewards...)
-	claim.RewardIndexes = claim.RewardIndexes.With(vaultDenom, globalRewardIndexes)
+	claim.RewardIndexes = claim.RewardIndexes.With(poolID, globalRewardIndexes)
 
 	return claim
 }
 
-// GetSynchronizedEarnClaim fetches a earn claim from the store and syncs rewards for all rewarded vaults.
+// GetSynchronizedSwapClaim fetches a swap claim from the store and syncs rewards for all rewarded pools.
 func (k Keeper) GetSynchronizedEarnClaim(ctx sdk.Context, owner sdk.AccAddress) (types.EarnClaim, bool) {
 	claim, found := k.GetEarnClaim(ctx, owner)
 	if !found {
 		return types.EarnClaim{}, false
 	}
 
-	shares, found := k.earnKeeper.GetVaultAccountShares(ctx, owner)
-	if !found {
-		shares = earntypes.NewVaultShares()
-	}
+	k.IterateEarnRewardIndexes(ctx, func(poolID string, _ types.RewardIndexes) bool {
+		shares, found := k.swapKeeper.GetDepositorSharesAmount(ctx, owner, poolID)
+		if !found {
+			shares = sdk.ZeroInt()
+		}
 
-	k.IterateEarnRewardIndexes(ctx, func(vaultDenom string, _ types.RewardIndexes) bool {
-		vaultAmount := shares.AmountOf(vaultDenom)
-		claim = k.synchronizeEarnReward(ctx, claim, vaultDenom, owner, vaultAmount)
+		claim = k.synchronizeEarnReward(ctx, claim, poolID, owner, shares)
 
 		return false
 	})

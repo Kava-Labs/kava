@@ -22,15 +22,13 @@ type Keeper struct {
 	stakingKeeper types.StakingKeeper
 	swapKeeper    types.SwapKeeper
 	savingsKeeper types.SavingsKeeper
-	liquidKeeper  types.LiquidKeeper
-	earnKeeper    types.EarnKeeper
 }
 
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc codec.Codec, key sdk.StoreKey, paramstore types.ParamSubspace, bk types.BankKeeper,
 	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
-	swpk types.SwapKeeper, svk types.SavingsKeeper, lqk types.LiquidKeeper, ek types.EarnKeeper,
+	swpk types.SwapKeeper, svk types.SavingsKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -47,8 +45,6 @@ func NewKeeper(
 		stakingKeeper: stk,
 		swapKeeper:    swpk,
 		savingsKeeper: svk,
-		liquidKeeper:  lqk,
-		earnKeeper:    ek,
 	}
 }
 
@@ -800,18 +796,18 @@ func (k Keeper) IterateSavingsRewardAccrualTimes(ctx sdk.Context, cb func(string
 }
 
 // SetEarnRewardIndexes stores the global reward indexes that track total rewards to a earn vault.
-func (k Keeper) SetEarnRewardIndexes(ctx sdk.Context, vaultDenom string, indexes types.RewardIndexes) {
+func (k Keeper) SetEarnRewardIndexes(ctx sdk.Context, poolID string, indexes types.RewardIndexes) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.EarnRewardIndexesKeyPrefix)
 	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
 		RewardIndexes: indexes,
 	})
-	store.Set([]byte(vaultDenom), bz)
+	store.Set([]byte(poolID), bz)
 }
 
 // GetEarnRewardIndexes fetches the global reward indexes that track total rewards to a earn vault.
-func (k Keeper) GetEarnRewardIndexes(ctx sdk.Context, vaultDenom string) (types.RewardIndexes, bool) {
+func (k Keeper) GetEarnRewardIndexes(ctx sdk.Context, poolID string) (types.RewardIndexes, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.EarnRewardIndexesKeyPrefix)
-	bz := store.Get([]byte(vaultDenom))
+	bz := store.Get([]byte(poolID))
 	if bz == nil {
 		return types.RewardIndexes{}, false
 	}
@@ -821,7 +817,7 @@ func (k Keeper) GetEarnRewardIndexes(ctx sdk.Context, vaultDenom string) (types.
 }
 
 // IterateEarnRewardIndexes iterates over all earn reward index objects in the store and preforms a callback function
-func (k Keeper) IterateEarnRewardIndexes(ctx sdk.Context, cb func(vaultDenom string, indexes types.RewardIndexes) (stop bool)) {
+func (k Keeper) IterateEarnRewardIndexes(ctx sdk.Context, cb func(poolID string, indexes types.RewardIndexes) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.EarnRewardIndexesKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
@@ -835,9 +831,9 @@ func (k Keeper) IterateEarnRewardIndexes(ctx sdk.Context, cb func(vaultDenom str
 }
 
 // GetEarnRewardAccrualTime fetches the last time rewards were accrued for an earn vault.
-func (k Keeper) GetEarnRewardAccrualTime(ctx sdk.Context, vaultDenom string) (blockTime time.Time, found bool) {
+func (k Keeper) GetEarnRewardAccrualTime(ctx sdk.Context, poolID string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousEarnRewardAccrualTimeKeyPrefix)
-	b := store.Get([]byte(vaultDenom))
+	b := store.Get([]byte(poolID))
 	if b == nil {
 		return time.Time{}, false
 	}
@@ -848,13 +844,13 @@ func (k Keeper) GetEarnRewardAccrualTime(ctx sdk.Context, vaultDenom string) (bl
 }
 
 // SetEarnRewardAccrualTime stores the last time rewards were accrued for a earn vault.
-func (k Keeper) SetEarnRewardAccrualTime(ctx sdk.Context, vaultDenom string, blockTime time.Time) {
+func (k Keeper) SetEarnRewardAccrualTime(ctx sdk.Context, poolID string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousEarnRewardAccrualTimeKeyPrefix)
 	bz, err := blockTime.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
-	store.Set([]byte(vaultDenom), bz)
+	store.Set([]byte(poolID), bz)
 }
 
 func (k Keeper) IterateEarnRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {

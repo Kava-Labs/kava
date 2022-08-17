@@ -187,9 +187,8 @@ func (h Hooks) AfterVaultDepositCreated(
 	ctx sdk.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
-	_ sdk.Dec,
-) {
-	h.k.InitializeEarnReward(ctx, vaultDenom, depositor)
+	sharesOwned sdk.Dec) {
+	h.k.InitializeEarnReward(ctx, deposit)
 }
 
 // BeforeVaultDepositModified function that runs before a vault deposit is modified
@@ -197,7 +196,7 @@ func (h Hooks) BeforeVaultDepositModified(
 	ctx sdk.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
-	sharesOwned sdk.Dec,
+	sharedOwned sdk.Dec,
 ) {
-	h.k.SynchronizeEarnReward(ctx, vaultDenom, depositor, sharesOwned)
+	h.k.SynchronizeEarnReward(ctx, deposit, incomingDenoms)
 }
