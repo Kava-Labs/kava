@@ -3,6 +3,7 @@ package evmutil
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -19,10 +20,11 @@ import (
 
 	"github.com/kava-labs/kava/x/evmutil/client/cli"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
+	"github.com/kava-labs/kava/x/evmutil/migrations"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
-// ConsensusVersion defines the current x/auth module consensus version.
+// ConsensusVersion defines the current module consensus version.
 const ConsensusVersion = 2
 
 var (
@@ -136,9 +138,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 
-	m := keeper.NewMigrator(am.legacySubspace)
+	m := migrations.NewMigrator(am.legacySubspace)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
-		panic(err)
+		panic(fmt.Sprintf("failed to migrate x/evmutil from version 1 to 2: %v", err))
 	}
 }
 

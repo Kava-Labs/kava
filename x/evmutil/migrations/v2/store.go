@@ -1,4 +1,4 @@
-package v3
+package v2
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
