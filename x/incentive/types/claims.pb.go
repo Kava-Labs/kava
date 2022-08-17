@@ -454,7 +454,7 @@ func (m *SavingsClaim) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SavingsClaim proto.InternalMessageInfo
 
-// EarnClaim stores the earn rewards that can be claimed by owner
+// SwapClaim stores the swap rewards that can be claimed by owner
 type EarnClaim struct {
 	BaseMultiClaim `protobuf:"bytes,1,opt,name=base_claim,json=baseClaim,proto3,embedded=base_claim" json:"base_claim"`
 	RewardIndexes  MultiRewardIndexes `protobuf:"bytes,2,rep,name=reward_indexes,json=rewardIndexes,proto3,castrepeated=MultiRewardIndexes" json:"reward_indexes"`

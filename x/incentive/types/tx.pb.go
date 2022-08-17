@@ -448,7 +448,7 @@ func (m *MsgClaimSavingsRewardResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgClaimSavingsRewardResponse proto.InternalMessageInfo
 
-// MsgClaimEarnReward message type used to claim earn rewards
+// MsgClaimEarnReward message type used to claim searn rewards
 type MsgClaimEarnReward struct {
 	Sender        string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	DenomsToClaim Selections `protobuf:"bytes,2,rep,name=denoms_to_claim,json=denomsToClaim,proto3,castrepeated=Selections" json:"denoms_to_claim"`

@@ -96,7 +96,7 @@ message MsgClaimSavingsReward {
 // MsgClaimSavingsRewardResponse defines the Msg/ClaimSavingsReward response type.
 message MsgClaimSavingsRewardResponse {}
 
-// MsgClaimEarnReward message type used to claim earn rewards
+// MsgClaimEarnReward message type used to claim searn rewards
 message MsgClaimEarnReward {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
