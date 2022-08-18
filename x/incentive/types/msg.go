@@ -3,35 +3,19 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 )
 
 const MaxDenomsToClaim = 1000
 
 // ensure Msg interface compliance at compile time
+var _ sdk.Msg = &MsgClaimUSDXMintingReward{}
+
 var (
-	_ sdk.Msg = &MsgClaimUSDXMintingReward{}
 	_ sdk.Msg = &MsgClaimHardReward{}
 	_ sdk.Msg = &MsgClaimDelegatorReward{}
 	_ sdk.Msg = &MsgClaimSwapReward{}
 	_ sdk.Msg = &MsgClaimSavingsReward{}
 	_ sdk.Msg = &MsgClaimEarnReward{}
-
-	_ legacytx.LegacyMsg = &MsgClaimUSDXMintingReward{}
-	_ legacytx.LegacyMsg = &MsgClaimHardReward{}
-	_ legacytx.LegacyMsg = &MsgClaimDelegatorReward{}
-	_ legacytx.LegacyMsg = &MsgClaimSwapReward{}
-	_ legacytx.LegacyMsg = &MsgClaimSavingsReward{}
-	_ legacytx.LegacyMsg = &MsgClaimEarnReward{}
-)
-
-const (
-	TypeMsgClaimUSDXMintingReward = "claim_usdx_minting_reward"
-	TypeMsgClaimHardReward        = "claim_hard_reward"
-	TypeMsgClaimDelegatorReward   = "claim_delegator_reward"
-	TypeMsgClaimSwapReward        = "claim_swap_reward"
-	TypeMsgClaimSavingsReward     = "claim_savings_reward"
-	TypeMsgClaimEarnReward        = "claim_earn_reward"
 )
 
 // NewMsgClaimUSDXMintingReward returns a new MsgClaimUSDXMintingReward.
@@ -46,7 +30,7 @@ func NewMsgClaimUSDXMintingReward(sender string, multiplierName string) MsgClaim
 func (msg MsgClaimUSDXMintingReward) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgClaimUSDXMintingReward) Type() string { return TypeMsgClaimUSDXMintingReward }
+func (msg MsgClaimUSDXMintingReward) Type() string { return "claim_usdx_minting_reward" }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgClaimUSDXMintingReward) ValidateBasic() error {
@@ -88,7 +72,7 @@ func (msg MsgClaimHardReward) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
 func (msg MsgClaimHardReward) Type() string {
-	return TypeMsgClaimHardReward
+	return "claim_hard_reward"
 }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
@@ -131,7 +115,7 @@ func (msg MsgClaimDelegatorReward) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
 func (msg MsgClaimDelegatorReward) Type() string {
-	return TypeMsgClaimDelegatorReward
+	return "claim_delegator_reward"
 }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
@@ -174,7 +158,7 @@ func (msg MsgClaimSwapReward) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
 func (msg MsgClaimSwapReward) Type() string {
-	return TypeMsgClaimSwapReward
+	return "claim_swap_reward"
 }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
@@ -217,7 +201,7 @@ func (msg MsgClaimSavingsReward) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
 func (msg MsgClaimSavingsReward) Type() string {
-	return TypeMsgClaimSavingsReward
+	return "claim_savings_reward"
 }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
@@ -260,7 +244,7 @@ func (msg MsgClaimEarnReward) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
 func (msg MsgClaimEarnReward) Type() string {
-	return TypeMsgClaimEarnReward
+	return "claim_earn_reward"
 }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
