@@ -21,7 +21,7 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
 	kavaclient "github.com/kava-labs/kava/client"
-	"github.com/kava-labs/kava/migrate"
+	// "github.com/kava-labs/kava/migrate"
 )
 
 // EnvPrefix is the prefix environment variables must have to configure the app.
@@ -83,8 +83,8 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 			genutilcli.InitCmd(app.ModuleBasics, defaultNodeHome),
 		),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
-		migrate.MigrateGenesisCmd(),
-		migrate.AssertInvariantsCmd(encodingConfig),
+		// migrate.MigrateGenesisCmd(),
+		// migrate.AssertInvariantsCmd(encodingConfig),
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		AddGenesisAccountCmd(defaultNodeHome),
