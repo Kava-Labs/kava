@@ -126,6 +126,20 @@ func InitGenesis(
 	for _, mri := range gs.SavingsRewardState.MultiRewardIndexes {
 		k.SetSavingsRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
 	}
+
+	// Earn
+	for _, claim := range gs.EarnClaims {
+		k.SetEarnClaim(ctx, claim)
+	}
+	for _, gat := range gs.EarnRewardState.AccumulationTimes {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+			panic(err.Error())
+		}
+		k.SetEarnRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+	}
+	for _, mri := range gs.EarnRewardState.MultiRewardIndexes {
+		k.SetEarnRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
+	}
 }
 
 // ExportGenesis export genesis state for incentive module
@@ -255,6 +269,22 @@ func getSavingsGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.G
 
 	var mris types.MultiRewardIndexes
 	keeper.IterateSavingsRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
+		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
+		return false
+	})
+
+	return types.NewGenesisRewardState(ats, mris)
+}
+
+func getEarnGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
+	var ats types.AccumulationTimes
+	keeper.IterateEarnRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
+		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
+		return false
+	})
+
+	var mris types.MultiRewardIndexes
+	keeper.IterateEarnRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {
 		mris = append(mris, types.NewMultiRewardIndex(ctype, indexes))
 		return false
 	})

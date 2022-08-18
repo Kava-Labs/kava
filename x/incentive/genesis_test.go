@@ -100,6 +100,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
+		types.DefaultGenesisRewardState,
 		types.DefaultUSDXClaims,
 		types.DefaultHardClaims,
 		types.DefaultDelegatorClaims,
@@ -206,6 +207,14 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 			},
 			types.MultiRewardIndexes{
 				types.NewMultiRewardIndex("ukava", types.RewardIndexes{{CollateralType: "ukava", RewardFactor: d("0.2")}}),
+			},
+		),
+		types.NewGenesisRewardState(
+			types.AccumulationTimes{
+				types.NewAccumulationTime("usdx", genesisTime.Add(-3*time.Hour)),
+			},
+			types.MultiRewardIndexes{
+				types.NewMultiRewardIndex("usdx", types.RewardIndexes{{CollateralType: "usdx", RewardFactor: d("0.2")}}),
 			},
 		),
 		types.USDXMintingClaims{
