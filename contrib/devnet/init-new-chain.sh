@@ -32,6 +32,10 @@ $BINARY init validator --chain-id $chainID
 # hacky enable of rest api
 sed -in-place='' 's/enable = false/enable = true/g' $DATA/config/app.toml
 
+sed -in-place='' 's/enable = false/enable = true/g' $DATA/config/app.toml
+
+sed -in-place='' 's/pruning = "default"/pruning = "nothing"/g' $DATA/config/app.toml
+
 # Set evm tracer to json
 sed -in-place='' 's/tracer = ""/tracer = "json"/g' $DATA/config/app.toml
 
