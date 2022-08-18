@@ -187,7 +187,8 @@ func (h Hooks) AfterVaultDepositCreated(
 	ctx sdk.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
-	sharesOwned sdk.Dec) {
+	sharesOwned sdk.Dec,
+) {
 	h.k.InitializeEarnReward(ctx, deposit)
 }
 
@@ -196,7 +197,7 @@ func (h Hooks) BeforeVaultDepositModified(
 	ctx sdk.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
-	sharedOwned sdk.Dec,
+	sharesOwned sdk.Dec,
 ) {
-	h.k.SynchronizeEarnReward(ctx, deposit, incomingDenoms)
+	h.k.SynchronizeEarnReward(ctx, vaultDenom, depositor, sharesOwned)
 }
