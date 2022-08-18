@@ -187,9 +187,9 @@ func (h Hooks) AfterVaultDepositCreated(
 	ctx sdk.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
-	sharesOwned sdk.Dec,
+	_ sdk.Dec,
 ) {
-	h.k.InitializeEarnReward(ctx, deposit)
+	h.k.InitializeEarnReward(ctx, vaultDenom, depositor)
 }
 
 // BeforeVaultDepositModified function that runs before a vault deposit is modified
