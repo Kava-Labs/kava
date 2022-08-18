@@ -16,11 +16,9 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/evmutil/client/cli"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
-	"github.com/kava-labs/kava/x/evmutil/migrations"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
@@ -102,9 +100,6 @@ type AppModule struct {
 
 	keeper     keeper.Keeper
 	bankKeeper types.BankKeeper
-
-	// legacySubspace is used solely for migration of x/params managed parameters
-	legacySubspace paramtypes.Subspace
 }
 
 // NewAppModule creates a new AppModule object
@@ -138,7 +133,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 
-	m := migrations.NewMigrator(am.legacySubspace)
+	m := keeper.NewMigrator(am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/evmutil from version 1 to 2: %v", err))
 	}
