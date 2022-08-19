@@ -2,7 +2,6 @@ package v2
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/x/committee/keeper"
@@ -15,22 +14,22 @@ import (
 //
 // - Update stability committee with new permissions to x/evm & x/evmutil.
 func MigrateStore(ctx sdk.Context, k keeper.Keeper) error {
-	stabilityCommittee, found := k.GetCommittee(ctx, 1)
-	if !found {
-		return sdkerrors.Wrap(types.ErrUnknownCommittee, "stability committee not found")
-	}
+	// stabilityCommittee, found := k.GetCommittee(ctx, 1)
+	// if !found {
+	// 	return sdkerrors.Wrap(types.ErrUnknownCommittee, "stability committee not found")
+	// }
 
-	permissions := stabilityCommittee.GetPermissions()
-	for i := 0; i < len(permissions); i++ {
-		permission := permissions[i]
-		paramsChangePermission, ok := permission.(types.ParamsChangePermission)
-		if ok {
-			newPermissions := migrateParamsChangePermission(ctx, k, paramsChangePermission)
-			permissions[i] = newPermissions
-		}
-	}
+	// permissions := stabilityCommittee.GetPermissions()
+	// for i := 0; i < len(permissions); i++ {
+	// 	permission := permissions[i]
+	// 	paramsChangePermission, ok := permission.(types.ParamsChangePermission)
+	// 	if ok {
+	// 		newPermissions := migrateParamsChangePermission(ctx, k, paramsChangePermission)
+	// 		permissions[i] = newPermissions
+	// 	}
+	// }
 
-	k.SetCommittee(ctx, stabilityCommittee)
+	// k.SetCommittee(ctx, stabilityCommittee)
 
 	return nil
 }
