@@ -119,3 +119,100 @@ jq '.app_state.bridge.params.enabled_conversion_pairs = [
         denom: "erc20/weth",
     }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
 
+
+# create stability committee for migration test
+jq '.app_state.committee.committees = [
+    {
+      "@type": "/kava.committee.v1beta1.MemberCommittee",
+      "base_committee": {
+        "id": "1",
+        "description": "Kava Stability Committee",
+        "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
+        "permissions": [
+          {
+            "@type": "/kava.committee.v1beta1.TextPermission"
+          },
+          {
+            "@type": "/kava.committee.v1beta1.ParamsChangePermission",
+            "allowed_params_changes": [
+              {
+                "subspace": "auction",
+                "key": "BidDuration"
+              },
+              {
+                "subspace": "auction",
+                "key": "IncrementSurplus"
+              },
+              {
+                "subspace": "auction",
+                "key": "IncrementDebt"
+              },
+              {
+                "subspace": "auction",
+                "key": "IncrementCollateral"
+              },
+              {
+                "subspace": "bep3",
+                "key": "AssetParams"
+              },
+              {
+                "subspace": "cdp",
+                "key": "GlobalDebtLimit"
+              },
+              {
+                "subspace": "cdp",
+                "key": "SurplusThreshold"
+              },
+              {
+                "subspace": "cdp",
+                "key": "SurplusLot"
+              },
+              {
+                "subspace": "cdp",
+                "key": "DebtThreshold"
+              },
+              {
+                "subspace": "cdp",
+                "key": "DebtLot"
+              },
+              {
+                "subspace": "cdp",
+                "key": "DistributionFrequency"
+              },
+              {
+                "subspace": "cdp",
+                "key": "CollateralParams"
+              },
+              {
+                "subspace": "cdp",
+                "key": "DebtParam"
+              },
+              {
+                "subspace": "incentive",
+                "key": "Active"
+              },
+              {
+                "subspace": "kavadist",
+                "key": "Active"
+              },
+              {
+                "subspace": "pricefeed",
+                "key": "Markets"
+              },
+              {
+                "subspace": "hard",
+                "key": "MoneyMarkets"
+              },
+              {
+                "subspace": "hard",
+                "key": "MinimumBorrowUSDValue"
+              }
+            ]
+          }
+        ],
+        "vote_threshold": "0.667000000000000000",
+        "proposal_duration": "604800s",
+        "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
+      }
+    }
+]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
