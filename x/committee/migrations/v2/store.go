@@ -29,6 +29,7 @@ func MigrateStore(ctx sdk.Context, k keeper.Keeper) error {
 			permissions[i] = newPermissions
 		}
 	}
+	stabilityCommittee.SetPermissions(permissions)
 
 	k.SetCommittee(ctx, stabilityCommittee)
 
