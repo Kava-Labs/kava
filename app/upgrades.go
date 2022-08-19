@@ -29,6 +29,9 @@ func (app App) RegisterUpgradeHandlers() {
 				savingstypes.StoreKey,
 				earntypes.StoreKey,
 			},
+			Deleted: []string{
+				"bridge",
+			},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
