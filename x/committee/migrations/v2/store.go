@@ -23,20 +23,20 @@ func MigrateStore(ctx sdk.Context, k keeper.Keeper) error {
 	permissions := stabilityCommittee.GetPermissions()
 	for i := 0; i < len(permissions); i++ {
 		permission := permissions[i]
-		paramsChangePermission, ok := permission.(types.ParamsChangePermission)
-		if ok {
-			newPermissions := migrateParamsChangePermission(ctx, k, paramsChangePermission)
-			permissions[i] = newPermissions
+		switch targetPermission := permission.(type) {
+		case *types.ParamsChangePermission:
+			{
+				newPermissions := migrateParamsChangePermission(ctx, k, targetPermission)
+				permissions[i] = newPermissions
+			}
 		}
 	}
 	stabilityCommittee.SetPermissions(permissions)
-
 	k.SetCommittee(ctx, stabilityCommittee)
-
 	return nil
 }
 
-func migrateParamsChangePermission(ctx sdk.Context, k keeper.Keeper, p types.ParamsChangePermission) types.ParamsChangePermission {
+func migrateParamsChangePermission(ctx sdk.Context, k keeper.Keeper, p *types.ParamsChangePermission) *types.ParamsChangePermission {
 	// allow all changes to x/evm eip712 allowed msgs
 	evmChange := types.AllowedParamsChange{
 		Subspace: evmtypes.ModuleName,
