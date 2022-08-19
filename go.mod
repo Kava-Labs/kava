@@ -165,7 +165,7 @@ replace (
 	// Use rocksdb 7.1.2
 	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.1
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled
-	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.14.1-0.20220818145943-2bcb4526bf6b
+	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.14.1-0.20220819154458-9fb28b89b424
 	// Make sure that we use grpc compatible with cosmos
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
