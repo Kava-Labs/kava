@@ -20,6 +20,7 @@ func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/incentive/claim-hard", postClaimHandlerFn(cliCtx, hardGenerator)).Methods("POST")
 	r.HandleFunc("/incentive/claim-delegator", postClaimHandlerFn(cliCtx, delegatorGenerator)).Methods("POST")
 	r.HandleFunc("/incentive/claim-swap", postClaimHandlerFn(cliCtx, swapGenerator)).Methods("POST")
+	r.HandleFunc("/incentive/claim-earn", postClaimHandlerFn(cliCtx, earnGenerator)).Methods("POST")
 }
 
 func usdxMintingGenerator(req PostClaimReq) (sdk.Msg, error) {
@@ -42,6 +43,11 @@ func delegatorGenerator(req PostClaimReq) (sdk.Msg, error) {
 
 func swapGenerator(req PostClaimReq) (sdk.Msg, error) {
 	msg := types.NewMsgClaimSwapReward(req.Sender.String(), req.DenomsToClaim)
+	return &msg, nil
+}
+
+func earnGenerator(req PostClaimReq) (sdk.Msg, error) {
+	msg := types.NewMsgClaimEarnReward(req.Sender.String(), req.DenomsToClaim)
 	return &msg, nil
 }
 
