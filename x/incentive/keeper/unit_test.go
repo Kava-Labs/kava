@@ -400,14 +400,16 @@ func (k *fakeEarnKeeper) GetVaultTotalShares(
 	ctx sdk.Context,
 	denom string,
 ) (shares earntypes.VaultShare, found bool) {
-	return
+	vaultShares, found := k.vaultShares[denom]
+	return vaultShares, found
 }
 
 func (k *fakeEarnKeeper) GetVaultAccountShares(
 	ctx sdk.Context,
 	acc sdk.AccAddress,
 ) (shares earntypes.VaultShares, found bool) {
-	return
+	accShares, found := k.depositShares[acc.String()]
+	return accShares, found
 }
 
 // Assorted Testing Data
