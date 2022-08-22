@@ -424,7 +424,7 @@ func (suite *KeeperTestSuite) TestIterateEarnRewardIndexes() {
 	suite.SetupApp()
 	multiIndexes := types.MultiRewardIndexes{
 		{
-			CollateralType: "usdx",
+			CollateralType: "ukava",
 			RewardIndexes: types.RewardIndexes{
 				{
 					CollateralType: "earn",
