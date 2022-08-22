@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -100,7 +101,7 @@ func (k *Keeper) synchronizeEarnReward(
 	userRewardIndexes, found := claim.RewardIndexes.Get(vaultDenom)
 	if !found {
 		// Normally the reward indexes should always be found.
-		// But if a vault was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that pool.
+		// But if a vault was not rewarded then becomes rewarded (ie a reward period is added to params), then the indexes will be missing from claims for that vault.
 		// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
 		userRewardIndexes = types.RewardIndexes{}
 	}
@@ -125,14 +126,13 @@ func (k Keeper) GetSynchronizedEarnClaim(ctx sdk.Context, owner sdk.AccAddress) 
 		return types.EarnClaim{}, false
 	}
 
+	shares, found := k.earnKeeper.GetVaultAccountShares(ctx, owner)
+	if !found {
+		shares = earntypes.NewVaultShares()
+	}
+
 	k.IterateEarnRewardIndexes(ctx, func(vaultDenom string, _ types.RewardIndexes) bool {
-		vaultAmount := sdk.ZeroDec()
-
-		shares, found := k.earnKeeper.GetVaultAccountShares(ctx, owner)
-		if found {
-			vaultAmount = shares.AmountOf(vaultDenom)
-		}
-
+		vaultAmount := shares.AmountOf(vaultDenom)
 		claim = k.synchronizeEarnReward(ctx, claim, vaultDenom, owner, vaultAmount)
 
 		return false

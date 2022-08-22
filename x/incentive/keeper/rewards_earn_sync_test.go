@@ -415,6 +415,8 @@ func (suite *SynchronizeEarnRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 	owner := arbitraryAddress()
 
 	earnKeeper := newFakeEarnKeeper().
+		addVault(VaultDenom_1, earntypes.NewVaultShare(VaultDenom_1, d("1000000000"))).
+		addVault(VaultDenom_2, earntypes.NewVaultShare(VaultDenom_2, d("1000000000"))).
 		addDeposit(owner, earntypes.NewVaultShare(VaultDenom_1, d("1000000000"))).
 		addDeposit(owner, earntypes.NewVaultShare(VaultDenom_2, d("1000000000")))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, earnKeeper)

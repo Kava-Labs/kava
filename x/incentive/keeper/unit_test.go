@@ -378,8 +378,8 @@ func newFakeEarnKeeper() *fakeEarnKeeper {
 	}
 }
 
-func (k *fakeEarnKeeper) addVault(id string, shares earntypes.VaultShare) *fakeEarnKeeper {
-	k.vaultShares[id] = shares
+func (k *fakeEarnKeeper) addVault(vaultDenom string, shares earntypes.VaultShare) *fakeEarnKeeper {
+	k.vaultShares[vaultDenom] = shares
 	return k
 }
 
