@@ -291,6 +291,215 @@ func (suite *KeeperTestSuite) TestGetSetSwapRewardAccrualTimes() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestGetSetDeleteEarnClaims() {
+	suite.SetupApp()
+	c := types.NewEarnClaim(suite.addrs[0], arbitraryCoins(), nonEmptyMultiRewardIndexes)
+
+	_, found := suite.keeper.GetEarnClaim(suite.ctx, suite.addrs[0])
+	suite.Require().False(found)
+
+	suite.Require().NotPanics(func() {
+		suite.keeper.SetEarnClaim(suite.ctx, c)
+	})
+	testC, found := suite.keeper.GetEarnClaim(suite.ctx, suite.addrs[0])
+	suite.Require().True(found)
+	suite.Require().Equal(c, testC)
+
+	suite.Require().NotPanics(func() {
+		suite.keeper.DeleteEarnClaim(suite.ctx, suite.addrs[0])
+	})
+	_, found = suite.keeper.GetEarnClaim(suite.ctx, suite.addrs[0])
+	suite.Require().False(found)
+}
+
+func (suite *KeeperTestSuite) TestIterateEarnClaims() {
+	suite.SetupApp()
+	claims := types.EarnClaims{
+		types.NewEarnClaim(suite.addrs[0], arbitraryCoins(), nonEmptyMultiRewardIndexes),
+		types.NewEarnClaim(suite.addrs[1], nil, nil), // different claim to the first
+	}
+	for _, claim := range claims {
+		suite.keeper.SetEarnClaim(suite.ctx, claim)
+	}
+
+	var actualClaims types.EarnClaims
+	suite.keeper.IterateEarnClaims(suite.ctx, func(c types.EarnClaim) bool {
+		actualClaims = append(actualClaims, c)
+		return false
+	})
+
+	suite.Require().Equal(claims, actualClaims)
+}
+
+func (suite *KeeperTestSuite) TestGetSetEarnRewardIndexes() {
+	testCases := []struct {
+		name       string
+		vaultDenom string
+		indexes    types.RewardIndexes
+		wantIndex  types.RewardIndexes
+		panics     bool
+	}{
+		{
+			name:       "two factors can be written and read",
+			vaultDenom: "usdx",
+			indexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+			wantIndex: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			name:       "indexes with empty vault name panics",
+			vaultDenom: "",
+			indexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+			panics: true,
+		},
+		{
+			// this test is to detect any changes in behavior
+			name:       "setting empty indexes does not panic",
+			vaultDenom: "usdx",
+			// Marshalling empty slice results in [] bytes, unmarshalling the []
+			// empty bytes results in a nil slice instead of an empty slice
+			indexes:   types.RewardIndexes{},
+			wantIndex: nil,
+			panics:    false,
+		},
+		{
+			// this test is to detect any changes in behavior
+			name:       "setting nil indexes does not panic",
+			vaultDenom: "usdx",
+			indexes:    nil,
+			wantIndex:  nil,
+			panics:     false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupApp()
+
+			_, found := suite.keeper.GetEarnRewardIndexes(suite.ctx, tc.vaultDenom)
+			suite.False(found)
+
+			setFunc := func() { suite.keeper.SetEarnRewardIndexes(suite.ctx, tc.vaultDenom, tc.indexes) }
+			if tc.panics {
+				suite.Panics(setFunc)
+				return
+			} else {
+				suite.NotPanics(setFunc)
+			}
+
+			storedIndexes, found := suite.keeper.GetEarnRewardIndexes(suite.ctx, tc.vaultDenom)
+			suite.True(found)
+			suite.Equal(tc.wantIndex, storedIndexes)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestIterateEarnRewardIndexes() {
+	suite.SetupApp()
+	multiIndexes := types.MultiRewardIndexes{
+		{
+			CollateralType: "usdx",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "earn",
+					RewardFactor:   d("0.0000002"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			CollateralType: "usdx",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+			},
+		},
+	}
+	for _, mi := range multiIndexes {
+		suite.keeper.SetEarnRewardIndexes(suite.ctx, mi.CollateralType, mi.RewardIndexes)
+	}
+
+	var actualMultiIndexes types.MultiRewardIndexes
+	suite.keeper.IterateEarnRewardIndexes(suite.ctx, func(vaultDenom string, i types.RewardIndexes) bool {
+		actualMultiIndexes = actualMultiIndexes.With(vaultDenom, i)
+		return false
+	})
+
+	suite.Require().Equal(multiIndexes, actualMultiIndexes)
+}
+
+func (suite *KeeperTestSuite) TestGetSetEarnRewardAccrualTimes() {
+	testCases := []struct {
+		name        string
+		vaultDenom  string
+		accrualTime time.Time
+		panics      bool
+	}{
+		{
+			name:        "normal time can be written and read",
+			vaultDenom:  "usdx",
+			accrualTime: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name:        "zero time can be written and read",
+			vaultDenom:  "usdx",
+			accrualTime: time.Time{},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupApp()
+
+			_, found := suite.keeper.GetEarnRewardAccrualTime(suite.ctx, tc.vaultDenom)
+			suite.False(found)
+
+			setFunc := func() { suite.keeper.SetEarnRewardAccrualTime(suite.ctx, tc.vaultDenom, tc.accrualTime) }
+			if tc.panics {
+				suite.Panics(setFunc)
+				return
+			} else {
+				suite.NotPanics(setFunc)
+			}
+
+			storedTime, found := suite.keeper.GetEarnRewardAccrualTime(suite.ctx, tc.vaultDenom)
+			suite.True(found)
+			suite.Equal(tc.accrualTime, storedTime)
+		})
+	}
+}
+
 type accrualtime struct {
 	denom string
 	time  time.Time
@@ -390,6 +599,24 @@ func (suite *KeeperTestSuite) TestIterateSwapRewardAccrualTimes() {
 
 	var actualAccrualTimes []accrualtime
 	suite.keeper.IterateSwapRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
+
+func (suite *KeeperTestSuite) TestIterateEarnRewardAccrualTimes() {
+	suite.SetupApp()
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetEarnRewardAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateEarnRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
 		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
 		return false
 	})
