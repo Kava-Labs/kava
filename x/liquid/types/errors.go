@@ -23,6 +23,7 @@ var (
 	ErrInvalidDerivativeDenom          = sdkerrors.New(ModuleName, 12, "invalid derivative denom")
 	ErrRedelegationsNotCompleted       = sdkerrors.New(ModuleName, 13, "active redelegations cannot be transferred")
 
-	ErrInvalidRequest             = sdkerrors.New(ModuleName, 14, "invalid request")
+	ErrUntransferableShares       = sdkerrors.New(ModuleName, 14, "shares cannot be transferred")
 	ErrSelfDelegationBelowMinimum = sdkerrors.Register(ModuleName, 15, "validator's self delegation must be greater than their minimum self delegation")
+	ErrInvalidMint                = sdkerrors.Register(ModuleName, 16, "invalid mint")
 )

@@ -14,6 +14,7 @@ import (
 // Vesting periods for delegated tokens will not be transferred to the new delegator.
 // The sending delegation must not have any active redelegations.
 // A validator cannot reduce self delegated shares below its min self delegation.
+// Attempting to transfer zero shares will error.
 func (k Keeper) TransferDelegation(ctx sdk.Context, valAddr sdk.ValAddress, fromDelegator, toDelegator sdk.AccAddress, shares sdk.Dec) error {
 	// Redelegations link a delegation to it's previous validator so slashes are propagated to the new validator.
 	// If the delegation is transferred to a new owner, the redelegation object must be updated.
@@ -34,7 +35,12 @@ func (k Keeper) TransferDelegation(ctx sdk.Context, valAddr sdk.ValAddress, from
 	}
 
 	if shares.IsNil() || shares.LT(sdk.ZeroDec()) {
-		return sdkerrors.Wrap(types.ErrInvalidRequest, "cannot transfer nil or negative shares")
+		return sdkerrors.Wrap(types.ErrUntransferableShares, "nil or negative shares")
+	}
+	if shares.Equal(sdk.ZeroDec()) {
+		// Block 0 transfers to avoid having to match staking module's behavior in this edge case.
+		// The staking Delegate method may allow zero share delegations, but still calls hooks.
+		return sdkerrors.Wrap(types.ErrUntransferableShares, "zero shares")
 	}
 	if fromDelegation.Shares.LT(shares) {
 		return sdkerrors.Wrapf(types.ErrNotEnoughDelegationShares, "%s < %s", fromDelegation.Shares, shares)

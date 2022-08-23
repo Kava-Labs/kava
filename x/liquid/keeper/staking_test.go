@@ -138,10 +138,22 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				return fromDelegationShares, sdk.ZeroDec(), nil
 			},
 			shares:      d("-1.0"),
-			expectedErr: types.ErrInvalidRequest,
+			expectedErr: types.ErrUntransferableShares,
 		},
 		{
-			name: "0 shares can be transferred",
+			name: "nil shares cannot be transferred",
+			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
+				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
+				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+
+				return fromDelegationShares, sdk.ZeroDec(), nil
+			},
+			shares:      sdk.Dec{},
+			expectedErr: types.ErrUntransferableShares,
+		},
+		{
+			name: "0 shares cannot be transferred",
 			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
@@ -150,7 +162,8 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 
 				return fromDelegationShares, toDelegationShares, nil
 			},
-			shares: sdk.ZeroDec(),
+			shares:      sdk.ZeroDec(),
+			expectedErr: types.ErrUntransferableShares,
 		},
 		{
 			name: "all shares can be transferred",
@@ -221,7 +234,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 			suite.CreateAccountWithAddress(toDelegator, suite.NewBondCoins(initialBalance))
 
 			fromDelegationShares, toDelegationShares, err := tc.createDelegations()
-			suite.Require().NoError(err)
+			suite.Require().NoError(err) // TODO does this catch nil errors?
 
 			err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, tc.shares)
 
