@@ -12,23 +12,8 @@ import (
 // MintDerivative mints a new derivative
 func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) error {
 
-	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
-		return types.ErrNoValidatorFound
-	}
-
-	delegation, found := k.stakingKeeper.GetDelegation(ctx, delegatorAddr, valAddr)
-	if !found {
-		return types.ErrNoDelegatorForAddress
-	}
-
 	if amount.Denom != k.stakingKeeper.BondDenom(ctx) {
 		return types.ErrOnlyBondDenomAllowedForTokenize
-	}
-
-	delegationAmount := validator.Tokens.ToDec().Mul(delegation.GetShares()).Quo(validator.DelegatorShares)
-	if amount.Amount.ToDec().GT(delegationAmount) {
-		return types.ErrNotEnoughDelegationShares
 	}
 
 	acc := k.accountKeeper.GetAccount(ctx, delegatorAddr)
@@ -46,38 +31,9 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 		}
 	}
 
-	liquidTokenDenom := k.GetLiquidStakingTokenDenom(ctx, valAddr)
-	liquidToken := sdk.NewCoin(liquidTokenDenom, amount.Amount)
-	err := k.bankKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.Coins{liquidToken})
+	derivativeAmount, shares, err := k.CalculateDerivativeSharesFromTokens(ctx, delegatorAddr, valAddr, amount.Amount)
 	if err != nil {
 		return err
-	}
-
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, delegatorAddr, sdk.Coins{liquidToken})
-	if err != nil {
-		return err
-	}
-
-	// Validate unbond share amount
-	shares, err := validator.SharesFromTokens(amount.Amount)
-	if err != nil {
-		return err
-	}
-
-	sharesTruncated, err := validator.SharesFromTokensTruncated(amount.Amount)
-	if err != nil {
-		return err
-	}
-
-	delShares := delegation.GetShares()
-	if sharesTruncated.GT(delShares) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid shares amount")
-	}
-
-	// Cap the shares at the delegation's shares. Shares could be greater due to rounding,
-	// however we don't truncate shares because we want to allow for full delegation withdraw.
-	if shares.GT(delShares) {
-		shares = delShares
 	}
 
 	moduleAccAddress := authtypes.NewModuleAddress(types.ModuleAccountName)
@@ -85,15 +41,41 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 		return err
 	}
 
+	liquidTokenDenom := k.GetLiquidStakingTokenDenom(ctx, valAddr)
+	liquidToken := sdk.NewCoins(sdk.NewCoin(liquidTokenDenom, derivativeAmount))
+	if err = k.mintCoins(ctx, delegatorAddr, liquidToken); err != nil {
+		return err
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeMintDerivative,
+			sdk.NewAttribute(types.AttributeKeyDelegator, delegatorAddr.String()),
+			sdk.NewAttribute(types.AttributeKeyValidator, valAddr.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, liquidToken.String()),
-			sdk.NewAttribute(types.AttributeKeyValidator, validator.String()),
-			sdk.NewAttribute(types.AttributeKeyModuleAccount, moduleAccAddress.String()),
+			sdk.NewAttribute(types.AttributeKeySharesTransferred, shares.String()),
 		),
 	)
 
+	return nil
+}
+
+func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, tokens sdk.Int) (sdk.Int, sdk.Dec, error) {
+	shares, err := k.stakingKeeper.ValidateUnbondAmount(ctx, delegator, validator, tokens)
+	if err != nil {
+		// TODO wrap staking errors
+		return sdk.Int{}, sdk.Dec{}, sdkerrors.Wrap(types.ErrInvalidMint, err.Error())
+	}
+	return shares.TruncateInt(), shares, nil
+}
+
+func (k Keeper) mintCoins(ctx sdk.Context, receiver sdk.AccAddress, amount sdk.Coins) error {
+	if err := k.bankKeeper.MintCoins(ctx, types.ModuleAccountName, amount); err != nil {
+		return err
+	}
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, receiver, amount); err != nil {
+		return err
+	}
 	return nil
 }
 

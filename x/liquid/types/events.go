@@ -4,10 +4,12 @@ const (
 	EventTypeMintDerivative = "mint_derivative"
 	EventTypeBurnDerivative = "burn_derivative"
 
-	AttributeValueCategory     = ModuleName
-	AttributeKeyAmount         = "amount"
-	AttributeKeySender         = "sender"
-	AttributeKeyValidator      = "validator"
+	AttributeValueCategory        = ModuleName
+	AttributeKeyDelegator         = "delegator"
+	AttributeKeyValidator         = "validator"
+	AttributeKeySharesTransferred = "shares_transferred"
+
+	// TODO remove unused events
 	AttributeKeyModuleAccount  = "module_account"
 	AttributeKeyAmountReturned = "returned"
 	AttributeKeyAmountBurned   = "burned"

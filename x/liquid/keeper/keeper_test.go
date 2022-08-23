@@ -1,10 +1,10 @@
 package keeper_test
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -14,6 +14,8 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
@@ -130,7 +132,7 @@ func (suite *KeeperTestSuite) CreateNewUnbondedValidator(addr sdk.ValAddress, se
 	return validator
 }
 
-// SlashValidator burns tokens delegated to a validator.
+// SlashValidator burns tokens staked in a validator. new_tokens = old_tokens * (1-slashFraction)
 func (suite *KeeperTestSuite) SlashValidator(addr sdk.ValAddress, slashFraction sdk.Dec) {
 	validator, found := suite.StakingKeeper.GetValidator(suite.Ctx, addr)
 	suite.Require().True(found)
@@ -190,6 +192,37 @@ func (suite *KeeperTestSuite) DelegationSharesEqual(valAddr sdk.ValAddress, dele
 		res := suite.True(found, "expected delegator to be found")
 		return res && suite.Truef(shares.Equal(del.Shares), "expected %s delegator shares but got %s", shares, del.Shares)
 	}
+}
+
+// EventsContains asserts that the expected event is in the provided events
+func (suite *KeeperTestSuite) EventsContains(events sdk.Events, expectedEvent sdk.Event) {
+	foundMatch := false
+	for _, event := range events {
+		if event.Type == expectedEvent.Type {
+			if reflect.DeepEqual(attrsToMap(expectedEvent.Attributes), attrsToMap(event.Attributes)) {
+				foundMatch = true
+			}
+		}
+	}
+
+	suite.True(foundMatch, fmt.Sprintf("event of type %s not found or did not match", expectedEvent.Type))
+}
+
+// EventsDoNotContainType asserts that the provided events do contain an event of a certain type.
+func (suite *KeeperTestSuite) EventsDoNotContainType(events sdk.Events, eventType string) {
+	for _, event := range events {
+		suite.Falsef(event.Type == eventType, "found unexpected event %s", eventType)
+	}
+}
+
+func attrsToMap(attrs []abci.EventAttribute) []sdk.Attribute {
+	out := []sdk.Attribute{}
+
+	for _, attr := range attrs {
+		out = append(out, sdk.NewAttribute(string(attr.Key), string(attr.Value)))
+	}
+
+	return out
 }
 
 func TestKeeperTestSuite(t *testing.T) {
