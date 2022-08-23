@@ -1,0 +1,43 @@
+syntax = "proto3";
+package kava.earn.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/earn/types";
+
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "kava/earn/v1beta1/strategy.proto";
+
+// AllowedVault is a vault that is allowed to be created. These can be
+// modified via parameter governance.
+message AllowedVault {
+  // Denom is the only supported denomination of the vault for deposits and withdrawals.
+  string denom = 1;
+
+  // VaultStrategy is the strategy used for this vault.
+  StrategyType vault_strategy = 2;
+}
+
+// VaultRecord is the state of a vault and is used to store the state of a
+// vault.
+message VaultRecord {
+  // Denom is the only supported denomination of the vault for deposits and
+  // withdrawals.
+  string denom = 1;
+  // TotalSupply is the total supply of the vault, denominated **only** in the
+  // user deposit/withdrawal denom, must be the same as the Denom field.
+  cosmos.base.v1beta1.Coin total_supply = 2 [(gogoproto.nullable) = false];
+}
+
+// VaultShareRecord defines the vault shares owned by a depositor.
+message VaultShareRecord {
+  // Depositor represents the owner of the shares
+  bytes depositor = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  // AmountSupplied represents the total amount a depositor has supplied to the
+  // vault. The vault is determined by the coin denom.
+  repeated cosmos.base.v1beta1.Coin amount_supplied = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}

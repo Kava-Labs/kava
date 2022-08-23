@@ -33,6 +33,7 @@ import (
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
+	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
 	evmutilkeeper "github.com/kava-labs/kava/x/evmutil/keeper"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
@@ -107,9 +108,8 @@ func (tApp TestApp) GetIncentiveKeeper() incentivekeeper.Keeper { return tApp.in
 func (tApp TestApp) GetEvmutilKeeper() evmutilkeeper.Keeper     { return tApp.evmutilKeeper }
 func (tApp TestApp) GetEvmKeeper() *evmkeeper.Keeper            { return tApp.evmKeeper }
 func (tApp TestApp) GetSavingsKeeper() savingskeeper.Keeper     { return tApp.savingsKeeper }
-func (tApp TestApp) GetLiquidKeeper() liquidkeeper.Keeper {
-	return tApp.liquidKeeper
-}
+func (tApp TestApp) GetLiquidKeeper() liquidkeeper.Keeper       { return tApp.liquidKeeper }
+func (tApp TestApp) GetEarnKeeper() earnkeeper.Keeper           { return tApp.earnKeeper }
 
 // LegacyAmino returns the app's amino codec.
 func (app *App) LegacyAmino() *codec.LegacyAmino {

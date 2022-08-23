@@ -1,0 +1,20 @@
+syntax = "proto3";
+package kava.earn.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/earn/types";
+
+import "gogoproto/gogo.proto";
+
+// StrategyType is the type of strategy that a vault uses to optimize yields.
+enum StrategyType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+  STRATEGY_TYPE_UNSPECIFIED = 0;
+  // STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+  // module.
+  STRATEGY_TYPE_HARD = 1;
+  // STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+  // Savings module.
+  STRATEGY_TYPE_SAVINGS = 2;
+}

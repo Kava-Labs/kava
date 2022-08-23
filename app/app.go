@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -110,6 +109,9 @@ import (
 	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	earn "github.com/kava-labs/kava/x/earn"
+	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutil "github.com/kava-labs/kava/x/evmutil"
 	evmutilkeeper "github.com/kava-labs/kava/x/evmutil/keeper"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
@@ -196,6 +198,7 @@ var (
 		evmutil.AppModuleBasic{},
 		bridge.AppModuleBasic{},
 		liquid.AppModuleBasic{},
+		earn.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -222,12 +225,11 @@ var (
 		savingstypes.ModuleAccountName:  nil,
 		bridgetypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
 		liquidtypes.ModuleAccountName:   {authtypes.Minter, authtypes.Burner},
+		earntypes.ModuleAccountName:     nil,
 	}
 )
 
-// Verify app interface at compile time
 // var _ simapp.App = (*App)(nil) // TODO
-var _ servertypes.Application = (*App)(nil)
 
 // Options bundles several configuration params for an App.
 type Options struct {
@@ -292,6 +294,7 @@ type App struct {
 	incentiveKeeper  incentivekeeper.Keeper
 	savingsKeeper    savingskeeper.Keeper
 	liquidKeeper     liquidkeeper.Keeper
+	earnKeeper       earnkeeper.Keeper
 
 	bridgeKeeper bridgekeeper.Keeper
 
@@ -347,7 +350,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey, bridgetypes.StoreKey, liquidtypes.StoreKey,
+		savingstypes.StoreKey, bridgetypes.StoreKey, liquidtypes.StoreKey, earntypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -393,6 +396,7 @@ func NewApp(
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
 	bridgeSubspace := app.paramsKeeper.Subspace(bridgetypes.ModuleName)
 	liquidSubspace := app.paramsKeeper.Subspace(liquidtypes.ModuleName)
+	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -626,6 +630,16 @@ func NewApp(
 		&swapKeeper,
 		&savingsKeeper,
 	)
+	app.earnKeeper = earnkeeper.NewKeeper(
+		appCodec,
+		keys[earntypes.StoreKey],
+		earnSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		hardKeeper,
+		savingsKeeper,
+	)
+
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
 	committeeGovRouter.
@@ -711,6 +725,7 @@ func NewApp(
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
 		liquid.NewAppModule(app.liquidKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -759,6 +774,7 @@ func NewApp(
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
 		liquidtypes.ModuleName,
+		earntypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -799,6 +815,7 @@ func NewApp(
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
 		liquidtypes.ModuleName,
+		earntypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -831,6 +848,7 @@ func NewApp(
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,
 		bridgetypes.ModuleName,
+		earntypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
 		// Add all remaining modules with an empty InitGenesis below since cosmos 0.45.0 requires it
@@ -996,9 +1014,11 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
 	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
+	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
+
 	for addr := range modAccAddrs {
-		// Set the kavadist module account address as unblocked
-		if addr == kavadistMaccAddr.String() {
+		// Set the kavadist and earn module account address as unblocked
+		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() {
 			modAccAddrs[addr] = false
 		}
 	}
