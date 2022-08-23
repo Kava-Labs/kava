@@ -385,6 +385,26 @@
   
     - [Query](#kava.kavadist.v1beta1.Query)
   
+- [kava/liquid/v1beta1/store.proto](#kava/liquid/v1beta1/store.proto)
+    - [Params](#kava.liquid.v1beta1.Params)
+  
+- [kava/liquid/v1beta1/genesis.proto](#kava/liquid/v1beta1/genesis.proto)
+    - [GenesisState](#kava.liquid.v1beta1.GenesisState)
+  
+- [kava/liquid/v1beta1/query.proto](#kava/liquid/v1beta1/query.proto)
+    - [QueryParamsRequest](#kava.liquid.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.liquid.v1beta1.QueryParamsResponse)
+  
+    - [Query](#kava.liquid.v1beta1.Query)
+  
+- [kava/liquid/v1beta1/tx.proto](#kava/liquid/v1beta1/tx.proto)
+    - [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative)
+    - [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse)
+    - [MsgMintDerivative](#kava.liquid.v1beta1.MsgMintDerivative)
+    - [MsgMintDerivativeResponse](#kava.liquid.v1beta1.MsgMintDerivativeResponse)
+  
+    - [Msg](#kava.liquid.v1beta1.Msg)
+  
 - [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
@@ -5379,6 +5399,207 @@ Query defines the gRPC querier service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse) | Params queries the parameters of x/kavadist module. | GET|/kava/kavadist/v1beta1/parameters|
 | `Balance` | [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/kavadist module. | GET|/kava/kavadist/v1beta1/balance|
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquid/v1beta1/store.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquid/v1beta1/store.proto
+
+
+
+<a name="kava.liquid.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters for the liquid module.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquid/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquid/v1beta1/genesis.proto
+
+
+
+<a name="kava.liquid.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the liquid module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.liquid.v1beta1.Params) |  | params defines all the parameters of the liquid module. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquid/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquid/v1beta1/query.proto
+
+
+
+<a name="kava.liquid.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/liquid
+parameters.
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/liquid
+parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.liquid.v1beta1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.liquid.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for liquid module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.liquid.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.liquid.v1beta1.QueryParamsResponse) | Params queries all parameters of the liquid module. | GET|/kava/liquid/v1beta1/params|
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquid/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquid/v1beta1/tx.proto
+
+
+
+<a name="kava.liquid.v1beta1.MsgBurnDerivative"></a>
+
+### MsgBurnDerivative
+MsgBurnDerivative defines the Msg/BurnDerivative request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `validator` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.MsgBurnDerivativeResponse"></a>
+
+### MsgBurnDerivativeResponse
+MsgBurnDerivativeResponse defines the Msg/BurnDerivative response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.MsgMintDerivative"></a>
+
+### MsgMintDerivative
+MsgMintDerivative defines the Msg/MintDerivative request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `validator` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.MsgMintDerivativeResponse"></a>
+
+### MsgMintDerivativeResponse
+MsgMintDerivativeResponse defines the Msg/MintDerivative response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.liquid.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the liquid Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `MintDerivative` | [MsgMintDerivative](#kava.liquid.v1beta1.MsgMintDerivative) | [MsgMintDerivativeResponse](#kava.liquid.v1beta1.MsgMintDerivativeResponse) | MintDerivative defines a method for minting deriviatives | |
+| `BurnDerivative` | [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative) | [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse) | BurnDerivative defines a method for burning deriviatives | |
 
  <!-- end services -->
 

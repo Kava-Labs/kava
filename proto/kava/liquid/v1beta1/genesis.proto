@@ -1,0 +1,13 @@
+syntax = "proto3";
+package kava.liquid.v1beta1;
+
+import "kava/liquid/v1beta1/store.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/liquid/types";
+
+// GenesisState defines the liquid module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the liquid module.
+  Params                    params             = 1 [(gogoproto.nullable) = false];
+}

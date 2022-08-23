@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -129,6 +128,9 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+	"github.com/kava-labs/kava/x/liquid"
+	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
+	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -195,6 +197,7 @@ var (
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
 		bridge.AppModuleBasic{},
+		liquid.AppModuleBasic{},
 		earn.AppModuleBasic{},
 	)
 
@@ -221,13 +224,12 @@ var (
 		hardtypes.ModuleAccountName:     {authtypes.Minter},
 		savingstypes.ModuleAccountName:  nil,
 		bridgetypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
-		earntypes.ModuleName:            nil,
+		liquidtypes.ModuleAccountName:   {authtypes.Minter, authtypes.Burner},
+		earntypes.ModuleAccountName:     nil,
 	}
 )
 
-// Verify app interface at compile time
 // var _ simapp.App = (*App)(nil) // TODO
-var _ servertypes.Application = (*App)(nil)
 
 // Options bundles several configuration params for an App.
 type Options struct {
@@ -291,6 +293,7 @@ type App struct {
 	committeeKeeper  committeekeeper.Keeper
 	incentiveKeeper  incentivekeeper.Keeper
 	savingsKeeper    savingskeeper.Keeper
+	liquidKeeper     liquidkeeper.Keeper
 	earnKeeper       earnkeeper.Keeper
 
 	bridgeKeeper bridgekeeper.Keeper
@@ -347,7 +350,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey, bridgetypes.StoreKey, earntypes.StoreKey,
+		savingstypes.StoreKey, bridgetypes.StoreKey, liquidtypes.StoreKey, earntypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -393,6 +396,7 @@ func NewApp(
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
 	bridgeSubspace := app.paramsKeeper.Subspace(bridgetypes.ModuleName)
 	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
+	liquidSubspace := app.paramsKeeper.Subspace(liquidtypes.ModuleName)
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
 
 	bApp.SetParamStore(
@@ -612,6 +616,14 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
+	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
+		appCodec,
+		keys[liquidtypes.StoreKey],
+		liquidSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		&app.stakingKeeper,
+	)
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
 		keys[incentivetypes.StoreKey],
@@ -718,6 +730,7 @@ func NewApp(
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
+		liquid.NewAppModule(app.liquidKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 	)
 
@@ -766,6 +779,7 @@ func NewApp(
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
+		liquidtypes.ModuleName,
 		earntypes.ModuleName,
 	)
 
@@ -806,6 +820,7 @@ func NewApp(
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
+		liquidtypes.ModuleName,
 		earntypes.ModuleName,
 	)
 
@@ -834,6 +849,7 @@ func NewApp(
 		swaptypes.ModuleName,
 		cdptypes.ModuleName, // reads market prices, so must run after pricefeed genesis
 		hardtypes.ModuleName,
+		liquidtypes.ModuleName,    // TODO probably run before incentive and after staking?
 		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,

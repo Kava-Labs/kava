@@ -1,0 +1,42 @@
+syntax = "proto3";
+package kava.liquid.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/kava-labs/kava/x/liquid/types";
+
+// Msg defines the liquid Msg service.
+service Msg {
+
+  // MintDerivative defines a method for minting deriviatives
+  rpc MintDerivative(MsgMintDerivative) returns (MsgMintDerivativeResponse);
+
+  // BurnDerivative defines a method for burning deriviatives
+  rpc BurnDerivative(MsgBurnDerivative) returns (MsgBurnDerivativeResponse);
+}
+
+// MsgMintDerivative defines the Msg/MintDerivative request type.
+message MsgMintDerivative {
+  string sender    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string validator = 2;
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgMintDerivativeResponse defines the Msg/MintDerivative response type.
+message MsgMintDerivativeResponse {
+  cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
+}
+
+// MsgBurnDerivative defines the Msg/BurnDerivative request type.
+message MsgBurnDerivative {
+  string                   sender    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string                   validator = 2;
+  cosmos.base.v1beta1.Coin amount    = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgBurnDerivativeResponse defines the Msg/BurnDerivative response type.
+message MsgBurnDerivativeResponse {
+  cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
+}
