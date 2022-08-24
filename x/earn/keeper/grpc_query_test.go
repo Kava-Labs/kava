@@ -142,6 +142,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	vault1Denom := "usdx"
 	vault2Denom := "busd"
 	vault3Denom := testutil.TestBkavaDenoms[0]
+	vault4Denom := testutil.TestBkavaDenoms[1]
 
 	// Add vaults
 	suite.CreateVault(vault1Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
@@ -152,10 +153,13 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		sdk.NewInt64Coin(vault1Denom, 1000),
 		sdk.NewInt64Coin(vault2Denom, 1000),
 		sdk.NewInt64Coin(vault3Denom, 1000),
+		sdk.NewInt64Coin(vault4Denom, 1000),
 	)
+
 	deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
 	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 200)
 	deposit3Amount := sdk.NewInt64Coin(vault3Denom, 200)
+	deposit4Amount := sdk.NewInt64Coin(vault4Denom, 200)
 
 	// Accounts
 	acc1 := suite.CreateAccount(startBalance, 0).GetAddress()
@@ -163,7 +167,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 
 	// Deposit into each vault from each account - 4 total deposits
 	// Acc 1: usdx + busd
-	// Acc 2: usdx + usdc
+	// Acc 2: usdx + bkava0 + bkava1
 	err := suite.Keeper.Deposit(suite.Ctx, acc1, deposit1Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 	err = suite.Keeper.Deposit(suite.Ctx, acc1, deposit2Amount, types.STRATEGY_TYPE_HARD)
@@ -172,6 +176,8 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit1Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit3Amount, types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().NoError(err)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit4Amount, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	suite.Run("1) 1 vault for 1 account", func() {
@@ -186,12 +192,38 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 			[]types.DepositResponse{
 				{
 					Depositor: acc1.String(),
-					// Still includes all deposits
+					// Only includes specified deposit shares
 					Shares: types.NewVaultShares(
 						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
-						types.NewVaultShare(deposit2Amount.Denom, deposit2Amount.Amount.ToDec()),
 					),
-					Value: sdk.NewCoins(deposit1Amount, deposit2Amount),
+					// Only the specified vault denom value
+					Value: sdk.NewCoins(deposit1Amount),
+				},
+			},
+			res.Deposits,
+			"deposits should match, got %v",
+			res.Deposits,
+		)
+	})
+
+	suite.Run("1) bkava vault for 1 account", func() {
+		// Query all deposits for account 1
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest(acc2.String(), "bkava", nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 1)
+		suite.Require().ElementsMatchf(
+			[]types.DepositResponse{
+				{
+					Depositor: acc2.String(),
+					// Zero shares for "bkava" aggregate
+					Shares: nil,
+					// Only the specified vault denom value
+					Value: sdk.NewCoins(
+						sdk.NewCoin("bkava", deposit3Amount.Amount.Add(deposit4Amount.Amount)),
+					),
 				},
 			},
 			res.Deposits,
@@ -206,7 +238,52 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 			types.NewQueryDepositsRequest(acc1.String(), "notavaliddenom", nil),
 		)
 		suite.Require().Error(err)
-		suite.Require().ErrorIs(err, status.Errorf(codes.NotFound, "No deposit for denom notavaliddenom found for owner"))
+		suite.Require().ErrorIs(err, status.Errorf(codes.NotFound, "vault for notavaliddenom not found"))
+	})
+
+	suite.Run("2) all accounts, specific vault", func() {
+		// Query all deposits for vault 3
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest("", vault3Denom, nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 1)
+		suite.Require().ElementsMatch(
+			[]types.DepositResponse{
+				{
+					Depositor: acc2.String(),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
+					),
+					Value: sdk.NewCoins(deposit3Amount),
+				},
+			},
+			res.Deposits,
+		)
+	})
+
+	suite.Run("2) all accounts, bkava vault", func() {
+		// Query all deposits for vault 3
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest("", "bkava", nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 1)
+		suite.Require().ElementsMatch(
+			[]types.DepositResponse{
+				{
+					Depositor: acc2.String(),
+					Shares:    nil,
+					// Only the specified vault denom value
+					Value: sdk.NewCoins(
+						sdk.NewCoin("bkava", deposit3Amount.Amount.Add(deposit4Amount.Amount)),
+					),
+				},
+			},
+			res.Deposits,
+		)
 	})
 
 	suite.Run("3) all vaults for 1 account", func() {
@@ -226,29 +303,6 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 						types.NewVaultShare(deposit2Amount.Denom, deposit2Amount.Amount.ToDec()),
 					),
 					Value: sdk.NewCoins(deposit1Amount, deposit2Amount),
-				},
-			},
-			res.Deposits,
-		)
-	})
-
-	suite.Run("2) all accounts, specific vault", func() {
-		// Query all deposits for vault 3
-		res, err := suite.queryClient.Deposits(
-			context.Background(),
-			types.NewQueryDepositsRequest("", vault3Denom, nil),
-		)
-		suite.Require().NoError(err)
-		suite.Require().Len(res.Deposits, 1)
-		suite.Require().ElementsMatch(
-			[]types.DepositResponse{
-				{
-					Depositor: acc2.String(),
-					Shares: types.NewVaultShares(
-						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
-						types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
-					),
-					Value: sdk.NewCoins(deposit1Amount, deposit3Amount),
 				},
 			},
 			res.Deposits,
@@ -278,8 +332,13 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 					Shares: types.NewVaultShares(
 						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
 						types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
+						types.NewVaultShare(deposit4Amount.Denom, deposit4Amount.Amount.ToDec()),
 					),
-					Value: sdk.NewCoins(deposit1Amount, deposit3Amount),
+					Value: sdk.NewCoins(
+						deposit1Amount,
+						deposit3Amount,
+						deposit4Amount,
+					),
 				},
 			},
 			res.Deposits,
