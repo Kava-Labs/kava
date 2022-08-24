@@ -31,6 +31,7 @@ import (
 var TestBkavaDenoms = []string{
 	"bkava-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l",
 	"bkava-kavavaloper15qdefkmwswysgg4qxgqpqr35k3m49pkx8yhpte",
+	"bkava-kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42",
 }
 
 // Suite implements a test suite for the earn module integration tests
@@ -153,6 +154,7 @@ func (suite *Suite) SetupTest() {
 				"ukava",
 				TestBkavaDenoms[0],
 				TestBkavaDenoms[1],
+				TestBkavaDenoms[2],
 			},
 		),
 		nil,
