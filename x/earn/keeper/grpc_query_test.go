@@ -359,15 +359,15 @@ func (suite *grpcQueryTestSuite) TestVault_bKava() {
 
 func (suite *grpcQueryTestSuite) TestVault_AggregateBkava() {
 	vaultDenom := "bkava"
-	coinDenom1 := testutil.TestBkavaDenoms[0]
-	coinDenom2 := testutil.TestBkavaDenoms[1]
 
-	depositAmount1 := sdk.NewInt64Coin(coinDenom1, 100)
-	depositAmount2 := sdk.NewInt64Coin(coinDenom2, 200)
+	depositAmount1 := sdk.NewInt64Coin(testutil.TestBkavaDenoms[0], 100)
+	depositAmount2 := sdk.NewInt64Coin(testutil.TestBkavaDenoms[1], 200)
+	depositAmount3 := sdk.NewInt64Coin(testutil.TestBkavaDenoms[2], 400)
 
 	acc1 := suite.CreateAccount(sdk.NewCoins(
-		sdk.NewInt64Coin(coinDenom1, 1000),
-		sdk.NewInt64Coin(coinDenom2, 1000),
+		sdk.NewInt64Coin(testutil.TestBkavaDenoms[0], 1000),
+		sdk.NewInt64Coin(testutil.TestBkavaDenoms[1], 1000),
+		sdk.NewInt64Coin(testutil.TestBkavaDenoms[2], 1000),
 	), 0)
 
 	// vault denom is only "bkava" which has it's own special handler
@@ -379,16 +379,13 @@ func (suite *grpcQueryTestSuite) TestVault_AggregateBkava() {
 	)
 
 	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount1, types.STRATEGY_TYPE_SAVINGS)
-	suite.Require().NoError(
-		err,
-		"should be able to deposit bkava derivative denom in bkava vault",
-	)
+	suite.Require().NoError(err)
 
 	err = suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount2, types.STRATEGY_TYPE_SAVINGS)
-	suite.Require().NoError(
-		err,
-		"should be able to deposit bkava derivative denom in bkava vault",
-	)
+	suite.Require().NoError(err)
+
+	err = suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount3, types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().NoError(err)
 
 	// Query "bkava" to get aggregate amount
 	res, err := suite.queryClient.Vault(
@@ -406,7 +403,7 @@ func (suite *grpcQueryTestSuite) TestVault_AggregateBkava() {
 			AllowedDepositors: []string(nil),
 			// No shares for aggregate
 			TotalShares: "0",
-			TotalValue:  depositAmount1.Amount.Add(depositAmount2.Amount),
+			TotalValue:  depositAmount1.Amount.Add(depositAmount2.Amount).Add(depositAmount3.Amount),
 		},
 		res.Vault,
 	)
