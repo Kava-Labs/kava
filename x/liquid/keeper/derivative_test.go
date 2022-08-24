@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -80,7 +81,7 @@ func (suite *KeeperTestSuite) TestMintDerivative_Old() {
 			suite.False(found)
 
 			// Get pre-mint total supply and delegator balance of the validator-specific liquid token
-			liquidTokenDenom := suite.Keeper.GetLiquidStakingTokenDenom(suite.Ctx, validatorAddr)
+			liquidTokenDenom := suite.Keeper.GetLiquidStakingTokenDenom(validatorAddr)
 			delegatorBalancePre := suite.BankKeeper.GetBalance(suite.Ctx, delegatorAddr, liquidTokenDenom)
 			totalSupplyPre := suite.BankKeeper.GetSupply(suite.Ctx, liquidTokenDenom)
 
@@ -117,39 +118,58 @@ func (suite *KeeperTestSuite) TestMintDerivative_Old() {
 }
 
 func (suite *KeeperTestSuite) TestBurnDerivative() {
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+	valAccAddr, user := addrs[0], addrs[1]
+	valAddr := sdk.ValAddress(valAccAddr)
+
+	liquidDenom := suite.Keeper.GetLiquidStakingTokenDenom(valAddr)
+
 	testCases := []struct {
-		name           string
-		balance        sdk.Coin
-		mintAmount     sdk.Coin
-		burnAmountInt  sdk.Int // sdk.Int instead of sdk.Coin because we don't know the validator-specific token denom yet
-		bondValidator  bool
-		vestingAccount bool
+		name             string
+		balance          sdk.Coin
+		moduleDelegation sdk.Int
+		burnAmount       sdk.Coin
+		expectedErr      error
 	}{
 		{
-			name:          "validator unbonded",
-			balance:       sdk.NewInt64Coin("stake", 1e9),
-			mintAmount:    sdk.NewCoin("stake", sdk.NewInt(1e6)),
-			burnAmountInt: sdk.NewInt(1e6),
+			name:             "user can burn their entire balance",
+			balance:          c(liquidDenom, 1e9),
+			moduleDelegation: i(1e9),
+			burnAmount:       c(liquidDenom, 1e9),
 		},
 		{
-			name:          "validator unbonded; burn less than full amount",
-			balance:       sdk.NewInt64Coin("stake", 1e9),
-			mintAmount:    sdk.NewCoin("stake", sdk.NewInt(1e6)),
-			burnAmountInt: sdk.NewInt(999999),
+			name:             "user can burn minimum derivative unit",
+			balance:          c(liquidDenom, 1e9),
+			moduleDelegation: i(1e9),
+			burnAmount:       c(liquidDenom, 1),
 		},
 		{
-			name:          "validator bonded",
-			balance:       sdk.NewInt64Coin("stake", 1e9),
-			mintAmount:    sdk.NewCoin("stake", sdk.NewInt(1e6)),
-			burnAmountInt: sdk.NewInt(1e6),
-			bondValidator: true,
+			name:             "error when denom cannot be parsed",
+			balance:          c(liquidDenom, 1e9),
+			moduleDelegation: i(1e9),
+			burnAmount:       c(fmt.Sprintf("ckava-%s", valAddr), 1e6),
+			expectedErr:      types.ErrInvalidDerivativeDenom,
 		},
 		{
-			name:           "delegator is vesting account",
-			balance:        sdk.NewInt64Coin("stake", 1e9),
-			mintAmount:     sdk.NewCoin("stake", sdk.NewInt(1e6)),
-			burnAmountInt:  sdk.NewInt(1e6),
-			vestingAccount: true,
+			name:             "error when burn amount is 0",
+			balance:          c(liquidDenom, 1e9),
+			moduleDelegation: i(1e9),
+			burnAmount:       c(liquidDenom, 0),
+			expectedErr:      types.ErrUntransferableShares,
+		},
+		{
+			name:             "error when user doesn't have enough funds",
+			balance:          c("ukava", 10),
+			moduleDelegation: i(1e9),
+			burnAmount:       c(liquidDenom, 1e9),
+			expectedErr:      sdkerrors.ErrInsufficientFunds,
+		},
+		{
+			name:             "error when backing delegation isn't large enough",
+			balance:          c(liquidDenom, 1e9),
+			moduleDelegation: i(999999999),
+			burnAmount:       c(liquidDenom, 1e9),
+			expectedErr:      types.ErrNotEnoughDelegationShares,
 		},
 	}
 
@@ -157,71 +177,45 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			// Set up delegation to validator
-			var delegatorAcc authtypes.AccountI
-			if !tc.vestingAccount {
-				delegatorAcc = suite.CreateAccount(sdk.NewCoins(tc.balance))
-			} else {
-				delegatorAcc = suite.CreateVestingAccount(
-					sdk.NewCoins(tc.balance),
-					sdk.NewCoins(sdk.NewCoin(tc.balance.Denom, tc.balance.Amount.Mul(sdk.NewInt(10)))),
-				)
+			suite.CreateAccountWithAddress(valAccAddr, suite.NewBondCoins(i(1e6)))
+			suite.CreateAccountWithAddress(user, sdk.NewCoins(tc.balance))
+			suite.AddCoinsToModule(types.ModuleAccountName, suite.NewBondCoins(tc.moduleDelegation))
+
+			// create delegation from module account to back the derivatives
+			moduleAccAddress := authtypes.NewModuleAddress(types.ModuleAccountName)
+			suite.CreateNewUnbondedValidator(valAddr, i(1e6))
+			suite.CreateDelegation(valAddr, moduleAccAddress, tc.moduleDelegation)
+			staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+			modBalance := suite.BankKeeper.GetAllBalances(suite.Ctx, moduleAccAddress)
+
+			err := suite.Keeper.BurnDerivative(suite.Ctx, user, valAddr, tc.burnAmount)
+
+			suite.Require().ErrorIs(err, tc.expectedErr)
+			if tc.expectedErr != nil {
+				return
 			}
 
-			delegatorAddr := delegatorAcc.GetAddress()
-			validatorAddr := sdk.ValAddress(delegatorAddr)
-			err := suite.deliverMsgCreateValidator(suite.Ctx, validatorAddr, tc.balance)
-			suite.NoError(err)
+			suite.AccountBalanceEqual(user, sdk.NewCoins(tc.balance.Sub(tc.burnAmount)))
+			suite.AccountBalanceEqual(moduleAccAddress, modBalance) // ensure derivatives are burned, and not in module account
 
-			validator, _ := suite.StakingKeeper.GetValidator(suite.Ctx, validatorAddr)
-			suite.Equal("BOND_STATUS_UNBONDED", validator.Status.String())
-			// Run the EndBlocker to bond validator
-			if tc.bondValidator {
-				_ = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{})
-				validator, _ = suite.StakingKeeper.GetValidator(suite.Ctx, validatorAddr)
-				suite.Equal("BOND_STATUS_BONDED", validator.Status.String())
-			}
+			sharesTransferred := tc.burnAmount.Amount.ToDec()
+			suite.DelegationSharesEqual(valAddr, user, sharesTransferred)
+			suite.DelegationSharesEqual(valAddr, moduleAccAddress, tc.moduleDelegation.ToDec().Sub(sharesTransferred))
 
-			msgMint := types.NewMsgMintDerivative(
-				delegatorAddr,
-				validatorAddr,
-				tc.mintAmount,
-			)
-			_, err = suite.App.MsgServiceRouter().Handler(&msgMint)(suite.Ctx, &msgMint)
-			suite.NoError(err)
-
-			initialDelegation, _ := suite.StakingKeeper.GetDelegation(suite.Ctx, delegatorAddr, validatorAddr)
-
-			// Confirm that the delegator has available stKava to burn
-			liquidTokenDenom := suite.Keeper.GetLiquidStakingTokenDenom(suite.Ctx, validatorAddr)
-			preBurnBalance := suite.BankKeeper.GetBalance(suite.Ctx, delegatorAddr, liquidTokenDenom)
-			suite.Equal(sdk.NewCoin(liquidTokenDenom, tc.mintAmount.Amount), preBurnBalance) // delegated 'stake' converted to 'stStake'
-
-			shares, err := validator.SharesFromTokens(tc.burnAmountInt)
-			suite.NoError(err)
-
-			burnAmount := sdk.NewCoin(liquidTokenDenom, tc.burnAmountInt)
-			msgBurn := types.NewMsgBurnDerivative(
-				delegatorAddr,
-				validatorAddr,
-				burnAmount,
-			)
-			_, err = suite.App.MsgServiceRouter().Handler(&msgBurn)(suite.Ctx, &msgBurn)
-			suite.NoError(err)
-
-			// Confirm that coins were burned from the delegator's address
-			postBurnBalance := suite.BankKeeper.GetBalance(suite.Ctx, delegatorAddr, liquidTokenDenom)
-			// Hacky way to compare values without sdk.Coin/sdk.Int nil throwing an error
-			suite.Equal(postBurnBalance.Amount.Uint64(), preBurnBalance.Sub(burnAmount).Amount.Uint64())
-
-			// Confirm that the delegation has been successfully returned to delegator
-			delegation, found := suite.StakingKeeper.GetDelegation(suite.Ctx, delegatorAddr, validatorAddr)
-			suite.True(found)
-			suite.Equal(initialDelegation.Shares.Add(shares), delegation.Shares)
+			suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
+				types.EventTypeBurnDerivative,
+				sdk.NewAttribute(types.AttributeKeyDelegator, user.String()),
+				sdk.NewAttribute(types.AttributeKeyValidator, valAddr.String()),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, tc.burnAmount.String()),
+				sdk.NewAttribute(types.AttributeKeySharesTransferred, sharesTransferred.String()),
+			))
 		})
 	}
 }
 
+func (suite *KeeperTestSuite) TestBurnDerivative_VestingAccount() {
+	suite.T().Skip()
+}
 
 func (suite *KeeperTestSuite) TestCalculateShares() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
@@ -424,9 +418,7 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 			sharesTransferred := initialBalance.ToDec().Sub(tc.expectedSharesRemaining)
 			suite.DelegationSharesEqual(valAddr, moduleAccAddress, sharesTransferred)
 
-			if tc.expectedErr != nil {
-				suite.EventsDoNotContainType(suite.Ctx.EventManager().Events(), types.EventTypeMintDerivative)
-			} else {
+			if tc.expectedErr == nil {
 				suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 					types.EventTypeMintDerivative,
 					sdk.NewAttribute(types.AttributeKeyDelegator, delegator.String()),

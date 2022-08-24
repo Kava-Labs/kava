@@ -83,6 +83,12 @@ func (suite *KeeperTestSuite) CreateVestingAccount(initialBalance sdk.Coins, ves
 	return vacc
 }
 
+// AddCoinsToModule adds coins to the a module account, creating it if it doesn't exist.
+func (suite *KeeperTestSuite) AddCoinsToModule(module string, amount sdk.Coins) {
+	err := simapp.FundModuleAccount(suite.BankKeeper, suite.Ctx, module, amount)
+	suite.Require().NoError(err)
+}
+
 // AccountBalanceEqual checks if an account has the specified coins.
 func (suite *KeeperTestSuite) AccountBalanceEqual(addr sdk.AccAddress, coins sdk.Coins) {
 	balance := suite.BankKeeper.GetAllBalances(suite.Ctx, addr)

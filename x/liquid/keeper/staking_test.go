@@ -13,10 +13,12 @@ import (
 )
 
 var (
-	//d is an alias for sdk.MustNewDecFromStr
+	// d is an alias for sdk.MustNewDecFromStr
 	d = sdk.MustNewDecFromStr
 	// i is an alias for sdk.NewInt
 	i = sdk.NewInt
+	// c is an alias for sdk.NewInt64Coin
+	c = sdk.NewInt64Coin
 )
 
 func (suite *KeeperTestSuite) TestTransferDelegation_ValidatorStates() {

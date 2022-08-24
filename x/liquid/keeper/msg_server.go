@@ -48,7 +48,7 @@ func (k msgServer) MintDerivative(goCtx context.Context, msg *types.MsgMintDeriv
 
 	return &types.MsgMintDerivativeResponse{
 		// Construct coin here to avoid returning a deterministic value from MintDerivative method
-		Amount: sdk.NewCoin(k.keeper.GetLiquidStakingTokenDenom(ctx, validator), msg.Amount.Amount),
+		Amount: sdk.NewCoin(k.keeper.GetLiquidStakingTokenDenom(validator), msg.Amount.Amount),
 	}, nil
 }
 
