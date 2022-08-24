@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -112,6 +113,11 @@ func (s queryServer) Vault(
 	allowedVault, found := s.keeper.GetAllowedVault(sdkCtx, req.Denom)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "vault not found with specified denom")
+	}
+
+	// Handle bkava separately to get total of **all** bkava vaults
+	if req.Denom == "bkava" {
+		return s.getAggregateBkavaVault(sdkCtx, allowedVault)
 	}
 
 	// Must be req.Denom and not allowedVault.Denom to get full "bkava" denom
@@ -341,6 +347,47 @@ func (s queryServer) getAllDeposits(
 	return &types.QueryDepositsResponse{
 		Deposits:   deposits,
 		Pagination: pageRes,
+	}, nil
+}
+
+func (s queryServer) getAggregateBkavaVault(
+	ctx sdk.Context,
+	allowedVault types.AllowedVault,
+) (*types.QueryVaultResponse, error) {
+	totalValue := sdk.NewInt(0)
+
+	var iterErr error
+	s.keeper.IterateVaultRecords(ctx, func(record types.VaultRecord) (stop bool) {
+		// Skip non bkava vaults
+		if !strings.HasPrefix(record.TotalShares.Denom, "bkava") {
+			return false
+		}
+
+		vaultValue, err := s.keeper.GetVaultTotalValue(ctx, record.TotalShares.Denom)
+		if err != nil {
+			iterErr = err
+			return false
+		}
+
+		totalValue = totalValue.Add(vaultValue.Amount)
+
+		return false
+	})
+
+	if iterErr != nil {
+		return nil, iterErr
+	}
+
+	return &types.QueryVaultResponse{
+		Vault: types.VaultResponse{
+			Denom:             "bkava",
+			Strategies:        allowedVault.Strategies,
+			IsPrivateVault:    allowedVault.IsPrivateVault,
+			AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
+			// Empty for shares, as adding up all shares is not useful information
+			TotalShares: "0",
+			TotalValue:  totalValue,
+		},
 	}, nil
 }
 

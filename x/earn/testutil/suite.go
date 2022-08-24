@@ -28,6 +28,11 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
+var TestBkavaDenoms = []string{
+	"bkava-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l",
+	"bkava-kavavaloper15qdefkmwswysgg4qxgqpqr35k3m49pkx8yhpte",
+}
+
 // Suite implements a test suite for the earn module integration tests
 type Suite struct {
 	suite.Suite
@@ -146,7 +151,8 @@ func (suite *Suite) SetupTest() {
 		savingstypes.NewParams(
 			[]string{
 				"ukava",
-				"bkava-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l",
+				TestBkavaDenoms[0],
+				TestBkavaDenoms[1],
 			},
 		),
 		nil,
