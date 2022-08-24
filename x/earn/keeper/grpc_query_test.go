@@ -87,7 +87,7 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 
 func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 	vaultDenom := "usdx"
-	vault2Denom := "bkava-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l"
+	vault2Denom := testutil.TestBkavaDenoms[0]
 
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 100)
@@ -141,7 +141,7 @@ func (suite *grpcQueryTestSuite) TestVault_NotFound() {
 func (suite *grpcQueryTestSuite) TestDeposits() {
 	vault1Denom := "usdx"
 	vault2Denom := "busd"
-	vault3Denom := "bkava-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l"
+	vault3Denom := testutil.TestBkavaDenoms[0]
 
 	// Add vaults
 	suite.CreateVault(vault1Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
@@ -316,7 +316,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_InvalidAddress() {
 
 func (suite *grpcQueryTestSuite) TestVault_bKava() {
 	vaultDenom := "bkava"
-	coinDenom := vaultDenom + "-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l"
+	coinDenom := testutil.TestBkavaDenoms[0]
 
 	startBalance := sdk.NewInt64Coin(coinDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(coinDenom, 100)
@@ -352,6 +352,61 @@ func (suite *grpcQueryTestSuite) TestVault_bKava() {
 			AllowedDepositors: []string(nil),
 			TotalShares:       "100.000000000000000000",
 			TotalValue:        sdk.NewInt(100),
+		},
+		res.Vault,
+	)
+}
+
+func (suite *grpcQueryTestSuite) TestVault_AggregateBkava() {
+	vaultDenom := "bkava"
+	coinDenom1 := testutil.TestBkavaDenoms[0]
+	coinDenom2 := testutil.TestBkavaDenoms[1]
+
+	depositAmount1 := sdk.NewInt64Coin(coinDenom1, 100)
+	depositAmount2 := sdk.NewInt64Coin(coinDenom2, 200)
+
+	acc1 := suite.CreateAccount(sdk.NewCoins(
+		sdk.NewInt64Coin(coinDenom1, 1000),
+		sdk.NewInt64Coin(coinDenom2, 1000),
+	), 0)
+
+	// vault denom is only "bkava" which has it's own special handler
+	suite.CreateVault(
+		vaultDenom,
+		types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
+		false,
+		[]sdk.AccAddress{},
+	)
+
+	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount1, types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().NoError(
+		err,
+		"should be able to deposit bkava derivative denom in bkava vault",
+	)
+
+	err = suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount2, types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().NoError(
+		err,
+		"should be able to deposit bkava derivative denom in bkava vault",
+	)
+
+	// Query "bkava" to get aggregate amount
+	res, err := suite.queryClient.Vault(
+		context.Background(),
+		types.NewQueryVaultRequest(vaultDenom),
+	)
+	suite.Require().NoError(err)
+	suite.Require().Equal(
+		types.VaultResponse{
+			Denom: vaultDenom,
+			Strategies: types.StrategyTypes{
+				types.STRATEGY_TYPE_SAVINGS,
+			},
+			IsPrivateVault:    false,
+			AllowedDepositors: []string(nil),
+			// No shares for aggregate
+			TotalShares: "0",
+			TotalValue:  depositAmount1.Amount.Add(depositAmount2.Amount),
 		},
 		res.Vault,
 	)
