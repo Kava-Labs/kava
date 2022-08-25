@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -12,26 +13,59 @@ import (
 // AccumulateEarnRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
 func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-	previousAccrualTime, found := k.GetEarnRewardAccrualTime(ctx, rewardPeriod.CollateralType)
+	if rewardPeriod.CollateralType == "bkava" {
+		k.accumulateEarnBkavaRewards(ctx, rewardPeriod)
+		return
+	}
+
+	k.accumulateEarnRewards(ctx, rewardPeriod.CollateralType, rewardPeriod)
+}
+
+// accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
+// *all* bkava vaults.
+func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
+	// Get all bkava vault denoms.
+	var bkavaVaultsDenoms []string
+
+	k.earnKeeper.IterateVaultRecords(ctx, func(record earntypes.VaultRecord) (stop bool) {
+		if strings.HasPrefix(record.TotalShares.Denom, "bkava-") {
+			bkavaVaultsDenoms = append(bkavaVaultsDenoms, record.TotalShares.Denom)
+		}
+
+		return false
+	})
+
+	// Accumulate rewards for each bkava vault.
+	for _, bkavaDenom := range bkavaVaultsDenoms {
+		k.accumulateEarnRewards(ctx, bkavaDenom, rewardPeriod)
+	}
+}
+
+func (k Keeper) accumulateEarnRewards(
+	ctx sdk.Context,
+	collateralType string,
+	rewardPeriod types.MultiRewardPeriod,
+) {
+	previousAccrualTime, found := k.GetEarnRewardAccrualTime(ctx, collateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()
 	}
 
-	indexes, found := k.GetEarnRewardIndexes(ctx, rewardPeriod.CollateralType)
+	indexes, found := k.GetEarnRewardIndexes(ctx, collateralType)
 	if !found {
 		indexes = types.RewardIndexes{}
 	}
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalSource := k.getEarnTotalSourceShares(ctx, rewardPeriod.CollateralType)
+	totalSource := k.getEarnTotalSourceShares(ctx, collateralType)
 
 	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
 
-	k.SetEarnRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
+	k.SetEarnRewardAccrualTime(ctx, collateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
-		k.SetEarnRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
+		k.SetEarnRewardIndexes(ctx, collateralType, acc.Indexes)
 	}
 }
 
