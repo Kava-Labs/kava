@@ -68,6 +68,7 @@ type SavingsKeeper interface {
 type EarnKeeper interface {
 	GetVaultTotalShares(ctx sdk.Context, denom string) (shares earntypes.VaultShare, found bool)
 	GetVaultAccountShares(ctx sdk.Context, acc sdk.AccAddress) (shares earntypes.VaultShares, found bool)
+	IterateVaultRecords(ctx sdk.Context, cb func(record earntypes.VaultRecord) (stop bool))
 }
 
 // AccountKeeper expected interface for the account keeper (noalias)
