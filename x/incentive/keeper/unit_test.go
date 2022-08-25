@@ -412,6 +412,17 @@ func (k *fakeEarnKeeper) GetVaultAccountShares(
 	return accShares, found
 }
 
+func (k *fakeEarnKeeper) IterateVaultRecords(
+	ctx sdk.Context,
+	cb func(record earntypes.VaultRecord) (stop bool),
+) {
+	for _, vaultShares := range k.vaultShares {
+		cb(earntypes.VaultRecord{
+			TotalShares: vaultShares,
+		})
+	}
+}
+
 // Assorted Testing Data
 
 // note: amino panics when encoding times ≥ the start of year 10000.
