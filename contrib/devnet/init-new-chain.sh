@@ -127,7 +127,7 @@ jq '.app_state.committee.committees = [
       "base_committee": {
         "id": "1",
         "description": "Kava Stability Committee",
-        "members": ["kava1n96qpdfcz2m7y364ewk8srv9zuq6ucwduyjaag"],
+        "members": ["kava10wlnqzyss4accfqmyxwx5jy5x9nfkwh6qm7n4t"],
         "permissions": [
           {
             "@type": "/kava.committee.v1beta1.TextPermission"
@@ -210,8 +210,8 @@ jq '.app_state.committee.committees = [
             ]
           }
         ],
-        "vote_threshold": "0.667000000000000000",
-        "proposal_duration": "604800s",
+        "vote_threshold": "0.500000000000000000",
+        "proposal_duration": "2s",
         "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
       }
     }
