@@ -211,7 +211,7 @@ jq '.app_state.committee.committees = [
           }
         ],
         "vote_threshold": "0.500000000000000000",
-        "proposal_duration": "2s",
+        "proposal_duration": "604800s",
         "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
       }
     }
