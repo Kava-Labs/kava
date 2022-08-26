@@ -24,10 +24,13 @@ func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiR
 // accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
 // *all* bkava vaults.
 func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
+	// TODO: Get staking rewards and distribute
+
 	// Get all bkava vault denoms.
 	var bkavaVaultsDenoms []string
 
 	k.earnKeeper.IterateVaultRecords(ctx, func(record earntypes.VaultRecord) (stop bool) {
+		// TODO: Replace with single bkava denom check method from liquid
 		if strings.HasPrefix(record.TotalShares.Denom, "bkava-") {
 			bkavaVaultsDenoms = append(bkavaVaultsDenoms, record.TotalShares.Denom)
 		}
@@ -56,6 +59,8 @@ func (k Keeper) accumulateEarnRewards(
 		indexes = types.RewardIndexes{}
 	}
 
+	fmt.Printf("current indexes %v for %s\n", indexes, collateralType)
+
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
 	totalSource := k.getEarnTotalSourceShares(ctx, collateralType)
@@ -66,6 +71,7 @@ func (k Keeper) accumulateEarnRewards(
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
 		k.SetEarnRewardIndexes(ctx, collateralType, acc.Indexes)
+		fmt.Printf("Accumulated %d rewards for %s\n", len(acc.Indexes), collateralType)
 	}
 }
 
