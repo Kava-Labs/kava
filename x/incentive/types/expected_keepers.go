@@ -71,6 +71,12 @@ type EarnKeeper interface {
 	IterateVaultRecords(ctx sdk.Context, cb func(record earntypes.VaultRecord) (stop bool))
 }
 
+// LiquidKeeper defines the required methods needed by this modules keeper
+type LiquidKeeper interface {
+	IsDerivativeDenom(ctx sdk.Context, denom string) bool
+	GetAllDerivativeDenoms(ctx sdk.Context) (denoms []string)
+}
+
 // AccountKeeper expected interface for the account keeper (noalias)
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
