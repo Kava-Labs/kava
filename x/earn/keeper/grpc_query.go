@@ -203,12 +203,12 @@ func (s queryServer) Deposits(
 
 	// 1. 1 account and "bkava" vault
 	if req.Depositor != "" && req.Denom == "bkava" {
-		return s.get1AccountBkavaVaultDeposit(sdkCtx, req)
+		return s.getOneAccountBkavaVaultDeposit(sdkCtx, req)
 	}
 
 	// 1. 1 account and 1 vault
 	if req.Depositor != "" && req.Denom != "" {
-		return s.get1Account1VaultDeposit(sdkCtx, req)
+		return s.getOneAccountOneVaultDeposit(sdkCtx, req)
 	}
 
 	// 2. All accounts, "bkava" vault
@@ -218,21 +218,21 @@ func (s queryServer) Deposits(
 
 	// 2. All accounts, 1 vault
 	if req.Depositor == "" && req.Denom != "" {
-		return s.get1VaultAllDeposits(sdkCtx, req)
+		return s.getOneVaultAllDeposits(sdkCtx, req)
 	}
 
 	// 3. 1 account, all vaults
 	if req.Depositor != "" && req.Denom == "" {
-		return s.get1AccountAllDeposits(sdkCtx, req)
+		return s.getOneAccountAllDeposits(sdkCtx, req)
 	}
 
 	// 4. All accounts, all vaults
 	return s.getAllDeposits(sdkCtx, req)
 }
 
-// get1Account1VaultDeposit returns deposits for a specific vault and a specific
+// getOneAccountOneVaultDeposit returns deposits for a specific vault and a specific
 // account
-func (s queryServer) get1Account1VaultDeposit(
+func (s queryServer) getOneAccountOneVaultDeposit(
 	ctx sdk.Context,
 	req *types.QueryDepositsRequest,
 ) (*types.QueryDepositsResponse, error) {
@@ -267,9 +267,9 @@ func (s queryServer) get1Account1VaultDeposit(
 	}, nil
 }
 
-// get1AccountBkavaVaultDeposit returns deposits for the aggregated bkava vault
+// getOneAccountBkavaVaultDeposit returns deposits for the aggregated bkava vault
 // and a specific account
-func (s queryServer) get1AccountBkavaVaultDeposit(
+func (s queryServer) getOneAccountBkavaVaultDeposit(
 	ctx sdk.Context,
 	req *types.QueryDepositsRequest,
 ) (*types.QueryDepositsResponse, error) {
@@ -307,8 +307,8 @@ func (s queryServer) get1AccountBkavaVaultDeposit(
 	}, nil
 }
 
-// get1VaultAllDeposits returns all deposits for a specific vault
-func (s queryServer) get1VaultAllDeposits(
+// getOneVaultAllDeposits returns all deposits for a specific vault
+func (s queryServer) getOneVaultAllDeposits(
 	ctx sdk.Context,
 	req *types.QueryDepositsRequest,
 ) (*types.QueryDepositsResponse, error) {
@@ -426,8 +426,8 @@ func (s queryServer) getBkavaVaultAllDeposits(
 	}, nil
 }
 
-// get1AccountAllDeposits returns deposits for all vaults for a specific account
-func (s queryServer) get1AccountAllDeposits(
+// getOneAccountAllDeposits returns deposits for all vaults for a specific account
+func (s queryServer) getOneAccountAllDeposits(
 	ctx sdk.Context,
 	req *types.QueryDepositsRequest,
 ) (*types.QueryDepositsResponse, error) {
