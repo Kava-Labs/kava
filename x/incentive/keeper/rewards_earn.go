@@ -26,20 +26,31 @@ func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiR
 func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
 	// TODO: Get staking rewards and distribute
 
-	// Get all bkava vault denoms.
-	var bkavaVaultsDenoms []string
+	// All bkava vault denoms
+	bkavaVaultsDenoms := make(map[string]bool)
 
+	// bkava vault denoms from earn records (non-empty vaults)
 	k.earnKeeper.IterateVaultRecords(ctx, func(record earntypes.VaultRecord) (stop bool) {
 		// TODO: Replace with single bkava denom check method from liquid
 		if strings.HasPrefix(record.TotalShares.Denom, "bkava-") {
-			bkavaVaultsDenoms = append(bkavaVaultsDenoms, record.TotalShares.Denom)
+			bkavaVaultsDenoms[record.TotalShares.Denom] = true
+		}
+
+		return false
+	})
+
+	// bkava vault denoms from past incentive indexes, may include vaults
+	// that were fully withdrawn.
+	k.IterateEarnRewardIndexes(ctx, func(vaultDenom string, indexes types.RewardIndexes) (stop bool) {
+		if strings.HasPrefix(vaultDenom, "bkava-") {
+			bkavaVaultsDenoms[vaultDenom] = true
 		}
 
 		return false
 	})
 
 	// Accumulate rewards for each bkava vault.
-	for _, bkavaDenom := range bkavaVaultsDenoms {
+	for bkavaDenom := range bkavaVaultsDenoms {
 		k.accumulateEarnRewards(ctx, bkavaDenom, rewardPeriod)
 	}
 }
