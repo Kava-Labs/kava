@@ -540,8 +540,8 @@ func (suite *AccumulateEarnRewardsTests) TestNoPanicWhenStateDoesNotExist_bkava(
 		suite.keeper.AccumulateEarnRewards(suite.ctx, period)
 	})
 
-	suite.storedTimeEquals(vaultDenom1, accrualTime)
-	suite.storedTimeEquals(vaultDenom2, accrualTime)
+	suite.storedTimeEquals(vaultDenom1, time.Time{})
+	suite.storedTimeEquals(vaultDenom2, time.Time{})
 	suite.storedIndexesEqual(vaultDenom1, nil)
 	suite.storedIndexesEqual(vaultDenom2, nil)
 }
