@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -127,6 +128,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 		name              string
 		createDelegations func() (fromDelegatorShares, toDelegatorShares sdk.Dec, err error)
 		shares            sdk.Dec
+		expectReceived    sdk.Dec
 		expectedErr       error
 	}{
 		{
@@ -177,7 +179,8 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 
 				return fromDelegationShares, toDelegationShares, nil
 			},
-			shares: d("1000000000.0"),
+			shares:         d("1000000000.0"),
+			expectReceived: d("1000000000.0"),
 		},
 		{
 			name: "excess shares cannot be transferred",
@@ -189,7 +192,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				return fromDelegationShares, sdk.ZeroDec(), nil
 			},
 			shares:      d("1000000000.000000000000000001"),
-			expectedErr: types.ErrNotEnoughDelegationShares,
+			expectedErr: stakingtypes.ErrNotEnoughDelegationShares,
 		},
 		{
 			name: "shares can be transferred to a non existent delegation",
@@ -200,7 +203,8 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 
 				return fromDelegationShares, sdk.ZeroDec(), nil
 			},
-			shares: d("500000000.0"),
+			shares:         d("500000000.0"),
+			expectReceived: d("500000000.0"),
 		},
 		{
 			name: "shares cannot be transferred from a non existent delegation",
@@ -224,7 +228,23 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 
 				return fromDelegationShares, sdk.ZeroDec(), nil
 			},
-			shares: d("500000000.0"),
+			shares:         d("500000000.0"),
+			expectReceived: d("500000000.0"),
+		},
+		{
+			name: "zero shares received when transfer < 1 token",
+			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
+				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
+				toDelegationShares := suite.CreateDelegation(valAddr, toDelegator, i(1e9))
+				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+				// make 1 share worth more than 1 token
+				suite.SlashValidator(valAddr, d("0.05"))
+
+				return fromDelegationShares, toDelegationShares, nil
+			},
+			shares:         d("1.0"), // send 1 share (truncates to zero tokens)
+			expectReceived: d("0.0"),
 		},
 	}
 	for _, tc := range testCases {
@@ -236,19 +256,30 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 			suite.CreateAccountWithAddress(toDelegator, suite.NewBondCoins(initialBalance))
 
 			fromDelegationShares, toDelegationShares, err := tc.createDelegations()
-			suite.Require().NoError(err) // TODO does this catch nil errors?
+			suite.Require().NoError(err)
+			validator, found := suite.StakingKeeper.GetValidator(suite.Ctx, valAddr)
+			suite.Require().True(found)
 
 			err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, tc.shares)
 
 			if tc.expectedErr != nil {
 				suite.ErrorIs(err, tc.expectedErr)
-				suite.DelegationSharesEqual(valAddr, fromDelegator, fromDelegationShares)
-				suite.DelegationSharesEqual(valAddr, toDelegator, toDelegationShares)
-			} else {
-				suite.NoError(err)
-				suite.DelegationSharesEqual(valAddr, fromDelegator, fromDelegationShares.Sub(tc.shares))
-				suite.DelegationSharesEqual(valAddr, toDelegator, toDelegationShares.Add(tc.shares))
+				return
 			}
+
+			suite.NoError(err)
+			suite.DelegationSharesEqual(valAddr, fromDelegator, fromDelegationShares.Sub(tc.shares))
+			suite.DelegationSharesEqual(valAddr, toDelegator, toDelegationShares.Add(tc.expectReceived))
+
+			validatorAfter, found := suite.StakingKeeper.GetValidator(suite.Ctx, valAddr)
+			suite.Require().True(found)
+			// total tokens should not change
+			suite.Equal(validator.GetTokens(), validatorAfter.GetTokens())
+			// but total shares can differ
+			suite.Equal(
+				validator.GetDelegatorShares().Sub(tc.shares).Add(tc.expectReceived),
+				validatorAfter.GetDelegatorShares(),
+			)
 		})
 	}
 }
@@ -309,4 +340,39 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CompliesWithMinSelfDelegati
 	err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, valAccAddr, toDelegator, d("0.000000000000000001"))
 	suite.ErrorIs(err, types.ErrSelfDelegationBelowMinimum)
 	suite.DelegationSharesEqual(valAddr, valAccAddr, delegation.Amount.ToDec())
+}
+
+func (suite *KeeperTestSuite) TestTransferDelegation_CanTransferVested() {
+	_, addrs := app.GeneratePrivKeyAddressPairs(4)
+	valAccAddr, fromDelegator, toDelegator := addrs[0], addrs[1], addrs[2]
+	valAddr := sdk.ValAddress(valAccAddr)
+
+	suite.CreateAccountWithAddress(valAccAddr, suite.NewBondCoins(i(1e9)))
+	suite.CreateVestingAccountWithAddress(fromDelegator, suite.NewBondCoins(i(2e9)), suite.NewBondCoins(i(1e9)))
+
+	suite.CreateNewUnbondedValidator(valAddr, i(1e9))
+	fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(2e9))
+	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+
+	shares := d("1000000000.0")
+	err := suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, shares)
+	suite.NoError(err)
+	suite.DelegationSharesEqual(valAddr, fromDelegator, fromDelegationShares.Sub(shares))
+	suite.DelegationSharesEqual(valAddr, toDelegator, shares)
+}
+
+func (suite *KeeperTestSuite) TestTransferDelegation_CannotTransferVesting() {
+	_, addrs := app.GeneratePrivKeyAddressPairs(4)
+	valAccAddr, fromDelegator, toDelegator := addrs[0], addrs[1], addrs[2]
+	valAddr := sdk.ValAddress(valAccAddr)
+
+	suite.CreateAccountWithAddress(valAccAddr, suite.NewBondCoins(i(1e9)))
+	suite.CreateVestingAccountWithAddress(fromDelegator, suite.NewBondCoins(i(2e9)), suite.NewBondCoins(i(1e9)))
+
+	suite.CreateNewUnbondedValidator(valAddr, i(1e9))
+	suite.CreateDelegation(valAddr, fromDelegator, i(2e9))
+	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+
+	err := suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, d("1000000001.0"))
+	suite.ErrorIs(err, sdkerrors.ErrInsufficientFunds)
 }

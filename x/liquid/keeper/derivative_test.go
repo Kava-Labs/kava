@@ -8,114 +8,10 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/liquid/types"
 )
-
-func (suite *KeeperTestSuite) TestMintDerivative_Old() {
-	testCases := []struct {
-		name           string
-		balance        sdk.Coin
-		amount         sdk.Coin
-		bondValidator  bool
-		vestingAccount bool
-	}{
-		{
-			name:    "validator unbonded",
-			balance: sdk.NewInt64Coin("stake", 1e9),
-			amount:  sdk.NewCoin("stake", sdk.NewInt(1e6)),
-		},
-		{
-			name:          "validator bonded",
-			balance:       sdk.NewInt64Coin("stake", 1e9),
-			amount:        sdk.NewCoin("stake", sdk.NewInt(1e6)),
-			bondValidator: true,
-		},
-		{
-			name:           "delegator is vesting account",
-			balance:        sdk.NewInt64Coin("stake", 1e9),
-			amount:         sdk.NewCoin("stake", sdk.NewInt(1e6)),
-			vestingAccount: true,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			// Set up delegation to validator
-			var delegatorAcc authtypes.AccountI
-			if !tc.vestingAccount {
-				delegatorAcc = suite.CreateAccount(sdk.NewCoins(tc.balance))
-			} else {
-				delegatorAcc = suite.CreateVestingAccount(
-					sdk.NewCoins(tc.balance),
-					sdk.NewCoins(sdk.NewCoin(tc.balance.Denom, tc.balance.Amount.Mul(sdk.NewInt(10)))),
-				)
-			}
-
-			delegatorAddr := delegatorAcc.GetAddress()
-			validatorAddr := sdk.ValAddress(delegatorAddr)
-			err := suite.deliverMsgCreateValidator(suite.Ctx, validatorAddr, tc.balance)
-			suite.NoError(err)
-			validator, _ := suite.StakingKeeper.GetValidator(suite.Ctx, validatorAddr)
-			suite.Equal("BOND_STATUS_UNBONDED", validator.Status.String())
-
-			// Run the EndBlocker to bond validator
-			if tc.bondValidator {
-				_ = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{})
-				validator, _ = suite.StakingKeeper.GetValidator(suite.Ctx, validatorAddr)
-				suite.Equal("BOND_STATUS_BONDED", validator.Status.String())
-			}
-
-			// Check delegation from delegator to validator
-			delegation, found := suite.StakingKeeper.GetDelegation(suite.Ctx, delegatorAddr, validatorAddr)
-			suite.True(found)
-			suite.Equal(delegation.GetShares(), tc.balance.Amount.ToDec())
-
-			// Check delegation for module account to validator
-			moduleAccAddress := authtypes.NewModuleAddress(types.ModuleAccountName)
-			_, found = suite.StakingKeeper.GetDelegation(suite.Ctx, moduleAccAddress, validatorAddr)
-			suite.False(found)
-
-			// Get pre-mint total supply and delegator balance of the validator-specific liquid token
-			liquidTokenDenom := suite.Keeper.GetLiquidStakingTokenDenom(validatorAddr)
-			delegatorBalancePre := suite.BankKeeper.GetBalance(suite.Ctx, delegatorAddr, liquidTokenDenom)
-			totalSupplyPre := suite.BankKeeper.GetSupply(suite.Ctx, liquidTokenDenom)
-
-			// Create and deliver MintDerivative msg
-			msgMint := types.NewMsgMintDerivative(
-				delegatorAddr,
-				validatorAddr,
-				tc.amount,
-			)
-			_, err = suite.App.MsgServiceRouter().Handler(&msgMint)(suite.Ctx, &msgMint)
-			suite.NoError(err)
-
-			// Confirm that delegator's delegated amount has decreased by correct amount of shares
-			shares, err := validator.SharesFromTokens(tc.amount.Amount)
-			suite.NoError(err)
-			delegation, found = suite.StakingKeeper.GetDelegation(suite.Ctx, delegatorAddr, validatorAddr)
-			suite.True(found)
-			suite.Equal(delegation.GetShares(), tc.balance.Amount.ToDec().Sub(shares))
-
-			// Confirm that module account's delegation holds correct amount of shares
-			delegation, found = suite.StakingKeeper.GetDelegation(suite.Ctx, moduleAccAddress, validatorAddr)
-			suite.True(found)
-			suite.Equal(delegation.GetShares(), shares)
-
-			// Confirm that the total supply of the validator-specific liquid tokens has increased as expected
-			totalSupplyPost := suite.BankKeeper.GetSupply(suite.Ctx, liquidTokenDenom)
-			suite.Equal(totalSupplyPost.Sub(totalSupplyPre).Amount, tc.amount.Amount)
-
-			// Confirm that the delegator's balances the validator-specific liquid token has increased as expected
-			delegatorBalancePost := suite.BankKeeper.GetBalance(suite.Ctx, delegatorAddr, liquidTokenDenom)
-			suite.Equal(delegatorBalancePost.Sub(delegatorBalancePre).Amount, tc.amount.Amount)
-		})
-	}
-}
 
 func (suite *KeeperTestSuite) TestBurnDerivative() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
@@ -167,9 +63,9 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 		{
 			name:             "error when backing delegation isn't large enough",
 			balance:          c(liquidDenom, 1e9),
-			moduleDelegation: i(999999999),
+			moduleDelegation: i(999_999_999),
 			burnAmount:       c(liquidDenom, 1e9),
-			expectedErr:      types.ErrNotEnoughDelegationShares,
+			expectedErr:      stakingtypes.ErrNotEnoughDelegationShares,
 		},
 	}
 
@@ -192,6 +88,7 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 
 			suite.Require().ErrorIs(err, tc.expectedErr)
 			if tc.expectedErr != nil {
+				// if an error is expected, state should be reverted so don't need to test state is unchanged
 				return
 			}
 
@@ -213,17 +110,13 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestBurnDerivative_VestingAccount() {
-	suite.T().Skip()
-}
-
 func (suite *KeeperTestSuite) TestCalculateShares() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	valAccAddr, delegator := addrs[0], addrs[1]
 	valAddr := sdk.ValAddress(valAccAddr)
 
 	type returns struct {
-		derivatives sdk.Int // truncated shares
+		derivatives sdk.Int
 		shares      sdk.Dec
 		err         error
 	}
@@ -238,17 +131,16 @@ func (suite *KeeperTestSuite) TestCalculateShares() {
 		transfer   sdk.Int
 		expected   returns
 	}{
-		// Ignoring delegation amounts
 		{
 			name:       "error when transfer > tokens",
 			validator:  &validator{i(10), d("10")},
 			delegation: d("10"),
 			transfer:   i(11),
 			expected: returns{
-				err: types.ErrInvalidMint,
+				err: sdkerrors.ErrInvalidRequest,
 			},
 		},
-		// {
+		// { // TODO catch these cases?
 		// 	name:       "error when transfer = 0",
 		// 	validator:  &validator{i(10), d("10")},
 		// 	delegation: d("10"),
@@ -272,7 +164,7 @@ func (suite *KeeperTestSuite) TestCalculateShares() {
 			delegation: d("10"),
 			transfer:   i(5),
 			expected: returns{
-				err: types.ErrInvalidMint,
+				err: stakingtypes.ErrInsufficientShares,
 			},
 		},
 		{
@@ -281,31 +173,37 @@ func (suite *KeeperTestSuite) TestCalculateShares() {
 			delegation: d("4"),
 			transfer:   i(2),
 			expected: returns{
-				derivatives: i(2),                      // not rounded to 3
-				shares:      d("2.666666666666666666"), // not rounded to ...667
+				derivatives: i(2),                      // truncated down
+				shares:      d("2.666666666666666666"), // 2/3 * 4 not rounded to ...667
 			},
 		},
-		// delegation limits
-		// TODO
-		// invalid state
-		// {
-		// 	name:       "error when validator not found",
-		// 	validator:  nil,
-		// 	delegation: d("1000000000"),
-		// 	transfer:   i(500e6),
-		// 	expected: returns{
-		// 		err: types.ErrNoValidatorFound,
-		// 	},
-		// },
-		// {
-		// 	name:       "error when delegation not found",
-		// 	validator:  &validator{i(1e9), d("1000000000")},
-		// 	delegation: sdk.Dec{},
-		// 	transfer:   i(500e6),
-		// 	expected: returns{
-		// 		err: types.ErrNoDelegatorForAddress,
-		// 	},
-		// },
+		{
+			name:       "error if calculated shares > shares in delegation",
+			validator:  &validator{i(3), d("4")},
+			delegation: d("2.666666666666666665"), // one less than 2/3 * 4
+			transfer:   i(2),
+			expected: returns{
+				err: sdkerrors.ErrInvalidRequest,
+			},
+		},
+		{
+			name:       "error when validator not found",
+			validator:  nil,
+			delegation: d("1000000000"),
+			transfer:   i(500e6),
+			expected: returns{
+				err: stakingtypes.ErrNoValidatorFound,
+			},
+		},
+		{
+			name:       "error when delegation not found",
+			validator:  &validator{i(1e9), d("1000000000")},
+			delegation: sdk.Dec{},
+			transfer:   i(500e6),
+			expected: returns{
+				err: stakingtypes.ErrNoDelegation,
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -350,43 +248,31 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 		amount                  sdk.Coin
 		expectedDerivatives     sdk.Int
 		expectedSharesRemaining sdk.Dec
+		expectedSharesAdded     sdk.Dec
 		expectedErr             error
 	}{
-		// {
-		// 	name:                    "derivative is minted",
-		// 	amount:                  suite.NewBondCoin(i(333_333_333)),
-		// 	expectedDerivatives:     i(1e9 - 2),
-		// 	expectedSharesRemaining: d("1.5"),
-		// },
-		// {
-		// 	name:                    "when the input denom isn't correct derivatives are not minted",
-		// 	amount:                  sdk.NewCoin("invalid", i(1000)),
-		// 	expectedDerivatives:     i(0),
-		// 	expectedSharesRemaining: d("1000000000"),
-		// 	expectedErr:             types.ErrOnlyBondDenomAllowedForTokenize,
-		// },
-		// // TODO vesting {name: "derivative cannot be minted for vesting account"}
-		// {
-		// 	name:                    "when shares cannot be calculated derivatives are not minted",
-		// 	amount:                  sdk.Coin{Denom: suite.StakingKeeper.BondDenom(suite.Ctx), Amount: i(-1)},
-		// 	expectedDerivatives:     i(0),
-		// 	expectedSharesRemaining: d("1000000000"),
-		// 	expectedErr:             types.ErrInvalidMint,
-		// },
-		// {
-		// 	name:                    "when shares cannot be transferred derivatives are not minted",
-		// 	amount:                  suite.NewBondCoin(i(1e9)),
-		// 	expectedDerivatives:     i(0),
-		// 	expectedSharesRemaining: d("1000000000"),
-		// 	expectedErr:             types.ErrNotEnoughDelegationShares,
-		// },
-		// TODO check for zero transfer? {
-		// 	name:                    "when input is 0 derivative is not minted",
-		// 	amount:                  suite.NewBondCoin(i(0)),
-		// 	expectedDerivatives:     i(0),
-		// 	expectedSharesRemaining: d("1000000000"),
-		// 	expectedErr:             types.ErrInvalidRequest,
-		// },
+		{
+			name:                    "derivative is minted",
+			amount:                  suite.NewBondCoin(i(333_333_333)),
+			expectedDerivatives:     i(1e9 - 2),
+			expectedSharesRemaining: d("1.499999999250000001"), // not 1.5
+			expectedSharesAdded:     d("999999998.500000000750000000"),
+		},
+		{
+			name:        "error when the input denom isn't correct",
+			amount:      sdk.NewCoin("invalid", i(1000)),
+			expectedErr: types.ErrOnlyBondDenomAllowedForTokenize,
+		},
+		{
+			name:        "error when shares cannot be calculated",
+			amount:      suite.NewBondCoin(i(1e15)),
+			expectedErr: sdkerrors.ErrInvalidRequest,
+		},
+		{
+			name:        "error when shares cannot be transferred",
+			amount:      sdk.Coin{Denom: suite.StakingKeeper.BondDenom(suite.Ctx), Amount: i(-1)}, // TODO find better way to trigger this
+			expectedErr: types.ErrUntransferableShares,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -409,16 +295,21 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 			suite.Equal(i(666666667), val.GetTokens()) // note the slash amount is truncated to an int before being removed from the validator
 
 			err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr, tc.amount)
-			suite.ErrorIs(err, tc.expectedErr)
+
+			suite.Require().ErrorIs(err, tc.expectedErr)
+			if tc.expectedErr != nil {
+				// if an error is expected, state should be reverted so don't need to test state is unchanged
+				return
+			}
 
 			derivative := sdk.NewCoins(sdk.NewCoin(fmt.Sprintf("bkava-%s", valAddr), tc.expectedDerivatives))
 			suite.AccountBalanceEqual(delegator, derivative)
 
 			suite.DelegationSharesEqual(valAddr, delegator, tc.expectedSharesRemaining)
-			sharesTransferred := initialBalance.ToDec().Sub(tc.expectedSharesRemaining)
-			suite.DelegationSharesEqual(valAddr, moduleAccAddress, sharesTransferred)
+			suite.DelegationSharesEqual(valAddr, moduleAccAddress, tc.expectedSharesAdded)
 
 			if tc.expectedErr == nil {
+				sharesTransferred := initialBalance.ToDec().Sub(tc.expectedSharesRemaining)
 				suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 					types.EventTypeMintDerivative,
 					sdk.NewAttribute(types.AttributeKeyDelegator, delegator.String()),

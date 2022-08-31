@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -67,9 +66,12 @@ func (suite *KeeperTestSuite) CreateAccountWithAddress(addr sdk.AccAddress, init
 	return acc
 }
 
-// CreateVestingAccount creates a new vesting account from the provided balance and vesting balance
-func (suite *KeeperTestSuite) CreateVestingAccount(initialBalance sdk.Coins, vestingBalance sdk.Coins) authtypes.AccountI {
-	acc := suite.CreateAccount(initialBalance)
+// CreateVestingAccount creates a new vesting account. `vestingBalance` should be a fraction of `initialBalance`.
+func (suite *KeeperTestSuite) CreateVestingAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins, vestingBalance sdk.Coins) authtypes.AccountI {
+	if vestingBalance.IsAnyGT(initialBalance) {
+		panic("vesting balance must be less than initial balance")
+	}
+	acc := suite.CreateAccountWithAddress(addr, initialBalance)
 	bacc := acc.(*authtypes.BaseAccount)
 
 	periods := vestingtypes.Periods{
@@ -78,8 +80,8 @@ func (suite *KeeperTestSuite) CreateVestingAccount(initialBalance sdk.Coins, ves
 			Amount: vestingBalance,
 		},
 	}
-	vacc := vestingtypes.NewPeriodicVestingAccount(bacc, initialBalance, time.Now().Unix(), periods) // TODO is initialBalance correct for originalVesting?
-
+	vacc := vestingtypes.NewPeriodicVestingAccount(bacc, vestingBalance, suite.Ctx.BlockTime().Unix(), periods)
+	suite.App.GetAccountKeeper().SetAccount(suite.Ctx, vacc)
 	return vacc
 }
 
