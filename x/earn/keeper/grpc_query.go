@@ -8,9 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -199,35 +197,24 @@ func (s queryServer) Deposits(
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
+	if req.Depositor == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "depositor is required")
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	// 1. 1 account and "bkava" vault
-	if req.Depositor != "" && req.Denom == "bkava" {
+	// bkava aggregate total
+	if req.Denom == "bkava" {
 		return s.getOneAccountBkavaVaultDeposit(sdkCtx, req)
 	}
 
-	// 1. 1 account and 1 vault
-	if req.Depositor != "" && req.Denom != "" {
+	// specific vault
+	if req.Denom != "" {
 		return s.getOneAccountOneVaultDeposit(sdkCtx, req)
 	}
 
-	// 2. All accounts, "bkava" vault
-	if req.Depositor == "" && req.Denom == "bkava" {
-		return s.getBkavaVaultAllDeposits(sdkCtx, req)
-	}
-
-	// 2. All accounts, 1 vault
-	if req.Depositor == "" && req.Denom != "" {
-		return s.getOneVaultAllDeposits(sdkCtx, req)
-	}
-
-	// 3. 1 account, all vaults
-	if req.Depositor != "" && req.Denom == "" {
-		return s.getOneAccountAllDeposits(sdkCtx, req)
-	}
-
-	// 4. All accounts, all vaults
-	return s.getAllDeposits(sdkCtx, req)
+	// all vaults
+	return s.getOneAccountAllDeposits(sdkCtx, req)
 }
 
 // getOneAccountOneVaultDeposit returns deposits for a specific vault and a specific
@@ -307,125 +294,6 @@ func (s queryServer) getOneAccountBkavaVaultDeposit(
 	}, nil
 }
 
-// getOneVaultAllDeposits returns all deposits for a specific vault
-func (s queryServer) getOneVaultAllDeposits(
-	ctx sdk.Context,
-	req *types.QueryDepositsRequest,
-) (*types.QueryDepositsResponse, error) {
-	_, found := s.keeper.GetVaultRecord(ctx, req.Denom)
-	if !found {
-		return nil, status.Error(codes.NotFound, "Vault record for denom not found")
-	}
-
-	deposits := []types.DepositResponse{}
-	store := prefix.NewStore(ctx.KVStore(s.keeper.key), types.VaultShareRecordKeyPrefix)
-
-	pageRes, err := query.FilteredPaginate(
-		store,
-		req.Pagination,
-		func(key []byte, value []byte, accumulate bool) (bool, error) {
-			var record types.VaultShareRecord
-			err := s.keeper.cdc.Unmarshal(value, &record)
-			if err != nil {
-				return false, err
-			}
-
-			// Only those that have amount of requested denom
-			if record.Shares.AmountOf(req.Denom).IsZero() {
-				// inform paginate that there was no match on this key
-				return false, nil
-			}
-
-			if accumulate {
-				// Only get the value for the requested vault denom
-				vaultValue, err := s.keeper.GetVaultAccountValue(ctx, req.Denom, record.Depositor)
-				if err != nil {
-					return false, err
-				}
-
-				// only add to results if paginate tells us to
-				deposits = append(deposits, types.DepositResponse{
-					Depositor: record.Depositor.String(),
-					// Only the specified shares of requested denom
-					Shares: types.NewVaultShares(
-						types.NewVaultShare(req.Denom, record.Shares.AmountOf(req.Denom)),
-					),
-					Value: sdk.NewCoins(vaultValue),
-				})
-			}
-
-			// inform paginate that were was a match on this key
-			return true, nil
-		},
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.QueryDepositsResponse{
-		Deposits:   deposits,
-		Pagination: pageRes,
-	}, nil
-}
-
-// getBkavaVaultAllDeposits returns all deposits for the aggregated bkava vault
-func (s queryServer) getBkavaVaultAllDeposits(
-	ctx sdk.Context,
-	req *types.QueryDepositsRequest,
-) (*types.QueryDepositsResponse, error) {
-	deposits := []types.DepositResponse{}
-	store := prefix.NewStore(ctx.KVStore(s.keeper.key), types.VaultShareRecordKeyPrefix)
-
-	pageRes, err := query.FilteredPaginate(
-		store,
-		req.Pagination,
-		func(key []byte, value []byte, accumulate bool) (bool, error) {
-			var record types.VaultShareRecord
-			err := s.keeper.cdc.Unmarshal(value, &record)
-			if err != nil {
-				return false, err
-			}
-
-			// Only those that have bkava deposits
-			if !vaultSharesContainBkava(record.Shares) {
-				// inform paginate that there was no match on this key
-				return false, nil
-			}
-
-			if accumulate {
-				// Get total value for all bkava
-				totalAccountValue, err := getAccountTotalValue(ctx, s.keeper, record.Depositor, record.Shares)
-				if err != nil {
-					return false, err
-				}
-
-				bkavaTotal := getTotalBkava(totalAccountValue)
-
-				// only add to results if paginate tells us to
-				deposits = append(deposits, types.DepositResponse{
-					Depositor: record.Depositor.String(),
-					// Only the specified shares of requested denom
-					Shares: nil,
-					Value:  sdk.NewCoins(bkavaTotal),
-				})
-			}
-
-			// inform paginate that were was a match on this key
-			return true, nil
-		},
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.QueryDepositsResponse{
-		Deposits:   deposits,
-		Pagination: pageRes,
-	}, nil
-}
-
 // getOneAccountAllDeposits returns deposits for all vaults for a specific account
 func (s queryServer) getOneAccountAllDeposits(
 	ctx sdk.Context,
@@ -460,50 +328,6 @@ func (s queryServer) getOneAccountAllDeposits(
 	}, nil
 }
 
-// getAllDeposits returns all deposits for all vaults
-func (s queryServer) getAllDeposits(
-	ctx sdk.Context,
-	req *types.QueryDepositsRequest,
-) (*types.QueryDepositsResponse, error) {
-	deposits := []types.DepositResponse{}
-	store := prefix.NewStore(ctx.KVStore(s.keeper.key), types.VaultShareRecordKeyPrefix)
-
-	pageRes, err := query.Paginate(
-		store,
-		req.Pagination,
-		func(key []byte, value []byte) error {
-			var record types.VaultShareRecord
-			err := s.keeper.cdc.Unmarshal(value, &record)
-			if err != nil {
-				return err
-			}
-
-			accValue, err := getAccountTotalValue(ctx, s.keeper, record.Depositor, record.Shares)
-			if err != nil {
-				return err
-			}
-
-			// only add to results if paginate tells us to
-			deposits = append(deposits, types.DepositResponse{
-				Depositor: record.Depositor.String(),
-				Shares:    record.Shares,
-				Value:     accValue,
-			})
-
-			return nil
-		},
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.QueryDepositsResponse{
-		Deposits:   deposits,
-		Pagination: pageRes,
-	}, nil
-}
-
 // getAccountTotalValue returns the total value for all vaults for a specific
 // account based on their shares.
 func getAccountTotalValue(
@@ -533,16 +357,6 @@ func addressSliceToStringSlice(addresses []sdk.AccAddress) []string {
 	}
 
 	return strings
-}
-
-func vaultSharesContainBkava(shares types.VaultShares) bool {
-	for _, share := range shares {
-		if strings.HasPrefix(share.Denom, "bkava") {
-			return true
-		}
-	}
-
-	return false
 }
 
 func getTotalBkava(coins sdk.Coins) sdk.Coin {

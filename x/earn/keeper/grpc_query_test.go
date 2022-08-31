@@ -180,7 +180,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit4Amount, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
-	suite.Run("1) 1 vault for 1 account", func() {
+	suite.Run("specific vault", func() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
@@ -206,7 +206,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		)
 	})
 
-	suite.Run("1) bkava vault for 1 account", func() {
+	suite.Run("bkava aggregate vault", func() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
@@ -232,7 +232,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		)
 	})
 
-	suite.Run("1) invalid vault for 1 account", func() {
+	suite.Run("invalid vault", func() {
 		_, err := suite.queryClient.Deposits(
 			context.Background(),
 			types.NewQueryDepositsRequest(acc1.String(), "notavaliddenom", nil),
@@ -241,52 +241,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		suite.Require().ErrorIs(err, status.Errorf(codes.NotFound, "vault for notavaliddenom not found"))
 	})
 
-	suite.Run("2) all accounts, specific vault", func() {
-		// Query all deposits for vault 3
-		res, err := suite.queryClient.Deposits(
-			context.Background(),
-			types.NewQueryDepositsRequest("", vault3Denom, nil),
-		)
-		suite.Require().NoError(err)
-		suite.Require().Len(res.Deposits, 1)
-		suite.Require().ElementsMatch(
-			[]types.DepositResponse{
-				{
-					Depositor: acc2.String(),
-					Shares: types.NewVaultShares(
-						types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
-					),
-					Value: sdk.NewCoins(deposit3Amount),
-				},
-			},
-			res.Deposits,
-		)
-	})
-
-	suite.Run("2) all accounts, bkava vault", func() {
-		// Query all deposits for vault 3
-		res, err := suite.queryClient.Deposits(
-			context.Background(),
-			types.NewQueryDepositsRequest("", "bkava", nil),
-		)
-		suite.Require().NoError(err)
-		suite.Require().Len(res.Deposits, 1)
-		suite.Require().ElementsMatch(
-			[]types.DepositResponse{
-				{
-					Depositor: acc2.String(),
-					Shares:    nil,
-					// Only the specified vault denom value
-					Value: sdk.NewCoins(
-						sdk.NewCoin("bkava", deposit3Amount.Amount.Add(deposit4Amount.Amount)),
-					),
-				},
-			},
-			res.Deposits,
-		)
-	})
-
-	suite.Run("3) all vaults for 1 account", func() {
+	suite.Run("all vaults", func() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
@@ -308,53 +263,15 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 			res.Deposits,
 		)
 	})
-
-	suite.Run("4) all vaults and all accounts", func() {
-		// Query all deposits for all vaults
-		res, err := suite.queryClient.Deposits(
-			context.Background(),
-			types.NewQueryDepositsRequest("", "", nil),
-		)
-		suite.Require().NoError(err)
-		suite.Require().Len(res.Deposits, 2)
-		suite.Require().ElementsMatchf(
-			[]types.DepositResponse{
-				{
-					Depositor: acc1.String(),
-					Shares: types.NewVaultShares(
-						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
-						types.NewVaultShare(deposit2Amount.Denom, deposit2Amount.Amount.ToDec()),
-					),
-					Value: sdk.NewCoins(deposit1Amount, deposit2Amount),
-				},
-				{
-					Depositor: acc2.String(),
-					Shares: types.NewVaultShares(
-						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
-						types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
-						types.NewVaultShare(deposit4Amount.Denom, deposit4Amount.Amount.ToDec()),
-					),
-					Value: sdk.NewCoins(
-						deposit1Amount,
-						deposit3Amount,
-						deposit4Amount,
-					),
-				},
-			},
-			res.Deposits,
-			"deposits should match, got %v",
-			res.Deposits,
-		)
-	})
 }
 
-func (suite *grpcQueryTestSuite) TestDeposits_NotFound() {
+func (suite *grpcQueryTestSuite) TestDeposits_NoDepositor() {
 	_, err := suite.queryClient.Deposits(
 		context.Background(),
 		types.NewQueryDepositsRequest("", "usdx", nil),
 	)
 	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, status.Error(codes.NotFound, "Vault record for denom not found"))
+	suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "depositor is required"))
 }
 
 func (suite *grpcQueryTestSuite) TestDeposits_InvalidAddress() {
