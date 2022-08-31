@@ -81,7 +81,26 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 	suite.Run("all", func() {
 		res, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest())
 		suite.Require().NoError(err)
-		suite.Require().Empty(res.Vaults)
+		suite.Require().ElementsMatch([]types.VaultResponse{
+			{
+				Denom:             "usdx",
+				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+				IsPrivateVault:    false,
+				AllowedDepositors: nil,
+				TotalShares:       sdk.ZeroDec().String(),
+				TotalValue:        sdk.ZeroInt(),
+			},
+			{
+				Denom:             "busd",
+				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+				IsPrivateVault:    false,
+				AllowedDepositors: nil,
+				TotalShares:       sdk.ZeroDec().String(),
+				TotalValue:        sdk.ZeroInt(),
+			},
+		},
+			res.Vaults,
+		)
 	})
 }
 
@@ -126,6 +145,60 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 				AllowedDepositors: nil,
 				TotalShares:       deposit2Amount.Amount.ToDec().String(),
 				TotalValue:        deposit2Amount.Amount,
+			},
+		},
+		res.Vaults,
+	)
+}
+
+func (suite *grpcQueryTestSuite) TestVaults_MixedSupply() {
+	vaultDenom := "usdx"
+	vault2Denom := "busd"
+	vault3Denom := testutil.TestBkavaDenoms[0]
+
+	depositAmount := sdk.NewInt64Coin(vault3Denom, 100)
+
+	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+	suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+	suite.CreateVault("bkava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
+
+	acc := suite.CreateAccount(sdk.NewCoins(
+		sdk.NewInt64Coin(vaultDenom, 1000),
+		sdk.NewInt64Coin(vault2Denom, 1000),
+		sdk.NewInt64Coin(vault3Denom, 1000),
+	), 0)
+
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().NoError(err)
+
+	res, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest())
+	suite.Require().NoError(err)
+	suite.Require().Len(res.Vaults, 3)
+	suite.Require().ElementsMatch(
+		[]types.VaultResponse{
+			{
+				Denom:             vaultDenom,
+				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+				IsPrivateVault:    false,
+				AllowedDepositors: nil,
+				TotalShares:       sdk.ZeroDec().String(),
+				TotalValue:        sdk.ZeroInt(),
+			},
+			{
+				Denom:             vault2Denom,
+				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+				IsPrivateVault:    false,
+				AllowedDepositors: nil,
+				TotalShares:       sdk.ZeroDec().String(),
+				TotalValue:        sdk.ZeroInt(),
+			},
+			{
+				Denom:             vault3Denom,
+				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_SAVINGS},
+				IsPrivateVault:    false,
+				AllowedDepositors: nil,
+				TotalShares:       depositAmount.Amount.ToDec().String(),
+				TotalValue:        depositAmount.Amount,
 			},
 		},
 		res.Vaults,

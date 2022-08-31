@@ -50,6 +50,14 @@ func (s queryServer) Vaults(
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
+	allowedVaults := s.keeper.GetAllowedVaults(sdkCtx)
+	allowedVaultsMap := make(map[string]types.AllowedVault)
+	visitedMap := make(map[string]bool)
+	for _, av := range allowedVaults {
+		allowedVaultsMap[av.Denom] = av
+		visitedMap[av.Denom] = false
+	}
+
 	vaults := []types.VaultResponse{}
 
 	var vaultRecordsErr error
@@ -57,9 +65,16 @@ func (s queryServer) Vaults(
 	// Iterate over vault records instead of AllowedVaults to get all bkava-*
 	// vaults
 	s.keeper.IterateVaultRecords(sdkCtx, func(record types.VaultRecord) bool {
-		allowedVault, found := s.keeper.GetAllowedVault(sdkCtx, record.TotalShares.Denom)
+		// Check if bkava, use allowed vault
+		allowedVaultDenom := record.TotalShares.Denom
+		if strings.HasPrefix(record.TotalShares.Denom, bkavaPrefix) {
+			allowedVaultDenom = bkavaDenom
+		}
+
+		allowedVault, found := allowedVaultsMap[allowedVaultDenom]
 		if !found {
 			vaultRecordsErr = fmt.Errorf("vault record not found for vault record denom %s", record.TotalShares.Denom)
+			return true
 		}
 
 		totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, record.TotalShares.Denom)
@@ -78,11 +93,38 @@ func (s queryServer) Vaults(
 			TotalValue:        totalValue.Amount,
 		})
 
+		// Mark this allowed vault as visited
+		visitedMap[allowedVaultDenom] = true
+
 		return false
 	})
 
 	if vaultRecordsErr != nil {
 		return nil, vaultRecordsErr
+	}
+
+	// Add the allowed vaults that have not been visited yet
+	// These are always empty vaults, as the vault would have been visited
+	// earlier if there are any deposits
+	for denom, visited := range visitedMap {
+		if visited {
+			continue
+		}
+
+		allowedVault, found := allowedVaultsMap[denom]
+		if !found {
+			return nil, fmt.Errorf("vault record not found for vault record denom %s", denom)
+		}
+
+		vaults = append(vaults, types.VaultResponse{
+			Denom:             denom,
+			Strategies:        allowedVault.Strategies,
+			IsPrivateVault:    allowedVault.IsPrivateVault,
+			AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
+			// No shares, no value
+			TotalShares: sdk.ZeroDec().String(),
+			TotalValue:  sdk.ZeroInt(),
+		})
 	}
 
 	// Does not include vaults that have no deposits, only iterates over vault
