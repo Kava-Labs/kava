@@ -116,3 +116,15 @@ func (k Keeper) burnCoins(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coi
 	}
 	return nil
 }
+
+// TODO test
+func (k Keeper) TokenToDerivative(ctx sdk.Context, valAddr sdk.ValAddress, amount sdk.Int) (sdk.Coin, error) {
+	modAcc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName) // TODO don't create account
+	derivative, _, err := k.CalculateDerivativeSharesFromTokens(ctx, modAcc.GetAddress(), valAddr, amount)
+	if err != nil {
+		return sdk.Coin{}, nil
+	}
+	liquidTokenDenom := k.GetLiquidStakingTokenDenom(valAddr)
+	liquidToken := sdk.NewCoin(liquidTokenDenom, derivative)
+	return liquidToken, nil
+}

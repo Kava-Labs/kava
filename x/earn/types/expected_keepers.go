@@ -1,8 +1,12 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -45,4 +49,26 @@ type SavingsKeeper interface {
 type EarnHooks interface {
 	AfterVaultDepositCreated(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharedOwned sdk.Dec)
 	BeforeVaultDepositModified(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharedOwned sdk.Dec)
+}
+
+type StakingKeeper interface {
+	BondDenom(ctx sdk.Context) (res string)
+	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
+	ValidateUnbondAmount(
+		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, amt sdk.Int,
+	) (shares sdk.Dec, err error)
+
+	Delegate(
+		ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdk.Int, tokenSrc stakingtypes.BondStatus,
+		validator stakingtypes.Validator, subtractAccount bool,
+	) (newShares sdk.Dec, err error)
+	Undelegate(
+		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdk.Dec,
+	) (time.Time, error)
+}
+
+type LiquidKeeper interface {
+	TokenToDerivative(ctx sdk.Context, valAddr sdk.ValAddress, amount sdk.Int) (sdk.Coin, error)
+	MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Coin, error)
+	BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Dec, error)
 }
