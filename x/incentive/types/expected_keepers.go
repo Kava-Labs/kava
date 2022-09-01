@@ -75,6 +75,8 @@ type EarnKeeper interface {
 type LiquidKeeper interface {
 	IsDerivativeDenom(ctx sdk.Context, denom string) bool
 	GetAllDerivativeDenoms(ctx sdk.Context) (denoms []string)
+	GetTotalDerivativeSupply(ctx sdk.Context) sdk.Int
+	GetDerivativeSupply(ctx sdk.Context, denom string) sdk.Int
 }
 
 // AccountKeeper expected interface for the account keeper (noalias)
