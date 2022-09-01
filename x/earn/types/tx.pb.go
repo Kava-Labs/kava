@@ -208,45 +208,360 @@ func (m *MsgWithdrawResponse) GetShares() VaultShare {
 	return VaultShare{}
 }
 
+type MsgMintDeposit struct {
+	// depositor represents the address to deposit funds from
+	Depositor string `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
+	Validator string `protobuf:"bytes,2,opt,name=validator,proto3" json:"validator,omitempty"`
+	// Amount represents the token to deposit. The vault corresponds to the denom
+	// of the amount coin.
+	Amount types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
+}
+
+func (m *MsgMintDeposit) Reset()         { *m = MsgMintDeposit{} }
+func (m *MsgMintDeposit) String() string { return proto.CompactTextString(m) }
+func (*MsgMintDeposit) ProtoMessage()    {}
+func (*MsgMintDeposit) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2e9dcf48a3fa0009, []int{4}
+}
+func (m *MsgMintDeposit) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgMintDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgMintDeposit.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgMintDeposit) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgMintDeposit.Merge(m, src)
+}
+func (m *MsgMintDeposit) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgMintDeposit) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgMintDeposit.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgMintDeposit proto.InternalMessageInfo
+
+type MsgMintDepositResponse struct {
+}
+
+func (m *MsgMintDepositResponse) Reset()         { *m = MsgMintDepositResponse{} }
+func (m *MsgMintDepositResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgMintDepositResponse) ProtoMessage()    {}
+func (*MsgMintDepositResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2e9dcf48a3fa0009, []int{5}
+}
+func (m *MsgMintDepositResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgMintDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgMintDepositResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgMintDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgMintDepositResponse.Merge(m, src)
+}
+func (m *MsgMintDepositResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgMintDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgMintDepositResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgMintDepositResponse proto.InternalMessageInfo
+
+type MsgDelegateMintDeposit struct {
+	// depositor represents the address to deposit funds from
+	Depositor string `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
+	Validator string `protobuf:"bytes,2,opt,name=validator,proto3" json:"validator,omitempty"`
+	// Amount represents the token to deposit. The vault corresponds to the denom
+	// of the amount coin.
+	Amount types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
+}
+
+func (m *MsgDelegateMintDeposit) Reset()         { *m = MsgDelegateMintDeposit{} }
+func (m *MsgDelegateMintDeposit) String() string { return proto.CompactTextString(m) }
+func (*MsgDelegateMintDeposit) ProtoMessage()    {}
+func (*MsgDelegateMintDeposit) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2e9dcf48a3fa0009, []int{6}
+}
+func (m *MsgDelegateMintDeposit) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDelegateMintDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDelegateMintDeposit.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDelegateMintDeposit) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDelegateMintDeposit.Merge(m, src)
+}
+func (m *MsgDelegateMintDeposit) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDelegateMintDeposit) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDelegateMintDeposit.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDelegateMintDeposit proto.InternalMessageInfo
+
+type MsgDelegateMintDepositResponse struct {
+}
+
+func (m *MsgDelegateMintDepositResponse) Reset()         { *m = MsgDelegateMintDepositResponse{} }
+func (m *MsgDelegateMintDepositResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgDelegateMintDepositResponse) ProtoMessage()    {}
+func (*MsgDelegateMintDepositResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2e9dcf48a3fa0009, []int{7}
+}
+func (m *MsgDelegateMintDepositResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDelegateMintDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDelegateMintDepositResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDelegateMintDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDelegateMintDepositResponse.Merge(m, src)
+}
+func (m *MsgDelegateMintDepositResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDelegateMintDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDelegateMintDepositResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDelegateMintDepositResponse proto.InternalMessageInfo
+
+type MsgWithdrawBurn struct {
+	// depositor represents the address to deposit funds from
+	Depositor string `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
+	Validator string `protobuf:"bytes,2,opt,name=validator,proto3" json:"validator,omitempty"`
+	// Amount represents the token to deposit. The vault corresponds to the denom
+	// of the amount coin.
+	Amount types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
+}
+
+func (m *MsgWithdrawBurn) Reset()         { *m = MsgWithdrawBurn{} }
+func (m *MsgWithdrawBurn) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawBurn) ProtoMessage()    {}
+func (*MsgWithdrawBurn) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2e9dcf48a3fa0009, []int{8}
+}
+func (m *MsgWithdrawBurn) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawBurn) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawBurn.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawBurn) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawBurn.Merge(m, src)
+}
+func (m *MsgWithdrawBurn) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawBurn) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawBurn.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawBurn proto.InternalMessageInfo
+
+type MsgWithdrawBurnResponse struct {
+}
+
+func (m *MsgWithdrawBurnResponse) Reset()         { *m = MsgWithdrawBurnResponse{} }
+func (m *MsgWithdrawBurnResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawBurnResponse) ProtoMessage()    {}
+func (*MsgWithdrawBurnResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2e9dcf48a3fa0009, []int{9}
+}
+func (m *MsgWithdrawBurnResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawBurnResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawBurnResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawBurnResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawBurnResponse.Merge(m, src)
+}
+func (m *MsgWithdrawBurnResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawBurnResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawBurnResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawBurnResponse proto.InternalMessageInfo
+
+type MsgWithdrawBurnUndelegate struct {
+	// depositor represents the address to deposit funds from
+	Depositor string `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
+	Validator string `protobuf:"bytes,2,opt,name=validator,proto3" json:"validator,omitempty"`
+	// Amount represents the token to deposit. The vault corresponds to the denom
+	// of the amount coin.
+	Amount types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
+}
+
+func (m *MsgWithdrawBurnUndelegate) Reset()         { *m = MsgWithdrawBurnUndelegate{} }
+func (m *MsgWithdrawBurnUndelegate) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawBurnUndelegate) ProtoMessage()    {}
+func (*MsgWithdrawBurnUndelegate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2e9dcf48a3fa0009, []int{10}
+}
+func (m *MsgWithdrawBurnUndelegate) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawBurnUndelegate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawBurnUndelegate.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawBurnUndelegate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawBurnUndelegate.Merge(m, src)
+}
+func (m *MsgWithdrawBurnUndelegate) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawBurnUndelegate) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawBurnUndelegate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawBurnUndelegate proto.InternalMessageInfo
+
+type MsgWithdrawBurnUndelegateResponse struct {
+}
+
+func (m *MsgWithdrawBurnUndelegateResponse) Reset()         { *m = MsgWithdrawBurnUndelegateResponse{} }
+func (m *MsgWithdrawBurnUndelegateResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawBurnUndelegateResponse) ProtoMessage()    {}
+func (*MsgWithdrawBurnUndelegateResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2e9dcf48a3fa0009, []int{11}
+}
+func (m *MsgWithdrawBurnUndelegateResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawBurnUndelegateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawBurnUndelegateResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawBurnUndelegateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawBurnUndelegateResponse.Merge(m, src)
+}
+func (m *MsgWithdrawBurnUndelegateResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawBurnUndelegateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawBurnUndelegateResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawBurnUndelegateResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgDeposit)(nil), "kava.earn.v1beta1.MsgDeposit")
 	proto.RegisterType((*MsgDepositResponse)(nil), "kava.earn.v1beta1.MsgDepositResponse")
 	proto.RegisterType((*MsgWithdraw)(nil), "kava.earn.v1beta1.MsgWithdraw")
 	proto.RegisterType((*MsgWithdrawResponse)(nil), "kava.earn.v1beta1.MsgWithdrawResponse")
+	proto.RegisterType((*MsgMintDeposit)(nil), "kava.earn.v1beta1.MsgMintDeposit")
+	proto.RegisterType((*MsgMintDepositResponse)(nil), "kava.earn.v1beta1.MsgMintDepositResponse")
+	proto.RegisterType((*MsgDelegateMintDeposit)(nil), "kava.earn.v1beta1.MsgDelegateMintDeposit")
+	proto.RegisterType((*MsgDelegateMintDepositResponse)(nil), "kava.earn.v1beta1.MsgDelegateMintDepositResponse")
+	proto.RegisterType((*MsgWithdrawBurn)(nil), "kava.earn.v1beta1.MsgWithdrawBurn")
+	proto.RegisterType((*MsgWithdrawBurnResponse)(nil), "kava.earn.v1beta1.MsgWithdrawBurnResponse")
+	proto.RegisterType((*MsgWithdrawBurnUndelegate)(nil), "kava.earn.v1beta1.MsgWithdrawBurnUndelegate")
+	proto.RegisterType((*MsgWithdrawBurnUndelegateResponse)(nil), "kava.earn.v1beta1.MsgWithdrawBurnUndelegateResponse")
 }
 
 func init() { proto.RegisterFile("kava/earn/v1beta1/tx.proto", fileDescriptor_2e9dcf48a3fa0009) }
 
 var fileDescriptor_2e9dcf48a3fa0009 = []byte{
-	// 443 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x93, 0x41, 0x8b, 0xd3, 0x40,
-	0x14, 0xc7, 0x33, 0x6e, 0xa9, 0xbb, 0x53, 0x10, 0x1c, 0xf7, 0xd0, 0x0d, 0xec, 0xb4, 0x14, 0x5c,
-	0x7a, 0x70, 0x27, 0x6c, 0x05, 0x05, 0xf7, 0xa2, 0xd5, 0x6b, 0x11, 0x53, 0x51, 0xf0, 0x22, 0x93,
-	0x66, 0x9c, 0x06, 0x37, 0x99, 0x30, 0x6f, 0x5a, 0xb7, 0xdf, 0xc0, 0xa3, 0x1f, 0xc1, 0xb3, 0x67,
-	0xc1, 0xab, 0xc7, 0x3d, 0x2e, 0x9e, 0x3c, 0x89, 0xb4, 0x5f, 0x44, 0x92, 0x99, 0xa4, 0x42, 0xcb,
-	0x7a, 0x11, 0xf6, 0xf6, 0x26, 0xff, 0xdf, 0xff, 0xe5, 0xbd, 0x7f, 0x32, 0xd8, 0x7f, 0xcf, 0xe7,
-	0x3c, 0x10, 0x5c, 0x67, 0xc1, 0xfc, 0x24, 0x12, 0x86, 0x9f, 0x04, 0xe6, 0x9c, 0xe5, 0x5a, 0x19,
-	0x45, 0x6e, 0x17, 0x1a, 0x2b, 0x34, 0xe6, 0x34, 0xff, 0x60, 0xa2, 0x20, 0x55, 0xf0, 0xb6, 0x04,
-	0x02, 0x7b, 0xb0, 0xb4, 0x4f, 0xed, 0x29, 0x88, 0x38, 0x88, 0xba, 0xd7, 0x44, 0x25, 0x99, 0xd3,
-	0xf7, 0xa5, 0x92, 0xca, 0xfa, 0x8a, 0xca, 0x3d, 0xed, 0x6e, 0xbe, 0x1f, 0x8c, 0xe6, 0x46, 0xc8,
-	0x85, 0x23, 0x0e, 0x37, 0x89, 0x39, 0x9f, 0x9d, 0x19, 0x2b, 0xf7, 0xbe, 0x23, 0x8c, 0x47, 0x20,
-	0x9f, 0x89, 0x5c, 0x41, 0x62, 0xc8, 0x03, 0xbc, 0x17, 0xdb, 0x52, 0xe9, 0x36, 0xea, 0xa2, 0xfe,
-	0xde, 0xb0, 0xfd, 0xe3, 0xeb, 0xf1, 0xbe, 0x1b, 0xf5, 0x49, 0x1c, 0x6b, 0x01, 0x30, 0x36, 0x3a,
-	0xc9, 0x64, 0xb8, 0x46, 0xc9, 0x43, 0xdc, 0xe4, 0xa9, 0x9a, 0x65, 0xa6, 0x7d, 0xa3, 0x8b, 0xfa,
-	0xad, 0xc1, 0x01, 0x73, 0x8e, 0x62, 0x9d, 0x6a, 0x7d, 0xf6, 0x54, 0x25, 0xd9, 0xb0, 0x71, 0xf1,
-	0xab, 0xe3, 0x85, 0x0e, 0x27, 0xa7, 0x78, 0xb7, 0x1a, 0xb8, 0xbd, 0xd3, 0x45, 0xfd, 0x5b, 0x83,
-	0x0e, 0xdb, 0xc8, 0x8d, 0x8d, 0x1d, 0xf2, 0x72, 0x91, 0x8b, 0xb0, 0x36, 0x3c, 0x6a, 0x7c, 0xfc,
-	0xdc, 0xf1, 0x7a, 0x2f, 0x30, 0x59, 0x6f, 0x10, 0x0a, 0xc8, 0x55, 0x06, 0x82, 0x9c, 0xe2, 0x26,
-	0x4c, 0xb9, 0x16, 0x50, 0xae, 0xd1, 0x1a, 0x1c, 0x6e, 0x69, 0xfb, 0xaa, 0x08, 0x62, 0x5c, 0x50,
-	0xd5, 0x54, 0xd6, 0xd2, 0xfb, 0x86, 0x70, 0x6b, 0x04, 0xf2, 0x75, 0x62, 0xa6, 0xb1, 0xe6, 0x1f,
-	0xc8, 0x3d, 0xdc, 0x78, 0xa7, 0x55, 0xfa, 0xcf, 0x44, 0x4a, 0xea, 0x5a, 0xc3, 0x08, 0xf1, 0x9d,
-	0xbf, 0x06, 0xff, 0x2f, 0x69, 0x0c, 0xbe, 0x20, 0xbc, 0x33, 0x02, 0x49, 0x9e, 0xe3, 0x9b, 0xd5,
-	0x7f, 0xb2, 0xcd, 0xbf, 0xfe, 0x08, 0xfe, 0xdd, 0x2b, 0xe5, 0x7a, 0xaa, 0x10, 0xef, 0xd6, 0x11,
-	0xd3, 0xed, 0x96, 0x4a, 0xf7, 0x8f, 0xae, 0xd6, 0xab, 0x9e, 0xc3, 0xc7, 0x17, 0x4b, 0x8a, 0x2e,
-	0x97, 0x14, 0xfd, 0x5e, 0x52, 0xf4, 0x69, 0x45, 0xbd, 0xcb, 0x15, 0xf5, 0x7e, 0xae, 0xa8, 0xf7,
-	0xe6, 0x48, 0x26, 0x66, 0x3a, 0x8b, 0xd8, 0x44, 0xa5, 0x41, 0xd1, 0xeb, 0xf8, 0x8c, 0x47, 0x50,
-	0x56, 0xc1, 0xb9, 0xbd, 0x20, 0x66, 0x91, 0x0b, 0x88, 0x9a, 0xe5, 0xcd, 0xb8, 0xff, 0x27, 0x00,
-	0x00, 0xff, 0xff, 0x23, 0xf1, 0x3e, 0x54, 0xdc, 0x03, 0x00, 0x00,
+	// 367 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0xca, 0x4e, 0x2c, 0x4b,
+	0xd4, 0x4f, 0x4d, 0x2c, 0xca, 0xd3, 0x2f, 0x33, 0x4c, 0x4a, 0x2d, 0x49, 0x34, 0xd4, 0x2f, 0xa9,
+	0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x04, 0xc9, 0xe9, 0x81, 0xe4, 0xf4, 0xa0, 0x72,
+	0x52, 0x92, 0xc9, 0xf9, 0xc5, 0xb9, 0xf9, 0xc5, 0xf1, 0x60, 0x05, 0xfa, 0x10, 0x0e, 0x44, 0xb5,
+	0x94, 0x1c, 0x84, 0xa7, 0x9f, 0x94, 0x58, 0x9c, 0x0a, 0x37, 0x2b, 0x39, 0x3f, 0x33, 0x0f, 0x2a,
+	0x2f, 0x92, 0x9e, 0x9f, 0x9e, 0x0f, 0xd1, 0x07, 0x62, 0x41, 0x44, 0x95, 0x9a, 0x19, 0xb9, 0xb8,
+	0x7c, 0x8b, 0xd3, 0x5d, 0x52, 0x0b, 0xf2, 0x8b, 0x33, 0x4b, 0x84, 0xcc, 0xb8, 0x38, 0x53, 0x20,
+	0xcc, 0xfc, 0x22, 0x09, 0x46, 0x05, 0x46, 0x0d, 0x4e, 0x27, 0x89, 0x4b, 0x5b, 0x74, 0x45, 0xa0,
+	0x36, 0x39, 0xa6, 0xa4, 0x14, 0xa5, 0x16, 0x17, 0x07, 0x97, 0x14, 0x65, 0xe6, 0xa5, 0x07, 0x21,
+	0x94, 0x0a, 0x99, 0x73, 0xb1, 0x25, 0xe6, 0xe6, 0x97, 0xe6, 0x95, 0x48, 0x30, 0x29, 0x30, 0x6a,
+	0x70, 0x1b, 0x49, 0xea, 0x41, 0x75, 0x80, 0x5c, 0x03, 0x73, 0xbd, 0x9e, 0x73, 0x7e, 0x66, 0x9e,
+	0x13, 0xcb, 0x89, 0x7b, 0xf2, 0x0c, 0x41, 0x50, 0xe5, 0x56, 0x2c, 0x1d, 0x0b, 0xe4, 0x19, 0x94,
+	0x44, 0xb8, 0x84, 0x10, 0x8e, 0x08, 0x4a, 0x2d, 0x2e, 0xc8, 0xcf, 0x2b, 0x4e, 0x55, 0xaa, 0xe2,
+	0xe2, 0xf6, 0x2d, 0x4e, 0x0f, 0xcf, 0x2c, 0xc9, 0x48, 0x29, 0x4a, 0x2c, 0x17, 0xd2, 0xe1, 0x62,
+	0x49, 0x2b, 0xca, 0xcf, 0x25, 0xe8, 0x2c, 0xb0, 0x2a, 0x4a, 0x5d, 0x24, 0xca, 0x25, 0x8c, 0x64,
+	0x37, 0xcc, 0x49, 0x46, 0xab, 0x18, 0xb9, 0x98, 0x7d, 0x8b, 0xd3, 0x85, 0xfc, 0xb9, 0xd8, 0x61,
+	0x41, 0x26, 0xab, 0x87, 0x11, 0x4d, 0x7a, 0x08, 0xcf, 0x48, 0xa9, 0xe2, 0x95, 0x86, 0x19, 0x2c,
+	0x14, 0xc4, 0xc5, 0x01, 0xf7, 0xa8, 0x1c, 0x76, 0x2d, 0x30, 0x79, 0x29, 0x35, 0xfc, 0xf2, 0x30,
+	0x33, 0x9d, 0x1c, 0x4e, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6,
+	0x09, 0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63, 0xb8, 0xf1, 0x58, 0x8e, 0x21, 0x4a, 0x2d, 0x3d,
+	0xb3, 0x24, 0xa3, 0x34, 0x49, 0x2f, 0x39, 0x3f, 0x57, 0x1f, 0x64, 0x96, 0x6e, 0x4e, 0x62, 0x52,
+	0x31, 0x98, 0xa5, 0x5f, 0x01, 0x49, 0x8c, 0x25, 0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0x44,
+	0x62, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0xc0, 0x48, 0xd0, 0x39, 0xa6, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -265,6 +580,10 @@ type MsgClient interface {
 	Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error)
 	// Withdraw defines a method for withdrawing assets into a vault
 	Withdraw(ctx context.Context, in *MsgWithdraw, opts ...grpc.CallOption) (*MsgWithdrawResponse, error)
+	MintDeposit(ctx context.Context, in *MsgMintDeposit, opts ...grpc.CallOption) (*MsgMintDepositResponse, error)
+	DelegateMintDepsit(ctx context.Context, in *MsgDelegateMintDeposit, opts ...grpc.CallOption) (*MsgDelegateMintDepositResponse, error)
+	WithdrawBurn(ctx context.Context, in *MsgWithdrawBurn, opts ...grpc.CallOption) (*MsgWithdrawBurnResponse, error)
+	WithdrawBurnUndelegate(ctx context.Context, in *MsgWithdrawBurnUndelegate, opts ...grpc.CallOption) (*MsgWithdrawBurnUndelegate, error)
 }
 
 type msgClient struct {
@@ -293,12 +612,52 @@ func (c *msgClient) Withdraw(ctx context.Context, in *MsgWithdraw, opts ...grpc.
 	return out, nil
 }
 
+func (c *msgClient) MintDeposit(ctx context.Context, in *MsgMintDeposit, opts ...grpc.CallOption) (*MsgMintDepositResponse, error) {
+	out := new(MsgMintDepositResponse)
+	err := c.cc.Invoke(ctx, "/kava.earn.v1beta1.Msg/MintDeposit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) DelegateMintDepsit(ctx context.Context, in *MsgDelegateMintDeposit, opts ...grpc.CallOption) (*MsgDelegateMintDepositResponse, error) {
+	out := new(MsgDelegateMintDepositResponse)
+	err := c.cc.Invoke(ctx, "/kava.earn.v1beta1.Msg/DelegateMintDepsit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) WithdrawBurn(ctx context.Context, in *MsgWithdrawBurn, opts ...grpc.CallOption) (*MsgWithdrawBurnResponse, error) {
+	out := new(MsgWithdrawBurnResponse)
+	err := c.cc.Invoke(ctx, "/kava.earn.v1beta1.Msg/WithdrawBurn", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) WithdrawBurnUndelegate(ctx context.Context, in *MsgWithdrawBurnUndelegate, opts ...grpc.CallOption) (*MsgWithdrawBurnUndelegate, error) {
+	out := new(MsgWithdrawBurnUndelegate)
+	err := c.cc.Invoke(ctx, "/kava.earn.v1beta1.Msg/WithdrawBurnUndelegate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// Deposit defines a method for depositing assets into a vault
 	Deposit(context.Context, *MsgDeposit) (*MsgDepositResponse, error)
 	// Withdraw defines a method for withdrawing assets into a vault
 	Withdraw(context.Context, *MsgWithdraw) (*MsgWithdrawResponse, error)
+	MintDeposit(context.Context, *MsgMintDeposit) (*MsgMintDepositResponse, error)
+	DelegateMintDepsit(context.Context, *MsgDelegateMintDeposit) (*MsgDelegateMintDepositResponse, error)
+	WithdrawBurn(context.Context, *MsgWithdrawBurn) (*MsgWithdrawBurnResponse, error)
+	WithdrawBurnUndelegate(context.Context, *MsgWithdrawBurnUndelegate) (*MsgWithdrawBurnUndelegate, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -310,6 +669,18 @@ func (*UnimplementedMsgServer) Deposit(ctx context.Context, req *MsgDeposit) (*M
 }
 func (*UnimplementedMsgServer) Withdraw(ctx context.Context, req *MsgWithdraw) (*MsgWithdrawResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Withdraw not implemented")
+}
+func (*UnimplementedMsgServer) MintDeposit(ctx context.Context, req *MsgMintDeposit) (*MsgMintDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MintDeposit not implemented")
+}
+func (*UnimplementedMsgServer) DelegateMintDepsit(ctx context.Context, req *MsgDelegateMintDeposit) (*MsgDelegateMintDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelegateMintDepsit not implemented")
+}
+func (*UnimplementedMsgServer) WithdrawBurn(ctx context.Context, req *MsgWithdrawBurn) (*MsgWithdrawBurnResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawBurn not implemented")
+}
+func (*UnimplementedMsgServer) WithdrawBurnUndelegate(ctx context.Context, req *MsgWithdrawBurnUndelegate) (*MsgWithdrawBurnUndelegate, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawBurnUndelegate not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -352,6 +723,78 @@ func _Msg_Withdraw_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_MintDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgMintDeposit)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).MintDeposit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kava.earn.v1beta1.Msg/MintDeposit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).MintDeposit(ctx, req.(*MsgMintDeposit))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_DelegateMintDepsit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDelegateMintDeposit)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DelegateMintDepsit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kava.earn.v1beta1.Msg/DelegateMintDepsit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DelegateMintDepsit(ctx, req.(*MsgDelegateMintDeposit))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_WithdrawBurn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgWithdrawBurn)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).WithdrawBurn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kava.earn.v1beta1.Msg/WithdrawBurn",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).WithdrawBurn(ctx, req.(*MsgWithdrawBurn))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_WithdrawBurnUndelegate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgWithdrawBurnUndelegate)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).WithdrawBurnUndelegate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kava.earn.v1beta1.Msg/WithdrawBurnUndelegate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).WithdrawBurnUndelegate(ctx, req.(*MsgWithdrawBurnUndelegate))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.earn.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -363,6 +806,22 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Withdraw",
 			Handler:    _Msg_Withdraw_Handler,
+		},
+		{
+			MethodName: "MintDeposit",
+			Handler:    _Msg_MintDeposit_Handler,
+		},
+		{
+			MethodName: "DelegateMintDepsit",
+			Handler:    _Msg_DelegateMintDepsit_Handler,
+		},
+		{
+			MethodName: "WithdrawBurn",
+			Handler:    _Msg_WithdrawBurn_Handler,
+		},
+		{
+			MethodName: "WithdrawBurnUndelegate",
+			Handler:    _Msg_WithdrawBurnUndelegate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -512,16 +971,6 @@ func (m *MsgWithdrawResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.Shares.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintTx(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -589,8 +1038,6 @@ func (m *MsgWithdrawResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Shares.Size()
-	n += 1 + l + sovTx(uint64(l))
 	return n
 }
 
@@ -980,39 +1427,6 @@ func (m *MsgWithdrawResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: MsgWithdrawResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Shares", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.Shares.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

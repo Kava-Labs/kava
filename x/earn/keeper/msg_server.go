@@ -67,3 +67,144 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 
 	return &types.MsgWithdrawResponse{}, nil
 }
+
+func (m msgServer) MintDeposit(goCtx context.Context, msg *types.MsgMintDeposit) (*types.MsgMintDepositResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
+	if err != nil {
+		return nil, err
+	}
+	val, err := sdk.ValAddressFromBech32(msg.Validator)
+	if err != nil {
+		return nil, err
+	}
+
+	derivativeMinted, err := m.keeper.liquidKeeper.MintDerivative(ctx, depositor, val, msg.Amount)
+	if err != nil {
+		return nil, err
+	}
+	err = m.keeper.Deposit(ctx, depositor, derivativeMinted)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, depositor.String()),
+		),
+	)
+
+	return &types.MsgMintDepositResponse{}, nil
+}
+
+func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgMintDeposit) (*types.MsgMintDepositResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
+	if err != nil {
+		return nil, err
+	}
+	val, err := sdk.ValAddressFromBech32(msg.Validator)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO user msgServer interface? it has extra validations.
+	_, err := m.stakingKeeper.Delegate(ctx, depositor, msg.Amount, types.Unbonded, val, true)
+	if err != nil {
+		return nil, err
+	}
+
+	derivativeMinted, err := m.keeper.liquidKeeper.MintDerivative(ctx, depositor, val, msg.Amount)
+	if err != nil {
+		return nil, err
+	}
+	err = m.keeper.Deposit(ctx, depositor, derivativeMinted)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, depositor.String()),
+		),
+	)
+
+	return &types.MsgMintDepositResponse{}, nil
+}
+
+func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBurn) (*types.MsgWithdrawBurnResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
+	if err != nil {
+		return nil, err
+	}
+	val, err := sdk.ValAddressFromBech32(msg.Validator)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.keeper.Withdraw(ctx, depositor, msg.Amount) // TODO is msg amount correct?
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = m.keeper.liquidKeeper.BurnDerivative(ctx, depositor, val, msg.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, depositor.String()),
+		),
+	)
+
+	return &types.MsgWithdrawBurnResponse{}, nil
+}
+func (m msgServer) WithdrawBurnUndelegate(goCtx context.Context, msg *types.MsgWithdrawBurnUndelegate) (*types.MsgWithdrawBurnUndelegateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
+	if err != nil {
+		return nil, err
+	}
+	val, err := sdk.ValAddressFromBech32(msg.Validator)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.keeper.Withdraw(ctx, depositor, msg.Amount) // TODO is msg amount correct?
+	if err != nil {
+		return nil, err
+	}
+
+	sharesReturned, err = m.keeper.liquidKeeper.BurnDerivative(ctx, depositor, val, msg.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO user msgServer interface? it has extra validations.
+	_, err := m.stakingKeeper.Undelegate(ctx, depositor, val, sharesReturned)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, depositor.String()),
+		),
+	)
+
+	return &types.MsgWithdrawBurnUndelegateResponse{}, nil
+}
