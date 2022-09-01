@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 			staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 			modBalance := suite.BankKeeper.GetAllBalances(suite.Ctx, moduleAccAddress)
 
-			err := suite.Keeper.BurnDerivative(suite.Ctx, user, valAddr, tc.burnAmount)
+			_, err := suite.Keeper.BurnDerivative(suite.Ctx, user, valAddr, tc.burnAmount)
 
 			suite.Require().ErrorIs(err, tc.expectedErr)
 			if tc.expectedErr != nil {
@@ -294,7 +294,7 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 			suite.Require().True(found)
 			suite.Equal(i(666666667), val.GetTokens()) // note the slash amount is truncated to an int before being removed from the validator
 
-			err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr, tc.amount)
+			_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr, tc.amount)
 
 			suite.Require().ErrorIs(err, tc.expectedErr)
 			if tc.expectedErr != nil {
@@ -321,3 +321,135 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 		})
 	}
 }
+
+/*
+BurnDerivative
+inputs: user, coin amount, (validator)
+state: module delegation, user delegation, (validator)
+
+effect:
+- user balance decrease, coins burned
+- user delegation increase (maybe created)
+- module delegation decrease
+- update vesting tracking in account??
+- events
+
+
+err - user has no balance
+err - invalid coin denom
+err - module has no delegation (should be impossible)
+
+not enough balance
+not enough delegation (should be impossible)
+
+user delegation doesn't exist, is created
+
+create user with bkava
+create validator (with self delegation)
+create delegation from module account
+
+
+
+
+
+shares, tokens
+us, ut (up to 1 token less than correct amount)
+newShares = (ut / (tokens-ut)) * (shares-s)
+= shares-s / (tokens/ut - 1)
+what is shares-s / (tokens/ut - 1) - shares-s / (tokens/ut` - 1)
+
+shares-s * (1 / (tokens/ut - 1) - 1 / (tokens/ut` - 1))
+
+shares-s * (1 / (tokens/ut - 1) - 1 / (tokens/(ut-∂) - 1))
+
+either reach in to staking more to just move shares around
+or do some calculations to bound the error more (given small slash fractions it's probably fine)
+
+= shares-s * 1 / (tokens/(ut-∂) - 1) where 0 < ∂ < 1
+1 / (tokens/(ut-∂) - 1) is the fraction by which the new shares are too small
+
+what would the values be such that it was < 0.999 (ie 0.1% loss) with the worst ∂ of 1
+0.999 > 1 / (tokens/(ut-1) - 1)
+0.999 * (tokens/(ut-1) - 1) > 1
+(tokens/(ut-1) - 1) > 1/0.999
+tokens/(ut-1) > 1 + 1/0.999
+tokens > (ut-1)(1 + 1/0.999)
+tokens > ut(1 + 1/0.999) - (1 + 1/0.999)
+
+so as long as roughly ut < 0.5*tokens is seems ok
+
+new shares, as a fraction of original shares moved
+
+ut = floor(tokens * sIn/shares)
+newShares = (ut / (tokens-ut)) * (shares-sIn)
+
+
+newShares = ((tokens * sIn/shares) / (tokens-(tokens * sIn/shares))) * (shares-sIn)
+newShares = ((sIn/shares) / (1-sIn/shares)) * (shares-sIn)
+newShares = ((sIn/shares) / ((shares-sIn)/shares)) * (shares-sIn)
+newShares = (sIn / (shares-sIn)) * (shares-sIn)
+newShares = sIn, as expected
+
+newShares = (1 / (tokens/ut-1)) * (shares-sIn)
+
+
+
+
+
+
+newShare/sIn = (shares/sIn - 1) * 1 / sIn(tokens/ut - 1)
+
+newShare/sIn = (shares/sIn - 1) * 1 / (shares-sIn)
+newShare/sIn = ((shares-sIn)/sIn) * 1 / (shares-sIn)
+
+
+There's an edge case where a validator with super low self delegation, and delegator with larger amount, can burn lots of shares.
+But in that case the user effectively just gives a single unit to the validator.
+Burning shares is ok for incentive - it collects the total every block, and individual amounts can change however.
+*/
+/*
+	validator _/un/ing
+		bonded - deliver msg, run end blocker
+		unbonded - create validator but don't run end blocker (could also create 101th validator then end blocker can run (it won't do anything))
+		unbonding - create validator, jail (or slash until it's out of the set), run end blocker
+		slashed&bonded - create validator, run end blocker, call slash
+	shares - 0, max, outside range
+
+	from delegator, validator don't exist - trivial
+	to delegator doesn't exist - required
+	delegation has a previous redelegation
+	from delegation is self-delegation (check validator is jailed (or block this case))
+
+	check exact shares moved, check no tokens moved, check validator no change in status, no change in tokens or total shares
+	or error
+*/
+
+/*
+Mint
+Convert ukava amt into shares to transfer and rounded shares to mint.
+Deal with case of user wanting to move entire position.
+
+
+Burn
+burn tokens, transfer equivalent shares (possibly losing 1 ukava in the process)
+
+
+MintDerivative tests
+- errors
+	- no delegation
+	- incorrect denom
+	- 0 amount
+	- vesting account ?
+	- invalid coin?
+- convert 0, below shares, exact shares, 1 above shares, much above shares
+
+- check mint amount, delegation transferred, event
+
+BurnDerivative tests
+- errors
+- pay out remaining shares to last withdrawer?
+
+TestRoundTripLoss
+mint then burn, check amount is less than 1
+
+*/

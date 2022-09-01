@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/earn/types"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -20,6 +21,9 @@ type Keeper struct {
 	// Keepers used for strategies
 	hardKeeper    types.HardKeeper
 	savingsKeeper types.SavingsKeeper
+
+	liquidKeeper  types.LiquidKeeper
+	stakingKeeper types.StakingKeeper
 }
 
 // NewKeeper creates a new keeper
@@ -31,6 +35,9 @@ func NewKeeper(
 	bankKeeper types.BankKeeper,
 	hardKeeper types.HardKeeper,
 	savingsKeeper types.SavingsKeeper,
+	liquidKeeper types.LiquidKeeper,
+	stakingKeeper types.StakingKeeper,
+
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -44,6 +51,8 @@ func NewKeeper(
 		bankKeeper:    bankKeeper,
 		hardKeeper:    hardKeeper,
 		savingsKeeper: savingsKeeper,
+		liquidKeeper:  liquidKeeper,
+		stakingKeeper: stakingKeeper,
 	}
 }
 

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -80,11 +82,11 @@ func (m msgServer) MintDeposit(goCtx context.Context, msg *types.MsgMintDeposit)
 		return nil, err
 	}
 
-	derivativeMinted, err := m.keeper.liquidKeeper.MintDerivative(ctx, depositor, val, msg.Amount)
+	derivative, err := m.keeper.liquidKeeper.MintDerivative(ctx, depositor, val, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
-	err = m.keeper.Deposit(ctx, depositor, derivativeMinted)
+	err = m.keeper.Deposit(ctx, depositor, derivative)
 	if err != nil {
 		return nil, err
 	}
@@ -100,25 +102,34 @@ func (m msgServer) MintDeposit(goCtx context.Context, msg *types.MsgMintDeposit)
 	return &types.MsgMintDepositResponse{}, nil
 }
 
-func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgMintDeposit) (*types.MsgMintDepositResponse, error) {
+func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDelegateMintDeposit) (*types.MsgDelegateMintDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
 		return nil, err
 	}
-	val, err := sdk.ValAddressFromBech32(msg.Validator)
+	valAddr, err := sdk.ValAddressFromBech32(msg.Validator)
 	if err != nil {
 		return nil, err
 	}
-
-	// TODO user msgServer interface? it has extra validations.
-	_, err := m.stakingKeeper.Delegate(ctx, depositor, msg.Amount, types.Unbonded, val, true)
+	validator, found := m.keeper.stakingKeeper.GetValidator(ctx, valAddr)
+	if !found {
+		panic("TODO custom errors") // TODO
+	}
+	bondDenom := m.keeper.stakingKeeper.BondDenom(ctx)
+	if msg.Amount.Denom != bondDenom {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
+		)
+	}
+	_, err = m.keeper.stakingKeeper.Delegate(ctx, depositor, msg.Amount.Amount, stakingtypes.Unbonded, validator, true)
 	if err != nil {
 		return nil, err
 	}
-
-	derivativeMinted, err := m.keeper.liquidKeeper.MintDerivative(ctx, depositor, val, msg.Amount)
+	// liquid and staking use the same method to convert ukava to shares so passing msg.Amount should convert all shares created in Delegate.
+	// Alternatively MintDerivative could be modified to accept shares.
+	derivativeMinted, err := m.keeper.liquidKeeper.MintDerivative(ctx, depositor, valAddr, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +146,7 @@ func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgMint
 		),
 	)
 
-	return &types.MsgMintDepositResponse{}, nil
+	return &types.MsgDelegateMintDepositResponse{}, nil
 }
 
 func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBurn) (*types.MsgWithdrawBurnResponse, error) {
@@ -150,12 +161,17 @@ func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBur
 		return nil, err
 	}
 
-	err = m.keeper.Withdraw(ctx, depositor, msg.Amount) // TODO is msg amount correct?
+	tokenAmount, err := m.keeper.liquidKeeper.TokenToDerivative(ctx, val, msg.Amount.Amount) // TODO can withdraw full position?
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = m.keeper.liquidKeeper.BurnDerivative(ctx, depositor, val, msg.Amount)
+	err = m.keeper.Withdraw(ctx, depositor, tokenAmount)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = m.keeper.liquidKeeper.BurnDerivative(ctx, depositor, val, tokenAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -181,19 +197,23 @@ func (m msgServer) WithdrawBurnUndelegate(goCtx context.Context, msg *types.MsgW
 	if err != nil {
 		return nil, err
 	}
-
-	err = m.keeper.Withdraw(ctx, depositor, msg.Amount) // TODO is msg amount correct?
+	tokenAmount, err := m.keeper.liquidKeeper.TokenToDerivative(ctx, val, msg.Amount.Amount) // TODO can withdraw full position?
 	if err != nil {
 		return nil, err
 	}
 
-	sharesReturned, err = m.keeper.liquidKeeper.BurnDerivative(ctx, depositor, val, msg.Amount)
+	err = m.keeper.Withdraw(ctx, depositor, tokenAmount)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO user msgServer interface? it has extra validations.
-	_, err := m.stakingKeeper.Undelegate(ctx, depositor, val, sharesReturned)
+	sharesReturned, err := m.keeper.liquidKeeper.BurnDerivative(ctx, depositor, val, tokenAmount)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO user msgServer interface? it has extra validations and events
+	_, err = m.keeper.stakingKeeper.Undelegate(ctx, depositor, val, sharesReturned)
 	if err != nil {
 		return nil, err
 	}
