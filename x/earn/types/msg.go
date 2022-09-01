@@ -3,11 +3,20 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 )
 
 var (
-	_ sdk.Msg = &MsgDeposit{}
-	_ sdk.Msg = &MsgWithdraw{}
+	_ sdk.Msg            = &MsgDeposit{}
+	_ sdk.Msg            = &MsgWithdraw{}
+	_ legacytx.LegacyMsg = &MsgDeposit{}
+	_ legacytx.LegacyMsg = &MsgWithdraw{}
+)
+
+// legacy message types
+const (
+	TypeMsgDeposit  = "earn_msg_deposit"
+	TypeMsgWithdraw = "earn_msg_withdraw"
 )
 
 // NewMsgDeposit returns a new MsgDeposit.
@@ -52,6 +61,16 @@ func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{depositor}
 }
 
+// Route implements the LegacyMsg.Route method.
+func (msg MsgDeposit) Route() string {
+	return RouterKey
+}
+
+// Type implements the LegacyMsg.Type method.
+func (msg MsgDeposit) Type() string {
+	return TypeMsgDeposit
+}
+
 // NewMsgWithdraw returns a new MsgWithdraw.
 func NewMsgWithdraw(from string, amount sdk.Coin, strategy StrategyType) *MsgWithdraw {
 	return &MsgWithdraw{
@@ -92,4 +111,14 @@ func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 	}
 
 	return []sdk.AccAddress{depositor}
+}
+
+// Route implements the LegacyMsg.Route method.
+func (msg MsgWithdraw) Route() string {
+	return RouterKey
+}
+
+// Type implements the LegacyMsg.Type method.
+func (msg MsgWithdraw) Type() string {
+	return TypeMsgWithdraw
 }
