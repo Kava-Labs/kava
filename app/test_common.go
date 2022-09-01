@@ -30,8 +30,6 @@ import (
 	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
 	feemarketkeeper "github.com/tharsis/ethermint/x/feemarket/keeper"
 
-	bridgekeeper "github.com/kava-labs/kava-bridge/x/bridge/keeper"
-
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
