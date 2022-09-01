@@ -17,10 +17,10 @@ service Msg {
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 
   rpc MintDeposit(MsgMintDeposit) returns (MsgMintDepositResponse);
-  rpc DelegateMintDepsit(MsgDelegateMintDeposit) returns (MsgDelegateMintDepositResponse);
+  rpc DelegateMintDeposit(MsgDelegateMintDeposit) returns (MsgDelegateMintDepositResponse);
 
   rpc WithdrawBurn(MsgWithdrawBurn) returns (MsgWithdrawBurnResponse);
-  rpc WithdrawBurnUndelegate(MsgWithdrawBurnUndelegate) returns (MsgWithdrawBurnUndelegate);
+  rpc WithdrawBurnUndelegate(MsgWithdrawBurnUndelegate) returns (MsgWithdrawBurnUndelegateResponse);
 }
 
 // MsgDeposit represents a message for depositing assedts into a vault
