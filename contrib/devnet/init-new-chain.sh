@@ -84,37 +84,6 @@ jq '.app_state.evm.params.chain_config.london_block = null' $DATA/config/genesis
 jq '.app_state.evm.params.chain_config.arrow_glacier_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
 jq '.app_state.evm.params.chain_config.merge_fork_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
 
-# Enable bridge
-jq '.app_state.bridge.params.bridge_enabled = true' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
-
-# Set relayer to devnet relayer address
-jq '.app_state.bridge.params.relayer = "kava15tmj37vh7ch504px9fcfglmvx6y9m70646ev8t"' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
-
-# Set enabled erc20 tokens to match local geth testnet
-jq '.app_state.bridge.params.enabled_erc20_tokens = [
-    {
-        address: "0x6098c27D41ec6dc280c2200A737D443b0AaA2E8F",
-        name: "Wrapped ETH",
-        symbol: "WETH",
-        decimals: 18,
-        minimum_withdraw_amount: "10000000000000000"
-    },
-    {
-        address: "0x4Fb48E68842bb59f07569c623ACa5826b600F8F7",
-        name: "USDC",
-        symbol: "USDC",
-        decimals: 6,
-        minimum_withdraw_amount: "10000000"
-    }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
-
-# Set enabled conversion pairs - weth address is the first contract bridge module
-# deploys
-jq '.app_state.bridge.params.enabled_conversion_pairs = [
-    {
-        kava_erc20_address: "0x404F9466d758eA33eA84CeBE9E444b06533b369e",
-        denom: "erc20/weth",
-    }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
-
 # Add earn vault
 jq '.app_state.earn.params.allowed_vaults =  [
     {
