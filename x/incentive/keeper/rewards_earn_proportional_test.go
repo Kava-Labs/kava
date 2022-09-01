@@ -16,7 +16,7 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 		giveRewardPeriod      types.MultiRewardPeriod
 		giveTotalBkavaSupply  sdk.Int
 		giveSingleBkavaSupply sdk.Int
-		wantRewardsPerSecond  sdk.DecCoins
+		wantRewardsPerSecond  sdk.Coins
 	}{
 		{
 			"full amount",
@@ -29,20 +29,7 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 			),
 			i(100),
 			i(100),
-			toDcs(c("ukava", 100), c("hard", 200)),
-		},
-		{
-			"3/4 amount",
-			types.NewMultiRewardPeriod(
-				true,
-				"",
-				time.Time{},
-				time.Time{},
-				cs(c("ukava", 100), c("hard", 200)),
-			),
-			i(10_000000),
-			i(7_500000),
-			toDcs(c("ukava", 75), c("hard", 150)),
+			cs(c("ukava", 100), c("hard", 200)),
 		},
 		{
 			"half amount",
@@ -55,10 +42,10 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 			),
 			i(100),
 			i(50),
-			toDcs(c("ukava", 50), c("hard", 100)),
+			cs(c("ukava", 50), c("hard", 100)),
 		},
 		{
-			"under 1 unit",
+			"rounded down",
 			types.NewMultiRewardPeriod(
 				true,
 				"",
@@ -66,21 +53,21 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 				time.Time{},
 				cs(c("ukava", 100), c("hard", 200)),
 			),
-			i(1000), // total bkava
-			i(1),    // bkava supply of this specific vault
-			dcs(dc("ukava", "0.1"), dc("hard", "0.2")), // rewards per second rounded to 0 if under 1ukava/1hard
+			i(1000),
+			i(1),
+			nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rewardsPerSecond := keeper.GetProportionalRewardsPerSecond(
+			newRewardPeriod := keeper.GetProportionalRewardPeriod(
 				tt.giveRewardPeriod,
 				tt.giveTotalBkavaSupply,
 				tt.giveSingleBkavaSupply,
 			)
 
-			require.Equal(t, tt.wantRewardsPerSecond, rewardsPerSecond)
+			require.Equal(t, tt.wantRewardsPerSecond, newRewardPeriod.RewardsPerSecond)
 		})
 	}
 }
