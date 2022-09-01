@@ -21,6 +21,30 @@ func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiR
 	k.accumulateEarnRewards(ctx, rewardPeriod.CollateralType, rewardPeriod)
 }
 
+func GetProportionalRewardPeriod(
+	rewardPeriod types.MultiRewardPeriod,
+	totalBkavaSupply sdk.Int,
+	singleBkavaSupply sdk.Int,
+) types.MultiRewardPeriod {
+	// Rate per bkava-xxx = rewardsPerSecond * % of bkava-xxx
+	//                    = rewardsPerSecond * (bkava-xxx / total bkava)
+	//                    = (rewardsPerSecond * bkava-xxx) / total bkava
+
+	newRate := sdk.NewCoins()
+
+	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
+		scaledAmount := rewardCoin.Amount.ToDec().
+			Mul(singleBkavaSupply.ToDec()).
+			Quo(totalBkavaSupply.ToDec())
+
+		newRate = newRate.Add(sdk.NewCoin(rewardCoin.Denom, scaledAmount.TruncateInt()))
+	}
+
+	rewardPeriod.RewardsPerSecond = newRate
+
+	return rewardPeriod
+}
+
 // accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
 // *all* bkava vaults.
 func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
