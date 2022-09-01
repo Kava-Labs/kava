@@ -11,6 +11,8 @@ import (
 func RegisterInvariants(ir sdk.InvariantRegistry, bankK types.BankKeeper, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "fully-backed", FullyBackedInvariant(bankK, k))
 	ir.RegisterRoute(types.ModuleName, "small-balances", SmallBalancesInvariant(bankK, k))
+	// Disable this invariant due to some issues with it requiring some staking params to be set in genesis.
+	// ir.RegisterRoute(types.ModuleName, "backed-conversion-coins", BackedCoinsInvariant(bankK, k))
 }
 
 // AllInvariants runs all invariants of the swap module
@@ -19,8 +21,10 @@ func AllInvariants(bankK types.BankKeeper, k Keeper) sdk.Invariant {
 		if res, stop := FullyBackedInvariant(bankK, k)(ctx); stop {
 			return res, stop
 		}
-		res, stop := SmallBalancesInvariant(bankK, k)(ctx)
-		return res, stop
+		if res, stop := BackedCoinsInvariant(bankK, k)(ctx); stop {
+			return res, stop
+		}
+		return SmallBalancesInvariant(bankK, k)(ctx)
 	}
 }
 
@@ -61,6 +65,43 @@ func SmallBalancesInvariant(_ types.BankKeeper, k Keeper) sdk.Invariant {
 			}
 			return false
 		})
+		return message, broken
+	}
+}
+
+// BackedCoinsInvariant iterates all conversion pairs and asserts that the
+// sdk.Coin balances are less than the module ERC20 balance.
+// **Note:** This compares <= and not == as anyone can send tokens to the
+// ERC20 contract address and break the invariant if a strict equal check.
+func BackedCoinsInvariant(_ types.BankKeeper, k Keeper) sdk.Invariant {
+	broken := false
+	message := sdk.FormatInvariant(
+		types.ModuleName,
+		"backed coins broken",
+		"coin supply is greater than module account ERC20 tokens",
+	)
+
+	return func(ctx sdk.Context) (string, bool) {
+		params := k.GetParams(ctx)
+		for _, pair := range params.EnabledConversionPairs {
+			erc20Balance, err := k.QueryERC20BalanceOf(
+				ctx,
+				pair.GetAddress(),
+				types.NewInternalEVMAddress(types.ModuleEVMAddress),
+			)
+			if err != nil {
+				panic(err)
+			}
+
+			supply := k.bankKeeper.GetSupply(ctx, pair.Denom)
+
+			// Must be true: sdk.Coin supply < ERC20 balanceOf(module account)
+			if supply.Amount.BigInt().Cmp(erc20Balance) > 0 {
+				broken = true
+				break
+			}
+		}
+
 		return message, broken
 	}
 }

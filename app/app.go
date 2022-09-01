@@ -213,7 +213,7 @@ var (
 		govtypes.ModuleName:             {authtypes.Burner},
 		ibctransfertypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		evmtypes.ModuleName:             {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		evmutiltypes.ModuleName:         nil,
+		evmutiltypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
 		kavadisttypes.KavaDistMacc:      {authtypes.Minter},
 		auctiontypes.ModuleName:         nil,
 		issuancetypes.ModuleAccountName: {authtypes.Minter, authtypes.Burner},
@@ -395,6 +395,7 @@ func NewApp(
 	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
 	bridgeSubspace := app.paramsKeeper.Subspace(bridgetypes.ModuleName)
+	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
 	liquidSubspace := app.paramsKeeper.Subspace(liquidtypes.ModuleName)
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
 
@@ -495,6 +496,9 @@ func NewApp(
 	app.evmutilKeeper = evmutilkeeper.NewKeeper(
 		app.appCodec,
 		keys[evmutiltypes.StoreKey],
+		evmutilSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
 	)
 
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
@@ -503,6 +507,8 @@ func NewApp(
 		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
 		options.EVMTrace,
 	)
+
+	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
 
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,

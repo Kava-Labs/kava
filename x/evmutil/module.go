@@ -1,6 +1,7 @@
 package evmutil
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/gorilla/mux"
@@ -15,6 +16,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
+	"github.com/kava-labs/kava/x/evmutil/client/cli"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -44,7 +46,9 @@ func (AppModuleBasic) Name() string {
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // RegisterInterfaces registers the module's interface types
-func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {}
+func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(reg)
+}
 
 // DefaultGenesis default genesis state
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
@@ -66,13 +70,21 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for evmutil module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
+}
 
 // GetTxCmd returns evmutil module's root tx command.
-func (a AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
+func (a AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd()
+}
 
 // GetQueryCmd returns evmutil module's root query command.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
 
 // ----------------------------------------------------------------------------
 // AppModule
@@ -104,7 +116,7 @@ func (am AppModule) Name() string {
 func (am AppModule) Route() sdk.Route { return sdk.Route{} }
 
 // QuerierRoute returns evmutil module's query routing key.
-func (AppModule) QuerierRoute() string { return types.ModuleName }
+func (AppModule) QuerierRoute() string { return "" }
 
 // LegacyQuerierHandler returns evmutil module's Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
@@ -113,7 +125,10 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
-func (am AppModule) RegisterServices(cfg module.Configurator) {}
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
+}
 
 // RegisterInvariants registers evmutil module's invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {

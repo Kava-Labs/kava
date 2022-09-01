@@ -15,6 +15,8 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, gs *types.GenesisState) 
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
 	}
 
+	keeper.SetParams(ctx, gs.Params)
+
 	for _, account := range gs.Accounts {
 		keeper.SetAccount(ctx, account)
 	}
@@ -23,5 +25,5 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, gs *types.GenesisState) 
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
 	accounts := keeper.GetAllAccounts(ctx)
-	return types.NewGenesisState(accounts)
+	return types.NewGenesisState(accounts, keeper.GetParams(ctx))
 }
