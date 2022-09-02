@@ -25,7 +25,7 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 				"",
 				time.Time{},
 				time.Time{},
-				cs(c("ukava", 100), c("hard", 200)),
+				dcs(c("ukava", 100), c("hard", 200)),
 			),
 			i(100),
 			i(100),
@@ -38,36 +38,36 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 				"",
 				time.Time{},
 				time.Time{},
-				cs(c("ukava", 100), c("hard", 200)),
+				dcs(c("ukava", 100), c("hard", 200)),
 			),
 			i(100),
 			i(50),
 			cs(c("ukava", 50), c("hard", 100)),
 		},
 		{
-			"rounded down",
+			"rounded down to 0",
 			types.NewMultiRewardPeriod(
 				true,
 				"",
 				time.Time{},
 				time.Time{},
-				cs(c("ukava", 100), c("hard", 200)),
+				dcs(c("ukava", 100), c("hard", 200)),
 			),
-			i(1000),
-			i(1),
-			nil,
+			i(201), // total bkava
+			i(1),   // bkava supply of this specific vault
+			nil,    // rewards per second rounded to 0 if under 1ukava/1hard
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			newRewardPeriod := keeper.GetProportionalRewardPeriod(
+			rewardsPerSecond := keeper.GetProportionalRewardsPerSecond(
 				tt.giveRewardPeriod,
 				tt.giveTotalBkavaSupply,
 				tt.giveSingleBkavaSupply,
 			)
 
-			require.Equal(t, tt.wantRewardsPerSecond, newRewardPeriod.RewardsPerSecond)
+			require.Equal(t, tt.wantRewardsPerSecond, rewardsPerSecond)
 		})
 	}
 }

@@ -21,28 +21,26 @@ func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiR
 	k.accumulateEarnRewards(ctx, rewardPeriod.CollateralType, rewardPeriod)
 }
 
-func GetProportionalRewardPeriod(
+func GetProportionalRewardsPerSecond(
 	rewardPeriod types.MultiRewardPeriod,
 	totalBkavaSupply sdk.Int,
 	singleBkavaSupply sdk.Int,
-) types.MultiRewardPeriod {
+) sdk.DecCoins {
 	// Rate per bkava-xxx = rewardsPerSecond * % of bkava-xxx
 	//                    = rewardsPerSecond * (bkava-xxx / total bkava)
 	//                    = (rewardsPerSecond * bkava-xxx) / total bkava
 
-	newRate := sdk.NewCoins()
+	newRate := sdk.NewDecCoins()
 
 	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
-		scaledAmount := rewardCoin.Amount.ToDec().
+		scaledAmount := rewardCoin.Amount.
 			Mul(singleBkavaSupply.ToDec()).
 			Quo(totalBkavaSupply.ToDec())
 
-		newRate = newRate.Add(sdk.NewCoin(rewardCoin.Denom, scaledAmount.TruncateInt()))
+		newRate = newRate.Add(sdk.NewDecCoinFromDec(rewardCoin.Denom, scaledAmount))
 	}
 
-	rewardPeriod.RewardsPerSecond = newRate
-
-	return rewardPeriod
+	return newRate
 }
 
 // accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
@@ -73,8 +71,17 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 		return false
 	})
 
+	totalBkavaSupply := k.liquidKeeper.GetTotalDerivativeSupply(ctx)
+
 	// Accumulate rewards for each bkava vault.
 	for bkavaDenom := range bkavaVaultsDenoms {
+		weightedRewardPeriod := rewardPeriod
+		weightedRewardPeriod.RewardsPerSecond = GetProportionalRewardsPerSecond(
+			rewardPeriod,
+			totalBkavaSupply,
+			k.liquidKeeper.GetDerivativeSupply(ctx, bkavaDenom),
+		)
+
 		k.accumulateEarnRewards(ctx, bkavaDenom, rewardPeriod)
 	}
 }
