@@ -86,6 +86,8 @@ func (m msgServer) MintDeposit(goCtx context.Context, msg *types.MsgMintDeposit)
 	if err != nil {
 		return nil, err
 	}
+	// should deposit all of derivative balance
+	// without this msg webapp needs to calculate bkava = floor(validator_total_shares * msg.Amount / validator_total_kava) accurately
 	err = m.keeper.Deposit(ctx, depositor, derivative, msg.Strategy)
 	if err != nil {
 		return nil, err
@@ -127,12 +129,14 @@ func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDele
 	if err != nil {
 		return nil, err
 	}
-	// liquid and staking use the same method to convert ukava to shares so passing msg.Amount should convert all shares created in Delegate.
-	// Alternatively MintDerivative could be modified to accept shares.
+	// This can leave a dust amount of shares in user's delegation.
+	// MintDerivative could be modified to accept shares returned by Delegate to avoid this.
+	// Could fail if we don't return accurate vested delegation balances in liquid api.
 	derivativeMinted, err := m.keeper.liquidKeeper.MintDerivative(ctx, depositor, valAddr, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
+	// deposit is exact
 	err = m.keeper.Deposit(ctx, depositor, derivativeMinted, msg.Strategy)
 	if err != nil {
 		return nil, err
@@ -161,7 +165,9 @@ func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBur
 		return nil, err
 	}
 
-	tokenAmount, err := m.keeper.liquidKeeper.TokenToDerivative(ctx, val, msg.Amount.Amount) // TODO can withdraw full position?
+	// User specifies withdraw as kava. Needs to be converted to bkava.
+	// If user is withdrawing full balance, we could round up here to avoid dust.
+	tokenAmount, err := m.keeper.liquidKeeper.TokenToDerivative(ctx, val, msg.Amount.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -171,6 +177,7 @@ func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBur
 		return nil, err
 	}
 
+	// exact bkava burned, but can leave dust delegation in module account (not a big problem).
 	_, err = m.keeper.liquidKeeper.BurnDerivative(ctx, depositor, val, tokenAmount)
 	if err != nil {
 		return nil, err
@@ -197,7 +204,7 @@ func (m msgServer) WithdrawBurnUndelegate(goCtx context.Context, msg *types.MsgW
 	if err != nil {
 		return nil, err
 	}
-	tokenAmount, err := m.keeper.liquidKeeper.TokenToDerivative(ctx, val, msg.Amount.Amount) // TODO can withdraw full position?
+	tokenAmount, err := m.keeper.liquidKeeper.TokenToDerivative(ctx, val, msg.Amount.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +219,9 @@ func (m msgServer) WithdrawBurnUndelegate(goCtx context.Context, msg *types.MsgW
 		return nil, err
 	}
 
-	// TODO user msgServer interface? it has extra validations and events
+	// TODO use msgServer interface? it has extra validations and events
+	// exact shares undelegated
+	// without this msg, the webapp needs to calculate expected shares returned from burnDerivative, and then convert to kava as MsgUndelegate uses kava.
 	_, err = m.keeper.stakingKeeper.Undelegate(ctx, depositor, val, sharesReturned)
 	if err != nil {
 		return nil, err
