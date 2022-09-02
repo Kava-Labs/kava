@@ -86,7 +86,7 @@ func (m msgServer) MintDeposit(goCtx context.Context, msg *types.MsgMintDeposit)
 	if err != nil {
 		return nil, err
 	}
-	err = m.keeper.Deposit(ctx, depositor, derivative)
+	err = m.keeper.Deposit(ctx, depositor, derivative, msg.Strategy)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDele
 	if err != nil {
 		return nil, err
 	}
-	err = m.keeper.Deposit(ctx, depositor, derivativeMinted)
+	err = m.keeper.Deposit(ctx, depositor, derivativeMinted, msg.Strategy)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBur
 		return nil, err
 	}
 
-	err = m.keeper.Withdraw(ctx, depositor, tokenAmount)
+	err = m.keeper.Withdraw(ctx, depositor, tokenAmount, msg.Strategy)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func (m msgServer) WithdrawBurnUndelegate(goCtx context.Context, msg *types.MsgW
 		return nil, err
 	}
 
-	err = m.keeper.Withdraw(ctx, depositor, tokenAmount)
+	err = m.keeper.Withdraw(ctx, depositor, tokenAmount, msg.Strategy)
 	if err != nil {
 		return nil, err
 	}
