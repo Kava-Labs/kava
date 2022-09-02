@@ -25,7 +25,7 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 				"",
 				time.Time{},
 				time.Time{},
-				dcs(c("ukava", 100), c("hard", 200)),
+				cs(c("ukava", 100), c("hard", 200)),
 			),
 			i(100),
 			i(100),
@@ -38,7 +38,7 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 				"",
 				time.Time{},
 				time.Time{},
-				dcs(c("ukava", 100), c("hard", 200)),
+				cs(c("ukava", 100), c("hard", 200)),
 			),
 			i(100),
 			i(50),
@@ -51,7 +51,7 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 				"",
 				time.Time{},
 				time.Time{},
-				dcs(c("ukava", 100), c("hard", 200)),
+				cs(c("ukava", 100), c("hard", 200)),
 			),
 			i(201), // total bkava
 			i(1),   // bkava supply of this specific vault
