@@ -36,7 +36,7 @@ func TestAccumulateDelegatorRewards(t *testing.T) {
 
 func (suite *AccumulateDelegatorRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased() {
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
 
 	suite.storeGlobalDelegatorIndexes(types.MultiRewardIndexes{
 		{
@@ -86,7 +86,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateUpdatedWhenBlockTimeHasIn
 
 func (suite *AccumulateDelegatorRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
@@ -129,7 +129,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateUnchangedWhenBlockTimeHas
 
 func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
 	stakingKeeper := newFakeStakingKeeper() // zero total bonded
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
@@ -173,7 +173,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenSourceShares
 
 func (suite *AccumulateDelegatorRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
 
 	period := types.NewMultiRewardPeriod(
 		true,
@@ -214,7 +214,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestStateAddedWhenStateDoesNotExis
 
 func (suite *AccumulateDelegatorRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 	stakingKeeper := newFakeStakingKeeper()
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
 
 	period := types.NewMultiRewardPeriod(
 		true,
@@ -240,7 +240,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoPanicWhenStateDoesNotExist()
 
 func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
@@ -284,7 +284,7 @@ func (suite *AccumulateDelegatorRewardsTests) TestNoAccumulationWhenBeforeStartT
 
 func (suite *AccumulateDelegatorRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {
 	stakingKeeper := newFakeStakingKeeper().addBondedTokens(1e6)
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
 
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetPreviousDelegatorRewardAccrualTime(suite.ctx, types.BondDenom, previousAccrualTime)

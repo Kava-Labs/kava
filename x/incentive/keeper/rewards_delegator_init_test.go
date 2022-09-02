@@ -58,7 +58,7 @@ func (suite *InitializeDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreSetWh
 			DelegatorShares: d("1000"),
 		}},
 	}
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, sk, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, sk, nil, nil, nil, nil)
 
 	claim := types.DelegatorClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
