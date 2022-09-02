@@ -22,6 +22,7 @@ type Keeper struct {
 	stakingKeeper types.StakingKeeper
 	swapKeeper    types.SwapKeeper
 	savingsKeeper types.SavingsKeeper
+	liquidKeeper  types.LiquidKeeper
 	earnKeeper    types.EarnKeeper
 }
 
@@ -29,7 +30,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.Codec, key sdk.StoreKey, paramstore types.ParamSubspace, bk types.BankKeeper,
 	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
-	swpk types.SwapKeeper, svk types.SavingsKeeper, ek types.EarnKeeper,
+	swpk types.SwapKeeper, svk types.SavingsKeeper, lqk types.LiquidKeeper, ek types.EarnKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -46,6 +47,7 @@ func NewKeeper(
 		stakingKeeper: stk,
 		swapKeeper:    swpk,
 		savingsKeeper: svk,
+		liquidKeeper:  lqk,
 		earnKeeper:    ek,
 	}
 }
