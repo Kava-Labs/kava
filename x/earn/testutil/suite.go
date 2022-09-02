@@ -14,6 +14,7 @@ import (
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,6 +27,12 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
+
+var TestBkavaDenoms = []string{
+	"bkava-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l",
+	"bkava-kavavaloper15qdefkmwswysgg4qxgqpqr35k3m49pkx8yhpte",
+	"bkava-kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42",
+}
 
 // Suite implements a test suite for the earn module integration tests
 type Suite struct {
@@ -141,12 +148,25 @@ func (suite *Suite) SetupTest() {
 		hardtypes.DefaultTotalReserves,
 	)
 
+	savingsGS := savingstypes.NewGenesisState(
+		savingstypes.NewParams(
+			[]string{
+				"ukava",
+				TestBkavaDenoms[0],
+				TestBkavaDenoms[1],
+				TestBkavaDenoms[2],
+			},
+		),
+		nil,
+	)
+
 	tApp := app.NewTestApp()
 
 	tApp.InitializeFromGenesisStates(
 		app.GenesisState{
 			pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS),
 			hardtypes.ModuleName:      tApp.AppCodec().MustMarshalJSON(&hardGS),
+			savingstypes.ModuleName:   tApp.AppCodec().MustMarshalJSON(&savingsGS),
 		},
 	)
 
@@ -214,15 +234,18 @@ func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) a
 }
 
 // CreateVault adds a new vault to the keeper parameters
-func (suite *Suite) CreateVault(vaultDenom string, vaultStrategy types.StrategyType) {
-	vault := types.NewAllowedVault(vaultDenom, vaultStrategy)
-	suite.Require().NoError(vault.Validate())
+func (suite *Suite) CreateVault(
+	vaultDenom string,
+	vaultStrategies types.StrategyTypes,
+	isPrivateVault bool,
+	allowedDepositors []sdk.AccAddress,
+) {
+	vault := types.NewAllowedVault(vaultDenom, vaultStrategies, isPrivateVault, allowedDepositors)
 
 	allowedVaults := suite.Keeper.GetAllowedVaults(suite.Ctx)
 	allowedVaults = append(allowedVaults, vault)
 
 	params := types.NewParams(allowedVaults)
-	suite.Require().NoError(params.Validate())
 
 	suite.Keeper.SetParams(
 		suite.Ctx,
@@ -248,6 +271,8 @@ func (suite *Suite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 // ----------------------------------------------------------------------------
 // Earn
 
+// VaultTotalValuesEqual asserts that the vault total values match the provided
+// values.
 func (suite *Suite) VaultTotalValuesEqual(expected sdk.Coins) {
 	for _, coin := range expected {
 		vaultBal, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, coin.Denom)
@@ -256,27 +281,41 @@ func (suite *Suite) VaultTotalValuesEqual(expected sdk.Coins) {
 	}
 }
 
-func (suite *Suite) VaultTotalSuppliedEqual(expected sdk.Coins) {
-	for _, coin := range expected {
-		vaultBal, err := suite.Keeper.GetVaultTotalSupplied(suite.Ctx, coin.Denom)
-		suite.Require().NoError(err, "failed to get vault balance")
-		suite.Require().Equal(coin, vaultBal)
+// VaultTotalSharesEqual asserts that the vault total shares match the provided
+// values.
+func (suite *Suite) VaultTotalSharesEqual(expected types.VaultShares) {
+	for _, share := range expected {
+		vaultBal, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, share.Denom)
+		suite.Require().Truef(found, "%s vault does not exist", share.Denom)
+		suite.Require().Equal(share.Amount, vaultBal.Amount)
 	}
 }
 
-func (suite *Suite) AccountTotalSuppliedEqual(accs []sdk.AccAddress, supplies []sdk.Coins) {
+// VaultAccountSharesEqual asserts that the vault account shares match the provided
+// values.
+func (suite *Suite) VaultAccountSharesEqual(accs []sdk.AccAddress, supplies []sdk.Coins) {
 	for i, acc := range accs {
 		coins := supplies[i]
 
-		accVaultBal, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, acc)
-		suite.Require().NoError(err)
-		suite.Require().True(coins.IsEqual(accVaultBal), "expected account vault balance to equal coins %s, but got %s", coins, accVaultBal)
+		accVaultBal, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc)
+		suite.Require().True(found)
+
+		for _, coin := range coins {
+			suite.Require().Equal(
+				coin.Amount,
+				accVaultBal.AmountOf(coin.Denom),
+				"expected account vault balance to equal coins %s, but got %s",
+				coins, accVaultBal,
+			)
+		}
 	}
 }
 
 // ----------------------------------------------------------------------------
 // Hard
 
+// HardDepositAmountEqual asserts that the hard deposit amount matches the provided
+// values.
 func (suite *Suite) HardDepositAmountEqual(expected sdk.Coins) {
 	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
 
@@ -291,6 +330,29 @@ func (suite *Suite) HardDepositAmountEqual(expected sdk.Coins) {
 		expected,
 		hardDeposit.Amount,
 		"hard should have a deposit with the amount %v",
+		expected,
+	)
+}
+
+// ----------------------------------------------------------------------------
+// Savings
+
+// SavingsDepositAmountEqual asserts that the savings deposit amount matches the
+// provided values.
+func (suite *Suite) SavingsDepositAmountEqual(expected sdk.Coins) {
+	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
+
+	savingsDeposit, found := suite.SavingsKeeper.GetDeposit(suite.Ctx, macc.GetAddress())
+	if expected.IsZero() {
+		suite.Require().False(found)
+		return
+	}
+
+	suite.Require().True(found, "savings should have a deposit")
+	suite.Require().Equalf(
+		expected,
+		savingsDeposit.Amount,
+		"savings should have a deposit with the amount %v",
 		expected,
 	)
 }

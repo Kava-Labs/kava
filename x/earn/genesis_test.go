@@ -20,13 +20,16 @@ func (suite *genesisTestSuite) Test_InitGenesis_ValidationPanic() {
 	invalidState := types.NewGenesisState(
 		types.Params{
 			AllowedVaults: types.AllowedVaults{
-				types.NewAllowedVault("usdx", types.STRATEGY_TYPE_HARD),
+				types.NewAllowedVault(
+					"usdx", types.StrategyTypes{types.STRATEGY_TYPE_HARD},
+					false,
+					nil,
+				),
 			},
 		},
 		types.VaultRecords{
 			{
-				Denom:       "",
-				TotalSupply: sdk.NewInt64Coin("usdx", 0),
+				TotalShares: types.NewVaultShare("", sdk.NewDec(1)),
 			},
 		},
 		types.VaultShareRecords{},
@@ -47,28 +50,42 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 	state := types.NewGenesisState(
 		types.Params{
 			AllowedVaults: types.AllowedVaults{
-				types.NewAllowedVault("usdx", types.STRATEGY_TYPE_HARD),
-				types.NewAllowedVault("ukava", types.STRATEGY_TYPE_SAVINGS),
+				types.NewAllowedVault(
+					"usdx",
+					types.StrategyTypes{types.STRATEGY_TYPE_HARD},
+					false,
+					nil,
+				),
+				types.NewAllowedVault(
+					"ukava",
+					types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
+					true,
+					[]sdk.AccAddress{suite.AccountKeeper.GetModuleAddress("distribution")},
+				),
 			},
 		},
 		types.VaultRecords{
 			types.VaultRecord{
-				Denom:       "ukava",
-				TotalSupply: sdk.NewInt64Coin("ukava", 2000000),
+				TotalShares: types.NewVaultShare("ukava", sdk.NewDec(3800000)),
 			},
 			types.VaultRecord{
-				Denom:       "usdx",
-				TotalSupply: sdk.NewInt64Coin("usdx", 1000000),
+				TotalShares: types.NewVaultShare("usdx", sdk.NewDec(1000000)),
 			},
 		},
 		types.VaultShareRecords{
 			types.VaultShareRecord{
-				Depositor:      depositor_1,
-				AmountSupplied: sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000), sdk.NewInt64Coin("ukava", 1900000)),
+				Depositor: depositor_1,
+				Shares: types.NewVaultShares(
+					types.NewVaultShare("usdx", sdk.NewDec(500000)),
+					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
+				),
 			},
 			types.VaultShareRecord{
-				Depositor:      depositor_2,
-				AmountSupplied: sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000), sdk.NewInt64Coin("ukava", 100000)),
+				Depositor: depositor_2,
+				Shares: types.NewVaultShares(
+					types.NewVaultShare("usdx", sdk.NewDec(500000)),
+					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
+				),
 			},
 		},
 	)
@@ -101,28 +118,42 @@ func (suite *genesisTestSuite) Test_Marshall() {
 	state := types.NewGenesisState(
 		types.Params{
 			AllowedVaults: types.AllowedVaults{
-				types.NewAllowedVault("usdx", types.STRATEGY_TYPE_HARD),
-				types.NewAllowedVault("ukava", types.STRATEGY_TYPE_SAVINGS),
+				types.NewAllowedVault(
+					"usdx",
+					types.StrategyTypes{types.STRATEGY_TYPE_HARD},
+					false,
+					nil,
+				),
+				types.NewAllowedVault(
+					"ukava",
+					types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
+					true,
+					[]sdk.AccAddress{suite.AccountKeeper.GetModuleAddress("distribution")},
+				),
 			},
 		},
 		types.VaultRecords{
 			types.VaultRecord{
-				Denom:       "ukava",
-				TotalSupply: sdk.NewInt64Coin("ukava", 2000000),
+				TotalShares: types.NewVaultShare("ukava", sdk.NewDec(3800000)),
 			},
 			types.VaultRecord{
-				Denom:       "usdx",
-				TotalSupply: sdk.NewInt64Coin("usdx", 1000000),
+				TotalShares: types.NewVaultShare("usdx", sdk.NewDec(1000000)),
 			},
 		},
 		types.VaultShareRecords{
 			types.VaultShareRecord{
-				Depositor:      depositor_1,
-				AmountSupplied: sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000), sdk.NewInt64Coin("ukava", 1900000)),
+				Depositor: depositor_1,
+				Shares: types.NewVaultShares(
+					types.NewVaultShare("usdx", sdk.NewDec(500000)),
+					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
+				),
 			},
 			types.VaultShareRecord{
-				Depositor:      depositor_2,
-				AmountSupplied: sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000), sdk.NewInt64Coin("ukava", 100000)),
+				Depositor: depositor_2,
+				Shares: types.NewVaultShares(
+					types.NewVaultShare("usdx", sdk.NewDec(500000)),
+					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
+				),
 			},
 		},
 	)

@@ -13,6 +13,7 @@ type Keeper struct {
 	key           sdk.StoreKey
 	cdc           codec.Codec
 	paramSubspace paramtypes.Subspace
+	hooks         types.EarnHooks
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 
@@ -44,4 +45,18 @@ func NewKeeper(
 		hardKeeper:    hardKeeper,
 		savingsKeeper: savingsKeeper,
 	}
+}
+
+// SetHooks adds hooks to the keeper.
+func (k *Keeper) SetHooks(sh types.EarnHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set earn hooks twice")
+	}
+	k.hooks = sh
+	return k
+}
+
+// ClearHooks clears the hooks on the keeper
+func (k *Keeper) ClearHooks() {
+	k.hooks = nil
 }

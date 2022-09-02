@@ -29,7 +29,7 @@ func (m msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return nil, err
 	}
 
-	if err := m.keeper.Deposit(ctx, depositor, msg.Amount); err != nil {
+	if err := m.keeper.Deposit(ctx, depositor, msg.Amount, msg.Strategy); err != nil {
 		return nil, err
 	}
 
@@ -53,7 +53,7 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, err
 	}
 
-	if err := m.keeper.Withdraw(ctx, from, msg.Amount); err != nil {
+	if err := m.keeper.Withdraw(ctx, from, msg.Amount, msg.Strategy); err != nil {
 		return nil, err
 	}
 

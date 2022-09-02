@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/kava-labs/kava/app"
@@ -25,12 +26,10 @@ func TestVaultRecordValidate(t *testing.T) {
 			name: "valid vault records",
 			vaultRecords: types.VaultRecords{
 				{
-					Denom:       "usdx",
-					TotalSupply: sdk.NewInt64Coin("usdx", 0),
+					TotalShares: types.NewVaultShare("usdx", sdk.NewDec(0)),
 				},
 				{
-					Denom:       "ukava",
-					TotalSupply: sdk.NewInt64Coin("ukava", 5),
+					TotalShares: types.NewVaultShare("ukava", sdk.NewDec(5)),
 				},
 			},
 			errArgs: errArgs{
@@ -41,12 +40,10 @@ func TestVaultRecordValidate(t *testing.T) {
 			name: "invalid - duplicate denom",
 			vaultRecords: types.VaultRecords{
 				{
-					Denom:       "usdx",
-					TotalSupply: sdk.NewInt64Coin("usdx", 0),
+					TotalShares: types.NewVaultShare("usdx", sdk.NewDec(0)),
 				},
 				{
-					Denom:       "usdx",
-					TotalSupply: sdk.NewInt64Coin("usdx", 5),
+					TotalShares: types.NewVaultShare("usdx", sdk.NewDec(5)),
 				},
 			},
 			errArgs: errArgs{
@@ -58,8 +55,7 @@ func TestVaultRecordValidate(t *testing.T) {
 			name: "invalid - invalid denom",
 			vaultRecords: types.VaultRecords{
 				{
-					Denom:       "",
-					TotalSupply: sdk.NewInt64Coin("ukava", 0),
+					TotalShares: types.NewVaultShare("", sdk.NewDec(0)),
 				},
 			},
 			errArgs: errArgs{
@@ -68,29 +64,15 @@ func TestVaultRecordValidate(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid - mismatch denom",
-			vaultRecords: types.VaultRecords{
-				{
-					Denom:       "usdx",
-					TotalSupply: sdk.NewInt64Coin("ukava", 0),
-				},
-			},
-			errArgs: errArgs{
-				expectPass: false,
-				contains:   "total supply denom ukava does not match vault record denom usdx",
-			},
-		},
-		{
 			name: "invalid - negative",
 			vaultRecords: types.VaultRecords{
 				{
-					Denom:       "usdx",
-					TotalSupply: sdk.Coin{Denom: "usdx", Amount: sdk.NewInt(-1)},
+					TotalShares: types.NewVaultShare("usdx", sdk.NewDec(-5)),
 				},
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "negative coin amount",
+				contains:   "vault share amount -5.000000000000000000 is negative",
 			},
 		},
 	}
@@ -127,15 +109,15 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 			vaultRecords: types.VaultShareRecords{
 				{
 					Depositor: addrs[0],
-					AmountSupplied: sdk.NewCoins(
-						sdk.NewInt64Coin("usdx", 0),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare("usdx", sdk.NewDec(0)),
 					),
 				},
 				{
 					Depositor: addrs[1],
-					AmountSupplied: sdk.NewCoins(
-						sdk.NewInt64Coin("usdx", 0),
-						sdk.NewInt64Coin("ukava", 5),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare("usdx", sdk.NewDec(0)),
+						types.NewVaultShare("ukava", sdk.NewDec(5)),
 					),
 				},
 			},
@@ -148,15 +130,15 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 			vaultRecords: types.VaultShareRecords{
 				{
 					Depositor: addrs[0],
-					AmountSupplied: sdk.NewCoins(
-						sdk.NewInt64Coin("usdx", 0),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare("usdx", sdk.NewDec(0)),
 					),
 				},
 				{
 					Depositor: addrs[0],
-					AmountSupplied: sdk.NewCoins(
-						sdk.NewInt64Coin("usdx", 0),
-						sdk.NewInt64Coin("ukava", 5),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare("usdx", sdk.NewDec(0)),
+						types.NewVaultShare("ukava", sdk.NewDec(5)),
 					),
 				},
 			},
@@ -170,8 +152,8 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 			vaultRecords: types.VaultShareRecords{
 				{
 					Depositor: sdk.AccAddress{},
-					AmountSupplied: sdk.NewCoins(
-						sdk.NewInt64Coin("usdx", 0),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare("usdx", sdk.NewDec(0)),
 					),
 				},
 			},
@@ -185,14 +167,15 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 			vaultRecords: types.VaultShareRecords{
 				{
 					Depositor: addrs[0],
-					AmountSupplied: sdk.Coins{
-						sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)},
+					// Direct slice, not NewVaultShares() which panics
+					Shares: types.VaultShares{
+						types.NewVaultShare("usdx", sdk.NewDec(-5)),
 					},
 				},
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "amount is not positive",
+				contains:   "invalid vault share record shares: vault share amount -5.000000000000000000 is negative",
 			},
 		},
 	}
@@ -226,12 +209,16 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "valid vault share records",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:         "usdx",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 				{
-					Denom:         "busd",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
+					Denom:             "busd",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 			},
 			errArgs: errArgs{
@@ -242,12 +229,16 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "invalid - duplicate denom",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:         "usdx",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 				{
-					Denom:         "usdx",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 			},
 			errArgs: errArgs{
@@ -259,8 +250,10 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "invalid - invalid denom",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:         "",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
+					Denom:             "",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 			},
 			errArgs: errArgs{
@@ -272,13 +265,47 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "invalid - invalid strategy",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:         "usdx",
-					VaultStrategy: types.STRATEGY_TYPE_UNSPECIFIED,
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_UNSPECIFIED},
+					IsPrivateVault:    false,
+					AllowedDepositors: []sdk.AccAddress{},
 				},
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid vault strategy",
+				contains:   "invalid strategy STRATEGY_TYPE_UNSPECIFIED",
+			},
+		},
+		{
+			name: "invalid - private with no allowed depositors",
+			vaultRecords: types.AllowedVaults{
+				{
+					Denom:             "usdx",
+					Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault:    true,
+					AllowedDepositors: []sdk.AccAddress{},
+				},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "private vaults require non-empty AllowedDepositors",
+			},
+		},
+		{
+			name: "invalid - public with allowed depositors",
+			vaultRecords: types.AllowedVaults{
+				{
+					Denom:          "usdx",
+					Strategies:     []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					IsPrivateVault: false,
+					AllowedDepositors: []sdk.AccAddress{
+						sdk.AccAddress("asdfasdf"),
+					},
+				},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "non-private vaults cannot have any AllowedDepositors",
 			},
 		},
 	}
@@ -297,14 +324,62 @@ func TestAllowedVaultsValidate(t *testing.T) {
 	}
 }
 
+func TestIsStrategyAllowed(t *testing.T) {
+	vault := types.NewAllowedVault(
+		"usdx",
+		[]types.StrategyType{types.STRATEGY_TYPE_HARD},
+		true,
+		[]sdk.AccAddress{},
+	)
+
+	require.True(t, vault.IsStrategyAllowed(types.STRATEGY_TYPE_HARD))
+	require.False(t, vault.IsStrategyAllowed(types.STRATEGY_TYPE_SAVINGS))
+	require.False(t, vault.IsStrategyAllowed(types.STRATEGY_TYPE_UNSPECIFIED))
+	require.False(t, vault.IsStrategyAllowed(12345))
+}
+
+func TestIsAccountAllowed_Private(t *testing.T) {
+	acc1 := sdk.AccAddress("acc1")
+	acc2 := sdk.AccAddress("acc2")
+	acc3 := sdk.AccAddress("acc3")
+
+	vault := types.NewAllowedVault(
+		"usdx",
+		[]types.StrategyType{types.STRATEGY_TYPE_HARD},
+		true,
+		[]sdk.AccAddress{acc1, acc2},
+	)
+
+	assert.True(t, vault.IsAccountAllowed(acc1))
+	assert.True(t, vault.IsAccountAllowed(acc2))
+	assert.False(t, vault.IsAccountAllowed(acc3))
+}
+
+func TestIsAccountAllowed_Public(t *testing.T) {
+	acc1 := sdk.AccAddress("acc1")
+	acc2 := sdk.AccAddress("acc2")
+	acc3 := sdk.AccAddress("acc3")
+
+	vault := types.NewAllowedVault(
+		"usdx",
+		[]types.StrategyType{types.STRATEGY_TYPE_HARD},
+		false,
+		[]sdk.AccAddress{},
+	)
+
+	assert.True(t, vault.IsAccountAllowed(acc1))
+	assert.True(t, vault.IsAccountAllowed(acc2))
+	assert.True(t, vault.IsAccountAllowed(acc3))
+}
+
 func TestNewVaultShareRecord(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 
-	coins := sdk.NewCoins(
-		sdk.NewInt64Coin("usdx", 10),
-		sdk.NewInt64Coin("ukava", 5),
+	shares := types.NewVaultShares(
+		types.NewVaultShare("usdx", sdk.NewDec(0)),
+		types.NewVaultShare("ukava", sdk.NewDec(5)),
 	)
 
-	shareRecord := types.NewVaultShareRecord(addrs[0], coins...)
-	require.Equal(t, coins, shareRecord.AmountSupplied)
+	shareRecord := types.NewVaultShareRecord(addrs[0], shares)
+	require.Equal(t, shares, shareRecord.Shares)
 }

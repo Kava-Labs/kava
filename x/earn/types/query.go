@@ -8,28 +8,26 @@ func NewQueryParamsRequest() *QueryParamsRequest {
 }
 
 // NewQueryVaultsRequest returns a new QueryVaultsRequest
-func NewQueryVaultsRequest(denom string) *QueryVaultsRequest {
-	return &QueryVaultsRequest{
+func NewQueryVaultsRequest() *QueryVaultsRequest {
+	return &QueryVaultsRequest{}
+}
+
+// NewQueryVaultRequest returns a new QueryVaultRequest
+func NewQueryVaultRequest(denom string) *QueryVaultRequest {
+	return &QueryVaultRequest{
 		Denom: denom,
 	}
 }
 
 // NewQueryDepositsRequest returns a new QueryDepositsRequest
 func NewQueryDepositsRequest(
-	owner string,
+	depositor string,
 	denom string,
 	pagination *query.PageRequest,
 ) *QueryDepositsRequest {
 	return &QueryDepositsRequest{
-		Owner:      owner,
+		Depositor:  depositor,
 		Denom:      denom,
 		Pagination: pagination,
-	}
-}
-
-// NewQueryTotalDepositedRequest returns a new QueryTotalDepositedRequest
-func NewQueryTotalDepositedRequest(denom string) *QueryTotalDepositedRequest {
-	return &QueryTotalDepositedRequest{
-		Denom: denom,
 	}
 }

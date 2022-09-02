@@ -34,14 +34,14 @@ func TestMsgServerTestSuite(t *testing.T) {
 
 func (suite *msgServerTestSuite) TestDeposit() {
 	vaultDenom := "usdx"
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
+	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	msg := types.NewMsgDeposit(acc.GetAddress().String(), depositAmount)
+	msg := types.NewMsgDeposit(acc.GetAddress().String(), depositAmount, types.STRATEGY_TYPE_HARD)
 	_, err := suite.msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), msg)
 	suite.Require().NoError(err)
 
@@ -68,6 +68,8 @@ func (suite *msgServerTestSuite) TestDeposit() {
 			types.EventTypeVaultDeposit,
 			sdk.NewAttribute(types.AttributeKeyVaultDenom, depositAmount.Denom),
 			sdk.NewAttribute(types.AttributeKeyDepositor, acc.GetAddress().String()),
+			// Shares 1:1 to amount
+			sdk.NewAttribute(types.AttributeKeyShares, depositAmount.Amount.ToDec().String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.Amount.String()),
 		),
 	)
@@ -85,19 +87,19 @@ func (suite *msgServerTestSuite) TestDeposit() {
 
 func (suite *msgServerTestSuite) TestWithdraw() {
 	vaultDenom := "usdx"
-	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
+	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	msgDeposit := types.NewMsgDeposit(acc.GetAddress().String(), depositAmount)
+	msgDeposit := types.NewMsgDeposit(acc.GetAddress().String(), depositAmount, types.STRATEGY_TYPE_HARD)
 	_, err := suite.msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), msgDeposit)
 	suite.Require().NoError(err)
 
 	// Withdraw all
-	msgWithdraw := types.NewMsgWithdraw(acc.GetAddress().String(), depositAmount)
+	msgWithdraw := types.NewMsgWithdraw(acc.GetAddress().String(), depositAmount, types.STRATEGY_TYPE_HARD)
 	_, err = suite.msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), msgWithdraw)
 	suite.Require().NoError(err)
 
@@ -120,6 +122,7 @@ func (suite *msgServerTestSuite) TestWithdraw() {
 			types.EventTypeVaultWithdraw,
 			sdk.NewAttribute(types.AttributeKeyVaultDenom, depositAmount.Denom),
 			sdk.NewAttribute(types.AttributeKeyOwner, acc.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyShares, depositAmount.Amount.ToDec().String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.Amount.String()),
 		),
 	)
