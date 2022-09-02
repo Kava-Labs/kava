@@ -36,7 +36,7 @@ func (suite *ClaimTests) TestCannotClaimWhenMultiplierNotRecognised() {
 			},
 		},
 	}
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 
 	claim := types.DelegatorClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -70,7 +70,7 @@ func (suite *ClaimTests) TestCannotClaimAfterEndTime() {
 			ClaimEnd: endTime,
 		},
 	}
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 
 	suite.ctx = suite.ctx.WithBlockTime(endTime.Add(time.Nanosecond))
 
