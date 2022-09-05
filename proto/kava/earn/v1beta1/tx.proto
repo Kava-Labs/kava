@@ -15,12 +15,6 @@ service Msg {
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   // Withdraw defines a method for withdrawing assets into a vault
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
-
-  rpc MintDeposit(MsgMintDeposit) returns (MsgMintDepositResponse);
-  rpc DelegateMintDeposit(MsgDelegateMintDeposit) returns (MsgDelegateMintDepositResponse);
-
-  rpc WithdrawBurn(MsgWithdrawBurn) returns (MsgWithdrawBurnResponse);
-  rpc WithdrawBurnUndelegate(MsgWithdrawBurnUndelegate) returns (MsgWithdrawBurnUndelegateResponse);
 }
 
 // MsgDeposit represents a message for depositing assedts into a vault
@@ -61,60 +55,3 @@ message MsgWithdraw {
 message MsgWithdrawResponse {
   VaultShare shares = 1 [(gogoproto.nullable) = false];
 }
-
-
-message MsgMintDeposit {
-  option (gogoproto.goproto_getters) = false;
-
-  // depositor represents the address to deposit funds from
-  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string validator = 2;
-  // Amount represents the token to deposit. The vault corresponds to the denom
-  // of the amount coin.
-  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
-
-  StrategyType strategy = 4;
-}
-message MsgMintDepositResponse {}
-
-message MsgDelegateMintDeposit {
-  option (gogoproto.goproto_getters) = false;
-
-  // depositor represents the address to deposit funds from
-  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string validator = 2;
-  // Amount represents the token to deposit. The vault corresponds to the denom
-  // of the amount coin.
-  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
-
-  StrategyType strategy = 4;
-}
-message MsgDelegateMintDepositResponse {}
-
-message MsgWithdrawBurn {
-  option (gogoproto.goproto_getters) = false;
-
-  // depositor represents the address to deposit funds from
-  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string validator = 2;
-  // Amount represents the token to deposit. The vault corresponds to the denom
-  // of the amount coin.
-  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
-
-  StrategyType strategy = 4;
-}
-message MsgWithdrawBurnResponse {}
-
-message MsgWithdrawBurnUndelegate {
-  option (gogoproto.goproto_getters) = false;
-
-  // depositor represents the address to deposit funds from
-  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string validator = 2;
-  // Amount represents the token to deposit. The vault corresponds to the denom
-  // of the amount coin.
-  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
-
-  StrategyType strategy = 4;
-}
-message MsgWithdrawBurnUndelegateResponse {}

@@ -130,6 +130,9 @@ import (
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
+	router "github.com/kava-labs/kava/x/router"
+	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
+	routertypes "github.com/kava-labs/kava/x/router/types"
 	savings "github.com/kava-labs/kava/x/savings"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -194,6 +197,7 @@ var (
 		evmutil.AppModuleBasic{},
 		liquid.AppModuleBasic{},
 		earn.AppModuleBasic{},
+		router.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -289,6 +293,7 @@ type App struct {
 	savingsKeeper    savingskeeper.Keeper
 	liquidKeeper     liquidkeeper.Keeper
 	earnKeeper       earnkeeper.Keeper
+	routerKeeper     routerkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -618,8 +623,12 @@ func NewApp(
 		app.bankKeeper,
 		&hardKeeper,
 		&savingsKeeper,
-		app.liquidKeeper,
-		app.stakingKeeper,
+	)
+	app.routerKeeper = routerkeeper.NewKeeper(
+		appCodec,
+		&app.earnKeeper, // TODO pointers?
+		&app.liquidKeeper,
+		&app.stakingKeeper,
 	)
 
 	// create committee keeper with router
@@ -707,6 +716,7 @@ func NewApp(
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 		liquid.NewAppModule(app.liquidKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
+		router.NewAppModule(app.routerKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -755,6 +765,7 @@ func NewApp(
 		savingstypes.ModuleName,
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -795,6 +806,7 @@ func NewApp(
 		savingstypes.ModuleName,
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -834,6 +846,7 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
