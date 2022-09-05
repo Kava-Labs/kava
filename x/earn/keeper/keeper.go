@@ -21,9 +21,6 @@ type Keeper struct {
 	// Keepers used for strategies
 	hardKeeper    types.HardKeeper
 	savingsKeeper types.SavingsKeeper
-
-	liquidKeeper  types.LiquidKeeper
-	stakingKeeper types.StakingKeeper
 }
 
 // NewKeeper creates a new keeper
@@ -35,8 +32,6 @@ func NewKeeper(
 	bankKeeper types.BankKeeper,
 	hardKeeper types.HardKeeper,
 	savingsKeeper types.SavingsKeeper,
-	liquidKeeper types.LiquidKeeper,
-	stakingKeeper types.StakingKeeper,
 
 ) Keeper {
 	if !paramstore.HasKeyTable() {
@@ -51,8 +46,6 @@ func NewKeeper(
 		bankKeeper:    bankKeeper,
 		hardKeeper:    hardKeeper,
 		savingsKeeper: savingsKeeper,
-		liquidKeeper:  liquidKeeper,
-		stakingKeeper: stakingKeeper,
 	}
 }
 
