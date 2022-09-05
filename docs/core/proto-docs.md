@@ -193,6 +193,12 @@
 - [kava/earn/v1beta1/genesis.proto](#kava/earn/v1beta1/genesis.proto)
     - [GenesisState](#kava.earn.v1beta1.GenesisState)
   
+- [kava/earn/v1beta1/proposal.proto](#kava/earn/v1beta1/proposal.proto)
+    - [CommunityPoolDepositProposal](#kava.earn.v1beta1.CommunityPoolDepositProposal)
+    - [CommunityPoolDepositProposalJSON](#kava.earn.v1beta1.CommunityPoolDepositProposalJSON)
+    - [CommunityPoolWithdrawProposal](#kava.earn.v1beta1.CommunityPoolWithdrawProposal)
+    - [CommunityPoolWithdrawProposalJSON](#kava.earn.v1beta1.CommunityPoolWithdrawProposalJSON)
+  
 - [kava/earn/v1beta1/query.proto](#kava/earn/v1beta1/query.proto)
     - [DepositResponse](#kava.earn.v1beta1.DepositResponse)
     - [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest)
@@ -2904,6 +2910,92 @@ GenesisState defines the earn module's genesis state.
 | `params` | [Params](#kava.earn.v1beta1.Params) |  | params defines all the paramaters related to earn |
 | `vault_records` | [VaultRecord](#kava.earn.v1beta1.VaultRecord) | repeated | vault_records defines the available vaults |
 | `vault_share_records` | [VaultShareRecord](#kava.earn.v1beta1.VaultShareRecord) | repeated | share_records defines the owned shares of each vault |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/proposal.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/proposal.proto
+
+
+
+<a name="kava.earn.v1beta1.CommunityPoolDepositProposal"></a>
+
+### CommunityPoolDepositProposal
+CommunityPoolDepositProposal deposits from the community pool into an earn vault
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.CommunityPoolDepositProposalJSON"></a>
+
+### CommunityPoolDepositProposalJSON
+CommunityPoolDepositProposalJSON defines a CommunityPoolDepositProposal with a deposit
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.CommunityPoolWithdrawProposal"></a>
+
+### CommunityPoolWithdrawProposal
+CommunityPoolWithdrawProposal withdraws from an earn vault back to community pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.CommunityPoolWithdrawProposalJSON"></a>
+
+### CommunityPoolWithdrawProposalJSON
+CommunityPoolWithdrawProposalJSON defines a CommunityPoolWithdrawProposal with a deposit
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 
 
 
