@@ -19,7 +19,10 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/liquid/keeper"
+	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
+	"github.com/kava-labs/kava/x/router/keeper"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
 // Test suite used for all keeper tests
@@ -30,6 +33,7 @@ type KeeperTestSuite struct {
 	Keeper        keeper.Keeper
 	BankKeeper    bankkeeper.Keeper
 	StakingKeeper stakingkeeper.Keeper
+	EarnKeeper    earnkeeper.Keeper
 }
 
 // The default state used by each test
@@ -41,16 +45,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.App = tApp
 	suite.Ctx = ctx
-	suite.Keeper = tApp.GetLiquidKeeper()
+	suite.Keeper = tApp.GetRouterKeeper()
 	suite.StakingKeeper = tApp.GetStakingKeeper()
 	suite.BankKeeper = tApp.GetBankKeeper()
-}
-
-// CreateAccount creates a new account (with a fixed address) from the provided balance.
-func (suite *KeeperTestSuite) CreateAccount(initialBalance sdk.Coins) authtypes.AccountI {
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-
-	return suite.CreateAccountWithAddress(addrs[0], initialBalance)
+	suite.EarnKeeper = tApp.GetEarnKeeper()
 }
 
 // CreateAccount creates a new account from the provided balance and address
@@ -174,21 +172,6 @@ func (suite *KeeperTestSuite) CreateDelegation(valAddr sdk.ValAddress, delegator
 	return del.Shares
 }
 
-// CreateRedelegation undelegates tokens from one validator and delegates to another.
-func (suite *KeeperTestSuite) CreateRedelegation(delegator sdk.AccAddress, fromValidator, toValidator sdk.ValAddress, amount sdk.Int) {
-	stakingDenom := suite.StakingKeeper.BondDenom(suite.Ctx)
-	msg := stakingtypes.NewMsgBeginRedelegate(
-		delegator,
-		fromValidator,
-		toValidator,
-		sdk.NewCoin(stakingDenom, amount),
-	)
-
-	msgServer := stakingkeeper.NewMsgServerImpl(suite.StakingKeeper)
-	_, err := msgServer.BeginRedelegate(sdk.WrapSDKContext(suite.Ctx), msg)
-	suite.Require().NoError(err)
-}
-
 // DelegationSharesEqual checks if a delegation has the specified shares.
 // It expects delegations with zero shares to not be stored in state.
 func (suite *KeeperTestSuite) DelegationSharesEqual(valAddr sdk.ValAddress, delegator sdk.AccAddress, shares sdk.Dec) bool {
@@ -224,6 +207,56 @@ func attrsToMap(attrs []abci.EventAttribute) []sdk.Attribute {
 	}
 
 	return out
+}
+
+// CreateVault adds a new earn vault to the earn keeper parameters
+func (suite *KeeperTestSuite) CreateVault(
+	vaultDenom string,
+	vaultStrategies earntypes.StrategyTypes,
+	isPrivateVault bool,
+	allowedDepositors []sdk.AccAddress,
+) {
+	vault := earntypes.NewAllowedVault(vaultDenom, vaultStrategies, isPrivateVault, allowedDepositors)
+
+	allowedVaults := suite.EarnKeeper.GetAllowedVaults(suite.Ctx)
+	allowedVaults = append(allowedVaults, vault)
+
+	params := earntypes.NewParams(allowedVaults)
+
+	suite.EarnKeeper.SetParams(
+		suite.Ctx,
+		params,
+	)
+}
+
+// SetSavingsSupportedDenoms overwrites the list of supported denoms in the savings module params.
+func (suite *KeeperTestSuite) SetSavingsSupportedDenoms(denoms []string) {
+	sk := suite.App.GetSavingsKeeper()
+	sk.SetParams(suite.Ctx, savingstypes.NewParams(denoms))
+}
+
+// VaultAccountValueEqual asserts that the vault account value matches the provided coin amount.
+func (suite *KeeperTestSuite) VaultAccountValueEqual(acc sdk.AccAddress, coin sdk.Coin) {
+
+	accVaultBal, err := suite.EarnKeeper.GetVaultAccountValue(suite.Ctx, coin.Denom, acc)
+	suite.Require().NoError(err)
+
+	suite.Require().Truef(
+		coin.Equal(accVaultBal),
+		"expected account vault balance to equal %s, but got %s",
+		coin, accVaultBal,
+	)
+}
+
+// VaultAccountSharesEqual asserts that the vault account shares match the provided values.
+func (suite *KeeperTestSuite) VaultAccountSharesEqual(acc sdk.AccAddress, shares earntypes.VaultShares) { // TODO
+
+	accVaultShares, found := suite.EarnKeeper.GetVaultAccountShares(suite.Ctx, acc)
+	if !found {
+		suite.Empty(shares)
+	} else {
+		suite.Equal(shares, accVaultShares)
+	}
 }
 
 func TestKeeperTestSuite(t *testing.T) {
