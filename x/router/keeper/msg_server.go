@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/router/types"
 )
 
@@ -40,7 +41,7 @@ func (m msgServer) MintDeposit(goCtx context.Context, msg *types.MsgMintDeposit)
 	}
 	// should deposit all of derivative balance
 	// without this msg webapp needs to calculate bkava = floor(validator_total_shares * msg.Amount / validator_total_kava) accurately
-	err = m.keeper.earnKeeper.Deposit(ctx, depositor, derivative, msg.Strategy)
+	err = m.keeper.earnKeeper.Deposit(ctx, depositor, derivative, earntypes.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +90,7 @@ func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDele
 		return nil, err
 	}
 	// deposit is exact
-	err = m.keeper.earnKeeper.Deposit(ctx, depositor, derivativeMinted, msg.Strategy)
+	err = m.keeper.earnKeeper.Deposit(ctx, depositor, derivativeMinted, earntypes.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +125,7 @@ func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBur
 		return nil, err
 	}
 
-	err = m.keeper.earnKeeper.Withdraw(ctx, depositor, tokenAmount, msg.Strategy)
+	err = m.keeper.earnKeeper.Withdraw(ctx, depositor, tokenAmount, earntypes.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +163,7 @@ func (m msgServer) WithdrawBurnUndelegate(goCtx context.Context, msg *types.MsgW
 		return nil, err
 	}
 
-	err = m.keeper.earnKeeper.Withdraw(ctx, depositor, tokenAmount, msg.Strategy)
+	err = m.keeper.earnKeeper.Withdraw(ctx, depositor, tokenAmount, earntypes.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return nil, err
 	}

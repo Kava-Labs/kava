@@ -51,7 +51,6 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn() {
 		user.String(),
 		valAddr.String(),
 		suite.NewBondCoin(sdk.NewInt(1e9)),
-		earntypes.STRATEGY_TYPE_SAVINGS,
 	}
 	_, err := suite.msgServer.MintDeposit(sdk.WrapSDKContext(suite.Ctx), msgDeposit)
 	suite.Require().NoError(err)
@@ -66,7 +65,6 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn() {
 		user.String(),
 		valAddr.String(),
 		suite.NewBondCoin(sdk.NewInt(1e9)),
-		earntypes.STRATEGY_TYPE_SAVINGS,
 	}
 	_, err = suite.msgServer.WithdrawBurn(sdk.WrapSDKContext(suite.Ctx), msgWithdraw)
 	suite.Require().NoError(err)
@@ -98,7 +96,6 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 		user.String(),
 		valAddr.String(),
 		suite.NewBondCoin(sdk.NewInt(1e9)),
-		earntypes.STRATEGY_TYPE_SAVINGS,
 	}
 	_, err := suite.msgServer.DelegateMintDeposit(sdk.WrapSDKContext(suite.Ctx), msg)
 	suite.Require().NoError(err)
@@ -113,7 +110,6 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 		user.String(),
 		valAddr.String(),
 		suite.NewBondCoin(sdk.NewInt(1e9)),
-		earntypes.STRATEGY_TYPE_SAVINGS,
 	}
 	_, err = suite.msgServer.WithdrawBurnUndelegate(sdk.WrapSDKContext(suite.Ctx), msgWithdraw)
 	suite.Require().NoError(err)

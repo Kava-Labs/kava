@@ -439,6 +439,18 @@
   
     - [Msg](#kava.pricefeed.v1beta1.Msg)
   
+- [kava/router/v1beta1/tx.proto](#kava/router/v1beta1/tx.proto)
+    - [MsgDelegateMintDeposit](#kava.router.v1beta1.MsgDelegateMintDeposit)
+    - [MsgDelegateMintDepositResponse](#kava.router.v1beta1.MsgDelegateMintDepositResponse)
+    - [MsgMintDeposit](#kava.router.v1beta1.MsgMintDeposit)
+    - [MsgMintDepositResponse](#kava.router.v1beta1.MsgMintDepositResponse)
+    - [MsgWithdrawBurn](#kava.router.v1beta1.MsgWithdrawBurn)
+    - [MsgWithdrawBurnResponse](#kava.router.v1beta1.MsgWithdrawBurnResponse)
+    - [MsgWithdrawBurnUndelegate](#kava.router.v1beta1.MsgWithdrawBurnUndelegate)
+    - [MsgWithdrawBurnUndelegateResponse](#kava.router.v1beta1.MsgWithdrawBurnUndelegateResponse)
+  
+    - [Msg](#kava.router.v1beta1.Msg)
+  
 - [kava/savings/v1beta1/store.proto](#kava/savings/v1beta1/store.proto)
     - [Deposit](#kava.savings.v1beta1.Deposit)
     - [Params](#kava.savings.v1beta1.Params)
@@ -6024,6 +6036,145 @@ Msg defines the pricefeed Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `PostPrice` | [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice) | [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse) | PostPrice defines a method for creating a new post price | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/router/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/router/v1beta1/tx.proto
+
+
+
+<a name="kava.router.v1beta1.MsgDelegateMintDeposit"></a>
+
+### MsgDelegateMintDeposit
+MsgDelegateMintDeposit delegates tokens to a validator, then converts them into staking derivative,
+then deposits to an earn vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the owner of the tokens to delegate |
+| `validator` | [string](#string) |  | validator is the address of the validator to delegate to |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the tokens to delegate |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgDelegateMintDepositResponse"></a>
+
+### MsgDelegateMintDepositResponse
+MsgDelegateMintDepositResponse defines the Msg/MsgDelegateMintDeposit response type.
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgMintDeposit"></a>
+
+### MsgMintDeposit
+MsgMintDeposit converts a delegation into a staking derivative and deposits it all into an earn vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the owner of the delegation to convert |
+| `validator` | [string](#string) |  | validator is the validator for the depositor's delegation |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the delegation balance to convert |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgMintDepositResponse"></a>
+
+### MsgMintDepositResponse
+MsgMintDepositResponse defines the Msg/MsgMintDeposit response type.
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurn"></a>
+
+### MsgWithdrawBurn
+MsgWithdrawBurn removes staking derivatives from an earn vault and converts them back to a staking delegation.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  | from is the owner of the earn vault to withdraw from |
+| `validator` | [string](#string) |  | validator is the address to select the derivative denom to withdraw |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the staked token equivalent to withdraw |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurnResponse"></a>
+
+### MsgWithdrawBurnResponse
+MsgWithdrawBurnResponse defines the Msg/MsgWithdrawBurn response type.
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurnUndelegate"></a>
+
+### MsgWithdrawBurnUndelegate
+MsgWithdrawBurnUndelegate removes staking derivatives from an earn vault, converts them to a staking delegation,
+then undelegates them from their validator.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  | from is the owner of the earn vault to withdraw from |
+| `validator` | [string](#string) |  | validator is the address to select the derivative denom to withdraw |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the staked token equivalent to withdraw |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurnUndelegateResponse"></a>
+
+### MsgWithdrawBurnUndelegateResponse
+MsgWithdrawBurnUndelegateResponse defines the Msg/MsgWithdrawBurnUndelegate response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.router.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the router Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `MintDeposit` | [MsgMintDeposit](#kava.router.v1beta1.MsgMintDeposit) | [MsgMintDepositResponse](#kava.router.v1beta1.MsgMintDepositResponse) | MintDeposit converts a delegation into a staking derivative and deposits it all into an earn vault. | |
+| `DelegateMintDeposit` | [MsgDelegateMintDeposit](#kava.router.v1beta1.MsgDelegateMintDeposit) | [MsgDelegateMintDepositResponse](#kava.router.v1beta1.MsgDelegateMintDepositResponse) | DelegateMintDeposit delegates tokens to a validator, then converts them into staking derivative, then deposits to an earn vault. | |
+| `WithdrawBurn` | [MsgWithdrawBurn](#kava.router.v1beta1.MsgWithdrawBurn) | [MsgWithdrawBurnResponse](#kava.router.v1beta1.MsgWithdrawBurnResponse) | WithdrawBurn removes staking derivatives from an earn vault and converts them back to a staking delegation. | |
+| `WithdrawBurnUndelegate` | [MsgWithdrawBurnUndelegate](#kava.router.v1beta1.MsgWithdrawBurnUndelegate) | [MsgWithdrawBurnUndelegateResponse](#kava.router.v1beta1.MsgWithdrawBurnUndelegateResponse) | WithdrawBurnUndelegate removes staking derivatives from an earn vault, converts them to a staking delegation, then undelegates them from their validator. | |
 
  <!-- end services -->
 
