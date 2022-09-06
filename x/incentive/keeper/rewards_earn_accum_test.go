@@ -91,11 +91,16 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	vaultDenom2 := "bkava-woof"
 
 	earnKeeper := newFakeEarnKeeper().
-		addVault(vaultDenom1, earntypes.NewVaultShare(vaultDenom1, d("1000000"))).
-		addVault(vaultDenom2, earntypes.NewVaultShare(vaultDenom2, d("1000000")))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
+		addVault(vaultDenom1, earntypes.NewVaultShare(vaultDenom1, d("8000000"))).
+		addVault(vaultDenom2, earntypes.NewVaultShare(vaultDenom2, d("2000000")))
 
-	suite.storeGlobalEarnIndexes(types.MultiRewardIndexes{
+	liquidKeeper := newFakeLiquidKeeper().
+		addDerivative(vaultDenom1, i(8000000)).
+		addDerivative(vaultDenom2, i(2000000))
+
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, liquidKeeper, earnKeeper)
+
+	globalIndexes := types.MultiRewardIndexes{
 		// Per vault denom, indexes do *not* have bkava or bkava-xxx denoms
 		// as bkava is not paid out, ukava is
 		{
@@ -124,7 +129,9 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 				},
 			},
 		},
-	})
+	}
+
+	suite.storeGlobalEarnIndexes(globalIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom1, previousAccrualTime)
 	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom2, previousAccrualTime)
@@ -132,32 +139,63 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	newAccrualTime := previousAccrualTime.Add(1 * time.Hour)
 	suite.ctx = suite.ctx.WithBlockTime(newAccrualTime)
 
-	suite.keeper.AccumulateEarnRewards(suite.ctx, types.NewMultiRewardPeriod(
+	rewardPeriod := types.NewMultiRewardPeriod(
 		true,
 		"bkava",         // reward period is set for "bkava" to apply to all vaults
 		time.Unix(0, 0), // ensure the test is within start and end times
 		distantFuture,
 		cs(c("earn", 2000), c("ukava", 1000)), // same denoms as in global indexes
-	))
+	)
+	suite.keeper.AccumulateEarnRewards(suite.ctx, rewardPeriod)
 
 	// check time and factors
 
 	suite.storedTimeEquals(vaultDenom1, newAccrualTime)
 	suite.storedTimeEquals(vaultDenom2, newAccrualTime)
 
-	expectedIndexes := types.RewardIndexes{
+	expectedIndexes1 := types.RewardIndexes{
 		{
 			CollateralType: "earn",
-			RewardFactor:   d("7.22"),
+			RewardFactor: globalIndexes[0].
+				RewardIndexes[0].
+				RewardFactor.
+				Add(
+					rewardPeriod.RewardsPerSecond.
+						AmountOf("earn").
+						ToDec().
+						Mul(d("3600")). // 1 hour
+						Mul(d("0.75")), // 75% of the total bkava supply
+				),
 		},
 		{
 			CollateralType: "ukava",
-			RewardFactor:   d("3.64"),
+			RewardFactor: globalIndexes[0].
+				RewardIndexes[1].
+				RewardFactor.
+				Add(
+					rewardPeriod.RewardsPerSecond.
+						AmountOf("ukava").
+						ToDec().
+						Mul(d("3600")). // 1 hour
+						Mul(d("0.75")), // 75% of the total bkava supply
+				),
 		},
 	}
 
-	suite.storedIndexesEqual(vaultDenom1, expectedIndexes)
-	suite.storedIndexesEqual(vaultDenom2, expectedIndexes)
+	// Vault 2 has 1/5th the supply of vault 1, so the reward factor should be 1/5th
+	expectedIndexes2 := types.RewardIndexes{
+		{
+			CollateralType: "earn",
+			RewardFactor:   expectedIndexes1[0].RewardFactor.Quo(d("4")),
+		},
+		{
+			CollateralType: "ukava",
+			RewardFactor:   expectedIndexes1[1].RewardFactor.Quo(d("4")),
+		},
+	}
+
+	suite.storedIndexesEqual(vaultDenom1, expectedIndexes1)
+	suite.storedIndexesEqual(vaultDenom2, expectedIndexes2)
 }
 
 func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
@@ -212,7 +250,12 @@ func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 	earnKeeper := newFakeEarnKeeper().
 		addVault(vaultDenom1, earntypes.NewVaultShare(vaultDenom1, d("1000000"))).
 		addVault(vaultDenom2, earntypes.NewVaultShare(vaultDenom2, d("1000000")))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
+
+	liquidKeeper := newFakeLiquidKeeper().
+		addDerivative(vaultDenom1, i(1000000)).
+		addDerivative(vaultDenom2, i(1000000))
+
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, liquidKeeper, earnKeeper)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
@@ -277,7 +320,9 @@ func (suite *AccumulateEarnRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 	vaultDenom := "usdx"
 
 	earnKeeper := newFakeEarnKeeper() // no vault, so no source shares
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
+	liquidKeeper := newFakeLiquidKeeper()
+
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, liquidKeeper, earnKeeper)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
@@ -324,7 +369,9 @@ func (suite *AccumulateEarnRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 	vaultDenom2 := "bkava-woof"
 
 	earnKeeper := newFakeEarnKeeper() // no vault, so no source shares
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
+	liquidKeeper := newFakeLiquidKeeper()
+
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, liquidKeeper, earnKeeper)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
@@ -438,7 +485,12 @@ func (suite *AccumulateEarnRewardsTests) TestStateAddedWhenStateDoesNotExist_bka
 	earnKeeper := newFakeEarnKeeper().
 		addVault(vaultDenom1, earntypes.NewVaultShare(vaultDenom1, d("1000000"))).
 		addVault(vaultDenom2, earntypes.NewVaultShare(vaultDenom2, d("1000000")))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
+
+	liquidKeeper := newFakeLiquidKeeper().
+		addDerivative(vaultDenom1, i(1000000)).
+		addDerivative(vaultDenom2, i(1000000))
+
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, liquidKeeper, earnKeeper)
 
 	period := types.NewMultiRewardPeriod(
 		true,
@@ -473,11 +525,11 @@ func (suite *AccumulateEarnRewardsTests) TestStateAddedWhenStateDoesNotExist_bka
 	expectedIndexes := types.RewardIndexes{
 		{
 			CollateralType: "earn",
-			RewardFactor:   d("0.02"),
+			RewardFactor:   d("0.01"),
 		},
 		{
 			CollateralType: "ukava",
-			RewardFactor:   d("0.01"),
+			RewardFactor:   d("0.005"),
 		},
 	}
 
@@ -518,7 +570,9 @@ func (suite *AccumulateEarnRewardsTests) TestNoPanicWhenStateDoesNotExist_bkava(
 	vaultDenom2 := "bkava-woof"
 
 	earnKeeper := newFakeEarnKeeper()
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
+	liquidKeeper := newFakeLiquidKeeper()
+
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, liquidKeeper, earnKeeper)
 
 	period := types.NewMultiRewardPeriod(
 		true,
