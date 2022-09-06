@@ -11,17 +11,18 @@ import (
 	"github.com/kava-labs/kava/app"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/router/keeper"
+	"github.com/kava-labs/kava/x/router/testutil"
 	"github.com/kava-labs/kava/x/router/types"
 )
 
 type msgServerTestSuite struct {
-	KeeperTestSuite // TODO use testutil like swap/earn?
+	testutil.Suite
 
 	msgServer types.MsgServer
 }
 
 func (suite *msgServerTestSuite) SetupTest() {
-	suite.KeeperTestSuite.SetupTest()
+	suite.Suite.SetupTest()
 
 	suite.msgServer = keeper.NewMsgServerImpl(suite.Keeper)
 }
