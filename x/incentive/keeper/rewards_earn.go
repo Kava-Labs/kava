@@ -53,8 +53,6 @@ func GetProportionalRewardsPerSecond(
 		newRate = newRate.Add(sdk.NewDecCoinFromDec(rewardCoin.Denom, scaledAmount))
 	}
 
-	fmt.Printf("new rate %v for %s\n", newRate, rewardPeriod.CollateralType)
-
 	return newRate
 }
 

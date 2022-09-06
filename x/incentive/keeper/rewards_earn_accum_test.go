@@ -166,11 +166,11 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	expectedIndexes2 := types.RewardIndexes{
 		{
 			CollateralType: "earn",
-			RewardFactor:   d("7.22"),
+			RewardFactor:   expectedIndexes1[0].RewardFactor.Quo(d("4")),
 		},
 		{
 			CollateralType: "ukava",
-			RewardFactor:   d("3.64"),
+			RewardFactor:   expectedIndexes1[1].RewardFactor.Quo(d("4")),
 		},
 	}
 
