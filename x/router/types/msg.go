@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	// "github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 )
 
@@ -15,7 +16,17 @@ var (
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgMintDeposit) ValidateBasic() error {
-	// TODO
+	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %s", err)
+	}
+
+	if _, err := sdk.ValAddressFromBech32(msg.Validator); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
+	}
+
+	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
+	}
 	return nil
 }
 
@@ -27,7 +38,17 @@ func (msg MsgMintDeposit) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDelegateMintDeposit) ValidateBasic() error {
-	// TODO
+	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %s", err)
+	}
+
+	if _, err := sdk.ValAddressFromBech32(msg.Validator); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
+	}
+
+	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
+	}
 	return nil
 }
 
@@ -39,7 +60,17 @@ func (msg MsgDelegateMintDeposit) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdrawBurn) ValidateBasic() error {
-	// TODO
+	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address: %s", err)
+	}
+
+	if _, err := sdk.ValAddressFromBech32(msg.Validator); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
+	}
+
+	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
+	}
 	return nil
 }
 
@@ -51,7 +82,17 @@ func (msg MsgWithdrawBurn) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdrawBurnUndelegate) ValidateBasic() error {
-	// TODO
+	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address: %s", err)
+	}
+
+	if _, err := sdk.ValAddressFromBech32(msg.Validator); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
+	}
+
+	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
+	}
 	return nil
 }
 
