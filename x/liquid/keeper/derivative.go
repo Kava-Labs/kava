@@ -26,8 +26,8 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	}
 
 	liquidTokenDenom := k.GetLiquidStakingTokenDenom(valAddr)
-	liquidToken := sdk.NewCoins(sdk.NewCoin(liquidTokenDenom, derivativeAmount))
-	if err = k.mintCoins(ctx, delegatorAddr, liquidToken); err != nil {
+	liquidToken := sdk.NewCoin(liquidTokenDenom, derivativeAmount)
+	if err = k.mintCoins(ctx, delegatorAddr, sdk.NewCoins(liquidToken)); err != nil {
 		return sdk.Coin{}, err
 	}
 
@@ -41,7 +41,7 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 		),
 	)
 
-	return sdk.Coin{}, nil
+	return liquidToken, nil
 }
 
 func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, tokens sdk.Int) (sdk.Int, sdk.Dec, error) {
