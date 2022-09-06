@@ -91,18 +91,16 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	vaultDenom2 := "bkava-woof"
 
 	earnKeeper := newFakeEarnKeeper().
-		addVault(vaultDenom1, earntypes.NewVaultShare(vaultDenom1, d("8000000"))).
-		addVault(vaultDenom2, earntypes.NewVaultShare(vaultDenom2, d("2000000")))
+		addVault(vaultDenom1, earntypes.NewVaultShare(vaultDenom1, d("800000"))).
+		addVault(vaultDenom2, earntypes.NewVaultShare(vaultDenom2, d("200000")))
 
 	liquidKeeper := newFakeLiquidKeeper().
-		addDerivative(vaultDenom1, i(8000000)).
-		addDerivative(vaultDenom2, i(2000000))
+		addDerivative(vaultDenom1, i(800000)).
+		addDerivative(vaultDenom2, i(200000))
 
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, liquidKeeper, earnKeeper)
 
 	globalIndexes := types.MultiRewardIndexes{
-		// Per vault denom, indexes do *not* have bkava or bkava-xxx denoms
-		// as bkava is not paid out, ukava is
 		{
 			CollateralType: vaultDenom1,
 			RewardIndexes: types.RewardIndexes{
@@ -156,41 +154,23 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	expectedIndexes1 := types.RewardIndexes{
 		{
 			CollateralType: "earn",
-			RewardFactor: globalIndexes[0].
-				RewardIndexes[0].
-				RewardFactor.
-				Add(
-					rewardPeriod.RewardsPerSecond.
-						AmountOf("earn").
-						ToDec().
-						Mul(d("3600")). // 1 hour
-						Mul(d("0.75")), // 75% of the total bkava supply
-				),
+			RewardFactor:   d("7.22"),
 		},
 		{
 			CollateralType: "ukava",
-			RewardFactor: globalIndexes[0].
-				RewardIndexes[1].
-				RewardFactor.
-				Add(
-					rewardPeriod.RewardsPerSecond.
-						AmountOf("ukava").
-						ToDec().
-						Mul(d("3600")). // 1 hour
-						Mul(d("0.75")), // 75% of the total bkava supply
-				),
+			RewardFactor:   d("3.64"),
 		},
 	}
 
-	// Vault 2 has 1/5th the supply of vault 1, so the reward factor should be 1/5th
+	// Vault 2 has 1/4th the supply of vault 1, so the reward factor should be 1/4th of the first vault
 	expectedIndexes2 := types.RewardIndexes{
 		{
 			CollateralType: "earn",
-			RewardFactor:   expectedIndexes1[0].RewardFactor.Quo(d("4")),
+			RewardFactor:   d("7.22"),
 		},
 		{
 			CollateralType: "ukava",
-			RewardFactor:   expectedIndexes1[1].RewardFactor.Quo(d("4")),
+			RewardFactor:   d("3.64"),
 		},
 	}
 

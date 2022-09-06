@@ -32,6 +32,19 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 			toDcs(c("ukava", 100), c("hard", 200)),
 		},
 		{
+			"3/4 amount",
+			types.NewMultiRewardPeriod(
+				true,
+				"",
+				time.Time{},
+				time.Time{},
+				cs(c("ukava", 100), c("hard", 200)),
+			),
+			i(10_000000),
+			i(7_500000),
+			toDcs(c("ukava", 75), c("hard", 150)),
+		},
+		{
 			"half amount",
 			types.NewMultiRewardPeriod(
 				true,

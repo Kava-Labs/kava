@@ -39,6 +39,12 @@ func GetProportionalRewardsPerSecond(
 
 	newRate := sdk.NewDecCoins()
 
+	// Prevent division by zero, if there are no total shares then there are no
+	// rewards.
+	if totalBkavaSupply.IsZero() {
+		return newRate
+	}
+
 	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
 		scaledAmount := rewardCoin.Amount.ToDec().
 			Mul(singleBkavaSupply.ToDec()).
@@ -46,6 +52,8 @@ func GetProportionalRewardsPerSecond(
 
 		newRate = newRate.Add(sdk.NewDecCoinFromDec(rewardCoin.Denom, scaledAmount))
 	}
+
+	fmt.Printf("new rate %v for %s\n", newRate, rewardPeriod.CollateralType)
 
 	return newRate
 }
@@ -119,6 +127,12 @@ func (k Keeper) accumulateEarnRewards(
 
 	totalSource := k.getEarnTotalSourceShares(ctx, collateralType)
 
+	fmt.Printf(
+		"accumulating for %s, rewards per second %v, total source %v\n",
+		collateralType,
+		periodRewardsPerSecond.String(),
+		totalSource,
+	)
 	acc.AccumulateDecCoins(
 		periodStart,
 		periodEnd,
@@ -131,7 +145,7 @@ func (k Keeper) accumulateEarnRewards(
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
 		k.SetEarnRewardIndexes(ctx, collateralType, acc.Indexes)
-		fmt.Printf("Accumulated %d rewards for %s\n", len(acc.Indexes), collateralType)
+		fmt.Printf("accumulated indexes %v for %s\n", acc.Indexes, collateralType)
 	}
 }
 
