@@ -26,6 +26,7 @@ import (
 
 const PARAMS_CHANGE_PROPOSAL_EXAMPLE = `
 {
+	"@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
   "title": "title",
   "description": "description",
   "changes": [{ "subspace": "subspace", "key": "key", "value": "value" }]
@@ -34,6 +35,7 @@ const PARAMS_CHANGE_PROPOSAL_EXAMPLE = `
 
 const COMMITTEE_CHANGE_PROPOSAL_EXAMPLE = `
 {
+	"@type": "/kava.committee.v1beta1.CommitteeChangeProposal",
   "title": "A Title",
   "description": "A proposal description.",
   "new_committee": {
@@ -53,6 +55,7 @@ const COMMITTEE_CHANGE_PROPOSAL_EXAMPLE = `
 
 const COMMITTEE_DELETE_PROPOSAL_EXAMPLE = `
 {
+	"@type": "/kava.committee.v1beta1.CommitteeDeleteProposal",
   "title": "A Title",
   "description": "A proposal description.",
   "committee_id": "1"

@@ -22,7 +22,6 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	bridgekeeper "github.com/kava-labs/kava-bridge/x/bridge/keeper"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -43,6 +42,7 @@ import (
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
+	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 )
@@ -110,10 +110,10 @@ func (tApp TestApp) GetIncentiveKeeper() incentivekeeper.Keeper { return tApp.in
 func (tApp TestApp) GetEvmutilKeeper() evmutilkeeper.Keeper     { return tApp.evmutilKeeper }
 func (tApp TestApp) GetEvmKeeper() *evmkeeper.Keeper            { return tApp.evmKeeper }
 func (tApp TestApp) GetSavingsKeeper() savingskeeper.Keeper     { return tApp.savingsKeeper }
-func (tApp TestApp) GetBridgeKeeper() bridgekeeper.Keeper       { return tApp.bridgeKeeper }
 func (tApp TestApp) GetFeeMarketKeeper() feemarketkeeper.Keeper { return tApp.feeMarketKeeper }
 func (tApp TestApp) GetLiquidKeeper() liquidkeeper.Keeper       { return tApp.liquidKeeper }
 func (tApp TestApp) GetEarnKeeper() earnkeeper.Keeper           { return tApp.earnKeeper }
+func (tApp TestApp) GetRouterKeeper() routerkeeper.Keeper       { return tApp.routerKeeper }
 
 // LegacyAmino returns the app's amino codec.
 func (app *App) LegacyAmino() *codec.LegacyAmino {

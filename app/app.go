@@ -90,10 +90,6 @@ import (
 	feemarketkeeper "github.com/tharsis/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
-	"github.com/kava-labs/kava-bridge/x/bridge"
-	bridgekeeper "github.com/kava-labs/kava-bridge/x/bridge/keeper"
-	bridgetypes "github.com/kava-labs/kava-bridge/x/bridge/types"
-
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/auction"
@@ -134,6 +130,9 @@ import (
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
+	router "github.com/kava-labs/kava/x/router"
+	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
+	routertypes "github.com/kava-labs/kava/x/router/types"
 	savings "github.com/kava-labs/kava/x/savings"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -196,9 +195,9 @@ var (
 		savings.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
-		bridge.AppModuleBasic{},
 		liquid.AppModuleBasic{},
 		earn.AppModuleBasic{},
+		router.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -223,7 +222,6 @@ var (
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		hardtypes.ModuleAccountName:     {authtypes.Minter},
 		savingstypes.ModuleAccountName:  nil,
-		bridgetypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
 		liquidtypes.ModuleAccountName:   {authtypes.Minter, authtypes.Burner},
 		earntypes.ModuleAccountName:     nil,
 	}
@@ -295,8 +293,7 @@ type App struct {
 	savingsKeeper    savingskeeper.Keeper
 	liquidKeeper     liquidkeeper.Keeper
 	earnKeeper       earnkeeper.Keeper
-
-	bridgeKeeper bridgekeeper.Keeper
+	routerKeeper     routerkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -350,7 +347,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey, bridgetypes.StoreKey, liquidtypes.StoreKey, earntypes.StoreKey,
+		savingstypes.StoreKey, liquidtypes.StoreKey, earntypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -394,7 +391,6 @@ func NewApp(
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
-	bridgeSubspace := app.paramsKeeper.Subspace(bridgetypes.ModuleName)
 	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
 	liquidSubspace := app.paramsKeeper.Subspace(liquidtypes.ModuleName)
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
@@ -520,23 +516,6 @@ func NewApp(
 		app.ModuleAccountAddrs(),
 	)
 
-	// BridgeKeeper must be assigned before EvmKeeper hooks are set
-	app.bridgeKeeper = bridgekeeper.NewKeeper(
-		appCodec,
-		keys[bridgetypes.StoreKey],
-		bridgeSubspace,
-		app.bankKeeper,
-		app.accountKeeper,
-		app.evmKeeper,
-	)
-
-	app.evmKeeper = app.evmKeeper.SetHooks(
-		evmkeeper.NewMultiEvmHooks(
-			app.bridgeKeeper.WithdrawHooks(),
-			app.bridgeKeeper.ConversionHooks(),
-		),
-	)
-
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
@@ -645,6 +624,12 @@ func NewApp(
 		&hardKeeper,
 		&savingsKeeper,
 	)
+	app.routerKeeper = routerkeeper.NewKeeper(
+		appCodec,
+		&app.earnKeeper, // TODO pointers?
+		&app.liquidKeeper,
+		&app.stakingKeeper,
+	)
 
 	// create committee keeper with router
 	committeeGovRouter := govtypes.NewRouter()
@@ -729,9 +714,9 @@ func NewApp(
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
-		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
 		liquid.NewAppModule(app.liquidKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
+		router.NewAppModule(app.routerKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -778,9 +763,9 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
-		bridgetypes.ModuleName,
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -819,9 +804,9 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
-		bridgetypes.ModuleName,
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -853,7 +838,6 @@ func NewApp(
 		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,
-		bridgetypes.ModuleName,
 		earntypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
@@ -862,6 +846,7 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -869,6 +854,10 @@ func NewApp(
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
+
+	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
+	// It needs to be called after `app.mm` and `app.configurator` are set.
+	app.RegisterUpgradeHandlers()
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//
