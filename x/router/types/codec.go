@@ -18,7 +18,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 // RegisterInterfaces registers proto messages under their interfaces for unmarshalling,
-// in addition to registerting the msg service for handling tx msgs
+// in addition to registering the msg service for handling tx msgs
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgMintDeposit{},
