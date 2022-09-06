@@ -623,6 +623,7 @@ func NewApp(
 		app.bankKeeper,
 		&hardKeeper,
 		&savingsKeeper,
+		app.distrKeeper,
 	)
 	app.routerKeeper = routerkeeper.NewKeeper(
 		appCodec,

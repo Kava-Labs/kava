@@ -21,6 +21,9 @@ type Keeper struct {
 	// Keepers used for strategies
 	hardKeeper    types.HardKeeper
 	savingsKeeper types.SavingsKeeper
+
+	// Keeper for community pool transfers
+	distKeeper types.DistributionKeeper
 }
 
 // NewKeeper creates a new keeper
@@ -32,7 +35,7 @@ func NewKeeper(
 	bankKeeper types.BankKeeper,
 	hardKeeper types.HardKeeper,
 	savingsKeeper types.SavingsKeeper,
-
+	distKeeper types.DistributionKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -46,6 +49,7 @@ func NewKeeper(
 		bankKeeper:    bankKeeper,
 		hardKeeper:    hardKeeper,
 		savingsKeeper: savingsKeeper,
+		distKeeper:    distKeeper,
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -27,6 +28,13 @@ type BankKeeper interface {
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+}
+
+// DistributionKeeper defines the expected interface needed for community-pool deposits to earn vaults
+type DistributionKeeper interface {
+	GetFeePool(ctx sdk.Context) (feePool disttypes.FeePool)
+	SetFeePool(ctx sdk.Context, feePool disttypes.FeePool)
+	GetDistributionAccount(ctx sdk.Context) types.ModuleAccountI
 }
 
 // HardKeeper defines the expected interface needed for the hard strategy.
