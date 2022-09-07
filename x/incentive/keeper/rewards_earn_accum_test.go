@@ -172,6 +172,112 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	suite.storedIndexesEqual(vaultDenom2, expectedIndexes)
 }
 
+func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased_bkava_partialDeposit() {
+	vaultDenom1 := "bkava-meow"
+	vaultDenom2 := "bkava-woof"
+
+	liquidKeeper := newFakeLiquidKeeper().
+		addDerivative(vaultDenom1, i(800000)).
+		addDerivative(vaultDenom2, i(200000))
+
+	// More bkava minted than deposited into earn
+	// Rewards are higher per-share as a result
+	earnKeeper := newFakeEarnKeeper().
+		addVault(vaultDenom1, earntypes.NewVaultShare(vaultDenom1, d("700000"))).
+		addVault(vaultDenom2, earntypes.NewVaultShare(vaultDenom2, d("100000")))
+
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, liquidKeeper, earnKeeper)
+
+	globalIndexes := types.MultiRewardIndexes{
+		{
+			CollateralType: vaultDenom1,
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "earn",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			CollateralType: vaultDenom2,
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "earn",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+	}
+
+	suite.storeGlobalEarnIndexes(globalIndexes)
+	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom1, previousAccrualTime)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom2, previousAccrualTime)
+
+	newAccrualTime := previousAccrualTime.Add(1 * time.Hour)
+	suite.ctx = suite.ctx.WithBlockTime(newAccrualTime)
+
+	rewardPeriod := types.NewMultiRewardPeriod(
+		true,
+		"bkava",         // reward period is set for "bkava" to apply to all vaults
+		time.Unix(0, 0), // ensure the test is within start and end times
+		distantFuture,
+		cs(c("earn", 2000), c("ukava", 1000)), // same denoms as in global indexes
+	)
+	suite.keeper.AccumulateEarnRewards(suite.ctx, rewardPeriod)
+
+	// check time and factors
+
+	suite.storedTimeEquals(vaultDenom1, newAccrualTime)
+	suite.storedTimeEquals(vaultDenom2, newAccrualTime)
+
+	// Slightly increased rewards due to less bkava deposited
+	suite.storedIndexesEqual(vaultDenom1, types.RewardIndexes{
+		{
+			CollateralType: "earn",
+			RewardFactor:   d("8.248571428571428571"),
+		},
+		{
+			CollateralType: "ukava",
+			RewardFactor:   d("4.154285714285714286"),
+		},
+	})
+
+	// Much higher rewards per share because only a small amount of bkava is
+	// deposited. The **total** amount of incentives distributed to this vault
+	// is still the same proportional amount.
+
+	// Fixed amount total rewards distributed to the vault
+	// Fewer shares deposited -> higher rewards per share
+
+	// 7.2ukava shares per second for 1 hour (started with 0.04)
+	// total rewards claimable = 7.2 * 100000 shares = 720000 ukava
+
+	// 720000ukava distributed which is 20% of total bkava ukava rewards
+	// total rewards for *all* bkava vaults for 1 hour
+	// = 1000ukava per second * 3600 == 3600000ukava
+	// vaultDenom2 has 20% of the total bkava amount so it should get 20% of 3600000ukava == 720000ukava
+
+	suite.storedIndexesEqual(vaultDenom2, types.RewardIndexes{
+		{
+			CollateralType: "earn",
+			RewardFactor:   d("14.42"),
+		},
+		{
+			CollateralType: "ukava",
+			RewardFactor:   d("7.24"),
+		},
+	})
+}
+
 func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
 	vaultDenom := "usdx"
 
