@@ -16,8 +16,12 @@ type AccumulateEarnRewardsTests struct {
 
 func (suite *AccumulateEarnRewardsTests) storedTimeEquals(vaultDenom string, expected time.Time) {
 	storedTime, found := suite.keeper.GetEarnRewardAccrualTime(suite.ctx, vaultDenom)
-	suite.True(found)
-	suite.Equal(expected, storedTime)
+	suite.Equal(found, expected != time.Time{}, "expected time is %v but time found = %v", expected, found)
+	if found {
+		suite.Equal(expected, storedTime)
+	} else {
+		suite.Empty(storedTime)
+	}
 }
 
 func (suite *AccumulateEarnRewardsTests) storedIndexesEqual(vaultDenom string, expected types.RewardIndexes) {
@@ -559,11 +563,12 @@ func (suite *AccumulateEarnRewardsTests) TestNoPanicWhenStateDoesNotExist_bkava(
 	// No increment and no previous indexes stored, results in an updated of nil. Setting this in the state panics.
 	// Check there is no panic.
 	suite.NotPanics(func() {
-		// TODO: This does not update any state, as there are no bkava vaults
+		// This does not update any state, as there are no bkava vaults
 		// to iterate over, denoms are unknown
 		suite.keeper.AccumulateEarnRewards(suite.ctx, period)
 	})
 
+	// Times are not stored for vaults with no state
 	suite.storedTimeEquals(vaultDenom1, time.Time{})
 	suite.storedTimeEquals(vaultDenom2, time.Time{})
 	suite.storedIndexesEqual(vaultDenom1, nil)
