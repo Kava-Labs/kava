@@ -151,7 +151,9 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	suite.storedTimeEquals(vaultDenom1, newAccrualTime)
 	suite.storedTimeEquals(vaultDenom2, newAccrualTime)
 
-	expectedIndexes1 := types.RewardIndexes{
+	// Each vault gets the same ukava per second, assuming shares prices are the same.
+	// The share amount determines how much is actually distributed to the vault.
+	expectedIndexes := types.RewardIndexes{
 		{
 			CollateralType: "earn",
 			RewardFactor:   d("7.22"),
@@ -162,20 +164,8 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 		},
 	}
 
-	// Vault 2 has 1/4th the supply of vault 1, so the reward factor should be 1/4th of the first vault
-	expectedIndexes2 := types.RewardIndexes{
-		{
-			CollateralType: "earn",
-			RewardFactor:   expectedIndexes1[0].RewardFactor.Quo(d("4")),
-		},
-		{
-			CollateralType: "ukava",
-			RewardFactor:   expectedIndexes1[1].RewardFactor.Quo(d("4")),
-		},
-	}
-
-	suite.storedIndexesEqual(vaultDenom1, expectedIndexes1)
-	suite.storedIndexesEqual(vaultDenom2, expectedIndexes2)
+	suite.storedIndexesEqual(vaultDenom1, expectedIndexes)
+	suite.storedIndexesEqual(vaultDenom2, expectedIndexes)
 }
 
 func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
