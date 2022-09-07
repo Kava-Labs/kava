@@ -176,15 +176,20 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	vaultDenom1 := "bkava-meow"
 	vaultDenom2 := "bkava-woof"
 
+	vaultDenom1Supply := i(800000)
+	vaultDenom2Supply := i(200000)
+
 	liquidKeeper := newFakeLiquidKeeper().
-		addDerivative(vaultDenom1, i(800000)).
-		addDerivative(vaultDenom2, i(200000))
+		addDerivative(vaultDenom1, vaultDenom1Supply).
+		addDerivative(vaultDenom2, vaultDenom2Supply)
+
+	vault2Shares := d("100000")
 
 	// More bkava minted than deposited into earn
 	// Rewards are higher per-share as a result
 	earnKeeper := newFakeEarnKeeper().
 		addVault(vaultDenom1, earntypes.NewVaultShare(vaultDenom1, d("700000"))).
-		addVault(vaultDenom2, earntypes.NewVaultShare(vaultDenom2, d("100000")))
+		addVault(vaultDenom2, earntypes.NewVaultShare(vaultDenom2, vault2Shares))
 
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, liquidKeeper, earnKeeper)
 
@@ -266,7 +271,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	// = 1000ukava per second * 3600 == 3600000ukava
 	// vaultDenom2 has 20% of the total bkava amount so it should get 20% of 3600000ukava == 720000ukava
 
-	suite.storedIndexesEqual(vaultDenom2, types.RewardIndexes{
+	vault2expectedIndexes := types.RewardIndexes{
 		{
 			CollateralType: "earn",
 			RewardFactor:   d("14.42"),
@@ -275,7 +280,25 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 			CollateralType: "ukava",
 			RewardFactor:   d("7.24"),
 		},
-	})
+	}
+	suite.storedIndexesEqual(vaultDenom2, vault2expectedIndexes)
+
+	// Verify math described above
+	totalVault2DistributedUkava := i(int64(time.Hour.Seconds())).
+		ToDec().
+		Mul(rewardPeriod.RewardsPerSecond.AmountOf("ukava").ToDec()).
+		// 20% of total rewards
+		// vault 2 supply / (vault 1 supply + vault 2 supply)
+		Mul(
+			vaultDenom2Supply.ToDec().
+				Quo(vaultDenom1Supply.Add(vaultDenom2Supply).ToDec()),
+		)
+
+	totalVault2ClaimableRewards := vault2expectedIndexes[1].
+		RewardFactor.Sub(d("0.04")). // Rewards per share for 1 hr, excluding the starting value
+		Mul(vault2Shares)            // * Shares in vault to get total rewards for entire vault
+
+	suite.Equal(totalVault2DistributedUkava, totalVault2ClaimableRewards)
 }
 
 func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
