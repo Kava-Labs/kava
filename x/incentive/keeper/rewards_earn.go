@@ -119,23 +119,15 @@ func (k Keeper) accumulateEarnRewards(
 		indexes = types.RewardIndexes{}
 	}
 
-	fmt.Printf("current indexes %v for %s\n", indexes, collateralType)
-
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalSource := k.getEarnTotalSourceShares(ctx, collateralType)
+	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
 
-	fmt.Printf(
-		"accumulating for %s, rewards per second %v, total source %v\n",
-		collateralType,
-		periodRewardsPerSecond.String(),
-		totalSource,
-	)
 	acc.AccumulateDecCoins(
 		periodStart,
 		periodEnd,
 		periodRewardsPerSecond,
-		totalSource,
+		totalSourceShares,
 		ctx.BlockTime(),
 	)
 
@@ -143,7 +135,6 @@ func (k Keeper) accumulateEarnRewards(
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
 		k.SetEarnRewardIndexes(ctx, collateralType, acc.Indexes)
-		fmt.Printf("accumulated indexes %v for %s\n", acc.Indexes, collateralType)
 	}
 }
 
