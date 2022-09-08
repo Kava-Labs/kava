@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -86,8 +87,18 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 
 	totalBkavaSupply := k.liquidKeeper.GetTotalDerivativeSupply(ctx)
 
+	i := 0
+	sortedBkavaVaultsDenoms := make([]string, len(bkavaVaultsDenoms))
+	for vaultDenom := range bkavaVaultsDenoms {
+		sortedBkavaVaultsDenoms[i] = vaultDenom
+		i++
+	}
+
+	// Sort the vault denoms to ensure deterministic iteration order.
+	sort.Strings(sortedBkavaVaultsDenoms)
+
 	// Accumulate rewards for each bkava vault.
-	for bkavaDenom := range bkavaVaultsDenoms {
+	for _, bkavaDenom := range sortedBkavaVaultsDenoms {
 		k.accumulateEarnRewards(
 			ctx,
 			bkavaDenom,
