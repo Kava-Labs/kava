@@ -45,6 +45,8 @@ func (suite *ParamsTests) TestGetMultiplierByDenom() {
 	}
 	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 
+	suite.T().Logf("params :%v", suite.keeper.GetParams(suite.ctx).ClaimMultipliers)
+
 	tests := []struct {
 		name       string
 		denom      string
@@ -86,32 +88,5 @@ func (suite *ParamsTests) TestGetMultiplierByDenom() {
 			suite.Require().True(found)
 			suite.Require().Equal(tc.expected, multiplier)
 		})
-	}
-}
-
-func (suite *ParamsTests) TestEmptyModuleNameByDefault() {
-	subspace := &fakeParamSubspace{
-		params: types.Params{
-			ClaimMultipliers: types.MultipliersPerDenoms{
-				{
-					Denom: "hard",
-					Multipliers: types.Multipliers{
-						types.NewMultiplier("small", 1, d("0.2")),
-					},
-				},
-				{
-					Denom: "ukava",
-					Multipliers: types.Multipliers{
-						types.NewMultiplier("large", 0, d("1")),
-					},
-				},
-			},
-		},
-	}
-	suite.keeper = suite.NewKeeper(subspace, nil, nil, nil, nil, nil, nil, nil, nil, nil)
-
-	params := suite.keeper.GetParams(suite.ctx)
-	for _, m := range params.ClaimMultipliers {
-		suite.Require().Equal("", m.ModuleName)
 	}
 }
