@@ -4561,6 +4561,7 @@ MultipliersPerDenom is a map of denoms to a set of multipliers
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  |  |
 | `multipliers` | [Multiplier](#kava.incentive.v1beta1.Multiplier) | repeated |  |
+| `module_name` | [string](#string) |  |  |
 
 
 
