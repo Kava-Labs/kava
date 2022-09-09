@@ -338,6 +338,76 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	})
 }
 
+func (suite *grpcQueryTestSuite) TestDeposits_NoDeposits() {
+	vault1Denom := "usdx"
+	vault2Denom := "busd"
+
+	// Add vaults
+	suite.CreateVault(vault1Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+	suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+	suite.CreateVault("bkava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
+
+	// Accounts
+	acc1 := suite.CreateAccount(sdk.NewCoins(), 0).GetAddress()
+
+	suite.Run("specific vault", func() {
+		// Query all deposits for account 1
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest(acc1.String(), vault1Denom, nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 1)
+		suite.Require().ElementsMatchf(
+			[]types.DepositResponse{
+				{
+					Depositor: acc1.String(),
+					// Zero shares and zero value
+					Shares: nil,
+					Value:  nil,
+				},
+			},
+			res.Deposits,
+			"deposits should match, got %v",
+			res.Deposits,
+		)
+	})
+
+	suite.Run("bkava aggregate vault", func() {
+		// Query all deposits for account 1
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest(acc1.String(), "bkava", nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 1)
+		suite.Require().ElementsMatchf(
+			[]types.DepositResponse{
+				{
+					Depositor: acc1.String(),
+					// Zero shares for "bkava" aggregate
+					Shares: nil,
+					// Only the specified vault denom value
+					Value: nil,
+				},
+			},
+			res.Deposits,
+			"deposits should match, got %v",
+			res.Deposits,
+		)
+	})
+
+	suite.Run("all vaults", func() {
+		// Query all deposits for account 1
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest(acc1.String(), "", nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Empty(res.Deposits)
+	})
+}
+
 func (suite *grpcQueryTestSuite) TestDeposits_NoDepositor() {
 	_, err := suite.queryClient.Deposits(
 		context.Background(),
