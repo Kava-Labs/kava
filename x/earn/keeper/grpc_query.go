@@ -272,7 +272,17 @@ func (s queryServer) getOneAccountOneVaultDeposit(
 
 	shareRecord, found := s.keeper.GetVaultShareRecord(ctx, depositor)
 	if !found {
-		return nil, status.Error(codes.NotFound, "No deposit found for owner")
+		return &types.QueryDepositsResponse{
+			Deposits: []types.DepositResponse{
+				{
+					Depositor: depositor.String(),
+					// Zero shares and zero value for no deposits
+					Shares: types.NewVaultShares(types.NewVaultShare(req.Denom, sdk.ZeroDec())),
+					Value:  sdk.NewCoins(sdk.NewCoin(req.Denom, sdk.ZeroInt())),
+				},
+			},
+			Pagination: nil,
+		}, nil
 	}
 
 	// Only requesting the value of the specified denom
@@ -309,7 +319,17 @@ func (s queryServer) getOneAccountBkavaVaultDeposit(
 
 	shareRecord, found := s.keeper.GetVaultShareRecord(ctx, depositor)
 	if !found {
-		return nil, status.Error(codes.NotFound, "No deposit found for owner")
+		return &types.QueryDepositsResponse{
+			Deposits: []types.DepositResponse{
+				{
+					Depositor: depositor.String(),
+					// Zero shares and zero value for no deposits
+					Shares: types.NewVaultShares(types.NewVaultShare(req.Denom, sdk.ZeroDec())),
+					Value:  sdk.NewCoins(sdk.NewCoin(req.Denom, sdk.ZeroInt())),
+				},
+			},
+			Pagination: nil,
+		}, nil
 	}
 
 	// Get all account deposit values to add up bkava
@@ -350,7 +370,10 @@ func (s queryServer) getOneAccountAllDeposits(
 
 	accountShare, found := s.keeper.GetVaultShareRecord(ctx, depositor)
 	if !found {
-		return nil, status.Error(codes.NotFound, "No deposit found for depositor")
+		return &types.QueryDepositsResponse{
+			Deposits:   []types.DepositResponse{},
+			Pagination: nil,
+		}, nil
 	}
 
 	value, err := getAccountTotalValue(ctx, s.keeper, depositor, accountShare.Shares)
