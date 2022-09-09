@@ -139,7 +139,8 @@ import (
 )
 
 const (
-	appName = "kava"
+	appName                        = "kava"
+	FixDefaultAccountUpgradeHeight = 138592
 )
 
 var (
