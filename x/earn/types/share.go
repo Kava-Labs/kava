@@ -11,10 +11,16 @@ import (
 
 // NewVaultShare returns a new VaultShare
 func NewVaultShare(denom string, amount sdk.Dec) VaultShare {
-	return VaultShare{
+	share := VaultShare{
 		Denom:  denom,
 		Amount: amount,
 	}
+
+	if err := share.Validate(); err != nil {
+		panic(err)
+	}
+
+	return share
 }
 
 // Validate returns an error if a VaultShare is invalid.
@@ -23,11 +29,24 @@ func (share VaultShare) Validate() error {
 		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
 	}
 
+	if share.Amount.IsNil() {
+		return fmt.Errorf("nil share amount: %s", share.Amount)
+	}
+
 	if share.Amount.IsNegative() {
 		return fmt.Errorf("vault share amount %v is negative", share.Amount)
 	}
 
 	return nil
+}
+
+// IsValid returns true if the VaultShare is valid
+func (share VaultShare) IsValid() bool {
+	return share.Validate() == nil
+}
+
+func (share VaultShare) IsPositive() bool {
+	return share.Amount.IsPositive()
 }
 
 // Add adds amounts of two vault shares with same denom. If the shares differ in
@@ -65,6 +84,10 @@ func (share VaultShare) Sub(vsB VaultShare) VaultShare {
 	return res
 }
 
+func (share VaultShare) String() string {
+	return fmt.Sprintf("%v%v", share.Amount, share.Denom)
+}
+
 // VaultShares is a slice of VaultShare.
 type VaultShares []VaultShare
 
@@ -72,14 +95,14 @@ type VaultShares []VaultShare
 func NewVaultShares(shares ...VaultShare) VaultShares {
 	newVaultShares := sanitizeVaultShares(shares)
 	if err := newVaultShares.Validate(); err != nil {
-		panic(fmt.Errorf("invalid coin set %s: %w", newVaultShares, err))
+		panic(fmt.Errorf("invalid share set %s: %w", newVaultShares, err))
 	}
 
 	return newVaultShares
 }
 
-func sanitizeVaultShares(coins VaultShares) VaultShares {
-	newVaultShares := removeZeroShares(coins)
+func sanitizeVaultShares(shares VaultShares) VaultShares {
+	newVaultShares := removeZeroShares(shares)
 	if len(newVaultShares) == 0 {
 		return VaultShares{}
 	}
@@ -89,21 +112,54 @@ func sanitizeVaultShares(coins VaultShares) VaultShares {
 
 // Validate returns an error if a slice of VaultShares is invalid.
 func (shares VaultShares) Validate() error {
-	denoms := make(map[string]bool)
+	switch len(shares) {
+	case 0:
+		return nil
 
-	for _, s := range shares {
-		if err := s.Validate(); err != nil {
+	case 1:
+		if err := sdk.ValidateDenom(shares[0].Denom); err != nil {
+			return err
+		}
+		if !shares[0].IsPositive() {
+			return fmt.Errorf("share %s amount is not positive", shares[0])
+		}
+		return nil
+	default:
+		// check single share case
+		if err := (VaultShares{shares[0]}).Validate(); err != nil {
 			return err
 		}
 
-		if denoms[s.Denom] {
-			return fmt.Errorf("duplicate vault denom %s", s.Denom)
+		lowDenom := shares[0].Denom
+		seenDenoms := make(map[string]bool)
+		seenDenoms[lowDenom] = true
+
+		for _, share := range shares[1:] {
+			if seenDenoms[share.Denom] {
+				return fmt.Errorf("duplicate denomination %s", share.Denom)
+			}
+			if err := sdk.ValidateDenom(share.Denom); err != nil {
+				return err
+			}
+			if share.Denom <= lowDenom {
+				return fmt.Errorf("denomination %s is not sorted", share.Denom)
+			}
+			if !share.IsPositive() {
+				return fmt.Errorf("share %s amount is not positive", share.Denom)
+			}
+
+			// we compare each share against the last denom
+			lowDenom = share.Denom
+			seenDenoms[share.Denom] = true
 		}
 
-		denoms[s.Denom] = true
+		return nil
 	}
+}
 
-	return nil
+// IsValid returns true if the VaultShares are valid
+func (shares VaultShares) IsValid() bool {
+	return shares.Validate() == nil
 }
 
 // AmountOf returns the amount of shares of the given denom.
@@ -268,6 +324,19 @@ func (shares VaultShares) isSorted() bool {
 		}
 	}
 	return true
+}
+
+func (shares VaultShares) String() string {
+	if len(shares) == 0 {
+		return ""
+	}
+
+	out := ""
+	for _, share := range shares {
+		out += fmt.Sprintf("%v,", share.String())
+	}
+
+	return out[:len(out)-1]
 }
 
 // removeZeroShares removes all zero shares from the given share set in-place.

@@ -25,7 +25,9 @@ func (suite *genesisTestSuite) Test_InitGenesis_ValidationPanic() {
 		},
 		types.VaultRecords{
 			{
-				TotalShares: types.NewVaultShare("", sdk.NewDec(1)),
+				TotalShares: types.VaultShare{
+					Denom: "", Amount: sdk.NewDec(1),
+				},
 			},
 		},
 		types.VaultShareRecords{},

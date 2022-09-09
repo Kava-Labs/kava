@@ -54,7 +54,7 @@ func TestVaultRecordValidate(t *testing.T) {
 			name: "invalid - invalid denom",
 			vaultRecords: types.VaultRecords{
 				{
-					TotalShares: types.NewVaultShare("", sdk.NewDec(0)),
+					TotalShares: types.VaultShare{Denom: "", Amount: sdk.NewDec(0)},
 				},
 			},
 			errArgs: errArgs{
@@ -66,7 +66,7 @@ func TestVaultRecordValidate(t *testing.T) {
 			name: "invalid - negative",
 			vaultRecords: types.VaultRecords{
 				{
-					TotalShares: types.NewVaultShare("usdx", sdk.NewDec(-5)),
+					TotalShares: types.VaultShare{"usdx", sdk.NewDec(-5)},
 				},
 			},
 			errArgs: errArgs{
@@ -168,13 +168,13 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 					Depositor: addrs[0],
 					// Direct slice, not NewVaultShares() which panics
 					Shares: types.VaultShares{
-						types.NewVaultShare("usdx", sdk.NewDec(-5)),
+						types.VaultShare{"usdx", sdk.NewDec(-5)},
 					},
 				},
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid vault share record shares: vault share amount -5.000000000000000000 is negative",
+				contains:   "invalid vault share record shares: share -5.000000000000000000usdx amount is not positive",
 			},
 		},
 	}
