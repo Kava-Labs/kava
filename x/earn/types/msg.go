@@ -30,8 +30,8 @@ func NewMsgDeposit(depositor string, amount sdk.Coin, strategy StrategyType) *Ms
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDeposit) ValidateBasic() error {
-	if msg.Depositor == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "depositor address cannot be empty")
+	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if err := msg.Amount.Validate(); err != nil {
@@ -82,8 +82,8 @@ func NewMsgWithdraw(from string, amount sdk.Coin, strategy StrategyType) *MsgWit
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdraw) ValidateBasic() error {
-	if msg.From == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "depositor address cannot be empty")
+	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if err := msg.Amount.Validate(); err != nil {

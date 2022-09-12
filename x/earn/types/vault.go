@@ -85,7 +85,7 @@ func (vsrs VaultShareRecords) Validate() error {
 	return nil
 }
 
-// NewAllowedVaults returns a new AllowedVaults with the given denom and strategy type.
+// NewAllowedVault returns a new AllowedVault with the given values.
 func NewAllowedVault(
 	denom string,
 	strategyTypes StrategyTypes,

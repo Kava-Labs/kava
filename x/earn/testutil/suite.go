@@ -14,6 +14,7 @@ import (
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -141,12 +142,23 @@ func (suite *Suite) SetupTest() {
 		hardtypes.DefaultTotalReserves,
 	)
 
+	savingsGS := savingstypes.NewGenesisState(
+		savingstypes.NewParams(
+			[]string{
+				"ukava",
+				"bkava-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l",
+			},
+		),
+		nil,
+	)
+
 	tApp := app.NewTestApp()
 
 	tApp.InitializeFromGenesisStates(
 		app.GenesisState{
 			pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS),
 			hardtypes.ModuleName:      tApp.AppCodec().MustMarshalJSON(&hardGS),
+			savingstypes.ModuleName:   tApp.AppCodec().MustMarshalJSON(&savingsGS),
 		},
 	)
 
@@ -251,6 +263,8 @@ func (suite *Suite) ModuleAccountBalanceEqual(coins sdk.Coins) {
 // ----------------------------------------------------------------------------
 // Earn
 
+// VaultTotalValuesEqual asserts that the vault total values match the provided
+// values.
 func (suite *Suite) VaultTotalValuesEqual(expected sdk.Coins) {
 	for _, coin := range expected {
 		vaultBal, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, coin.Denom)
@@ -259,6 +273,8 @@ func (suite *Suite) VaultTotalValuesEqual(expected sdk.Coins) {
 	}
 }
 
+// VaultTotalSharesEqual asserts that the vault total shares match the provided
+// values.
 func (suite *Suite) VaultTotalSharesEqual(expected types.VaultShares) {
 	for _, share := range expected {
 		vaultBal, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, share.Denom)
@@ -267,6 +283,8 @@ func (suite *Suite) VaultTotalSharesEqual(expected types.VaultShares) {
 	}
 }
 
+// VaultAccountSharesEqual asserts that the vault account shares match the provided
+// values.
 func (suite *Suite) VaultAccountSharesEqual(accs []sdk.AccAddress, supplies []sdk.Coins) {
 	for i, acc := range accs {
 		coins := supplies[i]
@@ -288,6 +306,8 @@ func (suite *Suite) VaultAccountSharesEqual(accs []sdk.AccAddress, supplies []sd
 // ----------------------------------------------------------------------------
 // Hard
 
+// HardDepositAmountEqual asserts that the hard deposit amount matches the provided
+// values.
 func (suite *Suite) HardDepositAmountEqual(expected sdk.Coins) {
 	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
 
@@ -302,6 +322,29 @@ func (suite *Suite) HardDepositAmountEqual(expected sdk.Coins) {
 		expected,
 		hardDeposit.Amount,
 		"hard should have a deposit with the amount %v",
+		expected,
+	)
+}
+
+// ----------------------------------------------------------------------------
+// Savings
+
+// SavingsDepositAmountEqual asserts that the savings deposit amount matches the
+// provided values.
+func (suite *Suite) SavingsDepositAmountEqual(expected sdk.Coins) {
+	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
+
+	savingsDeposit, found := suite.SavingsKeeper.GetDeposit(suite.Ctx, macc.GetAddress())
+	if expected.IsZero() {
+		suite.Require().False(found)
+		return
+	}
+
+	suite.Require().True(found, "savings should have a deposit")
+	suite.Require().Equalf(
+		expected,
+		savingsDeposit.Amount,
+		"savings should have a deposit with the amount %v",
 		expected,
 	)
 }

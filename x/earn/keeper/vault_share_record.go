@@ -42,8 +42,7 @@ func (k *Keeper) UpdateVaultShareRecord(
 	}
 }
 
-// DeleteVaultShareRecord deletes the vault share record for a given denom and
-// account.
+// DeleteVaultShareRecord deletes the vault share record for a given account.
 func (k *Keeper) DeleteVaultShareRecord(
 	ctx sdk.Context,
 	acc sdk.AccAddress,
@@ -52,7 +51,7 @@ func (k *Keeper) DeleteVaultShareRecord(
 	store.Delete(types.DepositorVaultSharesKey(acc))
 }
 
-// SetVaultShareRecord sets the vault share record for a given denom and account.
+// SetVaultShareRecord sets the vault share record for a given account.
 func (k *Keeper) SetVaultShareRecord(
 	ctx sdk.Context,
 	record types.VaultShareRecord,

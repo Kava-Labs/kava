@@ -1,9 +1,16 @@
 package keeper
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/earn/types"
+)
+
+const (
+	bkavaDenom  = "bkava"
+	bkavaPrefix = bkavaDenom + "-"
 )
 
 // GetParams returns the params from the store
@@ -24,9 +31,12 @@ func (k Keeper) GetAllowedVaults(ctx sdk.Context) types.AllowedVaults {
 	return k.GetParams(ctx).AllowedVaults
 }
 
-// GetAllowedVault returns a single vault from the module params specified by
-// the denom.
-func (k Keeper) GetAllowedVault(ctx sdk.Context, vaultDenom string) (types.AllowedVault, bool) {
+// getAllowedVaultRaw returns a single vault from the module params specified
+// by the denom.
+func (k Keeper) getAllowedVaultRaw(
+	ctx sdk.Context,
+	vaultDenom string,
+) (types.AllowedVault, bool) {
 	for _, allowedVault := range k.GetAllowedVaults(ctx) {
 		if allowedVault.Denom == vaultDenom {
 			return allowedVault, true
@@ -34,4 +44,19 @@ func (k Keeper) GetAllowedVault(ctx sdk.Context, vaultDenom string) (types.Allow
 	}
 
 	return types.AllowedVault{}, false
+}
+
+// GetAllowedVault returns the AllowedVault that corresponds to the
+// given denom. If the denom starts with "bkava-" where it will return the
+// "bkava" AllowedVault. Otherwise, it will return the exact match for the
+// corresponding AllowedVault denom.
+func (k *Keeper) GetAllowedVault(
+	ctx sdk.Context,
+	vaultDenom string,
+) (types.AllowedVault, bool) {
+	if strings.HasPrefix(vaultDenom, bkavaPrefix) {
+		return k.getAllowedVaultRaw(ctx, bkavaDenom)
+	}
+
+	return k.getAllowedVaultRaw(ctx, vaultDenom)
 }
