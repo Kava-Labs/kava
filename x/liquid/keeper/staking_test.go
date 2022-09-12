@@ -97,7 +97,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_ValidatorStates() {
 
 			shares := d("1000")
 
-			err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, shares)
+			_, err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, shares)
 			suite.Require().NoError(err)
 
 			// Transferring a delegation should move shares, and leave the validator and pool balances the same.
@@ -260,7 +260,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 			validator, found := suite.StakingKeeper.GetValidator(suite.Ctx, valAddr)
 			suite.Require().True(found)
 
-			err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, tc.shares)
+			_, err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, tc.shares)
 
 			if tc.expectedErr != nil {
 				suite.ErrorIs(err, tc.expectedErr)
@@ -306,7 +306,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_RedelegationsForbidden() {
 	suite.CreateRedelegation(fromDelegator, val1Addr, val2Addr, i(1e9))
 	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
-	err := suite.Keeper.TransferDelegation(suite.Ctx, val2Addr, fromDelegator, toDelegator, fromDelegationShares)
+	_, err := suite.Keeper.TransferDelegation(suite.Ctx, val2Addr, fromDelegator, toDelegator, fromDelegationShares)
 	suite.ErrorIs(err, types.ErrRedelegationsNotCompleted)
 	suite.DelegationSharesEqual(val2Addr, fromDelegator, fromDelegationShares)
 	suite.DelegationSharesEqual(val2Addr, toDelegator, sdk.ZeroDec())
@@ -337,7 +337,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CompliesWithMinSelfDelegati
 	suite.Require().NoError(err)
 	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
-	err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, valAccAddr, toDelegator, d("0.000000000000000001"))
+	_, err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, valAccAddr, toDelegator, d("0.000000000000000001"))
 	suite.ErrorIs(err, types.ErrSelfDelegationBelowMinimum)
 	suite.DelegationSharesEqual(valAddr, valAccAddr, delegation.Amount.ToDec())
 }
@@ -355,7 +355,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CanTransferVested() {
 	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
 	shares := d("1000000000.0")
-	err := suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, shares)
+	_, err := suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, shares)
 	suite.NoError(err)
 	suite.DelegationSharesEqual(valAddr, fromDelegator, fromDelegationShares.Sub(shares))
 	suite.DelegationSharesEqual(valAddr, toDelegator, shares)
@@ -373,6 +373,6 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CannotTransferVesting() {
 	suite.CreateDelegation(valAddr, fromDelegator, i(2e9))
 	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
-	err := suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, d("1000000001.0"))
+	_, err := suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, d("1000000001.0"))
 	suite.ErrorIs(err, sdkerrors.ErrInsufficientFunds)
 }

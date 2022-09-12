@@ -11,28 +11,28 @@ import (
 //
 // The input staking token amount is used to calculate shares in the user's delegation, which are transferred to a delegation owned by the module.
 // Derivative coins are them minted and transferred to the user.
-func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) error {
+func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Coin, error) {
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
 	if amount.Denom != bondDenom {
-		return sdkerrors.Wrapf(types.ErrInvalidDenom, "expected %s", bondDenom)
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "expected %s", bondDenom)
 	}
 
 	derivativeAmount, shares, err := k.CalculateDerivativeSharesFromTokens(ctx, delegatorAddr, valAddr, amount.Amount)
 	if err != nil {
-		return err
+		return sdk.Coin{}, err
 	}
 
 	// Fetching the module account will create it if it doesn't exist.
 	// This is necessary as otherwise TransferDelegation will create a normal account.
 	modAcc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
-	if err := k.TransferDelegation(ctx, valAddr, delegatorAddr, modAcc.GetAddress(), shares); err != nil {
-		return err
+	if _, err := k.TransferDelegation(ctx, valAddr, delegatorAddr, modAcc.GetAddress(), shares); err != nil {
+		return sdk.Coin{}, err
 	}
 
 	liquidTokenDenom := k.GetLiquidStakingTokenDenom(valAddr)
-	liquidToken := sdk.NewCoins(sdk.NewCoin(liquidTokenDenom, derivativeAmount))
-	if err = k.mintCoins(ctx, delegatorAddr, liquidToken); err != nil {
-		return err
+	liquidToken := sdk.NewCoin(liquidTokenDenom, derivativeAmount)
+	if err = k.mintCoins(ctx, delegatorAddr, sdk.NewCoins(liquidToken)); err != nil {
+		return sdk.Coin{}, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -45,7 +45,7 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 		),
 	)
 
-	return nil
+	return liquidToken, nil
 }
 
 // CalculateDerivativeSharesFromTokens converts a staking token amount into its equivalent delegation shares, and staking derivative amount.
@@ -61,20 +61,21 @@ func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator s
 // BurnDerivative burns an user's staking derivative coins and returns them an equivalent staking delegation.
 //
 // The derivative coins are burned, and an equivalent number of shares in the module's staking delegation are transferred back to the user.
-func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) error {
+func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Dec, error) {
 
 	if amount.Denom != k.GetLiquidStakingTokenDenom(valAddr) {
-		return sdkerrors.Wrap(types.ErrInvalidDenom, "derivative denom does not match validator")
+		return sdk.Dec{}, sdkerrors.Wrap(types.ErrInvalidDenom, "derivative denom does not match validator")
 	}
 
 	if err := k.burnCoins(ctx, delegatorAddr, sdk.NewCoins(amount)); err != nil {
-		return err
+		return sdk.Dec{}, err
 	}
 
 	modAcc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	shares := amount.Amount.ToDec()
-	if err := k.TransferDelegation(ctx, valAddr, modAcc.GetAddress(), delegatorAddr, shares); err != nil {
-		return err
+	receivedShares, err := k.TransferDelegation(ctx, valAddr, modAcc.GetAddress(), delegatorAddr, shares)
+	if err != nil {
+		return sdk.Dec{}, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -86,7 +87,7 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 			sdk.NewAttribute(types.AttributeKeySharesTransferred, shares.String()),
 		),
 	)
-	return nil
+	return receivedShares, nil
 }
 
 func (k Keeper) GetLiquidStakingTokenDenom(valAddr sdk.ValAddress) string {

@@ -29,7 +29,8 @@ message MsgMintDerivative {
 
 // MsgMintDerivativeResponse defines the Msg/MintDerivative response type.
 message MsgMintDerivativeResponse {
-  cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
+  // received is the amount of staking derivative minted and sent to the sender
+  cosmos.base.v1beta1.Coin received = 1 [(gogoproto.nullable) = false];
 }
 
 // MsgBurnDerivative defines the Msg/BurnDerivative request type.
@@ -44,5 +45,10 @@ message MsgBurnDerivative {
 
 // MsgBurnDerivativeResponse defines the Msg/BurnDerivative response type.
 message MsgBurnDerivativeResponse {
-  cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
+  // received is the number of delegation shares sent to the sender
+  string received = 1 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
 }

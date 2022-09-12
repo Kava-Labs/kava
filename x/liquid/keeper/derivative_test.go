@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 			staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 			modBalance := suite.BankKeeper.GetAllBalances(suite.Ctx, moduleAccAddress)
 
-			err := suite.Keeper.BurnDerivative(suite.Ctx, user, valAddr, tc.burnAmount)
+			_, err := suite.Keeper.BurnDerivative(suite.Ctx, user, valAddr, tc.burnAmount)
 
 			suite.Require().ErrorIs(err, tc.expectedErr)
 			if tc.expectedErr != nil {
@@ -294,7 +294,7 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 			suite.Require().True(found)
 			suite.Equal(i(666666667), val.GetTokens()) // note the slash amount is truncated to an int before being removed from the validator
 
-			err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr, tc.amount)
+			_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr, tc.amount)
 
 			suite.Require().ErrorIs(err, tc.expectedErr)
 			if tc.expectedErr != nil {

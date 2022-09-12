@@ -5398,7 +5398,7 @@ MsgBurnDerivativeResponse defines the Msg/BurnDerivative response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `received` | [string](#string) |  | received is the number of delegation shares sent to the sender |
 
 
 
@@ -5430,7 +5430,7 @@ MsgMintDerivativeResponse defines the Msg/MintDerivative response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `received` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | received is the amount of staking derivative minted and sent to the sender |
 
 
 
