@@ -70,7 +70,7 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 			types.VaultResponse{
 				Denom:         "usdx",
 				VaultStrategy: types.STRATEGY_TYPE_HARD,
-				TotalSupplied: sdk.NewInt(0),
+				TotalShares:   sdk.NewDec(0).String(),
 				TotalValue:    sdk.NewInt(0),
 			},
 			res.Vaults[0],
@@ -86,13 +86,13 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 				{
 					Denom:         "usdx",
 					VaultStrategy: types.STRATEGY_TYPE_HARD,
-					TotalSupplied: sdk.NewInt(0),
+					TotalShares:   sdk.NewDec(0).String(),
 					TotalValue:    sdk.NewInt(0),
 				},
 				{
 					Denom:         "busd",
 					VaultStrategy: types.STRATEGY_TYPE_HARD,
-					TotalSupplied: sdk.NewInt(0),
+					TotalShares:   sdk.NewDec(0).String(),
 					TotalValue:    sdk.NewInt(0),
 				},
 			},
@@ -121,7 +121,7 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 		types.VaultResponse{
 			Denom:         "usdx",
 			VaultStrategy: types.STRATEGY_TYPE_HARD,
-			TotalSupplied: depositAmount.Amount,
+			TotalShares:   depositAmount.Amount.ToDec().String(),
 			TotalValue:    depositAmount.Amount,
 		},
 		res.Vaults[0],
@@ -183,8 +183,11 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 				{
 					Depositor: acc1.String(),
 					// Still includes all deposits
-					AmountSupplied: sdk.NewCoins(deposit1Amount, deposit2Amount),
-					Value:          sdk.NewCoins(deposit1Amount, deposit2Amount),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
+						types.NewVaultShare(deposit2Amount.Denom, deposit2Amount.Amount.ToDec()),
+					),
+					Value: sdk.NewCoins(deposit1Amount, deposit2Amount),
 				},
 			},
 			res.Deposits,
@@ -213,9 +216,12 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		suite.Require().ElementsMatch(
 			[]types.DepositResponse{
 				{
-					Depositor:      acc1.String(),
-					AmountSupplied: sdk.NewCoins(deposit1Amount, deposit2Amount),
-					Value:          sdk.NewCoins(deposit1Amount, deposit2Amount),
+					Depositor: acc1.String(),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
+						types.NewVaultShare(deposit2Amount.Denom, deposit2Amount.Amount.ToDec()),
+					),
+					Value: sdk.NewCoins(deposit1Amount, deposit2Amount),
 				},
 			},
 			res.Deposits,
@@ -233,9 +239,12 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		suite.Require().ElementsMatch(
 			[]types.DepositResponse{
 				{
-					Depositor:      acc2.String(),
-					AmountSupplied: sdk.NewCoins(deposit1Amount, deposit3Amount),
-					Value:          sdk.NewCoins(deposit1Amount, deposit3Amount),
+					Depositor: acc2.String(),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
+						types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
+					),
+					Value: sdk.NewCoins(deposit1Amount, deposit3Amount),
 				},
 			},
 			res.Deposits,
@@ -253,14 +262,20 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		suite.Require().ElementsMatchf(
 			[]types.DepositResponse{
 				{
-					Depositor:      acc1.String(),
-					AmountSupplied: sdk.NewCoins(deposit1Amount, deposit2Amount),
-					Value:          sdk.NewCoins(deposit1Amount, deposit2Amount),
+					Depositor: acc1.String(),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
+						types.NewVaultShare(deposit2Amount.Denom, deposit2Amount.Amount.ToDec()),
+					),
+					Value: sdk.NewCoins(deposit1Amount, deposit2Amount),
 				},
 				{
-					Depositor:      acc2.String(),
-					AmountSupplied: sdk.NewCoins(deposit1Amount, deposit3Amount),
-					Value:          sdk.NewCoins(deposit1Amount, deposit3Amount),
+					Depositor: acc2.String(),
+					Shares: types.NewVaultShares(
+						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
+						types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
+					),
+					Value: sdk.NewCoins(deposit1Amount, deposit3Amount),
 				},
 			},
 			res.Deposits,
@@ -293,104 +308,4 @@ func (suite *grpcQueryTestSuite) TestDeposits_InvalidAddress() {
 	)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "Invalid address"))
-}
-
-func (suite *grpcQueryTestSuite) TestTotalDeposited_NoSupply() {
-	// Add vaults
-	suite.CreateVault("usdx", types.STRATEGY_TYPE_HARD)
-	suite.CreateVault("cats", types.STRATEGY_TYPE_HARD)
-
-	res, err := suite.queryClient.TotalDeposited(context.Background(), types.NewQueryTotalDepositedRequest(""))
-	suite.Require().NoError(err)
-	suite.Require().True(res.SuppliedCoins.Empty(), "supplied coins should be empty")
-}
-
-func (suite *grpcQueryTestSuite) TestTotalDeposited_All() {
-	vault1Denom := "usdx"
-	vault2Denom := "busd"
-
-	// Add vaults
-	suite.CreateVault(vault1Denom, types.STRATEGY_TYPE_HARD)
-	suite.CreateVault(vault2Denom, types.STRATEGY_TYPE_HARD)
-
-	startBalance := sdk.NewCoins(
-		sdk.NewInt64Coin(vault1Denom, 1000),
-		sdk.NewInt64Coin(vault2Denom, 1000),
-	)
-	deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
-	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 100)
-
-	acc := suite.CreateAccount(startBalance, 0).GetAddress()
-	err := suite.Keeper.Deposit(suite.Ctx, acc, deposit1Amount)
-	suite.Require().NoError(err)
-
-	res, err := suite.queryClient.TotalDeposited(
-		context.Background(),
-		types.NewQueryTotalDepositedRequest(""), // query all
-	)
-	suite.Require().NoError(err)
-	suite.Require().Equal(
-		sdk.NewCoins(deposit1Amount),
-		res.SuppliedCoins,
-		"supplied coins should be sum of all supplied coins",
-	)
-
-	err = suite.Keeper.Deposit(suite.Ctx, acc, deposit2Amount)
-	suite.Require().NoError(err)
-
-	res, err = suite.queryClient.TotalDeposited(
-		context.Background(),
-		types.NewQueryTotalDepositedRequest(""), // query all
-	)
-	suite.Require().NoError(err)
-	suite.Require().Equal(
-		sdk.NewCoins(deposit1Amount, deposit2Amount),
-		res.SuppliedCoins,
-		"supplied coins should be sum of all supplied coins for multiple coins",
-	)
-}
-
-func (suite *grpcQueryTestSuite) TestTotalDeposited_Single() {
-	vault1Denom := "usdx"
-	vault2Denom := "busd"
-
-	// Add vaults
-	suite.CreateVault(vault1Denom, types.STRATEGY_TYPE_HARD)
-	suite.CreateVault(vault2Denom, types.STRATEGY_TYPE_HARD)
-
-	startBalance := sdk.NewCoins(
-		sdk.NewInt64Coin(vault1Denom, 1000),
-		sdk.NewInt64Coin(vault2Denom, 1000),
-	)
-	deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
-	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 100)
-
-	acc := suite.CreateAccount(startBalance, 0).GetAddress()
-	err := suite.Keeper.Deposit(suite.Ctx, acc, deposit1Amount)
-	suite.Require().NoError(err)
-
-	err = suite.Keeper.Deposit(suite.Ctx, acc, deposit2Amount)
-	suite.Require().NoError(err)
-
-	res, err := suite.queryClient.TotalDeposited(
-		context.Background(),
-		types.NewQueryTotalDepositedRequest(vault1Denom),
-	)
-	suite.Require().NoError(err)
-	suite.Require().Equal(
-		sdk.NewCoins(deposit1Amount),
-		res.SuppliedCoins,
-		"should only contain queried denom",
-	)
-
-	res, err = suite.queryClient.TotalDeposited(
-		context.Background(),
-		types.NewQueryTotalDepositedRequest(vault2Denom),
-	)
-	suite.Require().NoError(err)
-	suite.Require().Equal(
-		sdk.NewCoins(deposit2Amount),
-		res.SuppliedCoins,
-		"should only contain queried denom",
-	)
 }

@@ -28,34 +28,48 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 		return types.ErrVaultRecordNotFound
 	}
 
-	// Get account value for vault
-	vaultAccValue, err := k.GetVaultAccountValue(ctx, wantAmount.Denom, from)
-	if err != nil {
-		return err
-	}
-
-	if vaultAccValue.IsZero() {
-		panic("vault account value is zero")
-	}
-
 	// Get account share record for the vault
 	vaultShareRecord, found := k.GetVaultShareRecord(ctx, from)
 	if !found {
 		return types.ErrVaultShareRecordNotFound
 	}
 
-	// Percent of vault account value the account is withdrawing
-	// This is the total account value, not just the supplied amount.
-	withdrawAmountPercent := wantAmount.Amount.ToDec().Quo(vaultAccValue.Amount.ToDec())
+	withdrawShares, err := k.ConvertToShares(ctx, wantAmount)
+	if err != nil {
+		return fmt.Errorf("failed to convert assets to shares: %w", err)
+	}
 
-	// Check if account is not withdrawing more than they have
-	// account value < want withdraw amount
-	if vaultAccValue.Amount.LT(wantAmount.Amount) {
+	accCurrentShares := vaultShareRecord.Shares.AmountOf(wantAmount.Denom)
+	// Check if account is not withdrawing more shares than they have
+	if accCurrentShares.LT(withdrawShares.Amount) {
 		return sdkerrors.Wrapf(
 			types.ErrInsufficientValue,
-			"account vault value of %s is less than %s desired withdraw amount",
-			vaultAccValue,
-			wantAmount,
+			"account has less %s vault shares than withdraw shares, %s < %s",
+			wantAmount.Denom,
+			accCurrentShares,
+			withdrawShares.Amount,
+		)
+	}
+
+	// Convert shares to amount to get truncated true share value
+	withdrawAmount, err := k.ConvertToAssets(ctx, withdrawShares)
+	if err != nil {
+		return fmt.Errorf("failed to convert shares to assets: %w", err)
+	}
+
+	accountValue, err := k.GetVaultAccountValue(ctx, wantAmount.Denom, from)
+	if err != nil {
+		return fmt.Errorf("failed to get account value: %w", err)
+	}
+
+	// Check if withdrawAmount > account value
+	if withdrawAmount.Amount.GT(accountValue.Amount) {
+		return sdkerrors.Wrapf(
+			types.ErrInsufficientValue,
+			"account has less %s vault value than withdraw amount, %s < %s",
+			withdrawAmount.Denom,
+			accountValue.Amount,
+			withdrawAmount.Amount,
 		)
 	}
 
@@ -68,8 +82,8 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 	// Not necessary to check if amount denom is allowed for the strategy, as
 	// there would be no vault record if it weren't allowed.
 
-	// Withdraw the wantAmount from the strategy
-	if err := strategy.Withdraw(ctx, wantAmount); err != nil {
+	// Withdraw the withdrawAmount from the strategy
+	if err := strategy.Withdraw(ctx, withdrawAmount); err != nil {
 		return fmt.Errorf("failed to withdraw from strategy: %w", err)
 	}
 
@@ -79,27 +93,33 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 		ctx,
 		types.ModuleName,
 		from,
-		sdk.NewCoins(wantAmount),
+		sdk.NewCoins(withdrawAmount),
 	); err != nil {
 		return err
 	}
 
-	// Shares withdrawn from vault
-	// For example:
-	// account supplied = 10hard
-	// account value    = 20hard
-	// wantAmount       = 10hard
-	// withdrawAmountPercent = 10hard / 20hard = 0.5
-	// sharesWithdrawn = 0.5 * 10hard = 5hard
-	vaultShareAmount := vaultShareRecord.AmountSupplied.AmountOf(wantAmount.Denom)
-	sharesWithdrawn := sdk.NewCoin(wantAmount.Denom, vaultShareAmount.
-		ToDec().
-		Mul(withdrawAmountPercent).
-		TruncateInt())
+	// Check if new account balance of shares results in account share value
+	// of < 1 of a sdk.Coin. This share value is not able to be withdrawn and
+	// should just be removed.
+	isDust, err := k.ShareIsDust(
+		ctx,
+		vaultShareRecord.Shares.GetShare(withdrawAmount.Denom).Sub(withdrawShares),
+	)
+	if err != nil {
+		return err
+	}
 
-	// Decrement VaultRecord and VaultShareRecord supplies
-	vaultRecord.TotalSupply = vaultRecord.TotalSupply.Sub(sharesWithdrawn)
-	vaultShareRecord.AmountSupplied = vaultShareRecord.AmountSupplied.Sub(sdk.NewCoins(sharesWithdrawn))
+	if isDust {
+		// Modify withdrawShares to subtract entire share balance for denom
+		// This does not modify the actual withdraw coin amount as the
+		// difference is < 1coin.
+		withdrawShares = vaultShareRecord.Shares.GetShare(withdrawAmount.Denom)
+	}
+
+	// Decrement VaultRecord and VaultShareRecord supplies - must delete same
+	// amounts
+	vaultShareRecord.Shares = vaultShareRecord.Shares.Sub(withdrawShares)
+	vaultRecord.TotalShares = vaultRecord.TotalShares.Sub(withdrawShares)
 
 	// Update VaultRecord and VaultShareRecord, deletes if zero supply
 	k.UpdateVaultRecord(ctx, vaultRecord)
@@ -108,9 +128,10 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeVaultWithdraw,
-			sdk.NewAttribute(types.AttributeKeyVaultDenom, wantAmount.Denom),
+			sdk.NewAttribute(types.AttributeKeyVaultDenom, withdrawAmount.Denom),
 			sdk.NewAttribute(types.AttributeKeyOwner, from.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, wantAmount.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyShares, withdrawShares.Amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, withdrawAmount.Amount.String()),
 		),
 	)
 

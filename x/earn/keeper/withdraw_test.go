@@ -76,7 +76,9 @@ func (suite *withdrawTestSuite) TestWithdraw_NoVaultShareRecord() {
 	)
 
 	suite.VaultTotalValuesEqual(sdk.NewCoins(acc1DepositAmount))
-	suite.VaultTotalSuppliedEqual(sdk.NewCoins(acc1DepositAmount))
+	suite.VaultTotalSharesEqual(types.NewVaultShares(
+		types.NewVaultShare(acc1DepositAmount.Denom, acc1DepositAmount.Amount.ToDec()),
+	))
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_ExceedBalance() {
@@ -103,7 +105,9 @@ func (suite *withdrawTestSuite) TestWithdraw_ExceedBalance() {
 	)
 
 	suite.VaultTotalValuesEqual(sdk.NewCoins(depositAmount))
-	suite.VaultTotalSuppliedEqual(sdk.NewCoins(depositAmount))
+	suite.VaultTotalSharesEqual(types.NewVaultShares(
+		types.NewVaultShare(depositAmount.Denom, depositAmount.Amount.ToDec()),
+	))
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_Zero() {

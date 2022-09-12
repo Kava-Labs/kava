@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -22,7 +24,7 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	vaultRecord, found := k.GetVaultRecord(ctx, amount.Denom)
 	if !found {
 		// Create a new VaultRecord with 0 supply
-		vaultRecord = types.NewVaultRecord(amount.Denom)
+		vaultRecord = types.NewVaultRecord(amount.Denom, sdk.ZeroDec())
 	}
 
 	// Get the strategy for the vault
@@ -45,14 +47,17 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	vaultShareRecord, found := k.GetVaultShareRecord(ctx, depositor)
 	if !found {
 		// Create a new empty VaultShareRecord with 0 supply
-		vaultShareRecord = types.NewVaultShareRecord(depositor)
+		vaultShareRecord = types.NewVaultShareRecord(depositor, types.NewVaultShares())
 	}
 
-	// Increment VaultRecord supply
-	vaultRecord.TotalSupply = vaultRecord.TotalSupply.Add(amount)
+	shares, err := k.ConvertToShares(ctx, amount)
+	if err != nil {
+		return fmt.Errorf("failed to convert assets to shares: %w", err)
+	}
 
-	// Increment VaultShareRecord supply
-	vaultShareRecord.AmountSupplied = vaultShareRecord.AmountSupplied.Add(amount)
+	// Increment VaultRecord total shares and account shares
+	vaultRecord.TotalShares = vaultRecord.TotalShares.Add(shares)
+	vaultShareRecord.Shares = vaultShareRecord.Shares.Add(shares)
 
 	// Update VaultRecord and VaultShareRecord
 	k.SetVaultRecord(ctx, vaultRecord)
@@ -68,6 +73,7 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 			types.EventTypeVaultDeposit,
 			sdk.NewAttribute(types.AttributeKeyVaultDenom, amount.Denom),
 			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
+			sdk.NewAttribute(types.AttributeKeyShares, shares.Amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.Amount.String()),
 		),
 	)

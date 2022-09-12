@@ -604,8 +604,8 @@ func NewApp(
 		earnSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		hardKeeper,
-		savingsKeeper,
+		&hardKeeper,
+		&savingsKeeper,
 	)
 
 	// create committee keeper with router

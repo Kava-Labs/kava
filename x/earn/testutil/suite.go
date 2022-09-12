@@ -256,21 +256,29 @@ func (suite *Suite) VaultTotalValuesEqual(expected sdk.Coins) {
 	}
 }
 
-func (suite *Suite) VaultTotalSuppliedEqual(expected sdk.Coins) {
-	for _, coin := range expected {
-		vaultBal, err := suite.Keeper.GetVaultTotalSupplied(suite.Ctx, coin.Denom)
-		suite.Require().NoError(err, "failed to get vault balance")
-		suite.Require().Equal(coin, vaultBal)
+func (suite *Suite) VaultTotalSharesEqual(expected types.VaultShares) {
+	for _, share := range expected {
+		vaultBal, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, share.Denom)
+		suite.Require().Truef(found, "%s vault does not exist", share.Denom)
+		suite.Require().Equal(share.Amount, vaultBal.Amount)
 	}
 }
 
-func (suite *Suite) AccountTotalSuppliedEqual(accs []sdk.AccAddress, supplies []sdk.Coins) {
+func (suite *Suite) VaultAccountSharesEqual(accs []sdk.AccAddress, supplies []sdk.Coins) {
 	for i, acc := range accs {
 		coins := supplies[i]
 
-		accVaultBal, err := suite.Keeper.GetVaultAccountSupplied(suite.Ctx, acc)
-		suite.Require().NoError(err)
-		suite.Require().True(coins.IsEqual(accVaultBal), "expected account vault balance to equal coins %s, but got %s", coins, accVaultBal)
+		accVaultBal, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc)
+		suite.Require().True(found)
+
+		for _, coin := range coins {
+			suite.Require().Equal(
+				coin.Amount,
+				accVaultBal.AmountOf(coin.Denom),
+				"expected account vault balance to equal coins %s, but got %s",
+				coins, accVaultBal,
+			)
+		}
 	}
 }
 

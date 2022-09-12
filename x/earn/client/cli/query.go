@@ -33,7 +33,6 @@ func GetQueryCmd() *cobra.Command {
 		queryParamsCmd(),
 		queryVaultsCmd(),
 		queryDepositsCmd(),
-		queryTotalDepositedCmd(),
 	}
 
 	for _, cmd := range cmds {
@@ -154,36 +153,4 @@ func queryDepositsCmd() *cobra.Command {
 	cmd.Flags().String(flagDenom, "", "(optional) filter for deposits by vault denom")
 
 	return cmd
-}
-
-func queryTotalDepositedCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "total-deposited",
-		Short: "get the current total deposited amount",
-		Long:  "Get the current total deposited amount in the earn module vaults.",
-		Args:  cobra.MaximumNArgs(1),
-		Example: fmt.Sprintf(`%[1]s q %[2]s total-deposited
-%[1]s q %[2]s total-deposited usdx`, version.AppName, types.ModuleName),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
-			vaultDenom := ""
-			if len(args) > 1 {
-				vaultDenom = args[0]
-			}
-
-			req := types.NewQueryTotalDepositedRequest(vaultDenom)
-			res, err := queryClient.TotalDeposited(context.Background(), req)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
 }
