@@ -342,7 +342,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey, liquidtypes.StoreKey, earntypes.StoreKey,
+		savingstypes.StoreKey, earntypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -592,7 +592,6 @@ func NewApp(
 	)
 	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
 		appCodec,
-		keys[liquidtypes.StoreKey],
 		liquidSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
