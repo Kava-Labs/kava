@@ -11,7 +11,12 @@ import (
 
 // Withdraw removes the amount of supplied tokens from a vault and transfers it
 // back to the account.
-func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.Coin) error {
+func (k *Keeper) Withdraw(
+	ctx sdk.Context,
+	from sdk.AccAddress,
+	wantAmount sdk.Coin,
+	withdrawStrategy types.StrategyType,
+) error {
 	// Get AllowedVault, if not found (not a valid vault), return error
 	allowedVault, found := k.GetAllowedVault(ctx, wantAmount.Denom)
 	if !found {
@@ -20,6 +25,11 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 
 	if wantAmount.IsZero() {
 		return types.ErrInsufficientAmount
+	}
+
+	// Check if withdraw strategy is supported by vault
+	if !allowedVault.IsStrategyAllowed(withdrawStrategy) {
+		return types.ErrInvalidVaultStrategy
 	}
 
 	// Check if VaultRecord exists
@@ -74,7 +84,7 @@ func (k *Keeper) Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.C
 	}
 
 	// Get the strategy for the vault
-	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
+	strategy, err := k.GetStrategy(allowedVault.Strategies[0])
 	if err != nil {
 		return err
 	}

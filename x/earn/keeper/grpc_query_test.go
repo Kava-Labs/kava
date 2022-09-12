@@ -68,10 +68,10 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 		suite.Require().Len(res.Vaults, 1)
 		suite.Require().Equal(
 			types.VaultResponse{
-				Denom:         "usdx",
-				VaultStrategy: types.STRATEGY_TYPE_HARD,
-				TotalShares:   sdk.NewDec(0).String(),
-				TotalValue:    sdk.NewInt(0),
+				Denom:       "usdx",
+				Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
+				TotalShares: sdk.NewDec(0).String(),
+				TotalValue:  sdk.NewInt(0),
 			},
 			res.Vaults[0],
 		)
@@ -84,16 +84,16 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 		suite.Require().ElementsMatch(
 			[]types.VaultResponse{
 				{
-					Denom:         "usdx",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
-					TotalShares:   sdk.NewDec(0).String(),
-					TotalValue:    sdk.NewInt(0),
+					Denom:       "usdx",
+					Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					TotalShares: sdk.NewDec(0).String(),
+					TotalValue:  sdk.NewInt(0),
 				},
 				{
-					Denom:         "busd",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
-					TotalShares:   sdk.NewDec(0).String(),
-					TotalValue:    sdk.NewInt(0),
+					Denom:       "busd",
+					Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
+					TotalShares: sdk.NewDec(0).String(),
+					TotalValue:  sdk.NewInt(0),
 				},
 			},
 			res.Vaults,
@@ -111,7 +111,7 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	res, err := suite.queryClient.Vaults(context.Background(), types.NewQueryVaultsRequest("usdx"))
@@ -119,10 +119,10 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 	suite.Require().Len(res.Vaults, 1)
 	suite.Require().Equal(
 		types.VaultResponse{
-			Denom:         "usdx",
-			VaultStrategy: types.STRATEGY_TYPE_HARD,
-			TotalShares:   depositAmount.Amount.ToDec().String(),
-			TotalValue:    depositAmount.Amount,
+			Denom:       "usdx",
+			Strategies:  []types.StrategyType{types.STRATEGY_TYPE_HARD},
+			TotalShares: depositAmount.Amount.ToDec().String(),
+			TotalValue:  depositAmount.Amount,
 		},
 		res.Vaults[0],
 	)
@@ -160,14 +160,14 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	// Deposit into each vault from each account - 4 total deposits
 	// Acc 1: usdx + busd
 	// Acc 2: usdx + usdc
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, deposit1Amount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc1, deposit1Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
-	err = suite.Keeper.Deposit(suite.Ctx, acc1, deposit2Amount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc1, deposit2Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
-	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit1Amount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit1Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
-	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit3Amount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit3Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	suite.Run("1) 1 vault for 1 account", func() {

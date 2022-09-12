@@ -208,12 +208,12 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "valid vault share records",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:         "usdx",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
+					Denom:      "usdx",
+					Strategies: []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				},
 				{
-					Denom:         "busd",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
+					Denom:      "busd",
+					Strategies: []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				},
 			},
 			errArgs: errArgs{
@@ -224,12 +224,12 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "invalid - duplicate denom",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:         "usdx",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
+					Denom:      "usdx",
+					Strategies: []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				},
 				{
-					Denom:         "usdx",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
+					Denom:      "usdx",
+					Strategies: []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				},
 			},
 			errArgs: errArgs{
@@ -241,8 +241,8 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "invalid - invalid denom",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:         "",
-					VaultStrategy: types.STRATEGY_TYPE_HARD,
+					Denom:      "",
+					Strategies: []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				},
 			},
 			errArgs: errArgs{
@@ -254,13 +254,13 @@ func TestAllowedVaultsValidate(t *testing.T) {
 			name: "invalid - invalid strategy",
 			vaultRecords: types.AllowedVaults{
 				{
-					Denom:         "usdx",
-					VaultStrategy: types.STRATEGY_TYPE_UNSPECIFIED,
+					Denom:      "usdx",
+					Strategies: []types.StrategyType{types.STRATEGY_TYPE_UNSPECIFIED},
 				},
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "invalid vault strategy",
+				contains:   "invalid strategy STRATEGY_TYPE_UNSPECIFIED",
 			},
 		},
 	}

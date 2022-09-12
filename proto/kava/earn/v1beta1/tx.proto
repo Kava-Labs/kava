@@ -4,6 +4,7 @@ package kava.earn.v1beta1;
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
+import "kava/earn/v1beta1/strategy.proto";
 import "kava/earn/v1beta1/vault.proto";
 
 option go_package = "github.com/kava-labs/kava/x/earn/types";
@@ -25,6 +26,9 @@ message MsgDeposit {
   // Amount represents the token to deposit. The vault corresponds to the denom
   // of the amount coin.
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+
+  // Strategy is the vault strategy to use.
+  StrategyType strategy = 3;
 }
 
 // MsgDepositResponse defines the Msg/Deposit response type.
@@ -42,6 +46,9 @@ message MsgWithdraw {
   // Amount represents the token to withdraw. The vault corresponds to the denom
   // of the amount coin.
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+
+  // Strategy is the vault strategy to use.
+  StrategyType strategy = 3;
 }
 
 // MsgWithdrawResponse defines the Msg/Withdraw response type.

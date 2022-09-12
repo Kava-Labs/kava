@@ -38,7 +38,7 @@ func (k *Keeper) GetVaultTotalValue(
 		return sdk.Coin{}, types.ErrVaultRecordNotFound
 	}
 
-	strategy, err := k.GetStrategy(enabledVault.VaultStrategy)
+	strategy, err := k.GetStrategy(enabledVault.Strategies[0])
 	if err != nil {
 		return sdk.Coin{}, types.ErrInvalidVaultStrategy
 	}

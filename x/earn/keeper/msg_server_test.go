@@ -41,7 +41,7 @@ func (suite *msgServerTestSuite) TestDeposit() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	msg := types.NewMsgDeposit(acc.GetAddress().String(), depositAmount)
+	msg := types.NewMsgDeposit(acc.GetAddress().String(), depositAmount, types.STRATEGY_TYPE_HARD)
 	_, err := suite.msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), msg)
 	suite.Require().NoError(err)
 
@@ -94,12 +94,12 @@ func (suite *msgServerTestSuite) TestWithdraw() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	msgDeposit := types.NewMsgDeposit(acc.GetAddress().String(), depositAmount)
+	msgDeposit := types.NewMsgDeposit(acc.GetAddress().String(), depositAmount, types.STRATEGY_TYPE_HARD)
 	_, err := suite.msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), msgDeposit)
 	suite.Require().NoError(err)
 
 	// Withdraw all
-	msgWithdraw := types.NewMsgWithdraw(acc.GetAddress().String(), depositAmount)
+	msgWithdraw := types.NewMsgWithdraw(acc.GetAddress().String(), depositAmount, types.STRATEGY_TYPE_HARD)
 	_, err = suite.msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), msgWithdraw)
 	suite.Require().NoError(err)
 

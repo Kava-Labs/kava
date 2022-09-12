@@ -32,7 +32,7 @@ func (suite *vaultTestSuite) TestGetVaultTotalShares() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	vaultTotalShares, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, vaultDenom)
@@ -66,13 +66,12 @@ func (suite *vaultTestSuite) TestGetVaultTotalValue_NotFound() {
 	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound)
 }
 
-func (suite *vaultTestSuite) TestGetVaultTotalValue_InvalidStrategy() {
+func (suite *vaultTestSuite) TestInvalidVaultStrategy() {
 	vaultDenom := "usdx"
-	suite.CreateVault(vaultDenom, 99999) // not valid strategy type
 
-	_, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
-	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrInvalidVaultStrategy)
+	suite.PanicsWithValue("value from ParamSetPair is invalid: invalid strategy 99999", func() {
+		suite.CreateVault(vaultDenom, 99999) // not valid strategy type
+	})
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
@@ -95,10 +94,10 @@ func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 	suite.Require().False(found)
 
 	// Deposits from both accounts
-	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), deposit1Amount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), deposit1Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
-	err = suite.Keeper.Deposit(suite.Ctx, acc2.GetAddress(), deposit2Amount)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2.GetAddress(), deposit2Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// Check balances
@@ -123,7 +122,7 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue() {
 
 	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	accValue, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc.GetAddress())
@@ -151,7 +150,7 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue_ShareNotFound() {
 	suite.CreateVault(vaultDenom, types.STRATEGY_TYPE_HARD)
 
 	// Deposit from acc1 so that vault record exists
-	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount)
+	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
 	// Query from acc2 with no share record

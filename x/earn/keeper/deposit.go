@@ -9,7 +9,12 @@ import (
 
 // Deposit adds the provided amount from a depositor to a vault. The vault is
 // specified by the denom in the amount.
-func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
+func (k *Keeper) Deposit(
+	ctx sdk.Context,
+	depositor sdk.AccAddress,
+	amount sdk.Coin,
+	depositStrategy types.StrategyType,
+) error {
 	// Get AllowedVault, if not found (not a valid vault), return error
 	allowedVault, found := k.GetAllowedVault(ctx, amount.Denom)
 	if !found {
@@ -20,6 +25,11 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 		return types.ErrInsufficientAmount
 	}
 
+	// Check if deposit strategy is supported by vault
+	if !allowedVault.IsStrategyAllowed(depositStrategy) {
+		return types.ErrInvalidVaultStrategy
+	}
+
 	// Check if VaultRecord exists, create if not exist
 	vaultRecord, found := k.GetVaultRecord(ctx, amount.Denom)
 	if !found {
@@ -28,7 +38,11 @@ func (k *Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	}
 
 	// Get the strategy for the vault
-	strategy, err := k.GetStrategy(allowedVault.VaultStrategy)
+	// NOTE: Currently always uses the first one, AllowedVaults are currently
+	// only valid with 1 and only 1 strategy so this is safe.
+	// If/When multiple strategies are supported and users can specify specific
+	// strategies, shares should be issued per-strategy instead of per-vault.
+	strategy, err := k.GetStrategy(allowedVault.Strategies[0])
 	if err != nil {
 		return err
 	}
