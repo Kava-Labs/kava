@@ -330,7 +330,7 @@ func (suite *strategySavingsTestSuite) TestAccountShares() {
 
 	acc2Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc2)
 	suite.Require().True(found)
-	// 100 * 100 / 110 = 190.909090909090909091
+	// 100 * 100 / 110 = 90.909090909090909091
 	// QuoInt64() truncates
 	expectedAcc2Shares := sdk.NewDec(100).MulInt64(100).QuoInt64(110)
 	suite.Equal(expectedAcc2Shares, acc2Shares.AmountOf(savingsVaultDenom))
