@@ -3,11 +3,22 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+)
+
+const (
+	// TypeMsgMintDerivative represents the type string for MsgMintDerivative
+	TypeMsgMintDerivative = "mint_derivative"
+	// TypeMsgBurnDerivative represents the type string for MsgBurnDerivative
+	TypeMsgBurnDerivative = "burn_derivative"
 )
 
 // ensure Msg interface compliance at compile time
 var (
-	_ sdk.Msg = &MsgMintDerivative{}
+	_ sdk.Msg            = &MsgMintDerivative{}
+	_ legacytx.LegacyMsg = &MsgMintDerivative{}
+	_ sdk.Msg            = &MsgBurnDerivative{}
+	_ legacytx.LegacyMsg = &MsgBurnDerivative{}
 )
 
 // NewMsgMintDerivative returns a new MsgMintDerivative
@@ -23,7 +34,7 @@ func NewMsgMintDerivative(sender sdk.AccAddress, validator sdk.ValAddress, amoun
 func (msg MsgMintDerivative) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgMintDerivative) Type() string { return "mint_derivative" }
+func (msg MsgMintDerivative) Type() string { return TypeMsgMintDerivative }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgMintDerivative) ValidateBasic() error {
@@ -70,7 +81,7 @@ func NewMsgBurnDerivative(sender sdk.AccAddress, validator sdk.ValAddress, amoun
 func (msg MsgBurnDerivative) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgBurnDerivative) Type() string { return "burn_derivative" }
+func (msg MsgBurnDerivative) Type() string { return TypeMsgBurnDerivative }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgBurnDerivative) ValidateBasic() error {
