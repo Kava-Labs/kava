@@ -1,20 +1,11 @@
-package types // noalias
+package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
-
-// ParamSubspace defines the expected Subspace interface
-type ParamSubspace interface {
-	GetParamSet(sdk.Context, paramtypes.ParamSet)
-	SetParamSet(sdk.Context, paramtypes.ParamSet)
-	WithKeyTable(paramtypes.KeyTable) paramtypes.Subspace
-	HasKeyTable() bool
-}
 
 // BankKeeper defines the expected bank keeper
 type BankKeeper interface {

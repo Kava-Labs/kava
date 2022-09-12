@@ -14,8 +14,6 @@ import (
 type Keeper struct {
 	cdc codec.Codec
 
-	paramSubspace types.ParamSubspace
-
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	stakingKeeper types.StakingKeeper
@@ -25,17 +23,13 @@ type Keeper struct {
 
 // NewKeeper returns a new keeper for the liquid module.
 func NewKeeper(
-	cdc codec.Codec, paramstore types.ParamSubspace,
+	cdc codec.Codec,
 	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper,
 	derivativeDenom string,
 ) Keeper {
-	if !paramstore.HasKeyTable() {
-		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
-	}
 
 	return Keeper{
 		cdc:             cdc,
-		paramSubspace:   paramstore,
 		accountKeeper:   ak,
 		bankKeeper:      bk,
 		stakingKeeper:   sk,
@@ -45,11 +39,11 @@ func NewKeeper(
 
 // NewDefaultKeeper returns a new keeper for the liquid module with default values.
 func NewDefaultKeeper(
-	cdc codec.Codec, paramstore types.ParamSubspace,
+	cdc codec.Codec,
 	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper,
 ) Keeper {
 
-	return NewKeeper(cdc, paramstore, ak, bk, sk, types.DefaultDerivativeDenom)
+	return NewKeeper(cdc, ak, bk, sk, types.DefaultDerivativeDenom)
 }
 
 // Logger returns a module-specific logger.

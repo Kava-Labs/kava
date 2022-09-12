@@ -387,7 +387,6 @@ func NewApp(
 	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
 	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
-	liquidSubspace := app.paramsKeeper.Subspace(liquidtypes.ModuleName)
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
 
 	bApp.SetParamStore(
@@ -592,7 +591,6 @@ func NewApp(
 	)
 	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
 		appCodec,
-		liquidSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
 		&app.stakingKeeper,
