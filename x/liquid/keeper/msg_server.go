@@ -42,7 +42,7 @@ func (k msgServer) MintDerivative(goCtx context.Context, msg *types.MsgMintDeriv
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Validator),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 		),
 	)
 
@@ -74,7 +74,7 @@ func (k msgServer) BurnDerivative(goCtx context.Context, msg *types.MsgBurnDeriv
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Validator),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 		),
 	)
 	return &types.MsgBurnDerivativeResponse{
