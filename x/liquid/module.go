@@ -62,9 +62,7 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 }
 
 // RegisterRESTRoutes registers REST routes for the module.
-func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	// intentionally left blank
-}
+func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
@@ -112,10 +110,7 @@ func (am AppModule) Name() string {
 }
 
 // RegisterInvariants register module invariants
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// TODO:
-	// keeper.RegisterInvariants(ir, am.keeper)
-}
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // Route module message route name
 func (am AppModule) Route() sdk.Route {
@@ -124,7 +119,7 @@ func (am AppModule) Route() sdk.Route {
 
 // QuerierRoute module querier route name
 func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
+	return ""
 }
 
 // LegacyQuerierHandler returns no sdk.Querier.
@@ -140,8 +135,6 @@ func (AppModule) ConsensusVersion() uint64 {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	// TODO:
-	// types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 }
 
 // InitGenesis module init-genesis
@@ -162,8 +155,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // BeginBlock module begin-block
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
-}
+func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
 // EndBlock module end-block
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
