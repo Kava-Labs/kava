@@ -14,13 +14,15 @@ import (
 // liquid module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgMintDerivative{}, "liquid/MsgMintDerivative", nil)
+	cdc.RegisterConcrete(&MsgBurnDerivative{}, "liquid/MsgBurnDerivative", nil)
 }
 
 // RegisterInterfaces registers proto messages under their interfaces for unmarshalling,
-// in addition to registerting the msg service for handling tx msgs
+// in addition to registering the msg service for handling tx msgs.
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgMintDerivative{},
+		&MsgBurnDerivative{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

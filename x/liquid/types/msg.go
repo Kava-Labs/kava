@@ -47,9 +47,11 @@ func (msg MsgMintDerivative) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
+
 	if msg.Amount.IsNil() || !msg.Amount.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
 	}
+
 	return nil
 }
 
@@ -94,9 +96,11 @@ func (msg MsgBurnDerivative) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
+
 	if msg.Amount.IsNil() || !msg.Amount.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
 	}
+
 	return nil
 }
 
