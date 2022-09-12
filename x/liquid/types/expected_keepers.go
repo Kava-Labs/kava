@@ -26,8 +26,6 @@ type AccountKeeper interface {
 
 // StakingKeeper defines the expected keeper interface for interacting with staking
 type StakingKeeper interface {
-	StakingHooks
-
 	BondDenom(ctx sdk.Context) (res string)
 
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
@@ -45,11 +43,4 @@ type StakingKeeper interface {
 	Unbond(
 		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec,
 	) (amount sdk.Int, err error)
-}
-
-type StakingHooks interface {
-	AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
-	BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
-	BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
-	BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
 }
