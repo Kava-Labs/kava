@@ -30,6 +30,8 @@ func NewPeriod(start time.Time, end time.Time, inflation sdk.Dec) Period {
 	}
 }
 
+type Periods []Period
+
 // String implements fmt.Stringer
 func (pr Period) String() string {
 	return fmt.Sprintf(`Period:
@@ -134,3 +136,6 @@ func validatePeriodsParams(i interface{}) error {
 
 	return nil
 }
+
+type CoreRewards []CoreReward
+type PartnerRewards []PartnerReward
