@@ -2,15 +2,19 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/liquid/types"
 )
 
-// MintDerivative mints a new derivative
+// MintDerivative removes a user's staking delegation and mints them equivalent staking derivative coins.
+//
+// The input staking token amount is used to calculate shares in the user's delegation, which are transferred to a delegation owned by the module.
+// Derivative coins are them minted and transferred to the user.
 func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) error {
-
-	if amount.Denom != k.stakingKeeper.BondDenom(ctx) {
-		return types.ErrOnlyBondDenomAllowedForTokenize
+	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	if amount.Denom != bondDenom {
+		return sdkerrors.Wrapf(types.ErrInvalidDenom, "expected %s", bondDenom)
 	}
 
 	derivativeAmount, shares, err := k.CalculateDerivativeSharesFromTokens(ctx, delegatorAddr, valAddr, amount.Amount)
@@ -44,40 +48,23 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	return nil
 }
 
+// CalculateDerivativeSharesFromTokens converts a staking token amount into its equivalent delegation shares, and staking derivative amount.
+// This combines the code for calculating the shares to be transferred, and the derivative coins to be minted.
 func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, tokens sdk.Int) (sdk.Int, sdk.Dec, error) {
 	shares, err := k.stakingKeeper.ValidateUnbondAmount(ctx, delegator, validator, tokens)
 	if err != nil {
-		// TODO wrap staking errors
 		return sdk.Int{}, sdk.Dec{}, err
 	}
 	return shares.TruncateInt(), shares, nil
 }
 
-func (k Keeper) mintCoins(ctx sdk.Context, receiver sdk.AccAddress, amount sdk.Coins) error {
-	if err := k.bankKeeper.MintCoins(ctx, types.ModuleAccountName, amount); err != nil {
-		return err
-	}
-	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, receiver, amount); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (k Keeper) burnCoins(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coins) error {
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleAccountName, amount); err != nil {
-		return err
-	}
-	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleAccountName, amount); err != nil {
-		return err
-	}
-	return nil
-}
-
-// BurnDerivative burns an user's derivative coins and returns the original delegation.
+// BurnDerivative burns an user's staking derivative coins and returns them an equivalent staking delegation.
+//
+// The derivative coins are burned, and an equivalent number of shares in the module's staking delegation are transferred back to the user.
 func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) error {
 
 	if amount.Denom != k.GetLiquidStakingTokenDenom(valAddr) {
-		return types.ErrInvalidDerivativeDenom
+		return sdkerrors.Wrap(types.ErrInvalidDenom, "derivative denom does not match validator")
 	}
 
 	if err := k.burnCoins(ctx, delegatorAddr, sdk.NewCoins(amount)); err != nil {
@@ -104,4 +91,24 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 
 func (k Keeper) GetLiquidStakingTokenDenom(valAddr sdk.ValAddress) string {
 	return types.GetLiquidStakingTokenDenom(k.derivativeDenom, valAddr)
+}
+
+func (k Keeper) mintCoins(ctx sdk.Context, receiver sdk.AccAddress, amount sdk.Coins) error {
+	if err := k.bankKeeper.MintCoins(ctx, types.ModuleAccountName, amount); err != nil {
+		return err
+	}
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, receiver, amount); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) burnCoins(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coins) error {
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleAccountName, amount); err != nil {
+		return err
+	}
+	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleAccountName, amount); err != nil {
+		return err
+	}
+	return nil
 }

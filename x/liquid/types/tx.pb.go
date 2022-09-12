@@ -32,9 +32,12 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgMintDerivative defines the Msg/MintDerivative request type.
 type MsgMintDerivative struct {
-	Sender    string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	Validator string     `protobuf:"bytes,2,opt,name=validator,proto3" json:"validator,omitempty"`
-	Amount    types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
+	// sender is the owner of the delegation to be converted
+	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	// validator is the validator of the delegation to be converted
+	Validator string `protobuf:"bytes,2,opt,name=validator,proto3" json:"validator,omitempty"`
+	// amount is the quantity of staked assets to be converted
+	Amount types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
 }
 
 func (m *MsgMintDerivative) Reset()         { *m = MsgMintDerivative{} }
@@ -138,9 +141,12 @@ func (m *MsgMintDerivativeResponse) GetAmount() types.Coin {
 
 // MsgBurnDerivative defines the Msg/BurnDerivative request type.
 type MsgBurnDerivative struct {
-	Sender    string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	Validator string     `protobuf:"bytes,2,opt,name=validator,proto3" json:"validator,omitempty"`
-	Amount    types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
+	// sender is the owner of the derivatives to be converted
+	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	// validator is the validator of the derivatives to be converted
+	Validator string `protobuf:"bytes,2,opt,name=validator,proto3" json:"validator,omitempty"`
+	// amount is the quantity of derivatives to be converted
+	Amount types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
 }
 
 func (m *MsgBurnDerivative) Reset()         { *m = MsgBurnDerivative{} }
@@ -291,9 +297,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// MintDerivative defines a method for minting deriviatives
+	// MintDerivative defines a method for converting a delegation into staking deriviatives.
 	MintDerivative(ctx context.Context, in *MsgMintDerivative, opts ...grpc.CallOption) (*MsgMintDerivativeResponse, error)
-	// BurnDerivative defines a method for burning deriviatives
+	// BurnDerivative defines a method for converting staking deriviatives into a delegation.
 	BurnDerivative(ctx context.Context, in *MsgBurnDerivative, opts ...grpc.CallOption) (*MsgBurnDerivativeResponse, error)
 }
 
@@ -325,9 +331,9 @@ func (c *msgClient) BurnDerivative(ctx context.Context, in *MsgBurnDerivative, o
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// MintDerivative defines a method for minting deriviatives
+	// MintDerivative defines a method for converting a delegation into staking deriviatives.
 	MintDerivative(context.Context, *MsgMintDerivative) (*MsgMintDerivativeResponse, error)
-	// BurnDerivative defines a method for burning deriviatives
+	// BurnDerivative defines a method for converting staking deriviatives into a delegation.
 	BurnDerivative(context.Context, *MsgBurnDerivative) (*MsgBurnDerivativeResponse, error)
 }
 

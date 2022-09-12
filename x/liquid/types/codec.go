@@ -10,8 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
-// liquid module.
+// RegisterLegacyAminoCodec registers all the necessary types and interfaces for the module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgMintDerivative{}, "liquid/MsgMintDerivative", nil)
 	cdc.RegisterConcrete(&MsgBurnDerivative{}, "liquid/MsgBurnDerivative", nil)

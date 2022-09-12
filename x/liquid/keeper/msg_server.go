@@ -20,6 +20,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+// MintDerivative handles MintDerivative msgs.
 func (k msgServer) MintDerivative(goCtx context.Context, msg *types.MsgMintDerivative) (*types.MsgMintDerivativeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -52,6 +53,7 @@ func (k msgServer) MintDerivative(goCtx context.Context, msg *types.MsgMintDeriv
 	}, nil
 }
 
+// BurnDerivative handles BurnDerivative msgs.
 func (k msgServer) BurnDerivative(goCtx context.Context, msg *types.MsgBurnDerivative) (*types.MsgBurnDerivativeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

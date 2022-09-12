@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 			balance:          c(liquidDenom, 1e9),
 			moduleDelegation: i(1e9),
 			burnAmount:       c(fmt.Sprintf("ckava-%s", valAddr), 1e6),
-			expectedErr:      types.ErrInvalidDerivativeDenom,
+			expectedErr:      types.ErrInvalidDenom,
 		},
 		{
 			name:             "error when burn amount is 0",
@@ -261,7 +261,7 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 		{
 			name:        "error when the input denom isn't correct",
 			amount:      sdk.NewCoin("invalid", i(1000)),
-			expectedErr: types.ErrOnlyBondDenomAllowedForTokenize,
+			expectedErr: types.ErrInvalidDenom,
 		},
 		{
 			name:        "error when shares cannot be calculated",
