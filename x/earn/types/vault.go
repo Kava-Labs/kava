@@ -86,11 +86,66 @@ func (vsrs VaultShareRecords) Validate() error {
 }
 
 // NewAllowedVaults returns a new AllowedVaults with the given denom and strategy type.
-func NewAllowedVault(denom string, strategyTypes ...StrategyType) AllowedVault {
+func NewAllowedVault(
+	denom string,
+	strategyTypes StrategyTypes,
+	isPrivateVault bool,
+	allowedDepositors []sdk.AccAddress,
+) AllowedVault {
 	return AllowedVault{
-		Denom:      denom,
-		Strategies: strategyTypes,
+		Denom:             denom,
+		Strategies:        strategyTypes,
+		IsPrivateVault:    isPrivateVault,
+		AllowedDepositors: allowedDepositors,
 	}
+}
+
+// Validate returns an error if the AllowedVault is invalid
+func (a *AllowedVault) Validate() error {
+	if err := sdk.ValidateDenom(a.Denom); err != nil {
+		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
+	}
+
+	// Private -> 1+ allowed depositors
+	// Non-private -> 0 allowed depositors
+	if a.IsPrivateVault && len(a.AllowedDepositors) == 0 {
+		return fmt.Errorf("private vaults require non-empty AllowedDepositors")
+	}
+
+	if !a.IsPrivateVault && len(a.AllowedDepositors) > 0 {
+		return fmt.Errorf("non-private vaults cannot have any AllowedDepositors")
+	}
+
+	return a.Strategies.Validate()
+}
+
+// IsStrategyAllowed returns true if the given strategy type is allowed for the
+// vault.
+func (a *AllowedVault) IsStrategyAllowed(strategy StrategyType) bool {
+	for _, s := range a.Strategies {
+		if s == strategy {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsAccountAllowed returns true if the given account is allowed to deposit into
+// the vault.
+func (a *AllowedVault) IsAccountAllowed(account sdk.AccAddress) bool {
+	// Anyone can deposit to non-private vaults
+	if !a.IsPrivateVault {
+		return true
+	}
+
+	for _, addr := range a.AllowedDepositors {
+		if addr.Equals(account) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // AllowedVaults is a slice of AllowedVault.
@@ -113,25 +168,4 @@ func (a AllowedVaults) Validate() error {
 	}
 
 	return nil
-}
-
-// Validate returns an error if the AllowedVault is invalid
-func (a *AllowedVault) Validate() error {
-	if err := sdk.ValidateDenom(a.Denom); err != nil {
-		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
-	}
-
-	return a.Strategies.Validate()
-}
-
-// IsStrategyAllowed returns true if the given strategy type is allowed for the
-// vault.
-func (a *AllowedVault) IsStrategyAllowed(strategy StrategyType) bool {
-	for _, s := range a.Strategies {
-		if s == strategy {
-			return true
-		}
-	}
-
-	return false
 }

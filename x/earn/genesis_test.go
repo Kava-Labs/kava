@@ -20,7 +20,11 @@ func (suite *genesisTestSuite) Test_InitGenesis_ValidationPanic() {
 	invalidState := types.NewGenesisState(
 		types.Params{
 			AllowedVaults: types.AllowedVaults{
-				types.NewAllowedVault("usdx", types.STRATEGY_TYPE_HARD),
+				types.NewAllowedVault(
+					"usdx", types.StrategyTypes{types.STRATEGY_TYPE_HARD},
+					false,
+					nil,
+				),
 			},
 		},
 		types.VaultRecords{
@@ -48,8 +52,18 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 	state := types.NewGenesisState(
 		types.Params{
 			AllowedVaults: types.AllowedVaults{
-				types.NewAllowedVault("usdx", types.STRATEGY_TYPE_HARD),
-				types.NewAllowedVault("ukava", types.STRATEGY_TYPE_SAVINGS),
+				types.NewAllowedVault(
+					"usdx",
+					types.StrategyTypes{types.STRATEGY_TYPE_HARD},
+					false,
+					nil,
+				),
+				types.NewAllowedVault(
+					"ukava",
+					types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
+					true,
+					[]sdk.AccAddress{suite.AccountKeeper.GetModuleAddress("distribution")},
+				),
 			},
 		},
 		types.VaultRecords{
@@ -106,8 +120,18 @@ func (suite *genesisTestSuite) Test_Marshall() {
 	state := types.NewGenesisState(
 		types.Params{
 			AllowedVaults: types.AllowedVaults{
-				types.NewAllowedVault("usdx", types.STRATEGY_TYPE_HARD),
-				types.NewAllowedVault("ukava", types.STRATEGY_TYPE_SAVINGS),
+				types.NewAllowedVault(
+					"usdx",
+					types.StrategyTypes{types.STRATEGY_TYPE_HARD},
+					false,
+					nil,
+				),
+				types.NewAllowedVault(
+					"ukava",
+					types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
+					true,
+					[]sdk.AccAddress{suite.AccountKeeper.GetModuleAddress("distribution")},
+				),
 			},
 		},
 		types.VaultRecords{

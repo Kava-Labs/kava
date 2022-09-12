@@ -30,6 +30,12 @@ func (k *Keeper) Deposit(
 		return types.ErrInvalidVaultStrategy
 	}
 
+	// Check if account can deposit -- this checks if the vault is private
+	// and if so, if the depositor is in the AllowedDepositors list
+	if !allowedVault.IsAccountAllowed(depositor) {
+		return types.ErrAccountDepositNotAllowed
+	}
+
 	// Check if VaultRecord exists, create if not exist
 	vaultRecord, found := k.GetVaultRecord(ctx, amount.Denom)
 	if !found {
