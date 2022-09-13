@@ -819,7 +819,6 @@ func NewApp(
 		swaptypes.ModuleName,
 		cdptypes.ModuleName, // reads market prices, so must run after pricefeed genesis
 		hardtypes.ModuleName,
-		liquidtypes.ModuleName,    // TODO probably run before incentive and after staking?
 		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,
@@ -831,6 +830,7 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
+		liquidtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
