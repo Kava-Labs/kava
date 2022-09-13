@@ -26,8 +26,7 @@ func (k Keeper) TransferDelegation(ctx sdk.Context, valAddr sdk.ValAddress, from
 		return sdk.Dec{}, sdkerrors.Wrap(types.ErrUntransferableShares, "nil or negative shares")
 	}
 	if shares.Equal(sdk.ZeroDec()) {
-		// Block 0 transfers to avoid having to match staking module's behavior in this edge case.
-		// The staking Delegate method may allow zero share delegations, but still calls hooks.
+		// Block 0 transfers to reduce edge cases.
 		return sdk.Dec{}, sdkerrors.Wrap(types.ErrUntransferableShares, "zero shares")
 	}
 

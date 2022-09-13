@@ -51,6 +51,9 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 // CalculateDerivativeSharesFromTokens converts a staking token amount into its equivalent delegation shares, and staking derivative amount.
 // This combines the code for calculating the shares to be transferred, and the derivative coins to be minted.
 func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, tokens sdk.Int) (sdk.Int, sdk.Dec, error) {
+	if !tokens.IsPositive() {
+		return sdk.Int{}, sdk.Dec{}, sdkerrors.Wrap(types.ErrUntransferableShares, "token amount must be positive")
+	}
 	shares, err := k.stakingKeeper.ValidateUnbondAmount(ctx, delegator, validator, tokens)
 	if err != nil {
 		return sdk.Int{}, sdk.Dec{}, err
