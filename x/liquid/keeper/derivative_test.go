@@ -427,7 +427,17 @@ func (suite *KeeperTestSuite) TestGetKavaForDerivatives() {
 			derivatives: sdk.NewCoins(
 				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr3), vestedBalance),
 			),
+			// vestedBalance * 95%
 			wantKavaAmount: vestedBalance.Mul(sdk.NewInt(95)).Quo(sdk.NewInt(100)),
+		},
+		{
+			name: "valid - sum",
+			derivatives: sdk.NewCoins(
+				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr3), vestedBalance),
+				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr1), vestedBalance),
+			),
+			// vestedBalance + (vestedBalance * 95%)
+			wantKavaAmount: vestedBalance.Mul(sdk.NewInt(95)).Quo(sdk.NewInt(100)).Add(vestedBalance),
 		},
 		{
 			name: "invalid - undelegated validator address denom",
