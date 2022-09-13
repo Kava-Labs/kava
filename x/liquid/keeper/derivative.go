@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -95,6 +97,42 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 
 func (k Keeper) GetLiquidStakingTokenDenom(valAddr sdk.ValAddress) string {
 	return types.GetLiquidStakingTokenDenom(k.derivativeDenom, valAddr)
+}
+
+// IsDerivativeDenom returns true if the denom is a valid derivative denom and
+// corresponds to a valid validator.
+func (k Keeper) IsDerivativeDenom(ctx sdk.Context, denom string) bool {
+	valAddr, err := types.ParseLiquidStakingTokenDenom(denom)
+	if err != nil {
+		return false
+	}
+
+	_, found := k.stakingKeeper.GetValidator(ctx, valAddr)
+	return found
+}
+
+func (k Keeper) GetKavaForDerivatives(ctx sdk.Context, coins sdk.Coins) sdk.Int {
+	totalKava := sdk.ZeroInt()
+
+	for _, coin := range coins {
+		valAddr, err := types.ParseLiquidStakingTokenDenom(coin.Denom)
+		if err != nil {
+			fmt.Printf("error parsing liquid staking token denom: %v", err)
+			continue
+		}
+
+		validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
+		if !found {
+			fmt.Printf("error getting validator: %v", err)
+			continue
+		}
+
+		// bkava is 1:1 to delegation shares
+		valTokens := validator.TokensFromSharesTruncated(coin.Amount.ToDec())
+		totalKava = totalKava.Add(valTokens.TruncateInt())
+	}
+
+	return totalKava
 }
 
 func (k Keeper) mintCoins(ctx sdk.Context, receiver sdk.AccAddress, amount sdk.Coins) error {
