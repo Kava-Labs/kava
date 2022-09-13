@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -223,7 +224,8 @@ var (
 	}
 )
 
-// var _ simapp.App = (*App)(nil) // TODO
+// Verify app interface at compile time
+var _ servertypes.Application = (*App)(nil)
 
 // Options bundles several configuration params for an App.
 type Options struct {
