@@ -74,7 +74,7 @@ func getCmdMintDerivative() *cobra.Command {
 func getCmdBurnDerivative() *cobra.Command {
 	return &cobra.Command{
 		Use:   "burn [validator-addr] [amount]",
-		Short: "burn stKava derivative to redeem a delegation",
+		Short: "burns Kava derivative to redeem a delegation",
 		Example: fmt.Sprintf(
 			`%s tx %s burn kavavaloper16lnfpgn6llvn4fstg5nfrljj6aaxyee9z59jqd 10000000ukava --from <key>`, version.AppName, types.ModuleName,
 		),
