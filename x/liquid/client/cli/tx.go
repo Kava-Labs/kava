@@ -42,7 +42,7 @@ func GetTxCmd() *cobra.Command {
 func getCmdMintDerivative() *cobra.Command {
 	return &cobra.Command{
 		Use:   "mint [validator-addr] [amount]",
-		Short: "mint stKava derivative from a delegation",
+		Short: "mints Kava derivative from a delegation",
 		Example: fmt.Sprintf(
 			`%s tx %s mint kavavaloper16lnfpgn6llvn4fstg5nfrljj6aaxyee9z59jqd 10000000ukava --from <key>`, version.AppName, types.ModuleName,
 		),
