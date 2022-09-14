@@ -385,6 +385,14 @@
   
     - [Query](#kava.kavadist.v1beta1.Query)
   
+- [kava/liquid/v1beta1/tx.proto](#kava/liquid/v1beta1/tx.proto)
+    - [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative)
+    - [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse)
+    - [MsgMintDerivative](#kava.liquid.v1beta1.MsgMintDerivative)
+    - [MsgMintDerivativeResponse](#kava.liquid.v1beta1.MsgMintDerivativeResponse)
+  
+    - [Msg](#kava.liquid.v1beta1.Msg)
+  
 - [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
@@ -5379,6 +5387,97 @@ Query defines the gRPC querier service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse) | Params queries the parameters of x/kavadist module. | GET|/kava/kavadist/v1beta1/parameters|
 | `Balance` | [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/kavadist module. | GET|/kava/kavadist/v1beta1/balance|
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquid/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquid/v1beta1/tx.proto
+
+
+
+<a name="kava.liquid.v1beta1.MsgBurnDerivative"></a>
+
+### MsgBurnDerivative
+MsgBurnDerivative defines the Msg/BurnDerivative request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  | sender is the owner of the derivatives to be converted |
+| `validator` | [string](#string) |  | validator is the validator of the derivatives to be converted |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the quantity of derivatives to be converted |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.MsgBurnDerivativeResponse"></a>
+
+### MsgBurnDerivativeResponse
+MsgBurnDerivativeResponse defines the Msg/BurnDerivative response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `received` | [string](#string) |  | received is the number of delegation shares sent to the sender |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.MsgMintDerivative"></a>
+
+### MsgMintDerivative
+MsgMintDerivative defines the Msg/MintDerivative request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  | sender is the owner of the delegation to be converted |
+| `validator` | [string](#string) |  | validator is the validator of the delegation to be converted |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the quantity of staked assets to be converted |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.MsgMintDerivativeResponse"></a>
+
+### MsgMintDerivativeResponse
+MsgMintDerivativeResponse defines the Msg/MintDerivative response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `received` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | received is the amount of staking derivative minted and sent to the sender |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.liquid.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the liquid Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `MintDerivative` | [MsgMintDerivative](#kava.liquid.v1beta1.MsgMintDerivative) | [MsgMintDerivativeResponse](#kava.liquid.v1beta1.MsgMintDerivativeResponse) | MintDerivative defines a method for converting a delegation into staking deriviatives. | |
+| `BurnDerivative` | [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative) | [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse) | BurnDerivative defines a method for converting staking deriviatives into a delegation. | |
 
  <!-- end services -->
 
