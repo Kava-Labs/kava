@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -42,7 +43,9 @@ func GetTxCmd() *cobra.Command {
 func getCmdMintDerivative() *cobra.Command {
 	return &cobra.Command{
 		Use:   "mint [validator-addr] [amount]",
-		Short: "mints Kava derivative from a delegation",
+		Short: "mints staking derivative from a delegation",
+		Long:  "Mint removes a portion of a user's staking delegation and issues them validator specific staking derivative tokens.",
+		Args:  cobra.ExactArgs(2),
 		Example: fmt.Sprintf(
 			`%s tx %s mint kavavaloper16lnfpgn6llvn4fstg5nfrljj6aaxyee9z59jqd 10000000ukava --from <key>`, version.AppName, types.ModuleName,
 		),
@@ -73,25 +76,27 @@ func getCmdMintDerivative() *cobra.Command {
 
 func getCmdBurnDerivative() *cobra.Command {
 	return &cobra.Command{
-		Use:   "burn [validator-addr] [amount]",
-		Short: "burns Kava derivative to redeem a delegation",
+		Use:   "burn [amount]",
+		Short: "burns staking derivative to redeem a delegation",
+		Long:  "Burn removes some staking derivative from a user's account and converts it back to a staking delegation.",
 		Example: fmt.Sprintf(
-			`%s tx %s burn kavavaloper16lnfpgn6llvn4fstg5nfrljj6aaxyee9z59jqd 10000000ukava --from <key>`, version.AppName, types.ModuleName,
+			`%s tx %s burn 10000000bkava-kavavaloper16lnfpgn6llvn4fstg5nfrljj6aaxyee9z59jqd --from <key>`, version.AppName, types.ModuleName,
 		),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			valAddr, err := sdk.ValAddressFromBech32(args[0])
-			if err != nil {
-				return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
-			}
-
-			amount, err := sdk.ParseCoinNormalized(args[1])
+			amount, err := sdk.ParseCoinNormalized(args[0])
 			if err != nil {
 				return err
+			}
+
+			valAddr, err := parseLiquidStakingTokenDenom(amount.Denom)
+			if err != nil {
+				return sdkerrors.Wrap(types.ErrInvalidDenom, err.Error())
 			}
 
 			msg := types.NewMsgBurnDerivative(clientCtx.GetFromAddress(), valAddr, amount)
@@ -101,4 +106,17 @@ func getCmdBurnDerivative() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
+}
+
+// parseLiquidStakingTokenDenom extracts a validator address from a derivative denom.
+func parseLiquidStakingTokenDenom(denom string) (sdk.ValAddress, error) {
+	elements := strings.Split(denom, types.DenomSeparator)
+	if len(elements) != 2 {
+		return nil, fmt.Errorf("cannot parse denom %s", denom)
+	}
+	addr, err := sdk.ValAddressFromBech32(elements[1])
+	if err != nil {
+		return nil, err
+	}
+	return addr, nil
 }
