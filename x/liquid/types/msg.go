@@ -48,7 +48,7 @@ func (msg MsgMintDerivative) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	if msg.Amount.IsNil() || !msg.Amount.IsValid() {
+	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
 	}
 
@@ -97,7 +97,7 @@ func (msg MsgBurnDerivative) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	if msg.Amount.IsNil() || !msg.Amount.IsValid() {
+	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
 	}
 

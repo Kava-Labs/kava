@@ -109,6 +109,15 @@ func TestMsg_Validate(t *testing.T) {
 			},
 			expectedErr: sdkerrors.ErrInvalidCoins,
 		},
+		{
+			name: "invalid zero coin",
+			msgArgs: msgArgs{
+				sender:    validAddress.String(),
+				validator: validValidatorAddress.String(),
+				amount:    sdk.NewInt64Coin("ukava", 0),
+			},
+			expectedErr: sdkerrors.ErrInvalidCoins,
+		},
 	}
 
 	for _, tc := range tests {
