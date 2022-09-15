@@ -17,14 +17,13 @@ func (suite *KeeperTestSuite) TestCollectStakingRewards() {
 	initialBalance := i(1e9)
 	delegateAmount := i(100e6)
 
-	err := suite.App.FundModuleAccount(
+	suite.NoError(suite.App.FundModuleAccount(
 		suite.Ctx,
 		distrtypes.ModuleName,
 		sdk.NewCoins(
 			sdk.NewCoin("ukava", initialBalance),
 		),
-	)
-	suite.NoError(err)
+	))
 
 	suite.CreateAccountWithAddress(valAccAddr1, suite.NewBondCoins(initialBalance))
 	suite.CreateAccountWithAddress(delegator, suite.NewBondCoins(initialBalance))
@@ -34,7 +33,7 @@ func (suite *KeeperTestSuite) TestCollectStakingRewards() {
 	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
 	// Transfers delegation to module account
-	_, err = suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
+	_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
 	suite.Require().NoError(err)
 
 	validator, found := suite.StakingKeeper.GetValidator(suite.Ctx, valAddr1)
@@ -42,25 +41,48 @@ func (suite *KeeperTestSuite) TestCollectStakingRewards() {
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(2)
 
-	rewardCoins := sdk.NewDecCoins(sdk.NewDecCoin("ukava", sdk.NewInt(500e6)))
-
 	distrKeeper := suite.App.GetDistrKeeper()
 	stakingKeeper := suite.App.GetStakingKeeper()
 	accKeeper := suite.App.GetAccountKeeper()
 	liquidMacc := accKeeper.GetModuleAccount(suite.Ctx, types.ModuleAccountName)
 
+	// Add rewards
+	rewardCoins := sdk.NewDecCoins(sdk.NewDecCoin("ukava", sdk.NewInt(500e6)))
 	distrKeeper.AllocateTokensToValidator(suite.Ctx, validator, rewardCoins)
 
 	delegation, found := stakingKeeper.GetDelegation(suite.Ctx, liquidMacc.GetAddress(), valAddr1)
 	suite.Require().True(found)
 
+	// Get amount of rewards
 	endingPeriod := distrKeeper.IncrementValidatorPeriod(suite.Ctx, validator)
 	delegationRewards := distrKeeper.CalculateDelegationRewards(suite.Ctx, validator, delegation, endingPeriod)
 	truncatedRewards, _ := delegationRewards.TruncateDecimal()
 
-	derivativeDenom := suite.Keeper.GetLiquidStakingTokenDenom(valAddr1)
-	rewards, err := suite.Keeper.CollectStakingRewardsByDenom(suite.Ctx, derivativeDenom, types.ModuleName)
-	suite.Require().NoError(err)
+	suite.Run("collect staking rewards", func() {
+		// Collect rewards
+		derivativeDenom := suite.Keeper.GetLiquidStakingTokenDenom(valAddr1)
+		rewards, err := suite.Keeper.CollectStakingRewardsByDenom(suite.Ctx, derivativeDenom, types.ModuleName)
+		suite.Require().NoError(err)
+		suite.Require().Equal(truncatedRewards, rewards)
 
-	suite.Require().Equal(truncatedRewards, rewards)
+		suite.True(rewards.AmountOf("ukava").IsPositive())
+
+		// Check balances
+		suite.AccountBalanceEqual(liquidMacc.GetAddress(), rewards)
+	})
+
+	suite.Run("collect staking rewards with non-validator", func() {
+		// acc2 not a validator
+		derivativeDenom := suite.Keeper.GetLiquidStakingTokenDenom(sdk.ValAddress(addrs[2]))
+		_, err := suite.Keeper.CollectStakingRewardsByDenom(suite.Ctx, derivativeDenom, types.ModuleName)
+		suite.Require().Error(err)
+		suite.Require().Equal("no validator distribution info", err.Error())
+	})
+
+	suite.Run("collect staking rewards with invalid denom", func() {
+		derivativeDenom := "bkava"
+		_, err := suite.Keeper.CollectStakingRewardsByDenom(suite.Ctx, derivativeDenom, types.ModuleName)
+		suite.Require().Error(err)
+		suite.Require().Equal("cannot parse denom bkava", err.Error())
+	})
 }
