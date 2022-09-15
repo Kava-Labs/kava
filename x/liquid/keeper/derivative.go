@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -119,13 +117,13 @@ func (k Keeper) GetKavaForDerivatives(ctx sdk.Context, coins sdk.Coins) sdk.Int 
 	for _, coin := range coins {
 		valAddr, err := types.ParseLiquidStakingTokenDenom(coin.Denom)
 		if err != nil {
-			fmt.Printf("error parsing liquid staking token denom: %v", err)
+			k.Logger(ctx).Debug("GetKavaForDerivatives failed parsing liquid staking token denom", "error", err.Error())
 			continue
 		}
 
 		validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 		if !found {
-			fmt.Printf("error getting validator: %v", err)
+			k.Logger(ctx).Debug("GetKavaForDerivatives failed getting validator", "error", err.Error())
 			continue
 		}
 
