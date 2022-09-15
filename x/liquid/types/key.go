@@ -32,9 +32,15 @@ func ParseLiquidStakingTokenDenom(denom string) (sdk.ValAddress, error) {
 	if len(elements) != 2 {
 		return nil, fmt.Errorf("cannot parse denom %s", denom)
 	}
+
+	if elements[0] != DefaultDerivativeDenom {
+		return nil, fmt.Errorf("invalid denom prefix, expected %s, got %s", DefaultDerivativeDenom, elements[0])
+	}
+
 	addr, err := sdk.ValAddressFromBech32(elements[1])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid denom validator address: %w", err)
 	}
+
 	return addr, nil
 }
