@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -111,20 +113,18 @@ func (k Keeper) IsDerivativeDenom(ctx sdk.Context, denom string) bool {
 
 // GetKavaForDerivatives returns the total amount of the provided derivatives
 // in Kava accounting for the specific share prices.
-func (k Keeper) GetKavaForDerivatives(ctx sdk.Context, coins sdk.Coins) sdk.Int {
+func (k Keeper) GetKavaForDerivatives(ctx sdk.Context, coins sdk.Coins) (sdk.Int, error) {
 	totalKava := sdk.ZeroInt()
 
 	for _, coin := range coins {
 		valAddr, err := types.ParseLiquidStakingTokenDenom(coin.Denom)
 		if err != nil {
-			k.Logger(ctx).Debug("GetKavaForDerivatives failed parsing liquid staking token denom", "error", err.Error())
-			continue
+			return sdk.Int{}, fmt.Errorf("invalid derivative denom: %w", err)
 		}
 
 		validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 		if !found {
-			k.Logger(ctx).Debug("GetKavaForDerivatives failed getting validator", "validator", valAddr.String())
-			continue
+			return sdk.Int{}, fmt.Errorf("invalid derivative denom %s: validator not found", coin.Denom)
 		}
 
 		// bkava is 1:1 to delegation shares
@@ -132,7 +132,7 @@ func (k Keeper) GetKavaForDerivatives(ctx sdk.Context, coins sdk.Coins) sdk.Int 
 		totalKava = totalKava.Add(valTokens.TruncateInt())
 	}
 
-	return totalKava
+	return totalKava, nil
 }
 
 func (k Keeper) mintCoins(ctx sdk.Context, receiver sdk.AccAddress, amount sdk.Coins) error {

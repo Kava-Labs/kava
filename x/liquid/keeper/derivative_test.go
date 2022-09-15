@@ -414,6 +414,7 @@ func (suite *KeeperTestSuite) TestGetKavaForDerivatives() {
 		name           string
 		derivatives    sdk.Coins
 		wantKavaAmount sdk.Int
+		err            error
 	}{
 		{
 			name: "valid derivative denom",
@@ -444,15 +445,27 @@ func (suite *KeeperTestSuite) TestGetKavaForDerivatives() {
 			derivatives: sdk.NewCoins(
 				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr2), vestedBalance),
 			),
-			wantKavaAmount: sdk.ZeroInt(),
+			err: fmt.Errorf("invalid derivative denom %s: validator not found", suite.Keeper.GetLiquidStakingTokenDenom(valAddr2)),
+		},
+		{
+			name: "invalid - denom",
+			derivatives: sdk.NewCoins(
+				sdk.NewCoin("kava", vestedBalance),
+			),
+			err: fmt.Errorf("invalid derivative denom: cannot parse denom kava"),
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			kavaAmount := suite.Keeper.GetKavaForDerivatives(suite.Ctx, tc.derivatives)
+			kavaAmount, err := suite.Keeper.GetKavaForDerivatives(suite.Ctx, tc.derivatives)
 
-			suite.Require().Equal(tc.wantKavaAmount, kavaAmount)
+			if tc.err != nil {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NoError(err)
+				suite.Require().Equal(tc.wantKavaAmount, kavaAmount)
+			}
 		})
 	}
 }
