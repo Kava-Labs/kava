@@ -111,6 +111,8 @@ func (k Keeper) IsDerivativeDenom(ctx sdk.Context, denom string) bool {
 	return found
 }
 
+// GetKavaForDerivatives returns the total amount of the provided derivatives
+// in Kava accounting for the specific share prices.
 func (k Keeper) GetKavaForDerivatives(ctx sdk.Context, coins sdk.Coins) sdk.Int {
 	totalKava := sdk.ZeroInt()
 
