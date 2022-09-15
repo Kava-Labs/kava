@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -94,7 +93,7 @@ func getCmdBurnDerivative() *cobra.Command {
 				return err
 			}
 
-			valAddr, err := parseLiquidStakingTokenDenom(amount.Denom)
+			valAddr, err := types.ParseLiquidStakingTokenDenom(amount.Denom)
 			if err != nil {
 				return sdkerrors.Wrap(types.ErrInvalidDenom, err.Error())
 			}
@@ -106,17 +105,4 @@ func getCmdBurnDerivative() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
-}
-
-// parseLiquidStakingTokenDenom extracts a validator address from a derivative denom.
-func parseLiquidStakingTokenDenom(denom string) (sdk.ValAddress, error) {
-	elements := strings.Split(denom, types.DenomSeparator)
-	if len(elements) != 2 {
-		return nil, fmt.Errorf("cannot parse denom %s", denom)
-	}
-	addr, err := sdk.ValAddressFromBech32(elements[1])
-	if err != nil {
-		return nil, err
-	}
-	return addr, nil
 }
