@@ -589,6 +589,7 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 		&app.stakingKeeper,
+		&app.distrKeeper,
 	)
 	savingsKeeper := savingskeeper.NewKeeper(
 		appCodec,
