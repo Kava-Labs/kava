@@ -994,10 +994,11 @@ func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
 	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
 	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
+	liquidMaccAddr := app.accountKeeper.GetModuleAddress(liquidtypes.ModuleName)
 
 	for addr := range modAccAddrs {
 		// Set the kavadist and earn module account address as unblocked
-		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() {
+		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() || addr == liquidMaccAddr.String() {
 			modAccAddrs[addr] = false
 		}
 	}
