@@ -123,7 +123,7 @@ func (k Keeper) GetKavaForDerivatives(ctx sdk.Context, coins sdk.Coins) sdk.Int 
 
 		validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 		if !found {
-			k.Logger(ctx).Debug("GetKavaForDerivatives failed getting validator", "error", err.Error())
+			k.Logger(ctx).Debug("GetKavaForDerivatives failed getting validator", "validator", valAddr.String())
 			continue
 		}
 

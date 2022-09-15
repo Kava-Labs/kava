@@ -450,10 +450,7 @@ func (suite *KeeperTestSuite) TestGetKavaForDerivatives() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.T().Logf("derivatives: %s", tc.derivatives)
 			kavaAmount := suite.Keeper.GetKavaForDerivatives(suite.Ctx, tc.derivatives)
-
-			suite.T().Logf("derivative: %s,\t kavaAmount: %s", tc.derivatives, kavaAmount)
 
 			suite.Require().Equal(tc.wantKavaAmount, kavaAmount)
 		})
