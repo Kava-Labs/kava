@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -10,6 +11,8 @@ import (
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive/types"
+
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
 // AccumulateEarnRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
@@ -99,7 +102,7 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 
 	// Accumulate rewards for each bkava vault.
 	for _, bkavaDenom := range sortedBkavaVaultsDenoms {
-		k.accumulateEarnRewards(
+		k.accumulateBkavaEarnRewards(
 			ctx,
 			bkavaDenom,
 			rewardPeriod.Start,
@@ -111,6 +114,85 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 			),
 		)
 	}
+}
+
+func (k Keeper) accumulateBkavaEarnRewards(
+	ctx sdk.Context,
+	collateralType string,
+	periodStart time.Time,
+	periodEnd time.Time,
+	periodRewardsPerSecond sdk.DecCoins,
+) {
+	// Collect rewards to distribute // TODO separate from distribution?
+	stakingRewards := k.collectDerivativeStakingRewards(ctx, collateralType)
+
+	perSecondRewards := k.collectPerSecondRewards(
+		ctx,
+		collateralType,
+		periodStart,
+		periodEnd,
+		periodRewardsPerSecond,
+	)
+	rewards := stakingRewards.Add(perSecondRewards...)
+
+	// Distribute rewards by incrementing indexes
+	indexes, found := k.GetSavingsRewardIndexes(ctx, collateralType)
+	if !found {
+		indexes = types.RewardIndexes{}
+	}
+
+	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
+	var increment types.RewardIndexes
+	if totalSourceShares.GT(sdk.ZeroDec()) {
+		// leave as nil if no source shares
+		increment = types.NewRewardIndexesFromCoins(rewards).Quo(totalSourceShares)
+	}
+	updatedIndexes := indexes.Add(increment)
+
+	if len(updatedIndexes) > 0 {
+		// the store panics when setting empty or nil indexes
+		k.SetSavingsRewardIndexes(ctx, collateralType, updatedIndexes)
+	}
+}
+
+func (k Keeper) collectDerivativeStakingRewards(ctx sdk.Context, collateralType string) sdk.DecCoins {
+	// the store panics when setting empty or nil indexes
+	rewards, err := k.liquidKeeper.CollectStakingRewardsByDenom(ctx, collateralType, types.IncentiveMacc)
+	if err != nil {
+		if !errors.Is(err, distrtypes.ErrNoValidatorDistInfo) &&
+			!errors.Is(err, distrtypes.ErrEmptyDelegationDistInfo) {
+			panic(fmt.Sprintf("failed to collect staking rewards for %s: %s", collateralType, err))
+		}
+		// otherwise there's no validator or delegation yet
+		rewards = nil
+	}
+	return sdk.NewDecCoinsFromCoins(rewards...)
+}
+
+func (k Keeper) collectPerSecondRewards(
+	ctx sdk.Context,
+	collateralType string,
+	periodStart time.Time,
+	periodEnd time.Time,
+	periodRewardsPerSecond sdk.DecCoins,
+) sdk.DecCoins {
+	previousAccrualTime, found := k.GetSavingsRewardAccrualTime(ctx, collateralType)
+	if !found {
+		previousAccrualTime = ctx.BlockTime()
+	}
+
+	rewards, accumulatedTo := types.CalculatePerSecondRewards(
+		periodStart,
+		periodEnd,
+		periodRewardsPerSecond,
+		previousAccrualTime,
+		ctx.BlockTime(),
+	)
+
+	k.SetSavingsRewardAccrualTime(ctx, collateralType, accumulatedTo)
+
+	// Don't need to move funds as they're assumed to be in the IncentiveMacc module account already.
+	return rewards
 }
 
 func (k Keeper) accumulateEarnRewards(

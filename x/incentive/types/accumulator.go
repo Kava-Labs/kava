@@ -88,7 +88,7 @@ func (*Accumulator) calculateNewRewards(rewardsPerSecond sdk.DecCoins, totalSour
 		// So return an empty increment instead of one full of zeros.
 		return nil
 	}
-	increment := newRewardIndexesFromCoins(rewardsPerSecond)
+	increment := NewRewardIndexesFromCoins(rewardsPerSecond)
 	increment = increment.Mul(sdk.NewDec(durationSeconds)).Quo(totalSourceShares)
 	return increment
 }
@@ -109,11 +109,31 @@ func maxTime(t1, t2 time.Time) time.Time {
 	return t1
 }
 
-// newRewardIndexesFromCoins is a helper function to initialize a RewardIndexes slice with the values from a Coins slice.
-func newRewardIndexesFromCoins(coins sdk.DecCoins) RewardIndexes {
+// NewRewardIndexesFromCoins is a helper function to initialize a RewardIndexes slice with the values from a Coins slice.
+func NewRewardIndexesFromCoins(coins sdk.DecCoins) RewardIndexes {
 	var indexes RewardIndexes
 	for _, coin := range coins {
 		indexes = append(indexes, NewRewardIndex(coin.Denom, coin.Amount))
 	}
 	return indexes
+}
+
+func CalculatePerSecondRewards(
+	periodStart time.Time,
+	periodEnd time.Time,
+	periodRewardsPerSecond sdk.DecCoins,
+	previousTime, currentTime time.Time,
+) (sdk.DecCoins, time.Time) {
+	duration := (&Accumulator{}).getTimeElapsedWithinLimits(previousTime, currentTime, periodStart, periodEnd)
+
+	upTo := minTime(periodEnd, currentTime)
+
+	durationSeconds := int64(math.RoundToEven(duration.Seconds()))
+	if durationSeconds <= 0 {
+		// If the duration is zero, there will be no increment.
+		// So return an empty increment instead of one full of zeros.
+		return nil, upTo // TODO
+	}
+
+	return periodRewardsPerSecond.MulDec(sdk.NewDec(durationSeconds)), upTo
 }
