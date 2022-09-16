@@ -484,6 +484,14 @@ func (k *fakeLiquidKeeper) GetDerivativeSupply(ctx sdk.Context, denom string) sd
 	return supply
 }
 
+func (k *fakeLiquidKeeper) CollectStakingRewardsByDenom(
+	ctx sdk.Context,
+	derivativeDenom string,
+	destinationModAccount string,
+) (sdk.Coins, error) {
+	return sdk.NewCoins(), nil
+}
+
 // Assorted Testing Data
 
 // note: amino panics when encoding times ≥ the start of year 10000.
