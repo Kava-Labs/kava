@@ -135,6 +135,27 @@ func (k Keeper) GetKavaForDerivatives(ctx sdk.Context, coins sdk.Coins) (sdk.Int
 	return totalKava, nil
 }
 
+// GetTotalDerivativeSupply returns the total amount of derivative coins for
+// all validators.
+func (k Keeper) GetTotalDerivativeSupply(ctx sdk.Context) sdk.Int {
+	total := sdk.ZeroInt()
+
+	k.bankKeeper.IterateTotalSupply(ctx, func(c sdk.Coin) bool {
+		if k.IsDerivativeDenom(ctx, c.Denom) {
+			total = total.Add(c.Amount)
+		}
+
+		return false
+	})
+
+	return total
+}
+
+// GetDerivativeSupply returns the total amount minted of the provided derivative.
+func (k Keeper) GetDerivativeSupply(ctx sdk.Context, denom string) sdk.Int {
+	return k.bankKeeper.GetSupply(ctx, denom).Amount
+}
+
 func (k Keeper) mintCoins(ctx sdk.Context, receiver sdk.AccAddress, amount sdk.Coins) error {
 	if err := k.bankKeeper.MintCoins(ctx, types.ModuleAccountName, amount); err != nil {
 		return err
