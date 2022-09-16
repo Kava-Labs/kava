@@ -621,8 +621,7 @@ func NewApp(
 		app.stakingKeeper,
 		&swapKeeper,
 		&savingsKeeper,
-		// TODO: Liquid keeper
-		nil,
+		&app.liquidKeeper,
 		&earnKeeper,
 	)
 
