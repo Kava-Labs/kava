@@ -23,7 +23,7 @@ type StakingKeeper interface {
 }
 
 type LiquidKeeper interface {
-	TokenToDerivative(ctx sdk.Context, valAddr sdk.ValAddress, amount sdk.Int) (sdk.Coin, error)
+	DerivativeFromTokens(ctx sdk.Context, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Coin, error)
 	MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Coin, error)
 	BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Dec, error)
 }
