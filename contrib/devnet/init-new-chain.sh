@@ -2,7 +2,8 @@
 set -e
 
 validatorMnemonic="equip town gesture square tomorrow volume nephew minute witness beef rich gadget actress egg sing secret pole winter alarm law today check violin uncover"
-# kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+#        kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+# kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 
 faucetMnemonic="crash sort dwarf disease change advice attract clump avoid mobile clump right junior axis book fresh mask tube front require until face effort vault"
 # kava1adkm6svtzjsxxvg7g6rshg6kj9qwej8gwqadqd
@@ -92,5 +93,14 @@ jq '.app_state.evm.params.chain_config.merge_fork_block = null' $DATA/config/gen
 jq '.app_state.earn.params.allowed_vaults =  [
     {
         denom: "usdx",
-        vault_strategy: 1,
+        strategies: ["STRATEGY_TYPE_HARD"],
+    },
+    {
+        denom: "bkava",
+        strategies: ["STRATEGY_TYPE_SAVINGS"],
     }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+
+jq '.app_state.savings.params.supported_denoms = ["bkava-kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0"]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+
+
+$BINARY config broadcast-mode block

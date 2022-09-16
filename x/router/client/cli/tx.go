@@ -126,7 +126,7 @@ func getCmdWithdrawBurn() *cobra.Command {
 				return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 			}
 
-			amount, err := sdk.ParseCoinNormalized(args[0])
+			amount, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -159,7 +159,7 @@ func getCmdWithdrawBurnUndelegate() *cobra.Command {
 				return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 			}
 
-			amount, err := sdk.ParseCoinNormalized(args[0])
+			amount, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
