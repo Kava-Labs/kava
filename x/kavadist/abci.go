@@ -11,8 +11,4 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	if err != nil {
 		panic(err)
 	}
-	err = k.ApplyInfrastructureRewards(ctx)
-	if err != nil {
-		panic(err)
-	}
 }
