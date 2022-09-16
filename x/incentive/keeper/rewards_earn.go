@@ -3,8 +3,6 @@ package keeper
 import (
 	"errors"
 	"fmt"
-	"sort"
-	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,23 +11,35 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 )
 
 // AccumulateEarnRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
 func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-	if rewardPeriod.CollateralType == "bkava" {
-		k.accumulateEarnBkavaRewards(ctx, rewardPeriod)
+	previousAccrualTime, found := k.GetEarnRewardAccrualTime(ctx)
+	if !found {
+		previousAccrualTime = ctx.BlockTime()
+	}
+
+	// TODO: Use DefaultDerivativeDenom or a liquid keeper method to get it?
+	if rewardPeriod.CollateralType == liquidtypes.DefaultDerivativeDenom {
+		k.accumulateEarnBkavaRewards(ctx, previousAccrualTime, rewardPeriod)
 		return
 	}
 
 	k.accumulateEarnRewards(
 		ctx,
+		previousAccrualTime,
 		rewardPeriod.CollateralType,
 		rewardPeriod.Start,
 		rewardPeriod.End,
 		sdk.NewDecCoinsFromCoins(rewardPeriod.RewardsPerSecond...),
 	)
+
+	// Accrual time is always set to the current block time, even if the reward
+	// period has ended.
+	k.SetEarnRewardAccrualTime(ctx, ctx.BlockTime())
 }
 
 func GetProportionalRewardsPerSecond(
@@ -62,48 +72,33 @@ func GetProportionalRewardsPerSecond(
 
 // accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
 // *all* bkava vaults.
-func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-	// TODO: Get staking rewards and distribute
-
+func (k Keeper) accumulateEarnBkavaRewards(
+	ctx sdk.Context,
+	previousAccrualTime time.Time,
+	rewardPeriod types.MultiRewardPeriod,
+) {
 	// All bkava vault denoms
-	bkavaVaultsDenoms := make(map[string]bool)
+	var bkavaVaultsDenoms []string
 
 	// bkava vault denoms from earn records (non-empty vaults)
 	k.earnKeeper.IterateVaultRecords(ctx, func(record earntypes.VaultRecord) (stop bool) {
-		// TODO: Replace with single bkava denom check method from liquid
-		if strings.HasPrefix(record.TotalShares.Denom, "bkava-") {
-			bkavaVaultsDenoms[record.TotalShares.Denom] = true
+		if k.liquidKeeper.IsDerivativeDenom(ctx, record.TotalShares.Denom) {
+			bkavaVaultsDenoms = append(bkavaVaultsDenoms, record.TotalShares.Denom)
 		}
 
 		return false
 	})
 
-	// bkava vault denoms from past incentive indexes, may include vaults
-	// that were fully withdrawn.
-	k.IterateEarnRewardIndexes(ctx, func(vaultDenom string, indexes types.RewardIndexes) (stop bool) {
-		if strings.HasPrefix(vaultDenom, "bkava-") {
-			bkavaVaultsDenoms[vaultDenom] = true
-		}
-
-		return false
-	})
-
+	// Vaults that have accumulated rewards in indexes, but are empty in earn
+	// will not be included in accumulateBkavaEarnRewards. This is fine, as
+	// these indexes won't change.
 	totalBkavaSupply := k.liquidKeeper.GetTotalDerivativeSupply(ctx)
 
-	i := 0
-	sortedBkavaVaultsDenoms := make([]string, len(bkavaVaultsDenoms))
-	for vaultDenom := range bkavaVaultsDenoms {
-		sortedBkavaVaultsDenoms[i] = vaultDenom
-		i++
-	}
-
-	// Sort the vault denoms to ensure deterministic iteration order.
-	sort.Strings(sortedBkavaVaultsDenoms)
-
-	// Accumulate rewards for each bkava vault.
-	for _, bkavaDenom := range sortedBkavaVaultsDenoms {
+	// Accumulate rewards for each non-empty bkava vault.
+	for _, bkavaDenom := range bkavaVaultsDenoms {
 		k.accumulateBkavaEarnRewards(
 			ctx,
+			previousAccrualTime,
 			bkavaDenom,
 			rewardPeriod.Start,
 			rewardPeriod.End,
@@ -118,25 +113,27 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 
 func (k Keeper) accumulateBkavaEarnRewards(
 	ctx sdk.Context,
+	previousAccrualTime time.Time,
 	collateralType string,
 	periodStart time.Time,
 	periodEnd time.Time,
 	periodRewardsPerSecond sdk.DecCoins,
 ) {
-	// Collect rewards to distribute // TODO separate from distribution?
+	// Collect staking rewards for this validator
 	stakingRewards := k.collectDerivativeStakingRewards(ctx, collateralType)
 
-	perSecondRewards := k.collectPerSecondRewards(
-		ctx,
-		collateralType,
+	// Collect incentive rewards
+	perSecondRewards, _ := types.CalculatePerSecondRewards(
 		periodStart,
 		periodEnd,
 		periodRewardsPerSecond,
+		previousAccrualTime,
+		ctx.BlockTime(),
 	)
 	rewards := stakingRewards.Add(perSecondRewards...)
 
 	// Distribute rewards by incrementing indexes
-	indexes, found := k.GetSavingsRewardIndexes(ctx, collateralType)
+	indexes, found := k.GetEarnRewardIndexes(ctx, collateralType)
 	if !found {
 		indexes = types.RewardIndexes{}
 	}
@@ -151,7 +148,7 @@ func (k Keeper) accumulateBkavaEarnRewards(
 
 	if len(updatedIndexes) > 0 {
 		// the store panics when setting empty or nil indexes
-		k.SetSavingsRewardIndexes(ctx, collateralType, updatedIndexes)
+		k.SetEarnRewardIndexes(ctx, collateralType, updatedIndexes)
 	}
 }
 
@@ -169,44 +166,14 @@ func (k Keeper) collectDerivativeStakingRewards(ctx sdk.Context, collateralType 
 	return sdk.NewDecCoinsFromCoins(rewards...)
 }
 
-func (k Keeper) collectPerSecondRewards(
-	ctx sdk.Context,
-	collateralType string,
-	periodStart time.Time,
-	periodEnd time.Time,
-	periodRewardsPerSecond sdk.DecCoins,
-) sdk.DecCoins {
-	previousAccrualTime, found := k.GetSavingsRewardAccrualTime(ctx, collateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
-	}
-
-	rewards, accumulatedTo := types.CalculatePerSecondRewards(
-		periodStart,
-		periodEnd,
-		periodRewardsPerSecond,
-		previousAccrualTime,
-		ctx.BlockTime(),
-	)
-
-	k.SetSavingsRewardAccrualTime(ctx, collateralType, accumulatedTo)
-
-	// Don't need to move funds as they're assumed to be in the IncentiveMacc module account already.
-	return rewards
-}
-
 func (k Keeper) accumulateEarnRewards(
 	ctx sdk.Context,
+	previousAccrualTime time.Time,
 	collateralType string,
 	periodStart time.Time,
 	periodEnd time.Time,
 	periodRewardsPerSecond sdk.DecCoins,
 ) {
-	previousAccrualTime, found := k.GetEarnRewardAccrualTime(ctx, collateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
-	}
-
 	indexes, found := k.GetEarnRewardIndexes(ctx, collateralType)
 	if !found {
 		indexes = types.RewardIndexes{}
@@ -224,7 +191,6 @@ func (k Keeper) accumulateEarnRewards(
 		ctx.BlockTime(),
 	)
 
-	k.SetEarnRewardAccrualTime(ctx, collateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
 		k.SetEarnRewardIndexes(ctx, collateralType, acc.Indexes)

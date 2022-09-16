@@ -14,8 +14,8 @@ type AccumulateEarnRewardsTests struct {
 	unitTester
 }
 
-func (suite *AccumulateEarnRewardsTests) storedTimeEquals(vaultDenom string, expected time.Time) {
-	storedTime, found := suite.keeper.GetEarnRewardAccrualTime(suite.ctx, vaultDenom)
+func (suite *AccumulateEarnRewardsTests) storedTimeEquals(expected time.Time) {
+	storedTime, found := suite.keeper.GetEarnRewardAccrualTime(suite.ctx)
 	suite.Equal(found, expected != time.Time{}, "expected time is %v but time found = %v", expected, found)
 	if found {
 		suite.Equal(expected, storedTime)
@@ -60,7 +60,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 		},
 	})
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom, previousAccrualTime)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, previousAccrualTime)
 
 	newAccrualTime := previousAccrualTime.Add(1 * time.Hour)
 	suite.ctx = suite.ctx.WithBlockTime(newAccrualTime)
@@ -77,7 +77,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 
 	// check time and factors
 
-	suite.storedTimeEquals(vaultDenom, newAccrualTime)
+	suite.storedTimeEquals(newAccrualTime)
 	suite.storedIndexesEqual(vaultDenom, types.RewardIndexes{
 		{
 			CollateralType: "earn",
@@ -135,8 +135,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 
 	suite.storeGlobalEarnIndexes(globalIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom1, previousAccrualTime)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom2, previousAccrualTime)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, previousAccrualTime)
 
 	newAccrualTime := previousAccrualTime.Add(1 * time.Hour)
 	suite.ctx = suite.ctx.WithBlockTime(newAccrualTime)
@@ -151,9 +150,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	suite.keeper.AccumulateEarnRewards(suite.ctx, rewardPeriod)
 
 	// check time and factors
-
-	suite.storedTimeEquals(vaultDenom1, newAccrualTime)
-	suite.storedTimeEquals(vaultDenom2, newAccrualTime)
+	suite.storedTimeEquals(newAccrualTime)
 
 	// Each vault gets the same ukava per second, assuming shares prices are the same.
 	// The share amount determines how much is actually distributed to the vault.
@@ -224,8 +221,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 
 	suite.storeGlobalEarnIndexes(globalIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom1, previousAccrualTime)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom2, previousAccrualTime)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, previousAccrualTime)
 
 	newAccrualTime := previousAccrualTime.Add(1 * time.Hour)
 	suite.ctx = suite.ctx.WithBlockTime(newAccrualTime)
@@ -240,9 +236,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	suite.keeper.AccumulateEarnRewards(suite.ctx, rewardPeriod)
 
 	// check time and factors
-
-	suite.storedTimeEquals(vaultDenom1, newAccrualTime)
-	suite.storedTimeEquals(vaultDenom2, newAccrualTime)
+	suite.storedTimeEquals(newAccrualTime)
 
 	// Slightly increased rewards due to less bkava deposited
 	suite.storedIndexesEqual(vaultDenom1, types.RewardIndexes{
@@ -324,7 +318,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 	}
 	suite.storeGlobalEarnIndexes(previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom, previousAccrualTime)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, previousAccrualTime)
 
 	suite.ctx = suite.ctx.WithBlockTime(previousAccrualTime)
 
@@ -339,8 +333,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 	suite.keeper.AccumulateEarnRewards(suite.ctx, period)
 
 	// check time and factors
-
-	suite.storedTimeEquals(vaultDenom, previousAccrualTime)
+	suite.storedTimeEquals(previousAccrualTime)
 	expected, f := previousIndexes.Get(vaultDenom)
 	suite.True(f)
 	suite.storedIndexesEqual(vaultDenom, expected)
@@ -390,8 +383,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 	}
 	suite.storeGlobalEarnIndexes(previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom1, previousAccrualTime)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom2, previousAccrualTime)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, previousAccrualTime)
 
 	suite.ctx = suite.ctx.WithBlockTime(previousAccrualTime)
 
@@ -406,9 +398,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 	suite.keeper.AccumulateEarnRewards(suite.ctx, period)
 
 	// check time and factors
-
-	suite.storedTimeEquals(vaultDenom1, previousAccrualTime)
-	suite.storedTimeEquals(vaultDenom2, previousAccrualTime)
+	suite.storedTimeEquals(previousAccrualTime)
 
 	expected, f := previousIndexes.Get(vaultDenom1)
 	suite.True(f)
@@ -444,7 +434,7 @@ func (suite *AccumulateEarnRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 	}
 	suite.storeGlobalEarnIndexes(previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom, previousAccrualTime)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, previousAccrualTime)
 
 	firstAccrualTime := previousAccrualTime.Add(7 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
@@ -461,7 +451,7 @@ func (suite *AccumulateEarnRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 
 	// check time and factors
 
-	suite.storedTimeEquals(vaultDenom, firstAccrualTime)
+	suite.storedTimeEquals(firstAccrualTime)
 	expected, f := previousIndexes.Get(vaultDenom)
 	suite.True(f)
 	suite.storedIndexesEqual(vaultDenom, expected)
@@ -506,8 +496,7 @@ func (suite *AccumulateEarnRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 	}
 	suite.storeGlobalEarnIndexes(previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom1, previousAccrualTime)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom2, previousAccrualTime)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, previousAccrualTime)
 
 	firstAccrualTime := previousAccrualTime.Add(7 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
@@ -525,9 +514,7 @@ func (suite *AccumulateEarnRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 	suite.keeper.AccumulateEarnRewards(suite.ctx, period)
 
 	// check time and factors
-
-	suite.storedTimeEquals(vaultDenom1, firstAccrualTime)
-	suite.storedTimeEquals(vaultDenom2, firstAccrualTime)
+	suite.storedTimeEquals(firstAccrualTime)
 
 	expected, f := previousIndexes.Get(vaultDenom1)
 	suite.True(f)
@@ -559,7 +546,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 
 	// After the first accumulation only the current block time should be stored.
 	// The indexes will be empty as no time has passed since the previous block because it didn't exist.
-	suite.storedTimeEquals(vaultDenom, firstAccrualTime)
+	suite.storedTimeEquals(firstAccrualTime)
 	suite.storedIndexesEqual(vaultDenom, nil)
 
 	secondAccrualTime := firstAccrualTime.Add(10 * time.Second)
@@ -568,7 +555,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 	suite.keeper.AccumulateEarnRewards(suite.ctx, period)
 
 	// After the second accumulation both current block time and indexes should be stored.
-	suite.storedTimeEquals(vaultDenom, secondAccrualTime)
+	suite.storedTimeEquals(secondAccrualTime)
 	suite.storedIndexesEqual(vaultDenom, types.RewardIndexes{
 		{
 			CollateralType: "earn",
@@ -610,8 +597,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateAddedWhenStateDoesNotExist_bka
 
 	// After the first accumulation only the current block time should be stored.
 	// The indexes will be empty as no time has passed since the previous block because it didn't exist.
-	suite.storedTimeEquals(vaultDenom1, firstAccrualTime)
-	suite.storedTimeEquals(vaultDenom2, firstAccrualTime)
+	suite.storedTimeEquals(firstAccrualTime)
 
 	suite.storedIndexesEqual(vaultDenom1, nil)
 	suite.storedIndexesEqual(vaultDenom2, nil)
@@ -622,8 +608,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateAddedWhenStateDoesNotExist_bka
 	suite.keeper.AccumulateEarnRewards(suite.ctx, period)
 
 	// After the second accumulation both current block time and indexes should be stored.
-	suite.storedTimeEquals(vaultDenom1, secondAccrualTime)
-	suite.storedTimeEquals(vaultDenom2, secondAccrualTime)
+	suite.storedTimeEquals(secondAccrualTime)
 
 	expectedIndexes := types.RewardIndexes{
 		{
@@ -664,7 +649,7 @@ func (suite *AccumulateEarnRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 		suite.keeper.AccumulateEarnRewards(suite.ctx, period)
 	})
 
-	suite.storedTimeEquals(vaultDenom, accrualTime)
+	suite.storedTimeEquals(accrualTime)
 	suite.storedIndexesEqual(vaultDenom, nil)
 }
 
@@ -698,8 +683,7 @@ func (suite *AccumulateEarnRewardsTests) TestNoPanicWhenStateDoesNotExist_bkava(
 	})
 
 	// Times are not stored for vaults with no state
-	suite.storedTimeEquals(vaultDenom1, time.Time{})
-	suite.storedTimeEquals(vaultDenom2, time.Time{})
+	suite.storedTimeEquals(time.Time{})
 	suite.storedIndexesEqual(vaultDenom1, nil)
 	suite.storedIndexesEqual(vaultDenom2, nil)
 }
@@ -727,7 +711,7 @@ func (suite *AccumulateEarnRewardsTests) TestNoAccumulationWhenBeforeStartTime()
 	}
 	suite.storeGlobalEarnIndexes(previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom, previousAccrualTime)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, previousAccrualTime)
 
 	firstAccrualTime := previousAccrualTime.Add(10 * time.Second)
 
@@ -744,7 +728,7 @@ func (suite *AccumulateEarnRewardsTests) TestNoAccumulationWhenBeforeStartTime()
 	suite.keeper.AccumulateEarnRewards(suite.ctx, period)
 
 	// The accrual time should be updated, but the indexes unchanged
-	suite.storedTimeEquals(vaultDenom, firstAccrualTime)
+	suite.storedTimeEquals(firstAccrualTime)
 	expectedIndexes, f := previousIndexes.Get(vaultDenom)
 	suite.True(f)
 	suite.storedIndexesEqual(vaultDenom, expectedIndexes)
@@ -757,7 +741,7 @@ func (suite *AccumulateEarnRewardsTests) TestPanicWhenCurrentTimeLessThanPreviou
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
 
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, vaultDenom, previousAccrualTime)
+	suite.keeper.SetEarnRewardAccrualTime(suite.ctx, previousAccrualTime)
 
 	firstAccrualTime := time.Time{}
 
