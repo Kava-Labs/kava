@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/kava-labs/kava/x/router/client/cli"
 	"github.com/kava-labs/kava/x/router/keeper"
 	"github.com/kava-labs/kava/x/router/types"
 )
@@ -59,7 +60,7 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.S
 
 // GetTxCmd returns the root tx command for the module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the module.
