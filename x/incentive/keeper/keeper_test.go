@@ -482,10 +482,10 @@ func (suite *KeeperTestSuite) TestGetSetEarnRewardAccrualTimes() {
 		suite.Run(tc.name, func() {
 			suite.SetupApp()
 
-			_, found := suite.keeper.GetEarnRewardAccrualTime(suite.ctx)
+			_, found := suite.keeper.GetEarnRewardAccrualTime(suite.ctx, tc.vaultDenom)
 			suite.False(found)
 
-			setFunc := func() { suite.keeper.SetEarnRewardAccrualTime(suite.ctx, tc.accrualTime) }
+			setFunc := func() { suite.keeper.SetEarnRewardAccrualTime(suite.ctx, tc.vaultDenom, tc.accrualTime) }
 			if tc.panics {
 				suite.Panics(setFunc)
 				return
@@ -493,7 +493,7 @@ func (suite *KeeperTestSuite) TestGetSetEarnRewardAccrualTimes() {
 				suite.NotPanics(setFunc)
 			}
 
-			storedTime, found := suite.keeper.GetEarnRewardAccrualTime(suite.ctx)
+			storedTime, found := suite.keeper.GetEarnRewardAccrualTime(suite.ctx, tc.vaultDenom)
 			suite.True(found)
 			suite.Equal(tc.accrualTime, storedTime)
 		})
@@ -599,6 +599,24 @@ func (suite *KeeperTestSuite) TestIterateSwapRewardAccrualTimes() {
 
 	var actualAccrualTimes []accrualtime
 	suite.keeper.IterateSwapRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.Equal(expectedAccrualTimes, actualAccrualTimes)
+}
+
+func (suite *KeeperTestSuite) TestIterateEarnRewardAccrualTimes() {
+	suite.SetupApp()
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetEarnRewardAccrualTime(suite.ctx, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateEarnRewardAccrualTimes(suite.ctx, func(denom string, accrualTime time.Time) bool {
 		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
 		return false
 	})
