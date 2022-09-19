@@ -9,16 +9,12 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
+	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 )
 
 var _ govtypes.TallyHandler = TallyHandler{}
-
-type LiquidKeeper interface {
-	GetKavaForDerivatives(ctx sdk.Context, coins sdk.Coins) (sdk.Int, error)
-	IsDerivativeDenom(ctx sdk.Context, denom string) bool
-}
 
 // TallyHandler is the tally handler for kava
 type TallyHandler struct {
@@ -26,12 +22,15 @@ type TallyHandler struct {
 	stk stakingkeeper.Keeper
 	svk savingskeeper.Keeper
 	ek  earnkeeper.Keeper
-	lk  LiquidKeeper
+	lk  liquidkeeper.Keeper
 	bk  bankkeeper.Keeper
 }
 
 // NewTallyHandler creates a new tally handler.
-func NewTallyHandler(gk govkeeper.Keeper, stk stakingkeeper.Keeper, svk savingskeeper.Keeper, ek earnkeeper.Keeper, lk LiquidKeeper, bk bankkeeper.Keeper) TallyHandler {
+func NewTallyHandler(
+	gk govkeeper.Keeper, stk stakingkeeper.Keeper, svk savingskeeper.Keeper,
+	ek earnkeeper.Keeper, lk liquidkeeper.Keeper, bk bankkeeper.Keeper,
+) TallyHandler {
 	return TallyHandler{
 		gk:  gk,
 		stk: stk,
@@ -102,8 +101,6 @@ func (th TallyHandler) Tally(ctx sdk.Context, proposal types.Proposal) (passes b
 			return false
 		})
 
-		// q: does deletor shares include liquid shares? Yes i think
-
 		// get voter bkava and update total voting power and results
 		addrBkava := th.getAddrBkava(ctx, voter).toCoins()
 		for _, coin := range addrBkava {
@@ -122,8 +119,7 @@ func (th TallyHandler) Tally(ctx sdk.Context, proposal types.Proposal) (passes b
 			// votingPower = amount of ukava coin
 			votingPowerInt, err := th.lk.GetKavaForDerivatives(ctx, sdk.NewCoins(coin))
 			if err != nil {
-				// error is returned only if the bkava denom is incorrect,
-				// this should never happen.
+				// error is returned only if the bkava denom is incorrect, which should never happen.
 				panic(err)
 			}
 			votingPower := votingPowerInt.ToDec()
