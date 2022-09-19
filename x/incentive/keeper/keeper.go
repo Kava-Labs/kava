@@ -834,10 +834,10 @@ func (k Keeper) IterateEarnRewardIndexes(ctx sdk.Context, cb func(vaultDenom str
 	}
 }
 
-// GetEarnRewardAccrualTime fetches the last time rewards were accrued for **all** earn vaults.
-func (k Keeper) GetEarnRewardAccrualTime(ctx sdk.Context) (blockTime time.Time, found bool) {
+// GetEarnRewardAccrualTime fetches the last time rewards were accrued for an earn vault.
+func (k Keeper) GetEarnRewardAccrualTime(ctx sdk.Context, vaultDenom string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousEarnRewardAccrualTimeKeyPrefix)
-	b := store.Get(types.PreviousEarnRewardAccrualTimeKeyPrefix)
+	b := store.Get([]byte(vaultDenom))
 	if b == nil {
 		return time.Time{}, false
 	}
@@ -848,11 +848,27 @@ func (k Keeper) GetEarnRewardAccrualTime(ctx sdk.Context) (blockTime time.Time, 
 }
 
 // SetEarnRewardAccrualTime stores the last time rewards were accrued for a earn vault.
-func (k Keeper) SetEarnRewardAccrualTime(ctx sdk.Context, blockTime time.Time) {
+func (k Keeper) SetEarnRewardAccrualTime(ctx sdk.Context, vaultDenom string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousEarnRewardAccrualTimeKeyPrefix)
 	bz, err := blockTime.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
-	store.Set(types.PreviousEarnRewardAccrualTimeKeyPrefix, bz)
+	store.Set([]byte(vaultDenom), bz)
+}
+
+func (k Keeper) IterateEarnRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousEarnRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		poolID := string(iterator.Key())
+		var accrualTime time.Time
+		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
+			panic(err)
+		}
+		if cb(poolID, accrualTime) {
+			break
+		}
+	}
 }
