@@ -135,9 +135,7 @@ func InitGenesis(
 		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
 			panic(err.Error())
 		}
-		// There is only 1 item in EarnRewardState.AccumulationTimes
-		// with empty CollateralType
-		k.SetEarnRewardAccrualTime(ctx, gat.PreviousAccumulationTime)
+		k.SetEarnRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
 	for _, mri := range gs.EarnRewardState.MultiRewardIndexes {
 		k.SetEarnRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
@@ -280,10 +278,10 @@ func getSavingsGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.G
 
 func getEarnGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.GenesisRewardState {
 	var ats types.AccumulationTimes
-	accTime, found := keeper.GetEarnRewardAccrualTime(ctx)
-	if found {
-		ats = append(ats, types.NewAccumulationTime("", accTime))
-	}
+	keeper.IterateEarnRewardAccrualTimes(ctx, func(ctype string, accTime time.Time) bool {
+		ats = append(ats, types.NewAccumulationTime(ctype, accTime))
+		return false
+	})
 
 	var mris types.MultiRewardIndexes
 	keeper.IterateEarnRewardIndexes(ctx, func(ctype string, indexes types.RewardIndexes) bool {

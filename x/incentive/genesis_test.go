@@ -220,7 +220,7 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 		),
 		types.NewGenesisRewardState(
 			types.AccumulationTimes{
-				types.NewAccumulationTime("", genesisTime.Add(-3*time.Hour)),
+				types.NewAccumulationTime("usdx", genesisTime.Add(-3*time.Hour)),
 			},
 			types.MultiRewardIndexes{
 				types.NewMultiRewardIndex("usdx", types.RewardIndexes{{CollateralType: "usdx", RewardFactor: d("0.2")}}),
