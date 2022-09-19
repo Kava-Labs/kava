@@ -438,19 +438,26 @@ func (k *fakeEarnKeeper) IterateVaultRecords(
 // fakeLiquidKeeper is a stub liquid keeper.
 // It can be used to return values to the incentive keeper without having to initialize a full liquid keeper.
 type fakeLiquidKeeper struct {
-	derivatives map[string]sdk.Int
+	derivatives     map[string]sdk.Int
+	lastRewardClaim map[string]time.Time
 }
 
 var _ types.LiquidKeeper = newFakeLiquidKeeper()
 
 func newFakeLiquidKeeper() *fakeLiquidKeeper {
 	return &fakeLiquidKeeper{
-		derivatives: map[string]sdk.Int{},
+		derivatives:     map[string]sdk.Int{},
+		lastRewardClaim: map[string]time.Time{},
 	}
 }
 
-func (k *fakeLiquidKeeper) addDerivative(denom string, supply sdk.Int) *fakeLiquidKeeper {
+func (k *fakeLiquidKeeper) addDerivative(
+	ctx sdk.Context,
+	denom string,
+	supply sdk.Int,
+) *fakeLiquidKeeper {
 	k.derivatives[denom] = supply
+	k.lastRewardClaim[denom] = ctx.BlockTime()
 	return k
 }
 
@@ -489,7 +496,33 @@ func (k *fakeLiquidKeeper) CollectStakingRewardsByDenom(
 	derivativeDenom string,
 	destinationModAccount string,
 ) (sdk.Coins, error) {
-	return sdk.NewCoins(), nil
+	amt := k.getRewardAmount(ctx, derivativeDenom)
+
+	return sdk.NewCoins(sdk.NewCoin("ukava", amt)), nil
+}
+
+func (k *fakeLiquidKeeper) getRewardAmount(
+	ctx sdk.Context,
+	derivativeDenom string,
+) sdk.Int {
+	amt, found := k.derivatives[derivativeDenom]
+	if !found {
+		// No error
+		return sdk.ZeroInt()
+	}
+
+	lastRewardClaim, found := k.lastRewardClaim[derivativeDenom]
+	if !found {
+		panic("last reward claim not found")
+	}
+
+	duration := int64(ctx.BlockTime().Sub(lastRewardClaim).Seconds())
+	if duration <= 0 {
+		return sdk.ZeroInt()
+	}
+
+	// Reward amount just set to 10% of the derivative supply per second
+	return amt.QuoRaw(10).MulRaw(duration)
 }
 
 // Assorted Testing Data

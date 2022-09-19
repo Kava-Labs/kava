@@ -119,10 +119,12 @@ func (k Keeper) accumulateBkavaEarnRewards(
 	periodEnd time.Time,
 	periodRewardsPerSecond sdk.DecCoins,
 ) {
-	// Collect staking rewards for this validator
+	// Collect staking rewards for this validator, does not have any start/end
+	// period time restrictions.
 	stakingRewards := k.collectDerivativeStakingRewards(ctx, collateralType)
 
 	// Collect incentive rewards
+	// **Total rewards** for vault per second, NOT per share
 	perSecondRewards := k.collectPerSecondRewards(
 		ctx,
 		collateralType,
@@ -130,6 +132,8 @@ func (k Keeper) accumulateBkavaEarnRewards(
 		periodEnd,
 		periodRewardsPerSecond,
 	)
+
+	// **Total rewards** for vault per second, NOT per share
 	rewards := stakingRewards.Add(perSecondRewards...)
 
 	// Distribute rewards by incrementing indexes
@@ -141,7 +145,8 @@ func (k Keeper) accumulateBkavaEarnRewards(
 	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
 	var increment types.RewardIndexes
 	if totalSourceShares.GT(sdk.ZeroDec()) {
-		// leave as nil if no source shares
+		// Divide total rewards by total shares to get the reward **per share**
+		// Leave as nil if no source shares
 		increment = types.NewRewardIndexesFromCoins(rewards).Quo(totalSourceShares)
 	}
 	updatedIndexes := indexes.Add(increment)
@@ -153,13 +158,13 @@ func (k Keeper) accumulateBkavaEarnRewards(
 }
 
 func (k Keeper) collectDerivativeStakingRewards(ctx sdk.Context, collateralType string) sdk.DecCoins {
-	// the store panics when setting empty or nil indexes
 	rewards, err := k.liquidKeeper.CollectStakingRewardsByDenom(ctx, collateralType, types.IncentiveMacc)
 	if err != nil {
 		if !errors.Is(err, distrtypes.ErrNoValidatorDistInfo) &&
 			!errors.Is(err, distrtypes.ErrEmptyDelegationDistInfo) {
 			panic(fmt.Sprintf("failed to collect staking rewards for %s: %s", collateralType, err))
 		}
+
 		// otherwise there's no validator or delegation yet
 		rewards = nil
 	}
