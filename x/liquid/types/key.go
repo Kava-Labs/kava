@@ -28,7 +28,7 @@ func GetLiquidStakingTokenDenom(bondDenom string, valAddr sdk.ValAddress) string
 
 // ParseLiquidStakingTokenDenom extracts a validator address from a derivative denom.
 func ParseLiquidStakingTokenDenom(denom string) (sdk.ValAddress, error) {
-	elements := strings.Split(denom, "-")
+	elements := strings.Split(denom, DenomSeparator)
 	if len(elements) != 2 {
 		return nil, fmt.Errorf("cannot parse denom %s", denom)
 	}
