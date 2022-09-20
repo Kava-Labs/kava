@@ -615,6 +615,7 @@ func NewApp(
 		earnSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
+		app.liquidKeeper,
 		&hardKeeper,
 		&savingsKeeper,
 	)

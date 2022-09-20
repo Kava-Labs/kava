@@ -379,7 +379,7 @@ func (suite *KeeperTestSuite) TestIsDerivativeDenom() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetKavaForDerivatives() {
+func (suite *KeeperTestSuite) TestGetStakedTokensForDerivatives() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	valAccAddr1, delegator, valAccAddr2, valAccAddr3 := addrs[0], addrs[1], addrs[2], addrs[3]
 	valAddr1 := sdk.ValAddress(valAccAddr1)
@@ -458,13 +458,13 @@ func (suite *KeeperTestSuite) TestGetKavaForDerivatives() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			kavaAmount, err := suite.Keeper.GetKavaForDerivatives(suite.Ctx, tc.derivatives)
+			kavaAmount, err := suite.Keeper.GetStakedTokensForDerivatives(suite.Ctx, tc.derivatives)
 
 			if tc.err != nil {
 				suite.Require().Error(err)
 			} else {
 				suite.Require().NoError(err)
-				suite.Require().Equal(tc.wantKavaAmount, kavaAmount)
+				suite.Require().Equal(suite.NewBondCoin(tc.wantKavaAmount), kavaAmount)
 			}
 		})
 	}

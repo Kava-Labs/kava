@@ -25,6 +25,11 @@ type BankKeeper interface {
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 }
 
+// LiquidKeeper defines the expected interface needed for derivative to staked token conversions.
+type LiquidKeeper interface {
+	GetStakedTokensForDerivatives(ctx sdk.Context, derivatives sdk.Coins) (sdk.Coin, error)
+}
+
 // HardKeeper defines the expected interface needed for the hard strategy.
 type HardKeeper interface {
 	Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error
