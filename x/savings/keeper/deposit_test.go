@@ -1,9 +1,12 @@
 package keeper_test
 
 import (
+	"fmt"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/tendermint/tendermint/crypto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -13,6 +16,14 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestDeposit() {
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+	valAccAddr, delegator := addrs[0], addrs[1]
+
+	valAddr := sdk.ValAddress(valAccAddr)
+	initialBalance := sdk.NewInt(1e9)
+
+	bkavaDenom := fmt.Sprintf("bkava-%s", valAddr.String())
+
 	type args struct {
 		allowedDenoms             []string
 		depositor                 sdk.AccAddress
@@ -72,12 +83,12 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			args{
 				allowedDenoms:             []string{"bnb", "btcb", "ukava", "bkava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bkava-kavavaloper1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkvr4tha", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				depositAmount:             sdk.NewCoins(sdk.NewCoin("bkava-kavavaloper1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkvr4tha", sdk.NewInt(100))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(100))),
 				numberDeposits:            1,
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bkava-kavavaloper1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkvr4tha", sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bkava-kavavaloper1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkvr4tha", sdk.NewInt(100))),
-				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin("bkava-kavavaloper1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkvr4tha", sdk.NewInt(100))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(100))),
+				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(100))),
 			},
 			errArgs{
 				expectPass: true,
@@ -136,13 +147,25 @@ func (suite *KeeperTestSuite) TestDeposit() {
 				types.Deposits{},
 			)
 
+			stakingParams := stakingtypes.DefaultParams()
+			stakingParams.BondDenom = "ukava"
+
 			tApp.InitializeFromGenesisStates(authGS,
 				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&savingsGS)},
+				app.GenesisState{stakingtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(stakingtypes.NewGenesisState(stakingParams, nil, nil))},
 			)
 			keeper := tApp.GetSavingsKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
+
+			// Create validator and delegate for bkava
+			suite.CreateAccountWithAddress(valAccAddr, cs(c("ukava", 100e10)))
+			suite.CreateAccountWithAddress(delegator, cs(c("ukava", 100e10)))
+
+			suite.CreateNewUnbondedValidator(valAddr, initialBalance)
+			suite.CreateDelegation(valAddr, delegator, initialBalance)
+			staking.EndBlocker(suite.ctx, suite.app.GetStakingKeeper())
 
 			// run the test
 			var err error
