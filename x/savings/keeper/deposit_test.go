@@ -23,6 +23,10 @@ func (suite *KeeperTestSuite) TestDeposit() {
 	initialBalance := sdk.NewInt(1e9)
 
 	bkavaDenom := fmt.Sprintf("bkava-%s", valAddr.String())
+	invalidBkavaDenom := fmt.Sprintf("bkava-%s", sdk.ValAddress(addrs[2]).String())
+
+	suite.T().Logf("bkavaDenom: %s", bkavaDenom)
+	suite.T().Logf("invalidBkavaDenom: %s", invalidBkavaDenom)
 
 	type args struct {
 		allowedDenoms             []string
@@ -102,6 +106,23 @@ func (suite *KeeperTestSuite) TestDeposit() {
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				depositAmount:             sdk.NewCoins(sdk.NewCoin("fake", sdk.NewInt(100))),
+				numberDeposits:            1,
+				expectedAccountBalance:    sdk.Coins{},
+				expectedModAccountBalance: sdk.Coins{},
+				expectedDepositCoins:      sdk.Coins{},
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "invalid deposit denom",
+			},
+		},
+		{
+			"invalid bkava",
+			args{
+				allowedDenoms:             []string{"bnb", "btcb", "ukava", "bkava"},
+				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin(invalidBkavaDenom, sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin(invalidBkavaDenom, sdk.NewInt(100))),
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
