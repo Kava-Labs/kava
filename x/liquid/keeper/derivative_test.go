@@ -315,6 +315,161 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestIsDerivativeDenom() {
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+	valAccAddr1, delegator, valAccAddr2 := addrs[0], addrs[1], addrs[2]
+	valAddr1 := sdk.ValAddress(valAccAddr1)
+
+	// Validator addr that has **not** delegated anything
+	valAddr2 := sdk.ValAddress(valAccAddr2)
+
+	initialBalance := i(1e9)
+	vestedBalance := i(500e6)
+
+	suite.CreateAccountWithAddress(valAccAddr1, suite.NewBondCoins(initialBalance))
+	suite.CreateVestingAccountWithAddress(delegator, suite.NewBondCoins(initialBalance), suite.NewBondCoins(vestedBalance))
+
+	suite.CreateNewUnbondedValidator(valAddr1, initialBalance)
+	suite.CreateDelegation(valAddr1, delegator, initialBalance)
+	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+
+	testCases := []struct {
+		name        string
+		denom       string
+		wantIsDenom bool
+	}{
+		{
+			name:        "valid derivative denom",
+			denom:       suite.Keeper.GetLiquidStakingTokenDenom(valAddr1),
+			wantIsDenom: true,
+		},
+		{
+			name:        "invalid - undelegated validator addr",
+			denom:       suite.Keeper.GetLiquidStakingTokenDenom(valAddr2),
+			wantIsDenom: false,
+		},
+		{
+			name:        "invalid - invalid val addr",
+			denom:       "bkava-asdfasdf",
+			wantIsDenom: false,
+		},
+		{
+			name:        "invalid - ukava",
+			denom:       "ukava",
+			wantIsDenom: false,
+		},
+		{
+			name:        "invalid - plain bkava",
+			denom:       "bkava",
+			wantIsDenom: false,
+		},
+		{
+			name:        "invalid - bkava prefix",
+			denom:       "bkava-",
+			wantIsDenom: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			isDenom := suite.Keeper.IsDerivativeDenom(suite.Ctx, tc.denom)
+
+			suite.Require().Equal(tc.wantIsDenom, isDenom)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetStakedTokensForDerivatives() {
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+	valAccAddr1, delegator, valAccAddr2, valAccAddr3 := addrs[0], addrs[1], addrs[2], addrs[3]
+	valAddr1 := sdk.ValAddress(valAccAddr1)
+
+	// Validator addr that has **not** delegated anything
+	valAddr2 := sdk.ValAddress(valAccAddr2)
+
+	valAddr3 := sdk.ValAddress(valAccAddr3)
+
+	initialBalance := i(1e9)
+	vestedBalance := i(500e6)
+	delegateAmount := i(100e6)
+
+	suite.CreateAccountWithAddress(valAccAddr1, suite.NewBondCoins(initialBalance))
+	suite.CreateVestingAccountWithAddress(delegator, suite.NewBondCoins(initialBalance), suite.NewBondCoins(vestedBalance))
+
+	suite.CreateNewUnbondedValidator(valAddr1, initialBalance)
+	suite.CreateDelegation(valAddr1, delegator, delegateAmount)
+
+	suite.CreateAccountWithAddress(valAccAddr3, suite.NewBondCoins(initialBalance))
+
+	suite.CreateNewUnbondedValidator(valAddr3, initialBalance)
+	suite.CreateDelegation(valAddr3, delegator, delegateAmount)
+	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+
+	suite.SlashValidator(valAddr3, d("0.05"))
+
+	_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
+	suite.Require().NoError(err)
+
+	testCases := []struct {
+		name           string
+		derivatives    sdk.Coins
+		wantKavaAmount sdk.Int
+		err            error
+	}{
+		{
+			name: "valid derivative denom",
+			derivatives: sdk.NewCoins(
+				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr1), vestedBalance),
+			),
+			wantKavaAmount: vestedBalance,
+		},
+		{
+			name: "valid - slashed validator",
+			derivatives: sdk.NewCoins(
+				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr3), vestedBalance),
+			),
+			// vestedBalance * 95%
+			wantKavaAmount: vestedBalance.Mul(sdk.NewInt(95)).Quo(sdk.NewInt(100)),
+		},
+		{
+			name: "valid - sum",
+			derivatives: sdk.NewCoins(
+				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr3), vestedBalance),
+				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr1), vestedBalance),
+			),
+			// vestedBalance + (vestedBalance * 95%)
+			wantKavaAmount: vestedBalance.Mul(sdk.NewInt(95)).Quo(sdk.NewInt(100)).Add(vestedBalance),
+		},
+		{
+			name: "invalid - undelegated validator address denom",
+			derivatives: sdk.NewCoins(
+				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr2), vestedBalance),
+			),
+			err: fmt.Errorf("invalid derivative denom %s: validator not found", suite.Keeper.GetLiquidStakingTokenDenom(valAddr2)),
+		},
+		{
+			name: "invalid - denom",
+			derivatives: sdk.NewCoins(
+				sdk.NewCoin("kava", vestedBalance),
+			),
+			err: fmt.Errorf("invalid derivative denom: cannot parse denom kava"),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			kavaAmount, err := suite.Keeper.GetStakedTokensForDerivatives(suite.Ctx, tc.derivatives)
+
+			if tc.err != nil {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NoError(err)
+				suite.Require().Equal(suite.NewBondCoin(tc.wantKavaAmount), kavaAmount)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestDerivativeFromTokens() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	valAccAddr := addrs[0]
