@@ -111,28 +111,29 @@ func (k Keeper) IsDerivativeDenom(ctx sdk.Context, denom string) bool {
 	return found
 }
 
-// GetKavaForDerivatives returns the total amount of the provided derivatives
-// in Kava accounting for the specific share prices.
-func (k Keeper) GetKavaForDerivatives(ctx sdk.Context, coins sdk.Coins) (sdk.Int, error) {
-	totalKava := sdk.ZeroInt()
+// GetStakedTokensForDerivatives returns the total value of the provided derivatives
+// in staked tokens, accounting for the specific share prices.
+func (k Keeper) GetStakedTokensForDerivatives(ctx sdk.Context, coins sdk.Coins) (sdk.Coin, error) {
+	total := sdk.ZeroInt()
 
 	for _, coin := range coins {
 		valAddr, err := types.ParseLiquidStakingTokenDenom(coin.Denom)
 		if err != nil {
-			return sdk.Int{}, fmt.Errorf("invalid derivative denom: %w", err)
+			return sdk.Coin{}, fmt.Errorf("invalid derivative denom: %w", err)
 		}
 
 		validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 		if !found {
-			return sdk.Int{}, fmt.Errorf("invalid derivative denom %s: validator not found", coin.Denom)
+			return sdk.Coin{}, fmt.Errorf("invalid derivative denom %s: validator not found", coin.Denom)
 		}
 
 		// bkava is 1:1 to delegation shares
 		valTokens := validator.TokensFromSharesTruncated(coin.Amount.ToDec())
-		totalKava = totalKava.Add(valTokens.TruncateInt())
+		total = total.Add(valTokens.TruncateInt())
 	}
 
-	return totalKava, nil
+	totalCoin := sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), total)
+	return totalCoin, nil
 }
 
 func (k Keeper) mintCoins(ctx sdk.Context, receiver sdk.AccAddress, amount sdk.Coins) error {

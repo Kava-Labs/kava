@@ -217,7 +217,7 @@ func (s queryServer) getAggregateBkavaVault(
 		return nil, iterErr
 	}
 
-	vaultValue, err := s.keeper.liquidKeeper.GetKavaForDerivatives(ctx, allBkava)
+	vaultValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(ctx, allBkava)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func (s queryServer) getAggregateBkavaVault(
 			AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
 			// Empty for shares, as adding up all shares is not useful information
 			TotalShares: "0",
-			TotalValue:  vaultValue,
+			TotalValue:  vaultValue.Amount,
 		},
 	}, nil
 }
