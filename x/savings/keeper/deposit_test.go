@@ -68,6 +68,23 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			},
 		},
 		{
+			"valid bkava",
+			args{
+				allowedDenoms:             []string{"bnb", "btcb", "ukava", "bkava"},
+				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bkava-kavavaloper1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkvr4tha", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bkava-kavavaloper1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkvr4tha", sdk.NewInt(100))),
+				numberDeposits:            1,
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bkava-kavavaloper1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkvr4tha", sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bkava-kavavaloper1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkvr4tha", sdk.NewInt(100))),
+				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin("bkava-kavavaloper1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkvr4tha", sdk.NewInt(100))),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
 			"invalid deposit denom",
 			args{
 				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
