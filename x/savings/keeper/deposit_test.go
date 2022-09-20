@@ -25,9 +25,6 @@ func (suite *KeeperTestSuite) TestDeposit() {
 	bkavaDenom := fmt.Sprintf("bkava-%s", valAddr.String())
 	invalidBkavaDenom := fmt.Sprintf("bkava-%s", sdk.ValAddress(addrs[2]).String())
 
-	suite.T().Logf("bkavaDenom: %s", bkavaDenom)
-	suite.T().Logf("invalidBkavaDenom: %s", invalidBkavaDenom)
-
 	type args struct {
 		allowedDenoms             []string
 		depositor                 sdk.AccAddress
