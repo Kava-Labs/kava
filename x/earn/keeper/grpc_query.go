@@ -343,8 +343,11 @@ func (s queryServer) getOneAccountBkavaVaultDeposit(
 		return nil, err
 	}
 
-	// Use account value with only the aggregate bkava
-	bkavaValue := getTotalBkava(totalAccountValue)
+	// Use account value with only the aggregate bkava converted to underlying staked tokens
+	stakedValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(ctx, totalAccountValue)
+	if err != nil {
+		return nil, err
+	}
 
 	return &types.QueryDepositsResponse{
 		Deposits: []types.DepositResponse{
@@ -354,7 +357,7 @@ func (s queryServer) getOneAccountBkavaVaultDeposit(
 				Shares: types.NewVaultShares(
 					types.NewVaultShare(req.Denom, shareRecord.Shares.AmountOf(req.Denom)),
 				),
-				Value: sdk.NewCoins(bkavaValue),
+				Value: sdk.NewCoins(stakedValue),
 			},
 		},
 		Pagination: nil,
@@ -427,16 +430,4 @@ func addressSliceToStringSlice(addresses []sdk.AccAddress) []string {
 	}
 
 	return strings
-}
-
-func getTotalBkava(coins sdk.Coins) sdk.Coin {
-	bkavaTotal := sdk.NewCoin("bkava", sdk.ZeroInt())
-
-	for _, coin := range coins {
-		if strings.HasPrefix(coin.Denom, "bkava") {
-			bkavaTotal = bkavaTotal.AddAmount(coin.Amount)
-		}
-	}
-
-	return bkavaTotal
 }
