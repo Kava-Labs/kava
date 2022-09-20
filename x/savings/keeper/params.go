@@ -33,5 +33,6 @@ func (k Keeper) IsDenomSupported(ctx sdk.Context, denom string) bool {
 			}
 		}
 	}
+
 	return false
 }
