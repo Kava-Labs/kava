@@ -29,7 +29,7 @@ import (
 )
 
 var TestBkavaDenoms = []string{
-	"bkava-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l",
+	"bkava-kavavaloper15gqc744d05xacn4n6w2furuads9fu4pqn6zxlu",
 	"bkava-kavavaloper15qdefkmwswysgg4qxgqpqr35k3m49pkx8yhpte",
 	"bkava-kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42",
 }

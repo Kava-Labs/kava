@@ -193,7 +193,7 @@ func (s queryServer) getAggregateBkavaVault(
 	ctx sdk.Context,
 	allowedVault types.AllowedVault,
 ) (*types.QueryVaultResponse, error) {
-	totalValue := sdk.NewInt(0)
+	allBkava := sdk.NewCoins()
 
 	var iterErr error
 	s.keeper.IterateVaultRecords(ctx, func(record types.VaultRecord) (stop bool) {
@@ -208,13 +208,18 @@ func (s queryServer) getAggregateBkavaVault(
 			return false
 		}
 
-		totalValue = totalValue.Add(vaultValue.Amount)
+		allBkava = allBkava.Add(vaultValue)
 
 		return false
 	})
 
 	if iterErr != nil {
 		return nil, iterErr
+	}
+
+	vaultValue, err := s.keeper.liquidKeeper.GetKavaForDerivatives(ctx, allBkava)
+	if err != nil {
+		return nil, err
 	}
 
 	return &types.QueryVaultResponse{
@@ -225,7 +230,7 @@ func (s queryServer) getAggregateBkavaVault(
 			AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
 			// Empty for shares, as adding up all shares is not useful information
 			TotalShares: "0",
-			TotalValue:  totalValue,
+			TotalValue:  vaultValue,
 		},
 	}, nil
 }

@@ -5,14 +5,19 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/testutil"
 	"github.com/kava-labs/kava/x/earn/types"
-	"github.com/stretchr/testify/suite"
+	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 )
 
 type grpcQueryTestSuite struct {
@@ -479,15 +484,14 @@ func (suite *grpcQueryTestSuite) TestVault_bKava() {
 func (suite *grpcQueryTestSuite) TestVault_AggregateBkava() {
 	vaultDenom := "bkava"
 
-	depositAmount1 := sdk.NewInt64Coin(testutil.TestBkavaDenoms[0], 100)
-	depositAmount2 := sdk.NewInt64Coin(testutil.TestBkavaDenoms[1], 200)
-	depositAmount3 := sdk.NewInt64Coin(testutil.TestBkavaDenoms[2], 400)
-
-	acc1 := suite.CreateAccount(sdk.NewCoins(
-		sdk.NewInt64Coin(testutil.TestBkavaDenoms[0], 1000),
-		sdk.NewInt64Coin(testutil.TestBkavaDenoms[1], 1000),
-		sdk.NewInt64Coin(testutil.TestBkavaDenoms[2], 1000),
-	), 0)
+	address1, derivatives1, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[0], sdk.NewInt(1e9))
+	address2, derivatives2, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[1], sdk.NewInt(1e9))
+	address3, derivatives3, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[2], sdk.NewInt(1e9))
+	// Slash the last validator to reduce the value of it's derivatives to test bkava to underlying token conversion.
+	// First call end block to bond validator to enable slashing.
+	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
+	err := suite.slashValidator(sdk.ValAddress(address3), sdk.MustNewDecFromStr("0.5"))
+	suite.Require().NoError(err)
 
 	// vault denom is only "bkava" which has it's own special handler
 	suite.CreateVault(
@@ -497,13 +501,13 @@ func (suite *grpcQueryTestSuite) TestVault_AggregateBkava() {
 		[]sdk.AccAddress{},
 	)
 
-	err := suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount1, types.STRATEGY_TYPE_SAVINGS)
+	err = suite.Keeper.Deposit(suite.Ctx, address1, derivatives1, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
-	err = suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount2, types.STRATEGY_TYPE_SAVINGS)
+	err = suite.Keeper.Deposit(suite.Ctx, address2, derivatives2, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
-	err = suite.Keeper.Deposit(suite.Ctx, acc1.GetAddress(), depositAmount3, types.STRATEGY_TYPE_SAVINGS)
+	err = suite.Keeper.Deposit(suite.Ctx, address3, derivatives3, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	// Query "bkava" to get aggregate amount
@@ -512,6 +516,10 @@ func (suite *grpcQueryTestSuite) TestVault_AggregateBkava() {
 		types.NewQueryVaultRequest(vaultDenom),
 	)
 	suite.Require().NoError(err)
+	// first two validators are not slashed, so bkava units equal to underlying staked tokens
+	expectedValue := derivatives1.Amount.Add(derivatives2.Amount)
+	// last validator slashed 50% so derivatives are worth half
+	expectedValue = expectedValue.Add(derivatives2.Amount.QuoRaw(2))
 	suite.Require().Equal(
 		types.VaultResponse{
 			Denom: vaultDenom,
@@ -522,8 +530,82 @@ func (suite *grpcQueryTestSuite) TestVault_AggregateBkava() {
 			AllowedDepositors: []string(nil),
 			// No shares for aggregate
 			TotalShares: "0",
-			TotalValue:  depositAmount1.Amount.Add(depositAmount2.Amount).Add(depositAmount3.Amount),
+			TotalValue:  expectedValue,
 		},
 		res.Vault,
 	)
+}
+
+// createUnbondedValidator creates an unbonded validator with the given amount of self-delegation.
+func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress, selfDelegation sdk.Coin, minSelfDelegation sdk.Int) error {
+	msg, err := stakingtypes.NewMsgCreateValidator(
+		address,
+		ed25519.GenPrivKey().PubKey(),
+		selfDelegation,
+		stakingtypes.Description{},
+		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		minSelfDelegation,
+	)
+	if err != nil {
+		return err
+	}
+
+	msgServer := stakingkeeper.NewMsgServerImpl(suite.App.GetStakingKeeper())
+	_, err = msgServer.CreateValidator(sdk.WrapSDKContext(suite.Ctx), msg)
+	return err
+}
+
+// createAccountWithDerivatives creates an account with the given amount and denom of derivative token.
+// Internally, it creates a validator account and mints derivatives from the validator's self delegation.
+func (suite *grpcQueryTestSuite) createAccountWithDerivatives(denom string, amount sdk.Int) (sdk.AccAddress, sdk.Coin, sdk.Coins) {
+	valAddress, err := liquidtypes.ParseLiquidStakingTokenDenom(denom)
+	suite.Require().NoError(err)
+	address := sdk.AccAddress(valAddress)
+
+	remainingSelfDelegation := sdk.NewInt(1e6)
+	selfDelegation := sdk.NewCoin(
+		suite.bondDenom(),
+		amount.Add(remainingSelfDelegation),
+	)
+
+	suite.NewAccountFromAddr(address, sdk.NewCoins(selfDelegation))
+
+	err = suite.createUnbondedValidator(valAddress, selfDelegation, remainingSelfDelegation)
+	suite.Require().NoError(err)
+
+	toConvert := sdk.NewCoin(suite.bondDenom(), amount)
+	derivatives, err := suite.App.GetLiquidKeeper().MintDerivative(suite.Ctx,
+		address,
+		valAddress,
+		toConvert,
+	)
+	suite.Require().NoError(err)
+
+	fullBalance := suite.BankKeeper.GetAllBalances(suite.Ctx, address)
+
+	return address, derivatives, fullBalance
+}
+
+// slashValidator slashes the validator with the given address by the given percentage.
+func (suite *grpcQueryTestSuite) slashValidator(address sdk.ValAddress, slashFraction sdk.Dec) error {
+	stakingKeeper := suite.App.GetStakingKeeper()
+
+	validator, found := stakingKeeper.GetValidator(suite.Ctx, address)
+	suite.Require().True(found)
+	consAddr, err := validator.GetConsAddr()
+	suite.Require().NoError(err)
+
+	// Assume infraction was at current height. Note unbonding delegations and redelegations are only slashed if created after
+	// the infraction height so none will be slashed.
+	infractionHeight := suite.Ctx.BlockHeight()
+
+	power := stakingKeeper.TokensToConsensusPower(suite.Ctx, validator.GetTokens())
+
+	stakingKeeper.Slash(suite.Ctx, consAddr, infractionHeight, power, slashFraction)
+	return nil
+}
+
+// bondDenom fetches the staking denom from the staking module.
+func (suite *grpcQueryTestSuite) bondDenom() string {
+	return suite.App.GetStakingKeeper().BondDenom(suite.Ctx)
 }
