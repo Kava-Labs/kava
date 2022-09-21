@@ -176,3 +176,21 @@ func (k Keeper) burnCoins(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coi
 	}
 	return nil
 }
+
+// DerivativeFromTokens calculates the approximate amount of derivative coins that would be minted for a given amount of staking tokens.
+func (k Keeper) DerivativeFromTokens(ctx sdk.Context, valAddr sdk.ValAddress, tokens sdk.Coin) (sdk.Coin, error) {
+	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	if tokens.Denom != bondDenom {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "'%s' does not match staking denom '%s'", tokens.Denom, bondDenom)
+	}
+
+	// Use GetModuleAddress instead of GetModuleAccount to avoid creating a module account if it doesn't exist.
+	modAddress := k.accountKeeper.GetModuleAddress(types.ModuleAccountName)
+	derivative, _, err := k.CalculateDerivativeSharesFromTokens(ctx, modAddress, valAddr, tokens.Amount)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	liquidTokenDenom := k.GetLiquidStakingTokenDenom(valAddr)
+	liquidToken := sdk.NewCoin(liquidTokenDenom, derivative)
+	return liquidToken, nil
+}
