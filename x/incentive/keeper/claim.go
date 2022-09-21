@@ -5,6 +5,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/incentive/types"
+
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 )
 
 // ClaimUSDXMintingReward pays out funds from a claim to a receiver account.
@@ -15,7 +17,7 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
-	multiplier, found := k.GetMultiplierByDenom(ctx, types.USDXMintingRewardDenom, multiplierName)
+	multiplier, found := k.GetMultiplierByDenom(ctx, types.USDXMintingRewardDenom, multiplierName, "")
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", types.USDXMintingRewardDenom, multiplierName)
 	}
@@ -59,7 +61,7 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 // ClaimHardReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
-	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName, "")
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
 	}
@@ -114,7 +116,7 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
-	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName, "")
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
 	}
@@ -163,7 +165,7 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 // ClaimSwapReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
-	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName, "")
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
 	}
@@ -210,7 +212,7 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 
 // ClaimSavingsReward is a stub method for MsgServer interface compliance
 func (k Keeper) ClaimSavingsReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
-	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName, "")
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
 	}
@@ -260,7 +262,7 @@ func (k Keeper) ClaimSavingsReward(ctx sdk.Context, owner, receiver sdk.AccAddre
 // ClaimEarnReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimEarnReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
-	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName, earntypes.ModuleName)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
 	}

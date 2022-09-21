@@ -70,10 +70,12 @@ func (mpd MultipliersPerDenoms) Validate() error {
 			return err
 		}
 
-		if foundDenoms[item.Denom] {
-			return fmt.Errorf("")
+		// Allow multiple multipliers per denom with different module names
+		// Effectively a composite key (Denom, ModuleName)
+		if foundDenoms[item.Denom+item.ModuleName] {
+			return fmt.Errorf("duplicate denom+moduleName %s", item.Denom+item.ModuleName)
 		}
-		foundDenoms[item.Denom] = true
+		foundDenoms[item.Denom+item.ModuleName] = true
 	}
 	return nil
 }

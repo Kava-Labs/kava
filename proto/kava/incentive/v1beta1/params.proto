@@ -50,6 +50,8 @@ message MultipliersPerDenom {
   string denom = 1;
 
   repeated Multiplier multipliers = 2 [(gogoproto.castrepeated) = "Multipliers", (gogoproto.nullable) = false];
+
+  string module_name = 3;
 }
 
 // Params
