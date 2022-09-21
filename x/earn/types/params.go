@@ -3,13 +3,44 @@ package types
 import (
 	fmt "fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
 // Parameter keys and default values
 var (
 	KeyAllowedVaults     = []byte("AllowedVaults")
-	DefaultAllowedVaults = AllowedVaults{}
+	DefaultAllowedVaults = AllowedVaults{
+		// ukava - Community Pool
+		NewAllowedVault(
+			"ukava",
+			StrategyTypes{STRATEGY_TYPE_SAVINGS},
+			true,
+			[]sdk.AccAddress{authtypes.NewModuleAddress(distrtypes.ModuleName)},
+		),
+		// usdx
+		NewAllowedVault(
+			"usdx",
+			StrategyTypes{STRATEGY_TYPE_HARD},
+			false,
+			[]sdk.AccAddress{},
+		),
+		NewAllowedVault(
+			"bkava",
+			StrategyTypes{STRATEGY_TYPE_SAVINGS},
+			false,
+			[]sdk.AccAddress{},
+		),
+		NewAllowedVault(
+			"erc20/multichain/usdc",
+			StrategyTypes{STRATEGY_TYPE_SAVINGS},
+			false,
+			[]sdk.AccAddress{},
+		),
+	}
 )
 
 // NewParams returns a new params object
