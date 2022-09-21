@@ -31,3 +31,7 @@ type SavingsHooks interface {
 	AfterSavingsDepositCreated(ctx sdk.Context, deposit Deposit)
 	BeforeSavingsDepositModified(ctx sdk.Context, deposit Deposit, incomingDenoms []string)
 }
+
+type LiquidKeeper interface {
+	IsDerivativeDenom(ctx sdk.Context, denom string) bool
+}
