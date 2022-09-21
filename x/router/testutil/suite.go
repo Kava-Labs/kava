@@ -208,7 +208,7 @@ func (suite *Suite) DelegationSharesEqual(valAddr sdk.ValAddress, delegator sdk.
 	}
 }
 
-// DelegationBalanceLessThan checks if a delegation's balance is less the specified amount.
+// DelegationBalanceLessThan checks if a delegation's staked token balance is less the specified amount.
 // It treats not found delegations as having zero shares.
 func (suite *Suite) DelegationBalanceLessThan(valAddr sdk.ValAddress, delegator sdk.AccAddress, max sdk.Int) bool {
 	shares := sdk.ZeroDec()
@@ -225,7 +225,7 @@ func (suite *Suite) DelegationBalanceLessThan(valAddr sdk.ValAddress, delegator 
 	return suite.Truef(tokens.LT(max), "expected delegation balance to be less than %s, got %s", max, tokens)
 }
 
-// DelegationBalanceInDeltaBelow checks if a delegation's balance is between `expected` and `expected - delta` inclusive.
+// DelegationBalanceInDeltaBelow checks if a delegation's staked token balance is between `expected` and `expected - delta` inclusive.
 // It treats not found delegations as having zero shares.
 func (suite *Suite) DelegationBalanceInDeltaBelow(valAddr sdk.ValAddress, delegator sdk.AccAddress, expected, delta sdk.Int) bool {
 	shares := sdk.ZeroDec()

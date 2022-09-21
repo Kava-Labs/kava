@@ -79,14 +79,12 @@ func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDele
 	if err != nil {
 		return nil, err
 	}
-	// This can leave a dust amount of shares in user's delegation.
-	// MintDerivative could be modified to accept shares returned by Delegate to avoid this.
-	// Could fail if we don't return accurate vested delegation balances in liquid api.
+
 	derivativeMinted, err := m.keeper.liquidKeeper.MintDerivative(ctx, depositor, valAddr, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
-	// deposit is exact
+
 	err = m.keeper.earnKeeper.Deposit(ctx, depositor, derivativeMinted, earntypes.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return nil, err
@@ -125,7 +123,6 @@ func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBur
 		return nil, err
 	}
 
-	// exact bkava burned, but can leave dust delegation in module account (not a big problem).
 	_, err = m.keeper.liquidKeeper.BurnDerivative(ctx, depositor, val, tokenAmount)
 	if err != nil {
 		return nil, err
@@ -170,8 +167,6 @@ func (m msgServer) WithdrawBurnUndelegate(goCtx context.Context, msg *types.MsgW
 	}
 
 	// TODO use msgServer interface? it has extra validations and events
-	// exact shares undelegated
-	// without this msg, the webapp needs to calculate expected shares returned from burnDerivative, and then convert to kava as MsgUndelegate uses kava.
 	_, err = m.keeper.stakingKeeper.Undelegate(ctx, depositor, val, sharesReturned)
 	if err != nil {
 		return nil, err
