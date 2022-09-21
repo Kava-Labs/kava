@@ -117,12 +117,12 @@ func (th TallyHandler) Tally(ctx sdk.Context, proposal types.Proposal) (passes b
 			}
 
 			// votingPower = amount of ukava coin
-			votingPowerInt, err := th.lk.GetKavaForDerivatives(ctx, sdk.NewCoins(coin))
+			stakedCoins, err := th.lk.GetStakedTokensForDerivatives(ctx, sdk.NewCoins(coin))
 			if err != nil {
-				// error is returned only if the bkava denom is incorrect, which should never happen.
+				// error is returned only if the bkava denom is incorrect, which should never happen here.
 				panic(err)
 			}
-			votingPower := votingPowerInt.ToDec()
+			votingPower := stakedCoins.Amount.ToDec()
 
 			for _, option := range vote.Options {
 				subPower := votingPower.Mul(option.Weight)
