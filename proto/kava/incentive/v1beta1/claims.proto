@@ -116,7 +116,7 @@ message SavingsClaim {
       [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
 }
 
-// SwapClaim stores the swap rewards that can be claimed by owner
+// EarnClaim stores the earn rewards that can be claimed by owner
 message EarnClaim {
   option (cosmos_proto.implements_interface) = "Claim";
 

@@ -4359,7 +4359,7 @@ DelegatorClaim stores delegation rewards that can be claimed by owner
 <a name="kava.incentive.v1beta1.EarnClaim"></a>
 
 ### EarnClaim
-SwapClaim stores the swap rewards that can be claimed by owner
+EarnClaim stores the earn rewards that can be claimed by owner
 
 
 | Field | Type | Label | Description |
@@ -4730,7 +4730,7 @@ MsgClaimDelegatorRewardResponse defines the Msg/ClaimDelegatorReward response ty
 <a name="kava.incentive.v1beta1.MsgClaimEarnReward"></a>
 
 ### MsgClaimEarnReward
-MsgClaimEarnReward message type used to claim searn rewards
+MsgClaimEarnReward message type used to claim earn rewards
 
 
 | Field | Type | Label | Description |
