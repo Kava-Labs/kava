@@ -32,6 +32,7 @@ func GetTxCmd() *cobra.Command {
 		getCmdClaimDelegator(),
 		getCmdClaimSwap(),
 		getCmdClaimSavings(),
+		getCmdClaimEarn(),
 	}
 
 	for _, cmd := range cmds {
@@ -197,6 +198,41 @@ func getCmdClaimSavings() *cobra.Command {
 			selections := types.NewSelectionsFromMap(denomsToClaim)
 
 			msg := types.NewMsgClaimSavingsReward(sender.String(), selections)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
+		},
+	}
+	cmd.Flags().StringToStringVarP(&denomsToClaim, multiplierFlag, multiplierFlagShort, nil, "specify the denoms to claim, each with a multiplier lockup")
+	if err := cmd.MarkFlagRequired(multiplierFlag); err != nil {
+		panic(err)
+	}
+	return cmd
+}
+
+func getCmdClaimEarn() *cobra.Command {
+	var denomsToClaim map[string]string
+
+	cmd := &cobra.Command{
+		Use:   "claim-earn",
+		Short: "claim sender's earn rewards using given multipliers",
+		Long:  `Claim sender's outstanding earn rewards using given multipliers`,
+		Example: strings.Join([]string{
+			fmt.Sprintf(`  $ %s tx %s claim-earn --%s swp=large --%s ukava=small`, version.AppName, types.ModuleName, multiplierFlag, multiplierFlag),
+			fmt.Sprintf(`  $ %s tx %s claim-earn --%s swp=large,ukava=small`, version.AppName, types.ModuleName, multiplierFlag),
+		}, "\n"),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			sender := cliCtx.GetFromAddress()
+			selections := types.NewSelectionsFromMap(denomsToClaim)
+
+			msg := types.NewMsgClaimEarnReward(sender.String(), selections)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
