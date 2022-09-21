@@ -215,14 +215,11 @@ func getCmdClaimEarn() *cobra.Command {
 	var denomsToClaim map[string]string
 
 	cmd := &cobra.Command{
-		Use:   "claim-earn",
-		Short: "claim sender's earn rewards using given multipliers",
-		Long:  `Claim sender's outstanding earn rewards using given multipliers`,
-		Example: strings.Join([]string{
-			fmt.Sprintf(`  $ %s tx %s claim-earn --%s swp=large --%s ukava=small`, version.AppName, types.ModuleName, multiplierFlag, multiplierFlag),
-			fmt.Sprintf(`  $ %s tx %s claim-earn --%s swp=large,ukava=small`, version.AppName, types.ModuleName, multiplierFlag),
-		}, "\n"),
-		Args: cobra.NoArgs,
+		Use:     "claim-earn",
+		Short:   "claim sender's earn rewards using given multipliers",
+		Long:    `Claim sender's outstanding earn rewards using given multipliers`,
+		Example: fmt.Sprintf(`  $ %s tx %s claim-earn --%s ukava=large`, version.AppName, types.ModuleName, multiplierFlag),
+		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
