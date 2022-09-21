@@ -159,6 +159,11 @@ func queryRewardsCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
+				earnClaims, err := executeEarnRewardsQuery(cliCtx, params)
+				if err != nil {
+					return err
+				}
+
 				if len(hardClaims) > 0 {
 					if err := cliCtx.PrintObjectLegacy(hardClaims); err != nil {
 						return err
@@ -181,6 +186,11 @@ func queryRewardsCmd() *cobra.Command {
 				}
 				if len(savingsClaims) > 0 {
 					if err := cliCtx.PrintObjectLegacy(savingsClaims); err != nil {
+						return err
+					}
+				}
+				if len(earnClaims) > 0 {
+					if err := cliCtx.PrintObjectLegacy(earnClaims); err != nil {
 						return err
 					}
 				}
