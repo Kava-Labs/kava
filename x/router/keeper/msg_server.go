@@ -24,6 +24,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+// MintDeposit converts a delegation into staking derivatives and deposits it all into an earn vault
 func (m msgServer) MintDeposit(goCtx context.Context, msg *types.MsgMintDeposit) (*types.MsgMintDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -55,6 +56,8 @@ func (m msgServer) MintDeposit(goCtx context.Context, msg *types.MsgMintDeposit)
 	return &types.MsgMintDepositResponse{}, nil
 }
 
+// DelegateMintDeposit delegates tokens to a validator, then converts them into staking derivatives,
+// then deposits to an earn vault.
 func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDelegateMintDeposit) (*types.MsgDelegateMintDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -108,6 +111,7 @@ func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDele
 	return &types.MsgDelegateMintDepositResponse{}, nil
 }
 
+// WithdrawBurn removes staking derivatives from an earn vault and converts them back to a staking delegation.
 func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBurn) (*types.MsgWithdrawBurnResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -146,6 +150,8 @@ func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBur
 	return &types.MsgWithdrawBurnResponse{}, nil
 }
 
+// WithdrawBurnUndelegate removes staking derivatives from an earn vault, converts them to a staking delegation,
+// then undelegates them from their validator.
 func (m msgServer) WithdrawBurnUndelegate(goCtx context.Context, msg *types.MsgWithdrawBurnUndelegate) (*types.MsgWithdrawBurnUndelegateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
