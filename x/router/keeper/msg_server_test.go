@@ -3,9 +3,11 @@ package keeper_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/app"
@@ -69,6 +71,15 @@ func (suite *msgServerTestSuite) TestDelegateMintDeposit_Events() {
 			sdk.NewAttribute(sdk.AttributeKeySender, user.String()),
 		),
 	)
+	expectedShares := msg.Amount.Amount.ToDec() // no slashes so shares equal staked tokens
+	suite.EventsContains(suite.Ctx.EventManager().Events(),
+		sdk.NewEvent(
+			stakingtypes.EventTypeDelegate,
+			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, msg.Validator),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
+			sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, expectedShares.String()),
+		),
+	)
 }
 
 func (suite *msgServerTestSuite) TestWithdrawBurn_Events() {
@@ -111,6 +122,16 @@ func (suite *msgServerTestSuite) TestWithdrawBurnUndelegate_Events() {
 		sdk.NewEvent(sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(sdk.AttributeKeySender, user.String()),
+		),
+	)
+	unbondingTime := suite.StakingKeeper.UnbondingTime(suite.Ctx)
+	completionTime := suite.Ctx.BlockTime().Add(unbondingTime)
+	suite.EventsContains(suite.Ctx.EventManager().Events(),
+		sdk.NewEvent(
+			stakingtypes.EventTypeUnbond,
+			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, msg.Validator),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
+			sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 		),
 	)
 }
