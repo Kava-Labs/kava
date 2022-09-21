@@ -16,11 +16,14 @@ service Msg {
   // ClaimDelegatorReward is a message type used to claim delegator rewards
   rpc ClaimDelegatorReward(MsgClaimDelegatorReward) returns (MsgClaimDelegatorRewardResponse);
 
-  // ClaimSwapReward is a message type used to claim delegator rewards
+  // ClaimSwapReward is a message type used to claim swap rewards
   rpc ClaimSwapReward(MsgClaimSwapReward) returns (MsgClaimSwapRewardResponse);
 
   // ClaimSavingsReward is a message type used to claim savings rewards
   rpc ClaimSavingsReward(MsgClaimSavingsReward) returns (MsgClaimSavingsRewardResponse);
+
+  // ClaimEarnReward is a message type used to claim earn rewards
+  rpc ClaimEarnReward(MsgClaimEarnReward) returns (MsgClaimEarnRewardResponse);
 }
 
 // Selection is a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a
@@ -92,3 +95,15 @@ message MsgClaimSavingsReward {
 
 // MsgClaimSavingsRewardResponse defines the Msg/ClaimSavingsReward response type.
 message MsgClaimSavingsRewardResponse {}
+
+// MsgClaimEarnReward message type used to claim searn rewards
+message MsgClaimEarnReward {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string             sender          = 1;
+  repeated Selection denoms_to_claim = 2 [(gogoproto.castrepeated) = "Selections", (gogoproto.nullable) = false];
+}
+
+// MsgClaimEarnRewardResponse defines the Msg/ClaimEarnReward response type.
+message MsgClaimEarnRewardResponse {}

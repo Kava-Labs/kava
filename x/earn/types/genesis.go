@@ -1,5 +1,11 @@
 package types
 
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+)
+
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(
 	params Params,
@@ -37,4 +43,31 @@ func DefaultGenesisState() GenesisState {
 		VaultRecords{},
 		VaultShareRecords{},
 	)
+}
+
+func Kava11GenesisState(accountKeeper AccountKeeper) GenesisState {
+	return GenesisState{
+		Params: NewParams(AllowedVaults{
+			NewAllowedVault(
+				"usdx",
+				StrategyTypes{STRATEGY_TYPE_HARD},
+				false,
+				nil,
+			),
+			NewAllowedVault(
+				"bkava",
+				StrategyTypes{STRATEGY_TYPE_SAVINGS},
+				false,
+				nil,
+			),
+			NewAllowedVault(
+				"ukava",
+				StrategyTypes{STRATEGY_TYPE_SAVINGS},
+				true,
+				[]sdk.AccAddress{
+					accountKeeper.GetModuleAddress(distributiontypes.ModuleName),
+				},
+			),
+		}),
+	}
 }

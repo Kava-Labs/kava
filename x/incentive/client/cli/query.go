@@ -25,9 +25,10 @@ const (
 	typeUSDXMinting = "usdx-minting"
 	typeSwap        = "swap"
 	typeSavings     = "savings"
+	typeEarn        = "earn"
 )
 
-var rewardTypes = []string{typeDelegator, typeHard, typeUSDXMinting, typeSwap}
+var rewardTypes = []string{typeDelegator, typeHard, typeUSDXMinting, typeSwap, typeEarn}
 
 // GetQueryCmd returns the cli query commands for the incentive module
 func GetQueryCmd() *cobra.Command {
@@ -59,20 +60,17 @@ func queryRewardsCmd() *cobra.Command {
 			fmt.Sprintf(`Query rewards with optional flags for owner and type
 
 			Example:
-			$ %s query %s rewards
-			$ %s query %s rewards --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
-			$ %s query %s rewards --type hard
-			$ %s query %s rewards --type usdx-minting
-			$ %s query %s rewards --type delegator
-			$ %s query %s rewards --type swap
-			$ %s query %s rewards --type savings
-			$ %s query %s rewards --type hard --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
-			$ %s query %s rewards --type hard --unsynced
+			$ %[1]s query %[2]s rewards
+			$ %[1]s query %[2]s rewards --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+			$ %[1]s query %[2]s rewards --type hard
+			$ %[1]s query %[2]s rewards --type usdx-minting
+			$ %[1]s query %[2]s rewards --type delegator
+			$ %[1]s query %[2]s rewards --type swap
+			$ %[1]s query %[2]s rewards --type savings
+			$ %[1]s query %[2]s rewards --type earn
+			$ %[1]s query %[2]s rewards --type hard --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+			$ %[1]s query %[2]s rewards --type hard --unsynced
 			`,
-				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
-				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
-				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
-				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
 				version.AppName, types.ModuleName)),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -127,6 +125,13 @@ func queryRewardsCmd() *cobra.Command {
 			case typeSavings:
 				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
 				claims, err := executeSavingsRewardsQuery(cliCtx, params)
+				if err != nil {
+					return err
+				}
+				return cliCtx.PrintObjectLegacy(claims)
+			case typeEarn:
+				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
+				claims, err := executeEarnRewardsQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
@@ -358,6 +363,28 @@ func executeSavingsRewardsQuery(cliCtx client.Context, params types.QueryRewards
 	var claims types.SavingsClaims
 	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
 		return types.SavingsClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
+	}
+
+	return claims, nil
+}
+
+func executeEarnRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.EarnClaims, error) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
+	if err != nil {
+		return types.EarnClaims{}, err
+	}
+
+	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetEarnRewards)
+	res, height, err := cliCtx.QueryWithData(route, bz)
+	if err != nil {
+		return types.EarnClaims{}, err
+	}
+
+	cliCtx = cliCtx.WithHeight(height)
+
+	var claims types.EarnClaims
+	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
+		return types.EarnClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
 	}
 
 	return claims, nil

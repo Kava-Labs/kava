@@ -79,4 +79,7 @@ message Params {
 
   repeated MultiRewardPeriod savings_reward_periods = 8
       [(gogoproto.castrepeated) = "MultiRewardPeriods", (gogoproto.nullable) = false];
+
+  repeated MultiRewardPeriod earn_reward_periods = 9
+      [(gogoproto.castrepeated) = "MultiRewardPeriods", (gogoproto.nullable) = false];
 }
