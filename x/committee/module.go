@@ -133,7 +133,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 
 	m := migrations.NewMigrator(am.keeper)
-	if err := cfg.RegisterMigration(types.ModuleName, ConsensusVersion, m.Migrate1to2); err != nil {
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/committee from version 1 to 2: %v", err))
 	}
 }
