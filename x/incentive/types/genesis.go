@@ -90,6 +90,9 @@ func (gs GenesisState) Validate() error {
 	if err := gs.SavingsRewardState.Validate(); err != nil {
 		return err
 	}
+	if err := gs.EarnRewardState.Validate(); err != nil {
+		return err
+	}
 
 	if err := gs.USDXMintingClaims.Validate(); err != nil {
 		return err
