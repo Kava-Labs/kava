@@ -32,8 +32,8 @@ func GetQueryCmd() *cobra.Command {
 	cmds := []*cobra.Command{
 		queryParamsCmd(),
 		queryVaultsCmd(),
+		queryVaultCmd(),
 		queryDepositsCmd(),
-		queryTotalDepositedCmd(),
 	}
 
 	for _, cmd := range cmds {
@@ -72,13 +72,11 @@ func queryParamsCmd() *cobra.Command {
 
 func queryVaultsCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "vaults",
-		Short: "get the earn vaults",
-		Long:  "Get the earn module vaults.",
-		Args:  cobra.MaximumNArgs(1),
-		Example: fmt.Sprintf(`%[1]s q %[2]s vaults
-%[1]s q %[2]s vaults
-%[1]s q %[2]s vaults usdx`, version.AppName, types.ModuleName),
+		Use:     "vaults",
+		Short:   "get all earn vaults",
+		Long:    "Get all earn module vaults.",
+		Args:    cobra.NoArgs,
+		Example: fmt.Sprintf(`%[1]s q %[2]s vaults`, version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -87,13 +85,34 @@ func queryVaultsCmd() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			vaultDenom := ""
-			if len(args) > 1 {
-				vaultDenom = args[0]
+			req := types.NewQueryVaultsRequest()
+			res, err := queryClient.Vaults(context.Background(), req)
+			if err != nil {
+				return err
 			}
 
-			req := types.NewQueryVaultsRequest(vaultDenom)
-			res, err := queryClient.Vaults(context.Background(), req)
+			return clientCtx.PrintProto(res)
+		},
+	}
+}
+
+func queryVaultCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:     "vault",
+		Short:   "get a earn vault",
+		Long:    "Get a specific earn module vault by denom.",
+		Args:    cobra.ExactArgs(1),
+		Example: fmt.Sprintf(`%[1]s q %[2]s vault usdx`, version.AppName, types.ModuleName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := types.NewQueryVaultRequest(args[0])
+			res, err := queryClient.Vault(context.Background(), req)
 			if err != nil {
 				return err
 			}
@@ -154,36 +173,4 @@ func queryDepositsCmd() *cobra.Command {
 	cmd.Flags().String(flagDenom, "", "(optional) filter for deposits by vault denom")
 
 	return cmd
-}
-
-func queryTotalDepositedCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "total-deposited",
-		Short: "get the current total deposited amount",
-		Long:  "Get the current total deposited amount in the earn module vaults.",
-		Args:  cobra.MaximumNArgs(1),
-		Example: fmt.Sprintf(`%[1]s q %[2]s total-deposited
-%[1]s q %[2]s total-deposited usdx`, version.AppName, types.ModuleName),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
-			vaultDenom := ""
-			if len(args) > 1 {
-				vaultDenom = args[0]
-			}
-
-			req := types.NewQueryTotalDepositedRequest(vaultDenom)
-			res, err := queryClient.TotalDeposited(context.Background(), req)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
 }

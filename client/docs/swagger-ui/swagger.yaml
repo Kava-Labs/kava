@@ -6962,7 +6962,7 @@ paths:
         - Committee
   /kava/earn/v1beta1/deposits:
     get:
-      summary: Deposits queries deposit details based on owner address and vault
+      summary: Deposits queries deposit details based on depositor address and vault
       operationId: EarnDeposits
       responses:
         '200':
@@ -6978,22 +6978,48 @@ paths:
                     depositor:
                       type: string
                       description: depositor represents the owner of the deposit.
-                    denom:
-                      type: string
-                      description: denom represents the vault denom the deposit is for.
-                    account_supplied:
-                      type: string
+                    shares:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          VaultShare defines shares of a vault owned by a
+                          depositor.
                       description: >-
-                        AccountSupplied represents the amount of denom supplied
-                        to the vault.
-                    account_value:
-                      type: string
+                        Shares represent the issued shares from their
+                        corresponding vaults.
+                    value:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          Coin defines a token with a denomination and an
+                          amount.
+
+
+                          NOTE: The amount field is an Int which implements the
+                          custom method
+
+                          signatures required by gogoproto.
                       description: >-
-                        AccountValue represents the coin value of the
-                        depositor's share of the vault.
-                  description: >-
-                    DepositResponse defines a single deposit query response
-                    type.
+                        Value represents the total accumulated value of denom
+                        coins supplied to
+
+                        vaults. This may be greater than or equal to
+                        amount_supplied depending on
+
+                        the strategy.
+                  description: DepositResponse defines a deposit query response type.
                 title: >-
                   deposits returns the deposits matching the requested
                   parameters
@@ -7041,8 +7067,8 @@ paths:
                       type: string
                       format: byte
       parameters:
-        - name: owner
-          description: owner optionally filters deposits by owner.
+        - name: depositor
+          description: depositor optionally filters deposits by depositor.
           in: query
           required: false
           type: string
@@ -7135,14 +7161,49 @@ paths:
                           description: >-
                             Denom is the only supported denomination of the
                             vault for deposits and withdrawals.
-                        vault_strategy:
+                        strategies:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - STRATEGY_TYPE_UNSPECIFIED
+                              - STRATEGY_TYPE_HARD
+                              - STRATEGY_TYPE_SAVINGS
+                            default: STRATEGY_TYPE_UNSPECIFIED
+                            description: >-
+                              StrategyType is the type of strategy that a vault
+                              uses to optimize yields.
+
+                               - STRATEGY_TYPE_UNSPECIFIED: STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+                               - STRATEGY_TYPE_HARD: STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+                              module.
+                               - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+                              Savings module.
                           description: VaultStrategy is the strategy used for this vault.
-                          type: string
-                          enum:
-                            - STRATEGY_TYPE_UNSPECIFIED
-                            - STRATEGY_TYPE_HARD
-                            - STRATEGY_TYPE_SAVINGS
-                          default: STRATEGY_TYPE_UNSPECIFIED
+                        is_private_vault:
+                          type: boolean
+                          format: boolean
+                          description: >-
+                            IsPrivateVault is true if the vault only allows
+                            depositors contained in
+
+                            AllowedDepositors.
+                        allowed_depositors:
+                          type: array
+                          items:
+                            type: string
+                            format: byte
+                          description: >-
+                            AllowedDepositors is a list of addresses that are
+                            allowed to deposit to
+
+                            this vault if IsPrivateVault is true. Addresses not
+                            contained in this list
+
+                            are not allowed to deposit into this vault. If
+                            IsPrivateVault is false,
+
+                            this should be empty and ignored.
                       description: >-
                         AllowedVault is a vault that is allowed to be created.
                         These can be
@@ -7176,71 +7237,9 @@ paths:
                       format: byte
       tags:
         - Earn
-  /kava/earn/v1beta1/total-deposited/{denom}:
-    get:
-      summary: TotalDeposited queries total deposited amount for each vault.
-      operationId: EarnTotalDeposited
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              supplied_coins:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    denom:
-                      type: string
-                    amount:
-                      type: string
-                  description: >-
-                    Coin defines a token with a denomination and an amount.
-
-
-                    NOTE: The amount field is an Int which implements the custom
-                    method
-
-                    signatures required by gogoproto.
-            description: >-
-              QueryTotalDepositedResponse is the response type for the
-              Query/TotalDeposited RPC method.
-        default:
-          description: An unexpected error response
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: denom
-          description: >-
-            denom represents the vault denom to query total deposited amount
-            for.
-          in: path
-          required: true
-          type: string
-      tags:
-        - Earn
   /kava/earn/v1beta1/vaults:
     get:
-      summary: Vaults queries vaults based on vault denom
+      summary: Vaults queries all vaults
       operationId: EarnVaults
       responses:
         '200':
@@ -7256,19 +7255,53 @@ paths:
                     denom:
                       type: string
                       title: denom represents the denom of the vault
-                    vault_strategy:
+                    strategies:
+                      type: array
+                      items:
+                        type: string
+                        enum:
+                          - STRATEGY_TYPE_UNSPECIFIED
+                          - STRATEGY_TYPE_HARD
+                          - STRATEGY_TYPE_SAVINGS
+                        default: STRATEGY_TYPE_UNSPECIFIED
+                        description: >-
+                          StrategyType is the type of strategy that a vault uses
+                          to optimize yields.
+
+                           - STRATEGY_TYPE_UNSPECIFIED: STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+                           - STRATEGY_TYPE_HARD: STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+                          module.
+                           - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+                          Savings module.
                       description: VaultStrategy is the strategy used for this vault.
-                      type: string
-                      enum:
-                        - STRATEGY_TYPE_UNSPECIFIED
-                        - STRATEGY_TYPE_HARD
-                        - STRATEGY_TYPE_SAVINGS
-                      default: STRATEGY_TYPE_UNSPECIFIED
-                    total_supplied:
+                    is_private_vault:
+                      type: boolean
+                      format: boolean
+                      description: >-
+                        IsPrivateVault is true if the vault only allows
+                        depositors contained in
+
+                        AllowedDepositors.
+                    allowed_depositors:
+                      type: array
+                      items:
+                        type: string
+                      description: >-
+                        AllowedDepositors is a list of addresses that are
+                        allowed to deposit to
+
+                        this vault if IsPrivateVault is true. Addresses not
+                        contained in this list
+
+                        are not allowed to deposit into this vault. If
+                        IsPrivateVault is false,
+
+                        this should be empty and ignored.
+                    total_shares:
                       type: string
                       description: >-
-                        TotalSupplied is the total amount of denom coins
-                        supplied to the vault.
+                        TotalShares is the total amount of shares issued to
+                        depositors.
                     total_value:
                       type: string
                       description: >-
@@ -7303,11 +7336,110 @@ paths:
                     value:
                       type: string
                       format: byte
+      tags:
+        - Earn
+  /kava/earn/v1beta1/vaults/{denom}:
+    get:
+      summary: Vault queries a single vault based on the vault denom
+      operationId: EarnVault
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              vault:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                    title: denom represents the denom of the vault
+                  strategies:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - STRATEGY_TYPE_UNSPECIFIED
+                        - STRATEGY_TYPE_HARD
+                        - STRATEGY_TYPE_SAVINGS
+                      default: STRATEGY_TYPE_UNSPECIFIED
+                      description: >-
+                        StrategyType is the type of strategy that a vault uses
+                        to optimize yields.
+
+                         - STRATEGY_TYPE_UNSPECIFIED: STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+                         - STRATEGY_TYPE_HARD: STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+                        module.
+                         - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+                        Savings module.
+                    description: VaultStrategy is the strategy used for this vault.
+                  is_private_vault:
+                    type: boolean
+                    format: boolean
+                    description: >-
+                      IsPrivateVault is true if the vault only allows depositors
+                      contained in
+
+                      AllowedDepositors.
+                  allowed_depositors:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      AllowedDepositors is a list of addresses that are allowed
+                      to deposit to
+
+                      this vault if IsPrivateVault is true. Addresses not
+                      contained in this list
+
+                      are not allowed to deposit into this vault. If
+                      IsPrivateVault is false,
+
+                      this should be empty and ignored.
+                  total_shares:
+                    type: string
+                    description: >-
+                      TotalShares is the total amount of shares issued to
+                      depositors.
+                  total_value:
+                    type: string
+                    description: >-
+                      TotalValue is the total value of denom coins supplied to
+                      the vault if the
+
+                      vault were to be liquidated.
+                description: VaultResponse is the response type for a vault.
+                title: vault represents the queried earn module vault
+            description: >-
+              QueryVaultResponse is the response type for the Query/Vault RPC
+              method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
       parameters:
         - name: denom
-          description: vault filters vault by denom.
-          in: query
-          required: false
+          description: vault filters vault by denom
+          in: path
+          required: true
           type: string
       tags:
         - Earn
@@ -54207,14 +54339,49 @@ definitions:
         description: >-
           Denom is the only supported denomination of the vault for deposits and
           withdrawals.
-      vault_strategy:
+      strategies:
+        type: array
+        items:
+          type: string
+          enum:
+            - STRATEGY_TYPE_UNSPECIFIED
+            - STRATEGY_TYPE_HARD
+            - STRATEGY_TYPE_SAVINGS
+          default: STRATEGY_TYPE_UNSPECIFIED
+          description: >-
+            StrategyType is the type of strategy that a vault uses to optimize
+            yields.
+
+             - STRATEGY_TYPE_UNSPECIFIED: STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+             - STRATEGY_TYPE_HARD: STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+            module.
+             - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+            Savings module.
         description: VaultStrategy is the strategy used for this vault.
-        type: string
-        enum:
-          - STRATEGY_TYPE_UNSPECIFIED
-          - STRATEGY_TYPE_HARD
-          - STRATEGY_TYPE_SAVINGS
-        default: STRATEGY_TYPE_UNSPECIFIED
+      is_private_vault:
+        type: boolean
+        format: boolean
+        description: >-
+          IsPrivateVault is true if the vault only allows depositors contained
+          in
+
+          AllowedDepositors.
+      allowed_depositors:
+        type: array
+        items:
+          type: string
+          format: byte
+        description: >-
+          AllowedDepositors is a list of addresses that are allowed to deposit
+          to
+
+          this vault if IsPrivateVault is true. Addresses not contained in this
+          list
+
+          are not allowed to deposit into this vault. If IsPrivateVault is
+          false,
+
+          this should be empty and ignored.
     description: |-
       AllowedVault is a vault that is allowed to be created. These can be
       modified via parameter governance.
@@ -54224,18 +54391,40 @@ definitions:
       depositor:
         type: string
         description: depositor represents the owner of the deposit.
-      denom:
-        type: string
-        description: denom represents the vault denom the deposit is for.
-      account_supplied:
-        type: string
-        description: AccountSupplied represents the amount of denom supplied to the vault.
-      account_value:
-        type: string
+      shares:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: VaultShare defines shares of a vault owned by a depositor.
+        description: Shares represent the issued shares from their corresponding vaults.
+      value:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
         description: >-
-          AccountValue represents the coin value of the depositor's share of the
-          vault.
-    description: DepositResponse defines a single deposit query response type.
+          Value represents the total accumulated value of denom coins supplied
+          to
+
+          vaults. This may be greater than or equal to amount_supplied depending
+          on
+
+          the strategy.
+    description: DepositResponse defines a deposit query response type.
   kava.earn.v1beta1.Params:
     type: object
     properties:
@@ -54249,14 +54438,49 @@ definitions:
               description: >-
                 Denom is the only supported denomination of the vault for
                 deposits and withdrawals.
-            vault_strategy:
+            strategies:
+              type: array
+              items:
+                type: string
+                enum:
+                  - STRATEGY_TYPE_UNSPECIFIED
+                  - STRATEGY_TYPE_HARD
+                  - STRATEGY_TYPE_SAVINGS
+                default: STRATEGY_TYPE_UNSPECIFIED
+                description: >-
+                  StrategyType is the type of strategy that a vault uses to
+                  optimize yields.
+
+                   - STRATEGY_TYPE_UNSPECIFIED: STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+                   - STRATEGY_TYPE_HARD: STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+                  module.
+                   - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+                  Savings module.
               description: VaultStrategy is the strategy used for this vault.
-              type: string
-              enum:
-                - STRATEGY_TYPE_UNSPECIFIED
-                - STRATEGY_TYPE_HARD
-                - STRATEGY_TYPE_SAVINGS
-              default: STRATEGY_TYPE_UNSPECIFIED
+            is_private_vault:
+              type: boolean
+              format: boolean
+              description: >-
+                IsPrivateVault is true if the vault only allows depositors
+                contained in
+
+                AllowedDepositors.
+            allowed_depositors:
+              type: array
+              items:
+                type: string
+                format: byte
+              description: >-
+                AllowedDepositors is a list of addresses that are allowed to
+                deposit to
+
+                this vault if IsPrivateVault is true. Addresses not contained in
+                this list
+
+                are not allowed to deposit into this vault. If IsPrivateVault is
+                false,
+
+                this should be empty and ignored.
           description: |-
             AllowedVault is a vault that is allowed to be created. These can be
             modified via parameter governance.
@@ -54272,20 +54496,45 @@ definitions:
             depositor:
               type: string
               description: depositor represents the owner of the deposit.
-            denom:
-              type: string
-              description: denom represents the vault denom the deposit is for.
-            account_supplied:
-              type: string
+            shares:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: VaultShare defines shares of a vault owned by a depositor.
               description: >-
-                AccountSupplied represents the amount of denom supplied to the
-                vault.
-            account_value:
-              type: string
+                Shares represent the issued shares from their corresponding
+                vaults.
+            value:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
               description: >-
-                AccountValue represents the coin value of the depositor's share
-                of the vault.
-          description: DepositResponse defines a single deposit query response type.
+                Value represents the total accumulated value of denom coins
+                supplied to
+
+                vaults. This may be greater than or equal to amount_supplied
+                depending on
+
+                the strategy.
+          description: DepositResponse defines a deposit query response type.
         title: deposits returns the deposits matching the requested parameters
       pagination:
         description: pagination defines the pagination in the response.
@@ -54325,14 +54574,49 @@ definitions:
                   description: >-
                     Denom is the only supported denomination of the vault for
                     deposits and withdrawals.
-                vault_strategy:
+                strategies:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - STRATEGY_TYPE_UNSPECIFIED
+                      - STRATEGY_TYPE_HARD
+                      - STRATEGY_TYPE_SAVINGS
+                    default: STRATEGY_TYPE_UNSPECIFIED
+                    description: >-
+                      StrategyType is the type of strategy that a vault uses to
+                      optimize yields.
+
+                       - STRATEGY_TYPE_UNSPECIFIED: STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+                       - STRATEGY_TYPE_HARD: STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+                      module.
+                       - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+                      Savings module.
                   description: VaultStrategy is the strategy used for this vault.
-                  type: string
-                  enum:
-                    - STRATEGY_TYPE_UNSPECIFIED
-                    - STRATEGY_TYPE_HARD
-                    - STRATEGY_TYPE_SAVINGS
-                  default: STRATEGY_TYPE_UNSPECIFIED
+                is_private_vault:
+                  type: boolean
+                  format: boolean
+                  description: >-
+                    IsPrivateVault is true if the vault only allows depositors
+                    contained in
+
+                    AllowedDepositors.
+                allowed_depositors:
+                  type: array
+                  items:
+                    type: string
+                    format: byte
+                  description: >-
+                    AllowedDepositors is a list of addresses that are allowed to
+                    deposit to
+
+                    this vault if IsPrivateVault is true. Addresses not
+                    contained in this list
+
+                    are not allowed to deposit into this vault. If
+                    IsPrivateVault is false,
+
+                    this should be empty and ignored.
               description: >-
                 AllowedVault is a vault that is allowed to be created. These can
                 be
@@ -54342,26 +54626,70 @@ definitions:
     description: >-
       QueryParamsResponse defines the response type for querying x/earn
       parameters.
-  kava.earn.v1beta1.QueryTotalDepositedResponse:
+  kava.earn.v1beta1.QueryVaultResponse:
     type: object
     properties:
-      supplied_coins:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
+      vault:
+        type: object
+        properties:
+          denom:
+            type: string
+            title: denom represents the denom of the vault
+          strategies:
+            type: array
+            items:
               type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
+              enum:
+                - STRATEGY_TYPE_UNSPECIFIED
+                - STRATEGY_TYPE_HARD
+                - STRATEGY_TYPE_SAVINGS
+              default: STRATEGY_TYPE_UNSPECIFIED
+              description: >-
+                StrategyType is the type of strategy that a vault uses to
+                optimize yields.
 
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
-    description: >-
-      QueryTotalDepositedResponse is the response type for the
-      Query/TotalDeposited RPC method.
+                 - STRATEGY_TYPE_UNSPECIFIED: STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+                 - STRATEGY_TYPE_HARD: STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+                module.
+                 - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+                Savings module.
+            description: VaultStrategy is the strategy used for this vault.
+          is_private_vault:
+            type: boolean
+            format: boolean
+            description: >-
+              IsPrivateVault is true if the vault only allows depositors
+              contained in
+
+              AllowedDepositors.
+          allowed_depositors:
+            type: array
+            items:
+              type: string
+            description: >-
+              AllowedDepositors is a list of addresses that are allowed to
+              deposit to
+
+              this vault if IsPrivateVault is true. Addresses not contained in
+              this list
+
+              are not allowed to deposit into this vault. If IsPrivateVault is
+              false,
+
+              this should be empty and ignored.
+          total_shares:
+            type: string
+            description: TotalShares is the total amount of shares issued to depositors.
+          total_value:
+            type: string
+            description: >-
+              TotalValue is the total value of denom coins supplied to the vault
+              if the
+
+              vault were to be liquidated.
+        description: VaultResponse is the response type for a vault.
+        title: vault represents the queried earn module vault
+    description: QueryVaultResponse is the response type for the Query/Vault RPC method.
   kava.earn.v1beta1.QueryVaultsResponse:
     type: object
     properties:
@@ -54373,19 +54701,51 @@ definitions:
             denom:
               type: string
               title: denom represents the denom of the vault
-            vault_strategy:
+            strategies:
+              type: array
+              items:
+                type: string
+                enum:
+                  - STRATEGY_TYPE_UNSPECIFIED
+                  - STRATEGY_TYPE_HARD
+                  - STRATEGY_TYPE_SAVINGS
+                default: STRATEGY_TYPE_UNSPECIFIED
+                description: >-
+                  StrategyType is the type of strategy that a vault uses to
+                  optimize yields.
+
+                   - STRATEGY_TYPE_UNSPECIFIED: STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+                   - STRATEGY_TYPE_HARD: STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+                  module.
+                   - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+                  Savings module.
               description: VaultStrategy is the strategy used for this vault.
-              type: string
-              enum:
-                - STRATEGY_TYPE_UNSPECIFIED
-                - STRATEGY_TYPE_HARD
-                - STRATEGY_TYPE_SAVINGS
-              default: STRATEGY_TYPE_UNSPECIFIED
-            total_supplied:
-              type: string
+            is_private_vault:
+              type: boolean
+              format: boolean
               description: >-
-                TotalSupplied is the total amount of denom coins supplied to the
-                vault.
+                IsPrivateVault is true if the vault only allows depositors
+                contained in
+
+                AllowedDepositors.
+            allowed_depositors:
+              type: array
+              items:
+                type: string
+              description: >-
+                AllowedDepositors is a list of addresses that are allowed to
+                deposit to
+
+                this vault if IsPrivateVault is true. Addresses not contained in
+                this list
+
+                are not allowed to deposit into this vault. If IsPrivateVault is
+                false,
+
+                this should be empty and ignored.
+            total_shares:
+              type: string
+              description: TotalShares is the total amount of shares issued to depositors.
             total_value:
               type: string
               description: >-
@@ -54417,19 +54777,51 @@ definitions:
       denom:
         type: string
         title: denom represents the denom of the vault
-      vault_strategy:
+      strategies:
+        type: array
+        items:
+          type: string
+          enum:
+            - STRATEGY_TYPE_UNSPECIFIED
+            - STRATEGY_TYPE_HARD
+            - STRATEGY_TYPE_SAVINGS
+          default: STRATEGY_TYPE_UNSPECIFIED
+          description: >-
+            StrategyType is the type of strategy that a vault uses to optimize
+            yields.
+
+             - STRATEGY_TYPE_UNSPECIFIED: STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type.
+             - STRATEGY_TYPE_HARD: STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard
+            module.
+             - STRATEGY_TYPE_SAVINGS: STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the
+            Savings module.
         description: VaultStrategy is the strategy used for this vault.
-        type: string
-        enum:
-          - STRATEGY_TYPE_UNSPECIFIED
-          - STRATEGY_TYPE_HARD
-          - STRATEGY_TYPE_SAVINGS
-        default: STRATEGY_TYPE_UNSPECIFIED
-      total_supplied:
-        type: string
+      is_private_vault:
+        type: boolean
+        format: boolean
         description: >-
-          TotalSupplied is the total amount of denom coins supplied to the
-          vault.
+          IsPrivateVault is true if the vault only allows depositors contained
+          in
+
+          AllowedDepositors.
+      allowed_depositors:
+        type: array
+        items:
+          type: string
+        description: >-
+          AllowedDepositors is a list of addresses that are allowed to deposit
+          to
+
+          this vault if IsPrivateVault is true. Addresses not contained in this
+          list
+
+          are not allowed to deposit into this vault. If IsPrivateVault is
+          false,
+
+          this should be empty and ignored.
+      total_shares:
+        type: string
+        description: TotalShares is the total amount of shares issued to depositors.
       total_value:
         type: string
         description: >-
@@ -54438,6 +54830,14 @@ definitions:
 
           vault were to be liquidated.
     description: VaultResponse is the response type for a vault.
+  kava.earn.v1beta1.VaultShare:
+    type: object
+    properties:
+      denom:
+        type: string
+      amount:
+        type: string
+    description: VaultShare defines shares of a vault owned by a depositor.
   kava.hard.v1beta1.BorrowInterestFactorResponse:
     type: object
     properties:

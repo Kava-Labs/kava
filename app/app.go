@@ -125,6 +125,9 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+	"github.com/kava-labs/kava/x/liquid"
+	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
+	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -190,6 +193,7 @@ var (
 		savings.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
+		liquid.AppModuleBasic{},
 		earn.AppModuleBasic{},
 	)
 
@@ -215,12 +219,12 @@ var (
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		hardtypes.ModuleAccountName:     {authtypes.Minter},
 		savingstypes.ModuleAccountName:  nil,
-		earntypes.ModuleName:            nil,
+		liquidtypes.ModuleAccountName:   {authtypes.Minter, authtypes.Burner},
+		earntypes.ModuleAccountName:     nil,
 	}
 )
 
 // Verify app interface at compile time
-// var _ simapp.App = (*App)(nil) // TODO
 var _ servertypes.Application = (*App)(nil)
 
 // Options bundles several configuration params for an App.
@@ -285,6 +289,7 @@ type App struct {
 	committeeKeeper  committeekeeper.Keeper
 	incentiveKeeper  incentivekeeper.Keeper
 	savingsKeeper    savingskeeper.Keeper
+	liquidKeeper     liquidkeeper.Keeper
 	earnKeeper       earnkeeper.Keeper
 
 	// make scoped keepers public for test purposes
@@ -586,6 +591,12 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
+	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
+		appCodec,
+		app.accountKeeper,
+		app.bankKeeper,
+		&app.stakingKeeper,
+	)
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
 		keys[incentivetypes.StoreKey],
@@ -604,8 +615,9 @@ func NewApp(
 		earnSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		hardKeeper,
-		savingsKeeper,
+		app.liquidKeeper,
+		&hardKeeper,
+		&savingsKeeper,
 	)
 
 	// create committee keeper with router
@@ -691,6 +703,7 @@ func NewApp(
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
+		liquid.NewAppModule(app.liquidKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 	)
 
@@ -738,6 +751,7 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
+		liquidtypes.ModuleName,
 		earntypes.ModuleName,
 	)
 
@@ -777,6 +791,7 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
+		liquidtypes.ModuleName,
 		earntypes.ModuleName,
 	)
 
@@ -816,6 +831,7 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
+		liquidtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -979,10 +995,11 @@ func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
 	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
 	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
+	liquidMaccAddr := app.accountKeeper.GetModuleAddress(liquidtypes.ModuleName)
 
 	for addr := range modAccAddrs {
 		// Set the kavadist and earn module account address as unblocked
-		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() {
+		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() || addr == liquidMaccAddr.String() {
 			modAccAddrs[addr] = false
 		}
 	}

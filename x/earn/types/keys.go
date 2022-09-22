@@ -28,7 +28,7 @@ var (
 	VaultShareRecordKeyPrefix = []byte{0x02} // depositor address -> vault shares
 )
 
-// Vault returns a key generated from a vault denom
+// VaultKey returns a key generated from a vault denom
 func VaultKey(denom string) []byte {
 	return []byte(denom)
 }

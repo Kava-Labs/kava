@@ -35,6 +35,10 @@ sed -in-place='' 's/enable = false/enable = true/g' $DATA/config/app.toml
 # Set evm tracer to json
 sed -in-place='' 's/tracer = ""/tracer = "json"/g' $DATA/config/app.toml
 
+# Enable full error trace to be returned on tx failure
+sed -in-place='' '/iavl-cache-size/a\
+trace = true' $DATA/config/app.toml
+
 # Set client chain id
 sed -in-place='' 's/chain-id = ""/chain-id = "kavalocalnet_8888-1"/g' $DATA/config/client.toml
 

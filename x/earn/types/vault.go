@@ -8,32 +8,15 @@ import (
 )
 
 // NewVaultRecord returns a new VaultRecord with 0 supply.
-func NewVaultRecord(vaultDenom string) VaultRecord {
+func NewVaultRecord(vaultDenom string, amount sdk.Dec) VaultRecord {
 	return VaultRecord{
-		Denom:       vaultDenom,
-		TotalSupply: sdk.NewCoin(vaultDenom, sdk.ZeroInt()),
+		TotalShares: NewVaultShare(vaultDenom, amount),
 	}
 }
 
 // Validate returns an error if a VaultRecord is invalid.
 func (vr *VaultRecord) Validate() error {
-	if err := sdk.ValidateDenom(vr.Denom); err != nil {
-		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
-	}
-
-	if vr.TotalSupply.Denom != vr.Denom {
-		return fmt.Errorf(
-			"total supply denom %v does not match vault record denom %v",
-			vr.TotalSupply.Denom,
-			vr.Denom,
-		)
-	}
-
-	if err := vr.TotalSupply.Validate(); err != nil {
-		return fmt.Errorf("vault total supply is invalid: %w", err)
-	}
-
-	return nil
+	return vr.TotalShares.Validate()
 }
 
 // VaultRecords is a slice of VaultRecord.
@@ -48,11 +31,11 @@ func (vrs VaultRecords) Validate() error {
 			return err
 		}
 
-		if denoms[vr.Denom] {
-			return fmt.Errorf("duplicate vault denom %s", vr.Denom)
+		if denoms[vr.TotalShares.Denom] {
+			return fmt.Errorf("duplicate vault denom %s", vr.TotalShares.Denom)
 		}
 
-		denoms[vr.Denom] = true
+		denoms[vr.TotalShares.Denom] = true
 	}
 
 	return nil
@@ -60,10 +43,10 @@ func (vrs VaultRecords) Validate() error {
 
 // NewVaultShareRecord returns a new VaultShareRecord with the provided supplied
 // coins.
-func NewVaultShareRecord(depositor sdk.AccAddress, supplied ...sdk.Coin) VaultShareRecord {
+func NewVaultShareRecord(depositor sdk.AccAddress, shares VaultShares) VaultShareRecord {
 	return VaultShareRecord{
-		Depositor:      depositor,
-		AmountSupplied: sdk.NewCoins(supplied...),
+		Depositor: depositor,
+		Shares:    shares,
 	}
 }
 
@@ -73,8 +56,8 @@ func (vsr VaultShareRecord) Validate() error {
 		return fmt.Errorf("depositor is empty")
 	}
 
-	if err := vsr.AmountSupplied.Validate(); err != nil {
-		return fmt.Errorf("invalid vault share record amount supplied: %w", err)
+	if err := vsr.Shares.Validate(); err != nil {
+		return fmt.Errorf("invalid vault share record shares: %w", err)
 	}
 
 	return nil
@@ -102,16 +85,73 @@ func (vsrs VaultShareRecords) Validate() error {
 	return nil
 }
 
-// NewAllowedVaults returns a new AllowedVaults with the given denom and strategy type.
-func NewAllowedVault(denom string, strategyType StrategyType) AllowedVault {
+// NewAllowedVault returns a new AllowedVault with the given values.
+func NewAllowedVault(
+	denom string,
+	strategyTypes StrategyTypes,
+	isPrivateVault bool,
+	allowedDepositors []sdk.AccAddress,
+) AllowedVault {
 	return AllowedVault{
-		Denom:         denom,
-		VaultStrategy: strategyType,
+		Denom:             denom,
+		Strategies:        strategyTypes,
+		IsPrivateVault:    isPrivateVault,
+		AllowedDepositors: allowedDepositors,
 	}
 }
 
+// Validate returns an error if the AllowedVault is invalid
+func (a *AllowedVault) Validate() error {
+	if err := sdk.ValidateDenom(a.Denom); err != nil {
+		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
+	}
+
+	// Private -> 1+ allowed depositors
+	// Non-private -> 0 allowed depositors
+	if a.IsPrivateVault && len(a.AllowedDepositors) == 0 {
+		return fmt.Errorf("private vaults require non-empty AllowedDepositors")
+	}
+
+	if !a.IsPrivateVault && len(a.AllowedDepositors) > 0 {
+		return fmt.Errorf("non-private vaults cannot have any AllowedDepositors")
+	}
+
+	return a.Strategies.Validate()
+}
+
+// IsStrategyAllowed returns true if the given strategy type is allowed for the
+// vault.
+func (a *AllowedVault) IsStrategyAllowed(strategy StrategyType) bool {
+	for _, s := range a.Strategies {
+		if s == strategy {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsAccountAllowed returns true if the given account is allowed to deposit into
+// the vault.
+func (a *AllowedVault) IsAccountAllowed(account sdk.AccAddress) bool {
+	// Anyone can deposit to non-private vaults
+	if !a.IsPrivateVault {
+		return true
+	}
+
+	for _, addr := range a.AllowedDepositors {
+		if addr.Equals(account) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// AllowedVaults is a slice of AllowedVault.
 type AllowedVaults []AllowedVault
 
+// Validate returns an error if the AllowedVaults is invalid.
 func (a AllowedVaults) Validate() error {
 	denoms := make(map[string]bool)
 
@@ -125,17 +165,6 @@ func (a AllowedVaults) Validate() error {
 		}
 
 		denoms[v.Denom] = true
-	}
-	return nil
-}
-
-func (a *AllowedVault) Validate() error {
-	if err := sdk.ValidateDenom(a.Denom); err != nil {
-		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
-	}
-
-	if a.VaultStrategy == STRATEGY_TYPE_UNSPECIFIED {
-		return ErrInvalidVaultStrategy
 	}
 
 	return nil
