@@ -6,6 +6,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
@@ -61,6 +62,12 @@ type SwapKeeper interface {
 type SavingsKeeper interface {
 	GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (savingstypes.Deposit, bool)
 	GetSavingsModuleAccountBalances(ctx sdk.Context) sdk.Coins
+}
+
+// EarnKeeper defines the required methods needed by this modules keeper
+type EarnKeeper interface {
+	GetVaultTotalShares(ctx sdk.Context, denom string) (shares earntypes.VaultShare, found bool)
+	GetVaultAccountShares(ctx sdk.Context, acc sdk.AccAddress) (shares earntypes.VaultShares, found bool)
 }
 
 // AccountKeeper expected interface for the account keeper (noalias)

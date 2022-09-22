@@ -14,6 +14,7 @@ const (
 	DelegatorClaimType             = "delegator_claim"
 	SwapClaimType                  = "swap"
 	SavingsClaimType               = "savings"
+	EarnClaimType                  = "earn"
 )
 
 // GetOwner is a getter for Claim Owner
@@ -330,6 +331,58 @@ type SavingsClaims []SavingsClaim
 
 // Validate checks if all the claims are valid.
 func (cs SavingsClaims) Validate() error {
+	for _, c := range cs {
+		if err := c.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// NewEarnClaim returns a new EarnClaim
+func NewEarnClaim(owner sdk.AccAddress, rewards sdk.Coins, rewardIndexes MultiRewardIndexes) EarnClaim {
+	return EarnClaim{
+		BaseMultiClaim: BaseMultiClaim{
+			Owner:  owner,
+			Reward: rewards,
+		},
+		RewardIndexes: rewardIndexes,
+	}
+}
+
+// GetType returns the claim's type
+func (c EarnClaim) GetType() string { return EarnClaimType }
+
+// GetReward returns the claim's reward coin
+func (c EarnClaim) GetReward() sdk.Coins { return c.Reward }
+
+// GetOwner returns the claim's owner
+func (c EarnClaim) GetOwner() sdk.AccAddress { return c.Owner }
+
+// Validate performs a basic check of a SwapClaim fields
+func (c EarnClaim) Validate() error {
+	if err := c.RewardIndexes.Validate(); err != nil {
+		return err
+	}
+	return c.BaseMultiClaim.Validate()
+}
+
+// HasRewardIndex check if a claim has a reward index for the input pool ID.
+func (c EarnClaim) HasRewardIndex(poolID string) (int64, bool) {
+	for index, ri := range c.RewardIndexes {
+		if ri.CollateralType == poolID {
+			return int64(index), true
+		}
+	}
+	return 0, false
+}
+
+// EarnClaims slice of EarnClaim
+type EarnClaims []EarnClaim
+
+// Validate checks if all the claims are valid.
+func (cs EarnClaims) Validate() error {
 	for _, c := range cs {
 		if err := c.Validate(); err != nil {
 			return err

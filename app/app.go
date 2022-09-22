@@ -597,6 +597,17 @@ func NewApp(
 		app.bankKeeper,
 		&app.stakingKeeper,
 	)
+	earnKeeper := earnkeeper.NewKeeper(
+		appCodec,
+		keys[earntypes.StoreKey],
+		earnSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		&app.liquidKeeper,
+		&hardKeeper,
+		&savingsKeeper,
+	)
+
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
 		keys[incentivetypes.StoreKey],
@@ -608,16 +619,7 @@ func NewApp(
 		app.stakingKeeper,
 		&swapKeeper,
 		&savingsKeeper,
-	)
-	app.earnKeeper = earnkeeper.NewKeeper(
-		appCodec,
-		keys[earntypes.StoreKey],
-		earnSubspace,
-		app.accountKeeper,
-		app.bankKeeper,
-		app.liquidKeeper,
-		&hardKeeper,
-		&savingsKeeper,
+		&earnKeeper,
 	)
 
 	// create committee keeper with router
@@ -667,6 +669,7 @@ func NewApp(
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
 	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
 	app.savingsKeeper = *savingsKeeper.SetHooks(savingstypes.NewMultiSavingsHooks(app.incentiveKeeper.Hooks()))
+	app.earnKeeper = *earnKeeper.SetHooks(app.incentiveKeeper.Hooks())
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)

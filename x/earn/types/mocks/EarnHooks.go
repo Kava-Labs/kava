@@ -12,14 +12,14 @@ type EarnHooks struct {
 	mock.Mock
 }
 
-// AfterVaultDepositCreated provides a mock function with given fields: ctx, vaultDenom, depositor, sharedOwned
-func (_m *EarnHooks) AfterVaultDepositCreated(ctx types.Context, vaultDenom string, depositor types.AccAddress, sharedOwned types.Dec) {
-	_m.Called(ctx, vaultDenom, depositor, sharedOwned)
+// AfterVaultDepositCreated provides a mock function with given fields: ctx, vaultDenom, depositor, sharesOwned
+func (_m *EarnHooks) AfterVaultDepositCreated(ctx types.Context, vaultDenom string, depositor types.AccAddress, sharesOwned types.Dec) {
+	_m.Called(ctx, vaultDenom, depositor, sharesOwned)
 }
 
-// BeforeVaultDepositModified provides a mock function with given fields: ctx, vaultDenom, depositor, sharedOwned
-func (_m *EarnHooks) BeforeVaultDepositModified(ctx types.Context, vaultDenom string, depositor types.AccAddress, sharedOwned types.Dec) {
-	_m.Called(ctx, vaultDenom, depositor, sharedOwned)
+// BeforeVaultDepositModified provides a mock function with given fields: ctx, vaultDenom, depositor, sharesOwned
+func (_m *EarnHooks) BeforeVaultDepositModified(ctx types.Context, vaultDenom string, depositor types.AccAddress, sharesOwned types.Dec) {
+	_m.Called(ctx, vaultDenom, depositor, sharesOwned)
 }
 
 type mockConstructorTestingTNewEarnHooks interface {
