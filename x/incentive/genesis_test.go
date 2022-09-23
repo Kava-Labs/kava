@@ -147,6 +147,13 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 					},
 				},
 				{
+					Denom: "ukava",
+					Multipliers: types.Multipliers{
+						types.NewMultiplier("large", 12, d("1.0")),
+					},
+					ModuleName: "earn",
+				},
+				{
 					Denom: "hard",
 					Multipliers: types.Multipliers{
 						types.NewMultiplier("small", 1, d("0.25")),
