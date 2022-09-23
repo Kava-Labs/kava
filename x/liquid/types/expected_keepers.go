@@ -21,6 +21,7 @@ type BankKeeper interface {
 
 // AccountKeeper defines the expected keeper interface for interacting with account
 type AccountKeeper interface {
+	GetModuleAddress(moduleName string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
 }
 
