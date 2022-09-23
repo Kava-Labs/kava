@@ -14,9 +14,10 @@ import (
 type Keeper struct {
 	cdc codec.Codec
 
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	stakingKeeper types.StakingKeeper
+	accountKeeper      types.AccountKeeper
+	bankKeeper         types.BankKeeper
+	stakingKeeper      types.StakingKeeper
+	distributionKeeper types.DistributionKeeper
 
 	derivativeDenom string
 }
@@ -24,26 +25,27 @@ type Keeper struct {
 // NewKeeper returns a new keeper for the liquid module.
 func NewKeeper(
 	cdc codec.Codec,
-	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper,
+	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, dk types.DistributionKeeper,
 	derivativeDenom string,
 ) Keeper {
 
 	return Keeper{
-		cdc:             cdc,
-		accountKeeper:   ak,
-		bankKeeper:      bk,
-		stakingKeeper:   sk,
-		derivativeDenom: derivativeDenom,
+		cdc:                cdc,
+		accountKeeper:      ak,
+		bankKeeper:         bk,
+		stakingKeeper:      sk,
+		distributionKeeper: dk,
+		derivativeDenom:    derivativeDenom,
 	}
 }
 
 // NewDefaultKeeper returns a new keeper for the liquid module with default values.
 func NewDefaultKeeper(
 	cdc codec.Codec,
-	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper,
+	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, dk types.DistributionKeeper,
 ) Keeper {
 
-	return NewKeeper(cdc, ak, bk, sk, types.DefaultDerivativeDenom)
+	return NewKeeper(cdc, ak, bk, sk, dk, types.DefaultDerivativeDenom)
 }
 
 // Logger returns a module-specific logger.

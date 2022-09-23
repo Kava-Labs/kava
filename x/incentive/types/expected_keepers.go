@@ -76,6 +76,11 @@ type LiquidKeeper interface {
 	IsDerivativeDenom(ctx sdk.Context, denom string) bool
 	GetTotalDerivativeSupply(ctx sdk.Context) sdk.Int
 	GetDerivativeSupply(ctx sdk.Context, denom string) sdk.Int
+	CollectStakingRewardsByDenom(
+		ctx sdk.Context,
+		derivativeDenom string,
+		destinationModAccount string,
+	) (sdk.Coins, error)
 }
 
 // AccountKeeper expected interface for the account keeper (noalias)
