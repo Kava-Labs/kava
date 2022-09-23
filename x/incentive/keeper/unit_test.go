@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -59,7 +60,7 @@ func (suite *unitTester) SetupSuite() {
 
 func (suite *unitTester) SetupTest() {
 	suite.ctx = NewTestContext(suite.incentiveStoreKey)
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 }
 
 func (suite *unitTester) TearDownTest() {
@@ -67,8 +68,13 @@ func (suite *unitTester) TearDownTest() {
 	suite.ctx = sdk.Context{}
 }
 
-func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, bk types.BankKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper, svk types.SavingsKeeper, ek types.EarnKeeper) keeper.Keeper {
-	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk, svk, ek)
+func (suite *unitTester) NewKeeper(
+	paramSubspace types.ParamSubspace,
+	bk types.BankKeeper, cdpk types.CdpKeeper, hk types.HardKeeper,
+	ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper,
+	svk types.SavingsKeeper, lqk types.LiquidKeeper, ek types.EarnKeeper,
+) keeper.Keeper {
+	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk, svk, lqk, ek)
 }
 
 func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {
@@ -410,6 +416,66 @@ func (k *fakeEarnKeeper) GetVaultAccountShares(
 ) (shares earntypes.VaultShares, found bool) {
 	accShares, found := k.depositShares[acc.String()]
 	return accShares, found
+}
+
+func (k *fakeEarnKeeper) IterateVaultRecords(
+	ctx sdk.Context,
+	cb func(record earntypes.VaultRecord) (stop bool),
+) {
+	for _, vaultShares := range k.vaultShares {
+		cb(earntypes.VaultRecord{
+			TotalShares: vaultShares,
+		})
+	}
+}
+
+// fakeLiquidKeeper is a stub liquid keeper.
+// It can be used to return values to the incentive keeper without having to initialize a full liquid keeper.
+type fakeLiquidKeeper struct {
+	derivatives map[string]sdk.Int
+}
+
+var _ types.LiquidKeeper = newFakeLiquidKeeper()
+
+func newFakeLiquidKeeper() *fakeLiquidKeeper {
+	return &fakeLiquidKeeper{
+		derivatives: map[string]sdk.Int{},
+	}
+}
+
+func (k *fakeLiquidKeeper) addDerivative(denom string, supply sdk.Int) *fakeLiquidKeeper {
+	k.derivatives[denom] = supply
+	return k
+}
+
+func (k *fakeLiquidKeeper) IsDerivativeDenom(ctx sdk.Context, denom string) bool {
+	return strings.HasPrefix(denom, "bkava-")
+}
+
+func (k *fakeLiquidKeeper) GetAllDerivativeDenoms(ctx sdk.Context) (denoms []string) {
+	for denom := range k.derivatives {
+		denoms = append(denoms, denom)
+	}
+
+	return denoms
+}
+
+func (k *fakeLiquidKeeper) GetTotalDerivativeSupply(ctx sdk.Context) sdk.Int {
+	totalSupply := sdk.ZeroInt()
+	for _, supply := range k.derivatives {
+		totalSupply = totalSupply.Add(supply)
+	}
+
+	return totalSupply
+}
+
+func (k *fakeLiquidKeeper) GetDerivativeSupply(ctx sdk.Context, denom string) sdk.Int {
+	supply, found := k.derivatives[denom]
+	if !found {
+		return sdk.ZeroInt()
+	}
+
+	return supply
 }
 
 // Assorted Testing Data

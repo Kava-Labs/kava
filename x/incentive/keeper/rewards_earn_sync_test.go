@@ -324,7 +324,7 @@ func (suite *SynchronizeEarnRewardTests) TestGetSyncedClaim_ClaimUnchangedWhenNo
 
 	earnKeeper := newFakeEarnKeeper().
 		addDeposit(owner, earntypes.NewVaultShare("usdx", d("1000000000")))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
 
 	claim := types.EarnClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -357,7 +357,7 @@ func (suite *SynchronizeEarnRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 	owner := arbitraryAddress()
 
 	// owner has no shares in any vault
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, newFakeEarnKeeper())
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, newFakeEarnKeeper())
 
 	claim := types.EarnClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -419,7 +419,7 @@ func (suite *SynchronizeEarnRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 		addVault(VaultDenom_2, earntypes.NewVaultShare(VaultDenom_2, d("1000000000"))).
 		addDeposit(owner, earntypes.NewVaultShare(VaultDenom_1, d("1000000000"))).
 		addDeposit(owner, earntypes.NewVaultShare(VaultDenom_2, d("1000000000")))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, earnKeeper)
 
 	claim := types.EarnClaim{
 		BaseMultiClaim: types.BaseMultiClaim{

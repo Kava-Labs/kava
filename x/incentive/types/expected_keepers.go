@@ -68,6 +68,14 @@ type SavingsKeeper interface {
 type EarnKeeper interface {
 	GetVaultTotalShares(ctx sdk.Context, denom string) (shares earntypes.VaultShare, found bool)
 	GetVaultAccountShares(ctx sdk.Context, acc sdk.AccAddress) (shares earntypes.VaultShares, found bool)
+	IterateVaultRecords(ctx sdk.Context, cb func(record earntypes.VaultRecord) (stop bool))
+}
+
+// LiquidKeeper defines the required methods needed by this modules keeper
+type LiquidKeeper interface {
+	IsDerivativeDenom(ctx sdk.Context, denom string) bool
+	GetTotalDerivativeSupply(ctx sdk.Context) sdk.Int
+	GetDerivativeSupply(ctx sdk.Context, denom string) sdk.Int
 }
 
 // AccountKeeper expected interface for the account keeper (noalias)

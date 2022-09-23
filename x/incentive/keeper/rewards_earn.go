@@ -2,6 +2,9 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
+	"strings"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -12,26 +15,137 @@ import (
 // AccumulateEarnRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
 func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
-	previousAccrualTime, found := k.GetEarnRewardAccrualTime(ctx, rewardPeriod.CollateralType)
+	if rewardPeriod.CollateralType == "bkava" {
+		k.accumulateEarnBkavaRewards(ctx, rewardPeriod)
+		return
+	}
+
+	k.accumulateEarnRewards(
+		ctx,
+		rewardPeriod.CollateralType,
+		rewardPeriod.Start,
+		rewardPeriod.End,
+		sdk.NewDecCoinsFromCoins(rewardPeriod.RewardsPerSecond...),
+	)
+}
+
+func GetProportionalRewardsPerSecond(
+	rewardPeriod types.MultiRewardPeriod,
+	totalBkavaSupply sdk.Int,
+	singleBkavaSupply sdk.Int,
+) sdk.DecCoins {
+	// Rate per bkava-xxx = rewardsPerSecond * % of bkava-xxx
+	//                    = rewardsPerSecond * (bkava-xxx / total bkava)
+	//                    = (rewardsPerSecond * bkava-xxx) / total bkava
+
+	newRate := sdk.NewDecCoins()
+
+	// Prevent division by zero, if there are no total shares then there are no
+	// rewards.
+	if totalBkavaSupply.IsZero() {
+		return newRate
+	}
+
+	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
+		scaledAmount := rewardCoin.Amount.ToDec().
+			Mul(singleBkavaSupply.ToDec()).
+			Quo(totalBkavaSupply.ToDec())
+
+		newRate = newRate.Add(sdk.NewDecCoinFromDec(rewardCoin.Denom, scaledAmount))
+	}
+
+	return newRate
+}
+
+// accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
+// *all* bkava vaults.
+func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
+	// TODO: Get staking rewards and distribute
+
+	// All bkava vault denoms
+	bkavaVaultsDenoms := make(map[string]bool)
+
+	// bkava vault denoms from earn records (non-empty vaults)
+	k.earnKeeper.IterateVaultRecords(ctx, func(record earntypes.VaultRecord) (stop bool) {
+		// TODO: Replace with single bkava denom check method from liquid
+		if strings.HasPrefix(record.TotalShares.Denom, "bkava-") {
+			bkavaVaultsDenoms[record.TotalShares.Denom] = true
+		}
+
+		return false
+	})
+
+	// bkava vault denoms from past incentive indexes, may include vaults
+	// that were fully withdrawn.
+	k.IterateEarnRewardIndexes(ctx, func(vaultDenom string, indexes types.RewardIndexes) (stop bool) {
+		if strings.HasPrefix(vaultDenom, "bkava-") {
+			bkavaVaultsDenoms[vaultDenom] = true
+		}
+
+		return false
+	})
+
+	totalBkavaSupply := k.liquidKeeper.GetTotalDerivativeSupply(ctx)
+
+	i := 0
+	sortedBkavaVaultsDenoms := make([]string, len(bkavaVaultsDenoms))
+	for vaultDenom := range bkavaVaultsDenoms {
+		sortedBkavaVaultsDenoms[i] = vaultDenom
+		i++
+	}
+
+	// Sort the vault denoms to ensure deterministic iteration order.
+	sort.Strings(sortedBkavaVaultsDenoms)
+
+	// Accumulate rewards for each bkava vault.
+	for _, bkavaDenom := range sortedBkavaVaultsDenoms {
+		k.accumulateEarnRewards(
+			ctx,
+			bkavaDenom,
+			rewardPeriod.Start,
+			rewardPeriod.End,
+			GetProportionalRewardsPerSecond(
+				rewardPeriod,
+				totalBkavaSupply,
+				k.liquidKeeper.GetDerivativeSupply(ctx, bkavaDenom),
+			),
+		)
+	}
+}
+
+func (k Keeper) accumulateEarnRewards(
+	ctx sdk.Context,
+	collateralType string,
+	periodStart time.Time,
+	periodEnd time.Time,
+	periodRewardsPerSecond sdk.DecCoins,
+) {
+	previousAccrualTime, found := k.GetEarnRewardAccrualTime(ctx, collateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()
 	}
 
-	indexes, found := k.GetEarnRewardIndexes(ctx, rewardPeriod.CollateralType)
+	indexes, found := k.GetEarnRewardIndexes(ctx, collateralType)
 	if !found {
 		indexes = types.RewardIndexes{}
 	}
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalSource := k.getEarnTotalSourceShares(ctx, rewardPeriod.CollateralType)
+	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
 
-	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
+	acc.AccumulateDecCoins(
+		periodStart,
+		periodEnd,
+		periodRewardsPerSecond,
+		totalSourceShares,
+		ctx.BlockTime(),
+	)
 
-	k.SetEarnRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
+	k.SetEarnRewardAccrualTime(ctx, collateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
-		k.SetEarnRewardIndexes(ctx, rewardPeriod.CollateralType, acc.Indexes)
+		k.SetEarnRewardIndexes(ctx, collateralType, acc.Indexes)
 	}
 }
 

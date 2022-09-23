@@ -37,7 +37,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 	pool := "btc:usdx"
 
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
 	suite.storeGlobalSwapIndexes(types.MultiRewardIndexes{
 		{
@@ -89,7 +89,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 	pool := "btc:usdx"
 
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
@@ -134,7 +134,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 	pool := "btc:usdx"
 
 	swapKeeper := newFakeSwapKeeper() // no pools, so no source shares
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
@@ -180,7 +180,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 	pool := "btc:usdx"
 
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
 	period := types.NewMultiRewardPeriod(
 		true,
@@ -223,7 +223,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 	pool := "btc:usdx"
 
 	swapKeeper := newFakeSwapKeeper()
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
 	period := types.NewMultiRewardPeriod(
 		true,
@@ -251,7 +251,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenBeforeStartTime()
 	pool := "btc:usdx"
 
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
 	previousIndexes := types.MultiRewardIndexes{
 		{
@@ -297,7 +297,7 @@ func (suite *AccumulateSwapRewardsTests) TestPanicWhenCurrentTimeLessThanPreviou
 	pool := "btc:usdx"
 
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.keeper.SetSwapRewardAccrualTime(suite.ctx, pool, previousAccrualTime)
