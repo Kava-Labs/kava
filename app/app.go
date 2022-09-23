@@ -684,6 +684,13 @@ func NewApp(
 	app.savingsKeeper = *savingsKeeper.SetHooks(savingstypes.NewMultiSavingsHooks(app.incentiveKeeper.Hooks()))
 	app.earnKeeper = *earnKeeper.SetHooks(app.incentiveKeeper.Hooks())
 
+	// override x/gov tally handler with custom implementation
+	tallyHandler := NewTallyHandler(
+		app.govKeeper, app.stakingKeeper, app.savingsKeeper, app.earnKeeper,
+		app.liquidKeeper, app.bankKeeper,
+	)
+	app.govKeeper.SetTallyHandler(tallyHandler)
+
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
