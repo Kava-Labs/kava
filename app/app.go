@@ -584,18 +584,19 @@ func NewApp(
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 	)
+	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
+		appCodec,
+		app.accountKeeper,
+		app.bankKeeper,
+		&app.stakingKeeper,
+	)
 	savingsKeeper := savingskeeper.NewKeeper(
 		appCodec,
 		keys[savingstypes.StoreKey],
 		savingsSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-	)
-	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
-		appCodec,
-		app.accountKeeper,
-		app.bankKeeper,
-		&app.stakingKeeper,
+		app.liquidKeeper,
 	)
 	earnKeeper := earnkeeper.NewKeeper(
 		appCodec,
