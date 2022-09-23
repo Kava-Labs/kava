@@ -28,6 +28,7 @@ type BankKeeper interface {
 // LiquidKeeper defines the expected interface needed for derivative to staked token conversions.
 type LiquidKeeper interface {
 	GetStakedTokensForDerivatives(ctx sdk.Context, derivatives sdk.Coins) (sdk.Coin, error)
+	IsDerivativeDenom(ctx sdk.Context, denom string) bool
 }
 
 // HardKeeper defines the expected interface needed for the hard strategy.
