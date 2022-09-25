@@ -343,8 +343,16 @@ func (s queryServer) getOneAccountBkavaVaultDeposit(
 		return nil, err
 	}
 
+	// Remove non-bkava coins, GetStakedTokensForDerivatives expects only bkava
+	totalBkavaValue := sdk.NewCoins()
+	for _, coin := range totalAccountValue {
+		if s.keeper.liquidKeeper.IsDerivativeDenom(ctx, coin.Denom) {
+			totalBkavaValue = totalBkavaValue.Add(coin)
+		}
+	}
+
 	// Use account value with only the aggregate bkava converted to underlying staked tokens
-	stakedValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(ctx, totalAccountValue)
+	stakedValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(ctx, totalBkavaValue)
 	if err != nil {
 		return nil, err
 	}

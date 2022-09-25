@@ -417,13 +417,23 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 		[]sdk.AccAddress{},
 	)
 
+	suite.CreateVault(
+		"ukava",
+		types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
+		false,
+		[]sdk.AccAddress{},
+	)
+
 	address1, derivatives1, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[0], sdk.NewInt(1e9))
 	address2, derivatives2, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[1], sdk.NewInt(1e9))
+
+	err := suite.App.FundAccount(suite.Ctx, address1, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e9))))
+	suite.Require().NoError(err)
 
 	// Slash the last validator to reduce the value of it's derivatives to test bkava to underlying token conversion.
 	// First call end block to bond validator to enable slashing.
 	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
-	err := suite.slashValidator(sdk.ValAddress(address2), sdk.MustNewDecFromStr("0.5"))
+	err = suite.slashValidator(sdk.ValAddress(address2), sdk.MustNewDecFromStr("0.5"))
 	suite.Require().NoError(err)
 
 	suite.Run("no deposits", func() {
@@ -458,6 +468,9 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 	err = suite.Keeper.Deposit(suite.Ctx, address1, derivatives2, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
+	err = suite.Keeper.Deposit(suite.Ctx, address1, sdk.NewInt64Coin("ukava", 1e6), types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().NoError(err)
+
 	suite.Run("multiple deposits", func() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
@@ -468,6 +481,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 		suite.Require().Len(res.Deposits, 1)
 		// first validator isn't slashed, so bkava units equal to underlying staked tokens
 		// last validator slashed 50% so derivatives are worth half
+		// Excludes non-bkava deposits
 		expectedValue := derivatives1.Amount.Add(derivatives2.Amount.QuoRaw(2))
 		suite.Require().ElementsMatchf(
 			[]types.DepositResponse{
