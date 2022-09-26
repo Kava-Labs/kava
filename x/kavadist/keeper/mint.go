@@ -54,7 +54,7 @@ func (k Keeper) mintIncentivePeriods(ctx sdk.Context, periods types.Periods, pre
 			continue
 
 		// Case 2 - period has ended since the previous block time
-		case period.End.After(previousBlockTime) && period.End.Before(ctx.BlockTime()):
+		case period.End.After(previousBlockTime) && (period.End.Before(ctx.BlockTime()) || period.End.Equal(ctx.BlockTime())):
 			// calculate time elapsed relative to the periods end time
 			timeElapsed := sdk.NewInt(period.End.Unix() - previousBlockTime.Unix())
 			_, err = k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
