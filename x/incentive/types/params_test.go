@@ -10,8 +10,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/x/incentive/types"
-
-	earntypes "github.com/kava-labs/kava/x/earn/types"
 )
 
 type ParamTestSuite struct {
@@ -102,14 +100,6 @@ func (suite *ParamTestSuite) TestParamValidation() {
 							types.NewMultiplier("small", 1, sdk.MustNewDecFromStr("0.2")),
 							types.NewMultiplier("large", 12, sdk.MustNewDecFromStr("1.0")),
 						},
-						ModuleName: "",
-					},
-					{
-						Denom: "ukava",
-						Multipliers: types.Multipliers{
-							types.NewMultiplier("large", 0, sdk.MustNewDecFromStr("1.0")),
-						},
-						ModuleName: earntypes.ModuleName,
 					},
 				},
 				ClaimEnd: time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),

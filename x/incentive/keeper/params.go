@@ -76,26 +76,12 @@ func (k Keeper) GetSavingsRewardPeriods(ctx sdk.Context, denom string) (types.Mu
 }
 
 // GetMultiplierByDenom fetches a multiplier from the params matching the denom and name.
-func (k Keeper) GetMultiplierByDenom(
-	ctx sdk.Context,
-	denom string,
-	multiplierName string,
-	moduleName string,
-) (types.Multiplier, bool) {
+func (k Keeper) GetMultiplierByDenom(ctx sdk.Context, denom string, name string) (types.Multiplier, bool) {
 	params := k.GetParams(ctx)
 
-	// Try specific exact module/CollateralType match first
 	for _, dm := range params.ClaimMultipliers {
-		if dm.Denom == denom && dm.ModuleName == moduleName {
-			m, found := dm.Multipliers.Get(multiplierName)
-			return m, found
-		}
-	}
-
-	// Fallback to generic denom match
-	for _, dm := range params.ClaimMultipliers {
-		if dm.Denom == denom && dm.ModuleName == "" {
-			m, found := dm.Multipliers.Get(multiplierName)
+		if dm.Denom == denom {
+			m, found := dm.Multipliers.Get(name)
 			return m, found
 		}
 	}
