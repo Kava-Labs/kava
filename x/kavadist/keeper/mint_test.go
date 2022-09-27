@@ -161,3 +161,135 @@ func (suite *keeperTestSuite) TestInfraMinting() {
 	}
 
 }
+
+func (suite *keeperTestSuite) TestInfraPayoutCore() {
+
+	type args struct {
+		startTime               time.Time
+		endTime                 time.Time
+		infraPeriods            types.Periods
+		expectedFinalSupply     sdk.Coin
+		expectedBalanceIncrease sdk.Coin
+		marginOfError           sdk.Dec
+	}
+
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+
+	type test struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+
+	testCases := []test{
+		{
+			"5% apy one year",
+			args{
+				startTime:               time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC),
+				endTime:                 time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC),
+				infraPeriods:            types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdk.MustNewDecFromStr("1.000000001547125958"))},
+				expectedFinalSupply:     sdk.NewCoin(types.GovDenom, sdk.NewInt(1050000000000)),
+				expectedBalanceIncrease: sdk.NewCoin(types.GovDenom, sdk.NewInt(50000000000)),
+				marginOfError:           sdk.MustNewDecFromStr("0.0001"),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.SetupTest()
+		coreReward := types.NewCoreReward(suite.Addrs[0], sdk.OneDec())
+		params := types.NewParams(true, types.DefaultPeriods, types.NewInfraParams(tc.args.infraPeriods, types.DefaultInfraParams.PartnerRewards, types.CoreRewards{coreReward}))
+		ctx := suite.Ctx.WithBlockTime(tc.args.startTime)
+		suite.Keeper.SetParams(ctx, params)
+		suite.Require().NotPanics(func() {
+			suite.Keeper.SetPreviousBlockTime(ctx, tc.args.startTime)
+		})
+		initialBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
+		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
+		err := suite.Keeper.MintPeriodInflation(ctx)
+		suite.Require().NoError(err)
+		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
+		marginHigh := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Add(tc.args.marginOfError))
+		marginLow := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Sub(tc.args.marginOfError))
+		suite.Require().True(finalSupply.Amount.ToDec().LTE(marginHigh))
+		suite.Require().True(finalSupply.Amount.ToDec().GTE(marginLow))
+
+		finalBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
+		suite.Require().Equal(tc.args.expectedBalanceIncrease, finalBalance.Sub(initialBalance))
+
+	}
+
+}
+
+func (suite *keeperTestSuite) TestInfraPayoutPartner() {
+
+	type args struct {
+		startTime               time.Time
+		endTime                 time.Time
+		infraPeriods            types.Periods
+		expectedFinalSupply     sdk.Coin
+		expectedBalanceIncrease sdk.Coin
+		marginOfError           sdk.Dec
+	}
+
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+
+	type test struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+
+	testCases := []test{
+		{
+			"5% apy one year",
+			args{
+				startTime:               time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC),
+				endTime:                 time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC),
+				infraPeriods:            types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdk.MustNewDecFromStr("1.000000001547125958"))},
+				expectedFinalSupply:     sdk.NewCoin(types.GovDenom, sdk.NewInt(1050000000000)),
+				expectedBalanceIncrease: sdk.NewCoin(types.GovDenom, sdk.NewInt(63072000)),
+				marginOfError:           sdk.MustNewDecFromStr("0.0001"),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.SetupTest()
+		partnerReward := types.NewPartnerReward(suite.Addrs[0], sdk.NewCoin(types.GovDenom, sdk.NewInt(2)))
+		params := types.NewParams(true, types.DefaultPeriods, types.NewInfraParams(tc.args.infraPeriods, types.PartnerRewards{partnerReward}, types.DefaultInfraParams.CoreRewards))
+		ctx := suite.Ctx.WithBlockTime(tc.args.startTime)
+		suite.Keeper.SetParams(ctx, params)
+		suite.Require().NotPanics(func() {
+			suite.Keeper.SetPreviousBlockTime(ctx, tc.args.startTime)
+		})
+		initialBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
+		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
+		err := suite.Keeper.MintPeriodInflation(ctx)
+		suite.Require().NoError(err)
+		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
+		marginHigh := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Add(tc.args.marginOfError))
+		marginLow := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Sub(tc.args.marginOfError))
+		suite.Require().True(finalSupply.Amount.ToDec().LTE(marginHigh))
+		suite.Require().True(finalSupply.Amount.ToDec().GTE(marginLow))
+
+		finalBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
+		suite.Require().Equal(tc.args.expectedBalanceIncrease, finalBalance.Sub(initialBalance))
+
+	}
+
+}
