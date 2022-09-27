@@ -473,7 +473,7 @@ func (k *fakeLiquidKeeper) GetAllDerivativeDenoms(ctx sdk.Context) (denoms []str
 	return denoms
 }
 
-func (k *fakeLiquidKeeper) GetTotalDerivativeSupply(ctx sdk.Context) (sdk.Coin, error) {
+func (k *fakeLiquidKeeper) GetTotalDerivativeValue(ctx sdk.Context) (sdk.Coin, error) {
 	totalSupply := sdk.ZeroInt()
 	for _, supply := range k.derivatives {
 		totalSupply = totalSupply.Add(supply)
@@ -482,7 +482,7 @@ func (k *fakeLiquidKeeper) GetTotalDerivativeSupply(ctx sdk.Context) (sdk.Coin, 
 	return sdk.NewCoin("ukava", totalSupply), nil
 }
 
-func (k *fakeLiquidKeeper) GetDerivativeSupply(ctx sdk.Context, denom string) (sdk.Coin, error) {
+func (k *fakeLiquidKeeper) GetDerivativeValue(ctx sdk.Context, denom string) (sdk.Coin, error) {
 	supply, found := k.derivatives[denom]
 	if !found {
 		return sdk.NewCoin("ukava", sdk.ZeroInt()), nil
