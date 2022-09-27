@@ -125,9 +125,15 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+	"github.com/kava-labs/kava/x/liquid"
+	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
+	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
+	"github.com/kava-labs/kava/x/router"
+	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
+	routertypes "github.com/kava-labs/kava/x/router/types"
 	savings "github.com/kava-labs/kava/x/savings"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -139,8 +145,7 @@ import (
 )
 
 const (
-	appName                        = "kava"
-	FixDefaultAccountUpgradeHeight = 138592
+	appName = "kava"
 )
 
 var (
@@ -191,7 +196,9 @@ var (
 		savings.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
+		liquid.AppModuleBasic{},
 		earn.AppModuleBasic{},
+		router.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -216,12 +223,12 @@ var (
 		cdptypes.LiquidatorMacc:         {authtypes.Minter, authtypes.Burner},
 		hardtypes.ModuleAccountName:     {authtypes.Minter},
 		savingstypes.ModuleAccountName:  nil,
-		earntypes.ModuleName:            nil,
+		liquidtypes.ModuleAccountName:   {authtypes.Minter, authtypes.Burner},
+		earntypes.ModuleAccountName:     nil,
 	}
 )
 
 // Verify app interface at compile time
-// var _ simapp.App = (*App)(nil) // TODO
 var _ servertypes.Application = (*App)(nil)
 
 // Options bundles several configuration params for an App.
@@ -286,7 +293,9 @@ type App struct {
 	committeeKeeper  committeekeeper.Keeper
 	incentiveKeeper  incentivekeeper.Keeper
 	savingsKeeper    savingskeeper.Keeper
+	liquidKeeper     liquidkeeper.Keeper
 	earnKeeper       earnkeeper.Keeper
+	routerKeeper     routerkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -580,13 +589,32 @@ func NewApp(
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 	)
+	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
+		appCodec,
+		app.accountKeeper,
+		app.bankKeeper,
+		&app.stakingKeeper,
+		&app.distrKeeper,
+	)
 	savingsKeeper := savingskeeper.NewKeeper(
 		appCodec,
 		keys[savingstypes.StoreKey],
 		savingsSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
+		app.liquidKeeper,
 	)
+	earnKeeper := earnkeeper.NewKeeper(
+		appCodec,
+		keys[earntypes.StoreKey],
+		earnSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		&app.liquidKeeper,
+		&hardKeeper,
+		&savingsKeeper,
+	)
+
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
 		keys[incentivetypes.StoreKey],
@@ -598,15 +626,13 @@ func NewApp(
 		app.stakingKeeper,
 		&swapKeeper,
 		&savingsKeeper,
+		&app.liquidKeeper,
+		&earnKeeper,
 	)
-	app.earnKeeper = earnkeeper.NewKeeper(
-		appCodec,
-		keys[earntypes.StoreKey],
-		earnSubspace,
-		app.accountKeeper,
-		app.bankKeeper,
-		hardKeeper,
-		savingsKeeper,
+	app.routerKeeper = routerkeeper.NewKeeper(
+		&app.earnKeeper,
+		app.liquidKeeper,
+		&app.stakingKeeper,
 	)
 
 	// create committee keeper with router
@@ -656,6 +682,14 @@ func NewApp(
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
 	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
 	app.savingsKeeper = *savingsKeeper.SetHooks(savingstypes.NewMultiSavingsHooks(app.incentiveKeeper.Hooks()))
+	app.earnKeeper = *earnKeeper.SetHooks(app.incentiveKeeper.Hooks())
+
+	// override x/gov tally handler with custom implementation
+	tallyHandler := NewTallyHandler(
+		app.govKeeper, app.stakingKeeper, app.savingsKeeper, app.earnKeeper,
+		app.liquidKeeper, app.bankKeeper,
+	)
+	app.govKeeper.SetTallyHandler(tallyHandler)
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
@@ -692,7 +726,9 @@ func NewApp(
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
+		liquid.NewAppModule(app.liquidKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
+		router.NewAppModule(app.routerKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -739,7 +775,9 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
+		liquidtypes.ModuleName,
 		earntypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -778,7 +816,9 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
+		liquidtypes.ModuleName,
 		earntypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -817,6 +857,8 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
+		liquidtypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -980,10 +1022,11 @@ func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
 	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
 	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
+	liquidMaccAddr := app.accountKeeper.GetModuleAddress(liquidtypes.ModuleName)
 
 	for addr := range modAccAddrs {
 		// Set the kavadist and earn module account address as unblocked
-		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() {
+		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() || addr == liquidMaccAddr.String() {
 			modAccAddrs[addr] = false
 		}
 	}

@@ -124,7 +124,12 @@ func CalculatePerSecondRewards(
 	periodRewardsPerSecond sdk.DecCoins,
 	previousTime, currentTime time.Time,
 ) (sdk.DecCoins, time.Time) {
-	duration := (&Accumulator{}).getTimeElapsedWithinLimits(previousTime, currentTime, periodStart, periodEnd)
+	duration := (&Accumulator{}).getTimeElapsedWithinLimits(
+		previousTime,
+		currentTime,
+		periodStart,
+		periodEnd,
+	)
 
 	upTo := minTime(periodEnd, currentTime)
 

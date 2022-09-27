@@ -91,8 +91,8 @@ github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t
 github.com/DataDog/zstd v1.4.5/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/HdrHistogram/hdrhistogram-go v1.1.0/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
 github.com/HdrHistogram/hdrhistogram-go v1.1.2/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
-github.com/Kava-Labs/ethermint v0.14.1-0.20220819154458-9fb28b89b424 h1:xQp9wjAaDIsMU+c99UJyxgnJS+yIDmEVPCNWUSXIv8Y=
-github.com/Kava-Labs/ethermint v0.14.1-0.20220819154458-9fb28b89b424/go.mod h1:/x9PysLnuLxE1/33pHf8W+TQJFJh7XE49g05uJoQ7kw=
+github.com/Kava-Labs/ethermint v0.14.0-kava-v17.5 h1:oQH7YQ5MBExEbFQZ95UMdXimYLYHAc9su2yIsJ9+ISs=
+github.com/Kava-Labs/ethermint v0.14.0-kava-v17.5/go.mod h1:/x9PysLnuLxE1/33pHf8W+TQJFJh7XE49g05uJoQ7kw=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/Microsoft/go-winio v0.5.0/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
@@ -696,8 +696,8 @@ github.com/jung-kurt/gofpdf v1.0.3-0.20190309125859-24315acbbda5/go.mod h1:7Id9E
 github.com/jwilder/encoding v0.0.0-20170811194829-b4e1701a28ef/go.mod h1:Ct9fl0F6iIOGgxJ5npU/IUOhOhqlVrGjyIZc8/MagT0=
 github.com/karalabe/usb v0.0.0-20190919080040-51dc0efba356/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
 github.com/karalabe/usb v0.0.2/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
-github.com/kava-labs/cosmos-sdk v0.45.4-kava.3 h1:U4esIl4rzu9sApLFYGwbccPQTQdRg6C9exUVrokqSHY=
-github.com/kava-labs/cosmos-sdk v0.45.4-kava.3/go.mod h1:WOqtDxN3eCCmnYLVla10xG7lEXkFjpTaqm2a2WasgCc=
+github.com/kava-labs/cosmos-sdk v0.45.5-0.20220911204444-6a3eca4961c4 h1:5a0jTev2jHLKq/KuPZdkHX2Bq7oKJVIdEWsb/2Nk8+c=
+github.com/kava-labs/cosmos-sdk v0.45.5-0.20220911204444-6a3eca4961c4/go.mod h1:WOqtDxN3eCCmnYLVla10xG7lEXkFjpTaqm2a2WasgCc=
 github.com/kava-labs/tm-db v0.6.7-kava.1 h1:7cVYlvWx1yP+gGdaAWcfm6NwMLzf4z6DxXguWn3+O3w=
 github.com/kava-labs/tm-db v0.6.7-kava.1/go.mod h1:HVZfZzWXuqWseXQVplxsWXK6kLHLkk3kQB6c+nuSZvk=
 github.com/keybase/go-keychain v0.0.0-20190712205309-48d3d31d256d h1:Z+RDyXzjKE0i2sTjZ/b1uxiGtPhFy34Ou/Tk0qwN0kM=

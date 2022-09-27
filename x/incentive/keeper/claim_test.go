@@ -115,8 +115,8 @@ func (suite *ClaimTests) TestClaimEarnNoLockup() {
 		addVault(vaultDenom2, earntypes.NewVaultShare(vaultDenom2, d("1000000")))
 
 	liquidKeeper := newFakeLiquidKeeper().
-		addDerivative(vaultDenom1, i(1000000)).
-		addDerivative(vaultDenom2, i(1000000))
+		addDerivative(suite.ctx, vaultDenom1, i(1000000)).
+		addDerivative(suite.ctx, vaultDenom2, i(1000000))
 
 	suite.keeper = suite.NewKeeper(
 		&fakeParamSubspace{},
