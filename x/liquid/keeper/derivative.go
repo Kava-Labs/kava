@@ -138,23 +138,23 @@ func (k Keeper) GetStakedTokensForDerivatives(ctx sdk.Context, coins sdk.Coins) 
 
 // GetTotalDerivativeSupply returns the total amount of derivative coins for
 // all validators.
-func (k Keeper) GetTotalDerivativeSupply(ctx sdk.Context) sdk.Int {
-	total := sdk.ZeroInt()
+func (k Keeper) GetTotalDerivativeSupply(ctx sdk.Context) (sdk.Coin, error) {
+	bkavaCoins := sdk.NewCoins()
 
 	k.bankKeeper.IterateTotalSupply(ctx, func(c sdk.Coin) bool {
 		if k.IsDerivativeDenom(ctx, c.Denom) {
-			total = total.Add(c.Amount)
+			bkavaCoins = bkavaCoins.Add(c)
 		}
 
 		return false
 	})
 
-	return total
+	return k.GetStakedTokensForDerivatives(ctx, bkavaCoins)
 }
 
 // GetDerivativeSupply returns the total amount minted of the provided derivative.
-func (k Keeper) GetDerivativeSupply(ctx sdk.Context, denom string) sdk.Int {
-	return k.bankKeeper.GetSupply(ctx, denom).Amount
+func (k Keeper) GetDerivativeSupply(ctx sdk.Context, denom string) (sdk.Coin, error) {
+	return k.GetStakedTokensForDerivatives(ctx, sdk.NewCoins(k.bankKeeper.GetSupply(ctx, denom)))
 }
 
 func (k Keeper) mintCoins(ctx sdk.Context, receiver sdk.AccAddress, amount sdk.Coins) error {

@@ -84,7 +84,10 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 		return false
 	})
 
-	totalBkavaSupply := k.liquidKeeper.GetTotalDerivativeSupply(ctx)
+	totalBkavaValue, err := k.liquidKeeper.GetTotalDerivativeSupply(ctx)
+	if err != nil {
+		panic(err)
+	}
 
 	i := 0
 	sortedBkavaVaultsDenoms := make([]string, len(bkavaVaultsDenoms))
@@ -98,6 +101,11 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 
 	// Accumulate rewards for each bkava vault.
 	for _, bkavaDenom := range sortedBkavaVaultsDenoms {
+		derivativeValue, err := k.liquidKeeper.GetDerivativeSupply(ctx, bkavaDenom)
+		if err != nil {
+			panic(err)
+		}
+
 		k.accumulateBkavaEarnRewards(
 			ctx,
 			bkavaDenom,
@@ -105,8 +113,8 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 			rewardPeriod.End,
 			GetProportionalRewardsPerSecond(
 				rewardPeriod,
-				totalBkavaSupply,
-				k.liquidKeeper.GetDerivativeSupply(ctx, bkavaDenom),
+				totalBkavaValue.Amount,
+				derivativeValue.Amount,
 			),
 		)
 	}
