@@ -127,12 +127,11 @@ Where proposal.json contains:
 {
   "title": "Community Pool Deposit",
   "description": "Deposit some KAVA from community pool!",
-  "amount": [
-		{
+  "amount": 
+  	{
 			"denom": "ukava",
 			"amount": "100000000000"
-		}
-	],
+	},
 	"deposit": [
 		{
 			"denom": "ukava",
@@ -186,12 +185,11 @@ Where proposal.json contains:
 {
   "title": "Community Pool Withdraw",
   "description": "Withdraw some KAVA from community pool!",
-  "amount": [
-		{
+  "amount": 
+  	{
 			"denom": "ukava",
 			"amount": "100000000000"
-		}
-	],
+	},
 	"deposit": [
 		{
 			"denom": "ukava",
