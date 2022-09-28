@@ -31,6 +31,7 @@ type DistributionKeeper interface {
 	GetFeePool(ctx sdk.Context) (feePool disttypes.FeePool)
 	SetFeePool(ctx sdk.Context, feePool disttypes.FeePool)
 	GetDistributionAccount(ctx sdk.Context) types.ModuleAccountI
+	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
 }
 
 // LiquidKeeper defines the expected interface needed for derivative to staked token conversions.

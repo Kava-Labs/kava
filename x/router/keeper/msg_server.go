@@ -129,7 +129,7 @@ func (m msgServer) WithdrawBurn(goCtx context.Context, msg *types.MsgWithdrawBur
 		return nil, err
 	}
 
-	err = m.keeper.earnKeeper.Withdraw(ctx, depositor, tokenAmount, earntypes.STRATEGY_TYPE_SAVINGS)
+	_, err = m.keeper.earnKeeper.Withdraw(ctx, depositor, tokenAmount, earntypes.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (m msgServer) WithdrawBurnUndelegate(goCtx context.Context, msg *types.MsgW
 		return nil, err
 	}
 
-	err = m.keeper.earnKeeper.Withdraw(ctx, depositor, tokenAmount, earntypes.STRATEGY_TYPE_SAVINGS)
+	_, err = m.keeper.earnKeeper.Withdraw(ctx, depositor, tokenAmount, earntypes.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return nil, err
 	}

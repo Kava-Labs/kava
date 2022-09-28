@@ -228,6 +228,7 @@ var (
 		savingstypes.ModuleAccountName:  nil,
 		liquidtypes.ModuleAccountName:   {authtypes.Minter, authtypes.Burner},
 		earntypes.ModuleAccountName:     nil,
+		kavadisttypes.FundModuleAccount: nil,
 	}
 )
 
@@ -1029,10 +1030,11 @@ func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
 	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
 	liquidMaccAddr := app.accountKeeper.GetModuleAddress(liquidtypes.ModuleName)
+	kavadistFundMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.FundModuleAccount)
 
 	for addr := range modAccAddrs {
 		// Set the kavadist and earn module account address as unblocked
-		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() || addr == liquidMaccAddr.String() {
+		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() || addr == liquidMaccAddr.String() || addr == kavadistFundMaccAddr.String() {
 			modAccAddrs[addr] = false
 		}
 	}

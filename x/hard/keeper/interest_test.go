@@ -446,6 +446,22 @@ func (suite *InterestTestSuite) TestAPYToSPY() {
 			false,
 		},
 		{
+			"5% apy",
+			args{
+				apy:           sdk.MustNewDecFromStr("1.05"),
+				expectedValue: sdk.MustNewDecFromStr("1.000000001547125958"),
+			},
+			false,
+		},
+		{
+			"25% apy",
+			args{
+				apy:           sdk.MustNewDecFromStr("1.25"),
+				expectedValue: sdk.MustNewDecFromStr("1.000000007075835620"),
+			},
+			false,
+		},
+		{
 			"medium-high apy",
 			args{
 				apy:           sdk.MustNewDecFromStr("5"),
