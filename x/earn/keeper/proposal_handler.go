@@ -34,12 +34,17 @@ func HandleCommunityPoolDepositProposal(ctx sdk.Context, k Keeper, p *types.Comm
 
 func HandleCommunityPoolWithdrawProposal(ctx sdk.Context, k Keeper, p *types.CommunityPoolWithdrawProposal) error {
 
+	// withdraw funds from community pool via module-to-module transfer
+	withdrawAmount, err := k.WithdrawFromModuleAccount(ctx, k.distKeeper.GetDistributionAccount(ctx).GetAddress(), p.Amount, types.STRATEGY_TYPE_SAVINGS)
+	if err != nil {
+		return err
+	}
+
 	// add funds to community pool manually
 	feePool := k.distKeeper.GetFeePool(ctx)
-	newCommunityPool := feePool.CommunityPool.Add(sdk.NewDecCoinFromCoin(p.Amount))
+	newCommunityPool := feePool.CommunityPool.Add(sdk.NewDecCoinFromCoin(withdrawAmount))
 	feePool.CommunityPool = newCommunityPool
 	// store updated community pool
 	k.distKeeper.SetFeePool(ctx, feePool)
-	// withdraw funds from community pool via module-to-module transfer
-	return k.WithdrawFromModuleAccount(ctx, k.distKeeper.GetDistributionAccount(ctx).GetAddress(), p.Amount, types.STRATEGY_TYPE_SAVINGS)
+	return nil
 }
