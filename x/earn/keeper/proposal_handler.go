@@ -35,7 +35,7 @@ func HandleCommunityPoolDepositProposal(ctx sdk.Context, k Keeper, p *types.Comm
 func HandleCommunityPoolWithdrawProposal(ctx sdk.Context, k Keeper, p *types.CommunityPoolWithdrawProposal) error {
 
 	// withdraw funds from community pool via module-to-module transfer
-	withdrawAmount, err := k.WithdrawFromModuleAccount(ctx, k.distKeeper.GetDistributionAccount(ctx).GetAddress(), p.Amount, types.STRATEGY_TYPE_SAVINGS)
+	withdrawAmount, err := k.WithdrawFromModuleAccount(ctx, k.distKeeper.GetDistributionAccount(ctx).GetName(), p.Amount, types.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return err
 	}
