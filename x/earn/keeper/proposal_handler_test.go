@@ -33,7 +33,6 @@ func (suite *proposalTestSuite) TestCommunityDepositProposal() {
 	feePool := distKeeper.GetFeePool(ctx)
 	feePool.CommunityPool = sdk.NewDecCoinsFromCoins(fundAmount...)
 	distKeeper.SetFeePool(ctx, feePool)
-	// TODO update to STRATEGY_TYPE_SAVINGS once implemented
 	suite.CreateVault("ukava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 	prop := types.NewCommunityPoolDepositProposal("test title",
 		"desc", depositAmount)
