@@ -74,8 +74,13 @@ type EarnKeeper interface {
 // LiquidKeeper defines the required methods needed by this modules keeper
 type LiquidKeeper interface {
 	IsDerivativeDenom(ctx sdk.Context, denom string) bool
-	GetTotalDerivativeSupply(ctx sdk.Context) sdk.Int
-	GetDerivativeSupply(ctx sdk.Context, denom string) sdk.Int
+	GetTotalDerivativeValue(ctx sdk.Context) (sdk.Coin, error)
+	GetDerivativeValue(ctx sdk.Context, denom string) (sdk.Coin, error)
+	CollectStakingRewardsByDenom(
+		ctx sdk.Context,
+		derivativeDenom string,
+		destinationModAccount string,
+	) (sdk.Coins, error)
 }
 
 // AccountKeeper expected interface for the account keeper (noalias)

@@ -594,6 +594,7 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 		&app.stakingKeeper,
+		&app.distrKeeper,
 	)
 	savingsKeeper := savingskeeper.NewKeeper(
 		appCodec,
@@ -625,8 +626,7 @@ func NewApp(
 		app.stakingKeeper,
 		&swapKeeper,
 		&savingsKeeper,
-		// TODO: Liquid keeper
-		nil,
+		&app.liquidKeeper,
 		&earnKeeper,
 	)
 	app.routerKeeper = routerkeeper.NewKeeper(
