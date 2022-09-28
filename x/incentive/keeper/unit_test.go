@@ -519,40 +519,6 @@ func (k *fakeLiquidKeeper) getRewardAmount(
 	return amt.QuoRaw(10).MulRaw(duration)
 }
 
-func (k *fakeLiquidKeeper) CollectStakingRewardsByDenom(
-	ctx sdk.Context,
-	derivativeDenom string,
-	destinationModAccount string,
-) (sdk.Coins, error) {
-	amt := k.getRewardAmount(ctx, derivativeDenom)
-
-	return sdk.NewCoins(sdk.NewCoin("ukava", amt)), nil
-}
-
-func (k *fakeLiquidKeeper) getRewardAmount(
-	ctx sdk.Context,
-	derivativeDenom string,
-) sdk.Int {
-	amt, found := k.derivatives[derivativeDenom]
-	if !found {
-		// No error
-		return sdk.ZeroInt()
-	}
-
-	lastRewardClaim, found := k.lastRewardClaim[derivativeDenom]
-	if !found {
-		panic("last reward claim not found")
-	}
-
-	duration := int64(ctx.BlockTime().Sub(lastRewardClaim).Seconds())
-	if duration <= 0 {
-		return sdk.ZeroInt()
-	}
-
-	// Reward amount just set to 10% of the derivative supply per second
-	return amt.QuoRaw(10).MulRaw(duration)
-}
-
 // Assorted Testing Data
 
 // note: amino panics when encoding times ≥ the start of year 10000.
