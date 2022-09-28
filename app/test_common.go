@@ -115,8 +115,6 @@ func (tApp TestApp) GetLiquidKeeper() liquidkeeper.Keeper       { return tApp.li
 func (tApp TestApp) GetEarnKeeper() earnkeeper.Keeper           { return tApp.earnKeeper }
 func (tApp TestApp) GetRouterKeeper() routerkeeper.Keeper       { return tApp.routerKeeper }
 
-func (tApp TestApp) GetStoreKey(s string) sdk.StoreKey { return tApp.keys[s] }
-
 // LegacyAmino returns the app's amino codec.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
