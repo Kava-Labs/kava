@@ -92,7 +92,7 @@ func (cdp CommunityPoolWithdrawProposal) ProposalRoute() string { return RouterK
 
 // ProposalType returns the type of a community pool withdraw proposal.
 func (cdp CommunityPoolWithdrawProposal) ProposalType() string {
-	return ProposalTypeCommunityPoolDeposit
+	return ProposalTypeCommunityPoolWithdraw
 }
 
 // String implements fmt.Stringer
