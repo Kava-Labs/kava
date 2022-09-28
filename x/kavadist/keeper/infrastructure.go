@@ -35,7 +35,7 @@ func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods
 		// Case 3 - period is ongoing
 		case (period.Start.Before(previousBlockTime) || period.Start.Equal(previousBlockTime)) && period.End.After(ctx.BlockTime()):
 			// calculate time elapsed relative to the current block time
-			timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
+			timeElapsed = sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
 			coins, errI := k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
 			if !coins.IsZero() {
 				coinsMinted = coinsMinted.Add(coins)
@@ -44,6 +44,7 @@ func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods
 
 		// Case 4 - period hasn't started
 		case period.Start.After(ctx.BlockTime()) || period.Start.Equal(ctx.BlockTime()):
+			timeElapsed = sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
 			continue
 		}
 
