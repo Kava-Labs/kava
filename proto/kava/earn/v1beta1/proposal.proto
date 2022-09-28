@@ -11,27 +11,21 @@ message CommunityPoolDepositProposal {
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.goproto_getters)  = false;
 
-  string                       title          = 1 ;
-  string                       description    = 2 ;
-  cosmos.base.v1beta1.Coin amount = 3 [
-  (gogoproto.nullable)     = false
-  ];
+  string                   title       = 1;
+  string                   description = 2;
+  cosmos.base.v1beta1.Coin amount      = 3 [(gogoproto.nullable) = false];
 }
 
 // CommunityPoolDepositProposalJSON defines a CommunityPoolDepositProposal with a deposit
 message CommunityPoolDepositProposalJSON {
-    option (gogoproto.goproto_stringer) = true;
-    option (gogoproto.goproto_getters)  = false;
-  
-    string                       title          = 1 ;
-    string                       description    = 2 ;
-    cosmos.base.v1beta1.Coin amount = 3 [
-    (gogoproto.nullable)     = false
-    ];
-    repeated cosmos.base.v1beta1.Coin deposit = 4 [
-    (gogoproto.nullable)     = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
+  option (gogoproto.goproto_stringer) = true;
+  option (gogoproto.goproto_getters)  = false;
+
+  string                   title            = 1;
+  string                   description      = 2;
+  cosmos.base.v1beta1.Coin amount           = 3 [(gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin deposit = 4
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
 
 // CommunityPoolWithdrawProposal withdraws from an earn vault back to community pool
@@ -39,11 +33,9 @@ message CommunityPoolWithdrawProposal {
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.goproto_getters)  = false;
 
-  string                       title          = 1 ;
-  string                       description    = 2 ;
-  cosmos.base.v1beta1.Coin amount = 3 [
-  (gogoproto.nullable)     = false
-  ];
+  string                   title       = 1;
+  string                   description = 2;
+  cosmos.base.v1beta1.Coin amount      = 3 [(gogoproto.nullable) = false];
 }
 
 // CommunityPoolWithdrawProposalJSON defines a CommunityPoolWithdrawProposal with a deposit
@@ -51,13 +43,9 @@ message CommunityPoolWithdrawProposalJSON {
   option (gogoproto.goproto_stringer) = true;
   option (gogoproto.goproto_getters)  = false;
 
-  string                       title          = 1 ;
-  string                       description    = 2 ;
-  cosmos.base.v1beta1.Coin amount = 3 [
-  (gogoproto.nullable)     = false
-  ];
-  repeated cosmos.base.v1beta1.Coin deposit = 4 [
-  (gogoproto.nullable)     = false,
-  (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-];
+  string                   title            = 1;
+  string                   description      = 2;
+  cosmos.base.v1beta1.Coin amount           = 3 [(gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin deposit = 4
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
