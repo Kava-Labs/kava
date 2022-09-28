@@ -107,6 +107,7 @@ import (
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	earn "github.com/kava-labs/kava/x/earn"
+	earnclient "github.com/kava-labs/kava/x/earn/client"
 	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutil "github.com/kava-labs/kava/x/evmutil"
@@ -171,6 +172,8 @@ var (
 			ibcclientclient.UpgradeProposalHandler,
 			kavadistclient.ProposalHandler,
 			committeeclient.ProposalHandler,
+			earnclient.DepositProposalHandler,
+			earnclient.WithdrawProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
