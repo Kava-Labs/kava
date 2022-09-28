@@ -467,22 +467,56 @@ func (k *fakeLiquidKeeper) GetAllDerivativeDenoms(ctx sdk.Context) (denoms []str
 	return denoms
 }
 
-func (k *fakeLiquidKeeper) GetTotalDerivativeSupply(ctx sdk.Context) sdk.Int {
+func (k *fakeLiquidKeeper) GetTotalDerivativeValue(ctx sdk.Context) (sdk.Coin, error) {
 	totalSupply := sdk.ZeroInt()
 	for _, supply := range k.derivatives {
 		totalSupply = totalSupply.Add(supply)
 	}
 
-	return totalSupply
+	return sdk.NewCoin("ukava", totalSupply), nil
 }
 
-func (k *fakeLiquidKeeper) GetDerivativeSupply(ctx sdk.Context, denom string) sdk.Int {
+func (k *fakeLiquidKeeper) GetDerivativeValue(ctx sdk.Context, denom string) (sdk.Coin, error) {
 	supply, found := k.derivatives[denom]
 	if !found {
+		return sdk.NewCoin("ukava", sdk.ZeroInt()), nil
+	}
+
+	return sdk.NewCoin("ukava", supply), nil
+}
+
+func (k *fakeLiquidKeeper) CollectStakingRewardsByDenom(
+	ctx sdk.Context,
+	derivativeDenom string,
+	destinationModAccount string,
+) (sdk.Coins, error) {
+	amt := k.getRewardAmount(ctx, derivativeDenom)
+
+	return sdk.NewCoins(sdk.NewCoin("ukava", amt)), nil
+}
+
+func (k *fakeLiquidKeeper) getRewardAmount(
+	ctx sdk.Context,
+	derivativeDenom string,
+) sdk.Int {
+	amt, found := k.derivatives[derivativeDenom]
+	if !found {
+		// No error
 		return sdk.ZeroInt()
 	}
 
-	return supply
+	lastRewardClaim, found := k.lastRewardClaim[derivativeDenom]
+	if !found {
+		panic("last reward claim not found")
+	}
+
+	duration := int64(ctx.BlockTime().Sub(lastRewardClaim).Seconds())
+	if duration <= 0 {
+		return sdk.ZeroInt()
+	}
+
+	// Reward amount just set to 10% of the derivative supply per second
+	return amt.QuoRaw(10).MulRaw(duration)
 }
 
 func (k *fakeLiquidKeeper) CollectStakingRewardsByDenom(

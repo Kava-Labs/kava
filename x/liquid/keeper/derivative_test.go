@@ -470,6 +470,61 @@ func (suite *KeeperTestSuite) TestGetStakedTokensForDerivatives() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestGetDerivativeValue() {
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+	valAccAddr1, delegator, valAccAddr2 := addrs[0], addrs[1], addrs[2]
+	valAddr1 := sdk.ValAddress(valAccAddr1)
+
+	valAddr2 := sdk.ValAddress(valAccAddr2)
+
+	initialBalance := i(1e9)
+	vestedBalance := i(500e6)
+	delegateAmount := i(100e6)
+
+	suite.CreateAccountWithAddress(valAccAddr1, suite.NewBondCoins(initialBalance))
+	suite.CreateVestingAccountWithAddress(delegator, suite.NewBondCoins(initialBalance), suite.NewBondCoins(vestedBalance))
+
+	suite.CreateNewUnbondedValidator(valAddr1, initialBalance)
+	suite.CreateDelegation(valAddr1, delegator, delegateAmount)
+
+	suite.CreateAccountWithAddress(valAccAddr2, suite.NewBondCoins(initialBalance))
+
+	suite.CreateNewUnbondedValidator(valAddr2, initialBalance)
+	suite.CreateDelegation(valAddr2, delegator, delegateAmount)
+	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+
+	_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
+	suite.Require().NoError(err)
+
+	_, err = suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr2, suite.NewBondCoin(delegateAmount))
+	suite.Require().NoError(err)
+
+	suite.SlashValidator(valAddr2, d("0.05"))
+
+	suite.Run("total value", func() {
+		totalValue, err := suite.Keeper.GetTotalDerivativeValue(suite.Ctx)
+		suite.Require().NoError(err)
+		suite.Require().Equal(
+			// delegateAmount + (delegateAmount * 95%)
+			delegateAmount.Add(delegateAmount.MulRaw(95).QuoRaw(100)),
+			totalValue.Amount,
+		)
+	})
+
+	suite.Run("1:1 derivative value", func() {
+		derivativeValue, err := suite.Keeper.GetDerivativeValue(suite.Ctx, suite.Keeper.GetLiquidStakingTokenDenom(valAddr1))
+		suite.Require().NoError(err)
+		suite.Require().Equal(suite.NewBondCoin(delegateAmount), derivativeValue)
+	})
+
+	suite.Run("slashed derivative value", func() {
+		derivativeValue, err := suite.Keeper.GetDerivativeValue(suite.Ctx, suite.Keeper.GetLiquidStakingTokenDenom(valAddr2))
+		suite.Require().NoError(err)
+		// delegateAmount * 95%
+		suite.Require().Equal(delegateAmount.MulRaw(95).QuoRaw(100), derivativeValue.Amount)
+	})
+}
+
 func (suite *KeeperTestSuite) TestDerivativeFromTokens() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	valAccAddr := addrs[0]

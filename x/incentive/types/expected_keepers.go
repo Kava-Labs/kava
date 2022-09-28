@@ -5,6 +5,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
@@ -74,8 +75,8 @@ type EarnKeeper interface {
 // LiquidKeeper defines the required methods needed by this modules keeper
 type LiquidKeeper interface {
 	IsDerivativeDenom(ctx sdk.Context, denom string) bool
-	GetTotalDerivativeSupply(ctx sdk.Context) sdk.Int
-	GetDerivativeSupply(ctx sdk.Context, denom string) sdk.Int
+	GetTotalDerivativeValue(ctx sdk.Context) (sdk.Coin, error)
+	GetDerivativeValue(ctx sdk.Context, denom string) (sdk.Coin, error)
 	CollectStakingRewardsByDenom(
 		ctx sdk.Context,
 		derivativeDenom string,
