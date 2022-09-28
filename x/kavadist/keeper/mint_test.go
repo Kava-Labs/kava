@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -292,4 +293,86 @@ func (suite *keeperTestSuite) TestInfraPayoutPartner() {
 
 	}
 
+}
+
+func (suite *keeperTestSuite) TestInfraPayoutE2E() {
+
+	type balance struct {
+		address sdk.AccAddress
+		amount  sdk.Coins
+	}
+
+	type balances []balance
+
+	type args struct {
+		periods             types.Periods
+		startTime           time.Time
+		endTime             time.Time
+		infraPeriods        types.Periods
+		coreRewards         types.CoreRewards
+		partnerRewards      types.PartnerRewards
+		expectedFinalSupply sdk.Coin
+		expectedBalances    balances
+		marginOfError       sdk.Dec
+	}
+
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+
+	type test struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+
+	_, addrs := app.GeneratePrivKeyAddressPairs(3)
+
+	testCases := []test{
+		{
+			"5% apy one year",
+			args{
+				periods:             types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdk.MustNewDecFromStr("1.000000001547125958"))},
+				startTime:           time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC),
+				endTime:             time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC),
+				infraPeriods:        types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdk.MustNewDecFromStr("1.000000001547125958"))},
+				coreRewards:         types.CoreRewards{types.NewCoreReward(addrs[1], sdk.OneDec())},
+				partnerRewards:      types.PartnerRewards{types.NewPartnerReward(addrs[2], sdk.NewCoin("ukava", sdk.NewInt(2)))},
+				expectedFinalSupply: sdk.NewCoin(types.GovDenom, sdk.NewInt(1102500000000)),
+				expectedBalances: balances{
+					balance{addrs[1], sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(52436928000)))},
+					balance{addrs[2], sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(63072000)))},
+				},
+				marginOfError: sdk.MustNewDecFromStr("0.0001"),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.SetupTest()
+		params := types.NewParams(true, tc.args.periods, types.NewInfraParams(tc.args.infraPeriods, tc.args.partnerRewards, tc.args.coreRewards))
+		ctx := suite.Ctx.WithBlockTime(tc.args.startTime)
+		suite.Keeper.SetParams(ctx, params)
+		suite.Require().NotPanics(func() {
+			suite.Keeper.SetPreviousBlockTime(ctx, tc.args.startTime)
+		})
+		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
+		err := suite.Keeper.MintPeriodInflation(ctx)
+		suite.Require().NoError(err)
+		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
+		marginHigh := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Add(tc.args.marginOfError))
+		marginLow := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Sub(tc.args.marginOfError))
+		suite.Require().True(finalSupply.Amount.ToDec().LTE(marginHigh))
+		suite.Require().True(finalSupply.Amount.ToDec().GTE(marginLow))
+
+		for _, bal := range tc.args.expectedBalances {
+			finalBalance := suite.BankKeeper.GetAllBalances(ctx, bal.address)
+			suite.Require().Equal(bal.amount, finalBalance)
+		}
+	}
 }

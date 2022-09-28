@@ -71,7 +71,7 @@ func (k Keeper) distributeInfrastructureCoins(ctx sdk.Context, partnerRewards ty
 		}
 		neg, updatedCoins := safeSub(coinsToDistribute, coinsToSend)
 		if neg {
-			return fmt.Errorf("Negative coins")
+			return fmt.Errorf("negative coins")
 		}
 		coinsToDistribute = updatedCoins
 	}
@@ -82,6 +82,11 @@ func (k Keeper) distributeInfrastructureCoins(ctx sdk.Context, partnerRewards ty
 		if err != nil {
 			return err
 		}
+		neg, updatedCoins := safeSub(coinsToDistribute, coinsToSend)
+		if neg {
+			return fmt.Errorf("negative coins")
+		}
+		coinsToDistribute = updatedCoins
 	}
 	return nil
 }
