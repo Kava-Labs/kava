@@ -31,12 +31,29 @@ func NewAccumulator(previousAccrual time.Time, indexes RewardIndexes) *Accumulat
 //
 // totalSourceShares is the sum of all users' source shares. For example:total btcb supplied to hard, total usdx borrowed from all bnb CDPs, or total shares in a swap pool.
 func (acc *Accumulator) Accumulate(period MultiRewardPeriod, totalSourceShares sdk.Dec, currentTime time.Time) {
-	accumulationDuration := acc.getTimeElapsedWithinLimits(acc.PreviousAccumulationTime, currentTime, period.Start, period.End)
+	acc.AccumulateDecCoins(
+		period.Start,
+		period.End,
+		sdk.NewDecCoinsFromCoins(period.RewardsPerSecond...),
+		totalSourceShares,
+		currentTime,
+	)
+}
 
-	indexesIncrement := acc.calculateNewRewards(period.RewardsPerSecond, totalSourceShares, accumulationDuration)
+// AccumulateDecCoins
+func (acc *Accumulator) AccumulateDecCoins(
+	periodStart time.Time,
+	periodEnd time.Time,
+	periodRewardsPerSecond sdk.DecCoins,
+	totalSourceShares sdk.Dec,
+	currentTime time.Time,
+) {
+	accumulationDuration := acc.getTimeElapsedWithinLimits(acc.PreviousAccumulationTime, currentTime, periodStart, periodEnd)
+
+	indexesIncrement := acc.calculateNewRewards(periodRewardsPerSecond, totalSourceShares, accumulationDuration)
 
 	acc.Indexes = acc.Indexes.Add(indexesIncrement)
-	acc.PreviousAccumulationTime = minTime(period.End, currentTime)
+	acc.PreviousAccumulationTime = minTime(periodEnd, currentTime)
 }
 
 // getTimeElapsedWithinLimits returns the duration between start and end times, capped by min and max times.
@@ -59,7 +76,7 @@ func (*Accumulator) getTimeElapsedWithinLimits(start, end, limitMin, limitMax ti
 // The total rewards to distribute in this block are given by reward rate * duration. This value divided by the sum of all source shares to give
 // total rewards per source share, which is what the indexes store.
 // Note, duration is rounded to the nearest second to keep rewards calculation consistent with kava-7.
-func (*Accumulator) calculateNewRewards(rewardsPerSecond sdk.Coins, totalSourceShares sdk.Dec, duration time.Duration) RewardIndexes {
+func (*Accumulator) calculateNewRewards(rewardsPerSecond sdk.DecCoins, totalSourceShares sdk.Dec, duration time.Duration) RewardIndexes {
 	if totalSourceShares.LTE(sdk.ZeroDec()) {
 		// When there is zero source shares, there is no users with deposits/borrows/delegations to pay out the current block's rewards to.
 		// So drop the rewards and pay out nothing.
@@ -71,7 +88,7 @@ func (*Accumulator) calculateNewRewards(rewardsPerSecond sdk.Coins, totalSourceS
 		// So return an empty increment instead of one full of zeros.
 		return nil
 	}
-	increment := newRewardIndexesFromCoins(rewardsPerSecond)
+	increment := NewRewardIndexesFromCoins(rewardsPerSecond)
 	increment = increment.Mul(sdk.NewDec(durationSeconds)).Quo(totalSourceShares)
 	return increment
 }
@@ -92,11 +109,36 @@ func maxTime(t1, t2 time.Time) time.Time {
 	return t1
 }
 
-// newRewardIndexesFromCoins is a helper function to initialize a RewardIndexes slice with the values from a Coins slice.
-func newRewardIndexesFromCoins(coins sdk.Coins) RewardIndexes {
+// NewRewardIndexesFromCoins is a helper function to initialize a RewardIndexes slice with the values from a Coins slice.
+func NewRewardIndexesFromCoins(coins sdk.DecCoins) RewardIndexes {
 	var indexes RewardIndexes
 	for _, coin := range coins {
-		indexes = append(indexes, NewRewardIndex(coin.Denom, coin.Amount.ToDec()))
+		indexes = append(indexes, NewRewardIndex(coin.Denom, coin.Amount))
 	}
 	return indexes
+}
+
+func CalculatePerSecondRewards(
+	periodStart time.Time,
+	periodEnd time.Time,
+	periodRewardsPerSecond sdk.DecCoins,
+	previousTime, currentTime time.Time,
+) (sdk.DecCoins, time.Time) {
+	duration := (&Accumulator{}).getTimeElapsedWithinLimits(
+		previousTime,
+		currentTime,
+		periodStart,
+		periodEnd,
+	)
+
+	upTo := minTime(periodEnd, currentTime)
+
+	durationSeconds := int64(math.RoundToEven(duration.Seconds()))
+	if durationSeconds <= 0 {
+		// If the duration is zero, there will be no increment.
+		// So return an empty increment instead of one full of zeros.
+		return nil, upTo // TODO
+	}
+
+	return periodRewardsPerSecond.MulDec(sdk.NewDec(durationSeconds)), upTo
 }

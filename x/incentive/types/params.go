@@ -21,6 +21,7 @@ var (
 	KeyDelegatorRewardPeriods   = []byte("DelegatorRewardPeriods")
 	KeySwapRewardPeriods        = []byte("SwapRewardPeriods")
 	KeySavingsRewardPeriods     = []byte("SavingsRewardPeriods")
+	KeyEarnRewardPeriods        = []byte("EarnRewardPeriods")
 	KeyClaimEnd                 = []byte("ClaimEnd")
 	KeyMultipliers              = []byte("ClaimMultipliers")
 
@@ -37,8 +38,12 @@ var (
 )
 
 // NewParams returns a new params object
-func NewParams(usdxMinting RewardPeriods, hardSupply, hardBorrow, delegator, swap,
-	savings MultiRewardPeriods, multipliers MultipliersPerDenoms, claimEnd time.Time,
+func NewParams(
+	usdxMinting RewardPeriods,
+	// MultiRewardPeriods
+	hardSupply, hardBorrow, delegator, swap, savings, earn MultiRewardPeriods,
+	multipliers MultipliersPerDenoms,
+	claimEnd time.Time,
 ) Params {
 	return Params{
 		USDXMintingRewardPeriods: usdxMinting,
@@ -56,6 +61,7 @@ func NewParams(usdxMinting RewardPeriods, hardSupply, hardBorrow, delegator, swa
 func DefaultParams() Params {
 	return NewParams(
 		DefaultRewardPeriods,
+		DefaultMultiRewardPeriods,
 		DefaultMultiRewardPeriods,
 		DefaultMultiRewardPeriods,
 		DefaultMultiRewardPeriods,
@@ -80,6 +86,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyDelegatorRewardPeriods, &p.DelegatorRewardPeriods, validateMultiRewardPeriodsParam),
 		paramtypes.NewParamSetPair(KeySwapRewardPeriods, &p.SwapRewardPeriods, validateMultiRewardPeriodsParam),
 		paramtypes.NewParamSetPair(KeySavingsRewardPeriods, &p.SavingsRewardPeriods, validateMultiRewardPeriodsParam),
+		paramtypes.NewParamSetPair(KeyEarnRewardPeriods, &p.EarnRewardPeriods, validateMultiRewardPeriodsParam),
 		paramtypes.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersPerDenomParam),
 		paramtypes.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
 	}
@@ -112,6 +119,10 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateMultiRewardPeriodsParam(p.SavingsRewardPeriods); err != nil {
+		return err
+	}
+
+	if err := validateMultiRewardPeriodsParam(p.EarnRewardPeriods); err != nil {
 		return err
 	}
 

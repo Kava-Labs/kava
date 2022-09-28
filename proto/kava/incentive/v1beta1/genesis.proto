@@ -60,4 +60,8 @@ message GenesisState {
   GenesisRewardState savings_reward_state = 11 [(gogoproto.nullable) = false];
 
   repeated SavingsClaim savings_claims = 12 [(gogoproto.castrepeated) = "SavingsClaims", (gogoproto.nullable) = false];
+
+  GenesisRewardState earn_reward_state = 13 [(gogoproto.nullable) = false];
+
+  repeated EarnClaim earn_claims = 14 [(gogoproto.castrepeated) = "EarnClaims", (gogoproto.nullable) = false];
 }

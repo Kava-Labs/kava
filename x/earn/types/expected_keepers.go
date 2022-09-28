@@ -33,6 +33,12 @@ type DistributionKeeper interface {
 	GetDistributionAccount(ctx sdk.Context) types.ModuleAccountI
 }
 
+// LiquidKeeper defines the expected interface needed for derivative to staked token conversions.
+type LiquidKeeper interface {
+	GetStakedTokensForDerivatives(ctx sdk.Context, derivatives sdk.Coins) (sdk.Coin, error)
+	IsDerivativeDenom(ctx sdk.Context, denom string) bool
+}
+
 // HardKeeper defines the expected interface needed for the hard strategy.
 type HardKeeper interface {
 	Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error
@@ -51,6 +57,6 @@ type SavingsKeeper interface {
 
 // EarnHooks are event hooks called when a user's deposit to a earn vault changes.
 type EarnHooks interface {
-	AfterVaultDepositCreated(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharedOwned sdk.Dec)
-	BeforeVaultDepositModified(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharedOwned sdk.Dec)
+	AfterVaultDepositCreated(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharesOwned sdk.Dec)
+	BeforeVaultDepositModified(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharesOwned sdk.Dec)
 }

@@ -70,6 +70,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 			types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, "ukava", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, "btcb/usdx", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("swp", 122354)))},
 			types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, "ukava", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
+			types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, "ukava", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			types.MultipliersPerDenoms{
 				{
 					Denom: "ukava",
@@ -100,11 +101,13 @@ func (suite *GenesisTestSuite) SetupTest() {
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
+		types.DefaultGenesisRewardState,
 		types.DefaultUSDXClaims,
 		types.DefaultHardClaims,
 		types.DefaultDelegatorClaims,
 		types.DefaultSwapClaims,
 		types.DefaultSavingsClaims,
+		types.DefaultEarnClaims,
 	)
 
 	cdc := suite.app.AppCodec()
@@ -135,12 +138,20 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 			types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, "ukava", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, "btcb/usdx", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("swp", 122354)))},
 			types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, "ukava", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("hard", 122354)))},
+			types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, "ukava", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("hard", 122354)))},
 			types.MultipliersPerDenoms{
 				{
 					Denom: "ukava",
 					Multipliers: types.Multipliers{
 						types.NewMultiplier("large", 12, d("1.0")),
 					},
+				},
+				{
+					Denom: "ukava",
+					Multipliers: types.Multipliers{
+						types.NewMultiplier("large", 12, d("1.0")),
+					},
+					ModuleName: "earn",
 				},
 				{
 					Denom: "hard",
@@ -207,6 +218,14 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				types.NewMultiRewardIndex("ukava", types.RewardIndexes{{CollateralType: "ukava", RewardFactor: d("0.2")}}),
 			},
 		),
+		types.NewGenesisRewardState(
+			types.AccumulationTimes{
+				types.NewAccumulationTime("usdx", genesisTime.Add(-3*time.Hour)),
+			},
+			types.MultiRewardIndexes{
+				types.NewMultiRewardIndex("usdx", types.RewardIndexes{{CollateralType: "usdx", RewardFactor: d("0.2")}}),
+			},
+		),
 		types.USDXMintingClaims{
 			types.NewUSDXMintingClaim(
 				suite.addrs[0],
@@ -252,6 +271,13 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				suite.addrs[3],
 				nil,
 				types.MultiRewardIndexes{{CollateralType: "ukava", RewardIndexes: types.RewardIndexes{{CollateralType: "ukava", RewardFactor: d("0.0")}}}},
+			),
+		},
+		types.EarnClaims{
+			types.NewEarnClaim(
+				suite.addrs[3],
+				nil,
+				types.MultiRewardIndexes{{CollateralType: "usdx", RewardIndexes: types.RewardIndexes{{CollateralType: "earn", RewardFactor: d("0.0")}}}},
 			),
 		},
 	)
