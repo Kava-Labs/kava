@@ -15,7 +15,7 @@ import (
 var (
 	KeyActive                = []byte("Active")
 	KeyPeriods               = []byte("Periods")
-	KeyInfra                 = []byte("Infra")
+	KeyInfra                 = []byte("InfrastructureParams")
 	DefaultActive            = false
 	DefaultPeriods           = []Period{}
 	DefaultInfraParams       = InfrastructureParams{}
