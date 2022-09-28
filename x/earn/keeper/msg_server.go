@@ -53,7 +53,8 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, err
 	}
 
-	if err := m.keeper.Withdraw(ctx, from, msg.Amount, msg.Strategy); err != nil {
+	_, err = m.keeper.Withdraw(ctx, from, msg.Amount, msg.Strategy)
+	if err != nil {
 		return nil, err
 	}
 

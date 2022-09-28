@@ -30,5 +30,5 @@ type LiquidKeeper interface {
 
 type EarnKeeper interface {
 	Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin, depositStrategy earntypes.StrategyType) error
-	Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.Coin, withdrawStrategy earntypes.StrategyType) error
+	Withdraw(ctx sdk.Context, from sdk.AccAddress, wantAmount sdk.Coin, withdrawStrategy earntypes.StrategyType) (sdk.Coin, error)
 }
