@@ -45,7 +45,6 @@ func NewTestContext(requiredStoreKeys ...sdk.StoreKey) sdk.Context {
 type unitTester struct {
 	suite.Suite
 	keeper keeper.Keeper
-	app    app.TestApp
 	ctx    sdk.Context
 
 	cdc               codec.Codec
@@ -53,8 +52,8 @@ type unitTester struct {
 }
 
 func (suite *unitTester) SetupSuite() {
-	suite.app = app.NewTestApp()
-	suite.cdc = suite.app.AppCodec()
+	tApp := app.NewTestApp()
+	suite.cdc = tApp.AppCodec()
 
 	suite.incentiveStoreKey = sdk.NewKVStoreKey(types.StoreKey)
 }
@@ -75,12 +74,7 @@ func (suite *unitTester) NewKeeper(
 	ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper,
 	svk types.SavingsKeeper, lqk types.LiquidKeeper, ek types.EarnKeeper,
 ) keeper.Keeper {
-	return keeper.NewKeeper(
-		suite.cdc,
-		suite.incentiveStoreKey,
-		paramSubspace,
-		bk, cdpk, hk, ak, stk, swk, svk, lqk, ek,
-	)
+	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk, svk, lqk, ek)
 }
 
 func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {
