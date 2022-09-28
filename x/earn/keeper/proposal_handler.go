@@ -1,32 +1,23 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/earn/types"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // HandleCommunityPoolDepositProposal is a handler for executing a passed community pool deposit proposal
 func HandleCommunityPoolDepositProposal(ctx sdk.Context, k Keeper, p *types.CommunityPoolDepositProposal) error {
-	// deposit from community pool address (kava1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8m2splc)
-
-	// get community pool from dist module, make sure balance is > p.Amount,
-	// deduct funds from community pool manually (see DistributeFromFeePool from distribution module)
-	feePool := k.distKeeper.GetFeePool(ctx)
-	newCommunityPool, negative := feePool.CommunityPool.SafeSub(sdk.NewDecCoinsFromCoins(p.Amount))
-	if negative {
-		return fmt.Errorf("deposit amount %s < community pool balance: %s", p.Amount, feePool.CommunityPool)
+	fundAcc := k.accountKeeper.GetModuleAccount(ctx, kavadisttypes.FundModuleAccount)
+	if err := k.distKeeper.DistributeFromFeePool(ctx, sdk.NewCoins(p.Amount), fundAcc.GetAddress()); err != nil {
+		return err
 	}
-	// deposit funds
-	err := k.Deposit(ctx, k.distKeeper.GetDistributionAccount(ctx).GetAddress(), p.Amount, types.STRATEGY_TYPE_SAVINGS)
+
+	err := k.DepositFromModuleAccount(ctx, kavadisttypes.FundModuleAccount, p.Amount, types.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return err
 	}
-	// store updated community pool
-	feePool.CommunityPool = newCommunityPool
-	k.distKeeper.SetFeePool(ctx, feePool)
 
 	return nil
 
@@ -34,13 +25,16 @@ func HandleCommunityPoolDepositProposal(ctx sdk.Context, k Keeper, p *types.Comm
 
 func HandleCommunityPoolWithdrawProposal(ctx sdk.Context, k Keeper, p *types.CommunityPoolWithdrawProposal) error {
 
-	// withdraw funds from community pool via module-to-module transfer
-	withdrawAmount, err := k.WithdrawFromModuleAccount(ctx, k.distKeeper.GetDistributionAccount(ctx).GetAddress(), p.Amount, types.STRATEGY_TYPE_SAVINGS)
+	// withdraw funds
+	withdrawAmount, err := k.WithdrawFromModuleAccount(ctx, kavadisttypes.FundModuleAccount, p.Amount, types.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return err
 	}
 
 	// add funds to community pool manually
+	if err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, kavadisttypes.FundModuleAccount, k.distKeeper.GetDistributionAccount(ctx).GetName(), sdk.NewCoins(withdrawAmount)); err != nil {
+		return err
+	}
 	feePool := k.distKeeper.GetFeePool(ctx)
 	newCommunityPool := feePool.CommunityPool.Add(sdk.NewDecCoinFromCoin(withdrawAmount))
 	feePool.CommunityPool = newCommunityPool
