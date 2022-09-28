@@ -469,3 +469,27 @@ func (suite *KeeperTestSuite) TestGetStakedTokensForDerivatives() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestDerivativeFromTokens() {
+	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	valAccAddr := addrs[0]
+	valAddr := sdk.ValAddress(valAccAddr)
+	moduleAccAddress := authtypes.NewModuleAddress(types.ModuleAccountName)
+
+	initialBalance := i(1e9)
+
+	suite.CreateAccountWithAddress(valAccAddr, suite.NewBondCoins(initialBalance))
+	suite.AddCoinsToModule(types.ModuleAccountName, suite.NewBondCoins(initialBalance))
+
+	suite.CreateNewUnbondedValidator(valAddr, initialBalance)
+	suite.CreateDelegation(valAddr, moduleAccAddress, initialBalance)
+	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+
+	_, err := suite.Keeper.DerivativeFromTokens(suite.Ctx, valAddr, sdk.NewCoin("invalid", initialBalance))
+	suite.ErrorIs(err, types.ErrInvalidDenom)
+
+	derivatives, err := suite.Keeper.DerivativeFromTokens(suite.Ctx, valAddr, suite.NewBondCoin(initialBalance))
+	suite.NoError(err)
+	expected := sdk.NewCoin(fmt.Sprintf("bkava-%s", valAddr), initialBalance)
+	suite.Equal(expected, derivatives)
+}
