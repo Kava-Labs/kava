@@ -1,6 +1,8 @@
 package incentive
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/keeper"
@@ -29,6 +31,8 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 		k.AccumulateSavingsRewards(ctx, rp)
 	}
 	for _, rp := range params.EarnRewardPeriods {
-		k.AccumulateEarnRewards(ctx, rp)
+		if err := k.AccumulateEarnRewards(ctx, rp); err != nil {
+			panic(fmt.Sprintf("failed to accumulate earn rewards: %s", err))
+		}
 	}
 }

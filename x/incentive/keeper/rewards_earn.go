@@ -16,10 +16,9 @@ import (
 
 // AccumulateEarnRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
-func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
+func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) error {
 	if rewardPeriod.CollateralType == "bkava" {
-		k.accumulateEarnBkavaRewards(ctx, rewardPeriod)
-		return
+		return k.accumulateEarnBkavaRewards(ctx, rewardPeriod)
 	}
 
 	k.accumulateEarnRewards(
@@ -29,6 +28,8 @@ func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiR
 		rewardPeriod.End,
 		sdk.NewDecCoinsFromCoins(rewardPeriod.RewardsPerSecond...),
 	)
+
+	return nil
 }
 
 func GetProportionalRewardsPerSecond(
@@ -61,7 +62,7 @@ func GetProportionalRewardsPerSecond(
 
 // accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
 // *all* bkava vaults.
-func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) {
+func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) error {
 	// All bkava vault denoms
 	bkavaVaultsDenoms := make(map[string]bool)
 
@@ -86,7 +87,7 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 
 	totalBkavaValue, err := k.liquidKeeper.GetTotalDerivativeValue(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	i := 0
@@ -103,7 +104,7 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 	for _, bkavaDenom := range sortedBkavaVaultsDenoms {
 		derivativeValue, err := k.liquidKeeper.GetDerivativeValue(ctx, bkavaDenom)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		k.accumulateBkavaEarnRewards(
@@ -118,6 +119,8 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 			),
 		)
 	}
+
+	return nil
 }
 
 func (k Keeper) accumulateBkavaEarnRewards(
