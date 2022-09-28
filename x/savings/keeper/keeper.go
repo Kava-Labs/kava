@@ -19,13 +19,14 @@ type Keeper struct {
 	paramSubspace paramtypes.Subspace
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
+	liquidKeeper  types.LiquidKeeper
 	hooks         types.SavingsHooks
 }
 
 // NewKeeper returns a new keeper for the savings module.
 func NewKeeper(
 	cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace,
-	ak types.AccountKeeper, bk types.BankKeeper,
+	ak types.AccountKeeper, bk types.BankKeeper, lk types.LiquidKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -37,6 +38,7 @@ func NewKeeper(
 		paramSubspace: paramstore,
 		accountKeeper: ak,
 		bankKeeper:    bk,
+		liquidKeeper:  lk,
 		hooks:         nil,
 	}
 }

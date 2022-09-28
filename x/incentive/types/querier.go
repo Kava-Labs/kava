@@ -11,6 +11,7 @@ const (
 	QueryGetDelegatorRewards   = "delegator-rewards"
 	QueryGetSwapRewards        = "swap-rewards"
 	QueryGetSavingsRewards     = "savings-rewards"
+	QueryGetEarnRewards        = "earn-rewards"
 	QueryGetRewardFactors      = "reward-factors"
 	QueryGetParams             = "parameters"
 
@@ -46,11 +47,12 @@ type QueryGetRewardFactorsResponse struct {
 	DelegatorRewardFactors   MultiRewardIndexes `json:"delegator_reward_factors" yaml:"delegator_reward_factors"`
 	SwapRewardFactors        MultiRewardIndexes `json:"swap_reward_factors" yaml:"swap_reward_factors"`
 	SavingsRewardFactors     MultiRewardIndexes `json:"savings_reward_factors" yaml:"savings_reward_factors"`
+	EarnRewardFactors        MultiRewardIndexes `json:"earn_reward_factors" yaml:"earn_reward_factors"`
 }
 
 // NewQueryGetRewardFactorsResponse returns a new instance of QueryAllRewardFactorsResponse
 func NewQueryGetRewardFactorsResponse(usdxMintingFactors RewardIndexes, supplyFactors,
-	hardBorrowFactors, delegatorFactors, swapFactors, savingsFactors MultiRewardIndexes,
+	hardBorrowFactors, delegatorFactors, swapFactors, savingsFactors, earnFactors MultiRewardIndexes,
 ) QueryGetRewardFactorsResponse {
 	return QueryGetRewardFactorsResponse{
 		USDXMintingRewardFactors: usdxMintingFactors,
@@ -59,5 +61,6 @@ func NewQueryGetRewardFactorsResponse(usdxMintingFactors RewardIndexes, supplyFa
 		DelegatorRewardFactors:   delegatorFactors,
 		SwapRewardFactors:        swapFactors,
 		SavingsRewardFactors:     savingsFactors,
+		EarnRewardFactors:        earnFactors,
 	}
 }

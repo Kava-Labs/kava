@@ -28,4 +28,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	for _, rp := range params.SavingsRewardPeriods {
 		k.AccumulateSavingsRewards(ctx, rp)
 	}
+	for _, rp := range params.EarnRewardPeriods {
+		k.AccumulateEarnRewards(ctx, rp)
+	}
 }

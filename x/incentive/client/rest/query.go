@@ -68,6 +68,8 @@ func queryRewardsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			executeDelegatorRewardsQuery(w, cliCtx, params)
 		case "swap":
 			executeSwapRewardsQuery(w, cliCtx, params)
+		case "earn":
+			executeEarnRewardsQuery(w, cliCtx, params)
 		default:
 			executeAllRewardQueries(w, cliCtx, params)
 		}
@@ -182,6 +184,23 @@ func executeSwapRewardsQuery(w http.ResponseWriter, cliCtx client.Context, param
 	rest.PostProcessResponse(w, cliCtx, res)
 }
 
+func executeEarnRewardsQuery(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
+	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
+		return
+	}
+
+	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetEarnRewards), bz)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	cliCtx = cliCtx.WithHeight(height)
+	rest.PostProcessResponse(w, cliCtx, res)
+}
+
 func executeAllRewardQueries(w http.ResponseWriter, cliCtx client.Context, params types.QueryRewardsParams) {
 	paramsBz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
@@ -212,13 +231,21 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx client.Context, param
 	var delegatorClaims types.DelegatorClaims
 	cliCtx.LegacyAmino.MustUnmarshalJSON(delegatorRes, &delegatorClaims)
 
-	swapRes, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetSwapRewards), paramsBz)
+	swapRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetSwapRewards), paramsBz)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	var swapClaims types.SwapClaims
 	cliCtx.LegacyAmino.MustUnmarshalJSON(swapRes, &swapClaims)
+
+	earnRes, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetEarnRewards), paramsBz)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	var earnClaims types.EarnClaims
+	cliCtx.LegacyAmino.MustUnmarshalJSON(earnRes, &earnClaims)
 
 	cliCtx = cliCtx.WithHeight(height)
 
@@ -227,6 +254,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx client.Context, param
 		UsdxMintingClaims types.USDXMintingClaims           `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
 		DelegatorClaims   types.DelegatorClaims             `json:"delegator_claims" yaml:"delegator_claims"`
 		SwapClaims        types.SwapClaims                  `json:"swap_claims" yaml:"swap_claims"`
+		EarnClaims        types.EarnClaims                  `json:"earn_claims" yaml:"earn_claims"`
 	}
 
 	res := rewardResult{
@@ -234,6 +262,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx client.Context, param
 		UsdxMintingClaims: usdxMintingClaims,
 		DelegatorClaims:   delegatorClaims,
 		SwapClaims:        swapClaims,
+		EarnClaims:        earnClaims,
 	}
 
 	resBz, err := cliCtx.LegacyAmino.MarshalJSON(res)

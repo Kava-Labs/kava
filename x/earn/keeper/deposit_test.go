@@ -170,7 +170,7 @@ func (suite *depositTestSuite) TestDeposit_PrivateVault() {
 
 func (suite *depositTestSuite) TestDeposit_bKava() {
 	vaultDenom := "bkava"
-	coinDenom := vaultDenom + "-kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l"
+	coinDenom := testutil.TestBkavaDenoms[0]
 
 	startBalance := sdk.NewInt64Coin(coinDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(coinDenom, 100)

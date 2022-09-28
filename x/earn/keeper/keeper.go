@@ -16,6 +16,7 @@ type Keeper struct {
 	hooks         types.EarnHooks
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
+	liquidKeeper  types.LiquidKeeper
 
 	// Keepers used for strategies
 	hardKeeper    types.HardKeeper
@@ -29,6 +30,7 @@ func NewKeeper(
 	paramstore paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	liquidKeeper types.LiquidKeeper,
 	hardKeeper types.HardKeeper,
 	savingsKeeper types.SavingsKeeper,
 ) Keeper {
@@ -42,6 +44,7 @@ func NewKeeper(
 		paramSubspace: paramstore,
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
+		liquidKeeper:  liquidKeeper,
 		hardKeeper:    hardKeeper,
 		savingsKeeper: savingsKeeper,
 	}
