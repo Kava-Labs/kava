@@ -22,4 +22,5 @@ type BankKeeper interface {
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	MintCoins(ctx sdk.Context, moduleName string, amounts sdk.Coins) error
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }

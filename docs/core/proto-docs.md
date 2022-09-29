@@ -375,7 +375,10 @@
     - [Msg](#kava.issuance.v1beta1.Msg)
   
 - [kava/kavadist/v1beta1/params.proto](#kava/kavadist/v1beta1/params.proto)
+    - [CoreReward](#kava.kavadist.v1beta1.CoreReward)
+    - [InfrastructureParams](#kava.kavadist.v1beta1.InfrastructureParams)
     - [Params](#kava.kavadist.v1beta1.Params)
+    - [PartnerReward](#kava.kavadist.v1beta1.PartnerReward)
     - [Period](#kava.kavadist.v1beta1.Period)
   
 - [kava/kavadist/v1beta1/genesis.proto](#kava/kavadist/v1beta1/genesis.proto)
@@ -5325,6 +5328,39 @@ Msg defines the issuance Msg service.
 
 
 
+<a name="kava.kavadist.v1beta1.CoreReward"></a>
+
+### CoreReward
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [bytes](#bytes) |  |  |
+| `weight` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.InfrastructureParams"></a>
+
+### InfrastructureParams
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `infrastructure_periods` | [Period](#kava.kavadist.v1beta1.Period) | repeated |  |
+| `core_rewards` | [CoreReward](#kava.kavadist.v1beta1.CoreReward) | repeated |  |
+| `partner_rewards` | [PartnerReward](#kava.kavadist.v1beta1.PartnerReward) | repeated |  |
+
+
+
+
+
+
 <a name="kava.kavadist.v1beta1.Params"></a>
 
 ### Params
@@ -5335,6 +5371,23 @@ Params governance parameters for kavadist module
 | ----- | ---- | ----- | ----------- |
 | `active` | [bool](#bool) |  |  |
 | `periods` | [Period](#kava.kavadist.v1beta1.Period) | repeated |  |
+| `infrastructure_params` | [InfrastructureParams](#kava.kavadist.v1beta1.InfrastructureParams) |  |  |
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.PartnerReward"></a>
+
+### PartnerReward
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [bytes](#bytes) |  |  |
+| `rewards_per_second` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 
 
 
